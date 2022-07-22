@@ -33,6 +33,17 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 	current_filters = frappe.parse_json(current_filters)
 
 	if field == "assigned_to":
+		from frappe.model.utils import is_virtual_doctype
+		virtual_list = []
+		if is_virtual_doctype:
+			if is_virtual_doctype(doctype):
+				from frappe.model.base_document import get_controller
+				controller = get_controller(doctype)
+				data_list = controller.get_list(field)
+				if data_list:
+					for data in data_list:
+						virtual_list.append(data.name)
+
 		ToDo = DocType("ToDo")
 		User = DocType("User")
 		count = Count("*").as_("count")
@@ -46,7 +57,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 				(ToDo.status != "Cancelled")
 				& (ToDo.allocated_to == User.name)
 				& (User.user_type == "System User")
-				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
+				& (ToDo.reference_name.isin(virtual_list if virtual_list else SubQuery(filtered_records)))
 			)
 			.groupby(ToDo.allocated_to)
 			.orderby(count, order=Order.desc)
