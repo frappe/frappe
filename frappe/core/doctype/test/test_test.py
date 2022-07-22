@@ -60,7 +60,8 @@ class Testtest(FrappeTestCase):
 
 	def test_delete_doc(self):
 		doc = frappe.get_doc(doctype="test", test="data").insert()
-		doc.delete()
+
+		frappe.delete_doc(doc.doctype, doc.name)
 
 		listed_docs = {d.name for d in VirtDocType.get_list({})}
 		self.assertNotIn(doc.name, listed_docs)
