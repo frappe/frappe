@@ -31,7 +31,7 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	if not frappe.db.exists(doctype, name) and not is_virtual_doctype(doctype):
+	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
 		return []
 
 	doc = frappe.get_doc(doctype, name)
