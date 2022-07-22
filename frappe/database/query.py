@@ -1,16 +1,21 @@
 import operator
 import re
+from ast import literal_eval
 from functools import cached_property
-from typing import Any, Callable
+from types import BuiltinFunctionType
+from typing import TYPE_CHECKING, Any, Callable
 
 import frappe
 from frappe import _
-from frappe.boot import get_additional_filters_from_hooks
 from frappe.model.db_query import get_timespan_date_range
-from frappe.query_builder import Criterion, Field, Order, Table
+from frappe.query_builder import Criterion, Field, Order, Table, functions
+from frappe.query_builder.functions import Function, SqlFunctions
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
+BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
+SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
+COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -93,7 +98,7 @@ def func_between(key: Field, value: list | tuple) -> frappe.qb:
 
 def func_is(key, value):
 	"Wrapper for IS"
-	return Field(key).isnotnull() if value.lower() == "set" else Field(key).isnull()
+	return key.isnotnull() if value.lower() == "set" else key.isnull()
 
 
 def func_timespan(key: Field, value: str) -> frappe.qb:
@@ -143,6 +148,13 @@ def change_orderby(order: str):
 	return order[0], Order.desc
 
 
+def literal_eval_(literal):
+	try:
+		return literal_eval(literal)
+	except (ValueError, SyntaxError):
+		return literal
+
+
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
 	"+": operator.add,
@@ -155,6 +167,8 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"=<": operator.le,
 	">=": operator.ge,
 	"=>": operator.ge,
+	"/": operator.truediv,
+	"*": operator.mul,
 	"in": func_in,
 	"not in": func_not_in,
 	"like": like,
@@ -168,27 +182,24 @@ OPERATOR_MAP: dict[str, Callable] = {
 }
 
 
-class Query:
-	tables: dict = {}
+class Engine:
+	tables: dict[str, str] = {}
 
 	@cached_property
 	def OPERATOR_MAP(self):
+		from frappe.boot import get_additional_filters_from_hooks
+
 		# default operators
 		all_operators = OPERATOR_MAP.copy()
 
-		# update with site-specific custom operators
-		additional_filters_config = get_additional_filters_from_hooks()
-
-		if additional_filters_config:
+		# TODO: update with site-specific custom operators / removed previous buggy implementation
+		if frappe.get_hooks("filters_config"):
 			from frappe.utils.commands import warn
 
-			warn("'filters_config' hook is not completely implemented yet in frappe.db.query engine")
-
-		for _operator, function in additional_filters_config.items():
-			if callable(function):
-				all_operators.update({_operator.casefold(): function})
-			elif isinstance(function, dict):
-				all_operators[_operator.casefold()] = frappe.get_attr(function.get("get_field"))()["operator"]
+			warn(
+				"The 'filters_config' hook used to add custom operators is not yet implemented"
+				" in frappe.db.query engine. Use db_query (frappe.get_list) instead."
+			)
 
 		return all_operators
 
@@ -238,7 +249,7 @@ class Query:
 		Returns:
 		        conditions (frappe.qb): frappe.qb object
 		"""
-		if kwargs.get("orderby"):
+		if kwargs.get("orderby") and kwargs.get("orderby") != "KEEP_DEFAULT_ORDERING":
 			orderby = kwargs.get("orderby")
 			if isinstance(orderby, str) and len(orderby.split()) > 1:
 				for ordby in orderby.split(","):
@@ -250,12 +261,16 @@ class Query:
 
 		if kwargs.get("limit"):
 			conditions = conditions.limit(kwargs.get("limit"))
+			conditions = conditions.offset(kwargs.get("offset", 0))
 
 		if kwargs.get("distinct"):
 			conditions = conditions.distinct()
 
 		if kwargs.get("for_update"):
 			conditions = conditions.for_update()
+
+		if kwargs.get("groupby"):
+			conditions = conditions.groupby(kwargs.get("groupby"))
 
 		return conditions
 
@@ -306,6 +321,10 @@ class Query:
 			conditions = self.add_conditions(conditions, **kwargs)
 			return conditions
 
+		for key, value in filters.items():
+			if isinstance(value, bool):
+				filters.update({key: str(int(value))})
+
 		for key in filters:
 			value = filters.get(key)
 			_operator = self.OPERATOR_MAP["="]
@@ -315,7 +334,8 @@ class Query:
 				continue
 			if isinstance(value, (list, tuple)):
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
-				conditions = conditions.where(_operator(Field(key), value[1]))
+				_value = value[1] if value[1] else ("",)
+				conditions = conditions.where(_operator(Field(key), _value))
 			else:
 				if value is not None:
 					conditions = conditions.where(_operator(Field(key), value))
@@ -352,7 +372,138 @@ class Query:
 
 		return criterion
 
-	def get_sql(
+	def get_function_object(self, field: str) -> "Function":
+		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
+		func = field.split("(", maxsplit=1)[0].capitalize()
+		args_start, args_end = len(func) + 1, field.index(")")
+		args = field[args_start:args_end].split(",")
+
+		_, alias = field.split(" as ") if " as " in field else (None, None)
+
+		to_cast = "*" not in args
+		_args = []
+
+		for arg in args:
+			initial_fields = literal_eval_(arg.strip())
+			if to_cast:
+				has_primitive_operator = False
+				for _operator in OPERATOR_MAP.keys():
+					if _operator in initial_fields:
+						operator_mapping = OPERATOR_MAP[_operator]
+						# Only perform this if operator is of primitive type.
+						if isinstance(operator_mapping, BuiltinFunctionType):
+							has_primitive_operator = True
+							field = operator_mapping(
+								*map(lambda field: Field(field.strip()), arg.split(_operator)),
+							)
+
+				field = Field(initial_fields) if not has_primitive_operator else field
+			else:
+				field = initial_fields
+
+			_args.append(field)
+		try:
+			return getattr(functions, func)(*_args, alias=alias or None)
+		except AttributeError:
+			# Fall back for functions not present in `SqlFunctions``
+			return Function(func, *_args, alias=alias or None)
+
+	def function_objects_from_string(self, fields):
+		fields = list(map(lambda str: str.strip(), COMMA_PATTERN.split(fields)))
+		return self.function_objects_from_list(fields=fields)
+
+	def function_objects_from_list(self, fields):
+		functions = []
+		for field in fields:
+			field = field.casefold() if isinstance(field, str) else field
+			if not issubclass(type(field), Criterion):
+				if any([f"{func}(" in field for func in SQL_FUNCTIONS]) or "(" in field:
+					functions.append(field)
+
+		return [self.get_function_object(function) for function in functions]
+
+	def remove_string_functions(self, fields, function_objects):
+		"""Remove string functions from fields which have already been converted to function objects"""
+		for function in function_objects:
+			if isinstance(fields, str):
+				if function.alias:
+					fields = fields.replace(" as " + function.alias.casefold(), "")
+				fields = BRACKETS_PATTERN.sub("", fields.replace(function.name.casefold(), ""))
+				# Check if only comma is left in fields after stripping functions.
+				if "," in fields and (len(fields.strip()) == 1):
+					fields = ""
+			else:
+				updated_fields = []
+				for field in fields:
+					if isinstance(field, str):
+						if function.alias:
+							field = field.replace(" as " + function.alias.casefold(), "")
+						field = (
+							BRACKETS_PATTERN.sub("", field).strip().casefold().replace(function.name.casefold(), "")
+						)
+						updated_fields.append(field)
+
+					fields = [field for field in updated_fields if field]
+
+		return fields
+
+	def set_fields(self, fields, **kwargs):
+		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
+		if isinstance(fields, list) and None in fields and Field not in fields:
+			return None
+
+		function_objects = []
+
+		is_list = isinstance(fields, (list, tuple, set))
+		if is_list and len(fields) == 1:
+			fields = fields[0]
+			is_list = False
+
+		if is_list:
+			function_objects += self.function_objects_from_list(fields=fields)
+
+		is_str = isinstance(fields, str)
+		if is_str:
+			fields = fields.casefold()
+			function_objects += self.function_objects_from_string(fields=fields)
+
+		fields = self.remove_string_functions(fields, function_objects)
+
+		if is_str and "," in fields:
+			fields = [field.replace(" ", "") if "as" not in field else field for field in fields.split(",")]
+			is_list, is_str = True, False
+
+		if is_str:
+			if fields == "*":
+				return fields
+			if " as " in fields:
+				fields, reference = fields.split(" as ")
+				fields = Field(fields).as_(reference)
+
+		if not is_str and fields:
+			if issubclass(type(fields), Criterion):
+				return fields
+			updated_fields = []
+			if "*" in fields:
+				return fields
+			for field in fields:
+				if not isinstance(field, Criterion) and field:
+					if " as " in field:
+						field, reference = field.split(" as ")
+						updated_fields.append(Field(field.strip()).as_(reference))
+					else:
+						updated_fields.append(Field(field))
+
+					fields = updated_fields
+
+		# Need to check instance again since fields modified.
+		if not isinstance(fields, (list, tuple, set)):
+			fields = [fields] if fields else []
+
+		fields.extend(function_objects)
+		return fields
+
+	def get_query(
 		self,
 		table: str,
 		fields: list | tuple,
@@ -362,15 +513,20 @@ class Query:
 		# Clean up state before each query
 		self.tables = {}
 		criterion = self.build_conditions(table, filters, **kwargs)
+		fields = self.set_fields(kwargs.get("field_objects") or fields, **kwargs)
+
+		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 
 		if len(self.tables) > 1:
 			primary_table = self.tables[table]
 			del self.tables[table]
 			for table_object in self.tables.values():
-				criterion = criterion.left_join(table_object).on(table_object.parent == primary_table.name)
+				criterion = getattr(criterion, join)(table_object).on(
+					table_object.parent == primary_table.name
+				)
 
 		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*kwargs.get("field_objects", fields))
+			query = criterion.select(*fields)
 
 		elif isinstance(fields, Criterion):
 			query = criterion.select(fields)

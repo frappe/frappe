@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
@@ -46,7 +47,7 @@ def update_document_title(
 
 	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
 	for obj in [docname, updated_title, updated_name]:
-		if not isinstance(obj, (str, type(None))):
+		if not isinstance(obj, (str, NoneType)):
 			frappe.throw(f"{obj=} must be of type str or None")
 
 	# handle bad API usages

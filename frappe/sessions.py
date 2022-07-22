@@ -213,6 +213,8 @@ def generate_csrf_token():
 
 
 class Session:
+	__slots__ = ("user", "device", "user_type", "full_name", "data", "time_diff", "sid")
+
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(
 			frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest"))

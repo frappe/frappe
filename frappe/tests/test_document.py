@@ -3,7 +3,7 @@
 import unittest
 from contextlib import contextmanager
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 from frappe.app import make_form_dict
@@ -361,6 +361,30 @@ class TestDocument(unittest.TestCase):
 		# setting None should init a table field to empty list
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
+
+	def test_doc_events(self):
+		"""validate that all present doc events are correct methods"""
+
+		for doctype, doc_hooks in frappe.get_doc_hooks().items():
+			for _, hooks in doc_hooks.items():
+				for hook in hooks:
+					try:
+						frappe.get_attr(hook)
+					except Exception as e:
+						self.fail(f"Invalid doc hook: {doctype}:{hook}\n{e}")
+
+	def test_realtime_notify(self):
+		todo = frappe.new_doc("ToDo")
+		todo.description = "this will trigger realtime update"
+		todo.notify_update = Mock()
+		todo.insert()
+		self.assertEqual(todo.notify_update.call_count, 1)
+
+		todo.reload()
+		todo.flags.notify_update = False
+		todo.description = "this won't trigger realtime update"
+		todo.save()
+		self.assertEqual(todo.notify_update.call_count, 1)
 
 
 class TestDocumentWebView(unittest.TestCase):

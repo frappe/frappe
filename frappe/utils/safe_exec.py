@@ -4,7 +4,6 @@ import json
 import mimetypes
 
 import RestrictedPython.Guards
-from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
 
 import frappe
@@ -13,6 +12,7 @@ import frappe.integrations.utils
 import frappe.utils
 import frappe.utils.data
 from frappe import _
+from frappe.core.utils import html2text
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
 from frappe.model.delete_doc import delete_doc
@@ -152,6 +152,7 @@ def get_safe_globals():
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+			log=frappe.log,
 			db=NamespaceDict(
 				get_list=frappe.get_list,
 				get_all=frappe.get_all,

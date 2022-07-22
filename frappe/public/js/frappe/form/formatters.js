@@ -26,7 +26,7 @@ frappe.form.formatters = {
 		if (df) {
 			const std_df = frappe.meta.docfield_map[df.parent] && frappe.meta.docfield_map[df.parent][df.fieldname];
 			if (std_df && std_df.formatter && typeof std_df.formatter==='function') {
-				value = std_df.formatter(value);
+				value = std_df.formatter(value, df);
 			}
 		}
 		return value;
@@ -196,7 +196,7 @@ frappe.form.formatters = {
 	Datetime: function(value) {
 		if(value) {
 			return moment(frappe.datetime.convert_to_user_tz(value))
-				.format(frappe.boot.sysdefaults.date_format.toUpperCase() + ' ' + frappe.boot.sysdefaults.time_format || 'HH:mm:ss');
+				.format(frappe.boot.sysdefaults.date_format.toUpperCase() + ' ' + (frappe.boot.sysdefaults.time_format || 'HH:mm:ss'));
 		} else {
 			return "";
 		}

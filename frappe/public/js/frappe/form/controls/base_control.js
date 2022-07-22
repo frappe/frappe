@@ -187,6 +187,15 @@ frappe.ui.form.Control = class BaseControl {
 			return Promise.resolve();
 		}
 
+		const old_value = this.get_model_value();
+		this.frm?.undo_manager?.record_change({
+			fieldname: me.df.fieldname,
+			old_value,
+			new_value: value,
+			doctype: this.doctype,
+			docname: this.docname,
+			is_child: Boolean(this.doc?.parenttype)
+		});
 		this.inside_change_event = true;
 		function set(value) {
 			me.inside_change_event = false;
@@ -226,13 +235,16 @@ frappe.ui.form.Control = class BaseControl {
 		}
 	}
 	set_model_value(value) {
-		if(this.frm) {
+		if (this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype);
 		} else {
-			if(this.doc) {
+			if (this.doc) {
 				this.doc[this.df.fieldname] = value;
+			} else {
+				// case where input is rendered on dialog where doc is not maintained
+				this.value = value;
 			}
 			this.set_input(value);
 			return Promise.resolve();

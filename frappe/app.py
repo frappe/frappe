@@ -25,7 +25,7 @@ from frappe.utils import get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
-local_manager = LocalManager([frappe.local])
+local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
@@ -44,6 +44,7 @@ class RequestContext:
 		frappe.destroy()
 
 
+@local_manager.middleware
 @Request.application
 def application(request):
 	response = None
@@ -222,10 +223,6 @@ def handle_exception(e):
 		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
 
-	if frappe.conf.get("developer_mode"):
-		# don't fail silently
-		print(frappe.get_traceback())
-
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
@@ -289,6 +286,10 @@ def handle_exception(e):
 	if return_as_message:
 		response = get_response("message", http_status_code=http_status_code)
 
+	if frappe.conf.get("developer_mode") and not respond_as_json:
+		# don't fail silently for non-json response errors
+		print(frappe.get_traceback())
+
 	return response
 
 
@@ -311,9 +312,6 @@ def after_request(rollback):
 	update_comments_in_parent_after_request()
 
 	return rollback
-
-
-application = local_manager.make_middleware(application)
 
 
 def serve(

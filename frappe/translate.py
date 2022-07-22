@@ -153,7 +153,7 @@ def get_lang_dict():
 	)
 
 
-def get_dict(fortype: str, name: str | None = None) -> dict:
+def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	"""Returns translation dict for a type of object.
 
 	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
@@ -256,7 +256,7 @@ def get_lang_js(fortype: str, name: str) -> str:
 	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
-def get_full_dict(lang):
+def get_full_dict(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
 
 	:param lang: Language Code, e.g. `hi`
@@ -306,7 +306,7 @@ def load_lang(lang, apps=None):
 	return out or {}
 
 
-def get_translation_dict_from_file(path, lang, app, throw=False):
+def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
 	"""load translation dict from given path"""
 	translation_map = {}
 	if os.path.exists(path):

@@ -18,6 +18,7 @@ from email_reply_parser import EmailReplyParser
 import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
+from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
 	cint,
@@ -98,7 +99,20 @@ class EmailServer:
 				self.imap = Timed_IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
-			self.imap.login(self.settings.username, self.settings.password)
+
+			if self.settings.use_oauth:
+				Oauth(
+					self.imap,
+					self.settings.email_account,
+					self.settings.username,
+					self.settings.access_token,
+					self.settings.refresh_token,
+					self.settings.service,
+				).connect()
+
+			else:
+				self.imap.login(self.settings.username, self.settings.password)
+
 			# connection established!
 			return True
 
@@ -119,8 +133,19 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			self.pop.user(self.settings.username)
-			self.pop.pass_(self.settings.password)
+			if self.settings.use_oauth:
+				Oauth(
+					self.pop,
+					self.settings.email_account,
+					self.settings.username,
+					self.settings.access_token,
+					self.settings.refresh_token,
+					self.settings.service,
+				).connect()
+
+			else:
+				self.pop.user(self.settings.username)
+				self.pop.pass_(self.settings.password)
 
 			# connection established!
 			return True
