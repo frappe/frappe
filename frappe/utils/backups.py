@@ -73,11 +73,7 @@ class BackupGenerator:
 		if not self.db_type:
 			self.db_type = "mariadb"
 
-		if not self.db_port:
-			if self.db_type == "mariadb":
-				self.db_port = 3306
-			if self.db_type == "postgres":
-				self.db_port = 5432
+		self.db_port = self.db_port or frappe.db.default_port
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")

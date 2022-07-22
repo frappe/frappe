@@ -523,22 +523,24 @@ def postgres(context):
 
 
 def _mariadb():
+	from frappe.database.mariadb.database import MariaDBDatabase
+
 	mysql = find_executable("mysql")
-	os.execv(
+	command = [
 		mysql,
-		[
-			mysql,
-			"-u",
-			frappe.conf.db_name,
-			"-p" + frappe.conf.db_password,
-			frappe.conf.db_name,
-			"-h",
-			frappe.conf.db_host or "localhost",
-			"--pager=less -SFX",
-			"--safe-updates",
-			"-A",
-		],
-	)
+		"--port",
+		frappe.conf.db_port or MariaDBDatabase.default_port,
+		"-u",
+		frappe.conf.db_name,
+		f"-p{frappe.conf.db_password}",
+		frappe.conf.db_name,
+		"-h",
+		frappe.conf.db_host or "localhost",
+		"--pager=less -SFX",
+		"--safe-updates",
+		"-A",
+	]
+	os.execv(mysql, command)
 
 
 def _psql():

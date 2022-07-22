@@ -97,7 +97,6 @@ class TestDB(unittest.TestCase):
 		)
 
 	def test_get_value_limits(self):
-
 		# check both dict and list style filters
 		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
 		for filter in filters:

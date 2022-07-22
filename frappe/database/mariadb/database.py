@@ -143,6 +143,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		FIELD_TYPE.DATETIME: get_datetime,
 		UnicodeWithAttrs: escape_string,
 	}
+	default_port = "3306"
 
 	def setup_type_map(self):
 		self.db_type = "mariadb"
