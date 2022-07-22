@@ -124,7 +124,7 @@ def update_comment_in_doc(doc):
 	def get_truncated(content):
 		return (content[:97] + "...") if len(content) > 100 else content
 
-	if doc.reference_doctype and doc.reference_name and doc.content:
+	if doc.reference_doctype and doc.reference_name and doc.content and not frappe.db.get_value("DocType", doc.reference_doctype, "is_virtual"):
 		_comments = get_comments_from_parent(doc)
 
 		updated = False
