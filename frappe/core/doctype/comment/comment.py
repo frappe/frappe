@@ -11,7 +11,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title,
 	get_title_html,
 )
-from frappe.desk.reportview import is_virtual_doctype
+from frappe.model.utils import is_virtual_doctype
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
 from frappe.utils import get_fullname
