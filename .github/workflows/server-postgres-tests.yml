@@ -47,6 +47,14 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Check for valid Python & Merge Conflicts
+        run: |
+          python -m compileall -f "${GITHUB_WORKSPACE}"
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
+              then echo "Found merge conflicts"
+              exit 1
+          fi
+
       - name: Check if build should be run
         id: check-build
         run: |
@@ -107,18 +115,14 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: server
-
-      - name: Install
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
-        env:
           DB: postgres
-          TYPE: server
 
       - name: Run Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}

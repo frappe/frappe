@@ -192,19 +192,14 @@ class Engine:
 		# default operators
 		all_operators = OPERATOR_MAP.copy()
 
-		# update with site-specific custom operators
-		additional_filters_config = get_additional_filters_from_hooks()
-
-		if additional_filters_config:
+		# TODO: update with site-specific custom operators / removed previous buggy implementation
+		if frappe.get_hooks("filters_config"):
 			from frappe.utils.commands import warn
 
-			warn("'filters_config' hook is not completely implemented yet in frappe.db.query engine")
-
-		for _operator, function in additional_filters_config.items():
-			if callable(function):
-				all_operators.update({_operator.casefold(): function})
-			elif isinstance(function, dict):
-				all_operators[_operator.casefold()] = frappe.get_attr(function.get("get_field"))()["operator"]
+			warn(
+				"The 'filters_config' hook used to add custom operators is not yet implemented"
+				" in frappe.db.query engine. Use db_query (frappe.get_list) instead."
+			)
 
 		return all_operators
 

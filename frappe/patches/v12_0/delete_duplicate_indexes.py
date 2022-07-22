@@ -1,5 +1,3 @@
-from pymysql import InternalError
-
 import frappe
 
 # This patch deletes all the duplicate indexes created for same column
@@ -51,5 +49,5 @@ def execute():
 		for query in query_list:
 			try:
 				frappe.db.sql(query)
-			except InternalError:
+			except frappe.db.InternalError:
 				pass

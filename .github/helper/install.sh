@@ -1,8 +1,8 @@
 #!/bin/bash
-
 set -e
-
 cd ~ || exit
+
+echo "Setting Up Bench..."
 
 pip install frappe-bench
 
@@ -17,10 +17,6 @@ if [ "$TYPE" == "server" ]; then
 fi
 
 if [ "$DB" == "mariadb" ];then
-    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
-    sudo bash mariadb_repo_setup --mariadb-server-version=10.6
-    sudo apt install mariadb-client
-
     mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "SET GLOBAL character_set_server = 'utf8mb4'";
     mariadb --host 127.0.0.1 --port 3306 -u root -ptravis -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
@@ -56,7 +52,8 @@ bench -v setup requirements --dev
 
 if [ "$TYPE" == "ui" ]; then sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile; fi
 
-bench start &
+bench start &> bench_start.log &
 bench --site test_site reinstall --yes
+
 if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi
 if [ "$TYPE" == "server" ]; then CI=Yes bench build --app frappe; fi
