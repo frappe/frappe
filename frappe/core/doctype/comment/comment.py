@@ -5,6 +5,7 @@ import json
 import frappe
 from frappe.database.schema import add_column
 from frappe.desk.notifications import notify_mentions
+from frappe.model.utils import is_virtual_doctype
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
 from frappe.website.utils import clear_cache
@@ -111,7 +112,10 @@ def get_comments_from_parent(doc):
 	`_comments`
 	"""
 	try:
-		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
+		if is_virtual_doctype(doc.reference_doctype):
+			_comments = "[]"
+		else:
+			_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
 	except Exception as e:
 		if frappe.db.is_missing_table_or_column(e):
@@ -134,7 +138,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 		not reference_doctype
 		or not reference_name
 		or frappe.db.get_value("DocType", reference_doctype, "issingle")
-		or frappe.db.get_value("DocType", reference_doctype, "is_virtual")
+		or is_virtual_doctype(reference_doctype)
 	):
 		return
 

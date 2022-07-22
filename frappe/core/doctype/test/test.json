@@ -17,7 +17,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2021-03-31 10:06:57.919697",
+ "modified": "2022-07-22 03:00:59.560061",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "test",
@@ -36,7 +36,9 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
