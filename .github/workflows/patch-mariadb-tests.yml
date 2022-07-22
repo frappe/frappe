@@ -57,7 +57,7 @@ jobs:
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16
           check-latest: true
 
       - name: Add to Hosts
