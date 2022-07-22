@@ -9,9 +9,11 @@ from random import choice
 from unittest.mock import patch
 
 import frappe
+from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import savepoint
 from frappe.database.database import Database
+from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
@@ -20,6 +22,20 @@ from frappe.utils.testutils import clear_custom_fields
 
 
 class TestDB(unittest.TestCase):
+	def test_datetime_format(self):
+		now_str = now()
+		self.assertEqual(frappe.db.format_datetime(None), FallBackDateTimeStr)
+		self.assertEqual(frappe.db.format_datetime(now_str), now_str)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_get_column_type(self):
+		desc_data = frappe.db.sql("desc `tabUser`", as_dict=1)
+		user_name_type = find(desc_data, lambda x: x["Field"] == "name")["Type"]
+		self.assertEqual(frappe.db.get_column_type("User", "name"), user_name_type)
+
+	def test_get_database_size(self):
+		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
+
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")
