@@ -1,5 +1,7 @@
 from typing import Protocol
 
+import frappe
+
 
 class VirtualDoctype(Protocol):
 	"""This class documents requirements that must be met by a doctype controller to function as virtual doctype
@@ -15,7 +17,7 @@ class VirtualDoctype(Protocol):
 	# ============ class/static methods ============
 
 	@staticmethod
-	def get_list(args):
+	def get_list(args) -> list[frappe._dict]:
 		"""Similar to reportview.get_list"""
 		...
 
@@ -41,6 +43,10 @@ class VirtualDoctype(Protocol):
 		This is responsible for updatinng __dict__ of class with all the fields on doctype."""
 		...
 
-	def db_update(self, *args, **kwargs):
+	def db_update(self, *args, **kwargs) -> None:
 		"""Serialize the `Document` object and update existing document in backend."""
+		...
+
+	def delete(self, *args, **kwargs) -> None:
+		"""Delete the current document from backend"""
 		...
