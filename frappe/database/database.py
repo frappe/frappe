@@ -16,7 +16,14 @@ import frappe
 import frappe.defaults
 import frappe.model.meta
 from frappe import _
-from frappe.database.utils import EmptyQueryValues, LazyMogrify, Query, QueryValues, is_query_type
+from frappe.database.utils import (
+	EmptyQueryValues,
+	FallBackDateTimeStr,
+	LazyMogrify,
+	Query,
+	QueryValues,
+	is_query_type,
+)
 from frappe.exceptions import DoesNotExistError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
@@ -1071,7 +1078,7 @@ class Database:
 	@staticmethod
 	def format_datetime(datetime):
 		if not datetime:
-			return "0001-01-01 00:00:00.000000"
+			return FallBackDateTimeStr
 
 		if isinstance(datetime, str):
 			if ":" not in datetime:

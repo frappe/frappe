@@ -11,6 +11,7 @@ Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | NoneType
 
 EmptyQueryValues = object()
+FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
 
 
 def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
