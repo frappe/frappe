@@ -85,7 +85,7 @@ class Postgres(Base, PostgreSQLQuery):
 		if isinstance(table, Table):
 			if table._schema:
 				if table._schema._name == "information_schema":
-					table = cls.schema_translation[table._table_name]
+					table = cls.schema_translation.get(table._table_name) or table
 
 		elif isinstance(table, str):
 			table = cls.DocType(table)

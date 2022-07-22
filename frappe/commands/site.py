@@ -86,7 +86,6 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
-		new_site=True,
 	)
 
 	if set_default:
@@ -844,9 +843,10 @@ def _drop_site(
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
 	)
+	archived_sites_path = os.path.realpath(archived_sites_path)
 
+	click.secho(f"Moving site to archive under {archived_sites_path}", fg="green")
 	os.makedirs(archived_sites_path, exist_ok=True)
-
 	move(archived_sites_path, site)
 
 
