@@ -11,6 +11,7 @@ import frappe.share
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
@@ -30,9 +31,8 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	if not frappe.db.exists(doctype, name):
-		if not frappe.get_meta(doctype).is_virtual:
-			return []
+	if not frappe.db.exists(doctype, name) and not is_virtual_doctype(doctype):
+		return []
 
 	doc = frappe.get_doc(doctype, name)
 	run_onload(doc)

@@ -179,7 +179,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 		not reference_doctype
 		or not reference_name
 		or frappe.db.get_value("DocType", reference_doctype, "issingle")
-		or frappe.db.get_value("DocType", reference_doctype, "is_virtual")
+		or is_virtual_doctype(reference_doctype)
 	):
 		return
 

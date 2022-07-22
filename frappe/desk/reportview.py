@@ -13,8 +13,8 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cstr, format_duration
-from frappe.utils.caching import site_cache
 
 
 @frappe.whitelist()
@@ -731,8 +731,3 @@ def get_filters_cond(
 	else:
 		cond = ""
 	return cond
-
-
-@site_cache(maxsize=128)
-def is_virtual_doctype(doctype):
-	return frappe.db.get_value("DocType", doctype, "is_virtual")
