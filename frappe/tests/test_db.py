@@ -135,7 +135,7 @@ class TestDB(unittest.TestCase):
 		test_inputs = [
 			{"fieldtype": fieldtype, "value": value} for fieldtype, value in values_dict.items()
 		]
-		for fieldtype in values_dict.keys():
+		for fieldtype in values_dict:
 			create_custom_field(
 				"Print Settings",
 				{

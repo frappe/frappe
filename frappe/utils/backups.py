@@ -697,6 +697,14 @@ def backup(
 if __name__ == "__main__":
 	import sys
 
+	from frappe.utils.commands import warn
+
+	warn(
+		"Calling the backup script directly is deprecated. "
+		"Use the backup command instead. This script will be removed in Frappe v15.",
+		category=DeprecationWarning,
+	)
+
 	cmd = sys.argv[1]
 
 	db_type = "mariadb"

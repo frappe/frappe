@@ -123,7 +123,7 @@ class MariaDBConnectionUtil:
 				"cert": frappe.conf.db_ssl_cert,
 				"key": frappe.conf.db_ssl_key,
 			}
-			conn_settings.update(ssl_params)
+			conn_settings |= ssl_params
 		return conn_settings
 
 
