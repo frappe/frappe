@@ -210,7 +210,7 @@ class DatabaseQuery:
 			% args
 		)
 
-		if self.locals.get("ignore_permissions"):
+		if self.locals.get("ignore_permissions") and ("." not in self.qb_fields):
 			return frappe.qb.engine.get_query(
 				table=self.doctype,
 				fields=self.qb_fields,

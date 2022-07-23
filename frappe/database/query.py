@@ -3,7 +3,7 @@ import re
 from ast import literal_eval
 from functools import cached_property
 from types import BuiltinFunctionType
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 import frappe
 from frappe import _
@@ -465,7 +465,6 @@ class Engine:
 			is_list = False
 
 		if is_list:
-			fields = [field.replace("""`""", "") for field in fields]
 			function_objects += self.function_objects_from_list(fields=fields)
 
 		is_str = isinstance(fields, str)
@@ -514,6 +513,7 @@ class Engine:
 		table: str,
 		fields: list | tuple,
 		filters: dict[str, str | int] | str | int | list[list | str | int] = None,
+		run: bool = False,
 		**kwargs,
 	):
 		# Clean up state before each query
@@ -539,7 +539,9 @@ class Engine:
 
 		else:
 			query = criterion.select(fields)
-
+		query = str(query).replace("``", "`")
+		if run:
+			return frappe.db.sql(query, **kwargs)
 		return query
 
 
