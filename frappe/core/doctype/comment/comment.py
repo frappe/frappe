@@ -5,9 +5,9 @@ import json
 import frappe
 from frappe.database.schema import add_column
 from frappe.desk.notifications import notify_mentions
-from frappe.model.utils import is_virtual_doctype
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
+from frappe.model.utils import is_virtual_doctype
 from frappe.website.utils import clear_cache
 
 
