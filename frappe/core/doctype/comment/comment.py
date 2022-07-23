@@ -3,24 +3,17 @@
 import json
 
 import frappe
-from frappe import _
-from frappe.core.doctype.user.user import extract_mentions
 from frappe.database.schema import add_column
-from frappe.desk.doctype.notification_log.notification_log import (
-	enqueue_create_notification,
-	get_title,
-	get_title_html,
-)
-from frappe.model.utils import is_virtual_doctype
+from frappe.desk.notifications import notify_mentions
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
-from frappe.utils import get_fullname
+from frappe.model.utils import is_virtual_doctype
 from frappe.website.utils import clear_cache
 
 
 class Comment(Document):
 	def after_insert(self):
-		self.notify_mentions()
+		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")
 
 	def validate(self):
@@ -63,40 +56,6 @@ class Comment(Document):
 				_comments.remove(c)
 
 		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
-
-	def notify_mentions(self):
-		if self.reference_doctype and self.reference_name and self.content:
-			mentions = extract_mentions(self.content)
-
-			if not mentions:
-				return
-
-			sender_fullname = get_fullname(frappe.session.user)
-			title = get_title(self.reference_doctype, self.reference_name)
-
-			recipients = [
-				frappe.db.get_value(
-					"User",
-					{"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1},
-					"email",
-				)
-				for name in mentions
-			]
-
-			notification_message = _("""{0} mentioned you in a comment in {1} {2}""").format(
-				frappe.bold(sender_fullname), frappe.bold(self.reference_doctype), get_title_html(title)
-			)
-
-			notification_doc = {
-				"type": "Mention",
-				"document_type": self.reference_doctype,
-				"document_name": self.reference_name,
-				"subject": notification_message,
-				"from_user": frappe.session.user,
-				"email_content": self.content,
-			}
-
-			enqueue_create_notification(recipients, notification_doc)
 
 
 def on_doctype_update():
