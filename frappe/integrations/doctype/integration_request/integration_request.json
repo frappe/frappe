@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "creation": "2022-03-28 12:25:29.929952",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "request_id",
+  "integration_request_service",
+  "is_remote_request",
+  "column_break_5",
+  "request_description",
+  "status",
+  "section_break_8",
+  "url",
+  "request_headers",
+  "data",
+  "response_section",
+  "output",
+  "error",
+  "reference_section",
+  "reference_doctype",
+  "column_break_16",
+  "reference_docname"
+ ],
+ "fields": [
+  {
+   "fieldname": "integration_request_service",
+   "fieldtype": "Data",
+   "label": "Service",
+   "read_only": 1
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nQueued\nAuthorized\nCompleted\nCancelled\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Request Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "output",
+   "fieldtype": "Code",
+   "label": "Output",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Code",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Document Name",
+   "options": "reference_doctype",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_remote_request",
+   "fieldtype": "Check",
+   "label": "Is Remote Request?",
+   "read_only": 1
+  },
+  {
+   "fieldname": "request_description",
+   "fieldtype": "Data",
+   "label": "Request Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "request_id",
+   "fieldtype": "Data",
+   "label": "Request ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "response_section",
+   "fieldtype": "Section Break",
+   "label": "Response"
+  },
+  {
+   "depends_on": "eval:doc.reference_doctype",
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "request_headers",
+   "fieldtype": "Code",
+   "label": "Request Headers",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2022-04-07 11:32:27.557548",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Integration Request",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "integration_request_service",
+ "track_changes": 1
+}
