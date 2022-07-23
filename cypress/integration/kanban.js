@@ -78,9 +78,8 @@ context("Kanban Board", () => {
 			)
 			.click();
 
-		cy.wait("@update-order");
-		cy.get_open_dialog().find(".frappe-control .label-area").contains("Show Labels").click();
-		cy.get(".modal-footer .btn-primary").last().click();
+		cy.get_open_dialog().find('.frappe-control .label-area').contains('Show Labels').click();
+		cy.get('.modal-footer .btn-primary').last().click();
 
 		cy.wait("@save-kanban");
 
