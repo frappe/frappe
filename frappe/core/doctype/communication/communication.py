@@ -5,7 +5,7 @@ from collections import Counter
 from email.utils import getaddresses
 from urllib.parse import unquote
 
-from parse import compile
+from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -144,8 +144,8 @@ class Communication(Document, CommunicationEmailMixin):
 		if not self.content:
 			return
 
-		quill_parser = compile('<div class="ql-editor read-mode">{}</div>')
-		email_body = quill_parser.parse(self.content)
+		soup = BeautifulSoup(self.content, "html.parser")
+		email_body = soup.find("div", {"class": "ql-editor read-mode"})
 
 		if not email_body:
 			return
@@ -169,7 +169,11 @@ class Communication(Document, CommunicationEmailMixin):
 		if not signature:
 			return
 
-		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
+		soup = BeautifulSoup(signature, "html.parser")
+		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
+		_signature = None
+		if html_signature:
+			_signature = html_signature.renderContents()
 
 		if (_signature or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
