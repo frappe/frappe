@@ -10,6 +10,7 @@ from frappe import _
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
+from frappe.query_builder.utils import PseudoColumn
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
@@ -458,7 +459,6 @@ class Engine:
 			return None
 
 		function_objects = []
-
 		is_list = isinstance(fields, (list, tuple, set))
 		if is_list and len(fields) == 1:
 			fields = fields[0]
@@ -496,6 +496,8 @@ class Engine:
 					if " as " in field:
 						field, reference = field.split(" as ")
 						updated_fields.append(Field(field.strip()).as_(reference))
+					elif "`.`" in str(field):
+						updated_fields.append(PseudoColumn(field.strip()))
 					else:
 						updated_fields.append(Field(field))
 
@@ -539,9 +541,7 @@ class Engine:
 
 		else:
 			query = criterion.select(fields)
-		query = str(query).replace("``", "`")
-		if run:
-			return frappe.db.sql(query, **kwargs)
+
 		return query
 
 
