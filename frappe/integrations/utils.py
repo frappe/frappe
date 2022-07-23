@@ -28,14 +28,18 @@ def make_request(method, url, auth=None, headers=None, data=None):
 		frappe.log_error()
 		raise exc
 
+
 def make_get_request(url, **kwargs):
 	return make_request("GET", url, **kwargs)
+
 
 def make_post_request(url, **kwargs):
 	return make_request("POST", url, **kwargs)
 
+
 def make_put_request(url, **kwargs):
 	return make_request("PUT", url, **kwargs)
+
 
 def create_request_log(
 	data,
@@ -87,8 +91,10 @@ def create_request_log(
 
 	return integration_request
 
+
 def get_json(obj):
 	return obj if isinstance(obj, str) else frappe.as_json(obj, indent=1)
+
 
 def json_handler(obj):
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
