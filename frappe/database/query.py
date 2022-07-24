@@ -480,9 +480,14 @@ class Engine:
 		if is_str:
 			if fields == "*":
 				return fields
-			if " as " in fields:
-				fields, reference = fields.split(" as ")
-				fields = Field(fields).as_(reference)
+			if "`" in fields:
+				fields = PseudoColumn(fields)
+			if " as " in str(fields):
+				fields, reference = str(fields).split(" as ")
+				if "`" in str(fields):
+					fields = PseudoColumn(f"{fields} as {reference}")
+				else:
+					fields = Field(fields).as_(reference)
 
 		if not is_str and fields:
 			if issubclass(type(fields), Criterion):
