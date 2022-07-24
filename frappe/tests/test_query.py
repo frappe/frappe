@@ -4,7 +4,6 @@ import frappe
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Abs, Count, Max, Timestamp
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.query_builder.utils import PseudoColumn
 
 
 class TestQuery(unittest.TestCase):
@@ -50,7 +49,7 @@ class TestQuery(unittest.TestCase):
 			frappe.qb.from_("User")
 			.select(Field("name"), Field("email"))
 			.where(Field("name") == "Administrator")
-			.run()
+			.run(),
 		)
 
 	def test_functions_fields(self):

@@ -38,7 +38,7 @@ def validate(user, doctype):
 
 def get_columns_and_fields(doctype):
 	columns = [f"Name:Link/{doctype}:200"]
-	fields = ["`name`"]
+	fields = ["name"]
 	for df in frappe.get_meta(doctype).fields:
 		if df.in_list_view and df.fieldtype in data_fieldtypes:
 			fields.append(f"`{df.fieldname}`")
