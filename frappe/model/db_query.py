@@ -13,6 +13,7 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.database.utils import FallBackDateTimeStr
 from frappe.model import optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -649,11 +650,11 @@ class DatabaseQuery:
 				date_range = get_date_range(f.operator.lower(), f.value)
 				f.operator = "Between"
 				f.value = date_range
-				fallback = "'0001-01-01 00:00:00'"
+				fallback = f"'{FallBackDateTimeStr}'"
 
 			if f.operator in (">", "<") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
-				fallback = "'0001-01-01 00:00:00'"
+				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif f.operator.lower() in ("between") and (
 				f.fieldname in ("creation", "modified")
@@ -661,7 +662,7 @@ class DatabaseQuery:
 			):
 
 				value = get_between_date_filter(f.value, df)
-				fallback = "'0001-01-01 00:00:00'"
+				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif f.operator.lower() == "is":
 				if f.value == "set":
@@ -682,7 +683,7 @@ class DatabaseQuery:
 
 			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime):
 				value = frappe.db.format_datetime(f.value)
-				fallback = "'0001-01-01 00:00:00'"
+				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif df and df.fieldtype == "Time":
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
@@ -736,7 +737,7 @@ class DatabaseQuery:
 
 		return condition
 
-	def build_match_conditions(self, as_condition=True):
+	def build_match_conditions(self, as_condition=True) -> str | list:
 		"""add match conditions if applicable"""
 		self.match_filters = []
 		self.match_conditions = []

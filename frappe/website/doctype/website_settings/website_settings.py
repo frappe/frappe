@@ -7,6 +7,7 @@ from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import encode, get_request_site_address
+from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
@@ -189,6 +190,8 @@ def get_website_settings(context=None):
 
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
+
+	context.boot = get_boot_data()
 
 	return context
 

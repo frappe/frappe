@@ -283,7 +283,9 @@ def connect_replica():
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		host=local.conf.replica_host, user=user, password=password, port=port, read_only=True
+	)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -1180,11 +1182,11 @@ def get_doc(*args, **kwargs) -> "Document":
 	return doc
 
 
-def get_last_doc(doctype, filters=None, order_by="creation desc"):
+def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
 	if d:
-		return get_doc(doctype, d[0])
+		return get_doc(doctype, d[0], for_update=for_update)
 	else:
 		raise DoesNotExistError
 
@@ -1794,6 +1796,14 @@ def respond_as_web_page(
 		context["card_width"] = width
 
 	local.response["context"] = context
+
+
+def redirect(url):
+	"""Raise a 301 redirect to url"""
+	from frappe.exceptions import Redirect
+
+	flags.redirect_location = url
+	raise Redirect
 
 
 def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):

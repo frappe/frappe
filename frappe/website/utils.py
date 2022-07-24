@@ -12,7 +12,7 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import md_to_html
+from frappe.utils import cint, get_time_zone, md_to_html
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -156,6 +156,20 @@ def get_home_page_via_hooks():
 		home_page = home_page.strip("/")
 
 	return home_page
+
+
+def get_boot_data():
+	return {
+		"sysdefaults": {
+			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
+			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
+			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
+		},
+		"time_zone": {
+			"system": get_time_zone(),
+			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_time_zone(),
+		},
+	}
 
 
 def is_signup_disabled():
@@ -393,7 +407,7 @@ def get_frontmatter(string):
 	}
 
 
-def get_sidebar_items(parent_sidebar, basepath):
+def get_sidebar_items(parent_sidebar, basepath=None):
 	import frappe.www.list
 
 	sidebar_items = []

@@ -125,5 +125,5 @@ class TestFmtDatetime(unittest.TestCase):
 			for time_fmt, valid_time in test_time_formats.items():
 				frappe.db.set_default("time_format", time_fmt)
 				frappe.local.user_time_format = None
-				valid_fmt = valid_date + " " + valid_time
+				valid_fmt = f"{valid_date} {valid_time}"
 				self.assertEqual(format_datetime(test_datetime), valid_fmt)

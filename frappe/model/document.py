@@ -179,7 +179,9 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	reload = load_from_db
+	def reload(self):
+		"""Reload document from database"""
+		self.load_from_db()
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
@@ -1092,7 +1094,9 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		self.clear_cache()
-		self.notify_update()
+
+		if self.flags.get("notify_update", True):
+			self.notify_update()
 
 		update_global_search(self)
 
@@ -1145,7 +1149,7 @@ class Document(BaseDocument):
 		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
 		:param value: value of the property to be updated
 		:param update_modified: default True. updates the `modified` and `modified_by` properties
-		:param notify: default False. run doc.notify_updated() to send updates via socketio
+		:param notify: default False. run doc.notify_update() to send updates via socketio
 		:param commit: default False. run frappe.db.commit()
 		"""
 		if isinstance(fieldname, dict):

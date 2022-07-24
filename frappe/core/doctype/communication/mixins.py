@@ -248,7 +248,7 @@ class CommunicationEmailMixin:
 		send_me_a_copy=None,
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
-	):
+	) -> dict:
 
 		outgoing_email_account = self.get_outgoing_email_account()
 		if not outgoing_email_account:
@@ -298,13 +298,11 @@ class CommunicationEmailMixin:
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
 	):
-		input_dict = self.sendmail_input_dict(
+		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
-		)
-
-		if input_dict:
+		):
 			frappe.sendmail(**input_dict)

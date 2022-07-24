@@ -8,13 +8,13 @@ from unittest.mock import patch
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
-	extract_mentions,
 	reset_password,
 	sign_up,
 	test_password_strength,
 	update_password,
 	verify_password,
 )
+from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
 from frappe.utils import get_url
