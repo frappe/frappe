@@ -398,7 +398,11 @@ class Engine:
 								*map(lambda field: Field(field.strip()), arg.split(_operator)),
 							)
 
-				field = Field(initial_fields) if not has_primitive_operator else field
+				field = (
+					(Field(initial_fields) if "`" not in initial_fields else PseudoColumn(initial_fields))
+					if not has_primitive_operator
+					else field
+				)
 			else:
 				field = initial_fields
 
@@ -416,7 +420,7 @@ class Engine:
 	def function_objects_from_list(self, fields):
 		functions = []
 		for field in fields:
-			field = field.casefold() if isinstance(field, str) else field
+			field = field.casefold() if (isinstance(field, str) and "`" not in field) else field
 			if not issubclass(type(field), Criterion):
 				if any([f"{func}(" in field for func in SQL_FUNCTIONS]) or "(" in field:
 					functions.append(field)
@@ -429,7 +433,7 @@ class Engine:
 			if isinstance(fields, str):
 				if function.alias:
 					fields = fields.replace(" as " + function.alias.casefold(), "")
-				fields = BRACKETS_PATTERN.sub("", fields.replace(function.name.casefold(), ""))
+				fields = BRACKETS_PATTERN.sub("", fields.casefold().replace(function.name.casefold(), ""))
 				# Check if only comma is left in fields after stripping functions.
 				if "," in fields and (len(fields.strip()) == 1):
 					fields = ""
@@ -464,7 +468,7 @@ class Engine:
 
 		is_str = isinstance(fields, str)
 		if is_str:
-			fields = fields.casefold()
+			fields = fields.casefold() if "`" not in fields else fields
 			function_objects += self.function_objects_from_string(fields=fields)
 
 		fields = self.remove_string_functions(fields, function_objects)
@@ -510,7 +514,6 @@ class Engine:
 		table: str,
 		fields: list | tuple,
 		filters: dict[str, str | int] | str | int | list[list | str | int] = None,
-		run: bool = False,
 		**kwargs,
 	):
 		# Clean up state before each query
