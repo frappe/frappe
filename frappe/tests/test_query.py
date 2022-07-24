@@ -31,10 +31,9 @@ class TestQuery(unittest.TestCase):
 			.where(Field("name") == "Administrator")
 			.get_sql(),
 		)
-
 		self.assertEqual(
 			frappe.qb.engine.get_query(
-				"User", fields=["name, email"], filters={"name": "Administrator"}
+				"User", fields=["`name`, `email`"], filters={"name": "Administrator"}
 			).get_sql(),
 			frappe.qb.from_("User")
 			.select(Field("name"), Field("email"))

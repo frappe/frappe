@@ -491,7 +491,7 @@ class Engine:
 					if " as " in field:
 						field, reference = field.split(" as ")
 						updated_fields.append(Field(field.strip()).as_(reference))
-					elif "`.`" in str(field):
+					elif "`" in str(field):
 						updated_fields.append(PseudoColumn(field.strip()))
 					else:
 						updated_fields.append(Field(field))
