@@ -1875,11 +1875,11 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	get_involved_users() {
-		const user_fields = this.meta.fields
+		let user_fields = this.meta.fields
 			.filter(d => d.fieldtype === 'Link' && d.options === 'User')
 			.map(d => d.fieldname);
 
-		user_fields.push('owner');
+		user_fields = [...user_fields, "owner", "modified_by"];
 		let involved_users = user_fields.map(field => this.doc[field]);
 
 		const docinfo = this.get_docinfo();
