@@ -1,4 +1,4 @@
-name: Server
+name: Server (MariaDB)
 
 on:
   pull_request:
@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -23,8 +24,6 @@ jobs:
       fail-fast: false
       matrix:
        container: [1, 2]
-
-    name: Python Unit Tests (MariaDB)
 
     services:
       mariadb:
