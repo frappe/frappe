@@ -1873,6 +1873,29 @@ frappe.ui.form.Form = class FrappeForm {
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
 	}
+
+	get_involved_users() {
+		const user_fields = this.meta.fields
+			.filter(d => d.fieldtype === 'Link' && d.options === 'User')
+			.map(d => d.fieldname);
+
+		user_fields.push('owner');
+		let involved_users = user_fields.map(field => this.doc[field]);
+
+		const docinfo = this.get_docinfo();
+
+		involved_users = involved_users.concat(
+			docinfo.communications.map(d => d.sender && d.delivery_status === 'sent'),
+			docinfo.comments.map(d => d.owner),
+			docinfo.versions.map(d => d.owner),
+			docinfo.assignments.map(d => d.owner)
+		);
+
+		return involved_users
+			.uniqBy(u => u)
+			.filter(user => !['Administrator', frappe.session.user].includes(user))
+			.filter(Boolean);
+	}
 };
 
 frappe.validated = 0;
