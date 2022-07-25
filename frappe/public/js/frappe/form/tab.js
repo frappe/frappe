@@ -9,21 +9,27 @@ export default class Tab {
 		this.tabs_content = tabs_content;
 		this.fields_list = [];
 		this.fields_dict = {};
+		this.prepare_shortcut();
 		this.make();
 		this.setup_listeners();
 		this.refresh();
 	}
 
+	prepare_shortcut() {
+		this.shortcut = this.parent.tabs.length + 1;
+	}
+
 	make() {
 		const id = `${frappe.scrub(this.doctype, '-')}-${this.df.fieldname}`;
-		this.parent = $(`
+		this.$item = $(`
 			<li class="nav-item">
 				<a class="nav-link ${this.df.active ? "active": ""}" id="${id}-tab"
 					data-toggle="tab"
 					href="#${id}"
 					role="tab"
-					aria-controls="${this.label}">
-						${__(this.label)}
+					aria-controls="${this.label}"
+				>
+					${__(this.label)}
 				</a>
 			</li>
 		`).appendTo(this.tabs_list);
@@ -62,23 +68,23 @@ export default class Tab {
 	}
 
 	toggle(show) {
-		this.parent.toggleClass('hide', !show);
+		this.$item.toggleClass('hide', !show);
 		this.wrapper.toggleClass('hide', !show);
-		this.parent.toggleClass('show', show);
+		this.$item.toggleClass('show', show);
 		this.wrapper.toggleClass('show', show);
 		this.hidden = !show;
 	}
 
 	show() {
-		this.parent.show();
+		this.$item.show();
 	}
 
 	hide() {
-		this.parent.hide();
+		this.$item.hide();
 	}
 
 	set_active() {
-		this.parent.find('.nav-link').tab('show');
+		this.$item.find('.nav-link').tab('show');
 		this.wrapper.addClass('active');
 		this.frm?.set_active_tab?.(this);
 	}
@@ -92,8 +98,17 @@ export default class Tab {
 	}
 
 	setup_listeners() {
-		this.parent.find('.nav-link').on('shown.bs.tab', () => {
+		this.$item.find('.nav-link').on('shown.bs.tab', () => {
 			this?.frm.set_active_tab?.(this);
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'alt+' + this.shortcut,
+			action: (e) => {
+				this.$item.find('.nav-link').trigger('click');
+				e.preventDefault();
+				return false;
+			},
+			description: __('Switch to {0} Tab', [__(this.label)])
 		});
 	}
 }
