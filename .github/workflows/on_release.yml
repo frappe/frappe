@@ -1,8 +1,11 @@
-name: 'Frappe Assets'
+name: 'Release'
 
 on:
   release:
-    types: [ created ]
+    types: [released]
+
+permissions:
+  contents: read
 
 env:
   GITHUB_TOKEN: ${{ github.token }}
@@ -47,3 +50,16 @@ jobs:
           asset_path: build/assets.tar.gz
           asset_name: assets.tar.gz
           asset_content_type: application/octet-stream
+
+  docker-release:
+    name: 'Trigger Docker build on release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: none
+    container:
+      image: alpine:latest
+    steps:
+    - name: curl
+      run: |
+        apk add curl bash
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/frappe/frappe_docker/actions/workflows/build_stable.yml/dispatches -d '{"ref":"main"}'
