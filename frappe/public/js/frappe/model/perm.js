@@ -16,7 +16,7 @@ Object.assign(window, {
 
 $.extend(frappe.perm, {
 	rights: ["select", "read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "share", "set_user_permissions"],
+		"report", "import", "export", "print", "email", "share", "set_user_permissions", "if_owner"],
 
 	doctype_perm: {},
 
@@ -44,6 +44,7 @@ $.extend(frappe.perm, {
 	get_perm: (doctype, doc) => {
 		let perm = [{ read: 0, permlevel: 0 }];
 
+		// TODO: wrap in `frappe.model.with_doctype`, to avoid undefined meta?
 		let meta = frappe.get_doc("DocType", doctype);
 		const user  = frappe.session.user;
 
@@ -65,17 +66,8 @@ $.extend(frappe.perm, {
 			}
 
 			// if owner
-			if (!$.isEmptyObject(perm[0].if_owner)) {
-				if (doc.owner === user) {
-					$.extend(perm[0], perm[0].if_owner);
-				} else {
-					// not owner, remove permissions
-					$.each(perm[0].if_owner, (ptype) => {
-						if (perm[0].if_owner[ptype]) {
-							perm[0][ptype] = 0;
-						}
-					});
-				}
+			if (perm[0].if_owner === 1 && doc.owner !== user) {
+				perm[0] = { read: 0, permlevel: 0 };
 			}
 
 			// apply permissions from shared
