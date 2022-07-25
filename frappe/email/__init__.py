@@ -10,27 +10,26 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20):
+def get_contact_list(txt, page_length=20) -> list[dict]:
 	"""Returns contacts (from autosuggest)"""
 
-	cached_contacts = get_cached_contacts(txt)
-	if cached_contacts:
+	if cached_contacts := get_cached_contacts(txt):
 		return cached_contacts[:page_length]
 
-	match_conditions = build_match_conditions("Contact")
-	match_conditions = f"and {match_conditions}" if match_conditions else ""
+	reportview_conditions = build_match_conditions("Contact")
+	match_conditions = f"and {reportview_conditions}" if reportview_conditions else ""
 
 	out = frappe.db.sql(
-		"""select email_id as value,
+		f"""select email_id as value,
 		concat(first_name, ifnull(concat(' ',last_name), '' )) as description
 		from tabContact
 		where name like %(txt)s or email_id like %(txt)s
-		%(condition)s
+		{match_conditions}
 		limit %(page_length)s""",
-		{"txt": "%" + txt + "%", "condition": match_conditions, "page_length": page_length},
+		{"txt": f"%{txt}%", "page_length": page_length},
 		as_dict=True,
 	)
-	out = filter(None, out)
+	out = list(filter(None, out))
 
 	update_contact_cache(out)
 

@@ -1,5 +1,3 @@
-import os
-
 import frappe
 
 
@@ -15,63 +13,51 @@ class DbManager:
 		return self.db.sql("select user()")[0][0].split("@")[1]
 
 	def create_user(self, user, password, host=None):
-		# Create user if it doesn't exist.
-		if not host:
-			host = self.get_current_host()
-
-		if password:
-			self.db.sql(f"CREATE USER '{user}'@'{host}' IDENTIFIED BY '{password}';")
-		else:
-			self.db.sql(f"CREATE USER '{user}'@'{host}';")
+		host = host or self.get_current_host()
+		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
+		self.db.sql(f"CREATE USER '{user}'@'{host}'{password_predicate}")
 
 	def delete_user(self, target, host=None):
-		if not host:
-			host = self.get_current_host()
-		try:
-			self.db.sql(f"DROP USER '{target}'@'{host}';")
-		except Exception as e:
-			if e.args[0] == 1396:
-				pass
-			else:
-				raise
+		host = host or self.get_current_host()
+		self.db.sql(f"DROP USER IF EXISTS '{target}'@'{host}'")
 
 	def create_database(self, target):
 		if target in self.get_database_list():
 			self.drop_database(target)
-
-		self.db.sql("CREATE DATABASE `%s` ;" % target)
+		self.db.sql(f"CREATE DATABASE `{target}`")
 
 	def drop_database(self, target):
-		self.db.sql("DROP DATABASE IF EXISTS `%s`;" % target)
+		self.db.sql_ddl(f"DROP DATABASE IF EXISTS `{target}`")
 
 	def grant_all_privileges(self, target, user, host=None):
-		if not host:
-			host = self.get_current_host()
-
-		if frappe.conf.get("rds_db", 0) == 1:
-			self.db.sql(
-				"GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES ON `%s`.* TO '%s'@'%s';"
-				% (target, user, host)
+		host = host or self.get_current_host()
+		permissions = (
+			(
+				"SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, "
+				"CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, "
+				"CREATE ROUTINE, ALTER ROUTINE, EXECUTE, LOCK TABLES"
 			)
-		else:
-			self.db.sql(f"GRANT ALL PRIVILEGES ON `{target}`.* TO '{user}'@'{host}';")
+			if frappe.conf.rds_db
+			else "ALL PRIVILEGES"
+		)
+		self.db.sql(f"GRANT {permissions} ON `{target}`.* TO '{user}'@'{host}'")
 
 	def flush_privileges(self):
 		self.db.sql("FLUSH PRIVILEGES")
 
 	def get_database_list(self):
-		"""get list of databases"""
-		return [d[0] for d in self.db.sql("SHOW DATABASES")]
+		return self.db.sql("SHOW DATABASES", pluck=True)
 
 	@staticmethod
 	def restore_database(target, source, user, password):
+		import os
+		from distutils.spawn import find_executable
+
 		from frappe.utils import make_esc
 
 		esc = make_esc("$ ")
-
-		from distutils.spawn import find_executable
-
 		pv = find_executable("pv")
+
 		if pv:
 			pipe = f"{pv} {source} |"
 			source = ""

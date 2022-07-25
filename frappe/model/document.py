@@ -179,7 +179,9 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	reload = load_from_db
+	def reload(self):
+		"""Reload document from database"""
+		self.load_from_db()
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
