@@ -2,6 +2,9 @@ name: Linters
 
 on:
   pull_request:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
 
 permissions:
   contents: read
@@ -14,11 +17,12 @@ jobs:
   commit-lint:
     name: 'Semantic Commits'
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 200
-
       - uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -32,15 +36,14 @@ jobs:
   docs-required:
     name: 'Documentation Required'
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: 'Setup Environment'
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - name: 'Clone repo'
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Validate Docs
         env:
@@ -54,14 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
-      - name: Install and Run Pre-commit
-        uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
@@ -70,3 +69,16 @@ jobs:
         run: |
           pip install semgrep==0.97.0
           semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+
+  deps-vulnerable-check:
+    name: 'Vulnerable Dependency Check'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v3
+      - run: |
+          pip install pip-audit
+          pip-audit ${GITHUB_WORKSPACE}
