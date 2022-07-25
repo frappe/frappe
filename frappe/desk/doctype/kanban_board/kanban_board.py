@@ -83,37 +83,6 @@ def archive_restore_column(board_name, column_title, status):
 	return doc.columns
 
 
-@frappe.whitelist()
-def update_order_for_single_card(
-	board_name, docname, from_colname, to_colname, old_index, new_index
-):
-	"""Save the order of cards in columns"""
-	board = frappe.get_doc("Kanban Board", board_name)
-	doctype = board.reference_doctype
-	fieldname = board.field_name
-	old_index = frappe.parse_json(old_index)
-	new_index = frappe.parse_json(new_index)
-
-	# save current order and index of columns to be updated
-	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
-	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
-
-	if from_colname == to_colname:
-		from_col_order = to_col_order
-
-	to_col_order.insert(new_index, from_col_order.pop(old_index))
-
-	# save updated order
-	board.columns[from_col_idx].order = frappe.as_json(from_col_order)
-	board.columns[to_col_idx].order = frappe.as_json(to_col_order)
-	board.save()
-
-	# update changed value in doc
-	frappe.set_value(doctype, docname, fieldname, to_colname)
-
-	return board
-
-
 def get_kanban_column_order_and_index(board, colname):
 	for i, col in enumerate(board.columns):
 		if col.column_name == colname:
@@ -121,19 +90,6 @@ def get_kanban_column_order_and_index(board, colname):
 			col_idx = i
 
 	return col_order, col_idx
-
-
-@frappe.whitelist()
-def add_card(board_name, docname, colname):
-	board = frappe.get_doc("Kanban Board", board_name)
-
-	col_order, col_idx = get_kanban_column_order_and_index(board, colname)
-	col_order.insert(0, docname)
-
-	board.columns[col_idx].order = frappe.as_json(col_order)
-
-	board.save()
-	return board
 
 
 @frappe.whitelist()

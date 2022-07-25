@@ -160,58 +160,15 @@ frappe.provide("frappe.views");
 				}
 				context.commit("update_state", { cards: cards });
 			},
-			update_order_for_single_card: function (context, card) {
-				// cache original order
-				const _cards = context.state.cards.slice();
-				const _columns = context.state.columns.slice();
-				let args = {};
-				let method_name = "";
+			update_order_for_single_card: function(context, card) {
+				if (card.new) return;
 
-				if (card.new) {
-					method_name = "add_card";
-					args = {
-						board_name: context.state.board.name,
-						docname: card.name,
-						colname: card.colname,
-					};
-				} else {
-					method_name = "update_order_for_single_card";
-					args = {
-						board_name: context.state.board.name,
-						docname: card.name,
-						from_colname: card.from_colname,
-						to_colname: card.to_colname,
-						old_index: card.old_index,
-						new_index: card.new_index,
-					};
-				}
-				frappe.dom.freeze();
-				frappe
-					.call({
-						method: method_prefix + method_name,
-						args: args,
-						callback: (r) => {
-							let board = r.message;
-							let updated_cards = [
-								{ name: card.name, column: card.to_colname || card.colname },
-							];
-							let cards = update_cards_column(updated_cards);
-							let columns = prepare_columns(board.columns);
-							context.commit("update_state", {
-								cards: cards,
-								columns: columns,
-							});
-							frappe.dom.unfreeze();
-						},
-					})
-					.fail(function () {
-						// revert original order
-						context.commit("update_state", {
-							cards: _cards,
-							columns: _columns,
-						});
-						frappe.dom.unfreeze();
-					});
+				frappe.db.set_value(
+					context.state.doctype,
+					card.name,
+					context.state.board.field_name,
+					card.to_colname
+				);
 			},
 			update_column_order: function(context, order) {
 				return frappe.call({
