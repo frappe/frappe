@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
+from frappe.model.utils import is_virtual_doctype
 
 
 class Tag(Document):
@@ -74,6 +75,9 @@ class DocTags:
 
 	def get_tags(self, dn):
 		"""returns tag for a particular item"""
+
+		if is_virtual_doctype(self.dt):
+			return ("")
 		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
 
 	def add(self, dn, tag):
@@ -103,9 +107,10 @@ class DocTags:
 			tl = unique(filter(lambda x: x, tl))
 			tags = "," + ",".join(tl)
 		try:
-			frappe.db.sql(
-				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
-			)
+			if not is_virtual_doctype(self.dt):
+				frappe.db.sql(
+					"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
+				)
 			doc = frappe.get_doc(self.dt, dn)
 			update_tags(doc, tags)
 		except Exception as e:
