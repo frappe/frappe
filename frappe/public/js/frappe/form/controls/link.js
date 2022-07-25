@@ -377,14 +377,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		});
 
 		this.$input.on("focus", function () {
-			if (!frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+			if (!frappe.boot.translated_search_doctypes.includes(me.df.options) &&
+				frappe.boot.translatable_doctypes.includes(me.df.options)) {
 				me.show_untranslated();
 			}
 		});
 
 		this.$input.keydown((e) => {
 			let BACKSPACE = 8;
-			if (e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options)) {
+			if (e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options) &&
+				frappe.boot.translatable_doctypes.includes(me.df.options)) {
 				me.show_untranslated();
 			}
 		});
