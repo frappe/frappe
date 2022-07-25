@@ -23,7 +23,7 @@ $.extend(frappe.perm, {
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
 		if (!frappe.perm.doctype_perm[doctype]) {
-			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
+			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype, doc);
 		}
 
 		let perms = frappe.perm.doctype_perm[doctype];
