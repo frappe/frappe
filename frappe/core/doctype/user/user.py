@@ -540,7 +540,7 @@ class User(Document):
 			feedback = result.get("feedback", None)
 
 			if feedback and not feedback.get("password_policy_validation_passed", False):
-				handle_password_test_fail(result["feedback"])
+				handle_password_test_fail(feedback)
 
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
@@ -686,7 +686,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	feedback = result.get("feedback", None)
 
 	if feedback and not feedback.get("password_policy_validation_passed", False):
-		handle_password_test_fail(result["feedback"])
+		handle_password_test_fail(feedback)
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get("message"):
