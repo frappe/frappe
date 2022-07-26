@@ -3,7 +3,7 @@ import re
 from ast import literal_eval
 from functools import cached_property
 from types import BuiltinFunctionType
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 import frappe
 from frappe import _
@@ -43,6 +43,8 @@ def func_in(key: Field, value: list | tuple) -> frappe.qb:
 	Returns:
 	        frappe.qb: `frappe.qb object with `IN`
 	"""
+	if isinstance(value, str):
+		value = value.split(",")
 	return key.isin(value)
 
 
@@ -69,6 +71,8 @@ def func_not_in(key: Field, value: list | tuple):
 	Returns:
 	        frappe.qb: `frappe.qb object with `NOT IN`
 	"""
+	if isinstance(value, str):
+		value = value.split(",")
 	return key.notin(value)
 
 
