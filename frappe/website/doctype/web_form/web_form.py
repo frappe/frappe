@@ -454,10 +454,9 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
-def accept(web_form, data, docname=None, for_payment=False):
+def accept(web_form, data, docname=None):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
-	for_payment = frappe.parse_json(for_payment)
 
 	files = []
 	files_to_delete = []
@@ -494,10 +493,6 @@ def accept(web_form, data, docname=None, for_payment=False):
 				files_to_delete.append(doc.get(fieldname))
 
 		doc.set(fieldname, value)
-
-	if for_payment:
-		web_form.validate_mandatory(doc)
-		doc.run_method("validate_payment")
 
 	if doc.name:
 		if web_form.has_web_form_permission(doc.doctype, doc.name, "write"):
@@ -549,12 +544,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 				remove_file_by_url(f, doctype=doc.doctype, name=doc.name)
 
 	frappe.flags.web_form_doc = doc
-
-	if for_payment:
-		# this is needed for Payments app
-		return web_form.get_payment_gateway_url(doc)
-	else:
-		return doc
+	return doc
 
 
 @frappe.whitelist()

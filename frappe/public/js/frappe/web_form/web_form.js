@@ -280,6 +280,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (!doc_values) return;
 
 		if (window.saving) return;
+		// TODO: remove this (used for payments app)
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
 		Object.assign(this.doc, doc_values);
@@ -342,6 +343,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	handle_success(data) {
+		// TODO: remove this (used for payments app)
 		if (this.accept_payment && !this.doc.paid) {
 			window.location.href = data;
 		}
