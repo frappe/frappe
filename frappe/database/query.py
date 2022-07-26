@@ -17,6 +17,7 @@ WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
+TABLE_PATTERN = re.compile(r"\btab\w+")
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -434,6 +435,11 @@ class Engine:
 				if function.alias:
 					fields = fields.replace(" as " + function.alias.casefold(), "")
 				fields = BRACKETS_PATTERN.sub("", fields.casefold().replace(function.name.casefold(), ""))
+				# Converting back to capitalized doctype names.
+				if "tab" in fields:
+					fields = TABLE_PATTERN.sub(
+						lambda p: p.group(0)[:3] + p.group(0)[3].upper() + p.group(0)[3 + 1 :], fields
+					)
 				# Check if only comma is left in fields after stripping functions.
 				if "," in fields and (len(fields.strip()) == 1):
 					fields = ""
@@ -443,20 +449,24 @@ class Engine:
 					if isinstance(field, str):
 						if function.alias:
 							field = field.replace(" as " + function.alias.casefold(), "")
-						field = (
-							BRACKETS_PATTERN.sub("", field).strip().casefold().replace(function.name.casefold(), "")
+						substituted_string = (
+							BRACKETS_PATTERN.sub("", field).strip().casefold()
+							if "`" not in field
+							else BRACKETS_PATTERN.sub("", field).strip()
 						)
-						updated_fields.append(field)
-
+						# This is done to avoid casefold of table name.
+						if substituted_string.casefold() == function.name.casefold():
+							replaced_string = substituted_string.casefold().replace(function.name.casefold(), "")
+						else:
+							replaced_string = substituted_string.replace(function.name.casefold(), "")
+						updated_fields.append(replaced_string)
 					fields = [field for field in updated_fields if field]
-
 		return fields
 
 	def set_fields(self, fields, **kwargs):
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		if isinstance(fields, list) and None in fields and Field not in fields:
 			return None
-
 		function_objects = []
 		is_list = isinstance(fields, (list, tuple, set))
 		if is_list and len(fields) == 1:
@@ -499,7 +509,11 @@ class Engine:
 				if not isinstance(field, Criterion) and field:
 					if " as " in field:
 						field, reference = field.split(" as ")
-						updated_fields.append(Field(field.strip()).as_(reference))
+						if "`" in field:
+							updated_fields.append(PseudoColumn(f"{field} as {reference}"))
+						else:
+							updated_fields.append(Field(field.strip()).as_(reference))
+
 					elif "`" in str(field):
 						updated_fields.append(PseudoColumn(field.strip()))
 					else:
