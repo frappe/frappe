@@ -1045,10 +1045,9 @@ def notify_admin_access_to_system_manager(login_manager=None):
 def handle_password_test_fail(result):
 	suggestions = result["feedback"]["suggestions"][0] if result["feedback"]["suggestions"] else ""
 	warning = result["feedback"]["warning"] if "warning" in result["feedback"] else ""
-	suggestions += (
-		"<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + "<br>"
-	)
-	frappe.throw(" ".join([_("Invalid Password:"), warning, suggestions]))
+	suggestions += f"<br>{_('Your password is too short or not complex enough.')}<br>"
+
+	frappe.throw(" ".join([warning, suggestions]), title=_("Invalid Password"))
 
 
 def update_gravatar(name):
