@@ -298,15 +298,14 @@ export default class Grid {
 			show_search: true
 		});
 
-		Object.keys(this.filter).length !== 0 &&
-			this.update_search_columns();
+		this.filter_applied && this.update_search_columns();
 	}
 
 	update_search_columns() {
 		for (const field in this.filter) {
 			if (this.filter[field] && !this.header_search.search_columns[field]) {
 				delete this.filter[field];
-				this.data = this.get_data(Object.keys(this.filter).length !== 0);
+				this.data = this.get_data(this.filter_applied);
 				break;
 			}
 
@@ -323,7 +322,8 @@ export default class Grid {
 	refresh() {
 		if (this.frm && this.frm.setting_dependency) return;
 
-		this.data = this.get_data(Object.keys(this.filter).length !== 0);
+		this.filter_applied = Object.keys(this.filter).length !== 0;
+		this.data = this.get_data(this.filter_applied);
 
 		!this.wrapper && this.make();
 		let $rows = $(this.parent).find('.rows');
