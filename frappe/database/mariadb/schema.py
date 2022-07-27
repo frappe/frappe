@@ -44,7 +44,7 @@ class MariaDBTable(DBTable):
 
 			# NOTE: not used nextval func as default as the ability to restore
 			# database with sequences has bugs in mariadb and gives a scary error.
-			# issue link: https://jira.mariadb.org/browse/MDEV-21786
+			# issue link: https://jira.mariadb.org/browse/MDEV-20070
 			name_column = "name bigint primary key"
 
 		# create table

@@ -61,7 +61,9 @@ class Database:
 	# from that value when inserting any new record in the doctype.
 	# By default the cache is 1000 which will mess up the sequence when
 	# using the system after a restore.
-	# issue link: https://jira.mariadb.org/browse/MDEV-20070
+	#
+	# Another case could be if the cached values expire then also there is a chance of
+	# the cache being skipped.
 	#
 	# FOR POSTGRES - The sequence cache for postgres is per connection.
 	# Since we're opening and closing connections for every request this results in skipping the cache
