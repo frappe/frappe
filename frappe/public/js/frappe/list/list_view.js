@@ -103,14 +103,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return this.get_list_view_settings();
 	}
 
-	get_list_view_settings() {
-		return frappe
-			.call("frappe.desk.listview.get_list_settings", {
-				doctype: this.doctype,
-			})
-			.then((doc) => (this.list_view_settings = doc.message || {}));
-	}
-
 	on_sort_change(sort_by, sort_order) {
 		this.sort_by = sort_by;
 		this.sort_order = sort_order;
