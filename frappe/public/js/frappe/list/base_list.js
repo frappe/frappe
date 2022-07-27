@@ -65,6 +65,14 @@ frappe.views.BaseList = class BaseList {
 		];
 	}
 
+	get_list_view_settings() {
+		return frappe
+			.call("frappe.desk.listview.get_list_settings", {
+				doctype: this.doctype,
+			})
+			.then((doc) => (this.list_view_settings = doc.message || {}));
+	}
+
 	setup_fields() {
 		this.set_fields();
 		this.build_fields();
