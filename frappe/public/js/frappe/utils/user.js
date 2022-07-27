@@ -22,6 +22,7 @@ frappe.user_info = function(uid) {
 	return user_info;
 };
 
+<<<<<<< HEAD
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
@@ -43,6 +44,16 @@ frappe.ui.set_user_background = function(src, selector, style) {
 		background:background,
 		style: style==="Fill Screen" ? "background-size: cover;" : ""
 	}));
+=======
+frappe.update_user_info = function(user_info) {
+	for (let user in user_info) {
+		if (frappe.boot.user_info[user]) {
+			Object.assign(frappe.boot.user_info[user], user_info[user]);
+		} else {
+			frappe.boot.user_info[user] = user_info[user];
+		}
+	}
+>>>>>>> 0b9a9ebfac (fix: load avatars of user in notification dropdown (#17630))
 };
 
 frappe.provide('frappe.user');
