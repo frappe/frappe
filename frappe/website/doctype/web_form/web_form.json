@@ -48,17 +48,7 @@
   "website_sidebar",
   "scripting_style_tab",
   "client_script",
-  "custom_css",
-  "payments_tab",
-  "accept_payment",
-  "payment_gateway",
-  "payment_button_label",
-  "payment_button_help",
-  "column_break_28",
-  "amount_based_on_field",
-  "amount_field",
-  "amount",
-  "currency"
+  "custom_css"
  ],
  "fields": [
   {
@@ -234,62 +224,6 @@
    "label": "Show Sidebar"
   },
   {
-   "default": "0",
-   "fieldname": "accept_payment",
-   "fieldtype": "Check",
-   "label": "Accept Payment"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_gateway",
-   "fieldtype": "Link",
-   "label": "Payment Gateway",
-   "options": "Payment Gateway"
-  },
-  {
-   "default": "Buy Now",
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_label",
-   "fieldtype": "Data",
-   "label": "Button Label"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_help",
-   "fieldtype": "Text",
-   "label": "Button Help"
-  },
-  {
-   "fieldname": "column_break_28",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "depends_on": "accept_payment",
-   "fieldname": "amount_based_on_field",
-   "fieldtype": "Check",
-   "label": "Amount Based On Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && doc.amount_based_on_field",
-   "fieldname": "amount_field",
-   "fieldtype": "Select",
-   "label": "Amount Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && !doc.amount_based_on_field",
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "label": "Amount"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency"
-  },
-  {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
@@ -385,20 +319,13 @@
    "fieldname": "scripting_style_tab",
    "fieldtype": "Tab Break",
    "label": "Scripting / Style"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "accept_payment",
-   "fieldname": "payments_tab",
-   "fieldtype": "Tab Break",
-   "label": "Payments"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-18 15:51:15.288860",
+ "modified": "2022-07-24 20:29:23.059834",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
