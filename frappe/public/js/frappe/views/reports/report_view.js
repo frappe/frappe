@@ -1547,6 +1547,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			});
 		}
 
+		if (frappe.user.has_role("System Manager")) {
+			if (this.get_view_settings) {
+				items.push(this.get_view_settings());
+			}
+		}
+
 		return items.map(i => Object.assign(i, { standard: true }));
 	}
 
