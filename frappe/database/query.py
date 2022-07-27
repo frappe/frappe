@@ -412,6 +412,9 @@ class Engine:
 				field = initial_fields
 
 			_args.append(field)
+
+		if alias and "`" in alias:
+			alias = alias.replace("`", "")
 		try:
 			return getattr(functions, func)(*_args, alias=alias or None)
 		except AttributeError:
@@ -437,7 +440,11 @@ class Engine:
 		for function in function_objects:
 			if isinstance(fields, str):
 				if function.alias:
-					fields = fields.replace(" as " + function.alias.casefold(), "")
+					to_replace = " as " + function.alias.casefold()
+					if to_replace in fields:
+						fields = fields.replace(to_replace, "")
+					elif " as " + f"`{function.alias.casefold()}" in fields:
+						fields = fields.replace(" as " + f"`{function.alias.casefold()}`", "")
 				fields = BRACKETS_PATTERN.sub("", fields.casefold().replace(function.name.casefold(), ""))
 				# Converting back to capitalized doctype names.
 				if "tab" in fields:
@@ -452,7 +459,11 @@ class Engine:
 				for field in fields:
 					if isinstance(field, str):
 						if function.alias:
-							field = field.replace(" as " + function.alias.casefold(), "")
+							to_replace = " as " + function.alias.casefold()
+							if to_replace in field:
+								field = field.replace(to_replace, "")
+							elif " as " + f"`{function.alias.casefold()}" in field:
+								field = field.replace(" as " + f"`{function.alias.casefold()}`", "")
 						substituted_string = (
 							BRACKETS_PATTERN.sub("", field).strip().casefold()
 							if "`" not in field
