@@ -17,6 +17,9 @@ class Concat_ws(Function):
 
 class Locate(Function):
 	def __init__(self, *terms, **kwargs):
+		terms = list(terms)
+		if not isinstance(terms[0], str):
+			terms[0] = terms[0].get_sql()
 		super().__init__("LOCATE", *terms, **kwargs)
 
 

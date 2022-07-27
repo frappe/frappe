@@ -75,7 +75,9 @@ class TestQuery(unittest.TestCase):
 
 		self.assertEqual(
 			frappe.qb.engine.get_query(
-				"User", fields=["`tabUser`.`name`, Count(`name`) as `count`"], filters={"name": "Administrator"}
+				"User",
+				fields=["`tabUser`.`name`, Count(`name`) as `count`"],
+				filters={"name": "Administrator"},
 			).run(),
 			frappe.qb.from_("User")
 			.select(Field("name"), Count("name").as_("count"))
