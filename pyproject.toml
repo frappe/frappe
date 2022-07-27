@@ -43,7 +43,6 @@ dependencies = [
     "num2words~=0.5.10",
     "oauthlib~=3.1.0",
     "openpyxl~=3.0.7",
-    "parse~=1.19.0",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
     "phonenumbers==8.12.40",

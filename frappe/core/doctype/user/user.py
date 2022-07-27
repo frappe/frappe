@@ -2,8 +2,6 @@
 # License: MIT. See LICENSE
 from datetime import timedelta
 
-from bs4 import BeautifulSoup
-
 import frappe
 import frappe.defaults
 import frappe.permissions
@@ -1042,24 +1040,6 @@ def notify_admin_access_to_system_manager(login_manager=None):
 			args={"access_message": access_message},
 			header=["Access Notification", "orange"],
 		)
-
-
-def extract_mentions(txt):
-	"""Find all instances of @mentions in the html."""
-	soup = BeautifulSoup(txt, "html.parser")
-	emails = []
-	for mention in soup.find_all(class_="mention"):
-		if mention.get("data-is-group") == "true":
-			try:
-				user_group = frappe.get_cached_doc("User Group", mention["data-id"])
-				emails += [d.user for d in user_group.user_group_members]
-			except frappe.DoesNotExistError:
-				pass
-			continue
-		email = mention["data-id"]
-		emails.append(email)
-
-	return emails
 
 
 def handle_password_test_fail(result):
