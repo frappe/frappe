@@ -1151,8 +1151,8 @@ Object.assign(frappe.utils, {
 			}
 		];
 		let number_system_map = {
-			'Germany': german_speaking,
 			'Austria': german_speaking,
+			'Germany': german_speaking,
 			'India':
 				[{
 					divisor: 1.0e+7,
@@ -1167,6 +1167,7 @@ Object.assign(frappe.utils, {
 					symbol: 'K',
 				}
 				],
+			'Liechtenstein': german_speaking,
 			'':
 				[{
 					divisor: 1.0e+12,
