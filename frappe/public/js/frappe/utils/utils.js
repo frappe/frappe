@@ -1136,7 +1136,23 @@ Object.assign(frappe.utils, {
 	},
 
 	get_number_system: function (country) {
+		const german_speaking = [
+			{
+				divisor: 1.0e+9,
+				symbol: 'Mrd'
+			},
+			{
+				divisor: 1.0e+6,
+				symbol: 'Mio'
+			},
+			{
+				divisor: 1.0e+3,
+				symbol: 'Tsd',
+			}
+		];
 		let number_system_map = {
+			'Germany': german_speaking,
+			'Austria': german_speaking,
 			'India':
 				[{
 					divisor: 1.0e+7,
