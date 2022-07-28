@@ -503,7 +503,10 @@ frappe.ui.filter_utils = {
 			];
 		} else if (df.fieldtype == 'Check') {
 			df.fieldtype = 'Select';
-			df.options = 'No\nYes';
+			df.options = [
+				{ label: __('Yes', null, 'Checkbox is checked'), value: 'Yes' },
+				{ label: __('No', null, 'Checkbox is not checked'), value: 'No' },
+			];
 		} else if (
 			[
 				'Text',

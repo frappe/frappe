@@ -164,7 +164,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 							() => resolve()
 						]);
 					}
-				}, __("Set Quantity"), __("Set"));
+				}, __("Set Quantity"), __("Set Quantity"));
 			} else if (this.dynamic_link_field) {
 				let d = this.target.add_new_row();
 				frappe.model.set_value(d.doctype, d.name, this.dynamic_link_field, this.dynamic_link_reference);
