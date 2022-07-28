@@ -87,15 +87,11 @@ class EmailAccount(Document):
 			self.auth_method = "Basic"
 			use_oauth = False
 
-		if use_oauth:
-			# no need for awaiting password for oauth
-			self.awaiting_password = 0
-
-		elif self.refresh_token:
+		if not use_oauth and self.refresh_token:
 			# clear access & refresh token
 			self.refresh_token = self.access_token = None
 
-		if not frappe.local.flags.in_install and not self.awaiting_password:
+		if not frappe.local.flags.in_install:
 			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
@@ -156,10 +152,8 @@ class EmailAccount(Document):
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(
 			email_account=self.name,
-			awaiting_password=self.awaiting_password,
 			email_id=self.email_id,
 			enable_outgoing=self.enable_outgoing,
-			used_oauth=self.auth_method == "OAuth",
 		)
 
 	def there_must_be_only_one_default(self):
@@ -807,10 +801,6 @@ def pull(now=False):
 		frappe.qb.from_(doctype)
 		.select(doctype.name)
 		.where(doctype.enable_incoming == 1)
-		.where(
-			(doctype.awaiting_password == 0)
-			| ((doctype.auth_method == "OAuth") & (doctype.refresh_token.isnotnull()))
-		)
 		.run(as_dict=1)
 	)
 	for email_account in email_accounts:
@@ -859,20 +849,14 @@ def get_max_email_uid(email_account):
 		return max_uid
 
 
-def setup_user_email_inbox(
-	email_account, awaiting_password, email_id, enable_outgoing, used_oauth
-):
-	"""setup email inbox for user"""
-	from frappe.core.doctype.user.user import ask_pass_update
-
+def setup_user_email_inbox(email_account, email_id, enable_outgoing):
+	"""Setup email inbox for user"""
 	def add_user_email(user):
 		user = frappe.get_doc("User", user)
 		row = user.append("user_emails", {})
 
 		row.email_id = email_id
 		row.email_account = email_account
-		row.awaiting_password = awaiting_password or 0
-		row.used_oauth = used_oauth or 0
 		row.enable_outgoing = enable_outgoing or 0
 
 		user.save(ignore_permissions=True)
@@ -904,16 +888,15 @@ def setup_user_email_inbox(
 
 	if update_user_email_settings:
 		UserEmail = frappe.qb.DocType("User Email")
-		frappe.qb.update(UserEmail).set(UserEmail.awaiting_password, (awaiting_password or 0)).set(
+		frappe.qb.update(UserEmail).set(
 			UserEmail.enable_outgoing, (enable_outgoing or 0)
-		).set(UserEmail.used_oauth, (used_oauth or 0)).where(
+		).where(
 			UserEmail.email_account == email_account
 		).run()
 
 	else:
 		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
 		frappe.msgprint(_("Enabled email inbox for user {0}").format(users))
-	ask_pass_update()
 
 
 def remove_user_email_inbox(email_account):
@@ -931,18 +914,3 @@ def remove_user_email_inbox(email_account):
 		[doc.remove(row) for row in to_remove]
 
 		doc.save(ignore_permissions=True)
-
-
-@frappe.whitelist()
-def set_email_password(email_account, password):
-	account = frappe.get_doc("Email Account", email_account)
-	if account.awaiting_password and not account.auth_method == "OAuth":
-		account.awaiting_password = 0
-		account.password = password
-		try:
-			account.save(ignore_permissions=True)
-		except Exception:
-			frappe.db.rollback()
-			return False
-
-	return True

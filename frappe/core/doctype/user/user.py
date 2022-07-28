@@ -84,7 +84,6 @@ class User(Document):
 		self.validate_username()
 		self.remove_disabled_roles()
 		self.validate_user_email_inbox()
-		ask_pass_update()
 		self.validate_roles()
 		self.validate_allowed_modules()
 		self.validate_user_image()
@@ -757,25 +756,6 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 @frappe.whitelist()
 def has_email_account(email):
 	return frappe.get_list("Email Account", filters={"email_id": email})
-
-
-@frappe.whitelist(allow_guest=False)
-def get_email_awaiting(user):
-	return frappe.get_all(
-		"User Email",
-		fields=["email_account", "email_id"],
-		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
-	)
-
-
-def ask_pass_update():
-	# update the sys defaults as to awaiting users
-	from frappe.utils import set_default
-
-	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
-	)
-	set_default("email_user_password", ",".join(password_list))
 
 
 def _get_user_for_update_password(key, old_password):

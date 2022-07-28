@@ -132,15 +132,6 @@ frappe.Application = class Application {
 		// listen to build errors
 		this.setup_build_events();
 
-		if (frappe.sys_defaults.email_user_password) {
-			var email_list =  frappe.sys_defaults.email_user_password.split(',');
-			for (var u in email_list) {
-				if (email_list[u]===frappe.user.name) {
-					this.set_password(email_list[u]);
-				}
-			}
-		}
-
 		// REDESIGN-TODO: Fix preview popovers
 		this.link_preview = new frappe.ui.LinkPreview();
 
@@ -197,80 +188,6 @@ frappe.Application = class Application {
 		Vue.prototype.frappe = window.frappe;
 	}
 
-	set_password(user) {
-		var me=this;
-		frappe.call({
-			method: 'frappe.core.doctype.user.user.get_email_awaiting',
-			args: {
-				"user": user
-			},
-			callback: function(email_account) {
-				email_account = email_account["message"];
-				if (email_account) {
-					var i = 0;
-					if (i < email_account.length) {
-						me.email_password_prompt( email_account, user, i);
-					}
-				}
-			}
-		});
-	}
-
-	email_password_prompt(email_account,user,i) {
-		var me = this;
-		const email_id = email_account[i]["email_id"];
-		let d = new frappe.ui.Dialog({
-			title: __('Password missing in Email Account'),
-			fields: [
-				{
-					'fieldname': 'password',
-					'fieldtype': 'Password',
-					'label': __('Please enter the password for: <b>{0}</b>', [email_id], "Email Account"),
-					'reqd': 1
-				},
-				{
-					"fieldname": "submit",
-					"fieldtype": "Button",
-					"label": __("Submit", null, "Submit password for Email Account")
-				}
-			]
-		});
-		d.get_input("submit").on("click", function() {
-			//setup spinner
-			d.hide();
-			var s = new frappe.ui.Dialog({
-				title: __("Checking one moment"),
-				fields: [{
-					"fieldtype": "HTML",
-					"fieldname": "checking"
-				}]
-			});
-			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
-			s.show();
-			frappe.call({
-				method: 'frappe.email.doctype.email_account.email_account.set_email_password',
-				args: {
-					"email_account": email_account[i]["email_account"],
-					"password": d.get_value("password")
-				},
-				callback: function(passed) {
-					s.hide();
-					d.hide();//hide waiting indication
-					if (!passed["message"]) {
-						frappe.show_alert({message: __("Login Failed please try again"), indicator: 'error'}, 5);
-						me.email_password_prompt(email_account, user, i);
-					} else {
-						if (i + 1 < email_account.length) {
-							i = i + 1;
-							me.email_password_prompt(email_account, user, i);
-						}
-					}
-
-				}
-			});
-		});
-		d.show();
-	}
 	load_bootinfo() {
 		if(frappe.boot) {
 			this.setup_workspaces();

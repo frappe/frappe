@@ -249,7 +249,6 @@ frappe.ui.form.on('User', {
 				if (!Array.isArray(r.message)) {
 					frappe.route_options = {
 						"email_id": frm.doc.email,
-						"awaiting_password": 1,
 						"enable_incoming": 1
 					};
 					frappe.model.with_doctype("Email Account", function(doc) {
@@ -284,17 +283,6 @@ frappe.ui.form.on('User', {
 			// Clear cache after saving to refresh the values of boot.
 			frappe.ui.toolbar.clear_cache();
 		}
-	}
-});
-
-
-frappe.ui.form.on('User Email', {
-	email_account(frm, cdt, cdn) {
-		let child_row = locals[cdt][cdn];
-		frappe.model.get_value("Email Account", child_row.email_account, "auth_method", (value) => {
-			child_row.used_oauth = value.auth_method === "OAuth";
-			frm.refresh_field("user_emails", cdn, "used_oauth");
-		});
 	}
 });
 
