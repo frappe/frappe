@@ -63,8 +63,11 @@ class LetterHead(Document):
 
 		# To preserve the aspect ratio of the image, apply constraints only on
 		# the greater dimension and allow the other to scale accordingly
-		dimension = "width" if width > height else "height"
+		dimension = "width" if self.get(width) > self.get(height) else "height"
 		dimension_value = self.get(f"{dimension_prefix}{dimension}")
+
+		if not dimension_value:
+			dimension_value = ""
 
 		self.set(
 			html_field,

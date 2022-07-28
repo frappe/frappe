@@ -187,3 +187,4 @@ frappe.patches.v13_0.set_first_day_of_the_week
 frappe.patches.v13_0.encrypt_2fa_secrets
 frappe.patches.v13_0.set_document_expiry_default
 frappe.patches.v13_0.reset_corrupt_defaults
+frappe.patches.v13_0.payment_gateways_deprecation_warning
