@@ -194,7 +194,7 @@ class NotificationsView extends BaseNotificationsView {
 			this.dropdown_items = r.message.notification_logs;
 			frappe.update_user_info(r.message.user_info);
 			this.render_notifications_dropdown();
-			if (this.settings.seen == 0) {
+			if (this.settings.seen == 0 && this.dropdown_items.length > 0) {
 				this.toggle_notification_icon(false);
 			}
 		});
