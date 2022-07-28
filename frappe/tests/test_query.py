@@ -2,7 +2,7 @@ import unittest
 
 import frappe
 from frappe.query_builder import Field
-from frappe.query_builder.functions import Abs, Count, Max, Timestamp
+from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 
 
@@ -177,4 +177,12 @@ class TestQuery(unittest.TestCase):
 			frappe.qb.from_(user_doctype)
 			.select(user_doctype.email.as_("id"), Count(Field("name")).as_("count"))
 			.get_sql(),
+		)
+
+	def test_filters(self):
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"User", filters={"IfNull(name, " ")": ("<", Now())}, fields=["Max(name)"]
+			).run(),
+			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
 		)

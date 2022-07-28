@@ -2,6 +2,7 @@ import operator
 import re
 from ast import literal_eval
 from functools import cached_property
+import sys
 from types import BuiltinFunctionType
 from typing import Any, Callable, Iterable
 
@@ -120,20 +121,6 @@ def func_timespan(key: Field, value: str) -> frappe.qb:
 
 	return func_between(key, get_timespan_date_range(value))
 
-
-def make_function(key: Any, value: int | str):
-	"""returns fucntion query
-
-	Args:
-	        key (Any): field
-	        value (Union[int, str]): criterion
-
-	Returns:
-	        frappe.qb: frappe.qb object
-	"""
-	return OPERATOR_MAP[value[0].casefold()](key, value[1])
-
-
 def change_orderby(order: str):
 	"""Convert orderby to standart Order object
 
@@ -159,6 +146,13 @@ def literal_eval_(literal):
 		return literal_eval(literal)
 	except (ValueError, SyntaxError):
 		return literal
+
+
+def has_function(field):
+	_field = field.casefold() if (isinstance(field, str) and "`" not in field) else field
+	if not issubclass(type(_field), Criterion):
+		if any([f"{func}(" in _field for func in SQL_FUNCTIONS]) or "(" in _field:
+			return True
 
 
 # default operators
@@ -305,7 +299,7 @@ class Engine:
 				else:
 					_operator = self.OPERATOR_MAP[filters[1].casefold()]
 					if not isinstance(filters[0], str):
-						conditions = make_function(filters[0], filters[2])
+						conditions = self.make_function_for_filters(filters[0], filters[2])
 						break
 					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
 					break
@@ -331,12 +325,15 @@ class Engine:
 			if isinstance(value, bool):
 				filters.update({key: str(int(value))})
 
+		filters = {
+			(self.get_function_object(k) if has_function(k) else k): v for k, v in filters.items()
+		}
 		for key in filters:
 			value = filters.get(key)
 			_operator = self.OPERATOR_MAP["="]
 
 			if not isinstance(key, str):
-				conditions = conditions.where(make_function(key, value))
+				conditions = conditions.where(self.make_function_for_filters(key, value))
 				continue
 			if isinstance(value, (list, tuple)):
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
@@ -378,6 +375,12 @@ class Engine:
 
 		return criterion
 
+	def make_function_for_filters(self, key: Any, value: int | str):
+		value = list(value)
+		if isinstance(value[1], str) and has_function(value[1]):
+			value[1] = self.get_function_object(value[1])
+		return OPERATOR_MAP[value[0].casefold()](key, value[1])
+
 	def get_function_object(self, field: str) -> "Function":
 		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
 		func = field.split("(", maxsplit=1)[0].capitalize()
@@ -416,6 +419,8 @@ class Engine:
 		if alias and "`" in alias:
 			alias = alias.replace("`", "")
 		try:
+			if func.casefold() == "now":
+				return getattr(functions, func)()
 			return getattr(functions, func)(*_args, alias=alias or None)
 		except AttributeError:
 			# Fall back for functions not present in `SqlFunctions``

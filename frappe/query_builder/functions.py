@@ -22,6 +22,13 @@ class Locate(Function):
 			terms[0] = terms[0].get_sql()
 		super().__init__("LOCATE", *terms, **kwargs)
 
+class Ifnull(IfNull):
+	def __init__(self, condition, term, **kwargs):
+		if not isinstance(condition, str):
+			condition = condition.get_sql()
+		if not isinstance(term, str):
+			term = term.get_sql()
+		super().__init__(condition, term, **kwargs)
 
 class Timestamp(Function):
 	def __init__(self, term: str, time=None, alias=None):
@@ -108,6 +115,7 @@ class SqlFunctions(Enum):
 	Min = "min"
 	Abs = "abs"
 	Timestamp = "timestamp"
+	IfNull = "ifnull"
 
 
 def _max(dt, fieldname, filters=None, **kwargs):
