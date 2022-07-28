@@ -62,21 +62,21 @@ def take_backups_weekly():
 
 
 def take_backups_if(freq):
-	if frappe.db.get_value("Dropbox Settings", None, "backup_frequency") == freq:
+	if frappe.db.get_single_value("Dropbox Settings", "backup_frequency") == freq:
 		take_backup_to_dropbox()
 
 
 def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 	did_not_upload, error_log = [], []
 	try:
-		if cint(frappe.db.get_value("Dropbox Settings", None, "enabled")):
+		if cint(frappe.db.get_single_value("Dropbox Settings", "enabled")):
 			validate_file_size()
 
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload:
 				raise Exception
 
-			if cint(frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup")):
+			if cint(frappe.db.get_single_value("Dropbox Settings", "send_email_for_successful_backup")):
 				send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:

@@ -5,55 +5,50 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "title_and_route_tab",
   "title",
   "route",
+  "published",
+  "column_break_4",
   "doc_type",
   "module",
-  "column_break_4",
   "is_standard",
-  "is_multi_step_form",
-  "published",
+  "introduction",
+  "introduction_text",
+  "form_settings_tab",
   "login_required",
-  "route_to_success_link",
-  "allow_edit",
+  "is_multi_step_form",
   "allow_multiple",
-  "apply_document_permissions",
-  "show_in_grid",
+  "allow_edit",
   "allow_delete",
+  "column_break_18",
+  "apply_document_permissions",
   "allow_print",
   "print_format",
   "allow_comments",
   "show_attachments",
   "allow_incomplete",
-  "introduction",
-  "introduction_text",
-  "fields",
+  "form_fields",
   "web_form_fields",
   "max_attachment_size",
-  "client_script_section",
-  "client_script",
-  "custom_css_section",
-  "custom_css",
   "actions",
+  "breadcrumbs",
   "button_label",
+  "column_break_29",
   "success_message",
+  "route_to_success_link",
   "success_url",
-  "sidebar_settings",
+  "list_settings_tab",
+  "list_setting_message",
+  "show_list",
+  "list_title",
+  "list_columns",
+  "sidebar_settings_tab",
   "show_sidebar",
-  "sidebar_items",
-  "payments",
-  "accept_payment",
-  "payment_gateway",
-  "payment_button_label",
-  "payment_button_help",
-  "column_break_28",
-  "amount_based_on_field",
-  "amount_field",
-  "amount",
-  "currency",
-  "advanced",
-  "web_page_link_text",
-  "breadcrumbs"
+  "website_sidebar",
+  "scripting_style_tab",
+  "client_script",
+  "custom_css"
  ],
  "fields": [
   {
@@ -118,25 +113,18 @@
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Edit"
+   "label": "Allow Editing After Submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple"
+   "label": "Allow Multiple Responses"
   },
   {
    "default": "0",
-   "depends_on": "allow_multiple",
-   "fieldname": "show_in_grid",
-   "fieldtype": "Check",
-   "label": "Show as Grid"
-  },
-  {
-   "default": "0",
-   "depends_on": "allow_multiple",
+   "depends_on": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
    "label": "Allow Delete"
@@ -188,11 +176,6 @@
    "label": "Introduction"
   },
   {
-   "fieldname": "fields",
-   "fieldtype": "Section Break",
-   "label": "Fields"
-  },
-  {
    "fieldname": "web_form_fields",
    "fieldtype": "Table",
    "label": "Web Form Fields",
@@ -204,13 +187,6 @@
    "label": "Max Attachment Size (in MB)"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "client_script",
-   "fieldname": "client_script_section",
-   "fieldtype": "Section Break",
-   "label": "Client Script"
-  },
-  {
    "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
    "fieldname": "client_script",
    "fieldtype": "Code",
@@ -220,13 +196,13 @@
    "collapsible": 1,
    "fieldname": "actions",
    "fieldtype": "Section Break",
-   "label": "Actions"
+   "label": "Customization"
   },
   {
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
-   "label": "Button Label"
+   "label": "Submit Button Label"
   },
   {
    "description": "Message to be displayed on successful completion (only for Guest users)",
@@ -235,103 +211,17 @@
    "label": "Success Message"
   },
   {
+   "depends_on": "route_to_success_link",
    "description": "Go to this URL after completing the form",
    "fieldname": "success_url",
    "fieldtype": "Data",
    "label": "Success URL"
   },
   {
-   "collapsible": 1,
-   "fieldname": "sidebar_settings",
-   "fieldtype": "Section Break",
-   "label": "Sidebar Settings"
-  },
-  {
    "default": "0",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
    "label": "Show Sidebar"
-  },
-  {
-   "fieldname": "sidebar_items",
-   "fieldtype": "Table",
-   "label": "Sidebar Items",
-   "options": "Portal Menu Item"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "accept_payment",
-   "fieldname": "payments",
-   "fieldtype": "Section Break",
-   "label": "Payments"
-  },
-  {
-   "default": "0",
-   "fieldname": "accept_payment",
-   "fieldtype": "Check",
-   "label": "Accept Payment"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_gateway",
-   "fieldtype": "Link",
-   "label": "Payment Gateway",
-   "options": "Payment Gateway"
-  },
-  {
-   "default": "Buy Now",
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_label",
-   "fieldtype": "Data",
-   "label": "Button Label"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_help",
-   "fieldtype": "Text",
-   "label": "Button Help"
-  },
-  {
-   "fieldname": "column_break_28",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "depends_on": "accept_payment",
-   "fieldname": "amount_based_on_field",
-   "fieldtype": "Check",
-   "label": "Amount Based On Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && doc.amount_based_on_field",
-   "fieldname": "amount_field",
-   "fieldtype": "Select",
-   "label": "Amount Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && !doc.amount_based_on_field",
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "label": "Amount"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "advanced",
-   "fieldtype": "Section Break",
-   "label": "Advanced"
-  },
-  {
-   "description": "Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`",
-   "fieldname": "web_page_link_text",
-   "fieldtype": "Data",
-   "label": "Web Page Link Text"
   },
   {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
@@ -346,13 +236,6 @@
    "options": "CSS"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "custom_css",
-   "fieldname": "custom_css_section",
-   "fieldtype": "Section Break",
-   "label": "Custom CSS"
-  },
-  {
    "default": "0",
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
@@ -363,13 +246,86 @@
    "fieldname": "is_multi_step_form",
    "fieldtype": "Check",
    "label": "Is Multi Step Form"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "show_list",
+   "fieldtype": "Check",
+   "label": "Show List"
+  },
+  {
+   "depends_on": "eval: doc.login_required && doc.show_list",
+   "fieldname": "list_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "depends_on": "eval: doc.login_required && doc.show_list",
+   "fieldname": "list_columns",
+   "fieldtype": "Table",
+   "label": "List Columns",
+   "options": "Web Form List Column"
+  },
+  {
+   "fieldname": "title_and_route_tab",
+   "fieldtype": "Tab Break",
+   "label": "Title & Route"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "form_fields",
+   "fieldtype": "Section Break",
+   "label": "Form Fields"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "website_sidebar",
+   "fieldtype": "Link",
+   "label": "Website Sidebar",
+   "options": "Website Sidebar"
+  },
+  {
+   "fieldname": "column_break_29",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "list_setting_message",
+   "fieldtype": "HTML",
+   "label": "List Setting Message"
+  },
+  {
+   "fieldname": "form_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form Settings"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "fieldname": "list_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "List Settings"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sidebar_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Sidebar Settings"
+  },
+  {
+   "fieldname": "scripting_style_tab",
+   "fieldtype": "Tab Break",
+   "label": "Scripting / Style"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-23 15:44:41.385001",
+ "modified": "2022-07-24 20:29:23.059834",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

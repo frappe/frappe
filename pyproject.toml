@@ -43,7 +43,6 @@ dependencies = [
     "num2words~=0.5.10",
     "oauthlib~=3.1.0",
     "openpyxl~=3.0.7",
-    "parse~=1.19.0",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
     "phonenumbers==8.12.40",
@@ -76,16 +75,12 @@ dependencies = [
 
     # integration dependencies
     "boto3~=1.17.53",
-    "braintree~=4.8.0",
     "dropbox~=11.7.0",
     "google-api-python-client~=2.2.0",
     "google-auth-httplib2~=0.1.0",
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
     "googlemaps~=4.4.5",
-    "paytmchecksum~=1.7.0",
-    "razorpay~=1.2.0",
-    "stripe~=2.56.0",
 ]
 
 [build-system]
@@ -109,3 +104,4 @@ coverage = "~=6.4.1"
 Faker = "~=13.12.1"
 pyngrok = "~=5.0.5"
 unittest-xml-reporting = "~=3.0.4"
+watchdog = "~=2.1.9"

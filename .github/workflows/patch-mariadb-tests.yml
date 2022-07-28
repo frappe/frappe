@@ -1,7 +1,8 @@
-name: Patch
+name: Server (MariaDB)
 
-on: [pull_request, workflow_dispatch]
-
+on:
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: patch-mariadb-develop-${{ github.event.number }}
@@ -12,10 +13,9 @@ permissions:
 
 jobs:
   test:
+    name: Patch
     runs-on: ubuntu-latest
     timeout-minutes: 60
-
-    name: Patch Test
 
     services:
       mariadb:
@@ -30,16 +30,13 @@ jobs:
       - name: Clone
         uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: "gabrielfalcao/pyenv-action@v10"
-        with:
-          versions: 3.10:latest, 3.7:latest
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14
-          check-latest: true
+      - name: Check for valid Python & Merge Conflicts
+        run: |
+          python -m compileall -f "${GITHUB_WORKSPACE}"
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
+              then echo "Found merge conflicts"
+              exit 1
+          fi
 
       - name: Check if build should be run
         id: check-build
@@ -49,6 +46,19 @@ jobs:
           TYPE: "server"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
+
+      - name: Setup Python
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: "gabrielfalcao/pyenv-action@v10"
+        with:
+          versions: 3.10:latest, 3.7:latest
+
+      - name: Setup Node
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          check-latest: true
 
       - name: Add to Hosts
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -93,21 +103,16 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
-        env:
-          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
-          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
-          TYPE: server
-
-      - name: Install
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           pip install frappe-bench
           pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          DB: mariadb
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: server
+          DB: mariadb
 
       - name: Run Patch Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}

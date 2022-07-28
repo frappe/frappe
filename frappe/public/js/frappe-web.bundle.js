@@ -3,6 +3,7 @@ import "./frappe/class.js";
 import "./frappe/polyfill.js";
 import "./lib/moment.js";
 import "./frappe/provide.js";
+import "./frappe/form/formatters.js";
 import "./frappe/format.js";
 import "./frappe/utils/number_format.js";
 import "./frappe/utils/utils.js";

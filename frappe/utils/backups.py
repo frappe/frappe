@@ -73,11 +73,7 @@ class BackupGenerator:
 		if not self.db_type:
 			self.db_type = "mariadb"
 
-		if not self.db_port:
-			if self.db_type == "mariadb":
-				self.db_port = 3306
-			if self.db_type == "postgres":
-				self.db_port = 5432
+		self.db_port = self.db_port or frappe.db.default_port
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -700,6 +696,14 @@ def backup(
 
 if __name__ == "__main__":
 	import sys
+
+	from frappe.utils.commands import warn
+
+	warn(
+		"Calling the backup script directly is deprecated. "
+		"Use the backup command instead. This script will be removed in Frappe v15.",
+		category=DeprecationWarning,
+	)
 
 	cmd = sys.argv[1]
 

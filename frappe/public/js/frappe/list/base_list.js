@@ -69,6 +69,14 @@ frappe.views.BaseList = class BaseList {
 		];
 	}
 
+	get_list_view_settings() {
+		return frappe
+			.call("frappe.desk.listview.get_list_settings", {
+				doctype: this.doctype,
+			})
+			.then((doc) => (this.list_view_settings = doc.message || {}));
+	}
+
 	setup_fields() {
 		this.set_fields();
 		this.build_fields();
@@ -764,10 +772,6 @@ class FilterArea {
 
 		const doctype_fields = this.list_view.meta.fields;
 		const title_field = this.list_view.meta.title_field;
-		const has_existing_filters = (
-			this.list_view.filters
-			&& this.list_view.filters.length > 0
-		);
 
 		fields = fields.concat(
 			doctype_fields
@@ -803,23 +807,12 @@ class FilterArea {
 						}
 					}
 
-					let default_value;
-
-					if (fieldtype === "Link" && !has_existing_filters) {
-						default_value = frappe.defaults.get_user_default(options);
-					}
-
-					if (["__default", "__global"].includes(default_value)) {
-						default_value = null;
-					}
-
 					return {
 						fieldtype: fieldtype,
 						label: __(df.label),
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,
-						default: default_value,
 						onchange: () => this.refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,

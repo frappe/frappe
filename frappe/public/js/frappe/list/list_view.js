@@ -87,10 +87,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
 		// set filters from view_user_settings or list_settings
-		if (
-			this.view_user_settings.filters &&
-			this.view_user_settings.filters.length
-		) {
+		if (Array.isArray(this.view_user_settings.filters)) {
 			// Priority 1: view_user_settings
 			const saved_filters = this.view_user_settings.filters;
 			this.filters = this.validate_filters(saved_filters);
@@ -108,14 +105,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
-	}
-
-	get_list_view_settings() {
-		return frappe
-			.call("frappe.desk.listview.get_list_settings", {
-				doctype: this.doctype,
-			})
-			.then((doc) => (this.list_view_settings = doc.message || {}));
 	}
 
 	on_sort_change(sort_by, sort_order) {

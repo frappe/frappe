@@ -13,6 +13,7 @@ import './script_helpers';
 import './sidebar/form_sidebar';
 import './footer/footer';
 import './form_tour';
+import { UndoManager } from './undo_manager';
 
 frappe.ui.form.Controller = class FormController {
 	constructor(opts) {
@@ -38,6 +39,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.fetch_dict = {};
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
+		this.undo_manager = new UndoManager({frm: this});
 		this.setup_meta(doctype);
 
 		this.beforeUnloadListener = (event) => {
@@ -141,6 +143,26 @@ frappe.ui.form.Form = class FrappeForm {
 			description: __('Go to previous record'),
 			ignore_inputs: true,
 			condition: () => !this.is_new()
+		});
+
+		// Undo and redo
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'ctrl+z',
+			action: () => this.undo_manager.undo(),
+			page: this.page,
+			description: __('Undo last action'),
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+ctrl+z',
+			action: () => this.undo_manager.redo(),
+			page: this.page,
+			description: __('Redo last action'),
+		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'ctrl+y',
+			action: () => this.undo_manager.redo(),
+			page: this.page,
+			description: __('Redo last action'),
 		});
 
 		let grid_shortcut_keys = [
@@ -356,6 +378,8 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		cur_frm = this;
+
+		this.undo_manager.erase_history();
 
 		if(this.docname) { // document to show
 			this.save_disabled = false;
@@ -1761,7 +1785,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return sum;
 	}
 
-	scroll_to_field(fieldname) {
+	scroll_to_field(fieldname, focus=true) {
 		let field = this.get_field(fieldname);
 		if (!field) return;
 
@@ -1781,7 +1805,9 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.utils.scroll_to($el, true, 15);
 
 		// focus if text field
-		$el.find('input, select, textarea').focus();
+		if (focus) {
+			$el.find('input, select, textarea').focus();
+		}
 
 		// highlight control inside field
 		let control_element = $el.find('.form-control')
@@ -1846,6 +1872,29 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
+	}
+
+	get_involved_users() {
+		let user_fields = this.meta.fields
+			.filter(d => d.fieldtype === 'Link' && d.options === 'User')
+			.map(d => d.fieldname);
+
+		user_fields = [...user_fields, "owner", "modified_by"];
+		let involved_users = user_fields.map(field => this.doc[field]);
+
+		const docinfo = this.get_docinfo();
+
+		involved_users = involved_users.concat(
+			docinfo.communications.map(d => d.sender && d.delivery_status === 'sent'),
+			docinfo.comments.map(d => d.owner),
+			docinfo.versions.map(d => d.owner),
+			docinfo.assignments.map(d => d.owner)
+		);
+
+		return involved_users
+			.uniqBy(u => u)
+			.filter(user => !['Administrator', frappe.session.user].includes(user))
+			.filter(Boolean);
 	}
 };
 

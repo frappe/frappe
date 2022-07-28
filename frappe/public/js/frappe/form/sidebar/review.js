@@ -38,30 +38,9 @@ frappe.ui.form.Review = class Review {
 			review_button.click(() => this.show_review_dialog());
 		}
 	}
-	get_involved_users() {
-		const user_fields = this.frm.meta.fields
-			.filter(d => d.fieldtype === 'Link' && d.options === 'User')
-			.map(d => d.fieldname);
 
-		user_fields.push('owner');
-		let involved_users = user_fields.map(field => this.frm.doc[field]);
-
-		const docinfo = this.frm.get_docinfo();
-
-		involved_users = involved_users.concat(
-			docinfo.communications.map(d => d.sender && d.delivery_status === 'sent'),
-			docinfo.comments.map(d => d.owner),
-			docinfo.versions.map(d => d.owner),
-			docinfo.assignments.map(d => d.owner)
-		);
-
-		return involved_users
-			.uniqBy(u => u)
-			.filter(user => !['Administrator', frappe.session.user].includes(user))
-			.filter(Boolean);
-	}
 	show_review_dialog() {
-		const user_options = this.get_involved_users();
+		const user_options = this.frm.get_involved_users();
 		const review_dialog = new frappe.ui.Dialog({
 			'title': __('Add Review'),
 			'fields': [{

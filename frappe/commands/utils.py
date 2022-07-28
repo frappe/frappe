@@ -523,22 +523,24 @@ def postgres(context):
 
 
 def _mariadb():
+	from frappe.database.mariadb.database import MariaDBDatabase
+
 	mysql = find_executable("mysql")
-	os.execv(
+	command = [
 		mysql,
-		[
-			mysql,
-			"-u",
-			frappe.conf.db_name,
-			"-p" + frappe.conf.db_password,
-			frappe.conf.db_name,
-			"-h",
-			frappe.conf.db_host or "localhost",
-			"--pager=less -SFX",
-			"--safe-updates",
-			"-A",
-		],
-	)
+		"--port",
+		frappe.conf.db_port or MariaDBDatabase.default_port,
+		"-u",
+		frappe.conf.db_name,
+		f"-p{frappe.conf.db_password}",
+		frappe.conf.db_name,
+		"-h",
+		frappe.conf.db_host or "localhost",
+		"--pager=less -SFX",
+		"--safe-updates",
+		"-A",
+	]
+	os.execv(mysql, command)
 
 
 def _psql():
@@ -872,13 +874,20 @@ def run_ui_tests(
 		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
-		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
-		# install cypress
+		# install cypress & dependent plugins
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 cypress-real-events @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+		packages = " ".join(
+			[
+				"cypress@^6",
+				"cypress-file-upload@^5",
+				"@4tw/cypress-drag-drop@^2",
+				"cypress-real-events",
+				"@testing-library/cypress@^8",
+				"@cypress/code-coverage@^3",
+			]
 		)
+		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
 
 	# run for headless mode
 	run_or_open = "run --browser chrome --record" if headless else "open"

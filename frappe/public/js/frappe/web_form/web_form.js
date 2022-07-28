@@ -23,13 +23,14 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.set_sections();
 		this.set_field_values();
 		this.setup_listeners();
-		if (this.introduction_text) this.set_form_description(this.introduction_text);
-		if (this.allow_print && !this.is_new) this.setup_print_button();
-		if (this.is_new) this.setup_cancel_button();
-		this.setup_primary_action();
+
+		if (this.is_new || this.is_form_editable) {
+			this.setup_primary_action();
+		}
+
+		this.setup_footer_actions();
 		this.setup_previous_next_button();
 		this.toggle_section();
-		$(".link-btn").remove();
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
@@ -70,6 +71,14 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.sections = $(`.form-section`);
 	}
 
+	setup_footer_actions() {
+		if (this.is_multi_step_form) return;
+
+		if ($('.web-form-container').height() > 600) {
+			$(".web-form-footer").removeClass("hide");
+		}
+	}
+
 	setup_previous_next_button() {
 		let me = this;
 
@@ -87,7 +96,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$('.btn-previous').on('click', function () {
 			let is_validated = me.validate_section();
 
-			if (!is_validated) return;
+			if (!is_validated) return false;
 
 			/**
 				The eslint utility cannot figure out if this is an infinite loop in backwards and
@@ -107,12 +116,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			}
 			/* eslint-enable for-direction */
 			me.toggle_section();
+			return false;
 		});
 
 		$('.btn-next').on('click', function () {
 			let is_validated = me.validate_section();
 
-			if (!is_validated) return;
+			if (!is_validated) return false;
 
 			for (let idx = me.current_section; idx < me.sections.length; idx++) {
 				let is_empty = me.is_next_section_empty(idx);
@@ -123,6 +133,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				}
 			}
 			me.toggle_section();
+			return false;
 		});
 	}
 
@@ -132,56 +143,20 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_default_values() {
+		let defaults = {};
+		for (let df of this.fields) {
+			if (df.default) {
+				defaults[df.fieldname] = df.default;
+			}
+		}
 		let values = frappe.utils.get_query_params();
 		delete values.new;
+		Object.assign(defaults, values);
 		this.set_values(values);
 	}
 
-	set_form_description(intro) {
-		let intro_wrapper = document.getElementById('introduction');
-		intro_wrapper.innerHTML = intro;
-		intro_wrapper.classList.remove('hidden');
-	}
-
-	add_button(name, type, action, wrapper_class=".web-form-actions") {
-		const button = document.createElement("button");
-		button.classList.add("btn", "btn-" + type, "btn-sm", "ml-2");
-		button.innerHTML = name;
-		button.onclick = action;
-		document.querySelector(wrapper_class).appendChild(button);
-	}
-
-	add_button_to_footer(name, type, action) {
-		this.add_button(name, type, action, '.web-form-footer');
-	}
-
-	add_button_to_header(name, type, action) {
-		this.add_button(name, type, action, '.web-form-actions');
-	}
-
 	setup_primary_action() {
-		this.add_button_to_header(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
-			this.save()
-		);
-
-		if (!this.is_multi_step_form && $('.frappe-card').height() > 600) {
-			// add button on footer if page is long
-			this.add_button_to_footer(this.button_label || __("Save", null, "Button in web form"), "primary", () =>
-				this.save()
-			);
-		}
-	}
-
-	setup_cancel_button() {
-		this.add_button_to_header(__("Cancel", null, "Button in web form"), "light", () => this.cancel());
-	}
-
-	setup_print_button() {
-		this.add_button_to_header(
-			frappe.utils.icon('print'),
-			"light",
-			() => this.print()
-		);
+		$(".web-form-container").on("submit", () => this.save());
 	}
 
 	validate_section() {
@@ -305,6 +280,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (!doc_values) return;
 
 		if (window.saving) return;
+		// TODO: remove this (used for payments app)
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
 		Object.assign(this.doc, doc_values);
@@ -349,21 +325,25 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				window.saving = false;
 			}
 		});
-		return true;
+		return false;
 	}
 
-	print() {
-		window.open(`/printview?
-			doctype=${this.doc_type}
-			&name=${this.doc.name}
-			&format=${this.print_format || "Standard"}`, '_blank');
+	edit() {
+		window.location.href = window.location.pathname + "/edit";
 	}
 
 	cancel() {
-		window.location.href = window.location.pathname;
+		let path = window.location.pathname;
+		if (this.is_new) {
+			path = path.replace('/new', '');
+		} else {
+			path = path.replace('/edit', '');
+		}
+		window.location.href = path;
 	}
 
 	handle_success(data) {
+		// TODO: remove this (used for payments app)
 		if (this.accept_payment && !this.doc.paid) {
 			window.location.href = data;
 		}
@@ -375,12 +355,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// redirect
 		setTimeout(() => {
+			let path = window.location.pathname;
+
 			if (this.success_url) {
-				window.location.href = this.success_url;
-			} else if(this.login_required) {
-				window.location.href =
-					window.location.pathname + "?name=" + data.name;
+				path = this.success_url;
+			} else if (this.login_required) {
+				if (this.is_new && data.name) {
+					path = path.replace("/new", "");
+					path = path + "/" + data.name;
+				} else if (this.is_form_editable) {
+					path =  path.replace("/edit", "");
+				}
 			}
-		}, 2000);
+			window.location.href = path;
+		}, 1000);
 	}
 }

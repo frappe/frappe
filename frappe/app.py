@@ -25,7 +25,7 @@ from frappe.utils import get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
-local_manager = LocalManager([frappe.local])
+local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
@@ -44,6 +44,7 @@ class RequestContext:
 		frappe.destroy()
 
 
+@local_manager.middleware
 @Request.application
 def application(request):
 	response = None
@@ -311,9 +312,6 @@ def after_request(rollback):
 	update_comments_in_parent_after_request()
 
 	return rollback
-
-
-application = local_manager.make_middleware(application)
 
 
 def serve(

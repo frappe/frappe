@@ -1,4 +1,4 @@
-context('Recorder', () => {
+context.skip('Recorder', () => {
 	before(() => {
 		cy.login();
 	});

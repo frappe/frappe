@@ -71,38 +71,13 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 		const options = super.get_quill_options();
 		return Object.assign(options, {
 			theme: 'bubble',
-			modules: Object.assign(options.modules, {
-				mention: this.get_mention_options()
-			})
+			bounds: this.quill_container[0]
 		});
-	}
-
-	get_mention_options() {
-		if (!this.enable_mentions) {
-			return null;
-		}
-		let me = this;
-		return {
-			allowedChars: /^[A-Za-z0-9_]*$/,
-			mentionDenotationChars: ["@"],
-			isolateCharacter: true,
-			source: frappe.utils.debounce(async function(search_term, renderList) {
-				let method = me.mention_search_method || 'frappe.desk.search.get_names_for_mentions';
-				let values = await frappe.xcall(method, {
-					search_term
-				});
-				renderList(values, search_term);
-			}, 300),
-			renderItem(item) {
-				let value = item.value;
-				return `${value} ${item.is_group ? frappe.utils.icon('users') : ''}`;
-			}
-		};
 	}
 
 	get_toolbar_options() {
 		return [
-			['bold', 'italic', 'underline'],
+			['bold', 'italic', 'underline', 'strike'],
 			['blockquote', 'code-block'],
 			[{ 'direction': "rtl" }],
 			['link', 'image'],

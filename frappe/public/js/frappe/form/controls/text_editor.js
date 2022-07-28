@@ -174,17 +174,53 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				toolbar: this.get_toolbar_options(),
 				table: true,
 				imageResize: {},
-				magicUrl: true
+				magicUrl: true,
+				mention: this.get_mention_options()
 			},
-			theme: 'snow'
+			theme: 'snow',
 		};
+	}
+
+	get_mention_options() {
+		if (!this.enable_mentions && !this.df.enable_mentions) {
+			return null;
+		}
+		let me = this;
+		return {
+			allowedChars: /^[A-Za-z0-9_]*$/,
+			mentionDenotationChars: ["@"],
+			isolateCharacter: true,
+			source: frappe.utils.debounce(async function(search_term, renderList) {
+				let method = me.mention_search_method || 'frappe.desk.search.get_names_for_mentions';
+				let values = await frappe.xcall(method, {
+					search_term
+				});
+
+				let sorted_values = me.prioritize_involved_users_in_mention(values);
+				renderList(sorted_values, search_term);
+			}, 300),
+			renderItem(item) {
+				let value = item.value;
+				return `${value} ${item.is_group ? frappe.utils.icon('users') : ''}`;
+			}
+		};
+	}
+
+	prioritize_involved_users_in_mention(values) {
+		const involved_users = this.frm?.get_involved_users()   // input on form
+			|| cur_frm?.get_involved_users()   // comment box / dialog on active form
+			|| [];
+
+		return values
+			.filter(val => involved_users.includes(val.id))
+			.concat(values.filter(val => !involved_users.includes(val.id)));
 	}
 
 	get_toolbar_options() {
 		return [
 			[{ header: [1, 2, 3, false] }],
 			[{ size: font_sizes }],
-			['bold', 'italic', 'underline', 'clean'],
+			['bold', 'italic', 'underline', 'strike', 'clean'],
 			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			// Adding Direction tool to give the user the ability to change text direction.

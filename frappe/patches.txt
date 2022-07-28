@@ -66,7 +66,6 @@ execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
 frappe.patches.v10_0.set_no_copy_to_workflow_state
 frappe.patches.v10_0.increase_single_table_column_length
 frappe.patches.v11_0.create_contact_for_user
-frappe.patches.v11_0.sync_stripe_settings_before_migrate
 frappe.patches.v11_0.update_list_user_settings
 frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-2018
 frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
@@ -183,6 +182,8 @@ frappe.patches.v13_0.queryreport_columns
 frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
+frappe.patches.v13_0.encrypt_2fa_secrets
+frappe.patches.v13_0.reset_corrupt_defaults
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
@@ -192,6 +193,9 @@ frappe.patches.v14_0.reset_creation_datetime
 frappe.patches.v14_0.remove_is_first_startup
 frappe.patches.v14_0.clear_long_pending_stale_logs
 frappe.patches.v14_0.log_settings_migration
+frappe.patches.v14_0.setup_likes_from_feedback
+frappe.patches.v14_0.update_webforms
+frappe.patches.v14_0.delete_payment_gateways
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy
@@ -204,3 +208,4 @@ frappe.patches.v14_0.update_auto_account_deletion_duration
 frappe.patches.v14_0.update_integration_request
 frappe.patches.v14_0.set_document_expiry_default
 frappe.patches.v14_0.delete_data_migration_tool
+frappe.patches.v14_0.set_suspend_email_queue_default

@@ -43,6 +43,14 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Check for valid Python & Merge Conflicts
+        run: |
+          python -m compileall -f "${GITHUB_WORKSPACE}"
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
+              then echo "Found merge conflicts"
+              exit 1
+          fi
+
       - name: Check if build should be run
         id: check-build
         run: |
@@ -55,7 +63,7 @@ jobs:
       - uses: actions/setup-node@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         with:
-          node-version: 14
+          node-version: 16
           check-latest: true
 
       - name: Add to Hosts
@@ -113,18 +121,14 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: ui
-
-      - name: Install
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
-        env:
           DB: mariadb
-          TYPE: ui
 
       - name: Instrument Source Code
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -175,3 +179,7 @@ jobs:
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
           flags: server
+
+      - name: Show bench console if tests failed
+        if: ${{ failure() }}
+        run: cat ~/frappe-bench/bench_start.log
