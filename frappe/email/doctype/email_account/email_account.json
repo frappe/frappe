@@ -21,8 +21,6 @@
   "column_break_10",
   "refresh_token",
   "access_token",
-  "login_id_is_different",
-  "login_id",
   "mailbox_settings",
   "enable_incoming",
   "default_incoming",
@@ -83,22 +81,6 @@
    "options": "Email",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "login_id_is_different",
-   "fieldtype": "Check",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "label": "Use different Email ID"
-  },
-  {
-   "depends_on": "login_id_is_different",
-   "fieldname": "login_id",
-   "fieldtype": "Data",
-   "hide_days": 1,
-   "hide_seconds": 1,
-   "label": "Alternative Email ID"
   },
   {
    "depends_on": "eval: doc.auth_method === \"Basic\"",
@@ -596,7 +578,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-07-28 23:22:10.183495",
+ "modified": "2022-07-29 00:11:13.252936",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

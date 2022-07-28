@@ -65,14 +65,7 @@ class EmailAccount(Document):
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 
-		if self.email_id:
-			validate_email_address(self.email_id, True)
-
-		if self.login_id_is_different:
-			if not self.login_id:
-				frappe.throw(_("Login Id is required"))
-		else:
-			self.login_id = None
+		validate_email_address(self.email_id, True)
 
 		# validate the imap settings
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
@@ -202,7 +195,7 @@ class EmailAccount(Document):
 				"email_account": self.name,
 				"host": self.email_server,
 				"use_ssl": self.use_ssl,
-				"username": getattr(self, "login_id", None) or self.email_id,
+				"username": self.email_id,
 				"service": getattr(self, "service", ""),
 				"use_imap": self.use_imap,
 				"email_sync_rule": email_sync_rule,
@@ -383,7 +376,6 @@ class EmailAccount(Document):
 			"smtp_server": {"conf_names": ("mail_server",)},
 			"smtp_port": {"conf_names": ("mail_port",)},
 			"use_tls": {"conf_names": ("use_tls", "mail_login")},
-			"login_id": {"conf_names": ("mail_login",)},
 			"email_id": {
 				"conf_names": ("auto_email_id", "mail_login"),
 				"default": "notifications@example.com",
@@ -421,7 +413,7 @@ class EmailAccount(Document):
 			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
-			"login": getattr(self, "login_id", None) or self.email_id,
+			"login": self.email_id,
 			"password": self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
