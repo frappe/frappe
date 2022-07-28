@@ -31,7 +31,7 @@ frappe.ui.FilterGroup = class {
 			trigger: 'manual',
 			container: 'body',
 			placement: 'bottom',
-			offset: '-100px 0'
+			offset: '-100px, 0'
 		});
 	}
 

@@ -14,7 +14,7 @@ export default class GridRow {
 	make() {
 		var me = this;
 
-		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
+		this.wrapper = $('<div class="grid-row"></div>');
 		this.row = $('<div class="data-row row"></div>').appendTo(this.wrapper)
 			.on("click", function(e) {
 				if($(e.target).hasClass('grid-row-check') || $(e.target).hasClass('row-index') || $(e.target).parent().hasClass('row-index')) {
@@ -33,9 +33,9 @@ export default class GridRow {
 		} else {
 			this.render_row();
 		}
-		if(this.doc) {
-			this.set_data();
-		}
+
+		this.set_data();
+		this.wrapper.appendTo(this.parent);
 	}
 
 	set_docfields(update=false) {
@@ -55,8 +55,9 @@ export default class GridRow {
 
 	set_data() {
 		this.wrapper.data({
-			"doc": this.doc
-		})
+			"grid_row": this,
+			"doc": this.doc || "",
+		});
 	}
 	set_row_index() {
 		if(this.doc) {
@@ -750,6 +751,7 @@ export default class GridRow {
 				.option('disabled', Object.keys(this.grid.filter).length !== 0);
 
 			this.grid.prevent_build = true;
+			this.grid.grid_pagination.go_to_page(1);
 			this.grid.refresh();
 			this.grid.prevent_build = false;
 		}, 500));
