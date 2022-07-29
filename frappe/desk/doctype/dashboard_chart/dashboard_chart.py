@@ -14,7 +14,7 @@ from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, get_datetime, getdate, now_datetime, nowdate
+from frappe.utils import cint, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
 from frappe.utils.dateutils import (
@@ -88,6 +88,11 @@ def has_permission(doc, ptype, user):
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 		if doc.document_type in allowed_doctypes:
+			return True
+
+	if doc.roles:
+		allowed = [d.role for d in doc.roles]
+		if has_common(roles, allowed):
 			return True
 
 	return False
