@@ -90,15 +90,32 @@ def get_fetch_values(doctype, fieldname, value):
 	:param fieldname: Link fieldname selected
 	:param value: Value selected
 	"""
-	out = {}
-	meta = frappe.get_meta(doctype)
-	link_df = meta.get_field(fieldname)
-	for df in meta.get_fields_to_fetch(fieldname):
-		# example shipping_address.gistin
-		link_field, source_fieldname = df.fetch_from.split(".", 1)
-		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
 
-	return out
+	result = frappe._dict()
+
+	if not value:
+		# if value is falsy, don't make a DB call
+		return result
+
+	meta = frappe.get_meta(doctype)
+	fields_to_fetch = {
+		df.fetch_from.split(".", 1)[1]: df.fieldname for df in meta.get_fields_to_fetch(fieldname)
+	}
+
+	if not fields_to_fetch:
+		return result
+
+	db_values = frappe.db.get_value(
+		meta.get_options(fieldname), value, tuple(fields_to_fetch), as_dict=True
+	)
+
+	if not db_values:
+		return result
+
+	for source_fieldname, target_fieldname in fields_to_fetch.items():
+		result[target_fieldname] = db_values.get(source_fieldname)
+
+	return result
 
 
 @site_cache(maxsize=128)
