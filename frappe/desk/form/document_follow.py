@@ -163,7 +163,7 @@ def get_version(doctype, doc_name, frequency, user):
 	timeline = []
 	filters = get_filters("docname", doc_name, frequency, user)
 	version = frappe.get_all(
-		"Version", filters=filters, fields=["ref_doctype", "data", "modified", "modified", "modified_by"]
+		"Version", filters=filters, fields=["ref_doctype", "data", "modified", "modified_by"]
 	)
 	if version:
 		for v in version:
