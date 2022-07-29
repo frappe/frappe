@@ -292,21 +292,14 @@ function send_users(args, action) {
 
 	const room = action == 'view' ? open_doc_room: get_typing_room(args.socket, args.doctype, args.docname);
 
-	const socketio_room = io.sockets.adapter.rooms[room] || {};
-	// for compatibility with both v1.3.7 and 1.4.4
-	const clients_dict = ('sockets' in socketio_room) ? socketio_room.sockets : socketio_room;
-
-	// socket ids connected to this room
-	const clients = Object.keys(clients_dict || {});
+	const clients = Array.from(io.sockets.adapter.rooms.get(room) || []);
 
 	let users = [];
-	for (let i in io.sockets.sockets) {
-		const s = io.sockets.sockets[i];
-		if (clients.indexOf(s.id) !== -1) {
-			// this socket is connected to the room
-			users.push(s.user);
+	io.sockets.sockets.forEach((sock) => {
+		if (clients.includes(sock.id)) {
+			users.push(sock.user);
 		}
-	}
+	})
 
 	const emit_event = action == 'view' ? 'doc_viewers' : 'doc_typers';
 
