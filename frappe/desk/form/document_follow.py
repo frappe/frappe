@@ -114,14 +114,9 @@ def send_document_follow_mails(frequency):
 def get_version(doctype, doc_name, frequency, user):
 	timeline = []
 	filters = get_filters("docname", doc_name, frequency, user)
-<<<<<<< HEAD
 	version = frappe.get_all("Version",
 		filters=filters,
-		fields=["ref_doctype", "data", "modified", "modified", "modified_by"]
-=======
-	version = frappe.get_all(
-		"Version", filters=filters, fields=["ref_doctype", "data", "modified", "modified_by"]
->>>>>>> fac7460fb8 (chore: remove duplicate field in `get_version` (#17674))
+		fields=["ref_doctype", "data", "modified", "modified_by"]
 	)
 	if version:
 		for v in version:
