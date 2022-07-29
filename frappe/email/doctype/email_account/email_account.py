@@ -88,7 +88,6 @@ class EmailAccount(Document):
 			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
-					self.no_failed = 0
 
 				if self.enable_outgoing:
 					self.validate_smtp_conn()
@@ -186,8 +185,6 @@ class EmailAccount(Document):
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
-		if frappe.cache().get_value("workers:no-internet") == True:
-			return None
 
 		args = frappe._dict(
 			{
@@ -219,15 +216,13 @@ class EmailAccount(Document):
 		if not in_receive and self.use_imap:
 			email_server.imap.logout()
 
-		# reset failed attempts count
-		self.set_failed_attempts_count(0)
-
 		return email_server
 
 	def check_email_server_connection(self, email_server, in_receive):
 		# tries to connect to email server and handles failure
 		try:
 			email_server.connect()
+			self.no_failed = 0
 		except (error_proto, imaplib.IMAP4.error) as e:
 			message = cstr(e).lower().replace(" ", "")
 			auth_error_codes = [
@@ -247,7 +242,6 @@ class EmailAccount(Document):
 				).format(self.name)
 				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
-				return None
 
 			elif not in_receive and any(map(lambda t: t in message, auth_error_codes)):
 				SMTPServer.throw_invalid_credentials_exception()
@@ -257,14 +251,11 @@ class EmailAccount(Document):
 		except OSError:
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
-				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
-				if test_internet():
-					self.db_set("no_failed", self.no_failed + 1)
-					if self.no_failed > 2:
-						self.handle_incoming_connect_error(description=description)
-				else:
-					frappe.cache().set_value("workers:no-internet", True)
-				return None
+				self.db_set("no_failed", self.no_failed + 1, update_modified=False)
+				if self.no_failed > 2:
+					self.handle_incoming_connect_error(
+						description=frappe.message_log.pop() if frappe.message_log else "Socket Error"
+					)
 			else:
 				raise
 
@@ -428,35 +419,23 @@ class EmailAccount(Document):
 		return SMTPServer(**config)
 
 	def handle_incoming_connect_error(self, description):
-		if test_internet():
-			if self.get_failed_attempts_count() > 2:
-				self.db_set("enable_incoming", 0)
+			self.db_set("enable_incoming", 0, update_modified=False)
 
-				for user in get_system_managers(only_name=True):
-					try:
-						assign_to.add(
-							{
-								"assign_to": user,
-								"doctype": self.doctype,
-								"name": self.name,
-								"description": description,
-								"priority": "High",
-								"notify": 1,
-							}
-						)
-					except assign_to.DuplicateToDoError:
-						frappe.message_log.pop()
-						pass
-			else:
-				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
-		else:
-			frappe.cache().set_value("workers:no-internet", True)
+			for user in get_system_managers(only_name=True):
+				try:
+					assign_to.add(
+						{
+							"assign_to": user,
+							"doctype": self.doctype,
+							"name": self.name,
+							"description": description,
+							"priority": "High",
+							"notify": 1,
+						}
+					)
+				except assign_to.DuplicateToDoError:
+					frappe.message_log.pop()
 
-	def set_failed_attempts_count(self, value):
-		frappe.cache().set(f"{self.name}:email-account-failed-attempts", value)
-
-	def get_failed_attempts_count(self):
-		return cint(frappe.cache().get(f"{self.name}:email-account-failed-attempts"))
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -688,9 +667,7 @@ class EmailAccount(Document):
 
 
 @frappe.whitelist()
-def get_append_to(
-	doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None
-):
+def get_append_to(filters=None):
 	txt = txt if txt else ""
 	email_append_to_list = []
 
@@ -708,22 +685,6 @@ def get_append_to(
 	email_append_to = [[d] for d in set(email_append_to_list) if txt in d]
 
 	return email_append_to
-
-
-def test_internet(host="8.8.8.8", port=53, timeout=3):
-	"""Returns True if internet is connected
-
-	Host: 8.8.8.8 (google-public-dns-a.google.com)
-	OpenPort: 53/tcp
-	Service: domain (DNS/TCP)
-	"""
-	try:
-		socket.setdefaulttimeout(timeout)
-		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-		return True
-	except Exception as ex:
-		print(ex.message)
-		return False
 
 
 def notify_unreplied():
@@ -781,12 +742,6 @@ def notify_unreplied():
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
-
-	if frappe.cache().get_value("workers:no-internet") == True:
-		if test_internet():
-			frappe.cache().set_value("workers:no-internet", False)
-		else:
-			return
 
 	doctype = frappe.qb.DocType("Email Account")
 	email_accounts = (
