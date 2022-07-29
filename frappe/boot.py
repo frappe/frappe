@@ -391,7 +391,6 @@ def get_notification_settings():
 	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
 
 
-@frappe.whitelist()
 def get_link_title_doctypes():
 	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
 	custom_dts = frappe.get_all(

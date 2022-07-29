@@ -189,19 +189,22 @@ class NotificationsView extends BaseNotificationsView {
 		);
 
 		this.setup_notification_listeners();
-		this.get_notifications_list(this.max_length).then(list => {
-			this.dropdown_items = list;
+		this.get_notifications_list(this.max_length).then(r => {
+			if (!r.message) return;
+			this.dropdown_items = r.message.notification_logs;
+			frappe.update_user_info(r.message.user_info);
 			this.render_notifications_dropdown();
-			if (this.settings.seen == 0) {
+			if (this.settings.seen == 0 && this.dropdown_items.length > 0) {
 				this.toggle_notification_icon(false);
 			}
 		});
-
 	}
 
 	update_dropdown() {
 		this.get_notifications_list(1).then(r => {
-			let new_item = r[0];
+			if (!r.message) return;
+			let new_item = r.message.notification_logs[0];
+			frappe.update_user_info(r.message.user_info);
 			this.dropdown_items.unshift(new_item);
 			if (this.dropdown_items.length > this.max_length) {
 				this.container
@@ -322,11 +325,10 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	get_notifications_list(limit) {
-		return frappe.db.get_list('Notification Log', {
-			fields: ['*'],
-			limit: limit,
-			order_by: 'creation desc'
-		});
+		return frappe.call(
+			'frappe.desk.doctype.notification_log.notification_log.get_notification_logs',
+			{ limit: limit }
+		);
 	}
 
 	get_item_link(notification_doc) {

@@ -262,7 +262,7 @@ class File(Document):
 	def validate_remote_file(self):
 		"""Validates if file uploaded using URL already exist"""
 		site_url = get_url()
-		if "/files/" in self.file_url and self.file_url.startswith(site_url):
+		if self.file_url and "/files/" in self.file_url and self.file_url.startswith(site_url):
 			self.file_url = self.file_url.split(site_url, 1)[1]
 
 	def set_folder_name(self):

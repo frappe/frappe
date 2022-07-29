@@ -195,13 +195,25 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				let values = await frappe.xcall(method, {
 					search_term
 				});
-				renderList(values, search_term);
+
+				let sorted_values = me.prioritize_involved_users_in_mention(values);
+				renderList(sorted_values, search_term);
 			}, 300),
 			renderItem(item) {
 				let value = item.value;
 				return `${value} ${item.is_group ? frappe.utils.icon('users') : ''}`;
 			}
 		};
+	}
+
+	prioritize_involved_users_in_mention(values) {
+		const involved_users = this.frm?.get_involved_users()   // input on form
+			|| cur_frm?.get_involved_users()   // comment box / dialog on active form
+			|| [];
+
+		return values
+			.filter(val => involved_users.includes(val.id))
+			.concat(values.filter(val => !involved_users.includes(val.id)));
 	}
 
 	get_toolbar_options() {

@@ -187,8 +187,6 @@ class Engine:
 
 	@cached_property
 	def OPERATOR_MAP(self):
-		from frappe.boot import get_additional_filters_from_hooks
-
 		# default operators
 		all_operators = OPERATOR_MAP.copy()
 

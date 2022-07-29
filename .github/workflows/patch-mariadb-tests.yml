@@ -1,7 +1,8 @@
-name: Patch
+name: Server (MariaDB)
 
-on: [pull_request, workflow_dispatch]
-
+on:
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: patch-mariadb-develop-${{ github.event.number }}
@@ -12,10 +13,9 @@ permissions:
 
 jobs:
   test:
+    name: Patch
     runs-on: ubuntu-latest
     timeout-minutes: 60
-
-    name: Patch Test
 
     services:
       mariadb:

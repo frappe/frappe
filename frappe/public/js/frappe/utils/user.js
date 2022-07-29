@@ -14,6 +14,16 @@ frappe.user_info = function(uid) {
 	return user_info;
 };
 
+frappe.update_user_info = function(user_info) {
+	for (let user in user_info) {
+		if (frappe.boot.user_info[user]) {
+			Object.assign(frappe.boot.user_info[user], user_info[user]);
+		} else {
+			frappe.boot.user_info[user] = user_info[user];
+		}
+	}
+};
+
 frappe.provide('frappe.user');
 
 $.extend(frappe.user, {
