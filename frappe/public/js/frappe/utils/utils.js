@@ -1137,17 +1137,11 @@ Object.assign(frappe.utils, {
 	},
 
 	get_number_system: function (country) {
-		const number_system_map = {
-			'': number_systems.default,
-			'Bangladesh': number_systems.indian,
-			'India': number_systems.indian,
-			'Myanmar': number_systems.indian,
-			'Pakistan': number_systems.indian,
-		};
-
-		if (!Object.keys(number_system_map).includes(country)) country = '';
-
-		return number_system_map[country];
+		if (['Bangladesh', 'India', 'Myanmar', 'Pakistan'].includes(country)) {
+			return number_systems.indian;
+		} else {
+			return number_systems.default;
+		}
 	},
 
 	map_defaults: {
