@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
+import number_systems from "./number_systems";
 
 frappe.provide("frappe.utils");
 
@@ -1136,55 +1137,12 @@ Object.assign(frappe.utils, {
 	},
 
 	get_number_system: function (country) {
-		const german_speaking = [
-			{
-				divisor: 1.0e+9,
-				symbol: 'Mrd'
-			},
-			{
-				divisor: 1.0e+6,
-				symbol: 'Mio'
-			},
-			{
-				divisor: 1.0e+3,
-				symbol: 'Tsd',
-			}
-		];
-		let number_system_map = {
-			'Austria': german_speaking,
-			'Germany': german_speaking,
-			'India':
-				[{
-					divisor: 1.0e+7,
-					symbol: 'Cr'
-				},
-				{
-					divisor: 1.0e+5,
-					symbol: 'Lakh'
-				},
-				{
-					divisor: 1.0e+3,
-					symbol: 'K',
-				}
-				],
-			'Liechtenstein': german_speaking,
-			'':
-				[{
-					divisor: 1.0e+12,
-					symbol: 'T'
-				},
-				{
-					divisor: 1.0e+9,
-					symbol: 'B'
-				},
-				{
-					divisor: 1.0e+6,
-					symbol: 'M'
-				},
-				{
-					divisor: 1.0e+3,
-					symbol: 'K',
-				}]
+		const number_system_map = {
+			'': number_systems.default,
+			'Bangladesh': number_systems.indian,
+			'India': number_systems.indian,
+			'Myanmar': number_systems.indian,
+			'Pakistan': number_systems.indian,
 		};
 
 		if (!Object.keys(number_system_map).includes(country)) country = '';
@@ -1359,7 +1317,7 @@ Object.assign(frappe.utils, {
 				result = no_of_decimals > max_no_of_decimals
 					? result.toFixed(max_no_of_decimals)
 					: result;
-				return result + ' ' + map.symbol;
+				return result + ' ' + __(map.symbol, null, "Number system");
 			}
 		}
 
