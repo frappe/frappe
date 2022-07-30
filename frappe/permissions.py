@@ -28,6 +28,11 @@ rights = (
 
 
 def check_admin_or_system_manager(user=None):
+	"""
+	DEPRECATED: This function will be removed in version 15.
+	Use `frappe.only_for` instead.
+	"""
+
 	if not user:
 		user = frappe.session.user
 
