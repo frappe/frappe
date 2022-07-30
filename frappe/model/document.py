@@ -194,15 +194,18 @@ class Document(BaseDocument):
 			self.raise_no_permission_to(permlevel or permtype)
 
 	def has_permission(self, permtype="read", verbose=False) -> bool:
-		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
-		is not set.
+		"""
+		Call `frappe.has_permission` if `self.flags.ignore_permissions` is not set.
 
-		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
+		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`
+		:param verbose: DEPRECATED, will be removed in a future release.
+		"""
 		import frappe.permissions
 
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
+
+		return frappe.permissions.has_permission(self.doctype, permtype, self)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""

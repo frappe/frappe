@@ -68,6 +68,7 @@ def has_permission(
 	verbose=False,
 	user=None,
 	raise_exception=True,
+	*,
 	parent_doctype=None,
 ):
 	"""Returns True if user has permission `ptype` for given `doctype`.
@@ -76,7 +77,7 @@ def has_permission(
 	:param doctype: DocType to check permission for
 	:param ptype: Permission Type to check
 	:param doc: Check User Permissions for specified document.
-	:param verbose: DEPRECATED, will be removed in a future version.
+	:param verbose: DEPRECATED, will be removed in a future release.
 	:param user: User to check permission for. Defaults to session user.
 	:param raise_exception:
 	        DOES NOT raise an exception.
