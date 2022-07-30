@@ -675,15 +675,15 @@ def has_child_table_permission(
 	raise_exception=True,
 	parent_doctype=None,
 ):
-	if child_doc:
-		if isinstance(child_doc, str):
-			child_doc = frappe.db.get_value(
-				child_doctype,
-				child_doc,
-				("parent", "parenttype", "parentfield"),
-				as_dict=True,
-			)
+	if isinstance(child_doc, str):
+		child_doc = frappe.db.get_value(
+			child_doctype,
+			child_doc,
+			("parent", "parenttype", "parentfield"),
+			as_dict=True,
+		)
 
+	if child_doc:
 		parent_doctype = child_doc.parenttype
 
 	if not parent_doctype:
@@ -707,10 +707,8 @@ def has_child_table_permission(
 	if (
 		child_doc
 		and child_doc.parentfield
-		and (
-			parent_meta.get_field(child_doc.parentfield).permlevel
-			not in parent_meta.get_permlevel_access(ptype)
-		)
+		and (permlevel := parent_meta.get_field(child_doc.parentfield).permlevel) > 0
+		and permlevel not in parent_meta.get_permlevel_access(ptype)
 	):
 		push_perm_check_log(
 			_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
