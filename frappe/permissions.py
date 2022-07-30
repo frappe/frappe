@@ -78,13 +78,13 @@ def has_permission(
 	if not user:
 		user = frappe.session.user
 
+	if user == "Administrator":
+		return True
+
 	if not doc and hasattr(doctype, "doctype"):
 		# first argument can be doc or doctype
 		doc = doctype
 		doctype = doc.doctype
-
-	if user == "Administrator":
-		return True
 
 	if frappe.is_table(doctype):
 		return has_child_table_permission(
@@ -675,32 +675,27 @@ def has_child_table_permission(
 	raise_exception=True,
 	parent_doctype=None,
 ):
-	parent_doc = None
-
 	if child_doc:
-		parent_doctype = child_doc.get("parenttype")
-		parent_doc = frappe.get_cached_doc(
-			{"doctype": parent_doctype, "docname": child_doc.get("parent")}
-		)
+		parent_doctype = child_doc.parenttype
 
-	if parent_doctype:
-		if not is_parent_valid(child_doctype, parent_doctype):
-			frappe.throw(
-				_("{0} is not a valid parent DocType for {1}").format(
-					frappe.bold(parent_doctype), frappe.bold(child_doctype)
-				),
-				title=_("Invalid Parent DocType"),
-			)
-	else:
+	if not parent_doctype:
 		frappe.throw(
 			_("Please specify a valid parent DocType for {0}").format(frappe.bold(child_doctype)),
 			title=_("Parent DocType Required"),
 		)
 
+	if not is_parent_valid(child_doctype, parent_doctype):
+		frappe.throw(
+			_("{0} is not a valid parent DocType for {1}").format(
+				frappe.bold(parent_doctype), frappe.bold(child_doctype)
+			),
+			title=_("Invalid Parent DocType"),
+		)
+
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=parent_doc,
+		doc=getattr(child_doc, "parent_doc", child_doc.parent),
 		verbose=verbose,
 		user=user,
 		raise_exception=raise_exception,
@@ -708,10 +703,8 @@ def has_child_table_permission(
 
 
 def is_parent_valid(child_doctype, parent_doctype):
-	from frappe.core.utils import find
-
 	parent_meta = frappe.get_meta(parent_doctype)
-	child_table_field_exists = find(
-		parent_meta.get_table_fields(), lambda d: d.options == child_doctype
+
+	return not parent_meta.istable and any(
+		df.options == child_doctype for df in parent_meta.get_table_fields()
 	)
-	return not parent_meta.istable and child_table_field_exists
