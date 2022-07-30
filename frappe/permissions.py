@@ -698,7 +698,6 @@ def has_child_table_permission(
 
 	if (
 		child_doc
-		and child_doc.parentfield
 		and (permlevel := parent_meta.get_field(child_doc.parentfield).permlevel) > 0
 		and permlevel not in parent_meta.get_permlevel_access(ptype)
 	):
