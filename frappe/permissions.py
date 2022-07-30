@@ -675,18 +675,16 @@ def has_child_table_permission(
 	raise_exception=True,
 	parent_doctype=None,
 ):
-	parent_doc = None
-
 	if child_doc:
 		if isinstance(child_doc, str):
-			child_doc = frappe.get_doc(child_doctype, child_doc)
+			child_doc = frappe.db.get_value(
+				child_doctype,
+				child_doc,
+				("parent", "parenttype", "parentfield"),
+				as_dict=True,
+			)
 
 		parent_doctype = child_doc.parenttype
-		parent_doc = getattr(child_doc, "parent_doc", None)
-
-		if not parent_doc and child_doc.parent:
-			parent_doc = frappe.get_doc(parent_doctype, child_doc.parent)
-			child_doc.parent_doc = parent_doc
 
 	if not parent_doctype:
 		push_perm_check_log(
@@ -694,7 +692,7 @@ def has_child_table_permission(
 		)
 		return False
 
-	parent_meta = parent_doc.meta if parent_doc else frappe.get_meta(parent_doctype)
+	parent_meta = frappe.get_meta(parent_doctype)
 
 	if not parent_meta.istable and any(
 		df.options == child_doctype for df in parent_meta.get_table_fields()
@@ -722,7 +720,7 @@ def has_child_table_permission(
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=parent_doc,
+		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
 		verbose=verbose,
 		user=user,
 		raise_exception=raise_exception,
