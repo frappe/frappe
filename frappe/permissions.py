@@ -65,8 +65,19 @@ def has_permission(
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
 
-	Note: if Table DocType is passed, it always returns True.
+	:param doctype: DocType to check permission for
+	:param ptype: Permission Type to check
+	:param doc: Check User Permissions for specified document.
+	:param verbose: DEPRECATED, will be removed in a future version.
+	:param user: User to check permission for. Defaults to session user.
+	:param raise_exception:
+	        DOES NOT raise an exception.
+	        If True, will print a message explaining why permission check failed.
+
+	:param parent_doctype:
+	        Required when checking permission for a child DocType (unless doc is specified)
 	"""
+
 	if not user:
 		user = frappe.session.user
 
@@ -79,7 +90,7 @@ def has_permission(
 		doctype = doc.doctype
 
 	if frappe.is_table(doctype):
-		return has_child_permission(doctype, ptype, doc, verbose, user, raise_exception, parent_doctype)
+		return has_child_permission(doctype, ptype, doc, user, raise_exception, parent_doctype)
 
 	meta = frappe.get_meta(doctype)
 
@@ -660,7 +671,6 @@ def has_child_permission(
 	child_doctype,
 	ptype="read",
 	child_doc=None,
-	verbose=False,
 	user=None,
 	raise_exception=True,
 	parent_doctype=None,
@@ -697,7 +707,7 @@ def has_child_permission(
 	if (
 		child_doc
 		and (permlevel := parent_meta.get_field(child_doc.parentfield).permlevel) > 0
-		and permlevel not in parent_meta.get_permlevel_access(ptype)
+		and permlevel not in parent_meta.get_permlevel_access(ptype, user=user)
 	):
 		push_perm_check_log(
 			_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
@@ -708,7 +718,6 @@ def has_child_permission(
 		parent_doctype,
 		ptype=ptype,
 		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
-		verbose=verbose,
 		user=user,
 		raise_exception=raise_exception,
 	)
