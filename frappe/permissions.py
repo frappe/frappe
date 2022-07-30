@@ -79,9 +79,7 @@ def has_permission(
 		doctype = doc.doctype
 
 	if frappe.is_table(doctype):
-		return has_child_table_permission(
-			doctype, ptype, doc, verbose, user, raise_exception, parent_doctype
-		)
+		return has_child_permission(doctype, ptype, doc, verbose, user, raise_exception, parent_doctype)
 
 	meta = frappe.get_meta(doctype)
 
@@ -658,7 +656,7 @@ def push_perm_check_log(log):
 	frappe.flags.get("has_permission_check_logs").append(_(log))
 
 
-def has_child_table_permission(
+def has_child_permission(
 	child_doctype,
 	ptype="read",
 	child_doc=None,
