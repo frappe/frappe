@@ -40,6 +40,9 @@ class EmailDomain(Document):
 					else:
 						test = imaplib.IMAP4(self.email_server, port=get_port(self))
 
+					if self.use_starttls:
+						test.starttls()
+
 				else:
 					logger.info(
 						"Checking incoming POP3 email server {host}:{port} ssl={ssl}...".format(
@@ -52,7 +55,7 @@ class EmailDomain(Document):
 						test = poplib.POP3(self.email_server, port=get_port(self))
 
 			except Exception as e:
-				logger.warn(f'Incoming email account "{self.email_server}" not correct', exc_info=e)
+				logger.warning(f'Incoming email account "{self.email_server}" not correct', exc_info=e)
 				frappe.throw(
 					title=_("Incoming email account not correct"),
 					msg=f'Error connecting IMAP/POP3 "{self.email_server}": {e}',
@@ -106,6 +109,7 @@ class EmailDomain(Document):
 					"email_server",
 					"use_imap",
 					"use_ssl",
+					"use_starttls",
 					"use_tls",
 					"attachment_limit",
 					"smtp_server",
