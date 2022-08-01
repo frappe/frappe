@@ -649,29 +649,13 @@ class TestPermissions(FrappeTestCase):
 		# reset the user
 		frappe.set_user(current_user)
 
-	def test_child_table_permissions(self):
+	def test_child_permissions(self):
 		frappe.set_user("test@example.com")
 		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError,
-			".* is not a valid parent DocType for .*",
-			frappe.get_list,
-			doctype="Has Role",
-			parent_doctype="ToDo",
-		)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError,
-			"Please specify a valid parent DocType for .*",
-			frappe.get_list,
-			"Has Role",
-		)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError,
-			".* is not a valid parent DocType for .*",
-			frappe.get_list,
-			doctype="Has Role",
-			parent_doctype="Has Role",
-		)
+
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "Has Role")
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "Has Role", parent_doctype="ToDo")
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "Has Role", parent_doctype="Has Role")
 
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only
