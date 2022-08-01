@@ -20,15 +20,15 @@ export default {
 	indian: [
 		{
 			divisor: 1.0e7,
-			symbol: "Cr"
+			symbol: __("Cr", null, "Number system")
 		},
 		{
 			divisor: 1.0e5,
-			symbol: "Lakh"
+			symbol: __("Lakh", null, "Number system")
 		},
 		{
 			divisor: 1.0e3,
-			symbol: "K"
+			symbol: __("K", null, "Number system")
 		}
 	]
 };
