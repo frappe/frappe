@@ -21,6 +21,12 @@ context('Web Form', () => {
 	});
 
 	it('Open Web Form', () => {
+		cy.visit('/note');
+		cy.fill_field('title', 'Note 1');
+		cy.get('.web-form-actions button').contains('Save').click();
+
+		cy.url().should('include', '/note/new');
+
 		cy.request('/api/method/logout');
 		cy.visit('/note');
 
@@ -200,8 +206,8 @@ context('Web Form', () => {
 		cy.visit('/note');
 		cy.url().should('include', '/note/list');
 
-		cy.get('.web-list-table tbody tr[id="Note 1"] .list-col-checkbox').click();
-		cy.get('.web-list-table tbody tr[id="Note 2"] .list-col-checkbox').click();
+		cy.get('.web-list-table tbody tr[id="Note 1"] .list-col-checkbox input').click();
+		cy.get('.web-list-table tbody tr[id="Note 2"] .list-col-checkbox input').click();
 		cy.get('.web-list-actions button:visible').contains('Delete').click({force: true});
 
 		cy.get('.web-list-actions button').contains('Delete').should('not.be.visible');
