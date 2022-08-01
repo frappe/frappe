@@ -651,11 +651,28 @@ class TestPermissions(FrappeTestCase):
 
 	def test_child_permissions(self):
 		frappe.set_user("test@example.com")
-		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
+		self.assertIsInstance(frappe.get_list("DefaultValue", parent_doctype="User", limit=1), list)
 
-		self.assertRaises(frappe.PermissionError, frappe.get_list, "Has Role")
-		self.assertRaises(frappe.PermissionError, frappe.get_list, "Has Role", parent_doctype="ToDo")
-		self.assertRaises(frappe.PermissionError, frappe.get_list, "Has Role", parent_doctype="Has Role")
+		# frappe.get_list
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "DefaultValue")
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "DefaultValue", parent_doctype="ToDo")
+		self.assertRaises(
+			frappe.PermissionError, frappe.get_list, "DefaultValue", parent_doctype="DefaultValue"
+		)
+
+		# frappe.get_doc
+		user = frappe.get_doc("User", frappe.session.user)
+		doc = user.append("defaults")
+		doc.check_permission()
+
+		# false by permlevel
+		doc = user.append("roles")
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
+		# false by user permission
+		user = frappe.get_doc("User", "Administrator")
+		doc = user.append("defaults")
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
 
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only
