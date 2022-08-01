@@ -650,7 +650,7 @@ class TestPermissions(FrappeTestCase):
 		frappe.set_user(current_user)
 
 	def test_child_permissions(self):
-		frappe.set_user("test@example.com")
+		frappe.set_user("test3@example.com")
 		self.assertIsInstance(frappe.get_list("DefaultValue", parent_doctype="User", limit=1), list)
 
 		# frappe.get_list
