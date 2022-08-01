@@ -1898,6 +1898,11 @@ def guess_date_format(date_string: str) -> str:
 	if date_format:
 		return date_format
 
+	# check if time format can be guessed
+	time_format = _get_time_format(date_string)
+	if time_format:
+		return time_format
+
 	# date_string doesnt look like date, it can have a time part too
 	# split the date string into date and time parts
 	if " " in date_string:
