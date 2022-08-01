@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+import textwrap
 import unittest
 from random import choices
 from unittest.mock import patch
@@ -8,7 +9,12 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
-from frappe.translate import get_language, get_parent_language, get_translation_dict_from_file
+from frappe.translate import (
+	extract_messages_from_python_code,
+	get_language,
+	get_parent_language,
+	get_translation_dict_from_file,
+)
 from frappe.utils import set_request
 
 dirname = os.path.dirname(__file__)
@@ -124,6 +130,31 @@ class TestTranslate(unittest.TestCase):
 	def test_load_all_translate_files(self):
 		"""Load all CSV files to ensure they have correct format"""
 		verify_translation_files("frappe")
+
+	def test_python_ast_extractor(self):
+
+		code = textwrap.dedent(
+			"""
+			frappe._("attr")
+			_("name")
+			frappe._("attr with", context="attr context")
+			_("name with", context="name context")
+			_("broken on",
+				context="new line")
+			__("This wont be captured")
+			__init__("This shouldn't too")
+		"""
+		)
+		expected_output = [
+			(2, "attr", None),
+			(3, "name", None),
+			(4, "attr with", "attr context"),
+			(5, "name with", "name context"),
+			(6, "broken on", "new line"),
+		]
+
+		output = extract_messages_from_python_code(code)
+		self.assertEqual(output, expected_output)
 
 
 def verify_translation_files(app):
