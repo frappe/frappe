@@ -105,7 +105,11 @@ jobs:
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
-          pip install frappe-bench
+          python3 -m pip install -U pip pipx
+
+          git clone https://github.com/frappe/bench ~/.bench
+          pipx install -e ~/.bench --python $(which python3)
+
           pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
@@ -122,7 +126,7 @@ jobs:
           bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
 
           source env/bin/activate
-          cd apps/frappe/
+          cd ./apps/frappe
           git remote set-url upstream https://github.com/frappe/frappe.git
 
           pyenv global $(pyenv versions | grep '3.7')
@@ -132,7 +136,6 @@ jobs:
               branch_name="version-$version-hotfix"
               git fetch --depth 1 upstream $branch_name:$branch_name
               git checkout -q -f $branch_name
-              pip install -U frappe-bench
 
               rm -rf ~/frappe-bench/env
               bench -v setup env
