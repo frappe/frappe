@@ -1311,7 +1311,7 @@ Object.assign(frappe.utils, {
 				result = no_of_decimals > max_no_of_decimals
 					? result.toFixed(max_no_of_decimals)
 					: result;
-				return result + ' ' + __(map.symbol, null, "Number system");
+				return result + ' ' + symbol;
 			}
 		}
 

@@ -2,19 +2,19 @@ export default {
 	default: [
 		{
 			divisor: 1.0e12,
-			symbol: "T"
+			symbol: __("T", null, "Number system")
 		},
 		{
 			divisor: 1.0e9,
-			symbol: "B"
+			symbol: __("B", null, "Number system")
 		},
 		{
 			divisor: 1.0e6,
-			symbol: "M"
+			symbol: __("M", null, "Number system")
 		},
 		{
 			divisor: 1.0e3,
-			symbol: "K"
+			symbol: __("K", null, "Number system")
 		}
 	],
 	indian: [
