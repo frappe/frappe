@@ -695,8 +695,8 @@ def has_child_permission(
 
 	parent_meta = frappe.get_meta(parent_doctype)
 
-	if not parent_meta.istable and any(
-		df.options == child_doctype for df in parent_meta.get_table_fields()
+	if parent_meta.istable or all(
+		df.options != child_doctype for df in parent_meta.get_table_fields()
 	):
 		push_perm_check_log(
 			_("{0} is not a valid parent DocType for {1}").format(
