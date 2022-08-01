@@ -73,7 +73,7 @@
    "label": "Attachment Limit (MB)"
   },
   {
-   "description": "Append as communication against this DocType must have field \"Status\" and both \"Sender\" and \"Subject\" defined in the related doctype Email Settings.",
+   "description": "Append as communication against this DocType (must have field \"Status\" and both \"Sender\" and \"Subject\" defined in the related doctype Email Settings).",
    "fieldname": "append_to",
    "fieldtype": "Link",
    "hidden": 1,
