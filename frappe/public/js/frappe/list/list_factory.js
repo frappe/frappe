@@ -5,13 +5,18 @@ frappe.provide('frappe.views.list_view');
 
 window.cur_list = null;
 frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
-	make (route) {
+	make(route) {
 		const me = this;
 		const doctype = route[1];
 
 		// List / Gantt / Kanban / etc
+		let view_name = frappe.utils.to_title_case(route[2] || 'List');
+
 		// File is a special view
-		const view_name = doctype !== 'File' ? frappe.utils.to_title_case(route[2] || 'List') : 'File';
+		if (doctype == "File" && !["Report", "Dashboard"].includes(view_name)) {
+			view_name = "File";
+		}
+
 		let view_class = frappe.views[view_name + 'View'];
 		if (!view_class) view_class = frappe.views.ListView;
 
@@ -48,7 +53,7 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		const last_route = frappe.route_history.slice(-2)[0];
 		if (
 			this.route[0] === 'List' &&
-			this.route.length === 2	&&
+			this.route.length === 2 &&
 			frappe.views.list_view[doctype] &&
 			last_route &&
 			last_route[0] === 'List' &&
