@@ -20,19 +20,7 @@ context('Web Form', () => {
 		cy.get('.title-area .indicator-pill').contains('Published');
 	});
 
-	it('Open Web Form (Logged in User)', () => {
-		cy.visit('/note');
-
-		cy.fill_field('title', 'Note 1');
-		cy.get('.web-form-actions button').contains('Save').click();
-
-		cy.url().should('include', '/note/Note%201');
-
-		cy.visit('/note');
-		cy.url().should('include', '/note/Note%201');
-	});
-
-	it('Open Web Form (Guest)', () => {
+	it('Open Web Form', () => {
 		cy.request('/api/method/logout');
 		cy.visit('/note');
 
