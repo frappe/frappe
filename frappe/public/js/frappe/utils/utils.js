@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
+import number_systems from "./number_systems";
 
 frappe.provide("frappe.utils");
 
@@ -1136,43 +1137,11 @@ Object.assign(frappe.utils, {
 	},
 
 	get_number_system: function (country) {
-		let number_system_map = {
-			'India':
-				[{
-					divisor: 1.0e+7,
-					symbol: 'Cr'
-				},
-				{
-					divisor: 1.0e+5,
-					symbol: 'Lakh'
-				},
-				{
-					divisor: 1.0e+3,
-					symbol: 'K',
-				}
-				],
-			'':
-				[{
-					divisor: 1.0e+12,
-					symbol: 'T'
-				},
-				{
-					divisor: 1.0e+9,
-					symbol: 'B'
-				},
-				{
-					divisor: 1.0e+6,
-					symbol: 'M'
-				},
-				{
-					divisor: 1.0e+3,
-					symbol: 'K',
-				}]
-		};
-
-		if (!Object.keys(number_system_map).includes(country)) country = '';
-
-		return number_system_map[country];
+		if (['Bangladesh', 'India', 'Myanmar', 'Pakistan'].includes(country)) {
+			return number_systems.indian;
+		} else {
+			return number_systems.default;
+		}
 	},
 
 	map_defaults: {

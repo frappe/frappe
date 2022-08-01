@@ -72,6 +72,7 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 	set_formatted_input(value) {
 		let out_of_ratings = this.df.options || 5;
 		value = value * out_of_ratings;
+		value = Math.round(value * 2) / 2; // roundoff number to nearest 0.5
 		let el = $(this.input_area).find('svg');
 		el.children('svg').prevObject.each( function(e) {
 			if (e < value) {

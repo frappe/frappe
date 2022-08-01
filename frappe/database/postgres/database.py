@@ -102,12 +102,6 @@ class PostgresExceptionUtil:
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
-
-	# NOTE; The sequence cache for postgres is per connection.
-	# Since we're opening and closing connections for every transaction this results in skipping the cache
-	# to the next non-cached value hence not using cache in postgres.
-	# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
-	SEQUENCE_CACHE = 0
 	default_port = "5432"
 
 	def setup_type_map(self):
