@@ -88,6 +88,7 @@ frappe.form.formatters = {
 		let rating_html = '';
 		let number_of_stars = docfield.options || 5;
 		value = value * number_of_stars;
+		value = Math.round(value * 2) / 2; // roundoff number to nearest 0.5
 		Array.from({length: cint(number_of_stars)}, (_, i) => i + 1).forEach(i => {
 			rating_html += `<svg class="icon icon-md" data-rating=${i} viewBox="0 0 24 24" fill="none">
 				<path class="right-half ${i <= (value || 0) ? "star-click": "" }" d="M11.9987 3.00011C12.177 3.00011 12.3554 3.09303 12.4471 3.27888L14.8213 8.09112C14.8941 8.23872 15.0349 8.34102 15.1978 8.3647L20.5069 9.13641C20.917 9.19602 21.0807 9.69992 20.7841 9.9892L16.9421 13.7354C16.8243 13.8503 16.7706 14.0157 16.7984 14.1779L17.7053 19.4674C17.7753 19.8759 17.3466 20.1874 16.9798 19.9945L12.2314 17.4973C12.1586 17.459 12.0786 17.4398 11.9987 17.4398V3.00011Z" fill="var(--star-fill)" stroke="var(--star-fill)"/>
