@@ -153,6 +153,18 @@ def close_all_assignments(doctype, name):
 
 
 @frappe.whitelist()
+def remove_multiple(args=None):
+	if not args:
+		args = frappe.local.form_dict
+
+	docname_list = json.loads(args["name"])
+
+	for docname in docname_list:
+	    for unassign_from in frappe.parse_json(args.get("unassign_from")):
+		    set_status(args["doctype"], docname, unassign_from, status="Cancelled")
+
+
+@frappe.whitelist()
 def remove(doctype, name, assign_to):
 	return set_status(doctype, name, assign_to, status="Cancelled")
 
