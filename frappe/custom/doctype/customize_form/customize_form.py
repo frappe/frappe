@@ -286,6 +286,9 @@ class CustomizeForm(Document):
 		d.insert()
 		df.fieldname = d.fieldname
 
+		if df.get("in_global_search"):
+			self.flags.rebuild_doctype_for_global_search = True
+
 	def update_in_custom_field(self, df, i):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
@@ -295,10 +298,19 @@ class CustomizeForm(Document):
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
 		changed = False
+<<<<<<< HEAD
 		for property in docfield_properties:
 			if df.get(property) != custom_field.get(property):
 				if property == "fieldtype":
 					self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
+=======
+		for prop in docfield_properties:
+			if df.get(prop) != custom_field.get(prop):
+				if prop == "fieldtype":
+					self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+				if prop == "in_global_search":
+					self.flags.rebuild_doctype_for_global_search = True
+>>>>>>> 3863d9bb80 (fix(global_search): Trigger rebuilding on Custom Field's property change)
 
 				custom_field.set(property, df.get(property))
 				changed = True

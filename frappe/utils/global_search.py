@@ -68,9 +68,12 @@ def rebuild_for_doctype(doctype):
 	if frappe.local.conf.get('disable_global_search'):
 		return
 
+<<<<<<< HEAD
 	if frappe.local.conf.get('disable_global_search'):
 		return
 
+=======
+>>>>>>> 3863d9bb80 (fix(global_search): Trigger rebuilding on Custom Field's property change)
 	def _get_filters():
 		filters = frappe._dict({ "docstatus": ["!=", 2] })
 		if meta.has_field("enabled"):
