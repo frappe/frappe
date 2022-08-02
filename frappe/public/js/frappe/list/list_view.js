@@ -1684,6 +1684,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+        // unassignment
+		const bulk_unassignment = () => {
+			return {
+				label: __("Unassign From", null, "Button in list view actions menu"),
+				action: () => {
+					this.disable_list_update = true;
+					bulk_operations.unassign(
+						this.get_checked_items(true),
+						() => {
+							this.disable_list_update = false;
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
+				standard: true,
+			};
+		};
+
 		const bulk_add_tags = () => {
 			return {
 				label: __("Add Tags", null, "Button in list view actions menu"),
@@ -1843,6 +1862,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		actions_menu_items.push(bulk_assignment());
 
 		actions_menu_items.push(bulk_assignment_rule());
+
+        // unassignment
+		actions_menu_items.push(bulk_unassignment());
 
 		actions_menu_items.push(bulk_add_tags());
 
