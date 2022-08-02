@@ -89,6 +89,8 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	on_filter_change() {
+		if (!frappe.perm.has_perm("Kanban Board", 0, "write")) return;
+
 		if (JSON.stringify(this.board.filters_array) !== JSON.stringify(this.filter_area.get())) {
 			this.page.set_indicator(__("Not Saved"), "orange");
 		} else {
