@@ -78,22 +78,9 @@ def get(doctype, name=None, filters=None, parent=None):
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-<<<<<<< HEAD
-	if filters and not name:
-		name = frappe.db.get_value(doctype, json.loads(filters))
-		if not name:
-			frappe.throw(_("No document found for given filters"))
-
-	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
-
-	return frappe.get_doc(doctype, name).as_dict()
-=======
 	doc = frappe.get_doc(doctype, name or frappe.parse_json(filters))
 	doc.check_permission()
 	return doc.as_dict()
->>>>>>> ebb0cd13fe (perf: reduce DB call in `frappe.client.get` (#17665))
 
 
 @frappe.whitelist()
