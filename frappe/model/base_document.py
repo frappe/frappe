@@ -25,7 +25,7 @@ from frappe.utils import (
 )
 from frappe.utils.html_utils import unescape_html
 
-max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
+max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
 DOCTYPES_FOR_DOCTYPE = ("DocType", "DocField", "DocPerm", "DocType Action", "DocType Link")
 
