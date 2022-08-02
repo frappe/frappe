@@ -73,9 +73,6 @@ def rebuild_for_doctype(doctype):
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
-	if frappe.local.conf.get("disable_global_search"):
-		return
-
 	def _get_filters():
 		filters = frappe._dict({"docstatus": ["!=", 2]})
 		if meta.has_field("enabled"):

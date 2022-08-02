@@ -78,16 +78,9 @@ def get(doctype, name=None, filters=None, parent=None):
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	if filters and not name:
-		name = frappe.db.get_value(doctype, json.loads(filters))
-		if not name:
-			frappe.throw(_("No document found for given filters"))
-
-	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
-
-	return frappe.get_doc(doctype, name).as_dict()
+	doc = frappe.get_doc(doctype, name or frappe.parse_json(filters))
+	doc.check_permission()
+	return doc.as_dict()
 
 
 @frappe.whitelist()
@@ -144,8 +137,8 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 def get_single_value(doctype, field):
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
-	value = frappe.db.get_single_value(doctype, field)
-	return value
+
+	return frappe.db.get_single_value(doctype, field)
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
