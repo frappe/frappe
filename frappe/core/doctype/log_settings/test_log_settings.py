@@ -99,7 +99,6 @@ def setup_test_logs(past: datetime) -> None:
 			"sender": "test1@example.com",
 			"message": "This is a test email1",
 			"priority": 1,
-			"expose_recipients": "test@receiver.com",
 		}
 	).insert(ignore_permissions=True)
 	doc1.db_set("creation", past)

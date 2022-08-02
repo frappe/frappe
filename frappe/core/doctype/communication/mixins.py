@@ -273,7 +273,6 @@ class CommunicationEmailMixin:
 			"recipients": recipients,
 			"cc": cc,
 			"bcc": bcc,
-			"expose_recipients": "header",
 			"sender": self.get_mail_sender_with_displayname(),
 			"reply_to": incoming_email_account and incoming_email_account.email_id,
 			"subject": self.subject,

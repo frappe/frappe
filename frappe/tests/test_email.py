@@ -89,7 +89,6 @@ class TestEmail(unittest.TestCase):
 			subject="Testing Email Queue",
 			message="This is mail is queued!",
 			unsubscribe_message="Unsubscribe",
-			expose_recipients="header",
 		)
 		email_queue = frappe.db.sql(
 			"""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1
@@ -126,7 +125,6 @@ class TestEmail(unittest.TestCase):
 			subject="Testing Email Queue",
 			message="This is mail is queued!",
 			unsubscribe_message="Unsubscribe",
-			expose_recipients="footer",
 			now=True,
 		)
 		email_queue = frappe.db.sql(
@@ -143,11 +141,6 @@ class TestEmail(unittest.TestCase):
 		]
 		self.assertTrue("test@example.com" in queue_recipients)
 		self.assertTrue("test1@example.com" in queue_recipients)
-
-		self.assertTrue(
-			"This email was sent to test@example.com and copied to test1@example.com"
-			in frappe.safe_decode(frappe.flags.sent_mail)
-		)
 
 		# check for email tracker
 		self.assertTrue("mark_email_as_seen" in frappe.safe_decode(frappe.flags.sent_mail))

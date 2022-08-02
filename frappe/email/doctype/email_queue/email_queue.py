@@ -37,6 +37,7 @@ class EmailQueue(Document):
 
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
+		# TODO: do bulk insert over here for receipients more than 1000
 		for r in recipients:
 			self.append("recipients", {"recipient": r, "status": "Not Sent"})
 
@@ -271,7 +272,6 @@ class SendMailContext:
 		map = {
 			"tracker": "<!--email_open_check-->",
 			"unsubscribe_url": "<!--unsubscribe_url-->",
-			"cc": "<!--cc_message-->",
 			"recipient": "<!--recipient-->",
 		}
 		return map.get(placeholder_key)
@@ -286,7 +286,6 @@ class SendMailContext:
 		message = message.replace(
 			self.message_placeholder("unsubscribe_url"), self.get_unsubscribe_str(recipient_email)
 		)
-		message = message.replace(self.message_placeholder("cc"), self.get_receivers_str())
 		message = message.replace(
 			self.message_placeholder("recipient"), self.get_recipient_str(recipient_email)
 		)
@@ -317,17 +316,8 @@ class SendMailContext:
 
 		return quopri.encodestring(unsubscribe_url.encode()).decode()
 
-	def get_receivers_str(self):
-		message = ""
-		if self.queue_doc.expose_recipients == "footer":
-			to_str = ", ".join(self.queue_doc.to)
-			cc_str = ", ".join(self.queue_doc.cc)
-			message = f"This email was sent to {to_str}"
-			message = f"{message} and copied to {cc_str}" if cc_str else message
-		return message
-
 	def get_recipient_str(self, recipient_email):
-		return recipient_email if self.queue_doc.expose_recipients != "header" else ""
+		return recipient_email if not self.queue_doc.expose_recipients else ""
 
 	def include_attachments(self, message):
 		message_obj = self.get_message_object(message)
@@ -420,7 +410,7 @@ class QueueBuilder:
 		message_id=None,
 		in_reply_to=None,
 		send_after=None,
-		expose_recipients=None,
+		expose_recipients=True,
 		send_priority=1,
 		communication=None,
 		read_receipt=None,
@@ -556,7 +546,7 @@ class QueueBuilder:
 
 	def unsubscribe_message(self):
 		if self.should_include_unsubscribe_link():
-			return get_unsubscribe_message(self._unsubscribe_message, self.expose_recipients)
+			return get_unsubscribe_message(self._unsubscribe_message)
 
 	def get_outgoing_email_account(self):
 		if self._email_account:
@@ -649,7 +639,7 @@ class QueueBuilder:
 		Sends email incase if it is requested to send now.
 		"""
 		final_recipients = self.final_recipients()
-		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 20
+		# queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 20
 		if not (final_recipients + self.final_cc()):
 			return []
 
@@ -657,38 +647,37 @@ class QueueBuilder:
 		if not queue_data:
 			return []
 
-		if not queue_separately:
-			recipients = list(set(final_recipients + self.final_cc() + self.bcc))
-			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
-			send_now and q.send()
-		else:
-			if send_now and len(final_recipients) >= 1000:
-				# force queueing if there are too many recipients to avoid timeouts
-				send_now = False
-			for recipients in frappe.utils.create_batch(final_recipients, 1000):
-				frappe.enqueue(
-					self.send_emails,
-					queue_data=queue_data,
-					final_recipients=recipients,
-					job_name=frappe.utils.get_job_name(
-						"send_bulk_emails_for", self.reference_doctype, self.reference_name
-					),
-					now=frappe.flags.in_test or send_now,
-					queue="long",
-				)
+		recipients = list(set(final_recipients + self.final_cc() + self.bcc))
+		q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
+		send_now and q.send()
+		# else:
+		# 	if send_now and len(final_recipients) >= 1000:
+		# 		# force queueing if there are too many recipients to avoid timeouts
+		# 		send_now = False
+		# 	for recipients in frappe.utils.create_batch(final_recipients, 1000):
+		# 		frappe.enqueue(
+		# 			self.send_emails,
+		# 			queue_data=queue_data,
+		# 			final_recipients=recipients,
+		# 			job_name=frappe.utils.get_job_name(
+		# 				"send_bulk_emails_for", self.reference_doctype, self.reference_name
+		# 			),
+		# 			now=frappe.flags.in_test or send_now,
+		# 			queue="long",
+		# 		)
 
-	def send_emails(self, queue_data, final_recipients):
-		# This is used to bulk send emails from same sender to multiple recipients separately
-		# This re-uses smtp server instance to minimize the cost of new session creation
-		smtp_server_instance = None
-		for r in final_recipients:
-			recipients = list(set([r] + self.final_cc() + self.bcc))
-			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
-			if not smtp_server_instance:
-				email_account = q.get_email_account()
-				smtp_server_instance = email_account.get_smtp_server()
-			q.send(smtp_server_instance=smtp_server_instance)
-		smtp_server_instance.quit()
+	# def send_emails(self, queue_data, final_recipients):
+	# 	# This is used to bulk send emails from same sender to multiple recipients separately
+	# 	# This re-uses smtp server instance to minimize the cost of new session creation
+	# 	smtp_server_instance = None
+	# 	for r in final_recipients:
+	# 		recipients = list(set([r] + self.final_cc() + self.bcc))
+	# 		q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
+	# 		if not smtp_server_instance:
+	# 			email_account = q.get_email_account()
+	# 			smtp_server_instance = email_account.get_smtp_server()
+	# 		q.send(smtp_server_instance=smtp_server_instance)
+	# 	smtp_server_instance.quit()
 
 	def as_dict(self, include_recipients=True):
 		email_account = self.get_outgoing_email_account()

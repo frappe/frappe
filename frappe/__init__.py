@@ -608,7 +608,7 @@ def sendmail(
 	message_id=None,
 	in_reply_to=None,
 	send_after=None,
-	expose_recipients=None,
+	expose_recipients=True,
 	send_priority=1,
 	communication=None,
 	retry=1,

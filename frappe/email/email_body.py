@@ -42,7 +42,7 @@ def get_email(
 	cc=None,
 	bcc=None,
 	email_account=None,
-	expose_recipients=None,
+	expose_recipients=True,
 	inline_images=None,
 	header=None,
 ):
@@ -117,7 +117,7 @@ class EMail:
 		cc=(),
 		bcc=(),
 		email_account=None,
-		expose_recipients=None,
+		expose_recipients=True,
 	):
 		from email import charset as Charset
 
@@ -313,10 +313,10 @@ class EMail:
 		headers = {
 			"Subject": strip(self.subject),
 			"From": self.sender,
-			"To": ", ".join(self.recipients) if self.expose_recipients == "header" else "<!--recipient-->",
+			"To": ", ".join(self.recipients) if self.expose_recipients else "<!--recipient-->",
+			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients else None,
 			"Date": email.utils.formatdate(),
 			"Reply-To": self.reply_to if self.reply_to else None,
-			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients == "header" else None,
 			"X-Frappe-Site": get_url(),
 		}
 

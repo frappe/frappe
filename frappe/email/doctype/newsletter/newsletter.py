@@ -187,9 +187,9 @@ class Newsletter(WebsiteGenerator):
 			unsubscribe_params={"name": self.name},
 			reference_doctype=self.doctype,
 			reference_name=self.name,
-			queue_separately=True,
 			send_priority=0,
 			args=args,
+			expose_recipients=False
 		)
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
