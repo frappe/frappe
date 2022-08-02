@@ -122,6 +122,7 @@ jobs:
       - name: Install Dependencies
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
+          pip install frappe-bench
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:

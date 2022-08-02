@@ -107,8 +107,7 @@ jobs:
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           python3 -m pip install -U pip pipx
 
-          git clone https://github.com/frappe/bench ~/.bench
-          pipx install -e ~/.bench --python $(which python3)
+          pipx install frappe-bench --python $(which python3)
 
           pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
