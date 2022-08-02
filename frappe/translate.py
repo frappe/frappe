@@ -7,8 +7,8 @@
 	Translation tools for frappe
 """
 
-import ast
 import functools
+import io
 import itertools
 import json
 import operator
@@ -16,6 +16,7 @@ import os
 import re
 from csv import reader
 
+from babel.messages.extract import extract_python
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -719,50 +720,25 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
 	"""Extracts translatable strings from python code using AST"""
 
-	tree = ast.parse(code)
-
-	TRANSLATE_FUNCTION = "_"
 	messages = []
 
-	for node in ast.walk(tree):
-		if not isinstance(node, ast.Call):
+	for message in extract_python(
+		io.BytesIO(code.encode()),
+		keywords=["_"],
+		comment_tags=(),
+		options={},
+	):
+		lineno, _func, args, _comments = message
+
+		if not args or not args[0]:
 			continue
 
-		# frappe._(...)
-		direct_call = isinstance(node.func, ast.Attribute) and node.func.attr == TRANSLATE_FUNCTION
-		# from frappe import _
-		# _(...)
-		imported_call = isinstance(node.func, ast.Name) and node.func.id == TRANSLATE_FUNCTION
+		source_text = args[0] if isinstance(args, tuple) else args
+		context = args[1] if len(args) == 2 else None
 
-		if not (direct_call or imported_call):
-			continue
-
-		message = _extract_message_from_translation_node(node)
-		if message:
-			messages.append(message)
+		messages.append((lineno, source_text, context))
 
 	return messages
-
-
-def _extract_message_from_translation_node(node: ast.Call) -> tuple[int, str, str | None]:
-
-	# extract source text
-	source_text = None
-	if node.args and isinstance(node.args[0], ast.Constant):
-		source_text = node.args[0].value
-	if not isinstance(source_text, str):
-		# you can have non-str default args which don't make sense for translations
-		return
-
-	# Extract context, a kwarg called "context" should exist.
-	context = None
-	for kw in node.keywords:
-		if kw.arg != "context":
-			continue
-		if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
-			context = kw.value.value
-
-	return (node.lineno, source_text, context)
 
 
 def extract_messages_from_code(code):
