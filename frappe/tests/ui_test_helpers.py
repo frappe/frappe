@@ -363,6 +363,7 @@ def insert_doctype_with_child_table_record(name):
 
 @frappe.whitelist()
 <<<<<<< HEAD
+<<<<<<< HEAD
 def insert_translations():
 	translation = [
 		{
@@ -450,6 +451,12 @@ def create_test_user():
 	user.save()
 =======
 def setup_default_view():
+=======
+def setup_default_view(force_reroute=None):
+	frappe.delete_doc_if_exists("property Setter", "Event-main-default_view")
+	frappe.delete_doc_if_exists("property Setter", "Event-main-force_re_route_to_default_view")
+
+>>>>>>> fce7320947 (fix: reroute to list for app/{doctype} route)
 	frappe.get_doc(
 		{
 			"is_system_generated": 0,
@@ -462,6 +469,7 @@ def setup_default_view():
 		}
 	).insert()
 
+<<<<<<< HEAD
 	frappe.get_doc(
 		{
 			"is_system_generated": 0,
@@ -474,3 +482,17 @@ def setup_default_view():
 		}
 	).insert()
 >>>>>>> f90bc99274 (test: add test cases)
+=======
+	if force_reroute:
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"doctype_or_field": "DocType",
+				"doc_type": "Event",
+				"property": "force_re_route_to_default_view",
+				"property_type": "Check",
+				"value": "1",
+				"doctype": "Property Setter",
+			}
+		).insert()
+>>>>>>> fce7320947 (fix: reroute to list for app/{doctype} route)

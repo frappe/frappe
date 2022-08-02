@@ -189,7 +189,7 @@ frappe.router = {
 		} else if (frappe.model.is_single(doctype_route.doctype)) {
 			route = ["Form", doctype_route.doctype, doctype_route.doctype];
 		} else {
-			route = ["List", doctype_route.doctype, "List"];
+			route = ["List", doctype_route.doctype, null];
 		}
 
 		if (doctype_route.doctype_layout) {
