@@ -1,8 +1,11 @@
 {
-	"branches": ["develop", {"name": "version-14-beta", "channel": "beta", "prerelease": true}],
+	"branches": ["version-14"],
 	"plugins": [
 		"@semantic-release/commit-analyzer", {
-			"preset": "angular"
+			"preset": "angular",
+			"releaseRules": [
+				{"breaking": true, "release": false}
+			]
 		},
 		"@semantic-release/release-notes-generator",
 		[
@@ -18,4 +21,4 @@
 		],
 		"@semantic-release/github"
 	]
-} 
+}
