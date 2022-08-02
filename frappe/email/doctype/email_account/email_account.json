@@ -204,8 +204,13 @@
    "label": "Attachment Limit (MB)"
   },
   {
+<<<<<<< HEAD
    "depends_on": "enable_incoming",
    "description": "Append as communication against this DocType (must have fields, \"Status\", \"Subject\")",
+=======
+   "depends_on": "eval: doc.enable_incoming && !doc.use_imap",
+   "description": "Append as communication against this DocType (must have field \"Status\" and both \"Sender\" and \"Subject\" defined in the related doctype Email Settings)",
+>>>>>>> 2d1fe02dba (fix: Append to condition misleading message (#17696))
    "fieldname": "append_to",
    "fieldtype": "Link",
    "hide_days": 1,
