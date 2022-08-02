@@ -176,6 +176,25 @@ export default class BulkOperations {
 		}
 	}
 
+    // unassignment
+	unassign (docnames, done) {
+		if (docnames.length > 0) {
+			const unassign_from = new frappe.ui.form.UnassignFromDialog({
+				obj: this,
+				method: 'frappe.desk.form.assign_to.remove_multiple',
+				doctype: this.doctype,
+				docname: docnames,
+				bulk_assign: true,
+				re_assign: true,
+				callback: done
+			});
+			unassign_from.dialog.clear();
+			unassign_from.dialog.show();
+		} else {
+			frappe.msgprint(__('Select records to remove assignment'));
+		}
+	}
+
 	submit_or_cancel (docnames, action = 'submit', done = null) {
 		action = action.toLowerCase();
 		frappe
