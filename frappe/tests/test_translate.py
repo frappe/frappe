@@ -143,6 +143,11 @@ class TestTranslate(unittest.TestCase):
 				context="new line")
 			__("This wont be captured")
 			__init__("This shouldn't too")
+			_(
+				"broken on separate line",
+				)
+			_(not_a_string)
+			_(not_a_string, context="wat")
 		"""
 		)
 		expected_output = [
@@ -151,10 +156,11 @@ class TestTranslate(unittest.TestCase):
 			(4, "attr with", "attr context"),
 			(5, "name with", "name context"),
 			(6, "broken on", "new line"),
+			(10, "broken on separate line", None),
 		]
 
 		output = extract_messages_from_python_code(code)
-		self.assertEqual(output, expected_output)
+		self.assertEqual(output, expected_output, msg=output)
 
 
 def verify_translation_files(app):
