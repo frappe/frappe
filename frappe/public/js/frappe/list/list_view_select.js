@@ -238,7 +238,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						// don't repeat
 						added.push(route);
 						reports_to_add.push({
-							name: r.title || r.name,
+							name: __(r.title || r.name),
 							route: route
 						});
 					}
