@@ -352,7 +352,10 @@ def insert_doctype_with_child_table_record(name):
 
 
 @frappe.whitelist()
-def setup_default_view():
+def setup_default_view(force_reroute=None):
+	frappe.delete_doc_if_exists("property Setter", "Event-main-default_view")
+	frappe.delete_doc_if_exists("property Setter", "Event-main-force_re_route_to_default_view")
+
 	frappe.get_doc(
 		{
 			"is_system_generated": 0,
@@ -365,14 +368,15 @@ def setup_default_view():
 		}
 	).insert()
 
-	frappe.get_doc(
-		{
-			"is_system_generated": 0,
-			"doctype_or_field": "DocType",
-			"doc_type": "Event",
-			"property": "force_re_route_to_default_view",
-			"property_type": "Check",
-			"value": "1",
-			"doctype": "Property Setter",
-		}
-	).insert()
+	if force_reroute:
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"doctype_or_field": "DocType",
+				"doc_type": "Event",
+				"property": "force_re_route_to_default_view",
+				"property_type": "Check",
+				"value": "1",
+				"doctype": "Property Setter",
+			}
+		).insert()
