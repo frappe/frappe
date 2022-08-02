@@ -832,12 +832,14 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 		roles = (roles,)
 
 	if not set(roles).intersection(get_roles()):
-		if message:
-			msgprint(
-				_("This action is only allowed for {}").format(bold(", ".join(roles))),
-				_("Not Permitted"),
-			)
-		raise PermissionError
+		if not message:
+			raise PermissionError
+
+		throw(
+			_("This action is only allowed for {}").format(bold(", ".join(roles))),
+			PermissionError,
+			_("Not Permitted"),
+		)
 
 
 def get_domain_data(module):
