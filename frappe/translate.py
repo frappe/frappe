@@ -17,6 +17,7 @@ import re
 from csv import reader
 
 from babel.messages.extract import extract_python
+from babel.messages.jslexer import Token, tokenize, unquote_string
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -707,6 +708,8 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 			if path.lower().endswith(".py"):
 				messages = extract_messages_from_python_code(file_contents)
+			elif path.lower().endswith(".js"):
+				messages = extract_messages_from_javascript_code(file_contents)
 			else:
 				messages = extract_messages_from_code(file_contents)
 			return [
@@ -718,7 +721,7 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 
 def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
-	"""Extracts translatable strings from python code using AST"""
+	"""Extracts translatable strings from Python code using babel."""
 
 	messages = []
 
@@ -739,6 +742,147 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 		messages.append((lineno, source_text, context))
 
 	return messages
+
+
+def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str | None]]:
+	"""Extracts translatable strings from JavaScript code using babel."""
+
+	messages = []
+
+	for message in extract_javascript(
+		code,
+		keywords=["__"],
+		options={},
+	):
+		lineno, _func, args = message
+
+		if not args or not args[0]:
+			continue
+
+		source_text = args[0] if isinstance(args, tuple) else args
+		context = None
+
+		if isinstance(args, tuple) and len(args) == 3 and isinstance(args[2], str):
+			context = args[2]
+
+		messages.append((lineno, source_text, context))
+
+	return messages
+
+
+def extract_javascript(code, keywords=("__"), options=None):
+	"""Extract messages from JavaScript source code.
+
+	This is a modified version of babel's JS parser. Reused under BSD license.
+	License: https://github.com/python-babel/babel/blob/master/LICENSE
+
+	Changes from upstream:
+	- Preserve arguments, babel's parser flattened all values in args,
+	  we need order because we use different syntax for translation
+	  which can contain 2nd arg which is array of many values. If
+	  argument is non-primitive type then value is NOT returned in
+	  args.
+	  E.g. __("0", ["1", "2"], "3") -> ("0", None, "3")
+	- remove comments support
+	- changed signature to accept string directly.
+
+	:param code: code as string
+	:param keywords: a list of keywords (i.e. function names) that should be
+	                 recognized as translation functions
+	:param options: a dictionary of additional options (optional)
+	                Supported options are:
+	                * `template_string` -- set to false to disable ES6
+	                                       template string support.
+	"""
+	if options is None:
+		options = {}
+
+	funcname = message_lineno = None
+	messages = []
+	last_argument = None
+	concatenate_next = False
+	last_token = None
+	call_stack = -1
+	dotted = any("." in kw for kw in keywords)
+
+	for token in tokenize(
+		code,
+		jsx=True,
+		template_string=options.get("template_string", True),
+		dotted=dotted,
+	):
+		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
+			funcname
+			and (last_token and last_token.type == "name")  # have a keyword...
+			and token.type  # we've seen nothing after the keyword...
+			== "template_string"  # this is a template string
+		):
+			message_lineno = token.lineno
+			messages = [unquote_string(token.value)]
+			call_stack = 0
+			token = Token("operator", ")", token.lineno)
+
+		if token.type == "operator" and token.value == "(":
+			if funcname:
+				message_lineno = token.lineno
+				call_stack += 1
+
+		elif call_stack == -1 and token.type == "linecomment" or token.type == "multilinecomment":
+			pass
+
+		elif funcname and call_stack == 0:
+			if token.type == "operator" and token.value == ")":
+				if last_argument is not None:
+					messages.append(last_argument)
+				if len(messages) > 1:
+					messages = tuple(messages)
+				elif messages:
+					messages = messages[0]
+				else:
+					messages = None
+
+				if messages is not None:
+					yield (message_lineno, funcname, messages)
+
+				funcname = message_lineno = last_argument = None
+				concatenate_next = False
+				messages = []
+				call_stack = -1
+
+			elif token.type in ("string", "template_string"):
+				new_value = unquote_string(token.value)
+				if concatenate_next:
+					last_argument = (last_argument or "") + new_value
+					concatenate_next = False
+				else:
+					last_argument = new_value
+
+			elif token.type == "operator":
+				if token.value == ",":
+					if last_argument is not None:
+						messages.append(last_argument)
+						last_argument = None
+					else:
+						messages.append(None)
+					concatenate_next = False
+				elif token.value == "+":
+					concatenate_next = True
+
+		elif call_stack > 0 and token.type == "operator" and token.value == ")":
+			call_stack -= 1
+
+		elif funcname and call_stack == -1:
+			funcname = None
+
+		elif (
+			call_stack == -1
+			and token.type == "name"
+			and token.value in keywords
+			and (last_token is None or last_token.type != "name" or last_token.value != "function")
+		):
+			funcname = token.value
+
+		last_token = token
 
 
 def extract_messages_from_code(code):

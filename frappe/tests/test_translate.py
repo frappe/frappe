@@ -10,6 +10,8 @@ import frappe
 import frappe.translate
 from frappe import _
 from frappe.translate import (
+	extract_javascript,
+	extract_messages_from_javascript_code,
 	extract_messages_from_python_code,
 	get_language,
 	get_parent_language,
@@ -131,7 +133,7 @@ class TestTranslate(unittest.TestCase):
 		"""Load all CSV files to ensure they have correct format"""
 		verify_translation_files("frappe")
 
-	def test_python_ast_extractor(self):
+	def test_python_extractor(self):
 
 		code = textwrap.dedent(
 			"""
@@ -160,7 +162,61 @@ class TestTranslate(unittest.TestCase):
 		]
 
 		output = extract_messages_from_python_code(code)
-		self.assertEqual(output, expected_output, msg=output)
+		self.assertEqual(len(expected_output), len(output))
+		for expected, actual in zip(expected_output, output):
+			with self.subTest():
+				self.assertEqual(expected, actual)
+
+	def test_js_extractor(self):
+
+		code = textwrap.dedent(
+			"""
+			__("attr")
+			__("attr with", null, "context")
+			__("attr with", ["format", "replacements"], "context")
+			__("attr with", ["format", "replacements"])
+			__(
+				"Long JS string with", [
+					"format", "replacements"
+				],
+				"JS context on newline"
+			)
+			__(
+				"Long JS string with formats only {0}", [
+					"format", "replacements"
+				],
+			)
+			_(`template strings not supported yet`)
+		"""
+		)
+		expected_output = [
+			(2, "attr", None),
+			(3, "attr with", "context"),
+			(4, "attr with", "context"),
+			(5, "attr with", None),
+			(6, "Long JS string with", "JS context on newline"),
+			(12, "Long JS string with formats only {0}", None),
+		]
+
+		output = extract_messages_from_javascript_code(code)
+
+		self.assertEqual(len(expected_output), len(output))
+		for expected, actual in zip(expected_output, output):
+			with self.subTest():
+				self.assertEqual(expected, actual)
+
+	def test_js_parser_arg_capturing(self):
+		"""Get non-flattened args in correct order so 3rd arg if present is always context."""
+
+		def get_args(code):
+			*__, args = next(extract_javascript(code))
+			return args
+
+		args = get_args("""__("attr with", ["format", "replacements"], "context")""")
+		self.assertEqual(args, ("attr with", None, "context"))
+
+		args = get_args("""__("attr with", ["format", "replacements"])""")
+		self.assertEqual(args, ("attr with", None))
 
 
 def verify_translation_files(app):
