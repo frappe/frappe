@@ -637,6 +637,9 @@ def get_server_messages(app):
 	for basepath, folders, files in app_walk:
 		folders[:] = [folder for folder in folders if folder not in {".git", "__pycache__"}]
 
+		if "public/dist" in basepath:
+			continue
+
 		for f in files:
 			f = frappe.as_unicode(f)
 			if f.endswith(file_extensions):
