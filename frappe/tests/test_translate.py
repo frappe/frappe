@@ -216,7 +216,7 @@ class TestTranslate(unittest.TestCase):
 		self.assertEqual(args, ("attr with", None, "context"))
 
 		args = get_args("""__("attr with", ["format", "replacements"])""")
-		self.assertEqual(args, ("attr with", None))
+		self.assertEqual(args, "attr with")
 
 
 def verify_translation_files(app):
