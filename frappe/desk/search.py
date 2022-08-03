@@ -294,34 +294,29 @@ def get_focus_field_query(meta):
 def build_for_autosuggest(res, doctype):
 	results = []
 	meta = frappe.get_meta(doctype)
-	if not (meta.title_field and meta.show_title_field_in_link and meta.focus_field):
-		for r in res:
-			r = list(r)
-			results.append({"value": r[0], "description": ", ".join(unique(cstr(d) for d in r[1:] if d))})
 
-	else:
-		title_field_exists = meta.title_field and meta.show_title_field_in_link
-		focus_field_exists = meta.focus_field or doctype in (
-			frappe.get_hooks("custom_focus_field_doctypes") or []
+	title_field_exists = meta.title_field and meta.show_title_field_in_link
+	focus_field_exists = meta.focus_field or doctype in (
+		frappe.get_hooks("custom_focus_field_doctypes") or []
+	)
+	_from = 1
+
+	# to exclude title from description if title_field_exists
+	if title_field_exists and focus_field_exists:
+		_from = 3
+	elif title_field_exists or focus_field_exists:
+		_from = 2
+
+	for r in res:
+		r = list(r)
+		results.append(
+			{
+				"value": r[0],
+				"label": r[1] if title_field_exists else None,
+				"focus_field": r[2] if focus_field_exists else None,
+				"description": ", ".join(unique(cstr(d) for d in r[_from:] if d)),
+			}
 		)
-		_from = 1
-
-		# to exclude title from description if title_field_exists
-		if title_field_exists and focus_field_exists:
-			_from = 3
-		elif title_field_exists or focus_field_exists:
-			_from = 2
-
-		for r in res:
-			r = list(r)
-			results.append(
-				{
-					"value": r[0],
-					"label": r[1] if title_field_exists else None,
-					"focus_field": r[2] if focus_field_exists else None,
-					"description": ", ".join(unique(cstr(d) for d in r[_from:] if d)),
-				}
-			)
 
 	return results
 
