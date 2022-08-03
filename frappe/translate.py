@@ -803,6 +803,18 @@ def extract_javascript(code, keywords=("__"), options=None):
 	concatenate_next = False
 	last_token = None
 	call_stack = -1
+
+	# Tree level = depth inside function call tree
+	#  Example: __("0", ["1", "2"], "3")
+	# Depth         __()
+	#             /   |   \
+	#   0       "0" [...] "3"  <- only 0th level strings matter
+	#                /  \
+	#   1          "1"  "2"
+	tree_level = 0
+	opening_operators = {"[", "{"}
+	closing_operators = {"]", "}"}
+	all_container_operators = opening_operators.union(closing_operators)
 	dotted = any("." in kw for kw in keywords)
 
 	for token in tokenize(
@@ -820,6 +832,7 @@ def extract_javascript(code, keywords=("__"), options=None):
 			message_lineno = token.lineno
 			messages = [unquote_string(token.value)]
 			call_stack = 0
+			tree_level = 0
 			token = Token("operator", ")", token.lineno)
 
 		if token.type == "operator" and token.value == "(":
@@ -827,8 +840,14 @@ def extract_javascript(code, keywords=("__"), options=None):
 				message_lineno = token.lineno
 				call_stack += 1
 
+		elif call_stack >= 0 and token.type == "operator" and token.value in all_container_operators:
+			if token.value in opening_operators:
+				tree_level += 1
+			if token.value in closing_operators:
+				tree_level -= 1
+
 		elif call_stack == -1 and token.type == "linecomment" or token.type == "multilinecomment":
-			pass
+			pass  # ignore comments
 
 		elif funcname and call_stack == 0:
 			if token.type == "operator" and token.value == ")":
@@ -848,10 +867,13 @@ def extract_javascript(code, keywords=("__"), options=None):
 				concatenate_next = False
 				messages = []
 				call_stack = -1
+				tree_level = 0
 
 			elif token.type in ("string", "template_string"):
 				new_value = unquote_string(token.value)
-				if concatenate_next:
+				if tree_level > 0:
+					pass
+				elif concatenate_next:
 					last_argument = (last_argument or "") + new_value
 					concatenate_next = False
 				else:
@@ -863,13 +885,15 @@ def extract_javascript(code, keywords=("__"), options=None):
 						messages.append(last_argument)
 						last_argument = None
 					else:
-						messages.append(None)
+						if tree_level == 0:
+							messages.append(None)
 					concatenate_next = False
 				elif token.value == "+":
 					concatenate_next = True
 
 		elif call_stack > 0 and token.type == "operator" and token.value == ")":
 			call_stack -= 1
+			tree_level = 0
 
 		elif funcname and call_stack == -1:
 			funcname = None
