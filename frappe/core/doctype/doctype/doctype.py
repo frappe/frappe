@@ -1293,6 +1293,14 @@ def validate_fields(meta):
 			_validate_title_field_pattern(df.options)
 			_validate_title_field_pattern(df.default)
 
+	def check_focus_field(meta):
+		"""Throw exception if `focus_field` isn't a valid fieldname."""
+		if not meta.get("focus_field"):
+			return
+
+		if meta.focus_field not in fieldname_list:
+			frappe.throw(_("Focus field must be a valid fieldname"), InvalidFieldNameError)
+
 	def check_image_field(meta):
 		'''check image_field exists and is of type "Attach Image"'''
 		if not meta.image_field:
@@ -1478,6 +1486,7 @@ def validate_fields(meta):
 	check_fold(fields)
 	check_search_fields(meta, fields)
 	check_title_field(meta)
+	check_focus_field(meta)
 	check_timeline_field(meta)
 	check_is_published_field(meta)
 	check_website_search_field(meta)

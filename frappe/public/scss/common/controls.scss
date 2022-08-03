@@ -245,6 +245,20 @@ textarea.form-control {
 	border-bottom: 1px solid var(--border-color);
 }
 
+.link-badge {
+	display: inline-block;
+	min-width: 10px;
+	padding: 5px 7px;
+	font-size: 12px;
+	line-height: 1;
+	color: var(--text-color) !important;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	background-color: var(--primary) !important;
+	border-radius: 10px;
+}
+
 .barcode-wrapper {
 	text-align: center;
 	background-color: var(--control-bg);

@@ -586,6 +586,7 @@ doctype_properties = {
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 	"translate_link_fields": "Check",
+	"focus_field": "Data",
 }
 
 docfield_properties = {

@@ -185,6 +185,13 @@ def search_widget(
 			if title_field_query:
 				formatted_fields.insert(1, title_field_query)
 
+			focus_field_query = get_focus_field_query(meta)
+
+			# Insert focus field query after title field else name
+			if focus_field_query:
+				idx = 2 if title_field_query else 1
+				formatted_fields.insert(idx, focus_field_query)
+
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append(
 				"""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
@@ -275,23 +282,43 @@ def get_title_field_query(meta):
 	return field
 
 
+def get_focus_field_query(meta):
+	focus_field = meta.focus_field if meta.focus_field else None
+
+	if focus_field:
+		focus_field = f"`tab{meta.name}`.{focus_field} as `focus_field`"
+
+	return focus_field
+
+
 def build_for_autosuggest(res, doctype):
 	results = []
 	meta = frappe.get_meta(doctype)
-	if not (meta.title_field and meta.show_title_field_in_link):
+	if not (meta.title_field and meta.show_title_field_in_link and meta.focus_field):
 		for r in res:
 			r = list(r)
 			results.append({"value": r[0], "description": ", ".join(unique(cstr(d) for d in r[1:] if d))})
 
 	else:
 		title_field_exists = meta.title_field and meta.show_title_field_in_link
-		_from = 2 if title_field_exists else 1  # to exclude title from description if title_field_exists
+		focus_field_exists = meta.focus_field or doctype in (
+			frappe.get_hooks("custom_focus_field_doctypes") or []
+		)
+		_from = 1
+
+		# to exclude title from description if title_field_exists
+		if title_field_exists and focus_field_exists:
+			_from = 3
+		elif title_field_exists or focus_field_exists:
+			_from = 2
+
 		for r in res:
 			r = list(r)
 			results.append(
 				{
 					"value": r[0],
 					"label": r[1] if title_field_exists else None,
+					"focus_field": r[2] if focus_field_exists else None,
 					"description": ", ".join(unique(cstr(d) for d in r[_from:] if d)),
 				}
 			)

@@ -208,7 +208,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				if(!d.label) {	d.label = d.value; }
 
 				let _label = me.get_translated(d.label);
-				let html = d.html || "<strong>" + _label + "</strong>";
+				let html = d.html || `
+					<span>
+						<strong>
+							${_label}
+						</strong>
+						${d.focus_field ? `<span class="badge link-badge bg-primary float-right">${d.focus_field}</span>` : ``}
+					<span>`;
+
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
@@ -234,10 +241,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			var term = e.target.value;
 
-			if (me.$input.cache[doctype][term]!=null) {
-				// immediately show from cache
-				me.awesomplete.list = me.$input.cache[doctype][term];
-			}
+			// if (me.$input.cache[doctype][term]!=null) {
+			// 	// immediately show from cache
+			// 	me.awesomplete.list = me.$input.cache[doctype][term];
+			// }
 			var args = {
 				'txt': term,
 				'doctype': doctype,
