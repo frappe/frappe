@@ -4,7 +4,7 @@ from ast import literal_eval
 from functools import cached_property
 import sys
 from types import BuiltinFunctionType
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
 import frappe
 from frappe import _
@@ -481,10 +481,30 @@ class Engine:
 					fields = [field for field in updated_fields if field]
 		return fields
 
-	def set_fields(self, fields, **kwargs):
+	def get_fieldnames_from_child_table(self, doctype, fields):
+		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
+		linked_doctype, fieldname = None, None
+		for field in fields:
+			if "." in field and "tab" not in field:
+				original_field = field
+				alias = None
+				if " as " in field:
+					field, alias = field.split(" as ")
+				linked_fieldname, fieldname = field.split(".")
+				linked_field = frappe.get_meta(doctype).get_field(linked_fieldname)
+				linked_doctype = linked_field.options
+				field = f"`tab{linked_doctype}`.`{fieldname}`"
+				if alias:
+					field = f"{field} as {alias}"
+				fields[fields.index(original_field)] = field
+
+		return fields, linked_doctype, fieldname
+
+	def set_fields(self, table, fields, **kwargs):
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		if isinstance(fields, list) and None in fields and Field not in fields:
 			return None
+		linked_doctype, linked_field = None, None
 		function_objects = []
 		is_list = isinstance(fields, (list, tuple, set))
 		if is_list and len(fields) == 1:
@@ -523,6 +543,7 @@ class Engine:
 			updated_fields = []
 			if "*" in fields:
 				return fields
+			fields, linked_doctype, linked_field = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
 			for field in fields:
 				if not isinstance(field, Criterion) and field:
 					if " as " in field:
@@ -538,13 +559,12 @@ class Engine:
 						updated_fields.append(Field(field))
 
 					fields = updated_fields
-
 		# Need to check instance again since fields modified.
 		if not isinstance(fields, (list, tuple, set)):
 			fields = [fields] if fields else []
 
 		fields.extend(function_objects)
-		return fields
+		return fields, linked_doctype, linked_field
 
 	def get_query(
 		self,
@@ -556,7 +576,13 @@ class Engine:
 		# Clean up state before each query
 		self.tables = {}
 		criterion = self.build_conditions(table, filters, **kwargs)
-		fields = self.set_fields(kwargs.get("field_objects") or fields, **kwargs)
+		fields, linked_doctype, linked_field = self.set_fields(table, kwargs.get("field_objects") or fields, **kwargs)
+
+		if linked_doctype:
+			linked_doctype = frappe.qb.DocType(linked_doctype)
+			criterion = criterion.left_join(linked_doctype).on(
+				linked_doctype.name == frappe.qb.DocType(table).linked_field
+			)
 
 		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 
