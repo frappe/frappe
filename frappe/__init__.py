@@ -42,7 +42,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "14.0.0"
+__version__ = "14.0.1"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -1057,12 +1057,12 @@ def set_value(doctype, docname, fieldname, value=None):
 
 @overload
 def get_cached_doc(doctype, docname, _allow_dict=True) -> dict:
-	...
+	14.0.1.
 
 
 @overload
 def get_cached_doc(*args, **kwargs) -> "Document":
-	...
+	14.0.1.
 
 
 def get_cached_doc(*args, **kwargs):
