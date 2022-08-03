@@ -51,12 +51,8 @@ class FrappeRequestTestCase(unittest.TestCase):
 class TestOAuth20(FrappeRequestTestCase):
 	@classmethod
 	def setUpClass(cls):
-		make_test_records("OAuth Client", force=True)
 		make_test_records("User")
 
-		client = frappe.get_all("OAuth Client", fields=["*"])[0]
-		cls.client_id = client.get("client_id")
-		cls.client_secret = client.get("client_secret")
 		cls.form_header = {"content-type": "application/x-www-form-urlencoded"}
 		cls.scope = "all openid"
 		cls.redirect_uri = "http://localhost"
@@ -68,6 +64,32 @@ class TestOAuth20(FrappeRequestTestCase):
 		frappe_login_key.enable_social_login = 0
 		frappe_login_key.insert(ignore_if_duplicate=True)
 		frappe.db.commit()
+
+	def setUp(self):
+		self.oauth_client = frappe.new_doc("OAuth Client")
+		self.oauth_client.update(
+			{
+				"app_name": "_Test OAuth Client",
+				"client_secret": "test_client_secret",
+				"default_redirect_uri": "http://localhost",
+				"docstatus": 0,
+				"doctype": "OAuth Client",
+				"grant_type": "Authorization Code",
+				"name": "test_client_id",
+				"redirect_uris": "http://localhost",
+				"response_type": "Code",
+				"scopes": "all openid",
+				"skip_authorization": 1,
+			}
+		)
+		self.oauth_client.insert()
+
+		self.client_id = self.oauth_client.get("client_id")
+		self.client_secret = self.oauth_client.get("client_secret")
+
+	def tearDown(self):
+		self.oauth_client.delete(force=True)
+		frappe.db.rollback()
 
 	def test_invalid_login(self):
 		with suppress_stdout():
