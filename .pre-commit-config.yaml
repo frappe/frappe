@@ -32,6 +32,23 @@ repos:
       - id: black
         additional_dependencies: ['click==8.0.4']
 
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        types_or: [javascript]
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                frappe/public/dist/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                frappe/www/website_script.js|
+                frappe/templates/includes/.*|
+                frappe/public/js/lib/.*
+            )$
+
+
   - repo: https://github.com/timothycrosley/isort
     rev: 5.9.1
     hooks:

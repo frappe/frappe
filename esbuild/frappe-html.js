@@ -4,24 +4,24 @@ module.exports = {
 		let path = require("path");
 		let fs = require("fs/promises");
 
-		build.onResolve({ filter: /\.html$/ }, args => {
+		build.onResolve({ filter: /\.html$/ }, (args) => {
 			return {
 				path: path.join(args.resolveDir, args.path),
-				namespace: "frappe-html"
+				namespace: "frappe-html",
 			};
 		});
 
-		build.onLoad({ filter: /.*/, namespace: "frappe-html" }, args => {
+		build.onLoad({ filter: /.*/, namespace: "frappe-html" }, (args) => {
 			let filepath = args.path;
 			let filename = path.basename(filepath).split(".")[0];
 
 			return fs
 				.readFile(filepath, "utf-8")
-				.then(content => {
+				.then((content) => {
 					content = scrub_html_template(content);
 					return {
 						contents: `\n\tfrappe.templates['${filename}'] = \`${content}\`;\n`,
-						watchFiles: [filepath]
+						watchFiles: [filepath],
 					};
 				})
 				.catch(() => {
@@ -29,13 +29,13 @@ module.exports = {
 						contents: "",
 						warnings: [
 							{
-								text: `There was an error importing ${filepath}`
-							}
-						]
+								text: `There was an error importing ${filepath}`,
+							},
+						],
 					};
 				});
 		});
-	}
+	},
 };
 
 function scrub_html_template(content) {

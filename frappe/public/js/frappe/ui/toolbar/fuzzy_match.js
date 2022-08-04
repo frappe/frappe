@@ -23,7 +23,6 @@ const LEADING_LETTER_PENALTY = -5; // penalty applied for every letter in str be
 const MAX_LEADING_LETTER_PENALTY = -15; // maximum penalty for leading letters
 const UNMATCHED_LETTER_PENALTY = -1;
 
-
 /**
  * Does a fuzzy search to find pattern inside a string.
  * @param {*} pattern string				pattern to search for
@@ -84,9 +83,7 @@ function fuzzy_match_recursive(
 	let first_match = true;
 	while (pattern_cur_index < pattern.length && str_curr_index < str.length) {
 		// Match found.
-		if (
-			pattern[pattern_cur_index].toLowerCase() === str[str_curr_index].toLowerCase()
-		) {
+		if (pattern[pattern_cur_index].toLowerCase() === str[str_curr_index].toLowerCase()) {
 			if (next_match >= max_matches) {
 				return [false, out_score];
 			}
@@ -132,10 +129,7 @@ function fuzzy_match_recursive(
 
 		// Apply leading letter penalty
 		let penalty = LEADING_LETTER_PENALTY * matches[0];
-		penalty =
-			penalty < MAX_LEADING_LETTER_PENALTY
-				? MAX_LEADING_LETTER_PENALTY
-				: penalty;
+		penalty = penalty < MAX_LEADING_LETTER_PENALTY ? MAX_LEADING_LETTER_PENALTY : penalty;
 		out_score += penalty;
 
 		//Apply unmatched penalty
@@ -158,10 +152,7 @@ function fuzzy_match_recursive(
 				// Camel case
 				const neighbor = str[curr_idx - 1];
 				const curr = str[curr_idx];
-				if (
-					neighbor !== neighbor.toUpperCase() &&
-					curr !== curr.toLowerCase()
-				) {
+				if (neighbor !== neighbor.toUpperCase() && curr !== curr.toLowerCase()) {
 					out_score += CAMEL_BONUS;
 				}
 				const is_neighbour_separator = neighbor == "_" || neighbor == " ";
