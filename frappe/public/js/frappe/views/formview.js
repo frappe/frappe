@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide('frappe.views.formview');
+frappe.provide("frappe.views.formview");
 
 frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	make(route) {
@@ -23,7 +23,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 	make_and_show(doctype, route) {
 		if (frappe.router.doctype_layout) {
-			frappe.model.with_doc('DocType Layout', frappe.router.doctype_layout, () => {
+			frappe.model.with_doc("DocType Layout", frappe.router.doctype_layout, () => {
 				this.make_form(doctype);
 				this.show_doc(route);
 			});
@@ -34,23 +34,28 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	make_form(doctype) {
-		this.page.frm = new frappe.ui.form.Form(doctype, this.page, true, frappe.router.doctype_layout);
+		this.page.frm = new frappe.ui.form.Form(
+			doctype,
+			this.page,
+			true,
+			frappe.router.doctype_layout
+		);
 	}
 
 	setup_events() {
 		if (!this.initialized) {
-			$(document).on("page-change", function() {
+			$(document).on("page-change", function () {
 				frappe.ui.form.close_grid_form();
 			});
 
-			frappe.realtime.on("doc_viewers", function(data) {
+			frappe.realtime.on("doc_viewers", function (data) {
 				// set users that currently viewing the form
-				frappe.ui.form.FormViewers.set_users(data, 'viewers');
+				frappe.ui.form.FormViewers.set_users(data, "viewers");
 			});
 
-			frappe.realtime.on("doc_typers", function(data) {
+			frappe.realtime.on("doc_typers", function (data) {
 				// set users that currently typing on the form
-				frappe.ui.form.FormViewers.set_users(data, 'typers');
+				frappe.ui.form.FormViewers.set_users(data, "typers");
 			});
 		}
 		this.initialized = true;
@@ -69,7 +74,11 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		}
 
 		const doc = frappe.get_doc(doctype, name);
-		if (doc && frappe.model.get_docinfo(doctype, name) && (doc.__islocal || frappe.model.is_fresh(doc))) {
+		if (
+			doc &&
+			frappe.model.get_docinfo(doctype, name) &&
+			(doc.__islocal || frappe.model.is_fresh(doc))
+		) {
 			// is document available and recent?
 			this.render(doctype_layout, name);
 		} else {
@@ -79,10 +88,10 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 	fetch_and_render(doctype, name, doctype_layout) {
 		frappe.model.with_doc(doctype, name, (name, r) => {
-			if (r && r['403']) return; // not permitted
+			if (r && r["403"]) return; // not permitted
 
 			if (!(locals[doctype] && locals[doctype][name])) {
-				if (name && name.substr(0, 3) === 'new') {
+				if (name && name.substr(0, 3) === "new") {
 					this.render_new_doc(doctype, name, doctype_layout);
 				} else {
 					frappe.show_not_found();
@@ -95,7 +104,7 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 	render_new_doc(doctype, name, doctype_layout) {
 		const new_name = frappe.model.make_new_doc_and_get_name(doctype, true);
-		if (new_name===name) {
+		if (new_name === name) {
 			this.render(doctype_layout, name);
 		} else {
 			frappe.route_flags.replace_route = true;
@@ -107,4 +116,4 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 		frappe.container.change_to(doctype_layout);
 		frappe.views.formview[doctype_layout].frm.refresh(name);
 	}
-}
+};

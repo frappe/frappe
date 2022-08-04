@@ -3,7 +3,5 @@
 /* eslint-disable */
 
 frappe.query_reports["ToDo"] = {
-	"filters": [
-
-	]
-}
+	filters: [],
+};
