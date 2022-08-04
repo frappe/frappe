@@ -689,35 +689,41 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 	:param path: path of the code file
 	"""
-	frappe.flags.setdefault("scanned_files", [])
+	frappe.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
-	if path in set(frappe.flags.scanned_files):
+	if path in frappe.flags.scanned_files:
 		return []
 
-	frappe.flags.scanned_files.append(path)
+	frappe.flags.scanned_files.add(path)
 
 	bench_path = get_bench_path()
-	if os.path.exists(path):
-		with open(path) as sourcefile:
-			try:
-				file_contents = sourcefile.read()
-			except Exception:
-				print(f"Could not scan file for translation: {path}")
-				return []
-
-			if path.lower().endswith(".py"):
-				messages = extract_messages_from_python_code(file_contents)
-			elif path.lower().endswith(".js"):
-				messages = extract_messages_from_javascript_code(file_contents)
-			else:
-				messages = extract_messages_from_code(file_contents)
-			return [
-				(os.path.relpath(path, bench_path), message, context, line)
-				for (line, message, context) in messages
-			]
-	else:
+	if not os.path.exists(path):
 		return []
+
+	with open(path) as sourcefile:
+		try:
+			file_contents = sourcefile.read()
+		except Exception:
+			print(f"Could not scan file for translation: {path}")
+			return []
+
+		messages = []
+
+		if path.lower().endswith(".py"):
+			messages += extract_messages_from_python_code(file_contents)
+		else:
+			messages += extract_messages_from_code(file_contents)
+
+		if path.lower().endswith(".js"):
+			# For JS also use JS parser to extract strings possibly missed out
+			# by regex based extractor.
+			messages += extract_messages_from_javascript_code(file_contents)
+
+		return [
+			(os.path.relpath(path, bench_path), message, context, line)
+			for (line, message, context) in messages
+		]
 
 
 def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
