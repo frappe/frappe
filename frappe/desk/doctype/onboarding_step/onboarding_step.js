@@ -2,18 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Onboarding Step", {
-
-	setup: function(frm) {
-		frm.set_query("form_tour", function() {
+	setup: function (frm) {
+		frm.set_query("form_tour", function () {
 			return {
 				filters: {
-					reference_doctype: frm.doc.reference_document
-				}
+					reference_doctype: frm.doc.reference_document,
+				},
 			};
 		});
 	},
 
-	refresh: function(frm) {
+	refresh: function (frm) {
 		frappe.boot.developer_mode &&
 			frm.set_intro(
 				__(
@@ -30,15 +29,16 @@ frappe.ui.form.on("Onboarding Step", {
 		}
 	},
 
-	reference_document: function(frm) {
+	reference_document: function (frm) {
 		if (frm.doc.reference_document && frm.doc.action == "Update Settings") {
 			setup_fields(frm);
 		}
 	},
 
-	action: function(frm) {
+	action: function (frm) {
 		if (frm.doc.action == "Show Form Tour") {
-			frm.fields_dict.reference_document.set_description(`You need to add the steps in the contoller JS file. For example: <code>note.js</code>
+			frm.fields_dict.reference_document
+				.set_description(`You need to add the steps in the contoller JS file. For example: <code>note.js</code>
 <pre class="small text-muted"><code>
 frappe.tour['Note'] = [
 	{
@@ -54,7 +54,7 @@ frappe.tour['Note'] = [
 		}
 	},
 
-	disable_form: function(frm) {
+	disable_form: function (frm) {
 		frm.set_read_only();
 		frm.fields
 			.filter((field) => field.has_input)
@@ -71,9 +71,7 @@ function setup_fields(frm) {
 			let fields = frappe
 				.get_meta(frm.doc.reference_document)
 				.fields.filter((df) => {
-					return ["Data", "Check", "Int", "Link", "Select"].includes(
-						df.fieldtype
-					);
+					return ["Data", "Check", "Int", "Link", "Select"].includes(df.fieldtype);
 				})
 				.map((df) => {
 					return {

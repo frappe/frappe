@@ -11,19 +11,18 @@
  * frappe._.get_data_uri(video)
  * // returns "data:image/pngbase64,..."
  */
-frappe._.get_data_uri = element => {
-
+frappe._.get_data_uri = (element) => {
 	const width = element.videoWidth;
 	const height = element.videoHeight;
 
-	const $canvas = $('<canvas/>');
+	const $canvas = $("<canvas/>");
 	$canvas[0].width = width;
 	$canvas[0].height = height;
 
-	const context = $canvas[0].getContext('2d');
+	const context = $canvas[0].getContext("2d");
 	context.drawImage(element, 0, 0, width, height);
 
-	const data_uri = $canvas[0].toDataURL('image/png');
+	const data_uri = $canvas[0].toDataURL("image/png");
 
 	return data_uri;
 };
@@ -92,14 +91,14 @@ frappe.ui.Capture = class {
 			fields: [
 				{
 					fieldtype: "HTML",
-					fieldname: "capture"
+					fieldname: "capture",
 				},
 				{
 					fieldtype: "HTML",
-					fieldname: "total_count"
-				}
+					fieldname: "total_count",
+				},
 			],
-			on_hide: this.stop_media_stream()
+			on_hide: this.stop_media_stream(),
 		});
 
 		me.$template = $(frappe.ui.Capture.TEMPLATE);
@@ -107,7 +106,7 @@ frappe.ui.Capture = class {
 		let field = me.dialog.get_field("capture");
 		$(field.wrapper).html(me.$template);
 
-		me.dialog.get_close_btn().on('click', () => {
+		me.dialog.get_close_btn().on("click", () => {
 			me.hide();
 		});
 	}
@@ -137,7 +136,7 @@ frappe.ui.Capture = class {
 			.then(() => {
 				me.dialog.show();
 			})
-			.catch(err => {
+			.catch((err) => {
 				if (me.options.error) {
 					frappe.show_alert(frappe.ui.Capture.ERR_MESSAGE, 3);
 				}
@@ -150,21 +149,21 @@ frappe.ui.Capture = class {
 		let me = this;
 		let constraints = {
 			video: {
-				facingMode: this.facing_mode
-			}
+				facingMode: this.facing_mode,
+			},
 		};
 
-		return navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+		return navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
 			me.stream = stream;
 			me.dialog.custom_actions.empty();
-			me.dialog.get_primary_btn().off('click');
+			me.dialog.get_primary_btn().off("click");
 			me.setup_take_photo_action();
 			me.setup_preview_action();
 			me.setup_toggle_camera();
 
-			me.$template.find('.fc-stream-container').show();
-			me.$template.find('.fc-preview-container').hide();
-			me.video = me.$template.find('video')[0];
+			me.$template.find(".fc-stream-container").show();
+			me.$template.find(".fc-preview-container").hide();
+			me.video = me.$template.find("video")[0];
 			me.video.srcObject = me.stream;
 			me.video.load();
 			me.video.play();
@@ -173,9 +172,9 @@ frappe.ui.Capture = class {
 
 	render_preview() {
 		this.stop_media_stream();
-		this.$template.find('.fc-stream-container').hide();
-		this.$template.find('.fc-preview-container').show();
-		this.dialog.get_primary_btn().off('click');
+		this.$template.find(".fc-stream-container").hide();
+		this.$template.find(".fc-preview-container").show();
+		this.dialog.get_primary_btn().off("click");
 
 		let images = ``;
 
@@ -190,8 +189,8 @@ frappe.ui.Capture = class {
 			`;
 		});
 
-		this.$template.find('.fc-preview-container').empty();
-		$(this.$template.find('.fc-preview-container')).html(
+		this.$template.find(".fc-preview-container").empty();
+		$(this.$template.find(".fc-preview-container")).html(
 			`<div class="row">
 				${images}
 			</div>`
@@ -207,7 +206,7 @@ frappe.ui.Capture = class {
 	setup_take_photo_action() {
 		let me = this;
 
-		this.dialog.set_primary_action(__('Take Photo'), () => {
+		this.dialog.set_primary_action(__("Take Photo"), () => {
 			const data_url = frappe._.get_data_uri(me.video);
 
 			me.images.push(data_url);
@@ -225,7 +224,7 @@ frappe.ui.Capture = class {
 
 		this.dialog.set_secondary_action_label(__("Preview"));
 		this.dialog.set_secondary_action(() => {
-			me.dialog.get_primary_btn().off('click');
+			me.dialog.get_primary_btn().off("click");
 			me.render_preview();
 		});
 	}
@@ -234,7 +233,7 @@ frappe.ui.Capture = class {
 		let me = this;
 		let elements = this.$template[0].getElementsByClassName("capture-remove-btn");
 
-		elements.forEach(el => {
+		elements.forEach((el) => {
 			el.onclick = () => {
 				let idx = parseInt(el.getAttribute("data-idx"));
 
@@ -262,16 +261,20 @@ frappe.ui.Capture = class {
 	setup_toggle_camera() {
 		let me = this;
 
-		this.dialog.add_custom_action(__("Switch Camera"), () => {
-			me.facing_mode = me.facing_mode == "environment" ? "user" : "environment";
+		this.dialog.add_custom_action(
+			__("Switch Camera"),
+			() => {
+				me.facing_mode = me.facing_mode == "environment" ? "user" : "environment";
 
-			frappe.show_alert({
-				message: __("Switching Camera")
-			});
+				frappe.show_alert({
+					message: __("Switching Camera"),
+				});
 
-			me.stop_media_stream();
-			me.render_stream();
-		}, "btn-switch");
+				me.stop_media_stream();
+				me.render_stream();
+			},
+			"btn-switch"
+		);
 	}
 
 	setup_capture_action() {
@@ -290,7 +293,7 @@ frappe.ui.Capture = class {
 	setup_submit_action() {
 		let me = this;
 
-		this.dialog.set_primary_action(__('Submit'), () => {
+		this.dialog.set_primary_action(__("Submit"), () => {
 			me.hide();
 
 			if (me.callback) {
@@ -319,9 +322,9 @@ frappe.ui.Capture = class {
 frappe.ui.Capture.OPTIONS = {
 	title: __("Camera"),
 	animate: false,
-	error: false
+	error: false,
 };
-frappe.ui.Capture.ERR_MESSAGE = __('Unable to load camera.');
+frappe.ui.Capture.ERR_MESSAGE = __("Unable to load camera.");
 frappe.ui.Capture.TEMPLATE = `
 <div class="frappe-capture">
 	<div class="embed-responsive embed-responsive-16by9 fc-stream-container">

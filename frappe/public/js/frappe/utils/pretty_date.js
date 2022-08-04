@@ -1,15 +1,20 @@
 function prettyDate(date, mini) {
-	if (!date) return '';
+	if (!date) return "";
 
-	if (typeof (date) == "string") {
+	if (typeof date == "string") {
 		date = frappe.datetime.convert_to_user_tz(date);
-		date = new Date((date || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
+		date = new Date(
+			(date || "")
+				.replace(/-/g, "/")
+				.replace(/[TZ]/g, " ")
+				.replace(/\.[0-9]*/, "")
+		);
 	}
 
-	let diff = (((new Date(frappe.datetime.now_datetime())).getTime() - date.getTime()) / 1000);
+	let diff = (new Date(frappe.datetime.now_datetime()).getTime() - date.getTime()) / 1000;
 	let day_diff = Math.floor(diff / 86400);
 
-	if (isNaN(day_diff) || day_diff < 0) return '';
+	if (isNaN(day_diff) || day_diff < 0) return "";
 
 	if (mini) {
 		// Return short format of time difference
@@ -69,25 +74,31 @@ function prettyDate(date, mini) {
 }
 
 frappe.provide("frappe.datetime");
-window.comment_when = function(datetime, mini) {
-	var timestamp = frappe.datetime.str_to_user ?
-		frappe.datetime.str_to_user(datetime) : datetime;
-	return '<span class="frappe-timestamp '
-		+ (mini ? " mini" : "") + '" data-timestamp="' + datetime
-		+ '" title="' + timestamp + '">'
-		+ prettyDate(datetime, mini) + '</span>';
+window.comment_when = function (datetime, mini) {
+	var timestamp = frappe.datetime.str_to_user ? frappe.datetime.str_to_user(datetime) : datetime;
+	return (
+		'<span class="frappe-timestamp ' +
+		(mini ? " mini" : "") +
+		'" data-timestamp="' +
+		datetime +
+		'" title="' +
+		timestamp +
+		'">' +
+		prettyDate(datetime, mini) +
+		"</span>"
+	);
 };
 frappe.datetime.comment_when = comment_when;
 frappe.datetime.prettyDate = prettyDate;
 
-frappe.datetime.refresh_when = function() {
+frappe.datetime.refresh_when = function () {
 	if (jQuery) {
-		$(".frappe-timestamp").each(function() {
+		$(".frappe-timestamp").each(function () {
 			$(this).html(prettyDate($(this).attr("data-timestamp"), $(this).hasClass("mini")));
 		});
 	}
 };
 
-setInterval(function() {
+setInterval(function () {
 	frappe.datetime.refresh_when();
 }, 60000); // refresh every minute

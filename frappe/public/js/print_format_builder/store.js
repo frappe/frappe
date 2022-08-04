@@ -18,7 +18,7 @@ export function getStore(print_format_name) {
 				meta: null,
 				layout: null,
 				dirty: false,
-				edit_letterhead: false
+				edit_letterhead: false,
 			};
 		},
 		watch: {
@@ -26,45 +26,30 @@ export function getStore(print_format_name) {
 				deep: true,
 				handler() {
 					this.dirty = true;
-				}
+				},
 			},
 			print_format: {
 				deep: true,
 				handler() {
 					this.dirty = true;
-				}
-			}
+				},
+			},
 		},
 		methods: {
 			fetch() {
-				return new Promise(resolve => {
-					frappe.model.clear_doc(
-						"Print Format",
-						this.print_format_name
-					);
-					frappe.model.with_doc(
-						"Print Format",
-						this.print_format_name,
-						() => {
-							let print_format = frappe.get_doc(
-								"Print Format",
-								this.print_format_name
-							);
-							frappe.model.with_doctype(
-								print_format.doc_type,
-								() => {
-									this.meta = frappe.get_meta(
-										print_format.doc_type
-									);
-									this.print_format = print_format;
-									this.layout = this.get_layout();
-									this.$nextTick(() => (this.dirty = false));
-									this.edit_letterhead = false;
-									resolve();
-								}
-							);
-						}
-					);
+				return new Promise((resolve) => {
+					frappe.model.clear_doc("Print Format", this.print_format_name);
+					frappe.model.with_doc("Print Format", this.print_format_name, () => {
+						let print_format = frappe.get_doc("Print Format", this.print_format_name);
+						frappe.model.with_doctype(print_format.doc_type, () => {
+							this.meta = frappe.get_meta(print_format.doc_type);
+							this.print_format = print_format;
+							this.layout = this.get_layout();
+							this.$nextTick(() => (this.dirty = false));
+							this.edit_letterhead = false;
+							resolve();
+						});
+					});
 				});
 			},
 			update({ fieldname, value }) {
@@ -74,25 +59,23 @@ export function getStore(print_format_name) {
 				frappe.dom.freeze(__("Saving..."));
 
 				this.layout.sections = this.layout.sections
-					.filter(section => !section.remove)
-					.map(section => {
-						section.columns = section.columns.map(column => {
+					.filter((section) => !section.remove)
+					.map((section) => {
+						section.columns = section.columns.map((column) => {
 							column.fields = column.fields
-								.filter(df => !df.remove)
-								.map(df => {
+								.filter((df) => !df.remove)
+								.map((df) => {
 									if (df.table_columns) {
-										df.table_columns = df.table_columns.map(
-											tf => {
-												return pluck(tf, [
-													"label",
-													"fieldname",
-													"fieldtype",
-													"options",
-													"width",
-													"field_template"
-												]);
-											}
-										);
+										df.table_columns = df.table_columns.map((tf) => {
+											return pluck(tf, [
+												"label",
+												"fieldname",
+												"fieldtype",
+												"options",
+												"width",
+												"field_template",
+											]);
+										});
 									}
 									return pluck(df, [
 										"label",
@@ -101,7 +84,7 @@ export function getStore(print_format_name) {
 										"options",
 										"table_columns",
 										"html",
-										"field_template"
+										"field_template",
 									]);
 								});
 							return column;
@@ -113,15 +96,15 @@ export function getStore(print_format_name) {
 
 				frappe
 					.call("frappe.client.save", {
-						doc: this.print_format
+						doc: this.print_format,
 					})
 					.then(() => {
 						if (this.letterhead && this.letterhead._dirty) {
 							return frappe
 								.call("frappe.client.save", {
-									doc: this.letterhead
+									doc: this.letterhead,
 								})
-								.then(r => (this.letterhead = r.message));
+								.then((r) => (this.letterhead = r.message));
 						}
 					})
 					.then(() => this.fetch())
@@ -146,13 +129,11 @@ export function getStore(print_format_name) {
 				return create_default_layout(this.meta, this.print_format);
 			},
 			change_letterhead(letterhead) {
-				return frappe.db
-					.get_doc("Letter Head", letterhead)
-					.then(doc => {
-						this.letterhead = doc;
-					});
-			}
-		}
+				return frappe.db.get_doc("Letter Head", letterhead).then((doc) => {
+					this.letterhead = doc;
+				});
+			},
+		},
 	};
 	stores[print_format_name] = new Vue(options);
 	return stores[print_format_name];
@@ -172,6 +153,6 @@ export let storeMixin = {
 		},
 		meta() {
 			return this.$store.meta;
-		}
-	}
+		},
+	},
 };

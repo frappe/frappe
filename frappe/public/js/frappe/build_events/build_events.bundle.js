@@ -5,7 +5,7 @@ let $container = $("#build-events-overlay");
 let success = null;
 let error = null;
 
-frappe.realtime.on("build_event", data => {
+frappe.realtime.on("build_event", (data) => {
 	if (data.success) {
 		// remove executed cache for rebuilt files
 		let changed_files = data.changed_files;
@@ -17,19 +17,19 @@ frappe.realtime.on("build_event", data => {
 						let filename = parts[0].split("/").slice(-1)[0];
 
 						frappe.assets.executed_ = frappe.assets.executed_.filter(
-							asset => !asset.includes(`${filename}.bundle`)
+							(asset) => !asset.includes(`${filename}.bundle`)
 						);
 					}
 				}
 			}
 		}
 		// update assets json
-		frappe.call("frappe.sessions.get_boot_assets_json").then(r => {
+		frappe.call("frappe.sessions.get_boot_assets_json").then((r) => {
 			if (r.message) {
 				frappe.boot.assets_json = r.message;
 
 				if (frappe.hot_update) {
-					frappe.hot_update.forEach(callback => {
+					frappe.hot_update.forEach((callback) => {
 						callback();
 					});
 				}
@@ -47,12 +47,10 @@ function show_build_success(data) {
 	}
 
 	if (!success) {
-		let target = $('<div class="build-success-container">')
-			.appendTo($container)
-			.get(0);
+		let target = $('<div class="build-success-container">').appendTo($container).get(0);
 		let vm = new Vue({
 			el: target,
-			render: h => h(BuildSuccess)
+			render: (h) => h(BuildSuccess),
 		});
 		success = vm.$children[0];
 	}
@@ -64,12 +62,10 @@ function show_build_error(data) {
 		success.hide();
 	}
 	if (!error) {
-		let target = $('<div class="build-error-container">')
-			.appendTo($container)
-			.get(0);
+		let target = $('<div class="build-error-container">').appendTo($container).get(0);
 		let vm = new Vue({
 			el: target,
-			render: h => h(BuildError)
+			render: (h) => h(BuildError),
 		});
 		error = vm.$children[0];
 	}

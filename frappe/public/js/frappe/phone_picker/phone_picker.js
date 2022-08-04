@@ -17,8 +17,8 @@ class PhonePicker {
 		this.phone_picker_wrapper = $(`
 			<div class="phone-picker">
 				<div class="search-phones">
-					<input type="search" placeholder="${__('Search for countries...')}" class="form-control">
-					<span class="search-phone">${frappe.utils.icon('search', "sm")}</span>
+					<input type="search" placeholder="${__("Search for countries...")}" class="form-control">
+					<span class="search-phone">${frappe.utils.icon("search", "sm")}</span>
 				</div>
 				<div class="phone-section">
 					<div class="phones"></div>
@@ -26,8 +26,8 @@ class PhonePicker {
 			</div>
 		`);
 		this.parent.append(this.phone_picker_wrapper);
-		this.phone_wrapper = this.phone_picker_wrapper.find('.phones');
-		this.search_input = this.phone_picker_wrapper.find('.search-phones > input');
+		this.phone_wrapper = this.phone_picker_wrapper.find(".phones");
+		this.search_input = this.phone_picker_wrapper.find(".search-phones > input");
 		this.refresh();
 		this.setup_countries();
 	}
@@ -48,7 +48,7 @@ class PhonePicker {
 				this.set_country(country);
 				this.update_icon_selected();
 			};
-			$country.on('click', () => {
+			$country.on("click", () => {
 				set_values();
 			});
 			$country.hover(() => {
@@ -66,7 +66,7 @@ class PhonePicker {
 				this.filter_icons();
 			});
 
-			this.search_input.on('search', () => {
+			this.search_input.on("search", () => {
 				this.filter_icons();
 			});
 		});
@@ -75,10 +75,12 @@ class PhonePicker {
 	filter_icons() {
 		let value = this.search_input.val();
 		if (!value) {
-			this.phone_wrapper.find(".phone-wrapper").removeClass('hidden');
+			this.phone_wrapper.find(".phone-wrapper").removeClass("hidden");
 		} else {
-			this.phone_wrapper.find(".phone-wrapper").addClass('hidden');
-			this.phone_wrapper.find(`.phone-wrapper[id*='${value.toLowerCase()}']`).removeClass('hidden');
+			this.phone_wrapper.find(".phone-wrapper").addClass("hidden");
+			this.phone_wrapper
+				.find(`.phone-wrapper[id*='${value.toLowerCase()}']`)
+				.removeClass("hidden");
 		}
 	}
 
@@ -87,7 +89,7 @@ class PhonePicker {
 	}
 
 	set_country(country) {
-		this.country = country || '';
+		this.country = country || "";
 	}
 
 	get_country() {
