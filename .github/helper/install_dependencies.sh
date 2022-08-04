@@ -9,8 +9,6 @@ install_wkhtmltopdf() {
 }
 install_wkhtmltopdf &
 
-curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
-sudo bash mariadb_repo_setup --mariadb-server-version=10.6
 
 sudo apt update
-sudo apt install libcups2-dev redis-server libmariadb3 libmariadb-dev mariadb-client
+sudo apt install libcups2-dev redis-server mariadb-client-10.3

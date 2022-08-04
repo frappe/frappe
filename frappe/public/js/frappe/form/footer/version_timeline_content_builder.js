@@ -14,11 +14,10 @@ function get_version_timeline_content(version_doc, frm) {
 	let updater_reference_link = null;
 	let updater_reference = data.updater_reference;
 	if (!$.isEmptyObject(updater_reference)) {
-		let label = updater_reference.label || __('via {0}', [updater_reference.doctype]);
+		let label = updater_reference.label || __("via {0}", [updater_reference.doctype]);
 		let { doctype, docname } = updater_reference;
 		if (doctype && docname) {
-			updater_reference_link = frappe.utils.get_form_link(
-				doctype, docname, true, label);
+			updater_reference_link = frappe.utils.get_form_link(doctype, docname, true, label);
 		} else {
 			updater_reference_link = label;
 		}
@@ -27,8 +26,8 @@ function get_version_timeline_content(version_doc, frm) {
 	// value changed in parent
 	if (data.changed && data.changed.length) {
 		var parts = [];
-		data.changed.every(function(p) {
-			if (p[0] === 'docstatus') {
+		data.changed.every(function (p) {
+			if (p[0] === "docstatus") {
 				if (p[2] === 1) {
 					let message = updater_reference_link
 						? get_user_message(
@@ -61,14 +60,19 @@ function get_version_timeline_content(version_doc, frm) {
 			} else {
 				const df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
 				if (df && !df.hidden) {
-					const field_display_status = frappe.perm.get_field_display_status(df, null,
-						frm.perm);
-					if (field_display_status === 'Read' || field_display_status === 'Write') {
-						parts.push(__('{0} from {1} to {2}', [
-							__(df.label),
-							format_content_for_timeline(p[1]),
-							format_content_for_timeline(p[2])
-						]));
+					const field_display_status = frappe.perm.get_field_display_status(
+						df,
+						null,
+						frm.perm
+					);
+					if (field_display_status === "Read" || field_display_status === "Write") {
+						parts.push(
+							__("{0} from {1} to {2}", [
+								__(df.label),
+								format_content_for_timeline(p[1]),
+								format_content_for_timeline(p[2]),
+							])
+						);
 					}
 				}
 			}
@@ -94,24 +98,32 @@ function get_version_timeline_content(version_doc, frm) {
 	// value changed in table field
 	if (data.row_changed && data.row_changed.length) {
 		let parts = [];
-		data.row_changed.every(function(row) {
-			row[3].every(function(p) {
-				var df = frm.fields_dict[row[0]] &&
-					frappe.meta.get_docfield(frm.fields_dict[row[0]].grid.doctype,
-						p[0], frm.docname);
+		data.row_changed.every(function (row) {
+			row[3].every(function (p) {
+				var df =
+					frm.fields_dict[row[0]] &&
+					frappe.meta.get_docfield(
+						frm.fields_dict[row[0]].grid.doctype,
+						p[0],
+						frm.docname
+					);
 
 				if (df && !df.hidden) {
-					var field_display_status = frappe.perm.get_field_display_status(df,
-						null, frm.perm);
+					var field_display_status = frappe.perm.get_field_display_status(
+						df,
+						null,
+						frm.perm
+					);
 
-					if (field_display_status === 'Read' || field_display_status === 'Write') {
-						parts.push(__('{0} from {1} to {2} in row #{3}', [
-							frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype,
-								p[0]),
-							format_content_for_timeline(p[1]),
-							format_content_for_timeline(p[2]),
-							row[1]
-						]));
+					if (field_display_status === "Read" || field_display_status === "Write") {
+						parts.push(
+							__("{0} from {1} to {2} in row #{3}", [
+								frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
+								format_content_for_timeline(p[1]),
+								format_content_for_timeline(p[2]),
+								row[1],
+							])
+						);
 					}
 				}
 				return parts.length < 3;
@@ -137,29 +149,32 @@ function get_version_timeline_content(version_doc, frm) {
 
 	// rows added / removed
 	// __('added'), __('removed') # for translation, don't remove
-	['added', 'removed'].forEach(function(key) {
+	["added", "removed"].forEach(function (key) {
 		if (data[key] && data[key].length) {
-			let parts = (data[key] || []).map(function(p) {
+			let parts = (data[key] || []).map(function (p) {
 				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
 				if (df && !df.hidden) {
-					var field_display_status = frappe.perm.get_field_display_status(df, null,
-						frm.perm);
+					var field_display_status = frappe.perm.get_field_display_status(
+						df,
+						null,
+						frm.perm
+					);
 
-					if (field_display_status === 'Read' || field_display_status === 'Write') {
+					if (field_display_status === "Read" || field_display_status === "Write") {
 						return __(frappe.meta.get_label(frm.doctype, p[0]));
 					}
 				}
 			});
-			parts = parts.filter(function(p) {
+			parts = parts.filter(function (p) {
 				return p;
 			});
 			if (parts.length) {
-				let message = '';
+				let message = "";
 
-				if (key === 'added') {
-					message = __("added rows for {0}", [parts.join(', ')]);
-				} else if (key === 'removed') {
-					message = __("removed rows for {0}", [parts.join(', ')]);
+				if (key === "added") {
+					message = __("added rows for {0}", [parts.join(", ")]);
+				} else if (key === "removed") {
+					message = __("removed rows for {0}", [parts.join(", ")]);
 				}
 
 				let version_comment = get_version_comment(version_doc, message);
@@ -172,7 +187,6 @@ function get_version_timeline_content(version_doc, frm) {
 	return out;
 }
 
-
 function get_version_comment(version_doc, text) {
 	// TODO: Replace with a better solution
 	if (text.includes("<a")) {
@@ -182,10 +196,17 @@ function get_version_comment(version_doc, text) {
 		let unlinked_content = "";
 
 		try {
-			text += '</>';
-			Array.from($(text)).forEach(element => {
-				if ($(element).is('a')) {
-					version_comment += unlinked_content ? frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content) : "";
+			text += "</>";
+			Array.from($(text)).forEach((element) => {
+				if ($(element).is("a")) {
+					version_comment += unlinked_content
+						? frappe.utils.get_form_link(
+								"Version",
+								version_doc.name,
+								true,
+								unlinked_content
+						  )
+						: "";
 					unlinked_content = "";
 					version_comment += element.outerHTML;
 				} else {
@@ -193,14 +214,19 @@ function get_version_comment(version_doc, text) {
 				}
 			});
 			if (unlinked_content) {
-				version_comment += frappe.utils.get_form_link('Version', version_doc.name, true, unlinked_content);
+				version_comment += frappe.utils.get_form_link(
+					"Version",
+					version_doc.name,
+					true,
+					unlinked_content
+				);
 			}
 			return version_comment;
 		} catch (e) {
 			// pass
 		}
 	}
-	return frappe.utils.get_form_link('Version', version_doc.name, true, text);
+	return frappe.utils.get_form_link("Version", version_doc.name, true, text);
 }
 
 function format_content_for_timeline(content) {
