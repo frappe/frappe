@@ -1,6 +1,6 @@
-frappe.listview_settings['Newsletter'] = {
+frappe.listview_settings["Newsletter"] = {
 	add_fields: ["subject", "email_sent", "schedule_sending"],
-	get_indicator: function(doc) {
+	get_indicator: function (doc) {
 		if (doc.email_sent) {
 			return [__("Sent"), "green", "email_sent,=,Yes"];
 		} else if (doc.schedule_sending) {
@@ -8,5 +8,5 @@ frappe.listview_settings['Newsletter'] = {
 		} else {
 			return [__("Not Sent"), "gray", "email_sent,=,No"];
 		}
-	}
+	},
 };

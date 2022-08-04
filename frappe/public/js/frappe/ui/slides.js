@@ -35,11 +35,11 @@ frappe.ui.Slide = class Slide {
 
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
-		this.$primary_btn = this.slides_footer.find('.primary');
+		this.$primary_btn = this.slides_footer.find(".primary");
 		this.$form_wrapper = this.$body.find(".form-wrapper");
 
-		if (this.image_src) this.$content.append(
-			$(`<img src="${this.image_src}" style="margin: 20px;">`));
+		if (this.image_src)
+			this.$content.append($(`<img src="${this.image_src}" style="margin: 20px;">`));
 		if (this.help) this.$content.append($(`<p class="slide-help">${__(this.help)}</p>`));
 
 		this.reqd_fields = [];
@@ -61,7 +61,7 @@ frappe.ui.Slide = class Slide {
 		this.form = new frappe.ui.FieldGroup({
 			fields: this.get_atomic_fields(),
 			body: this.$form[0],
-			no_submit_on_enter: true
+			no_submit_on_enter: true,
 		});
 		this.form.make();
 		if (this.add_more) this.bind_more_button();
@@ -72,7 +72,7 @@ frappe.ui.Slide = class Slide {
 		this.set_reqd_fields();
 	}
 
-	setup_done_state() { }
+	setup_done_state() {}
 
 	// Form methods
 	get_atomic_fields() {
@@ -81,7 +81,7 @@ frappe.ui.Slide = class Slide {
 			this.count = 1;
 			fields = fields.map((field, i) => {
 				if (field.fieldname) {
-					field.fieldname += '_1';
+					field.fieldname += "_1";
 				}
 				if (i === 1 && this.mandatory_entry) {
 					field.reqd = 1;
@@ -98,7 +98,7 @@ frappe.ui.Slide = class Slide {
 	set_reqd_fields() {
 		var dict = this.form.fields_dict;
 		this.reqd_fields = [];
-		Object.keys(dict).map(key => {
+		Object.keys(dict).map((key) => {
 			if (dict[key].df.reqd) {
 				this.reqd_fields.push(dict[key]);
 			}
@@ -117,25 +117,26 @@ frappe.ui.Slide = class Slide {
 	}
 
 	bind_more_button() {
-		this.$more = this.$body.find('.form-more-btn');
-		this.$more.removeClass('hide')
-			.on('click', () => {
-				this.count++;
-				var fields = JSON.parse(JSON.stringify(this.fields));
+		this.$more = this.$body.find(".form-more-btn");
+		this.$more.removeClass("hide").on("click", () => {
+			this.count++;
+			var fields = JSON.parse(JSON.stringify(this.fields));
 
-				this.form.add_fields(fields.map(field => {
-					if (field.fieldname) field.fieldname += '_' + this.count;
+			this.form.add_fields(
+				fields.map((field) => {
+					if (field.fieldname) field.fieldname += "_" + this.count;
 					if (!field.static) {
 						if (field.label) field.label;
 					}
 					field.reqd = 0;
 					return field;
-				}));
+				})
+			);
 
-				if (this.count === this.max_count) {
-					this.$more.addClass('hide');
-				}
-			});
+			if (this.count === this.max_count) {
+				this.$more.addClass("hide");
+			}
+		});
 	}
 
 	// Primary button (outside of slide)
@@ -149,11 +150,11 @@ frappe.ui.Slide = class Slide {
 	bind_fields_to_action_btn() {
 		var me = this;
 		this.reqd_fields.map((field) => {
-			field.$wrapper.on('change input click', () => {
+			field.$wrapper.on("change input click", () => {
 				me.reset_action_button_state();
 			});
-			field.$wrapper.on('keydown', 'input', e => {
-				if (e.key == 'Enter') {
+			field.$wrapper.on("keydown", "input", (e) => {
+				if (e.key == "Enter") {
 					me.reset_action_button_state();
 				}
 			});
@@ -165,9 +166,9 @@ frappe.ui.Slide = class Slide {
 			return !field.get_value();
 		});
 		if (empty_fields.length) {
-			this.slides_footer.find('.action').addClass('disabled');
+			this.slides_footer.find(".action").addClass("disabled");
 		} else {
-			this.slides_footer.find('.action').removeClass('disabled');
+			this.slides_footer.find(".action").removeClass("disabled");
 		}
 	}
 
@@ -176,7 +177,7 @@ frappe.ui.Slide = class Slide {
 	}
 
 	bind_primary_action() {
-		this.slides_footer.find(".primary").on('click.primary_action', () => {
+		this.slides_footer.find(".primary").on("click.primary_action", () => {
 			this.primary_action();
 		});
 	}
@@ -188,14 +189,14 @@ frappe.ui.Slide = class Slide {
 		return false;
 	}
 
-	before_show() { }
+	before_show() {}
 
 	show_slide() {
 		this.$wrapper.removeClass("hidden");
 		this.before_show();
 		this.resetup_primary_button();
 		if (!this.done) {
-			this.$body.find('.form-control').first().focus();
+			this.$body.find(".form-control").first().focus();
 			this.$primary_btn.show();
 		} else {
 			this.$primary_btn.hide();
@@ -222,7 +223,7 @@ frappe.ui.Slide = class Slide {
 		this.$body.remove();
 	}
 
-	primary_action() { }
+	primary_action() {}
 };
 
 frappe.ui.Slides = class Slides {
@@ -233,7 +234,7 @@ frappe.ui.Slides = class Slides {
 		unidirectional = 0,
 		done_state = 0,
 		before_load = null,
-		on_update = null
+		on_update = null,
 	}) {
 		this.parent = parent;
 		this.slides = slides;
@@ -253,14 +254,15 @@ frappe.ui.Slides = class Slides {
 	}
 
 	make() {
-		this.$slide_progress = $(`<div>`).addClass(`slides-progress text-center text-extra-muted`)
+		this.$slide_progress = $(`<div>`)
+			.addClass(`slides-progress text-center text-extra-muted`)
 			.appendTo(this.parent);
-		this.container = $('<div>').addClass("slides-wrapper").attr({ "tabindex": -1 })
+		this.container = $("<div>")
+			.addClass("slides-wrapper")
+			.attr({ tabindex: -1 })
 			.appendTo(this.parent);
-		this.$body = $(`<div>`).addClass(`slide-container`)
-			.appendTo(this.container);
-		this.$footer = $(`<div>`).addClass(`slide-footer`)
-			.appendTo(this.container);
+		this.$body = $(`<div>`).addClass(`slide-container`).appendTo(this.container);
+		this.$footer = $(`<div>`).addClass(`slide-footer`).appendTo(this.container);
 
 		this.render_progress_dots();
 		this.make_prev_next_complete_buttons();
@@ -276,7 +278,7 @@ frappe.ui.Slides = class Slides {
 	setup() {
 		this.slides.map((slide, id) => {
 			if (!this.slide_dict[id]) {
-				this.slide_dict[id] = new (this.slide_class)(
+				this.slide_dict[id] = new this.slide_class(
 					$.extend(this.slides[id], {
 						parent: this.$body,
 						slides_footer: this.$footer,
@@ -301,7 +303,7 @@ frappe.ui.Slides = class Slides {
 		this.render_progress_dots();
 		this.make_prev_next_complete_buttons();
 		this.show_hide_prev_next(id);
-		this.$body.find('.form-control').first().focus();
+		this.$body.find(".form-control").first().focus();
 	}
 
 	render_progress_dots() {
@@ -309,21 +311,22 @@ frappe.ui.Slides = class Slides {
 		// Can be called by a slide to update states
 		this.$slide_progress.empty();
 
-		if (this.slides.length <= 1) return
+		if (this.slides.length <= 1) return;
 
 		this.slides.map((slide, id) => {
 			let $dot = $(`<div class="slide-step">
 				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon('tick', 'xs')}</div>
-			</div>`)
-				.attr({ 'data-step-id': id });
+				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+			</div>`).attr({ "data-step-id": id });
 
-			if (this.done_state && (this.slide_dict[id] &&
-				this.slide_dict[id].done || slide.done)) {
-				$dot.addClass('step-success');
+			if (
+				this.done_state &&
+				((this.slide_dict[id] && this.slide_dict[id].done) || slide.done)
+			) {
+				$dot.addClass("step-success");
 			}
 			if (this.unidirectional && id === this.current_id) {
-				$dot.addClass('active');
+				$dot.addClass("active");
 			}
 			// Add pointer event for non-unidirectional
 			this.$slide_progress.append($dot);
@@ -347,37 +350,59 @@ frappe.ui.Slides = class Slides {
 
 		$(`<div class="row">
 			<div class="col-sm-4 text-left prev-div">
-				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__("Previous", null, "Go to previous slide")}</button>
+				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__(
+					"Previous",
+					null,
+					"Go to previous slide"
+				)}</button>
 			</div>
 			<div class="col-sm-8 text-right next-div">
-				<button class="complete-btn btn btn-sm primary">${__("Complete Setup", null, "Finish the setup wizard")}</button>
-				<button class="next-btn btn btn-default btn-sm" tabindex="0">${__("Next", null, "Go to next slide")}</button>
+				<button class="complete-btn btn btn-sm primary">${__(
+					"Complete Setup",
+					null,
+					"Finish the setup wizard"
+				)}</button>
+				<button class="next-btn btn btn-default btn-sm" tabindex="0">${__(
+					"Next",
+					null,
+					"Go to next slide"
+				)}</button>
 			</div>
 		</div>`).appendTo(this.$footer);
 
-		this.$prev_btn = this.$footer.find('.prev-btn').attr('tabIndex', 0)
-			.on('click', () => this.show_slide(this.current_id - 1));
+		this.$prev_btn = this.$footer
+			.find(".prev-btn")
+			.attr("tabIndex", 0)
+			.on("click", () => this.show_slide(this.current_id - 1));
 
-		this.$next_btn = this.$footer.find('.next-btn').attr('tabIndex', 0)
-			.on('click', () => {
+		this.$next_btn = this.$footer
+			.find(".next-btn")
+			.attr("tabIndex", 0)
+			.on("click", () => {
 				if (this.done_state) {
 					if (this.slide) this.slide.done = true;
 					if (this.current_slide) this.current_slide.done = true;
 				}
-				if (!this.unidirectional || (this.unidirectional && this.current_slide.set_values())) {
+				if (
+					!this.unidirectional ||
+					(this.unidirectional && this.current_slide.set_values())
+				) {
 					this.show_slide(this.current_id + 1);
 				}
 			});
 
-		this.$complete_btn = this.$footer.find('.complete-btn').attr('tabIndex', 0);
+		this.$complete_btn = this.$footer.find(".complete-btn").attr("tabIndex", 0);
 	}
 
 	bind_progress_dots() {
 		var me = this;
-		this.$slide_progress.find('.fa-circle').addClass('link').on('click', function () {
-			let id = $(this).attr('data-step-id');
-			me.show_slide(id);
-		});
+		this.$slide_progress
+			.find(".fa-circle")
+			.addClass("link")
+			.on("click", function () {
+				let id = $(this).attr("data-step-id");
+				me.show_slide(id);
+			});
 	}
 
 	before_show_slide() {
@@ -386,8 +411,7 @@ frappe.ui.Slides = class Slides {
 
 	show_slide(id) {
 		id = cint(id);
-		if (!this.before_show_slide() ||
-			(this.current_slide && this.current_id === id)) {
+		if (!this.before_show_slide() || (this.current_slide && this.current_id === id)) {
 			return;
 		}
 
@@ -409,13 +433,11 @@ frappe.ui.Slides = class Slides {
 	}
 
 	// eslint-disable-next-line no-unused-vars
-	on_update(completed, total) { }
+	on_update(completed, total) {}
 
 	show_hide_prev_next(id) {
-		(id === 0) ?
-			this.$prev_btn.hide() : this.$prev_btn.show();
-		(id + 1 === this.slides.length) ?
-			this.$next_btn.hide() : this.$next_btn.show();
+		id === 0 ? this.$prev_btn.hide() : this.$prev_btn.show();
+		id + 1 === this.slides.length ? this.$next_btn.hide() : this.$next_btn.show();
 	}
 
 	get_values() {

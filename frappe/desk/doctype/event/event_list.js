@@ -1,8 +1,8 @@
-frappe.listview_settings['Event'] = {
+frappe.listview_settings["Event"] = {
 	add_fields: ["starts_on", "ends_on"],
-	onload: function() {
+	onload: function () {
 		frappe.route_options = {
-			"status": "Open"
+			status: "Open",
 		};
-	}
-}
+	},
+};

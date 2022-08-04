@@ -1,31 +1,38 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 
-frappe.has_indicator = function(doctype) {
+frappe.has_indicator = function (doctype) {
 	// returns true if indicator is present
-	if(frappe.model.is_submittable(doctype)) {
+	if (frappe.model.is_submittable(doctype)) {
 		return true;
-	} else if((frappe.listview_settings[doctype] || {}).get_indicator
-		|| frappe.workflow.get_state_fieldname(doctype)) {
+	} else if (
+		(frappe.listview_settings[doctype] || {}).get_indicator ||
+		frappe.workflow.get_state_fieldname(doctype)
+	) {
 		return true;
-	} else if(frappe.meta.has_field(doctype, 'enabled')
-		|| frappe.meta.has_field(doctype, 'disabled')) {
+	} else if (
+		frappe.meta.has_field(doctype, "enabled") ||
+		frappe.meta.has_field(doctype, "disabled")
+	) {
 		return true;
-	} else if (frappe.meta.has_field(doctype, 'status') && frappe.get_meta(doctype).states.length) {
+	} else if (
+		frappe.meta.has_field(doctype, "status") &&
+		frappe.get_meta(doctype).states.length
+	) {
 		return true;
 	}
 	return false;
-}
+};
 
-frappe.get_indicator = function(doc, doctype) {
-	if(doc.__unsaved) {
+frappe.get_indicator = function (doc, doctype) {
+	if (doc.__unsaved) {
 		return [__("Not Saved"), "orange"];
 	}
 
-	if(!doctype) doctype = doc.doctype;
+	if (!doctype) doctype = doc.doctype;
 
 	let meta = frappe.get_meta(doctype);
 	var workflow = frappe.workflow.workflows[doctype];
-	var without_workflow = workflow ? workflow['override_status'] : true;
+	var without_workflow = workflow ? workflow["override_status"] : true;
 
 	var settings = frappe.listview_settings[doctype] || {};
 
@@ -33,74 +40,74 @@ frappe.get_indicator = function(doc, doctype) {
 		workflow_fieldname = frappe.workflow.get_state_fieldname(doctype);
 
 	// workflow
-	if(workflow_fieldname && !without_workflow) {
+	if (workflow_fieldname && !without_workflow) {
 		var value = doc[workflow_fieldname];
-		if(value) {
+		if (value) {
 			var colour = "";
 
-			if(locals["Workflow State"][value] && locals["Workflow State"][value].style) {
+			if (locals["Workflow State"][value] && locals["Workflow State"][value].style) {
 				var colour = {
-					"Success": "green",
-					"Warning": "orange",
-					"Danger": "red",
-					"Primary": "blue",
-					"Inverse": "black",
-					"Info": "light-blue",
+					Success: "green",
+					Warning: "orange",
+					Danger: "red",
+					Primary: "blue",
+					Inverse: "black",
+					Info: "light-blue",
 				}[locals["Workflow State"][value].style];
 			}
 			if (!colour) colour = "gray";
 
-			return [__(value), colour, workflow_fieldname + ',=,' + value];
+			return [__(value), colour, workflow_fieldname + ",=," + value];
 		}
 	}
 
 	// draft if document is submittable
-	if(is_submittable && doc.docstatus==0 && !settings.has_indicator_for_draft) {
+	if (is_submittable && doc.docstatus == 0 && !settings.has_indicator_for_draft) {
 		return [__("Draft"), "red", "docstatus,=,0"];
 	}
 
 	// cancelled
-	if(is_submittable && doc.docstatus==2 && !settings.has_indicator_for_cancelled) {
+	if (is_submittable && doc.docstatus == 2 && !settings.has_indicator_for_cancelled) {
 		return [__("Cancelled"), "red", "docstatus,=,2"];
 	}
 
 	// based on document state
-	if (doc.status && meta && meta.states && meta.states.find(d => d.title === doc.status)) {
-		let state = meta.states.find(d => d.title === doc.status);
-		let color_class = frappe.scrub(state.color, '-');
+	if (doc.status && meta && meta.states && meta.states.find((d) => d.title === doc.status)) {
+		let state = meta.states.find((d) => d.title === doc.status);
+		let color_class = frappe.scrub(state.color, "-");
 		return [__(doc.status), color_class, "status,=," + doc.status];
 	}
 
-	if(settings.get_indicator) {
+	if (settings.get_indicator) {
 		var indicator = settings.get_indicator(doc);
-		if(indicator) return indicator;
+		if (indicator) return indicator;
 	}
 
 	// if submittable
-	if(is_submittable && doc.docstatus==1) {
+	if (is_submittable && doc.docstatus == 1) {
 		return [__("Submitted"), "blue", "docstatus,=,1"];
 	}
 
 	// based on status
-	if(doc.status) {
+	if (doc.status) {
 		return [__(doc.status), frappe.utils.guess_colour(doc.status)];
 	}
 
 	// based on enabled
-	if(frappe.meta.has_field(doctype, 'enabled')) {
-		if(doc.enabled) {
-			return [__('Enabled'), 'blue', 'enabled,=,1'];
+	if (frappe.meta.has_field(doctype, "enabled")) {
+		if (doc.enabled) {
+			return [__("Enabled"), "blue", "enabled,=,1"];
 		} else {
-			return [__('Disabled'), 'grey', 'enabled,=,0'];
+			return [__("Disabled"), "grey", "enabled,=,0"];
 		}
 	}
 
 	// based on disabled
-	if(frappe.meta.has_field(doctype, 'disabled')) {
-		if(doc.disabled) {
-			return [__('Disabled'), 'grey', 'disabled,=,1'];
+	if (frappe.meta.has_field(doctype, "disabled")) {
+		if (doc.disabled) {
+			return [__("Disabled"), "grey", "disabled,=,1"];
 		} else {
-			return [__('Enabled'), 'blue', 'disabled,=,0'];
+			return [__("Enabled"), "blue", "disabled,=,0"];
 		}
 	}
-}
+};
