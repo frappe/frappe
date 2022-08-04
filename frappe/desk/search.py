@@ -300,6 +300,7 @@ def build_for_autosuggest(res, doctype):
 		frappe.get_hooks("custom_focus_field_doctypes") or []
 	)
 	_from = 1
+	_focus_field_idx = 2 if title_field_exists else 1
 
 	# to exclude title from description if title_field_exists
 	if title_field_exists and focus_field_exists:
@@ -313,7 +314,7 @@ def build_for_autosuggest(res, doctype):
 			{
 				"value": r[0],
 				"label": r[1] if title_field_exists else None,
-				"focus_field": r[2] if focus_field_exists else None,
+				"focus_field": r[_focus_field_idx] if focus_field_exists else None,
 				"description": ", ".join(unique(cstr(d) for d in r[_from:] if d)),
 			}
 		)
