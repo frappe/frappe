@@ -1,5 +1,4 @@
 export default class HeaderSize {
-
 	static get isInline() {
 		return true;
 	}
@@ -13,10 +12,10 @@ export default class HeaderSize {
 	}
 
 	get title() {
-		return 'Header Size';
+		return "Header Size";
 	}
 
-	constructor({api}) {
+	constructor({ api }) {
 		this.api = api;
 		this.button = null;
 		this._state = true;
@@ -26,21 +25,26 @@ export default class HeaderSize {
 	}
 
 	render() {
-		this.button = document.createElement('button');
-		this.button.type = 'button';
-		this.button.innerHTML = `${frappe.utils.icon('header', 'sm')}${frappe.utils.icon('small-down', 'xs')}`;
-		this.button.classList = 'header-inline-tool';
+		this.button = document.createElement("button");
+		this.button.type = "button";
+		this.button.innerHTML = `${frappe.utils.icon("header", "sm")}${frappe.utils.icon(
+			"small-down",
+			"xs"
+		)}`;
+		this.button.classList = "header-inline-tool";
 
 		return this.button;
 	}
 
 	checkState(selection) {
-		let termWrapper = this.api.selection.findParentTag('SPAN');
+		let termWrapper = this.api.selection.findParentTag("SPAN");
 
-		for (const h of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
+		for (const h of ["h1", "h2", "h3", "h4", "h5", "h6"]) {
 			if (termWrapper && termWrapper.classList.contains(h)) {
-				let num =  h.match(/\d+/)[0];
-				$('.header-inline-tool svg:first-child').replaceWith(frappe.utils.icon(`header-${num}`, 'md'));
+				let num = h.match(/\d+/)[0];
+				$(".header-inline-tool svg:first-child").replaceWith(
+					frappe.utils.icon(`header-${num}`, "md")
+				);
 			}
 		}
 
@@ -51,7 +55,7 @@ export default class HeaderSize {
 	change_size(range, size) {
 		if (!range) return;
 
-		let span = document.createElement('SPAN');
+		let span = document.createElement("SPAN");
 
 		span.classList.add(`h${size}`);
 		span.innerText = range.toString();
@@ -73,7 +77,10 @@ export default class HeaderSize {
 		}
 
 		if (parent_tag.innerText == selected_text) {
-			if (!parent_tag.classList.contains('ce-header') && !parent_tag.classList.contains('ce-paragraph')) {
+			if (
+				!parent_tag.classList.contains("ce-header") &&
+				!parent_tag.classList.contains("ce-paragraph")
+			) {
 				this.remove_parent_tag(range, parent_node.parentElement, span);
 				parent_tag.remove();
 			}
@@ -88,20 +95,20 @@ export default class HeaderSize {
 	}
 
 	renderActions() {
-		this.actions = document.createElement('div');
-		this.actions.classList = 'header-level-select';
+		this.actions = document.createElement("div");
+		this.actions.classList = "header-level-select";
 
 		this.headerLevels = new Array(6).fill().map((_, idx) => {
-			const $header_level = document.createElement('div');
-			$header_level.classList.add(`h${idx+1}`, 'header-level');
-			$header_level.innerText = `Header ${idx+1}`;
+			const $header_level = document.createElement("div");
+			$header_level.classList.add(`h${idx + 1}`, "header-level");
+			$header_level.innerText = `Header ${idx + 1}`;
 			return $header_level;
 		});
 
 		for (const [i, headerLevel] of this.headerLevels.entries()) {
 			this.actions.appendChild(headerLevel);
-			this.api.listeners.on(headerLevel, 'click', () => {
-				this.change_size(this.range, i+1);
+			this.api.listeners.on(headerLevel, "click", () => {
+				this.change_size(this.range, i + 1);
 			});
 		}
 
@@ -111,7 +118,7 @@ export default class HeaderSize {
 
 	destroy() {
 		for (const headerLevel of this.headerLevels) {
-			this.api.listeners.off(headerLevel, 'click');
+			this.api.listeners.off(headerLevel, "click");
 		}
 	}
 }

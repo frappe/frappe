@@ -1,5 +1,4 @@
 frappe.ready(() => {
-
 	setup_socket_io();
 
 	add_color_to_avatars();
@@ -23,7 +22,11 @@ frappe.ready(() => {
 	});
 
 	$(document).on("keydown", ".comment-field", (e) => {
-		if ((e.ctrlKey || e.metaKey) && (e.keyCode == 13 || e.which == 13) && !$(".discussion-modal").hasClass("show")) {
+		if (
+			(e.ctrlKey || e.metaKey) &&
+			(e.keyCode == 13 || e.which == 13) &&
+			!$(".discussion-modal").hasClass("show")
+		) {
 			e.preventDefault();
 			submit_discussion(e);
 		}
@@ -56,7 +59,6 @@ frappe.ready(() => {
 	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
 		adjust_comment_box(e);
 	});
-
 });
 
 const show_new_topic_modal = (e) => {
@@ -85,7 +87,8 @@ const publish_message = (data) => {
 	const topic = data.topic_info;
 	const single_thread = $(".is-single-thread").length;
 	const first_topic = !$(".reply-card").length;
-	const document_match_found = (doctype == topic.reference_doctype) && (docname == topic.reference_docname);
+	const document_match_found =
+		doctype == topic.reference_doctype && docname == topic.reference_docname;
 
 	post_message_cleanup();
 	data.template = hide_actions_on_conditions(data.template, data.reply_owner);
@@ -94,8 +97,9 @@ const publish_message = (data) => {
 	data.new_topic_template = style_avatar_frame(data.new_topic_template);
 
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
-		$(data.template).insertBefore(`.discussion-on-page[data-topic=${topic.name}] .discussion-form`);
-
+		$(data.template).insertBefore(
+			`.discussion-on-page[data-topic=${topic.name}] .discussion-form`
+		);
 	} else if (!first_topic && !single_thread && document_match_found) {
 		$(data.sidebar).insertBefore($(`.discussions-sidebar .sidebar-parent`).first());
 		$(`#discussion-group`).prepend(data.new_topic_template);
@@ -103,11 +107,9 @@ const publish_message = (data) => {
 			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-parent").first().click();
 		}
-
 	} else if (single_thread && document_match_found) {
 		$(data.template).insertBefore(`.discussion-form`);
 		$(".discussion-on-page").attr("data-topic", topic.name);
-
 	} else if (topic.owner == frappe.session.user && document_match_found) {
 		window.location.reload();
 	}
@@ -201,17 +203,16 @@ const submit_discussion = (e) => {
 		let docname = target.closest(".discussions-parent").attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
-
 		frappe.call({
 			method: "frappe.website.doctype.discussion_topic.discussion_topic.submit_discussion",
 			args: {
-				"doctype": doctype ? doctype : "",
-				"docname": docname ? docname : "",
-				"reply": reply,
-				"title": title,
-				"topic_name": target.closest(".discussion-on-page").attr("data-topic"),
-				"reply_name": reply_name
-			}
+				doctype: doctype ? doctype : "",
+				docname: docname ? docname : "",
+				reply: reply,
+				title: title,
+				topic_name: target.closest(".discussion-on-page").attr("data-topic"),
+				reply_name: reply_name,
+			},
 		});
 	}
 };
@@ -233,13 +234,15 @@ const add_color_to_avatars = () => {
 
 const get_color_from_palette = (element) => {
 	const palette = frappe.get_palette(element.attr("title"));
-	return {"background-color": `var(${palette[0]})`, "color": `var(${palette[1]})` };
+	return { "background-color": `var(${palette[0]})`, color: `var(${palette[1]})` };
 };
 
 const style_avatar_frame = (template) => {
 	const $template = $(template);
-	$template.find(".avatar-frame").length
-		&& $template.find(".avatar-frame").css(get_color_from_palette($template.find(".avatar-frame")));
+	$template.find(".avatar-frame").length &&
+		$template
+			.find(".avatar-frame")
+			.css(get_color_from_palette($template.find(".avatar-frame")));
 	return $template.prop("outerHTML");
 };
 
@@ -275,8 +278,8 @@ const perform_action = (e) => {
 		frappe.call({
 			method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
 			args: {
-				"reply_name": $(e.target).closest(".reply-card").data("reply")
-			}
+				reply_name: $(e.target).closest(".reply-card").data("reply"),
+			},
 		});
 	}
 };
