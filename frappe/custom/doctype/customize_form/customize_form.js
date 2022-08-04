@@ -83,7 +83,7 @@ frappe.ui.form.on("Customize Form", {
 		}
 	},
 
-	is_calendar_and_gantt: function(frm) {
+	is_calendar_and_gantt: function (frm) {
 		frm.trigger("setup_default_views");
 	},
 
@@ -230,7 +230,7 @@ frappe.ui.form.on("Customize Form", {
 
 	setup_default_views(frm) {
 		frappe.model.set_default_views_for_doctype(frm.doc.doc_type, frm);
-	}
+	},
 });
 
 // can't delete standard fields
@@ -247,7 +247,7 @@ frappe.ui.form.on("Customize Form Field", {
 		f.is_system_generated = false;
 		f.is_custom_field = true;
 		frm.trigger("setup_default_views");
-	}
+	},
 });
 
 // can't delete standard links
