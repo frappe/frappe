@@ -213,7 +213,6 @@ frappe.search.utils = {
 					if (frappe.model.can_get_report(item)) {
 						out.push(option("Report", ["List", item, "Report"], 0.04));
 					}
-
 				}
 			}
 		});

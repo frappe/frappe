@@ -177,7 +177,7 @@ frappe.router = {
 		let doctype_route = this.routes[route[0]];
 		// doctype route
 		if (route[1]) {
-			if (route[1]==="view") {
+			if (route[1] === "view") {
 				route = this.get_standard_route_for_list(route, doctype_route);
 			} else {
 				let docname = route[1];
@@ -202,13 +202,13 @@ frappe.router = {
 
 	get_standard_route_for_list(route, doctype_route) {
 		let standard_route;
-		if (route[2] && route[2].toLowerCase()==="tree") {
+		if (route[2] && route[2].toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
 			standard_route = [
 				"List",
 				doctype_route.doctype,
-				frappe.utils.to_title_case(route[2] ? route[2] : "")
+				frappe.utils.to_title_case(route[2] ? route[2] : ""),
 			];
 			// calendar / kanban / dashboard / folder
 			if (route[3]) standard_route.push(...route.slice(3, route.length));
@@ -467,7 +467,7 @@ frappe.router = {
 
 	get_base_route_for_view(doctype, view) {
 		return `/app/${frappe.router.slug(doctype)}/view/${view.toLowerCase()}`;
-	}
+	},
 };
 
 // global functions for backward compatibility

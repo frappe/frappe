@@ -777,10 +777,13 @@ $.extend(frappe.model, {
 				default_views.push("Inbox");
 			}
 
-			if ((frm.doc.fields.find(i => i.fieldname === "latitude") &&
-				frm.doc.fields.find(i => i.fieldname === "longitude")) ||
-				(frm.doc.fields.find(i => i.fieldname === 'location' &&
-				i.fieldtype == 'Geolocation'))) {
+			if (
+				(frm.doc.fields.find((i) => i.fieldname === "latitude") &&
+					frm.doc.fields.find((i) => i.fieldname === "longitude")) ||
+				frm.doc.fields.find(
+					(i) => i.fieldname === "location" && i.fieldtype == "Geolocation"
+				)
+			) {
 				default_views.push("Map");
 			}
 
