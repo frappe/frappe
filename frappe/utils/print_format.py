@@ -5,7 +5,10 @@ from PyPDF2 import PdfWriter
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.query_report import build_xlsx_data
 from frappe.utils.pdf import get_pdf
+from frappe.utils.csvutils import to_csv
+from frappe.utils.xlsxutils import make_xlsx
 
 no_cache = 1
 
@@ -170,3 +173,77 @@ def print_by_server(
 			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
+
+
+def get_report_content(filters, report, format="PDF"):
+	"""Returns file in for the report in given format"""
+	report = frappe.get_doc("Report", report)
+	filters = frappe.parse_json(filters) if filters else {}
+
+	columns, data = report.get_data(
+		limit=100,
+		user=frappe.session.user,
+		filters=filters,
+		as_dict=True,
+		ignore_prepared_report=True,
+	)
+
+	# add serial numbers
+	columns.insert(0, frappe._dict(fieldname="idx", label="", width="30px"))
+	for i in range(len(data)):
+		data[i]["idx"] = i + 1
+
+	if len(data) == 0:
+		frappe.throw(_("No data found."))
+
+	if format == "PDF":
+		columns = update_field_types(columns)
+		html = get_html_table(report, columns, data)
+		return get_pdf(html)
+
+	elif format == "XLSX":
+		report_data = frappe._dict()
+		report_data["columns"] = columns
+		report_data["result"] = data
+
+		xlsx_data, column_widths = build_xlsx_data(columns, report_data, [], 1, ignore_visible_idx=True)
+		xlsx_file = make_xlsx(xlsx_data, "Report", column_widths=column_widths)
+		return xlsx_file.getvalue()
+
+	elif format == "CSV":
+		report_data = frappe._dict()
+		report_data["columns"] = columns
+		report_data["result"] = data
+
+		xlsx_data, column_widths = build_xlsx_data(columns, report_data, [], 1, ignore_visible_idx=True)
+		return to_csv(xlsx_data)
+
+	else:
+		frappe.throw(_("Invalid Output Format"))
+
+
+def update_field_types(columns):
+	for col in columns:
+		if col.fieldtype in ("Link", "Dynamic Link", "Currency") and col.options != "Currency":
+			col.fieldtype = "Data"
+			col.options = ""
+	return columns
+
+
+def get_html_table(report, columns=None, data=None):
+	return frappe.render_template(
+		"templates/includes/report_to_pdf.html",
+		{
+			"title": report,
+			"date_time": frappe.utils.now(),
+			"columns": columns,
+			"data": data
+		}
+	)
+
+
+@frappe.whitelist()
+def download_report_pdf(filters, report, format="PDF"):
+	frappe.local.response.filecontent = get_report_content(filters, report, format)
+	frappe.local.response.type = "download"
+	frappe.local.response.filename = f"{report}-{frappe.generate_hash()}.{format.lower()}"
