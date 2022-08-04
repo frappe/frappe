@@ -12,21 +12,21 @@ export default {
 			fieldname: "title",
 			fieldtype: "Data",
 			label: "Title",
-			unique: 1
+			unique: 1,
 		},
 		{
 			fieldname: "child_table",
 			fieldtype: "Table",
 			label: "Child Table",
 			options: "Child Table Doctype",
-			reqd: 1
+			reqd: 1,
 		},
 		{
 			fieldname: "child_table_1",
 			fieldtype: "Table",
 			label: "Child Table 1",
-			options: "Child Table Doctype 1"
-		}
+			options: "Child Table Doctype 1",
+		},
 	],
 	links: [],
 	modified: "2022-02-10 12:03:12.603763",
@@ -41,12 +41,12 @@ export default {
 			email: 1,
 			print: 1,
 			read: 1,
-			role: 'System Manager',
+			role: "System Manager",
 			share: 1,
-			write: 1
-		}
+			write: 1,
+		},
 	],
-	sort_field: 'modified',
-	sort_order: 'ASC',
-	track_changes: 1
+	sort_field: "modified",
+	sort_order: "ASC",
+	track_changes: 1,
 };

@@ -1,4 +1,4 @@
-frappe.listview_settings['User Type'] = {
+frappe.listview_settings["User Type"] = {
 	add_fields: ["is_standard"],
 	get_indicator: function (doc) {
 		if (doc.is_standard) {
@@ -6,5 +6,5 @@ frappe.listview_settings['User Type'] = {
 		} else {
 			return [__("Custom"), "blue", "is_standard,=,0"];
 		}
-	}
+	},
 };

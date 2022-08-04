@@ -1,5 +1,5 @@
-import Vue from 'vue/dist/vue.js';
-import VueRouter from 'vue-router/dist/vue-router.js';
+import Vue from "vue/dist/vue.js";
+import VueRouter from "vue-router/dist/vue-router.js";
 
 import RecorderRoot from "./RecorderRoot.vue";
 
@@ -13,24 +13,24 @@ Vue.use(VueRouter);
 const routes = [
 	{
 		name: "recorder-detail",
-		path: '/detail',
+		path: "/detail",
 		component: RecorderDetail,
 	},
 	{
 		name: "request-detail",
-		path: '/request/:id',
+		path: "/request/:id",
 		component: RequestDetail,
 	},
 	{
-		path: '/',
+		path: "/",
 		redirect: {
-			name: "recorder-detail"
-		}
-	}
+			name: "recorder-detail",
+		},
+	},
 ];
 
 const router = new VueRouter({
-	mode: 'history',
+	mode: "history",
 	base: "/app/recorder/",
 	routes: routes,
 });
@@ -39,10 +39,10 @@ frappe.recorder.view = new Vue({
 	el: ".recorder-container",
 	router: router,
 	data: {
-		page: frappe.pages["recorder"].page
+		page: frappe.pages["recorder"].page,
 	},
 	template: "<recorder-root/>",
 	components: {
 		RecorderRoot,
-	}
+	},
 });
