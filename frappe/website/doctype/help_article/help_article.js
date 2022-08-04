@@ -1,8 +1,8 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Help Article', {
-	refresh: function(frm) {
+frappe.ui.form.on("Help Article", {
+	refresh: function (frm) {
 		frm.dashboard.clear_headline();
 
 		frm.dashboard.set_headline_alert(`
@@ -19,5 +19,5 @@ frappe.ui.form.on('Help Article', {
 				</div>
 			</div>
 		`);
-	}
+	},
 });

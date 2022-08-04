@@ -510,6 +510,16 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_create_file_without_file_url(self):
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "logo",
+				"content": "frappe",
+			}
+		).insert()
+		assert test_file is not None
+
 
 class TestAttachment(unittest.TestCase):
 	test_doctype = "Test For Attachment"
