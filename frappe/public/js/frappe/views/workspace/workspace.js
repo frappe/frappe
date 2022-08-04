@@ -222,7 +222,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		let page = this.get_page_to_show();
-		this.page.set_title(`${__(page.name)}`);
+		this.page.set_title(__(page.name));
 
 		this.update_selected_sidebar(this.current_page, false); //remove selected from old page
 		this.update_selected_sidebar(page, true); //add selected on new page
@@ -476,7 +476,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.utils.icon("duplicate", "sm"),
 				() => this.duplicate_page(item),
 				"duplicate-page",
-				`${__("Duplicate Workspace")}`,
+				__("Duplicate Workspace"),
 				null,
 				sidebar_control
 			);
@@ -485,7 +485,7 @@ frappe.views.Workspace = class Workspace {
 				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__("Drag")}`,
+				__("Drag"),
 				null,
 				sidebar_control
 			);

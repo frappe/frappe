@@ -30,7 +30,7 @@ export default class Widget {
 				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__("Drag")}`,
+				__("Drag"),
 				null,
 				this.action_area
 			);
@@ -43,7 +43,7 @@ export default class Widget {
 				this.footer.css("opacity", 0.5);
 			}
 			const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
-			const title = this.hidden ? `${__("Show")}` : `${__("Hide")}`;
+			const title = this.hidden ? __("Show") : __("Hide");
 			frappe.utils.add_custom_button(
 				`<i class="${classname}" aria-hidden="true"></i>`,
 				() => this.hide_or_show(),
@@ -61,7 +61,7 @@ export default class Widget {
 				frappe.utils.icon("edit", "xs"),
 				() => this.edit(),
 				"edit-button",
-				`${__("Edit")}`,
+				__("Edit"),
 				null,
 				this.action_area
 			);
@@ -158,7 +158,7 @@ export default class Widget {
 			this.refresh();
 		}
 
-		const title = this.width == "Full" ? `${__("Collapse")}` : `${__("Expand")}`;
+		const title = this.width == "Full" ? __("Collapse") : __("Expand");
 		this.resize_button.attr("title", title);
 	}
 
@@ -177,7 +177,7 @@ export default class Widget {
 		this.show_or_hide_button.empty();
 
 		const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
-		const title = this.hidden ? `${__("Show")}` : `${__("Hide")}`;
+		const title = this.hidden ? __("Show") : __("Hide");
 
 		$(`<i class="${classname}" aria-hidden="true" title="${title}"></i>`).appendTo(
 			this.show_or_hide_button

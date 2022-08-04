@@ -43,7 +43,7 @@ export default class Header extends Block {
 				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__("Drag")}`,
+				__("Drag"),
 				null,
 				$widget_control
 			);
