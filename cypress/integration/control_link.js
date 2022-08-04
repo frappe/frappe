@@ -386,4 +386,15 @@ context('Control Link', () => {
 			expect(label).to.eq('translatedtest@erpnext.com');
 		});
 	});
+
+	it('show focus field', () => {
+		cy.call('frappe.tests.ui_test_helpers.create_doctype_for_focus_field').then(() => {
+			cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
+
+			cy.new_form("Test Link Control");
+			cy.get('.frappe-control[data-fieldname=user] input').focus().as('input');
+			cy.wait('@search_link');
+			cy.get('.frappe-control[data-fieldname=user] ul').should('be.visible').contains("Jane Doe");
+		});
+	});
 });

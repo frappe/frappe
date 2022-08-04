@@ -91,20 +91,24 @@ def create_contact_phone_nos_records():
 
 
 @frappe.whitelist()
-def create_doctype(name, fields):
+def create_doctype(name, fields, args):
 	fields = frappe.parse_json(fields)
 	if frappe.db.exists("DocType", name):
 		return
-	frappe.get_doc(
-		{
-			"doctype": "DocType",
-			"module": "Core",
-			"custom": 1,
-			"fields": fields,
-			"permissions": [{"role": "System Manager", "read": 1}],
-			"name": name,
-		}
-	).insert()
+
+	doc = {
+		"doctype": "DocType",
+		"module": "Core",
+		"custom": 1,
+		"fields": fields,
+		"permissions": [{"role": "System Manager", "read": 1}],
+		"name": name,
+	}
+
+	if args:
+		doc.update(args)
+
+	frappe.get_doc(doc).insert()
 
 
 @frappe.whitelist()
@@ -333,3 +337,54 @@ def insert_doctype_with_child_table_record(name):
 	insert_child(doc, "Drag", "08189DIHAA2981", 0, 0.7, 342628, "2022-05-04")
 
 	doc.insert()
+
+
+@frappe.whitelist()
+def create_doctype_for_focus_field():
+	if not frappe.db.exists("DocType", "Test Link Control"):
+		create_doctype(
+			"Test Link Control",
+			[
+				{
+					"label": "User",
+					"fieldname": "user",
+					"fieldtype": "Link",
+					"options": "User",
+					"in_list_view": 1,
+				},
+			],
+			{"focus_field": "user"},
+		)
+
+	if not frappe.db.exists("User", {"email": "jane@doe.com"}):
+		frappe.get_doc(
+			{
+				"name": "jane@doe.com",
+				"docstatus": 0,
+				"idx": 0,
+				"enabled": 1,
+				"email": "jane@doe.com",
+				"first_name": "Jane",
+				"last_name": "Doe",
+				"full_name": "Jane Doe",
+				"username": "jane",
+				"language": "de",
+				"time_zone": "Europe/Berlin",
+				"send_welcome_email": 0,
+				"user_type": "System User",
+				"doctype": "User",
+			}
+		).insert()
+
+	if not frappe.db.exists("Property Setter", {"property": "focus_field", "doc_type": "User"}):
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"doctype_or_field": "DocType",
+				"doc_type": "User",
+				"property": "focus_field",
+				"property_type": "Data",
+				"value": "language",
+				"doctype": "Property Setter",
+			}
+		).insert()
