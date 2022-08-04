@@ -784,7 +784,7 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	return messages
 
 
-def extract_javascript(code, keywords=("__"), options=None):
+def extract_javascript(code, keywords=("__",), options=None):
 	"""Extract messages from JavaScript source code.
 
 	This is a modified version of babel's JS parser. Reused under BSD license.
