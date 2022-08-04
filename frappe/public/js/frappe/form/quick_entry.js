@@ -281,7 +281,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	render_edit_in_full_page_link() {
 		var me = this;
-		this.dialog.add_custom_action(`${__("Edit Full Form")}`, () => me.open_doc(true));
+		this.dialog.add_custom_action(__("Edit Full Form"), () => me.open_doc(true));
 	}
 
 	set_defaults() {

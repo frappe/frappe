@@ -133,7 +133,7 @@ export default class Paragraph extends Block {
 				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__("Drag")}`,
+				__("Drag"),
 				null,
 				$para_control
 			);
