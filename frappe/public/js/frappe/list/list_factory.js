@@ -15,8 +15,9 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			let meta = frappe.get_meta(doctype);
 
 			let view_name = frappe.utils.to_title_case(
-				meta.force_re_route_to_default_view ?
-					meta.default_view : route[2] || meta.default_view || "List"
+				meta.force_re_route_to_default_view
+					? meta.default_view
+					: route[2] || meta.default_view || "List"
 			);
 
 			if (doctype !== "File" && view_name !== route[2]) {
@@ -31,10 +32,10 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 				return;
 			}
 
-			frappe.provide('frappe.views.list_view.' + doctype);
+			frappe.provide(`frappe.views.list_view.${doctype}`);
 			frappe.views.list_view[me.page_name] = new view_class({
 				doctype: doctype,
-				parent: me.make_page(true, me.page_name)
+				parent: me.make_page(true, me.page_name),
 			});
 
 			me.set_cur_list();
