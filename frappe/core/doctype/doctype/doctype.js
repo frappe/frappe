@@ -96,7 +96,7 @@ frappe.ui.form.on("DocType", {
 
 	setup_default_views: (frm) => {
 		frappe.model.set_default_views_for_doctype(frm.doc.name, frm);
-	}
+	},
 });
 
 frappe.ui.form.on("DocField", {
