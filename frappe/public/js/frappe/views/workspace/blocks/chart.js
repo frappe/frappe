@@ -2,8 +2,8 @@ import Block from "./block.js";
 export default class Chart extends Block {
 	static get toolbox() {
 		return {
-			title: 'Chart',
-			icon: frappe.utils.icon('chart', 'sm')
+			title: "Chart",
+			icon: frappe.utils.icon("chart", "sm"),
 		};
 	}
 
@@ -23,21 +23,21 @@ export default class Chart extends Block {
 			allow_edit: true,
 			allow_resize: true,
 			min_width: 6,
-			max_widget_count: 2
+			max_widget_count: 2,
 		};
 	}
 
 	render() {
-		this.wrapper = document.createElement('div');
-		this.new('chart');
+		this.wrapper = document.createElement("div");
+		this.new("chart");
 
 		if (this.data && this.data.chart_name) {
-			let has_data = this.make('chart', this.data.chart_name);
+			let has_data = this.make("chart", this.data.chart_name);
 			if (!has_data) return;
 		}
 
 		if (!this.readOnly) {
-			$(this.wrapper).find('.widget').addClass('chart edit-mode');
+			$(this.wrapper).find(".widget").addClass("chart edit-mode");
 			this.add_settings_button();
 			this.add_new_block_button();
 		}
@@ -55,9 +55,9 @@ export default class Chart extends Block {
 
 	save() {
 		return {
-			chart_name: this.wrapper.getAttribute('chart_name'),
+			chart_name: this.wrapper.getAttribute("chart_name"),
 			col: this.get_col(),
-			new: this.new_block_widget
+			new: this.new_block_widget,
 		};
 	}
 }

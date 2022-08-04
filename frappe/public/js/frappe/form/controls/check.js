@@ -1,6 +1,6 @@
 frappe.ui.form.ControlCheck = class ControlCheck extends frappe.ui.form.ControlData {
-	static html_element = "input"
-	static input_type = "checkbox"
+	static html_element = "input";
+	static input_type = "checkbox";
 	make_wrapper() {
 		this.$wrapper = $(`<div class="form-group frappe-control">
 			<div class="checkbox">
@@ -32,8 +32,8 @@ frappe.ui.form.ControlCheck = class ControlCheck extends frappe.ui.form.ControlD
 	}
 	set_input(value) {
 		value = cint(value);
-		if(this.input) {
-			this.input.checked = (value ? 1 : 0);
+		if (this.input) {
+			this.input.checked = value ? 1 : 0;
 		}
 		this.last_value = value;
 		this.set_mandatory(value);

@@ -1,12 +1,12 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-import './datatype';
+import "./datatype";
 
 if (!window.frappe) window.frappe = {};
 
 function flt(v, decimals, number_format) {
-	if (v == null || v == '') return 0;
+	if (v == null || v == "") return 0;
 
 	if (!(typeof v === "number" || String(parseFloat(v)) == v)) {
 		// cases in which this block should not run
@@ -26,13 +26,11 @@ function flt(v, decimals, number_format) {
 		v = strip_number_groups(v, number_format);
 
 		v = parseFloat(v);
-		if (isNaN(v))
-			v = 0;
+		if (isNaN(v)) v = 0;
 	}
 
 	v = parseFloat(v);
-	if (decimals != null)
-		return _round(v, decimals);
+	if (decimals != null) return _round(v, decimals);
 	return v;
 }
 
@@ -53,7 +51,6 @@ function strip_number_groups(v, number_format) {
 	return v;
 }
 
-
 frappe.number_format_info = {
 	"#,###.##": { decimal_str: ".", group_sep: "," },
 	"#.###,##": { decimal_str: ",", group_sep: "." },
@@ -65,7 +62,7 @@ frappe.number_format_info = {
 	"#,###.###": { decimal_str: ".", group_sep: "," },
 	"#.###": { decimal_str: "", group_sep: "." },
 	"#,###": { decimal_str: "", group_sep: "," },
-}
+};
 
 window.format_number = function (v, format, decimals) {
 	if (!format) {
@@ -86,18 +83,19 @@ window.format_number = function (v, format, decimals) {
 
 	v = v.toFixed(decimals);
 
-	var part = v.split('.');
+	var part = v.split(".");
 
 	// get group position and parts
 	var group_position = info.group_sep ? 3 : 0;
 
 	if (group_position) {
 		var integer = part[0];
-		var str = '';
+		var str = "";
 		var offset = integer.length % group_position;
 		for (var i = integer.length; i >= 0; i--) {
 			var l = replace_all(str, info.group_sep, "").length;
-			if (format == "#,##,###.##" && str.indexOf(",") != -1) { // INR
+			if (format == "#,##,###.##" && str.indexOf(",") != -1) {
+				// INR
 				group_position = 2;
 				l += 1;
 			}
@@ -115,7 +113,7 @@ window.format_number = function (v, format, decimals) {
 	}
 
 	// join decimal
-	part[1] = (part[1] && info.decimal_str) ? (info.decimal_str + part[1]) : "";
+	part[1] = part[1] && info.decimal_str ? info.decimal_str + part[1] : "";
 
 	// join
 	return (is_negative ? "-" : "") + part[0] + part[1];
@@ -124,7 +122,8 @@ window.format_number = function (v, format, decimals) {
 function format_currency(v, currency, decimals) {
 	const format = get_number_format(currency);
 	const symbol = get_currency_symbol(currency);
-	const show_symbol_on_right = frappe.model.get_value(":Currency", currency, "symbol_on_right") ?? false;
+	const show_symbol_on_right =
+		frappe.model.get_value(":Currency", currency, "symbol_on_right") ?? false;
 
 	if (decimals === undefined) {
 		decimals = frappe.boot.sysdefaults.currency_precision || null;
@@ -145,8 +144,7 @@ function get_currency_symbol(currency) {
 		if (frappe.boot.sysdefaults && frappe.boot.sysdefaults.hide_currency_symbol == "Yes")
 			return null;
 
-		if (!currency)
-			currency = frappe.boot.sysdefaults.currency;
+		if (!currency) currency = frappe.boot.sysdefaults.currency;
 
 		return frappe.model.get_value(":Currency", currency, "symbol") || currency;
 	} else {
@@ -156,7 +154,10 @@ function get_currency_symbol(currency) {
 }
 
 function get_number_format(currency) {
-	return (frappe.boot && frappe.boot.sysdefaults && frappe.boot.sysdefaults.number_format) || "#,###.##";
+	return (
+		(frappe.boot && frappe.boot.sysdefaults && frappe.boot.sysdefaults.number_format) ||
+		"#,###.##"
+	);
 }
 
 function get_number_format_info(format) {
@@ -177,11 +178,11 @@ function _round(num, precision) {
 	var d = cint(precision);
 	var m = Math.pow(10, d);
 	var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8); // Avoid rounding errors
-	var i = Math.floor(n), f = n - i;
-	var r = ((!precision && f == 0.5) ? ((i % 2 == 0) ? i : i + 1) : Math.round(n));
+	var i = Math.floor(n),
+		f = n - i;
+	var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
 	r = d ? r / m : r;
 	return is_negative ? -r : r;
-
 }
 
 function roundNumber(num, precision) {
@@ -196,7 +197,7 @@ function precision(fieldname, doc) {
 		if (!df) console.log(fieldname + ": could not find docfield in method precision()");
 		return frappe.meta.get_field_precision(df, doc);
 	} else {
-		return frappe.boot.sysdefaults.float_precision
+		return frappe.boot.sysdefaults.float_precision;
 	}
 }
 
@@ -217,13 +218,14 @@ function remainder(numerator, denominator, precision) {
 }
 
 function round_based_on_smallest_currency_fraction(value, currency, precision) {
-	var smallest_currency_fraction_value = flt(frappe.model.get_value(":Currency",
-		currency, "smallest_currency_fraction_value"))
+	var smallest_currency_fraction_value = flt(
+		frappe.model.get_value(":Currency", currency, "smallest_currency_fraction_value")
+	);
 
 	if (smallest_currency_fraction_value) {
 		var remainder_val = remainder(value, smallest_currency_fraction_value, precision);
-		if (remainder_val > (smallest_currency_fraction_value / 2)) {
-			value += (smallest_currency_fraction_value - remainder_val);
+		if (remainder_val > smallest_currency_fraction_value / 2) {
+			value += smallest_currency_fraction_value - remainder_val;
 		} else {
 			value -= remainder_val;
 		}
@@ -233,12 +235,11 @@ function round_based_on_smallest_currency_fraction(value, currency, precision) {
 	return value;
 }
 
-function fmt_money(v, format){
+function fmt_money(v, format) {
 	// deprecated!
 	// for backward compatibility
 	return format_currency(v, format);
 }
-
 
 Object.assign(window, {
 	flt,
@@ -254,5 +255,5 @@ Object.assign(window, {
 	precision,
 	remainder,
 	round_based_on_smallest_currency_fraction,
-	in_list
+	in_list,
 });

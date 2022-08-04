@@ -21,63 +21,66 @@ export default class WebFormList {
 			() => this.get_data(),
 			() => this.remove_more(),
 			() => this.make_table(),
-			() => this.create_more()
+			() => this.create_more(),
 		]);
 	}
 
 	remove_more() {
-		$('.more').remove();
+		$(".more").remove();
 	}
 
 	make_filters() {
 		this.filters = {};
 		this.filter_input = [];
-		let filter_area = $('.web-list-filters');
+		let filter_area = $(".web-list-filters");
 
-		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
-			web_form_name: this.web_form_name
-		}).then(response => {
-			let fields = response.message;
-			fields.length && filter_area.removeClass('hide');
-			fields.forEach(field => {
-				if (["Text Editor", "Text", "Small Text"].includes(field.fieldtype)) {
-					field.fieldtype = "Data";
-				}
+		frappe
+			.call("frappe.website.doctype.web_form.web_form.get_web_form_filters", {
+				web_form_name: this.web_form_name,
+			})
+			.then((response) => {
+				let fields = response.message;
+				fields.length && filter_area.removeClass("hide");
+				fields.forEach((field) => {
+					if (["Text Editor", "Text", "Small Text"].includes(field.fieldtype)) {
+						field.fieldtype = "Data";
+					}
 
-				if (["Table", "Signature"].includes(field.fieldtype)) {
-					return;
-				}
+					if (["Table", "Signature"].includes(field.fieldtype)) {
+						return;
+					}
 
-				let input = frappe.ui.form.make_control({
-					df: {
-						fieldtype: field.fieldtype,
-						fieldname: field.fieldname,
-						options: field.options,
-						input_class: 'input-xs',
-						only_select: true,
-						label: __(field.label),
-						onchange: (event) => {
-							this.add_filter(field.fieldname, input.value, field.fieldtype);
-							this.refresh();
-						}
-					},
-					parent: filter_area,
-					render_input: 1,
-					only_input: field.fieldtype == "Check" ? false : true,
-				});
-
-				$(input.wrapper)
-					.addClass('col-md-2')
-					.attr("title", __(field.label)).tooltip({
-						delay: { "show": 600, "hide": 100},
-						trigger: "hover"
+					let input = frappe.ui.form.make_control({
+						df: {
+							fieldtype: field.fieldtype,
+							fieldname: field.fieldname,
+							options: field.options,
+							input_class: "input-xs",
+							only_select: true,
+							label: __(field.label),
+							onchange: (event) => {
+								this.add_filter(field.fieldname, input.value, field.fieldtype);
+								this.refresh();
+							},
+						},
+						parent: filter_area,
+						render_input: 1,
+						only_input: field.fieldtype == "Check" ? false : true,
 					});
 
-				input.$input.attr("placeholder", __(field.label));
-				this.filter_input.push(input);
+					$(input.wrapper)
+						.addClass("col-md-2")
+						.attr("title", __(field.label))
+						.tooltip({
+							delay: { show: 600, hide: 100 },
+							trigger: "hover",
+						});
+
+					input.$input.attr("placeholder", __(field.label));
+					this.filter_input.push(input);
+				});
+				this.refresh();
 			});
-			this.refresh();
-		});
 	}
 
 	add_filter(field, value, fieldtype) {
@@ -85,7 +88,7 @@ export default class WebFormList {
 			delete this.filters[field];
 		} else {
 			if (["Data", "Currency", "Float", "Int"].includes(fieldtype)) {
-				value = ['like', '%' + value + '%'];
+				value = ["like", "%" + value + "%"];
 			}
 			Object.assign(this.filters, Object.fromEntries([[field, value]]));
 		}
@@ -95,11 +98,11 @@ export default class WebFormList {
 		if (this.columns) return this.columns;
 
 		if (this.list_columns) {
-			this.columns = this.list_columns.map(df => {
+			this.columns = this.list_columns.map((df) => {
 				return {
 					label: df.label,
 					fieldname: df.fieldname,
-					fieldtype: df.fieldtype
+					fieldtype: df.fieldtype,
 				};
 			});
 		}
@@ -113,8 +116,8 @@ export default class WebFormList {
 				limit_start: this.web_list_start,
 				limit: this.page_length,
 				web_form_name: this.web_form_name,
-				...this.filters
-			}
+				...this.filters,
+			},
 		};
 
 		if (this.no_change(args)) {
@@ -153,7 +156,6 @@ export default class WebFormList {
 			}
 			this.append_rows(res.message);
 		});
-
 	}
 
 	make_table() {
@@ -175,12 +177,12 @@ export default class WebFormList {
 			</thead>
 		`);
 
-		this.check_all = $thead.find('input.select-all');
-		this.check_all.on("click", event => {
+		this.check_all = $thead.find("input.select-all");
+		this.check_all.on("click", (event) => {
 			this.toggle_select_all(event.target.checked);
 		});
 
-		this.columns.forEach(col => {
+		this.columns.forEach((col) => {
 			let $tr = $thead.find("tr");
 			let $th = $(`<th>${__(col.label)}</th>`);
 			$th.appendTo($tr);
@@ -194,7 +196,7 @@ export default class WebFormList {
 			this.wrapper.empty();
 
 			if (this.table) {
-				this.table.find('tbody').remove();
+				this.table.find("tbody").remove();
 
 				if (this.check_all.length) {
 					this.check_all.prop("checked", false);
@@ -204,7 +206,7 @@ export default class WebFormList {
 			this.append_rows(this.data);
 			this.table.appendTo(this.wrapper);
 		} else {
-			if (this.wrapper.find('.no-result').length) return;
+			if (this.wrapper.find(".no-result").length) return;
 
 			this.wrapper.empty();
 			frappe.has_permission(this.doctype, "", "create", () => {
@@ -217,7 +219,7 @@ export default class WebFormList {
 		let new_button = `
 			<a
 				class="btn btn-primary btn-sm btn-new-doc hidden-xs"
-				href="${location.pathname.replace('/list', '')}/new">
+				href="${location.pathname.replace("/list", "")}/new">
 				${__("Create a new {0}", [__(this.doctype)])}
 			</a>
 		`;
@@ -241,7 +243,7 @@ export default class WebFormList {
 	}
 
 	append_rows(row_data) {
-		let $tbody = this.table.find('tbody');
+		let $tbody = this.table.find("tbody");
 
 		if (!$tbody.length) {
 			$tbody = $(`<tbody></tbody>`);
@@ -261,8 +263,8 @@ export default class WebFormList {
 					on_select: () => {
 						this.toggle_new();
 						this.toggle_delete();
-					}
-				}
+					},
+				},
 			});
 
 			this.rows.push(row);
@@ -274,7 +276,9 @@ export default class WebFormList {
 		const actions = $(".web-list-actions");
 
 		frappe.has_permission(this.doctype, "", "delete", () => {
-			this.add_button(actions, "delete-rows", "danger", true, "Delete", () => this.delete_rows());
+			this.add_button(actions, "delete-rows", "danger", true, "Delete", () =>
+				this.delete_rows()
+			);
 		});
 	}
 
@@ -300,45 +304,44 @@ export default class WebFormList {
 	}
 
 	toggle_select_all(checked) {
-		this.rows.forEach(row => row.toggle_select(checked));
+		this.rows.forEach((row) => row.toggle_select(checked));
 	}
 
 	open_form(name) {
 		let path = window.location.pathname;
-		if (path.includes('/list')) {
-			path = path.replace('/list', '');
+		if (path.includes("/list")) {
+			path = path.replace("/list", "");
 		}
 
 		window.location.href = path + "/" + name;
 	}
 
 	get_selected() {
-		return this.rows.filter(row => row.is_selected());
+		return this.rows.filter((row) => row.is_selected());
 	}
 
 	toggle_delete() {
 		if (!this.settings.allow_delete) return;
 		let btn = $(".delete-rows");
-		!this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
+		!this.get_selected().length ? btn.addClass("hide") : btn.removeClass("hide");
 	}
 
 	toggle_new() {
 		if (!this.settings.allow_delete) return;
 		let btn = $(".button-new");
-		this.get_selected().length ? btn.addClass('hide') : btn.removeClass('hide');
+		this.get_selected().length ? btn.addClass("hide") : btn.removeClass("hide");
 	}
 
 	delete_rows() {
-		if (!this.settings.allow_delete) return
+		if (!this.settings.allow_delete) return;
 		frappe
 			.call({
 				type: "POST",
-				method:
-					"frappe.website.doctype.web_form.web_form.delete_multiple",
+				method: "frappe.website.doctype.web_form.web_form.delete_multiple",
 				args: {
 					web_form_name: this.web_form_name,
-					docnames: this.get_selected().map(row => row.doc.name)
-				}
+					docnames: this.get_selected().map((row) => row.doc.name),
+				},
 			})
 			.then(() => {
 				this.refresh();
@@ -346,7 +349,7 @@ export default class WebFormList {
 				this.toggle_new();
 			});
 	}
-};
+}
 
 frappe.ui.WebFormListRow = class WebFormListRow {
 	constructor({ row, doc, columns, serial_number, events, options }) {
@@ -359,7 +362,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 		let $cell = $(`<td class="list-col-checkbox"></td>`);
 
 		this.checkbox = $(`<input type="checkbox">`);
-		this.checkbox.on("click", event => {
+		this.checkbox.on("click", (event) => {
 			this.toggle_select(event.target.checked);
 			event.stopImmediatePropagation();
 		});
@@ -370,10 +373,14 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 		let serialNo = $(`<td class="list-col-serial">${__(this.serial_number)}</td>`);
 		serialNo.appendTo(this.row);
 
-		this.columns.forEach(field => {
+		this.columns.forEach((field) => {
 			let formatter = frappe.form.get_formatter(field.fieldtype);
-			let value = this.doc[field.fieldname] &&
-				__(formatter(this.doc[field.fieldname], field, {only_value: 1}, this.doc)) || "";
+			let value =
+				(this.doc[field.fieldname] &&
+					__(
+						formatter(this.doc[field.fieldname], field, { only_value: 1 }, this.doc)
+					)) ||
+				"";
 			let cell = $(`<td>${value}</td>`);
 			cell.appendTo(this.row);
 		});

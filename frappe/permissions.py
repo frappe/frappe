@@ -28,6 +28,14 @@ rights = (
 
 
 def check_admin_or_system_manager(user=None):
+	from frappe.utils.commands import warn
+
+	warn(
+		"The function check_admin_or_system_manager will be deprecated in version 15."
+		'Please use frappe.only_for("System Manager") instead.',
+		category=PendingDeprecationWarning,
+	)
+
 	if not user:
 		user = frappe.session.user
 

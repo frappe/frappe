@@ -818,23 +818,30 @@ def write_only():
 	return innfn
 
 
-def only_for(roles: list[str] | str, message=False):
-	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
+def only_for(roles: list[str] | tuple[str] | str, message=False):
+	"""
+	Raises `frappe.PermissionError` if the user does not have any of the permitted roles.
 
-	:param roles: List of roles to check."""
-	if local.flags.in_test:
+	:param roles: Permitted role(s)
+	"""
+
+	if local.flags.in_test or local.session.user == "Administrator":
 		return
 
-	if not isinstance(roles, (tuple, list)):
+	if isinstance(roles, str):
 		roles = (roles,)
-	roles = set(roles)
-	myroles = set(get_roles())
-	if not roles.intersection(myroles):
-		if message:
-			msgprint(
-				_("This action is only allowed for {}").format(bold(", ".join(roles))), _("Not Permitted")
-			)
-		raise PermissionError
+
+	if not set(roles).intersection(get_roles()):
+		if not message:
+			raise PermissionError
+
+		throw(
+			_("This action is only allowed for {}").format(
+				", ".join(bold(_(role)) for role in roles),
+			),
+			PermissionError,
+			_("Not Permitted"),
+		)
 
 
 def get_domain_data(module):
