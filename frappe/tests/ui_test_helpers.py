@@ -91,7 +91,7 @@ def create_contact_phone_nos_records():
 
 
 @frappe.whitelist()
-def create_doctype(name, fields, args):
+def create_doctype(name, fields, args=None):
 	fields = frappe.parse_json(fields)
 	if frappe.db.exists("DocType", name):
 		return
