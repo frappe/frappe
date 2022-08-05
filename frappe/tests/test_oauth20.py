@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import unittest
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urljoin, urlparse
 
 import jwt
