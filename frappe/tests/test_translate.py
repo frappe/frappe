@@ -9,6 +9,11 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
+<<<<<<< HEAD
+=======
+from frappe.core.doctype.translation.test_translation import clear_translation_cache
+from frappe.tests.utils import FrappeTestCase
+>>>>>>> 2866721a78 (test: clear `lang_full_dict` from local cache)
 from frappe.translate import (
 	extract_javascript,
 	extract_messages_from_javascript_code,
@@ -37,13 +42,15 @@ class TestTranslate(unittest.TestCase):
 	def setUp(self):
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Guest")
-		frappe.local.lang_full_dict = None  # reset cached translations
+
+		clear_translation_cache()
 
 	def tearDown(self):
 		frappe.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
-		frappe.local.lang_full_dict = None  # reset cached translations
+
+		clear_translation_cache()
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
