@@ -316,6 +316,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		resp = self.get(
 			"/api/method/frappe.integrations.oauth2.authorize",
 			{
+				"sid": self.sid,
 				"client_id": self.client_id,
 				"scope": self.scope,
 				"response_type": "code",
@@ -335,6 +336,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			headers=self.form_header,
 			data=encode_params(
 				{
+					"sid": self.sid,
 					"grant_type": "authorization_code",
 					"code": auth_code,
 					"redirect_uri": self.redirect_uri,
