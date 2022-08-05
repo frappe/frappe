@@ -19,8 +19,6 @@ if TYPE_CHECKING:
 
 
 class FrappeRequestTestCase(unittest.TestCase):
-	TEST_CLIENT = get_test_client()
-
 	@property
 	def sid(self) -> str:
 		if not getattr(self, "_sid", None):
@@ -74,6 +72,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		frappe.db.commit()
 
 	def setUp(self):
+		self.TEST_CLIENT = get_test_client()
 		self.oauth_client = frappe.new_doc("OAuth Client")
 		self.oauth_client.update(
 			{
