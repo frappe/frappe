@@ -23,6 +23,5 @@ import "./frappe/model/perm.js";
 
 import "./bootstrap-4-web.bundle";
 
-
 import "../../website/js/website.js";
 import "./frappe/socketio_client.js";
