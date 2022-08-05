@@ -42,6 +42,7 @@
    "set_only_once": 0, 
    "unique": 0
   }
+<<<<<<< HEAD
  ], 
  "has_web_view": 0, 
  "hide_heading": 0, 
@@ -59,6 +60,15 @@
  "name": "Salutation", 
  "name_case": "", 
  "owner": "Administrator", 
+=======
+ ],
+ "links": [],
+ "modified": "2022-08-05 18:33:28.196387",
+ "modified_by": "Administrator",
+ "module": "Contacts",
+ "name": "Salutation",
+ "owner": "Administrator",
+>>>>>>> b01929405d (refactor: translatable doctypes)
  "permissions": [
   {
    "amend": 0, 
@@ -120,6 +130,7 @@
    "submit": 0, 
    "write": 1
   }
+<<<<<<< HEAD
  ], 
  "quick_entry": 0, 
  "read_only": 0, 
@@ -130,3 +141,12 @@
  "track_changes": 1, 
  "track_seen": 0
 }
+=======
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
+}
+>>>>>>> b01929405d (refactor: translatable doctypes)

@@ -231,7 +231,7 @@ CREATE TABLE "tabDocType" (
   "sender_field" varchar(255) DEFAULT NULL,
   "show_title_field_in_link" smallint NOT NULL DEFAULT 0,
   "migration_hash" varchar(255) DEFAULT NULL,
-  "translate_link_fields" smallint NOT NULL DEFAULT 0,
+  "translated_doctype" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
 
