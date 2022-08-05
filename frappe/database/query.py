@@ -317,6 +317,8 @@ class Engine:
 		        frappe.qb: conditions object
 		"""
 		conditions = self.get_condition(table, **kwargs)
+		if isinstance(table, str):
+			table = frappe.qb.DocType(table)
 		if not filters:
 			conditions = self.add_conditions(conditions, **kwargs)
 			return conditions
@@ -338,10 +340,10 @@ class Engine:
 			if isinstance(value, (list, tuple)):
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
 				_value = value[1] if value[1] else ("",)
-				conditions = conditions.where(_operator(Field(key), _value))
+				conditions = conditions.where(_operator(getattr(table, key), _value))
 			else:
 				if value is not None:
-					conditions = conditions.where(_operator(Field(key), value))
+					conditions = conditions.where(_operator(getattr(table, key), value))
 				else:
 					_table = conditions._from[0]
 					field = getattr(_table, key)
@@ -580,10 +582,10 @@ class Engine:
 		self.linked_doctype = None
 		self.fieldname = None
 
-		criterion = self.build_conditions(table, filters, **kwargs)
 		fields = self.set_fields(
 			table, kwargs.get("field_objects") or fields, **kwargs
 		)
+		criterion = self.build_conditions(table, filters, **kwargs)
 		if self.linked_doctype and self.fieldname:
 			for field in fields:
 				if "tab" not in str(field):
