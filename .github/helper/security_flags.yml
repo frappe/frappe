@@ -1,0 +1,12 @@
+# Collection of rules to heuristically flag when security review is required.
+
+rules:
+- id: frappe-whiteslited-method-changed
+  pattern: |
+    @frappe.whitelist(...)
+    def $FUNC(...):
+      ...
+  message: |
+    This PR adds or modifies the whitelisted method $FUNC.
+  languages: [python]
+  severity: INFO

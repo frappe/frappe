@@ -69,8 +69,19 @@ jobs:
 
       - name: Run Semgrep rules
         run: |
-          pip install semgrep==0.97.0
+          pip install semgrep
           semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+
+      - name: Security review required?
+        run: |
+          semgrep ci --config $GITHUB_WORKSPACE/.github/helper/security_flags.yml
+
+      - name: Add label if security review required
+        if: ${{ failure() }}
+        uses: andymckay/labeler@master
+        with:
+          add-labels: "requires security review"
+
 
   deps-vulnerable-check:
     name: 'Vulnerable Dependency Check'
