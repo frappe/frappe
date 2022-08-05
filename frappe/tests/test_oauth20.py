@@ -36,19 +36,27 @@ class FrappeRequestTestCase(unittest.TestCase):
 		return self._sid
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
+		return make_request(
+			target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs}, site=self.site
+		)
 
 	def post(self, path, data, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data, **kwargs})
+		return make_request(
+			target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data, **kwargs}, site=self.site
+		)
 
 	def put(self, path, data, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.put, args=(path,), kwargs={"data": data, **kwargs})
+		return make_request(
+			target=self.TEST_CLIENT.put, args=(path,), kwargs={"data": data, **kwargs}, site=self.site
+		)
 
 	def delete(self, path, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
+		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs, site=self.site)
 
 
 class TestOAuth20(FrappeRequestTestCase):
+	site = frappe.local.site
+
 	@classmethod
 	def setUpClass(cls):
 		make_test_records("User")
@@ -99,7 +107,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		update_client_for_auth_code_grant(self.client_id)
 
 		# Go to Authorize url
-		self.TEST_CLIENT.set_cookie(frappe.local.site, key="sid", value=self.sid)
+		self.TEST_CLIENT.set_cookie(self.site, key="sid", value=self.sid)
 		resp = self.get(
 			"/api/method/frappe.integrations.oauth2.authorize",
 			{
@@ -146,7 +154,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		update_client_for_auth_code_grant(self.client_id)
 
 		# Go to Authorize url
-		self.TEST_CLIENT.set_cookie(frappe.local.site, key="sid", value=self.sid)
+		self.TEST_CLIENT.set_cookie(self.site, key="sid", value=self.sid)
 		resp = self.get(
 			"/api/method/frappe.integrations.oauth2.authorize",
 			{
@@ -195,7 +203,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		frappe.db.commit()
 
 		# Go to Authorize url
-		self.TEST_CLIENT.set_cookie(frappe.local.site, key="sid", value=self.sid)
+		self.TEST_CLIENT.set_cookie(self.site, key="sid", value=self.sid)
 		resp = self.get(
 			"/api/method/frappe.integrations.oauth2.authorize",
 			{
@@ -313,7 +321,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		nonce = frappe.generate_hash()
 
 		# Go to Authorize url
-		self.TEST_CLIENT.set_cookie(frappe.local.site, key="sid", value=self.sid)
+		self.TEST_CLIENT.set_cookie(self.site, key="sid", value=self.sid)
 		resp = self.get(
 			"/api/method/frappe.integrations.oauth2.authorize",
 			{
