@@ -173,10 +173,7 @@ def get_user_pages_or_reports(parent, cache=False):
 		.from_(hasRole)
 		.from_(parentTable)
 		.select(
-			customRole[parent.lower()].as_("name"),
-			customRole.modified,
-			customRole.ref_doctype,
-			*columns
+			customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns
 		)
 		.where(
 			(hasRole.parent == customRole.name)
@@ -339,9 +336,7 @@ def get_success_action():
 def get_link_preview_doctypes():
 	from frappe.utils import cint
 
-	link_preview_doctypes = [
-		d.name for d in frappe.db.get_all("DocType", {"show_preview_popup": 1})
-	]
+	link_preview_doctypes = [d.name for d in frappe.db.get_all("DocType", {"show_preview_popup": 1})]
 	customizations = frappe.get_all(
 		"Property Setter", fields=["doc_type", "value"], filters={"property": "show_preview_popup"}
 	)
