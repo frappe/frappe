@@ -12,3 +12,4 @@ charset = utf-8
 [{*.py,*.js,*.vue,*.css,*.scss,*.html}]
 indent_style = tab
 indent_size = 4
+max_line_length = 99

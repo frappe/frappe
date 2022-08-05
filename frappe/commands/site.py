@@ -142,7 +142,7 @@ def restore(
 		is_partial,
 		validate_database_sql,
 	)
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
 
@@ -171,7 +171,7 @@ def restore(
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			encryption_key = frappe.get_site_config().encryption_key
+			encryption_key = get_or_generate_backup_encryption_key()
 			_backup.backup_decryption(encryption_key)
 
 		# Rollback on unsuccessful decryrption
@@ -268,7 +268,7 @@ def restore(
 @pass_context
 def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	from frappe.installer import extract_sql_from_archive, partial_restore
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
@@ -304,7 +304,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			key = frappe.get_site_config().encryption_key
+			key = get_or_generate_backup_encryption_key()
 
 		_backup.backup_decryption(key)
 
