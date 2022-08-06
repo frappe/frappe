@@ -340,7 +340,7 @@ def insert_doctype_with_child_table_record(name):
 
 
 @frappe.whitelist()
-def create_doctype_for_focus_field():
+def enable_focus_field():
 	if not frappe.db.exists("DocType", "Test Link Control"):
 		create_doctype(
 			"Test Link Control",
@@ -355,26 +355,6 @@ def create_doctype_for_focus_field():
 			],
 			{"focus_field": "user"},
 		)
-
-	if not frappe.db.exists("User", {"email": "jane@doe.com"}):
-		frappe.get_doc(
-			{
-				"name": "jane@doe.com",
-				"docstatus": 0,
-				"idx": 0,
-				"enabled": 1,
-				"email": "jane@doe.com",
-				"first_name": "Jane",
-				"last_name": "Doe",
-				"full_name": "Jane Doe",
-				"username": "jane",
-				"language": "de",
-				"time_zone": "Europe/Berlin",
-				"send_welcome_email": 0,
-				"user_type": "System User",
-				"doctype": "User",
-			}
-		).insert()
 
 	if not frappe.db.exists("Property Setter", {"property": "focus_field", "doc_type": "User"}):
 		frappe.get_doc(
