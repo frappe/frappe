@@ -176,12 +176,7 @@ def search_widget(
 				for f in search_fields:
 					fmeta = meta.get_field(f.strip())
 					if (doctype not in translated_doctypes) and (
-						f == "name"
-						or (
-							fmeta
-							and fmeta.fieldtype
-							in field_types
-						)
+						f == "name" or (fmeta and fmeta.fieldtype in field_types)
 					):
 						or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
 

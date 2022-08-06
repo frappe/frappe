@@ -5,8 +5,6 @@ from __future__ import print_function, unicode_literals
 
 from six import PY2, iteritems, string_types, text_type
 
-from frappe.utils import cstr
-
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
