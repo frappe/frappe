@@ -290,7 +290,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 							}
 
 							//custom link actions
-							let custom__link_options = frappe.ui.form.ControlLink.link_options && frappe.ui.form.ControlLink.link_options(me);
+							let custom__link_options =
+								frappe.ui.form.ControlLink.link_options &&
+								frappe.ui.form.ControlLink.link_options(me);
+
 							if (custom__link_options) {
 								r.results = r.results.concat(custom__link_options);
 							}
