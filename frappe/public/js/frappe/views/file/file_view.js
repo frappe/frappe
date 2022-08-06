@@ -287,7 +287,16 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	get_breadcrumbs_html() {
 		const route = frappe.router.parse();
-		const folders = route.slice(2);
+		let get_route = () => {
+			let _route = route.slice(2);
+
+			if (!_route.length || !_route[0]) {
+				_route = [__("Folders")];
+			}
+
+			return _route;
+		};
+		const folders = get_route();
 
 		return folders
 			.map((folder, i) => {
