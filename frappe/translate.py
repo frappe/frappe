@@ -99,8 +99,8 @@ def get_language(lang_list: list = None) -> str:
 		if parent_language in lang_set:
 			return parent_language
 
-	# fallback to language set in User or System Settings
-	return frappe.local.lang
+	# fallback to language set in System Settings or "en"
+	return frappe.db.get_default("lang") or "en"
 
 
 @functools.lru_cache
@@ -1270,13 +1270,13 @@ def get_translator_url():
 
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name=False):
-	"""Returns all language codes ar, ch etc"""
+	"""Returns all enabled language codes ar, ch etc"""
 
 	def get_language_codes():
-		return frappe.get_all("Language", pluck="name")
+		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
-		return frappe.db.get_all("Language", ["language_code", "language_name"])
+		return frappe.get_all("Language", fields=["language_code", "language_name"], filters={"enabled": 1})
 
 	if not frappe.db:
 		frappe.connect()
