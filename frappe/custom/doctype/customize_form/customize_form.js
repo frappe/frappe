@@ -87,8 +87,8 @@ frappe.ui.form.on("Customize Form", {
 		frm.trigger("setup_default_views");
 	},
 
-	setup_sortable: function(frm) {
-		frm.doc.fields.forEach(function(f) {
+	setup_sortable: function (frm) {
+		frm.doc.fields.forEach(function (f) {
 			if (!f.is_custom_field) {
 				f._sortable = false;
 			}
