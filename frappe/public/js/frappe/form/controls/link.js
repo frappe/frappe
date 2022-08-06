@@ -210,16 +210,22 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 
 				let _label = me.get_translated(d.label);
-				let html = d.html || `
+				let html =
+					d.html ||
+					`
 					<span>
 						<strong>
 							${_label}
 						</strong>
-						${d.focus_field ? `<span class="badge link-badge bg-primary float-right">${d.focus_field}</span>` : ``}
+						${
+							d.focus_field
+								? `<span class="badge link-badge bg-primary float-right">${d.focus_field}</span>`
+								: ``
+						}
 					<span>`;
 
-				if(d.description && d.value!==d.description) {
-					html += '<br><span class="small">' + __(d.description) + '</span>';
+				if (d.description && d.value !== d.description) {
+					html += `<br><span class="small"> ${__(d.description)} </span>`;
 				}
 				return $("<li></li>")
 					.data("item.autocomplete", d)
