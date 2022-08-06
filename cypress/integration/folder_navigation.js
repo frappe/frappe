@@ -2,7 +2,7 @@ context("Folder Navigation", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
-		cy.visit("/app/file");
+		cy.visit("/app/file/view/home");
 	});
 
 	it("Adding Folders", () => {
