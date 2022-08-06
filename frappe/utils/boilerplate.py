@@ -440,8 +440,8 @@ name: CI
 
 on:
   push:
-	branches:
-	  - develop
+    branches:
+      - develop
   pull_request:
 
 concurrency:
@@ -450,79 +450,79 @@ concurrency:
 
 jobs:
   tests:
-	runs-on: ubuntu-latest
-	strategy:
-	  fail-fast: false
-	name: Server
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    name: Server
 
-	services:
-	  mariadb:
-		image: mariadb:10.6
-		env:
-		  MYSQL_ROOT_PASSWORD: root
-		ports:
-		  - 3306:3306
-		options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
-	steps:
-	  - name: Clone
-		uses: actions/checkout@v2
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
 
-	  - name: Setup Python
-		uses: actions/setup-python@v2
-		with:
-		  python-version: '3.10'
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
 
-	  - name: Setup Node
-		uses: actions/setup-node@v2
-		with:
-		  node-version: 14
-		  check-latest: true
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          check-latest: true
 
-	  - name: Cache pip
-		uses: actions/cache@v2
-		with:
-		  path: ~/.cache/pip
-		  key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
-		  restore-keys: |
-			${{{{ runner.os }}}}-pip-
-			${{{{ runner.os }}}}-
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
+          restore-keys: |
+            ${{{{ runner.os }}}}-pip-
+            ${{{{ runner.os }}}}-
 
-	  - name: Get yarn cache directory path
-		id: yarn-cache-dir-path
-		run: 'echo "::set-output name=dir::$(yarn cache dir)"'
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: 'echo "::set-output name=dir::$(yarn cache dir)"'
 
-	  - uses: actions/cache@v2
-		id: yarn-cache
-		with:
-		  path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
-		  key: ${{{{ runner.os }}}}-yarn-${{{{ hashFiles('**/yarn.lock') }}}}
-		  restore-keys: |
-			${{{{ runner.os }}}}-yarn-
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
+          key: ${{{{ runner.os }}}}-yarn-${{{{ hashFiles('**/yarn.lock') }}}}
+          restore-keys: |
+            ${{{{ runner.os }}}}-yarn-
 
-	  - name: Setup
-		run: |
-		  pip install frappe-bench
-		  bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
-		  mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
-		  mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+      - name: Setup
+        run: |
+          pip install frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
-	  - name: Install
-		working-directory: /home/runner/frappe-bench
-		run: |
-		  bench get-app {app_name} $GITHUB_WORKSPACE
-		  bench setup requirements --dev
-		  bench new-site --db-root-password root --admin-password admin test_site
-		  bench --site test_site install-app {app_name}
-		  bench build
-		env:
-		  CI: 'Yes'
+      - name: Install
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench get-app {app_name} $GITHUB_WORKSPACE
+          bench setup requirements --dev
+          bench new-site --db-root-password root --admin-password admin test_site
+          bench --site test_site install-app {app_name}
+          bench build
+        env:
+          CI: 'Yes'
 
-	  - name: Run Tests
-		working-directory: /home/runner/frappe-bench
-		run: |
-		  bench --site test_site set-config allow_tests true
-		  bench --site test_site run-tests --app {app_name}
-		env:
-		  TYPE: server
+      - name: Run Tests
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site set-config allow_tests true
+          bench --site test_site run-tests --app {app_name}
+        env:
+          TYPE: server
 """
