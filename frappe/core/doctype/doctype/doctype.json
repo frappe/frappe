@@ -45,7 +45,7 @@
   "allow_auto_repeat",
   "view_settings",
   "title_field",
-  "translate_link_fields",
+  "translated_doctype",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -551,7 +551,7 @@
   },
   {
    "default": "0",
-   "fieldname": "translate_link_fields",
+   "fieldname": "translated_doctype",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
   }
@@ -635,7 +635,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-06-28 21:56:30.091386",
+ "modified": "2022-08-06 12:13:35.521259",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
@@ -669,5 +669,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1,
- "translate_link_fields": 1
+ "translated_doctype": 1
 }

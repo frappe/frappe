@@ -27,7 +27,7 @@
   "autoname",
   "view_settings_section",
   "title_field",
-  "translate_link_fields",
+  "translated_doctype",
   "image_field",
   "default_print_format",
   "column_break_29",
@@ -283,7 +283,7 @@
   },
   {
    "default": "0",
-   "fieldname": "translate_link_fields",
+   "fieldname": "translated_doctype",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
   }

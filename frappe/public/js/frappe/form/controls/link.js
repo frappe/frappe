@@ -89,7 +89,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		return this.is_translatable() ? __(value) : value;
 	},
 	is_translatable() {
-		return in_list(frappe.boot.translatable_doctypes || [], this.get_options());
+		return in_list(frappe.boot.translated_doctypes || [], this.get_options());
 	},
 	parse_validate_and_set_in_model(value, e) {
 		if (this.parse) value = this.parse(value);
@@ -349,21 +349,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			var o = e.originalEvent;
 			if (o.text.value.indexOf("__link_option") !== -1) {
 				me.$input.val("");
-			}
-		});
-
-		this.$input.on("focus", function() {
-			if (!frappe.boot.translated_search_doctypes.includes(me.df.options) &&
-				frappe.boot.translatable_doctypes.includes(me.df.options)) {
-				me.show_untranslated();
-			}
-		});
-
-		this.$input.keydown((e) => {
-			let BACKSPACE = 8;
-			if (e.keyCode === BACKSPACE && !frappe.boot.translated_search_doctypes.includes(me.df.options) &&
-				frappe.boot.translatable_doctypes.includes(me.df.options)) {
-				me.show_untranslated();
 			}
 		});
 	},
