@@ -115,7 +115,7 @@ frappe.router = {
 		}
 	},
 
-	route() {
+	async route() {
 		// resolve the route from the URL or hash
 		// translate it so the objects are well defined
 		// and render the page as required
@@ -126,26 +126,25 @@ frappe.router = {
 		if (this.re_route(sub_path)) return;
 
 		this.current_sub_path = sub_path;
-		this.current_route = this.parse();
+		this.current_route = await this.parse();
 		this.set_history(sub_path);
 		this.render();
 		this.set_title(sub_path);
 		this.trigger("change");
 	},
 
-	parse(route) {
+	async parse(route) {
 		route = this.get_sub_path_string(route).split("/");
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
 		this.set_route_options_from_url();
-		return this.convert_to_standard_route(route);
+		return await this.convert_to_standard_route(route);
 	},
 
-	convert_to_standard_route(route) {
+	async convert_to_standard_route(route) {
 		// /app/settings = ["Workspaces", "Settings"]
 		// /app/private/settings = ["Workspaces", "private", "Settings"]
 		// /app/user = ["List", "User"]
-		// /app/user/view = ["List", "User", ""]
 		// /app/user/view/report = ["List", "User", "Report"]
 		// /app/user/view/tree = ["Tree", "User"]
 		// /app/user/user-001 = ["Form", "User", "user-001"]
@@ -162,7 +161,7 @@ frappe.router = {
 			route = ["Workspaces", "private", frappe.workspaces[private_workspace].title];
 		} else if (this.routes[route[0]]) {
 			// route
-			route = this.set_doctype_route(route);
+			route = await this.set_doctype_route(route);
 		}
 
 		return route;
@@ -175,44 +174,57 @@ frappe.router = {
 
 	set_doctype_route(route) {
 		let doctype_route = this.routes[route[0]];
-		// doctype route
-		if (route[1]) {
-			if (route[1] === "view") {
-				route = this.get_standard_route_for_list(route, doctype_route);
-			} else {
-				let docname = route[1];
-				if (route.length > 2) {
-					docname = route.slice(1).join("/");
+
+		return frappe.model.with_doctype(doctype_route.doctype).then(() => {
+			// doctype route
+			let meta = frappe.get_meta(doctype_route.doctype);
+
+			if (route[2] && route[1]) {
+				if (route[1] === "view") {
+					route = this.get_standard_route_for_list(
+						route,
+						doctype_route,
+						meta.force_re_route_to_default_view && meta.default_view
+							? meta.default_view
+							: null
+					);
+				} else {
+					let docname = route[1];
+					if (route.length > 2) {
+						docname = route.slice(1).join("/");
+					}
+					route = ["Form", doctype_route.doctype, docname];
 				}
-				route = ["Form", doctype_route.doctype, docname];
+			} else if (frappe.model.is_single(doctype_route.doctype)) {
+				route = ["Form", doctype_route.doctype, doctype_route.doctype];
+			} else if (meta.default_view) {
+				route = ["List", doctype_route.doctype, meta.default_view];
+			} else {
+				route = ["List", doctype_route.doctype, "List"];
 			}
-		} else if (frappe.model.is_single(doctype_route.doctype)) {
-			route = ["Form", doctype_route.doctype, doctype_route.doctype];
-		} else {
-			route = ["List", doctype_route.doctype, null];
-		}
 
-		if (doctype_route.doctype_layout) {
-			// set the layout
-			this.doctype_layout = doctype_route.doctype_layout;
-		}
+			if (doctype_route.doctype_layout) {
+				// set the layout
+				this.doctype_layout = doctype_route.doctype_layout;
+			}
 
-		return route;
+			return route;
+		});
 	},
 
-	get_standard_route_for_list(route, doctype_route) {
+	get_standard_route_for_list(route, doctype_route, default_view) {
 		let standard_route;
-		if (route[2] && route[2].toLowerCase() === "tree") {
+		let _route = default_view || route[2];
+
+		if (_route.toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
-			standard_route = [
-				"List",
-				doctype_route.doctype,
-				frappe.utils.to_title_case(route[2] ? route[2] : ""),
-			];
+			standard_route = ["List", doctype_route.doctype, frappe.utils.to_title_case(_route)];
+
 			// calendar / kanban / dashboard / folder
 			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}
+
 		return standard_route;
 	},
 
@@ -463,10 +475,6 @@ frappe.router = {
 
 	slug(name) {
 		return name.toLowerCase().replace(/ /g, "-");
-	},
-
-	get_base_route_for_view(doctype, view) {
-		return `/app/${frappe.router.slug(doctype)}/view/${view.toLowerCase()}`;
 	},
 };
 
