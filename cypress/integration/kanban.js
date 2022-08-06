@@ -35,7 +35,10 @@ context("Kanban Board", () => {
 	it("Add and Remove fields", () => {
 		cy.visit("/app/todo/view/kanban/ToDo Kanban");
 
-		cy.intercept('POST', '/api/method/frappe.desk.doctype.kanban_board.kanban_board.save_settings').as('save-kanban');
+		cy.intercept(
+			"POST",
+			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.save_settings"
+		).as("save-kanban");
 
 		cy.get(".page-actions .menu-btn-group > .btn").click();
 		cy.get(".page-actions .menu-btn-group .dropdown-menu li")
@@ -78,8 +81,8 @@ context("Kanban Board", () => {
 			)
 			.click();
 
-		cy.get_open_dialog().find('.frappe-control .label-area').contains('Show Labels').click();
-		cy.get('.modal-footer .btn-primary').last().click();
+		cy.get_open_dialog().find(".frappe-control .label-area").contains("Show Labels").click();
+		cy.get(".modal-footer .btn-primary").last().click();
 
 		cy.wait("@save-kanban");
 
