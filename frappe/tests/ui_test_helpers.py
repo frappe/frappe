@@ -364,6 +364,7 @@ def insert_doctype_with_child_table_record(name):
 @frappe.whitelist()
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 def insert_translations():
 	translation = [
 		{
@@ -455,6 +456,63 @@ def setup_default_view():
 def setup_default_view(force_reroute=None):
 	frappe.delete_doc_if_exists("property Setter", "Event-main-default_view")
 	frappe.delete_doc_if_exists("property Setter", "Event-main-force_re_route_to_default_view")
+=======
+def setup_tree_doctype():
+	frappe.delete_doc_if_exists("DocType", "Custom Tree")
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{"fieldname": "tree", "fieldtype": "Data", "label": "Tree"},
+			],
+			"permissions": [{"role": "System Manager", "read": 1}],
+			"name": "Custom Tree",
+			"is_tree": True,
+			"naming_rule": "By fieldname",
+			"autoname": "field:tree",
+		}
+	).insert()
+
+	if not frappe.db.exists("Custom Tree", "All Trees"):
+		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees"}).insert()
+
+
+@frappe.whitelist()
+def setup_image_doctype():
+	frappe.delete_doc_if_exists("DocType", "Custom Image")
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{"fieldname": "image", "fieldtype": "Attach Image", "label": "Image"},
+			],
+			"permissions": [{"role": "System Manager", "read": 1}],
+			"name": "Custom Image",
+			"image_field": "image",
+		}
+	).insert()
+
+
+@frappe.whitelist()
+def setup_inbox():
+	frappe.db.sql("DELETE FROM `tabUser Email`")
+
+	user = frappe.get_doc("User", frappe.session.user)
+	user.append("user_emails", {"email_account": "Email Linking"})
+	user.save()
+
+
+@frappe.whitelist()
+def setup_default_view(view, force_reroute=None):
+	frappe.delete_doc_if_exists("Property Setter", "Event-main-default_view")
+	frappe.delete_doc_if_exists("Property Setter", "Event-main-force_re_route_to_default_view")
+>>>>>>> 5235eb1c41 (fix: handle file view edgecase and test cases)
 
 >>>>>>> fce7320947 (fix: reroute to list for app/{doctype} route)
 	frappe.get_doc(
@@ -464,7 +522,7 @@ def setup_default_view(force_reroute=None):
 			"doc_type": "Event",
 			"property": "default_view",
 			"property_type": "Select",
-			"value": "Report",
+			"value": view,
 			"doctype": "Property Setter",
 		}
 	).insert()

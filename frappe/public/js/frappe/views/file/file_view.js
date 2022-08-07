@@ -286,7 +286,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	get_breadcrumbs_html() {
-		const route = frappe.router.parse();
+		const route = frappe.get_route();
 		let get_route = () => {
 			let _route = route.slice(2);
 
