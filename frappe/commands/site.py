@@ -496,6 +496,28 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 		raise SiteNotSpecifiedError
 
 
+@click.command("add-new-user")
+@click.argument("email")
+@click.option("--first-name")
+@click.option("--last-name")
+@click.option("--password")
+@click.option("--add-role", multiple=True)
+@click.option("--send-welcome-email", default=False, is_flag=True)
+@pass_context
+def add_new_user_for_sites(context, email, first_name, last_name, send_welcome_email, password, add_role):
+    "Add a new user to a site"
+    import frappe.utils.user
+    for site in context.sites:
+        frappe.connect(site=site)
+        try:
+            add_new_user(email, first_name, last_name, send_welcome_email, password, add_role)
+            frappe.db.commit()
+        finally:
+            frappe.destroy()
+    if not context.sites:
+        raise SiteNotSpecifiedError
+
+
 @click.command("disable-user")
 @click.argument("email")
 @pass_context
@@ -1275,8 +1297,52 @@ def handle_data(data: dict, format="json"):
 		render_table(data)
 
 
+def add_new_user(
+		email, first_name=None, last_name=None, send_welcome_email=False, password=None,role=None):
+	# add user
+	user = frappe.new_doc("User")
+	user.update(
+		{
+			"name": email,
+			"email": email,
+			"enabled": 1,
+			"first_name": first_name or email,
+			"last_name": last_name,
+			"user_type": "System User",
+			"send_welcome_email": 1 if send_welcome_email else 0,
+		}
+	)
+	user.insert()
+	user.add_roles(*role)
+	if password:
+		from frappe.utils.password import update_password
+		update_password(user=user.name, pwd=password)
+
+
+@click.command("list-roles")
+@pass_context
+def get_roles(context):
+    "get site available roles for users"
+    import frappe.utils.user
+    for site in context.sites:
+        frappe.connect(site=site)
+        site_title = click.style(f"{site}", fg="green")
+        print(site_title)
+        try:
+            role = frappe.get_list("Role")
+            for i in role:
+                if i.name not in ['All','Guest','Administrator']:
+                    print(i.name)		  
+            print("\n")
+        finally:
+            frappe.destroy()
+    if not context.sites:
+        raise SiteNotSpecifiedError
+
 commands = [
 	add_system_manager,
+	add_new_user_for_sites,
+	get_roles,
 	backup,
 	drop_site,
 	install_app,
