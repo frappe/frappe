@@ -475,3 +475,65 @@ class RemoveAppUnitTests(unittest.TestCase):
 
 		# nothing to assert, if this fails rest of the test suite will crumble.
 		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+<<<<<<< HEAD
+=======
+
+
+class TestSiteMigration(BaseTestCommands):
+	def test_migrate_cli(self):
+		with cli(frappe.commands.site.migrate) as result:
+			self.assertTrue(TEST_SITE in result.stdout)
+			self.assertEqual(result.exit_code, 0)
+			self.assertEqual(result.exception, None)
+
+
+class TestAddNewUser(BaseTestCommands):
+	def test_create_user(self):
+		self.execute(
+			f"bench --site {TEST_SITE} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
+		)
+		self.assertEqual(self.returncode, 0)
+		roles = []
+		user = frappe.get_doc("User", "test@gmail.com")
+		for i in user.roles:
+			role = frappe.get_doc("Has Role", i.name)
+			roles.append(role.role)
+		self.assertEqual(user.name, "test@gmail.com")
+		self.assertIn("Accounts User", roles)
+		self.assertIn("Sales User", roles)
+		self.assertTrue(len(roles) == 2)
+
+
+class TestBenchBuild(BaseTestCommands):
+	def test_build_assets_size_check(self):
+		with cli(frappe.commands.utils.build, "--force --production") as result:
+			self.assertEqual(result.exit_code, 0)
+			self.assertEqual(result.exception, None)
+
+		CURRENT_SIZE = 3.5  # MB
+		JS_ASSET_THRESHOLD = 0.1
+
+		hooks = frappe.get_hooks()
+		default_bundle = hooks["app_include_js"]
+
+		default_bundle_size = 0.0
+
+		for chunk in default_bundle:
+			abs_path = Path.cwd() / frappe.local.sites_path / bundled_asset(chunk)[1:]
+			default_bundle_size += abs_path.stat().st_size
+
+		self.assertLessEqual(
+			default_bundle_size / (1024 * 1024),
+			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
+			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
+		)
+
+
+class TestCommandUtils(FrappeTestCase):
+	def test_bench_helper(self):
+		from frappe.utils.bench_helper import get_app_groups
+
+		app_groups = get_app_groups()
+		self.assertIn("frappe", app_groups)
+		self.assertIsInstance(app_groups["frappe"], click.Group)
+>>>>>>> 40f54d04b7 (feat(bench): add new bench command for add user)
