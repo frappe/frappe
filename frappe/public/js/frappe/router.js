@@ -179,22 +179,20 @@ frappe.router = {
 			// doctype route
 			let meta = frappe.get_meta(doctype_route.doctype);
 
-			if (route[2] && route[1]) {
-				if (route[1] === "view") {
-					route = this.get_standard_route_for_list(
-						route,
-						doctype_route,
-						meta.force_re_route_to_default_view && meta.default_view
-							? meta.default_view
-							: null
-					);
-				} else {
-					let docname = route[1];
-					if (route.length > 2) {
-						docname = route.slice(1).join("/");
-					}
-					route = ["Form", doctype_route.doctype, docname];
+			if (route[1] && route[1] === "view" && route[2]) {
+				route = this.get_standard_route_for_list(
+					route,
+					doctype_route,
+					meta.force_re_route_to_default_view && meta.default_view
+						? meta.default_view
+						: null
+				);
+			} else if (route[1] && route[1] !== "view" && !route[2]) {
+				let docname = route[1];
+				if (route.length > 2) {
+					docname = route.slice(1).join("/");
 				}
+				route = ["Form", doctype_route.doctype, docname];
 			} else if (frappe.model.is_single(doctype_route.doctype)) {
 				route = ["Form", doctype_route.doctype, doctype_route.doctype];
 			} else if (meta.default_view) {
@@ -214,10 +212,13 @@ frappe.router = {
 
 	get_standard_route_for_list(route, doctype_route, default_view) {
 		let standard_route;
-		let _route = default_view || route[2];
+		let _route = default_view || route[2] || "";
 
 		if (_route.toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
+		} else if (route[0].toLowerCase() === "file") {
+			// file
+			standard_route = ["List", doctype_route.doctype, route[2]];
 		} else {
 			standard_route = ["List", doctype_route.doctype, frappe.utils.to_title_case(_route)];
 
@@ -363,6 +364,8 @@ frappe.router = {
 				// if not single
 				new_route.push(route[2]);
 			}
+		} else if (view === "tree") {
+			new_route = [this.slug(route[1]), "view", "tree"];
 		} else if (view === "tree") {
 			new_route = [this.slug(route[1]), "view", "tree"];
 		}
