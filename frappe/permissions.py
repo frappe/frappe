@@ -28,6 +28,14 @@ rights = (
 
 
 def check_admin_or_system_manager(user=None):
+	from frappe.utils.commands import warn
+
+	warn(
+		"The function check_admin_or_system_manager will be deprecated in version 15."
+		'Please use frappe.only_for("System Manager") instead.',
+		category=PendingDeprecationWarning,
+	)
+
 	if not user:
 		user = frappe.session.user
 
@@ -489,6 +497,7 @@ def add_user_permission(
 				for_value=name,
 				is_default=is_default,
 				applicable_for=applicable_for,
+				apply_to_all_doctypes=0 if applicable_for else 1,
 				hide_descendants=hide_descendants,
 			)
 		).insert(ignore_permissions=ignore_permissions)

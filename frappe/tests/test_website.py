@@ -263,13 +263,13 @@ class TestWebsite(unittest.TestCase):
 
 	def test_colocated_assets(self):
 		content = get_response_content("/_test/_test_folder/_test_page")
-		self.assertIn("<script>console.log('test data');</script>", content)
+		self.assertIn("""<script>console.log("test data");\n</script>""", content)
 		self.assertIn("background-color: var(--bg-color);", content)
 
 	def test_raw_assets_are_loaded(self):
 		content = get_response_content("/_test/assets/js_asset.min.js")
 		# minified js files should not be passed through jinja renderer
-		self.assertEqual("//{% if title %} {{title}} {% endif %}\nconsole.log('in');", content)
+		self.assertEqual("""//{% if title %} {{title}} {% endif %}\nconsole.log("in");\n""", content)
 
 		content = get_response_content("/_test/assets/css_asset.css")
 		self.assertEqual("""body{color:red}""", content)
