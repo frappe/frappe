@@ -92,6 +92,7 @@ context("Kanban Board", () => {
 			.should("not.contain", "ID:");
 	});
 
+	// it('Drag todo', () => {
 	// 	cy.get('.kanban-card-body')
 	// 		.contains('Test Kanban ToDo').first()
 	// 		.drag('[data-column-value="Closed"] .kanban-cards', { force: true });
