@@ -1276,7 +1276,7 @@ def get_all_languages(with_language_name=False):
 		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
-		return frappe.get_all("Language", fields=["language_code", "language_name"], filters={"enabled": 1})
+		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
 
 	if not frappe.db:
 		frappe.connect()
