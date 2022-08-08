@@ -366,9 +366,8 @@ frappe.router = {
 			}
 		} else if (view === "tree") {
 			new_route = [this.slug(route[1]), "view", "tree"];
-		} else if (view === "tree") {
-			new_route = [this.slug(route[1]), "view", "tree"];
 		}
+
 		return new_route;
 	},
 
