@@ -35,6 +35,8 @@ context("Folder Navigation", () => {
 		cy.fill_field("value", "Test Folder");
 		cy.click_modal_primary_button("Create");
 
+		cy.get('[data-original-title="Refresh"]').click();
+		cy.wait(500);
 		//Navigating inside the added folder in the Attachments folder
 		cy.get('[title="Test Folder"] > span').click();
 
@@ -51,6 +53,7 @@ context("Folder Navigation", () => {
 		cy.click_modal_primary_button("Upload");
 
 		//To check if the added file is present in the Test Folder
+		cy.visit("/app/file/view/home/Attachments");
 		cy.get("span.level-item > span").should("contain", "Test Folder");
 		cy.get(".list-row-container").eq(0).should("contain.text", "72402.jpg");
 		cy.get(".list-row-checkbox").eq(0).click();

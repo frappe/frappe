@@ -185,12 +185,9 @@ context("View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("/app/event");
 			cy.visit("/app/event/view/list");
-			cy.wait(500);
 			cy.location("pathname").should("eq", "/app/event/view/list");
 			cy.go("back");
 			cy.location("pathname").should("eq", "/app/event");
-			cy.go("back");
-			cy.location("pathname").should("eq", "/app/website");
 		});
 	});
 
