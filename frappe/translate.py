@@ -40,22 +40,22 @@ def guess_language(lang_list=None):
 TRANSLATE_PATTERN = re.compile(
 	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
 	# BEGIN: message search
-	r"([\"']{,3})"	# start of message string identifier - allows: ', ", """, '''; 1st capture group
-	r"(?P<message>((?!\1).)*)"	# Keep matching until string closing identifier is met which is same as 1st capture group
+	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
+	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
 	r"\1"  # match exact string closing identifier
 	# END: message search
 	# BEGIN: python context search
 	r"([\s\n]*,[\s\n]*context\s*=\s*"  # capture `context=` with ignoring whitespace
-	r"([\"'])"	# start of context string identifier; 5th capture group
+	r"([\"'])"  # start of context string identifier; 5th capture group
 	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
 	r"\5"  # match context string closure
 	r")?"  # match 0 or 1 context strings
 	# END: python context search
 	# BEGIN: JS context search
 	r"(\s*,\s*(.)*?\s*(,\s*"  # skip message format replacements: ["format", ...] | null | []
-	r"([\"'])"	# start of context string; 11th capture group
-	r"(?P<js_context>((?!\11).)*)"	# capture context string till closing id is found
-	r"\11"	# match context string closure
+	r"([\"'])"  # start of context string; 11th capture group
+	r"(?P<js_context>((?!\11).)*)"  # capture context string till closing id is found
+	r"\11"  # match context string closure
 	r")*"
 	r")*"  # match one or more context string
 	# END: JS context search
@@ -118,8 +118,8 @@ def get_parent_language(lang: str) -> str:
 	"""If the passed language is a variant, return its parent
 
 	Eg:
-			1. zh-TW -> zh
-			2. sr-BA -> sr
+	                1. zh-TW -> zh
+	                2. sr-BA -> sr
 	"""
 	is_language_variant = "-" in lang
 	if is_language_variant:
