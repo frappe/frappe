@@ -11,12 +11,12 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 			this.frm.doctype === "DocType" ? "DocField" : "Customize Form Field"
 		].fieldtype.formatter = (value) => {
 			const prefix = {
-				"Tab Break": "🔴",
-				"Section Break": "🔵",
-				"Column Break": "🟡",
+				"Tab Break": "--red-600",
+				"Section Break": "--blue-600",
+				"Column Break": "--yellow-600",
 			};
 			if (prefix[value]) {
-				value = prefix[value] + " " + value;
+				value = `<span class="bold" style="color: var(${prefix[value]})">${value}</span>`;
 			}
 			return value;
 		};
