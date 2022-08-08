@@ -432,3 +432,9 @@ def setup_default_view(view, force_reroute=None):
 				"doctype": "Property Setter",
 			}
 		).insert()
+
+
+@frappe.whitelist()
+def create_note():
+	if not frappe.db.exists("Note", "Routing Test"):
+		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()

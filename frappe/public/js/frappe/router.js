@@ -89,6 +89,18 @@ frappe.router = {
 		"image",
 		"inbox",
 	],
+	list_views_route: {
+		list: "List",
+		kanban: "Kanban",
+		report: "Report",
+		calendar: "Calendar",
+		tree: "Tree",
+		gantt: "Gantt",
+		dashboard: "Dashboard",
+		image: "Image",
+		inbox: "Inbox",
+		file: "Home",
+	},
 	layout_mapped: {},
 
 	is_app_route(path) {
@@ -196,7 +208,11 @@ frappe.router = {
 			} else if (frappe.model.is_single(doctype_route.doctype)) {
 				route = ["Form", doctype_route.doctype, doctype_route.doctype];
 			} else if (meta.default_view) {
-				route = ["List", doctype_route.doctype, meta.default_view];
+				route = [
+					"List",
+					doctype_route.doctype,
+					this.list_views_route[meta.default_view.toLowerCase()],
+				];
 			} else {
 				route = ["List", doctype_route.doctype, "List"];
 			}
@@ -216,11 +232,12 @@ frappe.router = {
 
 		if (_route.toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
-		} else if (route[0].toLowerCase() === "file") {
-			// file
-			standard_route = ["List", doctype_route.doctype, route[2]];
 		} else {
-			standard_route = ["List", doctype_route.doctype, frappe.utils.to_title_case(_route)];
+			standard_route = [
+				"List",
+				doctype_route.doctype,
+				this.list_views_route[_route.toLowerCase()],
+			];
 
 			// calendar / kanban / dashboard / folder
 			if (route[3]) standard_route.push(...route.slice(3, route.length));
