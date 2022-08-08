@@ -29,7 +29,7 @@ class LegacyPassword(pbkdf2_sha256):
 			secret[0] == "*" and len(secret) == 41 and all(c in string.hexdigits for c in secret[1:])
 		):
 			secret = mysql41.hash(secret + self.salt.decode("utf-8"))
-		return super(LegacyPassword, self)._calc_checksum(secret)
+		return super()._calc_checksum(secret)
 
 
 register_crypt_handler(LegacyPassword, force=True)
@@ -213,21 +213,16 @@ def decrypt(txt, encryption_key=None):
 
 	try:
 		cipher_suite = Fernet(encode(encryption_key or get_encryption_key()))
-		plain_text = cstr(cipher_suite.decrypt(encode(txt)))
-		return plain_text
+		return cstr(cipher_suite.decrypt(encode(txt)))
 	except InvalidToken:
 		# encryption_key in site_config is changed and not valid
-		frappe.throw(
-			_("Encryption key is invalid") + "!"
-			if encryption_key
-			else _(", please check site_config.json.")
-		)
+		frappe.throw(_("Encryption key is invalid! Please check site_config.json"))
 
 
 def get_encryption_key():
-	from frappe.installer import update_site_config
-
 	if "encryption_key" not in frappe.local.conf:
+		from frappe.installer import update_site_config
+
 		encryption_key = Fernet.generate_key().decode()
 		update_site_config("encryption_key", encryption_key)
 		frappe.local.conf.encryption_key = encryption_key

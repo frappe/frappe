@@ -4,7 +4,6 @@ import json
 import mimetypes
 
 import RestrictedPython.Guards
-from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
 
 import frappe
@@ -13,8 +12,12 @@ import frappe.integrations.utils
 import frappe.utils
 import frappe.utils.data
 from frappe import _
+from frappe.core.utils import html2text
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
+from frappe.model.delete_doc import delete_doc
+from frappe.model.mapper import get_mapped_doc
+from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.website.utils import get_next_link, get_shade, get_toc
@@ -56,8 +59,10 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.update(_globals)
 
 	if restrict_commit_rollback:
+		# prevent user from using these in docevents
 		exec_globals.frappe.db.pop("commit", None)
 		exec_globals.frappe.db.pop("rollback", None)
+		exec_globals.frappe.db.pop("add_index", None)
 
 	# execute script compiled by RestrictedPython
 	frappe.flags.in_safe_exec = True
@@ -108,12 +113,16 @@ def get_safe_globals():
 			errprint=frappe.errprint,
 			qb=frappe.qb,
 			get_meta=frappe.get_meta,
+			new_doc=frappe.new_doc,
 			get_doc=frappe.get_doc,
+			get_mapped_doc=get_mapped_doc,
+			get_last_doc=frappe.get_last_doc,
 			get_cached_doc=frappe.get_cached_doc,
 			get_list=frappe.get_list,
 			get_all=frappe.get_all,
 			get_system_settings=frappe.get_system_settings,
-			rename_doc=frappe.rename_doc,
+			rename_doc=rename_doc,
+			delete_doc=delete_doc,
 			utils=datautils,
 			get_url=frappe.utils.get_url,
 			render_template=frappe.render_template,
@@ -142,6 +151,7 @@ def get_safe_globals():
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+			log=frappe.log,
 			db=NamespaceDict(
 				get_list=frappe.get_list,
 				get_all=frappe.get_all,
@@ -155,6 +165,7 @@ def get_safe_globals():
 				sql=read_sql,
 				commit=frappe.db.commit,
 				rollback=frappe.db.rollback,
+				add_index=frappe.db.add_index,
 			),
 		),
 		FrappeClient=FrappeClient,
@@ -166,7 +177,7 @@ def get_safe_globals():
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
-		dev_server=1 if frappe._dev_server else 0,
+		dev_server=frappe.local.dev_server,
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
@@ -336,7 +347,7 @@ def _getattr(object, name, default=None):
 	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
-		raise SyntaxError("{name} is an unsafe attribute".format(name=name))
+		raise SyntaxError(f"{name} is an unsafe attribute")
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 

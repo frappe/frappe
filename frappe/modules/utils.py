@@ -7,7 +7,7 @@ import json
 import os
 from glob import glob
 from textwrap import dedent
-from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Union
 
 import frappe
 from frappe import _, get_module_path, scrub
@@ -100,7 +100,7 @@ def export_customizations(
 		return file_path
 
 
-def sync_customizations(app: Optional[str] = None):
+def sync_customizations(app: str | None = None):
 	"""Sync custom fields and property setters from custom folder in each app module"""
 	apps = frappe.get_installed_apps() if not app else [app]
 
@@ -111,14 +111,14 @@ def sync_customizations(app: Optional[str] = None):
 				continue
 
 			for json_file in glob(os.path.join(module_custom_folder, "*.json")):
-				with open(os.path.join(module_custom_folder, json_file), "r") as f:
+				with open(os.path.join(module_custom_folder, json_file)) as f:
 					data = json.loads(f.read())
 
 				if data.get("sync_on_migrate"):
 					sync_customizations_for_doctype(data, module_custom_folder)
 
 
-def sync_customizations_for_doctype(data: Dict, folder: str):
+def sync_customizations_for_doctype(data: dict, folder: str):
 	"""Sync doctype customzations for a particular data set"""
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -176,7 +176,7 @@ def sync_customizations_for_doctype(data: Dict, folder: str):
 		frappe.db.updatedb(doctype)
 
 
-def scrub_dt_dn(dt: str, dn: str) -> Tuple[str, str]:
+def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
 	return scrub(dt), scrub(dn)
 
@@ -210,10 +210,15 @@ def export_doc(doctype, name, module=None):
 
 def get_doctype_module(doctype: str) -> str:
 	"""Returns **Module Def** name of given doctype."""
-	return frappe.cache().get_value(
+	doctype_module_map = frappe.cache().get_value(
 		"doctype_modules",
 		generator=lambda: dict(frappe.qb.from_("DocType").select("name", "module").run()),
-	)[doctype]
+	)
+
+	if module_name := doctype_module_map.get(doctype):
+		return module_name
+	else:
+		frappe.throw(_("DocType {} not found").format(doctype), exc=frappe.DoesNotExistError)
 
 
 def load_doctype_module(doctype, module=None, prefix="", suffix=""):
@@ -231,13 +236,15 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 		try:
 			doctype_python_modules[key] = frappe.get_module(module_name)
 		except ImportError as e:
-			raise ImportError(f"Module import failed for {doctype} ({module_name} Error: {e})")
+			msg = f"Module import failed for {doctype}, the DocType you're trying to open might be deleted."
+			msg += f"<br> Error: {e}"
+			raise ImportError(msg) from e
 
 	return doctype_python_modules[key]
 
 
 def get_module_name(
-	doctype: str, module: str, prefix: str = "", suffix: str = "", app: Optional[str] = None
+	doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None
 ):
 	app = scrub(app or get_module_app(module))
 	module = scrub(module)
@@ -246,18 +253,21 @@ def get_module_name(
 
 
 def get_module_app(module: str) -> str:
-	return frappe.local.module_app[scrub(module)]
+	app = frappe.local.module_app.get(scrub(module))
+	if app is None:
+		frappe.throw(_("Module {} not found").format(module), exc=frappe.DoesNotExistError)
+	return app
 
 
 def get_app_publisher(module: str) -> str:
-	app = frappe.local.module_app[scrub(module)]
+	app = get_module_app(module)
 	if not app:
 		frappe.throw(_("App not found for module: {0}").format(module))
 	return frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
 
 def make_boilerplate(
-	template: str, doc: Union["Document", "frappe._dict"], opts: Union[Dict, "frappe._dict"] = None
+	template: str, doc: Union["Document", "frappe._dict"], opts: Union[dict, "frappe._dict"] = None
 ):
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
@@ -306,7 +316,7 @@ def make_boilerplate(
 			"""
 		)
 
-	with open(target_file_path, "w") as target, open(template_file_path, "r") as source:
+	with open(target_file_path, "w") as target, open(template_file_path) as source:
 		template = source.read()
 		controller_file_content = cstr(template).format(
 			app_publisher=app_publisher,

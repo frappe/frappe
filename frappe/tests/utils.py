@@ -1,23 +1,89 @@
 import copy
+import datetime
 import signal
 import unittest
 from contextlib import contextmanager
 
 import frappe
+from frappe.model.base_document import BaseDocument
+from frappe.utils import cint
+
+datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
 
 class FrappeTestCase(unittest.TestCase):
 	"""Base test class for Frappe tests."""
 
-	@classmethod
-	def setUpClass(cls) -> None:
-		frappe.db.commit()
-		return super().setUpClass()
+	SHOW_TRANSACTION_COMMIT_WARNINGS = False
 
 	@classmethod
-	def tearDownClass(cls) -> None:
-		frappe.db.rollback()
-		return super().tearDownClass()
+	def setUpClass(cls) -> None:
+		# flush changes done so far to avoid flake
+		frappe.db.commit()
+		frappe.db.begin()
+		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
+			frappe.db.add_before_commit(_commit_watcher)
+
+		# enqueue teardown actions (executed in LIFO order)
+		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
+		cls.addClassCleanup(_rollback_db)
+
+		return super().setUpClass()
+
+	# --- Frappe Framework specific assertions
+	def assertDocumentEqual(self, expected, actual):
+		"""Compare a (partial) expected document with actual Document."""
+
+		if isinstance(expected, BaseDocument):
+			expected = expected.as_dict()
+
+		for field, value in expected.items():
+			if isinstance(value, list):
+				actual_child_docs = actual.get(field)
+				self.assertEqual(len(value), len(actual_child_docs), msg=f"{field} length should be same")
+				for exp_child, actual_child in zip(value, actual_child_docs):
+					self.assertDocumentEqual(exp_child, actual_child)
+			else:
+				self._compare_field(value, actual.get(field), actual, field)
+
+	def _compare_field(self, expected, actual, doc, field):
+		msg = f"{field} should be same."
+
+		if isinstance(expected, float):
+			precision = doc.precision(field)
+			self.assertAlmostEqual(expected, actual, f"{field} should be same to {precision} digits")
+		elif isinstance(expected, (bool, int)):
+			self.assertEqual(expected, cint(actual), msg=msg)
+		elif isinstance(expected, datetime_like_types):
+			self.assertEqual(str(expected), str(actual), msg=msg)
+		else:
+			self.assertEqual(expected, actual, msg=msg)
+
+
+def _commit_watcher():
+	import traceback
+
+	print("Warning:, transaction committed during tests.")
+	traceback.print_stack(limit=5)
+
+
+def _rollback_db():
+	frappe.local.before_commit = []
+	frappe.local.rollback_observers = []
+	frappe.db.value_cache = {}
+	frappe.db.rollback()
+
+
+def _restore_thread_locals(flags):
+	frappe.local.flags = flags
+	frappe.local.error_log = []
+	frappe.local.message_log = []
+	frappe.local.debug_log = []
+	frappe.local.realtime_log = []
+	frappe.local.conf = frappe._dict(frappe.get_site_config())
+	frappe.local.cache = {}
+	frappe.local.lang = "en"
+	frappe.local.lang_full_dict = None
 
 
 @contextmanager

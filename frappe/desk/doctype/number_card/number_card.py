@@ -1,13 +1,15 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import frappe
 from frappe import _
+from frappe.boot import get_allowed_report_names
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
+from frappe.query_builder import Criterion
+from frappe.query_builder.utils import DocType
 from frappe.utils import cint
 
 
@@ -20,15 +22,23 @@ class NumberCard(Document):
 			self.name = append_number_if_name_exists("Number Card", self.name)
 
 	def validate(self):
-		if not self.document_type:
-			frappe.throw(_("Document type is required to create a number card"))
+		if self.type == "Document Type":
+			if not (self.document_type and self.function):
+				frappe.throw(_("Document Type and Function are required to create a number card"))
 
-		if (
-			self.document_type
-			and frappe.get_meta(self.document_type).istable
-			and not self.parent_document_type
-		):
-			frappe.throw(_("Parent document type is required to create a number card"))
+			if self.function != "Count" and not self.aggregate_function_based_on:
+				frappe.throw(_("Aggregate Field is required to create a number card"))
+
+			if frappe.get_meta(self.document_type).istable and not self.parent_document_type:
+				frappe.throw(_("Parent Document Type is required to create a number card"))
+
+		elif self.type == "Report":
+			if not (self.report_name and self.report_field and self.function):
+				frappe.throw(_("Report Name, Report Field and Fucntion are required to create a number card"))
+
+		elif self.type == "Custom":
+			if not self.method:
+				frappe.throw(_("Method is required to create a number card"))
 
 	def on_update(self):
 		if frappe.conf.developer_mode and self.is_standard:
@@ -80,9 +90,13 @@ def has_permission(doc, ptype, user):
 	if "System Manager" in roles:
 		return True
 
-	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	if doc.document_type in allowed_doctypes:
-		return True
+	if doc.type == "Report":
+		if doc.report_name in get_allowed_report_names():
+			return True
+	else:
+		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		if doc.document_type in allowed_doctypes:
+			return True
 
 	return False
 
@@ -102,7 +116,7 @@ def get_result(doc, filters, to_date=None):
 	function = sql_function_map[doc.function]
 
 	if function == "count":
-		fields = ["{function}(*) as result".format(function=function)]
+		fields = [f"{function}(*) as result"]
 	else:
 		fields = [
 			"{function}({based_on}) as result".format(
@@ -181,36 +195,18 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	if not frappe.db.exists("DocType", doctype):
 		return
 
+	numberCard = DocType("Number Card")
+
 	if txt:
-		for field in searchfields:
-			search_conditions.append(
-				"`tab{doctype}`.`{field}` like %(txt)s".format(field=field, doctype=doctype, txt=txt)
-			)
+		search_conditions = [numberCard[field].like(f"%{txt}%") for field in searchfields]
 
-		search_conditions = " or ".join(search_conditions)
+	condition_query = frappe.qb.engine.build_conditions(doctype, filters)
 
-	search_conditions = "and (" + search_conditions + ")" if search_conditions else ""
-	conditions, values = frappe.db.build_conditions(filters)
-	values["txt"] = "%" + txt + "%"
-
-	return frappe.db.sql(
-		"""select
-			`tabNumber Card`.name, `tabNumber Card`.label, `tabNumber Card`.document_type
-		from
-			`tabNumber Card`
-		where
-			{conditions} and
-			(`tabNumber Card`.owner = '{user}' or
-			`tabNumber Card`.is_public = 1)
-			{search_conditions}
-	""".format(
-			filters=filters,
-			user=frappe.session.user,
-			search_conditions=search_conditions,
-			conditions=conditions,
-		),
-		values,
-	)
+	return (
+		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
+		.where((numberCard.owner == frappe.session.user) | (numberCard.is_public == 1))
+		.where(Criterion.any(search_conditions))
+	).run()
 
 
 @frappe.whitelist()

@@ -17,7 +17,7 @@ def execute():
 			continue
 
 		for _user_tags in frappe.db.sql(
-			"select `name`, `_user_tags` from `tab{0}`".format(doctype.name), as_dict=True
+			f"select `name`, `_user_tags` from `tab{doctype.name}`", as_dict=True
 		):
 			if not _user_tags.get("_user_tags"):
 				continue

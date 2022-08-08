@@ -1,13 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
-from typing import TYPE_CHECKING, Dict, List
-
-from rq import Worker
+from typing import TYPE_CHECKING
 
 import frappe
-from frappe import _
 from frappe.utils import convert_utc_to_user_timezone
 from frappe.utils.background_jobs import get_queues, get_workers
 from frappe.utils.scheduler import is_scheduler_inactive
@@ -19,14 +15,10 @@ JOB_COLORS = {"queued": "orange", "failed": "red", "started": "blue", "finished"
 
 
 @frappe.whitelist()
-def get_info(view=None, queue_timeout=None, job_status=None) -> List[Dict]:
+def get_info(view=None, queue_timeout=None, job_status=None) -> list[dict]:
 	jobs = []
 
-	def add_job(job: "Job", name: str) -> None:
-		if job_status != "all" and job.get_status() != job_status:
-			return
-		if queue_timeout != "all" and not name.endswith(f":{queue_timeout}"):
-			return
+	def add_job(job: "Job", queue: str) -> None:
 
 		if job.kwargs.get("site") == frappe.local.site:
 			job_info = {
@@ -34,7 +26,7 @@ def get_info(view=None, queue_timeout=None, job_status=None) -> List[Dict]:
 				or job.kwargs.get("kwargs", {}).get("job_type")
 				or str(job.kwargs.get("job_name")),
 				"status": job.get_status(),
-				"queue": name,
+				"queue": queue,
 				"creation": convert_utc_to_user_timezone(job.created_at),
 				"color": JOB_COLORS[job.get_status()],
 			}
@@ -48,14 +40,21 @@ def get_info(view=None, queue_timeout=None, job_status=None) -> List[Dict]:
 		queues = get_queues()
 		for queue in queues:
 			for job in queue.jobs:
+				if job_status != "all" and job.get_status() != job_status:
+					return
+				if queue_timeout != "all" and not queue.name.endswith(f":{queue_timeout}"):
+					return
 				add_job(job, queue.name)
 
 	elif view == "Workers":
 		workers = get_workers()
 		for worker in workers:
 			current_job = worker.get_current_job()
-			if current_job and current_job.kwargs.get("site") == frappe.local.site:
-				add_job(current_job, job.origin)
+			if current_job:
+				if hasattr(current_job, "kwargs") and current_job.kwargs.get("site") == frappe.local.site:
+					add_job(current_job, current_job.origin)
+				else:
+					jobs.append({"queue": worker.name, "job_name": "busy", "status": "", "creation": ""})
 			else:
 				jobs.append({"queue": worker.name, "job_name": "idle", "status": "", "creation": ""})
 

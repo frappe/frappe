@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable, get_definition
-from frappe.database.sequence import create_sequence
 from frappe.model import log_types
 from frappe.utils import cint, flt
 
@@ -35,11 +34,7 @@ class PostgresTable(DBTable):
 			not self.meta.issingle and self.meta.autoname == "autoincrement"
 		) or self.doctype in log_types:
 
-			# The sequence cache is per connection.
-			# Since we're opening and closing connections for every transaction this results in skipping the cache
-			# to the next non-cached value hence not using cache in postgres.
-			# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
-			create_sequence(self.doctype, check_not_exists=True)
+			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
 			name_column = "name bigint primary key"
 
 		# TODO: set docstatus length
@@ -84,7 +79,7 @@ class PostgresTable(DBTable):
 		query = []
 
 		for col in self.add_column:
-			query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
+			query.append(f"ADD COLUMN `{col.fieldname}` {col.get_definition()}")
 
 		for col in self.change_type:
 			using_clause = ""
@@ -92,12 +87,12 @@ class PostgresTable(DBTable):
 				# The USING option of SET DATA TYPE can actually specify any expression
 				# involving the old values of the row
 				# read more https://www.postgresql.org/docs/9.1/sql-altertable.html
-				using_clause = "USING {}::timestamp without time zone".format(col.fieldname)
+				using_clause = f"USING {col.fieldname}::timestamp without time zone"
 			elif col.fieldtype in ("Check"):
-				using_clause = "USING {}::smallint".format(col.fieldname)
+				using_clause = f"USING {col.fieldname}::smallint"
 
 			query.append(
-				"ALTER COLUMN `{0}` TYPE {1} {2}".format(
+				"ALTER COLUMN `{}` TYPE {} {}".format(
 					col.fieldname,
 					get_definition(col.fieldtype, precision=col.precision, length=col.length),
 					using_clause,
@@ -118,9 +113,9 @@ class PostgresTable(DBTable):
 				col_default = "NULL"
 
 			else:
-				col_default = "{}".format(frappe.db.escape(col.default))
+				col_default = f"{frappe.db.escape(col.default)}"
 
-			query.append("ALTER COLUMN `{}` SET DEFAULT {}".format(col.fieldname, col_default))
+			query.append(f"ALTER COLUMN `{col.fieldname}` SET DEFAULT {col_default}")
 
 		create_contraint_query = ""
 		for col in self.add_index:
@@ -144,13 +139,13 @@ class PostgresTable(DBTable):
 			# primary key
 			if col.fieldname != "name":
 				# if index key exists
-				drop_contraint_query += 'DROP INDEX IF EXISTS "{}" ;'.format(col.fieldname)
+				drop_contraint_query += f'DROP INDEX IF EXISTS "{col.fieldname}" ;'
 
 		for col in self.drop_unique:
 			# primary key
 			if col.fieldname != "name":
 				# if index key exists
-				drop_contraint_query += 'DROP INDEX IF EXISTS "unique_{}" ;'.format(col.fieldname)
+				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
 		try:
 			if query:
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))

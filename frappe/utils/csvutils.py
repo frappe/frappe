@@ -29,16 +29,14 @@ def read_csv_content_from_attached_file(doc):
 	try:
 		_file = frappe.get_doc("File", fileid)
 		fcontent = _file.get_content()
-		return read_csv_content(fcontent, frappe.form_dict.get("ignore_encoding_errors"))
+		return read_csv_content(fcontent)
 	except Exception:
 		frappe.throw(
 			_("Unable to open attached file. Did you export it as CSV?"), title=_("Invalid CSV Format")
 		)
 
 
-def read_csv_content(fcontent, ignore_encoding=False):
-	rows = []
-
+def read_csv_content(fcontent):
 	if not isinstance(fcontent, str):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
@@ -190,7 +188,7 @@ def get_csv_content_from_google_sheets(url):
 	# remove /edit path
 	url = url.rsplit("/edit", 1)[0]
 	# add /export path,
-	url = url + "/export?format=csv&gid={0}".format(gid)
+	url = url + f"/export?format=csv&gid={gid}"
 
 	headers = {"Accept": "text/csv"}
 	response = requests.get(url, headers=headers)
@@ -215,7 +213,10 @@ def get_csv_content_from_google_sheets(url):
 
 
 def validate_google_sheets_url(url):
-	if "docs.google.com/spreadsheets" not in url:
+	from urllib.parse import urlparse
+
+	u = urlparse(url)
+	if u.scheme != "https" or u.netloc != "docs.google.com" or "/spreadsheets/" not in u.path:
 		frappe.throw(
 			_('"{0}" is not a valid Google Sheets URL').format(url),
 			title=_("Invalid URL"),

@@ -20,6 +20,8 @@ from frappe.utils import (
 	formatdate,
 )
 
+BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
+
 
 def format_value(value, df=None, doc=None, currency=None, translated=False, format=None):
 	"""Format value based on given fieldtype, document reference, currency reference.
@@ -94,10 +96,10 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return fmt_money(value, precision=precision, currency=currency)
 
 	elif df.get("fieldtype") == "Percent":
-		return "{}%".format(flt(value, 2))
+		return f"{flt(value, 2)}%"
 
 	elif df.get("fieldtype") in ("Text", "Small Text"):
-		if not re.search(r"(<br|<div|<p)", value):
+		if not BLOCK_TAGS_PATTERN.search(value):
 			return frappe.safe_decode(value).replace("\n", "<br>")
 
 	elif df.get("fieldtype") == "Markdown Editor":
@@ -119,7 +121,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return format_duration(value, hide_days)
 
 	elif df.get("fieldtype") == "Text Editor":
-		return "<div class='ql-snow'>{}</div>".format(value)
+		return f"<div class='ql-snow'>{value}</div>"
 
 	elif df.get("fieldtype") in ["Link", "Dynamic Link"]:
 		if not doc or not doc.get("__link_titles") or not df.options:
@@ -134,6 +136,6 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 			_field = meta.get_field(df.options)
 			doctype = _field.options
 
-		return doc.__link_titles.get("{0}::{1}".format(doctype, value), value)
+		return doc.__link_titles.get(f"{doctype}::{value}", value)
 
 	return value

@@ -56,7 +56,7 @@ def get_tagged_docs(doctype, tag):
 
 @frappe.whitelist()
 def get_tags(doctype, txt):
-	tag = frappe.get_list("Tag", filters=[["name", "like", "%{}%".format(txt)]])
+	tag = frappe.get_list("Tag", filters=[["name", "like", f"%{txt}%"]])
 	tags = [t.name for t in tag]
 
 	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
@@ -104,7 +104,7 @@ class DocTags:
 			tags = "," + ",".join(tl)
 		try:
 			frappe.db.sql(
-				"update `tab%s` set _user_tags=%s where name=%s" % (self.dt, "%s", "%s"), (tags, dn)
+				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
 			)
 			doc = frappe.get_doc(self.dt, dn)
 			update_tags(doc, tags)

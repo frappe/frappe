@@ -204,8 +204,8 @@ $level-margin-right: 8px;
 			border: 1px solid var(--dark-border-color);
 
 			&.btn-info {
-				background-color: var(--gray-400);
-				border-color: var(--gray-400);
+				background-color: var(--gray-600);
+				border-color: var(--gray-600);
 				color: var(--white);
 				font-weight: var(--text-bold);
 			}
@@ -401,7 +401,7 @@ input.list-check-all {
 	}
 
 	.filter-button.btn-primary-light {
-		color: var(--blue-500);
+		color: var(--text-on-blue);
 	}
 
 	.sort-selector {

@@ -17,11 +17,9 @@ def sync_fixtures(app=None):
 	frappe.flags.in_fixtures = True
 
 	for app in apps:
-		if os.path.exists(frappe.get_app_path(app, "fixtures")):
-			fixture_files = sorted(os.listdir(frappe.get_app_path(app, "fixtures")))
-			for fname in fixture_files:
-				if fname.endswith(".json"):
-					import_doc(frappe.get_app_path(app, "fixtures", fname))
+		fixtures_path = frappe.get_app_path(app, "fixtures")
+		if os.path.exists(fixtures_path):
+			import_doc(fixtures_path)
 
 		import_custom_scripts(app)
 
@@ -60,9 +58,7 @@ def export_fixtures(app=None):
 				filters = fixture.get("filters")
 				or_filters = fixture.get("or_filters")
 				fixture = fixture.get("doctype") or fixture.get("dt")
-			print(
-				"Exporting {0} app {1} filters {2}".format(fixture, app, (filters if filters else or_filters))
-			)
+			print(f"Exporting {fixture} app {app} filters {(filters if filters else or_filters)}")
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 

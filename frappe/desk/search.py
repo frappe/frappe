@@ -1,12 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import functools
 import json
 import re
 
-import wrapt
-
-# Search
 import frappe
 from frappe import _, is_whitelisted
 from frappe.permissions import has_permission
@@ -36,7 +34,7 @@ def sanitize_searchfield(searchfield):
 			_raise_exception(searchfield)
 
 		# to avoid and, or and like
-		elif any(" {0} ".format(keyword) in searchfield.split() for keyword in blacklisted_keywords):
+		elif any(f" {keyword} " in searchfield.split() for keyword in blacklisted_keywords):
 			_raise_exception(searchfield)
 
 		# to avoid select, delete, drop, update and case
@@ -168,7 +166,7 @@ def search_widget(
 							in ["Data", "Text", "Small Text", "Long Text", "Link", "Select", "Read Only", "Text Editor"]
 						)
 					):
-						or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
+						or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
 
 			if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
 				filters.append([doctype, "enabled", "=", 1])
@@ -179,7 +177,7 @@ def search_widget(
 			fields = get_std_fields_list(meta, searchfield or "name")
 			if filter_fields:
 				fields = list(set(fields + json.loads(filter_fields)))
-			formatted_fields = ["`tab%s`.`%s`" % (meta.name, f.strip()) for f in fields]
+			formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
 
 			title_field_query = get_title_field_query(meta)
 
@@ -199,7 +197,7 @@ def search_widget(
 
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			# 2 is the index of _relevance column
-			order_by = "_relevance, {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
+			order_by = f"_relevance, {order_by_based_on_meta}, `tab{doctype}`.idx desc"
 
 			ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 			ignore_permissions = (
@@ -272,7 +270,7 @@ def get_title_field_query(meta):
 	field = None
 
 	if title_field and show_title_field_in_link:
-		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
+		field = f"`tab{meta.name}`.{title_field} as `label`"
 
 	return field
 
@@ -314,17 +312,20 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).lower().startswith(query.lower()) is not True, value)
 
 
-@wrapt.decorator
-def validate_and_sanitize_search_inputs(fn, instance, args, kwargs):
-	kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
-	sanitize_searchfield(kwargs["searchfield"])
-	kwargs["start"] = cint(kwargs["start"])
-	kwargs["page_len"] = cint(kwargs["page_len"])
+def validate_and_sanitize_search_inputs(fn):
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+		sanitize_searchfield(kwargs["searchfield"])
+		kwargs["start"] = cint(kwargs["start"])
+		kwargs["page_len"] = cint(kwargs["page_len"])
 
-	if kwargs["doctype"] and not frappe.db.exists("DocType", kwargs["doctype"]):
-		return []
+		if kwargs["doctype"] and not frappe.db.exists("DocType", kwargs["doctype"]):
+			return []
 
-	return fn(**kwargs)
+		return fn(**kwargs)
+
+	return wrapper
 
 
 @frappe.whitelist()

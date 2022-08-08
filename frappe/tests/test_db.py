@@ -4,13 +4,16 @@
 import datetime
 import inspect
 import unittest
+from math import ceil
 from random import choice
 from unittest.mock import patch
 
 import frappe
+from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import savepoint
 from frappe.database.database import Database
+from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
@@ -19,6 +22,20 @@ from frappe.utils.testutils import clear_custom_fields
 
 
 class TestDB(unittest.TestCase):
+	def test_datetime_format(self):
+		now_str = now()
+		self.assertEqual(frappe.db.format_datetime(None), FallBackDateTimeStr)
+		self.assertEqual(frappe.db.format_datetime(now_str), now_str)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_get_column_type(self):
+		desc_data = frappe.db.sql("desc `tabUser`", as_dict=1)
+		user_name_type = find(desc_data, lambda x: x["Field"] == "name")["Type"]
+		self.assertEqual(frappe.db.get_column_type("User", "name"), user_name_type)
+
+	def test_get_database_size(self):
+		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
+
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")
@@ -86,8 +103,16 @@ class TestDB(unittest.TestCase):
 			frappe.db.get_values("User", filters=[["name", "=", "Administrator"]], fieldname="email"),
 		)
 
-	def test_get_value_limits(self):
+		# test multiple orderby's
+		delimiter = '"' if frappe.db.db_type == "postgres" else "`"
+		self.assertIn(
+			"ORDER BY {deli}creation{deli} DESC,{deli}modified{deli} ASC,{deli}name{deli} DESC".format(
+				deli=delimiter
+			),
+			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
+		)
 
+	def test_get_value_limits(self):
 		# check both dict and list style filters
 		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
 		for filter in filters:
@@ -109,7 +134,7 @@ class TestDB(unittest.TestCase):
 			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
 
 	def test_escape(self):
-		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
+		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
 
 	def test_get_single_value(self):
 		# setup
@@ -126,7 +151,7 @@ class TestDB(unittest.TestCase):
 		test_inputs = [
 			{"fieldtype": fieldtype, "value": value} for fieldtype, value in values_dict.items()
 		]
-		for fieldtype in values_dict.keys():
+		for fieldtype in values_dict:
 			create_custom_field(
 				"Print Settings",
 				{
@@ -172,10 +197,12 @@ class TestDB(unittest.TestCase):
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
-		create_custom_field("ToDo", {"label": "ToDo Custom Field"})
-
+		cf = create_custom_field("ToDo", {"label": "ToDo Custom Field"})
 		self.assertIn("tabToDo", frappe.flags.touched_tables)
 		self.assertIn("tabCustom Field", frappe.flags.touched_tables)
+		if cf:
+			cf.delete()
+		frappe.db.commit()
 		frappe.flags.in_migrate = False
 		frappe.flags.touched_tables.clear()
 
@@ -445,16 +472,100 @@ class TestDB(unittest.TestCase):
 
 		self.assertEqual(frappe.db.exists(dt, [["name", "=", dn]]), dn)
 
+	def test_bulk_insert(self):
+		current_count = frappe.db.count("ToDo")
+		test_body = f"test_bulk_insert - {random_string(10)}"
+		chunk_size = 10
+
+		for number_of_values in (1, 2, 5, 27):
+			current_transaction_writes = frappe.db.transaction_writes
+
+			frappe.db.bulk_insert(
+				"ToDo",
+				["name", "description"],
+				[[f"ToDo Test Bulk Insert {i}", test_body] for i in range(number_of_values)],
+				ignore_duplicates=True,
+				chunk_size=chunk_size,
+			)
+
+			# check that all records were inserted
+			self.assertEqual(number_of_values, frappe.db.count("ToDo") - current_count)
+
+			# check if inserts were done in chunks
+			expected_number_of_writes = ceil(number_of_values / chunk_size)
+			self.assertEqual(
+				expected_number_of_writes, frappe.db.transaction_writes - current_transaction_writes
+			)
+
+		frappe.db.delete("ToDo", {"description": test_body})
+
+	def test_count(self):
+		frappe.db.delete("Note")
+
+		frappe.get_doc(doctype="Note", title="note1", content="something").insert()
+		frappe.get_doc(doctype="Note", title="note2", content="someting else").insert()
+
+		# Count with no filtes
+		self.assertEqual((frappe.db.count("Note")), 2)
+
+		# simple filters
+		self.assertEqual((frappe.db.count("Note", ["title", "=", "note1"])), 1)
+
+		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
+
+		# List of list filters with tables
+		self.assertEqual(
+			(
+				frappe.db.count(
+					"Note",
+					[["Note", "title", "like", "note%"], ["Note", "content", "like", "some%"]],
+				)
+			),
+			3,
+		)
+
+		frappe.db.rollback()
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_query(self):
+		from frappe.database.postgres.database import modify_query
+
+		query = "select * from `tabtree b` where lft > 13 and rgt <= 16 and name =1.0 and parent = 4134qrsdc and isgroup = 1.00045"
+		self.assertEqual(
+			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
+			modify_query(query),
+		)
+
+		query = (
+			'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
+		)
+		self.assertEqual(
+			'select strpos( "frappe.io", ".io"), strpos( cast(3 as varchar), "3"), strpos( 3::varchar, "3")',
+			modify_query(query),
+		)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_modify_values(self):
+		from frappe.database.postgres.database import modify_values
+
+		self.assertEqual(
+			{"a": "23", "b": 23.0, "c": 23.0345, "d": "wow", "e": ("1", "2", "3", "abc")},
+			modify_values({"a": 23, "b": 23.0, "c": 23.0345, "d": "wow", "e": [1, 2, 3, "abc"]}),
+		)
+		self.assertEqual(
+			["23", 23.0, 23.00004345, "wow", ("1", "2", "3", "abc")],
+			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
+		)
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(unittest.TestCase):
 	test_table_name = "TestNotes"
 
 	def setUp(self) -> None:
-		frappe.db.commit()
-		frappe.db.sql(
+		frappe.db.sql_ddl(
 			f"""
-			CREATE TABLE `tab{self.test_table_name}` (`id` INT NULL, content TEXT, PRIMARY KEY (`id`));
+			CREATE TABLE IF NOT EXISTS `tab{self.test_table_name}` (`id` INT NULL, content TEXT, PRIMARY KEY (`id`));
 			"""
 		)
 
@@ -478,19 +589,25 @@ class TestDDLCommandsMaria(unittest.TestCase):
 		self.test_table_name = new_table_name
 
 	def test_describe(self) -> None:
-		self.assertEqual(
-			(
+		self.assertSequenceEqual(
+			[
 				("id", "int(11)", "NO", "PRI", None, ""),
 				("content", "text", "YES", "", None, ""),
-			),
+			],
 			frappe.db.describe(self.test_table_name),
 		)
 
 	def test_change_type(self) -> None:
+		def get_table_description():
+			return frappe.db.sql(f"DESC `tab{self.test_table_name}`")
+
+		# try changing from int to varchar
 		frappe.db.change_column_type("TestNotes", "id", "varchar(255)")
-		test_table_description = frappe.db.sql(f"DESC tab{self.test_table_name};")
-		self.assertGreater(len(test_table_description), 0)
-		self.assertIn("varchar(255)", test_table_description[0])
+		self.assertIn("varchar(255)", get_table_description()[0])
+
+		# try changing from varchar to bigint
+		frappe.db.change_column_type("TestNotes", "id", "bigint")
+		self.assertIn("bigint(20)", get_table_description()[0])
 
 	def test_add_index(self) -> None:
 		index_name = "test_index"
@@ -696,24 +813,37 @@ class TestDDLCommandsPost(unittest.TestCase):
 		self.test_table_name = new_table_name
 
 	def test_describe(self) -> None:
-		self.assertEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
+		self.assertSequenceEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
 
 	def test_change_type(self) -> None:
+		from psycopg2.errors import DatatypeMismatch
+
+		def get_table_description():
+			return frappe.db.sql(
+				f"""
+				SELECT
+					table_name,
+					column_name,
+					data_type
+				FROM
+					information_schema.columns
+				WHERE
+					table_name = 'tab{self.test_table_name}'"""
+			)
+
+		# try changing from int to varchar
 		frappe.db.change_column_type(self.test_table_name, "id", "varchar(255)")
-		check_change = frappe.db.sql(
-			f"""
-			SELECT
-				table_name,
-				column_name,
-				data_type
-			FROM
-				information_schema.columns
-			WHERE
-				table_name = 'tab{self.test_table_name}'
-			"""
-		)
-		self.assertGreater(len(check_change), 0)
-		self.assertIn("character varying", check_change[0])
+		self.assertIn("character varying", get_table_description()[0])
+
+		# try changing from varchar to int
+		try:
+			frappe.db.change_column_type(self.test_table_name, "id", "bigint")
+		except DatatypeMismatch:
+			frappe.db.rollback()
+
+		# try changing from varchar to int (using cast)
+		frappe.db.change_column_type(self.test_table_name, "id", "bigint", use_cast=True)
+		self.assertIn("bigint", get_table_description()[0])
 
 	def test_add_index(self) -> None:
 		index_name = "test_index"
@@ -727,34 +857,6 @@ class TestDDLCommandsPost(unittest.TestCase):
 			""",
 		)
 		self.assertEqual(len(indexs_in_table), 1)
-
-	@run_only_if(db_type_is.POSTGRES)
-	def test_modify_query(self):
-		from frappe.database.postgres.database import modify_query
-
-		query = "select * from `tabtree b` where lft > 13 and rgt <= 16 and name =1.0 and parent = 4134qrsdc and isgroup = 1.00045"
-		self.assertEqual(
-			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
-			modify_query(query),
-		)
-
-		query = (
-			'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
-		)
-		self.assertEqual(
-			'select strpos( "frappe.io", ".io"), strpos( cast(3 as varchar), "3"), strpos( 3::varchar, "3")',
-			modify_query(query),
-		)
-
-	@run_only_if(db_type_is.POSTGRES)
-	def test_modify_values(self):
-		from frappe.database.postgres.database import modify_values
-
-		self.assertEqual(
-			{"abcd": "23", "efgh": "23", "ijkl": 23.0345, "mnop": "wow"},
-			modify_values({"abcd": 23, "efgh": 23.0, "ijkl": 23.0345, "mnop": "wow"}),
-		)
-		self.assertEqual(["23", "23", 23.00004345, "wow"], modify_values((23, 23.0, 23.00004345, "wow")))
 
 	def test_sequence_table_creation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -777,3 +879,27 @@ class TestDDLCommandsPost(unittest.TestCase):
 			)
 
 		dt.delete(ignore_permissions=True)
+
+	def test_is(self):
+		user = frappe.qb.DocType("User")
+		self.assertIn(
+			"is not null", frappe.db.get_values(user, filters={user.name: ("is", "set")}, run=False).lower()
+		)
+		self.assertIn(
+			"is null", frappe.db.get_values(user, filters={user.name: ("is", "not set")}, run=False).lower()
+		)
+
+
+@run_only_if(db_type_is.POSTGRES)
+class TestTransactionManagement(unittest.TestCase):
+	def test_create_proper_transactions(self):
+		def _get_transaction_id():
+			return frappe.db.sql("select txid_current()", pluck=True)
+
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+		frappe.db.rollback()
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+		frappe.db.commit()
+		self.assertEqual(_get_transaction_id(), _get_transaction_id())

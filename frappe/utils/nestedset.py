@@ -10,13 +10,14 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
-from typing import Iterator
+from collections.abc import Iterator
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.query_builder import DocType, Order
+from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce, Max
+from frappe.query_builder.terms import SubQuery
 from frappe.query_builder.utils import DocType
 
 
@@ -336,14 +337,15 @@ class NestedSet(Document):
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
 	from frappe.query_builder.functions import Count
-	from frappe.query_builder.terms import subqry
 
 	Table = DocType(doctype)
 	t1 = Table.as_("t1")
 	t2 = Table.as_("t2")
 
-	subq = frappe.qb.from_(t2).select(Count("*")).where((t2.lft < t1.lft) & (t2.rgt > t1.rgt))
-	result = frappe.qb.from_(t1).select(t1.name).where((subqry(subq) == 0) & (t1.rgt > t1.lft)).run()
+	node_query = SubQuery(
+		frappe.qb.from_(t2).select(Count("*")).where((t2.lft < t1.lft) & (t2.rgt > t1.rgt))
+	)
+	result = frappe.qb.from_(t1).select(t1.name).where((node_query == 0) & (t1.rgt > t1.lft)).run()
 
 	return result[0][0] if result else None
 

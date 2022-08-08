@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import unittest
@@ -74,6 +73,16 @@ frappe.method_that_doesnt_exist("do some magic")
 frappe.db.commit()
 """,
 	),
+	dict(
+		name="test_add_index",
+		script_type="DocType Event",
+		doctype_event="Before Save",
+		reference_doctype="ToDo",
+		disabled=1,
+		script="""
+frappe.db.add_index("Todo", ["color", "date"])
+""",
+	),
 ]
 
 
@@ -143,6 +152,18 @@ class TestServerScript(unittest.TestCase):
 
 	def test_commit_in_doctype_event(self):
 		server_script = frappe.get_doc("Server Script", "test_todo_commit")
+		server_script.disabled = 0
+		server_script.save()
+
+		self.assertRaises(
+			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
+		)
+
+		server_script.disabled = 1
+		server_script.save()
+
+	def test_add_index_in_doctype_event(self):
+		server_script = frappe.get_doc("Server Script", "test_add_index")
 		server_script.disabled = 0
 		server_script.save()
 

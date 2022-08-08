@@ -13,6 +13,8 @@ from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
 
+HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
+
 
 def setup_global_search_table():
 	"""
@@ -68,9 +70,6 @@ def rebuild_for_doctype(doctype):
 	searchable fields
 	:param doctype: Doctype
 	"""
-	if frappe.local.conf.get("disable_global_search"):
-		return
-
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
@@ -221,12 +220,12 @@ def insert_values_for_multiple_docs(all_contents):
 			{
 				"mariadb": """INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {0} """.format(
+				VALUES {} """.format(
 					", ".join(batch_values)
 				),
 				"postgres": """INSERT INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {0}
+				VALUES {}
 				ON CONFLICT("name", "doctype") DO NOTHING""".format(
 					", ".join(batch_values)
 				),
@@ -360,7 +359,7 @@ def get_formatted_value(value, field):
 
 	if getattr(field, "fieldtype", None) in ["Text", "Text Editor"]:
 		value = unescape_html(frappe.safe_decode(value))
-		value = re.subn(r"(?s)<[\s]*(script|style).*?</\1>", "", str(value))[0]
+		value = HTML_TAGS_PATTERN.subn("", str(value))[0]
 		value = " ".join(value.split())
 	return field.label + " : " + strip_html_tags(str(value))
 
@@ -447,13 +446,13 @@ def search(text, start=0, limit=20, doctype=""):
 
 	allowed_doctypes = get_doctypes_for_global_search()
 
-	for text in set(text.split("&")):
-		text = text.strip()
-		if not text:
+	for word in set(text.split("&")):
+		word = word.strip()
+		if not word:
 			continue
 
 		global_search = frappe.qb.Table("__global_search")
-		rank = Match(global_search.content).Against(text).as_("rank")
+		rank = Match(global_search.content).Against(word).as_("rank")
 		query = (
 			frappe.qb.from_(global_search)
 			.select(global_search.doctype, global_search.name, global_search.content, rank)

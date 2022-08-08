@@ -16,7 +16,7 @@ class MetaTags:
 
 	def init_metatags_from_context(self):
 		for key in METATAGS:
-			if key not in self.tags and self.context.get(key):
+			if not self.tags.get(key) and self.context.get(key):
 				self.tags[key] = self.context[key]
 
 		if not self.tags.get("title"):

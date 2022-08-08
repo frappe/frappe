@@ -76,7 +76,7 @@ class ImproperDBConfigurationError(Exception):
 	def __init__(self, reason, msg=None):
 		if not msg:
 			msg = "MariaDb is not properly configured"
-		super(ImproperDBConfigurationError, self).__init__(msg)
+		super().__init__(msg)
 		self.reason = reason
 
 
@@ -263,3 +263,15 @@ class ExecutableNotFound(FileNotFoundError):
 
 class InvalidRemoteException(Exception):
 	pass
+
+
+class LinkExpired(ValidationError):
+	http_status_code = 410
+	title = "Link Expired"
+	message = "The link has expired"
+
+
+class InvalidKeyError(ValidationError):
+	http_status_code = 401
+	title = "Invalid Key"
+	message = "The document key is invalid"

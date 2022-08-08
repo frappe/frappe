@@ -13,6 +13,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cstr, format_duration
 
 
@@ -23,7 +24,7 @@ def get():
 	# If virtual doctype get data from controller het_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = compress(controller(args.doctype).get_list(args))
+		data = compress(controller.get_list(args))
 	else:
 		data = compress(execute(**args), args=args)
 	return data
@@ -36,7 +37,7 @@ def get_list():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller(args.doctype).get_list(args)
+		data = controller.get_list(args)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
@@ -51,7 +52,7 @@ def get_count():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller(args.doctype).get_count(args)
+		data = controller.get_count(args)
 	else:
 		distinct = "distinct " if args.distinct == "true" else ""
 		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
@@ -166,12 +167,12 @@ def setup_group_by(data):
 
 
 def raise_invalid_field(fieldname):
-	frappe.throw(_("Field not permitted in query") + ": {0}".format(fieldname), frappe.DataError)
+	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
 def is_standard(fieldname):
 	if "." in fieldname:
-		parenttype, fieldname = get_parenttype_and_fieldname(fieldname, None)
+		fieldname = fieldname.split(".")[1].strip("`")
 	return (
 		fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 	)
@@ -224,7 +225,7 @@ def parse_json(data):
 	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
 	if isinstance(data.get("fields"), str):
-		data["fields"] = json.loads(data["fields"])
+		data["fields"] = ["*"] if data["fields"] == "*" else json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
 	if isinstance(data.get("save_user_settings"), str):
@@ -235,7 +236,16 @@ def parse_json(data):
 
 def get_parenttype_and_fieldname(field, data):
 	if "." in field:
-		parenttype, fieldname = field.split(".")[0][4:-1], field.split(".")[1].strip("`")
+		parts = field.split(".")
+		parenttype = parts[0]
+		fieldname = parts[1]
+		if parenttype.startswith("`tab"):
+			# `tabChild DocType`.`fieldname`
+			parenttype = parenttype[4:-1]
+			fieldname = fieldname.strip("`")
+		else:
+			# tablefield.fieldname
+			parenttype = frappe.get_meta(data.doctype).get_field(parenttype).options
 	else:
 		parenttype = data.doctype
 		fieldname = field.strip("`")
@@ -262,7 +272,7 @@ def compress(data, args=None):
 		values.append(new_row)
 
 		# add user info for assignments (avatar)
-		if row._assign:
+		if row.get("_assign", ""):
 			for user in json.loads(row._assign):
 				add_user_info(user, user_info)
 
@@ -518,7 +528,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
-		data = controller(doctype).get_stats(args)
+		data = controller.get_stats(args)
 	else:
 		data = get_stats(stats, doctype, filters)
 
@@ -674,8 +684,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 	)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
-	else:
-		return match_conditions
+	return match_conditions
 
 
 def get_filters_cond(
@@ -722,7 +731,3 @@ def get_filters_cond(
 	else:
 		cond = ""
 	return cond
-
-
-def is_virtual_doctype(doctype):
-	return frappe.db.get_value("DocType", doctype, "is_virtual")

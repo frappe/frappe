@@ -10,6 +10,9 @@ concurrency:
   group: ui-develop-${{ github.event.number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,27 +21,35 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       containers: [1, 2]
+       containers: [1, 2, 3]
 
     name: UI Tests (Cypress)
 
     services:
-      mysql:
-        image: mariadb:10.3
+      mariadb:
+        image: mariadb:10.6
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: YES
+          MARIADB_ROOT_PASSWORD: travis
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
+
+      - name: Check for valid Python & Merge Conflicts
+        run: |
+          python -m compileall -f "${GITHUB_WORKSPACE}"
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
+              then echo "Found merge conflicts"
+              exit 1
+          fi
 
       - name: Check if build should be run
         id: check-build
@@ -49,10 +60,10 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         with:
-          node-version: 14
+          node-version: 16
           check-latest: true
 
       - name: Add to Hosts
@@ -63,17 +74,17 @@ jobs:
 
       - name: Cache pip
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
           restore-keys: |
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
 
       - name: Cache node modules
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
@@ -89,7 +100,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
@@ -100,7 +111,7 @@ jobs:
 
       - name: Cache cypress binary
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache
           key: ${{ runner.os }}-cypress-
@@ -110,18 +121,14 @@ jobs:
 
       - name: Install Dependencies
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: ui
-
-      - name: Install
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
-        env:
           DB: mariadb
-          TYPE: ui
 
       - name: Instrument Source Code
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -155,7 +162,7 @@ jobs:
 
       - name: Upload Coverage Data
         if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           name: Cypress
           fail_ci_if_error: true
@@ -165,10 +172,14 @@ jobs:
 
       - name: Upload Server Coverage Data
         if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           name: MariaDB
           fail_ci_if_error: true
           files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
           flags: server
+
+      - name: Show bench console if tests failed
+        if: ${{ failure() }}
+        run: cat ~/frappe-bench/bench_start.log

@@ -159,12 +159,12 @@ class SiteMigration:
 		"""Run Migrate operation on site specified. This method initializes
 		and destroys connections to the site database.
 		"""
-		if not self.required_services_running():
-			raise SystemExit(1)
-
 		if site:
 			frappe.init(site=site)
 			frappe.connect()
+
+		if not self.required_services_running():
+			raise SystemExit(1)
 
 		self.setUp()
 		try:

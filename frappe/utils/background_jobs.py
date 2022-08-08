@@ -3,7 +3,7 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import List
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import redis
@@ -19,8 +19,11 @@ from frappe.utils import cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.redis_queue import RedisQueue
 
+if TYPE_CHECKING:
+	from rq.job import Job
 
-@lru_cache()
+
+@lru_cache
 def get_queues_timeout():
 	common_site_config = frappe.get_conf()
 	custom_workers_config = common_site_config.get("workers", {})
@@ -52,7 +55,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-):
+) -> "Job":
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -163,7 +166,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.log_error(title=method_name)
 			raise
 
-	except:
+	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(title=method_name)
 		frappe.db.commit()
@@ -174,6 +177,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.db.commit()
 
 	finally:
+		# background job hygiene: release file locks if unreleased
+		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
+		for doc in frappe.local.locked_documents:
+			doc.unlock()
+
 		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
@@ -222,8 +230,8 @@ def get_jobs(site=None, queue=None, key="method"):
 			# optional keyword arguments are stored in 'kwargs' of 'kwargs'
 			jobs_per_site[job.kwargs["site"]].append(job.kwargs["kwargs"][key])
 
-	for queue in get_queue_list(queue):
-		q = get_queue(queue)
+	for _queue in get_queue_list(queue):
+		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
 			if job.kwargs.get("site"):
@@ -287,6 +295,7 @@ def validate_queue(queue, default_queue_list=None):
 	retry=retry_if_exception_type(BusyLoadingError) | retry_if_exception_type(ConnectionError),
 	stop=stop_after_attempt(10),
 	wait=wait_fixed(1),
+	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
 	if not hasattr(frappe.local, "conf"):
@@ -325,7 +334,7 @@ def get_redis_conn(username=None, password=None):
 	return redis_connection
 
 
-def get_queues() -> List[Queue]:
+def get_queues() -> list[Queue]:
 	"""Get all the queues linked to the current bench."""
 	queues = Queue.all(connection=get_redis_conn())
 	return [q for q in queues if is_queue_accessible(q)]

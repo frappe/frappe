@@ -6,7 +6,6 @@ import unittest
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 from random import choice, sample
-from typing import List
 from unittest.mock import patch
 
 import frappe
@@ -23,7 +22,7 @@ from frappe.utils import add_to_date, now
 
 
 @contextmanager
-def patch_db(endpoints: List[str] = None):
+def patch_db(endpoints: list[str] = None):
 	patched_endpoints = []
 
 	for point in endpoints:
@@ -59,7 +58,7 @@ class TestRenameDoc(unittest.TestCase):
 				{
 					"doctype": self.test_doctype,
 					"date": add_to_date(now(), days=num),
-					"description": "this is todo #{}".format(num),
+					"description": f"this is todo #{num}",
 				}
 			).insert()
 			self.available_documents.append(doc.name)
@@ -100,14 +99,29 @@ class TestRenameDoc(unittest.TestCase):
 				frappe.delete_doc("DocType", dt)
 				frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{dt}`")
 
-		frappe.delete_doc_if_exists("Renamed Doc", "ToDo")
-
 		# reset original value of developer_mode conf
 		frappe.conf.developer_mode = self._original_developer_flag
 
 	def setUp(self):
 		frappe.flags.link_fields = {}
+		if self._testMethodName == "test_doc_rename_method":
+			self.property_setter = frappe.get_doc(
+				{
+					"doctype": "Property Setter",
+					"doctype_or_field": "DocType",
+					"doc_type": self.test_doctype,
+					"property": "allow_rename",
+					"property_type": "Check",
+					"value": "1",
+				}
+			).insert()
+
 		super().setUp()
+
+	def tearDown(self) -> None:
+		if self._testMethodName == "test_doc_rename_method":
+			self.property_setter.delete()
+		return super().tearDown()
 
 	def test_rename_doc(self):
 		"""Rename an existing document via frappe.rename_doc"""
@@ -247,3 +261,12 @@ class TestRenameDoc(unittest.TestCase):
 
 			update_linked_doctypes("User", "ToDo", "str", "str")
 			self.assertTrue("Function frappe.model.rename_doc.update_linked_doctypes" in stdout.getvalue())
+
+	def test_doc_rename_method(self):
+		name = choice(self.available_documents)
+		new_name = f"{name}-{frappe.generate_hash(length=4)}"
+		doc = frappe.get_doc(self.test_doctype, name)
+		doc.rename(new_name, merge=frappe.db.exists(self.test_doctype, new_name))
+		self.assertEqual(doc.name, new_name)
+		self.available_documents.append(new_name)
+		self.available_documents.remove(name)

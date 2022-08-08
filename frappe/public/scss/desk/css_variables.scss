@@ -1,7 +1,5 @@
 @import '../common/css_variables.scss';
 
-$input-height: 28px !default;
-
 :root,
 [data-theme="light"] {
 	// breakpoints
@@ -30,10 +28,6 @@ $input-height: 28px !default;
 	// page
 	--page-head-height: 75px;
 	--page-bottom-margin: 60px;
-
-	// input
-	--input-height: #{$input-height};
-	--input-disabled-bg: var(--gray-200);
 
 	// checkbox
 	--checkbox-right-margin: var(--margin-xs);

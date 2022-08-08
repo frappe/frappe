@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 from email.utils import formataddr
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.share
@@ -284,7 +284,7 @@ def get_fullname_and_avatar(user: str) -> _dict:
 	)
 
 
-def get_system_managers(only_name: bool = False) -> List[str]:
+def get_system_managers(only_name: bool = False) -> list[str]:
 	"""returns all system manager's user details"""
 	HasRole = DocType("Has Role")
 	User = DocType("User")
@@ -297,7 +297,7 @@ def get_system_managers(only_name: bool = False) -> List[str]:
 	system_managers = (
 		frappe.qb.from_(User)
 		.join(HasRole)
-		.on((HasRole.parent == User.name))
+		.on(HasRole.parent == User.name)
 		.where(
 			(HasRole.parenttype == "User")
 			& (User.enabled == 1)
@@ -322,8 +322,8 @@ def add_role(user: str, role: str) -> None:
 
 def add_system_manager(
 	email: str,
-	first_name: Optional[str] = None,
-	last_name: Optional[str] = None,
+	first_name: str | None = None,
+	last_name: str | None = None,
 	send_welcome_email: bool = False,
 	password: str = None,
 ) -> "User":
@@ -359,7 +359,7 @@ def add_system_manager(
 	return user
 
 
-def get_enabled_system_users() -> List[Dict]:
+def get_enabled_system_users() -> list[dict]:
 	return frappe.get_all(
 		"User",
 		fields=["email", "language", "name"],
@@ -371,11 +371,11 @@ def get_enabled_system_users() -> List[Dict]:
 	)
 
 
-def is_website_user(username: Optional[str] = None) -> Optional[str]:
+def is_website_user(username: str | None = None) -> str | None:
 	return frappe.db.get_value("User", username or frappe.session.user, "user_type") == "Website User"
 
 
-def is_system_user(username: Optional[str] = None) -> Optional[str]:
+def is_system_user(username: str | None = None) -> str | None:
 	return frappe.db.get_value(
 		"User",
 		{
@@ -386,7 +386,7 @@ def is_system_user(username: Optional[str] = None) -> Optional[str]:
 	)
 
 
-def get_users() -> List[Dict]:
+def get_users() -> list[dict]:
 	from frappe.core.doctype.user.user import get_system_users
 
 	users = []
@@ -404,7 +404,7 @@ def get_users() -> List[Dict]:
 	return users
 
 
-def get_users_with_role(role: str) -> List[str]:
+def get_users_with_role(role: str) -> list[str]:
 	User = DocType("User")
 	HasRole = DocType("Has Role")
 

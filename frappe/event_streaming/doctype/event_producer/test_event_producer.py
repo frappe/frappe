@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
@@ -8,6 +7,8 @@ import frappe
 from frappe.core.doctype.user.user import generate_keys
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
 from frappe.frappeclient import FrappeClient
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 
 producer_url = "http://test_site_producer:8000"
 
@@ -51,7 +52,9 @@ class TestEventProducer(unittest.TestCase):
 		self.pull_producer_data()
 		self.assertFalse(frappe.db.exists("ToDo", producer_doc.name))
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_doctypes_sync(self):
+		# TODO: This test is extremely flaky with Postgres. Rewrite this!
 		producer = get_remote_site()
 
 		# insert todo and note in producer

@@ -3,10 +3,9 @@
 
 from collections import Counter
 from email.utils import getaddresses
-from typing import List
 from urllib.parse import unquote
 
-from parse import compile
+from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -20,7 +19,6 @@ from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
 from frappe.model.document import Document
 from frappe.utils import (
-	cstr,
 	parse_addr,
 	split_emails,
 	strip_html,
@@ -146,13 +144,11 @@ class Communication(Document, CommunicationEmailMixin):
 		if not self.content:
 			return
 
-		quill_parser = compile('<div class="ql-editor read-mode">{}</div>')
-		email_body = quill_parser.parse(self.content)
+		soup = BeautifulSoup(self.content, "html.parser")
+		email_body = soup.find("div", {"class": "ql-editor read-mode"})
 
 		if not email_body:
 			return
-
-		email_body = email_body[0]
 
 		user_email_signature = (
 			frappe.db.get_value(
@@ -173,7 +169,11 @@ class Communication(Document, CommunicationEmailMixin):
 		if not signature:
 			return
 
-		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
+		soup = BeautifulSoup(signature, "html.parser")
+		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
+		_signature = None
+		if html_signature:
+			_signature = html_signature.renderContents()
 
 		if (_signature or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
@@ -207,7 +207,7 @@ class Communication(Document, CommunicationEmailMixin):
 		"""
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
 		if exclude_displayname:
-			return [email.lower() for email in set([parse_addr(email)[1] for email in emails]) if email]
+			return [email.lower() for email in {parse_addr(email)[1] for email in emails} if email]
 		return [email.lower() for email in set(emails) if email]
 
 	def to_list(self, exclude_displayname=True):
@@ -232,7 +232,7 @@ class Communication(Document, CommunicationEmailMixin):
 
 	def notify_change(self, action):
 		frappe.publish_realtime(
-			"update_docinfo_for_{}_{}".format(self.reference_doctype, self.reference_name),
+			f"update_docinfo_for_{self.reference_doctype}_{self.reference_name}",
 			{"doc": self.as_dict(), "key": "communications", "action": action},
 			after_commit=True,
 		)
@@ -428,7 +428,7 @@ def get_permission_query_conditions_for_communication(user):
 		)
 
 
-def get_contacts(email_strings: List[str], auto_create_contact=False) -> List[str]:
+def get_contacts(email_strings: list[str], auto_create_contact=False) -> list[str]:
 	email_addrs = get_emails(email_strings)
 	contacts = []
 	for email in email_addrs:
@@ -440,9 +440,7 @@ def get_contacts(email_strings: List[str], auto_create_contact=False) -> List[st
 			first_name = frappe.unscrub(email_parts[0])
 
 			try:
-				contact_name = (
-					"{0}-{1}".format(first_name, email_parts[1]) if first_name == "Contact" else first_name
-				)
+				contact_name = f"{first_name}-{email_parts[1]}" if first_name == "Contact" else first_name
 				contact = frappe.get_doc(
 					{"doctype": "Contact", "first_name": contact_name, "name": contact_name}
 				)
@@ -450,8 +448,7 @@ def get_contacts(email_strings: List[str], auto_create_contact=False) -> List[st
 				contact.insert(ignore_permissions=True)
 				contact_name = contact.name
 			except Exception:
-				traceback = frappe.get_traceback()
-				frappe.log_error(traceback)
+				contact.log_error("Unable to add contact")
 
 		if contact_name:
 			contacts.append(contact_name)
@@ -459,7 +456,7 @@ def get_contacts(email_strings: List[str], auto_create_contact=False) -> List[st
 	return contacts
 
 
-def get_emails(email_strings: List[str]) -> List[str]:
+def get_emails(email_strings: list[str]) -> list[str]:
 	email_addrs = []
 
 	for email_string in email_strings:
@@ -526,7 +523,7 @@ def get_email_without_link(email):
 	except IndexError:
 		return email
 
-	return "{0}@{1}".format(email_id, email_host)
+	return f"{email_id}@{email_host}"
 
 
 def update_parent_document_on_communication(doc):

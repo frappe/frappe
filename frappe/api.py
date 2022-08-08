@@ -167,7 +167,7 @@ def validate_auth():
 	"""
 	Authenticate and sets user for the request.
 	"""
-	authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
+	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
 
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)

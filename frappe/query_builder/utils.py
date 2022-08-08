@@ -1,6 +1,6 @@
 from enum import Enum
 from importlib import import_module
-from typing import Any, Callable, Dict, Union, get_type_hints
+from typing import Any, Callable, get_type_hints
 
 from pypika import Query
 from pypika.queries import Column
@@ -18,7 +18,7 @@ class db_type_is(Enum):
 
 
 class ImportMapper:
-	def __init__(self, func_map: Dict[db_type_is, Callable]) -> None:
+	def __init__(self, func_map: dict[db_type_is, Callable]) -> None:
 		self.func_map = func_map
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
@@ -31,7 +31,7 @@ class BuilderIdentificationFailed(Exception):
 		super().__init__("Couldn't guess builder")
 
 
-def get_query_builder(type_of_db: str) -> Union[Postgres, MariaDB]:
+def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	"""[return the query builder object]
 
 	Args:
@@ -45,6 +45,12 @@ def get_query_builder(type_of_db: str) -> Union[Postgres, MariaDB]:
 	return picks[db]
 
 
+def get_qb_engine():
+	from frappe.database.query import Engine
+
+	return Engine()
+
+
 def get_attr(method_string):
 	modulename = ".".join(method_string.split(".")[:-1])
 	methodname = method_string.split(".")[-1]
@@ -55,12 +61,15 @@ def DocType(*args, **kwargs):
 	return frappe.qb.DocType(*args, **kwargs)
 
 
+def Table(*args, **kwargs):
+	return frappe.qb.Table(*args, **kwargs)
+
+
 def patch_query_execute():
 	"""Patch the Query Builder with helper execute method
 	This excludes the use of `frappe.db.sql` method while
 	executing the query object
 	"""
-	from frappe.utils.safe_exec import check_safe_sql_query
 
 	def execute_query(query, *args, **kwargs):
 		query, params = prepare_query(query)
@@ -68,6 +77,8 @@ def patch_query_execute():
 
 	def prepare_query(query):
 		import inspect
+
+		from frappe.utils.safe_exec import check_safe_sql_query
 
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
@@ -99,6 +110,7 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
+	frappe._qb_patched[frappe.conf.db_type] = True
 
 
 def patch_query_aggregation():
@@ -109,3 +121,4 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
+	frappe._qb_patched[frappe.conf.db_type] = True

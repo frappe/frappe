@@ -19,5 +19,5 @@ frappe.ui.form.on("Module Profile", {
 		if (frm.module_editor) {
 			frm.module_editor.set_modules_in_table();
 		}
-	}
+	},
 });

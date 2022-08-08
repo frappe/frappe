@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import unittest
@@ -9,4 +8,8 @@ import frappe
 
 
 class TestErrorLog(unittest.TestCase):
-	pass
+	def test_error_log(self):
+		"""let's do an error log on error log?"""
+		doc = frappe.new_doc("Error Log")
+		error = doc.log_error("This is an error")
+		self.assertEqual(error.doctype, "Error Log")

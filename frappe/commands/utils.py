@@ -387,7 +387,7 @@ def import_doc(context, path, force=False):
 	if not os.path.exists(path):
 		path = os.path.join("..", path)
 	if not os.path.exists(path):
-		print("Invalid path {0}".format(path))
+		print(f"Invalid path {path}")
 		sys.exit(1)
 
 	for site in context.sites:
@@ -471,7 +471,7 @@ def bulk_rename(context, doctype, path):
 
 	site = get_site(context)
 
-	with open(path, "r") as csvfile:
+	with open(path) as csvfile:
 		rows = read_csv_content(csvfile.read())
 
 	frappe.init(site=site)
@@ -523,22 +523,24 @@ def postgres(context):
 
 
 def _mariadb():
+	from frappe.database.mariadb.database import MariaDBDatabase
+
 	mysql = find_executable("mysql")
-	os.execv(
+	command = [
 		mysql,
-		[
-			mysql,
-			"-u",
-			frappe.conf.db_name,
-			"-p" + frappe.conf.db_password,
-			frappe.conf.db_name,
-			"-h",
-			frappe.conf.db_host or "localhost",
-			"--pager=less -SFX",
-			"--safe-updates",
-			"-A",
-		],
-	)
+		"--port",
+		frappe.conf.db_port or MariaDBDatabase.default_port,
+		"-u",
+		frappe.conf.db_name,
+		f"-p{frappe.conf.db_password}",
+		frappe.conf.db_name,
+		"-h",
+		frappe.conf.db_host or "localhost",
+		"--pager=less -SFX",
+		"--safe-updates",
+		"-A",
+	]
+	os.execv(mysql, command)
 
 
 def _psql():
@@ -566,7 +568,7 @@ def jupyter(context):
 	try:
 		os.stat(jupyter_notebooks_path)
 	except OSError:
-		print("Creating folder to keep jupyter notebooks at {}".format(jupyter_notebooks_path))
+		print(f"Creating folder to keep jupyter notebooks at {jupyter_notebooks_path}")
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath("../env/bin")
 	print(
@@ -585,9 +587,9 @@ frappe.db.connect()
 		)
 	)
 	os.execv(
-		"{0}/jupyter".format(bin_path),
+		f"{bin_path}/jupyter",
 		[
-			"{0}/jupyter".format(bin_path),
+			f"{bin_path}/jupyter",
 			"notebook",
 			jupyter_notebooks_path,
 		],
@@ -730,6 +732,7 @@ def transform_database(context, table, engine, row_format, failfast):
 @click.command("run-tests")
 @click.option("--app", help="For App")
 @click.option("--doctype", help="For DocType")
+@click.option("--module-def", help="For all Doctypes in Module Def")
 @click.option("--case", help="Select particular TestCase")
 @click.option(
 	"--doctype-list-path",
@@ -754,6 +757,7 @@ def run_tests(
 	app=None,
 	module=None,
 	doctype=None,
+	module_def=None,
 	test=(),
 	profile=False,
 	coverage=False,
@@ -778,7 +782,7 @@ def run_tests(
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)
 			click.secho("You can enable tests by entering following command:")
-			click.secho("bench --site {0} set-config allow_tests true".format(site), fg="green")
+			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
 		frappe.init(site=site)
@@ -790,6 +794,7 @@ def run_tests(
 			app,
 			module,
 			doctype,
+			module_def,
 			context.verbose,
 			tests=tests,
 			force=context.force,
@@ -856,6 +861,8 @@ def run_ui_tests(
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = f"{node_bin}/cypress"
 	plugin_path = f"{node_bin}/../cypress-file-upload"
+	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
+	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
 	testing_library_path = f"{node_bin}/../@testing-library"
 	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
 
@@ -863,15 +870,24 @@ def run_ui_tests(
 	if not (
 		os.path.exists(cypress_path)
 		and os.path.exists(plugin_path)
+		and os.path.exists(drag_drop_plugin_path)
+		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
-		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
-		# install cypress
+		# install cypress & dependent plugins
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+		packages = " ".join(
+			[
+				"cypress@^6",
+				"cypress-file-upload@^5",
+				"@4tw/cypress-drag-drop@^2",
+				"cypress-real-events",
+				"@testing-library/cypress@^8",
+				"@cypress/code-coverage@^3",
+			]
 		)
+		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
 
 	# run for headless mode
 	run_or_open = "run --browser chrome --record" if headless else "open"
@@ -948,7 +964,7 @@ def request(context, args=None, path=None):
 				if args.startswith("/api/method"):
 					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
 			elif path:
-				with open(os.path.join("..", path), "r") as f:
+				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
 
 				frappe.local.form_dict = frappe._dict(args)
@@ -1024,6 +1040,7 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 def get_version(output):
 	"""Show the versions of all the installed apps."""
 	from git import Repo
+	from git.exc import InvalidGitRepositoryError
 
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
@@ -1034,12 +1051,16 @@ def get_version(output):
 	for app in sorted(frappe.get_all_apps()):
 		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
-		repo = Repo(frappe.get_app_path(app, ".."))
 
 		app_info = frappe._dict()
+
+		try:
+			app_info.commit = Repo(frappe.get_app_path(app, "..")).head.object.hexsha[:7]
+		except InvalidGitRepositoryError:
+			app_info.commit = ""
+
 		app_info.app = app
 		app_info.branch = get_app_branch(app)
-		app_info.commit = repo.head.object.hexsha[:7]
 		app_info.version = getattr(app_hooks, f"{app_info.branch}_version", None) or module.__version__
 
 		data.append(app_info)

@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 from contextlib import suppress
-from typing import Dict, Optional
 
 import frappe
 from frappe import _
@@ -16,16 +15,16 @@ def get_monthly_results(
 	goal_doctype: str,
 	goal_field: str,
 	date_col: str,
-	filters: Dict,
+	filters: dict,
 	aggregation: str = "sum",
-) -> Dict:
+) -> dict:
 	"""Get monthly aggregation values for given field of doctype"""
 
 	Table = DocType(goal_doctype)
 	date_format = "%m-%Y" if frappe.db.db_type != "postgres" else "MM-YYYY"
 
 	return dict(
-		frappe.db.query.build_conditions(table=goal_doctype, filters=filters)
+		frappe.qb.engine.build_conditions(table=goal_doctype, filters=filters)
 		.select(
 			DateFormat(Table[date_col], date_format).as_("month_year"),
 			Function(aggregation, goal_field),
@@ -49,8 +48,8 @@ def get_monthly_goal_graph_data(
 	date_field: str,
 	filter_str: str = None,
 	aggregation: str = "sum",
-	filters: Optional[Dict] = None,
-) -> Dict:
+	filters: dict | None = None,
+) -> dict:
 	"""
 	Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
 

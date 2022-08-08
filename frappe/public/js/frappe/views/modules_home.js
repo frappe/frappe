@@ -1,6 +1,6 @@
-import Modules from './components/Modules.vue';
+import Modules from "./components/Modules.vue";
 
-frappe.provide('frappe.modules');
+frappe.provide("frappe.modules");
 
 frappe.modules.Home = class {
 	constructor({ parent }) {
@@ -10,11 +10,11 @@ frappe.modules.Home = class {
 		this.make_body();
 	}
 	make_body() {
-		this.$modules_container = this.$parent.find('.layout-main');
+		this.$modules_container = this.$parent.find(".layout-main");
 
 		new Vue({
 			el: this.$modules_container[0],
-			render: h => h(Modules)
+			render: (h) => h(Modules),
 		});
 	}
 	setup_header() {

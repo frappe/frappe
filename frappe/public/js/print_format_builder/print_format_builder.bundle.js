@@ -15,12 +15,9 @@ class PrintFormatBuilder {
 		this.page.set_primary_action(__("Save"), () => {
 			this.$component.$store.save_changes();
 		});
-		let $toggle_preview_btn = this.page.add_button(
-			__("Show Preview"),
-			() => {
-				this.$component.toggle_preview();
-			}
-		);
+		let $toggle_preview_btn = this.page.add_button(__("Show Preview"), () => {
+			this.$component.toggle_preview();
+		});
 		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
 			this.$component.$store.reset_changes()
 		);
@@ -33,16 +30,16 @@ class PrintFormatBuilder {
 
 		let $vm = new Vue({
 			el: this.$wrapper.get(0),
-			render: h =>
+			render: (h) =>
 				h(PrintFormatBuilderComponent, {
 					props: {
-						print_format_name: print_format
-					}
-				})
+						print_format_name: print_format,
+					},
+				}),
 		});
 		this.$component = $vm.$children[0];
 		let store = getStore(print_format);
-		store.$watch("dirty", value => {
+		store.$watch("dirty", (value) => {
 			if (value) {
 				this.page.set_indicator("Not Saved", "orange");
 				$toggle_preview_btn.hide();
@@ -53,10 +50,8 @@ class PrintFormatBuilder {
 				$reset_changes_btn.hide();
 			}
 		});
-		this.$component.$watch("show_preview", value => {
-			$toggle_preview_btn.text(
-				value ? __("Hide Preview") : __("Show Preview")
-			);
+		this.$component.$watch("show_preview", (value) => {
+			$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
 		});
 	}
 }

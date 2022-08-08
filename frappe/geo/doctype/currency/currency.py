@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe import _, throw
 from frappe.model.document import Document
 
 

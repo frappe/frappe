@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -57,7 +56,7 @@ class EnergyPointRule(Document):
 						self.apply_only_once,
 					)
 			except Exception as e:
-				frappe.log_error(frappe.get_traceback(), "apply_energy_point")
+				self.log_error("Energy points failed")
 
 	def rule_condition_satisfied(self, doc):
 		if self.for_doc_event == "New":

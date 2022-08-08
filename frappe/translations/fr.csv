@@ -418,8 +418,9 @@ Also adding the dependent currency field {0},Ajout également du champ de devise
 "Always add ""Draft"" Heading for printing draft documents","Toujours ajouter ""Brouillon"" pour l'impression des documents brouillons",
 Always use Account's Email Address as Sender,Toujours utiliser l'adresse Email du compte comme Expéditeur,
 Always use Account's Name as Sender's Name,Toujours utiliser le nom du compte comme nom de l&#39;expéditeur,
-Amend,Modifier,
-Amending,Modification,
+Amend,Nouv. version
+amend,Nouv. version
+Amending,Nouv. version en cours,
 Amount Based On Field,Montant Basé sur le Champ,
 Amount Field,Champ du Montant,
 Amount must be greater than 0.,Le montant doit être supérieur à 0.,
@@ -799,9 +800,9 @@ DESC,DESC,
 Daily Event Digest is sent for Calendar Events where reminders are set.,Un Récapitulatif Quotidien est envoyé pour les Événements du Calendrier ayant des rappels.,
 Danger,Danger,
 Dark Color,Couleur sombre,
-Dashboard Chart,Tableau de bord,
-Dashboard Chart Link,Lien de tableau de bord,
-Dashboard Chart Source,Source du graphique du tableau de bord,
+Dashboard Chart,Tableau de bord - indicateur,
+Dashboard Chart Link,Lien de tableau de bord - indicateur,
+Dashboard Chart Source,Source du graphique du tableau de bord - indicateur,
 Dashboard Name,Nom du tableau de bord,
 Dashboards,Tableaux de bord,
 Data,Données,
@@ -1100,7 +1101,7 @@ File not attached,Fichier joint manquant,
 File size exceeded the maximum allowed size of {0} MB,La taille du fichier a dépassé la taille maximale autorisée de {0} Mo,
 File too big,Fichier trop grand,
 File {0} does not exist,Fichier {0} n'existe pas,
-Files,Des dossiers,
+Files,Fichiers,
 Filter,Filtre,
 Filter Data,Filtrer les Données,
 Filter List,Liste de filtres,
@@ -1145,7 +1146,7 @@ For Document Type,Pour le type de document,
 For User,Pour l\'Utilisateur,
 For Value,Pour la Valeur,
 "For currency {0}, the minimum transaction amount should be {1}","Pour la devise {0}, le montant minimum de la transaction doit être {1}",
-For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Par exemple, si vous annulez et modifiez le document INV004, il deviendra un nouveau document INV004-1. Cela vous aide à garder une trace de chaque modification.",
+For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Par exemple, si vous annulez et creer une nouvelle version le document INV004, il deviendra un nouveau document INV004-1. Cela vous aide à garder une trace de chaque modification.",
 "For example: If you want to include the document ID, use {0}","Par exemple: Si vous voulez inclure l'ID du document, utilisez {0}",
 "For updating, you can update only selective columns.","Pour la mise à jour, vous pouvez mettre à jour uniquement une sélection colonnes.",
 For {0} at level {1} in {2} in row {3},Pour {0} au niveau {1} dans {2} à la ligne {3},
@@ -1541,7 +1542,7 @@ Max Value,Valeur Max,
 Max width for type Currency is 100px in row {0},Largeur max pour le type Devise est 100px dans la ligne {0},
 Maximum Attachment Limit for this record reached.,Taille maximale des Pièces Jointes pour cet enregistrement est atteint.,
 Maximum {0} rows allowed,Maximum {0} lignes autorisés,
-"Meaning of Submit, Cancel, Amend","Signification de Valider, Annuler, Modifier",
+"Meaning of Submit, Cancel, Amend","Signification de Valider, Annuler, Nouv. version",
 Mention transaction completion page URL,Mentionnez la page URL de fin de transaction,
 Mentions,Mentions,
 Menu,Menu,
@@ -1737,7 +1738,7 @@ Old Password,Ancien Mot De Passe,
 Old Password Required.,Ancien Mot de Passe Requis.,
 Older backups will be automatically deleted,Les anciennes sauvegardes seront automatiquement supprimées,
 "On {0}, {1} wrote:","Sur {0}, {1} a écrit :",
-"Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.","Une fois validé, les documents à valider ne peuvent plus être modifiés. Ils ne peuvent être annulés et amendés.",
+"Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.","Une fois validé, les documents à valider ne peuvent plus être modifiés. Ils ne peuvent être annulés et modifiés (Nouv. version).",
 "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Une fois que vous avez défini ceci, les utilisateurs ne pourront accèder qu'aux documents (e.g. Article de Blog) où le lien existe (e.g. Blogger) .",
 One Last Step,Une Dernière Étape,
 One Time Password (OTP) Registration Code from {},Code de Mot de Passe Unique (OTP) à partir de {},
@@ -1837,7 +1838,7 @@ Permission Levels,Niveaux d'Autorisation,
 Permission Rules,Règles d'Autorisation,
 Permissions,Autorisations,
 Permissions are automatically applied to Standard Reports and searches.,Les autorisations sont automatiquement appliquées aux rapports standard et aux recherches.,
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Les Autorisations sont définies sur les Rôles et les Types de Documents (appelés DocTypes) en définissant des droits , tels que Lire, Écrire, Créer, Supprimer, Valider, Annuler, Modifier, Rapporter, Importer, Exporter, Imprimer, Envoyer un Email et Définir les Autorisations de l'Utilisateur .",
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Les Autorisations sont définies sur les Rôles et les Types de Documents (appelés DocTypes) en définissant des droits , tels que Lire, Écrire, Créer, Supprimer, Valider, Annuler, Nouv. version, Rapporter, Importer, Exporter, Imprimer, Envoyer un Email et Définir les Autorisations de l'Utilisateur .",
 Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Les Autorisations aux niveaux supérieurs sont des permissions de Niveau Champ. Un Niveau d'Autorisation est défini pour chaque Champ et les règles définies pour ces Autorisations s’appliquent au Champ. Ceci est utile si vous voulez cacher ou mettre certains champs en lecture seule pour certains Rôles.,
 "Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Les Autorisations au niveau 0 sont les autorisations de Niveau Document, c’est à dire qu'elles sont nécessaires pour accéder au document.",
 Permissions get applied on Users based on what Roles they are assigned.,Autorisations sont appliqués aux utilisateurs en fonction des  Rôles qui leurs sont affectés.,
@@ -2296,7 +2297,7 @@ Show Line Breaks after Sections,Afficher les Sauts de Ligne après Sections,
 Show Permissions,Afficher les Autorisations,
 Show Preview Popup,Afficher l&#39;aperçu Popup,
 Show Relapses,Afficher les Rechutes,
-Show Report,Rapport d&#39;émission,
+Show Report,Afficher le rapport,
 Show Section Headings,Voir la Section Titres,
 Show Sidebar,Afficher la Barre Latérale,
 Show Title,Afficher le Titre,
@@ -2399,7 +2400,7 @@ Submit after importing,Valider après l'import,
 Submit an Issue,Valider un ticket,
 Submit this document to confirm,Valider ce document pour confirmer,
 Submit {0} documents?,Valider {0} documents ?,
-Submiting {0},Validation de {0},
+Submitting {0},Validation de {0},
 Submitted Document cannot be converted back to draft. Transition row {0},Document Valider ne peut pas être reconvertis en Brouillon. Ligne de transition {0},
 Submitting,Validation,
 Subscription Notification,Notification d&#39;abonnement,
@@ -2745,7 +2746,7 @@ Website Theme Image,Image du Thème du Site Web,
 Website Theme Image Link,Lien de l'Image du Thème du Site Web,
 Website User,Utilisateur du Site Web,
 Welcome Message,Message de Bienvenue,
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Lorsque vous Modifiez un document après l'avoir Annulé et que vous l'enregistrez, il va obtenir un nouveau numéro qui est une version de l'ancien numéro.",
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Lorsque vous faite une nouvelle version d&#39;un document après l&#39;avoir Annulé et que vous l&#39;enregistrez, il va obtenir un nouveau numéro qui est une version de l&#39;ancien numéro.",
 Width,Largeur,
 Widths can be set in px or %.,Les largeurs peuvent être réglées en px ou %.,
 Will be used in url (usually first name).,Sera utilisé dans l'url (généralement le prénom).,
@@ -2784,7 +2785,7 @@ You are not permitted to view the newsletter.,Vous n&#39;êtes pas autorisé à 
 You are now following this document. You will receive daily updates via email. You can change this in User Settings.,Vous suivez maintenant ce document. Vous recevrez des mises à jour quotidiennes par courrier électronique. Vous pouvez modifier cela dans les paramètres de l&#39;utilisateur.,
 You can add dynamic properties from the document by using Jinja templating.,Vous pouvez ajouter des propriétés dynamiques au document à l'aide des modèles Jinja.,
 You can also copy-paste this ,Vous pouvez également copier-coller cette,
-"You can change Submitted documents by cancelling them and then, amending them.","Vous pouvez modifier les documents Validés en les annulant et ensuite, en les modifiant.",
+"You can change Submitted documents by cancelling them and then, amending them.","Vous pouvez modifier les documents Validés en les annulant et ensuite, en créant une nouvelle version.",
 You can find things by asking 'find orange in customers',Vous pouvez trouver des choses en demandant 'trouver orange dans clients',
 You can only upload upto 5000 records in one go. (may be less in some cases),Vous pouvez seulement charger jusqu'à 5000 enregistrement en une seule fois. (peut-être moins dans certains cas),
 You can use Customize Form to set levels on fields.,Vous pouvez utiliser Personaliser le Formulaire pour définir les niveaux de champs.,
@@ -3093,12 +3094,12 @@ zoom-out,Réduire,
 {0} {1} to {2},{0} {1} à {2},
 "{0}, Row {1}","{0}, Ligne {1}",
 "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0} : {1} '({3}) sera tronqué car le nombre de caractères max est {2},
-{0}: Cannot set Amend without Cancel,{0} : Impossible de choisir Modifier sans Annuler,
-{0}: Cannot set Assign Amend if not Submittable,{0} : Impossible de définir ‘Assigner Modifier’ si non Validable,
+{0}: Cannot set Amend without Cancel,{0} : Impossible de choisir Nouv. version sans Annuler,
+{0}: Cannot set Assign Amend if not Submittable,{0} : Impossible de définir ‘Assigner Nouv. version’ si non Validable,
 {0}: Cannot set Assign Submit if not Submittable,{0} : Impossible de définir ‘Assigner Valider’ si non Validable,
 {0}: Cannot set Cancel without Submit,{0} : Impossible de choisir Annuler sans Valider,
 {0}: Cannot set Import without Create,{0} : Impossible de choisir Import sans Créer,
-"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Vous ne pouvez pas choisir Valider, Annuler, Modifier sans Écrire",
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Vous ne pouvez pas choisir Valider, Annuler, Nouv. version sans Écrire",
 {0}: Cannot set import as {1} is not importable,{0} : Impossible de choisir import car {1} n'est pas importable,
 {0}: No basic permissions set,{0} : Aucune autorisation de base définie,
 "{0}: Only one rule allowed with the same Role, Level and {1}","{0} : Une seule règle est permise avec le même Rôle, Niveau et {1}",
@@ -3132,7 +3133,7 @@ No values to show,Aucune valeur à afficher,
 View Ref,Voir la référence,
 Workflow Action is not created for optional states,L&#39;action de flux de travail n&#39;est pas créée pour les états facultatifs,
 {0} values selected,{0} valeurs sélectionnées,
-"""amended_from"" field must be present to do an amendment.",Le champ &quot;modified_from&quot; doit être présent pour effectuer un amendement.,
+"""amended_from"" field must be present to do an amendment.",Le champ &quot;modified_from&quot; doit être présent pour effectuer une Nouv. version,
 (Mandatory),(Obligatoire),
 1 Google Calendar Event synced.,1 événement Google Agenda synchronisé.,
 1 record will be exported,1 enregistrement sera exporté,
@@ -4139,6 +4140,7 @@ by Role,par rôle,
 Document is only editable by users with role,Le document n&#39;est modifiable que par les utilisateurs avec un rôle,
 {0}: Other permission rules may also apply,{0}: d&#39;autres règles d&#39;autorisation peuvent également s&#39;appliquer,
 {0} Page Views,{0} pages vues,
+{0} Page Views,{0} pages vues,
 Expand,Développer,
 Collapse,Réduire,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","Jeton de porteur non valide, veuillez fournir un jeton d&#39;accès valide avec le préfixe «porteur».",
@@ -4530,7 +4532,7 @@ Delete and Generate New,Supprimer et générer un nouveau,
 {0} ({1}) (1 row mandatory),{0} ({1}) (1 ligne obligatoire),
 Select Fields To Insert,Sélectionnez les champs à insérer,
 Select Fields To Update,Sélectionnez les champs à mettre à jour,
-"This document is already amended, you cannot ammend it again","Ce document est déjà modifié, vous ne pouvez plus le modifier",
+"This document is already amended, you cannot ammend it again","Ce document est déjà obsoléte (une nouvelle version existe), vous ne pouvez plus le modifier",
 Add to ToDo,Ajouter à ToDo,
 {0} is currently {1},{0} est actuellement {1},
 {0} are currently {1},{0} sont actuellement {1},
@@ -4640,7 +4642,7 @@ Not permitted to view {0},Non autorisé à afficher {0},
 Camera,Caméra,
 Invalid filter: {0},Filtre non valide: {0},
 Let's Get Started,Commençons,
-Reports & Masters,Rapports et masters,
+Reports & Masters,Ecrans principaux et Rapports,
 New {0} {1} added to Dashboard {2},Nouveau {0} {1} ajouté au tableau de bord {2},
 New {0} {1} created,Nouveau {0} {1} créé,
 New {0} Created,Nouveau {0} créé,
@@ -4700,18 +4702,27 @@ Value cannot be negative for,La valeur ne peut pas être négative pour,
 Value cannot be negative for {0}: {1},La valeur ne peut pas être négative pour {0}: {1},
 Negative Value,Valeur négative,
 Authentication failed while receiving emails from Email Account: {0}.,L&#39;authentification a échoué lors de la réception des e-mails du compte de messagerie: {0}.,
-Message from server: {0},Message du serveur: {0},
-{0} edited this {1},{0} a édité {1},
-{0} created this {1}, {0} a créé {1}
-Report an Issue, Signaler une anomalie
-About, A Propos
-My Profile, Mon profil
-My Settings, Mes paramètres
-Toggle Full Width, Changer l&#39;affichage en pleine largeur
-Toggle Theme, Basculer le thème
-Theme Changed, Thème changé
-Amend, Nouv. version
-Document has been submitted, Document validé
-Document has been cancelled, Document annulé
-Document is in draft state, Document au statut brouillon
+Message from server: {0},Message du serveur: {0}
+{0} edited this {1},{0} a édité {1}
+{0} created this {1},{0} a créé {1}
+Report an Issue,Signaler une anomalie
+User Forum,Forum utilisateur
+About,A Propos
+My Profile,Mon profil
+My Settings,Mes paramètres
+Toggle Full Width,Changer l&#39;affichage en pleine largeur
+Toggle Theme,Basculer le thème
+Theme Changed,Thème changé
+Document has been submitted,Document validé
+Document has been cancelled,Document annulé
+Document is in draft state,Document au statut brouillon
 Copy to Clipboard,Copier vers le presse-papiers
+Don't have an account?,Vous n&#39;avez pas de compte?
+Left:alignment,Gauche
+Right:alignment,Droite
+Set Properties,Gérer les proriétés
+Create Workspace,Créer un espace de travail
+Always use this email address as sender address,Toujours utiliser cet email comme expediteur
+Always use this name as sender name,Toujours utiliser ce nom comme expediteur
+Login to {0},Se connecter à {0}
+Add / Remove Fields,Ajouter / Supprimer des colonnes

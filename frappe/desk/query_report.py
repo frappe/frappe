@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import json
 import os
 from datetime import timedelta
@@ -58,6 +59,8 @@ def get_report_doc(report_name):
 
 
 def get_report_result(report, filters):
+	res = None
+
 	if report.report_type == "Query Report":
 		res = report.execute_query_report(filters)
 
@@ -84,7 +87,7 @@ def generate_report_result(
 	res = get_report_result(report, filters) or []
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
-	columns = [get_column_as_dict(col) for col in columns]
+	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
 
 	# convert to list of dicts
@@ -185,7 +188,7 @@ def get_script(report_name):
 
 	script = None
 	if os.path.exists(script_path):
-		with open(script_path, "r") as f:
+		with open(script_path) as f:
 			script = f.read()
 			script += f"\n\n//# sourceURL={scrub(report.name)}.js"
 
@@ -314,7 +317,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 				latest_report_data = {"columns": columns, "result": data}
 		except Exception:
-			frappe.log_error(frappe.get_traceback())
+			doc.log_error("Prepared report failed")
 			frappe.delete_doc("Prepared Report", doc.name)
 			frappe.db.commit()
 			doc = None
@@ -382,6 +385,18 @@ def format_duration_fields(data: frappe._dict) -> None:
 
 
 def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
+	EXCEL_TYPES = (
+		str,
+		bool,
+		type(None),
+		int,
+		float,
+		datetime.datetime,
+		datetime.date,
+		datetime.time,
+		datetime.timedelta,
+	)
+
 	result = [[]]
 	column_widths = []
 
@@ -406,6 +421,9 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 					label = column.get("label")
 					fieldname = column.get("fieldname")
 					cell_value = row.get(fieldname, row.get(label, ""))
+					if not isinstance(cell_value, EXCEL_TYPES):
+						cell_value = cstr(cell_value)
+
 					if cint(include_indentation) and "indent" in row and col_idx == 0:
 						cell_value = ("    " * cint(row["indent"])) + cstr(cell_value)
 					row_data.append(cell_value)

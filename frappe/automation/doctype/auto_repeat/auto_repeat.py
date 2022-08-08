@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
@@ -189,7 +188,7 @@ class AutoRepeat(Document):
 			if self.notify_by_email and self.recipients:
 				self.send_notification(new_doc)
 		except Exception:
-			error_log = frappe.log_error(frappe.get_traceback(), _("Auto Repeat Document Creation Failure"))
+			error_log = self.log_error("Auto repeat failed")
 
 			self.disable_auto_repeat()
 

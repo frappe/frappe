@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import json
-from typing import Dict, List, Union
 from urllib.parse import quote
 
 import frappe
@@ -12,6 +11,7 @@ import frappe.share
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
@@ -31,28 +31,23 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	if not frappe.db.exists(doctype, name):
+	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
 		return []
 
-	try:
-		doc = frappe.get_doc(doctype, name)
-		run_onload(doc)
+	doc = frappe.get_doc(doctype, name)
+	run_onload(doc)
 
-		if not doc.has_permission("read"):
-			frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-				frappe.bold(doctype + " " + name)
-			)
-			raise frappe.PermissionError(("read", doctype, name))
+	if not doc.has_permission("read"):
+		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
+			frappe.bold(doctype + " " + name)
+		)
+		raise frappe.PermissionError(("read", doctype, name))
 
-		doc.apply_fieldlevel_read_permissions()
+	doc.apply_fieldlevel_read_permissions()
 
-		# add file list
-		doc.add_viewed()
-		get_docinfo(doc)
-
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	# add file list
+	doc.add_viewed()
+	get_docinfo(doc)
 
 	doc.add_seen()
 	set_link_titles(doc)
@@ -218,8 +213,8 @@ def get_communications(doctype, name, start=0, limit=20):
 
 
 def get_comments(
-	doctype: str, name: str, comment_type: Union[str, List[str]] = "Comment"
-) -> List[frappe._dict]:
+	doctype: str, name: str, comment_type: str | list[str] = "Comment"
+) -> list[frappe._dict]:
 	if isinstance(comment_type, list):
 		comment_types = comment_type
 
@@ -294,7 +289,7 @@ def get_communication_data(
 	if after:
 		# find after a particular date
 		conditions += """
-			AND C.creation > {0}
+			AND C.creation > {}
 		""".format(
 			after
 		)
@@ -411,7 +406,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(cstr(name)), email[1])
+	return f"{email[0]}+{quote(doctype)}+{quote(cstr(name))}@{email[1]}"
 
 
 def get_automatic_email_link():

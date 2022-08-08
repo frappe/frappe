@@ -1,13 +1,10 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
 
-import unittest
 from random import choice
-from typing import Union
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import frappe
-from frappe.desk.form.load import run_onload
 from frappe.email.doctype.newsletter.exceptions import (
 	NewsletterAlreadySentError,
 	NoRecipientFoundError,
@@ -18,9 +15,9 @@ from frappe.email.doctype.newsletter.newsletter import (
 	send_scheduled_email,
 )
 from frappe.email.queue import flush
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, getdate
 
-test_dependencies = ["Email Group"]
 emails = [
 	"test_subscriber1@example.com",
 	"test_subscriber2@example.com",
@@ -64,17 +61,24 @@ class TestNewsletterMixin:
 		for email in emails:
 			doctype = "Email Group Member"
 			email_filters = {"email": email, "email_group": "_Test Email Group"}
+
+			savepoint = "setup_email_group"
+			frappe.db.savepoint(savepoint)
+
 			try:
 				frappe.get_doc(
 					{
 						"doctype": doctype,
 						**email_filters,
 					}
-				).insert()
+				).insert(ignore_if_duplicate=True)
 			except Exception:
+				frappe.db.rollback(save_point=savepoint)
 				frappe.db.update(doctype, email_filters, "unsubscribed", 0)
 
-	def send_newsletter(self, published=0, schedule_send=None) -> Union[str, None]:
+			frappe.db.release_savepoint(savepoint)
+
+	def send_newsletter(self, published=0, schedule_send=None) -> str | None:
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
 		frappe.db.delete("Newsletter")
@@ -128,7 +132,7 @@ class TestNewsletterMixin:
 		return newsletter
 
 
-class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
+class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 	def test_send(self):
 		self.send_newsletter()
 
@@ -221,3 +225,24 @@ class TestNewsletter(TestNewsletterMixin, unittest.TestCase):
 
 		newsletter.reload()
 		self.assertEqual(newsletter.email_sent, 0)
+
+	def test_retry_partially_sent_newsletter(self):
+		frappe.db.delete("Email Queue")
+		frappe.db.delete("Email Queue Recipient")
+		frappe.db.delete("Newsletter")
+
+		newsletter = self.get_newsletter()
+		newsletter.send_emails()
+		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(email_queue_list), 4)
+
+		# emulate partial send
+		email_queue_list[0].status = "Error"
+		email_queue_list[0].recipients[0].status = "Error"
+		email_queue_list[0].save()
+		newsletter.email_sent = False
+
+		# retry
+		newsletter.send_emails()
+		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(email_queue_list), 5)

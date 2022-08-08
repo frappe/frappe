@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -13,8 +12,8 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 	recipients = get_recipients(doctype, email_field)
 	if not recipients:
 		frappe.log_error(
-			"No Email Recipient found for {0}".format(service_name),
-			"{0}: Failed to send backup status email".format(service_name),
+			f"No Email Recipient found for {service_name}",
+			f"{service_name}: Failed to send backup status email",
 		)
 		return
 
@@ -25,15 +24,15 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 		subject = "Backup Upload Successful"
 		message = """
 <h3>Backup Uploaded Successfully!</h3>
-<p>Hi there, this is just to inform you that your backup was successfully uploaded to your {0} bucket. So relax!</p>""".format(
+<p>Hi there, this is just to inform you that your backup was successfully uploaded to your {} bucket. So relax!</p>""".format(
 			service_name
 		)
 	else:
 		subject = "[Warning] Backup Upload Failed"
 		message = """
 <h3>Backup Upload Failed!</h3>
-<p>Oops, your automated backup to {0} failed.</p>
-<p>Error message: {1}</p>
+<p>Oops, your automated backup to {} failed.</p>
+<p>Error message: {}</p>
 <p>Please contact your system manager for more information.</p>""".format(
 			service_name, error_status
 		)

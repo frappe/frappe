@@ -9,6 +9,7 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
+from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 from frappe.exceptions import SiteNotSpecifiedError
 
 
@@ -54,7 +55,6 @@ def new_site(
 	db_root_password=None,
 	admin_password=None,
 	verbose=False,
-	install_apps=None,
 	source_sql=None,
 	force=None,
 	no_mariadb_socket=False,
@@ -86,7 +86,6 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
-		new_site=True,
 	)
 
 	if set_default:
@@ -143,11 +142,7 @@ def restore(
 		is_partial,
 		validate_database_sql,
 	)
-	from frappe.utils.backups import Backup
-
-	if not os.path.exists(sql_file_path):
-		print("Invalid path", sql_file_path)
-		sys.exit(1)
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
 
@@ -176,7 +171,7 @@ def restore(
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			encryption_key = frappe.get_site_config().encryption_key
+			encryption_key = get_or_generate_backup_encryption_key()
 			_backup.backup_decryption(encryption_key)
 
 		# Rollback on unsuccessful decryrption
@@ -260,7 +255,7 @@ def restore(
 		os.remove(private)
 		_backup.decryption_rollback()
 
-	success_message = "Site {0} has been restored{1}".format(
+	success_message = "Site {} has been restored{}".format(
 		site, " with files" if (with_public_files or with_private_files) else ""
 	)
 	click.secho(success_message, fg="green")
@@ -273,7 +268,7 @@ def restore(
 @pass_context
 def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	from frappe.installer import extract_sql_from_archive, partial_restore
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
@@ -309,7 +304,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			key = frappe.get_site_config().encryption_key
+			key = get_or_generate_backup_encryption_key()
 
 		_backup.backup_decryption(key)
 
@@ -398,8 +393,9 @@ def _reinstall(
 
 @click.command("install-app")
 @click.argument("apps", nargs=-1)
+@click.option("--force", is_flag=True, default=False)
 @pass_context
-def install_app(context, apps):
+def install_app(context, apps, force=False):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
 
@@ -414,14 +410,14 @@ def install_app(context, apps):
 
 		for app in apps:
 			try:
-				_install_app(app, verbose=context.verbose)
+				_install_app(app, verbose=context.verbose, force=force)
 			except frappe.IncompatibleApp as err:
-				err_msg = ":\n{}".format(err) if str(err) else ""
-				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
+				err_msg = f":\n{err}" if str(err) else ""
+				print(f"App {app} is Incompatible with Site {site}{err_msg}")
 				exit_code = 1
 			except Exception as err:
-				err_msg = ": {}\n{}".format(str(err), frappe.get_traceback())
-				print("An error occurred while installing {}{}".format(app, err_msg))
+				err_msg = f": {str(err)}\n{frappe.get_traceback()}"
+				print(f"An error occurred while installing {app}{err_msg}")
 				exit_code = 1
 
 		frappe.destroy()
@@ -451,8 +447,8 @@ def list_apps(context, format):
 		apps = frappe.get_single("Installed Applications").installed_applications
 
 		if apps:
-			name_len, ver_len = [max([len(x.get(y)) for x in apps]) for y in ["app_name", "app_version"]]
-			template = "{{0:{0}}} {{1:{1}}} {{2}}".format(name_len, ver_len)
+			name_len, ver_len = (max(len(x.get(y)) for x in apps) for y in ["app_name", "app_version"])
+			template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
 
 			installed_applications = [
 				template.format(app.app_name, app.app_version, app.git_branch) for app in apps
@@ -610,7 +606,7 @@ def reload_doctype(context, doctype):
 def add_to_hosts(context):
 	"Add site to hosts"
 	for site in context.sites:
-		frappe.commands.popen("echo 127.0.0.1\t{0} | sudo tee -a /etc/hosts".format(site))
+		frappe.commands.popen(f"echo 127.0.0.1\t{site} | sudo tee -a /etc/hosts")
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -626,9 +622,9 @@ def use(site, sites_path="."):
 	if os.path.exists(os.path.join(sites_path, site)):
 		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
-		print("Current Site set to {}".format(site))
+		print(f"Current Site set to {site}")
 	else:
-		print("Site {} does not exist".format(site))
+		print(f"Site {site} does not exist")
 
 
 @click.command("backup")
@@ -702,7 +698,7 @@ def backup(
 			)
 		except Exception:
 			click.secho(
-				"Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site),
+				f"Backup failed for Site {site}. Database or site_config.json may be corrupted",
 				fg="red",
 			)
 			if verbose:
@@ -716,7 +712,7 @@ def backup(
 
 		odb.print_summary()
 		click.secho(
-			"Backup for Site {0} has been successfully completed{1}".format(
+			"Backup for Site {} has been successfully completed{}".format(
 				site, " with files" if with_files else ""
 			),
 			fg="green",
@@ -825,7 +821,7 @@ def _drop_site(
 	try:
 		if not no_backup:
 			click.secho(f"Taking backup of {site}", fg="green")
-			odb = scheduled_backup(ignore_files=False, force=True, verbose=True)
+			odb = scheduled_backup(ignore_files=False, ignore_conf=True, force=True, verbose=True)
 			odb.print_summary()
 	except Exception as err:
 		if force:
@@ -833,8 +829,8 @@ def _drop_site(
 		else:
 			messages = [
 				"=" * 80,
-				"Error: The operation has stopped because backup of {0}'s database failed.".format(site),
-				"Reason: {0}\n".format(str(err)),
+				f"Error: The operation has stopped because backup of {site}'s database failed.",
+				f"Reason: {str(err)}\n",
 				"Fix the issue and try again.",
 				"Hint: Use 'bench drop-site {0} --force' to force the removal of {0}".format(site),
 			]
@@ -847,9 +843,10 @@ def _drop_site(
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
 	)
+	archived_sites_path = os.path.realpath(archived_sites_path)
 
+	click.secho(f"Moving site to archive under {archived_sites_path}", fg="green")
 	os.makedirs(archived_sites_path, exist_ok=True)
-
 	move(archived_sites_path, site)
 
 
@@ -923,7 +920,6 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		frappe.db.commit()
-		password = None
 	finally:
 		frappe.destroy()
 
@@ -1084,13 +1080,58 @@ def build_search_index(context):
 	if not site:
 		raise SiteNotSpecifiedError
 
-	print("Building search index for {}".format(site))
+	print(f"Building search index for {site}")
 	frappe.init(site=site)
 	frappe.connect()
 	try:
 		build_index_for_all_routes()
 	finally:
 		frappe.destroy()
+
+
+@click.command("clear-log-table")
+@click.option("--doctype", default="text", type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--days", type=int, help="Keep records for days")
+@click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
+@pass_context
+def clear_log_table(context, doctype, days, no_backup):
+	"""If any logtype table grows too large then clearing it with DELETE query
+	is not feasible in reasonable time. This command copies recent data to new
+	table and replaces current table with new smaller table.
+
+
+	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
+	"""
+	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
+	from frappe.utils.backups import scheduled_backup
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	if doctype not in LOG_DOCTYPES:
+		raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+
+		if not no_backup:
+			scheduled_backup(
+				ignore_conf=False,
+				include_doctypes=doctype,
+				ignore_files=True,
+				force=True,
+			)
+			click.echo(f"Backed up {doctype}")
+
+		try:
+			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
+			clear_logs(doctype, days=days)
+		except Exception as e:
+			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
+			sys.exit(1)
+		else:
+			click.secho(f"Cleared {doctype} records older than {days} days", fg="green")
 
 
 @click.command("trim-database")
@@ -1265,4 +1306,5 @@ commands = [
 	partial_restore,
 	trim_tables,
 	trim_database,
+	clear_log_table,
 ]

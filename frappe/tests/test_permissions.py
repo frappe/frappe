@@ -24,24 +24,25 @@ test_dependencies = ["Blogger", "Blog Post", "User", "Contact", "Salutation"]
 
 
 class TestPermissions(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.clear_cache(doctype="Blog Post")
+		user = frappe.get_doc("User", "test1@example.com")
+		user.add_roles("Website Manager")
+		user.add_roles("System Manager")
+
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Blogger")
+
+		user = frappe.get_doc("User", "test3@example.com")
+		user.add_roles("Sales User")
+
+		user = frappe.get_doc("User", "testperm@example.com")
+		user.add_roles("Website Manager")
+
 	def setUp(self):
 		frappe.clear_cache(doctype="Blog Post")
-
-		if not frappe.flags.permission_user_setup_done:
-			user = frappe.get_doc("User", "test1@example.com")
-			user.add_roles("Website Manager")
-			user.add_roles("System Manager")
-
-			user = frappe.get_doc("User", "test2@example.com")
-			user.add_roles("Blogger")
-
-			user = frappe.get_doc("User", "test3@example.com")
-			user.add_roles("Sales User")
-
-			user = frappe.get_doc("User", "testperm@example.com")
-			user.add_roles("Website Manager")
-
-			frappe.flags.permission_user_setup_done = True
 
 		reset("Blogger")
 		reset("Blog Post")
@@ -460,7 +461,7 @@ class TestPermissions(FrappeTestCase):
 			self.assertIn(
 				post.blogger,
 				["_Test Blogger", "_Test Blogger 1"],
-				"A post from {} is not expected.".format(post.blogger),
+				f"A post from {post.blogger} is not expected.",
 			)
 
 	def test_if_owner_permission_overrides_properly(self):
@@ -671,3 +672,31 @@ class TestPermissions(FrappeTestCase):
 			doctype="Has Role",
 			parent_doctype="Has Role",
 		)
+
+	def test_select_user(self):
+		"""If test3@example.com is restricted by a User Permission to see only
+		users linked to a certain doctype (in this case: Gender "Female"), he
+		should not be able to query other users (Gender "Male").
+		"""
+		# ensure required genders exist
+		for gender in ("Male", "Female"):
+			if frappe.db.exists("Gender", gender):
+				continue
+
+			frappe.get_doc({"doctype": "Gender", "gender": gender}).insert()
+
+		# asssign gender to test users
+		frappe.db.set_value("User", "test1@example.com", "gender", "Male")
+		frappe.db.set_value("User", "test2@example.com", "gender", "Female")
+		frappe.db.set_value("User", "test3@example.com", "gender", "Female")
+
+		# restrict test3@example.com to see only female users
+		add_user_permission("Gender", "Female", "test3@example.com")
+
+		# become user test3@example.com and see what users he can query
+		frappe.set_user("test3@example.com")
+		users = frappe.get_list("User", pluck="name")
+
+		self.assertNotIn("test1@example.com", users)
+		self.assertIn("test2@example.com", users)
+		self.assertIn("test3@example.com", users)

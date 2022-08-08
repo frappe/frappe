@@ -26,6 +26,8 @@
   "shortcuts",
   "tab_break_18",
   "links",
+  "quick_lists_tab",
+  "quick_lists",
   "roles_tab",
   "roles"
  ],
@@ -155,11 +157,22 @@
    "fieldname": "roles_tab",
    "fieldtype": "Tab Break",
    "label": "Roles"
+  },
+  {
+   "fieldname": "quick_lists_tab",
+   "fieldtype": "Tab Break",
+   "label": "Quick Lists"
+  },
+  {
+   "fieldname": "quick_lists",
+   "fieldtype": "Table",
+   "label": "Quick Lists",
+   "options": "Workspace Quick List"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-01-27 12:06:13.111743",
+ "modified": "2022-05-12 13:00:03.925605",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -189,5 +202,6 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }

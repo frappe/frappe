@@ -9,13 +9,13 @@ frappe.utils.datatable.get_translations = function () {
 		"Remove column": __("Remove column"),
 		"No Data": __("No Data"),
 		"{count} cells copied": {
-			"1": __("{count} cell copied"),
-			"default": __("{count} cells copied")
+			1: __("{count} cell copied"),
+			default: __("{count} cells copied"),
 		},
 		"{count} rows selected": {
-			"1": __("{count} row selected"),
-			"default": __("{count} rows selected")
-		}
+			1: __("{count} row selected"),
+			default: __("{count} rows selected"),
+		},
 	};
 
 	return translations;

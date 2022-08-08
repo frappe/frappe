@@ -29,7 +29,7 @@ def get_context(context):
 		blog.content = escape_html(blog.content or "")
 
 	if blog_list:
-		modified = max((blog["modified"] for blog in blog_list))
+		modified = max(blog["modified"] for blog in blog_list)
 	else:
 		modified = now()
 

@@ -96,7 +96,7 @@ class TestEvent(unittest.TestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEqual(set(json.loads(ev._assign)), set(["test@example.com", self.test_user]))
+		self.assertEqual(set(json.loads(ev._assign)), {"test@example.com", self.test_user})
 
 		# Remove an assignment
 		todo = frappe.get_doc(

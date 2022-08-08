@@ -27,5 +27,5 @@ export {
 	Scrollspy,
 	Tab,
 	Toast,
-	Tooltip
+	Tooltip,
 };

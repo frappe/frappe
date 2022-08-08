@@ -11,6 +11,7 @@ from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
 from frappe.utils.password import delete_all_passwords_for
@@ -29,6 +30,8 @@ doctypes_to_skip = (
 	"Tag Link",
 	"Notification Log",
 	"Email Queue",
+	"Document Share Key",
+	"Integration Request",
 )
 
 
@@ -55,11 +58,16 @@ def delete_doc(
 		doctype = frappe.form_dict.get("dt")
 		name = frappe.form_dict.get("dn")
 
+	is_virtual = is_virtual_doctype(doctype)
+
 	names = name
 	if isinstance(name, str) or isinstance(name, int):
 		names = [name]
 
 	for name in names or []:
+		if is_virtual:
+			frappe.get_doc(doctype, name).delete()
+			continue
 
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
@@ -87,12 +95,6 @@ def delete_doc(
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
-
-				frappe.db.delete("Custom Field", {"dt": name})
-				frappe.db.delete("Client Script", {"dt": name})
-				frappe.db.delete("Property Setter", {"doc_type": name})
-				frappe.db.delete("Report", {"ref_doctype": name})
-				frappe.db.delete("Custom DocPerm", {"parent": name})
 				frappe.db.delete("__global_search", {"doctype": name})
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
@@ -106,7 +108,7 @@ def delete_doc(
 			):
 				try:
 					delete_controllers(name, doc.module)
-				except (FileNotFoundError, OSError, KeyError):
+				except (OSError, KeyError):
 					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
@@ -192,39 +194,27 @@ def update_naming_series(doc):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
-def delete_from_table(doctype, name, ignore_doctypes, doc):
+def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 	if doctype != "DocType" and doctype == name:
 		frappe.db.delete("Singles", {"doctype": name})
 	else:
 		frappe.db.delete(doctype, {"name": name})
-	# get child tables
 	if doc:
-		tables = [d.options for d in doc.meta.get_table_fields()]
+		child_doctypes = [
+			d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0
+		]
 
 	else:
+		child_doctypes = frappe.get_all(
+			"DocField",
+			fields="options",
+			filters={"fieldtype": ["in", frappe.model.table_fields], "parent": doctype},
+			pluck="options",
+		)
 
-		def get_table_fields(field_doctype):
-			if field_doctype == "Custom Field":
-				return []
-
-			return [
-				r[0]
-				for r in frappe.get_all(
-					field_doctype,
-					fields="options",
-					filters={"fieldtype": ["in", frappe.model.table_fields], "parent": doctype},
-					as_list=1,
-				)
-			]
-
-		tables = get_table_fields("DocField")
-		if not frappe.flags.in_install == "frappe":
-			tables += get_table_fields("Custom Field")
-
-	# delete from child tables
-	for t in list(set(tables)):
-		if t not in ignore_doctypes:
-			frappe.db.delete(t, {"parenttype": doctype, "parent": name})
+	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
+	for child_doctype in child_doctypes_to_delete:
+		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
 def update_flags(doc, flags=None, ignore_permissions=False):
@@ -354,7 +344,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
-					at_position = "at Row: {0}".format(refdoc.idx) if meta.istable else ""
+					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
 
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
 
@@ -447,7 +437,7 @@ def insert_feed(doc):
 			"doctype": "Comment",
 			"comment_type": "Deleted",
 			"reference_doctype": doc.doctype,
-			"subject": "{0} {1}".format(_(doc.doctype), doc.name),
+			"subject": f"{_(doc.doctype)} {doc.name}",
 			"full_name": get_fullname(doc.owner),
 		}
 	).insert(ignore_permissions=True)

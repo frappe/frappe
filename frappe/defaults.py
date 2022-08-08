@@ -85,18 +85,19 @@ def get_user_permissions(user=None):
 
 
 def get_defaults(user=None):
-	globald = get_defaults_for()
+	global_defaults = get_defaults_for()
 
 	if not user:
 		user = frappe.session.user if frappe.session else "Guest"
 
-	if user:
-		userd = {}
-		userd.update(get_defaults_for(user))
-		userd.update({"user": user, "owner": user})
-		globald.update(userd)
+	if not user:
+		return global_defaults
 
-	return globald
+	defaults = global_defaults.copy()
+	defaults.update(get_defaults_for(user))
+	defaults.update(user=user, owner=user)
+
+	return defaults
 
 
 def clear_user_default(key, user=None):
@@ -222,7 +223,7 @@ def get_defaults_for(parent="__default"):
 			.run(as_dict=True)
 		)
 
-		defaults = frappe._dict({})
+		defaults = frappe._dict()
 		for d in res:
 			if d.defkey in defaults:
 				# listify
@@ -241,8 +242,4 @@ def get_defaults_for(parent="__default"):
 
 
 def _clear_cache(parent):
-	if parent in common_default_keys:
-		frappe.clear_cache()
-	else:
-		clear_notifications(user=parent)
-		frappe.clear_cache(user=parent)
+	frappe.clear_cache(user=parent if parent not in common_default_keys else None)

@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import ast
 from types import FunctionType, MethodType, ModuleType
-from typing import Dict, List
 
 import frappe
 from frappe import _
@@ -17,6 +14,7 @@ class ServerScript(Document):
 		frappe.only_for("Script Manager", True)
 		self.sync_scheduled_jobs()
 		self.clear_scheduled_events()
+		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
 		frappe.cache().delete_value("server_script_map")
@@ -31,7 +29,7 @@ class ServerScript(Document):
 		return {"script": "py"}
 
 	@property
-	def scheduled_jobs(self) -> List[Dict[str, str]]:
+	def scheduled_jobs(self) -> list[dict[str, str]]:
 		return frappe.get_all(
 			"Scheduled Job Type",
 			filters={"server_script": self.name},
@@ -60,7 +58,16 @@ class ServerScript(Document):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
 
-	def execute_method(self) -> Dict:
+	def check_if_compilable_in_restricted_context(self):
+		"""Check compilation errors and send them back as warnings."""
+		from RestrictedPython import compile_restricted
+
+		try:
+			compile_restricted(self.script)
+		except Exception as e:
+			frappe.msgprint(str(e), title=_("Compilation warning"))
+
+	def execute_method(self) -> dict:
 		"""Specific to API endpoint Server Scripts
 
 		Raises:
@@ -101,7 +108,7 @@ class ServerScript(Document):
 
 		safe_exec(self.script)
 
-	def get_permission_query_conditions(self, user: str) -> List[str]:
+	def get_permission_query_conditions(self, user: str) -> list[str]:
 		"""Specific to Permission Query Server Scripts
 
 		Args:

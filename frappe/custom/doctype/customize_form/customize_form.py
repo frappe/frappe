@@ -12,6 +12,7 @@ import frappe.translate
 from frappe import _
 from frappe.core.doctype.doctype.doctype import (
 	check_email_append_to,
+	validate_autoincrement_autoname,
 	validate_fields_for_doctype,
 	validate_series,
 )
@@ -159,7 +160,9 @@ class CustomizeForm(Document):
 	def save_customization(self):
 		if not self.doc_type:
 			return
+
 		validate_series(self, self.autoname, self.doc_type)
+		validate_autoincrement_autoname(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.set_property_setters()
@@ -327,7 +330,7 @@ class CustomizeForm(Document):
 		We need to maintain the order of the link/actions if the user has shuffled them.
 		So we create a new property (ex `links_order`) to keep a list of items.
 		"""
-		property_name = "{}_order".format(fieldname)
+		property_name = f"{fieldname}_order"
 		if has_custom:
 			# save the order of the actions and links
 			self.make_property_setter(
@@ -371,6 +374,9 @@ class CustomizeForm(Document):
 		d.insert()
 		df.fieldname = d.fieldname
 
+		if df.get("in_global_search"):
+			self.flags.rebuild_doctype_for_global_search = True
+
 	def update_in_custom_field(self, df, i):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
@@ -384,6 +390,8 @@ class CustomizeForm(Document):
 			if df.get(prop) != custom_field.get(prop):
 				if prop == "fieldtype":
 					self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+				if prop == "in_global_search":
+					self.flags.rebuild_doctype_for_global_search = True
 
 				custom_field.set(prop, df.get(prop))
 				changed = True
@@ -521,7 +529,10 @@ class CustomizeForm(Document):
 		"""allow type change, if both old_type and new_type are in same field group.
 		field groups are defined in ALLOWED_FIELDTYPE_CHANGE variables.
 		"""
-		in_field_group = lambda group: (old_type in group) and (new_type in group)
+
+		def in_field_group(group):
+			return (old_type in group) and (new_type in group)
+
 		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 
@@ -571,8 +582,10 @@ doctype_properties = {
 	"email_append_to": "Check",
 	"subject_field": "Data",
 	"sender_field": "Data",
+	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
+	"translate_link_fields": "Check",
 }
 
 docfield_properties = {
@@ -596,6 +609,7 @@ docfield_properties = {
 	"in_preview": "Check",
 	"bold": "Check",
 	"no_copy": "Check",
+	"ignore_xss_filter": "Check",
 	"hidden": "Check",
 	"collapsible": "Check",
 	"collapsible_depends_on": "Data",

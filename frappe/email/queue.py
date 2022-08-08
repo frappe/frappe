@@ -67,37 +67,24 @@ def get_emails_sent_today(email_account=None):
 	return frappe.db.sql(q, q_args)[0][0]
 
 
-def get_unsubscribe_message(unsubscribe_message, expose_recipients):
-	if unsubscribe_message:
-		unsubscribe_html = """<a href="<!--unsubscribe_url-->"
-			target="_blank">{0}</a>""".format(
-			unsubscribe_message
-		)
-	else:
-		unsubscribe_link = """<a href="<!--unsubscribe_url-->"
-			target="_blank">{0}</a>""".format(
-			_("Unsubscribe")
-		)
-		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
-
-	html = """<div class="email-unsubscribe">
+def get_unsubscribe_message(
+	unsubscribe_message: str, expose_recipients: str
+) -> "frappe._dict[str, str]":
+	unsubscribe_message = unsubscribe_message or _("Unsubscribe")
+	unsubscribe_link = f'<a href="<!--unsubscribe_url-->" target="_blank">{unsubscribe_message}</a>'
+	unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
+	html = f"""<div class="email-unsubscribe">
 			<!--cc_message-->
 			<div>
-				{0}
+				{unsubscribe_html}
 			</div>
-		</div>""".format(
-		unsubscribe_html
-	)
+		</div>"""
 
+	text = f"\n\n{unsubscribe_message}: <!--unsubscribe_url-->\n"
 	if expose_recipients == "footer":
-		text = "\n<!--cc_message-->"
-	else:
-		text = ""
-	text += "\n\n{unsubscribe_message}: <!--unsubscribe_url-->\n".format(
-		unsubscribe_message=unsubscribe_message
-	)
+		text = f"\n<!--cc_message-->{text}"
 
-	return frappe._dict({"html": html, "text": text})
+	return frappe._dict(html=html, text=text)
 
 
 def get_unsubcribed_url(
@@ -161,7 +148,7 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	if cint(frappe.defaults.get_defaults().get("hold_queue")) == 1:
+	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
 	for row in get_queue():
@@ -170,7 +157,7 @@ def flush(from_test=False):
 			is_background_task = not from_test
 			func(email_queue_name=row.name, is_background_task=is_background_task)
 		except Exception:
-			frappe.log_error()
+			frappe.get_doc("Email Queue", row.name).log_error()
 
 
 def get_queue():
@@ -188,25 +175,6 @@ def get_queue():
 		{"now": now_datetime()},
 		as_dict=True,
 	)
-
-
-def clear_outbox(days: int = None) -> None:
-	"""Remove low priority older than 31 days in Outbox or configured in Log Settings.
-	Note: Used separate query to avoid deadlock
-	"""
-	days = days or 31
-	email_queue = DocType("Email Queue")
-
-	email_queues = (
-		frappe.qb.from_(email_queue)
-		.select(email_queue.name)
-		.where(email_queue.modified < (Now() - Interval(days=days)))
-		.run(pluck=True)
-	)
-
-	if email_queues:
-		frappe.db.delete("Email Queue", {"name": ("in", email_queues)})
-		frappe.db.delete("Email Queue Recipient", {"parent": ("in", email_queues)})
 
 
 def set_expiry_for_email_queue():

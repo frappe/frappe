@@ -1,6 +1,5 @@
 import os
 import shutil
-import unittest
 
 import frappe
 from frappe import scrub
@@ -88,7 +87,7 @@ class TestUtils(FrappeTestCase):
 			scrub(doc.name),
 			f"{scrub(doc.name)}.json",
 		)
-		with open(export_doc_path, "r") as f:
+		with open(export_doc_path) as f:
 			export_doc_before = frappe.parse_json(f.read())
 
 		last_modified_before = os.path.getmtime(export_doc_path)
@@ -97,8 +96,8 @@ class TestUtils(FrappeTestCase):
 		export_path = export_module_json(doc=doc, is_standard=True, module=doc.module)
 		last_modified_after = os.path.getmtime(export_doc_path)
 
-		with open(f"{export_path}.json", "r") as f:
-			export_doc_after = frappe.parse_json(f.read())
+		with open(f"{export_path}.json") as f:
+			frappe.parse_json(f.read())  # export_doc_after
 
 		self.assertTrue(last_modified_after > last_modified_before)
 

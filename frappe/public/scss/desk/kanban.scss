@@ -139,6 +139,7 @@
 		}
 
 		.kanban-cards {
+			height: 100%;
 			max-height: calc(100vh - 250px);
 			margin: -5px;
 			padding: 5px;
@@ -149,36 +150,117 @@
 			&::-webkit-scrollbar {
 				display: none;
 			}
-		}
 
-		.kanban-card {
-			@include flex(flex, space-between, null, column);
-			margin-top: var(--margin-sm);
-			min-height: 100px;
-			@include card(
-				$padding: 0,
-				$background-color: var(--kanban-card-bg)
-			);
-			.kanban-card-body {
-				padding: var(--padding-sm);
+			.kanban-card-wrapper {
+				position: relative;
+				display: block;
+
+				&:last-child .kanban-card {
+					margin-bottom: var(--margin-xl);
+				}
+				.kanban-card {
+					@include flex(flex, space-between, null, column);
+					margin-top: var(--margin-sm);
+					min-height: 100px;
+					@include card(
+						$padding: 0,
+						$background-color: var(--kanban-card-bg)
+					);
+
+					.kanban-image {
+						height: 125px;
+
+						img {
+							border-radius: var(--border-radius) var(--border-radius) 0 0;
+							object-position: top;
+							object-fit: cover;
+							margin: 0 auto;
+							height: 100%;
+							width: 100%;
+							min-width: 100%;
+							color: transparent;
+							position: relative;
+						}
+
+						@include broken-img(
+							$height: 125px,
+							$top: -4px,
+						)
+					}
+
+					.kanban-card-body {
+						cursor: grab;
+						padding: var(--padding-sm);
+
+						.kanban-title-area {
+							margin-bottom: 12px;
+							max-width: 90%;
+							font-size: var(--text-md);
+							font-weight: 500;
+
+							.kanban-card-doc {
+								.text-muted div {
+									display: inline;
+								}
+							}
+
+							.kanban-card-creation {
+								font-size: var(--text-md);
+								color: var(--text-muted);
+								margin-top: var(--margin-xs);
+							}
+						}
+
+						.kanban-card-meta {
+
+							.list-comment-count {
+								width: 30px;
+							}
+
+							.like-action:not(.liked) {
+								.icon use {
+									stroke: var(--text-muted);
+								}
+							}
+
+							.kanban-tags {
+								font-size: var(--text-sm);
+								margin-bottom: 8px;
+
+								.tag-pill {
+									border-radius: 100px;
+									height: 22px;
+									width: auto;
+									padding: 2px 8px;
+									margin-bottom: var(--margin-xs);
+									margin-right: var(--margin-xs);
+								}
+							}
+
+							.kanban-assignments {
+								display: flex;
+								float: right;
+
+								.avatar {
+									cursor: default;
+									width: 22px;
+									height: 22px;
+								}
+
+								.avatar-action {
+									width: 22px;
+									height: 22px;
+
+									.icon {
+										width: 12px;
+										height: 12px;
+									}
+								}
+							}
+						}
+					}
+				}
 			}
-		}
-	}
-
-	.kanban-card-wrapper {
-		position: relative;
-
-		.kanban-card-redirect {
-			display: block;
-
-			&:hover,
-			&:focus {
-				text-decoration: none;
-			}
-		}
-
-		&:last-child .kanban-card {
-			margin-bottom: var(--margin-xl);
 		}
 	}
 
@@ -189,49 +271,11 @@
 	}
 
 	.kanban-card-wrapper:hover {
-		cursor: pointer;
 		text-decoration: none;
 
 		.kanban-card-edit {
 			opacity: 1;
 		}
-	}
-
-	.kanban-title-area {
-		margin-bottom: 12px;
-
-		.kanban-card-title {
-			max-width: 90%;
-			font-size: var(--text-md);
-			font-weight: 500;
-		}
-
-		.kanban-card-creation {
-			font-size: var(--text-md);
-			color: var(--text-muted);
-			margin-top: var(--margin-xs);
-		}
-	}
-
-	.kanban-image {
-		height: 125px;
-
-		img {
-			border-radius: var(--border-radius) var(--border-radius) 0 0;
-			object-position: top;
-			object-fit: cover;
-			margin: 0 auto;
-			height: 100%;
-			width: 100%;
-			min-width: 100%;
-			color: transparent;
-			position: relative;
-		}
-
-		@include broken-img(
-			$height: 125px,
-			$top: -4px,
-		)
 	}
 
 	.kanban-card-edit {
@@ -287,54 +331,6 @@
 
 			&:hover {
 				background-color: var(--kanban-column-bg);
-			}
-		}
-	}
-
-	.kanban-card-meta {
-
-		.list-comment-count {
-			width: 30px;
-		}
-
-		.like-action:not(.liked) {
-			.icon use {
-				stroke: var(--text-muted);
-			}
-		}
-
-		.kanban-tags {
-			font-size: var(--text-sm);
-			margin-bottom: 8px;
-
-			.tag-pill {
-				border-radius: 100px;
-				height: 22px;
-				width: auto;
-				padding: 2px 8px;
-				margin-bottom: var(--margin-xs);
-				margin-right: var(--margin-xs);
-			}
-		}
-
-		.kanban-assignments {
-			display: flex;
-			float: right;
-
-			.avatar {
-				cursor: default;
-				width: 22px;
-				height: 22px;
-			}
-
-			.avatar-action {
-				width: 22px;
-				height: 22px;
-
-				.icon {
-					width: 12px;
-					height: 12px;
-				}
 			}
 		}
 	}

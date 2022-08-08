@@ -30,14 +30,18 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import BaseDocument
+from frappe.model.base_document import (
+	DOCTYPE_TABLE_FIELDS,
+	TABLE_DOCTYPES_FOR_DOCTYPE,
+	BaseDocument,
+)
 from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
 
-def get_meta(doctype, cached=True):
+def get_meta(doctype, cached=True) -> "Meta":
 	if cached:
 		if not frappe.local.meta_cache.get(doctype):
 			meta = frappe.cache().hget("meta", doctype)
@@ -63,7 +67,7 @@ def get_table_columns(doctype):
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)
-	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
+	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json")) as f:
 		txt = json.loads(f.read())
 
 	for d in txt.get("fields", []):
@@ -99,19 +103,19 @@ class Meta(Document):
 	def __init__(self, doctype):
 		self._fields = {}
 		if isinstance(doctype, dict):
-			super(Meta, self).__init__(doctype)
+			super().__init__(doctype)
 
 		elif isinstance(doctype, Document):
-			super(Meta, self).__init__(doctype.as_dict())
+			super().__init__(doctype.as_dict())
 			self.process()
 
 		else:
-			super(Meta, self).__init__("DocType", doctype)
+			super().__init__("DocType", doctype)
 			self.process()
 
 	def load_from_db(self):
 		try:
-			super(Meta, self).load_from_db()
+			super().load_from_db()
 		except frappe.DoesNotExistError:
 			if self.doctype == "DocType" and self.name in self.special_doctypes:
 				self.__dict__.update(load_doctype_from_file(self.name))
@@ -148,9 +152,9 @@ class Meta(Document):
 					out[key] = value
 
 			# set empty lists for unset table fields
-			for table_field in DOCTYPE_TABLE_FIELDS:
-				if out.get(table_field.fieldname) is None:
-					out[table_field.fieldname] = []
+			for fieldname in TABLE_DOCTYPES_FOR_DOCTYPE.keys():
+				if out.get(fieldname) is None:
+					out[fieldname] = []
 
 			return out
 
@@ -161,6 +165,9 @@ class Meta(Document):
 
 	def get_data_fields(self):
 		return self.get("fields", {"fieldtype": "Data"})
+
+	def get_phone_fields(self):
+		return self.get("fields", {"fieldtype": "Phone"})
 
 	def get_dynamic_link_fields(self):
 		if not hasattr(self, "_dynamic_link_fields"):
@@ -222,13 +229,7 @@ class Meta(Document):
 		return self._valid_columns
 
 	def get_table_field_doctype(self, fieldname):
-		return {
-			"fields": "DocField",
-			"permissions": "DocPerm",
-			"actions": "DocType Action",
-			"links": "DocType Link",
-			"states": "DocType State",
-		}.get(fieldname)
+		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
 	def get_field(self, fieldname):
 		"""Return docfield from meta"""
@@ -250,10 +251,15 @@ class Meta(Document):
 		else:
 			label = {
 				"name": _("ID"),
-				"owner": _("Created By"),
-				"modified_by": _("Modified By"),
 				"creation": _("Created On"),
-				"modified": _("Last Modified On"),
+				"docstatus": _("Document Status"),
+				"idx": _("Index"),
+				"modified": _("Last Updated On"),
+				"modified_by": _("Last Updated By"),
+				"owner": _("Created By"),
+				"_user_tags": _("Tags"),
+				"_liked_by": _("Liked By"),
+				"_comments": _("Comments"),
 				"_assign": _("Assigned To"),
 			}.get(fieldname) or _("No Label")
 		return label
@@ -340,6 +346,16 @@ class Meta(Document):
 	def get_workflow(self):
 		return get_workflow_name(self.name)
 
+	def get_naming_series_options(self) -> list[str]:
+		"""Get list naming series options."""
+
+		field = self.get_field("naming_series")
+		if field:
+			options = field.options or ""
+
+			return options.split("\n")
+		return []
+
 	def add_custom_fields(self):
 		if not frappe.db.table_exists("Custom Field"):
 			return
@@ -417,7 +433,7 @@ class Meta(Document):
 
 			# set the fields in order if specified
 			# order is saved as `links_order`
-			order = json.loads(self.get("{}_order".format(fieldname)) or "[]")
+			order = json.loads(self.get(f"{fieldname}_order") or "[]")
 			if order:
 				name_map = {d.name: d for d in self.get(fieldname)}
 				new_list = []
@@ -639,14 +655,6 @@ class Meta(Document):
 		return self.has_field("lft") and self.has_field("rgt")
 
 
-DOCTYPE_TABLE_FIELDS = [
-	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
-	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
-	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
-	frappe._dict({"fieldname": "states", "options": "DocType State"}),
-]
-
 #######
 
 
@@ -781,7 +789,10 @@ def trim_table(doctype, dry_run=True):
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
-	is_internal = lambda f: f not in ignore_fields and not f.startswith("_")
+
+	def is_internal(field):
+		return field not in ignore_fields and not field.startswith("_")
+
 	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 

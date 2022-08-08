@@ -15,24 +15,25 @@ import operator
 import os
 import re
 from csv import reader
-from typing import List, Tuple, Union
 
+from babel.messages.extract import extract_python
+from babel.messages.jslexer import Token, tokenize, unquote_string
 from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
-from frappe.utils import get_bench_path, is_html, strip, strip_html_tags
+from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
 
 TRANSLATE_PATTERN = re.compile(
-	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
+	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
 	# BEGIN: message search
 	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
 	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
 	r"\1"  # match exact string closing identifier
 	# END: message search
 	# BEGIN: python context search
-	r"([\s\n]*,[\s\n]*context\s*=\s*"  # capture `context=` with ignoring whitespace
+	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
 	r"([\"'])"  # start of context string identifier; 5th capture group
 	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
 	r"\5"  # match context string closure
@@ -46,11 +47,13 @@ TRANSLATE_PATTERN = re.compile(
 	r")*"
 	r")*"  # match one or more context string
 	# END: JS context search
-	r"[\s\n]*\)"  # Closing function call ignore leading whitespace/newlines
+	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
 )
+REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
+CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
 
-def get_language(lang_list: List = None) -> str:
+def get_language(lang_list: list = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -100,7 +103,7 @@ def get_language(lang_list: List = None) -> str:
 	return frappe.local.lang
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_parent_language(lang: str) -> str:
 	"""If the passed language is a variant, return its parent
 
@@ -132,7 +135,7 @@ def get_user_lang(user: str = None) -> str:
 	return lang
 
 
-def get_lang_code(lang: str) -> Union[str, None]:
+def get_lang_code(lang: str) -> str | None:
 	return frappe.db.get_value("Language", {"name": lang}) or frappe.db.get_value(
 		"Language", {"language_name": lang}
 	)
@@ -147,13 +150,12 @@ def set_default_language(lang):
 
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
-	result = dict(
+	return dict(
 		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
 	)
-	return result
 
 
-def get_dict(fortype, name=None):
+def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	"""Returns translation dict for a type of object.
 
 	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
@@ -204,11 +206,19 @@ def get_dict(fortype, name=None):
 		translation_assets[asset_key] = message_dict
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
-	translation_map = translation_assets[asset_key]
+	translation_map: dict = translation_assets[asset_key]
 
 	translation_map.update(get_user_translations(frappe.local.lang))
 
 	return translation_map
+
+
+def get_messages_for_boot():
+	"""Return all message translations that are required on boot."""
+	messages = get_full_dict(frappe.local.lang)
+	messages.update(get_dict_from_hooks("boot", None))
+
+	return messages
 
 
 def get_dict_from_hooks(fortype, name):
@@ -247,16 +257,16 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 	return out
 
 
-def get_lang_js(fortype, name):
+def get_lang_js(fortype: str, name: str) -> str:
 	"""Returns code snippet to be appended at the end of a JS script.
 
 	:param fortype: Type of object, e.g. `DocType`
 	:param name: Document name
 	"""
-	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
+	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
-def get_full_dict(lang):
+def get_full_dict(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
 
 	:param lang: Language Code, e.g. `hi`
@@ -265,7 +275,7 @@ def get_full_dict(lang):
 		return {}
 
 	# found in local, return!
-	if getattr(frappe.local, "lang_full_dict", None) and frappe.local.lang_full_dict.get(lang, None):
+	if getattr(frappe.local, "lang_full_dict", None) is not None:
 		return frappe.local.lang_full_dict
 
 	frappe.local.lang_full_dict = load_lang(lang)
@@ -306,7 +316,7 @@ def load_lang(lang, apps=None):
 	return out or {}
 
 
-def get_translation_dict_from_file(path, lang, app):
+def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
 	"""load translation dict from given path"""
 	translation_map = {}
 	if os.path.exists(path):
@@ -319,11 +329,12 @@ def get_translation_dict_from_file(path, lang, app):
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
-				raise Exception(
-					"Bad translation in '{app}' for language '{lang}': {values}".format(
-						app=app, lang=lang, values=repr(item).encode("utf-8")
-					)
+				msg = "Bad translation in '{app}' for language '{lang}': {values}".format(
+					app=app, lang=lang, values=cstr(item)
 				)
+				frappe.log_error(message=msg, title="Error in translation file")
+				if throw:
+					frappe.throw(msg, title="Error in translation file")
 
 	return translation_map
 
@@ -601,7 +612,7 @@ def get_messages_from_report(name):
 		messages.extend(
 			[
 				(None, message)
-				for message in re.findall('"([^:,^"]*):', report.query)
+				for message in REPORT_TRANSLATE_PATTERN.findall(report.query)
 				if is_translatable(message)
 			]
 		)
@@ -631,10 +642,13 @@ def get_server_messages(app):
 	inside an app"""
 	messages = []
 	file_extensions = (".py", ".html", ".js", ".vue")
-	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
-		for dontwalk in (".git", "public", "locale"):
-			if dontwalk in folders:
-				folders.remove(dontwalk)
+	app_walk = os.walk(frappe.get_pymodule_path(app))
+
+	for basepath, folders, files in app_walk:
+		folders[:] = [folder for folder in folders if folder not in {".git", "__pycache__"}]
+
+		if "public/dist" in basepath:
+			continue
 
 		for f in files:
 			f = frappe.as_unicode(f)
@@ -678,41 +692,241 @@ def get_all_messages_from_js_files(app_name=None):
 	return messages
 
 
-def get_messages_from_file(path: str) -> List[Tuple[str, str, str, str]]:
+def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 	"""Returns a list of transatable strings from a code file
 
 	:param path: path of the code file
 	"""
-	frappe.flags.setdefault("scanned_files", [])
+	frappe.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
-	if path in set(frappe.flags.scanned_files):
+	if path in frappe.flags.scanned_files:
 		return []
 
-	frappe.flags.scanned_files.append(path)
+	frappe.flags.scanned_files.add(path)
 
 	bench_path = get_bench_path()
-	if os.path.exists(path):
-		with open(path, "r") as sourcefile:
-			try:
-				file_contents = sourcefile.read()
-			except Exception:
-				print("Could not scan file for translation: {0}".format(path))
-				return []
-
-			return [
-				(os.path.relpath(path, bench_path), message, context, line)
-				for (line, message, context) in extract_messages_from_code(file_contents)
-			]
-	else:
+	if not os.path.exists(path):
 		return []
+
+	with open(path) as sourcefile:
+		try:
+			file_contents = sourcefile.read()
+		except Exception:
+			print(f"Could not scan file for translation: {path}")
+			return []
+
+		messages = []
+
+		if path.lower().endswith(".py"):
+			messages += extract_messages_from_python_code(file_contents)
+		else:
+			messages += extract_messages_from_code(file_contents)
+
+		if path.lower().endswith(".js"):
+			# For JS also use JS parser to extract strings possibly missed out
+			# by regex based extractor.
+			messages += extract_messages_from_javascript_code(file_contents)
+
+		return [
+			(os.path.relpath(path, bench_path), message, context, line)
+			for (line, message, context) in messages
+		]
+
+
+def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
+	"""Extracts translatable strings from Python code using babel."""
+
+	messages = []
+
+	for message in extract_python(
+		io.BytesIO(code.encode()),
+		keywords=["_"],
+		comment_tags=(),
+		options={},
+	):
+		lineno, _func, args, _comments = message
+
+		if not args or not args[0]:
+			continue
+
+		source_text = args[0] if isinstance(args, tuple) else args
+		context = args[1] if len(args) == 2 else None
+
+		messages.append((lineno, source_text, context))
+
+	return messages
+
+
+def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str | None]]:
+	"""Extracts translatable strings from JavaScript code using babel."""
+
+	messages = []
+
+	for message in extract_javascript(
+		code,
+		keywords=["__"],
+		options={},
+	):
+		lineno, _func, args = message
+
+		if not args or not args[0]:
+			continue
+
+		source_text = args[0] if isinstance(args, tuple) else args
+		context = None
+
+		if isinstance(args, tuple) and len(args) == 3 and isinstance(args[2], str):
+			context = args[2]
+
+		messages.append((lineno, source_text, context))
+
+	return messages
+
+
+def extract_javascript(code, keywords=("__",), options=None):
+	"""Extract messages from JavaScript source code.
+
+	This is a modified version of babel's JS parser. Reused under BSD license.
+	License: https://github.com/python-babel/babel/blob/master/LICENSE
+
+	Changes from upstream:
+	- Preserve arguments, babel's parser flattened all values in args,
+	  we need order because we use different syntax for translation
+	  which can contain 2nd arg which is array of many values. If
+	  argument is non-primitive type then value is NOT returned in
+	  args.
+	  E.g. __("0", ["1", "2"], "3") -> ("0", None, "3")
+	- remove comments support
+	- changed signature to accept string directly.
+
+	:param code: code as string
+	:param keywords: a list of keywords (i.e. function names) that should be
+	                 recognized as translation functions
+	:param options: a dictionary of additional options (optional)
+	                Supported options are:
+	                * `template_string` -- set to false to disable ES6
+	                                       template string support.
+	"""
+	if options is None:
+		options = {}
+
+	funcname = message_lineno = None
+	messages = []
+	last_argument = None
+	concatenate_next = False
+	last_token = None
+	call_stack = -1
+
+	# Tree level = depth inside function call tree
+	#  Example: __("0", ["1", "2"], "3")
+	# Depth         __()
+	#             /   |   \
+	#   0       "0" [...] "3"  <- only 0th level strings matter
+	#                /  \
+	#   1          "1"  "2"
+	tree_level = 0
+	opening_operators = {"[", "{"}
+	closing_operators = {"]", "}"}
+	all_container_operators = opening_operators.union(closing_operators)
+	dotted = any("." in kw for kw in keywords)
+
+	for token in tokenize(
+		code,
+		jsx=True,
+		template_string=options.get("template_string", True),
+		dotted=dotted,
+	):
+		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
+			funcname
+			and (last_token and last_token.type == "name")  # have a keyword...
+			and token.type  # we've seen nothing after the keyword...
+			== "template_string"  # this is a template string
+		):
+			message_lineno = token.lineno
+			messages = [unquote_string(token.value)]
+			call_stack = 0
+			tree_level = 0
+			token = Token("operator", ")", token.lineno)
+
+		if token.type == "operator" and token.value == "(":
+			if funcname:
+				message_lineno = token.lineno
+				call_stack += 1
+
+		elif call_stack >= 0 and token.type == "operator" and token.value in all_container_operators:
+			if token.value in opening_operators:
+				tree_level += 1
+			if token.value in closing_operators:
+				tree_level -= 1
+
+		elif call_stack == -1 and token.type == "linecomment" or token.type == "multilinecomment":
+			pass  # ignore comments
+
+		elif funcname and call_stack == 0:
+			if token.type == "operator" and token.value == ")":
+				if last_argument is not None:
+					messages.append(last_argument)
+				if len(messages) > 1:
+					messages = tuple(messages)
+				elif messages:
+					messages = messages[0]
+				else:
+					messages = None
+
+				if messages is not None:
+					yield (message_lineno, funcname, messages)
+
+				funcname = message_lineno = last_argument = None
+				concatenate_next = False
+				messages = []
+				call_stack = -1
+				tree_level = 0
+
+			elif token.type in ("string", "template_string"):
+				new_value = unquote_string(token.value)
+				if tree_level > 0:
+					pass
+				elif concatenate_next:
+					last_argument = (last_argument or "") + new_value
+					concatenate_next = False
+				else:
+					last_argument = new_value
+
+			elif token.type == "operator":
+				if token.value == ",":
+					if last_argument is not None:
+						messages.append(last_argument)
+						last_argument = None
+					else:
+						if tree_level == 0:
+							messages.append(None)
+					concatenate_next = False
+				elif token.value == "+":
+					concatenate_next = True
+
+		elif call_stack > 0 and token.type == "operator" and token.value == ")":
+			call_stack -= 1
+			tree_level = 0
+
+		elif funcname and call_stack == -1:
+			funcname = None
+
+		elif (
+			call_stack == -1
+			and token.type == "name"
+			and token.value in keywords
+			and (last_token is None or last_token.type != "name" or last_token.value != "function")
+		):
+			funcname = token.value
+
+		last_token = token
 
 
 def extract_messages_from_code(code):
 	"""
 	Extracts translatable strings from a code file
 	:param code: code from which translatable files are to be extracted
-	:param is_py: include messages in triple quotes e.g. `_('''message''')`
 	"""
 	from jinja2 import TemplateError
 
@@ -720,7 +934,7 @@ def extract_messages_from_code(code):
 		code = frappe.as_unicode(render_include(code))
 
 	# Exception will occur when it encounters John Resig's microtemplating code
-	except (TemplateError, ImportError, InvalidIncludePath, IOError) as e:
+	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
 		if isinstance(e, InvalidIncludePath):
 			frappe.clear_last_message()
 
@@ -767,7 +981,7 @@ def read_csv_file(path):
 
 	:param path: File path"""
 
-	with io.open(path, mode="r", encoding="utf-8", newline="") as msgfile:
+	with open(path, encoding="utf-8", newline="") as msgfile:
 		data = reader(msgfile)
 		newdata = [[val for val in row] for row in data]
 
@@ -800,12 +1014,12 @@ def write_csv_file(path, app_messages, lang_dict):
 
 			t = lang_dict.get(message, "")
 			# strip whitespaces
-			translated_string = re.sub(r"{\s?([0-9]+)\s?}", r"{\g<1>}", t)
+			translated_string = CSV_STRIP_WHITESPACE_PATTERN.sub(r"{\g<1>}", t)
 			if translated_string:
 				w.writerow([message, translated_string, context])
 
 
-def get_untranslated(lang, untranslated_file, get_all=False):
+def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 	"""Returns all untranslated strings for a language and writes in a file
 
 	:param lang: Language code.
@@ -813,11 +1027,16 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	:param get_all: Return all strings, translated or not."""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
+	if app != "_ALL_APPS":
+		if app not in apps:
+			print(f"Application {app} not found!")
+			return
+		apps = [app]
 
 	messages = []
 	untranslated = []
-	for app in apps:
-		messages.extend(get_messages_for_app(app))
+	for app_name in apps:
+		messages.extend(get_messages_for_app(app_name))
 
 	messages = deduplicate_messages(messages)
 
@@ -847,7 +1066,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			print("all translated!")
 
 
-def update_translations(lang, untranslated_file, translated_file):
+def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS"):
 	"""Update translations from a source and target file for a given language.
 
 	:param lang: Language code (e.g. `en`).
@@ -876,9 +1095,16 @@ def update_translations(lang, untranslated_file, translated_file):
 		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
 	full_dict.update(translation_dict)
+	apps = frappe.get_all_apps(True)
 
-	for app in frappe.get_all_apps(True):
-		write_translations_file(app, lang, full_dict)
+	if app != "_ALL_APPS":
+		if app not in apps:
+			print(f"Application {app} not found!")
+			return
+		apps = [app]
+
+	for app_name in apps:
+		write_translations_file(app_name, lang, full_dict)
 
 
 def import_translations(lang, path):

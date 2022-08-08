@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -47,7 +46,7 @@ def run_background(prepared_report):
 		instance.save(ignore_permissions=True)
 
 	except Exception:
-		frappe.log_error(frappe.get_traceback())
+		report.log_error("Prepared report failed")
 		instance = frappe.get_doc("Prepared Report", prepared_report)
 		instance.status = "Error"
 		instance.error_message = frappe.get_traceback()
@@ -103,7 +102,7 @@ def delete_prepared_reports(reports):
 def create_json_gz_file(data, dt, dn):
 	# Storing data in CSV file causes information loss
 	# Reports like P&L Statement were completely unsuable because of this
-	json_filename = "{0}.json.gz".format(
+	json_filename = "{}.json.gz".format(
 		frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M")
 	)
 	encoded_content = frappe.safe_encode(frappe.as_json(data))

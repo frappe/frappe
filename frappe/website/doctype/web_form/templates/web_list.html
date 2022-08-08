@@ -1,0 +1,45 @@
+{% extends "templates/web.html" %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block page_content %}
+	<!-- main card -->
+	<div class="web-list-container">
+		<!-- list -->
+		<div class="web-list-header">
+			<h1>{{ _(list_title or title) }}</h1>
+			<div class="web-list-actions">
+				{%- if allow_multiple -%}
+					<a class="btn btn-primary btn-sm button-new" href="/{{ route }}/new">New</a>
+				{%- endif -%}
+			</div>
+		</div>
+		<div class="web-list-filters hide"></div>
+		<div class="web-list-table"></div>
+		<div class="web-list-footer"></div>
+	</div>
+{% endblock page_content %}
+
+{% block script %}
+	<script>
+		frappe.boot = {{ boot }};
+		frappe._messages = {{ translated_messages }};
+		frappe.web_form_doc = {{ web_form_doc | json }};
+	</script>
+
+	{{ include_script("controls.bundle.js") }}
+	{{ include_script("dialog.bundle.js") }}
+	{{ include_script("web_form.bundle.js") }}
+	{{ include_script("bootstrap-4-web.bundle.js") }}
+{% endblock script %}
+
+{% block style %}
+	<style>
+		{% if style is defined %}
+			{{ style }}
+		{% endif %}
+		{% if custom_css %}
+			{{ custom_css }}
+		{% endif %}
+	</style>
+{% endblock %}

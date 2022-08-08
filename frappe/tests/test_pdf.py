@@ -3,7 +3,7 @@
 import io
 import unittest
 
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfReader
 
 import frappe
 import frappe.utils.pdf as pdfgen
@@ -42,7 +42,7 @@ class TestPdf(unittest.TestCase):
 	def test_pdf_encryption(self):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
-		reader = PdfFileReader(io.BytesIO(pdf))
+		reader = PdfReader(io.BytesIO(pdf))
 		self.assertTrue(reader.isEncrypted)
 		self.assertTrue(reader.decrypt(password))
 

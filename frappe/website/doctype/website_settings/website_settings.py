@@ -1,15 +1,13 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import encode, get_request_site_address
-from frappe.website.doctype.website_theme.website_theme import add_website_theme
-
-INDEXING_SCOPES = "https://www.googleapis.com/auth/indexing"
+from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
@@ -90,41 +88,23 @@ class WebsiteSettings(Document):
 		frappe.clear_cache()
 
 	def get_access_token(self):
-		import requests
-
-		google_settings = frappe.get_doc("Google Settings")
-
-		if not google_settings.enable:
-			frappe.throw(_("Google Integration is disabled."))
-
 		if not self.indexing_refresh_token:
 			button_label = frappe.bold(_("Allow API Indexing Access"))
 			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
-		data = {
-			"client_id": google_settings.client_id,
-			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-			"refresh_token": self.get_password(fieldname="indexing_refresh_token", raise_exception=False),
-			"grant_type": "refresh_token",
-			"scope": INDEXING_SCOPES,
-		}
-
-		try:
-			res = requests.post(get_auth_url(), data=data).json()
-		except requests.exceptions.HTTPError:
-			button_label = frappe.bold(_("Allow Google Indexing Access"))
-			frappe.throw(
-				_(
-					"Something went wrong during the token generation. Click on {0} to generate a new one."
-				).format(button_label)
-			)
+		oauth_obj = GoogleOAuth("indexing")
+		res = oauth_obj.refresh_access_token(
+			self.get_password(fieldname="indexing_refresh_token", raise_exception=False)
+		)
 
 		return res.get("access_token")
 
 
 def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
-	context = context or frappe._dict()
+	context = frappe._dict(context or {})
+	settings: "WebsiteSettings" = frappe.get_single("Website Settings")
+
 	context = context.update(
 		{
 			"top_bar_items": get_items("top_bar_items"),
@@ -136,7 +116,6 @@ def get_website_settings(context=None):
 		}
 	)
 
-	settings = frappe.get_single("Website Settings")
 	for k in [
 		"banner_html",
 		"banner_image",
@@ -161,11 +140,8 @@ def get_website_settings(context=None):
 		"show_language_picker",
 		"footer_powered",
 	]:
-		if hasattr(settings, k):
-			context[k] = settings.get(k)
-
-	if settings.address:
-		context["footer_address"] = settings.address
+		if setting_value := settings.get(k):
+			context[k] = setting_value
 
 	for k in [
 		"facebook_share",
@@ -176,16 +152,19 @@ def get_website_settings(context=None):
 	]:
 		context[k] = int(context.get(k) or 0)
 
+	if settings.address:
+		context["footer_address"] = settings.address
+
 	if frappe.request:
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 
-	context.encoded_title = quote(encode(context.title or ""), str(""))
+	context.encoded_title = quote(encode(context.title or ""), "")
 
 	context.web_include_js = hooks.web_include_js or []
 
 	context.web_include_css = hooks.web_include_css or []
 
-	via_hooks = frappe.get_hooks("website_context")
+	via_hooks = hooks.website_context or []
 	for key in via_hooks:
 		context[key] = via_hooks[key]
 		if key not in ("top_bar_items", "footer_items", "post_login") and isinstance(
@@ -193,7 +172,13 @@ def get_website_settings(context=None):
 		):
 			context[key] = context[key][-1]
 
-	add_website_theme(context)
+	if context.disable_website_theme:
+		context.theme = frappe._dict()
+
+	else:
+		from frappe.website.doctype.website_theme.website_theme import get_active_theme
+
+		context.theme = get_active_theme() or frappe._dict()
 
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/frappe-favicon.svg"
@@ -203,30 +188,39 @@ def get_website_settings(context=None):
 
 	context["hide_login"] = settings.hide_login
 
+	if settings.splash_image:
+		context["splash_image"] = settings.splash_image
+
+	context.boot = get_boot_data()
+
 	return context
 
 
-def get_items(parentfield):
-	all_top_items = frappe.db.sql(
-		"""\
-		select * from `tabTop Bar Item`
-		where parent='Website Settings' and parentfield= %s
-		order by idx asc""",
-		parentfield,
-		as_dict=1,
+def get_items(parentfield: str) -> list[dict]:
+	_items = frappe.get_all(
+		"Top Bar Item",
+		filters={"parent": "Website Settings", "parentfield": parentfield},
+		order_by="idx asc",
+		fields="*",
 	)
-
-	top_items = all_top_items[:]
+	top_items = _items.copy()
 
 	# attach child items to top bar
-	for d in all_top_items:
-		if d["parent_label"]:
-			for t in top_items:
-				if t["label"] == d["parent_label"]:
-					if not "child_items" in t:
-						t["child_items"] = []
-					t["child_items"].append(d)
-					break
+	for item in _items:
+		if not item["parent_label"]:
+			continue
+
+		for top_bar_item in top_items:
+			if top_bar_item["label"] != item["parent_label"]:
+				continue
+
+			if "child_items" not in top_bar_item:
+				top_bar_item["child_items"] = []
+
+			top_bar_item["child_items"].append(item)
+
+			break
+
 	return top_items
 
 

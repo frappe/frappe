@@ -52,14 +52,8 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super(FormMeta, self).__init__(doctype)
+		super().__init__(doctype)
 		self.load_assets()
-
-	def set(self, key, value, *args, **kwargs):
-		if key in ASSET_KEYS:
-			self.__dict__[key] = value
-		else:
-			super(FormMeta, self).set(key, value, *args, **kwargs)
 
 	def load_assets(self):
 		if self.get("__assets_loaded", False):
@@ -80,7 +74,7 @@ class FormMeta(Meta):
 		self.set("__assets_loaded", True)
 
 	def as_dict(self, no_nulls=False):
-		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
+		d = super().as_dict(no_nulls=no_nulls)
 
 		for k in ASSET_KEYS:
 			d[k] = self.get(k)
@@ -139,7 +133,7 @@ class FormMeta(Meta):
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with io.open(os.path.join(path, fname), "r", encoding="utf-8") as f:
+				with open(os.path.join(path, fname), encoding="utf-8") as f:
 					templates[fname.split(".")[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
@@ -155,7 +149,7 @@ class FormMeta(Meta):
 			frappe.db.get_all(
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
-				fields=["script", "view"],
+				fields=["name", "script", "view"],
 				order_by="creation asc",
 			)
 			or ""
@@ -165,10 +159,18 @@ class FormMeta(Meta):
 		form_script = ""
 		for script in client_scripts:
 			if script.view == "List":
-				list_script += script.script
+				list_script += f"""
+// {script.name}
+{script.script}
+
+"""
 
 			if script.view == "Form":
-				form_script += script.script
+				form_script += f"""
+// {script.name}
+{script.script}
+
+"""
 
 		file = scrub(self.name)
 		form_script += f"\n\n//# sourceURL={file}__custom_js"

@@ -46,7 +46,7 @@ class TestPrintFormat(unittest.TestCase):
 
 		self.assertTrue(os.path.exists(exported_doc_path))
 
-		with open(exported_doc_path, "r") as f:
+		with open(exported_doc_path) as f:
 			exported_doc = frappe.parse_json(f.read())
 
 		for key, value in exported_doc.items():

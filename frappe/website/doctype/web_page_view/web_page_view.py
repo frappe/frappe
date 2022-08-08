@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -50,4 +49,4 @@ def get_page_view_count(path):
 
 
 def is_tracking_enabled():
-	return frappe.db.get_value("Website Settings", "Website Settings", "enable_view_tracking")
+	return frappe.db.get_single_value("Website Settings", "enable_view_tracking")

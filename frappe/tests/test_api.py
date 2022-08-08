@@ -3,7 +3,6 @@ import unittest
 from contextlib import contextmanager
 from random import choice
 from threading import Thread
-from typing import Dict, Optional, Tuple
 from unittest.mock import patch
 
 import requests
@@ -33,9 +32,12 @@ def suppress_stdout():
 
 
 def make_request(
-	target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None
+	target: str,
+	args: tuple | None = None,
+	kwargs: dict | None = None,
+	site: str = None,
 ) -> TestResponse:
-	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
+	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
 	t.join()
 	return t._return
@@ -47,13 +49,14 @@ def patch_request_header(key, *args, **kwargs):
 
 
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, site=None):
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
+		self.site = site or _site
 
 	def run(self):
 		if self._target is not None:
-			with patch("frappe.app.get_site_name", return_value=_site):
+			with patch("frappe.app.get_site_name", return_value=self.site):
 				header_patch = patch("frappe.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
@@ -86,7 +89,7 @@ class FrappeAPITestCase(unittest.TestCase):
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None, **kwargs) -> TestResponse:
+	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
 
 	def post(self, path, data, **kwargs) -> TestResponse:

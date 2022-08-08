@@ -25,6 +25,7 @@
    "fieldname": "script_type",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Script Type",
    "options": "DocType Event\nScheduler Event\nPermission Query\nAPI",
    "reqd": 1
@@ -41,6 +42,7 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Reference Document Type",
    "options": "DocType"
   },
@@ -49,7 +51,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nOn Payment Authorization"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -109,7 +111,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2022-04-07 19:41:23.178772",
+ "modified": "2022-06-13 06:04:20.937969",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

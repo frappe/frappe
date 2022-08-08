@@ -1,25 +1,12 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import email.utils
 import smtplib
-import sys
-
-import _socket
 
 import frappe
 from frappe import _
-from frappe.utils import cint, cstr, parse_addr
-
-CONNECTION_FAILED = _("Could not connect to outgoing email server")
-AUTH_ERROR_TITLE = _("Invalid Credentials")
-AUTH_ERROR = _("Incorrect email or password. Please check your login credentials.")
-SOCKET_ERROR_TITLE = _("Incorrect Configuration")
-SOCKET_ERROR = _("Invalid Outgoing Mail Server or Port")
-SEND_MAIL_FAILED = _("Unable to send emails at this time")
-EMAIL_ACCOUNT_MISSING = _(
-	"Email Account not setup. Please create a new Email Account from Setup > Email > Email Account"
-)
+from frappe.email.oauth import Oauth
+from frappe.utils import cint, cstr
 
 
 class InvalidEmailCredentials(frappe.ValidationError):
@@ -57,17 +44,40 @@ def send(email, append_to=None, retry=1):
 
 
 class SMTPServer:
-	def __init__(self, server, login=None, password=None, port=None, use_tls=None, use_ssl=None):
+	def __init__(
+		self,
+		server,
+		login=None,
+		email_account=None,
+		password=None,
+		port=None,
+		use_tls=None,
+		use_ssl=None,
+		use_oauth=0,
+		refresh_token=None,
+		access_token=None,
+		service=None,
+	):
 		self.login = login
+		self.email_account = email_account
 		self.password = password
 		self._server = server
 		self._port = port
 		self.use_tls = use_tls
 		self.use_ssl = use_ssl
+		self.use_oauth = use_oauth
+		self.refresh_token = refresh_token
+		self.access_token = access_token
+		self.service = service
 		self._session = None
 
 		if not self.server:
-			frappe.msgprint(EMAIL_ACCOUNT_MISSING, raise_exception=frappe.OutgoingEmailError)
+			frappe.msgprint(
+				_(
+					"Email Account not setup. Please create a new Email Account from Setup > Email > Email Account"
+				),
+				raise_exception=frappe.OutgoingEmailError,
+			)
 
 	@property
 	def port(self):
@@ -95,10 +105,18 @@ class SMTPServer:
 		try:
 			_session = SMTP(self.server, self.port)
 			if not _session:
-				frappe.msgprint(CONNECTION_FAILED, raise_exception=frappe.OutgoingEmailError)
+				frappe.msgprint(
+					_("Could not connect to outgoing email server"), raise_exception=frappe.OutgoingEmailError
+				)
 
 			self.secure_session(_session)
-			if self.login and self.password:
+
+			if self.use_oauth:
+				Oauth(
+					_session, self.email_account, self.login, self.access_token, self.refresh_token, self.service
+				).connect()
+
+			elif self.password:
 				res = _session.login(str(self.login or ""), str(self.password or ""))
 
 				# check if logged correctly
@@ -108,16 +126,12 @@ class SMTPServer:
 			self._session = _session
 			return self._session
 
-		except smtplib.SMTPAuthenticationError as e:
+		except smtplib.SMTPAuthenticationError:
 			self.throw_invalid_credentials_exception()
 
-		except _socket.error as e:
+		except OSError:
 			# Invalid mail server -- due to refusing connection
-			frappe.throw(SOCKET_ERROR, title=SOCKET_ERROR_TITLE)
-
-		except smtplib.SMTPException:
-			frappe.msgprint(SEND_MAIL_FAILED)
-			raise
+			frappe.throw(_("Invalid Outgoing Mail Server or Port"), title=_("Incorrect Configuration"))
 
 	def is_session_active(self):
 		if self._session:
@@ -132,4 +146,8 @@ class SMTPServer:
 
 	@classmethod
 	def throw_invalid_credentials_exception(cls):
-		frappe.throw(AUTH_ERROR, title=AUTH_ERROR_TITLE, exc=InvalidEmailCredentials)
+		frappe.throw(
+			_("Please check your email login credentials."),
+			title=_("Invalid Credentials"),
+			exc=InvalidEmailCredentials,
+		)

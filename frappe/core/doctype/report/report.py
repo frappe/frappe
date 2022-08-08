@@ -89,7 +89,9 @@ class Report(Document):
 		]
 
 		custom_roles = get_custom_allowed_roles("report", self.name)
-		allowed.extend(custom_roles)
+
+		if custom_roles:
+			allowed = custom_roles
 
 		if not allowed:
 			return True
@@ -241,7 +243,7 @@ class Report(Document):
 	@staticmethod
 	def _format(parts):
 		# sort by is saved as DocType.fieldname, covert it to sql
-		return "`tab{0}`.`{1}`".format(*parts)
+		return "`tab{}`.`{}`".format(*parts)
 
 	def get_standard_report_columns(self, params):
 		if params.get("fields"):
@@ -363,9 +365,7 @@ def get_group_by_field(args, doctype):
 	if args["aggregate_function"] == "count":
 		group_by_field = "count(*) as _aggregate_column"
 	else:
-		group_by_field = "{0}({1}) as _aggregate_column".format(
-			args.aggregate_function, args.aggregate_on
-		)
+		group_by_field = f"{args.aggregate_function}({args.aggregate_on}) as _aggregate_column"
 
 	return group_by_field
 

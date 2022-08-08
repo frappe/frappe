@@ -9,6 +9,7 @@ import re
 import frappe
 from frappe import _, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, sanitize_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
@@ -46,21 +47,28 @@ def get_context(context):
 		doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type="PDF", method="Print"
 	)
 
+	print_style = None
+	body = get_rendered_template(
+		doc,
+		print_format=print_format,
+		meta=meta,
+		trigger_print=frappe.form_dict.trigger_print,
+		no_letterhead=frappe.form_dict.no_letterhead,
+		letterhead=letterhead,
+		settings=settings,
+	)
+	print_style = get_print_style(frappe.form_dict.style, print_format)
+
 	return {
-		"body": get_rendered_template(
-			doc,
-			print_format=print_format,
-			meta=meta,
-			trigger_print=frappe.form_dict.trigger_print,
-			no_letterhead=frappe.form_dict.no_letterhead,
-			letterhead=letterhead,
-			settings=settings,
-		),
-		"css": get_print_style(frappe.form_dict.style, print_format),
+		"body": body,
+		"print_style": print_style,
 		"comment": frappe.session.user,
-		"title": doc.get(meta.title_field) if meta.title_field else doc.name,
+		"title": frappe.utils.strip_html(doc.get_title() or doc.name),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
+		"doctype": frappe.form_dict.doctype,
+		"name": frappe.form_dict.name,
+		"key": frappe.form_dict.get("key"),
 	}
 
 
@@ -234,9 +242,9 @@ def set_title_values_for_link_and_dynamic_link_fields(meta, doc, parent_doc=None
 
 		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
 		if parent_doc:
-			parent_doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
 		elif doc:
-			doc.__link_titles["{0}::{1}".format(doctype, doc.get(field.fieldname))] = link_title
+			doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
 
 
 def set_title_values_for_table_and_multiselect_fields(meta, doc):
@@ -323,13 +331,34 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 
 
 def validate_print_permission(doc):
-	if frappe.form_dict.get("key"):
-		if frappe.form_dict.key == doc.get_signature():
+	for ptype in ("read", "print"):
+		if frappe.has_permission(doc.doctype, ptype, doc) or frappe.has_website_permission(doc):
 			return
 
-	for ptype in ("read", "print"):
-		if not frappe.has_permission(doc.doctype, ptype, doc) and not frappe.has_website_permission(doc):
-			raise frappe.PermissionError(_("No {0} permission").format(ptype))
+	key = frappe.form_dict.get("key")
+	if key:
+		validate_key(key, doc)
+	else:
+		raise frappe.PermissionError(_("You do not have permission to view this document"))
+
+
+def validate_key(key, doc):
+	document_key_expiry = frappe.get_cached_value(
+		"Document Share Key",
+		{"reference_doctype": doc.doctype, "reference_docname": doc.name, "key": key},
+		["expires_on"],
+	)
+	if document_key_expiry is not None:
+		if is_expired(document_key_expiry[0]):
+			raise frappe.exceptions.LinkExpired
+		else:
+			return
+
+	# TODO: Deprecate this! kept it for backward compatibility
+	if frappe.get_system_settings("allow_older_web_view_links") and key == doc.get_signature():
+		return
+
+	raise frappe.exceptions.InvalidKeyError
 
 
 def get_letter_head(doc, no_letterhead, letterhead=None):
@@ -359,7 +388,7 @@ def get_print_format(doctype, print_format):
 	)
 
 	if os.path.exists(path):
-		with open(path, "r") as pffile:
+		with open(path) as pffile:
 			return pffile.read()
 	else:
 		if print_format.raw_printing:
@@ -528,11 +557,11 @@ def get_font(print_settings, print_format=None, for_legacy=False):
 	font = None
 	if print_format:
 		if print_format.font and print_format.font != "Default":
-			font = "{0}, sans-serif".format(print_format.font)
+			font = f"{print_format.font}, sans-serif"
 
 	if not font:
 		if print_settings.font and print_settings.font != "Default":
-			font = "{0}, sans-serif".format(print_settings.font)
+			font = f"{print_settings.font}, sans-serif"
 
 		else:
 			font = default

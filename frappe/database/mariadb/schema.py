@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
-from frappe.database.sequence import create_sequence
 from frappe.model import log_types
 
 
@@ -41,18 +40,11 @@ class MariaDBTable(DBTable):
 			not self.meta.issingle and self.meta.autoname == "autoincrement"
 		) or self.doctype in log_types:
 
-			# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
-			# it drops the cache and uses the next non cached value in setval func and
-			# puts that in the backup file, which will start the counter
-			# from that value when inserting any new record in the doctype.
-			# By default the cache is 1000 which will mess up the sequence when
-			# using the system after a restore.
-			# issue link: https://jira.mariadb.org/browse/MDEV-21786
-			create_sequence(self.doctype, check_not_exists=True, cache=50)
+			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
 
 			# NOTE: not used nextval func as default as the ability to restore
 			# database with sequences has bugs in mariadb and gives a scary error.
-			# issue link: https://jira.mariadb.org/browse/MDEV-21786
+			# issue link: https://jira.mariadb.org/browse/MDEV-20070
 			name_column = "name bigint primary key"
 
 		# create table
@@ -85,15 +77,15 @@ class MariaDBTable(DBTable):
 		columns_to_modify = set(self.change_type + self.add_unique + self.set_default)
 
 		for col in self.add_column:
-			add_column_query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
+			add_column_query.append(f"ADD COLUMN `{col.fieldname}` {col.get_definition()}")
 
 		for col in columns_to_modify:
-			modify_column_query.append("MODIFY `{}` {}".format(col.fieldname, col.get_definition()))
+			modify_column_query.append(f"MODIFY `{col.fieldname}` {col.get_definition()}")
 
 		for col in self.add_index:
 			# if index key does not exists
 			if not frappe.db.has_index(self.table_name, col.fieldname + "_index"):
-				add_index_query.append("ADD INDEX `{}_index`(`{}`)".format(col.fieldname, col.fieldname))
+				add_index_query.append(f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)")
 
 		for col in self.drop_index + self.drop_unique:
 			if col.fieldname != "name":  # primary key
@@ -103,7 +95,7 @@ class MariaDBTable(DBTable):
 					# nosemgrep
 					unique_index_record = frappe.db.sql(
 						"""
-						SHOW INDEX FROM `{0}`
+						SHOW INDEX FROM `{}`
 						WHERE Key_name=%s
 						AND Non_unique=0
 					""".format(
@@ -113,14 +105,14 @@ class MariaDBTable(DBTable):
 						as_dict=1,
 					)
 					if unique_index_record:
-						drop_index_query.append("DROP INDEX `{}`".format(unique_index_record[0].Key_name))
+						drop_index_query.append(f"DROP INDEX `{unique_index_record[0].Key_name}`")
 				index_constraint_changed = current_column.index != col.set_index
 				# if index key exists
 				if index_constraint_changed and not col.set_index:
 					# nosemgrep
 					index_record = frappe.db.sql(
 						"""
-						SHOW INDEX FROM `{0}`
+						SHOW INDEX FROM `{}`
 						WHERE Key_name=%s
 						AND Non_unique=1
 					""".format(
@@ -130,13 +122,13 @@ class MariaDBTable(DBTable):
 						as_dict=1,
 					)
 					if index_record:
-						drop_index_query.append("DROP INDEX `{}`".format(index_record[0].Key_name))
+						drop_index_query.append(f"DROP INDEX `{index_record[0].Key_name}`")
 
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
-					query = "ALTER TABLE `{}` {}".format(self.table_name, query_body)
+					query = f"ALTER TABLE `{self.table_name}` {query_body}"
 					frappe.db.sql(query)
 
 		except Exception as e:

@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.email.smtp
@@ -12,6 +12,7 @@ from frappe.utils import (
 	cint,
 	get_datetime,
 	get_formatted_email,
+	get_string_between,
 	list_to_str,
 	split_emails,
 	validate_email_address,
@@ -19,14 +20,6 @@ from frappe.utils import (
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.communication.communication import Communication
-
-
-OUTGOING_EMAIL_ACCOUNT_MISSING = _(
-	"""
-	Unable to send mail because of a missing email account.
-	Please setup default Email Account from Setup > Email > Email Account
-"""
-)
 
 
 @frappe.whitelist()
@@ -52,7 +45,7 @@ def make(
 	email_template=None,
 	communication_type=None,
 	**kwargs,
-) -> Dict[str, str]:
+) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
 
 	:param doctype: Reference DocType.
@@ -129,7 +122,7 @@ def _make(
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
-) -> Dict[str, str]:
+) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
 	sender = sender or get_formatted_email(frappe.session.user)
@@ -152,7 +145,7 @@ def _make(
 			"reference_doctype": doctype,
 			"reference_name": name,
 			"email_template": email_template,
-			"message_id": get_message_id().strip(" <>"),
+			"message_id": get_string_between("<", get_message_id(), ">"),
 			"read_receipt": read_receipt,
 			"has_attachment": 1 if attachments else 0,
 			"communication_type": communication_type,
@@ -169,7 +162,12 @@ def _make(
 
 	if cint(send_email):
 		if not comm.get_outgoing_email_account():
-			frappe.throw(msg=OUTGOING_EMAIL_ACCOUNT_MISSING, exc=frappe.OutgoingEmailError)
+			frappe.throw(
+				_(
+					"Unable to send mail because of a missing email account. Please setup default Email Account from Setup > Email > Email Account"
+				),
+				exc=frappe.OutgoingEmailError,
+			)
 
 		comm.send_email(
 			print_html=print_html,
@@ -248,7 +246,7 @@ def mark_email_as_seen(name: str = None):
 		frappe.db.commit()  # nosemgrep: this will be called in a GET request
 
 	except Exception:
-		frappe.log_error(frappe.get_traceback())
+		frappe.log_error("Unable to mark as seen", None, "Communication", name)
 
 	finally:
 		frappe.response.update(
