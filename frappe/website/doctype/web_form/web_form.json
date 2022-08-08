@@ -36,7 +36,6 @@
   "button_label",
   "column_break_29",
   "success_message",
-  "route_to_success_link",
   "success_url",
   "list_settings_tab",
   "list_setting_message",
@@ -48,17 +47,7 @@
   "website_sidebar",
   "scripting_style_tab",
   "client_script",
-  "custom_css",
-  "payments_tab",
-  "accept_payment",
-  "payment_gateway",
-  "payment_button_label",
-  "payment_button_help",
-  "column_break_28",
-  "amount_based_on_field",
-  "amount_field",
-  "amount",
-  "currency"
+  "custom_css"
  ],
  "fields": [
   {
@@ -110,13 +99,6 @@
    "fieldname": "login_required",
    "fieldtype": "Check",
    "label": "Login Required"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.login_required",
-   "fieldname": "route_to_success_link",
-   "fieldtype": "Check",
-   "label": "Route to Success Link"
   },
   {
    "default": "0",
@@ -221,7 +203,6 @@
    "label": "Success Message"
   },
   {
-   "depends_on": "route_to_success_link",
    "description": "Go to this URL after completing the form",
    "fieldname": "success_url",
    "fieldtype": "Data",
@@ -232,62 +213,6 @@
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
    "label": "Show Sidebar"
-  },
-  {
-   "default": "0",
-   "fieldname": "accept_payment",
-   "fieldtype": "Check",
-   "label": "Accept Payment"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_gateway",
-   "fieldtype": "Link",
-   "label": "Payment Gateway",
-   "options": "Payment Gateway"
-  },
-  {
-   "default": "Buy Now",
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_label",
-   "fieldtype": "Data",
-   "label": "Button Label"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_help",
-   "fieldtype": "Text",
-   "label": "Button Help"
-  },
-  {
-   "fieldname": "column_break_28",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "depends_on": "accept_payment",
-   "fieldname": "amount_based_on_field",
-   "fieldtype": "Check",
-   "label": "Amount Based On Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && doc.amount_based_on_field",
-   "fieldname": "amount_field",
-   "fieldtype": "Select",
-   "label": "Amount Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && !doc.amount_based_on_field",
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "label": "Amount"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency"
   },
   {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
@@ -385,20 +310,13 @@
    "fieldname": "scripting_style_tab",
    "fieldtype": "Tab Break",
    "label": "Scripting / Style"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "accept_payment",
-   "fieldname": "payments_tab",
-   "fieldtype": "Tab Break",
-   "label": "Payments"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-18 15:51:15.288860",
+ "modified": "2022-07-27 18:19:10.748079",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

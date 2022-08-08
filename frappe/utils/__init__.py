@@ -525,11 +525,11 @@ def touch_file(path):
 	return path
 
 
-def get_test_client() -> Client:
+def get_test_client(use_cookies=True) -> Client:
 	"""Returns an test instance of the Frappe WSGI"""
 	from frappe.app import application
 
-	return Client(application)
+	return Client(application, use_cookies=use_cookies)
 
 
 def get_hook_method(hook_name, fallback=None):
@@ -559,7 +559,7 @@ def is_cli() -> bool:
 	return invoked_from_terminal
 
 
-def update_progress_bar(txt, i, l):
+def update_progress_bar(txt, i, l, absolute=False):
 	if os.environ.get("CI"):
 		if i == 0:
 			sys.stdout.write(txt)
@@ -581,8 +581,9 @@ def update_progress_bar(txt, i, l):
 
 		complete = int(float(i + 1) / l * col)
 		completion_bar = ("=" * complete).ljust(col, " ")
-		percent_complete = str(int(float(i + 1) / l * 100))
-		sys.stdout.write(f"\r{txt}: [{completion_bar}] {percent_complete}%")
+		percent_complete = f"{str(int(float(i + 1) / l * 100))}%"
+		status = f"{i} of {l}" if absolute else percent_complete
+		sys.stdout.write(f"\r{txt}: [{completion_bar}] {status}")
 		sys.stdout.flush()
 
 

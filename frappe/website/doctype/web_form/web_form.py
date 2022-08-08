@@ -10,7 +10,6 @@ from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.file import remove_file_by_url
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.desk.form.meta import get_code_files_via_hooks
-from frappe.integrations.utils import get_payment_gateway_controller
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cstr, dict_with_keys, strip_html
@@ -50,9 +49,6 @@ class WebForm(WebsiteGenerator):
 		if not frappe.flags.in_import:
 			self.validate_fields()
 
-		if self.accept_payment:
-			self.validate_payment_amount()
-
 	def validate_fields(self):
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
@@ -65,12 +61,6 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
-
-	def validate_payment_amount(self):
-		if self.amount_based_on_field and not self.amount_field:
-			frappe.throw(_("Please select a Amount Field."))
-		elif not self.amount_based_on_field and not self.amount > 0:
-			frappe.throw(_("Amount must be greater than 0."))
 
 	def reset_field_parent(self):
 		"""Convert link fields to select with names as options"""
@@ -182,6 +172,7 @@ def get_context(context):
 
 		if (
 			frappe.session.user != "Guest"
+			and self.login_required
 			and not self.allow_multiple
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
@@ -193,7 +184,7 @@ def get_context(context):
 		# Show new form when
 		# - User is Guest
 		# - Login not required
-		route_to_new = frappe.session.user == "Guest" and not self.login_required
+		route_to_new = frappe.session.user == "Guest" or not self.login_required
 		if not frappe.form_dict.is_new and route_to_new:
 			frappe.redirect(f"/{self.route}/new")
 
@@ -255,7 +246,7 @@ def get_context(context):
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 
-		if frappe.form_dict.is_new:
+		if self.show_list and frappe.form_dict.is_new:
 			context.title = _("New {0}").format(context.title)
 
 		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
@@ -297,7 +288,7 @@ def get_context(context):
 						"route": f"{self.route}/{context.doc_name}",
 					}
 				)
-				context.title = _("Edit")
+				context.title = _("Editing {0}").format(context.title)
 			context.reference_doc.add_seen()
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name
@@ -319,36 +310,6 @@ def get_context(context):
 				)
 
 			context.reference_doc = json.loads(context.reference_doc.as_json())
-
-	def get_payment_gateway_url(self, doc):
-		if self.accept_payment:
-			controller = get_payment_gateway_controller(self.payment_gateway)
-
-			title = f"Payment for {doc.doctype} {doc.name}"
-			amount = self.amount
-			if self.amount_based_on_field:
-				amount = doc.get(self.amount_field)
-
-			from decimal import Decimal
-
-			if amount is None or Decimal(amount) <= 0:
-				return frappe.utils.get_url(self.success_url or self.route)
-
-			payment_details = {
-				"amount": amount,
-				"title": title,
-				"description": title,
-				"reference_doctype": doc.doctype,
-				"reference_docname": doc.name,
-				"payer_email": frappe.session.user,
-				"payer_name": frappe.utils.get_fullname(frappe.session.user),
-				"order_id": doc.name,
-				"currency": self.currency,
-				"redirect_to": frappe.utils.get_url(self.success_url or self.route),
-			}
-
-			# Redirect the user to this url
-			return controller.get_payment_url(**payment_details)
 
 	def add_custom_context_and_script(self, context):
 		"""Update context from module if standard and append script"""
@@ -494,10 +455,9 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
-def accept(web_form, data, docname=None, for_payment=False):
+def accept(web_form, data, docname=None):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
-	for_payment = frappe.parse_json(for_payment)
 
 	files = []
 	files_to_delete = []
@@ -534,10 +494,6 @@ def accept(web_form, data, docname=None, for_payment=False):
 				files_to_delete.append(doc.get(fieldname))
 
 		doc.set(fieldname, value)
-
-	if for_payment:
-		web_form.validate_mandatory(doc)
-		doc.run_method("validate_payment")
 
 	if doc.name:
 		if web_form.has_web_form_permission(doc.doctype, doc.name, "write"):
@@ -589,11 +545,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 				remove_file_by_url(f, doctype=doc.doctype, name=doc.name)
 
 	frappe.flags.web_form_doc = doc
-
-	if for_payment:
-		return web_form.get_payment_gateway_url(doc)
-	else:
-		return doc
+	return doc
 
 
 @frappe.whitelist()

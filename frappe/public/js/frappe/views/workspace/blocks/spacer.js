@@ -1,9 +1,9 @@
-import Block from './block.js';
+import Block from "./block.js";
 export default class Spacer extends Block {
 	static get toolbox() {
 		return {
-			title: 'Spacer',
-			icon: frappe.utils.icon('spacer', 'sm')
+			title: "Spacer",
+			icon: frappe.utils.icon("spacer", "sm"),
 		};
 	}
 
@@ -17,8 +17,8 @@ export default class Spacer extends Block {
 	}
 
 	render() {
-		this.wrapper = document.createElement('div');
-		this.wrapper.classList.add('widget', 'spacer');
+		this.wrapper = document.createElement("div");
+		this.wrapper.classList.add("widget", "spacer");
 		if (!this.readOnly) {
 			let $spacer = $(`
 				<div class="widget-head">
@@ -29,19 +29,19 @@ export default class Spacer extends Block {
 			`);
 			$spacer.appendTo(this.wrapper);
 
-			this.wrapper.classList.add('edit-mode');
-			this.wrapper.style.minHeight = 40 + 'px';
+			this.wrapper.classList.add("edit-mode");
+			this.wrapper.style.minHeight = 40 + "px";
 
-			let $widget_control = $spacer.find('.widget-control');
+			let $widget_control = $spacer.find(".widget-control");
 
 			this.add_settings_button();
 			this.add_new_block_button();
 
 			frappe.utils.add_custom_button(
-				frappe.utils.icon('drag', 'xs'),
+				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__('Drag')}`,
+				__("Drag"),
 				null,
 				$widget_control
 			);
@@ -51,7 +51,7 @@ export default class Spacer extends Block {
 
 	save() {
 		return {
-			col: this.get_col()
+			col: this.get_col(),
 		};
 	}
 }

@@ -2,10 +2,10 @@ frappe.ui.form.ControlAttachImage = class ControlAttachImage extends frappe.ui.f
 	make_input() {
 		super.make_input();
 
-		let $file_link = this.$value.find('.attached-file-link');
+		let $file_link = this.$value.find(".attached-file-link");
 		$file_link.popover({
-			trigger: 'hover',
-			placement: 'top',
+			trigger: "hover",
+			placement: "top",
 			content: () => {
 				return `<div>
 					<img src="${this.get_value()}"
@@ -14,11 +14,11 @@ frappe.ui.form.ControlAttachImage = class ControlAttachImage extends frappe.ui.f
 					/>
 				</div>`;
 			},
-			html: true
+			html: true,
 		});
 	}
 	set_upload_options() {
 		super.set_upload_options();
-		this.upload_options.restrictions.allowed_file_types = ['image/*'];
+		this.upload_options.restrictions.allowed_file_types = ["image/*"];
 	}
 };

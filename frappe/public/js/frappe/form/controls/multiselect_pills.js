@@ -1,38 +1,40 @@
-import Awesomplete from 'awesomplete';
+import Awesomplete from "awesomplete";
 
-frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends frappe.ui.form.ControlAutocomplete {
+frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
+	frappe.ui.form.ControlAutocomplete
+) {
 	make_input() {
 		super.make_input();
 		this.$input_area = $(this.input_area);
-		this.$multiselect_wrapper = $('<div>')
-			.addClass('form-control table-multiselect')
+		this.$multiselect_wrapper = $("<div>")
+			.addClass("form-control table-multiselect")
 			.appendTo(this.$input_area);
 
-		this.$input.removeClass('form-control');
-		this.$input_area.find('.awesomplete').appendTo(this.$multiselect_wrapper);
+		this.$input.removeClass("form-control");
+		this.$input_area.find(".awesomplete").appendTo(this.$multiselect_wrapper);
 
 		this.$input.on("awesomplete-selectcomplete", () => {
-			this.$input.val('').focus();
+			this.$input.val("").focus();
 		});
 
 		// used as an internal model to store values
 		this.rows = [];
 
-		this.$input_area.on('click', '.btn-remove', (e) => {
+		this.$input_area.on("click", ".btn-remove", (e) => {
 			const $target = $(e.currentTarget);
-			const $value = $target.closest('.tb-selected-value');
+			const $value = $target.closest(".tb-selected-value");
 
 			const value = decodeURIComponent($value.data().value);
-			this.rows = this.rows.filter(val => val !== value);
+			this.rows = this.rows.filter((val) => val !== value);
 
-			this.parse_validate_and_set_in_model('');
+			this.parse_validate_and_set_in_model("");
 		});
 
-		this.$input.on('keydown', e => {
+		this.$input.on("keydown", (e) => {
 			// if backspace key pressed on empty input, delete last value
-			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === '') {
+			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
 				this.rows = this.rows.slice(0, this.rows.length - 1);
-				this.parse_validate_and_set_in_model('');
+				this.parse_validate_and_set_in_model("");
 			}
 		});
 	}
@@ -78,11 +80,9 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends f
 	}
 
 	set_pill_html(values) {
-		const html = values
-			.map(value => this.get_pill_html(value))
-			.join('');
+		const html = values.map((value) => this.get_pill_html(value)).join("");
 
-		this.$multiselect_wrapper.find('.tb-selected-value').remove();
+		this.$multiselect_wrapper.find(".tb-selected-value").remove();
 		this.$multiselect_wrapper.prepend(html);
 	}
 
@@ -92,13 +92,13 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends f
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
 				<span class="btn-link-to-form">${__(label || value)}</span>
-				<span class="btn-remove">${frappe.utils.icon('close')}</span>
+				<span class="btn-remove">${frappe.utils.icon("close")}</span>
 			</button>
 		`;
 	}
 
 	get_label(value) {
-		const item = this._data?.find(d => d.value === value);
+		const item = this._data?.find((d) => d.value === value);
 		return item ? item.label || item.value : null;
 	}
 
@@ -106,25 +106,26 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends f
 		const settings = super.get_awesomplete_settings();
 
 		return Object.assign(settings, {
-			filter: function(text, input) {
+			filter: function (text, input) {
 				let d = this.get_item(text.value);
-				if(!d) {
+				if (!d) {
 					return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
 				}
 
-				let getMatch = value => Awesomplete.FILTER_CONTAINS(value, input.match(/[^,]*$/)[0]);
+				let getMatch = (value) =>
+					Awesomplete.FILTER_CONTAINS(value, input.match(/[^,]*$/)[0]);
 
 				// match typed input with label or value or description
 				let v = getMatch(d.label);
-				if(!v && d.value) {
+				if (!v && d.value) {
 					v = getMatch(d.value);
 				}
-				if(!v && d.description) {
+				if (!v && d.description) {
 					v = getMatch(d.description);
 				}
 
 				return v;
-			}
+			},
 		});
 	}
 
@@ -138,7 +139,7 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends f
 
 	get_data() {
 		let data;
-		if(this.df.get_data) {
+		if (this.df.get_data) {
 			let txt = this.$input.val();
 			data = this.df.get_data(txt);
 			if (data && data.then) {
@@ -155,7 +156,7 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends f
 		const values = this.get_values() || [];
 
 		// return values which are not already selected
-		if (data) data.filter(d => !values.includes(d));
+		if (data) data.filter((d) => !values.includes(d));
 		return data;
 	}
 };
