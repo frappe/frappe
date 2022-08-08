@@ -2,6 +2,7 @@
  "allow_comments": 0,
  "allow_edit": 1,
  "allow_multiple": 1,
+ "show_list": 1,
  "doc_type": "Event",
  "docstatus": 0,
  "doctype": "Web Form",

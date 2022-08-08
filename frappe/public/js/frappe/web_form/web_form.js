@@ -293,9 +293,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// validation hack: get_values will check for missing data
 		let doc_values = super.get_values(this.allow_incomplete);
 
-		if (!doc_values) return;
+		if (!doc_values) return false;
 
-		if (window.saving) return;
+		if (window.saving) return false;
 		// TODO: remove this (used for payments app)
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
@@ -383,6 +383,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				}
 			}
 			window.location.href = path;
-		}, 1000);
+		}, 3000);
 	}
 }
