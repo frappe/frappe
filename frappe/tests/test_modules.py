@@ -60,6 +60,7 @@ class TestUtils(FrappeTestCase):
 			self.custom_field.delete()
 			trim_table("Note", dry_run=False)
 			delattr(self, "custom_field")
+			delete_path(frappe.get_module_path("Desk", "Note"))
 
 		if self._testMethodName == "test_export_doc":
 			self.note.delete()

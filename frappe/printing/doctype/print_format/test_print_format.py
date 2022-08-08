@@ -51,4 +51,7 @@ class TestPrintFormat(unittest.TestCase):
 
 		for key, value in exported_doc.items():
 			if key in doc_dict:
-				self.assertEqual(value, doc_dict[key])
+				with self.subTest(key=key):
+					self.assertEqual(value, doc_dict[key])
+
+		self.addCleanup(os.remove, exported_doc_path)
