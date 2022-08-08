@@ -193,4 +193,20 @@ context("View", () => {
 			cy.location("pathname").should("eq", "/app/website");
 		});
 	});
+
+	it("Route to Form", () => {
+		cy.call("frappe.tests.ui_test_helpers.create_note").then(() => {
+			cy.visit("/app/note/Routing Test");
+			cy.window()
+				.its("cur_frm")
+				.then((frm) => {
+					expect(frm.doc.title).to.equal("Routing Test");
+				});
+		});
+	});
+
+	it("Route to Settings Workspace", () => {
+		cy.visit("/app/settings");
+		cy.get(".title-text").should("contain", "Settings");
+	});
 });

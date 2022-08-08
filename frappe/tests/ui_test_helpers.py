@@ -553,4 +553,13 @@ def setup_default_view(view, force_reroute=None):
 				"doctype": "Property Setter",
 			}
 		).insert()
+<<<<<<< HEAD
 >>>>>>> fce7320947 (fix: reroute to list for app/{doctype} route)
+=======
+
+
+@frappe.whitelist()
+def create_note():
+	if not frappe.db.exists("Note", "Routing Test"):
+		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
+>>>>>>> e001bc7d49 (fix: file view nested routing)
