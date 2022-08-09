@@ -1,8 +1,6 @@
 import operator
 import re
-import sys
 from ast import literal_eval
-from fileinput import filename
 from functools import cached_property
 from types import BuiltinFunctionType
 from typing import Any, Callable
@@ -13,6 +11,8 @@ from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumn
+from frappe.database.utils import table_from_string
+from pypika import functions as f
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
@@ -503,7 +503,7 @@ class Engine:
 
 		return fields
 
-	def set_fields(self, table, fields, **kwargs):
+	def set_fields(self, table, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		if isinstance(fields, list) and None in fields and Field not in fields:
 			return None
@@ -586,6 +586,23 @@ class Engine:
 			table, kwargs.get("field_objects") or fields, **kwargs
 		)
 		criterion = self.build_conditions(table, filters, **kwargs)
+		joined = False
+		for field in fields:
+			if "tab" in str(field):
+				join_on = table_from_string(str(field))
+				criterion = criterion.left_join(join_on).on(join_on.parent == getattr(frappe.qb.DocType(table), "name"))
+				joined = True
+		if joined:
+			# Converting all fields to avoid ambiguity.
+			for field in fields:
+				if not getattr(field, '__module__', None) == f.__name__:
+					field = field if isinstance(field, str) else field.get_sql()
+					fields[fields.index(field)] = getattr(frappe.qb.DocType(table), field)
+				else:
+					field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
+					field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
+					fields[fields.index(field)] = field
+
 		if self.linked_doctype and self.fieldname:
 			for field in fields:
 				if "tab" not in str(field):
