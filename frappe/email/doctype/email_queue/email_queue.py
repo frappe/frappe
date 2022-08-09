@@ -16,7 +16,6 @@ from frappe.core.utils import html2text
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
-from frappe.email.smtp import SMTPServer
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
 from frappe.query_builder.functions import Now
@@ -190,7 +189,7 @@ class SendMailContext:
 		self.queue_doc: EmailQueue = queue_doc
 		self.email_account_doc = queue_doc.get_email_account()
 		self.smtp_server = self.email_account_doc.get_smtp_server()
-		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_main_sent()]
+		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()]
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
