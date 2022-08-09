@@ -327,10 +327,9 @@ def get_conf(site: str | None = None) -> dict[str, Any]:
 	if hasattr(local, "conf"):
 		return local.conf
 
-	else:
-		# if no site, get from common_site_config.json
-		with init_site(site):
-			return local.conf
+	# if no site, get from common_site_config.json
+	with init_site(site):
+		return local.conf
 
 
 class init_site:
