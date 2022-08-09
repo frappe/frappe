@@ -70,10 +70,11 @@ def has_permission(
 	:param ptype: Permission Type to check
 	:param doc: Check User Permissions for specified document.
 	:param verbose: DEPRECATED, will be removed in a future release.
-	:param user: User to check permission for. Defaults to session user.
+	:param user: User to check permission for. Defaults to current user.
 	:param raise_exception:
 	        DOES NOT raise an exception.
-	        If True, will print a message explaining why permission check failed.
+	        If not False, will display a message using frappe.msgprint
+	                which explains why the permission check failed.
 
 	:param parent_doctype:
 	        Required when checking permission for a child DocType (unless doc is specified)
