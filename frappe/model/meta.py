@@ -539,9 +539,9 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
-	def get_permlevel_access(self, permission_type="read", parenttype=None):
+	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
-		roles = frappe.get_roles()
+		roles = frappe.get_roles(user)
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:
