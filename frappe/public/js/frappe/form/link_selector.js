@@ -109,9 +109,44 @@ frappe.ui.form.LinkSelector = Class.extend({
 								}
 								me.dialog.hide();
 							}
+<<<<<<< HEAD
 							return false;
 						})
 				})
+=======
+						);
+						if (!updated) {
+							let d = null;
+							frappe.run_serially([
+								() => (d = this.target.add_new_row()),
+								() => frappe.timeout(0.1),
+								() => {
+									let args = {};
+									args[this.fieldname] = value;
+									args[this.qty_fieldname] = data.qty;
+									return frappe.model.set_value(d.doctype, d.name, args);
+								},
+								() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty])),
+								() => resolve(),
+							]);
+						}
+					},
+					__("Set Quantity"),
+					__("Set Quantity")
+				);
+			} else if (this.dynamic_link_field) {
+				let d = this.target.add_new_row();
+				frappe.model.set_value(
+					d.doctype,
+					d.name,
+					this.dynamic_link_field,
+					this.dynamic_link_reference
+				);
+				frappe.model.set_value(d.doctype, d.name, this.fieldname, value).then(() => {
+					frappe.show_alert(__("{0} {1} added", [this.dynamic_link_reference, value]));
+					resolve();
+				});
+>>>>>>> 769abcf4c4 (fix: german translations (#17663))
 			} else {
 				$('<p><br><span class="text-muted">' + __("No Results") + '</span>'
 					+ (frappe.model.can_create(me.doctype) ?

@@ -482,9 +482,18 @@ frappe.ui.filter_utils = {
 				{ value: 1, label: __('Submitted') },
 				{ value: 2, label: __('Cancelled') },
 			];
+<<<<<<< HEAD
 		} else if (df.fieldtype == 'Check') {
 			df.fieldtype = 'Select';
 			df.options = 'No\nYes';
+=======
+		} else if (df.fieldtype == "Check") {
+			df.fieldtype = "Select";
+			df.options = [
+				{ label: __("Yes", null, "Checkbox is checked"), value: "Yes" },
+				{ label: __("No", null, "Checkbox is not checked"), value: "No" },
+			];
+>>>>>>> 769abcf4c4 (fix: german translations (#17663))
 		} else if (
 			[
 				'Text',
