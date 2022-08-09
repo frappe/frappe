@@ -29,7 +29,7 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str |
 	Eg: For exporting a Print Format "_Test Print Format 1", the return value will be
 	`/home/gavin/frappe-bench/apps/frappe/frappe/core/print_format/_test_print_format_1/_test_print_format_1`
 	"""
-	if not frappe.flags.in_import and is_standard and frappe.get_conf().developer_mode:
+	if not frappe.flags.in_import and is_standard and frappe.conf.developer_mode:
 		from frappe.modules.export_file import export_to_files
 
 		# json
@@ -63,7 +63,7 @@ def export_customizations(
 	sync_on_migrate = cint(sync_on_migrate)
 	with_permissions = cint(with_permissions)
 
-	if not frappe.get_conf().developer_mode:
+	if not frappe.conf.developer_mode:
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
 
 	custom = {
@@ -94,6 +94,7 @@ def export_customizations(
 			f.write(frappe.as_json(custom))
 
 		frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
+		return path
 
 
 def sync_customizations(app=None):

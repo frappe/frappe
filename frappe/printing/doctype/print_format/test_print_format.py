@@ -38,8 +38,14 @@ class TestPrintFormat(unittest.TestCase):
 
 	def test_export_doc(self):
 		doc: "PrintFormat" = frappe.get_doc("Print Format", test_records[0]["name"])
-		doc.standard = "Yes"  # this is only to make export_doc happy
+
+		# this is only to make export_doc happy
+		doc.standard = "Yes"
+		_before = frappe.conf.developer_mode
+		frappe.conf.developer_mode = True
 		export_path = doc.export_doc()
+		frappe.conf.developer_mode = _before
+
 		exported_doc_path = f"{export_path}.json"
 		doc.reload()
 		doc_dict = doc.as_dict(no_nulls=True, convert_dates_to_str=True)

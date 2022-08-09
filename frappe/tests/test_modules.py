@@ -18,11 +18,13 @@ def write_file(path, content):
 
 
 def delete_file(path):
-	os.remove(path)
+	if path:
+		os.remove(path)
 
 
 def delete_path(path):
-	shutil.rmtree(path, ignore_errors=True)
+	if path:
+		shutil.rmtree(path, ignore_errors=True)
 
 
 class TestUtils(FrappeTestCase):
@@ -81,7 +83,7 @@ class TestUtils(FrappeTestCase):
 		self.assertIsNone(export_module_json(doc=doc, is_standard=True, module=doc.module))
 
 	def test_export_module_json(self):
-		doc = frappe.get_last_doc("DocType")
+		doc = frappe.get_last_doc("DocType", {"issingle": 0, "custom": 0})
 		export_doc_path = os.path.join(
 			get_module_path(doc.module),
 			scrub(doc.doctype),
@@ -94,7 +96,10 @@ class TestUtils(FrappeTestCase):
 		last_modified_before = os.path.getmtime(export_doc_path)
 		self.addCleanup(write_file, path=export_doc_path, content=frappe.as_json(export_doc_before))
 
+		frappe.flags.in_import = False
+		frappe.conf.developer_mode = True
 		export_path = export_module_json(doc=doc, is_standard=True, module=doc.module)
+
 		last_modified_after = os.path.getmtime(export_doc_path)
 
 		with open(f"{export_path}.json") as f:
