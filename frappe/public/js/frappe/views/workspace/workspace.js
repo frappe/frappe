@@ -1,5 +1,6 @@
 import EditorJS from '@editorjs/editorjs';
 import Undo from 'editorjs-undo';
+import Embed from '@editorjs/embed';
 
 frappe.standard_pages['Workspaces'] = function() {
 	var wrapper = frappe.container.add_page('Workspaces');
@@ -327,6 +328,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
+				this.editor.configuration.tools.embed.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
@@ -1120,6 +1122,12 @@ frappe.views.Workspace = class Workspace {
 			},
 			quick_list: {
 				class: this.blocks['quick_list'],
+				config: {
+					page_data: this.page_data || []
+				}
+			},
+			embed: {
+				class: this.blocks['embed'],
 				config: {
 					page_data: this.page_data || []
 				}

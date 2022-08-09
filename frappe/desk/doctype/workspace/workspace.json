@@ -28,6 +28,7 @@
   "links",
   "quick_lists_tab",
   "quick_lists",
+  "embeds",
   "roles_tab",
   "roles"
  ],
@@ -168,7 +169,19 @@
    "fieldtype": "Table",
    "label": "Quick Lists",
    "options": "Workspace Quick List"
-  }
+  },
+  {
+    "fieldname": "embeds_tab",
+    "fieldtype": "Tab Break",
+    "label": "Embeds"
+   },
+   {
+    "fieldname": "embeds",
+    "fieldtype": "Table",
+    "label": "Embeds",
+    "options": "Workspace Embed"
+   }
+
  ],
  "in_create": 1,
  "links": [],

@@ -7,6 +7,7 @@ import Shortcut from "./shortcut";
 import Spacer from "./spacer";
 import Onboarding from "./onboarding";
 import QuickList from "./quick_list";
+import Embed from "./embed";
 
 // import tunes
 import HeaderSize from "./header_size";
@@ -22,6 +23,7 @@ frappe.workspace_block.blocks = {
 	spacer: Spacer,
 	onboarding: Onboarding,
 	quick_list: QuickList,
+	embed: Embed,
 };
 
 frappe.workspace_block.tunes = {

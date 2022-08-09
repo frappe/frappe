@@ -167,6 +167,8 @@ class Workspace:
 
 		self.quick_lists = {"items": self.get_quick_lists()}
 
+		self.embeds = {"items": self.get_embeds()}
+
 	def _doctype_contains_a_record(self, name):
 		exists = self.table_counts.get(name, False)
 
@@ -301,6 +303,21 @@ class Workspace:
 		return items
 
 	@handle_not_exist
+	def get_embeds(self):
+		items = []
+		embeds = self.doc.embeds
+
+		for item in embeds:
+			new_item = item.as_dict().copy()
+
+			# Translate label
+			new_item["label"] = _(item.label) if item.label else _(item.document_type)
+
+			items.append(new_item)
+
+		return items
+
+	@handle_not_exist
 	def get_onboardings(self):
 		if self.onboarding_list:
 			for onboarding in self.onboarding_list:
@@ -353,6 +370,7 @@ def get_desktop_page(page):
 			"cards": workspace.cards,
 			"onboardings": workspace.onboardings,
 			"quick_lists": workspace.quick_lists,
+			"embeds": workspace.embeds
 		}
 	except DoesNotExistError:
 		frappe.log_error("Workspace Missing")
@@ -471,6 +489,8 @@ def save_new_widget(doc, page, blocks, new_widgets):
 			doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
 		if widgets.quick_list:
 			doc.quick_lists.extend(new_widget(widgets.quick_list, "Workspace Quick List", "quick_lists"))
+		if widgets.embed:
+			doc.embed.extend(new_widget(widgets.embed, "Workspace Embed", "embeds"))
 		if widgets.card:
 			doc.build_links_table_from_card(widgets.card)
 
@@ -500,12 +520,12 @@ def save_new_widget(doc, page, blocks, new_widgets):
 def clean_up(original_page, blocks):
 	page_widgets = {}
 
-	for wid in ["shortcut", "card", "chart", "quick_list"]:
+	for wid in ["shortcut", "card", "chart", "quick_list", "embed"]:
 		# get list of widget's name from blocks
 		page_widgets[wid] = [x["data"][wid + "_name"] for x in loads(blocks) if x["type"] == wid]
 
 	# shortcut, chart & quick_list cleanup
-	for wid in ["shortcut", "chart", "quick_list"]:
+	for wid in ["shortcut", "chart", "quick_list", "embed"]:
 		updated_widgets = []
 		original_page.get(wid + "s").reverse()
 
