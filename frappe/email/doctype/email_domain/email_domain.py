@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import smtplib
+from functools import wraps
 
 import frappe
 from frappe import _
@@ -11,17 +12,40 @@ from frappe.model.document import Document
 from frappe.utils import cint
 
 
+def get_error_message(event):
+	return {
+		"incoming": (_("Incoming email account not correct"), _("Error connecting via IMAP/POP3: {e}")),
+		"outgoing": (_("Outgoing email account not correct"), _("Error connecting via SMTP: {e}")),
+	}[event]
+
+
+def handle_error(event):
+	def decorator(fn):
+		@wraps(fn)
+		def wrapper(*args, **kwargs):
+			err_title, err_message = get_error_message(event)
+			try:
+				fn(*args, **kwargs)
+			except Exception as e:
+				frappe.throw(
+					title=err_title,
+					msg=err_message.format(e=e),
+				)
+
+		return wrapper
+
+	return decorator
+
+
 class EmailDomain(Document):
 	def validate(self):
-		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
+		"""Validate POP3/IMAP and SMTP connections."""
 
-		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
+		if frappe.local.flags.in_patch or frappe.local.flags.in_test or frappe.local.flags.in_install:
 			return
 
-		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
-			self.logger = frappe.logger()
-			self.validate_incoming_server_conn()
-			self.validate_outgoing_server_conn()
+		self.validate_incoming_server_conn()
+		self.validate_outgoing_server_conn()
 
 	def on_update(self):
 		"""update all email accounts using this domain"""
@@ -48,65 +72,25 @@ class EmailDomain(Document):
 					_("Error has occurred in {0}").format(email_account.name), raise_exception=e.__class__
 				)
 
+	@handle_error("incoming")
 	def validate_incoming_server_conn(self):
 		self.incoming_port = get_port(self)
 
-		try:
-			if self.use_imap:
-				self.logger.info(
-					"Checking incoming IMAP email server {host}:{port} ssl={ssl}...".format(
-						host=self.email_server, port=self.incoming_port, ssl=self.use_ssl
-					)
-				)
+		conn_method = Timed_POP3_SSL if self.use_ssl else Timed_POP3
+		if self.use_imap:
+			conn_method = Timed_IMAP4_SSL if self.use_ssl else Timed_IMAP4
 
-				smtp_method = Timed_IMAP4_SSL if self.use_ssl else Timed_IMAP4
-				incoming_server = smtp_method(self.email_server, port=self.incoming_port)
-				incoming_server.logout()
-			else:
-				self.logger.info(
-					"Checking incoming POP3 email server {host}:{port} ssl={ssl}...".format(
-						host=self.email_server, port=self.incoming_port, ssl=self.use_ssl
-					)
-				)
+		incoming_conn = conn_method(self.email_server, port=self.incoming_port)
+		incoming_conn.logout() if self.use_imap else incoming_conn.quit()
 
-				pop_method = Timed_POP3_SSL if self.use_ssl else Timed_POP3
-				incoming_server = pop_method(self.email_server, port=self.incoming_port)
-				incoming_server.quit()
-		except Exception as e:
-			self.logger.warn(f'Incoming email server "{self.email_server}" not correct', exc_info=e)
-			frappe.throw(
-				title=_("Incoming email server not correct"),
-				msg=f'Error connecting IMAP/POP3 "{self.email_server}": {e}',
-			)
-
+	@handle_error("outgoing")
 	def validate_outgoing_server_conn(self):
-		try:
-			if self.use_ssl_for_outgoing:
-				if not self.smtp_port:
-					self.smtp_port = 465
+		conn_method = smtplib.SMTP
 
-				self.logger.info(
-					"Checking outgoing SMTPS email server {host}:{port}...".format(
-						host=self.smtp_server, port=self.smtp_port
-					)
-				)
-				outgoing_server = smtplib.SMTP_SSL((self.smtp_server or ""), cint(self.smtp_port) or 0)
-			else:
-				if self.use_tls and not self.smtp_port:
-					self.smtp_port = 587
+		if self.use_ssl_for_outgoing:
+			self.smtp_port = self.smtp_port or 465
+			conn_method = smtplib.SMTP_SSL
+		elif self.use_tls:
+			self.smtp_port = self.smtp_port or 587
 
-				self.logger.info(
-					"Checking outgoing SMTP email server {host}:{port} STARTTLS={tls}...".format(
-						host=self.smtp_server, port=self.get("smtp_port"), tls=self.use_tls
-					)
-				)
-
-				outgoing_server = smtplib.SMTP((self.smtp_server or ""), cint(self.smtp_port) or 0)
-
-			outgoing_server.quit()
-		except Exception as e:
-			self.logger.warn(f'Outgoing email server "{self.smtp_server}" not correct', exc_info=e)
-			frappe.throw(
-				title=_("Outgoing email server not correct"),
-				msg=f'Error connecting SMTP "{self.smtp_server}": {e}',
-			)
+		conn_method((self.smtp_server or ""), cint(self.smtp_port) or 0).quit()
