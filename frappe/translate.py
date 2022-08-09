@@ -118,8 +118,8 @@ def get_parent_language(lang: str) -> str:
 	"""If the passed language is a variant, return its parent
 
 	Eg:
-	                1. zh-TW -> zh
-	                2. sr-BA -> sr
+		1. zh-TW -> zh
+		2. sr-BA -> sr
 	"""
 	is_language_variant = "-" in lang
 	if is_language_variant:
