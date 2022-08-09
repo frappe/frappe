@@ -282,7 +282,58 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		}, 500));
 
+<<<<<<< HEAD
 		this.$input.on("blur", function() {
+=======
+						if (!me.df.only_select) {
+							if (frappe.model.can_create(doctype)) {
+								// new item
+								r.results.push({
+									html:
+										"<span class='text-primary link-option'>" +
+										"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
+										__("Create a new {0}", [__(me.get_options())]) +
+										"</span>",
+									label: __("Create a new {0}", [__(me.get_options())]),
+									value: "create_new__link_option",
+									action: me.new_doc,
+								});
+							}
+
+							//custom link actions
+							let custom__link_options =
+								frappe.ui.form.ControlLink.link_options &&
+								frappe.ui.form.ControlLink.link_options(me);
+
+							if (custom__link_options) {
+								r.results = r.results.concat(custom__link_options);
+							}
+
+							// advanced search
+							if (locals && locals["DocType"]) {
+								// not applicable in web forms
+								r.results.push({
+									html:
+										"<span class='text-primary link-option'>" +
+										"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
+										__("Advanced Search") +
+										"</span>",
+									label: __("Advanced Search"),
+									value: "advanced_search__link_option",
+									action: me.open_advanced_search,
+								});
+							}
+						}
+						me.$input.cache[doctype][term] = r.results;
+						me.awesomplete.list = me.$input.cache[doctype][term];
+						me.toggle_href(doctype);
+					},
+				});
+			}, 500)
+		);
+
+		this.$input.on("blur", function () {
+>>>>>>> 1aa3f75d4c (feat: custom __link_options (#17699))
 			if (me.selected) {
 				me.selected = false;
 				return;
