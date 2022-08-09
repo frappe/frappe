@@ -45,6 +45,7 @@
   "allow_events_in_timeline",
   "allow_auto_repeat",
   "make_attachments_public",
+  "allow_root_deletion",
   "view_settings",
   "title_field",
   "show_title_field_in_link",
@@ -605,6 +606,13 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "depends_on": "is_tree",
+   "fieldname": "allow_root_deletion",
+   "fieldtype": "Check",
+   "label": "Allow Root Deletion"
   }
  ],
  "icon": "fa fa-bolt",

@@ -271,11 +271,12 @@ class NestedSet(Document):
 		update_nsm(self)
 		self.validate_ledger()
 
-	def on_trash(self, allow_root_deletion=False):
+	def on_trash(self):
 		if not getattr(self, "nsm_parent_field", None):
 			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 
 		parent = self.get(self.nsm_parent_field)
+		allow_root_deletion = self.meta.allow_root_deletion
 		if not parent and not allow_root_deletion:
 			frappe.throw(_("Root {0} cannot be deleted").format(_(self.doctype)))
 

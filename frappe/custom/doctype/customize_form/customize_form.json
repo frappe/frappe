@@ -13,12 +13,14 @@
   "search_fields",
   "column_break_5",
   "istable",
+  "is_tree",
   "editable_grid",
   "quick_entry",
   "track_changes",
   "track_views",
   "allow_auto_repeat",
   "allow_import",
+  "allow_root_deletion",
   "fields_section_break",
   "fields",
   "naming_section",
@@ -337,6 +339,20 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_tree",
+   "fieldtype": "Check",
+   "label": "Is Tree",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "is_tree",
+   "fieldname": "allow_root_deletion",
+   "fieldtype": "Check",
+   "label": "Allow Root Deletion"
   }
  ],
  "hide_toolbar": 1,
