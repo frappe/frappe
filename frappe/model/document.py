@@ -195,15 +195,16 @@ class Document(BaseDocument):
 
 	def has_permission(self, permtype="read", verbose=False) -> bool:
 		"""
-		Call `frappe.has_permission` if `self.flags.ignore_permissions` is not set.
+		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
-		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`
+		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
 		:param verbose: DEPRECATED, will be removed in a future release.
 		"""
-		import frappe.permissions
 
 		if self.flags.ignore_permissions:
 			return True
+
+		import frappe.permissions
 
 		return frappe.permissions.has_permission(self.doctype, permtype, self)
 

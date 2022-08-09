@@ -922,7 +922,8 @@ def has_permission(
 	parent_doctype=None,
 ):
 	"""
-	Raises `frappe.PermissionError` if not permitted.
+	Returns True if the user has permission `ptype` for given `doctype` or `doc`
+	Raises `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
