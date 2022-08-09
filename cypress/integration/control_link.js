@@ -342,4 +342,30 @@ context("Control Link", () => {
 			expect(label).to.eq("Non-Conforming");
 		});
 	});
+
+	it("show custom link option", () => {
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.ui.form.ControlLink.link_options = (link) => {
+					return [
+						{
+							html:
+								"<span class='text-primary custom-link-option'>" +
+								"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
+								"Custom Link Option" +
+								"</span>",
+							label: "Custom Link Option",
+							value: "custom__link_option",
+							action: () => {},
+						},
+					];
+				};
+
+				get_dialog_with_link().as("dialog");
+				cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
+				cy.get("@input").type("custom", { delay: 100 });
+				cy.get(".custom-link-option").should("be.visible");
+			});
+	});
 });
