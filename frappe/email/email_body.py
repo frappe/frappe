@@ -317,7 +317,6 @@ class EMail:
 			"CC": ", ".join(self.cc) if self.cc and self.expose_recipients else None,
 			"Date": email.utils.formatdate(),
 			"Reply-To": self.reply_to if self.reply_to else None,
-			"X-Frappe-Site": get_url(),
 		}
 
 		# reset headers as values may be changed.

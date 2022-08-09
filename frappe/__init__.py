@@ -602,6 +602,7 @@ def sendmail(
 	doctype=None,
 	name=None,
 	reply_to=None,
+	queue_recipient_size=0,
 	queue_separately=False,
 	cc=None,
 	bcc=None,
@@ -642,6 +643,7 @@ def sendmail(
 	:param in_reply_to: Used to send the Message-Id of a received email back as In-Reply-To.
 	:param send_after: Send after the given datetime.
 	:param expose_recipients: Display all recipients in the footer message - "This email was sent to"
+	:param queue_separately: Queue each email separately (DEPRECATED)
 	:param communication: Communication link to be set in Email Queue record
 	:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 	:param template: Name of html template from templates/emails folder
@@ -671,6 +673,10 @@ def sendmail(
 	if not delayed:
 		now = True
 
+	if queue_separately:
+		# added for backwards compatibility
+		expose_recipients = False
+
 	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 
 	builder = QueueBuilder(
@@ -694,7 +700,7 @@ def sendmail(
 		send_after=send_after,
 		expose_recipients=expose_recipients,
 		send_priority=send_priority,
-		queue_separately=queue_separately,
+		queue_recipient_size=queue_recipient_size,
 		communication=communication,
 		read_receipt=read_receipt,
 		is_notification=is_notification,

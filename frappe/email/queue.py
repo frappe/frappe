@@ -150,8 +150,7 @@ def flush(from_test=False):
 	for row in get_queue():
 		try:
 			func = send_mail if from_test else send_mail.enqueue
-			is_background_task = not from_test
-			func(email_queue_name=row.name, is_background_task=is_background_task)
+			func(email_queue_name=row.name)
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
 
