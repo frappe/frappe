@@ -7,7 +7,7 @@ on:
     branches: [ develop ]
 
 concurrency:
-  group: server-mariadb-develop-${{ github.event.number }}
+  group: server-mariadb-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 
