@@ -5,8 +5,7 @@
 """
 import json
 import os
-from glob import glob
-from textwrap import dedent
+from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 
 import frappe
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
 doctype_python_modules = {}
 
 
-def export_module_json(doc: "Document", is_standard: bool, module: str) -> str:
+def export_module_json(doc: "Document", is_standard: bool, module: str) -> str | None:
 	"""Make a folder for the given doc and add its json file (make it a standard
 	object that will be synced)
 
@@ -30,25 +29,28 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str:
 	Eg: For exporting a Print Format "_Test Print Format 1", the return value will be
 	`/home/gavin/frappe-bench/apps/frappe/frappe/core/print_format/_test_print_format_1/_test_print_format_1`
 	"""
-	if is_standard and frappe.flags.in_import and frappe.get_conf().developer_mode:
-		return
+	if not frappe.flags.in_import and is_standard and frappe.get_conf().developer_mode:
+		from frappe.modules.export_file import export_to_files
 
-	from frappe.modules.export_file import export_to_files
+		# json
+		export_to_files(
+			record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard
+		)
 
-	export_to_files(
-		record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard
-	)
-
-	return os.path.join(get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name))
+		return os.path.join(
+			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
+		)
 
 
 def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 	"""Get custom module for given document"""
-	name = scrub(name)
-	module = scrub(module)
-	doctype = scrub(doctype)
-	app = frappe.local.module_app[module]
-	return frappe.get_module(f"{app}.{module}.{doctype}.{name}.{name}")
+	module_name = "{app}.{module}.{doctype}.{name}.{name}".format(
+		app=frappe.local.module_app[scrub(module)],
+		doctype=scrub(doctype),
+		module=scrub(module),
+		name=scrub(name),
+	)
+	return frappe.get_module(module_name)
 
 
 @frappe.whitelist()
@@ -58,11 +60,12 @@ def export_customizations(
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 	This will be synced with bench migrate"""
 
+	sync_on_migrate = cint(sync_on_migrate)
+	with_permissions = cint(with_permissions)
+
 	if not frappe.get_conf().developer_mode:
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
 
-	sync_on_migrate = cint(sync_on_migrate)
-	with_permissions = cint(with_permissions)
 	custom = {
 		"custom_fields": frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}),
 		"property_setters": frappe.get_all("Property Setter", fields="*", filters={"doc_type": doctype}),
@@ -79,43 +82,38 @@ def export_customizations(
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
-		export_customizations(
-			module=module,
-			doctype=d.options,
-			sync_on_migrate=sync_on_migrate,
-			with_permissions=with_permissions,
-		)
+		export_customizations(module, d.options, sync_on_migrate, with_permissions)
 
 	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
 		folder_path = os.path.join(get_module_path(module), "custom")
-		file_path = os.path.join(folder_path, f"{scrub(doctype)}.json")
+		if not os.path.exists(folder_path):
+			os.makedirs(folder_path)
 
-		os.makedirs(folder_path, exist_ok=True)
-		with open(file_path, "w") as f:
+		path = os.path.join(folder_path, scrub(doctype) + ".json")
+		with open(path, "w") as f:
 			f.write(frappe.as_json(custom))
 
-		frappe.msgprint(
-			_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, file_path)
-		)
-		return file_path
+		frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
 
 
-def sync_customizations(app: str | None = None):
+def sync_customizations(app=None):
 	"""Sync custom fields and property setters from custom folder in each app module"""
-	apps = frappe.get_installed_apps() if not app else [app]
+
+	if app:
+		apps = [app]
+	else:
+		apps = frappe.get_installed_apps()
 
 	for app_name in apps:
 		for module_name in frappe.local.app_modules.get(app_name) or []:
-			module_custom_folder = frappe.get_app_path(app_name, module_name, "custom")
-			if not os.path.exists(module_custom_folder):
-				continue
-
-			for json_file in glob(os.path.join(module_custom_folder, "*.json")):
-				with open(os.path.join(module_custom_folder, json_file)) as f:
-					data = json.loads(f.read())
-
-				if data.get("sync_on_migrate"):
-					sync_customizations_for_doctype(data, module_custom_folder)
+			folder = frappe.get_app_path(app_name, module_name, "custom")
+			if os.path.exists(folder):
+				for fname in os.listdir(folder):
+					if fname.endswith(".json"):
+						with open(os.path.join(folder, fname)) as f:
+							data = json.loads(f.read())
+						if data.get("sync_on_migrate"):
+							sync_customizations_for_doctype(data, folder)
 
 
 def sync_customizations_for_doctype(data: dict, folder: str):
@@ -294,8 +292,9 @@ def make_boilerplate(
 		base_class_import = "from frappe.utils.nestedset import NestedSet"
 
 	if doc.get("is_virtual"):
-		controller_body = dedent(
-			"""
+		controller_body = indent(
+			dedent(
+				"""
 			def db_insert(self):
 				pass
 
@@ -314,6 +313,8 @@ def make_boilerplate(
 			def get_stats(self, args):
 				pass
 			"""
+			),
+			"\t",
 		)
 
 	with open(target_file_path, "w") as target, open(template_file_path) as source:
