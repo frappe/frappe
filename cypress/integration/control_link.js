@@ -449,6 +449,7 @@ context("Control Link", () => {
 				cy.get("@input").type("custom", { delay: 100 });
 				cy.get(".custom-link-option").should("be.visible");
 			});
+	});
 
 	it("show focus field", () => {
 		cy.call("frappe.tests.ui_test_helpers.enable_focus_field").then(() => {
