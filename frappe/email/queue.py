@@ -413,7 +413,7 @@ def flush(from_test=False):
 
 	for email in get_queue():
 
-		if cint(frappe.defaults.get_defaults().get("hold_queue")) == 1:
+		if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 			break
 
 		if email.name:
@@ -487,7 +487,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False):
 		frappe.msgprint(_("Emails are muted"))
 		return
 
-	if cint(frappe.defaults.get_defaults().get("hold_queue")) == 1:
+	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
 	if email.status not in ("Not Sent", "Partially Sent"):
