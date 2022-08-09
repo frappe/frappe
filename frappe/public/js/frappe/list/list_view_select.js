@@ -8,6 +8,9 @@ frappe.views.ListViewSelect = class ListViewSelect {
 	}
 
 	add_view_to_menu(view, action) {
+		if (this.doctype == "File" && view == "List") {
+			view = "File";
+		}
 		let $el = this.page.add_custom_menu_item(
 			this.parent,
 			__(view),
@@ -116,7 +119,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("tree")
 			},
 			Kanban: {
-				condition: true,
+				condition: this.doctype != "File",
 				action: () => this.setup_kanban_boards(),
 				current_view_handler: () => {
 					frappe.views.KanbanView.get_kanbans(this.doctype).then(
@@ -235,7 +238,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 						// don't repeat
 						added.push(route);
 						reports_to_add.push({
-							name: r.title || r.name,
+							name: __(r.title || r.name),
 							route: route
 						});
 					}
