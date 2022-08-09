@@ -301,8 +301,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 									action: me.new_doc,
 								});
 							}
-							// advanced search
 
+							//custom link actions
+							let custom__link_options =
+								frappe.ui.form.ControlLink.link_options &&
+								frappe.ui.form.ControlLink.link_options(me);
+
+							if (custom__link_options) {
+								r.results = r.results.concat(custom__link_options);
+							}
+
+							// advanced search
 							if (locals && locals["DocType"]) {
 								// not applicable in web forms
 								r.results.push({
