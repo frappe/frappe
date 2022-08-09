@@ -1,4 +1,4 @@
-frappe.listview_settings['Calendar View'] = {
+frappe.listview_settings["Calendar View"] = {
 	button: {
 		show(doc) {
 			return doc.name;
@@ -7,10 +7,10 @@ frappe.listview_settings['Calendar View'] = {
 			return frappe.utils.icon("calendar", "sm");
 		},
 		get_description(doc) {
-			return __('View {0}', [`${doc.name}`]);
+			return __("View {0}", [`${doc.name}`]);
 		},
 		action(doc) {
-			frappe.set_route('List', doc.reference_doctype, 'Calendar', doc.name);
+			frappe.set_route("List", doc.reference_doctype, "Calendar", doc.name);
 		}
 	},
 };
