@@ -7,7 +7,7 @@ on:
     branches: [ develop ]
 
 concurrency:
-  group: server-postgres-develop-${{ github.event.number }}
+  group: server-postgres-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 permissions:

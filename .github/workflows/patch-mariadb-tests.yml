@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: patch-mariadb-develop-${{ github.event.number }}
+  group: patch-mariadb-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 permissions:
