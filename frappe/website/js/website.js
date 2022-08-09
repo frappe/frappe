@@ -371,50 +371,6 @@ $.extend(frappe, {
 				$($heading).append($a);
 			});
 	},
-	setup_lazy_images: function () {
-		// Use IntersectionObserver to only load images that are visible in the viewport
-		// Fallback for browsers that don't support it
-		// To use this feature, instead of adding an img tag, add
-		// <div class="website-image-lazy" data-class="img-class" data-src="image.jpg" data-alt="image"></div>
-
-		const allowed_attributes = ["src", "srcset", "alt", "title", "width", "height"];
-
-		function replace_with_image(target) {
-			const $target = $(target);
-			const attrs = $target.data();
-			const data_string = Object.keys(attrs)
-				.filter((key) => allowed_attributes.includes(key))
-				.map((key) => `${key}="${attrs[key]}"`)
-				.join(" ");
-			$target.replaceWith(`<img ${data_string}>`);
-		}
-
-		if (!window.IntersectionObserver) {
-			$(".website-image-lazy").each((_, el) => {
-				replace_with_image(el);
-			});
-			return;
-		}
-
-		const io = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((e) => {
-					if (e.intersectionRatio > 0) {
-						io.unobserve(e.target);
-						replace_with_image(e.target);
-					}
-				});
-			},
-			{
-				threshold: [0, 0.2, 0.4, 0.6],
-			}
-		);
-
-		$(".website-image-lazy").each((_, el) => {
-			// Start observing an element
-			io.observe(el);
-		});
-	},
 	show_language_picker() {
 		if (frappe.session.user === "Guest" && window.show_language_picker) {
 			frappe
@@ -665,7 +621,6 @@ $(document).ready(function () {
 	}
 
 	frappe.render_user();
-	frappe.setup_lazy_images();
 
 	$(document).trigger("page-change");
 });
