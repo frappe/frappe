@@ -377,10 +377,13 @@ $.extend(frappe, {
 		// To use this feature, instead of adding an img tag, add
 		// <div class="website-image-lazy" data-class="img-class" data-src="image.jpg" data-alt="image"></div>
 
+		const allowed_attributes = ["src", "srcset", "alt", "title", "width", "height"];
+
 		function replace_with_image(target) {
 			const $target = $(target);
 			const attrs = $target.data();
 			const data_string = Object.keys(attrs)
+				.filter((key) => allowed_attributes.includes(key))
 				.map((key) => `${key}="${attrs[key]}"`)
 				.join(" ");
 			$target.replaceWith(`<img ${data_string}>`);
