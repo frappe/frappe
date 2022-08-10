@@ -39,6 +39,7 @@
   "show_sidebar",
   "website_sidebar",
   "customization_tab",
+  "banner_image",
   "breadcrumbs",
   "button_label",
   "column_break_29",
@@ -308,13 +309,18 @@
    "fieldname": "success_title",
    "fieldtype": "Data",
    "label": "Success Title"
+  },
+  {
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Banner Image"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-10 18:05:49.698246",
+ "modified": "2022-08-10 20:07:46.440304",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

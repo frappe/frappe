@@ -38,9 +38,15 @@
 {% endmacro %}
 
 {% block page_content %}
+	{% if banner_image %}
+		<!-- banner image -->
+		<div class="web-form-banner-image">
+			<img src="{{ banner_image }}" alt="Banner Image">
+		</div>
+	{% endif %}
 
 	<!-- breadcrumb -->
-	{% if has_header and login_required and show_list %}
+	{% if not banner_image and has_header and login_required and show_list %}
 		{% include "templates/includes/breadcrumbs.html" %}
 		{% else %}
 			<div style="height: 3rem"></div>
@@ -48,7 +54,7 @@
 
 
 	<div class="web-form-header">
-		{% if header_image and has_header and login_required and show_list %}
+		{% if banner_image and has_header and login_required and show_list %}
 			{% include "templates/includes/breadcrumbs.html" %}
 		{% endif %}
 		<div class="web-form-head">

@@ -11,6 +11,20 @@
 			margin-bottom: 0;
 		}
 
+		.web-form-banner-image {
+			margin: -4rem -14rem 5rem;
+			padding-top: 3rem;
+			position: relative;
+
+			img {
+				position: absolute;
+				object-fit: cover;
+				width: 100%;
+				height: 250px;
+				z-index: -1;
+			}
+		}
+
 		.web-form-header {
 			border: 1px solid var(--dark-border-color);
 			border-bottom: none;
