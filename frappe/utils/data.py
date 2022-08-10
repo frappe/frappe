@@ -1400,7 +1400,7 @@ _striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
 
 def strip_html(text: str) -> str:
 	"""removes anything enclosed in and including <>"""
-	return _striptags_re.sub("", text)
+	return _striptags_re.sub("", cstr(text))
 
 
 def escape_html(text: str) -> str:

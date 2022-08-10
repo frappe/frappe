@@ -149,8 +149,13 @@ def flush(from_test=False):
 
 	for row in get_queue():
 		try:
-			func = send_mail if from_test else send_mail.enqueue
-			func(email_queue_name=row.name)
+			if not from_test:
+				queue = (
+					"long" if frappe.db.count("Email Queue Recipient", {"parent": row.name}) > 500 else "short"
+				)
+				send_mail.enqueue(email_queue_name=row.name, queue=queue)
+			else:
+				send_mail(email_queue_name=row.name)
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
 
@@ -158,7 +163,7 @@ def flush(from_test=False):
 def get_queue():
 	return frappe.db.sql(
 		"""select
-			name, sender
+			name
 		from
 			`tabEmail Queue`
 		where

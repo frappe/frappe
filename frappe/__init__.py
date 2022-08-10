@@ -674,7 +674,7 @@ def sendmail(
 		now = True
 
 	if queue_separately:
-		# added for backwards compatibility
+		# added for similar functionality
 		expose_recipients = False
 
 	from frappe.email.doctype.email_queue.email_queue import QueueBuilder

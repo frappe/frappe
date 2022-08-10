@@ -172,7 +172,7 @@ class EmailQueue(Document):
 		).run()
 
 
-@task(queue="short")
+@task()
 def send_mail(email_queue_name):
 	"""This is equivalent to EmailQueue.send.
 
