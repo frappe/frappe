@@ -264,9 +264,9 @@ def update_webform_to_multistep():
 	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
 		doc = frappe.get_doc("Web Form", "edit-profile")
 		_doc = frappe.copy_doc(doc)
-		_doc.is_multi_step_form = 1
 		_doc.title = "update-profile-duplicate"
 		_doc.route = "update-profile-duplicate"
+		_doc.web_form_fields[5].fieldtype = "Page Break"
 		_doc.is_standard = False
 		_doc.save()
 
