@@ -110,6 +110,24 @@
 			}
 		}
 
+		.success-page {
+			background-color: var(--fg-color);
+			padding: 1rem 2rem 2rem;
+			border: 1px solid var(--dark-border-color);
+			border-radius: var(--border-radius);
+			text-align: center;
+
+			svg.icon {
+				width: 6rem;
+				height: auto;
+			}
+
+			h2 {
+				margin-top: 0;
+				margin-bottom: 0;
+			}
+		}
+
 		.web-list-container {
 			min-height: 470px;
 			border: 1px solid var(--dark-border-color);

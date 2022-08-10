@@ -397,28 +397,42 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	handle_success(data) {
 		// TODO: remove this (used for payments app)
 		if (this.accept_payment && !this.doc.paid) {
-			window.location.href = data;
+			this.success_url = data;
 		}
 
-		const success_message = this.success_message || __("Submitted");
+		$(".breadcrumb-container").hide();
+		$(".web-form-container").hide();
+		$(".web-form-header").hide();
+		$(".success-page").removeClass("hide");
 
-		frappe.toast({ message: success_message, indicator: "green" });
+		if (this.success_url) {
+			this.redirect();
+		} else {
+			this.render_success_page();
+		}
+	}
 
-		// redirect
+	redirect() {
 		setTimeout(() => {
-			let path = window.location.pathname;
+			window.location.href = this.success_url;
+		}, 5000);
+	}
 
-			if (this.success_url) {
-				path = this.success_url;
-			} else if (this.login_required) {
-				if (this.is_new && data.name) {
-					path = path.replace("/new", "");
-					path = path + "/" + data.name;
-				} else if (this.is_form_editable) {
-					path = path.replace("/edit", "");
-				}
-			}
-			window.location.href = path;
-		}, 3000);
+	render_success_page() {
+		if (this.allow_edit && data.name) {
+			$(".success-page").append(`
+				<a href="/${this.route}/${data.name}/edit" class="edit-button btn btn-light btn-md ml-2">
+					${__("Edit your response", null, "Button in web form")}
+				</a>
+			`);
+		}
+
+		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
+			$(".success-page").append(`
+				<a href="/${this.route}/${data.name}" class="edit-button btn btn-light btn-md ml-2">
+					${__("View your response", null, "Button in web form")}
+				</a>
+			`);
+		}
 	}
 }

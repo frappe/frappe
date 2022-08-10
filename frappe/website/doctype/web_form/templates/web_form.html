@@ -83,6 +83,32 @@
 		{% endif %} {# attachments #}
 	</form>
 
+	<!-- success page -->
+	<div class="success-page hide">
+		<svg class="icon">
+			<use href="#icon-solid-success"></use>
+		</svg>
+		<h2>{{ _(success_title) or _("Submitted") }}</h2>
+		<p>{{ _(success_message) or _("Thank you for your submission") }}</p>
+
+		{% if show_list and not success_url %}
+			<a href="/{{ route }}/list" class="edit-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
+		{% endif %}
+		{% if (not login_required or allow_multiple) and not success_url %}
+			<a href="/{{ route }}/new" class="clear-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+		{% endif %}
+
+		{% if success_url %}
+			<div class="success_url_message">
+				<p>
+					<span>Click on this </span>
+					<a href="{{ success_url }}">{{_("URL")}}</a>
+					<span> if you are not redirected within 5 seconds.</span>
+				</p>
+			</div>
+		{% endif %}
+	</div>
+
 	<!-- comments -->
 	{% if allow_comments and not is_new and not is_list -%}
 		<div class="comments">

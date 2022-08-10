@@ -30,12 +30,6 @@
   "form_fields",
   "web_form_fields",
   "max_attachment_size",
-  "actions",
-  "breadcrumbs",
-  "button_label",
-  "column_break_29",
-  "success_message",
-  "success_url",
   "list_settings_tab",
   "list_setting_message",
   "show_list",
@@ -44,6 +38,13 @@
   "sidebar_settings_tab",
   "show_sidebar",
   "website_sidebar",
+  "customization_tab",
+  "breadcrumbs",
+  "button_label",
+  "column_break_29",
+  "success_title",
+  "success_message",
+  "success_url",
   "scripting_style_tab",
   "client_script",
   "custom_css"
@@ -184,19 +185,13 @@
    "label": "Client Script"
   },
   {
-   "collapsible": 1,
-   "fieldname": "actions",
-   "fieldtype": "Section Break",
-   "label": "Customization"
-  },
-  {
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
    "label": "Submit Button Label"
   },
   {
-   "description": "Message to be displayed on successful completion (only for Guest users)",
+   "description": "Message to be displayed on successful completion",
    "fieldname": "success_message",
    "fieldtype": "Text",
    "label": "Success Message"
@@ -303,13 +298,23 @@
    "fieldname": "scripting_style_tab",
    "fieldtype": "Tab Break",
    "label": "Scripting / Style"
+  },
+  {
+   "fieldname": "customization_tab",
+   "fieldtype": "Tab Break",
+   "label": "Customization"
+  },
+  {
+   "fieldname": "success_title",
+   "fieldtype": "Data",
+   "label": "Success Title"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-10 15:38:28.611328",
+ "modified": "2022-08-10 18:05:49.698246",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
