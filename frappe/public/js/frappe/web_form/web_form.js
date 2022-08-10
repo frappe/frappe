@@ -383,6 +383,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$(".success-page").removeClass("hide");
 
 		if (this.success_url) {
+			frappe.utils.setup_timer(5, 0, $(".time"));
 			setTimeout(() => {
 				window.location.href = this.success_url;
 			}, 5000);
