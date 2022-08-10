@@ -562,4 +562,39 @@ def setup_default_view(view, force_reroute=None):
 def create_note():
 	if not frappe.db.exists("Note", "Routing Test"):
 		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
+<<<<<<< HEAD
 >>>>>>> e001bc7d49 (fix: file view nested routing)
+=======
+
+
+@frappe.whitelist()
+def create_kanban():
+	frappe.get_doc(
+		{
+			"doctype": "Kanban Board",
+			"name": "ToDo Kanban",
+			"kanban_board_name": "ToDo Kanban",
+			"reference_doctype": "ToDo",
+			"field_name": "status",
+			"private": 1,
+			"show_labels": 0,
+			"columns": [
+				{
+					"column_name": "Open",
+					"status": "Active",
+					"indicator": "Gray",
+				},
+				{
+					"column_name": "Closed",
+					"status": "Active",
+					"indicator": "Gray",
+				},
+				{
+					"column_name": "Cancelled",
+					"status": "Active",
+					"indicator": "Gray",
+				},
+			],
+		}
+	).insert()
+>>>>>>> 8e512fdd71 (chore: kanban test fixes)

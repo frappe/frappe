@@ -45,13 +45,15 @@ context("View", () => {
 	});
 
 	it("Route to ToDo Kanban View", () => {
-		cy.visit("/app/todo/view/kanban");
-		cy.wait(500);
-		cy.window()
-			.its("cur_list")
-			.then((list) => {
-				expect(list.view_name).to.equal("Kanban");
-			});
+		cy.call("frappe.tests.ui_test_helpers.create_kanban").then(() => {
+			cy.visit("/app/todo/view/kanban");
+			cy.wait(500);
+			cy.window()
+				.its("cur_list")
+				.then((list) => {
+					expect(list.view_name).to.equal("Kanban");
+				});
+		});
 	});
 
 	it("Route to ToDo Calendar View", () => {
