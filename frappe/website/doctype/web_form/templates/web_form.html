@@ -103,8 +103,8 @@
 		<svg class="icon">
 			<use href="#icon-solid-success"></use>
 		</svg>
-		<h2>{{ _(success_title) or _("Submitted") }}</h2>
-		<p>{{ _(success_message) or _("Thank you for your submission") }}</p>
+		<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
+		<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
 
 		{% if show_list and not success_url %}
 			<a href="/{{ route }}/list" class="edit-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>

@@ -377,6 +377,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			window.location.href = data;
 		}
 
+		if (!this.is_new) {
+			$(".success-title").text(__("Updated"));
+			$(".success-message").text(__("Your form has been successfully updated"));
+		}
+
 		$(".breadcrumb-container").hide();
 		$(".web-form-container").hide();
 		$(".web-form-header").hide();

@@ -145,14 +145,15 @@
 
 		.success-page {
 			background-color: var(--fg-color);
-			padding: 1rem 2rem 2rem;
+			padding: 2rem;
 			border: 1px solid var(--dark-border-color);
 			border-radius: var(--border-radius);
 			text-align: center;
 
 			svg.icon {
 				width: 6rem;
-				height: auto;
+				height: 6rem;
+				margin: 1rem;
 			}
 
 			h2 {
