@@ -46,7 +46,7 @@ context("View", () => {
 
 	it("Route to ToDo Kanban View", () => {
 		cy.call("frappe.tests.ui_test_helpers.create_kanban").then(() => {
-			cy.visit("/app/todo/view/kanban");
+			cy.visit("/app/note/view/kanban/_Note _Kanban");
 			cy.wait(500);
 			cy.window()
 				.its("cur_list")
