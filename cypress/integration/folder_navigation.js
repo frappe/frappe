@@ -24,6 +24,7 @@ context("Folder Navigation", () => {
 
 	it("Navigating the nested folders, checking if the URL formed is correct, checking if the added content in the child folder is correct", () => {
 		//Navigating inside the Attachments folder
+		cy.wait(500);
 		cy.get('[title="Attachments"] > span').click();
 
 		//To check if the URL formed after visiting the attachments folder is correct
@@ -35,9 +36,8 @@ context("Folder Navigation", () => {
 		cy.fill_field("value", "Test Folder");
 		cy.click_modal_primary_button("Create");
 
-		cy.get('[data-original-title="Refresh"]').click();
-		cy.wait(500);
 		//Navigating inside the added folder in the Attachments folder
+		cy.wait(500);
 		cy.get('[title="Test Folder"] > span').click();
 
 		//To check if the URL is correct after visiting the Test Folder
@@ -54,7 +54,10 @@ context("Folder Navigation", () => {
 
 		//To check if the added file is present in the Test Folder
 		cy.visit("/app/file/view/home/Attachments");
+		cy.wait(500);
 		cy.get("span.level-item > span").should("contain", "Test Folder");
+		cy.visit("/app/file/view/home/Attachments/Test%20Folder");
+		cy.wait(500);
 		cy.get(".list-row-container").eq(0).should("contain.text", "72402.jpg");
 		cy.get(".list-row-checkbox").eq(0).click();
 
