@@ -10,6 +10,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		frappe.web_form.events = {};
 		Object.assign(frappe.web_form.events, EventEmitterMixin);
 		this.current_section = 0;
+		this.is_multi_step_form = false;
 	}
 
 	prepare(web_form_doc, doc) {
@@ -69,6 +70,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.page_breaks.length) return;
 
 		this.page_breaks = $(`.page-break`);
+		this.is_multi_step_form = true;
 	}
 
 	setup_footer_actions() {
