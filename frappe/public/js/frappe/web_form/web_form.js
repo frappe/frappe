@@ -10,6 +10,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		frappe.web_form.events = {};
 		Object.assign(frappe.web_form.events, EventEmitterMixin);
 		this.current_section = 0;
+		this.is_multi_step_form = false;
 	}
 
 	prepare(web_form_doc, doc) {
@@ -20,7 +21,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	make() {
 		super.make();
-		this.set_sections();
+		this.set_page_breaks();
 		this.set_field_values();
 		this.setup_listeners();
 
@@ -65,10 +66,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		}
 	}
 
-	set_sections() {
-		if (this.sections.length) return;
+	set_page_breaks() {
+		if (this.page_breaks.length) return;
 
-		this.sections = $(`.form-section`);
+		this.page_breaks = $(`.page-break`);
+		this.is_multi_step_form = true;
 	}
 
 	setup_footer_actions() {
@@ -86,11 +88,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return;
 		}
 
-		$(".web-form-footer").after(`
-			<div id="form-step-footer" class="text-right">
-				<button class="btn btn-default btn-previous btn-sm ml-2">${__("Previous")}</button>
-				<button class="btn btn-default btn-next btn-sm ml-2">${__("Next")}</button>
-			</div>
+		$(".web-form-footer .web-form-actions .left-area").prepend(`
+			<button class="btn btn-default btn-previous btn-md mr-2">${__("Previous")}</button>
+		`);
+
+		$(".web-form-footer .web-form-actions .right-area").prepend(`
+			<button class="btn btn-default btn-next btn-md">${__("Next")}</button>
 		`);
 
 		$(".btn-previous").on("click", function () {
@@ -166,7 +169,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	validate_section() {
 		if (this.allow_incomplete) return true;
 
-		let fields = $(`.form-section:eq(${this.current_section}) .form-control`);
+		let fields = $(`.form-page:eq(${this.current_section}) .form-control`);
 		let errors = [];
 		let invalid_values = [];
 
@@ -220,14 +223,47 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	toggle_section() {
 		if (!this.is_multi_step_form) return;
 
+		this.render_progress_dots();
 		this.toggle_previous_button();
-		this.hide_sections();
-		this.show_section();
+		this.hide_form_pages();
+		this.show_form_page();
 		this.toggle_buttons();
 	}
 
+	render_progress_dots() {
+		$(".center-area.paging").empty();
+
+		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
+			$(".center-area.paging")
+		);
+		this.$slide_progress.empty();
+
+		if (this.page_breaks.length < 1) return;
+
+		for (let i = 0; i <= this.page_breaks.length; i++) {
+			let $dot = $(`<div class="slide-step">
+				<div class="slide-step-indicator"></div>
+				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+			</div>`).attr({ "data-step-id": i });
+
+			if (i < this.current_section) {
+				$dot.addClass("step-success");
+			}
+			if (i === this.current_section) {
+				$dot.addClass("active");
+			}
+			this.$slide_progress.append($dot);
+		}
+
+		let paging_text = __("Page {0} of {1}", [
+			this.current_section + 1,
+			this.page_breaks.length + 1,
+		]);
+		$(".center-area.paging").append(`<div>${paging_text}</div>`);
+	}
+
 	toggle_buttons() {
-		for (let idx = this.current_section; idx < this.sections.length; idx++) {
+		for (let idx = this.current_section; idx <= this.page_breaks.length; idx++) {
 			if (this.is_next_section_empty(idx)) {
 				this.show_save_and_hide_next_button();
 			} else {
@@ -238,18 +274,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	is_next_section_empty(section) {
-		if (section + 1 > this.sections.length) return true;
+		if (section + 1 > this.page_breaks.length + 1) return true;
 
-		let _section = $(`.form-section:eq(${section + 1})`);
+		let _section = $(`.form-page:eq(${section + 1})`);
 		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
 	}
 
 	is_previous_section_empty(section) {
-		if (section - 1 > this.sections.length) return true;
+		if (section - 1 > this.page_breaks.length + 1) return true;
 
-		let _section = $(`.form-section:eq(${section - 1})`);
+		let _section = $(`.form-page:eq(${section - 1})`);
 		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
@@ -257,26 +293,26 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	show_save_and_hide_next_button() {
 		$(".btn-next").hide();
-		$(".web-form-footer").show();
+		$(".submit-btn").show();
 	}
 
 	show_next_and_hide_save_button() {
 		$(".btn-next").show();
-		$(".web-form-footer").hide();
+		$(".submit-btn").hide();
 	}
 
 	toggle_previous_button() {
 		this.current_section == 0 ? $(".btn-previous").hide() : $(".btn-previous").show();
 	}
 
-	show_section() {
-		$(`.form-section:eq(${this.current_section})`).show();
+	show_form_page() {
+		$(`.form-page:eq(${this.current_section})`).show();
 	}
 
-	hide_sections() {
-		for (let idx = 0; idx < this.sections.length; idx++) {
+	hide_form_pages() {
+		for (let idx = 0; idx <= this.page_breaks.length; idx++) {
 			if (idx !== this.current_section) {
-				$(`.form-section:eq(${idx})`).hide();
+				$(`.form-page:eq(${idx})`).hide();
 			}
 		}
 	}
