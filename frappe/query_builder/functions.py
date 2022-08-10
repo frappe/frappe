@@ -22,6 +22,7 @@ class Locate(Function):
 			terms[0] = terms[0].get_sql()
 		super().__init__("LOCATE", *terms, **kwargs)
 
+
 class Ifnull(IfNull):
 	def __init__(self, condition, term, **kwargs):
 		if not isinstance(condition, str):
@@ -29,6 +30,7 @@ class Ifnull(IfNull):
 		if not isinstance(term, str):
 			term = term.get_sql()
 		super().__init__(condition, term, **kwargs)
+
 
 class Timestamp(Function):
 	def __init__(self, term: str, time=None, alias=None):

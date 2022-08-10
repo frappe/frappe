@@ -1,9 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import typing
 from functools import cached_property
 from types import NoneType
-import typing
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
@@ -21,12 +21,14 @@ FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
 def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
+
 def table_from_string(table: str) -> "DocType":
 	table_name = table.split("`", maxsplit=1)[1].split(".")[0][3:]
 	if "`" in table_name:
 		return frappe.qb.DocType(table_name=table_name.replace("`", ""))
 	else:
 		return frappe.qb.DocType(table_name=table_name)
+
 
 class LazyString:
 	def _setup(self) -> None:

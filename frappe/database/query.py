@@ -5,14 +5,15 @@ from functools import cached_property
 from types import BuiltinFunctionType
 from typing import Any, Callable
 
+from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
+
 import frappe
 from frappe import _
+from frappe.database.utils import table_from_string
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumn
-from frappe.database.utils import table_from_string
-from pypika import functions as f
 
 TAB_PATTERN = re.compile("^tab")
 WORDS_PATTERN = re.compile(r"\w+")
@@ -494,8 +495,12 @@ class Engine:
 				if " as " in field:
 					field, alias = field.split(" as ")
 				self.fieldname, linked_fieldname = field.split(".")
-				linked_field = frappe.get_meta(doctype).get_field(self.fieldname)
-				self.linked_doctype = linked_field.options
+				linked_field = frappe.get_meta(doctype, cached=True).get_field(self.fieldname)
+				try:
+					self.linked_doctype = linked_field.options
+				except AttributeError:
+					print("here")
+					return fields
 				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
@@ -545,9 +550,7 @@ class Engine:
 			updated_fields = []
 			if "*" in fields:
 				return fields
-			fields = self.get_fieldnames_from_child_table(
-				doctype=table, fields=fields
-			)
+			fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
 			for field in fields:
 				if not isinstance(field, Criterion) and field:
 					if " as " in field:
@@ -576,42 +579,51 @@ class Engine:
 		fields: list | tuple,
 		filters: dict[str, str | int] | str | int | list[list | str | int] = None,
 		**kwargs,
-	):
+	) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
 		# Clean up state before each query
 		self.tables = {}
 		self.linked_doctype = None
 		self.fieldname = None
 
-		fields = self.set_fields(
-			table, kwargs.get("field_objects") or fields, **kwargs
-		)
+		fields = self.set_fields(table, kwargs.get("field_objects") or fields, **kwargs)
 		criterion = self.build_conditions(table, filters, **kwargs)
-		joined = False
-		for field in fields:
-			if "tab" in str(field):
-				join_on = table_from_string(str(field))
-				criterion = criterion.left_join(join_on).on(join_on.parent == getattr(frappe.qb.DocType(table), "name"))
-				joined = True
-		if joined:
-			# Converting all fields to avoid ambiguity.
+		join_query = False
+		if not isinstance(fields, Criterion):
 			for field in fields:
-				if not getattr(field, '__module__', None) == f.__name__:
-					field = field if isinstance(field, str) else field.get_sql()
-					fields[fields.index(field)] = getattr(frappe.qb.DocType(table), field)
-				else:
-					field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-					field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
-					fields[fields.index(field)] = field
+				if ("tab" in str(field)) and (f"`tab{table}`" not in str(field)):
+					join_table = table_from_string(str(field))
+					if self.fieldname:
+						criterion = criterion.left_join(join_table).on(
+							getattr(join_table, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
+						)
+					else:
+						criterion = criterion.left_join(join_table).on(
+							getattr(join_table, "parent") == getattr(frappe.qb.DocType(table), "name")
+						)
+					join_query = True
 
-		if self.linked_doctype and self.fieldname:
-			for field in fields:
-				if "tab" not in str(field):
-					fields[fields.index(field)] = PseudoColumn(f"`tab{table}`.`{field.get_sql()}`")
+			if join_query:
+				for field in fields:
+					if not (
+						getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
+					):
+						field = field if isinstance(field, str) else field.get_sql()
+						if "tab" not in str(field):
+							fields[fields.index(field)] = getattr(frappe.qb.DocType(table), field)
+					else:
+						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
+						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
+						fields[fields.index(field)] = field
 
-			self.linked_doctype = frappe.qb.DocType(self.linked_doctype)
-			criterion = criterion.left_join(self.linked_doctype).on(
-				self.linked_doctype.name == getattr(frappe.qb.DocType(table), self.fieldname)
-			)
+		# if self.linked_doctype and self.fieldname and not join_query:
+		# 	for field in fields:
+		# 		if "tab" not in str(field):
+		# 			fields[fields.index(field)] = PseudoColumn(f"`tab{table}`.`{field.get_sql()}`")
+		# 	self.linked_doctype = frappe.qb.DocType(self.linked_doctype)
+		# 	criterion = criterion.left_join(self.linked_doctype).on(
+		# 		getattr(self.linked_doctype, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
+		# 	)
+		# 	join_query = True
 
 		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 
@@ -622,6 +634,7 @@ class Engine:
 				criterion = getattr(criterion, join)(table_object).on(
 					table_object.parent == primary_table.name
 				)
+				join_query = True
 
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*fields)

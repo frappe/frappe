@@ -186,3 +186,17 @@ class TestQuery(unittest.TestCase):
 			).run(),
 			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
 		)
+
+	def test_indirect_join_query(self):
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"Note",
+				filters={"name": "Test Note Title"},
+				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
+			).run(as_dict=1),
+			frappe.get_list(
+				"Note",
+				filters={"name": "Test Note Title"},
+				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
+			),
+		)
