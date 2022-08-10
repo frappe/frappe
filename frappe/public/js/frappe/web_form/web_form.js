@@ -29,7 +29,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			this.setup_primary_action();
 		}
 
-		this.setup_footer_actions();
 		this.setup_previous_next_button();
 		this.toggle_section();
 
@@ -71,14 +70,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		this.page_breaks = $(`.page-break`);
 		this.is_multi_step_form = true;
-	}
-
-	setup_footer_actions() {
-		if (this.is_multi_step_form) return;
-
-		if ($(".web-form-container").height() > 600) {
-			$(".web-form-footer").removeClass("hide");
-		}
 	}
 
 	setup_previous_next_button() {
@@ -380,24 +371,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		return false;
 	}
 
-	edit() {
-		window.location.href = window.location.pathname + "/edit";
-	}
-
-	cancel() {
-		let path = window.location.pathname;
-		if (this.is_new) {
-			path = path.replace("/new", "");
-		} else {
-			path = path.replace("/edit", "");
-		}
-		window.location.href = path;
-	}
-
 	handle_success(data) {
 		// TODO: remove this (used for payments app)
 		if (this.accept_payment && !this.doc.paid) {
-			this.success_url = data;
+			window.location.href = data;
 		}
 
 		$(".breadcrumb-container").hide();
@@ -406,19 +383,15 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$(".success-page").removeClass("hide");
 
 		if (this.success_url) {
-			this.redirect();
+			setTimeout(() => {
+				window.location.href = this.success_url;
+			}, 5000);
 		} else {
-			this.render_success_page();
+			this.render_success_page(data);
 		}
 	}
 
-	redirect() {
-		setTimeout(() => {
-			window.location.href = this.success_url;
-		}, 5000);
-	}
-
-	render_success_page() {
+	render_success_page(data) {
 		if (this.allow_edit && data.name) {
 			$(".success-page").append(`
 				<a href="/${this.route}/${data.name}/edit" class="edit-button btn btn-light btn-md ml-2">
