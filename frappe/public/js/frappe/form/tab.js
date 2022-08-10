@@ -13,7 +13,7 @@ export default class Tab {
 	}
 
 	make() {
-		const id = `${frappe.scrub(this.doctype, '-')}-${this.df.fieldname}`;
+		const id = `${frappe.scrub(this.doctype, "-")}-${this.df.fieldname}`;
 		this.tab_link = $(`
 			<li class="nav-item">
 				<a class="nav-link ${this.df.active ? "active" : ""}" id="${id}-tab"
@@ -63,10 +63,10 @@ export default class Tab {
 	}
 
 	toggle(show) {
-		this.tab_link.toggleClass('hide', !show);
-		this.wrapper.toggleClass('hide', !show);
-		this.tab_link.toggleClass('show', show);
-		this.wrapper.toggleClass('show', show);
+		this.tab_link.toggleClass("hide", !show);
+		this.wrapper.toggleClass("hide", !show);
+		this.tab_link.toggleClass("show", show);
+		this.wrapper.toggleClass("show", show);
 		this.hidden = !show;
 	}
 
@@ -83,8 +83,8 @@ export default class Tab {
 	}
 
 	set_active() {
-		this.tab_link.find('.nav-link').tab('show');
-		this.wrapper.addClass('show');
+		this.tab_link.find(".nav-link").tab("show");
+		this.wrapper.addClass("show");
 		this.frm.active_tab = this;
 	}
 
@@ -93,17 +93,23 @@ export default class Tab {
 	}
 
 	is_hidden() {
-		this.wrapper.hasClass('hide')
-			&& this.tab_link.hasClass('hide');
+		return this.wrapper.hasClass("hide")
+			&& this.tab_link.hasClass("hide");
+	}
+
+	setup_listeners() {
+		this.parent.find(".nav-link").on("shown.bs.tab", () => {
+			this?.frm.set_active_tab?.(this);
+		});
 	}
 
 	setup_switch_on_hover() {
-		this.tab_link.on('dragenter', () => {
+		this.tab_link.on("dragenter", () => {
 			this.action = setTimeout(() => {
 				this.set_active();
 			}, 2000);
 		});
-		this.tab_link.on('dragout', () => {
+		this.tab_link.on("dragout", () => {
 			if (this.action) {
 				clearTimeout(this.action);
 				this.action = null;

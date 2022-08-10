@@ -29,11 +29,7 @@ export default class Section {
 		let make_card = this.card_layout;
 		this.wrapper = $(`<div class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
-<<<<<<< HEAD
-				${make_card ? "card-section" : ""}">
-=======
 				${ make_card ? "card-section" : "" }" data-fieldname="${this.df.fieldname}">
->>>>>>> f7a89297c9 (feat(minor): save new order based on re-arranged fields)
 			`).appendTo(this.parent);
 
 		if (this.df) {

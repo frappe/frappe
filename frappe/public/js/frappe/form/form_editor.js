@@ -27,7 +27,7 @@ frappe.ui.form.FormEditor = class FormEditor {
 		}
 	}
 
-	update_field_order() {
+	save() {
 		this.field_order = [];
 		if (this.frm.layout.is_tabbed_layout()) {
 			for (let tab of this.frm.layout.tab_link_container.find('.nav-link')) {

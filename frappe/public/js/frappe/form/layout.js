@@ -8,11 +8,8 @@ frappe.ui.form.Layout = class Layout {
 		this.pages = [];
 		this.tabs = [];
 		this.sections = [];
-<<<<<<< HEAD
 		this.page_breaks = [];
-=======
 		this.sections_dict = {};
->>>>>>> 69ca4ff5f7 (feat(minor): save new order based on re-arranged fields)
 		this.fields_list = [];
 		this.fields_dict = {};
 		this.section_count = 0;
@@ -47,15 +44,8 @@ frappe.ui.form.Layout = class Layout {
 				<ul class="nav form-tabs" id="form-tabs" role="tablist"></ul>
 			</div>
 		`).appendTo(this.page);
-<<<<<<< HEAD
-		this.tabs_list = this.page.find(".form-tabs");
-		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(
-			this.page
-		);
-=======
-		this.tab_link_container = this.page.find('.form-tabs');
+		this.tab_link_container = this.page.find(".form-tabs");
 		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(this.page);
->>>>>>> f7a89297c9 (feat(minor): save new order based on re-arranged fields)
 		this.setup_events();
 	}
 
@@ -472,11 +462,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	setup_events() {
-<<<<<<< HEAD
-		this.tabs_list.off("click").on("click", ".nav-link", (e) => {
-=======
-		this.tab_link_container.off('click').on('click', '.nav-link', (e) => {
->>>>>>> f7a89297c9 (feat(minor): save new order based on re-arranged fields)
+		this.tab_link_container.off("click").on("click", ".nav-link", (e) => {
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			$(e.currentTarget).tab("show");
