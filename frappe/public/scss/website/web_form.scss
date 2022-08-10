@@ -69,7 +69,22 @@
 			}
 
 			.web-form-footer {
-				text-align: right;
+				margin-top: 1rem;
+
+				.web-form-actions {
+					display: flex;
+					justify-content: space-between;
+
+					.btn {
+						font-size: var(--font-size-base);
+					}
+
+					.center-area {
+						padding: 0.5rem;
+						display: flex;
+						align-items: center;
+					}
+				}
 			}
 
 			.attachments {
