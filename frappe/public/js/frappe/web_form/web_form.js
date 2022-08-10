@@ -221,10 +221,43 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	toggle_section() {
 		if (!this.is_multi_step_form) return;
 
+		this.render_progress_dots();
 		this.toggle_previous_button();
 		this.hide_form_pages();
 		this.show_form_page();
 		this.toggle_buttons();
+	}
+
+	render_progress_dots() {
+		$(".center-area.paging").empty();
+
+		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
+			$(".center-area.paging")
+		);
+		this.$slide_progress.empty();
+
+		if (this.page_breaks.length < 1) return;
+
+		for (let i = 0; i <= this.page_breaks.length; i++) {
+			let $dot = $(`<div class="slide-step">
+				<div class="slide-step-indicator"></div>
+				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+			</div>`).attr({ "data-step-id": i });
+
+			if (i < this.current_section) {
+				$dot.addClass("step-success");
+			}
+			if (i === this.current_section) {
+				$dot.addClass("active");
+			}
+			this.$slide_progress.append($dot);
+		}
+
+		let paging_text = __("Page {0} of {1}", [
+			this.current_section + 1,
+			this.page_breaks.length + 1,
+		]);
+		$(".center-area.paging").append(`<div>${paging_text}</div>`);
 	}
 
 	toggle_buttons() {
