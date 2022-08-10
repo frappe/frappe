@@ -407,11 +407,26 @@ def insert_event_in_google_calendar(doc, method=None):
 	if doc.repeat_on:
 		event.update({"recurrence": repeat_on_to_google_calendar_recurrence_rule(doc)})
 
+	if doc.add_video_conferencing:
+		event.update({"conferenceData": get_conference_data(doc)})
+
+	if len(doc.event_participants):
+		event.update({"attendees": get_attendees(doc)})
+
 	try:
-		event = google_calendar.events().insert(calendarId=doc.google_calendar_id, body=event).execute()
-		frappe.db.set_value(
-			"Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False
+		event = google_calendar.events().insert(
+			calendarId=doc.google_calendar_id,
+			body=event,
+			conferenceDataVersion=1
+		).execute()
+
+		frappe.db.set_value("Event", doc.name, {
+				"google_calendar_event_id": event.get("id"),
+				"google_meet_link": event.get("hangoutLink")
+			},
+			update_modified=False
 		)
+
 		frappe.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
 		frappe.throw(
@@ -419,7 +434,6 @@ def insert_event_in_google_calendar(doc, method=None):
 				account.name, err.resp.status
 			)
 		)
-
 
 def update_event_in_google_calendar(doc, method=None):
 	"""
@@ -462,9 +476,27 @@ def update_event_in_google_calendar(doc, method=None):
 			)
 		)
 
-		google_calendar.events().update(
-			calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id, body=event
+		if doc.add_video_conferencing:
+			event.update({"conferenceData": get_conference_data(doc)})
+
+		if len(doc.event_participants):
+			event.update({"attendees": get_attendees(doc)})
+
+		event = google_calendar.events().update(
+			calendarId=doc.google_calendar_id,
+			eventId=doc.google_calendar_event_id,
+			body=event,
+			conferenceDataVersion=1
 		).execute()
+
+		if doc.add_video_conferencing and event.get("hangoutLink"):
+			frappe.db.set_value("Event", doc.name, {
+					"google_meet_link": event.get("hangoutLink")
+				},
+				update_modified=False
+			)
+			doc.notify_update()
+
 		frappe.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
 		frappe.throw(
@@ -680,6 +712,55 @@ def get_recurrence_parameters(recurrence):
 			pass
 
 	return frequency, until, byday
+
+
+def get_conference_data(doc):
+	return {
+			"createRequest": {
+				"requestId": doc.name,
+				"conferenceSolutionKey": {
+					"type": "hangoutsMeet"
+				}
+			},
+
+			"notes": doc.description
+		}
+
+
+def get_attendees(doc):
+	"""
+	Returns a list of dicts with attendee emails
+	attendee emails are fetched from documents linked (dynamic) in event_participants table
+	only checks for fieldnames 'user', 'user_id', 'email' to find email ids
+	TODO: also check fields of fieldtype Data with options Email
+	"""
+	attendees = []
+
+	for participant in doc.event_participants:
+
+			participant_doc = frappe.get_doc(participant.reference_doctype, participant.reference_docname)
+
+			if participant_doc.meta.has_field('user') and participant_doc.user:
+				attendees.append({
+						'email': participant_doc.user
+				})
+			elif participant_doc.meta.has_field('user_id') and participant_doc.user_id:
+				attendees.append({
+						'email': participant_doc.user_id
+				})
+			elif participant_doc.meta.has_field('email') and participant_doc.email:
+				attendees.append({
+						'email': participant_doc.email
+				})
+			else:
+				frappe.msgprint(
+					_("Google Calendar - User / Email field not found, did not add attendee for {0} {1}").format(
+						participant.reference_doctype, participant.reference_docname
+					),
+					alert=True, indicator="red"
+				)
+
+	return attendees
 
 
 """API Response
