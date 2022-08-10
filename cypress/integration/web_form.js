@@ -142,10 +142,9 @@ context("Web Form", () => {
 	it("Custom Breadcrumbs", () => {
 		cy.visit("/app/web-form/note");
 
-		cy.findByRole("tab", { name: "Form Settings" }).click();
-		cy.get(".form-section .section-head").contains("Customization").click();
+		cy.findByRole("tab", { name: "Customization" }).click();
 		cy.fill_field("breadcrumbs", '[{"label": _("Notes"), "route":"note"}]', "Code");
-		cy.get(".form-section .section-head").contains("Customization").click();
+		cy.get(".form-tabs .nav-item .nav-link").contains("Customization").click();
 		cy.save();
 
 		cy.visit("/note/Note 1");
