@@ -37,7 +37,9 @@
   "schedule_send",
   "publish_as_a_web_page_section",
   "published",
-  "route"
+  "route",
+  "section_break_33",
+  "queue_recipient_size"
  ],
  "fields": [
   {
@@ -228,6 +230,20 @@
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_33",
+   "fieldtype": "Section Break",
+   "label": "Email Queue Settings"
+  },
+  {
+   "default": "0",
+   "description": "Allows users to configure how many recipients can be in an email queue document.\nExcess recipients will get split into different queue document(s).",
+   "fieldname": "queue_recipient_size",
+   "fieldtype": "Int",
+   "label": "No. of Recipients in a Queue",
+   "set_only_once": 1
   }
  ],
  "has_web_view": 1,
@@ -236,7 +252,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-09 01:48:16.741603",
+ "modified": "2022-08-10 11:25:13.318720",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",
@@ -259,6 +275,7 @@
  "route": "newsletters",
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "title_field": "subject",
  "track_changes": 1
 }

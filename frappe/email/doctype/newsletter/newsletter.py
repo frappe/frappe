@@ -188,8 +188,9 @@ class Newsletter(WebsiteGenerator):
 			reference_doctype=self.doctype,
 			reference_name=self.name,
 			send_priority=0,
+			expose_recipients=False,
+			queue_recipient_size=self.queue_recipient_size,
 			args=args,
-			expose_recipients=False
 		)
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
