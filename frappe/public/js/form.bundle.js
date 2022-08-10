@@ -13,4 +13,4 @@ import "./frappe/form/templates/users_in_sidebar.html";
 import "./frappe/views/formview.js";
 import "./frappe/form/form.js";
 import "./frappe/meta_tag.js";
-import "./frappe/doctype/"
+import "./frappe/doctype/";

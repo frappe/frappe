@@ -26,8 +26,7 @@ export default class Column {
 				<label class="control-label">
 					${__(this.df.label)}
 				</label>
-			`)
-				.appendTo(this.wrapper);
+			`).appendTo(this.wrapper);
 		}
 	}
 
@@ -40,7 +39,6 @@ export default class Column {
 			.removeClass()
 			.addClass("form-column")
 			.addClass("col-sm-" + colspan);
-
 	}
 
 	refresh() {

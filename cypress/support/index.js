@@ -14,10 +14,10 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands';
-import '@cypress/code-coverage/support';
+import "./commands";
+import "@cypress/code-coverage/support";
 
-Cypress.on('uncaught:exception', (err, runnable) => {
+Cypress.on("uncaught:exception", (err, runnable) => {
 	return false;
 });
 
@@ -25,5 +25,5 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 // require('./commands')
 
 Cypress.Cookies.defaults({
-	preserve: 'sid'
+	preserve: "sid",
 });

@@ -69,7 +69,22 @@
 			}
 
 			.web-form-footer {
-				text-align: right;
+				margin-top: 1rem;
+
+				.web-form-actions {
+					display: flex;
+					justify-content: space-between;
+
+					.btn {
+						font-size: var(--font-size-base);
+					}
+
+					.center-area {
+						padding: 0.5rem;
+						display: flex;
+						align-items: center;
+					}
+				}
 			}
 
 			.attachments {
@@ -216,6 +231,65 @@
 		.breadcrumb-container.container {
 			@include media-breakpoint-up(sm) {
 				padding-left: 0;
+			}
+		}
+	}
+
+	.slides-progress {
+		display: flex;
+		margin-right: .5rem;
+
+		.slide-step {
+			@include flex(flex, center, center, null);
+
+			height: 18px;
+			width: 18px;
+			border-radius: var(--border-radius-full);
+			border: 1px solid var(--gray-300);
+			margin: 0 var(--margin-xs);
+			background-color: var(--card-bg);
+
+			.slide-step-indicator {
+				height: 6px;
+				width: 6px;
+				background-color: var(--gray-300);
+				border-radius: var(--border-radius-full);
+			}
+
+			.slide-step-complete {
+				display: none;
+
+				.icon-xs {
+					height: 10px;
+					width: 10px;
+				}
+			}
+
+			&.active {
+				border: 1px solid var(--primary);
+
+				.slide-step-indicator {
+					display: block;
+					background-color: var(--primary);
+				}
+			}
+
+			&.step-success:not(.active) {
+				background-color: var(--primary);
+				border: 1px solid var(--primary);
+
+				.slide-step-indicator {
+					display: none;
+				}
+
+				.slide-step-complete {
+					display: flex;
+
+					.icon use {
+						stroke-width: 2;
+						stroke: var(--white);
+					}
+				}
 			}
 		}
 	}
