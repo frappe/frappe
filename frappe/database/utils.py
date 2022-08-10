@@ -7,6 +7,7 @@ from types import NoneType
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.functions import Function
 
 if typing.TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -28,6 +29,10 @@ def table_from_string(table: str) -> "DocType":
 		return frappe.qb.DocType(table_name=table_name.replace("`", ""))
 	else:
 		return frappe.qb.DocType(table_name=table_name)
+
+
+def is_function_object(field: str) -> bool:
+	return getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
 
 
 class LazyString:

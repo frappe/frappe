@@ -9,7 +9,7 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
 from frappe import _
-from frappe.database.utils import table_from_string
+from frappe.database.utils import is_function_object, table_from_string
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -499,7 +499,6 @@ class Engine:
 				try:
 					self.linked_doctype = linked_field.options
 				except AttributeError:
-					print("here")
 					return fields
 				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
 				if alias:
@@ -590,7 +589,12 @@ class Engine:
 		join_query = False
 		if not isinstance(fields, Criterion):
 			for field in fields:
-				if ("tab" in str(field)) and (f"`tab{table}`" not in str(field)):
+				# Only perform this bit if foreign doctype in fields
+				if (
+					not is_function_object(field)
+					and ("tab" in str(field))
+					and (f"`tab{table}`" not in str(field))
+				):
 					join_table = table_from_string(str(field))
 					if self.fieldname:
 						criterion = criterion.left_join(join_table).on(
@@ -604,9 +608,7 @@ class Engine:
 
 			if join_query:
 				for field in fields:
-					if not (
-						getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
-					):
+					if not is_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
 						if "tab" not in str(field):
 							fields[fields.index(field)] = getattr(frappe.qb.DocType(table), field)
@@ -614,16 +616,6 @@ class Engine:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
 						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
 						fields[fields.index(field)] = field
-
-		# if self.linked_doctype and self.fieldname and not join_query:
-		# 	for field in fields:
-		# 		if "tab" not in str(field):
-		# 			fields[fields.index(field)] = PseudoColumn(f"`tab{table}`.`{field.get_sql()}`")
-		# 	self.linked_doctype = frappe.qb.DocType(self.linked_doctype)
-		# 	criterion = criterion.left_join(self.linked_doctype).on(
-		# 		getattr(self.linked_doctype, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
-		# 	)
-		# 	join_query = True
 
 		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 
