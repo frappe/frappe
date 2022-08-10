@@ -6,36 +6,55 @@
 		margin: auto;
 
 		h1 {
-			font-size: 1.9rem;
+			font-size: 2.25rem;
 			margin-top: 0;
 			margin-bottom: 0;
 		}
 
-		.web-form-container {
+		.web-form-header {
 			border: 1px solid var(--dark-border-color);
-			border-radius: var(--border-radius-md);
-			padding: 2rem;
+			border-bottom: none;
+			border-top-left-radius: var(--border-radius-md);
+			border-top-right-radius: var(--border-radius-md);
+			background-color: var(--fg-color);
+			padding: 2rem 2rem 0;
 
-			.web-form-header {
-				display: flex;
-				justify-content: space-between;
-				margin: 0 -2rem 1rem;
-				padding: 0 2rem 1rem;
-				border-bottom: 1px solid var(--border-color);
+			.breadcrumb-container {
+				padding: 0px;
+				margin: 0 0 2rem;
 
-				.web-form-actions {
-					align-self: center;
+				ol.breadcrumb {
+					padding: 0px;
 				}
 			}
 
-			.web-form-introduction {
-				color: var(--text-muted);
-				margin-bottom: 2rem;
+			.web-form-head {
+				border-bottom: 1px solid var(--dark-border-color);
+				padding-bottom: 1.25rem;
 
-				p {
+				.title {
+					display: flex;
+					justify-content: space-between;
+				}
+
+				.web-form-introduction {
 					color: var(--text-muted);
+					margin-top: 1.25rem;
+
+					p {
+						color: var(--text-muted);
+					}
 				}
 			}
+		}
+
+		.web-form-container {
+			background-color: var(--fg-color);
+			padding: 1.25rem 2rem 2rem;
+			border: 1px solid var(--dark-border-color);
+			border-top: none;
+			border-bottom-left-radius: var(--border-radius);
+			border-bottom-right-radius: var(--border-radius);
 
 			.web-form-wrapper {
 				.form-control {
@@ -52,7 +71,7 @@
 				}
 
 				.form-column {
-					padding: 0 var(--padding-md);
+					padding: 0 var(--padding-sm);
 
 					&:first-child {
 						padding-left: 0;
@@ -137,6 +156,8 @@
 			.web-list-header {
 				display: flex;
 				justify-content: space-between;
+				border-bottom: 1px solid var(--dark-border-color);
+				padding-bottom: 1.25rem;
 
 				.web-list-actions {
 					align-self: center;
@@ -146,9 +167,7 @@
 			.web-list-filters {
 				display: flex;
 				flex-wrap: wrap;
-				margin: 1rem -2rem 0;
-				padding: 1rem 2rem 0;
-				border-top: 1px solid var(--border-color);
+				margin: 1.25rem 0;
 				gap: 10px;
 
 				.form-group.frappe-control {
@@ -176,7 +195,6 @@
 
 			.web-list-table {
 				overflow: auto;
-				margin: 1rem -2rem 0;
 
 				.table {
 					border-bottom: 1px solid var(--border-color);
@@ -188,14 +206,6 @@
 							font-size: 13px;
 							font-weight: normal;
 							color: var(--text-muted);
-
-							&:first-child {
-								padding-left: 1.5rem;
-							}
-
-							&:last-child {
-								padding-right: 1.5rem;
-							}
 
 							input[type="checkbox"] {
 								margin-bottom: -2px;
@@ -210,19 +220,10 @@
 						td {
 							font-size: 13px;
 							border-top: 1px solid var(--border-color);
-
-							&:first-child {
-								padding-left: 1.5rem;
-							}
-
-							&:last-child {
-								padding-right: 1.5rem;
-							}
 						}
 					}
 
 					input[type="checkbox"] {
-						margin-left: 0.5rem;
 						margin-top: 2px;
 					}
 

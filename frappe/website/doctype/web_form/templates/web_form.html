@@ -46,23 +46,32 @@
 			<div style="height: 3rem"></div>
 	{% endif %}
 
-	<!-- main card -->
-	<form role="form" class="web-form-container">
-		<div class="web-form-header">
-			<h1>{{ _(title) }}</h1>
-			<div class="web-form-actions">
-				{{ header_buttons() }}
+
+	<div class="web-form-header">
+		{% if header_image and has_header and login_required and show_list %}
+			{% include "templates/includes/breadcrumbs.html" %}
+		{% endif %}
+		<div class="web-form-head">
+			<div class="title">
+				<h1>{{ _(title) }}</h1>
+				<div class="web-form-actions">
+					{{ header_buttons() }}
+				</div>
 			</div>
-		</div>
-		<div class="web-form-body">
 			{% if is_new and introduction_text %}
 				<div class="web-form-introduction">{{ introduction_text }}</div>
 			{% endif %}
+		</div>
+	</div>
+
+	<!-- main card -->
+	<form role="form" class="web-form-container">
+		<div class="web-form-body">
 			<div class="web-form-wrapper"></div>
-			<div class="web-form-footer">
-				<div class="web-form-actions">
-					{{ action_buttons() }}
-				</div>
+		</div>
+		<div class="web-form-footer">
+			<div class="web-form-actions">
+				{{ action_buttons() }}
 			</div>
 		</div>
 
