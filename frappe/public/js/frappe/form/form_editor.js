@@ -10,7 +10,7 @@ frappe.ui.form.FormEditor = class FormEditor {
 
 	setup_sortable() {
 		// setup sortable in all column
-		for(let section of this.frm.layout.sections) {
+		for (let section of this.frm.layout.sections) {
 			for (let column of section.columns) {
 				column.make_sortable();
 			}
@@ -22,7 +22,7 @@ frappe.ui.form.FormEditor = class FormEditor {
 	}
 
 	setup_switch_tabs_on_hover() {
-		for(let tab of this.frm.layout.tabs) {
+		for (let tab of this.frm.layout.tabs) {
 			tab.setup_switch_on_hover();
 		}
 	}
@@ -46,7 +46,7 @@ frappe.ui.form.FormEditor = class FormEditor {
 	}
 
 	add_sections(container) {
-		for(let section of $(container).find('.form-section')) {
+		for (let section of $(container).find('.form-section')) {
 			this.add_field_to_field_order(section);
 			for (let column of $(section).find('.form-column')) {
 				this.add_field_to_field_order(column);
@@ -62,7 +62,7 @@ frappe.ui.form.FormEditor = class FormEditor {
 		// rebuild the .fields_list and .fields_dict property of sections and columns
 		// refresh is based on the these properties
 
-		for(let section of this.frm.layout.sections) {
+		for (let section of this.frm.layout.sections) {
 			section.rebuild_fields_list_from_dom();
 		}
 	}
@@ -75,4 +75,4 @@ frappe.ui.form.FormEditor = class FormEditor {
 			this.field_order.push(fieldname);
 		}
 	}
-}
+};

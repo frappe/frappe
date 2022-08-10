@@ -43,7 +43,7 @@ export default class Column {
 			.addClass("col-sm-" + colspan);
 	}
 
-	add_field(fieldobj) { }
+	add_field() { }
 
 	refresh() {
 		this.section.refresh();

@@ -114,6 +114,6 @@ export default class Tab {
 				clearTimeout(this.action);
 				this.action = null;
 			}
-		})
+		});
 	}
 }

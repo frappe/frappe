@@ -155,12 +155,4 @@ export default class Section {
 		this.wrapper.toggleClass("hide-control", !show);
 		// this.on_section_toggle && this.on_section_toggle(show);
 	}
-
-	rebuild_fields_list_from_dom() {
-		this.fields_list = [];
-		this.fields_dict = {};
-		for (let ele of $(this.wrapper).find('.frappe-control')) {
-			let f = this.layout.frm.fields_dict[ele.getAttribute('data-fieldname')];
-		}
-	}
 }

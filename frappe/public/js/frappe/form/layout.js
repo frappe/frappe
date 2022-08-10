@@ -297,7 +297,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_column(df = {}) {
-		this.column_count ++;
+		this.column_count++;
 		if (!df.fieldname) df.fieldname = `__column_${this.section_count}`;
 
 		this.column = new Column(this.section, df);
