@@ -24,7 +24,7 @@ from frappe.database.utils import (
 	QueryValues,
 	is_query_type,
 )
-from frappe.exceptions import DoesNotExistError
+from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
@@ -212,10 +212,10 @@ class Database:
 				frappe.errprint(f"Syntax error in query:\n{query} {values}")
 
 			elif self.is_deadlocked(e):
-				raise frappe.QueryDeadlockError(e)
+				raise frappe.QueryDeadlockError(e) from e
 
 			elif self.is_timedout(e):
-				raise frappe.QueryTimeoutError(e)
+				raise frappe.QueryTimeoutError(e) from e
 
 			# TODO: added temporarily
 			elif self.db_type == "postgres":
@@ -367,7 +367,7 @@ class Database:
 			and query
 			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
-			raise Exception("This statement can cause implicit commit")
+			raise ImplicitCommitError("This statement can cause implicit commit")
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""Internal. Converts results to dict."""
