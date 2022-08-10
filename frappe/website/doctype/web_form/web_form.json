@@ -164,7 +164,7 @@
   },
   {
    "fieldname": "introduction_text",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
    "label": "Introduction"
   },
@@ -320,7 +320,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-10 20:07:46.440304",
+ "modified": "2022-08-10 20:22:02.945853",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
