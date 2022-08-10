@@ -442,14 +442,28 @@ def create_note():
 
 @frappe.whitelist()
 def create_kanban():
-	if not frappe.db.exists("Kanban Board", "ToDo Kanban"):
+	if not frappe.db.exists("Custom Field", "Note-kanban"):
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"dt": "Note",
+				"label": "Kanban",
+				"fieldname": "kanban",
+				"insert_after": "seen_by",
+				"fieldtype": "Select",
+				"options": "Open\nClosed",
+				"doctype": "Custom Field",
+			}
+		).insert()
+
+	if not frappe.db.exists("Kanban Board", "_Note _Kanban"):
 		frappe.get_doc(
 			{
 				"doctype": "Kanban Board",
-				"name": "ToDo Kanban",
-				"kanban_board_name": "ToDo Kanban",
-				"reference_doctype": "ToDo",
-				"field_name": "status",
+				"name": "_Note _Kanban",
+				"kanban_board_name": "_Note _Kanban",
+				"reference_doctype": "Note",
+				"field_name": "kanban",
 				"private": 1,
 				"show_labels": 0,
 				"columns": [
@@ -460,11 +474,6 @@ def create_kanban():
 					},
 					{
 						"column_name": "Closed",
-						"status": "Active",
-						"indicator": "Gray",
-					},
-					{
-						"column_name": "Cancelled",
 						"status": "Active",
 						"indicator": "Gray",
 					},
