@@ -17,7 +17,6 @@
   "introduction_text",
   "form_settings_tab",
   "login_required",
-  "is_multi_step_form",
   "allow_multiple",
   "allow_edit",
   "allow_delete",
@@ -234,12 +233,6 @@
   },
   {
    "default": "0",
-   "fieldname": "is_multi_step_form",
-   "fieldtype": "Check",
-   "label": "Is Multi Step Form"
-  },
-  {
-   "default": "0",
    "depends_on": "login_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
@@ -316,7 +309,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-27 18:19:10.748079",
+ "modified": "2022-08-10 15:38:28.611328",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
