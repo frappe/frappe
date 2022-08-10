@@ -24,7 +24,7 @@ from frappe.database.utils import (
 	QueryValues,
 	is_query_type,
 )
-from frappe.exceptions import DoesNotExistError
+from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.query_builder.utils import DocType
@@ -212,10 +212,10 @@ class Database:
 				frappe.errprint(f"Syntax error in query:\n{query} {values}")
 
 			elif self.is_deadlocked(e):
-				raise frappe.QueryDeadlockError(e)
+				raise frappe.QueryDeadlockError(e) from e
 
 			elif self.is_timedout(e):
-				raise frappe.QueryTimeoutError(e)
+				raise frappe.QueryTimeoutError(e) from e
 
 			# TODO: added temporarily
 			elif self.db_type == "postgres":
@@ -258,12 +258,9 @@ class Database:
 				for r in ret:
 					r.update(update)
 			return ret
-		elif as_list:
+		elif as_list or as_utf8:
 			return self.convert_to_lists(self.last_result, formatted, as_utf8)
-		elif as_utf8:
-			return self.convert_to_lists(self.last_result, formatted, as_utf8)
-		else:
-			return self.last_result
+		return self.last_result
 
 	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
@@ -367,9 +364,9 @@ class Database:
 			and query
 			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
-			raise Exception("This statement can cause implicit commit")
+			raise ImplicitCommitError("This statement can cause implicit commit")
 
-	def fetch_as_dict(self, formatted=0, as_utf8=0):
+	def fetch_as_dict(self, formatted=0, as_utf8=0) -> list[frappe._dict]:
 		"""Internal. Converts results to dict."""
 		result = self.last_result
 		ret = []
@@ -491,9 +488,8 @@ class Database:
 
 		if len(row) > 1 or as_dict:
 			return row
-		else:
-			# single field is requested, send it without wrapping in containers
-			return row[0]
+		# single field is requested, send it without wrapping in containers
+		return row[0]
 
 	def get_values(
 		self,
@@ -618,10 +614,6 @@ class Database:
 		:param filters: Filters (dict).
 		:param doctype: DocType name.
 		"""
-		# TODO
-		# if not frappe.model.meta.is_single(doctype):
-		# 	raise frappe.DoesNotExistError("DocType", doctype)
-
 		if fields == "*" or isinstance(filters, dict):
 			# check if single doc matches with filters
 			values = self.get_singles_dict(doctype)
@@ -784,7 +776,6 @@ class Database:
 		limit=None,
 	):
 		field_objects = []
-
 		query = frappe.qb.engine.get_query(
 			table=doctype,
 			filters=filters,
@@ -798,8 +789,7 @@ class Database:
 		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
 			as_dict = True
 
-		r = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
-		return r
+		return self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
 
 	def _get_value_for_many_names(
 		self,
@@ -815,8 +805,7 @@ class Database:
 		limit=None,
 		as_dict=False,
 	):
-		names = list(filter(None, names))
-		if names:
+		if names := list(filter(None, names)):
 			return self.get_all(
 				doctype,
 				fields=field,
@@ -829,8 +818,7 @@ class Database:
 				distinct=distinct,
 				limit_page_length=limit,
 			)
-		else:
-			return {}
+		return {}
 
 	def update(self, *args, **kwargs):
 		"""Update multiple values. Alias for `set_value`."""
@@ -1027,7 +1015,7 @@ class Database:
 
 	def table_exists(self, doctype, cached=True):
 		"""Returns True if table for given doctype exists."""
-		return ("tab" + doctype) in self.get_tables(cached=cached)
+		return f"tab{doctype}" in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
 		return self.table_exists(doctype)
