@@ -442,31 +442,32 @@ def create_note():
 
 @frappe.whitelist()
 def create_kanban():
-	frappe.get_doc(
-		{
-			"doctype": "Kanban Board",
-			"name": "ToDo Kanban",
-			"kanban_board_name": "ToDo Kanban",
-			"reference_doctype": "ToDo",
-			"field_name": "status",
-			"private": 1,
-			"show_labels": 0,
-			"columns": [
-				{
-					"column_name": "Open",
-					"status": "Active",
-					"indicator": "Gray",
-				},
-				{
-					"column_name": "Closed",
-					"status": "Active",
-					"indicator": "Gray",
-				},
-				{
-					"column_name": "Cancelled",
-					"status": "Active",
-					"indicator": "Gray",
-				},
-			],
-		}
-	).insert()
+	if not frappe.db.exists("Kanban Board", "ToDo Kanban"):
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"name": "ToDo Kanban",
+				"kanban_board_name": "ToDo Kanban",
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"private": 1,
+				"show_labels": 0,
+				"columns": [
+					{
+						"column_name": "Open",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Closed",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Cancelled",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+				],
+			}
+		).insert()
