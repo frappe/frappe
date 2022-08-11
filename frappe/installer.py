@@ -493,7 +493,7 @@ def init_singles():
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_validate = True
 			doc.save()
-		except ImportError:
+		except (ImportError, frappe.DoesNotExistError):
 			# The doctype exists, but controller is deleted,
 			# no need to attempt to init such single, ref: #16917
 			continue
