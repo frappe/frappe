@@ -55,6 +55,9 @@ class Event(Document):
 		if self.sync_with_google_calendar and not self.google_calendar:
 			frappe.throw(_("Select Google Calendar to which event should be synced."))
 
+		if not self.sync_with_google_calendar:
+			self.add_video_conferencing = False
+
 	def on_update(self):
 		self.sync_communication()
 
