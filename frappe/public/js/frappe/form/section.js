@@ -29,7 +29,7 @@ export default class Section {
 		let make_card = this.card_layout;
 		this.wrapper = $(`<div class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
-				${ make_card ? "card-section" : "" }" data-fieldname="${this.df.fieldname}">
+				${make_card ? "card-section" : ""}" data-fieldname="${this.df.fieldname}">
 			`).appendTo(this.parent);
 
 		if (this.df) {

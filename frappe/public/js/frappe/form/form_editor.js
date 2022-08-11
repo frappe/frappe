@@ -30,9 +30,9 @@ frappe.ui.form.FormEditor = class FormEditor {
 	save() {
 		this.field_order = [];
 		if (this.frm.layout.is_tabbed_layout()) {
-			for (let tab of this.frm.layout.tab_link_container.find('.nav-link')) {
+			for (let tab of this.frm.layout.tab_link_container.find(".nav-link")) {
 				this.add_field_to_field_order(tab);
-				const tab_id = tab.getAttribute('href').slice(1);
+				const tab_id = tab.getAttribute("href").slice(1);
 
 				this.add_sections(document.getElementById(tab_id));
 			}
@@ -40,18 +40,21 @@ frappe.ui.form.FormEditor = class FormEditor {
 			this.add_sections(this.frm.layout.page);
 		}
 
-		frappe.call('frappe.core.doctype.doctype.doctype.set_field_order', {
-			doctype: this.frm.doctype, field_order: this.field_order})
-			.then(() => frappe.toast('Field order updated'));
+		frappe
+			.call("frappe.core.doctype.doctype.doctype.set_field_order", {
+				doctype: this.frm.doctype,
+				field_order: this.field_order,
+			})
+			.then(() => frappe.toast("Field order updated"));
 	}
 
 	add_sections(container) {
-		for (let section of $(container).find('.form-section')) {
+		for (let section of $(container).find(".form-section")) {
 			this.add_field_to_field_order(section);
-			for (let column of $(section).find('.form-column')) {
+			for (let column of $(section).find(".form-column")) {
 				this.add_field_to_field_order(column);
 
-				for (let control of $(column).find('.frappe-control')) {
+				for (let control of $(column).find(".frappe-control")) {
 					this.add_field_to_field_order(control);
 				}
 			}
@@ -68,10 +71,10 @@ frappe.ui.form.FormEditor = class FormEditor {
 	}
 
 	add_field_to_field_order(element) {
-		const fieldname = element.getAttribute('data-fieldname');
+		const fieldname = element.getAttribute("data-fieldname");
 		const fieldobj = this.frm.fields_dict[fieldname];
-		const is_custom_field = fieldobj ? (fieldobj.df && fieldobj.df.is_custom_field) : false;
-		if (fieldname && !is_custom_field && fieldname.substr(0, 2) !== '__') {
+		const is_custom_field = fieldobj ? fieldobj.df && fieldobj.df.is_custom_field : false;
+		if (fieldname && !is_custom_field && fieldname.substr(0, 2) !== "__") {
 			this.field_order.push(fieldname);
 		}
 	}

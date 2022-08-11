@@ -45,7 +45,9 @@ frappe.ui.form.Layout = class Layout {
 			</div>
 		`).appendTo(this.page);
 		this.tab_link_container = this.page.find(".form-tabs");
-		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(this.page);
+		this.tabs_content = $(`<div class="form-tab-content tab-content"></div>`).appendTo(
+			this.page
+		);
 		this.setup_events();
 	}
 

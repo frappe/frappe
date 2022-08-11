@@ -93,8 +93,7 @@ export default class Tab {
 	}
 
 	is_hidden() {
-		return this.wrapper.hasClass("hide")
-			&& this.tab_link.hasClass("hide");
+		return this.wrapper.hasClass("hide") && this.tab_link.hasClass("hide");
 	}
 
 	setup_listeners() {

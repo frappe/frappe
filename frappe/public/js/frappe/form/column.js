@@ -15,13 +15,11 @@ export default class Column {
 				<form>
 				</form>
 			</div>
-		`)
-			.appendTo(this.section.body);
+		`).appendTo(this.section.body);
 
-		this.form = this.wrapper.find("form")
-			.on("submit", function () {
-				return false;
-			});
+		this.form = this.wrapper.find("form").on("submit", function () {
+			return false;
+		});
 
 		if (this.df.label) {
 			$(`
@@ -43,7 +41,7 @@ export default class Column {
 			.addClass("col-sm-" + colspan);
 	}
 
-	add_field() { }
+	add_field() {}
 
 	refresh() {
 		this.section.refresh();
@@ -51,7 +49,7 @@ export default class Column {
 
 	make_sortable() {
 		this.sortable = new Sortable(this.form.get(0), {
-			group: this.section.layout.frm.doctype
+			group: this.section.layout.frm.doctype,
 		});
 	}
 }
