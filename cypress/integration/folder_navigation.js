@@ -55,8 +55,9 @@ context("Folder Navigation", () => {
 		//To check if the added file is present in the Test Folder
 		cy.visit("/app/file/view/home/Attachments");
 		cy.wait(500);
-		cy.get("span.level-item > span").should("contain", "Test Folder");
+		cy.get("span.level-item > a > span").should("contain", "Test Folder");
 		cy.visit("/app/file/view/home/Attachments/Test%20Folder");
+
 		cy.wait(500);
 		cy.get(".list-row-container").eq(0).should("contain.text", "72402.jpg");
 		cy.get(".list-row-checkbox").eq(0).click();
