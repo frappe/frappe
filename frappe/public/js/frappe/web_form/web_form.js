@@ -20,6 +20,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make() {
+		this.parent.empty();
 		super.make();
 		this.set_page_breaks();
 		this.set_field_values();

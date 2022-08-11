@@ -327,4 +327,32 @@
 			}
 		}
 	}
+
+	.web-form-skeleton {
+		.box-group {
+			display: flex;
+			gap: 20px;
+			margin-bottom: 15px;
+
+			.box-container {
+				width: 100%;
+
+				.box {
+					background-color: var(--control-bg);
+					border-radius: var(--border-radius);
+				}
+
+				.box-label {
+					height: 20px;
+					width: 100px;
+					margin-bottom: 0.5rem;
+				}
+
+				.box-area {
+					height: 34px;
+					width: 100%;
+				}
+			}
+		}
+	}
 }

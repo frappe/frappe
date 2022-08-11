@@ -73,7 +73,9 @@
 	<!-- main card -->
 	<form role="form" class="web-form-container">
 		<div class="web-form-body">
-			<div class="web-form-wrapper"></div>
+			<div class="web-form-wrapper">
+				{% include "website/doctype/web_form/templates/web_form_skeleton.html" %}
+			</div>
 		</div>
 		<div class="web-form-footer">
 			<div class="web-form-actions">
@@ -106,13 +108,6 @@
 		<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
 		<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
 
-		{% if show_list and not success_url %}
-			<a href="/{{ route }}/list" class="edit-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
-		{% endif %}
-		{% if (not login_required or allow_multiple) and not success_url %}
-			<a href="/{{ route }}/new" class="clear-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
-		{% endif %}
-
 		{% if success_url %}
 			<div class="success_url_message">
 				<p>
@@ -123,6 +118,13 @@
 					<span> seconds.</span>
 				</p>
 			</div>
+		{% else %}
+			{% if show_list %}
+				<a href="/{{ route }}/list" class="edit-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
+			{% endif %}
+			{% if not login_required or allow_multiple %}
+				<a href="/{{ route }}/new" class="clear-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+			{% endif %}
 		{% endif %}
 	</div>
 
