@@ -982,6 +982,20 @@ Object.assign(frappe.utils, {
 			}
 		});
 	},
+	setup_timer(start, end, $element) {
+		const increment = end > start;
+		let counter = start;
+
+		let interval = setInterval(() => {
+			increment ? counter++ : counter--;
+			if (increment ? counter > end : counter < end) {
+				clearInterval(interval);
+				return;
+			}
+			$element.text(counter);
+		}, 1000);
+	},
+
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
