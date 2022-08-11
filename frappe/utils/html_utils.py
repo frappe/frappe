@@ -162,7 +162,13 @@ def sanitize_html(html, linkify=False):
 		+ mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
 	)
-	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
+
+	def attributes_filter(tag, name, value):
+		if name.startswith("data-"):
+			return True
+		return name in acceptable_attributes
+
+	attributes = {"*": attributes_filter, "svg": svg_attributes}
 	styles = bleach_allowlist.all_styles
 	strip_comments = False
 

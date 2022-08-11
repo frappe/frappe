@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import ListFilter from './list_filter';
-frappe.provide('frappe.views');
+import ListFilter from "./list_filter";
+frappe.provide("frappe.views");
 
 // opts:
 // stats = list of fields
@@ -26,16 +26,18 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		// do not remove
 		// used to trigger custom scripts
-		$(document).trigger('list_sidebar_setup');
+		$(document).trigger("list_sidebar_setup");
 
-		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
-			this.sidebar.find('.list-tags').remove();
+		if (
+			this.list_view.list_view_settings &&
+			this.list_view.list_view_settings.disable_sidebar_stats
+		) {
+			this.sidebar.find(".list-tags").remove();
 		} else {
-			this.sidebar.find('.list-stats').on('click', (e) => {
+			this.sidebar.find(".list-stats").on("click", (e) => {
 				this.reload_stats();
 			});
 		}
-
 	}
 
 	setup_views() {
@@ -43,13 +45,13 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		if (frappe.views.calendar[this.doctype]) {
 			this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
-			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
+			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass("hide");
 			show_list_link = true;
 		}
 		//show link for kanban view
-		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
+		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass("hide");
 		if (this.doctype === "Communication" && frappe.boot.email_accounts.length) {
-			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass('hide');
+			this.sidebar.find('.list-link[data-view="Inbox"]').removeClass("hide");
 			show_list_link = true;
 		}
 
@@ -57,42 +59,50 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find(".tree-link").removeClass("hide");
 		}
 
-		this.current_view = 'List';
+		this.current_view = "List";
 		var route = frappe.get_route();
 		if (route.length > 2 && frappe.views.view_modes.includes(route[2])) {
 			this.current_view = route[2];
 
-			if (this.current_view === 'Kanban') {
+			if (this.current_view === "Kanban") {
 				this.kanban_board = route[3];
-			} else if (this.current_view === 'Inbox') {
+			} else if (this.current_view === "Inbox") {
 				this.email_account = route[3];
 			}
 		}
 
 		// disable link for current view
-		this.sidebar.find('.list-link[data-view="' + this.current_view + '"] a')
-			.attr('disabled', 'disabled').addClass('disabled');
+		this.sidebar
+			.find('.list-link[data-view="' + this.current_view + '"] a')
+			.attr("disabled", "disabled")
+			.addClass("disabled");
 
 		//enable link for Kanban view
-		this.sidebar.find('.list-link[data-view="Kanban"] a, .list-link[data-view="Inbox"] a')
-			.attr('disabled', null).removeClass('disabled');
+		this.sidebar
+			.find('.list-link[data-view="Kanban"] a, .list-link[data-view="Inbox"] a')
+			.attr("disabled", null)
+			.removeClass("disabled");
 
 		// show image link if image_view
 		if (this.list_view.meta.image_field) {
-			this.sidebar.find('.list-link[data-view="Image"]').removeClass('hide');
+			this.sidebar.find('.list-link[data-view="Image"]').removeClass("hide");
 			show_list_link = true;
 		}
 
-		if (this.list_view.settings.get_coords_method ||
-			(this.list_view.meta.fields.find(i => i.fieldname === "latitude") &&
-			this.list_view.meta.fields.find(i => i.fieldname === "longitude")) ||
-			(this.list_view.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype == 'Geolocation'))) {
-			this.sidebar.find('.list-link[data-view="Map"]').removeClass('hide');
+		if (
+			this.list_view.settings.get_coords_method ||
+			(this.list_view.meta.fields.find((i) => i.fieldname === "latitude") &&
+				this.list_view.meta.fields.find((i) => i.fieldname === "longitude")) ||
+			this.list_view.meta.fields.find(
+				(i) => i.fieldname === "location" && i.fieldtype == "Geolocation"
+			)
+		) {
+			this.sidebar.find('.list-link[data-view="Map"]').removeClass("hide");
 			show_list_link = true;
 		}
 
 		if (show_list_link) {
-			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
+			this.sidebar.find('.list-link[data-view="List"]').removeClass("hide");
 		}
 	}
 
@@ -100,16 +110,18 @@ frappe.views.ListSidebar = class ListSidebar {
 		// add reports linked to this doctype to the dropdown
 		var me = this;
 		var added = [];
-		var dropdown = this.page.sidebar.find('.reports-dropdown');
+		var dropdown = this.page.sidebar.find(".reports-dropdown");
 		var divider = false;
 
-		var add_reports = function(reports) {
-			$.each(reports, function(name, r) {
+		var add_reports = function (reports) {
+			$.each(reports, function (name, r) {
 				if (!r.ref_doctype || r.ref_doctype == me.doctype) {
-					var report_type = r.report_type === 'Report Builder' ?
-						`List/${r.ref_doctype}/Report` : 'query-report';
+					var report_type =
+						r.report_type === "Report Builder"
+							? `List/${r.ref_doctype}/Report`
+							: "query-report";
 
-					var route = r.route || report_type + '/' + (r.title || r.name);
+					var route = r.route || report_type + "/" + (r.title || r.name);
 
 					if (added.indexOf(route) === -1) {
 						// don't repeat
@@ -120,8 +132,9 @@ frappe.views.ListSidebar = class ListSidebar {
 							divider = true;
 						}
 
-						$('<li><a href="#' + route + '">' +
-							__(r.title || r.name) + '</a></li>').appendTo(dropdown);
+						$(
+							'<li><a href="#' + route + '">' + __(r.title || r.name) + "</a></li>"
+						).appendTo(dropdown);
 					}
 				}
 			});
@@ -133,7 +146,10 @@ frappe.views.ListSidebar = class ListSidebar {
 		}
 
 		// Sort reports alphabetically
-		var reports = Object.values(frappe.boot.user.all_reports).sort((a,b) => a.title.localeCompare(b.title)) || [];
+		var reports =
+			Object.values(frappe.boot.user.all_reports).sort((a, b) =>
+				a.title.localeCompare(b.title)
+			) || [];
 
 		// from specially tagged reports
 		add_reports(reports);
@@ -141,23 +157,20 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	setup_list_filter() {
 		this.list_filter = new ListFilter({
-			wrapper: this.page.sidebar.find('.list-filters'),
+			wrapper: this.page.sidebar.find(".list-filters"),
 			doctype: this.doctype,
-			list_view: this.list_view
+			list_view: this.list_view,
 		});
 	}
 
 	setup_kanban_boards() {
-		const $dropdown = this.page.sidebar.find('.kanban-dropdown');
+		const $dropdown = this.page.sidebar.find(".kanban-dropdown");
 		frappe.views.KanbanView.setup_dropdown_in_sidebar(this.doctype, $dropdown);
 	}
 
-
 	setup_keyboard_shortcuts() {
-		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
-			frappe.ui.keys
-				.get_shortcut_group(this.page)
-				.add($(el));
+		this.sidebar.find(".list-link > a, .list-link > .btn-group > a").each((i, el) => {
+			frappe.ui.keys.get_shortcut_group(this.page).add($(el));
 		});
 	}
 
@@ -166,55 +179,57 @@ frappe.views.ListSidebar = class ListSidebar {
 			doctype: this.doctype,
 			sidebar: this,
 			list_view: this.list_view,
-			page: this.page
+			page: this.page,
 		});
 	}
 
 	get_stats() {
 		var me = this;
 		frappe.call({
-			method: 'frappe.desk.reportview.get_sidebar_stats',
-			type: 'GET',
+			method: "frappe.desk.reportview.get_sidebar_stats",
+			type: "GET",
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
 				// wait for list filter area to be generated before getting filters, or fallback to default filters
-				filters: (me.list_view.filter_area ? me.list_view.get_filters_for_args() : me.default_filters) || []
+				filters:
+					(me.list_view.filter_area
+						? me.list_view.get_filters_for_args()
+						: me.default_filters) || [],
 			},
-			callback: function(r) {
+			callback: function (r) {
 				let stats = (r.message.stats || {})["_user_tags"] || [];
 				me.render_stat(stats);
-				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
-				frappe.utils.setup_search(stats_dropdown, '.stat-link', '.stat-label');
-			}
+				let stats_dropdown = me.sidebar.find(".list-stats-dropdown");
+				frappe.utils.setup_search(stats_dropdown, ".stat-link", ".stat-label");
+			},
 		});
 	}
 
 	render_stat(stats) {
 		let args = {
 			stats: stats,
-			label: __("Tags")
+			label: __("Tags"),
 		};
 
-		let tag_list = $(frappe.render_template("list_sidebar_stat", args)).on("click", ".stat-link", (e) => {
-			let fieldname = $(e.currentTarget).attr('data-field');
-			let label = $(e.currentTarget).attr('data-label');
-			let condition = "like";
-			let existing = this.list_view.filter_area.filter_list.get_filter(fieldname);
-			if (existing) {
-				existing.remove();
+		let tag_list = $(frappe.render_template("list_sidebar_stat", args)).on(
+			"click",
+			".stat-link",
+			(e) => {
+				let fieldname = $(e.currentTarget).attr("data-field");
+				let label = $(e.currentTarget).attr("data-label");
+				let condition = "like";
+				let existing = this.list_view.filter_area.filter_list.get_filter(fieldname);
+				if (existing) {
+					existing.remove();
+				}
+				if (label == "No Tags") {
+					label = "%,%";
+					condition = "not like";
+				}
+				this.list_view.filter_area.add(this.doctype, fieldname, condition, label);
 			}
-			if (label == "No Tags") {
-				label = "%,%";
-				condition = "not like";
-			}
-			this.list_view.filter_area.add(
-				this.doctype,
-				fieldname,
-				condition,
-				label
-			);
-		});
+		);
 
 		this.sidebar.find(".list-stats-dropdown .stat-result").html(tag_list);
 	}

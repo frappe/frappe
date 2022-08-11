@@ -2,48 +2,48 @@
 // MIT License. See license.txt
 
 // add a new dom element
-frappe.provide('frappe.dom');
+frappe.provide("frappe.dom");
 
 frappe.dom = {
 	id_count: 0,
 	freeze_count: 0,
-	by_id: function(id) {
+	by_id: function (id) {
 		return document.getElementById(id);
 	},
-	get_unique_id: function() {
-		const id = 'unique-' + frappe.dom.id_count;
+	get_unique_id: function () {
+		const id = "unique-" + frappe.dom.id_count;
 		frappe.dom.id_count++;
 		return id;
 	},
-	set_unique_id: function(ele) {
+	set_unique_id: function (ele) {
 		var $ele = $(ele);
-		if($ele.attr('id')) {
-			return $ele.attr('id');
+		if ($ele.attr("id")) {
+			return $ele.attr("id");
 		}
-		var id = 'unique-' + frappe.dom.id_count;
-		$ele.attr('id', id);
+		var id = "unique-" + frappe.dom.id_count;
+		$ele.attr("id", id);
 		frappe.dom.id_count++;
 		return id;
 	},
-	eval: function(txt) {
-		if(!txt) return;
-		var el = document.createElement('script');
+	eval: function (txt) {
+		if (!txt) return;
+		var el = document.createElement("script");
 		el.appendChild(document.createTextNode(txt));
 		// execute the script globally
-		document.getElementsByTagName('head')[0].appendChild(el);
+		document.getElementsByTagName("head")[0].appendChild(el);
 	},
-	remove_script_and_style: function(txt) {
+	remove_script_and_style: function (txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'), 's');
+		const regex = new RegExp(evil_tags.map((tag) => `<${tag}>.*<\\/${tag}>`).join("|"), "s");
 		if (!regex.test(txt)) {
 			// no evil tags found, skip the DOM method entirely!
 			return txt;
 		}
 
-		var div = document.createElement('div');
+		var div = document.createElement("div");
 		div.innerHTML = txt;
 		var found = false;
-		evil_tags.forEach(function(e) {
+		evil_tags.forEach(function (e) {
 			var elements = div.getElementsByTagName(e);
 			i = elements.length;
 			while (i--) {
@@ -53,23 +53,22 @@ frappe.dom = {
 		});
 
 		// remove links with rel="stylesheet"
-		var elements = div.getElementsByTagName('link');
+		var elements = div.getElementsByTagName("link");
 		var i = elements.length;
 		while (i--) {
-			if (elements[i].getAttribute("rel")=="stylesheet"){
+			if (elements[i].getAttribute("rel") == "stylesheet") {
 				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
 			}
 		}
-		if(found) {
+		if (found) {
 			return div.innerHTML;
 		} else {
 			// don't disturb
 			return txt;
 		}
 	},
-	is_element_in_viewport: function (el, tolerance=0) {
-
+	is_element_in_viewport: function (el, tolerance = 0) {
 		//special bonus for those using jQuery
 		if (typeof jQuery === "function" && el instanceof jQuery) {
 			el = el[0];
@@ -78,21 +77,21 @@ frappe.dom = {
 		var rect = el.getBoundingClientRect();
 
 		return (
-			rect.top + tolerance >= 0
-			&& rect.left + tolerance >= 0
-			&& rect.bottom - tolerance <= $(window).height()
-			&& rect.right - tolerance <= $(window).width()
+			rect.top + tolerance >= 0 &&
+			rect.left + tolerance >= 0 &&
+			rect.bottom - tolerance <= $(window).height() &&
+			rect.right - tolerance <= $(window).width()
 		);
 	},
 
 	is_element_in_modal(element) {
-		return Boolean($(element).parents('.modal').length);
+		return Boolean($(element).parents(".modal").length);
 	},
 
-	set_style: function(txt, id) {
-		if(!txt) return;
+	set_style: function (txt, id) {
+		if (!txt) return;
 
-		var se = document.createElement('style');
+		var se = document.createElement("style");
 		se.type = "text/css";
 
 		if (id) {
@@ -108,43 +107,39 @@ frappe.dom = {
 		} else {
 			se.appendChild(document.createTextNode(txt));
 		}
-		document.getElementsByTagName('head')[0].appendChild(se);
+		document.getElementsByTagName("head")[0].appendChild(se);
 		return se;
 	},
-	add: function(parent, newtag, className, cs, innerHTML, onclick) {
-		if(parent && parent.substr)parent = frappe.dom.by_id(parent);
+	add: function (parent, newtag, className, cs, innerHTML, onclick) {
+		if (parent && parent.substr) parent = frappe.dom.by_id(parent);
 		var c = document.createElement(newtag);
-		if(parent)
-			parent.appendChild(c);
+		if (parent) parent.appendChild(c);
 
 		// if image, 3rd parameter is source
-		if(className) {
-			if(newtag.toLowerCase()=='img')
-				c.src = className
-			else
-				c.className = className;
+		if (className) {
+			if (newtag.toLowerCase() == "img") c.src = className;
+			else c.className = className;
 		}
-		if(cs) frappe.dom.css(c,cs);
-		if(innerHTML) c.innerHTML = innerHTML;
-		if(onclick) c.onclick = onclick;
+		if (cs) frappe.dom.css(c, cs);
+		if (innerHTML) c.innerHTML = innerHTML;
+		if (onclick) c.onclick = onclick;
 		return c;
 	},
-	css: function(ele, s) {
-		if(ele && s) {
+	css: function (ele, s) {
+		if (ele && s) {
 			$.extend(ele.style, s);
 		}
 		return ele;
 	},
-	activate: function($parent, $child, common_class, active_class='active') {
-		$parent.find(`.${common_class}.${active_class}`)
-			.removeClass(active_class);
+	activate: function ($parent, $child, common_class, active_class = "active") {
+		$parent.find(`.${common_class}.${active_class}`).removeClass(active_class);
 		$child.addClass(active_class);
 	},
-	freeze: function(msg, css_class) {
+	freeze: function (msg, css_class) {
 		// blur
-		if (!$('#freeze').length) {
+		if (!$("#freeze").length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
-				.on("click", function() {
+				.on("click", function () {
 					if (cur_frm && cur_frm.cur_grid) {
 						cur_frm.cur_grid.toggle_view();
 						return false;
@@ -152,11 +147,16 @@ frappe.dom = {
 				})
 				.appendTo("#body");
 
-			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
-				{msg: msg || ""}));
+			freeze.html(
+				repl(
+					'<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
+					{ msg: msg || "" }
+				)
+			);
 
-			setTimeout(function() { freeze.addClass("in") }, 1);
-
+			setTimeout(function () {
+				freeze.addClass("in");
+			}, 1);
 		} else {
 			$("#freeze").addClass("in");
 		}
@@ -167,14 +167,14 @@ frappe.dom = {
 
 		frappe.dom.freeze_count++;
 	},
-	unfreeze: function() {
-		if(!frappe.dom.freeze_count) return; // anything open?
+	unfreeze: function () {
+		if (!frappe.dom.freeze_count) return; // anything open?
 		frappe.dom.freeze_count--;
-		if(!frappe.dom.freeze_count) {
-			var freeze = $('#freeze').removeClass("in").remove();
+		if (!frappe.dom.freeze_count) {
+			var freeze = $("#freeze").removeClass("in").remove();
 		}
 	},
-	save_selection: function() {
+	save_selection: function () {
 		// via http://stackoverflow.com/questions/5605401/insert-link-in-contenteditable-element
 		if (window.getSelection) {
 			var sel = window.getSelection();
@@ -190,7 +190,7 @@ frappe.dom = {
 		}
 		return null;
 	},
-	restore_selection: function(savedSel) {
+	restore_selection: function (savedSel) {
 		if (savedSel) {
 			if (window.getSelection) {
 				var sel = window.getSelection();
@@ -203,23 +203,25 @@ frappe.dom = {
 			}
 		}
 	},
-	is_touchscreen: function() {
-		return ('ontouchstart' in window)
+	is_touchscreen: function () {
+		return "ontouchstart" in window;
 	},
 	handle_broken_images(container) {
-		$(container).find('img').on('error', (e) => {
-			const $img = $(e.currentTarget);
-			$img.addClass('no-image');
-		});
+		$(container)
+			.find("img")
+			.on("error", (e) => {
+				const $img = $(e.currentTarget);
+				$img.addClass("no-image");
+			});
 	},
 	scroll_to_bottom(container) {
 		const $container = $(container);
 		$container.scrollTop($container[0].scrollHeight);
 	},
 	file_to_base64(file_obj) {
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			const reader = new FileReader();
-			reader.onload = function() {
+			reader.onload = function () {
 				resolve(reader.result);
 			};
 			reader.readAsDataURL(file_obj);
@@ -229,7 +231,7 @@ frappe.dom = {
 		setTimeout(() => {
 			const section = $(`a:contains("${section_name}")`);
 			if (section.length) {
-				if(section.parent().hasClass('collapsed')) {
+				if (section.parent().hasClass("collapsed")) {
 					// opens the section
 					section.click();
 				}
@@ -238,30 +240,32 @@ frappe.dom = {
 		}, 200);
 	},
 	pixel_to_inches(pixels) {
-		const div = $('<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>');
+		const div = $(
+			'<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>'
+		);
 		div.appendTo(document.body);
 
-		const dpi_x = document.getElementById('dpi').offsetWidth;
+		const dpi_x = document.getElementById("dpi").offsetWidth;
 		const inches = pixels / dpi_x;
 		div.remove();
 
 		return inches;
-	}
+	},
 };
 
-frappe.ellipsis = function(text, max) {
-	if(!max) max = 20;
+frappe.ellipsis = function (text, max) {
+	if (!max) max = 20;
 	text = cstr(text);
-	if(text.length > max) {
-		text = text.substr(0, max) + '...';
+	if (text.length > max) {
+		text = text.substr(0, max) + "...";
 	}
 	return text;
 };
 
-frappe.run_serially = function(tasks) {
+frappe.run_serially = function (tasks) {
 	var result = Promise.resolve();
-	tasks.forEach(task => {
-		if(task) {
+	tasks.forEach((task) => {
+		if (task) {
 			result = result.then ? result.then(task) : Promise.resolve();
 		}
 	});
@@ -270,34 +274,34 @@ frappe.run_serially = function(tasks) {
 
 frappe.load_image = (src, onload, onerror, preprocess = () => {}) => {
 	var tester = new Image();
-	tester.onload = function() {
+	tester.onload = function () {
 		onload(this);
 	};
 	tester.onerror = onerror;
 
 	preprocess(tester);
 	tester.src = src;
-}
+};
 
-frappe.timeout = seconds => {
+frappe.timeout = (seconds) => {
 	return new Promise((resolve) => {
 		setTimeout(() => resolve(), seconds * 1000);
 	});
 };
 
-frappe.scrub = function(text, spacer='_') {
+frappe.scrub = function (text, spacer = "_") {
 	return text.replace(/ /g, spacer).toLowerCase();
 };
 
-frappe.unscrub = function(txt) {
+frappe.unscrub = function (txt) {
 	return frappe.model.unscrub(txt);
 };
 
-frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) => {
+frappe.get_data_pill = (label, target_id = null, remove_action = null, image = null) => {
 	let data_pill_wrapper = $(`
 		<button class="data-pill btn">
 			<div class="flex align-center ellipsis">
-				${image ? image : ''}
+				${image ? image : ""}
 				<span class="pill-label ${image ? "ml-2" : ""}">${label}</span>
 			</div>
 		</button>
@@ -306,7 +310,7 @@ frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) =
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer">
-				${frappe.utils.icon('close', 'sm')}
+				${frappe.utils.icon("close", "sm")}
 			</span>
 		`).click(() => {
 			remove_action(target_id || label, data_pill_wrapper);
@@ -317,7 +321,7 @@ frappe.get_data_pill = (label, target_id=null, remove_action=null, image=null) =
 	return data_pill_wrapper;
 };
 
-frappe.get_modal = function(title, content) {
+frappe.get_modal = function (title, content) {
 	return $(`<div class="modal fade" style="overflow: auto;" tabindex="-1">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -328,10 +332,10 @@ frappe.get_modal = function(title, content) {
 					</div>
 					<div class="modal-actions">
 						<button class="btn btn-modal-minimize btn-link hide">
-							${frappe.utils.icon('collapse')}
+							${frappe.utils.icon("collapse")}
 						</button>
 						<button class="btn btn-modal-close btn-link" data-dismiss="modal">
-							${frappe.utils.icon('close-alt', 'sm', 'close-alt')}
+							${frappe.utils.icon("close-alt", "sm", "close-alt")}
 						</button>
 					</div>
 				</div>
@@ -351,28 +355,28 @@ frappe.get_modal = function(title, content) {
 	</div>`);
 };
 
-frappe.is_online = function() {
+frappe.is_online = function () {
 	if (frappe.boot.developer_mode == 1) {
 		// always online in developer_mode
 		return true;
 	}
-	if ('onLine' in navigator) {
+	if ("onLine" in navigator) {
 		return navigator.onLine;
 	}
 	return true;
 };
 
 // bind online/offline events
-$(window).on('online', function() {
+$(window).on("online", function () {
 	frappe.show_alert({
-		indicator: 'green',
-		message: __('You are connected to internet.')
+		indicator: "green",
+		message: __("You are connected to internet."),
 	});
 });
 
-$(window).on('offline', function() {
+$(window).on("offline", function () {
 	frappe.show_alert({
-		indicator: 'orange',
-		message: __('Connection lost. Some features might not work.')
+		indicator: "orange",
+		message: __("Connection lost. Some features might not work."),
 	});
 });

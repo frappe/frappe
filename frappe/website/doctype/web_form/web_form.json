@@ -17,7 +17,6 @@
   "introduction_text",
   "form_settings_tab",
   "login_required",
-  "is_multi_step_form",
   "allow_multiple",
   "allow_edit",
   "allow_delete",
@@ -36,7 +35,6 @@
   "button_label",
   "column_break_29",
   "success_message",
-  "route_to_success_link",
   "success_url",
   "list_settings_tab",
   "list_setting_message",
@@ -100,13 +98,6 @@
    "fieldname": "login_required",
    "fieldtype": "Check",
    "label": "Login Required"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.login_required",
-   "fieldname": "route_to_success_link",
-   "fieldtype": "Check",
-   "label": "Route to Success Link"
   },
   {
    "default": "0",
@@ -211,7 +202,6 @@
    "label": "Success Message"
   },
   {
-   "depends_on": "route_to_success_link",
    "description": "Go to this URL after completing the form",
    "fieldname": "success_url",
    "fieldtype": "Data",
@@ -240,12 +230,6 @@
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
    "label": "Apply Document Permissions"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_multi_step_form",
-   "fieldtype": "Check",
-   "label": "Is Multi Step Form"
   },
   {
    "default": "0",
@@ -325,7 +309,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-24 20:29:23.059834",
+ "modified": "2022-08-10 15:38:28.611328",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
