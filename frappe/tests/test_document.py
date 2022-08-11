@@ -9,10 +9,9 @@ import frappe
 from frappe.app import make_form_dict
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
+from frappe.tests import update_system_settings
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
-
-from . import update_system_settings
 
 
 class CustomTestNote(Note):
@@ -385,6 +384,30 @@ class TestDocument(unittest.TestCase):
 		todo.description = "this won't trigger realtime update"
 		todo.save()
 		self.assertEqual(todo.notify_update.call_count, 1)
+
+	def test_child_owner(self):
+
+		admin = "Administrator"
+		user = "test@example.com"
+
+		self.addCleanup(frappe.set_user, admin)
+		frappe.set_user("Administrator")
+
+		contact = frappe.new_doc("Contact")
+		contact.first_name = "Yo"
+		contact.insert()
+
+		contact.reload()
+		contact.append("email_ids", {"email_id": "firstuser@example.com"})
+		contact.save()
+		self.assertEqual(contact.owner, admin)
+		self.assertEqual(contact.email_ids[0].owner, admin)
+
+		frappe.set_user(user)
+		contact.reload()
+		contact.append("email_ids", {"email_id": "seconduser@example.com"})
+		contact.save()
+		self.assertEqual(contact.email_ids[-1].owner, user)
 
 
 class TestDocumentWebView(unittest.TestCase):

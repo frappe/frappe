@@ -510,7 +510,7 @@ class Document(BaseDocument):
 			d.modified = self.modified
 			d.modified_by = self.modified_by
 			if not d.owner:
-				d.owner = self.owner
+				d.owner = frappe.session.user
 			if not d.creation:
 				d.creation = self.creation
 
