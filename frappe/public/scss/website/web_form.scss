@@ -238,14 +238,18 @@
 			text-align: center;
 
 			svg.icon {
-				width: 6rem;
-				height: 6rem;
+				width: 5rem;
+				height: 5rem;
 				margin: 1rem;
 			}
 
 			h2 {
 				margin-top: 0;
 				margin-bottom: 0;
+			}
+
+			.success-message {
+				margin-bottom: 1.6rem;
 			}
 		}
 
