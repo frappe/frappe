@@ -8,21 +8,21 @@
  "field_order": [
   "email_settings",
   "domain_name",
-  "email_id",
   "mailbox_settings",
   "email_server",
   "use_imap",
   "use_ssl",
   "use_starttls",
+  "column_break_9",
   "incoming_port",
   "attachment_limit",
-  "append_to",
   "outgoing_mail_settings",
   "smtp_server",
   "use_tls",
   "use_ssl_for_outgoing",
-  "append_emails_to_sent_folder",
-  "smtp_port"
+  "column_break_18",
+  "smtp_port",
+  "append_emails_to_sent_folder"
  ],
  "fields": [
   {
@@ -32,26 +32,21 @@
   {
    "fieldname": "domain_name",
    "fieldtype": "Data",
-   "label": "domain name",
-   "read_only": 1,
+   "label": "Domain Name",
+   "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "email_id",
-   "fieldtype": "Data",
-   "label": "Example Email Address",
-   "options": "Email",
-   "reqd": 1
-  },
-  {
    "fieldname": "mailbox_settings",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Incoming Settings"
   },
   {
    "description": "e.g. pop.gmail.com / imap.gmail.com",
    "fieldname": "email_server",
    "fieldtype": "Data",
-   "label": "Email Server",
+   "in_list_view": 1,
+   "label": "Incoming Server",
    "reqd": 1
   },
   {
@@ -67,30 +62,28 @@
    "label": "Use SSL"
   },
   {
-   "default": "1",
+   "default": "0",
+   "fieldname": "use_starttls",
+   "fieldtype": "Check",
+   "label": "Use STARTTLS  for Incomming"
+  },
+  {
    "description": "Ignore attachments over this size",
    "fieldname": "attachment_limit",
    "fieldtype": "Int",
    "label": "Attachment Limit (MB)"
   },
   {
-   "description": "Append as communication against this DocType (must have field \"Status\" and both \"Sender\" and \"Subject\" defined in the related doctype Email Settings)",
-   "fieldname": "append_to",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "in_list_view": 1,
-   "label": "Append To",
-   "options": "DocType"
-  },
-  {
    "fieldname": "outgoing_mail_settings",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Outgoing Settings"
   },
   {
    "description": "e.g. smtp.gmail.com",
    "fieldname": "smtp_server",
    "fieldtype": "Data",
-   "label": "SMTP Server",
+   "in_list_view": 1,
+   "label": "Outgoing Server",
    "reqd": 1
   },
   {
@@ -124,15 +117,22 @@
    "label": "Use SSL for Outgoing"
   },
   {
-   "default": "0",
-   "fieldname": "use_starttls",
-   "fieldtype": "Check",
-   "label": "Use STARTTLS"
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "icon-inbox",
- "links": [],
- "modified": "2022-08-04 13:38:47.101509",
+ "links": [
+  {
+   "link_doctype": "Email Account",
+   "link_fieldname": "domain"
+  }
+ ],
+ "modified": "2022-08-10 21:20:50.692698",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",
@@ -151,5 +151,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

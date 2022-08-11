@@ -8,6 +8,7 @@ frappe.ui.form.Layout = class Layout {
 		this.pages = [];
 		this.tabs = [];
 		this.sections = [];
+		this.page_breaks = [];
 		this.fields_list = [];
 		this.fields_dict = {};
 
@@ -150,6 +151,10 @@ frappe.ui.form.Layout = class Layout {
 				case "Fold":
 					this.make_page(df);
 					break;
+				case "Page Break":
+					this.make_page_break();
+					this.make_section(df);
+					break;
 				case "Section Break":
 					this.make_section(df);
 					break;
@@ -230,6 +235,10 @@ frappe.ui.form.Layout = class Layout {
 
 		fieldobj.layout = this;
 		return fieldobj;
+	}
+
+	make_page_break() {
+		this.page = $('<div class="form-page page-break"></div>').appendTo(this.wrapper);
 	}
 
 	make_page(df) {

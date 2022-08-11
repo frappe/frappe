@@ -194,15 +194,19 @@ class Document(BaseDocument):
 			self.raise_no_permission_to(permlevel or permtype)
 
 	def has_permission(self, permtype="read", verbose=False) -> bool:
-		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
-		is not set.
+		"""
+		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
-		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
-		import frappe.permissions
+		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
+		:param verbose: DEPRECATED, will be removed in a future release.
+		"""
 
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
+
+		import frappe.permissions
+
+		return frappe.permissions.has_permission(self.doctype, permtype, self)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -419,7 +423,7 @@ class Document(BaseDocument):
 				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
 			)
 
-	def get_doc_before_save(self):
+	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
@@ -1025,10 +1029,14 @@ class Document(BaseDocument):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False):
+	def delete(self, ignore_permissions=False, force=False):
 		"""Delete document."""
 		return frappe.delete_doc(
-			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
+			self.doctype,
+			self.name,
+			ignore_permissions=ignore_permissions,
+			flags=self.flags,
+			force=force,
 		)
 
 	def run_before_save_methods(self):

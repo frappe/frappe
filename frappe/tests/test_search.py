@@ -1,13 +1,13 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
 
 import frappe
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestSearch(unittest.TestCase):
+class TestSearch(FrappeTestCase):
 	def setUp(self):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
