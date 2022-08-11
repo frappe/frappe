@@ -16,6 +16,7 @@ from PIL import Image
 
 import frappe
 from frappe.installer import parse_app_name
+from frappe.model.document import Document
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
@@ -43,6 +44,7 @@ from frappe.utils.data import (
 from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
+from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
 
 
@@ -677,3 +679,15 @@ class TestIntrospectionMagic(unittest.TestCase):
 
 		# No args
 		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
+
+
+class TestMakeRandom(unittest.TestCase):
+	def test_get_random(self):
+		self.assertIsInstance(get_random("DocType", doc=True), Document)
+		self.assertIsInstance(get_random("DocType"), str)
+
+	def test_can_make(self):
+		self.assertIsInstance(can_make("User"), bool)
+
+	def test_how_many(self):
+		self.assertIsInstance(how_many("User"), int)
