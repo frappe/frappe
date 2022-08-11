@@ -378,9 +378,18 @@ frappe.ui.form.Layout = class Layout {
 
 		const visible_tabs = this.tabs.filter((tab) => !tab.hidden);
 		if (visible_tabs && visible_tabs.length == 1) {
-			visible_tabs[0].parent.toggleClass("hide show");
+			visible_tabs[0].tab_link.toggleClass("hide show");
 		}
 		this.set_tab_as_active();
+	}
+
+	select_tab(label_or_fieldname) {
+		for (let tab of this.tabs) {
+			if (tab.label.toLowerCase() === label_or_fieldname.toLowerCase() || tab.df.fieldname?.toLowerCase() === label_or_fieldname.toLowerCase()) {
+				tab.set_active();
+				return;
+			}
+		}
 	}
 
 	set_tab_as_active() {

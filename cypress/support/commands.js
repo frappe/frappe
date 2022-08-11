@@ -240,6 +240,10 @@ Cypress.Commands.add("new_form", (doctype) => {
 	cy.get("body").should("have.attr", "data-ajax-state", "complete");
 });
 
+Cypress.Commands.add("select_form_tab", (label) => {
+	cy.get(".form-tabs-list [data-toggle='tab']").contains(label).click();
+});
+
 Cypress.Commands.add("go_to_list", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
 	cy.visit(`/app/${dt_in_route}`);

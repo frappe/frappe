@@ -1910,7 +1910,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// uncollapse section
-		if (field.section.is_collapsed()) {
+		if (field.section?.is_collapsed()) {
 			field.section.collapse(false);
 		}
 
@@ -1919,7 +1919,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// focus if text field
 		if (focus) {
-			$el.find("input, select, textarea").focus();
+			setTimeout(() => {
+				$el.find("input, select, textarea").focus();
+			}, 500);
 		}
 
 		// highlight control inside field
