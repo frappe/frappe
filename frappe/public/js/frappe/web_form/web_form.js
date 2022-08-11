@@ -407,7 +407,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
 			$(".success-page").append(`
-				<a href="/${this.route}/${data.name}" class="edit-button btn btn-light btn-md ml-2">
+				<a href="/${this.route}/${data.name}" class="view-button btn btn-light btn-md ml-2">
 					${__("View your response", null, "Button in web form")}
 				</a>
 			`);

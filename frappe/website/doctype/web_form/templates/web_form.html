@@ -20,7 +20,7 @@
 {% macro action_buttons() %}
 	{% if is_new or is_form_editable %}
 		<div class="left-area">
-			<!-- cancel button -->
+			<!-- clear button -->
 			<a href="/{{ path }}" class="clear-btn btn btn-light btn-md">
 				{% if is_form_editable %}
 					{{ _("Reset Form", null, "Button in web form") }}
@@ -133,10 +133,10 @@
 			</div>
 		{% else %}
 			{% if show_list %}
-				<a href="/{{ route }}/list" class="edit-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
+				<a href="/{{ route }}/list" class="show-list-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
 			{% endif %}
 			{% if not login_required or allow_multiple %}
-				<a href="/{{ route }}/new" class="clear-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+				<a href="/{{ route }}/new" class="new-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
 			{% endif %}
 		{% endif %}
 	</div>

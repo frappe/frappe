@@ -187,6 +187,7 @@ context("Web Form", () => {
 
 		cy.fill_field("title", " Edited");
 		cy.get(".web-form-actions button").contains("Save").click();
+		cy.get(".success-page .edit-button").click();
 		cy.get_field("title").should("have.value", "Note 1 Edited");
 	});
 
