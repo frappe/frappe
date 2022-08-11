@@ -20,16 +20,6 @@ pull_request_rules:
 
   - name: Automatic merge on CI success and review
     conditions:
-      - status-success=Sider
-      - status-success=Check Commit Titles
-      - status-success=Python Unit Tests (MariaDB) (1)
-      - status-success=Python Unit Tests (MariaDB) (2)
-      - status-success=Python Unit Tests (Postgres) (1)
-      - status-success=Python Unit Tests (Postgres) (2)
-      - status-success=UI Tests (Cypress) (1)
-      - status-success=UI Tests (Cypress) (2)
-      - status-success=UI Tests (Cypress) (3)
-      - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label!=squash
       - "#approved-reviews-by>=1"
@@ -38,15 +28,6 @@ pull_request_rules:
         method: merge
   - name: Automatic squash on CI success and review
     conditions:
-      - status-success=Sider
-      - status-success=Python Unit Tests (MariaDB) (1)
-      - status-success=Python Unit Tests (MariaDB) (2)
-      - status-success=Python Unit Tests (Postgres) (1)
-      - status-success=Python Unit Tests (Postgres) (2)
-      - status-success=UI Tests (Cypress) (1)
-      - status-success=UI Tests (Cypress) (2)
-      - status-success=UI Tests (Cypress) (3)
-      - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label=squash
       - "#approved-reviews-by>=1"
