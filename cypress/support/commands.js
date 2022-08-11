@@ -241,7 +241,7 @@ Cypress.Commands.add("new_form", (doctype) => {
 });
 
 Cypress.Commands.add("select_form_tab", (label) => {
-	cy.get(".form-tabs-list [data-toggle='tab']").contains(label).click();
+	cy.get(".form-tabs-list [data-toggle='tab']").contains(label).click().wait(500);
 });
 
 Cypress.Commands.add("go_to_list", (doctype) => {
