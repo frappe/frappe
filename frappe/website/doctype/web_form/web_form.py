@@ -281,7 +281,7 @@ def get_context(context):
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
-			if context.is_form_editable:
+			if context.is_form_editable and context.parents:
 				context.parents.append(
 					{
 						"label": _(context.title),
