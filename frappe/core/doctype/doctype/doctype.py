@@ -1751,14 +1751,6 @@ def set_field_order(doctype, field_order):
 	meta = frappe.get_meta(doctype)
 	field_order = json.loads(field_order)
 
-	json_file_path = get_file_path(meta.module, "DocType", meta.name)
-	with open(json_file_path, "r") as json_file:
-		doc_obj = json.loads(json_file.read())
-
-	doc_obj["field_order"] = field_order
-	with open(json_file_path, "w") as json_file:
-		json_file.write(frappe.as_json(doc_obj))
-
 	idx = 1
 	for fieldname in field_order:
 		docfield = frappe.qb.DocType("DocField")
@@ -1766,6 +1758,9 @@ def set_field_order(doctype, field_order):
 			(docfield.fieldname == fieldname) & (docfield.parent == doctype)
 		).run()
 		idx += 1
+
+	# save to update
+	frappe.get_doc("DocType", doctype).save()
 
 	frappe.db.commit()
 
