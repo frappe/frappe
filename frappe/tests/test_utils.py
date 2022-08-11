@@ -4,10 +4,12 @@
 import io
 import json
 import os
+import sys
 import unittest
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
+from io import StringIO
 from mimetypes import guess_type
 from unittest.mock import patch
 
@@ -46,6 +48,19 @@ from frappe.utils.diff import _get_value_from_version, get_version_diff, version
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
+
+
+class Capturing(list):
+	# ref: https://stackoverflow.com/a/16571630/10309266
+	def __enter__(self):
+		self._stdout = sys.stdout
+		sys.stdout = self._stringio = StringIO()
+		return self
+
+	def __exit__(self, *args):
+		self.extend(self._stringio.getvalue().splitlines())
+		del self._stringio
+		sys.stdout = self._stdout
 
 
 class TestFilters(unittest.TestCase):
@@ -691,3 +706,16 @@ class TestMakeRandom(unittest.TestCase):
 
 	def test_how_many(self):
 		self.assertIsInstance(how_many("User"), int)
+
+
+class TestLazyLoader(unittest.TestCase):
+	def test_lazy_import_module(self):
+		from frappe.utils.lazy_loader import lazy_import
+
+		with Capturing() as output:
+			ls = lazy_import("frappe.tests.data.load_sleep")
+		self.assertEqual(output, [])
+
+		with Capturing() as output:
+			ls.time
+		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
