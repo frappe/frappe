@@ -478,6 +478,8 @@ def update_event_in_google_calendar(doc, method=None):
 
 		if doc.add_video_conferencing:
 			event.update({"conferenceData": get_conference_data(doc)})
+		else:
+			event.update({"conferenceData": None})
 
 		if len(doc.event_participants):
 			event.update({"attendees": get_attendees(doc)})
@@ -489,13 +491,13 @@ def update_event_in_google_calendar(doc, method=None):
 			conferenceDataVersion=1
 		).execute()
 
-		if doc.add_video_conferencing and event.get("hangoutLink"):
-			frappe.db.set_value("Event", doc.name, {
-					"google_meet_link": event.get("hangoutLink")
-				},
-				update_modified=False
-			)
-			doc.notify_update()
+		# if add_video_conferencing enabled or disabled during update, overwrite
+		frappe.db.set_value("Event", doc.name, {
+				"google_meet_link": event.get("hangoutLink")
+			},
+			update_modified=False
+		)
+		doc.notify_update()
 
 		frappe.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
