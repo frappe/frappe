@@ -39,13 +39,15 @@
   "show_sidebar",
   "website_sidebar",
   "customization_tab",
-  "banner_image",
-  "breadcrumbs",
   "button_label",
-  "column_break_29",
+  "banner_image",
+  "column_break_37",
+  "breadcrumbs",
+  "section_break_43",
   "success_title",
-  "success_message",
   "success_url",
+  "column_break_41",
+  "success_message",
   "scripting_style_tab",
   "client_script",
   "custom_css"
@@ -213,7 +215,8 @@
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
-   "label": "Breadcrumbs"
+   "label": "Breadcrumbs",
+   "max_height": "140px"
   },
   {
    "fieldname": "custom_css",
@@ -269,10 +272,6 @@
    "options": "Website Sidebar"
   },
   {
-   "fieldname": "column_break_29",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "list_setting_message",
    "fieldtype": "HTML",
    "label": "List Setting Message"
@@ -314,13 +313,26 @@
    "fieldname": "banner_image",
    "fieldtype": "Attach Image",
    "label": "Banner Image"
+  },
+  {
+   "fieldname": "column_break_41",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_43",
+   "fieldtype": "Section Break",
+   "label": "After Submission"
+  },
+  {
+   "fieldname": "column_break_37",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-10 20:22:02.945853",
+ "modified": "2022-08-11 16:27:25.914627",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
