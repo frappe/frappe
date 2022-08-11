@@ -65,7 +65,7 @@
    "default": "0",
    "fieldname": "use_starttls",
    "fieldtype": "Check",
-   "label": "Use STARTTLS  for Incomming"
+   "label": "Use STARTTLS  for Incoming"
   },
   {
    "description": "Ignore attachments over this size",
