@@ -38,21 +38,14 @@ $.extend(frappe.perm, {
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
 		if (!frappe.perm.doctype_perm[doctype]) {
-			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
+			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype, doc);
 		}
 
 		let perms = frappe.perm.doctype_perm[doctype];
 
 		if (!perms || !perms[permlevel]) return false;
 
-		let perm = !!perms[permlevel][ptype];
-
-		if (permlevel === 0 && perm && doc) {
-			let docinfo = frappe.model.get_docinfo(doctype, doc.name);
-			if (docinfo && !docinfo.permissions[ptype]) perm = false;
-		}
-
-		return perm;
+		return !!perms[permlevel][ptype];
 	},
 
 	get_perm: (doctype, doc) => {
