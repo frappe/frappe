@@ -283,7 +283,9 @@ def connect_replica():
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		host=local.conf.replica_host, user=user, password=password, port=port, read_only=True
+	)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -325,10 +327,9 @@ def get_conf(site: str | None = None) -> dict[str, Any]:
 	if hasattr(local, "conf"):
 		return local.conf
 
-	else:
-		# if no site, get from common_site_config.json
-		with init_site(site):
-			return local.conf
+	# if no site, get from common_site_config.json
+	with init_site(site):
+		return local.conf
 
 
 class init_site:
@@ -816,23 +817,30 @@ def write_only():
 	return innfn
 
 
-def only_for(roles: list[str] | str, message=False):
-	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
+def only_for(roles: list[str] | tuple[str] | str, message=False):
+	"""
+	Raises `frappe.PermissionError` if the user does not have any of the permitted roles.
 
-	:param roles: List of roles to check."""
-	if local.flags.in_test:
+	:param roles: Permitted role(s)
+	"""
+
+	if local.flags.in_test or local.session.user == "Administrator":
 		return
 
-	if not isinstance(roles, (tuple, list)):
+	if isinstance(roles, str):
 		roles = (roles,)
-	roles = set(roles)
-	myroles = set(get_roles())
-	if not roles.intersection(myroles):
-		if message:
-			msgprint(
-				_("This action is only allowed for {}").format(bold(", ".join(roles))), _("Not Permitted")
-			)
-		raise PermissionError
+
+	if not set(roles).intersection(get_roles()):
+		if not message:
+			raise PermissionError
+
+		throw(
+			_("This action is only allowed for {}").format(
+				", ".join(bold(_(role)) for role in roles),
+			),
+			PermissionError,
+			_("Not Permitted"),
+		)
 
 
 def get_domain_data(module):
@@ -903,15 +911,26 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 
 
 def has_permission(
-	doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False, parent_doctype=None
+	doctype=None,
+	ptype="read",
+	doc=None,
+	user=None,
+	verbose=False,
+	throw=False,
+	*,
+	parent_doctype=None,
 ):
-	"""Raises `frappe.PermissionError` if not permitted.
+	"""
+	Returns True if the user has permission `ptype` for given `doctype` or `doc`
+	Raises `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
-	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
+	:param verbose: DEPRECATED, will be removed in a future release.
+	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
+	"""
 	import frappe.permissions
 
 	if not doctype and doc:
@@ -921,7 +940,6 @@ def has_permission(
 		doctype,
 		ptype,
 		doc=doc,
-		verbose=verbose,
 		user=user,
 		raise_exception=throw,
 		parent_doctype=parent_doctype,
@@ -1180,11 +1198,11 @@ def get_doc(*args, **kwargs) -> "Document":
 	return doc
 
 
-def get_last_doc(doctype, filters=None, order_by="creation desc"):
+def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
 	if d:
-		return get_doc(doctype, d[0])
+		return get_doc(doctype, d[0], for_update=for_update)
 	else:
 		raise DoesNotExistError
 
@@ -1794,6 +1812,14 @@ def respond_as_web_page(
 		context["card_width"] = width
 
 	local.response["context"] = context
+
+
+def redirect(url):
+	"""Raise a 301 redirect to url"""
+	from frappe.exceptions import Redirect
+
+	flags.redirect_location = url
+	raise Redirect
 
 
 def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):

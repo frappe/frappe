@@ -327,7 +327,7 @@ def attach_files_to_document(doc: "File", event) -> None:
 			folder="Home/Attachments",
 		)
 		try:
-			file.insert()
+			file.insert(ignore_permissions=True)
 		except Exception:
 			doc.log_error("Error Attaching File")
 

@@ -1,29 +1,86 @@
 name: Linters
 
 on:
-  pull_request: { }
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commitcheck-frappe-${{ github.event_name }}-${{ github.event.number }}
+  cancel-in-progress: true
 
 jobs:
-
-  linters:
-    name: Frappe Linter
+  commit-lint:
+    name: 'Semantic Commits'
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 200
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          check-latest: true
 
-      - name: Set up Python
+      - name: Check commit titles
+        run: |
+          npm install @commitlint/cli @commitlint/config-conventional
+          npx commitlint --verbose --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
+
+  docs-required:
+    name: 'Documentation Required'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 'Setup Environment'
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+      - uses: actions/checkout@v3
 
-      - name: Install and Run Pre-commit
-        uses: pre-commit/action@v3.0.0
+      - name: Validate Docs
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          pip install requests --quiet
+          python $GITHUB_WORKSPACE/.github/helper/documentation.py $PR_NUMBER
+
+  linter:
+    name: 'Frappe Linter'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
 
-      - name: Download semgrep
-        run: pip install semgrep==0.97.0
-
       - name: Run Semgrep rules
-        run: semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+        run: |
+          pip install semgrep==0.97.0
+          semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+
+  deps-vulnerable-check:
+    name: 'Vulnerable Dependency Check'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: actions/checkout@v3
+      - run: |
+          pip install pip-audit
+          pip-audit ${GITHUB_WORKSPACE}

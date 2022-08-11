@@ -48,7 +48,7 @@ def authorize_access(reauthorize=False, code=None):
 	"""
 
 	oauth_code = (
-		frappe.db.get_value("Google Drive", "Google Drive", "authorization_code") if not code else code
+		frappe.db.get_single_value("Google Drive", "authorization_code") if not code else code
 	)
 	oauth_obj = GoogleOAuth("drive")
 
@@ -57,7 +57,6 @@ def authorize_access(reauthorize=False, code=None):
 			frappe.db.set_value("Google Drive", None, "backup_folder_id", "")
 		return oauth_obj.get_authentication_url(
 			{
-				"method": "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
 				"redirect": f"/app/Form/{quote('Google Drive')}",
 			},
 		)

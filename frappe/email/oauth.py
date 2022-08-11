@@ -102,12 +102,18 @@ class Oauth:
 	def _refresh_access_token(self) -> str:
 		"""Refreshes access token via calling `refresh_access_token` method of oauth service object"""
 		service_obj = self._get_service_object()
-		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token", None)
+		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token")
 
-		# set the new access token in db
-		frappe.db.set_value(
-			"Email Account", self.email_account, "access_token", access_token, update_modified=False
-		)
+		if access_token:
+			# set the new access token in db
+			frappe.db.set_value(
+				"Email Account",
+				self.email_account,
+				"access_token",
+				encrypt(access_token),
+				update_modified=False,
+			)
+
 		return access_token
 
 	def _get_service_object(self):
@@ -144,7 +150,6 @@ def authorize_google_access(email_account, doctype: str = "Email Account", code:
 	if not code:
 		return oauth_obj.get_authentication_url(
 			{
-				"method": "frappe.email.oauth.authorize_google_access",
 				"redirect": f"/app/Form/{quote(doctype)}/{quote(email_account)}",
 				"success_query_param": "successful_authorization=1",
 				"email_account": email_account,

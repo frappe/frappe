@@ -14,12 +14,12 @@ from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import SubQuery
+from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
-from frappe.translate import get_lang_dict
+from frappe.translate import get_lang_dict, get_messages_for_boot
 from frappe.utils import add_user_info, cstr, get_time_zone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -248,18 +248,8 @@ def get_user_pages_or_reports(parent, cache=False):
 
 
 def load_translations(bootinfo):
-	messages = frappe.get_lang_dict("boot")
-
 	bootinfo["lang"] = frappe.lang
-
-	# load translated report names
-	for name in bootinfo.user.all_reports:
-		messages[name] = frappe._(name)
-
-	# only untranslated
-	messages = {k: v for k, v in messages.items() if k != v}
-
-	bootinfo["__messages"] = messages
+	bootinfo["__messages"] = get_messages_for_boot()
 
 
 def get_user_info():
@@ -328,11 +318,11 @@ def get_unseen_notes():
 		frappe.qb.from_(note)
 		.select(note.name, note.title, note.content, note.notify_on_every_login)
 		.where(
-			(note.notify_on_every_login == 1)
+			(note.notify_on_login == 1)
 			& (note.expire_notification_on > frappe.utils.now())
 			& (
-				SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name)).notin(
-					[frappe.session.user]
+				ParameterizedValueWrapper(frappe.session.user).notin(
+					SubQuery(frappe.qb.from_(nsb).select(nsb.user).where(nsb.parent == note.name))
 				)
 			)
 		)
@@ -391,7 +381,6 @@ def get_notification_settings():
 	return frappe.get_cached_doc("Notification Settings", frappe.session.user)
 
 
-@frappe.whitelist()
 def get_link_title_doctypes():
 	dts = frappe.get_all("DocType", {"show_title_field_in_link": 1})
 	custom_dts = frappe.get_all(

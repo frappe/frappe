@@ -1,6 +1,7 @@
 name: 'Frappe Assets'
 
 on:
+  workflow_dispatch:
   push:
     branches: [ develop ]
 
@@ -15,7 +16,7 @@ jobs:
           path: 'frappe'
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'

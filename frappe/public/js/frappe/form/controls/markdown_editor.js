@@ -1,5 +1,7 @@
-frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frappe.ui.form.ControlCode {
-	static editor_class = 'markdown'
+frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends (
+	frappe.ui.form.ControlCode
+) {
+	static editor_class = "markdown";
 	make_ace_editor() {
 		super.make_ace_editor();
 		if (this.markdown_container) return;
@@ -11,20 +13,23 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 		this.editor.getSession().setUseWrapMode(true);
 
 		this.showing_preview = false;
-		this.preview_toggle_btn = $(`<button class="btn btn-default btn-xs ${editor_class}-toggle">${__('Preview')}</button>`)
-			.click(e => {
-				if (!this.showing_preview) {
-					this.update_preview();
-				}
+		this.preview_toggle_btn = $(
+			`<button class="btn btn-default btn-xs ${editor_class}-toggle">${__(
+				"Preview"
+			)}</button>`
+		).click((e) => {
+			if (!this.showing_preview) {
+				this.update_preview();
+			}
 
-				const $btn = $(e.target);
-				this.markdown_preview.toggle(!this.showing_preview);
-				this.ace_editor_target.toggle(this.showing_preview);
+			const $btn = $(e.target);
+			this.markdown_preview.toggle(!this.showing_preview);
+			this.ace_editor_target.toggle(this.showing_preview);
 
-				this.showing_preview = !this.showing_preview;
+			this.showing_preview = !this.showing_preview;
 
-				$btn.text(this.showing_preview ? __('Edit') : __('Preview'));
-			});
+			$btn.text(this.showing_preview ? __("Edit") : __("Preview"));
+		});
 		this.markdown_container.prepend(this.preview_toggle_btn);
 
 		this.markdown_preview = $(`<div class="${editor_class}-preview border rounded">`).hide();
@@ -35,7 +40,7 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 
 	set_language() {
 		if (!this.df.options) {
-			this.df.options = 'Markdown';
+			this.df.options = "Markdown";
 		}
 		super.set_language();
 	}
@@ -46,10 +51,9 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 	}
 
 	set_formatted_input(value) {
-		super.set_formatted_input(value)
-			.then(() => {
-				this.update_preview();
-			});
+		super.set_formatted_input(value).then(() => {
+			this.update_preview();
+		});
 	}
 
 	set_disp_area(value) {
@@ -57,7 +61,7 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 	}
 
 	setup_image_drop() {
-		this.ace_editor_target.on('drop', e => {
+		this.ace_editor_target.on("drop", (e) => {
 			e.stopPropagation();
 			e.preventDefault();
 			let { dataTransfer } = e.originalEvent;
@@ -65,24 +69,24 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 				return;
 			}
 			let files = dataTransfer.files;
-			if (!files[0].type.includes('image')) {
+			if (!files[0].type.includes("image")) {
 				frappe.show_alert({
-					message: __('You can only insert images in Markdown fields', [files[0].name]),
-					indicator: 'orange'
+					message: __("You can only insert images in Markdown fields", [files[0].name]),
+					indicator: "orange",
 				});
 				return;
 			}
 
 			new frappe.ui.FileUploader({
-				dialog_title: __('Insert Image in Markdown'),
+				dialog_title: __("Insert Image in Markdown"),
 				doctype: this.doctype,
 				docname: this.docname,
 				frm: this.frm,
 				files,
-				folder: 'Home/Attachments',
+				folder: "Home/Attachments",
 				allow_multiple: false,
 				restrictions: {
-					allowed_file_types: ['image/*']
+					allowed_file_types: ["image/*"],
 				},
 				on_success: (file_doc) => {
 					if (this.frm && !this.frm.is_new()) {
@@ -92,7 +96,7 @@ frappe.ui.form.ControlMarkdownEditor = class ControlMarkdownEditor extends frapp
 						this.editor.getCursorPosition(),
 						`![](${encodeURI(file_doc.file_url)})`
 					);
-				}
+				},
 			});
 		});
 	}

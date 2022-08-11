@@ -9,12 +9,16 @@ export default class Section {
 
 		this.make();
 
-		if (this.df.label && this.df.collapsible && localStorage.getItem(df.css_class + '-closed')) {
+		if (
+			this.df.label &&
+			this.df.collapsible &&
+			localStorage.getItem(df.css_class + "-closed")
+		) {
 			this.collapse();
 		}
 
 		this.row = {
-			wrapper: this.wrapper
+			wrapper: this.wrapper,
 		};
 
 		this.refresh();
@@ -24,7 +28,7 @@ export default class Section {
 		let make_card = this.card_layout;
 		this.wrapper = $(`<div class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
-				${ make_card ? "card-section" : "" }">
+				${make_card ? "card-section" : ""}">
 			`).appendTo(this.parent);
 		this.layout && this.layout.sections.push(this);
 
@@ -65,7 +69,7 @@ export default class Section {
 		`);
 
 		this.head.appendTo(this.wrapper);
-		this.indicator = this.head.find('.collapse-indicator');
+		this.indicator = this.head.find(".collapse-indicator");
 		this.indicator.hide();
 
 		if (this.df.collapsible) {
@@ -102,26 +106,26 @@ export default class Section {
 
 		// refresh signature fields
 		this.fields_list.forEach((f) => {
-			if (f.df.fieldtype == 'Signature') {
+			if (f.df.fieldtype == "Signature") {
 				f.refresh();
 			}
 		});
 
 		// save state for next reload ('' is falsy)
 		if (this.df.css_class)
-			localStorage.setItem(this.df.css_class + '-closed', hide ? '1' : '');
+			localStorage.setItem(this.df.css_class + "-closed", hide ? "1" : "");
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? 'down' : 'up-line';
-		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, 'sm', 'mb-1'));
+		let indicator_icon = hide ? "down" : "up-line";
+		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 
 	is_collapsed() {
-		return this.body.hasClass('hide');
+		return this.body.hasClass("hide");
 	}
 
-	has_missing_mandatory () {
+	has_missing_mandatory() {
 		let missing_mandatory = false;
 		for (let j = 0, l = this.fields_list.length; j < l; j++) {
 			const section_df = this.fields_list[j].df;

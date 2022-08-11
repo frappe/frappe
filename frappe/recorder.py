@@ -11,6 +11,7 @@ import sqlparse
 
 import frappe
 from frappe import _
+from frappe.database.database import is_query_type
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
@@ -24,16 +25,10 @@ def sql(*args, **kwargs):
 	end_time = time.time()
 
 	stack = list(get_current_stack_frames())
-
-	if frappe.db.db_type == "postgres":
-		query = frappe.db._cursor.query
-	else:
-		query = frappe.db._cursor._executed
-
-	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
+	query = sqlparse.format(str(frappe.db.last_query).strip(), keyword_case="upper", reindent=True)
 
 	# Collect EXPLAIN for executed query
-	if query.lower().strip().split()[0] in ("select", "update", "delete"):
+	if is_query_type(query, ("select", "update", "delete")):
 		# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
 		explain_result = frappe.db._sql(f"EXPLAIN {query}", as_dict=True)
 	else:
