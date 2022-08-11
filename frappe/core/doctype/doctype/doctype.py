@@ -1748,7 +1748,6 @@ def set_field_order(doctype, field_order):
 
 	frappe.only_for("System Manager")
 
-	meta = frappe.get_meta(doctype)
 	field_order = json.loads(field_order)
 
 	idx = 1
