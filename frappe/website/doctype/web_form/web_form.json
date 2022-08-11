@@ -30,12 +30,6 @@
   "form_fields",
   "web_form_fields",
   "max_attachment_size",
-  "actions",
-  "breadcrumbs",
-  "button_label",
-  "column_break_29",
-  "success_message",
-  "success_url",
   "list_settings_tab",
   "list_setting_message",
   "show_list",
@@ -44,6 +38,16 @@
   "sidebar_settings_tab",
   "show_sidebar",
   "website_sidebar",
+  "customization_tab",
+  "button_label",
+  "banner_image",
+  "column_break_37",
+  "breadcrumbs",
+  "section_break_43",
+  "success_title",
+  "success_url",
+  "column_break_41",
+  "success_message",
   "scripting_style_tab",
   "client_script",
   "custom_css"
@@ -162,7 +166,7 @@
   },
   {
    "fieldname": "introduction_text",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
    "label": "Introduction"
   },
@@ -184,19 +188,13 @@
    "label": "Client Script"
   },
   {
-   "collapsible": 1,
-   "fieldname": "actions",
-   "fieldtype": "Section Break",
-   "label": "Customization"
-  },
-  {
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
    "label": "Submit Button Label"
   },
   {
-   "description": "Message to be displayed on successful completion (only for Guest users)",
+   "description": "Message to be displayed on successful completion",
    "fieldname": "success_message",
    "fieldtype": "Text",
    "label": "Success Message"
@@ -217,7 +215,8 @@
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
-   "label": "Breadcrumbs"
+   "label": "Breadcrumbs",
+   "max_height": "140px"
   },
   {
    "fieldname": "custom_css",
@@ -273,10 +272,6 @@
    "options": "Website Sidebar"
   },
   {
-   "fieldname": "column_break_29",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "list_setting_message",
    "fieldtype": "HTML",
    "label": "List Setting Message"
@@ -303,13 +298,41 @@
    "fieldname": "scripting_style_tab",
    "fieldtype": "Tab Break",
    "label": "Scripting / Style"
+  },
+  {
+   "fieldname": "customization_tab",
+   "fieldtype": "Tab Break",
+   "label": "Customization"
+  },
+  {
+   "fieldname": "success_title",
+   "fieldtype": "Data",
+   "label": "Success Title"
+  },
+  {
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Banner Image"
+  },
+  {
+   "fieldname": "column_break_41",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_43",
+   "fieldtype": "Section Break",
+   "label": "After Submission"
+  },
+  {
+   "fieldname": "column_break_37",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-10 15:38:28.611328",
+ "modified": "2022-08-11 16:27:25.914627",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
