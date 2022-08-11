@@ -3619,7 +3619,7 @@ Upload {0} files,Télécharger des fichiers {0},
 Uploaded To Google Drive,Téléchargé sur Google Drive,
 Uploaded successfully,Envoyé avec succès,
 Uploading {0} of {1},Téléchargement de {0} sur {1},
-Use SSL for Outgoing,Utiliser SSL pour les sorties,
+Use SSL for Outgoing,Utiliser SSL pour les couriels sorties,
 Use Same Name,Utiliser le même nom,
 Used For Google Maps Integration.,Utilisé pour l&#39;intégration de Google Maps.,
 User ID Property,Propriété ID utilisateur,
@@ -4726,3 +4726,18 @@ Always use this email address as sender address,Toujours utiliser cet email comm
 Always use this name as sender name,Toujours utiliser ce nom comme expediteur
 Login to {0},Se connecter à {0}
 Add / Remove Fields,Ajouter / Supprimer des colonnes
+Use STARTTLS for Incoming,Utiliser le STARTTLS pour les couriels entrants
+Outgoing Settings,Configurations des Couriels Sortant
+Incoming Settings,Configurations des Couriels Entrant
+Incoming Server,Serveur de Couriel Entrant
+Outgoing Server,Serveur de Couriel Sortant
+Use different Email ID,Utiliser une authentification email différente
+Alternative Email ID,Email de connexion alternatif
+Incoming (POP/IMAP) Settings,Configuration POP/IMAP
+IMAP Details,Détails IMAP
+IMAP Folder,Dossier IMAP à récupérer
+Document Linking,Lien vers les documents
+Auto Reply,Réponse automatique
+Footer Content,Contenue du pied de page
+Brand Logo,Logo de la marque
+Folder Name,Nom du dossier
