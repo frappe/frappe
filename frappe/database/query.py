@@ -592,7 +592,7 @@ class Engine:
 				# Only perform this bit if foreign doctype in fields
 				if (
 					not is_function_object(field)
-					and ("tab" in str(field))
+					and str(field).startswith("`tab")
 					and (f"`tab{table}`" not in str(field))
 				):
 					join_table = table_from_string(str(field))
