@@ -1761,7 +1761,4 @@ def set_field_order(doctype, field_order):
 
 	# save to update
 	frappe.get_doc("DocType", doctype).save()
-
-	frappe.db.commit()
-
 	frappe.clear_cache(doctype=doctype)
