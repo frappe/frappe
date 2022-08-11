@@ -348,7 +348,7 @@ def insert_translations():
 			"doctype": "Translation",
 			"language": "de",
 			"source_text": "Genderqueer",
-			"translated_text": "Geschlechtsspezifisch",
+			"translated_text": "Nichtbinär",
 		},
 		{
 			"doctype": "Translation",
@@ -360,7 +360,7 @@ def insert_translations():
 			"doctype": "Translation",
 			"language": "de",
 			"source_text": "Prefer not to say",
-			"translated_text": "Mache lieber keine Angabe",
+			"translated_text": "Keine Angabe",
 		},
 	]
 
