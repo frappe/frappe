@@ -25,9 +25,11 @@ from frappe.utils import (
 	floor,
 	format_timedelta,
 	get_bench_path,
+	get_gravatar,
 	get_url,
 	money_in_words,
 	parse_timedelta,
+	random_string,
 	scrub_urls,
 	validate_email_address,
 	validate_url,
@@ -45,6 +47,7 @@ from frappe.utils.data import (
 )
 from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
+from frappe.utils.identicon import Identicon
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
@@ -719,3 +722,28 @@ class TestLazyLoader(unittest.TestCase):
 		with Capturing() as output:
 			ls.time
 		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
+
+
+class TestIdenticon(unittest.TestCase):
+	def test_get_gravatar(self):
+		# developers@frappe.io has a gravatar linked so str URL will be returned
+		frappe.flags.in_test = False
+		gravatar_url = get_gravatar("developers@frappe.io")
+		frappe.flags.in_test = True
+		self.assertIsInstance(gravatar_url, str)
+		self.assertTrue(gravatar_url.startswith("http"))
+
+		# random email will require Identicon to be generated, which will be a base64 string
+		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
+		self.assertIsInstance(gravatar_url, str)
+		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
+
+	def test_generate_identicon(self):
+		identicon = Identicon(random_string(6))
+		with patch.object(identicon.image, "show") as show:
+			identicon.generate()
+			show.assert_called_once()
+
+		identicon_bs64 = identicon.base64()
+		self.assertIsInstance(identicon_bs64, str)
+		self.assertTrue(identicon_bs64.startswith("data:image/png;base64,"))
