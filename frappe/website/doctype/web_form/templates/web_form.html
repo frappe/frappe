@@ -38,50 +38,53 @@
 {% endmacro %}
 
 {% block page_content %}
+	<!-- banner image -->
 	{% if banner_image %}
-		<!-- banner image -->
 		<div class="web-form-banner-image">
 			<img src="{{ banner_image }}" alt="Banner Image">
 		</div>
 	{% endif %}
 
-	<!-- breadcrumb -->
-	{% if not banner_image and has_header and login_required and show_list %}
-		{% include "templates/includes/breadcrumbs.html" %}
-		{% else %}
-			<div style="height: 3rem"></div>
-	{% endif %}
-
-
-	<div class="web-form-header">
-		{% if banner_image and has_header and login_required and show_list %}
+	<!-- web form container -->
+	<div class="web-form-container">
+		<!-- breadcrumb -->
+		{% if not banner_image and has_header and login_required and show_list %}
 			{% include "templates/includes/breadcrumbs.html" %}
+			{% else %}
+				<div style="height: 3rem"></div>
 		{% endif %}
-		<div class="web-form-head">
-			<div class="title">
-				<h1>{{ _(title) }}</h1>
-				<div class="web-form-actions">
-					{{ header_buttons() }}
+
+		<!-- header -->
+		<div class="web-form-header">
+			{% if banner_image and has_header and login_required and show_list %}
+				{% include "templates/includes/breadcrumbs.html" %}
+			{% endif %}
+			<div class="web-form-head">
+				<div class="title">
+					<h1>{{ _(title) }}</h1>
+					<div class="web-form-actions">
+						{{ header_buttons() }}
+					</div>
+				</div>
+				{% if is_new and introduction_text %}
+					<div class="web-form-introduction">{{ introduction_text }}</div>
+				{% endif %}
+			</div>
+		</div>
+
+		<!-- main card -->
+		<form role="form" class="web-form">
+			<div class="web-form-body">
+				<div class="web-form-wrapper">
+					{% include "website/doctype/web_form/templates/web_form_skeleton.html" %}
 				</div>
 			</div>
-			{% if is_new and introduction_text %}
-				<div class="web-form-introduction">{{ introduction_text }}</div>
-			{% endif %}
-		</div>
-	</div>
-
-	<!-- main card -->
-	<form role="form" class="web-form-container">
-		<div class="web-form-body">
-			<div class="web-form-wrapper">
-				{% include "website/doctype/web_form/templates/web_form_skeleton.html" %}
+			<div class="web-form-footer">
+				<div class="web-form-actions">
+					{{ action_buttons() }}
+				</div>
 			</div>
-		</div>
-		<div class="web-form-footer">
-			<div class="web-form-actions">
-				{{ action_buttons() }}
-			</div>
-		</div>
+		</form>
 
 		<!-- attachments -->
 		{% if show_attachments and not is_new and attachments %}
@@ -98,7 +101,17 @@
 				{% endfor %}
 			</div>
 		{% endif %} {# attachments #}
-	</form>
+
+		<!-- comments -->
+		{% if allow_comments and not is_new and not is_list -%}
+			<div class="comments">
+				<h3>{{ _("Comments") }}</h3>
+				{% include 'templates/includes/comments/comments.html' %}
+			</div>
+		{%- else -%}
+			<div style="height: 3rem"></div>
+		{%- endif %} {# comments #}
+	</div>
 
 	<!-- success page -->
 	<div class="success-page hide">
@@ -127,16 +140,6 @@
 			{% endif %}
 		{% endif %}
 	</div>
-
-	<!-- comments -->
-	{% if allow_comments and not is_new and not is_list -%}
-		<div class="comments">
-			<h3>{{ _("Comments") }}</h3>
-			{% include 'templates/includes/comments/comments.html' %}
-		</div>
-	{%- else -%}
-		<div style="height: 3rem"></div>
-	{%- endif %} {# comments #}
 
 {% endblock page_content %}
 

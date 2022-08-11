@@ -383,9 +383,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			$(".success-message").text(__("Your form has been successfully updated"));
 		}
 
-		$(".breadcrumb-container").hide();
 		$(".web-form-container").hide();
-		$(".web-form-header").hide();
 		$(".success-page").removeClass("hide");
 
 		if (this.success_url) {
