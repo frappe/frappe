@@ -11,6 +11,6 @@ frappe.listview_settings["Calendar View"] = {
 		},
 		action(doc) {
 			frappe.set_route("List", doc.reference_doctype, "Calendar", doc.name);
-		}
+		},
 	},
 };
