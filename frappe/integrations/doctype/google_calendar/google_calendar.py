@@ -274,7 +274,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 			if err.resp.status == 410:
 				set_encrypted_password("Google Calendar", account.name, "", "next_sync_token")
 				frappe.db.commit()
-				msg += " " + _("Sync token was invalid and has been resetted, Retry syncing.")
+				msg += " " + _("Sync token was invalid and has been reset, Retry syncing.")
 				frappe.msgprint(msg, title="Invalid Sync Token", indicator="blue")
 			else:
 				frappe.throw(msg)
@@ -356,6 +356,7 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"google_calendar": account.name,
 		"google_calendar_id": account.google_calendar_id,
 		"google_calendar_event_id": event.get("id"),
+		"google_meet_link": event.get("hangoutLink"),
 		"pulled_from_google_calendar": 1,
 	}
 	calendar_event.update(
@@ -373,6 +374,7 @@ def update_event_in_calendar(account, event, recurrence=None):
 	calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
 	calendar_event.subject = event.get("summary")
 	calendar_event.description = event.get("description")
+	calendar_event.google_meet_link = event.get("hangoutLink")
 	calendar_event.update(
 		google_calendar_to_repeat_on(
 			recurrence=recurrence, start=event.get("start"), end=event.get("end")
@@ -494,8 +496,7 @@ def update_event_in_google_calendar(doc, method=None):
 		# if add_video_conferencing enabled or disabled during update, overwrite
 		frappe.db.set_value("Event", doc.name, {
 				"google_meet_link": event.get("hangoutLink")
-			},
-			update_modified=False
+			}
 		)
 		doc.notify_update()
 
@@ -804,6 +805,32 @@ def get_attendees(doc):
 				'recurrence': *recurrence,
 				'iCalUID': 'uid',
 				'sequence': 1,
+				'hangoutLink': 'https://meet.google.com/mee-ting-uri',
+				'conferenceData': {
+					'createRequest': {
+						'requestId': 'EV00001',
+						'conferenceSolutionKey': {
+							'type': 'hangoutsMeet'
+						},
+						'status': {
+							'statusCode': 'success'
+						}
+					},
+					'entryPoints': [
+						{
+							'entryPointType': 'video',
+							'uri': 'https://meet.google.com/mee-ting-uri',
+							'label': 'meet.google.com/mee-ting-uri'
+						}
+					],
+					'conferenceSolution': {
+						'key': {
+							'type': 'hangoutsMeet'
+						},
+						'name': 'Google Meet',
+						'iconUri': 'https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png'
+					},
+					'conferenceId': 'mee-ting-uri'
 				'reminders': {
 					'useDefault': True
 				}
