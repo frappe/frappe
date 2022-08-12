@@ -713,3 +713,12 @@ class TestBenchBuild(BaseTestCommands):
 			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
 			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
 		)
+
+
+class TestCommandUtils(unittest.TestCase):
+	def test_bench_helper(self):
+		from frappe.utils.bench_helper import get_app_groups
+
+		app_groups = get_app_groups()
+		self.assertIn("frappe", app_groups)
+		self.assertIsInstance(app_groups["frappe"], click.Group)
