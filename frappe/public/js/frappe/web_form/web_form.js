@@ -20,6 +20,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make() {
+		this.parent.empty();
 		super.make();
 		this.set_page_breaks();
 		this.set_field_values();
@@ -29,7 +30,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			this.setup_primary_action();
 		}
 
-		this.setup_footer_actions();
 		this.setup_previous_next_button();
 		this.toggle_section();
 
@@ -71,14 +71,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		this.page_breaks = $(`.page-break`);
 		this.is_multi_step_form = true;
-	}
-
-	setup_footer_actions() {
-		if (this.is_multi_step_form) return;
-
-		if ($(".web-form-container").height() > 600) {
-			$(".web-form-footer").removeClass("hide");
-		}
 	}
 
 	setup_previous_next_button() {
@@ -380,45 +372,45 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		return false;
 	}
 
-	edit() {
-		window.location.href = window.location.pathname + "/edit";
-	}
-
-	cancel() {
-		let path = window.location.pathname;
-		if (this.is_new) {
-			path = path.replace("/new", "");
-		} else {
-			path = path.replace("/edit", "");
-		}
-		window.location.href = path;
-	}
-
 	handle_success(data) {
 		// TODO: remove this (used for payments app)
 		if (this.accept_payment && !this.doc.paid) {
 			window.location.href = data;
 		}
 
-		const success_message = this.success_message || __("Submitted");
+		if (!this.is_new) {
+			$(".success-title").text(__("Updated"));
+			$(".success-message").text(__("Your form has been successfully updated"));
+		}
 
-		frappe.toast({ message: success_message, indicator: "green" });
+		$(".web-form-container").hide();
+		$(".success-page").removeClass("hide");
 
-		// redirect
-		setTimeout(() => {
-			let path = window.location.pathname;
+		if (this.success_url) {
+			frappe.utils.setup_timer(5, 0, $(".time"));
+			setTimeout(() => {
+				window.location.href = this.success_url;
+			}, 5000);
+		} else {
+			this.render_success_page(data);
+		}
+	}
 
-			if (this.success_url) {
-				path = this.success_url;
-			} else if (this.login_required) {
-				if (this.is_new && data.name) {
-					path = path.replace("/new", "");
-					path = path + "/" + data.name;
-				} else if (this.is_form_editable) {
-					path = path.replace("/edit", "");
-				}
-			}
-			window.location.href = path;
-		}, 3000);
+	render_success_page(data) {
+		if (this.allow_edit && data.name) {
+			$(".success-page").append(`
+				<a href="/${this.route}/${data.name}/edit" class="edit-button btn btn-light btn-md ml-2">
+					${__("Edit your response", null, "Button in web form")}
+				</a>
+			`);
+		}
+
+		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
+			$(".success-page").append(`
+				<a href="/${this.route}/${data.name}" class="view-button btn btn-light btn-md ml-2">
+					${__("View your response", null, "Button in web form")}
+				</a>
+			`);
+		}
 	}
 }
