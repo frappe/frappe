@@ -242,7 +242,6 @@ def search_widget(
 					v
 					for v in values
 					if re.search(f"{re.escape(txt)}.*", _(v.name if as_dict else v[0]), re.IGNORECASE)
-					or re.search(f"{_(re.escape(txt))}.*", _(v.name if as_dict else v[0]), re.IGNORECASE)
 				)
 
 			# Sorting the values array so that relevant results always come first
