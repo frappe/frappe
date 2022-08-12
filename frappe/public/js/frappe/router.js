@@ -233,7 +233,9 @@ frappe.router = {
 		if (_route.toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
-			let re_route = route[2].toLowerCase() !== _route.toLowerCase();
+			let new_route = this.list_views_route[_route.toLowerCase()];
+			let re_route = route[2].toLowerCase() !== new_route.toLowerCase();
+
 			if (re_route) {
 				/**
 				 * In case of force_re_route, the url of the route should change,

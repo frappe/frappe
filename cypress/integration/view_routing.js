@@ -102,6 +102,26 @@ context("View", () => {
 		});
 	});
 
+	it("Route to File View", () => {
+		cy.visit("app/file");
+		cy.wait(500);
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				expect(list.view_name).to.equal("File");
+				expect(list.current_folder).to.equal("Home");
+			});
+
+		cy.visit("app/file/view/home/Attachments");
+		cy.wait(500);
+		cy.window()
+			.its("cur_list")
+			.then((list) => {
+				expect(list.view_name).to.equal("File");
+				expect(list.current_folder).to.equal("Home/Attachments");
+			});
+	});
+
 	it("Re-route to default view", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("app/event");
