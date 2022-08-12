@@ -233,6 +233,30 @@ frappe.router = {
 		if (_route.toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
+			let re_route = route[2].toLowerCase() !== _route.toLowerCase();
+			if (re_route) {
+				/**
+				 * In case of force_re_route, the url of the route should change,
+				 * if the _route and route[2] are different, it means there is a default_view
+				 * with force_re_route enabled.
+				 *
+				 * To change the url, to the correct view, the route[2] is changed with default_view
+				 *
+				 * Eg: If default_view is set to Report with force_re_route enabled and user routes
+				 * to List,
+				 * route: [todo, view, list]
+				 * default_view: report
+				 *
+				 * replaces the list to report and re-routes to the new route but should be replaced in
+				 * the history since the list route should not exist in history as we are rerouting it to
+				 * report
+				 */
+				frappe.route_flags.replace_route = true;
+
+				route[2] = _route.toLowerCase();
+				this.set_route(route);
+			}
+
 			standard_route = [
 				"List",
 				doctype_route.doctype,
