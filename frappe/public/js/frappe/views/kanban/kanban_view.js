@@ -3,6 +3,22 @@ import KanbanSettings from "./kanban_settings";
 frappe.provide("frappe.views");
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
+	static load_last_view() {
+		const route = frappe.get_route();
+		if (route.length === 3) {
+			const doctype = route[1];
+			const user_settings = frappe.get_user_settings(doctype)["Kanban"] || {};
+			if (!user_settings.last_kanban_board) {
+				return this.show();
+			}
+
+			route.push(user_settings.last_kanban_board);
+			frappe.set_route(route);
+			return true;
+		}
+		return false;
+	}
+
 	get view_name() {
 		return "Kanban";
 	}
