@@ -698,7 +698,7 @@ class TestAddNewUser(BaseTestCommands):
 		for i in user.roles:
 			role = frappe.get_doc("Has Role",i.name)
 			roles.append(role.role)
-		self.assertEqual(user.name,"test9@gmail.com")
+		self.assertEqual(user.name,"test@gmail.com")
 		self.assertIn("Accounts User",roles)
 		self.assertIn("Sales User",roles)
 		self.assertTrue(len(roles)==2)
