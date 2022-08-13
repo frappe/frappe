@@ -73,3 +73,4 @@ class CodeCoverage:
 			self.coverage.stop()
 			self.coverage.save()
 			self.coverage.xml_report()
+			print("Saved Coverage")

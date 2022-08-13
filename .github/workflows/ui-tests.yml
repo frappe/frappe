@@ -21,7 +21,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       containers: [1, 2, 3]
+       # Make sure you modify coverage submission file list if changing this
+       container: [1, 2, 3]
 
     name: UI Tests (Cypress)
 
@@ -148,38 +149,57 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
-      - name: Stop server
-        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+      - name: Stop server and wait for coverage file
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
-          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
+          ps -ef | grep "[f]rappe serve" | awk '{print $2}' | xargs kill -s SIGINT
           sleep 5
+          ( tail -f /home/runner/frappe-bench/sites/coverage.xml & ) | grep -q "\/coverage"
 
-      - name: Check If Coverage Report Exists
-        id: check_coverage
-        uses: andstor/file-existence-action@v1
+      - name: Upload JS coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/upload-artifact@v3
         with:
-          files: "/home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml"
+          name: coverage-js-${{ matrix.container }}
+          path: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml
 
-      - name: Upload Coverage Data
-        if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
-        uses: codecov/codecov-action@v3
+      - name: Upload python coverage data
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/upload-artifact@v3
         with:
-          name: Cypress
-          fail_ci_if_error: true
-          directory: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/
-          verbose: true
-          flags: ui-tests
+          name: coverage-py-${{ matrix.container }}
+          path: /home/runner/frappe-bench/sites/coverage.xml
 
-      - name: Upload Server Coverage Data
-        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+      - name: Show bench output
+        if: ${{ always() }}
+        run: cat ~/frappe-bench/bench_start.log || true
+
+
+  coverage:
+    name: Coverage Wrap Up
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Upload python coverage data
         uses: codecov/codecov-action@v3
         with:
           name: MariaDB
           fail_ci_if_error: true
-          files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
-          flags: server
+          files: ./coverage-py-1/coverage.xml,./coverage-py-2/coverage.xml,./coverage-py-3/coverage.xml
+          flags: server-ui
 
-      - name: Show bench console if tests failed
-        if: ${{ failure() }}
-        run: cat ~/frappe-bench/bench_start.log
+      - name: Upload JS coverage data
+        uses: codecov/codecov-action@v3
+        with:
+          name: Cypress
+          fail_ci_if_error: true
+          files: ./coverage-js-1/clover.xml,./coverage-js-2/clover.xml,./coverage-js-3/clover.xml
+          verbose: true
+          flags: ui-tests
