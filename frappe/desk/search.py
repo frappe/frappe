@@ -270,26 +270,23 @@ def get_std_fields_list(meta, key):
 	return sflist
 
 
-def build_for_autosuggest(res, doctype):
+def build_for_autosuggest(res: list[tuple], doctype: str) -> list[dict]:
+	def to_string(parts):
+		return ", ".join(unique(cstr(part) for part in parts if part))
+
 	results = []
 	meta = frappe.get_meta(doctype)
-	if not (meta.title_field and meta.show_title_field_in_link):
-		for r in res:
-			r = list(r)
-			results.append({"value": r[0], "description": ", ".join(unique(cstr(d) for d in r[1:] if d))})
-
+	if title_field_exists := meta.title_field and meta.show_title_field_in_link:
+		for item in res:
+			label = None
+			if title_field_exists:
+				# set label to title, show name in description instead of title
+				item = list(item)
+				label = item[1]
+				item[1] = _(item[0]) if meta.translated_doctype else item[0]
+			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
 	else:
-		title_field_exists = meta.title_field and meta.show_title_field_in_link
-		_from = 2 if title_field_exists else 1  # to exclude title from description if title_field_exists
-		for r in res:
-			r = list(r)
-			results.append(
-				{
-					"value": r[0],
-					"label": r[1] if title_field_exists else None,
-					"description": ", ".join(unique(cstr(d) for d in r[_from:] if d)),
-				}
-			)
+		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
 
 	return results
 
