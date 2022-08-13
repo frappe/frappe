@@ -233,6 +233,10 @@ def search_widget(
 					v
 					for v in values
 					if re.search(f"{re.escape(txt)}.*", _(v.name if as_dict else v[0]), re.IGNORECASE)
+					or (
+						# If we show the title, also search in translated titles
+						re.search(f"{re.escape(txt)}.*", _(v.label if as_dict else v[1]), re.IGNORECASE) if show_title_field else False
+					)
 				)
 
 			# Sorting the values array so that relevant results always come first
