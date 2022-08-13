@@ -161,14 +161,100 @@ frappe.provide("frappe.views");
 				context.commit("update_state", { cards: cards });
 			},
 			update_order_for_single_card: function (context, card) {
-				if (card.new) return;
+				// cache original order
+				const _cards = context.state.cards.slice();
+				const _columns = context.state.columns.slice();
+				let args = {};
+				let method_name = "";
 
-				frappe.db.set_value(
-					context.state.doctype,
-					card.name,
-					context.state.board.field_name,
-					card.to_colname
-				);
+				if (card.new) {
+					method_name = "add_card";
+					args = {
+						board_name: context.state.board.name,
+						docname: card.name,
+						colname: card.colname,
+					};
+				} else {
+					method_name = "update_order_for_single_card";
+					args = {
+						board_name: context.state.board.name,
+						docname: card.name,
+						from_colname: card.from_colname,
+						to_colname: card.to_colname,
+						old_index: card.old_index,
+						new_index: card.new_index,
+					};
+				}
+				frappe.dom.freeze();
+				frappe
+					.call({
+						method: method_prefix + method_name,
+						args: args,
+						callback: (r) => {
+							let board = r.message;
+							let updated_cards = [
+								{ name: card.name, column: card.to_colname || card.colname },
+							];
+							let cards = update_cards_column(updated_cards);
+							let columns = prepare_columns(board.columns);
+							context.commit("update_state", {
+								cards: cards,
+								columns: columns,
+							});
+							frappe.dom.unfreeze();
+						},
+					})
+					.fail(function () {
+						// revert original order
+						context.commit("update_state", {
+							cards: _cards,
+							columns: _columns,
+						});
+						frappe.dom.unfreeze();
+					});
+			},
+			update_order: function (context) {
+				// cache original order
+				const _cards = context.state.cards.slice();
+				const _columns = context.state.columns.slice();
+
+				const order = {};
+				context.state.wrapper.find(".kanban-column[data-column-value]").each(function () {
+					var col_name = $(this).data().columnValue;
+					order[col_name] = [];
+					$(this)
+						.find(".kanban-card-wrapper")
+						.each(function () {
+							var card_name = decodeURIComponent($(this).data().name);
+							order[col_name].push(card_name);
+						});
+				});
+
+				frappe
+					.call({
+						method: method_prefix + "update_order",
+						args: {
+							board_name: context.state.board.name,
+							order: order,
+						},
+						callback: (r) => {
+							var board = r.message[0];
+							var updated_cards = r.message[1];
+							var cards = update_cards_column(updated_cards);
+							var columns = prepare_columns(board.columns);
+							context.commit("update_state", {
+								cards: cards,
+								columns: columns,
+							});
+						},
+					})
+					.fail(function () {
+						// revert original order
+						context.commit("update_state", {
+							cards: _cards,
+							columns: _columns,
+						});
+					});
 			},
 			update_column_order: function (context, order) {
 				return frappe
@@ -177,6 +263,24 @@ frappe.provide("frappe.views");
 						args: {
 							board_name: context.state.board.name,
 							order: order,
+						},
+					})
+					.then(function (r) {
+						var board = r.message;
+						var columns = prepare_columns(board.columns);
+						context.commit("update_state", {
+							columns: columns,
+						});
+					});
+			},
+			set_indicator: function (context, { column, color }) {
+				return frappe
+					.call({
+						method: method_prefix + "set_indicator",
+						args: {
+							board_name: context.state.board.name,
+							column_name: column.title,
+							indicator: color,
 						},
 					})
 					.then(function (r) {
@@ -223,6 +327,7 @@ frappe.provide("frappe.views");
 			store.watch((state, getters) => {
 				return state.empty_state;
 			}, show_empty_state);
+			store.dispatch("update_order");
 		}
 
 		function prepare() {
@@ -440,9 +545,26 @@ frappe.provide("frappe.views");
 			var cards = store.state.cards;
 			filtered_cards = get_cards_for_column(cards, column);
 
-			filtered_cards.map(function (card) {
-				frappe.views.KanbanBoardCard(card, self.$kanban_cards);
-			});
+			var filtered_cards_names = filtered_cards.map((card) => card.name);
+
+			var order = column.order;
+			if (order) {
+				order = JSON.parse(order);
+				// new cards
+				filtered_cards.forEach(function (card) {
+					if (order.indexOf(card.name) === -1) {
+						frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+					}
+				});
+				order.forEach(function (name) {
+					if (!filtered_cards_names.includes(name)) return;
+					frappe.views.KanbanBoardCard(get_card(name), self.$kanban_cards);
+				});
+			} else {
+				filtered_cards.map(function (card) {
+					frappe.views.KanbanBoardCard(card, self.$kanban_cards);
+				});
+			}
 		}
 
 		function setup_sortable() {
@@ -451,7 +573,6 @@ frappe.provide("frappe.views");
 				animation: 150,
 				dataIdAttr: "data-name",
 				forceFallback: true,
-				sort: false,
 				onStart: function () {
 					wrapper.find(".kanban-card.add-card").fadeOut(200, function () {
 						wrapper.find(".kanban-cards").height("100vh");

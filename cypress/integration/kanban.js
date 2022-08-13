@@ -39,6 +39,10 @@ context("Kanban Board", () => {
 			"POST",
 			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.save_settings"
 		).as("save-kanban");
+		cy.intercept(
+			"POST",
+			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order"
+		).as("update-order");
 
 		cy.get(".page-actions .menu-btn-group > .btn").click();
 		cy.get(".page-actions .menu-btn-group .dropdown-menu li")
@@ -81,6 +85,7 @@ context("Kanban Board", () => {
 			)
 			.click();
 
+		cy.wait("@update-order");
 		cy.get_open_dialog().find(".frappe-control .label-area").contains("Show Labels").click();
 		cy.get(".modal-footer .btn-primary").last().click();
 
@@ -93,6 +98,11 @@ context("Kanban Board", () => {
 	});
 
 	// it('Drag todo', () => {
+	// 	cy.intercept({
+	// 		method: 'POST',
+	// 		url: 'api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order_for_single_card'
+	// 	}).as('drag-completed');
+
 	// 	cy.get('.kanban-card-body')
 	// 		.contains('Test Kanban ToDo').first()
 	// 		.drag('[data-column-value="Closed"] .kanban-cards', { force: true });
