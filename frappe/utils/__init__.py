@@ -283,12 +283,7 @@ def get_gravatar_url(email):
 def get_gravatar(email):
 	from frappe.utils.identicon import Identicon
 
-	gravatar_url = has_gravatar(email)
-
-	if not gravatar_url:
-		gravatar_url = Identicon(email).base64()
-
-	return gravatar_url
+	return has_gravatar(email) or Identicon(email).base64()
 
 
 def get_traceback(with_context=False) -> str:
