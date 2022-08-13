@@ -149,12 +149,12 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
-      # Required to flush python coverage files
-      - name: Stop server
+      - name: Stop server and wait for coverage file
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
-          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
+          ps -ef | grep "[f]rappe serve" | awk '{print $2}' | xargs kill -s SIGINT
           sleep 5
+          ( tail -f /home/runner/frappe-bench/sites/coverage.xml & ) | grep -q "\/coverage"
 
       - name: Upload JS coverage data
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -170,9 +170,9 @@ jobs:
           name: coverage-py-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
 
-      - name: Show bench console if tests failed
-        if: ${{ failure() }}
-        run: cat ~/frappe-bench/bench_start.log
+      - name: Show bench output
+        if: ${{ always() }}
+        run: cat ~/frappe-bench/bench_start.log || true
 
 
   coverage:
