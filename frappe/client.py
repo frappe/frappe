@@ -78,7 +78,13 @@ def get(doctype, name=None, filters=None, parent=None):
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	doc = frappe.get_doc(doctype, name or frappe.parse_json(filters))
+	if name:
+		doc = frappe.get_doc(doctype, name)
+	elif filters or filters == {}:
+		doc = frappe.get_doc(doctype, frappe.parse_json(filters))
+	else:
+		doc = frappe.get_doc(doctype)  # single
+
 	doc.check_permission()
 	return doc.as_dict()
 
