@@ -149,20 +149,15 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
+      # Required to flush python coverage files
       - name: Stop server
-        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
           sleep 5
 
-      - name: Check If Coverage Report Exists
-        id: check_coverage
-        uses: andstor/file-existence-action@v1
-        with:
-          files: "/home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml"
-
       - name: Upload JS coverage data
-        if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/upload-artifact@v3
         with:
           name: coverage-js-${{ matrix.container }}
