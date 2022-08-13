@@ -8,7 +8,6 @@ import re
 import frappe
 from frappe import _, is_whitelisted
 from frappe.permissions import has_permission
-from frappe.translate import get_translated_doctypes
 from frappe.utils import cint, cstr, unique
 
 
@@ -150,10 +149,6 @@ def search_widget(
 				filters = []
 			or_filters = []
 
-			translated_doctypes = frappe.cache().hget(
-				"translated_doctypes", "doctypes", get_translated_doctypes
-			)
-
 			# build from doctype
 			if txt:
 				field_types = [
@@ -175,7 +170,7 @@ def search_widget(
 
 				for f in search_fields:
 					fmeta = meta.get_field(f.strip())
-					if (doctype not in translated_doctypes) and (
+					if not meta.translated_doctype and (
 						f == "name" or (fmeta and fmeta.fieldtype in field_types)
 					):
 						or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
@@ -219,16 +214,13 @@ def search_widget(
 				else (cint(ignore_user_permissions) and has_permission(doctype, ptype=ptype))
 			)
 
-			if doctype in translated_doctypes:
-				page_length = None
-
 			values = frappe.get_list(
 				doctype,
 				filters=filters,
 				fields=formatted_fields,
 				or_filters=or_filters,
 				limit_start=start,
-				limit_page_length=page_length,
+				limit_page_length=None if meta.translated_doctype else page_length,
 				order_by=order_by,
 				ignore_permissions=ignore_permissions,
 				reference_doctype=reference_doctype,
@@ -236,7 +228,7 @@ def search_widget(
 				strict=False,
 			)
 
-			if doctype in translated_doctypes:
+			if meta.translated_doctype:
 				# Filtering the values array so that query is included in very element
 				values = (
 					v
