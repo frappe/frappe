@@ -585,7 +585,7 @@ doctype_properties = {
 	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
-	"translate_link_fields": "Check",
+	"translated_doctype": "Check",
 }
 
 docfield_properties = {
