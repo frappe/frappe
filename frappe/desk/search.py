@@ -186,11 +186,10 @@ def search_widget(
 				fields = list(set(fields + json.loads(filter_fields)))
 			formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
 
-			title_field_query = get_title_field_query(meta)
-
 			# Insert title field query after name
-			if title_field_query:
-				formatted_fields.insert(1, title_field_query)
+			show_title_field = meta.title_field and meta.show_title_field_in_link
+			if show_title_field:
+				formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append(
@@ -265,19 +264,6 @@ def get_std_fields_list(meta, key):
 		sflist.append(key)
 
 	return sflist
-
-
-def get_title_field_query(meta):
-	title_field = meta.title_field if meta.title_field else None
-	show_title_field_in_link = (
-		meta.show_title_field_in_link if meta.show_title_field_in_link else None
-	)
-	field = None
-
-	if title_field and show_title_field_in_link:
-		field = f"`tab{meta.name}`.{title_field} as `label`"
-
-	return field
 
 
 def build_for_autosuggest(res, doctype):
