@@ -340,6 +340,40 @@ def insert_doctype_with_child_table_record(name):
 
 
 @frappe.whitelist()
+def insert_translations():
+	translation = [
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Other",
+			"translated_text": "Sonstiges",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Genderqueer",
+			"translated_text": "Nichtbinär",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Non-Conforming",
+			"translated_text": "Nicht konform",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Prefer not to say",
+			"translated_text": "Keine Angabe",
+		},
+	]
+
+	for doc in translation:
+		if not frappe.db.exists("doc"):
+			frappe.get_doc(doc).insert()
+
+
+@frappe.whitelist()
 def enable_focus_field():
 	if not frappe.db.exists("DocType", "Test Link Control"):
 		create_doctype(

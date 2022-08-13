@@ -29,7 +29,7 @@
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
-  "translate_link_fields",
+  "translated_doctype",
   "focus_field",
   "image_field",
   "default_print_format",
@@ -316,7 +316,7 @@
   },
   {
    "default": "0",
-   "fieldname": "translate_link_fields",
+   "fieldname": "translated_doctype",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
   },
@@ -332,7 +332,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-03 14:15:04.532099",
+ "modified": "2022-08-04 15:36:16.772277",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
