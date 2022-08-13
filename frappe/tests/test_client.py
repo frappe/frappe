@@ -102,3 +102,16 @@ class TestClient(unittest.TestCase):
 		)
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
+
+	def test_client_get(self):
+		from frappe.client import get
+
+		todo = frappe.get_doc(doctype="ToDo", description="test").insert()
+		filters = {"name": todo.name}
+		filters_json = frappe.as_json(filters)
+
+		self.assertEqual(get("ToDo", filters=filters).description, "test")
+		self.assertEqual(get("ToDo", filters=filters_json).description, "test")
+		self.assertEqual(get("System Settings", "", "").doctype, "System Settings")
+		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
+		todo.delete()
