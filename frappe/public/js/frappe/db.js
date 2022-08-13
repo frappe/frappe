@@ -69,11 +69,7 @@ frappe.db = {
 			}
 		});
 	},
-<<<<<<< HEAD
-	get_doc: function(doctype, name, filters = null) {
-=======
 	get_doc: function (doctype, name, filters) {
->>>>>>> 7545bf2219 (fix: default `filters` to `undefined` instead of `null`)
 		return new Promise((resolve, reject) => {
 			frappe.call({
 				method: "frappe.client.get",
