@@ -148,7 +148,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-01-12 20:18:18.496230",
+ "modified": "2022-08-06 12:13:36.341826",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -169,5 +169,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
- "track_changes": 1
+ "track_changes": 1,
+ "translated_doctype": 1
 }

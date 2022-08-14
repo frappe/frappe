@@ -13,6 +13,7 @@ from six import string_types
 import frappe
 from frappe import _, is_whitelisted
 from frappe.permissions import has_permission
+from frappe.translate import get_translated_doctypes
 from frappe.utils import cint, cstr, unique
 
 
@@ -150,9 +151,21 @@ def search_widget(
 				filters = []
 			or_filters = []
 
-			translated_search_doctypes = frappe.get_hooks("translated_search_doctypes")
+			translated_doctypes = frappe.cache().hget(
+				"translated_doctypes", "doctypes", get_translated_doctypes
+			)
 			# build from doctype
 			if txt:
+				field_types = [
+					"Data",
+					"Text",
+					"Small Text",
+					"Long Text",
+					"Link",
+					"Select",
+					"Read Only",
+					"Text Editor",
+				]
 				search_fields = ["name"]
 				if meta.title_field:
 					search_fields.append(meta.title_field)
@@ -162,13 +175,8 @@ def search_widget(
 
 				for f in search_fields:
 					fmeta = meta.get_field(f.strip())
-					if (doctype not in translated_search_doctypes) and (
-						f == "name"
-						or (
-							fmeta
-							and fmeta.fieldtype
-							in ["Data", "Text", "Small Text", "Long Text", "Link", "Select", "Read Only", "Text Editor"]
-						)
+					if (doctype not in translated_doctypes) and (
+						f == "name" or (fmeta and fmeta.fieldtype in field_types)
 					):
 						or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
 
@@ -204,7 +212,7 @@ def search_widget(
 				else (cint(ignore_user_permissions) and has_permission(doctype, ptype=ptype))
 			)
 
-			if doctype in translated_search_doctypes:
+			if doctype in translated_doctypes:
 				page_length = None
 
 			values = frappe.get_list(
@@ -221,7 +229,7 @@ def search_widget(
 				strict=False,
 			)
 
-			if doctype in translated_search_doctypes:
+			if doctype in translated_doctypes:
 				# Filtering the values array so that query is included in very element
 				values = (
 					v
