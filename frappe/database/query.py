@@ -572,21 +572,9 @@ class Engine:
 		fields.extend(function_objects)
 		return fields
 
-	def get_query(
-		self,
-		table: str,
-		fields: list | tuple,
-		filters: dict[str, str | int] | str | int | list[list | str | int] = None,
-		**kwargs,
-	) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
-		# Clean up state before each query
-		self.tables = {}
-		self.linked_doctype = None
-		self.fieldname = None
-
-		fields = self.set_fields(table, kwargs.get("field_objects") or fields, **kwargs)
-		criterion = self.build_conditions(table, filters, **kwargs)
-		join_query = False
+	def join_(self, criterion, fields, table, join):
+		"""Handles all join operations on criterion objects"""
+		has_join = False
 		if not isinstance(fields, Criterion):
 			for field in fields:
 				# Only perform this bit if foreign doctype in fields
@@ -604,9 +592,9 @@ class Engine:
 						criterion = criterion.left_join(join_table).on(
 							getattr(join_table, "parent") == getattr(frappe.qb.DocType(table), "name")
 						)
-					join_query = True
+					has_join = True
 
-			if join_query:
+			if has_join:
 				for field in fields:
 					if not is_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
@@ -617,8 +605,6 @@ class Engine:
 						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
 						fields[fields.index(field)] = field
 
-		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
-
 		if len(self.tables) > 1:
 			primary_table = self.tables[table]
 			del self.tables[table]
@@ -626,7 +612,26 @@ class Engine:
 				criterion = getattr(criterion, join)(table_object).on(
 					table_object.parent == primary_table.name
 				)
-				join_query = True
+				has_join = True
+
+		return criterion, fields
+
+	def get_query(
+		self,
+		table: str,
+		fields: list | tuple,
+		filters: dict[str, str | int] | str | int | list[list | str | int] = None,
+		**kwargs,
+	) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
+		# Clean up state before each query
+		self.tables = {}
+		self.linked_doctype = None
+		self.fieldname = None
+
+		fields = self.set_fields(table, kwargs.get("field_objects") or fields, **kwargs)
+		criterion = self.build_conditions(table, filters, **kwargs)
+		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
+		criterion, fields = self.join_(criterion=criterion, fields=fields, table=table, join=join)
 
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*fields)
