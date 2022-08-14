@@ -724,60 +724,77 @@ def get_weekday(datetime: datetime.datetime | None = None) -> str:
 	return weekdays[datetime.weekday()]
 
 
-def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime]:
+def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime] | None:
 	today = nowdate()
-	date_range_map = {
-		"last week": lambda: (
-			get_first_day_of_week(add_to_date(today, days=-7)),
-			get_last_day_of_week(add_to_date(today, days=-7)),
-		),
-		"last month": lambda: (
-			get_first_day(add_to_date(today, months=-1)),
-			get_last_day(add_to_date(today, months=-1)),
-		),
-		"last quarter": lambda: (
-			get_quarter_start(add_to_date(today, months=-3)),
-			get_quarter_ending(add_to_date(today, months=-3)),
-		),
-		"last 6 months": lambda: (
-			get_quarter_start(add_to_date(today, months=-6)),
-			get_quarter_ending(add_to_date(today, months=-3)),
-		),
-		"last year": lambda: (
-			get_year_start(add_to_date(today, years=-1)),
-			get_year_ending(add_to_date(today, years=-1)),
-		),
-		"yesterday": lambda: (add_to_date(today, days=-1),) * 2,
-		"today": lambda: (today, today),
-		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
-		"this week": lambda: (get_first_day_of_week(today), get_last_day_of_week(today)),
-		"this month": lambda: (get_first_day(today), get_last_day(today)),
-		"this quarter": lambda: (get_quarter_start(today), get_quarter_ending(today)),
-		"this year": lambda: (get_year_start(today), get_year_ending(today)),
-		"next week": lambda: (
-			get_first_day_of_week(add_to_date(today, days=7)),
-			get_last_day_of_week(add_to_date(today, days=7)),
-		),
-		"next month": lambda: (
-			get_first_day(add_to_date(today, months=1)),
-			get_last_day(add_to_date(today, months=1)),
-		),
-		"next quarter": lambda: (
-			get_quarter_start(add_to_date(today, months=3)),
-			get_quarter_ending(add_to_date(today, months=3)),
-		),
-		"next 6 months": lambda: (
-			get_quarter_start(add_to_date(today, months=3)),
-			get_quarter_ending(add_to_date(today, months=6)),
-		),
-		"next year": lambda: (
-			get_year_start(add_to_date(today, years=1)),
-			get_year_ending(add_to_date(today, years=1)),
-		),
-	}
 
-	if timespan in date_range_map:
-		return date_range_map[timespan]()
+	match timespan:
+		case "last week":
+			return (
+				get_first_day_of_week(add_to_date(today, days=-7)),
+				get_last_day_of_week(add_to_date(today, days=-7)),
+			)
+		case "last month":
+			return (
+				get_first_day(add_to_date(today, months=-1)),
+				get_last_day(add_to_date(today, months=-1)),
+			)
+		case "last quarter":
+			return (
+				get_quarter_start(add_to_date(today, months=-3)),
+				get_quarter_ending(add_to_date(today, months=-3)),
+			)
+		case "last 6 months":
+			return (
+				get_quarter_start(add_to_date(today, months=-6)),
+				get_quarter_ending(add_to_date(today, months=-3)),
+			)
+		case "last year":
+			return (
+				get_year_start(add_to_date(today, years=-1)),
+				get_year_ending(add_to_date(today, years=-1)),
+			)
+
+		case "yesterday":
+			return (add_to_date(today, days=-1),) * 2
+		case "today":
+			return (today, today)
+		case "tomorrow":
+			return (add_to_date(today, days=1),) * 2
+		case "this week":
+			return (get_first_day_of_week(today), get_last_day_of_week(today))
+		case "this month":
+			return (get_first_day(today), get_last_day(today))
+		case "this quarter":
+			return (get_quarter_start(today), get_quarter_ending(today))
+		case "this year":
+			return (get_year_start(today), get_year_ending(today))
+		case "next week":
+			return (
+				get_first_day_of_week(add_to_date(today, days=7)),
+				get_last_day_of_week(add_to_date(today, days=7)),
+			)
+		case "next month":
+			return (
+				get_first_day(add_to_date(today, months=1)),
+				get_last_day(add_to_date(today, months=1)),
+			)
+		case "next quarter":
+			return (
+				get_quarter_start(add_to_date(today, months=3)),
+				get_quarter_ending(add_to_date(today, months=3)),
+			)
+		case "next 6 months":
+			return (
+				get_quarter_start(add_to_date(today, months=3)),
+				get_quarter_ending(add_to_date(today, months=6)),
+			)
+		case "next year":
+			return (
+				get_year_start(add_to_date(today, years=1)),
+				get_year_ending(add_to_date(today, years=1)),
+			)
+		case _:
+			return
 
 
 def global_date_format(date, format="long"):
