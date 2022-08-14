@@ -21,6 +21,7 @@ class TestQuery(unittest.TestCase):
 			"SELECT * FROM `tabDocType` LEFT JOIN `tabBOM Update Log` ON `tabBOM Update Log`.`parent`=`tabDocType`.`name` WHERE `tabBOM Update Log`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
 		)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_string_fields(self):
 		self.assertEqual(
 			frappe.qb.engine.get_query(
@@ -179,6 +180,7 @@ class TestQuery(unittest.TestCase):
 			.get_sql(),
 		)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_filters(self):
 		self.assertEqual(
 			frappe.qb.engine.get_query(
