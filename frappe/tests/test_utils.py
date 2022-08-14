@@ -32,6 +32,7 @@ from frappe.utils import (
 	random_string,
 	scrub_urls,
 	validate_email_address,
+	validate_phone_number_with_country_code,
 	validate_url,
 )
 from frappe.utils.data import (
@@ -322,9 +323,23 @@ class TestValidationUtils(unittest.TestCase):
 		self.assertFalse(validate_email_address("someone"))
 		self.assertFalse(validate_email_address("someone@----.com"))
 
+		self.assertFalse(validate_email_address("test@example.com test2@example.com,undisclosed-recipient"))
+
 		# Invalid with throw
 		self.assertRaises(
 			frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True
+		)
+
+	def test_valid_phone(self):
+		valid_phones = ["+91 1234567890", ""]
+
+		for phone in valid_phones:
+			validate_phone_number_with_country_code(phone, "field")
+		self.assertRaises(
+			frappe.InvalidPhoneNumberError,
+			validate_phone_number_with_country_code,
+			"+420 1234567890",
+			"field",
 		)
 
 

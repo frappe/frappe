@@ -91,7 +91,7 @@ def extract_email_id(email):
 	return email_id
 
 
-def validate_phone_number_with_country_code(phone_number, fieldname):
+def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -> None:
 	from phonenumbers import NumberParseException, is_valid_number, parse
 
 	from frappe import _
