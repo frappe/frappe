@@ -85,10 +85,7 @@ def get_formatted_email(user, mail=None):
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
-	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
-		email_id = email_id.decode("utf-8", "ignore")
-	return email_id
+	return cstr(parse_addr(email)[1])
 
 
 def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -> None:
