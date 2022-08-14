@@ -54,6 +54,7 @@ from frappe.utils.data import (
 	get_time,
 	get_timedelta,
 	get_timespan_date_range,
+	get_year_ending,
 	getdate,
 	now_datetime,
 	nowtime,
@@ -530,9 +531,39 @@ class TestDateUtils(unittest.TestCase):
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
 
-
 	def test_get_timespan_date_range(self):
-		get_timespan_date_range()
+
+		supported_timespans = [
+			"last week",
+			"last month",
+			"last quarter",
+			"last 6 months",
+			"last year",
+			"yesterday",
+			"today",
+			"tomorrow",
+			"this week",
+			"this month",
+			"this quarter",
+			"this year",
+			"next week",
+			"next month",
+			"next quarter",
+			"next 6 months",
+			"next year",
+		]
+
+		for ts in supported_timespans:
+			res = get_timespan_date_range(ts)
+			self.assertEqual(len(res), 2)
+
+			# Manual type checking eh?
+			self.assertIsInstance(res[0], date)
+			self.assertIsInstance(res[1], date)
+
+	def test_timesmap_utils(self):
+		self.assertEqual(get_year_ending(date(2021, 1, 1)), date(2021, 12, 31))
+		self.assertEqual(get_year_ending(date(2021, 1, 31)), date(2021, 12, 31))
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")
