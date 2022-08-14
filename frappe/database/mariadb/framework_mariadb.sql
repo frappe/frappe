@@ -226,7 +226,7 @@ CREATE TABLE `tabDocType` (
   `sender_field` varchar(255) DEFAULT NULL,
   `show_title_field_in_link` int(1) NOT NULL DEFAULT 0,
   `migration_hash` varchar(255) DEFAULT NULL,
-  `translate_link_fields` int(1) NOT NULL DEFAULT 0,
+  `translated_doctype` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
