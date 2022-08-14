@@ -18,7 +18,7 @@
   }
  ],
  "links": [],
- "modified": "2022-08-03 12:20:48.954912",
+ "modified": "2022-08-05 18:33:28.196387",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Salutation",
@@ -56,5 +56,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "translated_doctype": 1
 }

@@ -589,6 +589,7 @@ doctype_properties = {
 	"is_calendar_and_gantt": "Check",
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
+	"translated_doctype": "Check",
 }
 
 docfield_properties = {
