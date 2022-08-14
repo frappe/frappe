@@ -814,7 +814,7 @@ class Database:
 				pluck=pluck,
 				distinct=distinct,
 				limit=limit,
-			).run(debug=debug, as_list=not as_dict, run=run)
+			).run(debug=debug, run=run, as_dict=as_dict)
 		return {}
 
 	def update(self, *args, **kwargs):
