@@ -231,14 +231,11 @@ def search_widget(
 			if meta.translated_doctype:
 				# Filtering the values array so that query is included in very element
 				values = (
-					v
-					for v in values
-					if re.search(f"{re.escape(txt)}.*", _(v.name if as_dict else v[0]), re.IGNORECASE)
-					or (
-						# If we show the title, also search in translated titles
-						re.search(f"{re.escape(txt)}.*", _(v.label if as_dict else v[1]), re.IGNORECASE)
-						if show_title_field
-						else False
+					result
+					for result in values
+					if any(
+						re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+						for value in (result.values() if as_dict else result)
 					)
 				)
 
