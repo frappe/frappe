@@ -274,7 +274,9 @@ def get_std_fields_list(meta, key):
 
 def build_for_autosuggest(res: list[tuple], doctype: str) -> list[dict]:
 	def to_string(parts):
-		return ", ".join(unique(cstr(part) for part in parts if part))
+		return ", ".join(
+			unique(_(cstr(part)) if meta.translated_doctype else cstr(part) for part in parts if part)
+		)
 
 	results = []
 	meta = frappe.get_meta(doctype)
@@ -282,10 +284,10 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[dict]:
 		for item in res:
 			label = None
 			if title_field_exists:
-				# set label to title, show name in description instead of title
 				item = list(item)
-				label = item[1]
-				item[1] = _(item[0]) if meta.translated_doctype else item[0]
+				label = item[1]  # use title as label
+				item[1] = item[0]  # show name in description instead of title
+				del item[2]  # remove redundant title ("label") value
 			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
 	else:
 		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
