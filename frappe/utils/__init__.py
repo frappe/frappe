@@ -283,12 +283,7 @@ def get_gravatar_url(email):
 def get_gravatar(email):
 	from frappe.utils.identicon import Identicon
 
-	gravatar_url = has_gravatar(email)
-
-	if not gravatar_url:
-		gravatar_url = Identicon(email).base64()
-
-	return gravatar_url
+	return has_gravatar(email) or Identicon(email).base64()
 
 
 def get_traceback(with_context=False) -> str:
@@ -525,11 +520,11 @@ def touch_file(path):
 	return path
 
 
-def get_test_client() -> Client:
+def get_test_client(use_cookies=True) -> Client:
 	"""Returns an test instance of the Frappe WSGI"""
 	from frappe.app import application
 
-	return Client(application)
+	return Client(application, use_cookies=use_cookies)
 
 
 def get_hook_method(hook_name, fallback=None):

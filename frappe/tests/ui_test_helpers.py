@@ -264,9 +264,9 @@ def update_webform_to_multistep():
 	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
 		doc = frappe.get_doc("Web Form", "edit-profile")
 		_doc = frappe.copy_doc(doc)
-		_doc.is_multi_step_form = 1
 		_doc.title = "update-profile-duplicate"
 		_doc.route = "update-profile-duplicate"
+		_doc.web_form_fields[5].fieldtype = "Page Break"
 		_doc.is_standard = False
 		_doc.save()
 
@@ -333,3 +333,37 @@ def insert_doctype_with_child_table_record(name):
 	insert_child(doc, "Drag", "08189DIHAA2981", 0, 0.7, 342628, "2022-05-04")
 
 	doc.insert()
+
+
+@frappe.whitelist()
+def insert_translations():
+	translation = [
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Other",
+			"translated_text": "Sonstiges",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Genderqueer",
+			"translated_text": "Nichtbinär",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Non-Conforming",
+			"translated_text": "Nicht konform",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Prefer not to say",
+			"translated_text": "Keine Angabe",
+		},
+	]
+
+	for doc in translation:
+		if not frappe.db.exists("doc"):
+			frappe.get_doc(doc).insert()

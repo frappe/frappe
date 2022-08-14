@@ -90,6 +90,7 @@ class EmailAccount(Document):
 		if use_oauth:
 			# no need for awaiting password for oauth
 			self.awaiting_password = 0
+			self.password = None
 
 		elif self.refresh_token:
 			# clear access & refresh token

@@ -20,7 +20,7 @@ from frappe.modules import load_doctype_module
 from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 
-max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
+max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),

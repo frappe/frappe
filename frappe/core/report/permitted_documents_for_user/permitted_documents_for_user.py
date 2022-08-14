@@ -4,18 +4,17 @@
 import frappe
 import frappe.utils.user
 from frappe.model import data_fieldtypes
-from frappe.permissions import check_admin_or_system_manager, rights
+from frappe.permissions import rights
 
 
 def execute(filters=None):
+	frappe.only_for("System Manager")
+
 	user, doctype, show_permissions = (
 		filters.get("user"),
 		filters.get("doctype"),
 		filters.get("show_permissions"),
 	)
-
-	if not validate(user, doctype):
-		return [], []
 
 	columns, fields = get_columns_and_fields(doctype)
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
@@ -28,12 +27,6 @@ def execute(filters=None):
 			data[i] = doc + tuple(permission.get(right) for right in rights)
 
 	return columns, data
-
-
-def validate(user, doctype):
-	# check if current user is System Manager
-	check_admin_or_system_manager()
-	return user and doctype
 
 
 def get_columns_and_fields(doctype):

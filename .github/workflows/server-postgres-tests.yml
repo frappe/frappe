@@ -7,7 +7,7 @@ on:
     branches: [ develop ]
 
 concurrency:
-  group: server-postgres-develop-${{ github.event.number }}
+  group: server-postgres-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 permissions:
@@ -132,10 +132,26 @@ jobs:
 
       - name: Upload coverage data
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-${{ matrix.container }}
+          path: /home/runner/frappe-bench/sites/coverage.xml
+
+  coverage:
+    name: Coverage Wrap Up
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Upload coverage data
         uses: codecov/codecov-action@v3
         with:
           name: Postgres
           fail_ci_if_error: true
-          files: /home/runner/frappe-bench/sites/coverage.xml
           verbose: true
-          flags: server
+          flags: server-postgres

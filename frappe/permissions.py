@@ -28,6 +28,14 @@ rights = (
 
 
 def check_admin_or_system_manager(user=None):
+	from frappe.utils.commands import warn
+
+	warn(
+		"The function check_admin_or_system_manager will be deprecated in version 15."
+		'Please use frappe.only_for("System Manager") instead.',
+		category=PendingDeprecationWarning,
+	)
+
 	if not user:
 		user = frappe.session.user
 
@@ -60,28 +68,39 @@ def has_permission(
 	verbose=False,
 	user=None,
 	raise_exception=True,
+	*,
 	parent_doctype=None,
 ):
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
 
-	Note: if Table DocType is passed, it always returns True.
+	:param doctype: DocType to check permission for
+	:param ptype: Permission Type to check
+	:param doc: Check User Permissions for specified document.
+	:param verbose: DEPRECATED, will be removed in a future release.
+	:param user: User to check permission for. Defaults to current user.
+	:param raise_exception:
+	        DOES NOT raise an exception.
+	        If not False, will display a message using frappe.msgprint
+	                which explains why the permission check failed.
+
+	:param parent_doctype:
+	        Required when checking permission for a child DocType (unless doc is specified)
 	"""
+
 	if not user:
 		user = frappe.session.user
+
+	if user == "Administrator":
+		return True
 
 	if not doc and hasattr(doctype, "doctype"):
 		# first argument can be doc or doctype
 		doc = doctype
 		doctype = doc.doctype
 
-	if user == "Administrator":
-		return True
-
 	if frappe.is_table(doctype):
-		return has_child_table_permission(
-			doctype, ptype, doc, verbose, user, raise_exception, parent_doctype
-		)
+		return has_child_permission(doctype, ptype, doc, user, raise_exception, parent_doctype)
 
 	meta = frappe.get_meta(doctype)
 
@@ -489,6 +508,7 @@ def add_user_permission(
 				for_value=name,
 				is_default=is_default,
 				applicable_for=applicable_for,
+				apply_to_all_doctypes=0 if applicable_for else 1,
 				hide_descendants=hide_descendants,
 			)
 		).insert(ignore_permissions=ignore_permissions)
@@ -658,52 +678,57 @@ def push_perm_check_log(log):
 	frappe.flags.get("has_permission_check_logs").append(_(log))
 
 
-def has_child_table_permission(
+def has_child_permission(
 	child_doctype,
 	ptype="read",
 	child_doc=None,
-	verbose=False,
 	user=None,
 	raise_exception=True,
 	parent_doctype=None,
 ):
-	parent_doc = None
+	if isinstance(child_doc, str):
+		child_doc = frappe.db.get_value(
+			child_doctype,
+			child_doc,
+			("parent", "parenttype", "parentfield"),
+			as_dict=True,
+		)
 
 	if child_doc:
-		parent_doctype = child_doc.get("parenttype")
-		parent_doc = frappe.get_cached_doc(
-			{"doctype": parent_doctype, "docname": child_doc.get("parent")}
-		)
+		parent_doctype = child_doc.parenttype
 
-	if parent_doctype:
-		if not is_parent_valid(child_doctype, parent_doctype):
-			frappe.throw(
-				_("{0} is not a valid parent DocType for {1}").format(
-					frappe.bold(parent_doctype), frappe.bold(child_doctype)
-				),
-				title=_("Invalid Parent DocType"),
-			)
-	else:
-		frappe.throw(
-			_("Please specify a valid parent DocType for {0}").format(frappe.bold(child_doctype)),
-			title=_("Parent DocType Required"),
+	if not parent_doctype:
+		push_perm_check_log(
+			_("Please specify a valid parent DocType for {0}").format(frappe.bold(child_doctype))
 		)
+		return False
+
+	parent_meta = frappe.get_meta(parent_doctype)
+
+	if parent_meta.istable or all(
+		df.options != child_doctype for df in parent_meta.get_table_fields()
+	):
+		push_perm_check_log(
+			_("{0} is not a valid parent DocType for {1}").format(
+				frappe.bold(parent_doctype), frappe.bold(child_doctype)
+			)
+		)
+		return False
+
+	if (
+		child_doc
+		and (permlevel := parent_meta.get_field(child_doc.parentfield).permlevel) > 0
+		and permlevel not in parent_meta.get_permlevel_access(ptype, user=user)
+	):
+		push_perm_check_log(
+			_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
+		)
+		return False
 
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=parent_doc,
-		verbose=verbose,
+		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
 		user=user,
 		raise_exception=raise_exception,
 	)
-
-
-def is_parent_valid(child_doctype, parent_doctype):
-	from frappe.core.utils import find
-
-	parent_meta = frappe.get_meta(parent_doctype)
-	child_table_field_exists = find(
-		parent_meta.get_table_fields(), lambda d: d.options == child_doctype
-	)
-	return not parent_meta.istable and child_table_field_exists

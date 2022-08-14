@@ -4,10 +4,12 @@
 import io
 import json
 import os
+import sys
 import unittest
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
+from io import StringIO
 from mimetypes import guess_type
 from unittest.mock import patch
 
@@ -16,15 +18,18 @@ from PIL import Image
 
 import frappe
 from frappe.installer import parse_app_name
+from frappe.model.document import Document
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
 	floor,
 	format_timedelta,
 	get_bench_path,
+	get_gravatar,
 	get_url,
 	money_in_words,
 	parse_timedelta,
+	random_string,
 	scrub_urls,
 	validate_email_address,
 	validate_url,
@@ -42,8 +47,23 @@ from frappe.utils.data import (
 )
 from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
+from frappe.utils.identicon import Identicon
 from frappe.utils.image import optimize_image, strip_exif_data
+from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
+
+
+class Capturing(list):
+	# ref: https://stackoverflow.com/a/16571630/10309266
+	def __enter__(self):
+		self._stdout = sys.stdout
+		sys.stdout = self._stringio = StringIO()
+		return self
+
+	def __exit__(self, *args):
+		self.extend(self._stringio.getvalue().splitlines())
+		del self._stringio
+		sys.stdout = self._stdout
 
 
 class TestFilters(unittest.TestCase):
@@ -253,6 +273,13 @@ class TestHTMLUtils(unittest.TestCase):
 		clean = clean_email_html(sample)
 		self.assertTrue("<h1>Hello</h1>" in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+
+	def test_sanitize_html(self):
+		from frappe.utils.html_utils import sanitize_html
+
+		clean = sanitize_html("<ol data-list='ordered' unknown_attr='xyz'></ol>")
+		self.assertIn("ordered", clean)
+		self.assertNotIn("xyz", clean)
 
 
 class TestValidationUtils(unittest.TestCase):
@@ -670,3 +697,53 @@ class TestIntrospectionMagic(unittest.TestCase):
 
 		# No args
 		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
+
+
+class TestMakeRandom(unittest.TestCase):
+	def test_get_random(self):
+		self.assertIsInstance(get_random("DocType", doc=True), Document)
+		self.assertIsInstance(get_random("DocType"), str)
+
+	def test_can_make(self):
+		self.assertIsInstance(can_make("User"), bool)
+
+	def test_how_many(self):
+		self.assertIsInstance(how_many("User"), int)
+
+
+class TestLazyLoader(unittest.TestCase):
+	def test_lazy_import_module(self):
+		from frappe.utils.lazy_loader import lazy_import
+
+		with Capturing() as output:
+			ls = lazy_import("frappe.tests.data.load_sleep")
+		self.assertEqual(output, [])
+
+		with Capturing() as output:
+			ls.time
+		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
+
+
+class TestIdenticon(unittest.TestCase):
+	def test_get_gravatar(self):
+		# developers@frappe.io has a gravatar linked so str URL will be returned
+		frappe.flags.in_test = False
+		gravatar_url = get_gravatar("developers@frappe.io")
+		frappe.flags.in_test = True
+		self.assertIsInstance(gravatar_url, str)
+		self.assertTrue(gravatar_url.startswith("http"))
+
+		# random email will require Identicon to be generated, which will be a base64 string
+		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
+		self.assertIsInstance(gravatar_url, str)
+		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
+
+	def test_generate_identicon(self):
+		identicon = Identicon(random_string(6))
+		with patch.object(identicon.image, "show") as show:
+			identicon.generate()
+			show.assert_called_once()
+
+		identicon_bs64 = identicon.base64()
+		self.assertIsInstance(identicon_bs64, str)
+		self.assertTrue(identicon_bs64.startswith("data:image/png;base64,"))

@@ -172,6 +172,7 @@ def get_context(context):
 
 		if (
 			frappe.session.user != "Guest"
+			and self.login_required
 			and not self.allow_multiple
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
@@ -183,7 +184,7 @@ def get_context(context):
 		# Show new form when
 		# - User is Guest
 		# - Login not required
-		route_to_new = frappe.session.user == "Guest" and not self.login_required
+		route_to_new = frappe.session.user == "Guest" or not self.login_required
 		if not frappe.form_dict.is_new and route_to_new:
 			frappe.redirect(f"/{self.route}/new")
 
@@ -245,7 +246,7 @@ def get_context(context):
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 
-		if frappe.form_dict.is_new:
+		if self.show_list and frappe.form_dict.is_new:
 			context.title = _("New {0}").format(context.title)
 
 		context.has_header = (frappe.form_dict.name or frappe.form_dict.is_new) and (
@@ -280,14 +281,14 @@ def get_context(context):
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
-			if context.is_form_editable:
+			if context.is_form_editable and context.parents:
 				context.parents.append(
 					{
 						"label": _(context.title),
 						"route": f"{self.route}/{context.doc_name}",
 					}
 				)
-				context.title = _("Edit")
+				context.title = _("Editing {0}").format(context.title)
 			context.reference_doc.add_seen()
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name
