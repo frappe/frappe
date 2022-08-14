@@ -50,6 +50,7 @@ from frappe.utils.data import (
 	cast,
 	cstr,
 	duration_to_seconds,
+	get_datetime,
 	get_first_day_of_week,
 	get_time,
 	get_timedelta,
@@ -58,6 +59,7 @@ from frappe.utils.data import (
 	getdate,
 	now_datetime,
 	nowtime,
+	pretty_date,
 	to_timedelta,
 	validate_python_code,
 )
@@ -564,6 +566,31 @@ class TestDateUtils(unittest.TestCase):
 	def test_timesmap_utils(self):
 		self.assertEqual(get_year_ending(date(2021, 1, 1)), date(2021, 12, 31))
 		self.assertEqual(get_year_ending(date(2021, 1, 31)), date(2021, 12, 31))
+
+	def test_pretty_date(self):
+		from frappe import _
+
+		# differnt cases
+		now = get_datetime()
+
+		test_cases = {
+			now: _("just now"),
+			add_to_date(now, minutes=-1): _("1 minute ago"),
+			add_to_date(now, minutes=-3): _("3 minutes ago"),
+			add_to_date(now, hours=-1): _("1 hour ago"),
+			add_to_date(now, hours=-2): _("2 hours ago"),
+			add_to_date(now, days=-1): _("Yesterday"),
+			add_to_date(now, days=-5): _("5 days ago"),
+			add_to_date(now, days=-8): _("1 week ago"),
+			add_to_date(now, days=-14): _("2 weeks ago"),
+			add_to_date(now, days=-32): _("1 month ago"),
+			add_to_date(now, days=-32 * 2): _("2 months ago"),
+			add_to_date(now, years=-1, days=-5): _("1 year ago"),
+			add_to_date(now, years=-2, days=-10): _("2 years ago"),
+		}
+
+		for dt, exp_message in test_cases.items():
+			self.assertEqual(pretty_date(dt), exp_message)
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")
