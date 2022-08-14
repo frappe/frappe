@@ -138,6 +138,8 @@ def validate_name(name, throw=False):
 	"""Returns True if the name is valid
 	valid names may have unicode and ascii characters, dash, quotes, numbers
 	anything else is considered invalid
+
+	Note: "Name" here is name of a person, not the primary key in Frappe doctypes.
 	"""
 	if not name:
 		return False
