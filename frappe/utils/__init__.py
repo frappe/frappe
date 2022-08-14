@@ -14,6 +14,7 @@ from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from gzip import GzipFile
 from urllib.parse import quote, urlparse
+from typing import Literal
 
 from redis.exceptions import ConnectionError
 from traceback_with_variables import iter_exc_lines
@@ -260,9 +261,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ""
 
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8")).hexdigest()
-
-	gravatar_url = f"https://secure.gravatar.com/avatar/{hexdigest}?d=404&s=200"
+	gravatar_url = get_gravatar_url(email, "404")
 	try:
 		res = requests.get(gravatar_url)
 		if res.status_code == 200:
@@ -273,10 +272,9 @@ def has_gravatar(email):
 		return ""
 
 
-def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(
-		hash=hashlib.md5(email.encode("utf-8")).hexdigest()
-	)
+def get_gravatar_url(email, default: Literal["mm", "404"]="mm"):
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8")).hexdigest()
+	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
 
 def get_gravatar(email):
