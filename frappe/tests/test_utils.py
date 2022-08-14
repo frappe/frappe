@@ -32,6 +32,7 @@ from frappe.utils import (
 	random_string,
 	scrub_urls,
 	validate_email_address,
+	validate_name,
 	validate_phone_number_with_country_code,
 	validate_url,
 )
@@ -341,6 +342,15 @@ class TestValidationUtils(unittest.TestCase):
 			"+420 1234567890",
 			"field",
 		)
+
+	def test_validate_name(self):
+		valid_names = ["", "abc", "asd a13", "asd-asd"]
+		for name in valid_names:
+			validate_name(name, True)
+
+		invalid_names = ["asd$wat", "asasd/ads"]
+		for name in invalid_names:
+			self.assertRaises(frappe.InvalidNameError, validate_name, name, True)
 
 
 class TestImage(unittest.TestCase):
