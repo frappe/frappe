@@ -122,9 +122,6 @@ class DatabaseQuery:
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
 
-		self.locals = locals()
-		self.qb_fields, self.qb_filters = fields, filters
-
 		if fields:
 			self.fields = fields
 		else:
@@ -210,20 +207,6 @@ class DatabaseQuery:
 			%(limit)s"""
 			% args
 		)
-
-		if self.locals.get("ignore_permissions"):
-			return frappe.qb.engine.get_query(
-				table=self.doctype,
-				fields=self.qb_fields,
-				filters=self.qb_filters,
-				pluck=self.locals.get("pluck"),
-			).run(
-				as_dict=not self.as_list,
-				debug=self.debug,
-				update=self.update,
-				ignore_ddl=self.ignore_ddl,
-				run=self.run,
-			)
 
 		return frappe.db.sql(
 			query,
