@@ -19,6 +19,7 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
@@ -749,7 +750,7 @@ class TestLazyLoader(unittest.TestCase):
 		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
 
 
-class TestIdenticon(unittest.TestCase):
+class TestIdenticon(FrappeTestCase):
 	def test_get_gravatar(self):
 		# developers@frappe.io has a gravatar linked so str URL will be returned
 		frappe.flags.in_test = False
