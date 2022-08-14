@@ -191,20 +191,21 @@ def search_widget(
 			if show_title_field:
 				formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
 
-			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
-			formatted_fields.append(
-				"""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
-					_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")),
-					doctype=doctype,
-				)
-			)
-
 			# In order_by, `idx` gets second priority, because it stores link count
 			from frappe.model.db_query import get_order_by
 
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			# 2 is the index of _relevance column
-			order_by = f"_relevance, {order_by_based_on_meta}, `tab{doctype}`.idx desc"
+			order_by = f"{order_by_based_on_meta}, `tab{doctype}`.idx desc"
+
+			if not meta.translated_doctype:
+				formatted_fields.append(
+					"""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
+						_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")),
+						doctype=doctype,
+					)
+				)
+				order_by = f"_relevance, {order_by}"
 
 			ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 			ignore_permissions = (
@@ -247,12 +248,14 @@ def search_widget(
 			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 			# remove _relevance from results
-			if as_dict:
-				for r in values:
-					r.pop("_relevance")
-				frappe.response["values"] = values
-			else:
-				frappe.response["values"] = [r[:-1] for r in values]
+			if not meta.translated_doctype:
+				if as_dict:
+					for r in values:
+						r.pop("_relevance")
+				else:
+					values = [r[:-1] for r in values]
+
+			frappe.response["values"] = values
 
 
 def get_std_fields_list(meta, key):
