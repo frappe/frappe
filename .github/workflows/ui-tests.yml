@@ -144,41 +144,9 @@ jobs:
 
       - name: UI Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --with-coverage --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-
-      - name: Stop server
-        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
-        run: |
-          ps -ef | grep "frappe serve" | awk '{print $2}' | xargs kill -s SIGINT 2> /dev/null || true
-          sleep 5
-
-      - name: Check If Coverage Report Exists
-        id: check_coverage
-        uses: andstor/file-existence-action@v1
-        with:
-          files: "/home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml"
-
-      - name: Upload Coverage Data
-        if: ${{ steps.check-build.outputs.build == 'strawberry' && steps.check_coverage.outputs.files_exists == 'true' }}
-        uses: codecov/codecov-action@v3
-        with:
-          name: Cypress
-          fail_ci_if_error: true
-          directory: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/
-          verbose: true
-          flags: ui-tests
-
-      - name: Upload Server Coverage Data
-        if: ${{ steps.check-build.outputs.build-server == 'strawberry' }}
-        uses: codecov/codecov-action@v3
-        with:
-          name: MariaDB
-          fail_ci_if_error: true
-          files: /home/runner/frappe-bench/sites/coverage.xml
-          verbose: true
-          flags: server
 
       - name: Show bench console if tests failed
         if: ${{ failure() }}
