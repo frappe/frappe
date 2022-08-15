@@ -192,6 +192,12 @@ class TestUser(unittest.TestCase):
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+		)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result
+		)  # test backwards compatibility
 
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
@@ -206,15 +212,6 @@ class TestUser(unittest.TestCase):
 		user.new_password = "Eastern_43A1W"
 		user.save()
 		frappe.flags.in_test = True
-
-	def test_password_validation(self):
-		result = test_password_strength("P@ssw0rd")
-		feedback = result["feedback"]
-		self.assertEqual(feedback["password_policy_validation_passed"], False)
-		self.assertRaises(frappe.exceptions.ValidationError, handle_password_test_fail, feedback)
-
-		# test backwards compatibility
-		self.assertRaises(frappe.exceptions.ValidationError, handle_password_test_fail, result)
 
 	def test_comment_mentions(self):
 		comment = """
