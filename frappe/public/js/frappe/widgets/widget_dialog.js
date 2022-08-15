@@ -409,7 +409,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "doc_view",
 				label: "DocType View",
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar",
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),

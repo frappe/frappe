@@ -9,7 +9,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)["Kanban"] || {};
 			if (!user_settings.last_kanban_board) {
-				return this.show();
+				return new frappe.views.KanbanView({ doctype: doctype });
 			}
 
 			route.push(user_settings.last_kanban_board);
