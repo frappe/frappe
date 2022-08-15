@@ -145,12 +145,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		}
 
 		this.show_or_hide_add_column();
-		this.render_list();
-	}
-
-	render_list() {
 		this.kanban.update(this.data);
 	}
+
+	render_list() {}
 
 	show_or_hide_add_column() {
 		if (frappe.perm.has_perm("Kanban Board", 0, "write")) return;
