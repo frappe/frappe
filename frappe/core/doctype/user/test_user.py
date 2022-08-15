@@ -201,7 +201,7 @@ class TestUser(unittest.TestCase):
 		user = frappe.get_doc("User", "test@example.com")
 		frappe.flags.in_test = False
 		user.new_password = "password"
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid Password", user.save)
+		self.assertRaises(frappe.exceptions.ValidationError, user.save)
 		user.reload()
 		user.new_password = "Eastern_43A1W"
 		user.save()
