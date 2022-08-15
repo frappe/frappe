@@ -97,6 +97,7 @@ class DatabaseQuery:
 		strict=True,
 		pluck=None,
 		ignore_ddl=False,
+		*,
 		parent_doctype=None,
 	) -> list:
 

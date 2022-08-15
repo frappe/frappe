@@ -26,15 +26,15 @@ context("Control Link", () => {
 		});
 	}
 
-	function get_dialog_with_user_link() {
+	function get_dialog_with_gender_link() {
 		return cy.dialog({
 			title: "Link",
 			fields: [
 				{
-					label: "Select User",
+					label: "Select Gender",
 					fieldname: "link",
 					fieldtype: "Link",
-					options: "User",
+					options: "Gender",
 				},
 			],
 		});
@@ -42,19 +42,6 @@ context("Control Link", () => {
 
 	it("should set the valid value", () => {
 		get_dialog_with_link().as("dialog");
-
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "User",
-				property: "translate_link_fields",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "0",
-			},
-			true
-		);
 
 		cy.insert_doc(
 			"Property Setter",
@@ -133,19 +120,6 @@ context("Control Link", () => {
 	});
 
 	it("show title field in link", () => {
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "User",
-				property: "translate_link_fields",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "0",
-			},
-			true
-		);
-
 		cy.insert_doc(
 			"Property Setter",
 			{
@@ -275,142 +249,54 @@ context("Control Link", () => {
 		);
 	});
 
-	it("show translated text for link with show_title_field_in_link enabled", () => {
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "ToDo",
-				property: "translate_link_fields",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "1",
-			},
-			true
-		);
-
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "ToDo",
-				property: "show_title_field_in_link",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "1",
-			},
-			true
-		);
-
-		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				cy.insert_doc("Translation", {
-					doctype: "Translation",
-					language: frappe.boot.lang,
-					source_text: "this is a test todo for link",
-					translated_text: "this is a translated test todo for link",
+	it("show translated text for Gender link field with language de with input in de", () => {
+		cy.call("frappe.tests.ui_test_helpers.insert_translations").then(() => {
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					cy.set_value("User", frappe.user.name, { language: "de" });
 				});
-			});
 
-		cy.clear_cache();
-		cy.wait(500);
+			cy.clear_cache();
+			cy.wait(500);
 
-		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				if (!frappe.boot) {
-					frappe.boot = {
-						link_title_doctypes: ["ToDo"],
-						translatable_doctypes: ["ToDo"],
-					};
-				} else {
-					frappe.boot.link_title_doctypes = ["ToDo"];
-					frappe.boot.translatable_doctypes = ["ToDo"];
-				}
-			});
+			get_dialog_with_gender_link().as("dialog");
+			cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
-		get_dialog_with_link().as("dialog");
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-
-		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
-		cy.wait("@search_link");
-		cy.get("@input").type("todo for link", { delay: 100 });
-		cy.wait("@search_link");
-		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
-		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
-		cy.get(".frappe-control[data-fieldname=link] input").blur();
-		cy.get("@dialog").then((dialog) => {
-			cy.get("@todos").then((todos) => {
+			cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
+			cy.wait("@search_link");
+			cy.get("@input").type("Sonstiges", { delay: 100 });
+			cy.wait("@search_link");
+			cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
+			cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
+			cy.get(".frappe-control[data-fieldname=link] input").blur();
+			cy.get("@dialog").then((dialog) => {
 				let field = dialog.get_field("link");
 				let value = field.get_value();
 				let label = field.get_label_value();
 
-				expect(value).to.eq(todos[0]);
-				expect(label).to.eq("this is a translated test todo for link");
+				expect(value).to.eq("Other");
+				expect(label).to.eq("Sonstiges");
 			});
 		});
 	});
 
-	it("show translated text for link with show_title_field_in_link disabled", () => {
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "User",
-				property: "translate_link_fields",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "1",
-			},
-			true
-		);
-
-		cy.insert_doc(
-			"Property Setter",
-			{
-				doctype: "Property Setter",
-				doc_type: "ToDo",
-				property: "show_title_field_in_link",
-				property_type: "Check",
-				doctype_or_field: "DocType",
-				value: "0",
-			},
-			true
-		);
-
+	it("show text for Gender link field with language en", () => {
 		cy.window()
 			.its("frappe")
 			.then((frappe) => {
-				cy.insert_doc("Translation", {
-					doctype: "Translation",
-					language: frappe.boot.lang,
-					source_text: "test@erpnext.com",
-					translated_text: "translatedtest@erpnext.com",
-				});
+				cy.set_value("User", frappe.user.name, { language: "en" });
 			});
 
 		cy.clear_cache();
 		cy.wait(500);
 
-		cy.window()
-			.its("frappe")
-			.then((frappe) => {
-				if (!frappe.boot) {
-					frappe.boot = {
-						translatable_doctypes: ["User"],
-					};
-				} else {
-					frappe.boot.translatable_doctypes = ["User"];
-				}
-			});
-
-		get_dialog_with_user_link().as("dialog");
+		get_dialog_with_gender_link().as("dialog");
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		cy.wait("@search_link");
-		cy.get("@input").type("test@erpnext.com", { delay: 100 });
+		cy.get("@input").type("Non-Conforming", { delay: 100 });
 		cy.wait("@search_link");
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
@@ -420,8 +306,34 @@ context("Control Link", () => {
 			let value = field.get_value();
 			let label = field.get_label_value();
 
-			expect(value).to.eq("test@erpnext.com");
-			expect(label).to.eq("translatedtest@erpnext.com");
+			expect(value).to.eq("Non-Conforming");
+			expect(label).to.eq("Non-Conforming");
 		});
+	});
+
+	it("show custom link option", () => {
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.ui.form.ControlLink.link_options = (link) => {
+					return [
+						{
+							html:
+								"<span class='text-primary custom-link-option'>" +
+								"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
+								"Custom Link Option" +
+								"</span>",
+							label: "Custom Link Option",
+							value: "custom__link_option",
+							action: () => {},
+						},
+					];
+				};
+
+				get_dialog_with_link().as("dialog");
+				cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
+				cy.get("@input").type("custom", { delay: 100 });
+				cy.get(".custom-link-option").should("be.visible");
+			});
 	});
 });

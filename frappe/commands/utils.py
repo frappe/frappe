@@ -823,6 +823,8 @@ def run_tests(
 def run_parallel_tests(
 	context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False
 ):
+	from traceback_with_variables import activate_by_import
+
 	with CodeCoverage(with_coverage, app):
 		site = get_site(context)
 		if use_orchestrator:
