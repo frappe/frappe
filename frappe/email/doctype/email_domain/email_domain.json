@@ -64,6 +64,7 @@
   {
    "default": "0",
    "fieldname": "use_starttls",
+   "depends_on": "eval:doc.use_imap && !doc.use_ssl",
    "fieldtype": "Check",
    "label": "Use STARTTLS for Incoming"
   },
@@ -114,7 +115,7 @@
    "default": "0",
    "fieldname": "use_ssl_for_outgoing",
    "fieldtype": "Check",
-   "label": "Use SSL for Outgoing"
+   "label": "Use SSL"
   },
   {
    "fieldname": "column_break_9",

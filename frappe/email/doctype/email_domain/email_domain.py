@@ -82,7 +82,8 @@ class EmailDomain(Document):
 			conn_method = Timed_IMAP4_SSL if self.use_ssl else Timed_IMAP4
 
 		incoming_conn = conn_method(self.email_server, port=self.incoming_port)
-		if self.use_starttls:
+
+		if self.use_starttls and self.use_imap and not self.use_ssl:
 			incoming_conn.starttls()
 
 		incoming_conn.logout() if self.use_imap else incoming_conn.quit()

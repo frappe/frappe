@@ -605,7 +605,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_imap && !doc.use_ssl",
    "fetch_from": "domain.use_starttls",
    "fieldname": "use_starttls",
    "fieldtype": "Check",

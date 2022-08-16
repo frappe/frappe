@@ -99,9 +99,8 @@ class EmailServer:
 				self.imap = Timed_IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
-
-			if cint(self.settings.use_starttls):
-				self.imap.starttls()
+				if cint(self.settings.use_starttls):
+					self.imap.starttls()
 
 			if self.settings.use_oauth:
 				Oauth(
