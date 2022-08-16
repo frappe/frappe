@@ -2284,14 +2284,22 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
-		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
+		try:
+			local.website_settings = get_cached_doc("Website Settings")
+		except DoesNotExistError:
+			clear_last_message()
+			return
 
 	return local.website_settings.get(key)
 
 
 def get_system_settings(key):
 	if not hasattr(local, "system_settings"):
-		local.system_settings = db.get_singles_dict("System Settings", cast=True)
+		try:
+			local.system_settings = get_cached_doc("System Settings")
+		except DoesNotExistError:  # possible during new install
+			clear_last_message()
+			return
 
 	return local.system_settings.get(key)
 
