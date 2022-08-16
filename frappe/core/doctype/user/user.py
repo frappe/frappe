@@ -540,7 +540,7 @@ class User(Document):
 			feedback = result.get("feedback", None)
 
 			if feedback and not feedback.get("password_policy_validation_passed", False):
-				handle_password_test_fail(result)
+				handle_password_test_fail(feedback)
 
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
@@ -686,7 +686,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	feedback = result.get("feedback", None)
 
 	if feedback and not feedback.get("password_policy_validation_passed", False):
-		handle_password_test_fail(result)
+		handle_password_test_fail(feedback)
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get("message"):
@@ -1042,13 +1042,15 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		)
 
 
-def handle_password_test_fail(result):
-	suggestions = result["feedback"]["suggestions"][0] if result["feedback"]["suggestions"] else ""
-	warning = result["feedback"]["warning"] if "warning" in result["feedback"] else ""
-	suggestions += (
-		"<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + "<br>"
-	)
-	frappe.throw(" ".join([_("Invalid Password:"), warning, suggestions]))
+def handle_password_test_fail(feedback: dict):
+	# Backward compatibility
+	if "feedback" in feedback:
+		feedback = feedback["feedback"]
+
+	suggestions = feedback.get("suggestions", [])
+	warning = feedback.get("warning", "")
+
+	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
 
 
 def update_gravatar(name):
