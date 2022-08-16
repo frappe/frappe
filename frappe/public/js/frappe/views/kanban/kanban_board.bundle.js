@@ -325,7 +325,6 @@ frappe.provide("frappe.views");
 			store.watch((state, getters) => {
 				return state.empty_state;
 			}, show_empty_state);
-			store.dispatch("update_order");
 		}
 
 		function prepare() {
