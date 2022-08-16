@@ -283,7 +283,6 @@ def subscribe(email, email_group=_("Website")):  # noqa
 		email,
 		subject=email_subject,
 		content=content,
-		now=True,
 	)
 
 
