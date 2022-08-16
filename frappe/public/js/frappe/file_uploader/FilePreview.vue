@@ -13,14 +13,8 @@
 			<div>
 				<a class="flex" :href="file.doc.file_url" v-if="file.doc" target="_blank">
 					<span class="file-name">{{ file.name | file_name }}</span>
-					<div class="ml-2" v-html="private_icon"></div>
 				</a>
-				<span class="flex" v-else>
-					<span class="file-name">{{ file.name | file_name }}</span>
-					<button class="ml-2 btn-reset" @click="$emit('toggle_private')" :title="__('Toggle Public/Private')">
-						<div v-html="private_icon"></div>
-					</button>
-				</span>
+				<span class="file-name" v-else>{{ file.name | file_name }}</span>
 			</div>
 
 			<div>
@@ -28,6 +22,19 @@
 					{{ file.file_obj.size | file_size }}
 				</span>
 			</div>
+<<<<<<< HEAD
+=======
+
+			<div class="flex config-area">
+				<label v-if="is_optimizable" class="frappe-checkbox"><input type="checkbox" :checked="optimize" @change="$emit('toggle_optimize')">Optimize</label>
+				<label class="frappe-checkbox"><input type="checkbox" :checked="file.private" @change="$emit('toggle_private')">Private</label>
+			</div>
+			<div>
+				<span v-if="file.error_message" class="file-error text-danger">
+					{{ file.error_message }}
+				</span>
+			</div>
+>>>>>>> 040a7ba021 (fix(UX): better indicator for "is private" uploads)
 		</div>
 		<div class="file-actions">
 			<ProgressRing
@@ -77,9 +84,6 @@ export default {
 		}
 	},
 	computed: {
-		private_icon() {
-			return frappe.utils.icon(this.is_private ? 'lock' : 'unlock');
-		},
 		is_private() {
 			return this.file.doc ? this.file.doc.is_private : this.file.private;
 		},
@@ -173,4 +177,38 @@ export default {
 	padding: var(--padding-xs);
 	box-shadow: none;
 }
+<<<<<<< HEAD
+=======
+
+.file-action-buttons {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.muted {
+	opacity: 0.5;
+	transition: 0.3s;
+}
+
+.muted:hover {
+	opacity: 1;
+}
+
+.frappe-checkbox {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+	display: flex;
+	align-items: center;
+	padding-top: 0.25rem;
+}
+
+.config-area {
+	gap: 0.5rem;
+}
+
+.file-error {
+	font-size: var(--text-sm);
+	font-weight: var(--text-bold);
+}
+>>>>>>> 040a7ba021 (fix(UX): better indicator for "is private" uploads)
 </style>
