@@ -185,7 +185,7 @@ frappe.provide("frappe.views");
 						new_index: card.new_index,
 					};
 				}
-				frappe.dom.freeze();
+
 				frappe
 					.call({
 						method: method_prefix + method_name,
@@ -201,7 +201,6 @@ frappe.provide("frappe.views");
 								cards: cards,
 								columns: columns,
 							});
-							frappe.dom.unfreeze();
 						},
 					})
 					.fail(function () {
@@ -210,7 +209,6 @@ frappe.provide("frappe.views");
 							cards: _cards,
 							columns: _columns,
 						});
-						frappe.dom.unfreeze();
 					});
 			},
 			update_order: function (context) {
