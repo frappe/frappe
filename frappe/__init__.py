@@ -16,6 +16,7 @@ import inspect
 import json
 import os
 import re
+import shutil
 import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, overload
 
@@ -528,6 +529,12 @@ def throw(
 		wide=wide,
 		as_list=as_list,
 	)
+
+
+def delete_folder(path: str) -> None:
+	"""Delete folder and all the content inside that folder."""
+	if os.path.exists(path):
+		shutil.rmtree(path)
 
 
 def create_folder(path, with_init=False):
