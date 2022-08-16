@@ -490,7 +490,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		if widgets.quick_list:
 			doc.quick_lists.extend(new_widget(widgets.quick_list, "Workspace Quick List", "quick_lists"))
 		if widgets.embed:
-			doc.embed.extend(new_widget(widgets.embed, "Workspace Embed", "embeds"))
+			doc.embeds.extend(new_widget(widgets.embed, "Workspace Embed", "embeds"))
 		if widgets.card:
 			doc.build_links_table_from_card(widgets.card)
 

@@ -1,6 +1,6 @@
 import EditorJS from '@editorjs/editorjs';
 import Undo from 'editorjs-undo';
-import Embed from '@editorjs/embed';
+//import Embed from '@editorjs/embed';
 
 frappe.standard_pages['Workspaces'] = function() {
 	var wrapper = frappe.container.add_page('Workspaces');
@@ -16,6 +16,22 @@ frappe.standard_pages['Workspaces'] = function() {
 		frappe.workspace.show();
 	});
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
@@ -1081,6 +1097,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	initialize_editorjs(blocks) {
+		debugger;
 		this.tools = {
 			header: {
 				class: this.blocks['header'],
@@ -1128,6 +1145,7 @@ frappe.views.Workspace = class Workspace {
 			},
 			embed: {
 				class: this.blocks['embed'],
+				inlineToolbar: false,
 				config: {
 					page_data: this.page_data || []
 				}

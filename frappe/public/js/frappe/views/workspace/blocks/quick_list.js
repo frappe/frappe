@@ -54,6 +54,7 @@ export default class QuickList extends Block {
 	}
 
 	save() {
+		debugger;
 		return {
 			quick_list_name: this.wrapper.getAttribute('quick_list_name'),
 			col: this.get_col(),

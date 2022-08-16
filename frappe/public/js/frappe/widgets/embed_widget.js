@@ -12,16 +12,14 @@ export default class EmbedWidget extends Widget {
 		return {
 			document_type: this.document_type,
 			label: this.label,
-			embed_filter: this.embed_filter
 		};
 	}
 
+	//these are the buttons on top of the widget.
 	set_actions() {
 		if (this.in_customize_mode) return;
-
-		this.setup_add_new_button();
-		this.setup_refresh_list_button();
-		this.setup_filter_list_button();
+		//this.setup_add_new_button();
+		this.setup_refresh_embed();
 	}
 
 	setup_add_new_button() {
@@ -53,67 +51,6 @@ export default class EmbedWidget extends Widget {
 		});
 	}
 
-	setup_filter_list_button() {
-		this.filter_list = $(
-			`<div class="filter-list btn btn-xs pull-right" title="${__("Add/Update Filter")}">
-				${frappe.utils.icon('filter', 'sm')}
-			</div>`
-		);
-
-		this.filter_list.appendTo(this.action_area);
-		this.filter_list.on("click", () => this.setup_filter_dialog());
-	}
-
-	setup_filter(doctype) {
-		if (this.filter_group) {
-			this.filter_group.wrapper.empty();
-			delete this.filter_group;
-		}
-
-		this.filters = frappe.utils.get_filter_from_json(this.embed_filter, doctype);
-
-		this.filter_group = new frappe.ui.FilterGroup({
-			parent: this.dialog.get_field("filter_area").$wrapper,
-			doctype: doctype,
-			on_change: () => {},
-		});
-
-		frappe.model.with_doctype(doctype, () => {
-			this.filter_group.add_filters_to_filter_group(this.filters);
-			this.dialog.set_df_property("filter_area", "hidden", false);
-		});
-	}
-
-	setup_filter_dialog() {
-		let fields = [
-			{
-				fieldtype: "HTML",
-				fieldname: "filter_area"
-			}
-		];
-		let me = this;
-		this.dialog = new frappe.ui.Dialog({
-			title: __("Set Filters for {0}", [this.document_type]),
-			fields: fields,
-			primary_action: function() {
-				let old_filter = me.embed_filter;
-				let filters = me.filter_group.get_filters();
-				me.embed_filter = frappe.utils.get_filter_as_json(filters);
-
-				this.hide();
-
-				if (old_filter != me.embed_filter) {
-					me.body.empty();
-					me.set_footer();
-					me.set_body();
-				}
-			},
-			primary_action_label: "Set"
-		});
-
-		this.dialog.show();
-		this.setup_filter(this.document_type);
-	}
 
 	render_loading_state() {
 		this.body.empty();

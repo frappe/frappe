@@ -54,6 +54,8 @@ export default class Embed extends Block {
 	}
 
 	save() {
+			
+		debugger;
 		return {
 			embed_name: this.wrapper.getAttribute('embed_name'),
 			col: this.get_col(),

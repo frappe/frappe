@@ -187,6 +187,71 @@ class QuickListDialog extends WidgetDialog {
 	}
 }
 
+class EmbedDialogTest extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Data",
+				fieldname: "url",
+				label: "Youtube URL",
+				options: "Module Onboarding",
+				reqd: 1,
+			}
+		];
+	}
+}
+
+
+class EmbedDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "document_type",
+				label: "DocType",
+				options: "DocType",
+				reqd: 1,
+				onchange: () => {
+					this.document_type = this.dialog.get_value("document_type");
+					this.document_type && this.setup_filter(this.document_type);
+				},
+				get_query: () => {
+					return {
+						filters: {
+							issingle: 0,
+							istable: 0
+						}
+					};
+				}
+			},
+			{
+				fieldtype: "Column Break",
+				fieldname: "column_break_4",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "label",
+				label: "Label",
+			},
+		];
+	}
+
+
+	process_data(data) {
+
+		data.label = data.label ? data.label : data.document_type;
+		return data;
+	}
+}
+
 class OnboardingDialog extends WidgetDialog {
 	constructor(opts) {
 		super(opts);
@@ -639,7 +704,8 @@ export default function get_dialog_constructor(type) {
 		number_card: NumberCardDialog,
 		links: CardDialog,
 		onboarding: OnboardingDialog,
-		quick_list: QuickListDialog
+		quick_list: QuickListDialog,
+		embed: EmbedDialog
 	};
 
 	return widget_map[type] || WidgetDialog;
