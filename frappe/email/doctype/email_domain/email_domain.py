@@ -83,6 +83,9 @@ class EmailDomain(Document):
 
 		incoming_conn = conn_method(self.email_server, port=self.incoming_port)
 
+		if self.use_ssl:
+			self.use_starttls = None
+
 		if self.use_starttls and self.use_imap and not self.use_ssl:
 			incoming_conn.starttls()
 
