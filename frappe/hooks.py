@@ -373,5 +373,3 @@ override_whitelisted_methods = {
 	"frappe.core.doctype.file.file.move_file": "frappe.core.api.file.move_file",
 	"frappe.core.doctype.file.file.zip_files": "frappe.core.api.file.zip_files",
 }
-
-translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]
