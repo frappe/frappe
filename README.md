@@ -15,13 +15,13 @@
 
 <div align="center">
 	<a target="_blank" href="#LICENSE" title="License: MIT">
-		<img src="https://img.shields.io/badge/License-MIT-green.svg">
+		<img src="https://img.shields.io/badge/License-MIT-success.svg">
 	</a>
 	<a target="_blank" href="https://www.python.org/downloads/" title="Python version">
-		<img src="https://img.shields.io/badge/python-%3E=_3.10-green.svg">
+		<img src="https://img.shields.io/badge/python-%3E=_3.10-success.svg">
 	</a>
 	<a href="https://frappeframework.com/docs">
-		<img src="https://img.shields.io/badge/docs-%F0%9F%93%96-green.svg"/>
+		<img src="https://img.shields.io/badge/docs-%F0%9F%93%96-success.svg"/>
 	</a>
 	<a href="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml">
 		<img src="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml/badge.svg">
