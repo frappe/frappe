@@ -32,6 +32,14 @@ frappe.ui.form.on("Web Form", {
 			frm.scroll_to_field("web_form_fields");
 			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
 		}
+
+		let page_break_count = frm.doc.web_form_fields.filter(
+			(f) => f.fieldtype == "Page Break"
+		).length;
+
+		if (page_break_count >= 10) {
+			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		}
 	},
 
 	add_publish_button(frm) {
@@ -147,7 +155,16 @@ frappe.ui.form.on("Web Form List Column", {
 
 frappe.ui.form.on("Web Form Field", {
 	fieldtype: function (frm, doctype, name) {
-		var doc = frappe.get_doc(doctype, name);
+		let doc = frappe.get_doc(doctype, name);
+
+		let page_break_count = frm.doc.web_form_fields.filter(
+			(f) => f.fieldtype == "Page Break"
+		).length;
+
+		if (page_break_count >= 10) {
+			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		}
+
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
 			doc.fieldname = "";
 			doc.options = "";
