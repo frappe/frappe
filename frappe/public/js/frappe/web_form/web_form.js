@@ -294,7 +294,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	show_next_and_hide_save_button() {
 		$(".btn-next").show();
-		$(".submit-btn").hide();
+		!this.allow_incomplete && $(".submit-btn").hide();
 	}
 
 	toggle_previous_button() {
