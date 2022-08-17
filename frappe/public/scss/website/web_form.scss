@@ -140,14 +140,18 @@
 						font-size: var(--text-base);
 					}
 
+					.left-area {
+						display: flex;
+						flex: 1;
+					}
+
 					.center-area {
-						padding: 0.5rem;
 						display: flex;
 						align-items: center;
+						font-size: var(--text-base);
 
 						.slides-progress {
 							display: flex;
-							margin-right: .5rem;
 
 							.slide-step {
 								@include flex(flex, center, center, null);
@@ -203,6 +207,12 @@
 								}
 							}
 						}
+					}
+
+					.right-area {
+						display: flex;
+						justify-content: flex-end;
+						flex: 1;
 					}
 				}
 			}
