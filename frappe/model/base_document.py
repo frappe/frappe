@@ -671,10 +671,19 @@ class BaseDocument:
 
 			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
 
+		def has_content(df):
+			value = cstr(self.get(df.fieldname))
+			has_text_content = strip_html(value).strip()
+			has_img_tag = "<img" in value
+			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+				return True
+			else:
+				return has_text_content
+
 		missing = []
 
 		for df in self.meta.get("fields", {"reqd": ("=", 1)}):
-			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
+			if self.get(df.fieldname) in (None, []) or not has_content(df):
 				missing.append((df.fieldname, get_msg(df)))
 
 		# check for missing parent and parenttype
