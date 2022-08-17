@@ -1,5 +1,5 @@
 frappe.ui.form.on("Web Form", {
-	setup: function (frm) {
+	setup: function () {
 		frappe.meta.docfield_map["Web Form Field"].fieldtype.formatter = (value) => {
 			const prefix = {
 				"Page Break": "--red-600",
@@ -235,16 +235,12 @@ function render_list_settings_message(frm) {
 				${__("login_required")}
 			</code>
 		`;
+		let message = __(
+			"Login is required to see web form list view. Enable {0} to see list settings",
+			[go_to_login_required_field]
+		);
 		$(frm.fields_dict["list_setting_message"].wrapper)
-			.html(
-				$(
-					`<div class="form-message blue">
-					${__("Login is required to see web form list view. Enable {0} to see list settings", [
-						go_to_login_required_field,
-					])}
-				</div>`
-				)
-			)
+			.html($(`<div class="form-message blue">${message}</div>`))
 			.find("code")
 			.click(() => frm.scroll_to_field("login_required"));
 	} else {
