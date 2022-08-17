@@ -3,17 +3,17 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% macro header_buttons() %}
+	{% if allow_edit and doc_name and not is_form_editable %}
+		<!-- edit button -->
+		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
+	{% endif %}
+
 	{% if allow_print and not is_new %}
 		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
 		<!-- print button -->
-		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-light btn-sm ml-2">
+		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
 		</a>
-	{% endif %}
-
-	{% if allow_edit and doc_name and not is_form_editable %}
-		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-primary btn-sm ml-2">{{ _("Edit", null, "Button in web form") }}</a>
 	{% endif %}
 {% endmacro %}
 
@@ -21,7 +21,7 @@
 	{% if is_new or is_form_editable %}
 		<div class="left-area">
 			<!-- clear button -->
-			<a href="/{{ path }}" class="clear-btn btn btn-light btn-md">
+			<a href="/{{ path }}" class="clear-btn btn btn-default btn-sm">
 				{% if is_form_editable %}
 					{{ _("Reset Form", null, "Button in web form") }}
 				{% else %}
@@ -32,7 +32,7 @@
 		<div class="center-area paging"></div>
 		<div class="right-area">
 			<!-- submit button -->
-			<button type="submit" class="submit-btn btn btn-primary btn-md ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
+			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
 		</div>
 	{% endif %}
 {% endmacro %}
@@ -133,10 +133,10 @@
 			</div>
 		{% else %}
 			{% if show_list %}
-				<a href="/{{ route }}/list" class="show-list-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
+				<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
 			{% endif %}
 			{% if not login_required or allow_multiple %}
-				<a href="/{{ route }}/new" class="new-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+				<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
 			{% endif %}
 		{% endif %}
 	</div>
