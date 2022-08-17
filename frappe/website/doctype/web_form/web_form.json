@@ -5,50 +5,50 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
-  "title_and_route_tab",
+  "form_tab",
   "title",
   "route",
   "published",
-  "column_break_4",
+  "column_break_1",
   "doc_type",
   "module",
   "is_standard",
-  "introduction",
+  "section_break_1",
   "introduction_text",
-  "form_settings_tab",
+  "web_form_fields",
+  "settings_tab",
   "login_required",
   "allow_multiple",
   "allow_edit",
   "allow_delete",
-  "column_break_18",
+  "column_break_2",
   "apply_document_permissions",
   "allow_print",
   "print_format",
   "allow_comments",
   "show_attachments",
   "allow_incomplete",
-  "form_fields",
-  "web_form_fields",
+  "section_break_2",
   "max_attachment_size",
-  "list_settings_tab",
+  "section_break_3",
   "list_setting_message",
   "show_list",
   "list_title",
   "list_columns",
-  "sidebar_settings_tab",
+  "section_break_4",
   "show_sidebar",
   "website_sidebar",
   "customization_tab",
   "button_label",
   "banner_image",
-  "column_break_37",
+  "column_break_3",
   "breadcrumbs",
-  "section_break_43",
+  "section_break_5",
   "success_title",
   "success_url",
-  "column_break_41",
+  "column_break_4",
   "success_message",
-  "scripting_style_tab",
+  "section_break_6",
   "client_script",
   "custom_css"
  ],
@@ -80,10 +80,6 @@
    "fieldtype": "Link",
    "label": "Module",
    "options": "Module Def"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -157,12 +153,6 @@
    "fieldname": "allow_incomplete",
    "fieldtype": "Check",
    "label": "Allow Incomplete Forms"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "introduction",
-   "fieldtype": "Section Break",
-   "label": "Introduction"
   },
   {
    "fieldname": "introduction_text",
@@ -251,21 +241,6 @@
    "options": "Web Form List Column"
   },
   {
-   "fieldname": "title_and_route_tab",
-   "fieldtype": "Tab Break",
-   "label": "Title & Route"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "form_fields",
-   "fieldtype": "Section Break",
-   "label": "Form Fields"
-  },
-  {
-   "fieldname": "column_break_18",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "website_sidebar",
    "fieldtype": "Link",
    "label": "Website Sidebar",
@@ -275,29 +250,6 @@
    "fieldname": "list_setting_message",
    "fieldtype": "HTML",
    "label": "List Setting Message"
-  },
-  {
-   "fieldname": "form_settings_tab",
-   "fieldtype": "Tab Break",
-   "label": "Form Settings"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "show_list",
-   "fieldname": "list_settings_tab",
-   "fieldtype": "Tab Break",
-   "label": "List Settings"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "sidebar_settings_tab",
-   "fieldtype": "Tab Break",
-   "label": "Sidebar Settings"
-  },
-  {
-   "fieldname": "scripting_style_tab",
-   "fieldtype": "Tab Break",
-   "label": "Scripting / Style"
   },
   {
    "fieldname": "customization_tab",
@@ -315,24 +267,74 @@
    "label": "Banner Image"
   },
   {
-   "fieldname": "column_break_41",
+   "fieldname": "form_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "column_break_1",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_43",
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_sidebar",
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Sidebar Settings"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.success_title || doc.success_message || doc.success_url",
+   "fieldname": "section_break_5",
    "fieldtype": "Section Break",
    "label": "After Submission"
   },
   {
-   "fieldname": "column_break_37",
+   "fieldname": "column_break_4",
    "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.client_script || doc.custom_css",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Scripting / Style"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-11 16:27:25.914627",
+ "modified": "2022-08-17 18:58:49.451658",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
