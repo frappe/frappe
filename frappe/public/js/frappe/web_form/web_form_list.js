@@ -381,7 +381,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 						formatter(this.doc[field.fieldname], field, { only_value: 1 }, this.doc)
 					)) ||
 				"";
-			let cell = $(`<td>${value}</td>`);
+			let cell = $(`<td><p class="ellipsis">${value}</p></td>`);
 			cell.appendTo(this.row);
 		});
 
