@@ -1,5 +1,4 @@
 {
- "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "Prompt",
@@ -30,7 +29,7 @@
    "fieldtype": "Text Editor",
    "in_list_view": 1,
    "label": "Response",
-   "mandatory_depends_on": "eval:!doc.use_html"
+   "reqd": 1
   },
   {
    "default": "user",
@@ -65,8 +64,7 @@
   }
  ],
  "icon": "fa fa-comment",
- "links": [],
- "modified": "2020-11-30 14:12:50.321633",
+ "modified": "2022-06-22 14:28:49.750218",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",

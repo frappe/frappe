@@ -4,5 +4,10 @@
 frappe.ui.form.on('Email Template', {
 	refresh: function() {
 
+	},
+
+	use_html: function(frm) {
+		frm.set_df_property("response_html", "reqd", frm.doc.use_html);
+		frm.set_df_property("response", "reqd", !frm.doc.use_html);
 	}
 });
