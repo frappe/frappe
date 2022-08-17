@@ -200,6 +200,18 @@ export default {
 				}
 			});
 		}
+<<<<<<< HEAD
+=======
+		if (this.restrictions.max_file_size == null) {
+			frappe.call('frappe.core.api.file.get_max_file_size')
+				.then(res => {
+					this.restrictions.max_file_size = Number(res.message);
+				});
+		}
+		if (this.restrictions.max_number_of_files == null && this.doctype) {
+			this.restrictions.max_number_of_files = frappe.get_meta(this.doctype)?.max_attachments;
+		}
+>>>>>>> 5062b9b26a (fix: undefined "self")
 	},
 	watch: {
 		files(newvalue, oldvalue) {
