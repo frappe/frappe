@@ -237,7 +237,7 @@ context("Web Form", () => {
 
 		cy.get(".web-form-actions a").contains("Edit").click();
 
-		cy.fill_field("last_name", "_Test User");
+		cy.fill_field("middle_name", "_Test User");
 
 		cy.get(".web-form-actions .btn-primary").click();
 		cy.url().should("include", "/me");
@@ -249,7 +249,7 @@ context("Web Form", () => {
 
 			cy.get(".web-form-actions a").contains("Edit").click();
 
-			cy.fill_field("last_name", "_Test User");
+			cy.fill_field("middle_name", "_Test User");
 
 			cy.get(".btn-next").should("be.visible");
 			cy.get(".btn-next").click();

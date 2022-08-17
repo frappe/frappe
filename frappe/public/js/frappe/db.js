@@ -71,7 +71,7 @@ frappe.db = {
 			},
 		});
 	},
-	get_doc: function (doctype, name, filters = null) {
+	get_doc: function (doctype, name, filters) {
 		return new Promise((resolve, reject) => {
 			frappe
 				.call({
