@@ -317,7 +317,7 @@ def get_context(context):
 					context.reference_doc.doctype, context.reference_doc.name
 				)
 
-			context.reference_doc = json.loads(context.reference_doc.as_json())
+			context.reference_doc = context.reference_doc.as_dict(no_nulls=True)
 
 	def add_custom_context_and_script(self, context):
 		"""Update context from module if standard and append script"""
