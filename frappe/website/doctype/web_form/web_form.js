@@ -181,18 +181,18 @@ frappe.ui.form.on("Web Form Field", {
 	fieldtype: function (frm, doctype, name) {
 		let doc = frappe.get_doc(doctype, name);
 
-		let page_break_count = frm.doc.web_form_fields.filter(
-			(f) => f.fieldtype == "Page Break"
-		).length;
-
-		if (page_break_count >= 10) {
-			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		if (doc.fieldtype == "Page Break") {
+			let page_break_count = frm.doc.web_form_fields.filter(
+				(f) => f.fieldtype == "Page Break"
+			).length;
+			page_break_count >= 10 &&
+				frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
 		}
 
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
 			doc.fieldname = "";
-			doc.options = "";
 			doc.label = "";
+			doc.options = "";
 			frm.refresh_field("web_form_fields");
 		}
 	},
