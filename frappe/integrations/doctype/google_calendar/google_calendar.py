@@ -738,12 +738,12 @@ def get_attendees(doc):
 
 		participant_doc = frappe.get_doc(participant.reference_doctype, participant.reference_docname)
 
-		if participant_doc.meta.has_field('user') and participant_doc.user:
-			attendees.append({'email': participant_doc.user})
-		elif participant_doc.meta.has_field('user_id') and participant_doc.user_id:
-			attendees.append({'email': participant_doc.user_id})
-		elif participant_doc.meta.has_field('email') and participant_doc.email:
-			attendees.append({'email': participant_doc.email})
+		if participant_doc.meta.has_field("user") and participant_doc.user:
+			attendees.append({"email": participant_doc.user})
+		elif participant_doc.meta.has_field("user_id") and participant_doc.user_id:
+			attendees.append({"email": participant_doc.user_id})
+		elif participant_doc.meta.has_field("email") and participant_doc.email:
+			attendees.append({"email": participant_doc.email})
 		else:
 			frappe.msgprint(
 				_("Google Calendar - User / Email field not found, did not add attendee for {0} {1}").format(
