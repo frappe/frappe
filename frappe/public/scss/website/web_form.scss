@@ -117,11 +117,24 @@
 						.web-form-skeleton {
 							.box-group {
 								display: flex;
-								gap: 20px;
-								margin-bottom: 15px;
+								flex-wrap: wrap;
 
 								.box-container {
 									width: 100%;
+									padding: 0 var(--padding-sm);
+									margin-bottom: 15px;
+
+									&:first-child {
+										padding-left: 0;
+									}
+
+									&:last-child {
+										padding-right: 0;
+									}
+
+									@include media-breakpoint-down(xs) {
+										padding: 0;
+									}
 
 									.box {
 										background-color: var(--control-bg);
