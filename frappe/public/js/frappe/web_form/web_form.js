@@ -47,20 +47,16 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_listeners() {
-		// Event listener for triggering Save/Next button for Multi Step Forms
 		// Do not use `on` event here since that can be used by user which will render this function useless
 		// setTimeout has 200ms delay so that all the base_control triggers for the fields have been run
-		let me = this;
-
-		if (!me.is_multi_step_form) {
-			return;
-		}
 
 		for (let field of $(".input-with-feedback")) {
 			$(field).change((e) => {
 				setTimeout(() => {
 					e.stopPropagation();
-					me.toggle_buttons();
+					frappe.form_dirty = true;
+					$(".web-form-footer .clear-btn").removeClass("hide");
+					$(".web-form-footer .right-area").prepend(this.$previous_button);
 				}, 200);
 			});
 		}
@@ -80,15 +76,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return;
 		}
 
-		$(".web-form-footer .web-form-actions .left-area").prepend(`
-			<button class="btn btn-default btn-previous btn-sm mr-2">${__("Previous")}</button>
-		`);
+		this.$next_button = $(`<button class="btn btn-default btn-next btn-sm ml-2">
+			${__("Next")}
+		</button>`);
 
-		$(".web-form-footer .web-form-actions .right-area").prepend(`
-			<button class="btn btn-default btn-next btn-sm">${__("Next")}</button>
-		`);
+		this.$previous_button = $(`<button class="btn btn-default btn-previous btn-sm">
+			${__("Previous")}
+		</button>`);
 
-		$(".btn-previous").on("click", function () {
+		$(".web-form-footer .right-area").prepend(this.$next_button);
+		$(".web-form-footer .left-area").prepend(this.$previous_button);
+
+		this.$previous_button.on("click", () => {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return false;
@@ -115,7 +114,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return false;
 		});
 
-		$(".btn-next").on("click", function () {
+		this.$next_button.on("click", () => {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return false;
@@ -155,7 +154,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_primary_action() {
-		$(".web-form-container").on("submit", () => this.save());
+		$(".web-form").on("submit", () => this.save());
 	}
 
 	validate_section() {
