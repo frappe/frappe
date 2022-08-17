@@ -52,9 +52,6 @@ if [ "$TYPE" == "server" ]; then
   sed -i 's/^socketio:/# socketio:/g' Procfile;
   sed -i 's/^redis_socketio:/# redis_socketio:/g' Procfile;
 fi
-if [ "$TYPE" == "ui" ]; then
-  sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile;
-fi
 
 echo "Starting Bench..."
 

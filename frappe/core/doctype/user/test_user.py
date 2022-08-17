@@ -8,6 +8,7 @@ from unittest.mock import patch
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
+	handle_password_test_fail,
 	reset_password,
 	sign_up,
 	test_password_strength,
@@ -191,6 +192,12 @@ class TestUser(unittest.TestCase):
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+		)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result
+		)  # test backwards compatibility
 
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
@@ -200,7 +207,7 @@ class TestUser(unittest.TestCase):
 		user = frappe.get_doc("User", "test@example.com")
 		frappe.flags.in_test = False
 		user.new_password = "password"
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid Password", user.save)
+		self.assertRaises(frappe.exceptions.ValidationError, user.save)
 		user.reload()
 		user.new_password = "Eastern_43A1W"
 		user.save()
