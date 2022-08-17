@@ -82,7 +82,7 @@ frappe.ui.form.Control = class BaseControl {
 				is_null(value) &&
 				!in_list(["HTML", "Image", "Button"], this.df.fieldtype)
 			)
-				status = "None";
+				status = "Read";
 
 			return status;
 		}
