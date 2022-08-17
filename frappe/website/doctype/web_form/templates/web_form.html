@@ -21,13 +21,13 @@
 	<div class="left-area">
 		{% if not in_view_mode %}
 			<!-- clear button -->
-			<a href="/{{ path }}" class="clear-btn btn btn-default btn-sm hide">
+			<button class="clear-btn btn btn-link btn-sm hide">
 				{% if in_edit_mode %}
 					{{ _("Reset Form", null, "Button in web form") }}
 				{% else %}
 					{{ _("Clear Form", null, "Button in web form") }}
 				{% endif %}
-			</a>
+			</button>
 		{% endif %}
 	</div>
 	<div class="center-area paging"></div>
