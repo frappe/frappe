@@ -7,7 +7,9 @@
 	<div class="web-list-container">
 		<!-- list -->
 		<div class="web-list-header">
-			<h1>{{ _(list_title or title) }}</h1>
+			<div class="web-list-title ellipsis">
+				<h1 class="ellipsis">{{ _(list_title or title) }}</h1>
+			</div>
 			<div class="web-list-actions">
 				{%- if allow_multiple -%}
 					<a class="btn btn-primary btn-sm button-new" href="/{{ route }}/new">New</a>
