@@ -223,7 +223,17 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	render_progress_dots() {
+		if (!this.is_multi_step_form) return;
 		$(".center-area.paging").empty();
+
+		if (this.in_view_mode) {
+			let paging_text = __("Page {0} of {1}", [
+				this.current_section + 1,
+				this.page_breaks.length + 1,
+			]);
+			$(".center-area.paging").append(`<div>${paging_text}</div>`);
+			return;
+		}
 
 		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
 			$(".center-area.paging")
@@ -246,12 +256,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			}
 			this.$slide_progress.append($dot);
 		}
-
-		let paging_text = __("Page {0} of {1}", [
-			this.current_section + 1,
-			this.page_breaks.length + 1,
-		]);
-		$(".center-area.paging").append(`<div>${paging_text}</div>`);
 	}
 
 	toggle_buttons() {
