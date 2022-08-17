@@ -140,6 +140,15 @@
 						font-size: var(--text-base);
 					}
 
+					.btn-link {
+						padding-left: 0px;
+						color: var(--text-color);
+
+						&:hover {
+							color: var(--text-on-light-blue);
+						}
+					}
+
 					.left-area {
 						display: flex;
 						flex: 1;

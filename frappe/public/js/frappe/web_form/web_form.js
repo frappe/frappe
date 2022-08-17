@@ -28,6 +28,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.is_new || this.in_edit_mode) {
 			this.setup_primary_action();
+			this.setup_clear_action();
 		}
 
 		this.setup_previous_next_button();
@@ -155,6 +156,25 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	setup_primary_action() {
 		$(".web-form").on("submit", () => this.save());
+	}
+
+	setup_clear_action() {
+		$(".web-form-footer .clear-btn").on("click", () => this.clear_form());
+	}
+
+	clear_form() {
+		let title = __("Clear Form?");
+		let message = __("Are you sure you want to clear the form? It cannot be undone.");
+		let clear_button_text = __("Clear Form");
+
+		if (location.href.includes("/edit")) {
+			title = __("Reset Form?");
+			message = __("Are you sure you want to reset all field values?");
+			clear_button_text = __("Reset Form");
+		}
+
+		frappe.warn(title, message, () => location.reload(true), clear_button_text);
+		return false;
 	}
 
 	validate_section() {
