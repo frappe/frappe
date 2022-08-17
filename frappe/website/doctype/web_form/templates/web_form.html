@@ -3,7 +3,7 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% macro header_buttons() %}
-	{% if allow_edit and doc_name and not is_form_editable %}
+	{% if allow_edit and doc_name and not in_edit_mode %}
 		<!-- edit button -->
 		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
 	{% endif %}
@@ -18,11 +18,11 @@
 {% endmacro %}
 
 {% macro action_buttons() %}
-	{% if is_new or is_form_editable %}
+	{% if is_new or in_edit_mode %}
 		<div class="left-area">
 			<!-- clear button -->
 			<a href="/{{ path }}" class="clear-btn btn btn-default btn-sm">
-				{% if is_form_editable %}
+				{% if in_edit_mode %}
 					{{ _("Reset Form", null, "Button in web form") }}
 				{% else %}
 					{{ _("Clear Form", null, "Button in web form") }}

@@ -36,9 +36,6 @@ frappe.ready(function () {
 	function show_form() {
 		let web_form = new WebForm({
 			parent: $(".web-form-wrapper"),
-			is_new: web_form_doc.is_new,
-			is_form_editable: web_form_doc.is_form_editable,
-			web_form_name: web_form_doc.name,
 		});
 		let doc = reference_doc || {};
 		setup_fields(web_form_doc, doc);
@@ -58,7 +55,7 @@ frappe.ready(function () {
 	function setup_fields(web_form_doc, doc_data) {
 		web_form_doc.web_form_fields.forEach((df) => {
 			df.is_web_form = true;
-			df.read_only = !web_form_doc.is_new && !web_form_doc.is_form_editable;
+			df.read_only = !web_form_doc.is_new && !web_form_doc.in_edit_mode;
 			if (df.fieldtype === "Table") {
 				df.get_data = () => {
 					let data = [];

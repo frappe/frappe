@@ -26,7 +26,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.set_field_values();
 		this.setup_listeners();
 
-		if (this.is_new || this.is_form_editable) {
+		if (this.is_new || this.in_edit_mode) {
 			this.setup_primary_action();
 		}
 
