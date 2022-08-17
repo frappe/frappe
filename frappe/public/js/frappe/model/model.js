@@ -561,12 +561,12 @@ $.extend(frappe.model, {
 			var args = d.get_values();
 			if(!args) return;
 			return frappe.call({
-				method:"frappe.model.rename_doc.rename_doc",
+				method:"frappe.client.rename_doc",
 				args: {
 					doctype: doctype,
-					old: docname,
-					"new": args.new_name,
-					"merge": args.merge
+					old_name: docname,
+					new_name: args.new_name,
+					merge: args.merge,
 				},
 				btn: d.get_primary_btn(),
 				callback: function(r,rt) {
