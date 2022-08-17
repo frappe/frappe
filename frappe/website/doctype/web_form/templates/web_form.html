@@ -137,7 +137,7 @@
 			</div>
 		{% else %}
 			{% if show_list %}
-				<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
+				<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", null, "Button in web form") }}</a>
 			{% endif %}
 			{% if not login_required or allow_multiple %}
 				<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
