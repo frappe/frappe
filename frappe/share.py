@@ -104,7 +104,7 @@ def get_users(doctype, name):
 	return frappe.db.get_all(
 		"DocShare",
 		fields=[
-			"name",  # Don't understant the need for pseudocolumns here, don't know why get_all supports it?
+			"name",
 			"user",
 			"read",
 			"write",

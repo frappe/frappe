@@ -189,7 +189,7 @@ class TestQuery(unittest.TestCase):
 			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
 		)
 
-	def test_indirect_join_query(self):
+	def test_implicit_join_query(self):
 		self.assertEqual(
 			frappe.qb.engine.get_query(
 				"Note",

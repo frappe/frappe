@@ -23,14 +23,6 @@ def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
 
-def table_from_string(table: str) -> "DocType":
-	table_name = table.split("`", maxsplit=1)[1].split(".")[0][3:]
-	if "`" in table_name:
-		return frappe.qb.DocType(table_name=table_name.replace("`", ""))
-	else:
-		return frappe.qb.DocType(table_name=table_name)
-
-
 def is_function_object(field: str) -> bool:
 	return getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
 
