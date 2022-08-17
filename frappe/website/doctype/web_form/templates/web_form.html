@@ -2,6 +2,13 @@
 
 {% block breadcrumbs %}{% endblock %}
 
+{% block header %}
+	{% if banner_image %}
+		<!-- banner image -->
+		<img class="web-form-banner-image" src="{{ banner_image }}" alt="Banner Image">
+	{% endif %}
+{% endblock %}
+
 {% macro header_buttons() %}
 	{% if allow_edit and in_view_mode %}
 		<!-- edit button -->
@@ -40,13 +47,6 @@
 {% endmacro %}
 
 {% block page_content %}
-	<!-- banner image -->
-	{% if banner_image %}
-		<div class="web-form-banner-image">
-			<img src="{{ banner_image }}" alt="Banner Image">
-		</div>
-	{% endif %}
-
 	<!-- web form container -->
 	<div class="web-form-container">
 		<!-- breadcrumb -->
