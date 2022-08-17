@@ -489,7 +489,7 @@ def accept(web_form, data, docname=None):
 	for field in web_form.web_form_fields:
 		fieldname = field.fieldname
 		df = meta.get_field(fieldname)
-		value = data.get(fieldname, None)
+		value = data.get(fieldname, "")
 
 		if df and df.fieldtype in ("Attach", "Attach Image"):
 			if value and "data:" and "base64" in value:
