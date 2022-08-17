@@ -188,23 +188,22 @@ function get_fields_for_doctype(doctype) {
 function render_list_settings_message(frm) {
 	// render list setting message
 	if (frm.fields_dict["list_setting_message"] && !frm.doc.login_required) {
-		const switch_to_form_settings_tab = `
-			<span class="bold pointer" title="${__("Switch to Form Settings Tab")}">
-				${__("Form Settings Tab")}
-			</span>
+		const go_to_login_required_field = `
+			<code class="pointer" title="${__("Go to Login Required field")}">
+				${__("login_required")}
+			</code>
 		`;
 		$(frm.fields_dict["list_setting_message"].wrapper)
 			.html(
 				$(
 					`<div class="form-message blue">
-					${__(
-						"Login is required to see web form list view. Enable <code>login_required</code> from {0} to see list settings",
-						[switch_to_form_settings_tab]
-					)}
+					${__("Login is required to see web form list view. Enable {0} to see list settings", [
+						go_to_login_required_field,
+					])}
 				</div>`
 				)
 			)
-			.find("span")
+			.find("code")
 			.click(() => frm.scroll_to_field("login_required"));
 	} else {
 		$(frm.fields_dict["list_setting_message"].wrapper).empty();
