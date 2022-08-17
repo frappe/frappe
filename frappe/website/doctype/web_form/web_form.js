@@ -1,4 +1,28 @@
 frappe.ui.form.on("Web Form", {
+	setup: function (frm) {
+		frappe.meta.docfield_map["Web Form Field"].fieldtype.formatter = (value) => {
+			const prefix = {
+				"Page Break": "--red-600",
+				"Section Break": "--blue-600",
+				"Column Break": "--yellow-600",
+			};
+			if (prefix[value]) {
+				value = `<span class="bold" style="color: var(${prefix[value]})">${value}</span>`;
+			}
+			return value;
+		};
+
+		frappe.meta.docfield_map["Web Form Field"].fieldname.formatter = (value) => {
+			if (!value) return;
+			return frappe.unscrub(value);
+		};
+
+		frappe.meta.docfield_map["Web Form List Column"].fieldname.formatter = (value) => {
+			if (!value) return;
+			return frappe.unscrub(value);
+		};
+	},
+
 	refresh: function (frm) {
 		// show is-standard only if developer mode
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
@@ -105,7 +129,7 @@ frappe.ui.form.on("Web Form", {
 
 		get_fields_for_doctype(doc.doc_type).then((fields) => {
 			let as_select_option = (df) => ({
-				label: df.label + " (" + df.fieldtype + ")",
+				label: df.label,
 				value: df.fieldname,
 			});
 			update_options(fields.map(as_select_option));
@@ -168,6 +192,7 @@ frappe.ui.form.on("Web Form Field", {
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
 			doc.fieldname = "";
 			doc.options = "";
+			doc.label = "";
 			frm.refresh_field("web_form_fields");
 		}
 	},
