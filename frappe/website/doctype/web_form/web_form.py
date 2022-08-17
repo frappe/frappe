@@ -124,7 +124,7 @@ def get_context(context):
 
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
-		context.is_form_editable = False
+		context.in_edit_mode = False
 		self.set_web_form_module()
 
 		if frappe.form_dict.is_list:
@@ -159,7 +159,7 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
 		if frappe.form_dict.is_edit:
-			context.is_form_editable = True
+			context.in_edit_mode = True
 
 		if (
 			not frappe.form_dict.is_edit
@@ -167,7 +167,7 @@ def get_context(context):
 			and self.allow_edit
 			and frappe.form_dict.name
 		):
-			context.is_form_editable = True
+			context.in_edit_mode = True
 			frappe.redirect(f"/{frappe.local.path}/edit")
 
 		if (
@@ -203,7 +203,7 @@ def get_context(context):
 
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
-		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new", "is_form_editable"]))
+		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new", "in_edit_mode"]))
 
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)
@@ -281,7 +281,7 @@ def get_context(context):
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
-			if context.is_form_editable and context.parents:
+			if context.in_edit_mode and context.parents:
 				context.parents.append(
 					{
 						"label": _(context.title),
