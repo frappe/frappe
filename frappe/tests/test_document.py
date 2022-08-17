@@ -101,6 +101,14 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
+	def test_text_editor_field(self):
+		try:
+			frappe.get_doc(
+				doctype="Activity Log", subject="test", message='<img src="test.png" />'
+			).insert()
+		except frappe.MandatoryError:
+			self.fail("Text Editor false positive mandatory error")
+
 	def test_conflict_validation(self):
 		d1 = self.test_insert()
 		d2 = frappe.get_doc(d1.doctype, d1.name)
