@@ -21,7 +21,7 @@
 	<div class="left-area">
 		{% if not in_view_mode %}
 			<!-- clear button -->
-			<a href="/{{ path }}" class="clear-btn btn btn-default btn-sm">
+			<a href="/{{ path }}" class="clear-btn btn btn-default btn-sm hide">
 				{% if in_edit_mode %}
 					{{ _("Reset Form", null, "Button in web form") }}
 				{% else %}
