@@ -13,6 +13,7 @@ import "./script_helpers";
 import "./sidebar/form_sidebar";
 import "./footer/footer";
 import "./form_tour";
+import "./form_editor";
 import { UndoManager } from "./undo_manager";
 
 frappe.ui.form.Controller = class FormController {
@@ -263,8 +264,17 @@ frappe.ui.form.Form = class FrappeForm {
 			frm: this,
 		});
 
+		this.form_editor = new frappe.ui.form.FormEditor({
+			frm: this,
+		});
+		//this.form_editor.setup();
+
 		// workflow state
 		this.states = new frappe.ui.form.States({
+			frm: this,
+		});
+
+		this.form_editor = new frappe.ui.form.FormEditor({
 			frm: this,
 		});
 	}
@@ -1900,7 +1910,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// uncollapse section
-		if (field.section.is_collapsed()) {
+		if (field.section?.is_collapsed()) {
 			field.section.collapse(false);
 		}
 
@@ -1909,7 +1919,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// focus if text field
 		if (focus) {
-			$el.find("input, select, textarea").focus();
+			setTimeout(() => {
+				$el.find("input, select, textarea").focus();
+			}, 500);
 		}
 
 		// highlight control inside field
