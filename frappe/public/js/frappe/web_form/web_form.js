@@ -70,7 +70,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.page_breaks.length) return;
 
 		this.page_breaks = $(`.page-break`);
-		this.is_multi_step_form = true;
+		this.is_multi_step_form = !!this.page_breaks.length;
 	}
 
 	setup_previous_next_button() {
