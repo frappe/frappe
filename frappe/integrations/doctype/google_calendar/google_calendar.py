@@ -416,17 +416,17 @@ def insert_event_in_google_calendar(doc, method=None):
 		event.update({"attendees": get_attendees(doc)})
 
 	try:
-		event = google_calendar.events().insert(
-			calendarId=doc.google_calendar_id,
-			body=event,
-			conferenceDataVersion=1
-		).execute()
+		event = (
+			google_calendar.events()
+			.insert(calendarId=doc.google_calendar_id, body=event, conferenceDataVersion=1)
+			.execute()
+		)
 
-		frappe.db.set_value("Event", doc.name, {
-				"google_calendar_event_id": event.get("id"),
-				"google_meet_link": event.get("hangoutLink")
-			},
-			update_modified=False
+		frappe.db.set_value(
+			"Event",
+			doc.name,
+			{"google_calendar_event_id": event.get("id"), "google_meet_link": event.get("hangoutLink")},
+			update_modified=False,
 		)
 
 		frappe.msgprint(_("Event Synced with Google Calendar."))
@@ -486,18 +486,19 @@ def update_event_in_google_calendar(doc, method=None):
 		if len(doc.event_participants):
 			event.update({"attendees": get_attendees(doc)})
 
-		event = google_calendar.events().update(
-			calendarId=doc.google_calendar_id,
-			eventId=doc.google_calendar_event_id,
-			body=event,
-			conferenceDataVersion=1
-		).execute()
+		event = (
+			google_calendar.events()
+			.update(
+				calendarId=doc.google_calendar_id,
+				eventId=doc.google_calendar_event_id,
+				body=event,
+				conferenceDataVersion=1
+			)
+			.execute()
+		)
 
 		# if add_video_conferencing enabled or disabled during update, overwrite
-		frappe.db.set_value("Event", doc.name, {
-				"google_meet_link": event.get("hangoutLink")
-			}
-		)
+		frappe.db.set_value("Event", doc.name, {"google_meet_link": event.get("hangoutLink")})
 		doc.notify_update()
 
 		frappe.msgprint(_("Event Synced with Google Calendar."))
@@ -719,15 +720,9 @@ def get_recurrence_parameters(recurrence):
 
 def get_conference_data(doc):
 	return {
-			"createRequest": {
-				"requestId": doc.name,
-				"conferenceSolutionKey": {
-					"type": "hangoutsMeet"
-				}
-			},
-
-			"notes": doc.description
-		}
+		"createRequest": {"requestId": doc.name, "conferenceSolutionKey": {"type": "hangoutsMeet"}},
+		"notes": doc.description,
+	}
 
 
 def get_attendees(doc):
@@ -741,27 +736,22 @@ def get_attendees(doc):
 
 	for participant in doc.event_participants:
 
-			participant_doc = frappe.get_doc(participant.reference_doctype, participant.reference_docname)
+		participant_doc = frappe.get_doc(participant.reference_doctype, participant.reference_docname)
 
-			if participant_doc.meta.has_field('user') and participant_doc.user:
-				attendees.append({
-						'email': participant_doc.user
-				})
-			elif participant_doc.meta.has_field('user_id') and participant_doc.user_id:
-				attendees.append({
-						'email': participant_doc.user_id
-				})
-			elif participant_doc.meta.has_field('email') and participant_doc.email:
-				attendees.append({
-						'email': participant_doc.email
-				})
-			else:
-				frappe.msgprint(
-					_("Google Calendar - User / Email field not found, did not add attendee for {0} {1}").format(
-						participant.reference_doctype, participant.reference_docname
-					),
-					alert=True, indicator="red"
-				)
+		if participant_doc.meta.has_field('user') and participant_doc.user:
+			attendees.append({'email': participant_doc.user})
+		elif participant_doc.meta.has_field('user_id') and participant_doc.user_id:
+			attendees.append({'email': participant_doc.user_id})
+		elif participant_doc.meta.has_field('email') and participant_doc.email:
+			attendees.append({'email': participant_doc.email})
+		else:
+			frappe.msgprint(
+				_("Google Calendar - User / Email field not found, did not add attendee for {0} {1}").format(
+					participant.reference_doctype, participant.reference_docname
+				),
+				alert=True,
+				indicator="red",
+			)
 
 	return attendees
 

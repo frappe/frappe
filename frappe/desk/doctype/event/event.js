@@ -46,7 +46,7 @@ frappe.ui.form.on("Event", {
 		if (frm.doc.google_meet_link && frappe.datetime.now_date() <= ends_on_date) {
 			frm.dashboard.set_headline(
 				__("Join video conference with {0}", [
-					`<a target='_blank' href='${frm.doc.google_meet_link}'>Google Meet</a>`
+					`<a target='_blank' href='${frm.doc.google_meet_link}'>Google Meet</a>`,
 				])
 			);
 		}
