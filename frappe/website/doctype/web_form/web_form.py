@@ -125,6 +125,7 @@ def get_context(context):
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
 		context.in_edit_mode = False
+		context.in_view_mode = False
 		self.set_web_form_module()
 
 		if frappe.form_dict.is_list:
@@ -156,10 +157,14 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
+			context.in_view_mode = True
 			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
 		if frappe.form_dict.is_edit:
 			context.in_edit_mode = True
+
+		if frappe.form_dict.is_read:
+			context.in_view_mode = True
 
 		if (
 			not frappe.form_dict.is_edit
@@ -179,6 +184,7 @@ def get_context(context):
 		):
 			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 			if name:
+				context.in_view_mode = True
 				frappe.redirect(f"/{self.route}/{name}")
 
 		# Show new form when
@@ -203,7 +209,9 @@ def get_context(context):
 
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
-		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new", "in_edit_mode"]))
+		context.web_form_doc.update(
+			dict_with_keys(context, ["is_list", "is_new", "in_edit_mode", "in_view_mode"])
+		)
 
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)

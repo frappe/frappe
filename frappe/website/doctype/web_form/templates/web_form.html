@@ -3,12 +3,12 @@
 {% block breadcrumbs %}{% endblock %}
 
 {% macro header_buttons() %}
-	{% if allow_edit and doc_name and not in_edit_mode %}
+	{% if allow_edit and in_view_mode %}
 		<!-- edit button -->
 		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
 	{% endif %}
 
-	{% if allow_print and not is_new %}
+	{% if allow_print and in_view_mode %}
 		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
 		<!-- print button -->
 		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
@@ -18,8 +18,8 @@
 {% endmacro %}
 
 {% macro action_buttons() %}
-	{% if is_new or in_edit_mode %}
-		<div class="left-area">
+	<div class="left-area">
+		{% if not in_view_mode %}
 			<!-- clear button -->
 			<a href="/{{ path }}" class="clear-btn btn btn-default btn-sm">
 				{% if in_edit_mode %}
@@ -28,13 +28,15 @@
 					{{ _("Clear Form", null, "Button in web form") }}
 				{% endif %}
 			</a>
-		</div>
-		<div class="center-area paging"></div>
-		<div class="right-area">
+		{% endif %}
+	</div>
+	<div class="center-area paging"></div>
+	<div class="right-area">
+		{% if not in_view_mode %}
 			<!-- submit button -->
 			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
-		</div>
-	{% endif %}
+		{% endif %}
+	</div>
 {% endmacro %}
 
 {% block page_content %}
