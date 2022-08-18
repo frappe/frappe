@@ -62,9 +62,17 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_page_breaks() {
-		if (this.page_breaks.length) return;
+		this.page_breaks = $(".page-break");
 
-		this.page_breaks = $(`.page-break`);
+		if (this.page_breaks.length) {
+			this.page_breaks.forEach((page_break) => {
+				if (!$(page_break).find("form").length) {
+					$(page_break).remove();
+				}
+			});
+		}
+
+		this.page_breaks = $(".page-break");
 		this.is_multi_step_form = !!this.page_breaks.length;
 	}
 
