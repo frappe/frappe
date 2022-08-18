@@ -167,46 +167,6 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`"""
 
-<<<<<<< HEAD
-	if not ignore_validate and frappe.flags.in_setup_wizard:
-		ignore_validate = True
-
-	for doctypes, fields in custom_fields.items():
-		if isinstance(fields, dict):
-			# only one field
-			fields = [fields]
-
-		if isinstance(doctypes, str):
-			# only one doctype
-			doctypes = (doctypes,)
-
-		for doctype in doctypes:
-			for df in fields:
-				field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
-				if not field:
-					try:
-						df = df.copy()
-						df["owner"] = "Administrator"
-						create_custom_field(doctype, df, ignore_validate=ignore_validate)
-
-					except frappe.exceptions.DuplicateEntryError:
-						pass
-
-				elif update:
-					custom_field = frappe.get_doc("Custom Field", field)
-					custom_field.flags.ignore_validate = ignore_validate
-					custom_field.update(df)
-					custom_field.save()
-
-		frappe.clear_cache(doctype=doctype)
-		frappe.db.updatedb(doctype)
-
-
-@frappe.whitelist()
-def add_custom_field(doctype, df):
-	df = json.loads(df)
-	return create_custom_field(doctype, df)
-=======
 	try:
 		frappe.flags.in_create_custom_fields = True
 		doctypes_to_update = set()
@@ -249,4 +209,9 @@ def add_custom_field(doctype, df):
 
 	finally:
 		frappe.flags.in_create_custom_fields = False
->>>>>>> 4b8ae3d471 (perf: ~65% faster `create_custom_fields`)
+
+
+@frappe.whitelist()
+def add_custom_field(doctype, df):
+	df = json.loads(df)
+	return create_custom_field(doctype, df)
