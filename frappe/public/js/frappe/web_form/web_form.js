@@ -65,7 +65,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.page_breaks = $(".page-break");
 
 		if (this.page_breaks.length) {
-			this.page_breaks.forEach((page_break) => {
+			this.page_breaks.each((i, page_break) => {
 				if (!$(page_break).find("form").length) {
 					$(page_break).remove();
 				}
