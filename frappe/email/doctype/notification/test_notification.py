@@ -1,12 +1,13 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
+
 from contextlib import contextmanager
 
 import frappe
 import frappe.utils
 import frappe.utils.scheduler
 from frappe.desk.form import assign_to
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["User", "Notification"]
 
@@ -20,7 +21,7 @@ def get_test_notification(config):
 		notification.delete()
 
 
-class TestNotification(unittest.TestCase):
+class TestNotification(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")

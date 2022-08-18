@@ -1,8 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestTagLink(unittest.TestCase):
+class TestTagLink(FrappeTestCase):
 	pass

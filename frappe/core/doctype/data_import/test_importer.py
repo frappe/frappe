@@ -1,18 +1,18 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.core.doctype.data_import.importer import Importer
 from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import format_duration, getdate
 
 doctype_name = "DocType for Import"
 
 
-class TestImporter(unittest.TestCase):
+class TestImporter(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		create_doctype_if_not_exists(
 			doctype_name,
 		)
