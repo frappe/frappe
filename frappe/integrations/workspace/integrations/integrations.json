@@ -2,6 +2,7 @@
  "charts": [],
  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Backup\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
  "creation": "2020-03-02 15:16:18.714190",
+ "description": "Webhooks, Backups, SSO,\nCalendars, and more.",
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -197,7 +198,7 @@
    "type": "Link"
   }
  ],
- "modified": "2022-07-23 18:00:28.805405",
+ "modified": "2022-08-15 18:49:33.159856",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",

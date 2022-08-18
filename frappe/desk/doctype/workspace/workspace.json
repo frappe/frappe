@@ -17,6 +17,7 @@
   "column_break_3",
   "icon",
   "restrict_to_domain",
+  "description",
   "hide_custom",
   "public",
   "content",
@@ -168,11 +169,16 @@
    "fieldtype": "Table",
    "label": "Quick Lists",
    "options": "Workspace Quick List"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-05-12 13:00:03.925605",
+ "modified": "2022-08-15 15:35:08.150343",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
