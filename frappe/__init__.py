@@ -1274,7 +1274,12 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 def get_installed_apps(sort=False, frappe_last=False):
-	"""Get list of installed apps in current site."""
+	"""
+	Get list of installed apps in current site.
+
+	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
+	"""
+
 	if getattr(flags, "in_install_db", True):
 		return []
 
@@ -1314,7 +1319,42 @@ def get_doc_hooks():
 	return local.doc_events_hooks
 
 
+<<<<<<< HEAD
 def get_hooks(hook=None, default=None, app_name=None):
+=======
+@request_cache
+def _load_app_hooks(app_name: str | None = None):
+	import types
+
+	hooks = {}
+	apps = [app_name] if app_name else get_installed_apps()
+
+	for app in apps:
+		try:
+			app_hooks = get_module(f"{app}.hooks")
+		except ImportError:
+			if local.flags.in_install_app:
+				# if app is not installed while restoring
+				# ignore it
+				pass
+			print(f'Could not find app "{app}"')
+			if not request:
+				raise SystemExit
+			raise
+
+		def _is_valid_hook(obj):
+			return not isinstance(obj, (types.ModuleType, types.FunctionType, type))
+
+		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
+			if not key.startswith("_"):
+				append_hook(hooks, key, value)
+	return hooks
+
+
+def get_hooks(
+	hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None
+) -> _dict:
+>>>>>>> d8b7bc18d7 (refactor!: deprecate sorting based on `apps.txt` in `get_installed_apps`)
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.

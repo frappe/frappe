@@ -116,6 +116,7 @@ def get_jloader():
 	if not getattr(frappe.local, "jloader", None):
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
+<<<<<<< HEAD
 		if frappe.local.flags.in_setup_help:
 			apps = ["frappe"]
 		else:
@@ -123,6 +124,11 @@ def get_jloader():
 			if not apps:
 				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
 				apps.reverse()
+=======
+		apps = frappe.get_hooks("template_apps")
+		if not apps:
+			apps = list(reversed(frappe.local.flags.web_pages_apps or frappe.get_installed_apps()))
+>>>>>>> d8b7bc18d7 (refactor!: deprecate sorting based on `apps.txt` in `get_installed_apps`)
 
 		if "frappe" not in apps:
 			apps.append("frappe")
