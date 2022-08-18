@@ -382,6 +382,10 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 					)) ||
 				"";
 			let cell = $(`<td><p class="ellipsis">${value}</p></td>`);
+			if (field.fieldtype === "Text Editor") {
+				value = $(value).addClass("ellipsis");
+				cell = $("<td></td>").append(value);
+			}
 			cell.appendTo(this.row);
 		});
 

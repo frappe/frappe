@@ -416,16 +416,16 @@
 								td {
 									font-size: 13px;
 									border-top: 1px solid var(--border-color);
+									max-width: 160px;
 
 									.ql-editor, p {
 										width: max-content;
-										max-width: 200px;
+										max-width: 150px;
 										margin-bottom: 0;
 
-										p {
-											overflow: hidden;
-											white-space: nowrap;
-											text-overflow: ellipsis;
+										&.read-mode {
+											display: inline-flex;
+											gap: 5px;
 										}
 									}
 								}
