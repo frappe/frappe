@@ -289,14 +289,6 @@ def get_context(context):
 			context.title = strip_html(
 				context.reference_doc.get(context.reference_doc.meta.get_title_field())
 			)
-			if context.in_edit_mode and context.parents:
-				context.parents.append(
-					{
-						"label": _(context.title),
-						"route": f"{self.route}/{context.doc_name}",
-					}
-				)
-				context.title = _("Editing {0}").format(context.title)
 			context.reference_doc.add_seen()
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name
