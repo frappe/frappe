@@ -12,12 +12,24 @@ import pydoc
 import sys
 import traceback
 
+from ldap3.core.exceptions import LDAPInvalidCredentialsResult
+
 import frappe
 from frappe.utils import cstr, encode
+
+EXCLUDE_EXCEPTIONS = (
+	frappe.AuthenticationError,
+	frappe.CSRFTokenError,  # CSRF covers OAuth too
+	frappe.SecurityException,
+	LDAPInvalidCredentialsResult,
+)
 
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
+		return
+
+	if isinstance(exception, EXCLUDE_EXCEPTIONS):
 		return
 
 	logger = frappe.logger(with_more_info=True)
