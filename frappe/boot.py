@@ -21,7 +21,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.social.doctype.post.post import frequently_visited_links
-from frappe.translate import get_lang_dict
+from frappe.translate import get_lang_dict, get_translated_doctypes
 from frappe.utils import cstr
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -98,6 +98,7 @@ def get_bootinfo():
 	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
+	bootinfo.translated_doctypes = get_translated_doctypes()
 
 	return bootinfo
 

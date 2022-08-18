@@ -45,6 +45,7 @@
   "allow_auto_repeat",
   "view_settings",
   "title_field",
+  "translated_doctype",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -547,6 +548,12 @@
   {
    "fieldname": "column_break_51",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "translated_doctype",
+   "fieldtype": "Check",
+   "label": "Translate Link Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -628,7 +635,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2021-11-01 15:26:19.077164",
+ "modified": "2022-08-06 12:13:35.521259",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
@@ -661,5 +668,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1
+ "track_changes": 1,
+ "translated_doctype": 1
 }

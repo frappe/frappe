@@ -292,3 +292,37 @@ def update_child_table(name):
 		)
 
 		doc.save()
+
+
+@frappe.whitelist()
+def insert_translations():
+	translation = [
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Other",
+			"translated_text": "Sonstiges",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Genderqueer",
+			"translated_text": "Nichtbinär",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Non-Conforming",
+			"translated_text": "Nicht konform",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Prefer not to say",
+			"translated_text": "Keine Angabe",
+		},
+	]
+
+	for doc in translation:
+		if not frappe.db.exists("doc"):
+			frappe.get_doc(doc).insert()

@@ -497,6 +497,7 @@ def add_user_permission(
 				for_value=name,
 				is_default=is_default,
 				applicable_for=applicable_for,
+				apply_to_all_doctypes=0 if applicable_for else 1,
 				hide_descendants=hide_descendants,
 			)
 		).insert(ignore_permissions=ignore_permissions)

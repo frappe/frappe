@@ -27,6 +27,7 @@
   "autoname",
   "view_settings_section",
   "title_field",
+  "translated_doctype",
   "image_field",
   "default_print_format",
   "column_break_29",
@@ -279,6 +280,12 @@
    "fieldname": "autoname",
    "fieldtype": "Data",
    "label": "Auto Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "translated_doctype",
+   "fieldtype": "Check",
+   "label": "Translate Link Fields"
   }
  ],
  "hide_toolbar": 1,
@@ -287,7 +294,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-10-19 15:20:55.393272",
+ "modified": "2022-06-28 21:56:16.294732",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

@@ -5,8 +5,6 @@ from __future__ import print_function, unicode_literals
 
 from six import PY2, iteritems, string_types, text_type
 
-from frappe.utils import cstr
-
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
@@ -26,7 +24,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
-from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
+from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
 
 def guess_language(lang_list=None):
@@ -1081,3 +1079,11 @@ def set_preferred_language_cookie(preferred_language):
 
 def get_preferred_language_cookie():
 	return frappe.request.cookies.get("preferred_language")
+
+
+def get_translated_doctypes():
+	dts = frappe.get_all("DocType", {"translated_doctype": 1}, pluck="name")
+	custom_dts = frappe.get_all(
+		"Property Setter", {"property": "translated_doctype", "value": "1"}, pluck="doc_type"
+	)
+	return unique(dts + custom_dts)

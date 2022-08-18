@@ -198,10 +198,13 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 				field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
 				if not field:
 					try:
+						df = df.copy()
 						df["owner"] = "Administrator"
 						create_custom_field(doctype, df, ignore_validate=ignore_validate)
+
 					except frappe.exceptions.DuplicateEntryError:
 						pass
+
 				elif update:
 					custom_field = frappe.get_doc("Custom Field", field)
 					custom_field.flags.ignore_validate = ignore_validate
