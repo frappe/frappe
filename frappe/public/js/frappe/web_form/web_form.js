@@ -28,7 +28,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.is_new || this.in_edit_mode) {
 			this.setup_primary_action();
-			this.setup_clear_action();
+			this.setup_discard_action();
 		}
 
 		this.setup_previous_next_button();
@@ -56,8 +56,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				setTimeout(() => {
 					e.stopPropagation();
 					frappe.form_dirty = true;
-					$(".web-form-footer .clear-btn").removeClass("hide");
-					$(".web-form-footer .right-area").prepend(this.$previous_button);
 				}, 200);
 			});
 		}
@@ -85,7 +83,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			${__("Previous")}
 		</button>`);
 
-		$(".web-form-footer .right-area").prepend(this.$next_button);
+		$(".web-form-footer .right-area").append(this.$next_button);
 		$(".web-form-footer .left-area").prepend(this.$previous_button);
 
 		this.$previous_button.on("click", () => {
@@ -158,22 +156,21 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		$(".web-form").on("submit", () => this.save());
 	}
 
-	setup_clear_action() {
-		$(".web-form-footer .clear-btn").on("click", () => this.clear_form());
+	setup_discard_action() {
+		$(".web-form-footer .discard-btn").on("click", () => this.discard_form());
 	}
 
-	clear_form() {
-		let title = __("Clear Form?");
-		let message = __("Are you sure you want to clear the form? It cannot be undone.");
-		let clear_button_text = __("Clear Form");
-
-		if (location.href.includes("/edit")) {
-			title = __("Reset Form?");
-			message = __("Are you sure you want to reset all field values?");
-			clear_button_text = __("Reset Form");
-		}
-
-		frappe.warn(title, message, () => location.reload(true), clear_button_text);
+	discard_form() {
+		frappe.warn(
+			__("Discard?"),
+			__("Are you sure you want to discard the changes?"),
+			() => {
+				let path = window.location.href;
+				// remove new or edit after last / from url
+				window.location.href = path.substring(0, path.lastIndexOf("/"));
+			},
+			__("Discard")
+		);
 		return false;
 	}
 
