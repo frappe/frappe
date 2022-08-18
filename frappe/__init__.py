@@ -1399,7 +1399,12 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 @request_cache
 def get_installed_apps(sort=False, frappe_last=False):
-	"""Get list of installed apps in current site."""
+	"""
+	Get list of installed apps in current site.
+
+	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
+	"""
+
 	if getattr(flags, "in_install_db", True):
 		return []
 
@@ -1444,7 +1449,7 @@ def _load_app_hooks(app_name: str | None = None):
 	import types
 
 	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(sort=True)
+	apps = [app_name] if app_name else get_installed_apps()
 
 	for app in apps:
 		try:
