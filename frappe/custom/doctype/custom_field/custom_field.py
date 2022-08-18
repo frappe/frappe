@@ -209,9 +209,3 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 	finally:
 		frappe.flags.in_create_custom_fields = False
-
-
-@frappe.whitelist()
-def add_custom_field(doctype, df):
-	df = json.loads(df)
-	return create_custom_field(doctype, df)
