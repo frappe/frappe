@@ -689,19 +689,23 @@ class TestSiteMigration(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
 
+
 class TestAddNewUser(BaseTestCommands):
 	def test_create_user(self):
-		self.execute(f"bench --site {TEST_SITE} add-user  --first-name test --last-name test --password 123 --user-type 'System User' --send-welcome-email test@gmail.com --add-role 'Accounts User' --add-role 'Sales User'")
+        self.execute(
+            f"bench --site {TEST_SITE} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
+        )
 		self.assertEqual(self.returncode, 0)
-		roles=[]
-		user=frappe.get_doc("User","test@gmail.com")
+        roles = []
+        user = frappe.get_doc("User", "test@gmail.com")
 		for i in user.roles:
-			role = frappe.get_doc("Has Role",i.name)
+            role = frappe.get_doc("Has Role", i.name)
 			roles.append(role.role)
-		self.assertEqual(user.name,"test@gmail.com")
-		self.assertIn("Accounts User",roles)
-		self.assertIn("Sales User",roles)
-		self.assertTrue(len(roles)==2)
+        self.assertEqual(user.name, "test@gmail.com")
+        self.assertIn("Accounts User", roles)
+        self.assertIn("Sales User", roles)
+        self.assertTrue(len(roles) == 2)
+
 
 class TestBenchBuild(BaseTestCommands):
 	def test_build_assets_size_check(self):

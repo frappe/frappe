@@ -505,13 +505,18 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 @click.option("--add-role", multiple=True)
 @click.option("--send-welcome-email", default=False, is_flag=True)
 @pass_context
-def add_user_for_sites(context, email, first_name, last_name, user_type, send_welcome_email, password, add_role):
+def add_user_for_sites(
+    context, email, first_name, last_name, user_type, send_welcome_email, password, add_role
+):
     "Add user to a site"
     import frappe.utils.user
+
     for site in context.sites:
         frappe.connect(site=site)
         try:
-            add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
+            add_new_user(
+                email, first_name, last_name, user_type, send_welcome_email, password, add_role
+            )
             frappe.db.commit()
         finally:
             frappe.destroy()
@@ -1298,7 +1303,15 @@ def handle_data(data: dict, format="json"):
 		render_table(data)
 
 
-def add_new_user(email, first_name=None, last_name=None, user_type="System User", send_welcome_email=False, password=None,role=None):
+def add_new_user(
+    email,
+    first_name=None,
+    last_name=None,
+    user_type="System User",
+    send_welcome_email=False,
+    password=None,
+    role=None,
+):
     # add user
     user = frappe.new_doc("User")
     user.update(
@@ -1316,8 +1329,8 @@ def add_new_user(email, first_name=None, last_name=None, user_type="System User"
     user.add_roles(*role)
     if password:
         from frappe.utils.password import update_password
-        update_password(user=user.name, pwd=password)
 
+        update_password(user=user.name, pwd=password)
 
 
 commands = [
