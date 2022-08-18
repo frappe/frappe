@@ -112,30 +112,37 @@
 
 	<!-- success page -->
 	<div class="success-page hide">
-		<svg class="icon">
-			<use href="#icon-solid-success"></use>
-		</svg>
-		<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
-		<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
+		<div class="success-header">
+			<svg class="success-icon icon">
+				<use href="#icon-solid-success"></use>
+			</svg>
+			<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
+		</div>
 
-		{% if success_url %}
-			<div class="success_url_message">
-				<p>
-					<span>Click on this </span>
-					<a href="{{ success_url }}">{{_("URL")}}</a>
-					<span> if you are not redirected within </span>
-					<span class="time">5</span>
-					<span> seconds.</span>
-				</p>
-			</div>
-		{% else %}
-			{% if show_list %}
-				<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", null, "Button in web form") }}</a>
+		<div class="success-body">
+			<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
+		</div>
+
+		<div class="success-footer">
+			{% if success_url %}
+				<div class="success_url_message">
+					<p>
+						<span>Click on this </span>
+						<a href="{{ success_url }}">{{_("URL")}}</a>
+						<span> if you are not redirected within </span>
+						<span class="time">5</span>
+						<span> seconds.</span>
+					</p>
+				</div>
+			{% else %}
+				{% if show_list %}
+					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", null, "Button in web form") }}</a>
+				{% endif %}
+				{% if not login_required or allow_multiple %}
+					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+				{% endif %}
 			{% endif %}
-			{% if not login_required or allow_multiple %}
-				<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
-			{% endif %}
-		{% endif %}
+		</div>
 	</div>
 
 {% endblock page_content %}
