@@ -1286,12 +1286,12 @@ def get_installed_apps(sort=False, frappe_last=False):
 	if not db:
 		connect()
 
-	if not local.all_apps:
-		local.all_apps = cache().get_value("all_apps", get_all_apps)
-
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
+		if not local.all_apps:
+			local.all_apps = cache().get_value("all_apps", get_all_apps)
+
 		installed = [app for app in local.all_apps if app in installed]
 
 	if frappe_last:
