@@ -299,27 +299,41 @@
 
 				.success-page {
 					background-color: var(--fg-color);
-					padding: 2rem;
+					padding: 5rem 2rem;
+					margin-top: 3rem;
 					border: 1px solid var(--dark-border-color);
 					border-radius: var(--border-radius);
 					text-align: center;
 
-					svg.icon {
-						width: 5rem;
-						height: 5rem;
-						margin: 1rem;
+					.success-header {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						gap: 0.5rem;
+						margin-top: 1rem;
+
+						.success-icon {
+							width: 3rem;
+							height: 3rem;
+							margin: 0;
+
+							@include media-breakpoint-down(sm) {
+								width: 2rem;
+								height: 2rem;
+							}
+						}
+
+						.success-title {
+							margin-top: 0;
+							margin-bottom: 0;
+						}
 					}
 
-					h2 {
-						margin-top: 0;
-						margin-bottom: 0;
+					.success-body .success-message {
+						margin: 1rem 0rem 1.5rem;
 					}
 
-					.success-message {
-						margin-bottom: 1.6rem;
-					}
-
-					a {
+					.success-footer a {
 						margin: 0rem 0.3rem 1rem;
 					}
 				}
