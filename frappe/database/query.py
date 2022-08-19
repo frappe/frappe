@@ -627,6 +627,7 @@ class Engine:
 				has_join = True
 
 		return criterion, fields
+
 	# try meta to validate fields and doctypes
 	def get_query(
 		self,
