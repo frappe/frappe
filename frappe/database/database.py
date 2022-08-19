@@ -224,8 +224,9 @@ class Database:
 				raise
 
 			elif isinstance(e, self.ProgrammingError):
-				traceback.print_stack()
-				frappe.errprint(f"Error in query:\n{query, values}")
+				if frappe.conf.developer_mode:
+					traceback.print_stack()
+					frappe.errprint(f"Error in query:\n{query, values}")
 				raise
 
 			if not (
