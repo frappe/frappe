@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+import shutil
 
 import frappe
 import frappe.model
@@ -103,7 +104,8 @@ def delete_folder(module, dt, dn):
 	# delete folder
 	folder = os.path.join(module_path, dt, dn)
 
-	frappe.delete_folder(folder)
+	if os.path.exists(folder):
+		shutil.rmtree(folder)
 
 
 def create_folder(module, dt, dn, create_init):
