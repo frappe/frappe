@@ -160,6 +160,12 @@ frappe.ui.form.Attachments = class Attachments {
 			this.dialog.$wrapper.remove();
 		}
 
+		const restrictions = {};
+		if (this.frm.meta.max_attachments) {
+			restrictions.max_number_of_files =
+				this.frm.meta.max_attachments - this.frm.attachments.get_attachments().length;
+		}
+
 		new frappe.ui.FileUploader({
 			doctype: this.frm.doctype,
 			docname: this.frm.docname,
@@ -168,10 +174,7 @@ frappe.ui.form.Attachments = class Attachments {
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
 			},
-			restrictions: {
-				max_number_of_files:
-					this.frm.meta.max_attachments - this.frm.attachments.get_attachments().length,
-			},
+			restrictions,
 		});
 	}
 	get_args() {

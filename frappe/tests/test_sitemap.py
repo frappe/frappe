@@ -1,10 +1,9 @@
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_html_for_route
 
 
-class TestSitemap(unittest.TestCase):
+class TestSitemap(FrappeTestCase):
 	def test_sitemap(self):
 		from frappe.test_runner import make_test_records
 

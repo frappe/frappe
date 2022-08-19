@@ -1,13 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Contact", "Salutation"]
 
 
-class TestContact(unittest.TestCase):
+class TestContact(FrappeTestCase):
 	def test_check_default_email(self):
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},
