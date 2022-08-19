@@ -1,9 +1,8 @@
-import unittest
-
 from frappe.model.docstatus import DocStatus
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocStatus(unittest.TestCase):
+class TestDocStatus(FrappeTestCase):
 	def test_draft(self):
 		self.assertEqual(DocStatus(0), DocStatus.draft())
 

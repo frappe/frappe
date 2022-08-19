@@ -1,11 +1,10 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestModuleProfile(unittest.TestCase):
+class TestModuleProfile(FrappeTestCase):
 	def test_make_new_module_profile(self):
 		if not frappe.db.get_value("Module Profile", "_Test Module Profile"):
 			frappe.get_doc(

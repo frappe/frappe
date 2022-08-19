@@ -2,10 +2,10 @@
 # License: MIT. See LICENSE
 import os
 import re
-import unittest
 from typing import TYPE_CHECKING
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 test_records = frappe.get_test_records("Print Format")
 
 
-class TestPrintFormat(unittest.TestCase):
+class TestPrintFormat(FrappeTestCase):
 	def test_print_user(self, style=None):
 		print_html = frappe.get_print("User", "Administrator", style=style)
 		self.assertTrue("<label>First Name: </label>" in print_html)

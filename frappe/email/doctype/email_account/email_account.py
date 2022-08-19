@@ -82,6 +82,7 @@ class EmailAccount(Document):
 			return
 
 		use_oauth = self.auth_method == "OAuth"
+		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 
 		if getattr(self, "service", "") != "GMail" and use_oauth:
 			self.auth_method = "Basic"
@@ -187,6 +188,7 @@ class EmailAccount(Document):
 				"use_imap",
 				"email_server",
 				"use_ssl",
+				"use_starttls",
 				"smtp_server",
 				"use_tls",
 				"smtp_port",
@@ -209,6 +211,7 @@ class EmailAccount(Document):
 				"email_account": self.name,
 				"host": self.email_server,
 				"use_ssl": self.use_ssl,
+				"use_starttls": self.use_starttls,
 				"username": getattr(self, "login_id", None) or self.email_id,
 				"service": getattr(self, "service", ""),
 				"use_imap": self.use_imap,

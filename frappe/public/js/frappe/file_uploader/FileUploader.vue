@@ -228,7 +228,7 @@ export default {
 				});
 		}
 		if (this.restrictions.max_number_of_files == null && this.doctype) {
-			this.restrictions.max_number_of_files = frappe.get_meta(self.doctype).max_attachments;
+			this.restrictions.max_number_of_files = frappe.get_meta(this.doctype)?.max_attachments;
 		}
 	},
 	watch: {

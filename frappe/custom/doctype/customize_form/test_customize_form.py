@@ -2,17 +2,17 @@
 # License: MIT. See LICENSE
 
 import json
-import unittest
 
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Custom Field", "Property Setter"]
 
 
-class TestCustomizeForm(unittest.TestCase):
+class TestCustomizeForm(FrappeTestCase):
 	def insert_custom_field(self):
 		frappe.delete_doc_if_exists("Custom Field", "Event-test_custom_field")
 		frappe.get_doc(
