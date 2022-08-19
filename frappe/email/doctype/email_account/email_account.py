@@ -78,13 +78,11 @@ class EmailAccount(Document):
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
 			frappe.throw(_("You need to set one IMAP folder for {0}").format(frappe.bold(self.email_id)))
 
-		if self.enable_incoming and self.use_imap and self.use_ssl:
-			self.use_starttls = None
-
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
 		use_oauth = self.auth_method == "OAuth"
+		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 
 		if getattr(self, "service", "") != "GMail" and use_oauth:
 			self.auth_method = "Basic"

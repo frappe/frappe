@@ -63,10 +63,10 @@
   },
   {
    "default": "0",
-   "fieldname": "use_starttls",
    "depends_on": "eval:doc.use_imap && !doc.use_ssl",
+   "fieldname": "use_starttls",
    "fieldtype": "Check",
-   "label": "Use STARTTLS for Incoming"
+   "label": "Use STARTTLS"
   },
   {
    "description": "Ignore attachments over this size",
@@ -133,7 +133,7 @@
    "link_fieldname": "domain"
   }
  ],
- "modified": "2022-08-16 21:20:50.692698",
+ "modified": "2022-08-19 12:55:06.434541",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

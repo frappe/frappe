@@ -3619,7 +3619,7 @@ Upload {0} files,Télécharger des fichiers {0},
 Uploaded To Google Drive,Téléchargé sur Google Drive,
 Uploaded successfully,Envoyé avec succès,
 Uploading {0} of {1},Téléchargement de {0} sur {1},
-Use SSL for Outgoing,Utiliser SSL pour le serveur de courriels sortant,
+Use SSL,Utiliser SSL
 Use Same Name,Utiliser le même nom,
 Used For Google Maps Integration.,Utilisé pour l&#39;intégration de Google Maps.,
 User ID Property,Propriété ID utilisateur,
@@ -4726,7 +4726,7 @@ Always use this email address as sender address,Toujours utiliser cet email comm
 Always use this name as sender name,Toujours utiliser ce nom comme expediteur
 Login to {0},Se connecter à {0}
 Add / Remove Fields,Ajouter / Supprimer des colonnes
-Use STARTTLS for Incoming,Utiliser le STARTTLS pour les courriels entrants
+Use STARTTLS,Utiliser le STARTTLS
 Outgoing Settings,Configurations des Courriels Sortant
 Incoming Settings,Configurations des Courriels Entrant
 Incoming Server,Serveur de Courriel Entrant

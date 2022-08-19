@@ -77,18 +77,13 @@ class EmailDomain(Document):
 	def validate_incoming_server_conn(self):
 		self.incoming_port = get_port(self)
 
-		conn_method = Timed_POP3_SSL if self.use_ssl else Timed_POP3
 		if self.use_imap:
 			conn_method = Timed_IMAP4_SSL if self.use_ssl else Timed_IMAP4
+		else:
+			conn_method = Timed_POP3_SSL if self.use_ssl else Timed_POP3
 
+		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 		incoming_conn = conn_method(self.email_server, port=self.incoming_port)
-
-		if self.use_ssl:
-			self.use_starttls = None
-
-		if self.use_starttls and self.use_imap and not self.use_ssl:
-			incoming_conn.starttls()
-
 		incoming_conn.logout() if self.use_imap else incoming_conn.quit()
 
 	@handle_error("outgoing")
