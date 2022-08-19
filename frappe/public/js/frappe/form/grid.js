@@ -43,6 +43,14 @@ export default class Grid {
 		this.debounced_refresh = frappe.utils.debounce(this.debounced_refresh, 100);
 	}
 
+	get perm() {
+		return this.control?.perm || this.frm?.perm || this.df.perm;
+	}
+
+	set perm(_perm) {
+		console.error("Setting perm on grid isn't supported, update form's perm instead");
+	}
+
 	allow_on_grid_editing() {
 		if (frappe.utils.is_xs()) {
 			return false;
