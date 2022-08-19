@@ -494,7 +494,7 @@ class Engine:
 						else:
 							replaced_string = substituted_string.replace(function.name.casefold(), "")
 						updated_fields.append(replaced_string)
-					fields = [field for field in updated_fields if field]
+				fields = [field for field in updated_fields if field]
 		return fields
 
 	def get_fieldnames_from_child_table(self, doctype, fields):
@@ -575,7 +575,8 @@ class Engine:
 					else:
 						updated_fields.append(Field(field))
 
-					fields = updated_fields
+			fields = updated_fields
+
 		# Need to check instance again since fields modified.
 		if not isinstance(fields, (list, tuple, set)):
 			fields = [fields] if fields else []
@@ -626,7 +627,7 @@ class Engine:
 				has_join = True
 
 		return criterion, fields
-
+	# try meta to validate fields and doctypes
 	def get_query(
 		self,
 		table: str,

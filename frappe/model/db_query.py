@@ -312,7 +312,7 @@ class DatabaseQuery:
 				except ValueError:
 					self.fields = [f.strip() for f in self.fields.split(",")]
 
-		# remove empty strings / nulls in fields
+		# remove empty st1rings / nulls in fields
 		self.fields = [f for f in self.fields if f]
 
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
