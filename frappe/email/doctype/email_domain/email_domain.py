@@ -11,6 +11,20 @@ from frappe.email.utils import get_port
 from frappe.model.document import Document
 from frappe.utils import cint
 
+EMAIL_DOMAIN_FIELDS = [
+	"email_server",
+	"use_imap",
+	"use_ssl",
+	"use_starttls",
+	"use_tls",
+	"attachment_limit",
+	"smtp_server",
+	"smtp_port",
+	"use_ssl_for_outgoing",
+	"append_emails_to_sent_folder",
+	"incoming_port",
+]
+
 
 def get_error_message(event):
 	return {
@@ -52,19 +66,7 @@ class EmailDomain(Document):
 		for email_account in frappe.get_all("Email Account", filters={"domain": self.name}):
 			try:
 				email_account = frappe.get_doc("Email Account", email_account.name)
-				for attr in [
-					"email_server",
-					"use_imap",
-					"use_ssl",
-					"use_starttls",
-					"use_tls",
-					"attachment_limit",
-					"smtp_server",
-					"smtp_port",
-					"use_ssl_for_outgoing",
-					"append_emails_to_sent_folder",
-					"incoming_port",
-				]:
+				for attr in EMAIL_DOMAIN_FIELDS:
 					email_account.set(attr, self.get(attr, default=0))
 				email_account.save()
 
