@@ -409,16 +409,21 @@ def insert_event_in_google_calendar(doc, method=None):
 	if doc.repeat_on:
 		event.update({"recurrence": repeat_on_to_google_calendar_recurrence_rule(doc)})
 
-	if doc.add_video_conferencing:
-		event.update({"conferenceData": get_conference_data(doc)})
-
 	if len(doc.event_participants):
 		event.update({"attendees": get_attendees(doc)})
+
+	conference_data_version = 0
+
+	if doc.add_video_conferencing:
+		event.update({"conferenceData": get_conference_data(doc)})
+		conference_data_version = 1
 
 	try:
 		event = (
 			google_calendar.events()
-			.insert(calendarId=doc.google_calendar_id, body=event, conferenceDataVersion=1)
+			.insert(
+				calendarId=doc.google_calendar_id, body=event, conferenceDataVersion=conference_data_version
+			)
 			.execute()
 		)
 
@@ -436,6 +441,7 @@ def insert_event_in_google_calendar(doc, method=None):
 				account.name, err.resp.status
 			)
 		)
+
 
 def update_event_in_google_calendar(doc, method=None):
 	"""
@@ -466,6 +472,7 @@ def update_event_in_google_calendar(doc, method=None):
 			.get(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id)
 			.execute()
 		)
+
 		event["summary"] = doc.subject
 		event["description"] = doc.description
 		event["recurrence"] = repeat_on_to_google_calendar_recurrence_rule(doc)
@@ -478,10 +485,15 @@ def update_event_in_google_calendar(doc, method=None):
 			)
 		)
 
+		conference_data_version = 0
+
 		if doc.add_video_conferencing:
 			event.update({"conferenceData": get_conference_data(doc)})
-		else:
+			conference_data_version = 1
+		elif doc.get_doc_before_save().add_video_conferencing or event.get("hangoutLink"):
+			# remove google meet from google calendar event, if turning off add_video_conferencing
 			event.update({"conferenceData": None})
+			conference_data_version = 1
 
 		if len(doc.event_participants):
 			event.update({"attendees": get_attendees(doc)})
@@ -492,7 +504,7 @@ def update_event_in_google_calendar(doc, method=None):
 				calendarId=doc.google_calendar_id,
 				eventId=doc.google_calendar_event_id,
 				body=event,
-				conferenceDataVersion=1
+				conferenceDataVersion=conference_data_version,
 			)
 			.execute()
 		)
