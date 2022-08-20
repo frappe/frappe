@@ -91,8 +91,7 @@ class EmailAccount(Document):
 		):
 			if self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
-					if self.use_imap and self.use_ssl:
-						self.use_starttls = None
+					self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 					self.get_incoming_server()
 					self.no_failed = 0
 
