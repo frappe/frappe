@@ -68,9 +68,6 @@ class EmailAccount(Document):
 		else:
 			self.login_id = None
 
-		if self.enable_incoming and self.use_imap and self.use_ssl:
-			self.use_starttls = None
-
 		duplicate_email_account = frappe.get_all(
 			"Email Account", filters={"email_id": self.email_id, "name": ("!=", self.name)}
 		)
@@ -94,6 +91,8 @@ class EmailAccount(Document):
 		):
 			if self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
+					if self.use_imap and self.use_ssl:
+						self.use_starttls = None
 					self.get_incoming_server()
 					self.no_failed = 0
 

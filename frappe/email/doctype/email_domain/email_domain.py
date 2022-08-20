@@ -43,9 +43,6 @@ class EmailDomain(Document):
 						test = imaplib.IMAP4_SSL(self.email_server, port=get_port(self))
 					else:
 						test = imaplib.IMAP4(self.email_server, port=get_port(self))
-						if self.use_starttls:
-							test.starttls()
-
 
 				else:
 					logger.info(
@@ -59,7 +56,7 @@ class EmailDomain(Document):
 						test = poplib.POP3(self.email_server, port=get_port(self))
 
 			except Exception as e:
-				logger.warn(
+				logger.warning(
 					'Incoming email account "{host}" not correct'.format(host=self.email_server), exc_info=e
 				)
 				frappe.throw(
