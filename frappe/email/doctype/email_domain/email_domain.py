@@ -115,6 +115,7 @@ class EmailDomain(Document):
 					"use_imap",
 					"use_ssl",
 					"use_tls",
+					"use_starttls",
 					"attachment_limit",
 					"smtp_server",
 					"smtp_port",
