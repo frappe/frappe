@@ -163,11 +163,7 @@ def has_function(field):
 
 def table_from_string(table: str) -> "DocType":
 	table_name = table.split("`", maxsplit=1)[1].split(".")[0][3:]
-	if "`" in table_name:
-		return frappe.qb.DocType(table_name=table_name.replace("`", ""))
-	else:
-		return frappe.qb.DocType(table_name=table_name)
-
+	return frappe.qb.DocType(table_name=table_name.replace("`", ""))
 
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
