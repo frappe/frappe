@@ -322,7 +322,7 @@ class NotificationsView extends BaseNotificationsView {
 
 	get_notifications_list(limit) {
 		return frappe.db.get_list('Notification Log', {
-			fields: ['subject', "type", "document_type", "document_name", "creation", "from_user", "name"],
+			fields: ["*"],
 			limit: limit,
 			order_by: 'creation desc'
 		});
