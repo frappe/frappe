@@ -2641,6 +2641,7 @@ Use IMAP,Utiliser IMAP,
 Use POST,Utiliser le POST,
 Use SSL,Utiliser SSL,
 Use TLS,Utiliser TLS,
+Use STARTTLS,Utiliser STARTTLS
 "Use a few words, avoid common phrases.","Utiliser quelques mots, éviter les phrases courantes.",
 Use of sub-query or function is restricted,L&#39;utilisation de la sous-requête ou de la fonction est restreinte,
 Use socketio to upload file,Utilisez socketio pour télécharger le fichier,
