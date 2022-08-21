@@ -2,8 +2,8 @@
 # License: MIT. See LICENSE
 
 # import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestWorkflowAction(unittest.TestCase):
+class TestWorkflowAction(FrappeTestCase):
 	pass

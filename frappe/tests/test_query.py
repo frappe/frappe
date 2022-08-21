@@ -1,12 +1,11 @@
-import unittest
-
 import frappe
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Abs, Count, Max, Timestamp
 from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestQuery(unittest.TestCase):
+class TestQuery(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
 		self.assertEqual(

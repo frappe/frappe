@@ -3,7 +3,6 @@
 
 import base64
 import os
-import unittest
 
 import frappe
 from frappe import safe_decode
@@ -15,9 +14,10 @@ from frappe.email.email_body import (
 	replace_filename_with_cid,
 )
 from frappe.email.receive import Email
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestEmailBody(unittest.TestCase):
+class TestEmailBody(FrappeTestCase):
 	def setUp(self):
 		email_html = """
 <div>

@@ -1,7 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
-import unittest
 
 import frappe
 from frappe.core.doctype.user.user import generate_keys
@@ -9,19 +8,12 @@ from frappe.event_streaming.doctype.event_producer.event_producer import pull_fr
 from frappe.frappeclient import FrappeClient
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils import FrappeTestCase
 
 producer_url = "http://test_site_producer:8000"
 
 
-class TestEventProducer(unittest.TestCase):
-	# @classmethod
-	# def setUpClass(cls):
-	# 	frappe.print_sql(True)
-
-	# @classmethod
-	# def tearDownClass(cls):
-	# 	frappe.print_sql(False)
-
+class TestEventProducer(FrappeTestCase):
 	def setUp(self):
 		create_event_producer(producer_url)
 
