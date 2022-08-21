@@ -9,10 +9,10 @@ from frappe.utils import parse_addr, validate_email_address
 
 class EmailGroup(Document):
 	def onload(self):
-		singles = [d.name for d in frappe.db.get_all("DocType", "name", {"issingle": 1})]
+		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
 		self.get("__onload").import_types = [
 			{"value": d.parent, "label": f"{d.parent} ({d.label})"}
-			for d in frappe.db.get_all("DocField", ("parent", "label"), {"options": "Email"})
+			for d in frappe.get_all("DocField", ("parent", "label"), {"options": "Email"})
 			if d.parent not in singles
 		]
 
@@ -27,7 +27,7 @@ class EmailGroup(Document):
 		unsubscribed_field = "unsubscribed" if meta.get_field("unsubscribed") else None
 		added = 0
 
-		for user in frappe.db.get_all(doctype, [email_field, unsubscribed_field or "name"]):
+		for user in frappe.get_all(doctype, [email_field, unsubscribed_field or "name"]):
 			try:
 				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
 				if email:

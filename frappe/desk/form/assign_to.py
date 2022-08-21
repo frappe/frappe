@@ -138,7 +138,7 @@ def add_multiple(args=None):
 
 
 def close_all_assignments(doctype, name):
-	assignments = frappe.db.get_all(
+	assignments = frappe.get_all(
 		"ToDo",
 		fields=["allocated_to"],
 		filters=dict(reference_type=doctype, reference_name=name, status=("!=", "Cancelled")),
@@ -189,7 +189,7 @@ def clear(doctype, name):
 	"""
 	Clears assignments, return False if not assigned.
 	"""
-	assignments = frappe.db.get_all(
+	assignments = frappe.get_all(
 		"ToDo", fields=["allocated_to"], filters=dict(reference_type=doctype, reference_name=name)
 	)
 	if not assignments:
