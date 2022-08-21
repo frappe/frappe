@@ -143,7 +143,6 @@ def set_test_email_config():
 			"mail_server": "smtp.example.com",
 			"mail_login": "test@example.com",
 			"mail_password": "test",
-			"admin_password": "admin",
 		}
 	)
 

@@ -56,6 +56,7 @@ class EmailDomain(Document):
 					"email_server",
 					"use_imap",
 					"use_ssl",
+					"use_starttls",
 					"use_tls",
 					"attachment_limit",
 					"smtp_server",
@@ -76,10 +77,12 @@ class EmailDomain(Document):
 	def validate_incoming_server_conn(self):
 		self.incoming_port = get_port(self)
 
-		conn_method = Timed_POP3_SSL if self.use_ssl else Timed_POP3
 		if self.use_imap:
 			conn_method = Timed_IMAP4_SSL if self.use_ssl else Timed_IMAP4
+		else:
+			conn_method = Timed_POP3_SSL if self.use_ssl else Timed_POP3
 
+		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 		incoming_conn = conn_method(self.email_server, port=self.incoming_port)
 		incoming_conn.logout() if self.use_imap else incoming_conn.quit()
 

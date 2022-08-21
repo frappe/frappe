@@ -1,14 +1,13 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 from .google_settings import get_file_picker_settings
 
 
-class TestGoogleSettings(unittest.TestCase):
+class TestGoogleSettings(FrappeTestCase):
 	def setUp(self):
 		settings = frappe.get_single("Google Settings")
 		settings.client_id = "test_client_id"
