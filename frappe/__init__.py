@@ -240,6 +240,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.document_cache = {}
 	local.meta_cache = {}
 	local.form_dict = _dict()
+	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
