@@ -38,7 +38,7 @@ class TestNotificationLog(unittest.TestCase):
 
 
 def get_last_email_queue():
-	res = frappe.db.get_all("Email Queue", fields=["message"], order_by="creation desc", limit=1)
+	res = frappe.get_all("Email Queue", fields=["message"], order_by="creation desc", limit=1)
 	return res[0]
 
 

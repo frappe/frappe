@@ -38,7 +38,7 @@ def create_if_not_exists(doc):
 
 @frappe.whitelist()
 def create_todo_records():
-	if frappe.db.get_all("ToDo", {"description": "this is first todo"}):
+	if frappe.get_all("ToDo", {"description": "this is first todo"}):
 		return
 
 	frappe.get_doc(
@@ -80,7 +80,7 @@ def setup_workflow():
 
 @frappe.whitelist()
 def create_contact_phone_nos_records():
-	if frappe.db.get_all("Contact", {"first_name": "Test Contact"}):
+	if frappe.get_all("Contact", {"first_name": "Test Contact"}):
 		return
 
 	doc = frappe.new_doc("Contact")
@@ -127,7 +127,7 @@ def create_child_doctype(name, fields):
 
 @frappe.whitelist()
 def create_contact_records():
-	if frappe.db.get_all("Contact", {"first_name": "Test Form Contact 1"}):
+	if frappe.get_all("Contact", {"first_name": "Test Form Contact 1"}):
 		return
 
 	insert_contact("Test Form Contact 1", "12345")
@@ -137,7 +137,7 @@ def create_contact_records():
 
 @frappe.whitelist()
 def create_multiple_todo_records():
-	if frappe.db.get_all("ToDo", {"description": "Multiple ToDo 1"}):
+	if frappe.get_all("ToDo", {"description": "Multiple ToDo 1"}):
 		return
 
 	values = [(f"100{i}", f"Multiple ToDo {i}") for i in range(1, 1002)]
@@ -291,7 +291,7 @@ def update_child_table(name):
 
 @frappe.whitelist()
 def insert_doctype_with_child_table_record(name):
-	if frappe.db.get_all(name, {"title": "Test Grid Search"}):
+	if frappe.get_all(name, {"title": "Test Grid Search"}):
 		return
 
 	def insert_child(doc, data, barcode, check, rating, duration, date):

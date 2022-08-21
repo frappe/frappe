@@ -178,7 +178,7 @@ def add_comments(doc, docinfo):
 
 
 def get_milestones(doctype, name):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Milestone",
 		fields=["creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=name),
@@ -249,7 +249,7 @@ def get_comments(
 
 
 def get_point_logs(doctype, docname):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Energy Point Log",
 		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
 		fields=["*"],
