@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+import shutil
 
 import frappe
 import frappe.model
@@ -88,6 +89,21 @@ def get_module_name(doc):
 		module = frappe.db.get_value("DocType", doc.doctype, "module")
 
 	return module
+
+
+def delete_folder(module, dt, dn):
+	if frappe.db.get_value("Module Def", module, "custom"):
+		module_path = get_custom_module_path(module)
+	else:
+		module_path = get_module_path(module)
+
+	dt, dn = scrub_dt_dn(dt, dn)
+
+	# delete folder
+	folder = os.path.join(module_path, dt, dn)
+
+	if os.path.exists(folder):
+		shutil.rmtree(folder)
 
 
 def create_folder(module, dt, dn, create_init):
