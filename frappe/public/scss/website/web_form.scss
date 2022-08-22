@@ -105,6 +105,17 @@
 						.form-column {
 							padding: 0 var(--padding-sm);
 
+							.frappe-control[data-fieldtype="Rating"] {
+								.like-disabled-input {
+									background-color: unset;
+									padding-left: 0px;
+
+									.rating {
+										cursor: default;
+									}
+								}
+							}
+
 							&:first-child {
 								padding-left: 0;
 							}
