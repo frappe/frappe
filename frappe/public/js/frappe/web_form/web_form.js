@@ -24,7 +24,6 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		super.make();
 		this.set_page_breaks();
 		this.set_field_values();
-		this.setup_listeners();
 
 		if (this.is_new || this.in_edit_mode) {
 			this.setup_primary_action();
@@ -36,6 +35,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
+		this.setup_listeners();
 		frappe.web_form.events.trigger("after_load");
 		this.after_load && this.after_load();
 	}
@@ -44,21 +44,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let field = this.fields_dict[fieldname];
 		field.df.change = () => {
 			handler(field, field.value);
+			frappe.form_dirty = true;
 		};
 	}
 
 	setup_listeners() {
-		// Do not use `on` event here since that can be used by user which will render this function useless
-		// setTimeout has 200ms delay so that all the base_control triggers for the fields have been run
-
-		for (let field of $(".input-with-feedback")) {
-			$(field).change((e) => {
-				setTimeout(() => {
-					e.stopPropagation();
+		// setup change event for all fields if not already set through client script
+		this.fields.forEach((field) => {
+			if (!field.change) {
+				field.change = () => {
 					frappe.form_dirty = true;
-				}, 200);
-			});
-		}
+				};
+			}
+		});
 	}
 
 	set_page_breaks() {
@@ -166,13 +164,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_discard_action() {
-		$(".web-form-footer .discard-btn").on("click", (e) => {
-			setTimeout(() => {
-				e.stopPropagation();
-				this.discard_form();
-			}, 200);
-			return false;
-		});
+		$(".web-form-footer .discard-btn").on("click", () => this.discard_form());
 	}
 
 	discard_form() {
