@@ -44,7 +44,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let field = this.fields_dict[fieldname];
 		field.df.change = () => {
 			handler(field, field.value);
-			frappe.form_dirty = true;
+			this.make_form_dirty();
 		};
 	}
 
@@ -53,10 +53,15 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.fields.forEach((field) => {
 			if (!field.change) {
 				field.change = () => {
-					frappe.form_dirty = true;
+					this.make_form_dirty();
 				};
 			}
 		});
+	}
+
+	make_form_dirty() {
+		frappe.form_dirty = true;
+		$(".indicator-pill.orange").removeClass("hide");
 	}
 
 	set_page_breaks() {
