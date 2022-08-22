@@ -57,7 +57,12 @@
 			<div class="web-form-head">
 				<div class="title">
 					<div class="web-form-title ellipsis">
-						<h1 class="ellipsis">{{ _(title) }}</h1>
+						{% if show_list and not is_new %}
+							<h1 class="ellipsis">{{ _(web_form_title.capitalize()) }}</h1>
+							<p class="ellipsis">{{ _(title) }}</p>
+						{% else %}
+							<h1 class="ellipsis">{{ _(title) }}</h1>
+						{% endif %}
 					</div>
 					<div class="web-form-actions">
 						{{ header_buttons() }}
