@@ -3,13 +3,13 @@ import re
 from ast import literal_eval
 from functools import cached_property
 from types import BuiltinFunctionType
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Callable
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
 from frappe import _
-from frappe.database.utils import is_function_object
+from frappe.database.utils import is_pypika_function_object
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -164,6 +164,7 @@ def has_function(field):
 def table_from_string(table: str) -> "DocType":
 	table_name = table.split("`", maxsplit=1)[1].split(".")[0][3:]
 	return frappe.qb.DocType(table_name=table_name.replace("`", ""))
+
 
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
@@ -586,7 +587,7 @@ class Engine:
 			for field in fields:
 				# Only perform this bit if foreign doctype in fields
 				if (
-					not is_function_object(field)
+					not is_pypika_function_object(field)
 					and str(field).startswith("`tab")
 					and (f"`tab{table}`" not in str(field))
 				):
@@ -603,7 +604,7 @@ class Engine:
 
 			if has_join:
 				for field in fields:
-					if not is_function_object(field):
+					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
 						if "tab" not in str(field):
 							fields[fields.index(field)] = getattr(frappe.qb.DocType(table), field)
