@@ -97,7 +97,7 @@ class EmailDomain(Document):
 					sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
 				sess.quit()
 			except Exception as e:
-				logger.warn(
+				logger.warning(
 					'Outgoing email account "{host}" not correct'.format(host=self.smtp_server), exc_info=e
 				)
 				frappe.throw(

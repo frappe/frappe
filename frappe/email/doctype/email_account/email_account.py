@@ -84,6 +84,8 @@ class EmailAccount(Document):
 		# if self.enable_incoming and not self.append_to:
 		# 	frappe.throw(_("Append To is mandatory for incoming mails"))
 
+		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
+
 		if (
 			not self.awaiting_password
 			and not frappe.local.flags.in_install
@@ -91,7 +93,6 @@ class EmailAccount(Document):
 		):
 			if self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
-					self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 					self.get_incoming_server()
 					self.no_failed = 0
 
