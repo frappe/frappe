@@ -621,7 +621,7 @@ class User(Document):
 		if login_with_username:
 			or_filters.append({"username": user_name})
 
-		users = frappe.db.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
+		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
 			return
 

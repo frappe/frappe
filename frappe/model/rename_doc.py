@@ -237,7 +237,7 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 
 	for user in common_assignments:
 		# delete todos linked to old doc
-		todos = frappe.db.get_all(
+		todos = frappe.get_all(
 			"ToDo",
 			{
 				"owner": user,
