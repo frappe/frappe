@@ -39,7 +39,7 @@ class EmailDomain(Document):
 						)
 					)
 					if self.use_ssl:
-						self.use_starttls = None
+						self.use_starttls = 0
 						test = imaplib.IMAP4_SSL(self.email_server, port=get_port(self))
 					else:
 						test = imaplib.IMAP4(self.email_server, port=get_port(self))
