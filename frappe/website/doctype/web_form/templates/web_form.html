@@ -63,7 +63,7 @@
 						{{ header_buttons() }}
 					</div>
 				</div>
-				{% if is_new and introduction_text %}
+				{% if introduction_text and (is_new or in_edit_mode)  %}
 					<div class="web-form-introduction">{{ introduction_text }}</div>
 				{% endif %}
 			</div>
