@@ -495,9 +495,8 @@ class Engine:
 
 	def get_fieldnames_from_child_table(self, doctype, fields):
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
-		for field in fields:
+		for idx, field in enumerate(fields, start=0):
 			if "." in field and "tab" not in field:
-				original_field = field
 				alias = None
 				if " as " in field:
 					field, alias = field.split(" as ")
@@ -510,7 +509,7 @@ class Engine:
 				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
-				fields[fields.index(original_field)] = field
+				fields[idx] = field
 
 		return fields
 
