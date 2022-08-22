@@ -278,7 +278,10 @@ frappe.ui.form.Layout = class Layout {
 
 	make_section(df = {}) {
 		this.section_count++;
-		if (!df.fieldname) df.fieldname = `__section_${this.section_count}`;
+		if (!df.fieldname) {
+			df.fieldname = `__section_${this.section_count}`;
+			df.fieldtype = "Section Break";
+		}
 
 		this.section = new Section(
 			this.current_tab ? this.current_tab.wrapper : this.page,
@@ -300,7 +303,10 @@ frappe.ui.form.Layout = class Layout {
 
 	make_column(df = {}) {
 		this.column_count++;
-		if (!df.fieldname) df.fieldname = `__column_${this.section_count}`;
+		if (!df.fieldname) {
+			df.fieldname = `__column_${this.section_count}`;
+			df.fieldtype = "Column Break";
+		}
 
 		this.column = new Column(this.section, df);
 		if (df && df.fieldname) {
