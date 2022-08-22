@@ -53,6 +53,10 @@
 							flex-wrap: wrap;
 							gap: 1rem;
 
+							.web-form-title p {
+								margin-bottom: 0;
+							}
+
 							.web-form-actions {
 								display: flex;
 								align-items: center;
