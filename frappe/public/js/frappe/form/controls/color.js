@@ -93,11 +93,11 @@ frappe.ui.form.ControlColor = class ControlColor extends frappe.ui.form.ControlD
 
 	set_formatted_input(value) {
 		super.set_formatted_input(value);
-		this.$input.val(value);
-		this.selected_color.css({
+		this.$input?.val(value);
+		this.selected_color?.css({
 			"background-color": value || "transparent",
 		});
-		this.selected_color.toggleClass("no-value", !value);
+		this.selected_color?.toggleClass("no-value", !value);
 	}
 
 	get_color() {
