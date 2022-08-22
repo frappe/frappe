@@ -166,20 +166,30 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_discard_action() {
-		$(".web-form-footer .discard-btn").on("click", () => this.discard_form());
+		$(".web-form-footer .discard-btn").on("click", (e) => {
+			setTimeout(() => {
+				e.stopPropagation();
+				this.discard_form();
+			}, 200);
+			return false;
+		});
 	}
 
 	discard_form() {
-		frappe.warn(
-			__("Discard?"),
-			__("Are you sure you want to discard the changes?"),
-			() => {
-				let path = window.location.href;
-				// remove new or edit after last / from url
-				window.location.href = path.substring(0, path.lastIndexOf("/"));
-			},
-			__("Discard")
-		);
+		let path = window.location.href;
+		// remove new or edit after last / from url
+		path = path.substring(0, path.lastIndexOf("/"));
+
+		if (frappe.form_dirty) {
+			frappe.warn(
+				__("Discard?"),
+				__("Are you sure you want to discard the changes?"),
+				() => (window.location.href = path),
+				__("Discard")
+			);
+		} else {
+			window.location.href = path;
+		}
 		return false;
 	}
 
