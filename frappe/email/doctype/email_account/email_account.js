@@ -210,10 +210,11 @@ frappe.ui.form.on("Email Account", {
 		oauth_access(frm);
 	},
 
-	domain: function (frm) {
+	domain: frappe.utils.debounce((frm) => {
 		if (frm.doc.domain) {
 			frappe.call({
 				method: "get_domain_values",
+				doc: frm.doc,
 				args: {
 					domain: frm.doc.domain,
 				},
@@ -226,7 +227,7 @@ frappe.ui.form.on("Email Account", {
 				},
 			});
 		}
-	},
+	}),
 
 	email_sync_option: function (frm) {
 		// confirm if the ALL sync option is selected
