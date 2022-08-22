@@ -13,6 +13,7 @@ from .energy_point_log import review
 class TestEnergyPointLog(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		settings = frappe.get_single("Energy Point Settings")
 		settings.enabled = 1
 		settings.save()

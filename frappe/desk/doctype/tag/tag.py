@@ -192,4 +192,4 @@ def get_documents_for_tag(tag):
 
 @frappe.whitelist()
 def get_tags_list_for_awesomebar():
-	return [t.name for t in frappe.get_list("Tag")]
+	return frappe.get_list("Tag", pluck="name", order_by=None)

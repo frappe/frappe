@@ -1,10 +1,9 @@
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.safe_exec import get_safe_globals, safe_exec
 
 
-class TestSafeExec(unittest.TestCase):
+class TestSafeExec(FrappeTestCase):
 	def test_import_fails(self):
 		self.assertRaises(ImportError, safe_exec, "import os")
 

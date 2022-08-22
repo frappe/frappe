@@ -2723,7 +2723,7 @@
   "currency_fraction": "Kuru\u015f",
   "currency_fraction_units": 100,
   "currency_symbol": "\u20ba",
-  "number_format": "#,###.##",
+  "number_format": "#.###,##",
   "timezones": [
    "Europe/Istanbul"
   ],

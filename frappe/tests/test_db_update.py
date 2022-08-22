@@ -1,12 +1,11 @@
-import unittest
-
 import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cstr
 
 
-class TestDBUpdate(unittest.TestCase):
+class TestDBUpdate(FrappeTestCase):
 	def test_db_update(self):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)

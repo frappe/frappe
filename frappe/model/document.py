@@ -15,6 +15,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
@@ -154,11 +155,7 @@ class Document(BaseDocument):
 			# Make sure not to query the DB for a child table, if it is a virtual one.
 			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
 			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
-			if (
-				hasattr(self, "doctype")
-				and not hasattr(self, "module")
-				and frappe.db.get_value("DocType", df.options, "is_virtual", cache=True)
-			):
+			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
 				self.set(df.fieldname, [])
 				continue
 

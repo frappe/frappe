@@ -451,13 +451,13 @@ def get_doctype_roles(doctype, access_type="read"):
 def get_perms_for(roles, perm_doctype="DocPerm"):
 	"""Get perms for given roles"""
 	filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
-	return frappe.db.get_all(perm_doctype, fields=["*"], filters=filters)
+	return frappe.get_all(perm_doctype, fields=["*"], filters=filters)
 
 
 def get_doctypes_with_custom_docperms():
 	"""Returns all the doctypes with Custom Docperms"""
 
-	doctypes = frappe.db.get_all("Custom DocPerm", fields=["parent"], distinct=1)
+	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
 	return [d.parent for d in doctypes]
 
 
@@ -525,7 +525,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 	filters = {"allow": doctype}
 	if user:
 		filters["user"] = user
-	user_permissions_for_doctype = frappe.db.get_all("User Permission", filters=filters)
+	user_permissions_for_doctype = frappe.get_all("User Permission", filters=filters)
 	for d in user_permissions_for_doctype:
 		frappe.delete_doc("User Permission", d.name)
 

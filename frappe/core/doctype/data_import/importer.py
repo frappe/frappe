@@ -50,7 +50,7 @@ class Importer:
 	def get_data_for_import_preview(self):
 		out = self.import_file.get_data_for_import_preview()
 
-		out.import_log = frappe.db.get_all(
+		out.import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success"],
 			filters={"data_import": self.data_import.name},
@@ -90,7 +90,7 @@ class Importer:
 
 		# setup import log
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -204,7 +204,7 @@ class Importer:
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -297,7 +297,7 @@ class Importer:
 			return
 
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success"],
 				filters={"data_import": self.data_import.name},
@@ -327,7 +327,7 @@ class Importer:
 		if not self.data_import:
 			return
 
-		import_log = frappe.db.get_all(
+		import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success", "messages", "exception", "docname"],
 			filters={"data_import": self.data_import.name},
@@ -984,7 +984,9 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list({cstr(v) for v in self.column_values[1:] if v})
-			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})]
+			exists = [
+				cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
+			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)

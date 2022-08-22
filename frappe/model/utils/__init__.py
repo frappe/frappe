@@ -128,6 +128,6 @@ def get_fetch_values(doctype, fieldname, value):
 	return result
 
 
-@site_cache(maxsize=128)
+@site_cache()
 def is_virtual_doctype(doctype):
 	return frappe.db.get_value("DocType", doctype, "is_virtual")
