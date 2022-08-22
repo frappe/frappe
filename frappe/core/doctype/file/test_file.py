@@ -239,7 +239,7 @@ class TestFile(FrappeTestCase):
 			pass
 
 	def delete_test_data(self):
-		test_file_data = frappe.db.get_all(
+		test_file_data = frappe.get_all(
 			"File",
 			pluck="name",
 			filters={"is_home_folder": 0, "is_attachments_folder": 0},

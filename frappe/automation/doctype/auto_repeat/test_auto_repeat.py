@@ -228,7 +228,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		data = get_auto_repeat_entries(current_date)
 		create_repeated_entries(data)
-		docnames = frappe.db.get_all(
+		docnames = frappe.get_all(
 			doc.reference_doctype, filters={"auto_repeat": doc.name}, fields=["docstatus"], limit=1
 		)
 		self.assertEqual(docnames[0].docstatus, 1)

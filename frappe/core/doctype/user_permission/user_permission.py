@@ -27,7 +27,7 @@ class UserPermission(Document):
 	def validate_user_permission(self):
 		"""checks for duplicate user permission records"""
 
-		duplicate_exists = frappe.db.get_all(
+		duplicate_exists = frappe.get_all(
 			self.doctype,
 			filters={
 				"allow": self.allow,

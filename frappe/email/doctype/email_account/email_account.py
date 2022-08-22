@@ -846,7 +846,7 @@ def get_max_email_uid(email_account):
 	# get maximum uid of emails
 	max_uid = 1
 
-	result = frappe.db.get_all(
+	result = frappe.get_all(
 		"Communication",
 		filters={
 			"communication_medium": "Email",

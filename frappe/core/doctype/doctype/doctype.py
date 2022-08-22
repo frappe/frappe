@@ -325,7 +325,7 @@ class DocType(Document):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
 			return
-		parent_list = frappe.db.get_all(
+		parent_list = frappe.get_all(
 			"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=self.name)
 		)
 		for p in parent_list:
