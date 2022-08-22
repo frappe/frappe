@@ -176,7 +176,7 @@ class TestWebhook(unittest.TestCase):
 		webhook = frappe.get_doc("Webhook", {"webhook_doctype": "User"})
 		enqueue_webhook(user, webhook)
 
-		self.assertTrue(frappe.db.get_all("Webhook Request Log", pluck="name"))
+		self.assertTrue(frappe.get_all("Webhook Request Log", pluck="name"))
 
 	def test_webhook_with_array_body(self):
 		"""Check if array request body are supported."""

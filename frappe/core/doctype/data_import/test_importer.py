@@ -67,7 +67,7 @@ class TestImporter(unittest.TestCase):
 		data_import.start_import()
 		data_import.reload()
 
-		import_log = frappe.db.get_all(
+		import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success", "messages", "exception", "docname"],
 			filters={"data_import": data_import.name},
