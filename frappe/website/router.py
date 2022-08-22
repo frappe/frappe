@@ -33,7 +33,7 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 def get_page_info_from_web_form(path):
 	"""Query published web forms and evaluate if the route matches"""
 	rules, page_info = [], {}
-	web_forms = frappe.db.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+	web_forms = frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
 	for d in web_forms:
 		rules.append(Rule(f"/{d.route}", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/list", endpoint=d.name))

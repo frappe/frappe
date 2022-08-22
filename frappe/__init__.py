@@ -2328,7 +2328,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	"""
 	meta = get_meta(doctype)
 	if meta.track_changes:
-		names = db.get_all(
+		names = get_all(
 			"Version",
 			filters={
 				"ref_doctype": doctype,
