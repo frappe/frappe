@@ -25,6 +25,7 @@
   "default_incoming",
   "use_imap",
   "use_ssl",
+  "use_starttls",
   "email_server",
   "incoming_port",
   "column_break_18",
@@ -562,12 +563,20 @@
    "fieldname": "account_section",
    "fieldtype": "Section Break",
    "label": "Account"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_imap && !doc.use_ssl",
+   "fetch_from": "domain.use_starttls",
+   "fieldname": "use_starttls",
+   "fieldtype": "Check",
+   "label": "Use STARTTLS"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-22 11:09:15.603556",
+ "modified": "2022-08-19 10:26:00.762228",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

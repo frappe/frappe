@@ -13,6 +13,7 @@
   "email_server",
   "use_imap",
   "use_ssl",
+  "use_starttls",
   "incoming_port",
   "attachment_limit",
   "append_to",
@@ -121,11 +122,18 @@
    "fieldname": "use_ssl_for_outgoing",
    "fieldtype": "Check",
    "label": "Use SSL for Outgoing"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.use_imap && !doc.use_ssl",
+   "fieldname": "use_starttls",
+   "fieldtype": "Check",
+   "label": "Use STARTTLS"
   }
  ],
  "icon": "icon-inbox",
  "links": [],
- "modified": "2019-12-18 15:57:34.445308",
+ "modified": "2022-08-19 11:22:46.342609",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

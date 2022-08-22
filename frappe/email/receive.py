@@ -86,6 +86,9 @@ class EmailServer:
 				self.imap = Timed_IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
+				if self.settings.use_starttls:
+					self.imap.starttls()
+
 			self.imap.login(self.settings.username, self.settings.password)
 			# connection established!
 			return True

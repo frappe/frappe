@@ -39,6 +39,7 @@ class EmailDomain(Document):
 						)
 					)
 					if self.use_ssl:
+						self.use_starttls = 0
 						test = imaplib.IMAP4_SSL(self.email_server, port=get_port(self))
 					else:
 						test = imaplib.IMAP4(self.email_server, port=get_port(self))
@@ -55,7 +56,7 @@ class EmailDomain(Document):
 						test = poplib.POP3(self.email_server, port=get_port(self))
 
 			except Exception as e:
-				logger.warn(
+				logger.warning(
 					'Incoming email account "{host}" not correct'.format(host=self.email_server), exc_info=e
 				)
 				frappe.throw(
@@ -96,7 +97,7 @@ class EmailDomain(Document):
 					sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
 				sess.quit()
 			except Exception as e:
-				logger.warn(
+				logger.warning(
 					'Outgoing email account "{host}" not correct'.format(host=self.smtp_server), exc_info=e
 				)
 				frappe.throw(
@@ -114,6 +115,7 @@ class EmailDomain(Document):
 					"use_imap",
 					"use_ssl",
 					"use_tls",
+					"use_starttls",
 					"attachment_limit",
 					"smtp_server",
 					"smtp_port",
