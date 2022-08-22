@@ -95,13 +95,33 @@ def get_dom_id(seed=None):
 	return "id-" + generate_hash(seed, 12)
 
 
-def include_script(path):
+def include_script(path, preload=True):
+	"""Get path of bundled script files.
+
+	If preload is specified the path will be added to preload headers so browsers can prefetch
+	assets."""
 	path = bundled_asset(path)
+
+	if preload:
+		import frappe
+
+		frappe.local.preload_assets["script"].append(path)
+
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
-def include_style(path, rtl=None):
+def include_style(path, rtl=None, preload=True):
+	"""Get path of bundled style files.
+
+	If preload is specified the path will be added to preload headers so browsers can prefetch
+	assets."""
 	path = bundled_asset(path)
+
+	if preload:
+		import frappe
+
+		frappe.local.preload_assets["style"].append(path)
+
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 
