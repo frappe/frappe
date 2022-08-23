@@ -19,7 +19,8 @@ export default class EmbedWidget extends Widget {
 			source: this.source,
 			embed: this.embed,
 			i_width: this.i_width,
-			i_height: this.i_height
+			i_height: this.i_height,
+			caption: this.caption
 			//embed_filter: this.embed_filter
 		};
 	}
