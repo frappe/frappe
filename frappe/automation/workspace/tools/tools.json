@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Note\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Auto Repeat\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports & Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Event Streaming\",\"col\":4}}]",
+ "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Note\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Auto Repeat\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}}]",
  "creation": "2020-03-02 14:53:24.980279",
  "docstatus": 0,
  "doctype": "Workspace",
@@ -107,7 +107,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Automation",
-   "link_count": 0,
+   "link_count": 3,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -143,78 +143,16 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Streaming",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Producer",
-   "link_count": 0,
-   "link_to": "Event Producer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Consumer",
-   "link_count": 0,
-   "link_to": "Event Consumer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Update Log",
-   "link_count": 0,
-   "link_to": "Event Update Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Sync Log",
-   "link_count": 0,
-   "link_to": "Event Sync Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Document Type Mapping",
-   "link_count": 0,
-   "link_to": "Document Type Mapping",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2022-01-13 17:48:48.456763",
+ "modified": "2022-08-23 14:42:58.364898",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
+ "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 26.0,
