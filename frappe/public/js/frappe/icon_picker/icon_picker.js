@@ -17,7 +17,7 @@ class Picker {
 			<div class="icon-picker">
 				<div class="search-icons">
 					<input type="search" placeholder="Search for icons.." class="form-control">
-					<span class="search-icon">${frappe.utils.icon('search', "sm")}</span>
+					<span class="search-icon">${frappe.utils.icon("search", "sm")}</span>
 				</div>
 				<div class="icon-section">
 					<div class="icons"></div>
@@ -25,21 +25,23 @@ class Picker {
 			</div>
 		`);
 		this.parent.append(this.icon_picker_wrapper);
-		this.icon_wrapper = this.icon_picker_wrapper.find('.icons');
-		this.search_input = this.icon_picker_wrapper.find('.search-icons > input');
+		this.icon_wrapper = this.icon_picker_wrapper.find(".icons");
+		this.search_input = this.icon_picker_wrapper.find(".search-icons > input");
 		this.refresh();
 		this.setup_icons();
 	}
 
 	setup_icons() {
-		this.icons.forEach(icon => {
-			let $icon = $(`<div id="${icon}" class="icon-wrapper">${frappe.utils.icon(icon, "md")}</div>`);
+		this.icons.forEach((icon) => {
+			let $icon = $(
+				`<div id="${icon}" class="icon-wrapper">${frappe.utils.icon(icon, "md")}</div>`
+			);
 			this.icon_wrapper.append($icon);
 			const set_values = () => {
 				this.set_icon(icon);
 				this.update_icon_selected();
 			};
-			$icon.on('click', () => {
+			$icon.on("click", () => {
 				set_values();
 			});
 			$icon.keydown((e) => {
@@ -54,7 +56,7 @@ class Picker {
 				this.filter_icons();
 			});
 
-			this.search_input.on('search', () => {
+			this.search_input.on("search", () => {
 				this.filter_icons();
 			});
 		});
@@ -63,10 +65,10 @@ class Picker {
 	filter_icons() {
 		let value = this.search_input.val();
 		if (!value) {
-			this.icon_wrapper.find(".icon-wrapper").removeClass('hidden');
+			this.icon_wrapper.find(".icon-wrapper").removeClass("hidden");
 		} else {
-			this.icon_wrapper.find(".icon-wrapper").addClass('hidden');
-			this.icon_wrapper.find(`.icon-wrapper[id*='${value}']`).removeClass('hidden');
+			this.icon_wrapper.find(".icon-wrapper").addClass("hidden");
+			this.icon_wrapper.find(`.icon-wrapper[id*='${value}']`).removeClass("hidden");
 		}
 	}
 
@@ -75,11 +77,11 @@ class Picker {
 	}
 
 	set_icon(icon) {
-		this.icon = icon || '';
+		this.icon = icon || "";
 	}
 
 	get_icon() {
-		return this.icon || '';
+		return this.icon || "";
 	}
 }
 

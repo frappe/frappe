@@ -1,5 +1,4 @@
 import sys
-import unittest
 from contextlib import contextmanager
 from random import choice
 from threading import Thread
@@ -10,6 +9,7 @@ from semantic_version import Version
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url, get_test_client
 
 try:
@@ -32,9 +32,12 @@ def suppress_stdout():
 
 
 def make_request(
-	target: str, args: tuple | None = None, kwargs: dict | None = None
+	target: str,
+	args: tuple | None = None,
+	kwargs: dict | None = None,
+	site: str = None,
 ) -> TestResponse:
-	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
+	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
 	t.join()
 	return t._return
@@ -46,13 +49,14 @@ def patch_request_header(key, *args, **kwargs):
 
 
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, site=None):
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
+		self.site = site or _site
 
 	def run(self):
 		if self._target is not None:
-			with patch("frappe.app.get_site_name", return_value=_site):
+			with patch("frappe.app.get_site_name", return_value=self.site):
 				header_patch = patch("frappe.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
@@ -65,7 +69,7 @@ class ThreadWithReturnValue(Thread):
 		return self._return
 
 
-class FrappeAPITestCase(unittest.TestCase):
+class FrappeAPITestCase(FrappeTestCase):
 	SITE = frappe.local.site
 	SITE_URL = get_site_url(SITE)
 	RESOURCE_URL = f"{SITE_URL}/api/resource"
@@ -104,6 +108,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		for _ in range(10):
 			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)

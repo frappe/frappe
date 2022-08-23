@@ -97,6 +97,7 @@ class DatabaseQuery:
 		strict=True,
 		pluck=None,
 		ignore_ddl=False,
+		*,
 		parent_doctype=None,
 	) -> list:
 
@@ -237,7 +238,7 @@ class DatabaseQuery:
 		# left join parent, child tables
 		for child in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
 		# left join link tables
 		for link in self.link_tables:

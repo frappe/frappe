@@ -1,14 +1,14 @@
-import unittest
 from unittest.mock import patch
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import build_response, clear_website_cache, get_home_page
 
 
-class TestWebsite(unittest.TestCase):
+class TestWebsite(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")
 
@@ -263,13 +263,13 @@ class TestWebsite(unittest.TestCase):
 
 	def test_colocated_assets(self):
 		content = get_response_content("/_test/_test_folder/_test_page")
-		self.assertIn("<script>console.log('test data');</script>", content)
+		self.assertIn("""<script>console.log("test data");\n</script>""", content)
 		self.assertIn("background-color: var(--bg-color);", content)
 
 	def test_raw_assets_are_loaded(self):
 		content = get_response_content("/_test/assets/js_asset.min.js")
 		# minified js files should not be passed through jinja renderer
-		self.assertEqual("//{% if title %} {{title}} {% endif %}\nconsole.log('in');", content)
+		self.assertEqual("""//{% if title %} {{title}} {% endif %}\nconsole.log("in");\n""", content)
 
 		content = get_response_content("/_test/assets/css_asset.css")
 		self.assertEqual("""body{color:red}""", content)

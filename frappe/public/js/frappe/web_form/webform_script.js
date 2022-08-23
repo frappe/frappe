@@ -1,7 +1,7 @@
-import WebFormList from './web_form_list'
-import WebForm from './web_form'
+import WebFormList from "./web_form_list";
+import WebForm from "./web_form";
 
-frappe.ready(function() {
+frappe.ready(function () {
 	let web_form_doc = frappe.web_form_doc;
 	let reference_doc = frappe.reference_doc;
 
@@ -15,8 +15,8 @@ frappe.ready(function() {
 			title: __("Not Permitted"),
 			primary_action_label: __("Login"),
 			primary_action: () => {
-				window.location.replace('/login?redirect-to=' + window.location.pathname);
-			}
+				window.location.replace("/login?redirect-to=" + window.location.pathname);
+			},
 		});
 		login_required.show();
 		login_required.set_message(__("You are not permitted to access this page without login."));
@@ -28,17 +28,14 @@ frappe.ready(function() {
 			web_form_name: web_form_doc.name,
 			list_columns: web_form_doc.list_columns,
 			settings: {
-				allow_delete: web_form_doc.allow_delete
-			}
+				allow_delete: web_form_doc.allow_delete,
+			},
 		});
 	}
 
 	function show_form() {
 		let web_form = new WebForm({
 			parent: $(".web-form-wrapper"),
-			is_new: web_form_doc.is_new,
-			is_form_editable: web_form_doc.is_form_editable,
-			web_form_name: web_form_doc.name,
 		});
 		let doc = reference_doc || {};
 		setup_fields(web_form_doc, doc);
@@ -56,9 +53,9 @@ frappe.ready(function() {
 	}
 
 	function setup_fields(web_form_doc, doc_data) {
-		web_form_doc.web_form_fields.forEach(df => {
+		web_form_doc.web_form_fields.forEach((df) => {
 			df.is_web_form = true;
-			df.read_only = !web_form_doc.is_new && !web_form_doc.is_form_editable;
+			df.read_only = !web_form_doc.is_new && !web_form_doc.in_edit_mode;
 			if (df.fieldtype === "Table") {
 				df.get_data = () => {
 					let data = [];
@@ -68,7 +65,7 @@ frappe.ready(function() {
 					return data;
 				};
 
-				$.each(df.fields || [], function(_i, field) {
+				$.each(df.fields || [], function (_i, field) {
 					if (field.fieldtype === "Link") {
 						field.only_select = true;
 					}

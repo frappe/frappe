@@ -249,7 +249,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 		timestamp_field = f"extract(epoch from timestamp {datefield})"
 
 	data = dict(
-		frappe.db.get_all(
+		frappe.get_all(
 			doctype,
 			fields=[
 				timestamp_field,

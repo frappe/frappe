@@ -19,7 +19,7 @@ from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_p
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
-from frappe.translate import get_lang_dict
+from frappe.translate import get_lang_dict, get_messages_for_boot, get_translated_doctypes
 from frappe.utils import add_user_info, cstr, get_time_zone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -100,7 +100,7 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
-	bootinfo.translatable_doctypes = get_translatable_doctypes()
+	bootinfo.translated_doctypes = get_translated_doctypes()
 
 	return bootinfo
 
@@ -248,18 +248,8 @@ def get_user_pages_or_reports(parent, cache=False):
 
 
 def load_translations(bootinfo):
-	messages = frappe.get_lang_dict("boot")
-
 	bootinfo["lang"] = frappe.lang
-
-	# load translated report names
-	for name in bootinfo.user.all_reports:
-		messages[name] = frappe._(name)
-
-	# only untranslated
-	messages = {k: v for k, v in messages.items() if k != v}
-
-	bootinfo["__messages"] = messages
+	bootinfo["__messages"] = get_messages_for_boot()
 
 
 def get_user_info():
@@ -346,7 +336,7 @@ def get_success_action():
 def get_link_preview_doctypes():
 	from frappe.utils import cint
 
-	link_preview_doctypes = [d.name for d in frappe.db.get_all("DocType", {"show_preview_popup": 1})]
+	link_preview_doctypes = [d.name for d in frappe.get_all("DocType", {"show_preview_popup": 1})]
 	customizations = frappe.get_all(
 		"Property Setter", fields=["doc_type", "value"], filters={"property": "show_preview_popup"}
 	)
@@ -407,14 +397,6 @@ def set_time_zone(bootinfo):
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
 		or get_time_zone(),
 	}
-
-
-def get_translatable_doctypes():
-	dts = frappe.get_all("DocType", {"translate_link_fields": 1}, pluck="name")
-	custom_dts = frappe.get_all(
-		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
-	)
-	return dts + custom_dts
 
 
 def load_country_doc(bootinfo):

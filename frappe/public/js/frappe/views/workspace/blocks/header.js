@@ -1,6 +1,5 @@
 import Block from "./block.js";
 export default class Header extends Block {
-
 	constructor({ data, config, api, readOnly }) {
 		super({ config, api, readOnly });
 
@@ -15,18 +14,18 @@ export default class Header extends Block {
 	normalizeData(data) {
 		const newData = {};
 
-		if (typeof data !== 'object') {
+		if (typeof data !== "object") {
 			data = {};
 		}
 
-		newData.text = data.text || '';
+		newData.text = data.text || "";
 		newData.col = parseInt(data.col) || 12;
 
 		return newData;
 	}
 
 	render() {
-		this.wrapper = document.createElement('div');
+		this.wrapper = document.createElement("div");
 		if (!this.readOnly) {
 			let $widget_head = $(`<div class="widget-head"></div>`);
 			let $widget_control = $(`<div class="widget-control"></div>`);
@@ -35,16 +34,16 @@ export default class Header extends Block {
 			$widget_control.appendTo($widget_head);
 			$widget_head.appendTo(this.wrapper);
 
-			this.wrapper.classList.add('widget', 'header', 'edit-mode');
+			this.wrapper.classList.add("widget", "header", "edit-mode");
 
 			this.add_settings_button();
 			this.add_new_block_button();
 
 			frappe.utils.add_custom_button(
-				frappe.utils.icon('drag', 'xs'),
+				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__('Drag')}`,
+				__("Drag"),
 				null,
 				$widget_control
 			);
@@ -56,21 +55,21 @@ export default class Header extends Block {
 
 	merge(data) {
 		const newData = {
-			text: this.data.text + data.text
+			text: this.data.text + data.text,
 		};
 
 		this.data = newData;
 	}
 
 	validate(blockData) {
-		return blockData.text.trim() !== '';
+		return blockData.text.trim() !== "";
 	}
 
 	save() {
 		this.wrapper = this._element;
 		return {
-			text: this.wrapper.innerHTML.replace(/&nbsp;/gi, ''),
-			col: this.get_col()
+			text: this.wrapper.innerHTML.replace(/&nbsp;/gi, ""),
+			col: this.get_col(),
 		};
 	}
 
@@ -86,7 +85,7 @@ export default class Header extends Block {
 				b: true,
 				i: true,
 				a: true,
-				span: true
+				span: true,
 			},
 		};
 	}
@@ -105,38 +104,39 @@ export default class Header extends Block {
 		this._data = this.normalizeData(data);
 
 		if (data.text !== undefined) {
-			let text = this._data.text || '';
+			let text = this._data.text || "";
 			const contains_html_tag = /<[a-z][\s\S]*>/i.test(text);
-			this._element.innerHTML = contains_html_tag ?
-				text : `<span class="h${this._settings.default_size}">${text}</span>`;
+			this._element.innerHTML = contains_html_tag
+				? text
+				: `<span class="h${this._settings.default_size}">${text}</span>`;
 		}
 
 		if (!this.readOnly && this.wrapper) {
-			this.wrapper.classList.add('widget', 'header');
+			this.wrapper.classList.add("widget", "header");
 		}
 	}
 
 	getTag() {
-		const tag = document.createElement('DIV');
+		const tag = document.createElement("DIV");
 
-		let text = this._data.text || '&nbsp';
+		let text = this._data.text || "&nbsp";
 		tag.innerHTML = `<span class="h${this._settings.default_size}"><b>${text}</b></span>`;
 
-		tag.classList.add('ce-header');
+		tag.classList.add("ce-header");
 
 		if (!this.readOnly) {
 			tag.contentEditable = true;
 		}
 
-		tag.dataset.placeholder = this.api.i18n.t(this._settings.placeholder || '');
+		tag.dataset.placeholder = this.api.i18n.t(this._settings.placeholder || "");
 
 		return tag;
 	}
 
 	static get toolbox() {
 		return {
-			title: 'Heading',
-			icon: frappe.utils.icon('header', 'sm')
+			title: "Heading",
+			icon: frappe.utils.icon("header", "sm"),
 		};
 	}
 }

@@ -16,22 +16,24 @@ import os
 import re
 from csv import reader
 
+from babel.messages.extract import extract_python
+from babel.messages.jslexer import Token, tokenize, unquote_string
 from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
-from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
+from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
 TRANSLATE_PATTERN = re.compile(
-	r"_\([\s\n]*"  # starts with literal `_(`, ignore following whitespace/newlines
+	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
 	# BEGIN: message search
 	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
 	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
 	r"\1"  # match exact string closing identifier
 	# END: message search
 	# BEGIN: python context search
-	r"([\s\n]*,[\s\n]*context\s*=\s*"  # capture `context=` with ignoring whitespace
+	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
 	r"([\"'])"  # start of context string identifier; 5th capture group
 	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
 	r"\5"  # match context string closure
@@ -45,7 +47,7 @@ TRANSLATE_PATTERN = re.compile(
 	r")*"
 	r")*"  # match one or more context string
 	# END: JS context search
-	r"[\s\n]*\)"  # Closing function call ignore leading whitespace/newlines
+	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
 )
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
@@ -97,8 +99,8 @@ def get_language(lang_list: list = None) -> str:
 		if parent_language in lang_set:
 			return parent_language
 
-	# fallback to language set in User or System Settings
-	return frappe.local.lang
+	# fallback to language set in System Settings or "en"
+	return frappe.db.get_default("lang") or "en"
 
 
 @functools.lru_cache
@@ -209,6 +211,14 @@ def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	translation_map.update(get_user_translations(frappe.local.lang))
 
 	return translation_map
+
+
+def get_messages_for_boot():
+	"""Return all message translations that are required on boot."""
+	messages = get_full_dict(frappe.local.lang)
+	messages.update(get_dict_from_hooks("boot", None))
+
+	return messages
 
 
 def get_dict_from_hooks(fortype, name):
@@ -637,6 +647,9 @@ def get_server_messages(app):
 	for basepath, folders, files in app_walk:
 		folders[:] = [folder for folder in folders if folder not in {".git", "__pycache__"}]
 
+		if "public/dist" in basepath:
+			continue
+
 		for f in files:
 			f = frappe.as_unicode(f)
 			if f.endswith(file_extensions):
@@ -679,41 +692,241 @@ def get_all_messages_from_js_files(app_name=None):
 	return messages
 
 
-def get_messages_from_file(path: str) -> list[tuple[str, str, str, str]]:
+def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 	"""Returns a list of transatable strings from a code file
 
 	:param path: path of the code file
 	"""
-	frappe.flags.setdefault("scanned_files", [])
+	frappe.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
-	if path in set(frappe.flags.scanned_files):
+	if path in frappe.flags.scanned_files:
 		return []
 
-	frappe.flags.scanned_files.append(path)
+	frappe.flags.scanned_files.add(path)
 
 	bench_path = get_bench_path()
-	if os.path.exists(path):
-		with open(path) as sourcefile:
-			try:
-				file_contents = sourcefile.read()
-			except Exception:
-				print(f"Could not scan file for translation: {path}")
-				return []
-
-			return [
-				(os.path.relpath(path, bench_path), message, context, line)
-				for (line, message, context) in extract_messages_from_code(file_contents)
-			]
-	else:
+	if not os.path.exists(path):
 		return []
+
+	with open(path) as sourcefile:
+		try:
+			file_contents = sourcefile.read()
+		except Exception:
+			print(f"Could not scan file for translation: {path}")
+			return []
+
+		messages = []
+
+		if path.lower().endswith(".py"):
+			messages += extract_messages_from_python_code(file_contents)
+		else:
+			messages += extract_messages_from_code(file_contents)
+
+		if path.lower().endswith(".js"):
+			# For JS also use JS parser to extract strings possibly missed out
+			# by regex based extractor.
+			messages += extract_messages_from_javascript_code(file_contents)
+
+		return [
+			(os.path.relpath(path, bench_path), message, context, line)
+			for (line, message, context) in messages
+		]
+
+
+def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
+	"""Extracts translatable strings from Python code using babel."""
+
+	messages = []
+
+	for message in extract_python(
+		io.BytesIO(code.encode()),
+		keywords=["_"],
+		comment_tags=(),
+		options={},
+	):
+		lineno, _func, args, _comments = message
+
+		if not args or not args[0]:
+			continue
+
+		source_text = args[0] if isinstance(args, tuple) else args
+		context = args[1] if len(args) == 2 else None
+
+		messages.append((lineno, source_text, context))
+
+	return messages
+
+
+def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str | None]]:
+	"""Extracts translatable strings from JavaScript code using babel."""
+
+	messages = []
+
+	for message in extract_javascript(
+		code,
+		keywords=["__"],
+		options={},
+	):
+		lineno, _func, args = message
+
+		if not args or not args[0]:
+			continue
+
+		source_text = args[0] if isinstance(args, tuple) else args
+		context = None
+
+		if isinstance(args, tuple) and len(args) == 3 and isinstance(args[2], str):
+			context = args[2]
+
+		messages.append((lineno, source_text, context))
+
+	return messages
+
+
+def extract_javascript(code, keywords=("__",), options=None):
+	"""Extract messages from JavaScript source code.
+
+	This is a modified version of babel's JS parser. Reused under BSD license.
+	License: https://github.com/python-babel/babel/blob/master/LICENSE
+
+	Changes from upstream:
+	- Preserve arguments, babel's parser flattened all values in args,
+	  we need order because we use different syntax for translation
+	  which can contain 2nd arg which is array of many values. If
+	  argument is non-primitive type then value is NOT returned in
+	  args.
+	  E.g. __("0", ["1", "2"], "3") -> ("0", None, "3")
+	- remove comments support
+	- changed signature to accept string directly.
+
+	:param code: code as string
+	:param keywords: a list of keywords (i.e. function names) that should be
+	                 recognized as translation functions
+	:param options: a dictionary of additional options (optional)
+	                Supported options are:
+	                * `template_string` -- set to false to disable ES6
+	                                       template string support.
+	"""
+	if options is None:
+		options = {}
+
+	funcname = message_lineno = None
+	messages = []
+	last_argument = None
+	concatenate_next = False
+	last_token = None
+	call_stack = -1
+
+	# Tree level = depth inside function call tree
+	#  Example: __("0", ["1", "2"], "3")
+	# Depth         __()
+	#             /   |   \
+	#   0       "0" [...] "3"  <- only 0th level strings matter
+	#                /  \
+	#   1          "1"  "2"
+	tree_level = 0
+	opening_operators = {"[", "{"}
+	closing_operators = {"]", "}"}
+	all_container_operators = opening_operators.union(closing_operators)
+	dotted = any("." in kw for kw in keywords)
+
+	for token in tokenize(
+		code,
+		jsx=True,
+		template_string=options.get("template_string", True),
+		dotted=dotted,
+	):
+		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
+			funcname
+			and (last_token and last_token.type == "name")  # have a keyword...
+			and token.type  # we've seen nothing after the keyword...
+			== "template_string"  # this is a template string
+		):
+			message_lineno = token.lineno
+			messages = [unquote_string(token.value)]
+			call_stack = 0
+			tree_level = 0
+			token = Token("operator", ")", token.lineno)
+
+		if token.type == "operator" and token.value == "(":
+			if funcname:
+				message_lineno = token.lineno
+				call_stack += 1
+
+		elif call_stack >= 0 and token.type == "operator" and token.value in all_container_operators:
+			if token.value in opening_operators:
+				tree_level += 1
+			if token.value in closing_operators:
+				tree_level -= 1
+
+		elif call_stack == -1 and token.type == "linecomment" or token.type == "multilinecomment":
+			pass  # ignore comments
+
+		elif funcname and call_stack == 0:
+			if token.type == "operator" and token.value == ")":
+				if last_argument is not None:
+					messages.append(last_argument)
+				if len(messages) > 1:
+					messages = tuple(messages)
+				elif messages:
+					messages = messages[0]
+				else:
+					messages = None
+
+				if messages is not None:
+					yield (message_lineno, funcname, messages)
+
+				funcname = message_lineno = last_argument = None
+				concatenate_next = False
+				messages = []
+				call_stack = -1
+				tree_level = 0
+
+			elif token.type in ("string", "template_string"):
+				new_value = unquote_string(token.value)
+				if tree_level > 0:
+					pass
+				elif concatenate_next:
+					last_argument = (last_argument or "") + new_value
+					concatenate_next = False
+				else:
+					last_argument = new_value
+
+			elif token.type == "operator":
+				if token.value == ",":
+					if last_argument is not None:
+						messages.append(last_argument)
+						last_argument = None
+					else:
+						if tree_level == 0:
+							messages.append(None)
+					concatenate_next = False
+				elif token.value == "+":
+					concatenate_next = True
+
+		elif call_stack > 0 and token.type == "operator" and token.value == ")":
+			call_stack -= 1
+			tree_level = 0
+
+		elif funcname and call_stack == -1:
+			funcname = None
+
+		elif (
+			call_stack == -1
+			and token.type == "name"
+			and token.value in keywords
+			and (last_token is None or last_token.type != "name" or last_token.value != "function")
+		):
+			funcname = token.value
+
+		last_token = token
 
 
 def extract_messages_from_code(code):
 	"""
 	Extracts translatable strings from a code file
 	:param code: code from which translatable files are to be extracted
-	:param is_py: include messages in triple quotes e.g. `_('''message''')`
 	"""
 	from jinja2 import TemplateError
 
@@ -1057,13 +1270,13 @@ def get_translator_url():
 
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name=False):
-	"""Returns all language codes ar, ch etc"""
+	"""Returns all enabled language codes ar, ch etc"""
 
 	def get_language_codes():
-		return frappe.get_all("Language", pluck="name")
+		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
-		return frappe.db.get_all("Language", ["language_code", "language_name"])
+		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
 
 	if not frappe.db:
 		frappe.connect()
@@ -1081,3 +1294,11 @@ def set_preferred_language_cookie(preferred_language):
 
 def get_preferred_language_cookie():
 	return frappe.request.cookies.get("preferred_language")
+
+
+def get_translated_doctypes():
+	dts = frappe.get_all("DocType", {"translated_doctype": 1}, pluck="name")
+	custom_dts = frappe.get_all(
+		"Property Setter", {"property": "translated_doctype", "value": "1"}, pluck="doc_type"
+	)
+	return unique(dts + custom_dts)

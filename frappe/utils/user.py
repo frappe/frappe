@@ -273,7 +273,7 @@ def get_user_fullname(user: str) -> str:
 
 def get_fullname_and_avatar(user: str) -> _dict:
 	first_name, last_name, avatar, name = frappe.db.get_value(
-		"User", user, ["first_name", "last_name", "user_image", "name"]
+		"User", user, ["first_name", "last_name", "user_image", "name"], order_by=None
 	)
 	return _dict(
 		{

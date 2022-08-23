@@ -30,7 +30,7 @@ def validate_with_regex(name, label):
 
 def export_languages_json():
 	"""Export list of all languages"""
-	languages = frappe.db.get_all("Language", fields=["name", "language_name"])
+	languages = frappe.get_all("Language", fields=["name", "language_name"])
 	languages = [{"name": d.language_name, "code": d.name} for d in languages]
 
 	languages.sort(key=lambda a: a["code"])

@@ -12,7 +12,12 @@ datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime
 
 
 class FrappeTestCase(unittest.TestCase):
-	"""Base test class for Frappe tests."""
+	"""Base test class for Frappe tests.
+
+
+	If you specify `setUpClass` then make sure to call `super().setUpClass`
+	otherwise this class will become ineffective.
+	"""
 
 	SHOW_TRANSACTION_COMMIT_WARNINGS = False
 

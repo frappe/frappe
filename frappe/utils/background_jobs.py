@@ -295,6 +295,7 @@ def validate_queue(queue, default_queue_list=None):
 	retry=retry_if_exception_type(BusyLoadingError) | retry_if_exception_type(ConnectionError),
 	stop=stop_after_attempt(10),
 	wait=wait_fixed(1),
+	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
 	if not hasattr(frappe.local, "conf"):

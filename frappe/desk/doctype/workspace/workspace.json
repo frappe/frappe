@@ -109,7 +109,8 @@
   {
    "fieldname": "icon",
    "fieldtype": "Icon",
-   "label": "Icon"
+   "label": "Icon",
+   "read_only": 1
   },
   {
    "fieldname": "links",
@@ -124,18 +125,21 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Public",
+   "read_only": 1,
    "search_index": 1
   },
   {
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "parent_page",
    "fieldtype": "Data",
-   "label": "Parent Page"
+   "label": "Parent Page",
+   "read_only": 1
   },
   {
    "default": "[]",
@@ -147,7 +151,8 @@
   {
    "fieldname": "sequence_id",
    "fieldtype": "Float",
-   "label": "Sequence Id"
+   "label": "Sequence Id",
+   "read_only": 1
   },
   {
    "fieldname": "roles",
@@ -185,7 +190,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-08-09 14:20:34.042621",
+ "modified": "2022-08-16 18:01:42.632238",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
