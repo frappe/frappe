@@ -12,6 +12,7 @@ from poplib import error_proto
 import frappe
 from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.form import assign_to
+from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
@@ -179,26 +180,8 @@ class EmailAccount(Document):
 				email_account.save()
 
 	@frappe.whitelist()
-	def get_domain(self, email_id):
-		"""look-up the domain and then full"""
-		try:
-			domain = email_id.split("@")
-			fields = [
-				"name as domain",
-				"use_imap",
-				"email_server",
-				"use_ssl",
-				"use_starttls",
-				"smtp_server",
-				"use_tls",
-				"smtp_port",
-				"incoming_port",
-				"append_emails_to_sent_folder",
-				"use_ssl_for_outgoing",
-			]
-			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
-		except Exception:
-			pass
+	def get_domain_values(self, domain: str):
+		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
