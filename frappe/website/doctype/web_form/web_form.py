@@ -312,62 +312,6 @@ def get_context(context):
 
 				context.style = style
 
-	def get_layout(self):
-		layout = []
-
-		def add_page(df=None):
-			new_page = {"sections": []}
-			layout.append(new_page)
-			if df and df.fieldtype == "Page Break":
-				new_page.update(df.as_dict())
-
-			return new_page
-
-		def add_section(df=None):
-			new_section = {"columns": []}
-			if layout:
-				layout[-1]["sections"].append(new_section)
-			if df and df.fieldtype == "Section Break":
-				new_section.update(df.as_dict())
-
-			return new_section
-
-		def add_column(df=None):
-			new_col = []
-			if layout:
-				layout[-1]["sections"][-1]["columns"].append(new_col)
-
-			return new_col
-
-		page, section, column = None, None, None
-		for df in self.web_form_fields:
-
-			# breaks
-			if df.fieldtype == "Page Break":
-				page = add_page(df)
-				section, column = None, None
-
-			if df.fieldtype == "Section Break":
-				section = add_section(df)
-				column = None
-
-			if df.fieldtype == "Column Break":
-				column = add_column(df)
-
-			# input
-			if df.fieldtype not in ("Section Break", "Column Break", "Page Break"):
-				if not page:
-					page = add_page()
-					section, column = None, None
-				if not section:
-					section = add_section()
-					column = None
-				if column is None:
-					column = add_column()
-				column.append(df)
-
-		return layout
-
 	def get_parents(self, context):
 		parents = None
 
@@ -566,17 +510,6 @@ def check_webform_perm(doctype, name):
 def get_web_form_filters(web_form_name):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
-
-
-def make_route_string(parameters):
-	route_string = ""
-	delimeter = "?"
-	if isinstance(parameters, dict):
-		for key in parameters:
-			if key != "web_form_name":
-				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
-				delimeter = "&"
-	return (route_string, delimeter)
 
 
 @frappe.whitelist(allow_guest=True)
