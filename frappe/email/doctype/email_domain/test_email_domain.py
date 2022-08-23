@@ -37,6 +37,7 @@ class TestDomain(unittest.TestCase):
 		self.assertEqual(mail_account.use_imap, mail_domain.use_imap)
 		self.assertEqual(mail_account.use_ssl, mail_domain.use_ssl)
 		self.assertEqual(mail_account.use_tls, mail_domain.use_tls)
+		self.assertEqual(mail_account.use_starttls, mail_domain.use_starttls)
 		self.assertEqual(mail_account.attachment_limit, mail_domain.attachment_limit)
 		self.assertEqual(mail_account.smtp_server, mail_domain.smtp_server)
 		self.assertEqual(mail_account.smtp_port, mail_domain.smtp_port)

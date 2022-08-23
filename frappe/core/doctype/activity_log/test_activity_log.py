@@ -15,13 +15,19 @@ class TestActivityLog(unittest.TestCase):
 
 		# test user login log
 		frappe.local.form_dict = frappe._dict(
-			{"cmd": "login", "sid": "Guest", "pwd": "admin", "usr": "Administrator"}
+			{
+				"cmd": "login",
+				"sid": "Guest",
+				"pwd": frappe.conf.admin_password or "admin",
+				"usr": "Administrator",
+			}
 		)
 
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
 
 		auth_log = self.get_auth_log()
+		self.assertFalse(frappe.form_dict.pwd)
 		self.assertEqual(auth_log.status, "Success")
 
 		# test user logout log
