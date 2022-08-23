@@ -151,7 +151,7 @@ def get_notification_logs(limit=20):
 
 @frappe.whitelist()
 def mark_all_as_read():
-	unread_docs_list = frappe.db.get_all(
+	unread_docs_list = frappe.get_all(
 		"Notification Log", filters={"read": 0, "for_user": frappe.session.user}
 	)
 	unread_docnames = [doc.name for doc in unread_docs_list]

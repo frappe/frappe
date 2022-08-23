@@ -15,9 +15,7 @@ def execute():
 
 
 def setup_incoming_email_port_in_email_domains():
-	email_domains = frappe.db.get_all(
-		"Email Domain", ["incoming_port", "use_imap", "use_ssl", "name"]
-	)
+	email_domains = frappe.get_all("Email Domain", ["incoming_port", "use_imap", "use_ssl", "name"])
 	for domain in email_domains:
 		if not domain.incoming_port:
 			incoming_port = get_port(domain)
@@ -33,7 +31,7 @@ def setup_incoming_email_port_in_email_domains():
 
 
 def setup_incoming_email_port_in_email_accounts():
-	email_accounts = frappe.db.get_all(
+	email_accounts = frappe.get_all(
 		"Email Account", ["incoming_port", "use_imap", "use_ssl", "name", "enable_incoming"]
 	)
 

@@ -41,7 +41,7 @@ class TestActivityLog(unittest.TestCase):
 		frappe.local.form_dict = frappe._dict()
 
 	def get_auth_log(self, operation="Login"):
-		names = frappe.db.get_all(
+		names = frappe.get_all(
 			"Activity Log",
 			filters={
 				"user": "Administrator",

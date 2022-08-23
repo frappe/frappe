@@ -42,7 +42,7 @@ class TestReportview(unittest.TestCase):
 			content="test",
 			seen_by=[{"user": "Administrator"}],
 		).insert()
-		result = frappe.db.get_all(
+		result = frappe.get_all(
 			"Note",
 			filters={"name": note.name},
 			fields=["name", "seen_by.user as seen_by"],
@@ -55,7 +55,7 @@ class TestReportview(unittest.TestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"
 		).insert()
-		result = frappe.db.get_all(
+		result = frappe.get_all(
 			"ToDo",
 			filters={"name": todo.name},
 			fields=["name", "allocated_to.email as allocated_user_email"],

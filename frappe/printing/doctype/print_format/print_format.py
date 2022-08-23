@@ -13,7 +13,7 @@ from frappe.utils.weasyprint import download_pdf, get_html
 
 class PrintFormat(Document):
 	def onload(self):
-		templates = frappe.db.get_all(
+		templates = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
 			filters={"document_type": self.doc_type},
