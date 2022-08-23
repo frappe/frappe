@@ -1,8 +1,16 @@
 import Block from "./block.js";
-export default class QuickList extends Block {
+export default class Embed extends Block {
+	  /**
+   * @param {{data: EmbedData, config: EmbedConfig, api: object}}
+   *   data — previously saved data
+   *   config - user config for Tool
+   *   api - Editor.js API
+   *   readOnly - read-only mode flag
+   */
+
 	static get toolbox() {
 		return {
-			title: 'Quick List',
+			title: 'Embed',
 			icon: frappe.utils.icon('list', 'sm')
 		};
 	}
@@ -27,17 +35,19 @@ export default class QuickList extends Block {
 		};
 	}
 
+
+
 	render() {
 		this.wrapper = document.createElement('div');
-		this.new('quick_list');
+		this.new('embed');
 
-		if (this.data && this.data.quick_list_name) {
-			let has_data = this.make('quick_list', this.data.quick_list_name);
+		if (this.data && this.data.embed_name) {
+			let has_data = this.make('embed', this.data.embed_name);
 			if (!has_data) return;
 		}
 
 		if (!this.readOnly) {
-			$(this.wrapper).find('.widget').addClass('quick_list edit-mode');
+			$(this.wrapper).find('.widget').addClass('embed edit-mode');
 			this.add_settings_button();
 			this.add_new_block_button();
 		}
@@ -46,7 +56,7 @@ export default class QuickList extends Block {
 	}
 
 	validate(savedData) {
-		if (!savedData.quick_list_name) {
+		if (!savedData.embed_name) {
 			return false;
 		}
 
@@ -55,7 +65,7 @@ export default class QuickList extends Block {
 
 	save() {
 		return {
-			quick_list_name: this.wrapper.getAttribute('quick_list_name'),
+			embed_name: this.wrapper.getAttribute('embed_name'),
 			col: this.get_col(),
 			new: this.new_block_widget
 		};

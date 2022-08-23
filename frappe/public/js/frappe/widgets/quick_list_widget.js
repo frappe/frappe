@@ -170,7 +170,6 @@ export default class QuickListWidget extends Widget {
 
 	set_body() {
 		this.widget.addClass("quick-list-widget-box");
-
 		this.render_loading_state();
 
 		frappe.model.with_doctype(this.document_type, () => {
@@ -213,7 +212,6 @@ export default class QuickListWidget extends Widget {
 					page_length: 4
 				}
 			};
-
 			frappe.call(args).then((r) => {
 				if (!r.message) return;
 				let data = r.message;
@@ -227,9 +225,9 @@ export default class QuickListWidget extends Widget {
 					this.render_no_data_state();
 					return;
 				}
-
 				this.quick_list = data.map(doc => this.setup_quick_list_item(doc));
 				this.quick_list.forEach($quick_list_item => $quick_list_item.appendTo(this.body));
+
 			});
 		});
 	}

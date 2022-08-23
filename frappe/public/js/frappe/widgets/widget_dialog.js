@@ -80,7 +80,7 @@ class WidgetDialog {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
 			doctype: doctype,
-			on_change: () => {},
+			on_change: () => { },
 		});
 
 		frappe.model.with_doctype(doctype, () => {
@@ -187,24 +187,6 @@ class QuickListDialog extends WidgetDialog {
 	}
 }
 
-class EmbedDialogTest extends WidgetDialog {
-	constructor(opts) {
-		super(opts);
-	}
-
-	get_fields() {
-		return [
-			{
-				fieldtype: "Data",
-				fieldname: "url",
-				label: "Youtube URL",
-				options: "Module Onboarding",
-				reqd: 1,
-			}
-		];
-	}
-}
-
 
 class EmbedDialog extends WidgetDialog {
 	constructor(opts) {
@@ -214,40 +196,45 @@ class EmbedDialog extends WidgetDialog {
 	get_fields() {
 		return [
 			{
-				fieldtype: "Link",
-				fieldname: "document_type",
-				label: "DocType",
-				options: "DocType",
-				reqd: 1,
-				onchange: () => {
-					this.document_type = this.dialog.get_value("document_type");
-					this.document_type && this.setup_filter(this.document_type);
-				},
-				get_query: () => {
-					return {
-						filters: {
-							issingle: 0,
-							istable: 0
-						}
-					};
-				}
-			},
-			{
-				fieldtype: "Column Break",
-				fieldname: "column_break_4",
-			},
-			{
 				fieldtype: "Data",
 				fieldname: "label",
 				label: "Label",
+			},
+			{
+				fieldtype: "Select",
+				fieldname: "service",
+				label: "Embed Service",
+				options: "youtube\nvimeo\naparat\ncou\nBimgur\ngfycat\ncodepen\npinterest\ntwitter\ntwitch-video\ntwitch-channel\nmiro\nyandex-music-track\nvine\nfacebook\ninstagram",
+				reqd: 1,
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "source",
+				label: "Source Url",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "caption",
+				label: "Optional Caption",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "i_height",
+				label: "Iframe height",
+				default: "400px",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "i_width",
+				label: "Iframe width",
+				default: "100%",
 			},
 		];
 	}
 
 
 	process_data(data) {
-
-		data.label = data.label ? data.label : data.document_type;
+		data.label = data.label ? data.label : data.service;
 		return data;
 	}
 }
@@ -361,7 +348,7 @@ class CardDialog extends WidgetDialog {
 			message = "You must add atleast one link.";
 		} else {
 			data.links.map((item, idx) => {
-				let row = idx+1;
+				let row = idx + 1;
 
 				if (!item.link_type) {
 					message = "Following fields have missing values: <br><br><ul>";
@@ -679,7 +666,7 @@ class NumberCardDialog extends WidgetDialog {
 							return;
 						}
 					}
-					aggregate_function_fields.push({label: df.label, value: df.fieldname});
+					aggregate_function_fields.push({ label: df.label, value: df.fieldname });
 				}
 			});
 		}

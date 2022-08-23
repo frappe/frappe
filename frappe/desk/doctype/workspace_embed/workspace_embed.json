@@ -8,8 +8,15 @@
   "document_type",
   "column_break_1",
   "label",
+  "embed_filter",
   "section_break_4",
-  "embed_filter"
+  "service",
+  "source",
+  "embed",
+  "i_height",
+  "i_width",
+  "caption",
+  "data_12"
  ],
  "fields": [
   {
@@ -17,8 +24,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "DocType",
-   "options": "DocType",
-   "reqd": 1
+   "options": "DocType"
   },
   {
    "fieldname": "column_break_1",
@@ -28,12 +34,12 @@
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Label",
-   "reqd": 1
+   "label": "Label"
   },
   {
    "fieldname": "section_break_4",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Properties"
   },
   {
    "fieldname": "embed_filter",
@@ -41,12 +47,47 @@
    "in_list_view": 1,
    "label": "Embed Filter",
    "options": "JSON"
+  },
+  {
+   "fieldname": "caption",
+   "fieldtype": "Data",
+   "label": "caption"
+  },
+  {
+   "fieldname": "service",
+   "fieldtype": "Select",
+   "label": "Service to Use",
+   "options": "youtube\nvimeo\naparat\ncoub\nimgur\ngfycat\ncodepen\npinterest\ntwitter\ntwitch-video\ntwitch-channel\nmiro\nyandex-music-track\nvine\nfacebook\ninstagram"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "SourceUrl"
+  },
+  {
+   "fieldname": "embed",
+   "fieldtype": "Data",
+   "label": "Embed Somthing"
+  },
+  {
+   "fieldname": "i_height",
+   "fieldtype": "Data",
+   "label": "Iframe height"
+  },
+  {
+   "fieldname": "i_width",
+   "fieldtype": "Data",
+   "label": "Iframe width"
+  },
+  {
+   "fieldname": "data_12",
+   "fieldtype": "Data"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-08-09 11:18:03.040314",
+ "modified": "2022-08-23 13:39:36.752913",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Embed",

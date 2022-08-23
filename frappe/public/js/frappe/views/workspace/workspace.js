@@ -1097,7 +1097,6 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	initialize_editorjs(blocks) {
-		debugger;
 		this.tools = {
 			header: {
 				class: this.blocks['header'],
