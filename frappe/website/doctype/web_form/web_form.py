@@ -8,7 +8,6 @@ import frappe
 from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.file import remove_file_by_url
-from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
@@ -22,8 +21,6 @@ class WebForm(WebsiteGenerator):
 
 	def onload(self):
 		super().onload()
-		if self.is_standard and not frappe.conf.developer_mode:
-			self.use_meta_fields()
 
 	def validate(self):
 		super().validate()
@@ -66,31 +63,6 @@ class WebForm(WebsiteGenerator):
 		"""Convert link fields to select with names as options"""
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
-
-	def use_meta_fields(self):
-		"""Override default properties for standard web forms"""
-		meta = frappe.get_meta(self.doc_type)
-
-		for df in self.web_form_fields:
-			meta_df = meta.get_field(df.fieldname)
-
-			if not meta_df:
-				continue
-
-			for prop in docfield_properties:
-				if df.fieldtype == meta_df.fieldtype and prop not in (
-					"idx",
-					"reqd",
-					"default",
-					"description",
-					"options",
-					"hidden",
-					"read_only",
-					"label",
-				):
-					df.set(prop, meta_df.get(prop))
-
-			# TODO translate options of Select fields like Country
 
 	# export
 	def on_update(self):
@@ -195,9 +167,6 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/new")
 
 		self.reset_field_parent()
-
-		if self.is_standard:
-			self.use_meta_fields()
 
 		# add keys from form_dict to context
 		context.update(dict_with_keys(frappe.form_dict, ["is_list", "is_new", "is_edit", "is_read"]))
