@@ -1,3 +1,4 @@
+//Code adapted from https://github.com/editor-js/embed (MIT)
 import Widget from "./base_widget.js";
 import Embed from './../views/workspace/blocks/embed.js';
 import { debounce } from 'debounce';

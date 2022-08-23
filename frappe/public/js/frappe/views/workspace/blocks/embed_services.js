@@ -1,3 +1,4 @@
+//Code adapted from https://github.com/editor-js/embed (MIT)
 /* eslint-disable no-useless-escape */
 export default {
     vimeo: {

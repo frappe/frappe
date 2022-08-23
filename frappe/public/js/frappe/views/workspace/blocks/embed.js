@@ -1,3 +1,4 @@
+//Code adapted from https://github.com/editor-js/embed (MIT)
 import Block from "./block.js";
 import SERVICES from './embed_services.js';
 
