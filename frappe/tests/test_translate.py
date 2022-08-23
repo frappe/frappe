@@ -9,11 +9,7 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
-<<<<<<< HEAD
-=======
 from frappe.core.doctype.translation.test_translation import clear_translation_cache
-from frappe.tests.utils import FrappeTestCase
->>>>>>> 2866721a78 (test: clear `lang_full_dict` from local cache)
 from frappe.translate import (
 	extract_javascript,
 	extract_messages_from_javascript_code,
