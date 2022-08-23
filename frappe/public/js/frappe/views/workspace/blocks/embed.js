@@ -1,36 +1,6 @@
 import Block from "./block.js";
 import SERVICES from './embed_services.js';
 
-import { debounce } from 'debounce';
-//npm install debounce was run
-
-
-/**
- * @typedef {object} EmbedData
- * @description Embed Tool data
- * @property {string} service - service name
- * @property {string} url - source URL of embedded content
- * @property {string} embed - URL to source embed page
- * @property {number} [width] - embedded content width
- * @property {number} [height] - embedded content height
- * @property {string} [caption] - content caption
- */
-/**
- * @typedef {object} PasteEvent
- * @typedef {object} HTMLElement
- * @typedef {object} Service
- * @description Service configuration object
- * @property {RegExp} regex - pattern of source URLs
- * @property {string} embedUrl - URL scheme to embedded page. Use '<%= remote_id %>' to define a place to insert resource id
- * @property {string} html - iframe which contains embedded content
- * @property {Function} [id] - function to get resource id from RegExp groups
- */
-/**
- * @typedef {object} EmbedConfig
- * @description Embed tool configuration object
- * @property {object} [services] - additional services provided by user. Each property should contain Service object
- */
-
 /**
  * @class Embed
  * @classdesc Embed Tool for Editor.js 2.0
@@ -85,55 +55,6 @@ export default class Embed extends Block {
         max_widget_count: 2
     };
   }
-
-  /**
-   * @param {EmbedData} data - embed data
-   * @param {RegExp} [data.regex] - pattern of source URLs
-   * @param {string} [data.embedUrl] - URL scheme to embedded page. Use '<%= remote_id %>' to define a place to insert resource id
-   * @param {string} [data.html] - iframe which contains embedded content
-   * @param {number} [data.height] - iframe height
-   * @param {number} [data.width] - iframe width
-   * @param {string} [data.caption] - caption
-   */
-
-  //these data set/get conflict with embed code. I guess this data should be stored in
-  // set data(data) {
-  //   if (!(data instanceof Object)) {
-  //     throw Error('Embed Tool data should be object');
-  //   }
-
-  //   const { service, source, embed, width, height, caption = '' } = data;
-
-  //   this._data = {
-  //     service: service || this.data.service,
-  //     source: source || this.data.source,
-  //     embed: embed || this.data.embed,
-  //     width: width || this.data.width,
-  //     height: height || this.data.height,
-  //     caption: caption || this.data.caption || '',
-  //   };
-
-  //   const oldView = this.element;
-
-  //   if (oldView) {
-  //     oldView.parentNode.replaceChild(this.render(), oldView);
-  //   }
-  // }
-
-  // /**
-  //  * @returns {EmbedData}
-  //  */
-  // get data() {
-  //   if (this.element) {
-  //     const caption = this.element.querySelector(`.${this.api.styles.input}`);
-
-  //     this._data.caption = caption ? caption.innerHTML : '';
-  //   }
-
-  //   return this._data;
-  // }
-
-
 
   /**
    * Render Embed tool content
@@ -263,16 +184,6 @@ export default class Embed extends Block {
     return isValid;
   }
 
-  /**
-   * Paste configuration to enable pasted URLs processing by Editor
-   *
-   * @returns {object} - object of patterns which contain regx for pasteConfig
-   */
-  static get pasteConfig() {
-    return {
-      patterns: Embed.patterns,
-    };
-  }
 
   /**
    * Notify core that read-only mode is supported
