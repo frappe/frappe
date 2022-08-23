@@ -146,7 +146,7 @@ class FormMeta(Meta):
 		"""embed all require files"""
 		# custom script
 		client_scripts = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
 				fields=["name", "script", "view"],

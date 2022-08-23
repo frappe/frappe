@@ -129,7 +129,7 @@ class ServerScript(Document):
 
 		Returns:
 		        list: Returns list of autocompletion items.
-		        For e.g., ["frappe.utils.cint", "frappe.db.get_all", ...]
+		        For e.g., ["frappe.utils.cint", "frappe.get_all", ...]
 		"""
 
 		def get_keys(obj):
