@@ -32,10 +32,7 @@ frappe.get_modal = function (title, content) {
 						${content}
 					</div>
 					<div class="modal-footer hidden">
-						<button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">
-							<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
-							<span class="hidden-xs">${__("Close")}</span>
-						</button>
+						<button type="button" class="btn btn-sm btn-secondary hidden"></button>
 						<button type="button" class="btn btn-sm btn-primary hidden"></button>
 					</div>
 				</div>
@@ -49,9 +46,17 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
 		return this.$wrapper.find(".modal-footer .btn-primary");
 	}
 
+	get_secondary_btn() {
+		return this.$wrapper.find(".modal-footer .btn-secondary");
+	}
+
 	set_primary_action(label, click) {
 		this.$wrapper.find(".modal-footer").removeClass("hidden");
 		return super.set_primary_action(label, click).removeClass("hidden");
+	}
+
+	set_secondary_action(click) {
+		return super.set_secondary_action(click).removeClass("hidden");
 	}
 
 	make() {
