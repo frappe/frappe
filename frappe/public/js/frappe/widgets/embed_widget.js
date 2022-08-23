@@ -109,70 +109,90 @@ export default class EmbedWidget extends Widget {
 
 		let meta = frappe.get_meta(this.document_type);
 		//	this.render_loading_state();
-		this.loading = $(
-			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-				"Loading..."
-			)}</div>`
-		);
-		this.loading.appendTo(this.body);
-
-		debugger;
-		//this.service="youtube";
-		// this.source="https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-		//this.embed = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-		const { regex, embedUrl, width, height, id = (ids) => ids.shift() } = Embed.services[this.service];
-		const result = regex.exec(this.source).slice(1);
-		this.embed = embedUrl.replace(/<%= remote_id %>/g, id(result));
-		// this.caption = "some caption bro";
-		this._data = {
-			service: this.service,
-			source: this.source,
-			embed: this.embed,
-			width: this.i_width,
-			i_height: this.i_height,
-			caption: this.caption || '',
-		};
-
 		if (!this.service) {
-			const container = document.createElement('div');
-			//this.wrapper = container;
-			return container;
+			this.loading = $(
+				`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
+					"No service selected..."
+				)}</div>`
+			);
+			this.body.empty();
+			this.loading.appendTo(this.body);
+		} else if (!this.source) {
+			this.loading = $(
+				`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
+					"No source address entered"
+				)}</div>`
+			);
+			this.body.empty();
+			this.loading.appendTo(this.body);
+		} else {
+			this.loading = $(
+				`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
+					"Loading..."
+				)}</div>`
+			);
+			this.loading.appendTo(this.body);
+			
+
+			try {
+				const { regex, embedUrl, width, height, id = (ids) => ids.shift() } = Embed.services[this.service];
+				const result = regex.exec(this.source).slice(1);
+				this.embed = embedUrl.replace(/<%= remote_id %>/g, id(result));
+				// this.caption = "some caption bro";
+				this._data = {
+					service: this.service,
+					source: this.source,
+					embed: this.embed,
+					width: this.i_width,
+					i_height: this.i_height,
+					caption: this.caption || '',
+				};
+
+				if (!this.service) {
+					const container = document.createElement('div');
+					//this.wrapper = container;
+					return container;
+				}
+				let b = Embed.services[this.service];
+				const { html } = Embed.services[this.service];
+				const container = document.createElement('div');
+				//this.new('embed'); //make this happen later by merging some of this stuff over there
+				const caption = document.createElement('div');
+				const template = document.createElement('template');
+				// const preloader = this.createPreloader();
+
+				//  container.classList.add(this.CSS.baseClass, this.CSS.container, this.CSS.containerLoading);
+				//  caption.classList.add(this.CSS.input, this.CSS.caption);
+
+				// container.appendChild(preloader);
+				caption.contentEditable = false;
+				// caption.dataset.placeholder = this.api.i18n.t('Enter a caption');
+				caption.innerHTML = this.caption || '';
+
+				template.innerHTML = html;
+				template.content.firstChild.setAttribute('src', this.embed);
+				template.content.firstChild.setAttribute('height', this.i_height);
+				template.content.firstChild.setAttribute('width', this.i_width);
+				//  template.content.firstChild.classList.add(this.CSS.content);
+				const embedIsReady = this.embedIsReady(container);
+				container.appendChild(template.content.firstChild);
+				container.appendChild(caption);
+				embedIsReady
+					.then(() => {
+						//  window.alert('yo yo Im ready');
+						this.body.remove(".chart-loading-state");
+					});
+
+				this.body.empty();
+				this.wrapper = $(`<div>` + container.innerHTML + `</div>`);;
+				this.wrapper.appendTo(this.body);
+		} catch (error) {
+			this.body.empty();
+			debugger;
+			//not sure if this is best practice but will at least inform the user something went wrong.
+			frappe.msgprint(error + " - Check embed source field is correct");
+		  }
 		}
-		let b = Embed.services[this.service];
-		const { html } = Embed.services[this.service];
-		const container = document.createElement('div');
-		//this.new('embed'); //make this happen later by merging some of this stuff over there
-		const caption = document.createElement('div');
-		const template = document.createElement('template');
-		// const preloader = this.createPreloader();
-
-		//  container.classList.add(this.CSS.baseClass, this.CSS.container, this.CSS.containerLoading);
-		//  caption.classList.add(this.CSS.input, this.CSS.caption);
-
-		// container.appendChild(preloader);
-		caption.contentEditable = false;
-		// caption.dataset.placeholder = this.api.i18n.t('Enter a caption');
-		caption.innerHTML = this.caption || '';
-
-		template.innerHTML = html;
-		template.content.firstChild.setAttribute('src', this.embed);
-		template.content.firstChild.setAttribute('height', this.i_height);
-		template.content.firstChild.setAttribute('width', this.i_width);
-		//  template.content.firstChild.classList.add(this.CSS.content);
-		const embedIsReady = this.embedIsReady(container);
-		container.appendChild(template.content.firstChild);
-		container.appendChild(caption);
-
-
-		embedIsReady
-			.then(() => {
-				//  window.alert('yo yo Im ready');
-				this.body.remove(".chart-loading-state");
-			});
-
-		this.body.empty();
-		this.wrapper = $(`<div>` + container.innerHTML + `</div>`);;
-		this.wrapper.appendTo(this.body);
 	}
 
 }
