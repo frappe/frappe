@@ -28,21 +28,13 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	},
 	validate: function(value) {
 		return cint(value);
-<<<<<<< HEAD
 	},
 	set_input: function(value) {
-		value = cint(value);
-		if(this.input) {
-			this.input.checked = (value ? 1 : 0);
-=======
-	}
-	set_input(value) {
 		this.last_value = this.value;
 		value = cint(value);
 		this.value = value;
 		if (this.input) {
-			this.input.checked = value ? 1 : 0;
->>>>>>> 2e91e92227 (fix: Set last_value for check)
+			this.input.checked = (value ? 1 : 0);
 		}
 		this.set_mandatory(value);
 		this.set_disp_area(value);
