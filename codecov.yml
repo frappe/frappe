@@ -2,17 +2,16 @@ codecov:
   require_ci_to_pass: yes
 
 coverage:
+  range: 60..90
   status:
     project:
-      default: false
-      server-mariadb:
+      default:
         target: auto
         threshold: 0.5%
         flags:
           - server-mariadb
     patch:
-      default: false
-      server-mariadb:
+      default:
         target: 85%
         threshold: 0%
         only_pulls: true
