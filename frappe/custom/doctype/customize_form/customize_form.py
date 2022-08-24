@@ -573,6 +573,7 @@ doctype_properties = {
 	"quick_entry": "Check",
 	"editable_grid": "Check",
 	"max_attachments": "Int",
+	"make_attachments_public": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
