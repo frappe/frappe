@@ -475,3 +475,15 @@ class RemoveAppUnitTests(unittest.TestCase):
 
 		# nothing to assert, if this fails rest of the test suite will crumble.
 		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+
+
+class TestAddNewUser(BaseTestCommands):
+	def test_create_user(self):
+		self.execute(
+			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
+		)
+		frappe.db.rollback()
+		self.assertEqual(self.returncode, 0)
+		user = frappe.get_doc("User", "test@gmail.com")
+		roles = {r.role for r in user.roles}
+		self.assertEqual({"Accounts User", "Sales User"}, roles)
