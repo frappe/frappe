@@ -466,12 +466,7 @@ class Engine:
 		for function in function_objects:
 			if isinstance(fields, str):
 				fields = _remove_string_aliasing(function, fields)
-				fields = BRACKETS_PATTERN.sub("", fields.casefold().replace(function.name.casefold(), ""))
-				# Converting back to capitalized doctype names.
-				if "tab" in fields:
-					fields = TABLE_PATTERN.sub(
-						lambda p: p.group(0)[:3] + p.group(0)[3].upper() + p.group(0)[3 + 1 :], fields
-					)
+				fields = BRACKETS_PATTERN.sub("", re.sub(function.name, "", fields, flags=re.IGNORECASE))
 				# Check if only comma is left in fields after stripping functions.
 				if "," in fields and (len(fields.strip()) == 1):
 					fields = ""
