@@ -270,9 +270,6 @@ frappe.ui.form.Control = class BaseControl {
 		} else {
 			if (this.doc) {
 				this.doc[this.df.fieldname] = value;
-			} else {
-				// case where input is rendered on dialog where doc is not maintained
-				this.value = value;
 			}
 			this.set_input(value);
 			return Promise.resolve();
