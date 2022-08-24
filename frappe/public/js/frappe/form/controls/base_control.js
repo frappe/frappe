@@ -33,6 +33,14 @@ frappe.ui.form.Control = class BaseControl {
 		this.refresh();
 	}
 
+	get perm() {
+		return this.frm?.perm;
+	}
+
+	set perm(_perm) {
+		console.error("Setting perm on controls isn't supported, update form's perm instead");
+	}
+
 	// returns "Read", "Write" or "None"
 	// as strings based on permissions
 	get_status(explain) {
