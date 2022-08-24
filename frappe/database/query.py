@@ -598,7 +598,7 @@ class Engine:
 					has_join = True
 
 			if has_join:
-				for field in fields:
+				for idx, field in enumerate(fields):
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
 						if "tab" not in str(field):
@@ -606,7 +606,7 @@ class Engine:
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
 						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
-						fields[fields.index(field)] = field
+						fields[idx] = field
 
 		if len(self.tables) > 1:
 			primary_table = self.tables[table]
