@@ -75,7 +75,12 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		this.upload_options = options;
 	},
 
+<<<<<<< HEAD
 	set_input: function(value, dataurl) {
+=======
+	set_input(value, dataurl) {
+		this.last_value = this.value;
+>>>>>>> 2e91e92227 (fix: Set last_value for check)
 		this.value = value;
 		if(this.value) {
 			this.$input.toggle(false);
