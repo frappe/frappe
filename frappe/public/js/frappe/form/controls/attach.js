@@ -89,6 +89,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 
 	set_input(value, dataurl) {
+		this.last_value = this.value;
 		this.value = value;
 		if (this.value) {
 			this.$input.toggle(false);

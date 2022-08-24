@@ -8,7 +8,6 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 		this.grid = new Grid({
 			frm: this.frm,
 			df: this.df,
-			perm: this.perm || (this.frm && this.frm.perm) || this.df.perm,
 			parent: this.wrapper,
 			control: this,
 		});

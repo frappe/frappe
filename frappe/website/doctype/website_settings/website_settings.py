@@ -218,7 +218,7 @@ def modify_header_footer_items(items: list):
 				continue
 
 			if not top_bar_item.get("child_items"):
-				top_bar_item["child_items"] = []
+				top_bar_item.child_items = []
 
 			top_bar_item.child_items.append(item)
 			break

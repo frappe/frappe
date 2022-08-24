@@ -831,6 +831,11 @@ class TestReportview(FrappeTestCase):
 
 		self.assertTrue(dashboard_settings)
 
+	def test_coalesce_with_in_ops(self):
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
+
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
