@@ -44,6 +44,7 @@
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
+  "make_attachments_public",
   "view_settings",
   "title_field",
   "show_title_field_in_link",
@@ -598,6 +599,12 @@
    "fieldname": "translated_doctype",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
+  },
+  {
+   "default": "0",
+   "fieldname": "make_attachments_public",
+   "fieldtype": "Check",
+   "label": "Make Attachments Public by Default"
   }
  ],
  "icon": "fa fa-bolt",
@@ -680,7 +687,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-08-05 18:33:27.315351",
+ "modified": "2022-08-24 06:42:27.779699",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

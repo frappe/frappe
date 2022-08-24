@@ -175,6 +175,7 @@ frappe.ui.form.Attachments = class Attachments {
 				this.attachment_uploaded(file_doc);
 			},
 			restrictions,
+			make_attachments_public: this.frm.meta.make_attachments_public,
 		});
 	}
 	get_args() {
