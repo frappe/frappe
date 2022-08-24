@@ -612,6 +612,9 @@ class DatabaseQuery:
 			)
 
 		elif f.operator.lower() in ("in", "not in"):
+			# if values contain '' or falsy values then only coalesce column
+			can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+
 			values = f.value or ""
 			if isinstance(values, str):
 				values = values.split(",")
