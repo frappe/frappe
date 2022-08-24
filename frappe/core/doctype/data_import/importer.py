@@ -909,13 +909,7 @@ class Column:
 				self.warnings.append(
 					{
 						"col": self.column_number,
-<<<<<<< HEAD
-						"message": (
-							"The following values do not exist for {}: {}".format(self.df.options, missing_values)
-						),
-=======
 						"message": message.format(self.df.options, missing_values),
->>>>>>> 63a60c6457 (fix: translate import warnings (#17924))
 						"type": "warning",
 					}
 				)
@@ -946,17 +940,6 @@ class Column:
 				values = list(set([cstr(v) for v in self.column_values[1:] if v]))
 				invalid = list(set(values) - set(options))
 				if invalid:
-<<<<<<< HEAD
-					valid_values = ", ".join([frappe.bold(o) for o in options])
-					invalid_values = ", ".join([frappe.bold(i) for i in invalid])
-					self.warnings.append(
-						{
-							"col": self.column_number,
-							"message": (
-								"The following values are invalid: {0}. Values must be"
-								" one of {1}".format(invalid_values, valid_values)
-							),
-=======
 					valid_values = ", ".join(frappe.bold(o) for o in options)
 					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
 					message = _("The following values are invalid: {0}. Values must be one of {1}")
@@ -964,7 +947,6 @@ class Column:
 						{
 							"col": self.column_number,
 							"message": message.format(invalid_values, valid_values),
->>>>>>> 63a60c6457 (fix: translate import warnings (#17924))
 						}
 					)
 
