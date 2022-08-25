@@ -1,11 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-<<<<<<< HEAD
 import unittest
-=======
-from typing import TYPE_CHECKING
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 from urllib.parse import parse_qs, urljoin, urlparse
 
 import jwt
@@ -14,60 +10,11 @@ import requests
 import frappe
 from frappe.integrations.oauth2 import encode_params
 from frappe.test_runner import make_test_records
-<<<<<<< HEAD
-=======
-from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
-from frappe.tests.utils import FrappeTestCase
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 
 
-<<<<<<< HEAD
 class TestOAuth20(unittest.TestCase):
 	def setUp(self):
 		make_test_records("OAuth Client")
-=======
-
-class FrappeRequestTestCase(FrappeTestCase):
-	@property
-	def sid(self) -> str:
-		if not getattr(self, "_sid", None):
-			from frappe.auth import CookieManager, LoginManager
-			from frappe.utils import set_request
-
-			set_request(path="/")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as("test@example.com")
-			self._sid = frappe.session.sid
-
-		return self._sid
-
-	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
-		return make_request(
-			target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs}, site=self.site
-		)
-
-	def post(self, path, data, **kwargs) -> TestResponse:
-		return make_request(
-			target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data, **kwargs}, site=self.site
-		)
-
-	def put(self, path, data, **kwargs) -> TestResponse:
-		return make_request(
-			target=self.TEST_CLIENT.put, args=(path,), kwargs={"data": data, **kwargs}, site=self.site
-		)
-
-	def delete(self, path, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs, site=self.site)
-
-
-class TestOAuth20(FrappeRequestTestCase):
-	site = frappe.local.site
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 		make_test_records("User")
 		client = frappe.get_all("OAuth Client", fields=["*"])[0]
 		self.client_id = client.get("client_id")

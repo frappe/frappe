@@ -1,11 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import re
-<<<<<<< HEAD
-import unittest
-=======
-from typing import TYPE_CHECKING
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 
 import frappe
 from frappe.tests.utils import FrappeTestCase

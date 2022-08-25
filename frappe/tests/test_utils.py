@@ -4,11 +4,6 @@
 import io
 import json
 import os
-<<<<<<< HEAD
-import unittest
-=======
-import sys
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
@@ -20,6 +15,7 @@ from PIL import Image
 
 import frappe
 from frappe.installer import parse_app_name
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
@@ -50,24 +46,7 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
 
 
-<<<<<<< HEAD
-class TestFilters(unittest.TestCase):
-=======
-class Capturing(list):
-	# ref: https://stackoverflow.com/a/16571630/10309266
-	def __enter__(self):
-		self._stdout = sys.stdout
-		sys.stdout = self._stringio = StringIO()
-		return self
-
-	def __exit__(self, *args):
-		self.extend(self._stringio.getvalue().splitlines())
-		del self._stringio
-		sys.stdout = self._stdout
-
-
 class TestFilters(FrappeTestCase):
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Open"}))
 		self.assertFalse(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Closed"}))
@@ -699,91 +678,3 @@ class TestIntrospectionMagic(FrappeTestCase):
 
 		# No args
 		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
-<<<<<<< HEAD
-=======
-
-
-class TestMakeRandom(FrappeTestCase):
-	def test_get_random(self):
-		self.assertIsInstance(get_random("DocType", doc=True), Document)
-		self.assertIsInstance(get_random("DocType"), str)
-
-	def test_can_make(self):
-		self.assertIsInstance(can_make("User"), bool)
-
-	def test_how_many(self):
-		self.assertIsInstance(how_many("User"), int)
-
-
-class TestLazyLoader(FrappeTestCase):
-	def test_lazy_import_module(self):
-		from frappe.utils.lazy_loader import lazy_import
-
-		with Capturing() as output:
-			ls = lazy_import("frappe.tests.data.load_sleep")
-		self.assertEqual(output, [])
-
-		with Capturing() as output:
-			ls.time
-		self.assertEqual(["Module `frappe.tests.data.load_sleep` loaded"], output)
-
-
-class TestIdenticon(FrappeTestCase):
-	def test_get_gravatar(self):
-		# developers@frappe.io has a gravatar linked so str URL will be returned
-		frappe.flags.in_test = False
-		gravatar_url = get_gravatar("developers@frappe.io")
-		frappe.flags.in_test = True
-		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("http"))
-
-		# random email will require Identicon to be generated, which will be a base64 string
-		gravatar_url = get_gravatar(f"developers{random_string(6)}@frappe.io")
-		self.assertIsInstance(gravatar_url, str)
-		self.assertTrue(gravatar_url.startswith("data:image/png;base64,"))
-
-	def test_generate_identicon(self):
-		identicon = Identicon(random_string(6))
-		with patch.object(identicon.image, "show") as show:
-			identicon.generate()
-			show.assert_called_once()
-
-		identicon_bs64 = identicon.base64()
-		self.assertIsInstance(identicon_bs64, str)
-		self.assertTrue(identicon_bs64.startswith("data:image/png;base64,"))
-
-
-class TestContainerUtils(FrappeTestCase):
-	def test_dict_to_str(self):
-		self.assertEqual(dict_to_str({"a": "b"}), "a=b")
-
-	def test_remove_blanks(self):
-		a = {"asd": "", "b": None, "c": "d"}
-		remove_blanks(a)
-		self.assertEqual(len(a), 1)
-		self.assertEqual(a["c"], "d")
-
-
-class TestMiscUtils(FrappeTestCase):
-	def test_get_file_timestamp(self):
-		self.assertIsInstance(get_file_timestamp(__file__), str)
-
-	def test_execute_in_shell(self):
-		err, out = execute_in_shell("ls")
-		self.assertIn("apps", cstr(out))
-
-	def test_get_all_sites(self):
-		self.assertIn(frappe.local.site, get_sites())
-
-	def test_get_site_info(self):
-		info = get_site_info()
-
-		installed_apps = [app["app_name"] for app in info["installed_apps"]]
-		self.assertIn("frappe", installed_apps)
-		self.assertGreaterEqual(len(info["users"]), 1)
-
-	def test_safe_json_load(self):
-		self.assertEqual(safe_json_loads("{}"), {})
-		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
-		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
->>>>>>> 3e2d2a703a (test: Use FrappeTestCase everywhere)
