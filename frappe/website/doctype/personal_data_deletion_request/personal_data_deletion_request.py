@@ -128,7 +128,6 @@ class PersonalDataDeletionRequest(Document):
 				"host_name": frappe.utils.get_url(),
 			},
 			header=[_("Your account has been deleted"), "green"],
-			now=True,
 		)
 
 	def add_deletion_steps(self):

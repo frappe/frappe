@@ -1,12 +1,12 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import time
-import unittest
 
 import pyotp
 
 import frappe
 from frappe.auth import HTTPRequest, get_login_attempt_tracker, validate_ip_address
+from frappe.tests.utils import FrappeTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
 	authenticate_for_2factor,
@@ -23,7 +23,7 @@ from frappe.utils import cint, set_request
 from . import get_system_setting, update_system_settings
 
 
-class TestTwoFactor(unittest.TestCase):
+class TestTwoFactor(FrappeTestCase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.default_allowed_login_attempts = get_system_setting("allow_consecutive_login_attempts")

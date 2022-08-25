@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import os
 import textwrap
-import unittest
 from random import choices
 from unittest.mock import patch
 
@@ -10,6 +9,7 @@ import frappe
 import frappe.translate
 from frappe import _
 from frappe.core.doctype.translation.test_translation import clear_translation_cache
+from frappe.tests.utils import FrappeTestCase
 from frappe.translate import (
 	extract_javascript,
 	extract_messages_from_javascript_code,
@@ -29,7 +29,7 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 )
 
 
-class TestTranslate(unittest.TestCase):
+class TestTranslate(FrappeTestCase):
 	guest_sessions_required = [
 		"test_guest_request_language_resolution_with_cookie",
 		"test_guest_request_language_resolution_with_request_header",

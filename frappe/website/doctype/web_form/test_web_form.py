@@ -1,9 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
-import unittest
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.doctype.web_form.web_form import accept
 from frappe.website.serve import get_response_content
@@ -11,7 +11,7 @@ from frappe.website.serve import get_response_content
 test_dependencies = ["Web Form"]
 
 
-class TestWebForm(unittest.TestCase):
+class TestWebForm(FrappeTestCase):
 	def setUp(self):
 		frappe.conf.disable_website_cache = True
 		frappe.local.path = None

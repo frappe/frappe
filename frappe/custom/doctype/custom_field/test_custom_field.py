@@ -1,14 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Custom Field")
 
 
-class TestCustomField(unittest.TestCase):
+class TestCustomField(FrappeTestCase):
 	def test_create_custom_fields(self):
 		from .custom_field import create_custom_fields
 

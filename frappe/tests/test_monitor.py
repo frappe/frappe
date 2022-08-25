@@ -1,16 +1,15 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 import frappe.monitor
 from frappe.monitor import MONITOR_REDIS_KEY
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.utils.response import build_response
 
 
-class TestMonitor(unittest.TestCase):
+class TestMonitor(FrappeTestCase):
 	def setUp(self):
 		frappe.conf.monitor = 1
 		frappe.cache().delete_value(MONITOR_REDIS_KEY)
