@@ -691,6 +691,18 @@ class TestSiteMigration(BaseTestCommands):
 			self.assertEqual(result.exception, None)
 
 
+class TestAddNewUser(BaseTestCommands):
+	def test_create_user(self):
+		self.execute(
+			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
+		)
+		frappe.db.rollback()
+		self.assertEqual(self.returncode, 0)
+		user = frappe.get_doc("User", "test@gmail.com")
+		roles = {r.role for r in user.roles}
+		self.assertEqual({"Accounts User", "Sales User"}, roles)
+
+
 class TestBenchBuild(BaseTestCommands):
 	def test_build_assets_size_check(self):
 		with cli(frappe.commands.utils.build, "--force --production") as result:
