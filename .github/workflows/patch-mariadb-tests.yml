@@ -1,4 +1,4 @@
-name: Server (MariaDB)
+name: Patch (MariaDB)
 
 on:
   pull_request:
