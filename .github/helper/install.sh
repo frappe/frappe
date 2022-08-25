@@ -83,5 +83,8 @@ then
   bench --site test_site_producer reinstall --yes
 fi
 
-# wait till assets are built succesfully
-wait $build_pid
+if [ "$TYPE" == "server" ]
+then
+  # wait till assets are built succesfully
+  wait $build_pid
+fi
