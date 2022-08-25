@@ -4,9 +4,24 @@ import pickle
 import re
 
 import redis
+from redis.commands.search import Search
 
 import frappe
 from frappe.utils import cstr
+
+
+class RedisearchWrapper(Search):
+	def sugadd(self, key, *suggestions, **kwargs):
+		return super().sugadd(self.client.make_key(key), *suggestions, **kwargs)
+
+	def suglen(self, key):
+		return super().suglen(self.client.make_key(key))
+
+	def sugdel(self, key, string):
+		return super().sugdel(self.client.make_key(key), string)
+
+	def sugget(self, key, *args, **kwargs):
+		return super().sugget(self.client.make_key(key), *args, **kwargs)
 
 
 class RedisWrapper(redis.Redis):
@@ -148,7 +163,16 @@ class RedisWrapper(redis.Redis):
 	def ltrim(self, key, start, stop):
 		return super().ltrim(self.make_key(key), start, stop)
 
-	def hset(self, name: str, key: str, value, shared: bool = False, cache_locally: bool = True):
+	def hset(
+		self,
+		name: str,
+		key: str,
+		value,
+		shared: bool = False,
+		cache_locally: bool = True,
+		*args,
+		**kwargs,
+	):
 		if key is None:
 			return
 
@@ -160,7 +184,7 @@ class RedisWrapper(redis.Redis):
 
 		# set in redis
 		try:
-			super().hset(_name, key, pickle.dumps(value))
+			super().hset(_name, key, pickle.dumps(value), *args, **kwargs)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -256,6 +280,7 @@ class RedisWrapper(redis.Redis):
 		"""Return all members of the set"""
 		return super().smembers(self.make_key(name))
 
+<<<<<<< HEAD
 
 def setup_cache():
 	if frappe.conf.redis_cache_sentinel_enabled:
@@ -297,3 +322,7 @@ def get_sentinel_connection(
 		username=master_username,
 		password=master_password,
 	)
+=======
+	def ft(self, index_name="idx"):
+		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
+>>>>>>> 1f089f44f6 (feat: RedisearchWrapper)
