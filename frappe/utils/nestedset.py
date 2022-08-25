@@ -238,7 +238,10 @@ def validate_loop(doctype, name, lft, rgt):
 
 
 def remove_subtree(doctype: str, name: str, throw=True):
-	"""Remove doc and all its children."""
+	"""Remove doc and all its children.
+
+	WARN: This does not run any controller hooks for deletion and deletes them with raw SQL query.
+	"""
 	frappe.has_permission(doctype, ptype="delete", throw=throw)
 
 	# Determine the `lft` and `rgt` of the subtree to be removed.
