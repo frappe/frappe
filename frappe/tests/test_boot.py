@@ -1,5 +1,3 @@
-import unittest
-
 import frappe
 from frappe.boot import get_unseen_notes
 from frappe.desk.doctype.note.note import mark_as_seen

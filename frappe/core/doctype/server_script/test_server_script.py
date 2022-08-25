@@ -1,10 +1,9 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import requests
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url
 
 scripts = [
@@ -86,10 +85,10 @@ frappe.db.add_index("Todo", ["color", "date"])
 ]
 
 
-class TestServerScript(unittest.TestCase):
+class TestServerScript(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
-		frappe.db.commit()
+		super().setUpClass()
 		frappe.db.truncate("Server Script")
 		frappe.get_doc("User", "Administrator").add_roles("Script Manager")
 		for script in scripts:

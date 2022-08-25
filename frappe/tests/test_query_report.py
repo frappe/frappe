@@ -1,15 +1,14 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 import frappe.utils
 from frappe.desk.query_report import build_xlsx_data
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
 
-class TestQueryReport(unittest.TestCase):
+class TestQueryReport(FrappeTestCase):
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 

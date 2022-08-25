@@ -1,7 +1,6 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
-import unittest
 from contextlib import contextmanager
 
 import frappe
@@ -10,6 +9,7 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 )
+from frappe.tests.utils import FrappeTestCase
 
 
 @contextmanager
@@ -22,13 +22,14 @@ def get_test_webhook(config):
 		wh.delete()
 
 
-class TestWebhook(unittest.TestCase):
+class TestWebhook(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		# delete any existing webhooks
 		frappe.db.delete("Webhook")
 		# Delete existing logs if any
 		frappe.db.delete("Webhook Request Log")
+		super().setUpClass()
 		# create test webhooks
 		cls.create_sample_webhooks()
 

@@ -1,11 +1,10 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestSystemConsole(unittest.TestCase):
+class TestSystemConsole(FrappeTestCase):
 	def test_system_console(self):
 		system_console = frappe.get_doc("System Console")
 		system_console.console = 'log("hello")'

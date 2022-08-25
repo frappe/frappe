@@ -1,9 +1,9 @@
 import time
-import unittest
 from unittest.mock import MagicMock
 
 import frappe
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.caching import request_cache, site_cache
 
 CACHE_TTL = 4
@@ -34,7 +34,7 @@ def ping_with_ttl() -> str:
 	return frappe.local.site
 
 
-class TestCachingUtils(unittest.TestCase):
+class TestCachingUtils(FrappeTestCase):
 	def test_request_cache(self):
 		retval = []
 		acceptable_args = [

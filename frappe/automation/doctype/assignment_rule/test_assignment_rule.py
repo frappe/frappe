@@ -1,16 +1,16 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.test_runner import make_test_records
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import random_string
 
 
-class TestAutoAssign(unittest.TestCase):
+class TestAutoAssign(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		frappe.db.delete("Assignment Rule")
 
 	@classmethod
@@ -274,6 +274,7 @@ class TestAutoAssign(unittest.TestCase):
 		self.assertNotEqual(frappe.utils.get_date_str(note2_todo.date), note1.expiry_date)
 		self.assertEqual(frappe.utils.get_date_str(note2_todo.date), expiry_date)
 		assignment_rule.delete()
+		frappe.db.commit()  # undo changes commited by DDL
 
 
 def clear_assignments():

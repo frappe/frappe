@@ -4,7 +4,6 @@
 import io
 import json
 import os
-import unittest
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
@@ -16,6 +15,7 @@ from PIL import Image
 
 import frappe
 from frappe.installer import parse_app_name
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
@@ -46,7 +46,7 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
 
 
-class TestFilters(unittest.TestCase):
+class TestFilters(FrappeTestCase):
 	def test_simple_dict(self):
 		self.assertTrue(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Open"}))
 		self.assertFalse(evaluate_filters({"doctype": "User", "status": "Open"}, {"status": "Closed"}))
@@ -104,7 +104,7 @@ class TestFilters(unittest.TestCase):
 		)
 
 
-class TestMoney(unittest.TestCase):
+class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
 		nums_bhd = [
 			(5000, "BHD Five Thousand only."),
@@ -137,7 +137,7 @@ class TestMoney(unittest.TestCase):
 			)
 
 
-class TestDataManipulation(unittest.TestCase):
+class TestDataManipulation(FrappeTestCase):
 	def test_scrub_urls(self):
 		html = """
 			<p>You have a new message from: <b>John</b></p>
@@ -166,7 +166,7 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
 
-class TestFieldCasting(unittest.TestCase):
+class TestFieldCasting(FrappeTestCase):
 	def test_str_types(self):
 		STR_TYPES = (
 			"Data",
@@ -213,7 +213,7 @@ class TestFieldCasting(unittest.TestCase):
 		self.assertIsInstance(cast("Time", value="12:03:34"), timedelta)
 
 
-class TestMathUtils(unittest.TestCase):
+class TestMathUtils(FrappeTestCase):
 	def test_floor(self):
 		from decimal import Decimal
 
@@ -235,7 +235,7 @@ class TestMathUtils(unittest.TestCase):
 		self.assertEqual(ceil(Decimal(29.45)), 30)
 
 
-class TestHTMLUtils(unittest.TestCase):
+class TestHTMLUtils(FrappeTestCase):
 	def test_clean_email_html(self):
 		from frappe.utils.html_utils import clean_email_html
 
@@ -262,7 +262,7 @@ class TestHTMLUtils(unittest.TestCase):
 		self.assertNotIn("xyz", clean)
 
 
-class TestValidationUtils(unittest.TestCase):
+class TestValidationUtils(FrappeTestCase):
 	def test_valid_url(self):
 		# Edge cases
 		self.assertFalse(validate_url(""))
@@ -308,7 +308,7 @@ class TestValidationUtils(unittest.TestCase):
 		)
 
 
-class TestImage(unittest.TestCase):
+class TestImage(FrappeTestCase):
 	def test_strip_exif_data(self):
 		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
 		original_image_content = open(
@@ -335,7 +335,7 @@ class TestImage(unittest.TestCase):
 		self.assertLess(len(optimized_content), len(original_content))
 
 
-class TestPythonExpressions(unittest.TestCase):
+class TestPythonExpressions(FrappeTestCase):
 	def test_validation_for_good_python_expression(self):
 		valid_expressions = [
 			"foo == bar",
@@ -362,9 +362,10 @@ class TestPythonExpressions(unittest.TestCase):
 			self.assertRaises(frappe.ValidationError, validate_python_code, expr)
 
 
-class TestDiffUtils(unittest.TestCase):
+class TestDiffUtils(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		cls.doc = frappe.get_doc(doctype="Client Script", dt="Client Script", name="test_client_script")
 		cls.doc.insert()
 		cls.doc.script = "2;"
@@ -403,7 +404,7 @@ class TestDiffUtils(unittest.TestCase):
 		self.assertIn("+42;", diff)
 
 
-class TestDateUtils(unittest.TestCase):
+class TestDateUtils(FrappeTestCase):
 	def test_first_day_of_week(self):
 		# Monday as start of the week
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
@@ -482,7 +483,7 @@ class TestDateUtils(unittest.TestCase):
 			self.assertEqual(d, add_to_date(start_date, years=idx, days=-1))
 
 
-class TestResponse(unittest.TestCase):
+class TestResponse(FrappeTestCase):
 	def test_json_handler(self):
 		class TEST(Enum):
 			ABC = "!@)@)!"
@@ -523,7 +524,7 @@ class TestResponse(unittest.TestCase):
 			json.dumps(BAD_OBJECT, default=json_handler)
 
 
-class TestTimeDeltaUtils(unittest.TestCase):
+class TestTimeDeltaUtils(FrappeTestCase):
 	def test_format_timedelta(self):
 		self.assertEqual(format_timedelta(timedelta(seconds=0)), "0:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
@@ -542,7 +543,7 @@ class TestTimeDeltaUtils(unittest.TestCase):
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
 
 
-class TestXlsxUtils(unittest.TestCase):
+class TestXlsxUtils(FrappeTestCase):
 	def test_unescape(self):
 		from frappe.utils.xlsxutils import handle_html
 
@@ -551,7 +552,7 @@ class TestXlsxUtils(unittest.TestCase):
 		self.assertEqual("abc", handle_html("abc"))
 
 
-class TestLinkTitle(unittest.TestCase):
+class TestLinkTitle(FrappeTestCase):
 	def test_link_title_doctypes_in_boot_info(self):
 		"""
 		Test that doctypes are added to link_title_map in boot_info
@@ -642,7 +643,7 @@ class TestLinkTitle(unittest.TestCase):
 		prop_setter.delete()
 
 
-class TestAppParser(unittest.TestCase):
+class TestAppParser(FrappeTestCase):
 	def test_app_name_parser(self):
 		bench_path = get_bench_path()
 		frappe_app = os.path.join(bench_path, "apps", "frappe")
@@ -653,7 +654,7 @@ class TestAppParser(unittest.TestCase):
 		self.assertEqual("healthcare", parse_app_name("frappe/healthcare@develop"))
 
 
-class TestIntrospectionMagic(unittest.TestCase):
+class TestIntrospectionMagic(FrappeTestCase):
 	"""Test utils that inspect live objects"""
 
 	def test_get_newargs(self):
