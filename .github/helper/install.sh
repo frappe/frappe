@@ -59,9 +59,17 @@ fi
 echo "Starting Bench..."
 
 bench start &> bench_start.log &
+
+if [ "$TYPE" == "server" ]; then
+  CI=Yes bench build --app frappe &;
+  build_pid=$!
+fi
+
 bench --site test_site reinstall --yes
 
 if [ "$TYPE" == "server" ]; then
   bench --site test_site_producer reinstall --yes;
-  CI=Yes bench build --app frappe;
 fi
+
+# wait till all background jobs exit
+wait $build_pid
