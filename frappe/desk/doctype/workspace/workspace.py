@@ -42,7 +42,7 @@ class Workspace(Document):
 			self.name = doc.name = doc.label = doc.title
 
 	def after_delete(self):
-		if self.module:
+		if self.module and frappe.local.module_app.get(frappe.scrub(self.module)):
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
