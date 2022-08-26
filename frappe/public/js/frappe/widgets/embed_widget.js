@@ -1,7 +1,7 @@
 //Code adapted from https://github.com/editor-js/embed (MIT)
 import Widget from "./base_widget.js";
 import Embed from './../views/workspace/blocks/embed.js';
-import { debounce } from 'debounce';
+//import { debounce } from 'debounce';
 //npm install debounce was run
 frappe.provide("frappe.utils");
 
@@ -58,7 +58,8 @@ export default class EmbedWidget extends Widget {
 		let observer = null;
 
 		return new Promise((resolve, reject) => {
-			observer = new MutationObserver(debounce(resolve, PRELOADER_DELAY));
+			//observer = new MutationObserver(debounce(resolve, PRELOADER_DELAY));
+			observer = new MutationObserver(resolve);
 			observer.observe(targetNode, {
 				childList: true,
 				subtree: true,
