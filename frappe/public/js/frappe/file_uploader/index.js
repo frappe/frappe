@@ -15,7 +15,8 @@ export default class FileUploader {
 		allow_multiple,
 		as_dataurl,
 		disable_file_browser,
-		frm
+		frm,
+		make_attachments_public,
 	} = {}) {
 
 		frm && frm.attachments.max_reached(true);
@@ -42,6 +43,7 @@ export default class FileUploader {
 					allow_multiple,
 					as_dataurl,
 					disable_file_browser,
+					make_attachments_public,
 				}
 			})
 		});

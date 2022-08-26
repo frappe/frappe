@@ -161,7 +161,8 @@ frappe.ui.form.Attachments = Class.extend({
 			folder: 'Home/Attachments',
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
-			}
+			},
+			make_attachments_public: this.frm.meta.make_attachments_public,
 		});
 	},
 	get_args: function() {

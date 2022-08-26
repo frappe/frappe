@@ -157,6 +157,9 @@ export default {
 		on_success: {
 			default: null
 		},
+		make_attachments_public: {
+			default: null,
+		},
 		restrictions: {
 			default: () => ({
 				max_file_size: null, // 2048 -> 2KB
@@ -264,7 +267,7 @@ export default {
 						total: 0,
 						failed: false,
 						uploading: false,
-						private: true
+						private: !this.make_attachments_public,
 					}
 				});
 			this.files = this.files.concat(files);
