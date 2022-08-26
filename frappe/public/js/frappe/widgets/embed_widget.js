@@ -142,7 +142,7 @@ export default class EmbedWidget extends Widget {
 					this.body.remove(".chart-loading-state");
 				});
 			this.body.empty();
-			this.wrapper = $(`<div>` + container.innerHTML + `</div>`);
+			this.wrapper = $(`<div>` + container.innerHTML + `</div>`);;
 			this.wrapper.appendTo(this.body);
 
 		} catch (error) {
