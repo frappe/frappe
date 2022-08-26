@@ -6,13 +6,8 @@ frappe.ui.form.on("System Settings", {
 				frappe.all_timezones = data.message.timezones;
 				frm.set_df_property("time_zone", "options", frappe.all_timezones);
 
-<<<<<<< HEAD
 				$.each(data.message.defaults, function(key, val) {
-					frm.set_value(key, val);
-=======
-				$.each(data.message.defaults, function (key, val) {
 					frm.set_value(key, val, null, true);
->>>>>>> 81fa146330 (fix: Do not show "Not Saved" on loading System Settings (#17967))
 					frappe.sys_defaults[key] = val;
 				});
 				if (frm.re_setup_moment) {
