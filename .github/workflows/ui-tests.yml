@@ -30,7 +30,7 @@ jobs:
         run: |
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
-          TYPE: "server"
+          TYPE: "ui"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
 
