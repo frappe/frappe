@@ -29,11 +29,6 @@ export default class Embed extends Block {
     };
   }
 
-  static get isReadOnlySupported() {
-      return true;
-  }
-
-
 
   constructor({ data, api, config, readOnly, block }) {
     super({ data, api, config, readOnly, block });

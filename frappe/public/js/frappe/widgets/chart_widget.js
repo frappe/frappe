@@ -61,7 +61,6 @@ export default class ChartWidget extends Widget {
 		this.empty.hide().appendTo(this.body);
 
 		this.chart_wrapper = $(`<div></div>`);
-		debugger;
 		this.chart_wrapper.appendTo(this.body);
 
 		this.$heatmap_legend = null;
