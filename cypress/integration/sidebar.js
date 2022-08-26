@@ -1,14 +1,14 @@
 const verify_attachment_visibility = (document, is_private) => {
 	cy.visit(`/app/${document}`);
 
-	const assertion = is_private ? "be.checked" : "not.be.checked";
 	cy.findByRole("button", { name: "Attach File" }).click();
 
 	cy.get_open_dialog().find(".file-upload-area").attachFile("sample_image.jpg", {
 		subjectType: "drag-n-drop",
 	});
 
-	cy.get_open_dialog().findByRole("checkbox", { name: "Private" }).should(assertion);
+	const button = is_private ? "Set all public" : "Set all private";
+	cy.findByRole("button", { name: button }).should("exist");
 };
 
 context("Sidebar", () => {
@@ -24,8 +24,8 @@ context("Sidebar", () => {
 	});
 
 	it("Verify attachment visibility config", () => {
-		verify_attachment_visibility("doctype/Blog Post", true);
 		verify_attachment_visibility("blog-post/test-blog-attachment-post", false);
+		verify_attachment_visibility("doctype/Blog Post", true);
 	});
 
 	it('Test for checking "Assigned To" counter value, adding filter and adding & removing an assignment', () => {
