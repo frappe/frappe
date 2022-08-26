@@ -3,7 +3,11 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, Union
+=======
+from typing import TYPE_CHECKING, Any
+>>>>>>> fbee80f734 (perf: rebuild website search index in background (#17974))
 from uuid import uuid4
 
 import redis
@@ -63,7 +67,11 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
+<<<<<<< HEAD
 ) -> Union["Job", Any]:
+=======
+) -> "Job" | Any:
+>>>>>>> fbee80f734 (perf: rebuild website search index in background (#17974))
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -86,11 +94,17 @@ def enqueue(
 			)
 		)
 
-	call_directly = now or frappe.flags.in_migrate or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.flags.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
-	q = get_queue(queue, is_async=is_async)
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except ConnectionError:
+		# If redis is not available for queueing execute the job directly
+		print(f"Redis queue is unreachable: Executing {method} synchronously")
+		return frappe.call(method, **kwargs)
+
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
