@@ -9,6 +9,8 @@ pull_request_rules:
           - author!=ankush
           - author!=mergify[bot]
         - or:
+          - base=version-15
+          - base=version-14
           - base=version-13
           - base=version-12
     actions:
