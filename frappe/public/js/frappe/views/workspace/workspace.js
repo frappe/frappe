@@ -16,22 +16,6 @@ frappe.standard_pages["Workspaces"] = function () {
 	});
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 frappe.views.Workspace = class Workspace {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
@@ -1235,14 +1219,14 @@ frappe.views.Workspace = class Workspace {
 				},
 			},
 			embed: {
-				class: this.blocks['embed'],
+				class: this.blocks["embed"],
 				inlineToolbar: false,
 				config: {
-					page_data: this.page_data || []
-				}
+					page_data: this.page_data || [],
+				},
 			},
-			spacer: this.blocks['spacer'],
-			HeaderSize: frappe.workspace_block.tunes['header_size'],
+			spacer: this.blocks["spacer"],
+			HeaderSize: frappe.workspace_block.tunes["header_size"],
 		};
 		this.editor = new EditorJS({
 			data: {

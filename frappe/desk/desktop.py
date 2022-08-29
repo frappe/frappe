@@ -370,7 +370,7 @@ def get_desktop_page(page):
 			"cards": workspace.cards,
 			"onboardings": workspace.onboardings,
 			"quick_lists": workspace.quick_lists,
-			"embeds": workspace.embeds
+			"embeds": workspace.embeds,
 		}
 	except DoesNotExistError:
 		frappe.log_error("Workspace Missing")

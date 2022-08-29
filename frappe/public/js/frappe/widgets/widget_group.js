@@ -17,7 +17,7 @@ frappe.widget.widget_factory = {
 	onboarding: OnboardingWidget,
 	number_card: NumberCardWidget,
 	quick_list: QuickListWidget,
-	embed: EmbedWidget
+	embed: EmbedWidget,
 };
 
 frappe.widget.make_widget = (opts) => {

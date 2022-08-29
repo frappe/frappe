@@ -1,6 +1,6 @@
 //Code adapted from https://github.com/editor-js/embed (MIT)
 import Widget from "./base_widget.js";
-import Embed from './../views/workspace/blocks/embed.js';
+import Embed from "./../views/workspace/blocks/embed.js";
 //import { debounce } from 'debounce';
 //npm install debounce was run
 frappe.provide("frappe.utils");
@@ -21,7 +21,7 @@ export default class EmbedWidget extends Widget {
 			embed: this.embed,
 			i_width: this.i_width,
 			i_height: this.i_height,
-			caption: this.caption
+			caption: this.caption,
 			//embed_filter: this.embed_filter
 		};
 	}
@@ -35,7 +35,7 @@ export default class EmbedWidget extends Widget {
 	setup_refresh_list_button() {
 		this.refresh_list = $(
 			`<div class="refresh-list btn btn-xs pull-right" title="${__("Refresh List")}">
-				${frappe.utils.icon('refresh', 'sm')}
+				${frappe.utils.icon("refresh", "sm")}
 			</div>`
 		);
 
@@ -47,11 +47,11 @@ export default class EmbedWidget extends Widget {
 	}
 
 	/**
-   * Checks that mutations in DOM have finished after appending iframe content
-   *
-   * @param {HTMLElement} targetNode - HTML-element mutations of which to listen
-   * @returns {Promise<any>} - result that all mutations have finished
-   */
+	 * Checks that mutations in DOM have finished after appending iframe content
+	 *
+	 * @param {HTMLElement} targetNode - HTML-element mutations of which to listen
+	 * @returns {Promise<any>} - result that all mutations have finished
+	 */
 	embedIsReady(targetNode) {
 		const PRELOADER_DELAY = 450;
 
@@ -74,19 +74,19 @@ export default class EmbedWidget extends Widget {
 		let meta = frappe.get_meta(this.document_type);
 		if (!this.service) {
 			this.loading = $(
-				`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-					"No service selected..."
-				)}</div>`
+				`<div class="chart-loading-state text-muted" style="height: ${
+					this.height
+				}px;">${__("No service selected...")}</div>`
 			);
 			this.body.empty();
 			this.loading.appendTo(this.body);
-		} 
+		}
 
 		if (!this.source) {
 			this.loading = $(
-				`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
-					"No source address entered"
-				)}</div>`
+				`<div class="chart-loading-state text-muted" style="height: ${
+					this.height
+				}px;">${__("No source address entered")}</div>`
 			);
 			this.body.empty();
 			this.loading.appendTo(this.body);
@@ -100,7 +100,13 @@ export default class EmbedWidget extends Widget {
 		this.loading.appendTo(this.body);
 
 		try {
-			const { regex, embedUrl, width, height, id = (ids) => ids.shift() } = Embed.services[this.service];
+			const {
+				regex,
+				embedUrl,
+				width,
+				height,
+				id = (ids) => ids.shift(),
+			} = Embed.services[this.service];
 			const result = regex.exec(this.source).slice(1);
 			this.embed = embedUrl.replace(/<%= remote_id %>/g, id(result));
 			this._data = {
@@ -109,10 +115,10 @@ export default class EmbedWidget extends Widget {
 				embed: this.embed,
 				width: this.i_width,
 				i_height: this.i_height,
-				caption: this.caption || '',
+				caption: this.caption || "",
 			};
 			if (!this.service) {
-				const container = document.createElement('div');
+				const container = document.createElement("div");
 				//this.wrapper = container;
 				return container;
 			}
@@ -123,34 +129,30 @@ export default class EmbedWidget extends Widget {
 			//	window.alert('yay!')
 			//};
 
-			const container = document.createElement('div');
-			const caption = document.createElement('div');
-			const template = document.createElement('template');
+			const container = document.createElement("div");
+			const caption = document.createElement("div");
+			const template = document.createElement("template");
 			caption.contentEditable = false;
-			caption.innerHTML = this.caption || '';
+			caption.innerHTML = this.caption || "";
 
 			template.innerHTML = html;
-			template.content.firstChild.setAttribute('src', this.embed);
-			template.content.firstChild.setAttribute('height', this.i_height);
-			template.content.firstChild.setAttribute('width', this.i_width);
+			template.content.firstChild.setAttribute("src", this.embed);
+			template.content.firstChild.setAttribute("height", this.i_height);
+			template.content.firstChild.setAttribute("width", this.i_width);
 
 			const embedIsReady = this.embedIsReady(container);
 			container.appendChild(template.content.firstChild);
 			container.appendChild(caption);
-			embedIsReady
-				.then(() => {
-					this.body.remove(".chart-loading-state");
-				});
+			embedIsReady.then(() => {
+				this.body.remove(".chart-loading-state");
+			});
 			this.body.empty();
 			this.wrapper = $(`<div>` + container.innerHTML + `</div>`);
 			this.wrapper.appendTo(this.body);
-
 		} catch (error) {
 			this.body.empty();
 			//not sure if this is best practice but will at least inform the user something went wrong.
 			frappe.msgprint(error + " - Check embed source field is correct");
 		}
-	
 	}
-
 }

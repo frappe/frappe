@@ -80,7 +80,7 @@ class WidgetDialog {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
 			doctype: doctype,
-			on_change: () => { },
+			on_change: () => {},
 		});
 
 		frappe.model.with_doctype(doctype, () => {
@@ -190,7 +190,6 @@ class QuickListDialog extends WidgetDialog {
 	}
 }
 
-
 class EmbedDialog extends WidgetDialog {
 	constructor(opts) {
 		super(opts);
@@ -207,7 +206,8 @@ class EmbedDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "service",
 				label: "Embed Service",
-				options: "youtube\nvimeo\naparat\ncou\nBimgur\ngfycat\ncodepen\npinterest\ntwitter\ntwitch-video\ntwitch-channel\nmiro\nyandex-music-track\nvine\nfacebook\ninstagram",
+				options:
+					"youtube\nvimeo\naparat\ncou\nBimgur\ngfycat\ncodepen\npinterest\ntwitter\ntwitch-video\ntwitch-channel\nmiro\nyandex-music-track\nvine\nfacebook\ninstagram",
 				reqd: 1,
 			},
 			{
@@ -234,7 +234,6 @@ class EmbedDialog extends WidgetDialog {
 			},
 		];
 	}
-
 
 	process_data(data) {
 		data.label = data.label ? data.label : data.service;
@@ -704,7 +703,7 @@ export default function get_dialog_constructor(type) {
 		links: CardDialog,
 		onboarding: OnboardingDialog,
 		quick_list: QuickListDialog,
-		embed: EmbedDialog
+		embed: EmbedDialog,
 	};
 
 	return widget_map[type] || WidgetDialog;
