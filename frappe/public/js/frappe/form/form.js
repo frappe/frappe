@@ -316,6 +316,13 @@ frappe.ui.form.Form = class FrappeForm {
 				return;
 			}
 
+			// if grids exist => document changed
+			// Update perm and refresh grids
+			this.grids.forEach((table) => {
+				table.grid.perm = this.perm;
+				table.grid.refresh();
+			});
+
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) this.set_read_only(true);
