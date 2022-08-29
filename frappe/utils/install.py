@@ -291,7 +291,8 @@ def add_standard_navbar_items():
 		{
 			"item_type": "Separator",
 			"is_standard": 1,
-			"item_label": ""},
+			"item_label": "",
+		},
 		{
 			"item_label": "Log out",
 			"item_type": "Action",
