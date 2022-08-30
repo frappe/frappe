@@ -168,15 +168,15 @@ frappe.ui.Tree = class {
 
 		return deep
 			? frappe.run_serially([
-					() => this.get_all_nodes(value, is_root, node.label),
-					(data_list) => this.render_children_of_all_nodes(data_list),
-					() => this.set_selected_node(node),
-			  ])
+				() => this.get_all_nodes(value, is_root, node.label),
+				(data_list) => this.render_children_of_all_nodes(data_list),
+				() => this.set_selected_node(node),
+			])
 			: frappe.run_serially([
-					() => this.get_nodes(value, is_root),
-					(data_set) => this.render_node_children(node, data_set),
-					() => this.set_selected_node(node),
-			  ]);
+				() => this.get_nodes(value, is_root),
+				(data_set) => this.render_node_children(node, data_set),
+				() => this.set_selected_node(node),
+			]);
 	}
 
 	render_children_of_all_nodes(data_list) {
@@ -219,6 +219,26 @@ frappe.ui.Tree = class {
 
 		node.expanded = !node.expanded;
 		node.parent.toggleClass("opened", node.expanded);
+	}
+
+	collapse_all() {
+		const node = this.root_node
+		if (node.expanded) {
+			if (node.$ul) {
+				if (node.$ul.children().length) {
+					node.$ul.toggle(false);
+				}
+
+				// open close icon
+				if (this.icon_set) {
+					node.$tree_link
+						.find(".icon")
+						.parent()
+						.addClass("node-parent")
+						.html(this.icon_set.closed);
+				}
+			}
+		}
 	}
 
 	toggle_node(node) {
