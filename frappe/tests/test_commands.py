@@ -29,6 +29,7 @@ import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
@@ -134,11 +135,11 @@ def cli(cmd: Command, args: list | None = None):
 			importlib.invalidate_caches()
 
 
-class BaseTestCommands(unittest.TestCase):
+class BaseTestCommands(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
+		super().setUpClass()
 		cls.setup_test_site()
-		return super().setUpClass()
 
 	@classmethod
 	def execute(self, command, kwargs=None):
@@ -636,7 +637,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
-class TestRemoveApp(unittest.TestCase):
+class TestRemoveApp(FrappeTestCase):
 	def test_delete_modules(self):
 		from frappe.installer import (
 			_delete_doctypes,
@@ -688,6 +689,18 @@ class TestSiteMigration(BaseTestCommands):
 			self.assertTrue(TEST_SITE in result.stdout)
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
+
+
+class TestAddNewUser(BaseTestCommands):
+	def test_create_user(self):
+		self.execute(
+			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
+		)
+		frappe.db.rollback()
+		self.assertEqual(self.returncode, 0)
+		user = frappe.get_doc("User", "test@gmail.com")
+		roles = {r.role for r in user.roles}
+		self.assertEqual({"Accounts User", "Sales User"}, roles)
 
 
 class TestBenchBuild(BaseTestCommands):

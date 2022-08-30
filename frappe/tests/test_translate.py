@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 import os
 import textwrap
-import unittest
 from random import choices
 from unittest.mock import patch
 
 import frappe
 import frappe.translate
 from frappe import _
+from frappe.core.doctype.translation.test_translation import clear_translation_cache
+from frappe.tests.utils import FrappeTestCase
 from frappe.translate import (
 	extract_javascript,
 	extract_messages_from_javascript_code,
@@ -28,7 +29,7 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 )
 
 
-class TestTranslate(unittest.TestCase):
+class TestTranslate(FrappeTestCase):
 	guest_sessions_required = [
 		"test_guest_request_language_resolution_with_cookie",
 		"test_guest_request_language_resolution_with_request_header",
@@ -37,13 +38,15 @@ class TestTranslate(unittest.TestCase):
 	def setUp(self):
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Guest")
-		frappe.local.lang_full_dict = None  # reset cached translations
+
+		clear_translation_cache()
 
 	def tearDown(self):
 		frappe.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
-		frappe.local.lang_full_dict = None  # reset cached translations
+
+		clear_translation_cache()
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)

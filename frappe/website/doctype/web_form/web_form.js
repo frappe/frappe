@@ -1,4 +1,28 @@
 frappe.ui.form.on("Web Form", {
+	setup: function () {
+		frappe.meta.docfield_map["Web Form Field"].fieldtype.formatter = (value) => {
+			const prefix = {
+				"Page Break": "--red-600",
+				"Section Break": "--blue-600",
+				"Column Break": "--yellow-600",
+			};
+			if (prefix[value]) {
+				value = `<span class="bold" style="color: var(${prefix[value]})">${value}</span>`;
+			}
+			return value;
+		};
+
+		frappe.meta.docfield_map["Web Form Field"].fieldname.formatter = (value) => {
+			if (!value) return;
+			return frappe.unscrub(value);
+		};
+
+		frappe.meta.docfield_map["Web Form List Column"].fieldname.formatter = (value) => {
+			if (!value) return;
+			return frappe.unscrub(value);
+		};
+	},
+
 	refresh: function (frm) {
 		// show is-standard only if developer mode
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
@@ -31,6 +55,14 @@ frappe.ui.form.on("Web Form", {
 		if (!frm.doc.web_form_fields) {
 			frm.scroll_to_field("web_form_fields");
 			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
+		}
+
+		let page_break_count = frm.doc.web_form_fields.filter(
+			(f) => f.fieldtype == "Page Break"
+		).length;
+
+		if (page_break_count >= 10) {
+			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
 		}
 	},
 
@@ -97,7 +129,7 @@ frappe.ui.form.on("Web Form", {
 
 		get_fields_for_doctype(doc.doc_type).then((fields) => {
 			let as_select_option = (df) => ({
-				label: df.label + " (" + df.fieldtype + ")",
+				label: df.label,
 				value: df.fieldname,
 			});
 			update_options(fields.map(as_select_option));
@@ -147,9 +179,19 @@ frappe.ui.form.on("Web Form List Column", {
 
 frappe.ui.form.on("Web Form Field", {
 	fieldtype: function (frm, doctype, name) {
-		var doc = frappe.get_doc(doctype, name);
+		let doc = frappe.get_doc(doctype, name);
+
+		if (doc.fieldtype == "Page Break") {
+			let page_break_count = frm.doc.web_form_fields.filter(
+				(f) => f.fieldtype == "Page Break"
+			).length;
+			page_break_count >= 10 &&
+				frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		}
+
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
 			doc.fieldname = "";
+			doc.label = "";
 			doc.options = "";
 			frm.refresh_field("web_form_fields");
 		}
@@ -188,23 +230,18 @@ function get_fields_for_doctype(doctype) {
 function render_list_settings_message(frm) {
 	// render list setting message
 	if (frm.fields_dict["list_setting_message"] && !frm.doc.login_required) {
-		const switch_to_form_settings_tab = `
-			<span class="bold pointer" title="${__("Switch to Form Settings Tab")}">
-				${__("Form Settings Tab")}
-			</span>
+		const go_to_login_required_field = `
+			<code class="pointer" title="${__("Go to Login Required field")}">
+				${__("login_required")}
+			</code>
 		`;
+		let message = __(
+			"Login is required to see web form list view. Enable {0} to see list settings",
+			[go_to_login_required_field]
+		);
 		$(frm.fields_dict["list_setting_message"].wrapper)
-			.html(
-				$(
-					`<div class="form-message blue">
-					${__(
-						"Login is required to see web form list view. Enable <code>login_required</code> from {0} to see list settings",
-						[switch_to_form_settings_tab]
-					)}
-				</div>`
-				)
-			)
-			.find("span")
+			.html($(`<div class="form-message blue">${message}</div>`))
+			.find("code")
 			.click(() => frm.scroll_to_field("login_required"));
 	} else {
 		$(frm.fields_dict["list_setting_message"].wrapper).empty();
