@@ -67,6 +67,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			options.doctype = this.frm.doctype;
 			options.docname = this.frm.docname;
 			options.fieldname = this.df.fieldname;
+			options.make_attachments_public = this.frm.meta.make_attachments_public;
 		}
 
 		if (this.df.options) {

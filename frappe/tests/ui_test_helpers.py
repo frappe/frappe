@@ -326,3 +326,33 @@ def insert_translations():
 	for doc in translation:
 		if not frappe.db.exists("doc"):
 			frappe.get_doc(doc).insert()
+
+
+@frappe.whitelist()
+def create_blog_post():
+
+	blog_category = frappe.get_doc(
+		{"name": "general", "doctype": "Blog Category", "title": "general"}
+	).insert(ignore_if_duplicate=True)
+
+	blogger = frappe.get_doc(
+		{
+			"name": "attachment blogger",
+			"doctype": "Blogger",
+			"full_name": "attachment blogger",
+			"short_name": "attachment blogger",
+		}
+	).insert(ignore_if_duplicate=True)
+
+	doc = frappe.get_doc(
+		{
+			"name": "test-blog-attachment-post",
+			"doctype": "Blog Post",
+			"title": "test-blog-attachment-post",
+			"blog_category": blog_category.name,
+			"blogger": blogger.name,
+			"content_type": "Rich Text",
+		},
+	).insert(ignore_if_duplicate=True)
+
+	return doc

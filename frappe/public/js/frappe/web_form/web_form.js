@@ -398,7 +398,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		success_dialog.show();
 		const success_message =
-			this.success_message || __("Your information has been submitted");
+			__(this.success_message) || __("Your information has been submitted");
 		success_dialog.set_message(success_message);
 	}
 }

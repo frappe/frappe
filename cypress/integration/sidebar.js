@@ -1,11 +1,35 @@
-context('Sidebar', () => {
+const verify_attachment_visibility = (document, is_private) => {
+	cy.visit(`/app/${document}`);
+
+	cy.findByRole("button", { name: "Attach File" }).click();
+
+	cy.get_open_dialog().find(".file-upload-area").attachFile("sample_image.jpg", {
+		subjectType: "drag-n-drop",
+	});
+
+	const button = is_private ? "Set all public" : "Set all private";
+	cy.findByRole("button", { name: button }).should("exist");
+};
+
+context("Sidebar", () => {
 	before(() => {
 		cy.visit('/login');
 		cy.login();
-		cy.visit('/app/doctype');
+		return cy
+			.window()
+			.its("frappe")
+			.then((frappe) => {
+				return frappe.call("frappe.tests.ui_test_helpers.create_blog_post");
+			});
+	});
+
+	it("Verify attachment visibility config", () => {
+		verify_attachment_visibility("blog-post/test-blog-attachment-post", false);
+		verify_attachment_visibility("doctype/Blog Post", true);
 	});
 
 	it('Test for checking "Assigned To" counter value, adding filter and adding & removing an assignment', () => {
+		cy.visit("/app/doctype");
 		cy.click_sidebar_button("Assigned To");
 
 		//To check if no filter is available in "Assigned To" dropdown
