@@ -490,6 +490,7 @@ class Engine:
 		return fields
 
 	def get_fieldnames_from_child_table(self, doctype, fields):
+		# Hacky and flaky implementation of implicit joins.
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
 		for idx, field in enumerate(fields, start=0):
 			if "." in field and "tab" not in field:
@@ -602,15 +603,14 @@ class Engine:
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
 						if "tab" not in str(field):
-							fields[fields.index(field)] = getattr(frappe.qb.DocType(table), field)
+							fields[idx] = getattr(frappe.qb.DocType(table), field)
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
 						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
 						fields[idx] = field
 
 		if len(self.tables) > 1:
-			primary_table = self.tables[table]
-			del self.tables[table]
+			primary_table = self.tables.pop(table)
 			for table_object in self.tables.values():
 				criterion = getattr(criterion, join)(table_object).on(
 					table_object.parent == primary_table.name
