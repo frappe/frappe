@@ -39,10 +39,6 @@ context("Kanban Board", () => {
 			"POST",
 			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.save_settings"
 		).as("save-kanban");
-		cy.intercept(
-			"POST",
-			"/api/method/frappe.desk.doctype.kanban_board.kanban_board.update_order"
-		).as("update-order");
 
 		cy.get(".page-actions .menu-btn-group > .btn").click();
 		cy.get(".page-actions .menu-btn-group .dropdown-menu li")
@@ -50,13 +46,13 @@ context("Kanban Board", () => {
 			.click();
 		cy.get(".add-new-fields").click();
 
-		cy.get(".checkbox-options .checkbox").contains("ID").click();
-		cy.get(".checkbox-options .checkbox").contains("Status").first().click();
-		cy.get(".checkbox-options .checkbox").contains("Priority").click();
+		cy.get(".checkbox-options .checkbox").contains("ID").check();
+		cy.get(".checkbox-options .checkbox").contains("Status").first().check();
+		cy.get(".checkbox-options .checkbox").contains("Priority").check();
 
 		cy.get(".modal-footer .btn-primary").last().click();
 
-		cy.get(".frappe-control .label-area").contains("Show Labels").click();
+		cy.get(".frappe-control .label-area").contains("Show Labels").check();
 		cy.click_modal_primary_button("Save");
 
 		cy.wait("@save-kanban");
@@ -85,10 +81,7 @@ context("Kanban Board", () => {
 			)
 			.click();
 
-		cy.wait("@update-order");
-		cy.get_open_dialog().find(".frappe-control .label-area").contains("Show Labels").click();
-		cy.get(".modal-footer .btn-primary").last().click();
-
+		cy.click_modal_primary_button("Save");
 		cy.wait("@save-kanban");
 
 		cy.get("@open-cards")
