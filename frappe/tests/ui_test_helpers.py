@@ -396,3 +396,27 @@ def create_blog_post():
 	).insert(ignore_if_duplicate=True)
 
 	return doc
+
+
+def create_test_user():
+	username = "frappe@example.com"
+	if frappe.db.exists("User", username):
+		return
+
+	user = frappe.new_doc("User")
+	user.email = username
+	user.first_name = "Frappe"
+	user.new_password = frappe.local.conf.admin_password
+	user.send_welcome_email = 0
+	user.flags.ignore_password_policy = True
+	user.insert(ignore_if_duplicate=True)
+
+	user.reload()
+
+	blocked_roles = {"Administrator", "Guest", "All"}
+	all_roles = set(frappe.get_all("Role", pluck="name"))
+
+	for role in all_roles - blocked_roles:
+		user.append("roles", {"role": role})
+
+	user.save()
