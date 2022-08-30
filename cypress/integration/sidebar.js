@@ -72,7 +72,7 @@ context("Sidebar", () => {
 		cy.get(".condition").should("have.value", "like");
 		cy.get(".filter-field > .form-group > .input-with-feedback").should(
 			"have.value",
-			"%Administrator%"
+			`%${cy.config("testUser")}%`
 		);
 		cy.click_filter_button();
 

@@ -13,7 +13,9 @@ context("Table MultiSelect", () => {
 		cy.fill_field("assign_condition", 'status=="Open"', "Code");
 		cy.get('input[data-fieldname="users"]').focus().as("input");
 		cy.get('input[data-fieldname="users"] + ul').should("be.visible");
-		cy.get("@input").type("test{enter}", { delay: 100 });
+		cy.get("@input").type("test@erpnext", { delay: 100 });
+		cy.wait(500);
+		cy.get("@input").type("{enter}");
 		cy.get(
 			'.frappe-control[data-fieldname="users"] .form-control .tb-selected-value .btn-link-to-form'
 		).as("selected-value");
