@@ -552,7 +552,7 @@ class Engine:
 			updated_fields = []
 			if "*" in fields:
 				return fields
-			fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
+			# fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
 			for field in fields:
 				if not isinstance(field, Criterion) and field:
 					if " as " in field:
