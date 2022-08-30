@@ -42,7 +42,7 @@ class TestReportview(FrappeTestCase):
 			content="test",
 			seen_by=[{"user": "Administrator"}],
 		).insert()
-		result = frappe.db.get_all(
+		result = frappe.get_all(
 			"Note",
 			filters={"name": note.name},
 			fields=["name", "seen_by.user as seen_by"],
@@ -125,8 +125,8 @@ class TestReportview(FrappeTestCase):
 		).insert()
 
 		# test query
-		results1 = frappe.db.get_all("Parent DocType 1", fields=["name", "child.title as child_title"])
-		results2 = frappe.db.get_all("Parent DocType 2", fields=["name", "child.title as child_title"])
+		results1 = frappe.get_all("Parent DocType 1", fields=["name", "child.title as child_title"])
+		results2 = frappe.get_all("Parent DocType 2", fields=["name", "child.title as child_title"])
 		# check both parents have same name
 		self.assertEqual(results1[0].name, results2[0].name)
 		# check both parents have different number of child records
@@ -141,7 +141,7 @@ class TestReportview(FrappeTestCase):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"
 		).insert()
-		result = frappe.db.get_all(
+		result = frappe.get_all(
 			"ToDo",
 			filters={"name": todo.name},
 			fields=["name", "allocated_to.email as allocated_user_email"],
@@ -830,6 +830,11 @@ class TestReportview(FrappeTestCase):
 		)[0]
 
 		self.assertTrue(dashboard_settings)
+
+	def test_coalesce_with_in_ops(self):
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
 
 
 def add_child_table_to_blog_post():

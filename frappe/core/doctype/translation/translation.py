@@ -39,7 +39,7 @@ def create_translations(translation_map, language):
 	# first create / update local user translations
 	for source_id, translation_dict in translation_map.items():
 		translation_dict = frappe._dict(translation_dict)
-		existing_doc_name = frappe.db.get_all(
+		existing_doc_name = frappe.get_all(
 			"Translation",
 			{
 				"source_text": translation_dict.source_text,

@@ -8,7 +8,6 @@ import frappe
 from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
 from frappe.core.doctype.file import remove_file_by_url
-from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
@@ -22,8 +21,6 @@ class WebForm(WebsiteGenerator):
 
 	def onload(self):
 		super().onload()
-		if self.is_standard and not frappe.conf.developer_mode:
-			self.use_meta_fields()
 
 	def validate(self):
 		super().validate()
@@ -67,31 +64,6 @@ class WebForm(WebsiteGenerator):
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
 
-	def use_meta_fields(self):
-		"""Override default properties for standard web forms"""
-		meta = frappe.get_meta(self.doc_type)
-
-		for df in self.web_form_fields:
-			meta_df = meta.get_field(df.fieldname)
-
-			if not meta_df:
-				continue
-
-			for prop in docfield_properties:
-				if df.fieldtype == meta_df.fieldtype and prop not in (
-					"idx",
-					"reqd",
-					"default",
-					"description",
-					"options",
-					"hidden",
-					"read_only",
-					"label",
-				):
-					df.set(prop, meta_df.get(prop))
-
-			# TODO translate options of Select fields like Country
-
 	# export
 	def on_update(self):
 		"""
@@ -124,7 +96,8 @@ def get_context(context):
 
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
-		context.is_form_editable = False
+		context.in_edit_mode = False
+		context.in_view_mode = False
 		self.set_web_form_module()
 
 		if frappe.form_dict.is_list:
@@ -156,10 +129,14 @@ def get_context(context):
 			frappe.redirect(f"/{self.route}/new")
 
 		if frappe.form_dict.is_edit and not self.allow_edit:
+			context.in_view_mode = True
 			frappe.redirect(f"/{self.route}/{frappe.form_dict.name}")
 
 		if frappe.form_dict.is_edit:
-			context.is_form_editable = True
+			context.in_edit_mode = True
+
+		if frappe.form_dict.is_read:
+			context.in_view_mode = True
 
 		if (
 			not frappe.form_dict.is_edit
@@ -167,7 +144,7 @@ def get_context(context):
 			and self.allow_edit
 			and frappe.form_dict.name
 		):
-			context.is_form_editable = True
+			context.in_edit_mode = True
 			frappe.redirect(f"/{frappe.local.path}/edit")
 
 		if (
@@ -179,6 +156,7 @@ def get_context(context):
 		):
 			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 			if name:
+				context.in_view_mode = True
 				frappe.redirect(f"/{self.route}/{name}")
 
 		# Show new form when
@@ -190,9 +168,6 @@ def get_context(context):
 
 		self.reset_field_parent()
 
-		if self.is_standard:
-			self.use_meta_fields()
-
 		# add keys from form_dict to context
 		context.update(dict_with_keys(frappe.form_dict, ["is_list", "is_new", "is_edit", "is_read"]))
 
@@ -203,7 +178,9 @@ def get_context(context):
 
 		# load web form doc
 		context.web_form_doc = self.as_dict(no_nulls=True)
-		context.web_form_doc.update(dict_with_keys(context, ["is_list", "is_new", "is_form_editable"]))
+		context.web_form_doc.update(
+			dict_with_keys(context, ["is_list", "is_new", "in_edit_mode", "in_view_mode"])
+		)
 
 		if self.show_sidebar and self.website_sidebar:
 			context.sidebar_items = get_sidebar_items(self.website_sidebar)
@@ -278,17 +255,11 @@ def get_context(context):
 		if frappe.form_dict.name:
 			context.doc_name = frappe.form_dict.name
 			context.reference_doc = frappe.get_doc(self.doc_type, context.doc_name)
-			context.title = strip_html(
-				context.reference_doc.get(context.reference_doc.meta.get_title_field())
+			context.web_form_title = context.title
+			context.title = (
+				strip_html(context.reference_doc.get(context.reference_doc.meta.get_title_field()))
+				or context.doc_name
 			)
-			if context.is_form_editable and context.parents:
-				context.parents.append(
-					{
-						"label": _(context.title),
-						"route": f"{self.route}/{context.doc_name}",
-					}
-				)
-				context.title = _("Editing {0}").format(context.title)
 			context.reference_doc.add_seen()
 			context.reference_doctype = context.reference_doc.doctype
 			context.reference_name = context.reference_doc.name
@@ -309,7 +280,7 @@ def get_context(context):
 					context.reference_doc.doctype, context.reference_doc.name
 				)
 
-			context.reference_doc = json.loads(context.reference_doc.as_json())
+			context.reference_doc = context.reference_doc.as_dict(no_nulls=True)
 
 	def add_custom_context_and_script(self, context):
 		"""Update context from module if standard and append script"""
@@ -340,62 +311,6 @@ def get_context(context):
 					style = "\n\n".join([style, custom_css])
 
 				context.style = style
-
-	def get_layout(self):
-		layout = []
-
-		def add_page(df=None):
-			new_page = {"sections": []}
-			layout.append(new_page)
-			if df and df.fieldtype == "Page Break":
-				new_page.update(df.as_dict())
-
-			return new_page
-
-		def add_section(df=None):
-			new_section = {"columns": []}
-			if layout:
-				layout[-1]["sections"].append(new_section)
-			if df and df.fieldtype == "Section Break":
-				new_section.update(df.as_dict())
-
-			return new_section
-
-		def add_column(df=None):
-			new_col = []
-			if layout:
-				layout[-1]["sections"][-1]["columns"].append(new_col)
-
-			return new_col
-
-		page, section, column = None, None, None
-		for df in self.web_form_fields:
-
-			# breaks
-			if df.fieldtype == "Page Break":
-				page = add_page(df)
-				section, column = None, None
-
-			if df.fieldtype == "Section Break":
-				section = add_section(df)
-				column = None
-
-			if df.fieldtype == "Column Break":
-				column = add_column(df)
-
-			# input
-			if df.fieldtype not in ("Section Break", "Column Break", "Page Break"):
-				if not page:
-					page = add_page()
-					section, column = None, None
-				if not section:
-					section = add_section()
-					column = None
-				if column is None:
-					column = add_column()
-				column.append(df)
-
-		return layout
 
 	def get_parents(self, context):
 		parents = None
@@ -481,7 +396,7 @@ def accept(web_form, data, docname=None):
 	for field in web_form.web_form_fields:
 		fieldname = field.fieldname
 		df = meta.get_field(fieldname)
-		value = data.get(fieldname, None)
+		value = data.get(fieldname, "")
 
 		if df and df.fieldtype in ("Attach", "Attach Image"):
 			if value and "data:" and "base64" in value:
@@ -595,17 +510,6 @@ def check_webform_perm(doctype, name):
 def get_web_form_filters(web_form_name):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
-
-
-def make_route_string(parameters):
-	route_string = ""
-	delimeter = "?"
-	if isinstance(parameters, dict):
-		for key in parameters:
-			if key != "web_form_name":
-				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
-				delimeter = "&"
-	return (route_string, delimeter)
 
 
 @frappe.whitelist(allow_guest=True)

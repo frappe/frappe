@@ -45,6 +45,7 @@
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
+  "make_attachments_public",
   "view_settings",
   "title_field",
   "show_title_field_in_link",
@@ -603,6 +604,12 @@
    "label": "Translate Link Fields"
   },
   {
+   "default": "0",
+   "fieldname": "make_attachments_public",
+   "fieldtype": "Check",
+   "label": "Make Attachments Public by Default"
+  },
+  {
    "fieldname": "default_view",
    "fieldtype": "Select",
    "label": "Default View"
@@ -701,7 +708,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-08-14 18:33:27.315351",
+ "modified": "2022-08-30 11:43:27.315351",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

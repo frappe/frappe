@@ -2,49 +2,44 @@
 
 {% block breadcrumbs %}{% endblock %}
 
+{% block header %}
+	{% if banner_image %}
+		<!-- banner image -->
+		<img class="web-form-banner-image" src="{{ banner_image }}" alt="Banner Image">
+	{% endif %}
+{% endblock %}
+
 {% macro header_buttons() %}
-	{% if allow_print and not is_new %}
-		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
-		<!-- print button -->
-		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-light btn-sm ml-2">
-			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
-		</a>
+	{% if allow_edit and in_view_mode %}
+		<!-- edit button -->
+		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
 	{% endif %}
 
-	{% if allow_edit and doc_name and not is_form_editable %}
-		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-primary btn-sm ml-2">{{ _("Edit", null, "Button in web form") }}</a>
+	{% if allow_print and in_view_mode %}
+		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
+		<!-- print button -->
+		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
+			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
+		</a>
 	{% endif %}
 {% endmacro %}
 
 {% macro action_buttons() %}
-	{% if is_new or is_form_editable %}
-		<div class="left-area">
-			<!-- clear button -->
-			<a href="/{{ path }}" class="clear-btn btn btn-light btn-md">
-				{% if is_form_editable %}
-					{{ _("Reset Form", null, "Button in web form") }}
-				{% else %}
-					{{ _("Clear Form", null, "Button in web form") }}
-				{% endif %}
-			</a>
-		</div>
-		<div class="center-area paging"></div>
-		<div class="right-area">
+	<div class="left-area"></div>
+	<div class="center-area paging"></div>
+	<div class="right-area">
+		{% if not in_view_mode %}
+			<!-- discard button -->
+			<button class="discard-btn btn btn-default btn-sm">
+				{{ _("Discard", null, "Button in web form") }}
+			</button>
 			<!-- submit button -->
-			<button type="submit" class="submit-btn btn btn-primary btn-md ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
-		</div>
-	{% endif %}
+			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
+		{% endif %}
+	</div>
 {% endmacro %}
 
 {% block page_content %}
-	<!-- banner image -->
-	{% if banner_image %}
-		<div class="web-form-banner-image">
-			<img src="{{ banner_image }}" alt="Banner Image">
-		</div>
-	{% endif %}
-
 	<!-- web form container -->
 	<div class="web-form-container">
 		<!-- breadcrumb -->
@@ -61,12 +56,20 @@
 			{% endif %}
 			<div class="web-form-head">
 				<div class="title">
-					<h1>{{ _(title) }}</h1>
+					<div class="web-form-title ellipsis">
+						{% if show_list and not is_new %}
+							<h1 class="ellipsis">{{ _(web_form_title) }}</h1>
+							<p class="ellipsis">{{ _(title) }}</p>
+						{% else %}
+							<h1 class="ellipsis">{{ _(title) }}</h1>
+						{% endif %}
+					</div>
+					<span class="indicator-pill orange hide">Not Saved</span>
 					<div class="web-form-actions">
 						{{ header_buttons() }}
 					</div>
 				</div>
-				{% if is_new and introduction_text %}
+				{% if introduction_text and (is_new or in_edit_mode)  %}
 					<div class="web-form-introduction">{{ introduction_text }}</div>
 				{% endif %}
 			</div>
@@ -115,30 +118,37 @@
 
 	<!-- success page -->
 	<div class="success-page hide">
-		<svg class="icon">
-			<use href="#icon-solid-success"></use>
-		</svg>
-		<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
-		<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
+		<div class="success-header">
+			<svg class="success-icon icon">
+				<use href="#icon-solid-success"></use>
+			</svg>
+			<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
+		</div>
 
-		{% if success_url %}
-			<div class="success_url_message">
-				<p>
-					<span>Click on this </span>
-					<a href="{{ success_url }}">{{_("URL")}}</a>
-					<span> if you are not redirected within </span>
-					<span class="time">5</span>
-					<span> seconds.</span>
-				</p>
-			</div>
-		{% else %}
-			{% if show_list %}
-				<a href="/{{ route }}/list" class="show-list-button btn btn-light btn-md mr-2">{{ _("See previous responses", null, "Button in web form") }}</a>
+		<div class="success-body">
+			<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
+		</div>
+
+		<div class="success-footer">
+			{% if success_url %}
+				<div class="success_url_message">
+					<p>
+						<span>Click on this </span>
+						<a href="{{ success_url }}">{{_("URL")}}</a>
+						<span> if you are not redirected within </span>
+						<span class="time">5</span>
+						<span> seconds.</span>
+					</p>
+				</div>
+			{% else %}
+				{% if show_list %}
+					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", null, "Button in web form") }}</a>
+				{% endif %}
+				{% if not login_required or allow_multiple %}
+					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+				{% endif %}
 			{% endif %}
-			{% if not login_required or allow_multiple %}
-				<a href="/{{ route }}/new" class="new-btn btn btn-light btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
-			{% endif %}
-		{% endif %}
+		</div>
 	</div>
 
 {% endblock page_content %}
@@ -157,10 +167,7 @@
 		Vue.prototype.frappe = window.frappe;
 	</script>
 
-	{{ include_script("controls.bundle.js") }}
-	{{ include_script("dialog.bundle.js") }}
 	{{ include_script("web_form.bundle.js") }}
-	{{ include_script("bootstrap-4-web.bundle.js") }}
 
 	<script>
 		{% if client_script %}
