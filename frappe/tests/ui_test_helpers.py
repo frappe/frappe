@@ -351,6 +351,7 @@ def insert_doctype_with_child_table_record(name):
 	doc.insert()
 
 
+@frappe.whitelist()
 def insert_translations():
 	translation = [
 		{
