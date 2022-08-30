@@ -55,6 +55,15 @@ def create_todo_records():
 
 
 @frappe.whitelist()
+def clear_notes():
+	if not frappe.local.dev_server:
+		frappe.throw(_("Not allowed"), frappe.PermissionError)
+
+	for note in frappe.get_all("Note", pluck="name"):
+		frappe.delete_doc("Note", note, force=True)
+
+
+@frappe.whitelist()
 def create_communication_record():
 	doc = frappe.get_doc(
 		{
@@ -408,6 +417,7 @@ def create_test_user():
 	user.first_name = "Frappe"
 	user.new_password = frappe.local.conf.admin_password
 	user.send_welcome_email = 0
+	user.time_zone = "Asia/Kolkata"
 	user.flags.ignore_password_policy = True
 	user.insert(ignore_if_duplicate=True)
 
