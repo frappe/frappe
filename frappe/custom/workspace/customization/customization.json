@@ -123,15 +123,13 @@
    "type": "Link"
   }
  ],
- "modified": "2022-08-02 10:52:00.154399",
+ "modified": "2022-01-13 17:28:08.345794",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customization",
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
- "quick_lists": [],
- "embeds": [],
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 8.0,
