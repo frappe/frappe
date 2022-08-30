@@ -365,6 +365,9 @@ def insert_doctype_with_child_table_record(name):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 2eefafe5cc (test: re-whitelist helper method)
 def insert_translations():
 	translation = [
 		{
