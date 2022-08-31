@@ -196,6 +196,7 @@ frappe.patches.v14_0.log_settings_migration
 frappe.patches.v14_0.setup_likes_from_feedback
 frappe.patches.v14_0.update_webforms
 frappe.patches.v14_0.delete_payment_gateways
+frappe.patches.v14_0.event_streaming_deprecation_warning
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy
