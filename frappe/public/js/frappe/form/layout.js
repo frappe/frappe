@@ -211,8 +211,6 @@ frappe.ui.form.Layout = class Layout {
 		this.section.add_field(fieldobj);
 		this.column.add_field(fieldobj);
 
-		fieldobj.section = this.section;
-
 		if (this.current_tab) {
 			this.current_tab.add_field(fieldobj);
 		}
