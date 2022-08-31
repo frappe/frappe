@@ -222,23 +222,11 @@ frappe.ui.Tree = class {
 	}
 
 	collapse_all() {
-		const node = this.root_node
-		if (node.expanded) {
-			if (node.$ul) {
-				if (node.$ul.children().length) {
-					node.$ul.toggle(false);
-				}
-
-				// open close icon
-				if (this.icon_set) {
-					node.$tree_link
-						.find(".icon")
-						.parent()
-						.addClass("node-parent")
-						.html(this.icon_set.closed);
-				}
+		Object.values(this.nodes).forEach(node => {
+			if (node.expanded) {
+				this.toggle_node(node);
 			}
-		}
+		})
 	}
 
 	toggle_node(node) {
