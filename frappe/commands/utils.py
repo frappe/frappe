@@ -879,7 +879,7 @@ def run_ui_tests(
 		click.secho("Installing Cypress...", fg="yellow")
 		packages = " ".join(
 			[
-				"cypress@^6",
+				"cypress@^10",
 				"cypress-file-upload@^5",
 				"@4tw/cypress-drag-drop@^2",
 				"cypress-real-events",
