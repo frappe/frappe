@@ -171,12 +171,12 @@ frappe.ui.Tree = class {
 					() => this.get_all_nodes(value, is_root, node.label),
 					(data_list) => this.render_children_of_all_nodes(data_list),
 					() => this.set_selected_node(node),
-				])
+			  ])
 			: frappe.run_serially([
 					() => this.get_nodes(value, is_root),
 					(data_set) => this.render_node_children(node, data_set),
 					() => this.set_selected_node(node),
-				]);
+			  ]);
 	}
 
 	render_children_of_all_nodes(data_list) {
@@ -222,11 +222,11 @@ frappe.ui.Tree = class {
 	}
 
 	collapse_all() {
-		Object.values(this.nodes).forEach(node => {
+		Object.values(this.nodes).forEach((node) => {
 			if (node.expanded) {
 				this.toggle_node(node);
 			}
-		})
+		});
 	}
 
 	toggle_node(node) {
