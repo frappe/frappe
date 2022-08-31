@@ -23,7 +23,7 @@ WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
-TABLE_PATTERN = re.compile(r"\btab\w+")
+TABLE_PATTERN = re.compile(r"`\btab\w+")
 
 
 def like(key: Field, value: str) -> frappe.qb:
@@ -602,7 +602,7 @@ class Engine:
 				for idx, field in enumerate(fields):
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
-						if "tab" not in str(field):
+						if not TABLE_PATTERN.search(str(field)):
 							fields[idx] = getattr(frappe.qb.DocType(table), field)
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
@@ -619,7 +619,6 @@ class Engine:
 
 		return criterion, fields
 
-	# try meta to validate fields and doctypes
 	def get_query(
 		self,
 		table: str,
