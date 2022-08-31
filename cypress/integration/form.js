@@ -1,3 +1,19 @@
+const jump_to_field = (field_label) => {
+	cy.get("body")
+		.type("{esc}") // lose focus if any
+		.type("{ctrl+j}") // jump to field
+		.type(field_label)
+		.wait(500)
+		.type("{enter}")
+		.wait(200)
+		.type("{enter}")
+		.wait(500);
+};
+
+const type_value = (value) => {
+	cy.focused().clear().type(value).type("{esc}");
+};
+
 context("Form", () => {
 	before(() => {
 		cy.login();
@@ -104,23 +120,16 @@ context("Form", () => {
 		});
 	});
 
+	it("Jump to field in collapsed section", { scrollBehavior: false }, () => {
+		cy.new_form("User");
+
+		jump_to_field("Location"); // this is in collapsed section
+		type_value("Bermuda");
+
+		cy.get_field("location").should("have.value", "Bermuda");
+	});
+
 	it("let user undo/redo field value changes", { scrollBehavior: false }, () => {
-		const jump_to_field = (field_label) => {
-			cy.get("body")
-				.type("{esc}") // lose focus if any
-				.type("{ctrl+j}") // jump to field
-				.type(field_label)
-				.wait(500)
-				.type("{enter}")
-				.wait(200)
-				.type("{enter}")
-				.wait(500);
-		};
-
-		const type_value = (value) => {
-			cy.focused().clear().type(value).type("{esc}");
-		};
-
 		const undo = () => cy.get("body").type("{esc}").type("{ctrl+z}").wait(500);
 		const redo = () => cy.get("body").type("{esc}").type("{ctrl+y}").wait(500);
 
