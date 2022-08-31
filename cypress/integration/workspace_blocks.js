@@ -68,7 +68,7 @@ context("Workspace Blocks", () => {
 
 		cy.intercept({
 			method: "GET",
-			url: "api/method/frappe.desk.form.load.getdoctype",
+			url: "api/method/frappe.desk.form.load.getdoctype?**",
 		}).as("get_doctype");
 
 		cy.visit("/app/tools");
