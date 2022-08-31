@@ -95,7 +95,7 @@ frappe.views.TreeView = class TreeView {
 
 		if (this.opts.show_expand_all) {
 			this.page.add_inner_button(__("Collapse All"), function () {
-				me.tree.collapse_all();
+				me.tree.load_children(me.tree.root_node, false);
 			});
 
 			this.page.add_inner_button(__("Expand All"), function () {

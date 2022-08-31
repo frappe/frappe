@@ -221,14 +221,6 @@ frappe.ui.Tree = class {
 		node.parent.toggleClass("opened", node.expanded);
 	}
 
-	collapse_all() {
-		Object.values(this.nodes).forEach((node) => {
-			if (node.expanded) {
-				this.toggle_node(node);
-			}
-		});
-	}
-
 	toggle_node(node) {
 		if (node.expandable && this.get_nodes && !node.loaded) {
 			return this.load_children(node);
