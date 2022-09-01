@@ -141,6 +141,7 @@ def get_safe_globals():
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
