@@ -17,7 +17,19 @@ class Concat_ws(Function):
 
 class Locate(Function):
 	def __init__(self, *terms, **kwargs):
+		terms = list(terms)
+		if not isinstance(terms[0], str):
+			terms[0] = terms[0].get_sql()
 		super().__init__("LOCATE", *terms, **kwargs)
+
+
+class Ifnull(IfNull):
+	def __init__(self, condition, term, **kwargs):
+		if not isinstance(condition, str):
+			condition = condition.get_sql()
+		if not isinstance(term, str):
+			term = term.get_sql()
+		super().__init__(condition, term, **kwargs)
 
 
 class Timestamp(Function):
@@ -105,6 +117,7 @@ class SqlFunctions(Enum):
 	Min = "min"
 	Abs = "abs"
 	Timestamp = "timestamp"
+	IfNull = "ifnull"
 
 
 def _max(dt, fieldname, filters=None, **kwargs):
