@@ -201,7 +201,7 @@ frappe.ui.form.Form = class FrappeForm {
 			},
 			{
 				shortcut: "shift+alt+down",
-				description: __("To duplcate current row"),
+				description: __("Duplicate current row"),
 			},
 		];
 
