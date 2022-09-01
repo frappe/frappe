@@ -510,7 +510,7 @@ class Engine:
 
 		return fields
 
-	def set_fields(self, table, fields, **kwargs) -> list:
+	def set_fields(self, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		if isinstance(fields, list) and None in fields and Field not in fields:
 			return None
@@ -579,6 +579,8 @@ class Engine:
 	def join_(self, criterion, fields, table, join):
 		"""Handles all join operations on criterion objects"""
 		has_join = False
+		joined_tables = dict()
+
 		if not isinstance(fields, Criterion):
 			for field in fields:
 				# Only perform this bit if foreign doctype in fields
@@ -587,35 +589,39 @@ class Engine:
 					and str(field).startswith("`tab")
 					and (f"`tab{table}`" not in str(field))
 				):
-					join_table = table_from_string(str(field))
-					if self.fieldname:
-						criterion = criterion.left_join(join_table).on(
-							getattr(join_table, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
-						)
-					else:
-						criterion = criterion.left_join(join_table).on(
-							getattr(join_table, "parent") == getattr(frappe.qb.DocType(table), "name")
-						)
 					has_join = True
+					join_table = table_from_string(str(field))
+					# check for already joined tables
+					if joined_tables.get("left_join") != join_table:
+						if self.fieldname:
+							criterion = criterion.left_join(join_table).on(
+								getattr(join_table, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
+							)
+							joined_tables["left_join"] = join_table
+						else:
+							criterion = criterion.left_join(join_table).on(
+								getattr(join_table, "parent") == getattr(frappe.qb.DocType(table), "name")
+							)
+							joined_tables["left_join"] = join_table
 
-			if has_join:
-				for idx, field in enumerate(fields):
-					if not is_pypika_function_object(field):
-						field = field if isinstance(field, str) else field.get_sql()
-						if not TABLE_PATTERN.search(str(field)):
-							fields[idx] = getattr(frappe.qb.DocType(table), field)
-					else:
-						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
-						fields[idx] = field
+				if has_join:
+					for idx, field in enumerate(fields):
+						if not is_pypika_function_object(field):
+							field = field if isinstance(field, str) else field.get_sql()
+							if not TABLE_PATTERN.search(str(field)):
+								fields[idx] = getattr(frappe.qb.DocType(table), field)
+						else:
+							field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
+							field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
+							fields[idx] = field
 
 		if len(self.tables) > 1:
 			primary_table = self.tables.pop(table)
 			for table_object in self.tables.values():
-				criterion = getattr(criterion, join)(table_object).on(
-					table_object.parent == primary_table.name
-				)
-				has_join = True
+				if joined_tables.get("left_join") != table_object:
+					criterion = getattr(criterion, join)(table_object).on(
+						table_object.parent == primary_table.name
+					)
 
 		return criterion, fields
 
@@ -631,7 +637,7 @@ class Engine:
 		self.linked_doctype = None
 		self.fieldname = None
 
-		fields = self.set_fields(table, kwargs.get("field_objects") or fields, **kwargs)
+		fields = self.set_fields(fields, **kwargs)
 		criterion = self.build_conditions(table, filters, **kwargs)
 		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 		criterion, fields = self.join_(criterion=criterion, fields=fields, table=table, join=join)
