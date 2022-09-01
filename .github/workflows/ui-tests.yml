@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       containers: [1, 2, 3]
+       containers: [1, 2]
 
     name: UI Tests (Cypress)
 
