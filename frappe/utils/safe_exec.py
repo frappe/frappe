@@ -181,6 +181,7 @@ def get_safe_globals():
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
+		lang=getattr(frappe.local, "lang", "en"),
 	)
 
 	add_module_properties(
