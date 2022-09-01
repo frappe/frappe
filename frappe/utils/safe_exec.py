@@ -167,6 +167,7 @@ def get_safe_globals():
 				rollback=frappe.db.rollback,
 				add_index=frappe.db.add_index,
 			),
+			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
@@ -181,7 +182,6 @@ def get_safe_globals():
 		run_script=run_script,
 		is_job_queued=is_job_queued,
 		get_visible_columns=get_visible_columns,
-		lang=getattr(frappe.local, "lang", "en"),
 	)
 
 	add_module_properties(
