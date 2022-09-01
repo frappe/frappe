@@ -167,6 +167,7 @@ def get_safe_globals():
 				rollback=frappe.db.rollback,
 				add_index=frappe.db.add_index,
 			),
+			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
