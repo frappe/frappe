@@ -414,7 +414,10 @@ class Engine:
 						if isinstance(operator_mapping, BuiltinFunctionType):
 							has_primitive_operator = True
 							field = operator_mapping(
-								*map(lambda field: Field(field.strip()), arg.split(_operator)),
+								*map(
+									lambda field: Field(field.strip()) if "`" not in field else PseudoColumn(field.strip()),
+									arg.split(_operator),
+								),
 							)
 
 				field = (
