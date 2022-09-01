@@ -334,15 +334,9 @@ class TestOAuth20(unittest.TestCase):
 	def decode_id_token(self, id_token):
 		return jwt.decode(
 			id_token,
-<<<<<<< HEAD
-			audience=client.client_id,
-			key=client.client_secret,
-			algorithm="HS256",
-=======
 			audience=self.client_id,
 			key=self.client_secret,
-			algorithms=["HS256"],
->>>>>>> 23cad54802 (test(oauth): Send id_token of the authorized user instead of Guest)
+			algorithm="HS256",
 		)
 
 
