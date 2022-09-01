@@ -141,6 +141,26 @@ def get_safe_globals():
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+<<<<<<< HEAD
+=======
+			log=frappe.log,
+			db=NamespaceDict(
+				get_list=frappe.get_list,
+				get_all=frappe.get_all,
+				get_value=frappe.db.get_value,
+				set_value=frappe.db.set_value,
+				get_single_value=frappe.db.get_single_value,
+				get_default=frappe.db.get_default,
+				exists=frappe.db.exists,
+				count=frappe.db.count,
+				escape=frappe.db.escape,
+				sql=read_sql,
+				commit=frappe.db.commit,
+				rollback=frappe.db.rollback,
+				add_index=frappe.db.add_index,
+			),
+			lang=getattr(frappe.local, "lang", "en"),
+>>>>>>> d0b753a25d (refactor: move lang into frappe namespace)
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
@@ -157,8 +177,11 @@ def get_safe_globals():
 <<<<<<< HEAD
 =======
 		get_visible_columns=get_visible_columns,
+<<<<<<< HEAD
 		lang=getattr(frappe.local, "lang", "en"),
 >>>>>>> 836fd6ef78 (feat: add lang to safe globals)
+=======
+>>>>>>> d0b753a25d (refactor: move lang into frappe namespace)
 	)
 
 	add_module_properties(
