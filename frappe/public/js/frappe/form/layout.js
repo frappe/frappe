@@ -194,9 +194,6 @@ frappe.ui.form.Layout = class Layout {
 			this.fields_dict[fieldname].$wrapper.remove();
 			this.fields_list.splice(this.fields_dict[fieldname], 1, fieldobj);
 			this.fields_dict[fieldname] = fieldobj;
-			if (this.frm) {
-				fieldobj.perm = this.frm.perm;
-			}
 			this.section.fields_list.splice(this.section.fields_dict[fieldname], 1, fieldobj);
 			this.section.fields_dict[fieldname] = fieldobj;
 			this.refresh_fields([df]);
@@ -210,9 +207,6 @@ frappe.ui.form.Layout = class Layout {
 		const fieldobj = this.init_field(df, render);
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
-		if (this.frm) {
-			fieldobj.perm = this.frm.perm;
-		}
 
 		this.section.add_field(fieldobj);
 		this.column.add_field(fieldobj);
@@ -465,11 +459,6 @@ frappe.ui.form.Layout = class Layout {
 				fieldobj.df =
 					frappe.meta.get_docfield(me.doc.doctype, fieldobj.df.fieldname, me.doc.name) ||
 					fieldobj.df;
-
-				// on form change, permissions can change
-				if (me.frm) {
-					fieldobj.perm = me.frm.perm;
-				}
 			}
 			refresh && fieldobj.df && fieldobj.refresh && fieldobj.refresh();
 		}

@@ -33,6 +33,14 @@ frappe.ui.form.Control = class BaseControl {
 		this.refresh();
 	}
 
+	get perm() {
+		return this.frm?.perm;
+	}
+
+	set perm(_perm) {
+		console.error("Setting perm on controls isn't supported, update form's perm instead");
+	}
+
 	// returns "Read", "Write" or "None"
 	// as strings based on permissions
 	get_status(explain) {
@@ -270,9 +278,6 @@ frappe.ui.form.Control = class BaseControl {
 		} else {
 			if (this.doc) {
 				this.doc[this.df.fieldname] = value;
-			} else {
-				// case where input is rendered on dialog where doc is not maintained
-				this.value = value;
 			}
 			this.set_input(value);
 			return Promise.resolve();
