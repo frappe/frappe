@@ -3,17 +3,17 @@
 """Use blog post test to test user permissions logic"""
 
 import json
-import unittest
 
 import frappe
 import frappe.defaults
 from frappe.desk.doctype.event.event import get_events
 from frappe.test_runner import make_test_objects
+from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Event")
 
 
-class TestEvent(unittest.TestCase):
+class TestEvent(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Event")
 		make_test_objects("Event", reset=True)

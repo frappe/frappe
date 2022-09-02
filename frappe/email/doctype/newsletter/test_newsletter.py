@@ -107,7 +107,7 @@ class TestNewsletterMixin:
 			"content_type": "Rich Text",
 			"message": "Testing my news.",
 		}
-		similar_newsletters = frappe.db.get_all(doctype, newsletter_content, pluck="name")
+		similar_newsletters = frappe.get_all(doctype, newsletter_content, pluck="name")
 
 		for similar_newsletter in similar_newsletters:
 			frappe.delete_doc(doctype, similar_newsletter)
@@ -180,7 +180,7 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		newsletter.save = MagicMock()
 		self.assertFalse(newsletter.save.called)
 		# check if the test email is in the queue
-		email_queue = frappe.db.get_all(
+		email_queue = frappe.get_all(
 			"Email Queue",
 			filters=[
 				["reference_doctype", "=", "Newsletter"],

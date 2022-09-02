@@ -101,15 +101,15 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 @frappe.whitelist()
 def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"DocShare",
 		fields=[
-			"`name`",
-			"`user`",
-			"`read`",
-			"`write`",
-			"`submit`",
-			"`share`",
+			"name",
+			"user",
+			"read",
+			"write",
+			"submit",
+			"share",
 			"everyone",
 			"owner",
 			"creation",
@@ -137,7 +137,7 @@ def get_shared(doctype, user=None, rights=None):
 	if user != "Guest":
 		or_filters += [["everyone", "=", 1]]
 
-	shared_docs = frappe.db.get_all(
+	shared_docs = frappe.get_all(
 		"DocShare", fields=["share_name"], filters=filters, or_filters=or_filters
 	)
 

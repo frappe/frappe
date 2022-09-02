@@ -6,8 +6,7 @@ from frappe.cache_manager import clear_defaults_cache, common_default_keys
 from frappe.desk.notifications import clear_notifications
 from frappe.query_builder import DocType
 
-# Note: DefaultValue records are identified by parenttype
-# __default, __global or 'User Permission'
+# Note: DefaultValue records are identified by parent (e.g. __default, __global)
 
 
 def set_user_default(key, value, user=None, parenttype=None):

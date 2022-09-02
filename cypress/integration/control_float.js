@@ -11,9 +11,9 @@ context("Control Float", () => {
 				{
 					fieldname: "float_number",
 					fieldtype: "Float",
-					Label: "Float"
-				}
-			]
+					Label: "Float",
+				},
+			],
 		});
 	}
 
@@ -21,27 +21,22 @@ context("Control Float", () => {
 		get_dialog_with_float().as("dialog");
 
 		let data = get_data();
-		data.forEach(x => {
+		data.forEach((x) => {
 			cy.window()
 				.its("frappe")
-				.then(frappe => {
+				.then((frappe) => {
 					frappe.boot.sysdefaults.number_format = x.number_format;
 				});
-			x.values.forEach(d => {
+			x.values.forEach((d) => {
 				cy.get_field("float_number", "Float").clear();
+				cy.wait(200);
 				cy.fill_field("float_number", d.input, "Float").blur();
-				cy.get_field("float_number", "Float").should(
-					"have.value",
-					d.blur_expected
-				);
+				cy.get_field("float_number", "Float").should("have.value", d.blur_expected);
 
 				cy.get_field("float_number", "Float").focus();
 				cy.get_field("float_number", "Float").blur();
 				cy.get_field("float_number", "Float").focus();
-				cy.get_field("float_number", "Float").should(
-					"have.value",
-					d.focus_expected
-				);
+				cy.get_field("float_number", "Float").should("have.value", d.focus_expected);
 			});
 		});
 	});
@@ -54,19 +49,19 @@ context("Control Float", () => {
 					{
 						input: "364.87,334",
 						blur_expected: "36.487,334",
-						focus_expected: "36487.334"
+						focus_expected: "36487.334",
 					},
 					{
 						input: "36487,334",
 						blur_expected: "36.487,334",
-						focus_expected: "36487.334"
+						focus_expected: "36487.334",
 					},
 					{
 						input: "100",
 						blur_expected: "100,000",
-						focus_expected: "100"
-					}
-				]
+						focus_expected: "100",
+					},
+				],
 			},
 			{
 				number_format: "#,###.##",
@@ -74,20 +69,20 @@ context("Control Float", () => {
 					{
 						input: "364,87.334",
 						blur_expected: "36,487.334",
-						focus_expected: "36487.334"
+						focus_expected: "36487.334",
 					},
 					{
 						input: "36487.334",
 						blur_expected: "36,487.334",
-						focus_expected: "36487.334"
+						focus_expected: "36487.334",
 					},
 					{
 						input: "100",
 						blur_expected: "100.000",
-						focus_expected: "100"
-					}
-				]
-			}
+						focus_expected: "100",
+					},
+				],
+			},
 		];
 	}
 });

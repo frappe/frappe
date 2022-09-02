@@ -54,7 +54,7 @@
  "icon": "fa fa-globe",
  "idx": 1,
  "links": [],
- "modified": "2020-02-24 15:44:31.837133",
+ "modified": "2022-08-05 18:33:27.880783",
  "modified_by": "Administrator",
  "module": "Geo",
  "name": "Country",
@@ -84,5 +84,7 @@
  "quick_entry": 1,
  "sort_field": "country_name",
  "sort_order": "ASC",
- "track_changes": 1
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
 }

@@ -7,6 +7,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "user_details_tab",
   "enabled",
   "section_break_3",
   "email",
@@ -22,23 +23,31 @@
   "send_welcome_email",
   "unsubscribed",
   "user_image",
+  "roles_permissions_tab",
   "sb1",
   "role_profile_name",
   "roles_html",
   "roles",
+  "sb_allow_modules",
+  "module_profile",
+  "modules_html",
+  "block_modules",
+  "home_settings",
   "short_bio",
   "gender",
   "birth_date",
   "interest",
-  "banner_image",
-  "desk_theme",
   "column_break_26",
   "phone",
   "location",
   "bio",
-  "mute_sounds",
   "column_break_22",
   "mobile_no",
+  "settings_tab",
+  "desk_settings_section",
+  "mute_sounds",
+  "desk_theme",
+  "banner_image",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -61,11 +70,6 @@
   "send_me_a_copy",
   "allowed_in_mentions",
   "user_emails",
-  "sb_allow_modules",
-  "module_profile",
-  "modules_html",
-  "block_modules",
-  "home_settings",
   "sb2",
   "defaults",
   "sb3",
@@ -87,7 +91,8 @@
   "api_key",
   "generate_keys",
   "column_break_65",
-  "api_secret"
+  "api_secret",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -232,7 +237,7 @@
    "collapsible": 1,
    "depends_on": "enabled",
    "fieldname": "short_bio",
-   "fieldtype": "Section Break",
+   "fieldtype": "Tab Break",
    "label": "More Information"
   },
   {
@@ -398,7 +403,6 @@
    "permlevel": 1
   },
   {
-   "collapsible": 1,
    "depends_on": "eval:in_list(['System User'], doc.user_type)",
    "fieldname": "sb_allow_modules",
    "fieldtype": "Section Break",
@@ -615,13 +619,13 @@
    "options": "Module Profile"
   },
   {
-    "description": "Stores the datetime when the last reset password key was generated.",
-    "fieldname": "last_reset_password_key_generated_on",
-    "fieldtype": "Datetime",
-    "hidden": 1,
-    "label": "Last Reset Password Key Generated On",
-    "read_only": 1
-   },
+   "description": "Stores the datetime when the last reset password key was generated.",
+   "fieldname": "last_reset_password_key_generated_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Last Reset Password Key Generated On",
+   "read_only": 1
+  },
   {
    "fieldname": "column_break_75",
    "fieldtype": "Column Break"
@@ -648,18 +652,45 @@
    "label": "Auto follow documents that you Like"
   },
   {
-    "default": "0",
-    "depends_on": "eval:(doc.document_follow_notify== 1)",
-    "fieldname": "follow_shared_documents",
-    "fieldtype": "Check",
-    "label": "Auto follow documents that are shared with you"
-   },
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_shared_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that are shared with you"
+  },
   {
    "default": "0",
    "depends_on": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_assigned_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that are assigned to you"
+  },
+  {
+   "fieldname": "user_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "User Details"
+  },
+  {
+   "fieldname": "roles_permissions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Roles & Permissions"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "desk_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Desk Settings"
   }
  ],
  "icon": "fa fa-user",
@@ -722,7 +753,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2022-05-25 01:00:51.345319",
+ "modified": "2022-08-11 14:47:04.100892",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

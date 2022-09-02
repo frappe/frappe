@@ -129,15 +129,6 @@ class MariaDBConnectionUtil:
 
 class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
-
-	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
-	# it drops the cache and uses the next non cached value in setval query and
-	# puts that in the backup file, which will start the counter
-	# from that value when inserting any new record in the doctype.
-	# By default the cache is 1000 which will mess up the sequence when
-	# using the system after a restore.
-	# issue link: https://jira.mariadb.org/browse/MDEV-21786
-	SEQUENCE_CACHE = 50
 	CONVERSION_MAP = conversions | {
 		FIELD_TYPE.NEWDECIMAL: float,
 		FIELD_TYPE.DATETIME: get_datetime,
@@ -199,7 +190,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return db_size[0].get("database_size")
 
 	def log_query(self, query, values, debug, explain):
-		self.last_query = self._cursor._last_executed
+		self.last_query = query = self._cursor._last_executed
 		self._log_query(query, debug, explain)
 		return self.last_query
 

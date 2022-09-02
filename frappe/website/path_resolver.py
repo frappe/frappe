@@ -17,6 +17,8 @@ from frappe.website.utils import can_cache, get_home_page
 
 
 class PathResolver:
+	__slots__ = ("path",)
+
 	def __init__(self, path):
 		self.path = path.strip("/ ")
 
@@ -36,6 +38,11 @@ class PathResolver:
 			return frappe.flags.redirect_location, RedirectPage(self.path)
 
 		endpoint = resolve_path(self.path)
+
+		# WARN: Hardcoded for better performance
+		if endpoint == "app":
+			return endpoint, TemplatePage(endpoint, 200)
+
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = custom_renderers + [
 			StaticPage,
@@ -98,7 +105,7 @@ def resolve_redirect(path, query_string=None):
 	        ]
 	"""
 	redirects = frappe.get_hooks("website_redirects")
-	redirects += frappe.db.get_all("Website Route Redirect", ["source", "target"])
+	redirects += frappe.get_all("Website Route Redirect", ["source", "target"], order_by=None)
 
 	if not redirects:
 		return

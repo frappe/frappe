@@ -1,13 +1,13 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-frappe.provide('frappe.search');
-frappe.provide('frappe.tags');
+frappe.provide("frappe.search");
+frappe.provide("frappe.tags");
 
 frappe.search.AwesomeBar = class AwesomeBar {
 	setup(element) {
 		var me = this;
 
-		$('.search-bar').removeClass('hidden');
+		$(".search-bar").removeClass("hidden");
 		var $input = $(element);
 		var input = $input.get(0);
 
@@ -19,30 +19,31 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-			filter: function(text, term) {
+			filter: function (text, term) {
 				return true;
 			},
-			data: function(item, input) {
+			data: function (item, input) {
 				return {
-					label: (item.index || ""),
-					value: item.value
+					label: item.index || "",
+					value: item.value,
 				};
 			},
-			item: function(item, term) {
+			item: function (item, term) {
 				var d = this.get_item(item.value);
 				var name = __(d.label || d.value);
-				var html = '<span>' + name + '</span>';
-				if(d.description && d.value!==d.description) {
-					html += '<br><span class="text-muted ellipsis">' + __(d.description) + '</span>';
+				var html = "<span>" + name + "</span>";
+				if (d.description && d.value !== d.description) {
+					html +=
+						'<br><span class="text-muted ellipsis">' + __(d.description) + "</span>";
 				}
-				return $('<li></li>')
-					.data('item.autocomplete', d)
+				return $("<li></li>")
+					.data("item.autocomplete", d)
 					.html(`<a style="font-weight:normal">${html}</a>`)
 					.get(0);
 			},
-			sort: function(a, b) {
-				return (b.label - a.label);
-			}
+			sort: function (a, b) {
+				return b.label - a.label;
+			},
 		});
 
 		// Added to aid UI testing of global search
@@ -50,74 +51,77 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		this.awesomplete = awesomplete;
 
-		$input.on("input", frappe.utils.debounce(function(e) {
-			var value = e.target.value;
-			var txt = value.trim().replace(/\s\s+/g, ' ');
-			var last_space = txt.lastIndexOf(' ');
-			me.global_results = [];
+		$input.on(
+			"input",
+			frappe.utils.debounce(function (e) {
+				var value = e.target.value;
+				var txt = value.trim().replace(/\s\s+/g, " ");
+				var last_space = txt.lastIndexOf(" ");
+				me.global_results = [];
 
-			me.options = [];
+				me.options = [];
 
-			if (txt && txt.length > 1) {
-				if (last_space !== -1) {
-					me.set_specifics(txt.slice(0, last_space), txt.slice(last_space+1));
+				if (txt && txt.length > 1) {
+					if (last_space !== -1) {
+						me.set_specifics(txt.slice(0, last_space), txt.slice(last_space + 1));
+					}
+					me.add_defaults(txt);
+					me.options = me.options.concat(me.build_options(txt));
+					me.options = me.options.concat(me.global_results);
+				} else {
+					me.options = me.options.concat(
+						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
+					);
+					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
-				me.add_defaults(txt);
-				me.options = me.options.concat(me.build_options(txt));
-				me.options = me.options.concat(me.global_results);
-			} else {
-				me.options = me.options.concat(
-					me.deduplicate(frappe.search.utils.get_recent_pages(txt || "")));
-				me.options = me.options.concat(frappe.search.utils.get_frequent_links());
-			}
-			me.add_help();
+				me.add_help();
 
-			awesomplete.list = me.deduplicate(me.options);
+				awesomplete.list = me.deduplicate(me.options);
+			}, 100)
+		);
 
-		}, 100));
-
-		var open_recent = function() {
+		var open_recent = function () {
 			if (!this.autocomplete_open) {
 				$(this).trigger("input");
 			}
 		};
 		$input.on("focus", open_recent);
 
-		$input.on("awesomplete-open", function(e) {
+		$input.on("awesomplete-open", function (e) {
 			me.autocomplete_open = e.target;
 		});
 
-		$input.on("awesomplete-close", function(e) {
+		$input.on("awesomplete-close", function (e) {
 			me.autocomplete_open = false;
 		});
 
-		$input.on("awesomplete-select", function(e) {
+		$input.on("awesomplete-select", function (e) {
 			var o = e.originalEvent;
 			var value = o.text.value;
 			var item = awesomplete.get_item(value);
 
-			if(item.route_options) {
+			if (item.route_options) {
 				frappe.route_options = item.route_options;
 			}
 
-			if(item.onclick) {
+			if (item.onclick) {
 				item.onclick(item.match);
 			} else {
 				frappe.set_route(item.route);
 			}
 			$input.val("");
-			$input.trigger('blur');
+			$input.trigger("blur");
 		});
 
-		$input.on("awesomplete-selectcomplete", function(e) {
+		$input.on("awesomplete-selectcomplete", function (e) {
 			$input.val("");
 		});
 
-		$input.on('keydown', (e) => {
-			if (e.key == 'Escape') {
-				$input.trigger('blur');
+		$input.on("keydown", (e) => {
+			if (e.key == "Escape") {
+				$input.trigger("blur");
 			}
-		})
+		});
 		frappe.search.utils.setup_recent();
 		frappe.tags.utils.fetch_tags();
 	}
@@ -127,31 +131,50 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			value: __("Help on Search"),
 			index: -10,
 			default: "Help",
-			onclick: function() {
-				var txt = '<table class="table table-bordered">\
-					<tr><td style="width: 50%">'+__('Create a new record')+'</td><td>'+
-						__("new type of document")+'</td></tr>\
-					<tr><td>'+__("List a document type")+'</td><td>'+
-						__("document type..., e.g. customer")+'</td></tr>\
-					<tr><td>'+__("Search in a document type")+'</td><td>'+
-						__("text in document type")+'</td></tr>\
-					<tr><td>'+__("Tags")+'</td><td>'+
-						__("tag name..., e.g. #tag")+'</td></tr>\
-					<tr><td>'+__("Open a module or tool")+'</td><td>'+
-						__("module name...")+'</td></tr>\
-					<tr><td>'+__("Calculate")+'</td><td>'+
-						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
-				</table>';
+			onclick: function () {
+				var txt =
+					'<table class="table table-bordered">\
+					<tr><td style="width: 50%">' +
+					__("Create a new record") +
+					"</td><td>" +
+					__("new type of document") +
+					"</td></tr>\
+					<tr><td>" +
+					__("List a document type") +
+					"</td><td>" +
+					__("document type..., e.g. customer") +
+					"</td></tr>\
+					<tr><td>" +
+					__("Search in a document type") +
+					"</td><td>" +
+					__("text in document type") +
+					"</td></tr>\
+					<tr><td>" +
+					__("Tags") +
+					"</td><td>" +
+					__("tag name..., e.g. #tag") +
+					"</td></tr>\
+					<tr><td>" +
+					__("Open a module or tool") +
+					"</td><td>" +
+					__("module name...") +
+					"</td></tr>\
+					<tr><td>" +
+					__("Calculate") +
+					"</td><td>" +
+					__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...") +
+					"</td></tr>\
+				</table>";
 				frappe.msgprint(txt, __("Search Help"));
-			}
+			},
 		});
 	}
 
 	set_specifics(txt, end_txt) {
 		var me = this;
 		var results = this.build_options(txt);
-		results.forEach(function(r) {
-			if(r.type && (r.type).toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
+		results.forEach(function (r) {
+			if (r.type && r.type.toLowerCase().indexOf(end_txt.toLowerCase()) === 0) {
 				me.options.push(r);
 			}
 		});
@@ -165,45 +188,48 @@ frappe.search.AwesomeBar = class AwesomeBar {
 	}
 
 	build_options(txt) {
-		var options = frappe.search.utils.get_creatables(txt).concat(
-			frappe.search.utils.get_search_in_list(txt),
-			frappe.search.utils.get_doctypes(txt),
-			frappe.search.utils.get_reports(txt),
-			frappe.search.utils.get_pages(txt),
-			frappe.search.utils.get_workspaces(txt),
-			frappe.search.utils.get_dashboards(txt),
-			frappe.search.utils.get_recent_pages(txt || ""),
-			frappe.search.utils.get_executables(txt)
-		);
+		var options = frappe.search.utils
+			.get_creatables(txt)
+			.concat(
+				frappe.search.utils.get_search_in_list(txt),
+				frappe.search.utils.get_doctypes(txt),
+				frappe.search.utils.get_reports(txt),
+				frappe.search.utils.get_pages(txt),
+				frappe.search.utils.get_workspaces(txt),
+				frappe.search.utils.get_dashboards(txt),
+				frappe.search.utils.get_recent_pages(txt || ""),
+				frappe.search.utils.get_executables(txt)
+			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
 		}
 		var out = this.deduplicate(options);
-		return out.sort(function(a, b) {
+		return out.sort(function (a, b) {
 			return b.index - a.index;
 		});
 	}
 
 	deduplicate(options) {
-		var out = [], routes = [];
-		options.forEach(function(option) {
-			if(option.route) {
+		var out = [],
+			routes = [];
+		options.forEach(function (option) {
+			if (option.route) {
 				if (
 					option.route[0] === "List" &&
-					option.route[2] !== 'Report' &&
-					option.route[2] !== 'Inbox'
+					option.route[2] !== "Report" &&
+					option.route[2] !== "Inbox"
 				) {
 					option.route.splice(2);
 				}
 
-				var str_route = (typeof option.route==='string') ?
-					option.route : option.route.join('/');
-				if(routes.indexOf(str_route)===-1) {
+				var str_route =
+					typeof option.route === "string" ? option.route : option.route.join("/");
+				if (routes.indexOf(str_route) === -1) {
 					out.push(option);
 					routes.push(str_route);
 				} else {
 					var old = routes.indexOf(str_route);
-					if(out[old].index < option.index && !option.recent) {
+					if (out[old].index < option.index && !option.recent) {
 						out[old] = option;
 					}
 				}
@@ -254,7 +280,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.options.push({
 			label: `
 				<span class="flex justify-between text-medium">
-					<span class="ellipsis">${ __('Search for {0}', [frappe.utils.xss_sanitise(txt).bold()])}</span>
+					<span class="ellipsis">${__("Search for {0}", [frappe.utils.xss_sanitise(txt).bold()])}</span>
 					<kbd>↵</kbd>
 				</span>
 			`,
@@ -262,68 +288,68 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			match: txt,
 			index: 100,
 			default: "Search",
-			onclick: function() {
+			onclick: function () {
 				frappe.searchdialog.search.init_search(txt, "global_search");
-			}
+			},
 		});
 	}
 
 	make_search_in_current(txt) {
 		var route = frappe.get_route();
-		if(route[0]==="List" && txt.indexOf(" in") === -1) {
+		if (route[0] === "List" && txt.indexOf(" in") === -1) {
 			// search in title field
 			var meta = frappe.get_meta(frappe.container.page.list_view.doctype);
 			var search_field = meta.title_field || "name";
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];
 			this.options.push({
-				label: __('Find {0} in {1}', [txt.bold(), __(route[1]).bold()]),
-				value: __('Find {0} in {1}', [txt, __(route[1])]),
+				label: __("Find {0} in {1}", [txt.bold(), __(route[1]).bold()]),
+				value: __("Find {0} in {1}", [txt, __(route[1])]),
 				route_options: options,
-				onclick: function() {
+				onclick: function () {
 					cur_list.show();
 				},
 				index: 90,
 				default: "Current",
-				match: txt
+				match: txt,
 			});
 		}
 	}
 
 	make_calculator(txt) {
-		var first = txt.substr(0,1);
-		if(first==parseInt(first) || first==="(" || first==="=") {
-			if(first==="=") {
+		var first = txt.substr(0, 1);
+		if (first == parseInt(first) || first === "(" || first === "=") {
+			if (first === "=") {
 				txt = txt.substr(1);
 			}
 			try {
 				var val = eval(txt);
-				var formatted_value = __('{0} = {1}', [txt, (val + '').bold()]);
+				var formatted_value = __("{0} = {1}", [txt, (val + "").bold()]);
 				this.options.push({
 					label: formatted_value,
-					value: __('{0} = {1}', [txt, val]),
+					value: __("{0} = {1}", [txt, val]),
 					match: val,
 					index: 80,
 					default: "Calculator",
-					onclick: function() {
+					onclick: function () {
 						frappe.msgprint(formatted_value, __("Result"));
-					}
+					},
 				});
-			} catch(e) {
+			} catch (e) {
 				// pass
 			}
 		}
 	}
 
 	make_random(txt) {
-		if(txt.toLowerCase().includes('random')) {
+		if (txt.toLowerCase().includes("random")) {
 			this.options.push({
 				label: __("Generate Random Password"),
 				value: frappe.utils.get_random(16),
-				onclick: function() {
+				onclick: function () {
 					frappe.msgprint(frappe.utils.get_random(16), __("Result"));
-				}
-			})
+				},
+			});
 		}
 	}
 };

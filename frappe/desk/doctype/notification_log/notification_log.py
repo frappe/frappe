@@ -134,8 +134,24 @@ def get_email_header(doc):
 
 
 @frappe.whitelist()
+def get_notification_logs(limit=20):
+	notification_logs = frappe.db.get_list(
+		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
+	)
+
+	users = [log.from_user for log in notification_logs]
+	users = [*set(users)]  # remove duplicates
+	user_info = frappe._dict()
+
+	for user in users:
+		frappe.utils.add_user_info(user, user_info)
+
+	return {"notification_logs": notification_logs, "user_info": user_info}
+
+
+@frappe.whitelist()
 def mark_all_as_read():
-	unread_docs_list = frappe.db.get_all(
+	unread_docs_list = frappe.get_all(
 		"Notification Log", filters={"read": 0, "for_user": frappe.session.user}
 	)
 	unread_docnames = [doc.name for doc in unread_docs_list]

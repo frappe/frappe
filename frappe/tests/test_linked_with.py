@@ -1,11 +1,10 @@
-import unittest
-
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form import linked_with
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestLinkedWith(unittest.TestCase):
+class TestLinkedWith(FrappeTestCase):
 	def setUp(self):
 		parent_doc = new_doctype("Parent Doc")
 		parent_doc.is_submittable = 1

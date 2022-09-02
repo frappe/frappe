@@ -199,7 +199,6 @@ scheduler_events = {
 		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
-		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
 	],
@@ -374,5 +373,3 @@ override_whitelisted_methods = {
 	"frappe.core.doctype.file.file.move_file": "frappe.core.api.file.move_file",
 	"frappe.core.doctype.file.file.zip_files": "frappe.core.api.file.zip_files",
 }
-
-translated_search_doctypes = ["DocType", "Role", "Country", "Gender", "Salutation"]
