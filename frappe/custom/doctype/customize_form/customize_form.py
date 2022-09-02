@@ -570,8 +570,6 @@ doctype_properties = {
 	"default_print_format": "Data",
 	"allow_copy": "Check",
 	"istable": "Check",
-	'is_tree': 'Check',
-	'allow_root_deletion': 'Check',
 	"quick_entry": "Check",
 	"editable_grid": "Check",
 	"max_attachments": "Int",
