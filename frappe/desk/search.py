@@ -187,8 +187,7 @@ def search_widget(
 			formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
 
 			# Insert title field query after name
-			show_title_field = meta.title_field and meta.show_title_field_in_link
-			if show_title_field:
+			if meta.show_title_field_in_link:
 				formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
 
 			# In order_by, `idx` gets second priority, because it stores link count
@@ -280,14 +279,12 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[dict]:
 
 	results = []
 	meta = frappe.get_meta(doctype)
-	if title_field_exists := meta.title_field and meta.show_title_field_in_link:
+	if meta.show_title_field_in_link:
 		for item in res:
-			label = None
-			if title_field_exists:
-				item = list(item)
-				label = item[1]  # use title as label
-				item[1] = item[0]  # show name in description instead of title
-				del item[2]  # remove redundant title ("label") value
+			item = list(item)
+			label = item[1]  # use title as label
+			item[1] = item[0]  # show name in description instead of title
+			del item[2]  # remove redundant title ("label") value
 			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
 	else:
 		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
@@ -366,7 +363,7 @@ def get_user_groups():
 def get_link_title(doctype, docname):
 	meta = frappe.get_meta(doctype)
 
-	if meta.title_field and meta.show_title_field_in_link:
+	if meta.show_title_field_in_link:
 		return frappe.db.get_value(doctype, docname, meta.title_field)
 
 	return docname
