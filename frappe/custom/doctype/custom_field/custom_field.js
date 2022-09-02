@@ -25,6 +25,17 @@ frappe.ui.form.on("Custom Field", {
 		frm.toggle_enable("dt", frm.doc.__islocal);
 		frm.trigger("dt");
 		frm.toggle_reqd("label", !frm.doc.fieldname);
+
+		const customize_form_link = "<a href='/app/customize-form'>Customize Form</a>";
+		if (frm.doc.is_system_generated) {
+			let msg = __(
+				"This is system generated field. <br/> You can modify the field properties using {0} instead.",
+				[customize_form_link]
+			);
+
+			frm.dashboard.add_comment(msg, "yellow");
+			frm.disable_form();
+		}
 	},
 	dt: function (frm) {
 		if (!frm.doc.dt) {

@@ -193,7 +193,9 @@ class CustomizeForm(Document):
 		# docfield
 		for df in self.get("fields"):
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
-			if not meta_df or meta_df[0].get("is_custom_field"):
+			if not meta_df or (
+				meta_df[0].get("is_custom_field") and not meta_df[0].get("is_system_generated")
+			):
 				continue
 			self.set_property_setters_for_docfield(meta, df, meta_df)
 
@@ -350,7 +352,7 @@ class CustomizeForm(Document):
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
-			if df.get("is_custom_field"):
+			if df.get("is_custom_field") and not df.get("is_system_generated"):
 				if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
 					self.add_custom_field(df, i)
 					self.flags.update_db = True
@@ -416,7 +418,7 @@ class CustomizeForm(Document):
 		}
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
-			if df.get("is_custom_field"):
+			if df.get("is_custom_field") and not df.get("is_system_generated"):
 				frappe.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(
