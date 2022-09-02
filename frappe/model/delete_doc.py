@@ -167,9 +167,6 @@ def delete_doc(
 				except ImportError:
 					pass
 
-			# delete user_permissions
-			frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
-
 
 def add_to_deleted_document(doc):
 	"""Add this document to Deleted Document table. Called after delete"""

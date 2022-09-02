@@ -1,12 +1,12 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
-import unittest
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestComment(unittest.TestCase):
+class TestComment(FrappeTestCase):
 	def tearDown(self):
 		frappe.form_dict.comment = None
 		frappe.form_dict.comment_email = None

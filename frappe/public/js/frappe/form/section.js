@@ -4,6 +4,7 @@ export default class Section {
 		this.card_layout = card_layout;
 		this.parent = parent;
 		this.df = df || {};
+		this.columns = [];
 		this.fields_list = [];
 		this.fields_dict = {};
 
@@ -28,9 +29,8 @@ export default class Section {
 		let make_card = this.card_layout;
 		this.wrapper = $(`<div class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
-				${make_card ? "card-section" : ""}">
+				${make_card ? "card-section" : ""}" data-fieldname="${this.df.fieldname}">
 			`).appendTo(this.parent);
-		this.layout && this.layout.sections.push(this);
 
 		if (this.df) {
 			if (this.df.label) {
@@ -80,6 +80,12 @@ export default class Section {
 			this.set_icon();
 			this.indicator.show();
 		}
+	}
+
+	add_field(fieldobj) {
+		this.fields_list.push(fieldobj);
+		this.fields_dict[fieldobj.fieldname] = fieldobj;
+		fieldobj.section = this;
 	}
 
 	refresh(hide) {

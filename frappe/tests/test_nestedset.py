@@ -12,6 +12,7 @@ from frappe.utils.nestedset import (
 	NestedSetRecursionError,
 	get_descendants_of,
 	rebuild_tree,
+	remove_subtree,
 )
 
 records = [
@@ -205,6 +206,10 @@ class TestNestedSet(FrappeTestCase):
 		# cannot delete group with child, but can delete leaf
 		with self.assertRaises(NestedSetChildExistsError):
 			frappe.delete_doc("Test Tree DocType", "Parent 1")
+
+	def test_remove_subtree(self):
+		remove_subtree("Test Tree DocType", "Parent 2")
+		self.test_basic_tree()
 
 	def test_merge_groups(self):
 		global records

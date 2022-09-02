@@ -197,14 +197,6 @@ def rename_doc(
 	if not merge:
 		rename_password(doctype, old, new)
 
-	# update user_permissions
-	DefaultValue = frappe.qb.DocType("DefaultValue")
-	frappe.qb.update(DefaultValue).set(DefaultValue.defvalue, new).where(
-		(DefaultValue.parenttype == "User Permission")
-		& (DefaultValue.defkey == doctype)
-		& (DefaultValue.defvalue == old)
-	).run()
-
 	if merge:
 		new_doc.add_comment("Edit", _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
 	else:
@@ -237,7 +229,7 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 
 	for user in common_assignments:
 		# delete todos linked to old doc
-		todos = frappe.db.get_all(
+		todos = frappe.get_all(
 			"ToDo",
 			{
 				"owner": user,

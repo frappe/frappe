@@ -238,7 +238,7 @@ class DatabaseQuery:
 		# left join parent, child tables
 		for child in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
 		# left join link tables
 		for link in self.link_tables:
@@ -612,6 +612,9 @@ class DatabaseQuery:
 			)
 
 		elif f.operator.lower() in ("in", "not in"):
+			# if values contain '' or falsy values then only coalesce column
+			can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+
 			values = f.value or ""
 			if isinstance(values, str):
 				values = values.split(",")

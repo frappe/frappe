@@ -40,7 +40,7 @@ def get_email_groups(user_email):
 
 def get_current_groups(name):
 	# Return current group by which the mail has been sent.
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Newsletter Email Group",
 		fields=["email_group"],
 		filters={"parent": name, "parenttype": "Newsletter"},

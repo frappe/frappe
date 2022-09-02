@@ -10,10 +10,8 @@
   "doc_type",
   "properties",
   "label",
-  "max_attachments",
   "search_fields",
   "column_break_5",
-  "allow_copy",
   "istable",
   "editable_grid",
   "quick_entry",
@@ -26,6 +24,12 @@
   "naming_section",
   "naming_rule",
   "autoname",
+  "form_settings_section",
+  "image_field",
+  "max_attachments",
+  "column_break_21",
+  "allow_copy",
+  "make_attachments_public",
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
@@ -321,6 +325,22 @@
    "label": "Translate Link Fields"
   },
   {
+   "collapsible": 1,
+   "fieldname": "form_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "make_attachments_public",
+   "fieldtype": "Check",
+   "label": "Make Attachments Public by Default"
+  },
+  {
    "fieldname": "focus_field",
    "fieldtype": "Data",
    "label": "Focus Field for Link Fields"
@@ -332,7 +352,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-04 15:36:16.772277",
+ "modified": "2022-08-25 06:57:47.966331",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
