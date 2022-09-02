@@ -4,9 +4,11 @@ const verify_attachment_visibility = (document, is_private) => {
 	const assertion = is_private ? "be.checked" : "not.be.checked";
 	cy.findByRole("button", { name: "Attach File" }).click();
 
-	cy.get_open_dialog().find(".file-upload-area").attachFile("sample_image.jpg", {
-		subjectType: "drag-n-drop",
-	});
+	cy.get_open_dialog()
+		.find(".file-upload-area")
+		.selectFile("cypress/fixtures/sample_image.jpg", {
+			action: "drag-drop",
+		});
 
 	cy.get_open_dialog().findByRole("checkbox", { name: "Private" }).should(assertion);
 };
