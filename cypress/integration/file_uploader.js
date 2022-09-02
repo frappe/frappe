@@ -21,9 +21,11 @@ context("FileUploader", () => {
 	it("should accept dropped files", () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find(".file-upload-area").attachFile("example.json", {
-			subjectType: "drag-n-drop",
-		});
+		cy.get_open_dialog()
+			.find(".file-upload-area")
+			.selectFile("cypress/fixtures/example.json", {
+				action: "drag-drop",
+			});
 
 		cy.get_open_dialog().find(".file-name").should("contain", "example.json");
 		cy.intercept("POST", "/api/method/upload_file").as("upload_file");
@@ -64,9 +66,11 @@ context("FileUploader", () => {
 	it("should allow cropping and optimization for valid images", () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find(".file-upload-area").attachFile("sample_image.jpg", {
-			subjectType: "drag-n-drop",
-		});
+		cy.get_open_dialog()
+			.find(".file-upload-area")
+			.selectFile("cypress/fixtures/sample_image.jpg", {
+				action: "drag-drop",
+			});
 
 		cy.get_open_dialog().findAllByText("sample_image.jpg").should("exist");
 		cy.get_open_dialog().find(".btn-crop").first().click();
