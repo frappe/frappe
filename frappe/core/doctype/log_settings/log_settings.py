@@ -16,6 +16,7 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Email Queue": 30,
 	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
+	"Route History": 90,
 }
 
 
