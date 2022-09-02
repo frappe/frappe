@@ -401,6 +401,7 @@ def create_blog_post():
 
 	return doc
 
+
 @frappe.whitelist()
 def enable_focus_field():
 	if not frappe.db.exists("DocType", "Test Link Control"):
@@ -430,4 +431,3 @@ def enable_focus_field():
 				"doctype": "Property Setter",
 			}
 		).insert()
-
