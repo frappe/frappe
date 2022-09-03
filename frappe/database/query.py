@@ -9,11 +9,12 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
 from frappe import _
-from frappe.database.utils import is_pypika_function_object
+from frappe.database.utils import is_pypika_function_object, nested_set_hierarchy
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumn
+from frappe.utils import cstr
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -188,7 +189,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"between": func_between,
 	"is": func_is,
 	"timespan": func_timespan,
-	# TODO: Add support for nested set
+	"nested_set": nested_set_hierarchy,
 	# TODO: Add support for custom operators (WIP) - via filters_config hooks
 }
 
@@ -346,7 +347,42 @@ class Engine:
 			if not isinstance(key, str):
 				conditions = conditions.where(self.make_function_for_filters(key, value))
 				continue
+			# Nested set support
 			if isinstance(value, (list, tuple)):
+				if value in OPERATOR_MAP["nested_set"]:
+					field = frappe.meta.get_field("name")
+					ref_doctype = field.options if field else table
+					lft, rgt = "", ""
+					lft, rgt = frappe.qb.from_(ref_doctype).select(["lft", "rgt"]).where(Field("name") == value[1]).run()
+
+					if value in ("descendants of", "not descendants of"):
+						result = (
+							frappe.qb.from_(ref_doctype)
+							.select(Field("name"))
+							.where(Field("lft") > lft)
+							.where(Field("rgt") < rgt)
+							.orderby(Field("lft"), order=Order.asc)
+							.run()
+						)
+					else:
+						# Get ancestor elements of a DocType with a tree structure
+						result = (
+							frappe.qb.from_(ref_doctype)
+							.select(Field("name"))
+							.where(Field("lft") < lft)
+							.where(Field("rgt") > rgt)
+							.orderby(Field("lft"), order=Order.desc)
+							.run()
+						)
+					if result:
+						_value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in result]
+						_operator = (
+							self.OPERATOR_MAP["not in"]
+							if value in ("not ancestors of", "not descendants of")
+							else self.OPERATOR_MAP["in"]
+						)
+						return conditions.where(_operator(getattr(table, key), _value))
+
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
 				_value = value[1] if value[1] else ("",)
 				conditions = conditions.where(_operator(getattr(table, key), _value))
