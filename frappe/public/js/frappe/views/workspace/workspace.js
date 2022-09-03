@@ -120,6 +120,7 @@ frappe.views.Workspace = class Workspace {
 			if (category === "PCG Live") {
 				root_pages = this.public_pages.filter((page) => ["PCG Live", "PCG Web"].includes(page.parent_page))
 			}
+			root_pages = root_pages.uniqBy((d) => d.title);
 			this.build_sidebar_section(category, root_pages);
 		});
 
