@@ -141,9 +141,6 @@ context("Form", () => {
 		jump_to_field("Username");
 		type_value("admin42");
 
-		jump_to_field("Birth Date");
-		type_value("12-31-01");
-
 		jump_to_field("Send Welcome Email");
 		cy.focused().uncheck();
 
@@ -164,16 +161,15 @@ context("Form", () => {
 		undo();
 		undo();
 		undo();
-		undo();
-		redo();
 		redo();
 		redo();
 		redo();
 		redo();
 
-		cy.get_field("username").should("have.value", "admin24");
-		cy.get_field("email").should("have.value", "admin@example.com");
-		cy.get_field("birth_date").should("have.value", "12-31-2001"); // parsed  value
-		cy.get_field("send_welcome_email").should("not.be.checked");
+		cy.compare_document({
+			username: "admin24",
+			email: "admin@example.com",
+			send_welcome_email: 0,
+		});
 	});
 });
