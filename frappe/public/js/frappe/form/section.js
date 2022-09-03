@@ -85,7 +85,7 @@ export default class Section {
 	add_field(fieldobj) {
 		this.fields_list.push(fieldobj);
 		this.fields_dict[fieldobj.fieldname] = fieldobj;
-		fieldobj.section = this.section;
+		fieldobj.section = this;
 	}
 
 	refresh(hide) {

@@ -202,7 +202,7 @@ frappe.ui.form.Form = class FrappeForm {
 			},
 			{
 				shortcut: "shift+alt+down",
-				description: __("To duplcate current row"),
+				description: __("Duplicate current row"),
 			},
 		];
 
@@ -267,14 +267,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.form_editor = new frappe.ui.form.FormEditor({
 			frm: this,
 		});
-		//this.form_editor.setup();
 
 		// workflow state
 		this.states = new frappe.ui.form.States({
-			frm: this,
-		});
-
-		this.form_editor = new frappe.ui.form.FormEditor({
 			frm: this,
 		});
 	}

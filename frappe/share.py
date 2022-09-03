@@ -104,12 +104,12 @@ def get_users(doctype, name):
 	return frappe.get_all(
 		"DocShare",
 		fields=[
-			"`name`",
-			"`user`",
-			"`read`",
-			"`write`",
-			"`submit`",
-			"`share`",
+			"name",
+			"user",
+			"read",
+			"write",
+			"submit",
+			"share",
 			"everyone",
 			"owner",
 			"creation",
