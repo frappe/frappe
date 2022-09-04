@@ -20,9 +20,13 @@ class TestCORS(FrappeTestCase):
 
 		headers = {}
 		if origin:
-			headers = {"Origin": origin}
+			headers = {
+				"Origin": origin,
+				"Access-Control-Request-Method": "POST",
+				"Access-Control-Request-Headers": "X-Test-Header",
+			}
 
-		frappe.utils.set_request(headers=headers)
+		frappe.utils.set_request(method="OPTIONS", headers=headers)
 
 		self.response = Response()
 		process_response(self.response)
