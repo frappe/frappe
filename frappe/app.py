@@ -186,12 +186,12 @@ def set_cors_headers(response):
 
 	# only required for preflight requests
 	if request.method == "OPTIONS":
-		cors_headers.update(
-			{
-				"Access-Control-Allow-Methods": request.headers.get("Access-Control-Request-Method"),
-				"Access-Control-Allow-Headers": request.headers.get("Access-Control-Request-Headers"),
-			}
+		cors_headers["Access-Control-Allow-Methods"] = request.headers.get(
+			"Access-Control-Request-Method"
 		)
+
+		if allowed_headers := request.headers.get("Access-Control-Request-Headers"):
+			cors_headers["Access-Control-Allow-Headers"] = allowed_headers
 
 		# allow browsers to cache preflight requests for upto a day
 		if not frappe.conf.developer_mode:
