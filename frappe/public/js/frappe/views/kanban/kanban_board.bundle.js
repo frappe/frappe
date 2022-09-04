@@ -185,7 +185,7 @@ frappe.provide("frappe.views");
 						new_index: card.new_index,
 					};
 				}
-
+				frappe.dom.freeze();
 				frappe
 					.call({
 						method: method_prefix + method_name,
@@ -201,6 +201,7 @@ frappe.provide("frappe.views");
 								cards: cards,
 								columns: columns,
 							});
+							frappe.dom.unfreeze();
 						},
 					})
 					.fail(function () {
@@ -209,6 +210,7 @@ frappe.provide("frappe.views");
 							cards: _cards,
 							columns: _columns,
 						});
+						frappe.dom.unfreeze();
 					});
 			},
 			update_order: function (context) {
@@ -302,7 +304,10 @@ frappe.provide("frappe.views");
 			// update cards internally
 			opts.cards = cards;
 
-			if (self.wrapper.find(".kanban").length > 0 && self.cur_list.start !== 0) {
+			if (
+				(self.wrapper.find(".kanban").length > 0 && self.cur_list.start !== 0) ||
+				cur_list.in_refresh
+			) {
 				store.dispatch("update_cards", cards);
 			} else {
 				init();
@@ -325,6 +330,7 @@ frappe.provide("frappe.views");
 			store.watch((state, getters) => {
 				return state.empty_state;
 			}, show_empty_state);
+			store.dispatch("update_order");
 		}
 
 		function prepare() {

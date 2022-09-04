@@ -127,25 +127,33 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return super.get_fields();
 	}
 
+	refresh() {
+		this.in_refresh = true;
+		super.refresh().then(() => {
+			this.in_refresh = false;
+		});
+	}
+
 	render() {
 		const board_name = this.board_name;
 
-		if (!this.kanban || board_name !== this.kanban.board_name) {
-			this.kanban = new frappe.views.KanbanBoard({
-				doctype: this.doctype,
-				board: this.board,
-				board_name: board_name,
-				cards: this.data,
-				card_meta: this.card_meta,
-				wrapper: this.$result,
-				cur_list: this,
-				user_settings: this.view_user_settings,
-				has_write_perm: frappe.perm.has_perm("Kanban Board", 0, "write"),
-			});
+		if (this.kanban && board_name === this.kanban.board_name) {
+			this.show_or_hide_add_column();
+			this.kanban.update(this.data);
+			return;
 		}
 
-		this.show_or_hide_add_column();
-		this.kanban.update(this.data);
+		this.kanban = new frappe.views.KanbanBoard({
+			doctype: this.doctype,
+			board: this.board,
+			board_name: board_name,
+			cards: this.data,
+			card_meta: this.card_meta,
+			wrapper: this.$result,
+			cur_list: this,
+			user_settings: this.view_user_settings,
+			has_write_perm: frappe.perm.has_perm("Kanban Board", 0, "write"),
+		});
 	}
 
 	render_list() {}
