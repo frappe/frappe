@@ -157,35 +157,44 @@ def process_response(response):
 		response.headers.extend(frappe.local.rate_limiter.headers())
 
 	# CORS headers
-	if hasattr(frappe.local, "conf") and frappe.conf.allow_cors:
+	if hasattr(frappe.local, "conf"):
 		set_cors_headers(response)
 
 
 def set_cors_headers(response):
-	origin = frappe.request.headers.get("Origin")
-	allow_cors = frappe.conf.allow_cors
-	if not (origin and allow_cors):
+	if not (
+		(allowed_origins := frappe.conf.allow_cors)
+		and (request := frappe.local.request)
+		and (origin := request.headers.get("Origin"))
+	):
 		return
 
-	if allow_cors != "*":
-		if not isinstance(allow_cors, list):
-			allow_cors = [allow_cors]
+	if allowed_origins != "*":
+		if not isinstance(allowed_origins, list):
+			allowed_origins = [allowed_origins]
 
-		if origin not in allow_cors:
+		if origin not in allowed_origins:
 			return
 
-	response.headers.extend(
-		{
-			"Access-Control-Allow-Origin": origin,
-			"Access-Control-Allow-Credentials": "true",
-			"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-			"Access-Control-Allow-Headers": (
-				"Authorization,DNT,X-Mx-ReqToken,"
-				"Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,"
-				"Cache-Control,Content-Type"
-			),
-		}
-	)
+	cors_headers = {
+		"Access-Control-Allow-Origin": origin,
+		"Access-Control-Allow-Credentials": "true",
+	}
+
+	# only required for preflight requests
+	if request.method == "OPTIONS":
+		cors_headers.update(
+			{
+				"Access-Control-Allow-Methods": request.headers.get("Access-Control-Request-Method"),
+				"Access-Control-Allow-Headers": request.headers.get("Access-Control-Request-Headers"),
+			}
+		)
+
+		# allow browsers to cache preflight requests for upto a day
+		if not frappe.conf.developer_mode:
+			cors_headers["Access-Control-Max-Age"] = "86400"
+
+	response.headers.extend(cors_headers)
 
 
 def make_form_dict(request):
