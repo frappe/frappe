@@ -138,6 +138,7 @@ class Workspace(Document):
 def disable_saving_as_public():
 	return (
 		frappe.flags.in_install
+		or frappe.flags.in_uninstall
 		or frappe.flags.in_patch
 		or frappe.flags.in_test
 		or frappe.flags.in_fixtures
