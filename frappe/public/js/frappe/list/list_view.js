@@ -896,7 +896,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return `/app/${frappe.router.slug(
 			frappe.router.doctype_layout || this.doctype
-		)}/${encodeURIComponent(cstr(doc.name))`;
+		)}/${encodeURIComponent(cstr(doc.name))}`;
 	}
 
 	get_seen_class(doc) {
