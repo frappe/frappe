@@ -177,8 +177,9 @@ def set_cors_headers(response):
 			return
 
 	cors_headers = {
-		"Access-Control-Allow-Origin": origin,
 		"Access-Control-Allow-Credentials": "true",
+		"Access-Control-Allow-Origin": origin,
+		"Vary": "Origin",
 	}
 
 	# only required for preflight requests
