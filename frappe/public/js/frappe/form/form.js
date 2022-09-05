@@ -1854,7 +1854,6 @@ frappe.ui.form.Form = class FrappeForm {
 		} else {
 			frappe.model.with_doctype(doctype, function () {
 				let new_doc = frappe.model.get_new_doc(doctype, null, null, true);
-
 				// set link fields (if found)
 				me.set_link_field(doctype, new_doc);
 
@@ -1866,8 +1865,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 	set_link_field(doctype, new_doc) {
 		let me = this;
+		let links = frappe.get_meta(me.doctype).links
+					.filter(link => link.link_doctype == new_doc.doctype)
+					.map(link => link.link_fieldname)
 		frappe.get_meta(doctype).fields.forEach(function (df) {
-			if (df.fieldtype === "Link" && df.options === me.doctype) {
+			if (links.includes(df.fieldname) && df.fieldtype === "Link" && df.options === me.doctype) {
 				new_doc[df.fieldname] = me.doc.name;
 			} else if (["Link", "Dynamic Link"].includes(df.fieldtype) && me.doc[df.fieldname]) {
 				new_doc[df.fieldname] = me.doc[df.fieldname];
