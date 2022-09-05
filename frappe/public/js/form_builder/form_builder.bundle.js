@@ -8,11 +8,16 @@ class FormBuilder {
 		this.doctype = frappe.router.routes[doctype].doctype;
 
 		this.page.clear_actions();
+		this.page.clear_custom_actions();
 		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
 
-		let $reset_changes_btn = this.page.set_secondary_action(__("Reset Changes"), () =>
+		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
 			this.$component.$store.reset_changes()
 		);
+
+		this.page.add_menu_item(__("Go to {0} Doctype", [this.doctype]), () => {
+			frappe.set_route("Form", "DocType", this.doctype);
+		});
 
 		let $vm = new Vue({
 			el: this.$wrapper.get(0),
