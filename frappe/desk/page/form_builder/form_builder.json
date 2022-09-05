@@ -1,0 +1,23 @@
+{
+ "content": null,
+ "creation": "2022-08-23 17:14:00.348967",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2022-08-29 16:43:56.329212",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "form-builder",
+ "owner": "Administrator",
+ "page_name": "form-builder",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Form Builder"
+}
