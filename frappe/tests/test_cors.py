@@ -11,6 +11,7 @@ HEADERS = (
 	"Access-Control-Allow-Credentials",
 	"Access-Control-Allow-Methods",
 	"Access-Control-Allow-Headers",
+	"Vary",
 )
 
 
