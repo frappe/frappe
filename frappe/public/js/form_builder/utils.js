@@ -149,3 +149,13 @@ export function get_table_columns(df) {
 	}
 	return table_columns;
 }
+
+export function pluck(object, keys) {
+	let out = {};
+	for (let key of keys) {
+		if (key in object) {
+			out[key] = object[key];
+		}
+	}
+	return out;
+}

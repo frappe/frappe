@@ -1,7 +1,7 @@
 <template>
 	<div class="layout-main-section row" v-if="shouldRender">
 		<div class="form-controls col-2">
-			<!-- <FormControls /> -->
+			<FormControls />
 		</div>
 		<div class="form-container col-10">
 			<Tabs class="form-main"/>
@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import FormControls from "./FormControls.vue";
 import Tabs from "./Tabs.vue";
 import { getStore } from "./store";
 
@@ -17,7 +18,8 @@ export default {
 	name: "FormBuilder",
 	props: ["doctype"],
 	components: {
-		Tabs
+		Tabs,
+		FormControls
 	},
 	provide() {
 		return {
