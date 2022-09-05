@@ -349,7 +349,7 @@ class Engine:
 				continue
 			# Nested set support
 			if isinstance(value, (list, tuple)):
-				if value in OPERATOR_MAP["nested_set"]:
+				if value in self.OPERATOR_MAP["nested_set"]:
 					field = frappe.meta.get_field("name")
 					ref_doctype = field.options if field else table
 					lft, rgt = "", ""
