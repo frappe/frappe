@@ -73,9 +73,7 @@
 		<div class="text-center my-5">
 			<h4>{{ _("Javascript is disabled on your browser") }}</h4>
 			<p class="text-muted">
-				{{ _("You need to enable JavaScript for your app to work.") }}<br>{{ _("To enable it follow the
-				instructions in the following link: {0}").format("<a
-					href='https://enable-javascript.com/'>enable-javascript.com</a></p>") }}
+				{{ _("You need to enable JavaScript for your app to work.") }}<br>{{ _("To enable it follow the instructions in the following link: {0}").format("<a href='https://enable-javascript.com/'>enable-javascript.com</a></p>") }}
 		</div>
 	</noscript>
 	<section class='for-login'>
@@ -97,7 +95,7 @@
 								<a href="{{ provider.auth_url }}"
 									class="btn btn-block btn-default btn-sm btn-login-option btn-{{ provider.name }}">
 									{% if provider.icon %}
-									{{ provider.icon }}
+										{{ provider.icon }}
 									{% endif %}
 									{{ _("Login With {0}").format(provider.provider_name) }}</a>
 							</div>
@@ -106,7 +104,7 @@
 					</div>
 				</div>
 				{% else %}
-				{{ email_login_body() }}
+					{{ email_login_body() }}
 				{%- endif -%}
 			</form>
 		</div>
@@ -123,7 +121,7 @@
 		<div class="login-content page-card">
 			{{ logo_section() }}
 			<form class="form-signin form-login" role="form">
-				{{ email_login_body() }}
+			{{ email_login_body() }}
 			</form>
 		</div>
 		{%- if not disable_signup -%}
@@ -142,8 +140,7 @@
 			{%- else -%}
 			<div class='page-card-head mb-2'>
 				<span class='indicator gray'>{{_("Signup Disabled")}}</span>
-				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this
-					website.")}}</p>
+				<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
 				<div><a href='/' class='btn btn-primary btn-md'>{{ _("Home") }}</a></div>
 			</div>
 			{%- endif -%}
@@ -174,8 +171,8 @@
 					</div>
 				</div>
 				<div class="page-card-actions">
-					<button class="btn btn-sm btn-primary btn-block btn-forgot" type="submit">{{ _("Reset Password")
-						}}</button>
+					<button class="btn btn-sm btn-primary btn-block btn-forgot"
+						type="submit">{{ _("Reset Password") }}</button>
 					<p class="text-center sign-up-message">
 						<a href="#login">{{ _("Back to Login") }}</a>
 					</p>
