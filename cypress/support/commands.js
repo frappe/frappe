@@ -281,12 +281,12 @@ Cypress.Commands.add("get_open_dialog", () => {
 });
 
 Cypress.Commands.add("save", () => {
-	cy.intercept("/api").as("api");
+	cy.intercept("/api/method/frappe.desk.form.save.savedocs").as("save_call");
 	cy.get(`button[data-label="Save"]:visible`).click({ scrollBehavior: false, force: true });
-	cy.wait("@api");
+	cy.wait("@save_call");
 });
 Cypress.Commands.add("hide_dialog", () => {
-	cy.wait(300);
+	cy.wait(500);
 	cy.get_open_dialog().focus().find(".btn-modal-close").click();
 	cy.get(".modal:visible").should("not.exist");
 });
@@ -458,4 +458,27 @@ Cypress.Commands.add("select_listview_row_checkbox", (row_no) => {
 
 Cypress.Commands.add("click_form_section", (section_name) => {
 	cy.get(".section-head").contains(section_name).click();
+});
+
+const compare_document = (expected, actual) => {
+	for (const prop in expected) {
+		if (expected[prop] instanceof Array) {
+			// recursively compare child documents.
+			expected[prop].forEach((item, idx) => {
+				compare_document(item, actual[prop][idx]);
+			});
+		} else {
+			assert.equal(expected[prop], actual[prop], `${prop} should be equal.`);
+		}
+	}
+};
+
+Cypress.Commands.add("compare_document", (expected_document) => {
+	cy.window()
+		.its("cur_frm")
+		.then((frm) => {
+			// Don't remove this, cypress can't magically wait for events it has no control over.
+			cy.wait(1000);
+			compare_document(expected_document, frm.doc);
+		});
 });

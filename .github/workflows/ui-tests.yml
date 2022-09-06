@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       containers: [1, 2, 3]
+       containers: [1, 2]
 
     name: UI Tests (Cypress)
 
@@ -105,19 +105,16 @@ jobs:
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-ui-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-yarn-ui-
 
       - name: Cache cypress binary
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v3
         with:
-          path: ~/.cache
-          key: ${{ runner.os }}-cypress-
-          restore-keys: |
-            ${{ runner.os }}-cypress-
-            ${{ runner.os }}-
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress
 
       - name: Install Dependencies
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}

@@ -140,6 +140,9 @@ class LoginManager:
 				self.set_user_info()
 
 	def login(self):
+		if frappe.get_system_settings("disable_user_pass_login"):
+			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
+
 		# clear cache
 		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
@@ -226,14 +229,16 @@ class LoginManager:
 
 	def clear_active_sessions(self):
 		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
+		if frappe.session.user == "Guest":
+			return
+
 		if not (
 			cint(frappe.conf.get("deny_multiple_sessions"))
 			or cint(frappe.db.get_system_setting("deny_multiple_sessions"))
 		):
 			return
 
-		if frappe.session.user != "Guest":
-			clear_sessions(frappe.session.user, keep_current=True)
+		clear_sessions(frappe.session.user, keep_current=True)
 
 	def authenticate(self, user: str = None, pwd: str = None):
 		from frappe.core.doctype.user.user import User
