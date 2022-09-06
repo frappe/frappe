@@ -1,12 +1,12 @@
 <template>
 	<div class="form-section-container" v-if="!section.remove">
-		<div class="form-section">
+		<div class="form-section" @click="$store.selected_field = section.df">
 			<div class="section-header">
 				<input
 					class="input-section-label"
 					type="text"
 					:placeholder="__('Section Title')"
-					v-model="section.label"
+					v-model="section.df.label"
 				/>
 				<div class="d-flex align-items-center">
 					<div class="dropdown">
@@ -52,9 +52,9 @@
 						:animation="150"
 					>
 						<Field
-							v-for="df in get_fields(column)"
-							:key="df.fieldname"
-							:df="df"
+							v-for="(field, i) in get_fields(column)"
+							:key="i"
+							:field="field"
 						/>
 					</draggable>
 				</div>
@@ -80,8 +80,7 @@ export default {
 		add_column() {
 			if (this.section.columns.length < 4) {
 				this.section.columns.push({
-					label: "",
-					fieldtype: "Column Break",
+					df: { fieldtype: "Column Break" },
 					new_field: true,
 					fields: []
 				});

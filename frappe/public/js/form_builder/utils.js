@@ -32,49 +32,39 @@ export function create_layout(fields) {
 	}
 
 	function get_new_tab(df) {
+		let field = {};
 		if (!df) {
 			df = {
-				fieldname: "first_tab",
-				new_field: true,
-				idx: 1,
+				label: __("Details"),
+				fieldtype: "Tab Break",
 			};
+			field.new_field = true;
 		}
-		return {
-			name: df.name || "",
-			label: df.label || "Tab " + df.idx,
-			fieldname: df.fieldname || "",
-			fieldtype: "Tab Break",
-			new_field: df.new_field || false,
-			sections: [],
-		};
+		field.df = df;
+		field.sections = [];
+		return field;
 	}
 
 	function get_new_section(df) {
+		let field = {};
 		if (!df) {
-			df = { new_field: true };
+			df = { fieldtype: "Section Break" };
+			field.new_field = true;
 		}
-		return {
-			name: df.name || "",
-			label: df.label || "",
-			fieldname: df.fieldname || "",
-			fieldtype: "Section Break",
-			new_field: df.new_field || false,
-			columns: [],
-		};
+		field.df = df;
+		field.columns = [];
+		return field;
 	}
 
 	function get_new_column(df) {
+		let field = {};
 		if (!df) {
-			df = { new_field: true };
+			df = { fieldtype: "Column Break" };
+			field.new_field = true;
 		}
-		return {
-			name: df.name || "",
-			label: df.label || "",
-			fieldname: df.fieldname || "",
-			fieldtype: "Column Break",
-			new_field: df.new_field || false,
-			fields: [],
-		};
+		field.df = df;
+		field.fields = [];
+		return field;
 	}
 
 	for (let df of fields) {
@@ -94,14 +84,7 @@ export function create_layout(fields) {
 		} else if (df.name) {
 			if (!column) set_column();
 
-			let field = {
-				name: df.name,
-				label: df.label,
-				fieldname: df.fieldname,
-				fieldtype: df.fieldtype,
-				options: df.options,
-				new_field: df.new_field || false,
-			};
+			let field = { df: df };
 
 			if (df.fieldtype === "Table") {
 				field.table_columns = get_table_columns(df);
@@ -150,12 +133,33 @@ export function get_table_columns(df) {
 	return table_columns;
 }
 
-export function pluck(object, keys) {
-	let out = {};
-	for (let key of keys) {
-		if (key in object) {
-			out[key] = object[key];
+export function evaluate_depends_on_value(expression, doc) {
+	if (!doc) return;
+
+	let out = null;
+	let parent = doc || null;
+
+	if (typeof expression === "boolean") {
+		out = expression;
+	} else if (typeof expression === "function") {
+		out = expression(doc);
+	} else if (expression.substr(0, 5) == "eval:") {
+		try {
+			out = frappe.utils.eval(expression.substr(5), { doc, parent });
+			if (parent && parent.istable && expression.includes("is_submittable")) {
+				out = true;
+			}
+		} catch (e) {
+			frappe.throw(__('Invalid "depends_on" expression'));
+		}
+	} else {
+		var value = doc[expression];
+		if ($.isArray(value)) {
+			out = !!value.length;
+		} else {
+			out = !!value;
 		}
 	}
+
 	return out;
 }

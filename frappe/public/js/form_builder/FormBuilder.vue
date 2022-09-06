@@ -1,9 +1,9 @@
 <template>
 	<div class="layout-main-section row" v-if="shouldRender">
-		<div class="form-controls col-2">
+		<div class="form-controls col-3">
 			<FormControls />
 		</div>
-		<div class="form-container col-10">
+		<div class="form-container col-9">
 			<Tabs class="form-main"/>
 		</div>
 	</div>

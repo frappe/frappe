@@ -12,6 +12,8 @@ export function getStore(doctype) {
 			return {
 				doctype,
 				fields: null,
+				docfields: null,
+				selected_field: null,
 				layout: null,
 				dirty: false,
 			};
@@ -36,9 +38,12 @@ export function getStore(doctype) {
 					frappe.model.clear_doc("DocType", this.doctype);
 					frappe.model.with_doctype(this.doctype, () => {
 						this.fields = frappe.get_meta(this.doctype).fields;
-						this.layout = this.get_layout();
-						this.$nextTick(() => (this.dirty = false));
-						resolve();
+						frappe.model.with_doctype("DocField", () => {
+							this.docfields = frappe.get_meta("DocField").fields;
+							this.layout = this.get_layout();
+							this.$nextTick(() => (this.dirty = false));
+							resolve();
+						});
 					});
 				});
 			},
@@ -65,6 +70,12 @@ export let storeMixin = {
 		},
 		fields() {
 			return this.$store.fields;
+		},
+		docfields() {
+			return this.$store.docfields;
+		},
+		selected_field() {
+			return this.$store.selected_field;
 		},
 	},
 };
