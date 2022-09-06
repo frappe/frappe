@@ -94,6 +94,10 @@ frappe.views.TreeView = class TreeView {
 		this.page.main.addClass("frappe-card");
 
 		if (this.opts.show_expand_all) {
+			this.page.add_inner_button(__("Collapse All"), function () {
+				me.tree.load_children(me.tree.root_node, false);
+			});
+
 			this.page.add_inner_button(__("Expand All"), function () {
 				me.tree.load_children(me.tree.root_node, true);
 			});

@@ -38,8 +38,7 @@ def create_if_not_exists(doc):
 
 @frappe.whitelist()
 def create_todo_records():
-	if frappe.get_all("ToDo", {"description": "this is first todo"}):
-		return
+	frappe.db.truncate("ToDo")
 
 	frappe.get_doc(
 		{"doctype": "ToDo", "date": add_to_date(now(), days=7), "description": "this is first todo"}

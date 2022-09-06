@@ -272,11 +272,17 @@ class NestedSet(Document):
 		self.validate_ledger()
 
 	def on_trash(self, allow_root_deletion=False):
+		"""
+		Runs on deletion of a document/node
+
+		:param allow_root_deletion: used for allowing root document deletion (DEPRECATED)
+		"""
+
 		if not getattr(self, "nsm_parent_field", None):
 			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 
 		parent = self.get(self.nsm_parent_field)
-		if not parent and not allow_root_deletion:
+		if not parent and not getattr(self, "allow_root_deletion", True):
 			frappe.throw(_("Root {0} cannot be deleted").format(_(self.doctype)))
 
 		# cannot delete non-empty group
