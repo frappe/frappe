@@ -1,7 +1,7 @@
 {% extends "templates/web.html" %}
 
 {% macro email_login_body() -%}
-{% if not disable_user_pass_login %}
+{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
 <div class="page-card-body">
 	<div class="form-group">
 		<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
