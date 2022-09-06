@@ -39,6 +39,7 @@
   "deny_multiple_sessions",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
+  "disable_user_pass_login",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -525,12 +526,19 @@
    "fieldname": "email_retry_limit",
    "fieldtype": "Int",
    "label": "Email Retry Limit"
+  },
+  {
+   "default": "0",
+   "description": "Make sure to configure a Social Login Key before disabling to prevent lockout",
+   "fieldname": "disable_user_pass_login",
+   "fieldtype": "Check",
+   "label": "Disable Username/Password Login"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-06-21 13:55:04.796152",
+ "modified": "2022-09-06 03:16:59.090906",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
