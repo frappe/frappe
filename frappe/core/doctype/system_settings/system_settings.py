@@ -43,15 +43,21 @@ class SystemSettings(Document):
 		):
 			frappe.flags.update_last_reset_password_date = True
 
-		if self.disable_user_pass_login:
-			if not frappe.db.exists(
-				"Social Login Key", {"enable_social_login": 1}
-			) and not frappe.db.get_single_value("LDAP Settings", "enabled"):
-				frappe.throw(
-					_(
-						"Please enable atleast one Social Login Key or LDAP before disabling username password login to prevent lockout."
-					)
+		self.validate_user_pass_login()
+
+	def validate_user_pass_login(self):
+		if not self.disable_user_pass_login:
+			return
+
+		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
+		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
+
+		if not (social_login_enabled or ldap_enabled):
+			frappe.throw(
+				_(
+					"Please enable atleast one Social Login Key or LDAP before disabling username/password based login."
 				)
+			)
 
 	def on_update(self):
 		self.set_defaults()
