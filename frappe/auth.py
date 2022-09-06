@@ -140,27 +140,27 @@ class LoginManager:
 				self.set_user_info()
 
 	def login(self):
-		# clear cache
 		if frappe.get_system_settings("disable_user_pass_login"):
-			frappe.throw(_("Username/Password login is disabled"), frappe.AuthenticationError)
-		else:
-			frappe.clear_cache(user=frappe.form_dict.get("usr"))
-			user, pwd = get_cached_user_pass()
-			self.authenticate(user=user, pwd=pwd)
-			if self.force_user_to_reset_password():
-				doc = frappe.get_doc("User", self.user)
-				frappe.local.response["redirect_to"] = doc.reset_password(
-					send_email=False, password_expired=True
-				)
-				frappe.local.response["message"] = "Password Reset"
-				return False
+			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
 
-			if should_run_2fa(self.user):
-				authenticate_for_2factor(self.user)
-				if not confirm_otp_token(self):
-					return False
-			frappe.form_dict.pop("pwd", None)
-			self.post_login()
+		# clear cache
+		frappe.clear_cache(user=frappe.form_dict.get("usr"))
+		user, pwd = get_cached_user_pass()
+		self.authenticate(user=user, pwd=pwd)
+		if self.force_user_to_reset_password():
+			doc = frappe.get_doc("User", self.user)
+			frappe.local.response["redirect_to"] = doc.reset_password(
+				send_email=False, password_expired=True
+			)
+			frappe.local.response["message"] = "Password Reset"
+			return False
+
+		if should_run_2fa(self.user):
+			authenticate_for_2factor(self.user)
+			if not confirm_otp_token(self):
+				return False
+		frappe.form_dict.pop("pwd", None)
+		self.post_login()
 
 	def post_login(self):
 		self.run_trigger("on_login")
