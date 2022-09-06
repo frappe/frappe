@@ -8,9 +8,6 @@ on:
     - cron: "30 9 * * 2"
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   release:
     name: Release
@@ -26,9 +23,10 @@ jobs:
           route: POST /repos/{owner}/{repo}/pulls
           owner: frappe
           repo: frappe
-          title: "chore: release v${{ matrix.version }}"
+          title: |-
+            "chore: release v${{ matrix.version }}"
           body: "Automated weekly release."
           base: version-${{ matrix.version }}
           head: version-${{ matrix.version }}-hotfix
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
