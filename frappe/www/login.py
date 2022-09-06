@@ -41,7 +41,9 @@ def get_context(context):
 	context["title"] = "Login"
 	context["provider_logins"] = []
 	context["disable_signup"] = frappe.utils.cint(frappe.get_website_settings("disable_signup"))
-	context["disable_user_pass_login"] = frappe.utils.cint(frappe.get_system_settings("disable_user_pass_login"))
+	context["disable_user_pass_login"] = frappe.utils.cint(
+		frappe.get_system_settings("disable_user_pass_login")
+	)
 	context["logo"] = frappe.get_website_settings("app_logo") or frappe.get_hooks("app_logo_url")[-1]
 	context["app_name"] = (
 		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
