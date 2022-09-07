@@ -407,7 +407,7 @@ class Session:
 
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
-		if force or (time_diff is None) or (time_diff > 600):
+		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
 			# update sessions table
 			frappe.db.sql(
 				"""update `tabSessions` set sessiondata=%s,
@@ -426,7 +426,6 @@ class Session:
 
 			updated_in_db = True
 
-		# set in memcache
 		frappe.cache().hset("session", self.sid, self.data)
 
 		return updated_in_db
