@@ -203,6 +203,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 			"mute_emails": False,
 			"has_dataurl": False,
 			"new_site": new_site,
+			"read_only": False,
 		}
 	)
 	local.rollback_observers = []
