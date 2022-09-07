@@ -33,6 +33,10 @@ class MariaDBExceptionUtil:
 		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
+	def is_read_only_mode_error(e: pymysql.Error) -> bool:
+		return e.args[0] == 1792
+
+	@staticmethod
 	def is_table_missing(e: pymysql.Error) -> bool:
 		return e.args[0] == ER.NO_SUCH_TABLE
 
