@@ -2225,13 +2225,18 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	title = title or "Error"
 	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
-	return get_doc(
+	error_log = get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-	).insert(ignore_permissions=True)
+	)
+
+	if flags.read_only:
+		error_log.deferred_insert()
+	else:
+		return error_log.insert(ignore_permissions=True)
 
 
 def get_desk_link(doctype, name):
