@@ -969,9 +969,7 @@ class Database:
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
-		if self.db_type == "postgres":
-			# Postgres requires explicitly starting new transaction
-			self.begin()
+		self.begin()  # explicitly start a new transaction
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
