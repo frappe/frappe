@@ -383,18 +383,6 @@ frappe.ui.form.Layout = class Layout {
 		this.set_tab_as_active();
 	}
 
-	select_tab(label_or_fieldname) {
-		for (let tab of this.tabs) {
-			if (
-				tab.label.toLowerCase() === label_or_fieldname.toLowerCase() ||
-				tab.df.fieldname?.toLowerCase() === label_or_fieldname.toLowerCase()
-			) {
-				tab.set_active();
-				return;
-			}
-		}
-	}
-
 	set_tab_as_active() {
 		let frm_active_tab = this?.frm.get_active_tab?.();
 		if (frm_active_tab) {
