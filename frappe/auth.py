@@ -6,7 +6,7 @@ import frappe
 import frappe.database
 import frappe.utils
 import frappe.utils.user
-from frappe import _, conf
+from frappe import _
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.sessions import Session, clear_sessions, delete_session
@@ -29,9 +29,6 @@ class HTTPRequest:
 
 		# load cookies
 		self.set_cookies()
-
-		# set frappe.local.db
-		self.connect()
 
 		# login and start/resume user session
 		self.set_session()
@@ -96,16 +93,6 @@ class HTTPRequest:
 
 	def set_lang(self):
 		frappe.local.lang = get_language()
-
-	def get_db_name(self):
-		"""get database name from conf"""
-		return conf.db_name
-
-	def connect(self):
-		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.get_db(
-			user=self.get_db_name(), password=getattr(conf, "db_password", "")
-		)
 
 
 class LoginManager:
