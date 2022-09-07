@@ -179,6 +179,7 @@ def get():
 
 	bootinfo.notes = get_unseen_notes()
 	bootinfo.assets_json = get_assets_json()
+	bootinfo.read_only = bool(frappe.flags.read_only)
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)
