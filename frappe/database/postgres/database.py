@@ -12,7 +12,7 @@ from psycopg2.errorcodes import (
 	UNDEFINED_TABLE,
 	UNIQUE_VIOLATION,
 )
-from psycopg2.errors import SequenceGeneratorLimitExceeded, SyntaxError
+from psycopg2.errors import ReadOnlySqlTransaction, SequenceGeneratorLimitExceeded, SyntaxError
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
@@ -54,6 +54,10 @@ class PostgresExceptionUtil:
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
 		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+
+	@staticmethod
+	def is_read_only_mode_error(e) -> bool:
+		return isinstance(e, ReadOnlySqlTransaction)
 
 	@staticmethod
 	def is_syntax_error(e):

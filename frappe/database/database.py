@@ -217,6 +217,15 @@ class Database:
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e) from e
 
+			elif self.is_read_only_mode_error(e):
+				frappe.throw(
+					_(
+						"Site is running in read only mode, this action can not be performed right now. Please try again later."
+					),
+					title=_("In Read Only Mode"),
+					exc=frappe.InReadOnlyMode,
+				)
+
 			# TODO: added temporarily
 			elif self.db_type == "postgres":
 				traceback.print_stack()
