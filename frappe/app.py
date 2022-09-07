@@ -115,9 +115,9 @@ def init_request(request):
 		# site does not exist
 		raise NotFound
 
-	if frappe.local.conf.get("maintenance_mode"):
+	if frappe.local.conf.maintenance_mode:
 		frappe.connect()
-		if frappe.local.conf.get("allow_reads_during_maintenance"):
+		if frappe.local.conf.allow_reads_during_maintenance:
 			setup_read_only_mode()
 		else:
 			raise frappe.SessionStopped("Session Stopped")
