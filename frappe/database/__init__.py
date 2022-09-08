@@ -39,18 +39,17 @@ def drop_user_and_database(db_name, root_login=None, root_password=None):
 		)
 
 
-def get_db(host=None, user=None, password=None, port=None, read_only=False):
+def get_db(host=None, user=None, password=None, port=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
 		import frappe.database.postgres.database
 
-		return frappe.database.postgres.database.PostgresDatabase(
-			host, user, password, port=port, read_only=read_only
-		)
+		return frappe.database.postgres.database.PostgresDatabase(host, user, password, port=port)
 	else:
 		import frappe.database.mariadb.database
 
+<<<<<<< HEAD
 		return frappe.database.mariadb.database.MariaDBDatabase(
 			host, user, password, port=port, read_only=read_only
 		)
@@ -67,3 +66,6 @@ def setup_help_database(help_db_name):
 		import frappe.database.mariadb.setup_db
 
 		return frappe.database.mariadb.setup_db.setup_help_database(help_db_name)
+=======
+		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port=port)
+>>>>>>> ea7fbb2c10 (refactor: remove dead flag db.read_only)
