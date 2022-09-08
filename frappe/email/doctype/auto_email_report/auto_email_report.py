@@ -3,6 +3,7 @@
 
 import calendar
 from datetime import timedelta
+from email.utils import formataddr
 
 import frappe
 from frappe import _
@@ -201,8 +202,13 @@ class AutoEmailReport(Document):
 		if not self.format == "HTML":
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
+		sender = None
+		if self.sender and self.sender_email:
+			sender = formataddr((self.sender, self.sender_email))
+
 		frappe.sendmail(
 			recipients=self.email_to.split(),
+			sender=sender,
 			subject=self.name,
 			message=message,
 			attachments=attachments,
