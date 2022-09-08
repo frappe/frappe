@@ -596,8 +596,12 @@ class Meta(Document):
 		if not data.non_standard_fieldnames:
 			data.non_standard_fieldnames = {}
 
-		if not data.internal_links:
-			data.internal_links = {}
+		# for backwards compatibility
+		if data.internal_links:
+			for doctype, links in data.internal_links.items():
+				data.non_standard_fieldnames[doctype] = links[1]
+
+			del data.internal_links
 
 		for link in dashboard_links:
 			link.added = False
@@ -607,30 +611,23 @@ class Meta(Document):
 			for group in data.transactions:
 				group = frappe._dict(group)
 
-				# For internal links parent doctype will be the key
-				doctype = link.parent_doctype or link.link_doctype
 				# group found
 				if link.group and _(group.label) == _(link.group):
-					if doctype not in group.get("items"):
-						group.get("items").append(doctype)
+					if link.link_doctype not in group.get("items"):
+						group.get("items").append(link.link_doctype)
 					link.added = True
 
 			if not link.added:
 				# group not found, make a new group
-				data.transactions.append(
-					dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
-				)
+				data.transactions.append(dict(label=link.group, items=[link.link_doctype]))
 
-			if not link.is_child_table:
-				if link.link_fieldname != data.fieldname:
-					if data.fieldname:
-						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
-					else:
-						data.fieldname = link.link_fieldname
-			elif link.is_child_table:
-				if not data.fieldname:
+			if link.link_fieldname != data.fieldname:
+				if data.fieldname:
+					data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
+				else:
 					data.fieldname = link.link_fieldname
-				data.internal_links[link.parent_doctype] = [link.table_fieldname, link.link_fieldname]
+
+		print(data)
 
 	def get_row_template(self):
 		return self.get_web_template(suffix="_row")

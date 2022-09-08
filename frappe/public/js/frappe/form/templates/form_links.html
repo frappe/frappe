@@ -17,12 +17,10 @@
 						<span class="open-notification hidden"
 							title="{{ __("Open {0}", [__(doctype)])}}">
 						</span>
-						{% if !internal_links[doctype] %}
-							<button class="btn btn-new btn-secondary btn-xs icon-btn hidden"
-								data-doctype="{{ doctype }}">
-								<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
-							</button>
-						{% endif %}
+						<button class="btn btn-new btn-secondary btn-xs icon-btn hidden"
+							data-doctype="{{ doctype }}">
+							<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
+						</button>
 					</div>
 				{% } %}
 			</div>

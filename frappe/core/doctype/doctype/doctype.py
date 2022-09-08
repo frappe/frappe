@@ -980,35 +980,8 @@ def validate_links_table_fieldnames(meta):
 	if not meta.links or frappe.flags.in_patch or frappe.flags.in_fixtures:
 		return
 
-	fieldnames = tuple(field.fieldname for field in meta.fields)
 	for index, link in enumerate(meta.links, 1):
 		_test_connection_query(doctype=link.link_doctype, field=link.link_fieldname, idx=index)
-
-		if not link.is_child_table:
-			continue
-
-		if not link.parent_doctype:
-			message = _("Document Links Row #{0}: Parent DocType is mandatory for internal links").format(
-				index
-			)
-			frappe.throw(message, frappe.ValidationError, _("Parent Missing"))
-
-		if not link.table_fieldname:
-			message = _("Document Links Row #{0}: Table Fieldname is mandatory for internal links").format(
-				index
-			)
-			frappe.throw(message, frappe.ValidationError, _("Table Fieldname Missing"))
-
-		if meta.name == link.parent_doctype:
-			field_exists = link.table_fieldname in fieldnames
-		else:
-			field_exists = frappe.get_meta(link.parent_doctype).has_field(link.table_fieldname)
-
-		if not field_exists:
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(
-				index, frappe.bold(link.table_fieldname), frappe.bold(meta.name)
-			)
-			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
 
 
 def _test_connection_query(doctype, field, idx):

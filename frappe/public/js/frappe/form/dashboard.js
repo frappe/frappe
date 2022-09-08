@@ -227,7 +227,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	init_data() {
 		this.data = this.frm.meta.__dashboard || {};
 		if (!this.data.transactions) this.data.transactions = [];
-		if (!this.data.internal_links) this.data.internal_links = {};
+		// if (!this.data.internal_links) this.data.internal_links = {};
 		this.filter_permissions();
 	}
 
@@ -344,16 +344,17 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	open_document_list($link, show_open) {
 		// show document list with filters
-		let doctype = $link.attr("data-doctype"),
-			names = $link.attr("data-names") || [];
+		let doctype = $link.attr("data-doctype");
+		// let names = $link.attr("data-names") || [];
 
-		if (this.data.internal_links[doctype]) {
-			if (names.length) {
-				frappe.route_options = { name: ["in", names] };
-			} else {
-				return false;
-			}
-		} else if (this.data.fieldname) {
+		// if (this.data.internal_links[doctype]) {
+		// 	if (names.length) {
+		// 		frappe.route_options = { name: ["in", names] };
+		// 	} else {
+		// 		return false;
+		// 	}
+		// } else
+		if (this.data.fieldname) {
 			frappe.route_options = this.get_document_filter(doctype);
 			if (show_open && frappe.ui.notifications) {
 				frappe.ui.notifications.show_open_count_list(doctype);
@@ -415,26 +416,26 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				});
 
 				// update from internal links
-				$.each(me.data.internal_links, (doctype, link) => {
-					let names = [];
-					if (typeof link === "string" || link instanceof String) {
-						// get internal links in parent document
-						let value = me.frm.doc[link];
-						if (value && !names.includes(value)) {
-							names.push(value);
-						}
-					} else if (Array.isArray(link)) {
-						// get internal links in child documents
-						let [table_fieldname, link_fieldname] = link;
-						(me.frm.doc[table_fieldname] || []).forEach((d) => {
-							let value = d[link_fieldname];
-							if (value && !names.includes(value)) {
-								names.push(value);
-							}
-						});
-					}
-					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
-				});
+				// $.each(me.data.internal_links, (doctype, link) => {
+				// 	let names = [];
+				// 	if (typeof link === "string" || link instanceof String) {
+				// 		// get internal links in parent document
+				// 		let value = me.frm.doc[link];
+				// 		if (value && !names.includes(value)) {
+				// 			names.push(value);
+				// 		}
+				// 	} else if (Array.isArray(link)) {
+				// 		// get internal links in child documents
+				// 		let [table_fieldname, link_fieldname] = link;
+				// 		(me.frm.doc[table_fieldname] || []).forEach((d) => {
+				// 			let value = d[link_fieldname];
+				// 			if (value && !names.includes(value)) {
+				// 				names.push(value);
+				// 			}
+				// 		});
+				// 	}
+				// 	me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
+				// });
 
 				me.frm.dashboard_data = r.message;
 				me.frm.trigger("dashboard_update");
@@ -459,14 +460,6 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				.find(".count")
 				.removeClass("hidden")
 				.text(count > 99 ? "99+" : count);
-		}
-
-		if (this.data.internal_links[doctype]) {
-			if (names && names.length) {
-				$link.attr("data-names", names ? names.join(",") : "");
-			} else {
-				$link.find("a").attr("disabled", true);
-			}
 		}
 	}
 
