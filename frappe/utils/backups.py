@@ -11,18 +11,20 @@ from shutil import which
 
 # imports - third party imports
 import click
+from cryptography.fernet import Fernet
 
 # imports - module imports
 import frappe
 from frappe import conf
 from frappe.utils import cint, get_file_size, get_url, now, now_datetime
-from frappe.utils.password import get_encryption_key
 
 # backup variable for backwards compatibility
 verbose = False
 compress = False
 _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
+
+BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
 
 
 class BackupGenerator:
@@ -73,11 +75,7 @@ class BackupGenerator:
 		if not self.db_type:
 			self.db_type = "mariadb"
 
-		if not self.db_port:
-			if self.db_type == "mariadb":
-				self.db_port = 3306
-			if self.db_type == "postgres":
-				self.db_port = 5432
+		self.db_port = self.db_port or frappe.db.default_port
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -234,7 +232,7 @@ class BackupGenerator:
 				cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
 				try:
 					command = cmd_string.format(
-						passphrase=get_encryption_key(),
+						passphrase=get_or_generate_backup_encryption_key(),
 						filelocation=path,
 					)
 
@@ -632,7 +630,20 @@ def get_backup_path():
 @frappe.whitelist()
 def get_backup_encryption_key():
 	frappe.only_for("System Manager")
-	return frappe.conf.encryption_key
+	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+
+
+def get_or_generate_backup_encryption_key():
+	from frappe.installer import update_site_config
+
+	key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	if key:
+		return key
+
+	key = Fernet.generate_key().decode()
+	update_site_config(BACKUP_ENCRYPTION_CONFIG_KEY, key)
+
+	return key
 
 
 class Backup:
@@ -700,6 +711,14 @@ def backup(
 
 if __name__ == "__main__":
 	import sys
+
+	from frappe.utils.commands import warn
+
+	warn(
+		"Calling the backup script directly is deprecated. "
+		"Use the backup command instead. This script will be removed in Frappe v15.",
+		category=DeprecationWarning,
+	)
 
 	cmd = sys.argv[1]
 

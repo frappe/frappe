@@ -8,9 +8,25 @@ import pyotp
 from pyqrcode import create as qrcreate
 
 import frappe
+import frappe.defaults
 from frappe import _
 from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
+from frappe.utils.password import decrypt, encrypt
+
+PARENT_FOR_DEFAULTS = "__2fa"
+
+
+def get_default(key):
+	return frappe.db.get_default(key, parent=PARENT_FOR_DEFAULTS)
+
+
+def set_default(key, value):
+	frappe.db.set_default(key, value, parent=PARENT_FOR_DEFAULTS)
+
+
+def clear_default(key):
+	frappe.defaults.clear_default(key, parent=PARENT_FOR_DEFAULTS)
 
 
 class ExpiredLoginException(Exception):
@@ -27,10 +43,10 @@ def toggle_two_factor_auth(state, roles=None):
 
 def two_factor_is_enabled(user=None):
 	"""Returns True if 2FA is enabled."""
-	enabled = int(frappe.db.get_value("System Settings", None, "enable_two_factor_auth") or 0)
+	enabled = int(frappe.db.get_single_value("System Settings", "enable_two_factor_auth") or 0)
 	if enabled:
 		bypass_two_factor_auth = int(
-			frappe.db.get_value("System Settings", None, "bypass_2fa_for_retricted_ip_users") or 0
+			frappe.db.get_single_value("System Settings", "bypass_2fa_for_retricted_ip_users") or 0
 		)
 		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)
@@ -118,16 +134,18 @@ def two_factor_is_enabled_for_(user):
 
 def get_otpsecret_for_(user):
 	"""Set OTP Secret for user even if not set."""
-	otp_secret = frappe.db.get_default(user + "_otpsecret")
-	if not otp_secret:
-		otp_secret = b32encode(os.urandom(10)).decode("utf-8")
-		frappe.db.set_default(user + "_otpsecret", otp_secret)
-		frappe.db.commit()
+	if otp_secret := get_default(user + "_otpsecret"):
+		return decrypt(otp_secret)
+
+	otp_secret = b32encode(os.urandom(10)).decode("utf-8")
+	set_default(user + "_otpsecret", encrypt(otp_secret))
+	frappe.db.commit()
+
 	return otp_secret
 
 
 def get_verification_method():
-	return frappe.db.get_value("System Settings", None, "two_factor_method")
+	return frappe.db.get_single_value("System Settings", "two_factor_method")
 
 
 def confirm_otp_token(login_manager, otp=None, tmp_id=None):
@@ -162,8 +180,8 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	totp = pyotp.TOTP(otp_secret)
 	if totp.verify(otp):
 		# show qr code only once
-		if not frappe.db.get_default(login_manager.user + "_otplogin"):
-			frappe.db.set_default(login_manager.user + "_otplogin", 1)
+		if not get_default(login_manager.user + "_otplogin"):
+			set_default(login_manager.user + "_otplogin", 1)
 			delete_qrimage(login_manager.user)
 		tracker.add_success_attempt()
 		return True
@@ -173,14 +191,14 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 
 
 def get_verification_obj(user, token, otp_secret):
-	otp_issuer = frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
+	otp_issuer = frappe.db.get_single_value("System Settings", "otp_issuer_name")
 	verification_method = get_verification_method()
 	verification_obj = None
 	if verification_method == "SMS":
 		verification_obj = process_2fa_for_sms(user, token, otp_secret)
 	elif verification_method == "OTP App":
 		# check if this if the first time that the user is trying to login. If so, send an email
-		if not frappe.db.get_default(user + "_otplogin"):
+		if not get_default(user + "_otplogin"):
 			verification_obj = process_2fa_for_email(user, token, otp_secret, otp_issuer, method="OTP App")
 		else:
 			verification_obj = process_2fa_for_otp_app(user, otp_secret, otp_issuer)
@@ -207,7 +225,7 @@ def process_2fa_for_sms(user, token, otp_secret):
 def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	"""Process OTP App method for 2fa."""
 	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
-	if frappe.db.get_default(user + "_otplogin"):
+	if get_default(user + "_otplogin"):
 		otp_setup_completed = True
 	else:
 		otp_setup_completed = False
@@ -222,7 +240,7 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 	message = None
 	status = True
 	prompt = ""
-	if method == "OTP App" and not frappe.db.get_default(user + "_otplogin"):
+	if method == "OTP App" and not get_default(user + "_otplogin"):
 		"""Sending one-time email for OTP App"""
 		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
 		qrcode_link = get_link_for_qrcode(user, totp_uri)
@@ -249,7 +267,7 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 def get_email_subject_for_2fa(kwargs_dict):
 	"""Get email subject for 2fa."""
 	subject_template = _("Login Verification Code from {}").format(
-		frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
+		frappe.db.get_single_value("System Settings", "otp_issuer_name")
 	)
 	subject = frappe.render_template(subject_template, kwargs_dict)
 	return subject
@@ -269,7 +287,7 @@ def get_email_body_for_2fa(kwargs_dict):
 def get_email_subject_for_qr_code(kwargs_dict):
 	"""Get QRCode email subject."""
 	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
-		frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
+		frappe.db.get_single_value("System Settings", "otp_issuer_name")
 	)
 	subject = frappe.render_template(subject_template, kwargs_dict)
 	return subject
@@ -289,9 +307,7 @@ def get_link_for_qrcode(user, totp_uri):
 	key = frappe.generate_hash(length=20)
 	key_user = f"{key}_user"
 	key_uri = f"{key}_uri"
-	lifespan = (
-		int(frappe.db.get_value("System Settings", "System Settings", "lifespan_qrcode_image")) or 240
-	)
+	lifespan = int(frappe.db.get_single_value("System Settings", "lifespan_qrcode_image")) or 240
 	frappe.cache().set_value(key_uri, totp_uri, expires_in_sec=lifespan)
 	frappe.cache().set_value(key_user, user, expires_in_sec=lifespan)
 	return get_url(f"/qrcode?k={key}")
@@ -383,30 +399,6 @@ def get_qr_svg_code(totp_uri):
 	return svg
 
 
-def qrcode_as_png(user, totp_uri):
-	"""Save temporary Qrcode to server."""
-	folder = create_barcode_folder()
-	png_file_name = f"{frappe.generate_hash(length=20)}.png"
-	_file = frappe.get_doc(
-		{
-			"doctype": "File",
-			"file_name": png_file_name,
-			"attached_to_doctype": "User",
-			"attached_to_name": user,
-			"folder": folder,
-			"content": png_file_name,
-		}
-	)
-	_file.save()
-	frappe.db.commit()
-	file_url = get_url(_file.file_url)
-	file_path = os.path.join(frappe.get_site_path("public", "files"), _file.file_name)
-	url = qrcreate(totp_uri)
-	with open(file_path, "w") as png_file:
-		url.png(png_file, scale=8, module_color=[0, 0, 0, 180], background=[0xFF, 0xFF, 0xCC])
-	return file_url
-
-
 def create_barcode_folder():
 	"""Get Barcodes folder."""
 	folder_name = "Barcodes"
@@ -447,9 +439,7 @@ def should_remove_barcode_image(barcode):
 	"""Check if it's time to delete barcode image from server."""
 	if isinstance(barcode, str):
 		barcode = frappe.get_doc("File", barcode)
-	lifespan = (
-		frappe.db.get_value("System Settings", "System Settings", "lifespan_qrcode_image") or 240
-	)
+	lifespan = frappe.db.get_single_value("System Settings", "lifespan_qrcode_image") or 240
 	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
 		return True
 	return False
@@ -461,33 +451,35 @@ def disable():
 
 @frappe.whitelist()
 def reset_otp_secret(user):
-	otp_issuer = frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
+	if frappe.session.user != user:
+		frappe.only_for("System Manager", message=True)
+
+	otp_issuer = frappe.db.get_single_value("System Settings", "otp_issuer_name")
 	user_email = frappe.db.get_value("User", user, "email")
-	if frappe.session.user in ["Administrator", user]:
-		frappe.defaults.clear_default(user + "_otplogin")
-		frappe.defaults.clear_default(user + "_otpsecret")
-		email_args = {
-			"recipients": user_email,
-			"sender": None,
-			"subject": _("OTP Secret Reset - {0}").format(otp_issuer or "Frappe Framework"),
-			"message": _(
-				"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-			).format(otp_issuer or "Frappe Framework"),
-			"delayed": False,
-			"retry": 3,
-		}
-		enqueue(
-			method=frappe.sendmail,
-			queue="short",
-			timeout=300,
-			event=None,
-			is_async=True,
-			job_name=None,
-			now=False,
-			**email_args,
-		)
-		return frappe.msgprint(
-			_("OTP Secret has been reset. Re-registration will be required on next login.")
-		)
-	else:
-		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
+
+	clear_default(user + "_otplogin")
+	clear_default(user + "_otpsecret")
+
+	email_args = {
+		"recipients": user_email,
+		"sender": None,
+		"subject": _("OTP Secret Reset - {0}").format(otp_issuer or "Frappe Framework"),
+		"message": _(
+			"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
+		).format(otp_issuer or "Frappe Framework"),
+		"delayed": False,
+		"retry": 3,
+	}
+
+	enqueue(
+		method=frappe.sendmail,
+		queue="short",
+		timeout=300,
+		event=None,
+		is_async=True,
+		job_name=None,
+		now=False,
+		**email_args,
+	)
+
+	frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))

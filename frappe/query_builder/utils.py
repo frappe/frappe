@@ -45,6 +45,12 @@ def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	return picks[db]
 
 
+def get_qb_engine():
+	from frappe.database.query import Engine
+
+	return Engine()
+
+
 def get_attr(method_string):
 	modulename = ".".join(method_string.split(".")[:-1])
 	methodname = method_string.split(".")[-1]

@@ -1,131 +1,97 @@
-import WebFormList from './web_form_list'
-import WebForm from './web_form'
+import WebFormList from "./web_form_list";
+import WebForm from "./web_form";
 
-frappe.ready(function() {
-	let query_params = frappe.utils.get_query_params();
-	let wrapper = $(".web-form-wrapper");
-	let is_list = parseInt(wrapper.data('is-list')) || query_params.is_list;
-	let webform_doctype = wrapper.data('web-form-doctype');
-	let webform_name = wrapper.data('web-form');
-	let login_required = parseInt(wrapper.data('login-required'));
-	let allow_delete = parseInt(wrapper.data('allow-delete'));
-	let doc_name = query_params.name || '';
-	let is_new = query_params.new;
+frappe.ready(function () {
+	let web_form_doc = frappe.web_form_doc;
+	let reference_doc = frappe.reference_doc;
 
-	if (login_required) show_login_prompt();
-	else if (is_list) show_grid();
-	else show_form(webform_doctype, webform_name, is_new);
+	show_login_prompt();
 
-	document.querySelector("body").style.display = "block";
+	web_form_doc.is_list ? show_list() : show_form();
 
 	function show_login_prompt() {
+		if (frappe.session.user != "Guest" || !web_form_doc.login_required) return;
 		const login_required = new frappe.ui.Dialog({
 			title: __("Not Permitted"),
 			primary_action_label: __("Login"),
 			primary_action: () => {
-				window.location.replace('/login?redirect-to=' + window.location.pathname);
-			}
+				window.location.replace("/login?redirect-to=" + window.location.pathname);
+			},
 		});
 		login_required.show();
 		login_required.set_message(__("You are not permitted to access this page without login."));
 	}
 
-	function show_grid() {
+	function show_list() {
 		new WebFormList({
-			parent: wrapper,
-			doctype: webform_doctype,
-			web_form_name: webform_name,
+			doctype: web_form_doc.doc_type,
+			web_form_name: web_form_doc.name,
+			list_columns: web_form_doc.list_columns,
 			settings: {
-				allow_delete
-			}
+				allow_delete: web_form_doc.allow_delete,
+			},
 		});
 	}
 
 	function show_form() {
 		let web_form = new WebForm({
-			parent: wrapper,
-			is_new,
-			web_form_name: webform_name,
+			parent: $(".web-form-wrapper"),
 		});
+		let doc = reference_doc || {};
+		setup_fields(web_form_doc, doc);
 
-		get_data().then(r => {
-			const data = setup_fields(r.message);
-			let web_form_doc = data.web_form;
+		web_form.prepare(web_form_doc, doc);
+		web_form.make();
 
-			// if (web_form_doc.name && web_form_doc.allow_edit === 0) {
-			// 	if (!window.location.href.includes("?new=1")) {
-			// 		window.location.replace(window.location.pathname + "?new=1");
-			// 	}
-			// }
-			let doc = r.message.doc || build_doc(r.message);
-			web_form.prepare(web_form_doc, r.message.doc && web_form_doc.allow_edit === 1 ? r.message.doc : {});
-			web_form.make();
+		if (web_form_doc.is_new) {
 			web_form.set_default_values();
-		})
-
-		function build_doc(form_data) {
-			let doc = {};
-			form_data.web_form.web_form_fields.forEach(df => {
-				if (df.default) return doc[df.fieldname] = df.default;
-			});
-			return doc;
 		}
 
-		function get_data() {
-			return frappe.call({
-				method: "frappe.website.doctype.web_form.web_form.get_form_data",
-				args: {
-					doctype: webform_doctype,
-					docname: doc_name,
-					web_form_name: webform_name
-				},
-				freeze: true
-			});
-		}
+		$(".file-size").each(function () {
+			$(this).text(frappe.form.formatters.FileSize($(this).text()));
+		});
+	}
 
-		function setup_fields(form_data) {
-			form_data.web_form.web_form_fields.map(df => {
-				df.is_web_form = true;
-				if (df.fieldtype === "Table") {
-					df.get_data = () => {
-						let data = [];
-						if (form_data.doc) {
-							data = form_data.doc[df.fieldname];
-						}
-						return data;
-					};
-
-					df.fields = form_data[df.fieldname];
-					$.each(df.fields || [], function(_i, field) {
-						if (field.fieldtype === "Link") {
-							field.only_select = true;
-						}
-						field.is_web_form = true;
-					});
-
-					if (df.fieldtype === "Attach") {
-						df.is_private = true;
+	function setup_fields(web_form_doc, doc_data) {
+		web_form_doc.web_form_fields.forEach((df) => {
+			df.is_web_form = true;
+			df.read_only = !web_form_doc.is_new && !web_form_doc.in_edit_mode;
+			if (df.fieldtype === "Table") {
+				df.get_data = () => {
+					let data = [];
+					if (doc_data && doc_data[df.fieldname]) {
+						return doc_data[df.fieldname];
 					}
+					return data;
+				};
 
-					delete df.parent;
-					delete df.parentfield;
-					delete df.parenttype;
-					delete df.doctype;
-
-					return df;
-				}
-				if (df.fieldtype === "Link") {
-					df.only_select = true;
-				}
-				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
-					if (typeof df.options !== "object") {
-						df.options = {};
+				$.each(df.fields || [], function (_i, field) {
+					if (field.fieldtype === "Link") {
+						field.only_select = true;
 					}
-					df.options.disable_file_browser = true;
-				}
-			});
+					field.is_web_form = true;
+				});
 
-			return form_data;
-		}
+				if (df.fieldtype === "Attach") {
+					df.is_private = true;
+				}
+
+				delete df.parent;
+				delete df.parentfield;
+				delete df.parenttype;
+				delete df.doctype;
+
+				return df;
+			}
+			if (df.fieldtype === "Link") {
+				df.only_select = true;
+			}
+			if (["Attach", "Attach Image"].includes(df.fieldtype)) {
+				if (typeof df.options !== "object") {
+					df.options = {};
+				}
+				df.options.disable_file_browser = true;
+			}
+		});
 	}
 });

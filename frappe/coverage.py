@@ -24,6 +24,15 @@ STANDARD_EXCLUSIONS = [
 	"*/patches/*",
 ]
 
+# tested via commands' test suite
+TESTED_VIA_CLI = [
+	"*/frappe/installer.py",
+	"*/frappe/build.py",
+	"*/frappe/database/__init__.py",
+	"*/frappe/database/db_manager.py",
+	"*/frappe/database/**/setup_db.py",
+]
+
 FRAPPE_EXCLUSIONS = [
 	"*/tests/*",
 	"*/commands/*",
@@ -33,7 +42,7 @@ FRAPPE_EXCLUSIONS = [
 	"*frappe/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
-]
+] + TESTED_VIA_CLI
 
 
 class CodeCoverage:
@@ -64,3 +73,4 @@ class CodeCoverage:
 			self.coverage.stop()
 			self.coverage.save()
 			self.coverage.xml_report()
+			print("Saved Coverage")

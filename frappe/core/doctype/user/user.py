@@ -2,8 +2,6 @@
 # License: MIT. See LICENSE
 from datetime import timedelta
 
-from bs4 import BeautifulSoup
-
 import frappe
 import frappe.defaults
 import frappe.permissions
@@ -542,7 +540,7 @@ class User(Document):
 			feedback = result.get("feedback", None)
 
 			if feedback and not feedback.get("password_policy_validation_passed", False):
-				handle_password_test_fail(result)
+				handle_password_test_fail(feedback)
 
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
@@ -611,10 +609,10 @@ class User(Document):
 		"""
 
 		login_with_mobile = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")
+			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
 		)
 		login_with_username = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")
+			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
 		)
 
 		or_filters = [{"name": user_name}]
@@ -623,7 +621,7 @@ class User(Document):
 		if login_with_username:
 			or_filters.append({"username": user_name})
 
-		users = frappe.db.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
+		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
 			return
 
@@ -688,7 +686,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	feedback = result.get("feedback", None)
 
 	if feedback and not feedback.get("password_policy_validation_passed", False):
-		handle_password_test_fail(result)
+		handle_password_test_fail(feedback)
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get("message"):
@@ -861,7 +859,7 @@ def sign_up(email, full_name, redirect_to):
 		user.insert()
 
 		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_value("Portal Settings", None, "default_role")
+		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
 		if default_role:
 			user.add_roles(default_role)
 
@@ -1044,31 +1042,15 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		)
 
 
-def extract_mentions(txt):
-	"""Find all instances of @mentions in the html."""
-	soup = BeautifulSoup(txt, "html.parser")
-	emails = []
-	for mention in soup.find_all(class_="mention"):
-		if mention.get("data-is-group") == "true":
-			try:
-				user_group = frappe.get_cached_doc("User Group", mention["data-id"])
-				emails += [d.user for d in user_group.user_group_members]
-			except frappe.DoesNotExistError:
-				pass
-			continue
-		email = mention["data-id"]
-		emails.append(email)
+def handle_password_test_fail(feedback: dict):
+	# Backward compatibility
+	if "feedback" in feedback:
+		feedback = feedback["feedback"]
 
-	return emails
+	suggestions = feedback.get("suggestions", [])
+	warning = feedback.get("warning", "")
 
-
-def handle_password_test_fail(result):
-	suggestions = result["feedback"]["suggestions"][0] if result["feedback"]["suggestions"] else ""
-	warning = result["feedback"]["warning"] if "warning" in result["feedback"] else ""
-	suggestions += (
-		"<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + "<br>"
-	)
-	frappe.throw(" ".join([_("Invalid Password:"), warning, suggestions]))
+	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
 
 
 def update_gravatar(name):

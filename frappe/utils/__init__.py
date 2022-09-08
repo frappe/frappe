@@ -9,10 +9,18 @@ import os
 import re
 import sys
 import traceback
-from collections.abc import Generator, Iterable, MutableMapping, MutableSequence, Sequence
+from collections.abc import (
+	Container,
+	Generator,
+	Iterable,
+	MutableMapping,
+	MutableSequence,
+	Sequence,
+)
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from gzip import GzipFile
+from typing import Any, Literal
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -85,13 +93,10 @@ def get_formatted_email(user, mail=None):
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
-	email_id = parse_addr(email)[1]
-	if email_id and isinstance(email_id, str) and not isinstance(email_id, str):
-		email_id = email_id.decode("utf-8", "ignore")
-	return email_id
+	return cstr(parse_addr(email)[1])
 
 
-def validate_phone_number_with_country_code(phone_number, fieldname):
+def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -> None:
 	from phonenumbers import NumberParseException, is_valid_number, parse
 
 	from frappe import _
@@ -138,6 +143,8 @@ def validate_name(name, throw=False):
 	"""Returns True if the name is valid
 	valid names may have unicode and ascii characters, dash, quotes, numbers
 	anything else is considered invalid
+
+	Note: "Name" here is name of a person, not the primary key in Frappe doctypes.
 	"""
 	if not name:
 		return False
@@ -218,7 +225,11 @@ def split_emails(txt):
 	return email_list
 
 
-def validate_url(txt, throw=False, valid_schemes=None):
+def validate_url(
+	txt: str,
+	throw: bool = False,
+	valid_schemes: str | Container[str] | None = None,
+) -> bool:
 	"""
 	Checks whether `txt` has a valid URL string
 
@@ -244,7 +255,7 @@ def validate_url(txt, throw=False, valid_schemes=None):
 	return is_valid
 
 
-def random_string(length):
+def random_string(length: int) -> str:
 	"""generate a random string"""
 	import string
 	from random import choice
@@ -252,7 +263,7 @@ def random_string(length):
 	return "".join(choice(string.ascii_letters + string.digits) for i in range(length))
 
 
-def has_gravatar(email):
+def has_gravatar(email: str) -> str:
 	"""Returns gravatar url if user has set an avatar at gravatar.com"""
 	import requests
 
@@ -261,9 +272,7 @@ def has_gravatar(email):
 		# since querying gravatar for every item will be slow
 		return ""
 
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8")).hexdigest()
-
-	gravatar_url = f"https://secure.gravatar.com/avatar/{hexdigest}?d=404&s=200"
+	gravatar_url = get_gravatar_url(email, "404")
 	try:
 		res = requests.get(gravatar_url)
 		if res.status_code == 200:
@@ -274,21 +283,15 @@ def has_gravatar(email):
 		return ""
 
 
-def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(
-		hash=hashlib.md5(email.encode("utf-8")).hexdigest()
-	)
+def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8")).hexdigest()
+	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
 
-def get_gravatar(email):
+def get_gravatar(email: str) -> str:
 	from frappe.utils.identicon import Identicon
 
-	gravatar_url = has_gravatar(email)
-
-	if not gravatar_url:
-		gravatar_url = Identicon(email).base64()
-
-	return gravatar_url
+	return has_gravatar(email) or Identicon(email).base64()
 
 
 def get_traceback(with_context=False) -> str:
@@ -315,7 +318,7 @@ def log(event, details):
 	frappe.logger(event).info(details)
 
 
-def dict_to_str(args, sep="&"):
+def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""
 	Converts a dictionary to URL
 	"""
@@ -351,18 +354,13 @@ def set_default(key, val):
 	return frappe.db.set_default(key, val)
 
 
-def remove_blanks(d):
+def remove_blanks(d: dict) -> dict:
 	"""
-	Returns d with empty ('' or None) values stripped
+	Returns d with empty ('' or None) values stripped. Mutates inplace.
 	"""
-	empty_keys = []
-	for key in d:
-		if d[key] == "" or d[key] is None:
-			# del d[key] raises runtime exception, using a workaround
-			empty_keys.append(key)
-	for key in empty_keys:
-		del d[key]
-
+	for k, v in tuple(d.items()):
+		if v == "" or v == None:
+			del d[k]
 	return d
 
 
@@ -422,21 +420,20 @@ def execute_in_shell(cmd, verbose=0, low_priority=False):
 	import tempfile
 	from subprocess import Popen
 
-	with tempfile.TemporaryFile() as stdout:
-		with tempfile.TemporaryFile() as stderr:
-			kwargs = {"shell": True, "stdout": stdout, "stderr": stderr}
+	with (tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr):
+		kwargs = {"shell": True, "stdout": stdout, "stderr": stderr}
 
-			if low_priority:
-				kwargs["preexec_fn"] = lambda: os.nice(10)
+		if low_priority:
+			kwargs["preexec_fn"] = lambda: os.nice(10)
 
-			p = Popen(cmd, **kwargs)
-			p.wait()
+		p = Popen(cmd, **kwargs)
+		p.wait()
 
-			stdout.seek(0)
-			out = stdout.read()
+		stdout.seek(0)
+		out = stdout.read()
 
-			stderr.seek(0)
-			err = stderr.read()
+		stderr.seek(0)
+		err = stderr.read()
 
 	if verbose:
 		if err:
@@ -525,11 +522,11 @@ def touch_file(path):
 	return path
 
 
-def get_test_client() -> Client:
+def get_test_client(use_cookies=True) -> Client:
 	"""Returns an test instance of the Frappe WSGI"""
 	from frappe.app import application
 
-	return Client(application)
+	return Client(application, use_cookies=use_cookies)
 
 
 def get_hook_method(hook_name, fallback=None):
@@ -559,7 +556,7 @@ def is_cli() -> bool:
 	return invoked_from_terminal
 
 
-def update_progress_bar(txt, i, l):
+def update_progress_bar(txt, i, l, absolute=False):
 	if os.environ.get("CI"):
 		if i == 0:
 			sys.stdout.write(txt)
@@ -568,7 +565,7 @@ def update_progress_bar(txt, i, l):
 		sys.stdout.flush()
 		return
 
-	if not getattr(frappe.local, "request", None) or is_cli():
+	if not getattr(frappe.local, "request", None) or is_cli():  # pragma: no cover
 		lt = len(txt)
 		try:
 			col = 40 if os.get_terminal_size().columns > 80 else 20
@@ -581,8 +578,9 @@ def update_progress_bar(txt, i, l):
 
 		complete = int(float(i + 1) / l * col)
 		completion_bar = ("=" * complete).ljust(col, " ")
-		percent_complete = str(int(float(i + 1) / l * 100))
-		sys.stdout.write(f"\r{txt}: [{completion_bar}] {percent_complete}%")
+		percent_complete = f"{str(int(float(i + 1) / l * 100))}%"
+		status = f"{i} of {l}" if absolute else percent_complete
+		sys.stdout.write(f"\r{txt}: [{completion_bar}] {status}")
 		sys.stdout.flush()
 
 
@@ -633,12 +631,10 @@ def get_sites(sites_path=None):
 
 def get_request_session(max_retries=5):
 	import requests
-	from urllib3.util import Retry
+	from requests.adapters import HTTPAdapter, Retry
 
 	session = requests.Session()
-	http_adapter = requests.adapters.HTTPAdapter(
-		max_retries=Retry(total=max_retries, status_forcelist=[500])
-	)
+	http_adapter = HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
 
 	session.mount("http://", http_adapter)
 	session.mount("https://", http_adapter)
@@ -750,7 +746,7 @@ def get_site_info():
 
 	kwargs = {
 		"fields": ["user", "creation", "full_name"],
-		"filters": {"Operation": "Login", "Status": "Success"},
+		"filters": {"operation": "Login", "status": "Success"},
 		"limit": "10",
 	}
 

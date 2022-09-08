@@ -8,10 +8,8 @@ from frappe.desk.moduleview import (
 )
 
 
-def get_modules_from_all_apps_for_user(user=None):
-	if not user:
-		user = frappe.session.user
-
+def get_modules_from_all_apps_for_user(user: str = None) -> list[dict]:
+	user = user or frappe.session.user
 	all_modules = get_modules_from_all_apps()
 	global_blocked_modules = frappe.get_doc("User", "Administrator").get_blocked_modules()
 	user_blocked_modules = frappe.get_doc("User", user).get_blocked_modules()
@@ -61,7 +59,7 @@ def get_all_empty_tables_by_module():
 	empty_tables_by_module = {}
 
 	for doctype, module in results:
-		if "tab" + doctype in empty_tables:
+		if f"tab{doctype}" in empty_tables:
 			if module in empty_tables_by_module:
 				empty_tables_by_module[module].append(doctype)
 			else:

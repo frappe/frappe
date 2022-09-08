@@ -44,10 +44,11 @@
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
+  "make_attachments_public",
   "view_settings",
   "title_field",
   "show_title_field_in_link",
-  "translate_link_fields",
+  "translated_doctype",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -595,9 +596,15 @@
   },
   {
    "default": "0",
-   "fieldname": "translate_link_fields",
+   "fieldname": "translated_doctype",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
+  },
+  {
+   "default": "0",
+   "fieldname": "make_attachments_public",
+   "fieldtype": "Check",
+   "label": "Make Attachments Public by Default"
   }
  ],
  "icon": "fa fa-bolt",
@@ -680,7 +687,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-02-28 21:56:52.116915",
+ "modified": "2022-08-24 06:42:27.779699",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
@@ -716,5 +723,5 @@
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1,
- "translate_link_fields": 1
+ "translated_doctype": 1
 }

@@ -9,6 +9,8 @@ pull_request_rules:
           - author!=ankush
           - author!=mergify[bot]
         - or:
+          - base=version-15
+          - base=version-14
           - base=version-13
           - base=version-12
     actions:
@@ -20,15 +22,6 @@ pull_request_rules:
 
   - name: Automatic merge on CI success and review
     conditions:
-      - status-success=Sider
-      - status-success=Python Unit Tests (MariaDB) (1)
-      - status-success=Python Unit Tests (MariaDB) (2)
-      - status-success=Python Unit Tests (Postgres) (1)
-      - status-success=Python Unit Tests (Postgres) (2)
-      - status-success=UI Tests (Cypress) (1)
-      - status-success=UI Tests (Cypress) (2)
-      - status-success=UI Tests (Cypress) (3)
-      - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label!=squash
       - "#approved-reviews-by>=1"
@@ -37,15 +30,6 @@ pull_request_rules:
         method: merge
   - name: Automatic squash on CI success and review
     conditions:
-      - status-success=Sider
-      - status-success=Python Unit Tests (MariaDB) (1)
-      - status-success=Python Unit Tests (MariaDB) (2)
-      - status-success=Python Unit Tests (Postgres) (1)
-      - status-success=Python Unit Tests (Postgres) (2)
-      - status-success=UI Tests (Cypress) (1)
-      - status-success=UI Tests (Cypress) (2)
-      - status-success=UI Tests (Cypress) (3)
-      - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label=squash
       - "#approved-reviews-by>=1"
@@ -74,6 +58,26 @@ pull_request_rules:
       backport:
         branches:
           - version-13-hotfix
+        assignees:
+          - "{{ author }}"
+
+  - name: backport to version-14-hotfix
+    conditions:
+      - label="backport version-14-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-14-hotfix
+        assignees:
+          - "{{ author }}"
+
+  - name: backport to develop
+    conditions:
+      - label="backport develop"
+    actions:
+      backport:
+        branches:
+          - develop
         assignees:
           - "{{ author }}"
 

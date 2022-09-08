@@ -6,7 +6,7 @@ import json
 import os
 import re
 import timeit
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 import frappe
 from frappe import _
@@ -50,7 +50,7 @@ class Importer:
 	def get_data_for_import_preview(self):
 		out = self.import_file.get_data_for_import_preview()
 
-		out.import_log = frappe.db.get_all(
+		out.import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success"],
 			filters={"data_import": self.data_import.name},
@@ -90,7 +90,7 @@ class Importer:
 
 		# setup import log
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -204,7 +204,7 @@ class Importer:
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -297,7 +297,7 @@ class Importer:
 			return
 
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success"],
 				filters={"data_import": self.data_import.name},
@@ -327,7 +327,7 @@ class Importer:
 		if not self.data_import:
 			return
 
-		import_log = frappe.db.get_all(
+		import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success", "messages", "exception", "docname"],
 			filters={"data_import": self.data_import.name},
@@ -937,11 +937,13 @@ class Column:
 		"""
 
 		def guess_date_format(d):
-			if isinstance(d, (datetime, date)):
+			if isinstance(d, (datetime, date, time)):
 				if self.df.fieldtype == "Date":
 					return "%Y-%m-%d"
 				if self.df.fieldtype == "Datetime":
 					return "%Y-%m-%d %H:%M:%S"
+				if self.df.fieldtype == "Time":
+					return "%H:%M:%S"
 			if isinstance(d, str):
 				return frappe.utils.guess_date_format(d)
 
@@ -982,28 +984,38 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list({cstr(v) for v in self.column_values[1:] if v})
-			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})]
+			exists = [
+				cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
+			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)
+				message = _("The following values do not exist for {0}: {1}")
 				self.warnings.append(
 					{
 						"col": self.column_number,
-						"message": (f"The following values do not exist for {self.df.options}: {missing_values}"),
+						"message": message.format(self.df.options, missing_values),
 						"type": "warning",
 					}
 				)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
-			# guess date format
+			# guess date/time format
 			self.date_format = self.guess_date_format_for_column()
 			if not self.date_format:
-				self.date_format = "%Y-%m-%d"
+				if self.df.fieldtype == "Time":
+					self.date_format = "%H:%M:%S"
+					date_format = "HH:mm:ss"
+				else:
+					self.date_format = "%Y-%m-%d"
+					date_format = "yyyy-mm-dd"
+
+				message = _(
+					"{0} format could not be determined from the values in this column. Defaulting to {1}."
+				)
 				self.warnings.append(
 					{
 						"col": self.column_number,
-						"message": _(
-							"Date format could not be determined from the values in this column. Defaulting to yyyy-mm-dd."
-						),
+						"message": message.format(self.df.fieldtype, date_format),
 						"type": "info",
 					}
 				)
@@ -1015,13 +1027,11 @@ class Column:
 				if invalid:
 					valid_values = ", ".join(frappe.bold(o) for o in options)
 					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
+					message = _("The following values are invalid: {0}. Values must be one of {1}")
 					self.warnings.append(
 						{
 							"col": self.column_number,
-							"message": (
-								"The following values are invalid: {}. Values must be"
-								" one of {}".format(invalid_values, valid_values)
-							),
+							"message": message.format(invalid_values, valid_values),
 						}
 					)
 

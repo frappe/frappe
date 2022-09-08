@@ -1,8 +1,9 @@
+from enum import Enum
+
 from pypika.functions import *
 from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function
 
 import frappe
-from frappe.database.query import Query
 from frappe.query_builder.custom import GROUP_CONCAT, MATCH, STRING_AGG, TO_TSVECTOR
 from frappe.query_builder.utils import ImportMapper, db_type_is
 
@@ -12,6 +13,31 @@ from .utils import PseudoColumn
 class Concat_ws(Function):
 	def __init__(self, *terms, **kwargs):
 		super().__init__("CONCAT_WS", *terms, **kwargs)
+
+
+class Locate(Function):
+	def __init__(self, *terms, **kwargs):
+		terms = list(terms)
+		if not isinstance(terms[0], str):
+			terms[0] = terms[0].get_sql()
+		super().__init__("LOCATE", *terms, **kwargs)
+
+
+class Ifnull(IfNull):
+	def __init__(self, condition, term, **kwargs):
+		if not isinstance(condition, str):
+			condition = condition.get_sql()
+		if not isinstance(term, str):
+			term = term.get_sql()
+		super().__init__(condition, term, **kwargs)
+
+
+class Timestamp(Function):
+	def __init__(self, term: str, time=None, alias=None):
+		if time:
+			super().__init__("TIMESTAMP", term, time, alias=alias)
+		else:
+			super().__init__("TIMESTAMP", term, alias=alias)
 
 
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
@@ -73,12 +99,25 @@ class Cast_(Function):
 
 def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
-		Query()
-		.build_conditions(dt, filters)
+		frappe.qb.engine.build_conditions(dt, filters)
 		.select(function(PseudoColumn(fieldname)))
 		.run(**kwargs)[0][0]
 		or 0
 	)
+
+
+class SqlFunctions(Enum):
+	DayOfYear = "dayofyear"
+	Extract = "extract"
+	Locate = "locate"
+	Count = "count"
+	Sum = "sum"
+	Avg = "avg"
+	Max = "max"
+	Min = "min"
+	Abs = "abs"
+	Timestamp = "timestamp"
+	IfNull = "ifnull"
 
 
 def _max(dt, fieldname, filters=None, **kwargs):

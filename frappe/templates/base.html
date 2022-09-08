@@ -96,12 +96,7 @@
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
 	<script>
-		frappe.boot = {
-			sysdefaults: {
-				float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
-				date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
-			}
-		};
+		frappe.boot = {{ boot }}
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 	</script>

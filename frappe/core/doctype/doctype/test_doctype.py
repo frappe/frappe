@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import random
 import string
-import unittest
 from unittest.mock import patch
 
 import frappe
@@ -19,9 +18,10 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocType(unittest.TestCase):
+class TestDocType(FrappeTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -543,7 +543,7 @@ class TestDocType(unittest.TestCase):
 
 		# check invalid doctype
 		doc.append("links", {"link_doctype": "User2", "link_fieldname": "first_name"})
-		self.assertRaises(frappe.DoesNotExistError, validate_links_table_fieldnames, doc)
+		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 		doc.links = []  # reset links table
 
 		# check invalid fieldname

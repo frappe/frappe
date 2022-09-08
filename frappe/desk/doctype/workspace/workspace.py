@@ -9,7 +9,7 @@ from frappe.desk.desktop import save_new_widget
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
-from frappe.modules.export_file import export_to_files
+from frappe.modules.export_file import delete_folder, export_to_files
 
 
 class Workspace(Document):
@@ -28,8 +28,25 @@ class Workspace(Document):
 		if disable_saving_as_public():
 			return
 
-		if frappe.conf.developer_mode and self.module and self.public:
-			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+		if frappe.conf.developer_mode and self.public:
+			if self.module:
+				export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+
+			if self.has_value_changed("title") or self.has_value_changed("module"):
+				previous = self.get_doc_before_save()
+				if previous and previous.get("module") and previous.get("title"):
+					delete_folder(previous.get("module"), "Workspace", previous.get("title"))
+
+	def before_export(self, doc):
+		if doc.title != doc.label and doc.label == doc.name:
+			self.name = doc.name = doc.label = doc.title
+
+	def after_delete(self):
+		if disable_saving_as_public():
+			return
+
+		if self.module and frappe.conf.developer_mode:
+			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
 	def get_module_page_map():
@@ -121,6 +138,7 @@ class Workspace(Document):
 def disable_saving_as_public():
 	return (
 		frappe.flags.in_install
+		or frappe.flags.in_uninstall
 		or frappe.flags.in_patch
 		or frappe.flags.in_test
 		or frappe.flags.in_fixtures

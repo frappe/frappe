@@ -22,7 +22,7 @@ dependencies = [
     "PyYAML~=5.4.1",
     "RestrictedPython~=5.1",
     "WeasyPrint==52.5",
-    "Werkzeug~=2.1.2",
+    "Werkzeug~=2.2.2",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.9.3",
     "bleach-allowlist~=1.0.3",
@@ -33,7 +33,6 @@ dependencies = [
     "cryptography~=37.0.2",
     "email-reply-parser~=0.5.12",
     "git-url-parse~=1.2.2",
-    "gitdb~=4.0.7",
     "gunicorn~=20.1.0",
     "html5lib~=1.1",
     "ipython~=8.4.0",
@@ -43,7 +42,6 @@ dependencies = [
     "num2words~=0.5.10",
     "oauthlib~=3.1.0",
     "openpyxl~=3.0.7",
-    "parse~=1.19.0",
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
     "phonenumbers==8.12.40",
@@ -51,14 +49,13 @@ dependencies = [
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
     "pyOpenSSL~=20.0.1",
-    "pyasn1~=0.4.8",
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
-    "pypng~=0.0.20",
     "python-dateutil~=2.8.1",
     "pytz==2022.1",
     "rauth~=0.7.3",
-    "redis~=3.5.3",
+    "redis~=4.3.4",
+    "hiredis~=2.0.0",
     "requests-oauthlib~=1.3.0",
     "requests~=2.27.1",
     "rq~=1.10.1",
@@ -69,23 +66,16 @@ dependencies = [
     "tenacity~=8.0.1",
     "terminaltables~=3.1.0",
     "traceback-with-variables~=2.0.4",
-    "urllib3~=1.26.4",
     "xlrd~=2.0.1",
     "zxcvbn-python~=4.4.24",
     "markdownify~=0.11.2",
 
     # integration dependencies
-    "boto3~=1.17.53",
-    "braintree~=4.8.0",
+    "boto3~=1.18.49",
     "dropbox~=11.7.0",
     "google-api-python-client~=2.2.0",
-    "google-auth-httplib2~=0.1.0",
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
-    "googlemaps~=4.4.5",
-    "paytmchecksum~=1.7.0",
-    "razorpay~=1.2.0",
-    "stripe~=2.56.0",
 ]
 
 [build-system]
@@ -109,3 +99,4 @@ coverage = "~=6.4.1"
 Faker = "~=13.12.1"
 pyngrok = "~=5.0.5"
 unittest-xml-reporting = "~=3.0.4"
+watchdog = "~=2.1.9"

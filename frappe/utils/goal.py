@@ -24,7 +24,7 @@ def get_monthly_results(
 	date_format = "%m-%Y" if frappe.db.db_type != "postgres" else "MM-YYYY"
 
 	return dict(
-		frappe.db.query.build_conditions(table=goal_doctype, filters=filters)
+		frappe.qb.engine.build_conditions(table=goal_doctype, filters=filters)
 		.select(
 			DateFormat(Table[date_col], date_format).as_("month_year"),
 			Function(aggregation, goal_field),

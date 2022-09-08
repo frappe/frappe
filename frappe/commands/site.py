@@ -86,7 +86,6 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
-		new_site=True,
 	)
 
 	if set_default:
@@ -143,7 +142,7 @@ def restore(
 		is_partial,
 		validate_database_sql,
 	)
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
 
@@ -172,7 +171,7 @@ def restore(
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			encryption_key = frappe.get_site_config().encryption_key
+			encryption_key = get_or_generate_backup_encryption_key()
 			_backup.backup_decryption(encryption_key)
 
 		# Rollback on unsuccessful decryrption
@@ -269,7 +268,7 @@ def restore(
 @pass_context
 def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	from frappe.installer import extract_sql_from_archive, partial_restore
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
@@ -305,7 +304,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			key = frappe.get_site_config().encryption_key
+			key = get_or_generate_backup_encryption_key()
 
 		_backup.backup_decryption(key)
 
@@ -490,6 +489,32 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 		frappe.connect(site=site)
 		try:
 			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email, password)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("add-user")
+@click.argument("email")
+@click.option("--first-name")
+@click.option("--last-name")
+@click.option("--password")
+@click.option("--user-type")
+@click.option("--add-role", multiple=True)
+@click.option("--send-welcome-email", default=False, is_flag=True)
+@pass_context
+def add_user_for_sites(
+	context, email, first_name, last_name, user_type, send_welcome_email, password, add_role
+):
+	"Add user to a site"
+	import frappe.utils.user
+
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -844,9 +869,10 @@ def _drop_site(
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
 	)
+	archived_sites_path = os.path.realpath(archived_sites_path)
 
+	click.secho(f"Moving site to archive under {archived_sites_path}", fg="green")
 	os.makedirs(archived_sites_path, exist_ok=True)
-
 	move(archived_sites_path, site)
 
 
@@ -1275,8 +1301,38 @@ def handle_data(data: dict, format="json"):
 		render_table(data)
 
 
+def add_new_user(
+	email,
+	first_name=None,
+	last_name=None,
+	user_type="System User",
+	send_welcome_email=False,
+	password=None,
+	role=None,
+):
+	user = frappe.new_doc("User")
+	user.update(
+		{
+			"name": email,
+			"email": email,
+			"enabled": 1,
+			"first_name": first_name or email,
+			"last_name": last_name,
+			"user_type": user_type,
+			"send_welcome_email": 1 if send_welcome_email else 0,
+		}
+	)
+	user.insert()
+	user.add_roles(*role)
+	if password:
+		from frappe.utils.password import update_password
+
+		update_password(user=user.name, pwd=password)
+
+
 commands = [
 	add_system_manager,
+	add_user_for_sites,
 	backup,
 	drop_site,
 	install_app,

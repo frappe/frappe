@@ -539,9 +539,9 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
-	def get_permlevel_access(self, permission_type="read", parenttype=None):
+	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
-		roles = frappe.get_roles()
+		roles = frappe.get_roles(user)
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:
@@ -666,7 +666,7 @@ def is_single(doctype):
 
 
 def get_parent_dt(dt):
-	parent_dt = frappe.db.get_all(
+	parent_dt = frappe.get_all(
 		"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=dt), limit=1
 	)
 	return parent_dt and parent_dt[0].parent or ""
@@ -764,7 +764,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters=filters, pluck="name"):
+	for doctype in frappe.get_all("DocType", filters=filters, pluck="name"):
 		try:
 			dropped_columns = trim_table(doctype, dry_run=dry_run)
 			if dropped_columns:

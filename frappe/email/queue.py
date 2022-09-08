@@ -3,9 +3,8 @@
 
 import frappe
 from frappe import _, msgprint
-from frappe.query_builder import DocType, Interval
-from frappe.query_builder.functions import Now
 from frappe.utils import cint, get_url, now_datetime
+from frappe.utils.data import getdate
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 
@@ -16,26 +15,17 @@ def get_emails_sent_this_month(email_account=None):
 
 	if email_account=None, email account filter is not applied while counting
 	"""
-	q = """
-		SELECT
-			COUNT(*)
-		FROM
-			`tabEmail Queue`
-		WHERE
-			`status`='Sent'
-			AND
-			EXTRACT(YEAR_MONTH FROM `creation`) = EXTRACT(YEAR_MONTH FROM NOW())
-	"""
+	today = getdate()
+	month_start = today.replace(day=1)
 
-	q_args = {}
-	if email_account is not None:
-		if email_account:
-			q += " AND email_account = %(email_account)s"
-			q_args["email_account"] = email_account
-		else:
-			q += " AND (email_account is null OR email_account='')"
+	filters = {
+		"status": "Sent",
+		"creation": [">=", str(month_start)],
+	}
+	if email_account:
+		filters["email_account"] = email_account
 
-	return frappe.db.sql(q, q_args)[0][0]
+	return frappe.db.count("Email Queue", filters=filters)
 
 
 def get_emails_sent_today(email_account=None):
@@ -148,7 +138,7 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	if cint(frappe.defaults.get_defaults().get("hold_queue")) == 1:
+	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
 	for row in get_queue():

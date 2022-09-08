@@ -19,7 +19,7 @@
   "hide_cta",
   "enable_email_notification",
   "disable_comments",
-  "disable_feedback",
+  "disable_likes",
   "section_break_5",
   "blog_intro",
   "content_type",
@@ -195,17 +195,17 @@
    "length": 60
   },
   {
-   "default": "0",
-   "fieldname": "disable_feedback",
-   "fieldtype": "Check",
-   "label": "Disable Feedback"
-  },
-  {
    "default": "1",
-   "description": "Enable email notification for any comment or feedback on your Blog Post.",
+   "description": "Enable email notification for any comment or likes received on your Blog Post.",
    "fieldname": "enable_email_notification",
    "fieldtype": "Check",
    "label": "Enable Email Notification"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_likes",
+   "fieldtype": "Check",
+   "label": "Disable Likes"
   }
  ],
  "has_web_view": 1,
@@ -214,7 +214,8 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-21 14:42:19.282612",
+ "make_attachments_public": 1,
+ "modified": "2022-08-24 07:10:08.620136",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

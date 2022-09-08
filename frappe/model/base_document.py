@@ -20,7 +20,7 @@ from frappe.modules import load_doctype_module
 from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 
-max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
+max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),
@@ -671,10 +671,19 @@ class BaseDocument:
 
 			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
 
+		def has_content(df):
+			value = cstr(self.get(df.fieldname))
+			has_text_content = strip_html(value).strip()
+			has_img_tag = "<img" in value
+			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+				return True
+			else:
+				return has_text_content
+
 		missing = []
 
 		for df in self.meta.get("fields", {"reqd": ("=", 1)}):
-			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
+			if self.get(df.fieldname) in (None, []) or not has_content(df):
 				missing.append((df.fieldname, get_msg(df)))
 
 		# check for missing parent and parenttype

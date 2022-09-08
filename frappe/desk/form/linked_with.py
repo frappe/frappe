@@ -136,7 +136,7 @@ class SubmittableDocumentTree:
 	def get_submittable_doctypes(self) -> list[str]:
 		"""Returns list of submittable doctypes."""
 		if not self._submittable_doctypes:
-			self._submittable_doctypes = frappe.db.get_all("DocType", {"is_submittable": 1}, pluck="name")
+			self._submittable_doctypes = frappe.get_all("DocType", {"is_submittable": 1}, pluck="name")
 		return self._submittable_doctypes
 
 
@@ -288,9 +288,7 @@ def get_references_across_doctypes_by_dynamic_link_field(
 	for doctype, fieldname, doctype_fieldname in links:
 		try:
 			filters = [[doctype_fieldname, "in", to_doctypes]] if to_doctypes else []
-			for linked_to in frappe.db.get_all(
-				doctype, pluck=doctype_fieldname, filters=filters, distinct=1
-			):
+			for linked_to in frappe.get_all(doctype, pluck=doctype_fieldname, filters=filters, distinct=1):
 				if linked_to:
 					links_by_doctype[linked_to].append(
 						{"doctype": doctype, "fieldname": fieldname, "doctype_fieldname": doctype_fieldname}
@@ -330,17 +328,17 @@ def get_referencing_documents(
 
 	if not link_info.get("is_child"):
 		filters.extend(parent_filters or [])
-		return {from_table: frappe.db.get_all(from_table, filters, pluck="name")}
+		return {from_table: frappe.get_all(from_table, filters, pluck="name")}
 
 	filters.extend(child_filters or [])
-	res = frappe.db.get_all(from_table, filters=filters, fields=["name", "parenttype", "parent"])
+	res = frappe.get_all(from_table, filters=filters, fields=["name", "parenttype", "parent"])
 	documents = defaultdict(list)
 
 	for parent, rows in itertools.groupby(res, key=lambda row: row["parenttype"]):
 		if allowed_parents and parent not in allowed_parents:
 			continue
 		filters = (parent_filters or []) + [["name", "in", tuple(row.parent for row in rows)]]
-		documents[parent].extend(frappe.db.get_all(parent, filters=filters, pluck="name") or [])
+		documents[parent].extend(frappe.get_all(parent, filters=filters, pluck="name") or [])
 	return documents
 
 

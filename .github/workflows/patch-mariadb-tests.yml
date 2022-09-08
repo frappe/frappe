@@ -1,21 +1,43 @@
-name: Patch
+name: Patch (MariaDB)
 
-on: [pull_request, workflow_dispatch]
-
+on:
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
-  group: patch-mariadb-develop-${{ github.event.number }}
+  group: patch-mariadb-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  checkrun:
+    name: Build Check
     runs-on: ubuntu-latest
-    timeout-minutes: 60
 
-    name: Patch Test
+    outputs:
+      build: ${{ steps.check-build.outputs.build }}
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Check if build should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+
+  test:
+    name: Patch
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    timeout-minutes: 60
 
     services:
       mariadb:
@@ -30,6 +52,13 @@ jobs:
       - name: Clone
         uses: actions/checkout@v3
 
+      - name: Check for Merge Conflicts
+        run: |
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
+              then echo "Found merge conflicts"
+              exit 1
+          fi
+
       - name: Setup Python
         uses: "gabrielfalcao/pyenv-action@v10"
         with:
@@ -38,24 +67,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16
           check-latest: true
 
-      - name: Check if build should be run
-        id: check-build
-        run: |
-          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
-        env:
-          TYPE: "server"
-          PR_NUMBER: ${{ github.event.number }}
-          REPO_NAME: ${{ github.repository }}
-
       - name: Add to Hosts
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
@@ -64,26 +82,11 @@ jobs:
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
 
-      - name: Cache node modules
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
       - name: Get yarn cache directory path
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v3
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -92,25 +95,18 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
-        env:
-          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
-          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
-          TYPE: server
-
-      - name: Install
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           pip install frappe-bench
           pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
-          DB: mariadb
+          BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
+          AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: server
+          DB: mariadb
 
       - name: Run Patch Tests
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/
           wget https://frappeframework.com/files/v10-frappe.sql.gz
@@ -120,23 +116,28 @@ jobs:
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
 
-          pyenv global $(pyenv versions | grep '3.7')
-          for version in $(seq 12 13)
-          do
-              echo "Updating to v$version"
-              branch_name="version-$version-hotfix"
-              git fetch --depth 1 upstream $branch_name:$branch_name
-              git checkout -q -f $branch_name
-              pip install -U frappe-bench
+          function update_to_version() {
+            version=$1
+            branch_name="version-$version-hotfix"
+            echo "Updating to v$version"
+            git fetch --depth 1 upstream $branch_name:$branch_name
+            git checkout -q -f $branch_name
+            pip install -U frappe-bench
 
-              rm -rf ~/frappe-bench/env
-              bench -v setup env
-              bench --site test_site migrate
-          done
+            rm -rf ~/frappe-bench/env
+            bench -v setup env
+            bench --site test_site migrate
+          }
+
+          pyenv global $(pyenv versions | grep '3.7')
+          update_to_version 12
+          update_to_version 13
+
+          pyenv global $(pyenv versions | grep '3.10')
+          update_to_version 14
 
           echo "Updating to last commit"
           git checkout -q -f "$GITHUB_SHA"
-          pyenv global $(pyenv versions | grep '3.10')
           rm -rf ~/frappe-bench/env
           bench -v setup env
           bench --site test_site migrate

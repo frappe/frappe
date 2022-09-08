@@ -11,6 +11,7 @@ import frappe.share
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
@@ -30,7 +31,7 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	if not frappe.db.exists(doctype, name):
+	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
 		return []
 
 	doc = frappe.get_doc(doctype, name)
@@ -177,7 +178,7 @@ def add_comments(doc, docinfo):
 
 
 def get_milestones(doctype, name):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Milestone",
 		fields=["creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=name),
@@ -248,7 +249,7 @@ def get_comments(
 
 
 def get_point_logs(doctype, docname):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Energy Point Log",
 		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
 		fields=["*"],
@@ -451,7 +452,9 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		if not meta or not (meta.title_field and meta.show_title_field_in_link):
 			continue
 
-		link_title = frappe.db.get_value(doctype, doc.get(field.fieldname), meta.title_field, cache=True)
+		link_title = frappe.db.get_value(
+			doctype, doc.get(field.fieldname), meta.title_field, cache=True, order_by=None
+		)
 		link_titles.update({doctype + "::" + doc.get(field.fieldname): link_title})
 
 	return link_titles

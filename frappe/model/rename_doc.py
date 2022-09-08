@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
@@ -46,7 +47,7 @@ def update_document_title(
 
 	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
 	for obj in [docname, updated_title, updated_name]:
-		if not isinstance(obj, (str, type(None))):
+		if not isinstance(obj, (str, NoneType)):
 			frappe.throw(f"{obj=} must be of type str or None")
 
 	# handle bad API usages
@@ -196,14 +197,6 @@ def rename_doc(
 	if not merge:
 		rename_password(doctype, old, new)
 
-	# update user_permissions
-	DefaultValue = frappe.qb.DocType("DefaultValue")
-	frappe.qb.update(DefaultValue).set(DefaultValue.defvalue, new).where(
-		(DefaultValue.parenttype == "User Permission")
-		& (DefaultValue.defkey == doctype)
-		& (DefaultValue.defvalue == old)
-	).run()
-
 	if merge:
 		new_doc.add_comment("Edit", _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
 	else:
@@ -236,7 +229,7 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 
 	for user in common_assignments:
 		# delete todos linked to old doc
-		todos = frappe.db.get_all(
+		todos = frappe.get_all(
 			"ToDo",
 			{
 				"owner": user,

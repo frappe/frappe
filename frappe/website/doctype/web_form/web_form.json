@@ -5,55 +5,52 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "form_tab",
   "title",
   "route",
+  "published",
+  "column_break_1",
   "doc_type",
   "module",
-  "column_break_4",
   "is_standard",
-  "is_multi_step_form",
-  "published",
+  "section_break_1",
+  "introduction_text",
+  "web_form_fields",
+  "settings_tab",
   "login_required",
-  "route_to_success_link",
-  "allow_edit",
   "allow_multiple",
-  "apply_document_permissions",
-  "show_in_grid",
+  "allow_edit",
   "allow_delete",
+  "column_break_2",
+  "apply_document_permissions",
   "allow_print",
   "print_format",
   "allow_comments",
   "show_attachments",
   "allow_incomplete",
-  "introduction",
-  "introduction_text",
-  "fields",
-  "web_form_fields",
+  "section_break_2",
   "max_attachment_size",
-  "client_script_section",
-  "client_script",
-  "custom_css_section",
-  "custom_css",
-  "actions",
-  "button_label",
-  "success_message",
-  "success_url",
-  "sidebar_settings",
+  "section_break_3",
+  "list_setting_message",
+  "show_list",
+  "list_title",
+  "list_columns",
+  "section_break_4",
   "show_sidebar",
-  "sidebar_items",
-  "payments",
-  "accept_payment",
-  "payment_gateway",
-  "payment_button_label",
-  "payment_button_help",
-  "column_break_28",
-  "amount_based_on_field",
-  "amount_field",
-  "amount",
-  "currency",
-  "advanced",
-  "web_page_link_text",
-  "breadcrumbs"
+  "website_sidebar",
+  "customization_tab",
+  "button_label",
+  "banner_image",
+  "column_break_3",
+  "breadcrumbs",
+  "section_break_5",
+  "success_title",
+  "success_url",
+  "column_break_4",
+  "success_message",
+  "section_break_6",
+  "client_script",
+  "custom_css"
  ],
  "fields": [
   {
@@ -85,10 +82,6 @@
    "options": "Module Def"
   },
   {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
@@ -108,35 +101,21 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.login_required",
-   "fieldname": "route_to_success_link",
-   "fieldtype": "Check",
-   "label": "Route to Success Link"
-  },
-  {
-   "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
-   "label": "Allow Edit"
+   "label": "Allow Editing After Submit"
   },
   {
    "default": "0",
    "depends_on": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
-   "label": "Allow Multiple"
+   "label": "Allow Multiple Responses"
   },
   {
    "default": "0",
-   "depends_on": "allow_multiple",
-   "fieldname": "show_in_grid",
-   "fieldtype": "Check",
-   "label": "Show as Grid"
-  },
-  {
-   "default": "0",
-   "depends_on": "allow_multiple",
+   "depends_on": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
    "label": "Allow Delete"
@@ -176,21 +155,10 @@
    "label": "Allow Incomplete Forms"
   },
   {
-   "collapsible": 1,
-   "fieldname": "introduction",
-   "fieldtype": "Section Break",
-   "label": "Introduction"
-  },
-  {
    "fieldname": "introduction_text",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
    "label": "Introduction"
-  },
-  {
-   "fieldname": "fields",
-   "fieldtype": "Section Break",
-   "label": "Fields"
   },
   {
    "fieldname": "web_form_fields",
@@ -204,32 +172,19 @@
    "label": "Max Attachment Size (in MB)"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "client_script",
-   "fieldname": "client_script_section",
-   "fieldtype": "Section Break",
-   "label": "Client Script"
-  },
-  {
    "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
    "fieldname": "client_script",
    "fieldtype": "Code",
    "label": "Client Script"
   },
   {
-   "collapsible": 1,
-   "fieldname": "actions",
-   "fieldtype": "Section Break",
-   "label": "Actions"
-  },
-  {
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
-   "label": "Button Label"
+   "label": "Submit Button Label"
   },
   {
-   "description": "Message to be displayed on successful completion (only for Guest users)",
+   "description": "Message to be displayed on successful completion",
    "fieldname": "success_message",
    "fieldtype": "Text",
    "label": "Success Message"
@@ -241,116 +196,23 @@
    "label": "Success URL"
   },
   {
-   "collapsible": 1,
-   "fieldname": "sidebar_settings",
-   "fieldtype": "Section Break",
-   "label": "Sidebar Settings"
-  },
-  {
    "default": "0",
    "fieldname": "show_sidebar",
    "fieldtype": "Check",
    "label": "Show Sidebar"
   },
   {
-   "fieldname": "sidebar_items",
-   "fieldtype": "Table",
-   "label": "Sidebar Items",
-   "options": "Portal Menu Item"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "accept_payment",
-   "fieldname": "payments",
-   "fieldtype": "Section Break",
-   "label": "Payments"
-  },
-  {
-   "default": "0",
-   "fieldname": "accept_payment",
-   "fieldtype": "Check",
-   "label": "Accept Payment"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_gateway",
-   "fieldtype": "Link",
-   "label": "Payment Gateway",
-   "options": "Payment Gateway"
-  },
-  {
-   "default": "Buy Now",
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_label",
-   "fieldtype": "Data",
-   "label": "Button Label"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "payment_button_help",
-   "fieldtype": "Text",
-   "label": "Button Help"
-  },
-  {
-   "fieldname": "column_break_28",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "depends_on": "accept_payment",
-   "fieldname": "amount_based_on_field",
-   "fieldtype": "Check",
-   "label": "Amount Based On Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && doc.amount_based_on_field",
-   "fieldname": "amount_field",
-   "fieldtype": "Select",
-   "label": "Amount Field"
-  },
-  {
-   "depends_on": "eval:doc.accept_payment && !doc.amount_based_on_field",
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "label": "Amount"
-  },
-  {
-   "depends_on": "accept_payment",
-   "fieldname": "currency",
-   "fieldtype": "Link",
-   "label": "Currency",
-   "options": "Currency"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "advanced",
-   "fieldtype": "Section Break",
-   "label": "Advanced"
-  },
-  {
-   "description": "Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`",
-   "fieldname": "web_page_link_text",
-   "fieldtype": "Data",
-   "label": "Web Page Link Text"
-  },
-  {
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
-   "label": "Breadcrumbs"
+   "label": "Breadcrumbs",
+   "max_height": "140px"
   },
   {
    "fieldname": "custom_css",
    "fieldtype": "Code",
    "label": "Custom CSS",
    "options": "CSS"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "custom_css",
-   "fieldname": "custom_css_section",
-   "fieldtype": "Section Break",
-   "label": "Custom CSS"
   },
   {
    "default": "0",
@@ -360,16 +222,119 @@
   },
   {
    "default": "0",
-   "fieldname": "is_multi_step_form",
+   "depends_on": "login_required",
+   "fieldname": "show_list",
    "fieldtype": "Check",
-   "label": "Is Multi Step Form"
+   "label": "Show List"
+  },
+  {
+   "depends_on": "eval: doc.login_required && doc.show_list",
+   "fieldname": "list_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "depends_on": "eval: doc.login_required && doc.show_list",
+   "fieldname": "list_columns",
+   "fieldtype": "Table",
+   "label": "List Columns",
+   "options": "Web Form List Column"
+  },
+  {
+   "fieldname": "website_sidebar",
+   "fieldtype": "Link",
+   "label": "Website Sidebar",
+   "options": "Website Sidebar"
+  },
+  {
+   "fieldname": "list_setting_message",
+   "fieldtype": "HTML",
+   "label": "List Setting Message"
+  },
+  {
+   "fieldname": "customization_tab",
+   "fieldtype": "Tab Break",
+   "label": "Customization"
+  },
+  {
+   "fieldname": "success_title",
+   "fieldtype": "Data",
+   "label": "Success Title"
+  },
+  {
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Banner Image"
+  },
+  {
+   "fieldname": "form_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_sidebar",
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Sidebar Settings"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.success_title || doc.success_message || doc.success_url",
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "After Submission"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.client_script || doc.custom_css",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Scripting / Style"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-23 15:44:41.385001",
+ "modified": "2022-08-17 18:58:49.451658",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

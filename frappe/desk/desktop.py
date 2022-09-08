@@ -40,7 +40,6 @@ class Workspace:
 		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
 		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
-
 		if (
 			self.doc
 			and self.doc.module
@@ -173,7 +172,7 @@ class Workspace:
 
 		if not exists and frappe.db.exists(name):
 			if not frappe.db.get_value("DocType", name, "issingle"):
-				exists = bool(frappe.db.get_all(name, limit=1))
+				exists = bool(frappe.get_all(name, limit=1))
 			else:
 				exists = True
 			self.table_counts[name] = exists

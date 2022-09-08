@@ -1,12 +1,12 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import time
-import unittest
 
 import frappe
 import frappe.utils
 from frappe.auth import LoginAttemptTracker
 from frappe.frappeclient import AuthError, FrappeClient
+from frappe.tests.utils import FrappeTestCase
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -19,9 +19,10 @@ def add_user(email, password, username=None, mobile_no=None):
 	frappe.db.commit()
 
 
-class TestAuth(unittest.TestCase):
+class TestAuth(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		cls.HOST_NAME = frappe.get_site_config().host_name or frappe.utils.get_site_url(
 			frappe.local.site
 		)
@@ -97,6 +98,7 @@ class TestAuth(unittest.TestCase):
 
 	def test_deny_multiple_login(self):
 		self.set_system_settings("deny_multiple_sessions", 1)
+		self.addCleanup(self.set_system_settings, "deny_multiple_sessions", 0)
 
 		first_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		first_login.get_list("ToDo")
@@ -113,8 +115,16 @@ class TestAuth(unittest.TestCase):
 			second_login.get_list("ToDo")
 		third_login.get_list("ToDo")
 
+	def test_disable_user_pass_login(self):
+		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
+		self.set_system_settings("disable_user_pass_login", 1)
+		self.addCleanup(self.set_system_settings, "disable_user_pass_login", 0)
 
-class TestLoginAttemptTracker(unittest.TestCase):
+		with self.assertRaises(Exception):
+			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
+
+
+class TestLoginAttemptTracker(FrappeTestCase):
 	def test_account_lock(self):
 		"""Make sure that account locks after `n consecutive failures"""
 		tracker = LoginAttemptTracker(

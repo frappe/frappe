@@ -6,39 +6,38 @@ frappe.ui.form.FormTour = class FormTour {
 
 	init_driver() {
 		this.driver = new frappe.Driver({
-			className: 'frappe-driver',
+			className: "frappe-driver",
 			allowClose: false,
 			padding: 10,
 			overlayClickNext: true,
 			keyboardControl: true,
-			nextBtnText: 'Next',
-			prevBtnText: 'Previous',
+			nextBtnText: "Next",
+			prevBtnText: "Previous",
 			opacity: 0.25,
 			onHighlighted: (step) => {
 				// if last step is to save, then attach a listener to save button
 				if (step.options.is_save_step) {
-					$(step.options.element).one('click', () => this.driver.reset());
+					$(step.options.element).one("click", () => this.driver.reset());
 					this.driver.overlay.refresh();
 				}
 
 				// focus on input
-				const $input = $(step.node).find('input').get(0);
-				if ($input)
-					frappe.utils.sleep(200).then(() => $input.focus());
-			}
+				const $input = $(step.node).find("input").get(0);
+				if ($input) frappe.utils.sleep(200).then(() => $input.focus());
+			},
 		});
 
-		frappe.router.on('change', () => this.driver.reset());
-		this.frm.layout.sections.forEach(section => section.collapse(false));
+		frappe.router.on("change", () => this.driver.reset());
+		this.frm.layout.sections.forEach((section) => section.collapse(false));
 	}
 
 	async init({ tour_name, on_finish }) {
 		if (tour_name) {
-			this.tour = await frappe.db.get_doc('Form Tour', tour_name);
+			this.tour = await frappe.db.get_doc("Form Tour", tour_name);
 		} else {
-			const doctype_tour_exists = await frappe.db.exists('Form Tour', this.frm.doctype);
+			const doctype_tour_exists = await frappe.db.exists("Form Tour", this.frm.doctype);
 			if (doctype_tour_exists) {
-				this.tour = await frappe.db.get_doc('Form Tour', this.frm.doctype);
+				this.tour = await frappe.db.get_doc("Form Tour", this.frm.doctype);
 			} else {
 				this.tour = { steps: frappe.tour[this.frm.doctype] };
 			}
@@ -47,19 +46,18 @@ frappe.ui.form.FormTour = class FormTour {
 		if (on_finish) this.on_finish = on_finish;
 
 		this.init_driver();
-		if (this.tour.include_name_field)
-			this.include_name_field();
+		if (this.tour.include_name_field) this.include_name_field();
 		this.build_steps();
 		this.update_driver_steps();
 	}
 
 	include_name_field() {
 		const name_step = {
-			"description": __("Enter a name for this {0}", [this.frm.doctype]),
-			"fieldname": "__newname",
-			"title": __("Document Name"),
-			"position": "right",
-			"is_table_field": 0
+			description: __("Enter a name for this {0}", [this.frm.doctype]),
+			fieldname: "__newname",
+			title: __("Document Name"),
+			position: "right",
+			is_table_field: 0,
 		};
 		this.tour.steps.unshift(name_step);
 	}
@@ -80,9 +78,9 @@ frappe.ui.form.FormTour = class FormTour {
 			const driver_step = this.get_step(step, on_next);
 			this.driver_steps.push(driver_step);
 
-			if (step.fieldtype == 'Table') this.handle_table_step(step);
+			if (step.fieldtype == "Table") this.handle_table_step(step);
 			if (step.is_table_field) this.handle_child_table_step(step);
-			if (step.fieldtype == 'Attach Image') this.handle_attach_image_steps(step);
+			if (step.fieldtype == "Attach Image") this.handle_attach_image_steps(step);
 		});
 
 		if (this.tour.save_on_complete) {
@@ -113,8 +111,8 @@ frappe.ui.form.FormTour = class FormTour {
 		return {
 			element,
 			name,
-			popover: { title, description, position: frappe.router.slug(position || 'Bottom') },
-			onNext: on_next
+			popover: { title, description, position: frappe.router.slug(position || "Bottom") },
+			onNext: on_next,
 		};
 	}
 
@@ -160,7 +158,7 @@ frappe.ui.form.FormTour = class FormTour {
 			if (table_has_rows) {
 				// table already has rows
 				// then just edit the first one on next step
-				const curr_driver_step = this.driver_steps.find(s => s.name == curr_step.name);
+				const curr_driver_step = this.driver_steps.find((s) => s.name == curr_step.name);
 				curr_driver_step.onNext = () => {
 					if (this.is_next_condition_satisfied(curr_step)) {
 						this.expand_row_and_proceed(curr_step, curr_step.idx);
@@ -169,7 +167,6 @@ frappe.ui.form.FormTour = class FormTour {
 					}
 				};
 				this.update_driver_steps();
-
 			} else {
 				this.add_new_row_step(curr_step);
 			}
@@ -185,13 +182,13 @@ frappe.ui.form.FormTour = class FormTour {
 				if (!cur_frm.cur_grid) {
 					this.driver.preventMove();
 				}
-			}
+			},
 		};
 		this.driver_steps.push(add_row_step);
 
 		// setup a listener on add row button
 		// so, once the row is added, move to next step automatically
-		$($add_row).one('click', () => {
+		$($add_row).one("click", () => {
 			this.expand_row_and_proceed(step, step.idx + 1); // +1 since add row step is added
 		});
 	}
@@ -207,8 +204,8 @@ frappe.ui.form.FormTour = class FormTour {
 
 		// setup a listener on close row button
 		// so, once the row is closed, move to next step automatically
-		const $close_row = '.grid-row-open .grid-collapse-row';
-		$($close_row).one('click', () => {
+		const $close_row = ".grid-row-open .grid-collapse-row";
+		$($close_row).one("click", () => {
 			const next_step = this.get_next_step();
 			const next_element = next_step.options.is_save_step ? null : next_step.node;
 
@@ -233,7 +230,6 @@ frappe.ui.form.FormTour = class FormTour {
 			// next step highlights parent field
 			// so, add a step to prompt user to collapse grid form
 			this.add_collapse_row_step();
-
 		} else if (this.tour.save_on_complete) {
 			// if last step & save on complete is checked
 			// add a step to prompt user to collapse grid form
@@ -243,7 +239,7 @@ frappe.ui.form.FormTour = class FormTour {
 	}
 
 	add_collapse_row_step() {
-		const $close_row = '.grid-row-open .grid-collapse-row';
+		const $close_row = ".grid-row-open .grid-collapse-row";
 		const close_row_step = {
 			element: $close_row,
 			popover: { title: __("Collapse"), description: "", position: "left" },
@@ -251,7 +247,7 @@ frappe.ui.form.FormTour = class FormTour {
 				if (cur_frm.cur_grid) {
 					this.driver.preventMove();
 				}
-			}
+			},
 		};
 		this.driver_steps.push(close_row_step);
 	}
@@ -268,18 +264,22 @@ frappe.ui.form.FormTour = class FormTour {
 				title: __("Save"),
 				description: "",
 				position: "left",
-				doneBtnText: __("Save")
+				doneBtnText: __("Save"),
 			},
 			onNext: () => {
 				this.frm.save();
-			}
+			},
 		};
 		this.driver_steps.push(save_step);
-		frappe.ui.form.on(this.frm.doctype, 'after_save', () => this.on_finish && this.on_finish());
+		frappe.ui.form.on(
+			this.frm.doctype,
+			"after_save",
+			() => this.on_finish && this.on_finish()
+		);
 	}
 
 	handle_attach_image_steps() {
-		$('.btn-attach').one('click', () => {
+		$(".btn-attach").one("click", () => {
 			setTimeout(() => {
 				const modal_element = $(".file-uploader").closest(".modal-content");
 				const attach_dialog_step = {
@@ -290,8 +290,8 @@ frappe.ui.form.FormTour = class FormTour {
 						title: __("Select an Image"),
 						description: "",
 						position: "left",
-						doneBtnText: __("Next")
-					}
+						doneBtnText: __("Next"),
+					},
 				};
 
 				this.driver_steps.splice(this.driver.currentStep + 1, 0, attach_dialog_step);
@@ -299,10 +299,9 @@ frappe.ui.form.FormTour = class FormTour {
 				this.driver.moveNext();
 				this.driver.overlay.refresh();
 
-				modal_element.closest('.modal').on('hidden.bs.modal', () => {
+				modal_element.closest(".modal").on("hidden.bs.modal", () => {
 					this.driver.moveNext();
 				});
-
 			}, 500);
 		});
 	}

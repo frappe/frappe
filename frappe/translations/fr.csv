@@ -327,7 +327,7 @@ Active Domains,Domaines Actifs,
 Active Sessions,Sessions Actives,
 Activity Log,Journal d'Activité,
 Activity log of all users.,Journal d&#39;activité de tous les utilisateurs.,
-Add / Manage Email Domains.,Ajouter / Gérer les Noms de Domaines des Emails,
+Add / Manage Email Domains.,Ajouter / Gérer les serveurs de courriels,
 Add / Update,Ajouter / mettre à jour,
 Add A New Rule,Ajouter une Nouvelle Règle,
 Add Another Comment,Ajouter un Autre Commentaire,
@@ -959,8 +959,8 @@ Eg. smsgateway.com/api/send_sms.cgi,Eg. smsgateway.com / api / send_sms.cgi,
 Email Account Name,Nom du Compte Email,
 Email Account added multiple times,Compte Email ajouté plusieurs fois,
 Email Addresses,Adresse Email,
-Email Domain,Nom de Domaine Email,
-"Email Domain not configured for this account, Create one?","Nom de Domain de l'Email non configuré pour ce compte, En créer un ?",
+Email Domain,Serveur de courriels,
+"Email Domain not configured for this account, Create one?","Serveur de courriels non configuré pour ce compte, En créer un ?",
 Email Flag Queue,Liste d'Attente des d'Emails Marqués,
 Email Footer Address,Pied de Page Email,
 Email Group,Groupe Email,
@@ -3619,7 +3619,7 @@ Upload {0} files,Télécharger des fichiers {0},
 Uploaded To Google Drive,Téléchargé sur Google Drive,
 Uploaded successfully,Envoyé avec succès,
 Uploading {0} of {1},Téléchargement de {0} sur {1},
-Use SSL for Outgoing,Utiliser SSL pour les sorties,
+Use SSL,Utiliser SSL
 Use Same Name,Utiliser le même nom,
 Used For Google Maps Integration.,Utilisé pour l&#39;intégration de Google Maps.,
 User ID Property,Propriété ID utilisateur,
@@ -3774,12 +3774,10 @@ Quarterly,Trimestriel,
 Queued,File d'Attente,
 Quick Entry,Écriture Rapide,
 Reason,Raison,
-Refreshing,Rafraîchissant,
+Refreshing,Actualisation,
 Rename,Renommer,
 Reset,Réinitialiser,
 Review,La revue,
-Room,Chambre,
-Room Type,Type de chambre,
 Save,sauvegarder,
 Search results for,Résultats de recherche pour,
 Select All,Sélectionner Tout,
@@ -4726,3 +4724,18 @@ Always use this email address as sender address,Toujours utiliser cet email comm
 Always use this name as sender name,Toujours utiliser ce nom comme expediteur
 Login to {0},Se connecter à {0}
 Add / Remove Fields,Ajouter / Supprimer des colonnes
+Use STARTTLS,Utiliser le STARTTLS
+Outgoing Settings,Configurations des Courriels Sortant
+Incoming Settings,Configurations des Courriels Entrant
+Incoming Server,Serveur de Courriel Entrant
+Outgoing Server,Serveur de Courriel Sortant
+Use different Email ID,Utiliser une authentification email différente
+Alternative Email ID,Email de connexion alternatif
+Incoming (POP/IMAP) Settings,Configuration POP/IMAP
+IMAP Details,Détails IMAP
+IMAP Folder,Dossier IMAP à récupérer
+Document Linking,Lien vers les documents
+Auto Reply,Réponse automatique
+Footer Content,Contenue du pied de page
+Brand Logo,Logo de la marque
+Folder Name,Nom du dossier

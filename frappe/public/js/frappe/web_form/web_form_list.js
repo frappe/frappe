@@ -6,104 +6,146 @@ export default class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		frappe.web_form_list = this;
-		this.wrapper = document.getElementById("list-table");
+		this.wrapper = $(".web-list-table");
 		this.make_actions();
 		this.make_filters();
-		$('.link-btn').remove();
 	}
 
 	refresh() {
-		if (this.table) {
-			Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
-			let check = document.getElementById('select-all');
-			if (check)
-				check.checked = false;
-		}
 		this.rows = [];
-		this.page_length = 20;
 		this.web_list_start = 0;
+		this.page_length = 10;
 
 		frappe.run_serially([
 			() => this.get_list_view_fields(),
 			() => this.get_data(),
+			() => this.remove_more(),
 			() => this.make_table(),
-			() => this.create_more()
+			() => this.create_more(),
 		]);
+	}
+
+	remove_more() {
+		$(".more").remove();
 	}
 
 	make_filters() {
 		this.filters = {};
 		this.filter_input = [];
-		const filter_area = document.getElementById('list-filters');
+		let filter_area = $(".web-list-filters");
 
-		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
-			web_form_name: this.web_form_name
-		}).then(response => {
-			let fields = response.message;
-			fields.forEach(field => {
-				let col = document.createElement('div.col-sm-4');
-				col.classList.add('col', 'col-sm-3');
-				filter_area.appendChild(col);
-				if (field.default) this.add_filter(field.fieldname, field.default, field.fieldtype);
+		frappe
+			.call("frappe.website.doctype.web_form.web_form.get_web_form_filters", {
+				web_form_name: this.web_form_name,
+			})
+			.then((response) => {
+				let fields = response.message;
+				fields.length && filter_area.removeClass("hide");
+				fields.forEach((field) => {
+					if (["Text Editor", "Text", "Small Text"].includes(field.fieldtype)) {
+						field.fieldtype = "Data";
+					}
 
-				let input = frappe.ui.form.make_control({
-					df: {
-						fieldtype: field.fieldtype,
-						fieldname: field.fieldname,
-						options: field.options,
-						only_select: true,
-						label: __(field.label),
-						onchange: (event) => {
-							$('#more').remove();
-							this.add_filter(field.fieldname, input.value, field.fieldtype);
-							this.refresh();
-						}
-					},
-					parent: col,
-					value: field.default,
-					render_input: 1,
+					if (["Table", "Signature"].includes(field.fieldtype)) {
+						return;
+					}
+
+					let input = frappe.ui.form.make_control({
+						df: {
+							fieldtype: field.fieldtype,
+							fieldname: field.fieldname,
+							options: field.options,
+							input_class: "input-xs",
+							only_select: true,
+							label: __(field.label),
+							onchange: (event) => {
+								this.add_filter(field.fieldname, input.value, field.fieldtype);
+								this.refresh();
+							},
+						},
+						parent: filter_area,
+						render_input: 1,
+						only_input: field.fieldtype == "Check" ? false : true,
+					});
+
+					$(input.wrapper)
+						.addClass("col-md-2")
+						.attr("title", __(field.label))
+						.tooltip({
+							delay: { show: 600, hide: 100 },
+							trigger: "hover",
+						});
+
+					input.$input.attr("placeholder", __(field.label));
+					this.filter_input.push(input);
 				});
-				this.filter_input.push(input);
+				this.refresh();
 			});
-			this.refresh();
-		});
 	}
 
 	add_filter(field, value, fieldtype) {
 		if (!value) {
 			delete this.filters[field];
 		} else {
-			if (fieldtype === 'Data') value = ['like', value + '%'];
+			if (["Data", "Currency", "Float", "Int"].includes(fieldtype)) {
+				value = ["like", "%" + value + "%"];
+			}
 			Object.assign(this.filters, Object.fromEntries([[field, value]]));
 		}
 	}
 
 	get_list_view_fields() {
-		return frappe
-			.call({
-				method:
-					"frappe.website.doctype.web_form.web_form.get_in_list_view_fields",
-				args: { doctype: this.doctype }
-			})
-			.then(response => (this.fields_list = response.message));
+		if (this.columns) return this.columns;
+
+		if (this.list_columns) {
+			this.columns = this.list_columns.map((df) => {
+				return {
+					label: df.label,
+					fieldname: df.fieldname,
+					fieldtype: df.fieldtype,
+				};
+			});
+		}
 	}
 
 	fetch_data() {
-		return frappe.call({
+		let args = {
 			method: "frappe.www.list.get_list_data",
 			args: {
 				doctype: this.doctype,
-				fields: this.fields_list.map(df => df.fieldname),
 				limit_start: this.web_list_start,
+				limit: this.page_length,
 				web_form_name: this.web_form_name,
-				...this.filters
-			}
-		});
+				...this.filters,
+			},
+		};
+
+		if (this.no_change(args)) {
+			// console.log('throttled');
+			return Promise.resolve();
+		}
+
+		return frappe.call(args);
+	}
+
+	no_change(args) {
+		// returns true if arguments are same for the last 3 seconds
+		// this helps in throttling if called from various sources
+		if (this.last_args && JSON.stringify(args) === this.last_args) {
+			return true;
+		}
+		this.last_args = JSON.stringify(args);
+		setTimeout(() => {
+			this.last_args = null;
+		}, 3000);
+		return false;
 	}
 
 	async get_data() {
 		let response = await this.fetch_data();
-		this.data = await response.message;
+		if (response) {
+			this.data = await response.message;
+		}
 	}
 
 	more() {
@@ -114,202 +156,200 @@ export default class WebFormList {
 			}
 			this.append_rows(res.message);
 		});
-
 	}
 
 	make_table() {
-		this.columns = this.fields_list.map(df => {
-			return {
-				label: df.label,
-				fieldname: df.fieldname,
-				fieldtype: df.fieldtype
-			};
+		this.table = $(`<table class="table"></table>`);
+
+		this.make_table_head();
+		this.make_table_body();
+	}
+
+	make_table_head() {
+		let $thead = $(`
+			<thead>
+				<tr>
+					<th>
+						<input type="checkbox" class="select-all">
+					</th>
+					<th>${__("Sr")}.</th>
+				</tr>
+			</thead>
+		`);
+
+		this.check_all = $thead.find("input.select-all");
+		this.check_all.on("click", (event) => {
+			this.toggle_select_all(event.target.checked);
 		});
 
-		if (!this.table) {
-			this.table = document.createElement("table");
-			this.table.classList.add("table");
-			this.make_table_head();
-		}
+		this.columns.forEach((col) => {
+			let $tr = $thead.find("tr");
+			let $th = $(`<th>${__(col.label)}</th>`);
+			$th.appendTo($tr);
+		});
 
+		$thead.appendTo(this.table);
+	}
+
+	make_table_body() {
 		if (this.data.length) {
+			this.wrapper.empty();
+
+			if (this.table) {
+				this.table.find("tbody").remove();
+
+				if (this.check_all.length) {
+					this.check_all.prop("checked", false);
+				}
+			}
+
 			this.append_rows(this.data);
-			this.wrapper.appendChild(this.table);
+			this.table.appendTo(this.wrapper);
 		} else {
-			let new_button = "";
-			let empty_state = document.createElement("div");
-			empty_state.classList.add("no-result", "text-muted", "flex", "justify-center", "align-center");
+			if (this.wrapper.find(".no-result").length) return;
 
+			this.wrapper.empty();
 			frappe.has_permission(this.doctype, "", "create", () => {
-				new_button = `
-					<a
-						class="btn btn-primary btn-sm btn-new-doc hidden-xs"
-						href="${window.location.pathname}?new=1">
-						${__("Create a new {0}", [__(this.doctype)])}
-					</a>
-				`;
-
-				empty_state.innerHTML = `
-					<div class="text-center">
-						<div>
-							<img
-								src="/assets/frappe/images/ui-states/list-empty-state.svg"
-								alt="Generic Empty State"
-								class="null-state">
-						</div>
-						<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
-						${new_button}
-					</div>
-				`;
-
-				this.wrapper.appendChild(empty_state);
+				this.setup_empty_state();
 			});
 		}
 	}
 
-	make_table_head() {
-		// Create Heading
-		let thead = this.table.createTHead();
-		let row = thead.insertRow();
+	setup_empty_state() {
+		let new_button = `
+			<a
+				class="btn btn-primary btn-sm btn-new-doc hidden-xs"
+				href="${location.pathname.replace("/list", "")}/new">
+				${__("Create a new {0}", [__(this.doctype)])}
+			</a>
+		`;
 
-		let th = document.createElement("th");
+		let empty_state = $(`
+			<div class="no-result text-muted flex justify-center align-center">
+				<div class="text-center">
+					<div>
+						<img
+							src="/assets/frappe/images/ui-states/list-empty-state.svg"
+							alt="Generic Empty State"
+							class="null-state">
+					</div>
+					<p class="small mb-2">${__("No {0} found", [__(this.doctype)])}</p>
+					${new_button}
+				</div>
+			</div>
+		`);
 
-		let checkbox = document.createElement("input");
-		checkbox.type = "checkbox";
-		checkbox.id = "select-all";
-		checkbox.onclick = event =>
-			this.toggle_select_all(event.target.checked);
-
-		th.appendChild(checkbox);
-		row.appendChild(th);
-
-		add_heading(row, __("Sr"));
-		this.columns.forEach(col => {
-			add_heading(row, __(col.label));
-		});
-
-		function add_heading(row, label) {
-			let th = document.createElement("th");
-			th.innerText = label;
-			row.appendChild(th);
-		}
+		empty_state.appendTo(this.wrapper);
 	}
 
 	append_rows(row_data) {
-		const tbody = this.table.childNodes[1] || this.table.createTBody();
+		let $tbody = this.table.find("tbody");
+
+		if (!$tbody.length) {
+			$tbody = $(`<tbody></tbody>`);
+			$tbody.appendTo(this.table);
+		}
+
 		row_data.forEach((data_item) => {
-			let row_element = tbody.insertRow();
-			row_element.setAttribute("id", data_item.name);
+			let $row_element = $(`<tr id="${data_item.name}"></tr>`);
 
 			let row = new frappe.ui.WebFormListRow({
-				row: row_element,
+				row: $row_element,
 				doc: data_item,
 				columns: this.columns,
 				serial_number: this.rows.length + 1,
 				events: {
-					onEdit: () => this.open_form(data_item.name),
-					onSelect: () => this.toggle_delete()
-				}
+					on_edit: () => this.open_form(data_item.name),
+					on_select: () => {
+						this.toggle_new();
+						this.toggle_delete();
+					},
+				},
 			});
 
 			this.rows.push(row);
+			$row_element.appendTo($tbody);
 		});
 	}
 
 	make_actions() {
-		const actions = document.querySelector(".list-view-actions");
+		const actions = $(".web-list-actions");
 
 		frappe.has_permission(this.doctype, "", "delete", () => {
-			this.addButton(actions, "delete-rows", "danger", true, "Delete", () =>
+			this.add_button(actions, "delete-rows", "danger", true, "Delete", () =>
 				this.delete_rows()
 			);
 		});
-
-		this.addButton(
-			actions,
-			"new",
-			"primary",
-			false,
-			"New",
-			() => (window.location.href = window.location.pathname + "?new=1")
-		);
 	}
 
-	addButton(wrapper, id, type, hidden, name, action) {
-		if (document.getElementById(id)) return;
-		const button = document.createElement("button");
-		if (type == "secondary") {
-			button.classList.add(
-				"btn",
-				"btn-secondary",
-				"btn-sm",
-				"ml-2"
-			);
-		}
-		else if (type == "danger") {
-			button.classList.add(
-				"btn",
-				"btn-danger",
-				"button-delete",
-				"btn-sm",
-				"ml-2"
-			);
-		}
-		else {
-			button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
-		}
+	add_button(wrapper, name, type, hidden, text, action) {
+		if ($(`.${name}`).length) return;
 
-		button.id = id;
-		button.innerText = name;
-		button.hidden = hidden;
+		hidden = hidden ? "hide" : "";
+		type = type == "danger" ? "danger button-delete" : type;
 
-		button.onclick = action;
-		wrapper.appendChild(button);
+		let button = $(`
+			<button class="${name} btn btn-${type} btn-sm ml-2 ${hidden}">${text}</button>
+		`);
+
+		button.on("click", () => action());
+		button.appendTo(wrapper);
 	}
 
 	create_more() {
 		if (this.rows.length >= this.page_length) {
-			const footer = document.querySelector(".list-view-footer");
-			this.addButton(footer, "more", "secondary", false, "More", () =>  this.more());
+			const footer = $(".web-list-footer");
+			this.add_button(footer, "more", "secondary", false, "Load More", () => this.more());
 		}
 	}
 
 	toggle_select_all(checked) {
-		this.rows.forEach(row => row.toggle_select(checked));
+		this.rows.forEach((row) => row.toggle_select(checked));
 	}
 
 	open_form(name) {
-		window.location.href = window.location.pathname + "?name=" + name;
+		let path = window.location.pathname;
+		if (path.includes("/list")) {
+			path = path.replace("/list", "");
+		}
+
+		window.location.href = path + "/" + name;
 	}
 
 	get_selected() {
-		return this.rows.filter(row => row.is_selected());
+		return this.rows.filter((row) => row.is_selected());
 	}
 
 	toggle_delete() {
-		if (!this.settings.allow_delete) return
-		let btn = document.getElementById("delete-rows");
-		btn.hidden = !this.get_selected().length;
+		if (!this.settings.allow_delete) return;
+		let btn = $(".delete-rows");
+		!this.get_selected().length ? btn.addClass("hide") : btn.removeClass("hide");
+	}
+
+	toggle_new() {
+		if (!this.settings.allow_delete) return;
+		let btn = $(".button-new");
+		this.get_selected().length ? btn.addClass("hide") : btn.removeClass("hide");
 	}
 
 	delete_rows() {
-		if (!this.settings.allow_delete) return
+		if (!this.settings.allow_delete) return;
 		frappe
 			.call({
 				type: "POST",
-				method:
-					"frappe.website.doctype.web_form.web_form.delete_multiple",
+				method: "frappe.website.doctype.web_form.web_form.delete_multiple",
 				args: {
 					web_form_name: this.web_form_name,
-					docnames: this.get_selected().map(row => row.doc.name)
-				}
+					docnames: this.get_selected().map((row) => row.doc.name),
+				},
 			})
 			.then(() => {
-				this.refresh()
-				this.toggle_delete()
+				this.refresh();
+				this.toggle_delete();
+				this.toggle_new();
 			});
 	}
-};
+}
 
 frappe.ui.WebFormListRow = class WebFormListRow {
 	constructor({ row, doc, columns, serial_number, events, options }) {
@@ -319,40 +359,45 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 
 	make_row() {
 		// Add Checkboxes
-		let cell = this.row.insertCell();
-		cell.classList.add('list-col-checkbox');
+		let $cell = $(`<td class="list-col-checkbox"></td>`);
 
-		this.checkbox = document.createElement("input");
-		this.checkbox.type = "checkbox";
-		this.checkbox.onclick = event => {
+		this.checkbox = $(`<input type="checkbox">`);
+		this.checkbox.on("click", (event) => {
 			this.toggle_select(event.target.checked);
 			event.stopImmediatePropagation();
-		}
-
-		cell.appendChild(this.checkbox);
+		});
+		this.checkbox.appendTo($cell);
+		$cell.appendTo(this.row);
 
 		// Add Serial Number
-		let serialNo = this.row.insertCell();
-		serialNo.classList.add('list-col-serial');
-		serialNo.innerText = this.serial_number;
+		let serialNo = $(`<td class="list-col-serial">${__(this.serial_number)}</td>`);
+		serialNo.appendTo(this.row);
 
-		this.columns.forEach(field => {
-			let cell = this.row.insertCell();
+		this.columns.forEach((field) => {
 			let formatter = frappe.form.get_formatter(field.fieldtype);
-			cell.innerHTML = this.doc[field.fieldname] &&
-				__(formatter(this.doc[field.fieldname], field, {only_value: 1}, this.doc)) || "";
+			let value =
+				(this.doc[field.fieldname] &&
+					__(
+						formatter(this.doc[field.fieldname], field, { only_value: 1 }, this.doc)
+					)) ||
+				"";
+			let cell = $(`<td><p class="ellipsis">${value}</p></td>`);
+			if (field.fieldtype === "Text Editor") {
+				value = $(value).addClass("ellipsis");
+				cell = $("<td></td>").append(value);
+			}
+			cell.appendTo(this.row);
 		});
 
-		this.row.onclick = () => this.events.onEdit();
-		this.row.style.cursor = "pointer";
+		this.row.on("click", () => this.events.on_edit());
 	}
 
 	toggle_select(checked) {
-		this.checkbox.checked = checked;
-		this.events.onSelect(checked);
+		this.checkbox.prop("checked", checked);
+		this.events.on_select(checked);
 	}
 
 	is_selected() {
-		return this.checkbox.checked;
+		return this.checkbox.prop("checked");
 	}
 };

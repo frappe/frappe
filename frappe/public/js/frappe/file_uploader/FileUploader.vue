@@ -167,6 +167,9 @@ export default {
 		on_success: {
 			default: null
 		},
+		make_attachments_public: {
+			default: null,
+		},
 		restrictions: {
 			default: () => ({
 				max_file_size: null, // 2048 -> 2KB
@@ -228,7 +231,7 @@ export default {
 				});
 		}
 		if (this.restrictions.max_number_of_files == null && this.doctype) {
-			this.restrictions.max_number_of_files = frappe.get_meta(self.doctype).max_attachments;
+			this.restrictions.max_number_of_files = frappe.get_meta(this.doctype)?.max_attachments;
 		}
 	},
 	watch: {
@@ -320,7 +323,7 @@ export default {
 						request_succeeded: false,
 						error_message: null,
 						uploading: false,
-						private: true
+						private: !this.make_attachments_public,
 					};
 				});
 

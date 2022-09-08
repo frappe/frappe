@@ -3,15 +3,15 @@
 
 import email
 import re
-import unittest
 
 import frappe
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Email Account"]
 
 
-class TestEmail(unittest.TestCase):
+class TestEmail(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Unsubscribe")
 		frappe.db.delete("Email Queue")
@@ -311,5 +311,7 @@ class TestEmail(unittest.TestCase):
 
 
 if __name__ == "__main__":
+	import unittest
+
 	frappe.connect()
 	unittest.main()
