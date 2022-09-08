@@ -774,6 +774,7 @@ class FilterArea {
 							"Data",
 							"Code",
 							"Read Only",
+							"Dynamic Link",
 						].includes(fieldtype)
 					) {
 						fieldtype = "Data";
