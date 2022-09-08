@@ -188,7 +188,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_fields() {
-		return super.get_fields().concat(Object.entries(this.link_field_title_fields || {}).map((entry) => entry.join(".")))
+		return super.get_fields().concat(Object.entries(this.link_field_title_fields || {}).map((entry) => entry.join(".") + ' as ' + entry.join("_")))
 	}
 
 	async set_fields() {
@@ -742,8 +742,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const fieldname = df.fieldname;
 		const link_title_fieldname = this.link_field_title_fields[fieldname]
 		const value = doc[fieldname] || "";
-		const value_display = link_title_fieldname ? doc[link_title_fieldname] || value : value
-
+		const value_display = link_title_fieldname ? doc[fieldname + '_' + link_title_fieldname] || value : value
 		const format = () => {
 			if (df.fieldtype === "Code") {
 				return value;
