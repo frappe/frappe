@@ -45,7 +45,7 @@
 
 // hide row index in 6 column child tables
 .form-column.col-sm-6 .form-grid {
-	.row-index > span {
+	.row-index {
 		display: none;
 	}
 
@@ -56,7 +56,7 @@
 	}
 }
 
-.modal .form-grid .row-index > span {
+.modal .form-grid .row-index {
 	display: none;
 }
 

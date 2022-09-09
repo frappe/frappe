@@ -12,7 +12,6 @@ doctype_map_keys = (
 	"energy_point_rule_map",
 	"assignment_rule_map",
 	"milestone_tracker_map",
-	"event_consumer_document_type_map",
 )
 
 bench_cache_keys = ("assets_json",)
@@ -134,7 +133,7 @@ def clear_doctype_cache(doctype=None):
 
 		# clear all parent doctypes
 
-		for dt in frappe.db.get_all(
+		for dt in frappe.get_all(
 			"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=doctype)
 		):
 			clear_single(dt.parent)

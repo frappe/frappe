@@ -72,7 +72,6 @@ frappe.warn = function (title, message_html, proceed_action, primary_label, is_m
 
 	d.$body.append(`<div class="frappe-confirm-message">${message_html}</div>`);
 	d.standard_actions.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
-	d.standard_actions.find(".btn-primary").removeClass("btn-primary").addClass("btn-danger");
 
 	d.show();
 	return d;

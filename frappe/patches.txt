@@ -72,7 +72,6 @@ frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
 frappe.patches.v11_0.delete_duplicate_user_permissions
 frappe.patches.v11_0.set_dropbox_file_backup
 frappe.patches.v10_0.set_default_locking_time
-frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
 frappe.patches.v10_0.modify_naming_series_table
 frappe.patches.v10_0.enhance_security
@@ -157,7 +156,6 @@ frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
 execute:frappe.db.set_value('Website Settings', 'Website Settings', {'navbar_template': 'Standard Navbar', 'footer_template': 'Standard Footer'})
-frappe.patches.v13_0.delete_event_producer_and_consumer_keys
 frappe.patches.v13_0.web_template_set_module #2020-10-05
 frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
@@ -196,6 +194,7 @@ frappe.patches.v14_0.log_settings_migration
 frappe.patches.v14_0.setup_likes_from_feedback
 frappe.patches.v14_0.update_webforms
 frappe.patches.v14_0.delete_payment_gateways
+frappe.patches.v15_0.remove_event_streaming
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy

@@ -631,12 +631,10 @@ def get_sites(sites_path=None):
 
 def get_request_session(max_retries=5):
 	import requests
-	from urllib3.util import Retry
+	from requests.adapters import HTTPAdapter, Retry
 
 	session = requests.Session()
-	http_adapter = requests.adapters.HTTPAdapter(
-		max_retries=Retry(total=max_retries, status_forcelist=[500])
-	)
+	http_adapter = HTTPAdapter(max_retries=Retry(total=max_retries, status_forcelist=[500]))
 
 	session.mount("http://", http_adapter)
 	session.mount("https://", http_adapter)

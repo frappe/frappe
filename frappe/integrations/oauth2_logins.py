@@ -48,7 +48,7 @@ def custom(code, state):
 	"""
 	Callback for processing code and state for user added providers
 
-	process social login from /api/method/frappe.integrations.custom/<provider>
+	process social login from /api/method/frappe.integrations.oauth2_logins.custom/<provider>
 	"""
 	path = frappe.request.path[1:].split("/")
 	if len(path) == 4 and path[3]:
