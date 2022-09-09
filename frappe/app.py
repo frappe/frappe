@@ -251,6 +251,12 @@ def handle_exception(e):
 		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
 
+	if not frappe.session.user:
+		# If session creation fails then user won't be unset. This causes a lot of code that
+		# assumes presence of this to fail. Session creation fails => guest or expired login
+		# usually.
+		frappe.session.user = "Guest"
+
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
