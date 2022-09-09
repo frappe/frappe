@@ -817,17 +817,28 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_meta_html(doc) {
 		let html = "";
 
-		let settings_button = null;
-		if (this.settings.button && this.settings.button.show(doc)) {
-			settings_button = `
-				<span class="list-actions">
-					<button class="btn btn-action btn-default btn-xs"
-						data-name="${doc.name}" data-idx="${doc._idx}"
-						title="${this.settings.button.get_description(doc)}">
-						${this.settings.button.get_label(doc)}
-					</button>
-				</span>
-			`;
+		let buttons = [];
+		let settings_button = "";
+
+		// check if the button property is an array or object
+		if (!Array.isArray(this.settings.button)) {
+			buttons = [this.settings.button];
+		} else {
+			buttons = this.settings.button;
+		}
+
+		for (const button of buttons) {
+			if (button && button.show(doc)) {
+				settings_button += `
+					<span class="list-actions">
+						<button class="btn btn-action btn-default btn-xs"
+							data-name="${doc.name}" data-idx="${doc._idx}" data-button-name="${button.name ?? ""}"
+							title="${button.get_description(doc)}">
+							${button.get_label(doc)}
+						</button>
+					</span>
+				`;
+			}
 		}
 
 		const modified = comment_when(doc.modified, true);
@@ -1172,7 +1183,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.on("click", ".btn-action", (e) => {
 			const $button = $(e.currentTarget);
 			const doc = this.data[$button.attr("data-idx")];
-			this.settings.button.action(doc);
+
+			// get the name of button
+			const btnName = $button.attr("data-button-name");
+
+			if (Array.isArray(this.settings.button)) {
+				// find the button action
+				const button = this.settings.button.find((b) => b.name == btnName);
+				button.action(doc);
+			} else {
+				this.settings.button.action(doc);
+			}
+
 			e.stopPropagation();
 			return false;
 		});
