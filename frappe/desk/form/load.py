@@ -373,7 +373,7 @@ def run_onload(doc):
 def get_view_logs(doctype, docname):
 	"""get and return the latest view logs if available"""
 	logs = []
-	if hasattr(frappe.get_meta(doctype), "track_views") and frappe.get_meta(doctype).track_views:
+	if getattr(frappe.get_meta(doctype), "track_views", None):
 		view_logs = frappe.get_all(
 			"View Log",
 			filters={

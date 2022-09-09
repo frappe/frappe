@@ -1366,7 +1366,7 @@ class Document(BaseDocument):
 		if not user:
 			user = frappe.session.user
 
-		if self.meta.track_seen:
+		if self.meta.track_seen and not frappe.flags.read_only:
 			_seen = self.get("_seen") or []
 			_seen = frappe.parse_json(_seen)
 
@@ -1381,15 +1381,19 @@ class Document(BaseDocument):
 			user = frappe.session.user
 
 		if hasattr(self.meta, "track_views") and self.meta.track_views:
-			frappe.get_doc(
+			view_log = frappe.get_doc(
 				{
 					"doctype": "View Log",
 					"viewed_by": frappe.session.user,
 					"reference_doctype": self.doctype,
 					"reference_name": self.name,
 				}
-			).insert(ignore_permissions=True)
-			frappe.local.flags.commit = True
+			)
+			if frappe.flags.read_only:
+				view_log.deferred_insert()
+			else:
+				view_log.insert(ignore_permissions=True)
+				frappe.local.flags.commit = True
 
 	def log_error(self, title=None, message=None):
 		"""Helper function to create an Error Log"""
@@ -1535,6 +1539,20 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
+	def deferred_insert(self) -> None:
+		"""Push the document to redis temporarily and insert later.
+
+		WARN: This doesn't guarantee insertion as redis can be restarted
+		before data is flushed to database.
+		"""
+
+		from frappe.deferred_insert import deferred_insert
+
+		self.set_user_and_timestamp()
+
+		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
+		deferred_insert(doctype=self.doctype, records=doc)
 
 	def __repr__(self):
 		name = self.name or "unsaved"

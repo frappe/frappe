@@ -115,9 +115,12 @@ def init_request(request):
 		# site does not exist
 		raise NotFound
 
-	if frappe.local.conf.get("maintenance_mode"):
+	if frappe.local.conf.maintenance_mode:
 		frappe.connect()
-		raise frappe.SessionStopped("Session Stopped")
+		if frappe.local.conf.allow_reads_during_maintenance:
+			setup_read_only_mode()
+		else:
+			raise frappe.SessionStopped("Session Stopped")
 	else:
 		frappe.connect(set_admin_as_user=False)
 
@@ -127,6 +130,24 @@ def init_request(request):
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = frappe.auth.HTTPRequest()
+
+
+def setup_read_only_mode():
+	"""During maintenance_mode reads to DB can still be performed to reduce downtime. This
+	function sets up read only mode
+
+	- Setting global flag so other pages, desk and database can know that we are in read only mode.
+	- Setup read only database access either by:
+	    - Connecting to read replica if one exists
+	    - Or setting up read only SQL transactions.
+	"""
+	frappe.flags.read_only = True
+
+	# If replica is available then just connect replica, else setup read only transaction.
+	if frappe.conf.read_from_replica:
+		frappe.connect_replica()
+	else:
+		frappe.db.begin(read_only=True)
 
 
 def log_request(request, response):
