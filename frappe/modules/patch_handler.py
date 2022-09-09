@@ -154,7 +154,7 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 
 def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
-	block_user(True)
+	_patch_mode(True)
 
 	if patchmodule.startswith("execute:"):
 		has_patch_file = False
@@ -197,7 +197,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	else:
 		frappe.db.commit()
 		end_time = time.time()
-		block_user(False)
+		_patch_mode(False)
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
@@ -216,18 +216,7 @@ def executed(patchmodule):
 	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
 
 
-def block_user(block, msg=None):
+def _patch_mode(enable):
 	"""stop/start execution till patch is run"""
-	frappe.local.flags.in_patch = block
-	frappe.db.begin()
-	if not msg:
-		msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.db.set_global("__session_status", block and "stop" or None)
-	frappe.db.set_global("__session_status_message", block and msg or None)
+	frappe.local.flags.in_patch = enable
 	frappe.db.commit()
-
-
-def check_session_stopped():
-	if frappe.db.get_global("__session_status") == "stop":
-		frappe.msgprint(frappe.db.get_global("__session_status_message"))
-		raise frappe.SessionStopped("Session Stopped")

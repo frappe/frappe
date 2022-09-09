@@ -89,23 +89,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	is_translatable() {
 		return in_list(frappe.boot?.translated_doctypes || [], this.get_options());
 	}
-	set_link_title(value) {
-		let doctype = this.get_options();
+	async set_link_title(value) {
+		const doctype = this.get_options();
 
-		if (!doctype) return;
-
-		if (in_list(frappe.boot.link_title_doctypes, doctype)) {
-			let link_title = frappe.utils.get_link_title(doctype, value);
-			if (!link_title) {
-				link_title = frappe.utils.fetch_link_title(doctype, value).then((link_title) => {
-					this.translate_and_set_input_value(link_title, value);
-				});
-			} else {
-				this.translate_and_set_input_value(link_title, value);
-			}
-		} else {
+		if (!doctype || !in_list(frappe.boot.link_title_doctypes, doctype)) {
 			this.translate_and_set_input_value(value, value);
+			return;
 		}
+
+		const link_title =
+			frappe.utils.get_link_title(doctype, value) ||
+			(await frappe.utils.fetch_link_title(doctype, value));
+
+		this.translate_and_set_input_value(link_title, value);
 	}
 	translate_and_set_input_value(link_title, value) {
 		let translated_link_text = this.get_translated(link_title);
