@@ -90,6 +90,11 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 def delete_session(sid=None, user=None, reason="Session Expired"):
 	from frappe.core.doctype.activity_log.feed import logout_feed
 
+	if frappe.flags.read_only:
+		# This isn't manually initated logout, most likely user's cookies were expired in such case
+		# we should just ignore it till database is back up again.
+		return
+
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
 	if sid and not user:
