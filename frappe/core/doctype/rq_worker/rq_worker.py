@@ -62,4 +62,6 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 		failed_job_count=worker.failed_job_count,
 		total_working_time=worker.total_working_time,
 		_comment_count=0,
+		modified=convert_utc_to_user_timezone(worker.last_heartbeat),
+		creation=convert_utc_to_user_timezone(worker.birth_date),
 	)
