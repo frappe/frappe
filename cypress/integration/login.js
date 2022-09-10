@@ -32,7 +32,7 @@ context("Login", () => {
 
 	it("logs in using correct credentials", () => {
 		cy.get("#login_email").type("Administrator");
-		cy.get("#login_password").type(Cypress.config("adminPassword"));
+		cy.get("#login_password").type(Cypress.env("adminPassword"));
 
 		cy.findByRole("button", { name: "Login" }).click();
 		cy.location("pathname").should("eq", "/app");
@@ -56,7 +56,7 @@ context("Login", () => {
 		);
 
 		cy.get("#login_email").type("Administrator");
-		cy.get("#login_password").type(Cypress.config("adminPassword"));
+		cy.get("#login_password").type(Cypress.env("adminPassword"));
 
 		cy.findByRole("button", { name: "Login" }).click();
 

@@ -1,6 +1,13 @@
 context("Web Form", () => {
 	before(() => {
-		cy.login();
+		cy.login("Administrator");
+		cy.visit("/app/");
+		return cy
+			.window()
+			.its("frappe")
+			.then((frappe) => {
+				return frappe.xcall("frappe.tests.ui_test_helpers.clear_notes");
+			});
 	});
 
 	it("Create Web Form", () => {
@@ -42,7 +49,7 @@ context("Web Form", () => {
 	});
 
 	it("Login Required", () => {
-		cy.login();
+		cy.login("Administrator");
 		cy.visit("/app/web-form/note");
 
 		cy.findByRole("tab", { name: "Settings" }).click();
@@ -51,7 +58,6 @@ context("Web Form", () => {
 		cy.save();
 
 		cy.visit("/note");
-		cy.url().should("include", "/note/Note%201");
 
 		cy.call("logout");
 
@@ -62,7 +68,7 @@ context("Web Form", () => {
 	});
 
 	it("Show List", () => {
-		cy.login();
+		cy.login("Administrator");
 		cy.visit("/app/web-form/note");
 
 		cy.findByRole("tab", { name: "Settings" }).click();
@@ -156,7 +162,7 @@ context("Web Form", () => {
 	});
 
 	it("Read Only", () => {
-		cy.login();
+		cy.login("Administrator");
 		cy.visit("/note");
 		cy.url().should("include", "/note/list");
 

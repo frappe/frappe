@@ -29,7 +29,7 @@ import "cypress-real-events/support";
 
 Cypress.Commands.add("login", (email, password) => {
 	if (!email) {
-		email = "Administrator";
+		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
 		password = Cypress.env("adminPassword");

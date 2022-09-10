@@ -137,7 +137,10 @@ jobs:
 
       - name: Site Setup
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
+        run: |
+          cd ~/frappe-bench/
+          bench --site test_site execute frappe.utils.install.complete_setup_wizard
+          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
       - name: UI Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}

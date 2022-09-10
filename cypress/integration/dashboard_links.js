@@ -8,7 +8,7 @@ const child_table_doctype_name = child_table_doctype.name;
 context("Dashboard links", () => {
 	before(() => {
 		cy.visit("/login");
-		cy.login();
+		cy.login("Administrator");
 		cy.insert_doc("DocType", child_table_doctype, true);
 		cy.insert_doc("DocType", child_table_doctype_1, true);
 		cy.insert_doc("DocType", doctype_with_child_table, true);
@@ -27,8 +27,7 @@ context("Dashboard links", () => {
 		cy.visit("/app/contact");
 		cy.clear_filters();
 
-		cy.visit("/app/user");
-		cy.get(".list-row-col > .level-item > .ellipsis").eq(0).click({ force: true });
+		cy.visit(`/app/user/${cy.config("testUser")}`);
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
 		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
@@ -40,11 +39,10 @@ context("Dashboard links", () => {
 		cy.findByRole("button", { name: "Add Contact" }).click();
 		cy.get('[data-doctype="Contact"][data-fieldname="first_name"]').type("Admin");
 		cy.findByRole("button", { name: "Save" }).click();
-		cy.visit("/app/user");
-		cy.get(".list-row-col > .level-item > .ellipsis").eq(0).click({ force: true });
+		cy.visit(`/app/user/${cy.config("testUser")}`);
 
-		//To check if the counter for contact doc is "1" after adding the contact
-		cy.get('[data-doctype="Contact"] > .count').should("contain", "1");
+		//To check if the counter for contact doc is "2" after adding additional contact
+		cy.get('[data-doctype="Contact"] > .count').should("contain", "2");
 		cy.get('[data-doctype="Contact"]').contains("Contact").click();
 
 		//Deleting the newly created contact
@@ -62,8 +60,7 @@ context("Dashboard links", () => {
 	});
 
 	it("Report link in dashboard", () => {
-		cy.visit("/app/user");
-		cy.visit("/app/user/Administrator");
+		cy.visit(`/app/user/${cy.config("testUser")}`);
 		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
 		cy.findByText("Connections");
 		cy.window()
