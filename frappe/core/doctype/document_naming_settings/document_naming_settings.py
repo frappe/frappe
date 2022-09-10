@@ -113,6 +113,8 @@ class DocumentNamingSettings(Document):
 
 		option_string = "\n".join(options)
 
+		# Erase default first, it might not be in new options.
+		self.update_naming_series_property_setter(doctype, "default", "")
 		self.update_naming_series_property_setter(doctype, "options", option_string)
 		self.update_naming_series_property_setter(doctype, "default", default)
 
