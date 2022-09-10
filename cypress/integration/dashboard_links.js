@@ -41,14 +41,8 @@ context("Dashboard links", () => {
 		cy.findByRole("button", { name: "Save" }).click();
 		cy.visit(`/app/user/${cy.config("testUser")}`);
 
-<<<<<<< HEAD
-		//To check if the counter for contact doc is "1" after adding the contact
-		cy.get('[data-doctype="Contact"] > .count').should("contain", "1");
-=======
 		//To check if the counter for contact doc is "2" after adding additional contact
-		cy.select_form_tab("Connections");
 		cy.get('[data-doctype="Contact"] > .count').should("contain", "2");
->>>>>>> a6b341bd59 (test: fix tests using admin account)
 		cy.get('[data-doctype="Contact"]').contains("Contact").click();
 
 		//Deleting the newly created contact
@@ -66,16 +60,9 @@ context("Dashboard links", () => {
 	});
 
 	it("Report link in dashboard", () => {
-<<<<<<< HEAD
-		cy.visit("/app/user");
-		cy.visit("/app/user/Administrator");
+		cy.visit(`/app/user/${cy.config("testUser")}`);
 		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
 		cy.findByText("Connections");
-=======
-		cy.visit(`/app/user/${cy.config("testUser")}`);
-		cy.select_form_tab("Connections");
-		cy.get('.document-link[data-doctype="Contact"]').contains("Contact");
->>>>>>> a6b341bd59 (test: fix tests using admin account)
 		cy.window()
 			.its("cur_frm")
 			.then((cur_frm) => {

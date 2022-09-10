@@ -136,15 +136,11 @@ jobs:
         run: cd ~/frappe-bench/ && bench build --apps frappe
 
       - name: Site Setup
-<<<<<<< HEAD
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
-=======
         run: |
           cd ~/frappe-bench/
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
->>>>>>> f07bc3b369 (test(UI): use non-admin user for tests)
 
       - name: UI Tests
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
