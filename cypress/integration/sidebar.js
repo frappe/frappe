@@ -16,7 +16,7 @@ const verify_attachment_visibility = (document, is_private) => {
 context("Sidebar", () => {
 	before(() => {
 		cy.visit("/login");
-		cy.login();
+		cy.login("Administrator");
 
 		return cy
 			.window()

@@ -2,6 +2,8 @@ import frappe
 from frappe import _
 from frappe.utils import add_to_date, now
 
+UI_TEST_USER = "frappe@example.com"
+
 
 @frappe.whitelist()
 def create_if_not_exists(doc):
@@ -408,12 +410,11 @@ def create_blog_post():
 
 
 def create_test_user():
-	username = "frappe@example.com"
-	if frappe.db.exists("User", username):
+	if frappe.db.exists("User", UI_TEST_USER):
 		return
 
 	user = frappe.new_doc("User")
-	user.email = username
+	user.email = UI_TEST_USER
 	user.first_name = "Frappe"
 	user.new_password = frappe.local.conf.admin_password
 	user.send_welcome_email = 0
