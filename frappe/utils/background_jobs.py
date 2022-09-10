@@ -19,6 +19,10 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import cstr
 
+# TTL to keep RQ job logs in redis for.
+RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
+RQ_RESULTS_TTL = 10 * 60
+
 
 @lru_cache()
 def get_queues_timeout():
@@ -89,8 +93,14 @@ def enqueue(
 			{"queue": queue, "is_async": is_async, "timeout": timeout, "queue_args": queue_args}
 		)
 		return frappe.flags.enqueue_after_commit
-	else:
-		return q.enqueue_call(execute_job, timeout=timeout, kwargs=queue_args)
+
+	return q.enqueue_call(
+		execute_job,
+		timeout=timeout,
+		kwargs=queue_args,
+		failure_ttl=RQ_JOB_FAILURE_TTL,
+		result_ttl=RQ_RESULTS_TTL,
+	)
 
 
 def enqueue_doc(
