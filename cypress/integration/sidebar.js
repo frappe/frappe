@@ -16,7 +16,7 @@ const verify_attachment_visibility = (document, is_private) => {
 context("Sidebar", () => {
 	before(() => {
 		cy.visit("/login");
-		cy.login("Administrator");
+		cy.login();
 
 		return cy
 			.window()
@@ -37,11 +37,6 @@ context("Sidebar", () => {
 
 		//To check if no filter is available in "Assigned To" dropdown
 		cy.get(".empty-state").should("contain", "No filters found");
-
-		cy.click_sidebar_button("Created By");
-
-		//To check if "Created By" dropdown contains filter
-		cy.get(".group-by-item > .dropdown-item").should("contain", "Me");
 
 		//Assigning a doctype to a user
 		cy.visit("/app/doctype/ToDo");
