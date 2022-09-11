@@ -27,11 +27,15 @@ class RQJob(Document):
 		super(Document, self).__init__(serialize_job(job))
 		self._job_obj = job
 
+	@property
+	def job(self):
+		return self._job_obj
+
 	@staticmethod
 	def get_list(args):
 
-		start = cint(args.get("start"))
-		page_length = cint(args.get("page_length"))
+		start = cint(args.get("start")) or 0
+		page_length = cint(args.get("page_length")) or 20
 
 		order_desc = "desc" in args.get("order_by", "")
 
