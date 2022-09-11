@@ -214,7 +214,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 							${_label}
 						</strong>
 						${
-							d.focus_field
+							!is_null(d.focus_field)
 								? `<span class="badge link-badge bg-primary float-right">${d.focus_field}</span>`
 								: ``
 						}
