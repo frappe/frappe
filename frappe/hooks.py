@@ -70,8 +70,6 @@ email_append_to = ["Event", "ToDo", "Communication"]
 
 calendars = ["Event"]
 
-leaderboards = "frappe.desk.leaderboard.get_leaderboards"
-
 # login
 
 on_session_creation = [
