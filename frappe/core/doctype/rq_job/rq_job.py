@@ -151,3 +151,11 @@ def remove_failed_jobs():
 			for job in Job.fetch_many(job_ids=job_ids, connection=get_redis_conn()):
 				if job and for_current_site(job):
 					fail_registry.remove(job, delete_job=True)
+
+
+def get_all_queued_job():
+	jobs = []
+	for q in get_queues():
+		jobs.extend(q.get_jobs())
+
+	return [job for job in jobs if for_current_site(job)]
