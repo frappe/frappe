@@ -37,8 +37,9 @@
   },
   {
    "fieldname": "current_job_id",
-   "fieldtype": "Data",
-   "label": "Current Job ID"
+   "fieldtype": "Link",
+   "label": "Current Job ID",
+   "options": "RQ Job"
   },
   {
    "fieldname": "pid",
@@ -106,7 +107,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2022-09-11 04:38:30.606019",
+ "modified": "2022-09-11 05:02:53.981705",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Worker",
