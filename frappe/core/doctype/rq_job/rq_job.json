@@ -107,7 +107,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2022-09-11 04:39:35.771198",
+ "modified": "2022-09-11 05:27:50.878534",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Job",
@@ -121,6 +121,16 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
    "share": 1
   }
  ],

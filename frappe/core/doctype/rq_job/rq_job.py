@@ -22,7 +22,10 @@ JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "schedule
 class RQJob(Document):
 	def load_from_db(self):
 		job = Job.fetch(self.name, connection=get_redis_conn())
+		if not for_current_site(job):
+			raise frappe.PermissionError
 		super(Document, self).__init__(serialize_job(job))
+		self._job_obj = job
 
 	@staticmethod
 	def get_list(args):
@@ -63,6 +66,11 @@ class RQJob(Document):
 
 		return matched_job_ids
 
+	def delete(self):
+		frappe.only_for("System Manager")
+		if self._job_obj and for_current_site(self._job_obj):
+			self._job_obj.delete()
+
 	@staticmethod
 	def get_count(args) -> int:
 		# Can not be implemented efficiently due to site filtering hence ignored.
@@ -77,9 +85,6 @@ class RQJob(Document):
 		pass
 
 	def db_update(self, *args, **kwargs):
-		pass
-
-	def delete(self):
 		pass
 
 
@@ -126,10 +131,23 @@ def fetch_job_ids(queue: Queue, status: str) -> list[str | None]:
 		"failed": queue.failed_job_registry,
 		"deferred": queue.deferred_job_registry,
 		"scheduled": queue.scheduled_job_registry,
+		"canceled": queue.canceled_job_registry,
 	}
 
 	registry = registry_map.get(status)
-	if registry:
+	if registry is not None:
 		job_ids = registry.get_job_ids()
 		return [j for j in job_ids if j]
+
 	return []
+
+
+@frappe.whitelist()
+def remove_failed_jobs():
+	frappe.only_for("System Manager")
+	for queue in get_queues():
+		fail_registry = queue.failed_job_registry
+		for job_ids in create_batch(fail_registry.get_job_ids(), 100):
+			for job in Job.fetch_many(job_ids=job_ids, connection=get_redis_conn()):
+				if job and for_current_site(job):
+					fail_registry.remove(job, delete_job=True)
