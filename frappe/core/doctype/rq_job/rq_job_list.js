@@ -22,5 +22,11 @@ frappe.listview_settings["RQ Job"] = {
 				listview.page.set_indicator(__("Scheduler: Inactive"), "red");
 			}
 		});
+
+		setInterval(() => {
+			if (!listview.list_view_settings.disable_auto_refresh) {
+				listview.refresh();
+			}
+		}, 5000);
 	},
 };
