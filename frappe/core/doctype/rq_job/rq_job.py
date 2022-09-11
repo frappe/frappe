@@ -1,6 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import functools
+
+from rq.command import send_stop_job_command
 from rq.job import Job
 from rq.queue import Queue
 
@@ -17,6 +20,19 @@ from frappe.utils.background_jobs import get_queues, get_redis_conn
 
 QUEUES = ["default", "long", "short"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
+
+
+def check_permissions(method):
+	@functools.wraps(method)
+	def wrapper(*args, **kwargs):
+		frappe.only_for("System Manager")
+		job = args[0].job
+		if not for_current_site(job):
+			raise frappe.PermissionError
+
+		return method(*args, **kwargs)
+
+	return wrapper
 
 
 class RQJob(Document):
@@ -70,10 +86,13 @@ class RQJob(Document):
 
 		return matched_job_ids
 
+	@check_permissions
 	def delete(self):
-		frappe.only_for("System Manager")
-		if self._job_obj and for_current_site(self._job_obj):
-			self._job_obj.delete()
+		self.job.delete()
+
+	@check_permissions
+	def stop_job(self):
+		send_stop_job_command(connection=get_redis_conn(), job_id=self.job_id)
 
 	@staticmethod
 	def get_count(args) -> int:
@@ -93,9 +112,6 @@ class RQJob(Document):
 
 
 def serialize_job(job: Job) -> frappe._dict:
-	if not for_current_site(job):
-		return frappe._dict()
-
 	modified = job.last_heartbeat or job.ended_at or job.started_at or job.created_at
 
 	return frappe._dict(
@@ -103,7 +119,7 @@ def serialize_job(job: Job) -> frappe._dict:
 		job_id=job.id,
 		queue=job.origin.rsplit(":", 1)[1],
 		job_name=job.kwargs.get("kwargs", {}).get("job_type") or str(job.kwargs.get("job_name")),
-		status=job.get_status(refresh=job.get_status() == "queued"),
+		status=job.get_status(),
 		started_at=convert_utc_to_user_timezone(job.started_at) if job.started_at else "",
 		ended_at=convert_utc_to_user_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
@@ -127,7 +143,7 @@ def _eval_filters(filter, values: list[str]) -> list[str]:
 	return values
 
 
-def fetch_job_ids(queue: Queue, status: str) -> list[str | None]:
+def fetch_job_ids(queue: Queue, status: str) -> list[str]:
 	registry_map = {
 		"queued": queue,  # self
 		"started": queue.started_job_registry,
@@ -157,9 +173,14 @@ def remove_failed_jobs():
 					fail_registry.remove(job, delete_job=True)
 
 
-def get_all_queued_job():
+def get_all_queued_jobs():
 	jobs = []
 	for q in get_queues():
 		jobs.extend(q.get_jobs())
 
 	return [job for job in jobs if for_current_site(job)]
+
+
+@frappe.whitelist()
+def stop_job(job_id):
+	frappe.get_doc("RQ Job", job_id).stop_job()

@@ -8,7 +8,7 @@ from rq import exceptions as rq_exc
 from rq.job import Job
 
 import frappe
-from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs
+from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.tests.utils import FrappeTestCase, timeout
 
 
@@ -21,7 +21,7 @@ class TestRQJob(FrappeTestCase):
 		if wait:
 			while True:
 				if job.is_queued or job.is_started:
-					time.sleep(0.5)
+					time.sleep(0.2)
 				else:
 					break
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
@@ -65,10 +65,11 @@ class TestRQJob(FrappeTestCase):
 		self.assertGreaterEqual(len(non_failed_jobs), 1)
 
 		# Create a slow job and check if it's stuck in "Started"
-		job = frappe.enqueue(method=self.BG_JOB, queue="short", sleep=10)
+		job = frappe.enqueue(method=self.BG_JOB, queue="short", sleep=1000)
 		time.sleep(3)
 		self.check_status(job, "started", wait=False)
-		self.check_status(job, "finished", wait=True)
+		stop_job(job_id=job.id)
+		self.check_status(job, "stopped")
 
 	def test_delete_doc(self):
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
