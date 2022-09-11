@@ -1,7 +1,7 @@
 frappe.listview_settings["RQ Job"] = {
 	hide_name_column: true,
 
-	refresh(listview) {
+	onload(listview) {
 		if (!has_common(frappe.user_roles, ["Administrator", "System Manager"])) return;
 
 		listview.page.add_inner_button(__("Remove Failed Jobs"), () => {
@@ -9,5 +9,10 @@ frappe.listview_settings["RQ Job"] = {
 				frappe.xcall("frappe.core.doctype.rq_job.rq_job.remove_failed_jobs");
 			});
 		});
+
+		if (listview.list_view_settings) {
+			listview.list_view_settings.disable_count = 1;
+			listview.list_view_settings.disable_sidebar_stats = 1;
+		}
 	},
 };
