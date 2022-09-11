@@ -38,11 +38,6 @@ context("Sidebar", () => {
 		//To check if no filter is available in "Assigned To" dropdown
 		cy.get(".empty-state").should("contain", "No filters found");
 
-		cy.click_sidebar_button("Created By");
-
-		//To check if "Created By" dropdown contains filter
-		cy.get(".group-by-item > .dropdown-item").should("contain", "Me");
-
 		//Assigning a doctype to a user
 		cy.visit("/app/doctype/ToDo");
 		cy.get(".form-assignments > .flex > .text-muted").click();
@@ -72,7 +67,7 @@ context("Sidebar", () => {
 		cy.get(".condition").should("have.value", "like");
 		cy.get(".filter-field > .form-group > .input-with-feedback").should(
 			"have.value",
-			"%Administrator%"
+			`%${cy.config("testUser")}%`
 		);
 		cy.click_filter_button();
 
