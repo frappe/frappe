@@ -8,17 +8,17 @@ import os
 
 import frappe
 from frappe.modules.import_file import import_file_by_path
-from frappe.modules.patch_handler import block_user
+from frappe.modules.patch_handler import _patch_mode
 from frappe.utils import update_progress_bar
 
 
 def sync_all(force=0, reset_permissions=False):
-	block_user(True)
+	_patch_mode(True)
 
 	for app in frappe.get_installed_apps():
 		sync_for(app, force, reset_permissions=reset_permissions)
 
-	block_user(False)
+	_patch_mode(False)
 
 	frappe.clear_cache()
 

@@ -18,7 +18,6 @@ frappe.breadcrumbs = {
 		Workflow: "Settings",
 		Printing: "Settings",
 		Setup: "Settings",
-		"Event Streaming": "Tools",
 		Automation: "Tools",
 	},
 
