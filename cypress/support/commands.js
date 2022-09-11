@@ -1,4 +1,3 @@
-import "cypress-file-upload";
 import "@testing-library/cypress/add-commands";
 import "@4tw/cypress-drag-drop";
 import "cypress-real-events/support";
@@ -30,7 +29,7 @@ import "cypress-real-events/support";
 
 Cypress.Commands.add("login", (email, password) => {
 	if (!email) {
-		email = "Administrator";
+		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
 		password = Cypress.env("adminPassword");
