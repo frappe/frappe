@@ -11,6 +11,7 @@ import click
 import frappe
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, is_git_url
+from frappe.utils.dashboard import sync_dashboards
 
 
 def _is_scheduler_enabled() -> bool:
@@ -301,6 +302,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)
+	sync_dashboards(name)
 
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #

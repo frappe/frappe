@@ -84,9 +84,10 @@ def get_dashboards_with_link(docname, doctype):
 
 
 def sync_dashboards(app=None):
-	"""Import, overwrite fixtures from `[app]/fixtures`"""
+	"""Import, overwrite dashboards from `[app]/[app]_dashboard`"""
 	if not cint(frappe.db.get_single_value("System Settings", "setup_complete")):
 		return
+
 	if app:
 		apps = [app]
 	else:
