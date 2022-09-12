@@ -110,6 +110,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	docinfo.update(
 		{
+			"doctype": doc.doctype,
+			"name": doc.name,
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,

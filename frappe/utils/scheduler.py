@@ -177,3 +177,10 @@ def activate_scheduler():
 		enable_scheduler()
 	if frappe.conf.pause_scheduler:
 		update_site_config("pause_scheduler", 0)
+
+
+@frappe.whitelist()
+def get_scheduler_status():
+	if is_scheduler_inactive():
+		return {"status": "inactive"}
+	return {"status": "active"}

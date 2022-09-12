@@ -56,16 +56,11 @@ Object.assign(frappe.model, {
 	sync_docinfo: (r) => {
 		// set docinfo (comments, assign, attachments)
 		if (r.docinfo) {
-			var doc;
-			if (r.docs) {
-				doc = r.docs[0];
-			} else {
-				if (cur_frm) doc = cur_frm.doc;
+			const { doctype, name } = r.docinfo;
+			if (!frappe.model.docinfo[doctype]) {
+				frappe.model.docinfo[doctype] = {};
 			}
-			if (doc) {
-				if (!frappe.model.docinfo[doc.doctype]) frappe.model.docinfo[doc.doctype] = {};
-				frappe.model.docinfo[doc.doctype][doc.name] = r.docinfo;
-			}
+			frappe.model.docinfo[doctype][name] = r.docinfo;
 
 			// copy values to frappe.boot.user_info
 			Object.assign(frappe.boot.user_info, r.docinfo.user_info);
