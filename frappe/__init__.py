@@ -203,6 +203,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 			"mute_emails": False,
 			"has_dataurl": False,
 			"new_site": new_site,
+			"read_only": False,
 		}
 	)
 	local.rollback_observers = []
@@ -284,9 +285,7 @@ def connect_replica():
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(
-		host=local.conf.replica_host, user=user, password=password, port=port, read_only=True
-	)
+	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -2224,13 +2223,18 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	title = title or "Error"
 	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
-	return get_doc(
+	error_log = get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-	).insert(ignore_permissions=True)
+	)
+
+	if flags.read_only:
+		error_log.deferred_insert()
+	else:
+		return error_log.insert(ignore_permissions=True)
 
 
 def get_desk_link(doctype, name):

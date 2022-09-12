@@ -191,6 +191,7 @@ def get_website_settings(context=None):
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
 
+	context.read_only_mode = frappe.flags.read_only
 	context.boot = get_boot_data()
 
 	return context

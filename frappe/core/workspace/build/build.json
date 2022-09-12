@@ -217,8 +217,8 @@
    "is_query_report": 0,
    "label": "Background Jobs",
    "link_count": 0,
-   "link_to": "background_jobs",
-   "link_type": "Page",
+   "link_to": "RQ Job",
+   "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
@@ -273,7 +273,7 @@
    "type": "Link"
   }
  ],
- "modified": "2022-09-02 01:48:28.029135",
+ "modified": "2022-09-11 06:41:31.095300",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",

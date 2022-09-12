@@ -182,6 +182,9 @@ def json_handler(obj):
 	elif type(obj) == type or isinstance(obj, Exception):
 		return repr(obj)
 
+	elif callable(obj):
+		return repr(obj)
+
 	else:
 		raise TypeError(
 			f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
