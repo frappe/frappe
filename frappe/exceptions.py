@@ -236,6 +236,10 @@ class QueryDeadlockError(Exception):
 	pass
 
 
+class InReadOnlyMode(ValidationError):
+	http_status_code = 503  # temporarily not available
+
+
 class TooManyWritesError(Exception):
 	pass
 
