@@ -370,7 +370,7 @@ def get_workspace_sidebar_items():
 
 	filters = {
 		"restrict_to_domain": ["in", frappe.get_active_domains()],
-		"module": ["not in", blocked_modules],
+		"ifnull(module, '')": ("not in", blocked_modules)
 	}
 
 	if has_access:
