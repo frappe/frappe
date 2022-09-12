@@ -10,6 +10,7 @@ from rq.job import Job
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.utils.background_jobs import is_job_queued
 
 
 class TestRQJob(FrappeTestCase):
@@ -77,6 +78,17 @@ class TestRQJob(FrappeTestCase):
 
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()
+
+	def test_is_enqueued(self):
+
+		job_name = "uniq_test_job"
+		dummy_job = frappe.enqueue(self.BG_JOB, sleep=100, queue="short")
+		actual_job = frappe.enqueue(self.BG_JOB, job_name=job_name, queue="short")
+
+		self.assertTrue(is_job_queued(job_name))
+		stop_job(dummy_job.id)
+		self.check_status(actual_job, "finished")
+		self.assertFalse(is_job_queued(job_name))
 
 
 def test_func(fail=False, sleep=0):
