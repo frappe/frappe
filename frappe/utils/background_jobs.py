@@ -382,3 +382,14 @@ def test_job(s):
 
 	print("sleeping...")
 	time.sleep(s)
+
+
+def is_job_queued(job_name: str) -> bool:
+	for queue in get_queues():
+		for job_id in queue.get_job_ids():
+			if not job_id:
+				continue
+			job = queue.fetch_job(job_id)
+			if job.kwargs.get("job_name") == job_name and job.kwargs.get("site") == frappe.local.site:
+				return True
+	return False

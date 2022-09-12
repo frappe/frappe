@@ -7,10 +7,9 @@ import frappe
 from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.importer import Importer
-from frappe.core.doctype.rq_job.rq_job import get_all_queued_jobs
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils.background_jobs import enqueue
+from frappe.utils.background_jobs import enqueue, is_job_queued
 from frappe.utils.csvutils import validate_google_sheets_url
 
 
@@ -65,9 +64,7 @@ class DataImport(Document):
 		if is_scheduler_inactive() and not frappe.flags.in_test:
 			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
 
-		enqueued_jobs = {job.get("job_name", "") for job in get_all_queued_jobs()}
-
-		if self.name not in enqueued_jobs:
+		if not is_job_queued(self.name):
 			enqueue(
 				start_import,
 				queue="default",
