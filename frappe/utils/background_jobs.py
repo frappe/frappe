@@ -9,6 +9,7 @@ from uuid import uuid4
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
+from rq.command import send_stop_job_command
 from rq.logutils import setup_loghandlers
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -21,6 +22,11 @@ from frappe.utils.redis_queue import RedisQueue
 
 if TYPE_CHECKING:
 	from rq.job import Job
+
+
+# TTL to keep RQ job logs in redis for.
+RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
+RQ_RESULTS_TTL = 10 * 60
 
 
 @lru_cache
@@ -103,7 +109,14 @@ def enqueue(
 		)
 		return frappe.flags.enqueue_after_commit
 
-	return q.enqueue_call(execute_job, timeout=timeout, kwargs=queue_args, at_front=at_front)
+	return q.enqueue_call(
+		execute_job,
+		timeout=timeout,
+		kwargs=queue_args,
+		at_front=at_front,
+		failure_ttl=RQ_JOB_FAILURE_TTL,
+		result_ttl=RQ_RESULTS_TTL,
+	)
 
 
 def enqueue_doc(
