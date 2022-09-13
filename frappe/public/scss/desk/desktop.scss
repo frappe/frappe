@@ -710,6 +710,8 @@ body {
 	}
 
 	&.quick-list-widget-box {
+		box-shadow: var(--card-shadow);
+
 		.list-loading-state, .list-no-data-state {
 			display: flex;
 			justify-content: center;
