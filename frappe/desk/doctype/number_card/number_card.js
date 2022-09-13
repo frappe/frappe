@@ -472,25 +472,21 @@ frappe.ui.form.on("Number Card", {
 		frm.set_df_property("parent_document_type", "hidden", !doc_is_table);
 
 		if (document_type && doc_is_table) {
-			let parent = await frappe.db.get_list("DocField", {
-				filters: {
-					fieldtype: "Table",
-					options: document_type,
-				},
-				fields: ["parent"],
+			let parents = await frappe.xcall(
+				"frappe.desk.doctype.dashboard_chart.dashboard_chart.get_parent_doctypes",
+				{ child_type: document_type }
+			);
+
+			frm.set_query("parent_document_type", function () {
+				return {
+					filters: {
+						name: ["in", parents],
+					},
+				};
 			});
 
-			parent &&
-				frm.set_query("parent_document_type", function () {
-					return {
-						filters: {
-							name: ["in", parent.map(({ parent }) => parent)],
-						},
-					};
-				});
-
-			if (parent.length === 1) {
-				frm.set_value("parent_document_type", parent[0].parent);
+			if (parents.length === 1) {
+				frm.set_value("parent_document_type", parents[0]);
 			}
 		}
 	},
