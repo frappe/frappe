@@ -319,7 +319,7 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
 				depends_on: `eval: ${show_existing}`,
 				mandatory_depends_on: `eval: ${show_existing}`,
 				options: kanban_options,
-				default: kanban_options[0],
+				default: "Create New Board",
 			},
 			{
 				fieldname: "new_kanban_board_sb",
