@@ -609,9 +609,19 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(dashboard_settings)
 
 	def test_coalesce_with_in_ops(self):
+<<<<<<< HEAD
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, return_query=1))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, return_query=1))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, return_query=1))
+=======
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", [])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", ["a"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, run=0))
+>>>>>>> 235171796d (fix: coalesce `not in` queries (#18099))
 
 
 def add_child_table_to_blog_post():
