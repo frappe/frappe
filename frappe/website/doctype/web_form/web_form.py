@@ -44,7 +44,7 @@ class WebForm(WebsiteGenerator):
 		)
 		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
 			# only published can be changed for standard web forms
-			if self.has_value_changed('published'):
+			if self.has_value_changed("published"):
 				published_value = self.published
 				self.reload()
 				self.published = published_value
