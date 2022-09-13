@@ -5,7 +5,7 @@ import unittest
 from contextlib import contextmanager
 
 import frappe
-from frappe.model.base_document import BaseDocument
+from frappe.model.base_document import BaseDocument, get_controller
 from frappe.utils import cint
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
@@ -168,3 +168,25 @@ def timeout(seconds=30, error_message="Test timed out."):
 		return wrapper
 
 	return decorator
+
+
+def test_stale_doctypes(app="frappe"):
+	"""Check that all doctypes in DB actually exist after patch test"""
+
+	app_modules = frappe.get_all("Module Def", {"app_name": app}, pluck="name")
+	doctypes = frappe.get_all("DocType", {"istable": 0, "module": ("in", app_modules)}, pluck="name")
+
+	stale_doctypes = []
+
+	for doctype in doctypes:
+		try:
+			get_controller(doctype)
+		except ImportError:
+			stale_doctypes.append(doctype)
+
+	if stale_doctypes:
+		frappe.throw(
+			frappe._("Following doctypes exist in DB without controller.\n {}").format(
+				"\n".join(stale_doctypes)
+			)
+		)
