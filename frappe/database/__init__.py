@@ -49,10 +49,7 @@ def get_db(host=None, user=None, password=None, port=None):
 	else:
 		import frappe.database.mariadb.database
 
-<<<<<<< HEAD
-		return frappe.database.mariadb.database.MariaDBDatabase(
-			host, user, password, port=port, read_only=read_only
-		)
+		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port=port)
 
 
 def setup_help_database(help_db_name):
@@ -66,6 +63,3 @@ def setup_help_database(help_db_name):
 		import frappe.database.mariadb.setup_db
 
 		return frappe.database.mariadb.setup_db.setup_help_database(help_db_name)
-=======
-		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port=port)
->>>>>>> ea7fbb2c10 (refactor: remove dead flag db.read_only)
