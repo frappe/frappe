@@ -212,3 +212,4 @@ frappe.patches.v14_0.delete_data_migration_tool
 frappe.patches.v14_0.set_suspend_email_queue_default
 frappe.patches.v14_0.different_encryption_key
 frappe.patches.v14_0.update_multistep_webforms
+frappe.patches.v14_0.drop_unused_indexes
