@@ -291,12 +291,13 @@ class Workspace:
 		quick_lists = self.doc.quick_lists
 
 		for item in quick_lists:
-			new_item = item.as_dict().copy()
+			if self.is_item_allowed(item.document_type, "doctype"):
+				new_item = item.as_dict().copy()
 
-			# Translate label
-			new_item["label"] = _(item.label) if item.label else _(item.document_type)
+				# Translate label
+				new_item["label"] = _(item.label) if item.label else _(item.document_type)
 
-			items.append(new_item)
+				items.append(new_item)
 
 		return items
 
