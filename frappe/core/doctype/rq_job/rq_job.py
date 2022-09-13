@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import functools
+import re
 
 from rq.command import send_stop_job_command
 from rq.job import Job
@@ -113,12 +114,18 @@ class RQJob(Document):
 
 def serialize_job(job: Job) -> frappe._dict:
 	modified = job.last_heartbeat or job.ended_at or job.started_at or job.created_at
+	job_name = job.kwargs.get("kwargs", {}).get("job_type") or str(job.kwargs.get("job_name"))
+
+	# function objects have this repr: '<function functionname at 0xmemory_address >'
+	# This regex just removes unnecessary things around it.
+	if matches := re.match(r"<function (?P<func_name>.*) at 0x.*>", job_name):
+		job_name = matches.group("func_name")
 
 	return frappe._dict(
 		name=job.id,
 		job_id=job.id,
 		queue=job.origin.rsplit(":", 1)[1],
-		job_name=job.kwargs.get("kwargs", {}).get("job_type") or str(job.kwargs.get("job_name")),
+		job_name=job_name,
 		status=job.get_status(),
 		started_at=convert_utc_to_user_timezone(job.started_at) if job.started_at else "",
 		ended_at=convert_utc_to_user_timezone(job.ended_at) if job.ended_at else "",
