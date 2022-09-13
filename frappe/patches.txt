@@ -211,3 +211,4 @@ frappe.patches.v14_0.set_suspend_email_queue_default
 frappe.patches.v14_0.different_encryption_key
 frappe.patches.v14_0.update_multistep_webforms
 execute:frappe.delete_doc('Page', 'background_jobs', ignore_missing=True, force=True)
+frappe.patches.v14_0.drop_unused_indexes
