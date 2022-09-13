@@ -30,11 +30,9 @@ class TestRQJob(FrappeTestCase):
 	def test_serialization(self):
 
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
-
 		rq_job = frappe.get_doc("RQ Job", job.id)
 
 		self.assertEqual(job, rq_job.job)
-
 		self.assertDocumentEqual(
 			{
 				"name": job.id,
@@ -46,6 +44,11 @@ class TestRQJob(FrappeTestCase):
 			rq_job,
 		)
 		self.check_status(job, "finished")
+
+	def test_func_obj_serialization(self):
+		job = frappe.enqueue(method=test_func, queue="short")
+		rq_job = frappe.get_doc("RQ Job", job.id)
+		self.assertEqual(rq_job.job_name, "test_func")
 
 	def test_get_list_filtering(self):
 
