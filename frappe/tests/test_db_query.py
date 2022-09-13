@@ -612,6 +612,10 @@ class TestReportview(unittest.TestCase):
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, return_query=1))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, return_query=1))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, return_query=1))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", [])}, return_query=1))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", ["a"])}, return_query=1))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, return_query=1))
+		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, return_query=1))
 
 
 def add_child_table_to_blog_post():
