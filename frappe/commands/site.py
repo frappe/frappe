@@ -420,6 +420,9 @@ def install_app(context, apps, force=False):
 				print(f"An error occurred while installing {app}{err_msg}")
 				exit_code = 1
 
+		if not exit_code:
+			frappe.db.commit()
+
 		frappe.destroy()
 
 	sys.exit(exit_code)
