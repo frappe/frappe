@@ -445,6 +445,10 @@ frappe.ui.form.Form = class FrappeForm {
 				.toggleClass("cancelled-form", this.doc.docstatus === 2);
 
 			this.show_conflict_message();
+
+			if (frappe.boot.read_only) {
+				this.disable_form();
+			}
 		}
 	}
 

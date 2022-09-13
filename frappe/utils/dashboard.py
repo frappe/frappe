@@ -64,9 +64,10 @@ def generate_and_cache_results(args, function, cache_key, chart):
 		else:
 			raise
 
-	frappe.db.set_value(
-		"Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified=False
-	)
+	if not frappe.flags.read_only:
+		frappe.db.set_value(
+			"Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified=False
+		)
 	return results
 
 
