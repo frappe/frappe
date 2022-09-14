@@ -234,13 +234,9 @@ frappe.views.KanbanView.get_kanbans = function (doctype) {
 	}
 };
 
-frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
-	let dialog = null;
-
-	frappe.views.KanbanView.get_kanbans(doctype).then((kanbans) => {
-		dialog = new_kanban_dialog(kanbans, show_existing);
-		dialog.show();
-	});
+frappe.views.KanbanView.show_kanban_dialog = function (doctype) {
+	let dialog = new_kanban_dialog();
+	dialog.show();
 
 	function make_kanban_board(board_name, field_name, project) {
 		return frappe.call({
@@ -262,101 +258,41 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
 		});
 	}
 
-	function new_kanban_dialog(kanbans, show_existing) {
+	function new_kanban_dialog() {
 		/* Kanban dialog can show either "Save" or "Customize Form" option depending if any Select fields exist in the DocType for Kanban creation
 		 */
-		if (dialog) return dialog;
 
-		const dialog_fields = get_fields_for_dialog(
-			kanbans.map((kanban) => kanban.name),
-			show_existing
-		);
 		const select_fields = frappe.get_meta(doctype).fields.filter((df) => {
 			return df.fieldtype === "Select" && df.fieldname !== "kanban_column";
 		});
+		const dialog_fields = get_fields_for_dialog(select_fields);
 		const to_save = select_fields.length > 0;
 		const primary_action_label = to_save ? __("Save") : __("Customize Form");
+		const dialog_title = to_save ? __("New Kanban Board") : __("No Select Field Found");
 
 		let primary_action = () => {
 			if (to_save) {
 				const values = dialog.get_values();
-				if (!values.selected_kanban || values.selected_kanban == "Create New Board") {
-					make_kanban_board(values.board_name, values.field_name, values.project).then(
-						() => dialog.hide(),
-						(err) => frappe.msgprint(err)
-					);
-				} else {
-					frappe.set_route(
-						kanbans.find((kanban) => kanban.name == values.selected_kanban).route
-					);
-				}
+				make_kanban_board(values.board_name, values.field_name, values.project).then(
+					() => dialog.hide(),
+					(err) => frappe.msgprint(err)
+				);
 			} else {
 				frappe.set_route("Form", "Customize Form", { doc_type: doctype });
 			}
 		};
 
-		dialog = new frappe.ui.Dialog({
-			title: __("New Kanban Board"),
+		return new frappe.ui.Dialog({
+			title: dialog_title,
 			fields: dialog_fields,
 			primary_action_label,
 			primary_action,
 		});
-		return dialog;
 	}
 
-	function get_fields_for_dialog(kanban_options, show_existing = false) {
-		kanban_options.push("Create New Board");
-		const select_fields = frappe.get_meta(doctype).fields.filter((df) => {
-			return df.fieldtype === "Select" && df.fieldname !== "kanban_column";
-		});
-
-		let fields = [
-			{
-				fieldtype: "Select",
-				fieldname: "selected_kanban",
-				label: __("Choose Kanban Board"),
-				reqd: 1,
-				depends_on: `eval: ${show_existing}`,
-				mandatory_depends_on: `eval: ${show_existing}`,
-				options: kanban_options,
-				default: kanban_options[0],
-			},
-			{
-				fieldname: "new_kanban_board_sb",
-				fieldtype: "Section Break",
-				depends_on: `eval: !${show_existing} || doc.selected_kanban == "Create New Board"`,
-			},
-			{
-				fieldtype: "Data",
-				fieldname: "board_name",
-				label: __("Kanban Board Name"),
-				mandatory_depends_on: 'eval: doc.selected_kanban == "Create New Board"',
-				description: ["Note", "ToDo"].includes(doctype)
-					? __("This Kanban Board will be private")
-					: "",
-			},
-		];
-
-		if (doctype === "Task") {
-			fields.push({
-				fieldtype: "Link",
-				fieldname: "project",
-				label: __("Project"),
-				options: "Project",
-			});
-		}
-
-		if (select_fields.length > 0) {
-			fields.push({
-				fieldtype: "Select",
-				fieldname: "field_name",
-				label: __("Columns based on"),
-				options: select_fields.map((df) => ({ label: df.label, value: df.fieldname })),
-				default: select_fields[0],
-				mandatory_depends_on: 'eval: doc.selected_kanban == "Create New Board"',
-			});
-		} else {
-			fields = [
+	function get_fields_for_dialog(select_fields) {
+		if (!select_fields.length) {
+			return [
 				{
 					fieldtype: "HTML",
 					options: `
@@ -370,6 +306,35 @@ frappe.views.KanbanView.show_kanban_dialog = function (doctype, show_existing) {
 				`,
 				},
 			];
+		}
+
+		let fields = [
+			{
+				fieldtype: "Data",
+				fieldname: "board_name",
+				label: __("Kanban Board Name"),
+				reqd: 1,
+				description: ["Note", "ToDo"].includes(doctype)
+					? __("This Kanban Board will be private")
+					: "",
+			},
+			{
+				fieldtype: "Select",
+				fieldname: "field_name",
+				label: __("Columns based on"),
+				options: select_fields.map((df) => ({ label: df.label, value: df.fieldname })),
+				default: select_fields[0],
+				reqd: 1,
+			},
+		];
+
+		if (doctype === "Task") {
+			fields.push({
+				fieldtype: "Link",
+				fieldname: "project",
+				label: __("Project"),
+				options: "Project",
+			});
 		}
 
 		return fields;
