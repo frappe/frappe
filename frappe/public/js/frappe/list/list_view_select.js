@@ -264,7 +264,23 @@ frappe.views.ListViewSelect = class ListViewSelect {
 	}
 
 	setup_kanban_boards() {
+		function fetch_kanban_board(doctype) {
+			frappe.db.get_value(
+				"Kanban Board",
+				{ reference_doctype: doctype },
+				"name",
+				(board) => {
+					if (!$.isEmptyObject(board)) {
+						frappe.set_route("list", doctype, "kanban", board.name);
+					} else {
+						frappe.views.KanbanView.show_kanban_dialog(doctype);
+					}
+				}
+			);
+		}
+
 		const last_opened_kanban =
+<<<<<<< HEAD
 			frappe.model.user_settings[this.doctype]["Kanban"] &&
 			frappe.model.user_settings[this.doctype]["Kanban"]
 				.last_kanban_board;
@@ -287,6 +303,20 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
 			}
 		});
+=======
+			frappe.model.user_settings[this.doctype]["Kanban"]?.last_kanban_board;
+		if (!last_opened_kanban) {
+			fetch_kanban_board(this.doctype);
+		} else {
+			frappe.db.exists("Kanban Board", last_opened_kanban).then((exists) => {
+				if (exists) {
+					frappe.set_route("list", this.doctype, "kanban", last_opened_kanban);
+				} else {
+					fetch_kanban_board(this.doctype);
+				}
+			});
+		}
+>>>>>>> 255bc211af (refactor(minor): simplify show_kanban_dialog & allow multiple kanban board creation (#18111))
 	}
 
 	get_calendars() {
