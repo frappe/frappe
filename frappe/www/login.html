@@ -108,7 +108,7 @@
 				{%- endif -%}
 			</form>
 		</div>
-		{%- if not disable_signup -%}
+		{%- if not disable_signup and not disable_user_pass_login -%}
 		<div class="text-center sign-up-message">
 			{{ _("Don't have an account?") }}
 			<a href="#signup">{{ _("Sign up") }}</a>
@@ -124,7 +124,7 @@
 			{{ email_login_body() }}
 			</form>
 		</div>
-		{%- if not disable_signup -%}
+		{%- if not disable_signup and not disable_user_pass_login -%}
 		<div class="text-center sign-up-message">
 			{{ _("Don't have an account?") }}
 			<a href="#signup">{{ _("Sign up") }}</a>
