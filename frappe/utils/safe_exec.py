@@ -136,6 +136,7 @@ def get_safe_globals():
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
 			get_payment_gateway_controller=frappe.integrations.utils.get_payment_gateway_controller,
+			make_put_request=frappe.integrations.utils.make_put_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
