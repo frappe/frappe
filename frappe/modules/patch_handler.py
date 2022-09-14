@@ -220,3 +220,10 @@ def _patch_mode(enable):
 	"""stop/start execution till patch is run"""
 	frappe.local.flags.in_patch = enable
 	frappe.db.commit()
+
+
+def check_session_stopped():
+	"""This function is deprecated. Use maintenance_mode in site config instead."""
+	if frappe.db.get_global("__session_status") == "stop":
+		frappe.msgprint(frappe.db.get_global("__session_status_message"))
+		raise frappe.SessionStopped("Session Stopped")
