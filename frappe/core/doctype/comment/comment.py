@@ -60,7 +60,6 @@ class Comment(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
-	frappe.db.add_index("Comment", ["link_doctype", "link_name"])
 
 
 def update_comment_in_doc(doc):
