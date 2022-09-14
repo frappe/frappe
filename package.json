@@ -61,9 +61,7 @@
     "vue": "2.6.14",
     "vue-router": "^2.0.0",
     "vuedraggable": "^2.24.3",
-    "vuex": "3"
-  },
-  "devDependencies": {
+    "vuex": "3",
     "@frappe/esbuild-plugin-postcss2": "^0.1.3",
     "@vue/component-compiler": "^4.2.4",
     "autoprefixer": "10",
