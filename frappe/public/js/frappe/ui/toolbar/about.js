@@ -20,10 +20,10 @@ frappe.ui.misc.about = function () {
 		<p><i class='fa fa-twitter fa-fw'></i>\
 			Twitter: <a href='https://twitter.com/erpnext' target='_blank'>https://twitter.com/erpnext</a></p>\
 		<hr>\
-		<h4>Installed Apps</h4>\
-		<div id='about-app-versions'>Loading versions...</div>\
+		<h4>__("Installed Apps")</h4>\
+		<div id='about-app-versions'>__("Loading versions...")</div>\
 		<hr>\
-		<p class='text-muted'>&copy; Frappe Technologies Pvt. Ltd. and contributors </p> \
+		<p class='text-muted'>__("&copy; Frappe Technologies Pvt. Ltd. and contributors") </p> \
 		</div>",
 				frappe.app
 			)
