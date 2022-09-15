@@ -454,6 +454,7 @@ def get_select_fields(old, new):
 	new line separated list
 	"""
 	# get link fields from tabDocField
+<<<<<<< HEAD
 	select_fields = frappe.db.sql(
 		"""
 		select parent, fieldname,
@@ -467,6 +468,19 @@ def get_select_fields(old, new):
 		),
 		(new,),
 		as_dict=1,
+=======
+	st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
+	standard_fields = (
+		frappe.qb.from_(df)
+		.select(df.parent, df.fieldname, st_issingle)
+		.where(
+			(df.parent != new)
+			& (df.fieldname != "fieldtype")
+			& (df.fieldtype == "Select")
+			& (df.options.like(f"%{old}%"))
+		)
+		.run(as_dict=True)
+>>>>>>> 6997f9e90f (fix: do not rename fieldtype options (#18143))
 	)
 
 	# get link fields from tabCustom Field
