@@ -10,9 +10,9 @@ frappe.ui.misc.about = function () {
 					__("Open Source Applications for the Web") +
 					"</p>  \
 		<p><i class='fa fa-globe fa-fw'></i>\
-			Website: <a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>\
+			__("Website"): <a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>\
 		<p><i class='fa fa-github fa-fw'></i>\
-			Source: <a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>\
+			__("Source"): <a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>\
 		<p><i class='fa fa-linkedin fa-fw'></i>\
 			Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>\
 		<p><i class='fa fa-facebook fa-fw'></i>\
