@@ -461,7 +461,7 @@ def get_select_fields(old, new):
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
-			df.parent != %s and df.fieldtype = 'Select' and
+			df.parent != %s and df.fieldtype = 'Select' and df.fieldname != 'fieldtype' and
 			df.options like {0} """.format(
 			frappe.db.escape("%" + old + "%")
 		),
