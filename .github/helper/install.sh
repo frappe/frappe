@@ -56,6 +56,12 @@ yarn add node-sass@4.13.1
 cd ../..
 
 bench start &
+
+CI=Yes bench build --app frappe &
+build_pid=$!
+
+
 bench --site test_site reinstall --yes
 if [ "$TYPE" == "server" ]; then bench --site test_site_producer reinstall --yes; fi
-CI=Yes bench build --app frappe
+
+wait $build_pid
