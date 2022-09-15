@@ -1255,10 +1255,21 @@ class Database(object):
 
 
 def enqueue_jobs_after_commit():
-	from frappe.utils.background_jobs import execute_job, get_queue
+	from frappe.utils.background_jobs import (
+		RQ_JOB_FAILURE_TTL,
+		RQ_RESULTS_TTL,
+		execute_job,
+		get_queue,
+	)
 
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
 			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
-			q.enqueue_call(execute_job, timeout=job.get("timeout"), kwargs=job.get("queue_args"))
+			q.enqueue_call(
+				execute_job,
+				timeout=job.get("timeout"),
+				kwargs=job.get("queue_args"),
+				failure_ttl=RQ_JOB_FAILURE_TTL,
+				result_ttl=RQ_RESULTS_TTL,
+			)
 		frappe.flags.enqueue_after_commit = []
