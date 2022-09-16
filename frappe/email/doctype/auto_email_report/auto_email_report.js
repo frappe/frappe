@@ -39,7 +39,8 @@ frappe.ui.form.on("Auto Email Report", {
 		frm.set_query("sender", function () {
 			return {
 				filters: {
-					enable_outgoing: true,
+					enable_outgoing: 1,
+					awaiting_password: 0,
 				},
 			};
 		});

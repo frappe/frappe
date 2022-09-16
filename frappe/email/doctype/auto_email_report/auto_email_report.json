@@ -30,7 +30,6 @@
   "day_of_week",
   "column_break_13",
   "sender",
-  "sender_email",
   "frequency",
   "format",
   "section_break_15",
@@ -208,14 +207,6 @@
    "fieldtype": "Link",
    "label": "Sender",
    "options": "Email Account"
-  },
-  {
-   "fetch_from": "sender.email_id",
-   "fieldname": "sender_email",
-   "fieldtype": "Data",
-   "label": "Sender Email",
-   "options": "Email",
-   "read_only": 1
   }
  ],
  "links": [],

@@ -38,6 +38,11 @@ class AutoEmailReport(Document):
 		self.validate_report_format()
 		self.validate_mandatory_fields()
 
+	@property
+	def sender_email(self):
+		email_id, login_id = frappe.db.get_value("Email Account", self.sender, ["email_id", "login_id"])
+		return login_id if login_id else email_id
+
 	def validate_emails(self):
 		"""Cleanup list of emails"""
 		if "," in self.email_to:
@@ -202,13 +207,9 @@ class AutoEmailReport(Document):
 		if not self.format == "HTML":
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
-		sender = None
-		if self.sender and self.sender_email:
-			sender = formataddr((self.sender, self.sender_email))
-
 		frappe.sendmail(
 			recipients=self.email_to.split(),
-			sender=sender,
+			sender=formataddr((self.sender, self.sender_email)) if self.sender else "",
 			subject=self.name,
 			message=message,
 			attachments=attachments,
