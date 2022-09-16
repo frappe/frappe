@@ -278,7 +278,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.sync_with_google_calendar && in_list([\"Event\", \"Meeting\", \"Other\"], doc.event_category))",
+   "depends_on": "eval:doc.sync_with_google_calendar",
    "description": "via Google Meet",
    "fieldname": "add_video_conferencing",
    "fieldtype": "Check",
