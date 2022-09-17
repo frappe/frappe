@@ -40,6 +40,20 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
+DEFAULT_FIELD_LABELS = {
+	"name": lambda: _("ID"),
+	"creation": lambda: _("Created On"),
+	"docstatus": lambda: _("Document Status"),
+	"idx": lambda: _("Index"),
+	"modified": lambda: _("Last Updated On"),
+	"modified_by": lambda: _("Last Updated By"),
+	"owner": lambda: _("Created By"),
+	"_user_tags": lambda: _("Tags"),
+	"_liked_by": lambda: _("Liked By"),
+	"_comments": lambda: _("Comments"),
+	"_assign": lambda: _("Assigned To"),
+}
+
 
 def get_meta(doctype, cached=True) -> "Meta":
 	if cached:
@@ -86,7 +100,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = (
+	special_doctypes = {
 		"DocField",
 		"DocPerm",
 		"DocType",
@@ -94,24 +108,25 @@ class Meta(Document):
 		"DocType Action",
 		"DocType Link",
 		"DocType State",
-	)
+	}
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
 	]
 
 	def __init__(self, doctype):
-		self._fields = {}
+		# from cache
 		if isinstance(doctype, dict):
 			super().__init__(doctype)
+			self.init_field_map()
+			return
 
-		elif isinstance(doctype, Document):
+		if isinstance(doctype, Document):
 			super().__init__(doctype.as_dict())
-			self.process()
-
 		else:
 			super().__init__("DocType", doctype)
-			self.process()
+
+		self.process()
 
 	def load_from_db(self):
 		try:
@@ -126,10 +141,12 @@ class Meta(Document):
 		# don't process for special doctypes
 		# prevent's circular dependency
 		if self.name in self.special_doctypes:
+			self.init_field_map()
 			return
 
 		self.add_custom_fields()
 		self.apply_property_setters()
+		self.init_field_map()
 		self.sort_fields()
 		self.get_valid_columns()
 		self.set_custom_permissions()
@@ -233,36 +250,24 @@ class Meta(Document):
 
 	def get_field(self, fieldname):
 		"""Return docfield from meta"""
-		if not self._fields:
-			for f in self.get("fields"):
-				self._fields[f.fieldname] = f
 
 		return self._fields.get(fieldname)
 
 	def has_field(self, fieldname):
 		"""Returns True if fieldname exists"""
-		return True if self.get_field(fieldname) else False
+
+		return fieldname in self._fields
 
 	def get_label(self, fieldname):
 		"""Get label of the given fieldname"""
-		df = self.get_field(fieldname)
-		if df:
-			label = df.label
-		else:
-			label = {
-				"name": _("ID"),
-				"creation": _("Created On"),
-				"docstatus": _("Document Status"),
-				"idx": _("Index"),
-				"modified": _("Last Updated On"),
-				"modified_by": _("Last Updated By"),
-				"owner": _("Created By"),
-				"_user_tags": _("Tags"),
-				"_liked_by": _("Liked By"),
-				"_comments": _("Comments"),
-				"_assign": _("Assigned To"),
-			}.get(fieldname) or _("No Label")
-		return label
+
+		if df := self.get_field(fieldname):
+			return df.label
+
+		if fieldname in DEFAULT_FIELD_LABELS:
+			return DEFAULT_FIELD_LABELS[fieldname]()
+
+		return _("No Label")
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
@@ -273,11 +278,8 @@ class Meta(Document):
 		if df.fieldtype == "Link":
 			return df.options
 
-		elif df.fieldtype == "Dynamic Link":
+		if df.fieldtype == "Dynamic Link":
 			return self.get_options(df.options)
-
-		else:
-			return None
 
 	def get_search_fields(self):
 		search_fields = self.search_fields or "name"
@@ -340,8 +342,9 @@ class Meta(Document):
 
 	def is_translatable(self, fieldname):
 		"""Return true of false given a field"""
-		field = self.get_field(fieldname)
-		return field and field.translatable
+
+		if field := self.get_field(fieldname):
+			return field.translatable
 
 	def get_workflow(self):
 		return get_workflow_name(self.name)
@@ -349,11 +352,10 @@ class Meta(Document):
 	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
 
-		field = self.get_field("naming_series")
-		if field:
+		if field := self.get_field("naming_series"):
 			options = field.options or ""
-
 			return options.split("\n")
+
 		return []
 
 	def add_custom_fields(self):
@@ -449,6 +451,9 @@ class Meta(Document):
 						new_list.append(d)
 
 				self.set(fieldname, new_list)
+
+	def init_field_map(self):
+		self._fields = {field.fieldname: field for field in self.fields}
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
