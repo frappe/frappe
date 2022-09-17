@@ -59,7 +59,12 @@ def get_meta(doctype, cached=True) -> "Meta":
 	if not cached:
 		return Meta(doctype)
 
-	return frappe.cache().hget("meta", doctype, lambda: Meta(doctype))
+	if meta := frappe.cache().hget("meta", doctype):
+		return meta
+
+	meta = Meta(doctype)
+	frappe.cache().hset("meta", doctype, meta)
+	return meta
 
 
 def load_meta(doctype):
