@@ -1090,16 +1090,19 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 	if not key:
 		key = get_document_cache_key(doc.doctype, doc.name)
 
-	local.document_cache[key] = doc
+	_set_document_in_cache(key, doc)
 
+	return doc
+
+
+def _set_document_in_cache(key: str, doc: "Document") -> None:
 	# Avoid setting in local.cache since we're already using local.document_cache above
 	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
+	local.document_cache[key] = doc
 	try:
 		cache().hset("document_cache", key, doc, cache_locally=False)
 	except Exception:
 		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
-
-	return doc
 
 
 def can_cache_doc(args) -> str | None:
@@ -1175,13 +1178,10 @@ def get_doc(*args, **kwargs) -> "Document":
 
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
-	# Replace cache
+	# Replace cache if stale one exists
 	if key := can_cache_doc(args):
-		if key in local.document_cache:
-			local.document_cache[key] = doc
-
 		if cache().hexists("document_cache", key):
-			cache().hset("document_cache", key, doc.as_dict())
+			_set_document_in_cache(key, doc)
 
 	return doc
 
