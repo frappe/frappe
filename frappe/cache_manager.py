@@ -117,9 +117,6 @@ def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 	cache = frappe.cache()
 
-	if getattr(frappe.local, "meta_cache") and (doctype in frappe.local.meta_cache):
-		del frappe.local.meta_cache[doctype]
-
 	for key in ("is_table", "doctype_modules", "document_cache"):
 		cache.delete_value(key)
 
