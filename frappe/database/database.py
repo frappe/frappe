@@ -7,6 +7,7 @@ import json
 import random
 import re
 import string
+import threading
 import traceback
 from contextlib import contextmanager, suppress
 from time import time
@@ -38,6 +39,9 @@ IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+
+DB_CONNECTIONS = threading.local()
 
 
 class Database:
@@ -113,7 +117,11 @@ class Database:
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
 		self.cur_db_name = self.user
-		self._conn = self.get_connection()
+		if conn := getattr(DB_CONNECTIONS, frappe.local.site, None):
+			self._conn = conn
+		else:
+			self._conn = self.get_connection()
+			setattr(DB_CONNECTIONS, frappe.local.site, self._conn)
 		self._cursor = self._conn.cursor()
 		frappe.local.rollback_observers = []
 
