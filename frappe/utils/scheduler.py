@@ -74,16 +74,14 @@ def enqueue_events_for_site(site):
 		enqueue_events(site=site)
 
 		frappe.logger("scheduler").debug(f"Queued events for site {site}")
-	except frappe.db.OperationalError as e:
+	except Exception as e:
 		if frappe.db.is_access_denied(e):
 			frappe.logger("scheduler").debug(f"Access denied for site {site}")
 		else:
+			frappe.db.rollback()
 			log_and_raise()
-	except Exception:
-		log_and_raise()
-
 	finally:
-		frappe.destroy()
+		frappe.destroy(keep_connection=True)
 
 
 def enqueue_events(site):
