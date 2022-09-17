@@ -1132,8 +1132,11 @@ class Database:
 		"""Close database connection."""
 		if self._conn:
 			self._conn.close()
-			self._cursor = None
-			self._conn = None
+			self.clear_cursor()
+
+	def clear_cursor(self):
+		self._cursor = None
+		self._conn = None
 
 	@staticmethod
 	def escape(s, percent=True):

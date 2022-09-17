@@ -344,10 +344,13 @@ class init_site:
 		destroy()
 
 
-def destroy():
+def destroy(keep_connection=False):
 	"""Closes connection and releases werkzeug local."""
 	if db:
-		db.close()
+		if keep_connection:
+			db.clear_cursor()
+		else:
+			db.close()
 
 	release_local(local)
 
