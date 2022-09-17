@@ -239,7 +239,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jloader = None
 	local.cache = {}
 	local.document_cache = {}
-	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()

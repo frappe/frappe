@@ -56,19 +56,10 @@ DEFAULT_FIELD_LABELS = {
 
 
 def get_meta(doctype, cached=True) -> "Meta":
-	if cached:
-		if not frappe.local.meta_cache.get(doctype):
-			meta = frappe.cache().hget("meta", doctype)
-			if meta:
-				meta = Meta(meta)
-			else:
-				meta = Meta(doctype)
-				frappe.cache().hset("meta", doctype, meta.as_dict())
-			frappe.local.meta_cache[doctype] = meta
+	if not cached:
+		return Meta(doctype)
 
-		return frappe.local.meta_cache[doctype]
-	else:
-		return load_meta(doctype)
+	return frappe.cache().hget("meta", doctype, lambda: Meta(doctype))
 
 
 def load_meta(doctype):
