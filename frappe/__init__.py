@@ -1064,21 +1064,9 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 
-@overload
-def get_cached_doc(doctype, docname, _allow_dict=True) -> dict:
-	...
-
-
-@overload
 def get_cached_doc(*args, **kwargs) -> "Document":
-	...
-
-
-def get_cached_doc(*args, **kwargs):
-	allow_dict = kwargs.pop("_allow_dict", False)
-
 	def _respond(doc, from_redis=False):
-		if not allow_dict and isinstance(doc, dict):
+		if isinstance(doc, dict):
 			local.document_cache[key] = doc = get_doc(doc)
 
 		elif from_redis:
@@ -1151,7 +1139,7 @@ def get_cached_value(
 	doctype: str, name: str, fieldname: str = "name", as_dict: bool = False
 ) -> Any:
 	try:
-		doc = get_cached_doc(doctype, name, _allow_dict=True)
+		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
 		clear_last_message()
 		return
