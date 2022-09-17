@@ -49,8 +49,11 @@ dependencies = [
     "premailer~=3.8.0",
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
+<<<<<<< HEAD
     "pyOpenSSL~=20.0.1",
     "pyasn1~=0.4.8",
+=======
+>>>>>>> 7f1655fe46 (build(deps): drop pyOpenSSL dependency (#18162))
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
     "pypng~=0.20220715.0",
