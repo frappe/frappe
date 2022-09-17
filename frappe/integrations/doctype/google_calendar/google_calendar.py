@@ -510,7 +510,12 @@ def update_event_in_google_calendar(doc, method=None):
 		)
 
 		# if add_video_conferencing enabled or disabled during update, overwrite
-		frappe.db.set_value("Event", doc.name, {"google_meet_link": event.get("hangoutLink")})
+		frappe.db.set_value(
+			"Event",
+			doc.name,
+			{"google_meet_link": event.get("hangoutLink")},
+			update_modified=False,
+		)
 		doc.notify_update()
 
 		frappe.msgprint(_("Event Synced with Google Calendar."))
