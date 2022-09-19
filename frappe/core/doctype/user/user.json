@@ -722,11 +722,7 @@
    "link_fieldname": "user"
   }
  ],
-<<<<<<< HEAD
- "modified": "2022-05-25 01:00:51.345319",
-=======
  "modified": "2022-09-19 16:05:46.485242",
->>>>>>> 359f0c3dcb (fix: change fieldtype of restrict_ip from data to small text)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
