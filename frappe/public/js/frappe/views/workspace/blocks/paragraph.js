@@ -75,7 +75,7 @@ export default class Paragraph extends Block {
 	}
 
 	open_block_list() {
-		let dropdown_title = "Templates";
+		let dropdown_title = __("Templates");
 		let $block_list_container = $(`
 			<div class="block-list-container dropdown-list">
 				<div class="dropdown-title">${dropdown_title.toUpperCase()}</div>
