@@ -48,7 +48,6 @@ dependencies = [
     "premailer~=3.8.0",
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
-    "pyOpenSSL~=20.0.1",
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
     "python-dateutil~=2.8.1",

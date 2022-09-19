@@ -136,7 +136,7 @@ def get_email_header(doc):
 @frappe.whitelist()
 def get_notification_logs(limit=20):
 	notification_logs = frappe.db.get_list(
-		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
+		"Notification Log", fields=["*"], limit=limit, order_by="modified desc"
 	)
 
 	users = [log.from_user for log in notification_logs]

@@ -390,18 +390,17 @@ frappe.views.Workspace = class Workspace {
 
 		this.clear_page_actions();
 
-		current_page.is_editable &&
-			this.page.set_secondary_action(__("Edit"), async () => {
-				if (!this.editor || !this.editor.readOnly) return;
-				this.is_read_only = false;
-				await this.editor.readOnly.toggle();
-				this.editor.isReady.then(() => {
-					this.initialize_editorjs_undo();
-					this.setup_customization_buttons(current_page);
-					this.show_sidebar_actions();
-					this.make_blocks_sortable();
-				});
+		this.page.set_secondary_action(__("Edit"), async () => {
+			if (!this.editor || !this.editor.readOnly) return;
+			this.is_read_only = false;
+			await this.editor.readOnly.toggle();
+			this.editor.isReady.then(() => {
+				this.initialize_editorjs_undo();
+				this.setup_customization_buttons(current_page);
+				this.show_sidebar_actions();
+				this.make_blocks_sortable();
 			});
+		});
 
 		this.page.add_inner_button(__("Create Workspace"), () => {
 			this.initialize_new_page();
@@ -794,7 +793,11 @@ frappe.views.Workspace = class Workspace {
 
 	duplicate_page(page) {
 		var me = this;
-		let parent_pages = this.get_parent_pages(page);
+		let new_page = { ...page };
+		if (!this.has_access && new_page.public) {
+			new_page.public = 0;
+		}
+		let parent_pages = this.get_parent_pages({ public: new_page.public });
 		const d = new frappe.ui.Dialog({
 			title: __("Create Duplicate"),
 			fields: [
@@ -809,14 +812,14 @@ frappe.views.Workspace = class Workspace {
 					fieldtype: "Select",
 					fieldname: "parent",
 					options: parent_pages,
-					default: page.parent_page,
+					default: new_page.parent_page,
 				},
 				{
 					label: __("Public"),
 					fieldtype: "Check",
 					fieldname: "is_public",
 					depends_on: `eval:${this.has_access}`,
-					default: page.public,
+					default: new_page.public,
 					onchange: function () {
 						d.set_df_property(
 							"parent",
@@ -832,7 +835,7 @@ frappe.views.Workspace = class Workspace {
 					label: __("Icon"),
 					fieldtype: "Icon",
 					fieldname: "icon",
-					default: page.icon,
+					default: new_page.icon,
 				},
 			],
 			primary_action_label: __("Duplicate"),
@@ -853,8 +856,6 @@ frappe.views.Workspace = class Workspace {
 						}
 					},
 				});
-
-				let new_page = { ...page };
 
 				new_page.title = values.title;
 				new_page.public = values.is_public || 0;

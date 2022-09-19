@@ -895,6 +895,7 @@ def run_ui_tests(
 				"@4tw/cypress-drag-drop@^2",
 				"cypress-real-events",
 				"@testing-library/cypress@^8",
+				"@testing-library/dom@8.17.1",
 				"@cypress/code-coverage@^3",
 			]
 		)

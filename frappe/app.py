@@ -33,17 +33,6 @@ SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
 UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
-class RequestContext:
-	def __init__(self, environ):
-		self.request = Request(environ)
-
-	def __enter__(self):
-		init_request(self.request)
-
-	def __exit__(self, type, value, traceback):
-		frappe.destroy()
-
-
 @local_manager.middleware
 @Request.application
 def application(request: Request):

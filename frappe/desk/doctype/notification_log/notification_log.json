@@ -22,18 +22,14 @@
    "fieldname": "subject",
    "fieldtype": "Text",
    "in_list_view": 1,
-   "label": "Subject",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Subject"
   },
   {
    "fieldname": "for_user",
    "fieldtype": "Link",
    "hidden": 1,
    "label": "For User",
-   "options": "User",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "User"
   },
   {
    "fieldname": "type",
@@ -42,36 +38,26 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Mention\nEnergy Point\nAssignment\nShare\nAlert",
-   "search_index": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "Mention\nEnergy Point\nAssignment\nShare\nAlert"
   },
   {
    "fieldname": "email_content",
    "fieldtype": "Text Editor",
-   "label": "Message",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Message"
   },
   {
    "fieldname": "document_type",
    "fieldtype": "Link",
    "hidden": 1,
    "label": "Document Type",
-   "options": "DocType",
-   "search_index": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "DocType"
   },
   {
    "fieldname": "document_name",
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Document Link",
-   "search_index": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "search_index": 1
   },
   {
    "fieldname": "from_user",
@@ -79,9 +65,7 @@
    "hidden": 1,
    "label": "From User",
    "options": "User",
-   "search_index": 1,
-   "show_days": 1,
-   "show_seconds": 1
+   "search_index": 1
   },
   {
    "default": "0",
@@ -89,38 +73,30 @@
    "fieldtype": "Check",
    "hidden": 1,
    "ignore_user_permissions": 1,
-   "label": "Read",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Read"
   },
   {
    "fieldname": "open_reference_document",
    "fieldtype": "Button",
-   "label": "Open Reference Document",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Open Reference Document"
   },
   {
    "fieldname": "attached_file",
    "fieldtype": "Code",
    "hidden": 1,
    "label": "Attached File",
-   "options": "JSON",
-   "show_days": 1,
-   "show_seconds": 1
+   "options": "JSON"
   },
   {
    "fieldname": "attachment_link",
    "fieldtype": "HTML",
-   "label": "Attachment Link",
-   "show_days": 1,
-   "show_seconds": 1
+   "label": "Attachment Link"
   }
  ],
  "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2021-10-25 17:26:09.703215",
+ "modified": "2022-09-13 16:08:48.153934",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",
@@ -138,6 +114,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "subject",
  "track_seen": 1
 }
