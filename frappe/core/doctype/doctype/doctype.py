@@ -414,10 +414,6 @@ class DocType(Document):
 		if not frappe.flags.in_install and hasattr(self, "before_update"):
 			self.sync_global_search()
 
-		# clear from local cache
-		if self.name in frappe.local.meta_cache:
-			del frappe.local.meta_cache[self.name]
-
 		clear_linked_doctype_cache()
 
 	def setup_autoincrement_and_sequence(self):

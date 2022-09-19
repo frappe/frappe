@@ -3,6 +3,7 @@
 
 import calendar
 from datetime import timedelta
+from email.utils import formataddr
 
 import frappe
 from frappe import _
@@ -36,6 +37,11 @@ class AutoEmailReport(Document):
 		self.validate_emails()
 		self.validate_report_format()
 		self.validate_mandatory_fields()
+
+	@property
+	def sender_email(self):
+		email_id, login_id = frappe.db.get_value("Email Account", self.sender, ["email_id", "login_id"])
+		return login_id if login_id else email_id
 
 	def validate_emails(self):
 		"""Cleanup list of emails"""
@@ -203,6 +209,7 @@ class AutoEmailReport(Document):
 
 		frappe.sendmail(
 			recipients=self.email_to.split(),
+			sender=formataddr((self.sender, self.sender_email)) if self.sender else "",
 			subject=self.name,
 			message=message,
 			attachments=attachments,

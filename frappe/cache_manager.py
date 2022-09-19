@@ -58,8 +58,8 @@ user_cache_keys = (
 )
 
 doctype_cache_keys = (
-	"meta",
-	"form_meta",
+	"doctype_meta",
+	"doctype_form_meta",
 	"table_columns",
 	"last_modified",
 	"linked_doctypes",
@@ -115,9 +115,6 @@ def clear_defaults_cache(user=None):
 def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 	cache = frappe.cache()
-
-	if getattr(frappe.local, "meta_cache") and (doctype in frappe.local.meta_cache):
-		del frappe.local.meta_cache[doctype]
 
 	for key in ("is_table", "doctype_modules", "document_cache"):
 		cache.delete_value(key)

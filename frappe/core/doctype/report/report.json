@@ -128,7 +128,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:doc.is_standard == 'Yes'",
    "fieldname": "roles",
    "fieldtype": "Table",
    "label": "Roles",
@@ -192,10 +191,11 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-17 16:49:28.474274",
+ "modified": "2022-09-15 13:37:24.531848",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -242,5 +242,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
