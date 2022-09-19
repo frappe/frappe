@@ -1179,7 +1179,7 @@ def get_doc(*args, **kwargs) -> "Document":
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# Replace cache if stale one exists
-	if key := can_cache_doc(args) and cache().hexists("document_cache", key):
+	if (key := can_cache_doc(args)) and cache().hexists("document_cache", key):
 		_set_document_in_cache(key, doc)
 
 	return doc
