@@ -284,6 +284,36 @@ class Engine:
 
 		return conditions
 
+	@staticmethod
+	def get_condition_from_nested_sets(value: list | tuple, table: str):
+		field = frappe.meta.get_field("name")
+		ref_doctype = field.options if field else table
+		lft, rgt = "", ""
+		lft, rgt = (
+			frappe.qb.from_(ref_doctype).select(["lft", "rgt"]).where(Field("name") == value[1]).run()
+		)
+
+		if value in ("descendants of", "not descendants of"):
+			result = (
+				frappe.qb.from_(ref_doctype)
+				.select(Field("name"))
+				.where(Field("lft") > lft)
+				.where(Field("rgt") < rgt)
+				.orderby(Field("lft"), order=Order.asc)
+				.run()
+			)
+		else:
+			# Get ancestor elements of a DocType with a tree structure
+			result = (
+				frappe.qb.from_(ref_doctype)
+				.select(Field("name"))
+				.where(Field("lft") < lft)
+				.where(Field("rgt") > rgt)
+				.orderby(Field("lft"), order=Order.desc)
+				.run()
+			)
+		return result
+
 	def misc_query(self, table: str, filters: list | tuple = None, **kwargs):
 		"""Build conditions using the given Lists or Tuple filters
 
@@ -350,32 +380,7 @@ class Engine:
 			# Nested set support
 			if isinstance(value, (list, tuple)):
 				if value in self.OPERATOR_MAP["nested_set"]:
-					field = frappe.meta.get_field("name")
-					ref_doctype = field.options if field else table
-					lft, rgt = "", ""
-					lft, rgt = (
-						frappe.qb.from_(ref_doctype).select(["lft", "rgt"]).where(Field("name") == value[1]).run()
-					)
-
-					if value in ("descendants of", "not descendants of"):
-						result = (
-							frappe.qb.from_(ref_doctype)
-							.select(Field("name"))
-							.where(Field("lft") > lft)
-							.where(Field("rgt") < rgt)
-							.orderby(Field("lft"), order=Order.asc)
-							.run()
-						)
-					else:
-						# Get ancestor elements of a DocType with a tree structure
-						result = (
-							frappe.qb.from_(ref_doctype)
-							.select(Field("name"))
-							.where(Field("lft") < lft)
-							.where(Field("rgt") > rgt)
-							.orderby(Field("lft"), order=Order.desc)
-							.run()
-						)
+					result = self.get_condition_from_nested_sets(value, table)
 					if result:
 						_value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in result]
 						_operator = (
