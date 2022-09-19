@@ -38,7 +38,7 @@ class PhonePicker {
 				return;
 			}
 			let $country = $(`
-				<div id="${country.toLowerCase()}" class="phone-wrapper">
+				<div id="${__(country).toLowerCase()}" class="phone-wrapper">
 					${frappe.utils.flag(info.code)}
 					<span class="country">${country} (${info.isd})</span>
 				</div>
