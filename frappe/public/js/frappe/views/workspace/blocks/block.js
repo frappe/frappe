@@ -156,32 +156,32 @@ export default class Block {
 		let me = this;
 		this.dropdown_list = [
 			{
-				label: "Delete",
-				title: "Delete Block",
+				label: __("Delete"),
+				title: __("Delete Block"),
 				icon: frappe.utils.icon("delete-active", "sm"),
 				action: () => this.api.blocks.delete(),
 			},
 			{
-				label: "Expand",
-				title: "Expand Block",
+				label: __("Expand"),
+				title: __("Expand Block"),
 				icon: frappe.utils.icon("expand-alt", "sm"),
 				action: () => this.increase_width(),
 			},
 			{
-				label: "Shrink",
-				title: "Shrink Block",
+				label: __("Shrink"),
+				title: __("Shrink Block"),
 				icon: frappe.utils.icon("shrink", "sm"),
 				action: () => this.decrease_width(),
 			},
 			{
-				label: "Move Up",
-				title: "Move Up",
+				label: __("Move Up"),
+				title: __("Move Up"),
 				icon: frappe.utils.icon("up-arrow", "sm"),
 				action: () => this.move_block("up"),
 			},
 			{
-				label: "Move Down",
-				title: "Move Down",
+				label: __("Move Down"),
+				title: __("Move Down"),
 				icon: frappe.utils.icon("down-arrow", "sm"),
 				action: () => this.move_block("down"),
 			},
