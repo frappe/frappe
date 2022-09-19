@@ -313,7 +313,7 @@ frappe.Application = class Application {
 				frappe.workspaces['pcg-web'] ? frappe.workspaces['pcg-web'] : frappe.workspaces['build'];
 				// hack; I could not figure out HOW it should work
 		}
-	},
+	}
 
 	load_user_permissions() {
 		frappe.defaults.update_user_permissions();
