@@ -59,8 +59,8 @@ user_cache_keys = (
 )
 
 doctype_cache_keys = (
-	"meta",
-	"form_meta",
+	"doctype_meta",
+	"doctype_form_meta",
 	"table_columns",
 	"last_modified",
 	"linked_doctypes",
