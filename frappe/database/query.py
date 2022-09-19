@@ -9,7 +9,7 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
 from frappe import _
-from frappe.database.utils import is_pypika_function_object, nested_set_hierarchy
+from frappe.database.utils import NESTED_SET_HIERARCHY, is_pypika_function_object
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -189,7 +189,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"between": func_between,
 	"is": func_is,
 	"timespan": func_timespan,
-	"nested_set": nested_set_hierarchy,
+	"nested_set": NESTED_SET_HIERARCHY,
 	# TODO: Add support for custom operators (WIP) - via filters_config hooks
 }
 
@@ -353,7 +353,9 @@ class Engine:
 					field = frappe.meta.get_field("name")
 					ref_doctype = field.options if field else table
 					lft, rgt = "", ""
-					lft, rgt = frappe.qb.from_(ref_doctype).select(["lft", "rgt"]).where(Field("name") == value[1]).run()
+					lft, rgt = (
+						frappe.qb.from_(ref_doctype).select(["lft", "rgt"]).where(Field("name") == value[1]).run()
+					)
 
 					if value in ("descendants of", "not descendants of"):
 						result = (
@@ -618,7 +620,7 @@ class Engine:
 	def join_(self, criterion, fields, table, join):
 		"""Handles all join operations on criterion objects"""
 		has_join = False
-		joined_tables = dict()
+		joined_tables = {}
 
 		if not isinstance(fields, Criterion):
 			for field in fields:
@@ -651,7 +653,6 @@ class Engine:
 								fields[idx] = getattr(frappe.qb.DocType(table), field)
 						else:
 							field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-							field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
 							fields[idx] = field
 
 		if len(self.tables) > 1:

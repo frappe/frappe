@@ -201,3 +201,16 @@ class TestQuery(FrappeTestCase):
 				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
 			),
 		)
+
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"Note",
+				filters={"name": "Test Note Title"},
+				fields=["name", "`tabNote Seen By`.`docstatus`", "`tabNote Seen By`.`user`"],
+			).run(as_dict=1),
+			frappe.get_list(
+				"Note",
+				filters={"name": "Test Note Title"},
+				fields=["name", "`tabNote Seen By`.`docstatus`", "`tabNote Seen By`.`user`"],
+			),
+		)

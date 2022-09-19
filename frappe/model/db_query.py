@@ -13,7 +13,7 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import FallBackDateTimeStr
+from frappe.database.utils import NESTED_SET_HIERARCHY, FallBackDateTimeStr
 from frappe.model import optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -28,7 +28,6 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
-from frappe.database.utils import nested_set_hierarchy
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(
@@ -569,7 +568,7 @@ class DatabaseQuery:
 		can_be_null = True
 
 		# prepare in condition
-		if f.operator.lower() in nested_set_hierarchy:
+		if f.operator.lower() in NESTED_SET_HIERARCHY:
 			values = f.value or ""
 
 			# TODO: handle list and tuple
