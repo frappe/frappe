@@ -667,10 +667,17 @@ def is_single(doctype):
 
 
 def get_parent_dt(dt):
-	parent_dt = frappe.get_all(
-		"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=dt), limit=1
+	if not frappe.is_table(dt):
+		return ""
+
+	return (
+		frappe.db.get_value(
+			"DocField",
+			{"fieldtype": ("in", frappe.model.table_fields), "options": dt},
+			"parent",
+		)
+		or ""
 	)
-	return parent_dt and parent_dt[0].parent or ""
 
 
 def set_fieldname(field_id, fieldname):
