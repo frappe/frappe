@@ -272,7 +272,7 @@ class CardDialog extends WidgetDialog {
 					{
 						fieldname: "only_for",
 						fieldtype: "Link",
-						label: "Only for ",
+						label: "Only for",
 						options: "Country",
 					},
 					{
@@ -296,18 +296,18 @@ class CardDialog extends WidgetDialog {
 		let message = "";
 
 		if (!data.links) {
-			message = "You must add atleast one link.";
+			message = __("You must add atleast one link.");
 		} else {
 			data.links.map((item, idx) => {
 				let row = idx + 1;
 
 				if (!item.link_type) {
-					message = "Following fields have missing values: <br><br><ul>";
-					message += `<li>Link Type in Row ${row}</li>`;
+					message = __("Following fields have missing values") + ": <br><br><ul>";
+					message += `<li>${__("Link Type in Row")} ${row}</li>`;
 				}
 
 				if (!item.link_to) {
-					message += `<li>Link To in Row ${row}</li>`;
+					message += `<li>${__("Link To in Row")} ${row}</li>`;
 				}
 
 				item.label = item.label ? item.label : item.link_to;
