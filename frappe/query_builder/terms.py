@@ -1,11 +1,11 @@
-from datetime import timedelta, time
+from datetime import time, timedelta
 from typing import Any
 
 from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
-from frappe.utils.data import format_timedelta, format_datetime
+from frappe.utils.data import format_datetime, format_timedelta
 
 
 class NamedParameterWrapper:
