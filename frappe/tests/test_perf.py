@@ -74,7 +74,7 @@ class TestPerformance(FrappeTestCase):
 		"""Ideally should be ran against gunicorn worker, though I have not seen any difference
 		when using werkzeug's run_simple for synchronous requests."""
 
-		EXPECTED_RPS = 55  # measured on GHA
+		EXPECTED_RPS = 50  # measured on GHA
 		FAILURE_THREASHOLD = 0.1
 
 		req_count = 1000
