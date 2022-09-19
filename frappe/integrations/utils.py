@@ -10,7 +10,7 @@ from frappe import _
 from frappe.utils import get_request_session
 
 
-def make_request(method, url, auth=None, headers=None, data=None):
+def make_request(method, url, auth=None, headers=None, data=None, return_response_obj=None):
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
@@ -19,7 +19,10 @@ def make_request(method, url, auth=None, headers=None, data=None):
 		s = get_request_session()
 		frappe.flags.integration_request = s.request(method, url, data=data, auth=auth, headers=headers)
 		frappe.flags.integration_request.raise_for_status()
-
+		
+		if return_response_obj :
+			return frappe.flags.integration_request
+		
 		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
 			return parse_qs(frappe.flags.integration_request.text)
 
