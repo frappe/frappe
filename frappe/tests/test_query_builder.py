@@ -1,6 +1,6 @@
-from datetime import time
 import unittest
 from collections.abc import Callable
+from datetime import time
 
 import frappe
 from frappe.query_builder import Case
@@ -77,22 +77,18 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 
 	def test_time(self):
 		note = frappe.qb.DocType("Note")
-
 		self.assertEqual(
-			"TIMESTAMP('2021-01-01','00:00:21')", CombineDatetime("2021-01-01", time(0,0,21)).get_sql()
+			"TIMESTAMP('2021-01-01','00:00:21')", CombineDatetime("2021-01-01", time(0, 0, 21)).get_sql()
 		)
 
-		select_query = (
-			frappe.qb.from_(note)
-			.select(CombineDatetime(note.posting_date, note.posting_time))
+		select_query = frappe.qb.from_(note).select(
+			CombineDatetime(note.posting_date, note.posting_time)
 		)
-		self.assertIn(
-			"select timestamp(`posting_date`,`posting_time`)", str(select_query).lower()
-		)
+		self.assertIn("select timestamp(`posting_date`,`posting_time`)", str(select_query).lower())
 
 		select_query = select_query.where(
 			CombineDatetime(note.posting_date, note.posting_time)
-			>= CombineDatetime("2021-01-01", time(0,0,1))
+			>= CombineDatetime("2021-01-01", time(0, 0, 1))
 		)
 		self.assertIn(
 			"timestamp(`posting_date`,`posting_time`)>=timestamp('2021-01-01','00:00:01')",
