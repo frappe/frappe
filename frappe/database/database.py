@@ -82,14 +82,12 @@ class Database:
 		ac_name=None,
 		use_default=0,
 		port=None,
-		read_only=False,
 	):
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or "127.0.0.1"
 		self.port = port or frappe.conf.db_port or ""
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
-		self.read_only = read_only  # Uses READ ONLY connection if set
 		self._conn = None
 
 		if ac_name:
@@ -216,6 +214,15 @@ class Database:
 
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e) from e
+
+			elif self.is_read_only_mode_error(e):
+				frappe.throw(
+					_(
+						"Site is running in read only mode, this action can not be performed right now. Please try again later."
+					),
+					title=_("In Read Only Mode"),
+					exc=frappe.InReadOnlyMode,
+				)
 
 			# TODO: added temporarily
 			elif self.db_type == "postgres":
@@ -957,8 +964,10 @@ class Database:
 
 		return defaults.get(frappe.scrub(key))
 
-	def begin(self):
-		self.sql("START TRANSACTION")
+	def begin(self, *, read_only=False):
+		read_only = read_only or frappe.flags.read_only
+		mode = "READ ONLY" if read_only else ""
+		self.sql(f"START TRANSACTION {mode}")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -966,9 +975,7 @@ class Database:
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
-		if self.db_type == "postgres":
-			# Postgres requires explicitly starting new transaction
-			self.begin()
+		self.begin()  # explicitly start a new transaction
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()

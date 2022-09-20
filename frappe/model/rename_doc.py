@@ -527,7 +527,12 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 	standard_fields = (
 		frappe.qb.from_(df)
 		.select(df.parent, df.fieldname, st_issingle)
-		.where((df.parent != new) & (df.fieldtype == "Select") & (df.options.like(f"%{old}%")))
+		.where(
+			(df.parent != new)
+			& (df.fieldname != "fieldtype")
+			& (df.fieldtype == "Select")
+			& (df.options.like(f"%{old}%"))
+		)
 		.run(as_dict=True)
 	)
 

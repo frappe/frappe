@@ -25,8 +25,6 @@ def sync_fixtures(app=None):
 
 	frappe.flags.in_fixtures = False
 
-	frappe.db.commit()
-
 
 def import_custom_scripts(app):
 	"""Import custom scripts from `[app]/fixtures/custom_scripts`"""
