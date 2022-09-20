@@ -734,9 +734,9 @@ frappe.ui.Page = class Page {
 			.toggle(true);
 	}
 
-	add_help_button(txt) {
-		//
-	}
+	//add_help_button(txt) {
+	//
+	//}
 
 	add_button(label, click, opts) {
 		if (!opts) opts = {};

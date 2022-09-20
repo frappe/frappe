@@ -197,18 +197,17 @@
    "type": "Link"
   }
  ],
- "modified": "2022-08-02 10:52:00.304365",
+ "modified": "2022-07-23 18:00:28.805405",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
- "": [],
- "embeds": [],
+ "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 11.0,
+ "sequence_id": 15.0,
  "shortcuts": [],
  "title": "Integrations"
 }

@@ -53,11 +53,11 @@ export default class EmbedWidget extends Widget {
 	 * @returns {Promise<any>} - result that all mutations have finished
 	 */
 	embedIsReady(targetNode) {
-		const PRELOADER_DELAY = 450;
+		//const PRELOADER_DELAY = 450;
 
 		let observer = null;
 
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			//observer = new MutationObserver(debounce(resolve, PRELOADER_DELAY));
 			observer = new MutationObserver(resolve);
 			observer.observe(targetNode, {
@@ -71,7 +71,6 @@ export default class EmbedWidget extends Widget {
 
 	set_body() {
 		this.widget.addClass("quick-list-widget-box");
-		let meta = frappe.get_meta(this.document_type);
 		if (!this.service) {
 			this.loading = $(
 				`<div class="chart-loading-state text-muted" style="height: ${
@@ -103,8 +102,6 @@ export default class EmbedWidget extends Widget {
 			const {
 				regex,
 				embedUrl,
-				width,
-				height,
 				id = (ids) => ids.shift(),
 			} = Embed.services[this.service];
 			const result = regex.exec(this.source).slice(1);
