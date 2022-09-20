@@ -197,10 +197,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 			// check if docname is updatable
 			if (me.can_rename()) {
+				let label = __("New Name");
+				if (me.frm.meta.autoname && me.frm.meta.autoname.startsWith("field:")) {
+					let fieldname = me.frm.meta.autoname.split(":")[1];
+					label = __("New {0}", [me.frm.get_docfield(fieldname).label]);
+				}
+
 				fields.push(
 					...[
 						{
-							label: __("New Name"),
+							label: label,
 							fieldname: "name",
 							fieldtype: "Data",
 							reqd: 1,

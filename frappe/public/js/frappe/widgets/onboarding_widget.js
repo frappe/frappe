@@ -117,13 +117,13 @@ export default class OnboardingWidget extends Widget {
 		const set_description = () => {
 			let content = step.description
 				? frappe.markdown(step.description)
-				: `<h1>${step.title}</h1>`;
+				: `<h1>${__(step.title)}</h1>`;
 
 			if (step.action === "Create Entry") {
 				// add a secondary action to view list
 				content += `<p>
 					<a href='/app/${frappe.router.slug(step.reference_document)}'>
-						${__("Show {0} List", [step.reference_document])}</a>
+						${__("Show {0} List", [__(step.reference_document)])}</a>
 				</p>`;
 			}
 

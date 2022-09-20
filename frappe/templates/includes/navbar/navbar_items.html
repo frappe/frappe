@@ -89,6 +89,15 @@
 	</div>
 	{% endif %}
 
+	{% if read_only_mode %}
+		<div
+			class="indicator-pill yellow no-indicator-dot align-self-center"
+			title="{{ _("This site is in read only mode, full functionality will be restored soon.") }}"
+		>
+			{{ _("Read Only Mode") }}
+		</div>
+	{% endif %}
+
 	{% include "templates/includes/navbar/navbar_login.html" %}
 
 </ul>

@@ -131,7 +131,7 @@
   {
    "fieldname": "middle_name",
    "fieldtype": "Data",
-   "label": "Middle Name (Optional)",
+   "label": "Middle Name",
    "oldfieldname": "middle_name",
    "oldfieldtype": "Data"
   },
@@ -496,7 +496,7 @@
   {
    "description": "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)",
    "fieldname": "restrict_ip",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Restrict IP",
    "permlevel": 1
   },
@@ -753,7 +753,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2022-08-11 14:47:04.100892",
+ "modified": "2022-09-19 16:05:46.485242",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

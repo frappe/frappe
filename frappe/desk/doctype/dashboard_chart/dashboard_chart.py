@@ -392,3 +392,25 @@ class DashboardChart(Document):
 				json.loads(self.custom_options)
 			except ValueError as error:
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+
+
+@frappe.whitelist()
+def get_parent_doctypes(child_type: str) -> list[str]:
+	"""Get all parent doctypes that have the child doctype."""
+	assert isinstance(child_type, str)
+
+	standard = frappe.get_all(
+		"DocField",
+		fields="parent",
+		filters={"fieldtype": "Table", "options": child_type},
+		pluck="parent",
+	)
+
+	custom = frappe.get_all(
+		"Custom Field",
+		fields="dt",
+		filters={"fieldtype": "Table", "options": child_type},
+		pluck="dt",
+	)
+
+	return standard + custom

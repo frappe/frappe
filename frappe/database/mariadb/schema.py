@@ -6,7 +6,7 @@ from frappe.model import log_types
 
 class MariaDBTable(DBTable):
 	def create(self):
-		additional_definitions = ""
+		additional_definitions = []
 		engine = self.meta.get("engine") or "InnoDB"
 		varchar_len = frappe.db.VARCHAR_LEN
 		name_column = f"name varchar({varchar_len}) primary key"
@@ -14,26 +14,24 @@ class MariaDBTable(DBTable):
 		# columns
 		column_defs = self.get_column_definitions()
 		if column_defs:
-			additional_definitions += ",\n".join(column_defs) + ",\n"
+			additional_definitions += column_defs
 
 		# index
 		index_defs = self.get_index_definitions()
 		if index_defs:
-			additional_definitions += ",\n".join(index_defs) + ",\n"
+			additional_definitions += index_defs
 
 		# child table columns
 		if self.meta.get("istable") or 0:
-			additional_definitions += (
-				",\n".join(
-					(
-						f"parent varchar({varchar_len})",
-						f"parentfield varchar({varchar_len})",
-						f"parenttype varchar({varchar_len})",
-						"index parent(parent)",
-					)
-				)
-				+ ",\n"
-			)
+			additional_definitions += [
+				f"parent varchar({varchar_len})",
+				f"parentfield varchar({varchar_len})",
+				f"parenttype varchar({varchar_len})",
+				"index parent(parent)",
+			]
+		else:
+			# parent types
+			additional_definitions.append("index modified(modified)")
 
 		# creating sequence(s)
 		if (
@@ -47,6 +45,8 @@ class MariaDBTable(DBTable):
 			# issue link: https://jira.mariadb.org/browse/MDEV-20070
 			name_column = "name bigint primary key"
 
+		additional_definitions = ",\n".join(additional_definitions)
+
 		# create table
 		query = f"""create table `{self.table_name}` (
 			{name_column},
@@ -56,8 +56,7 @@ class MariaDBTable(DBTable):
 			owner varchar({varchar_len}),
 			docstatus int(1) not null default '0',
 			idx int(8) not null default '0',
-			{additional_definitions}
-			index modified(modified))
+			{additional_definitions})
 			ENGINE={engine}
 			ROW_FORMAT=DYNAMIC
 			CHARACTER SET=utf8mb4
