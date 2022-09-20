@@ -156,32 +156,32 @@ export default class Block {
 		let me = this;
 		this.dropdown_list = [
 			{
-				label: __("Delete"),
-				title: __("Delete Block"),
+				label: "Delete",
+				title: "Delete Block",
 				icon: frappe.utils.icon("delete-active", "sm"),
 				action: () => this.api.blocks.delete(),
 			},
 			{
-				label: __("Expand"),
-				title: __("Expand Block"),
+				label: "Expand",
+				title: "Expand Block",
 				icon: frappe.utils.icon("expand-alt", "sm"),
 				action: () => this.increase_width(),
 			},
 			{
-				label: __("Shrink"),
-				title: __("Shrink Block"),
+				label: "Shrink",
+				title: "Shrink Block",
 				icon: frappe.utils.icon("shrink", "sm"),
 				action: () => this.decrease_width(),
 			},
 			{
-				label: __("Move Up"),
-				title: __("Move Up"),
+				label: "Move Up",
+				title: "Move Up",
 				icon: frappe.utils.icon("up-arrow", "sm"),
 				action: () => this.move_block("up"),
 			},
 			{
-				label: __("Move Down"),
-				title: __("Move Down"),
+				label: "Move Down",
+				title: "Move Down",
 				icon: frappe.utils.icon("down-arrow", "sm"),
 				action: () => this.move_block("down"),
 			},
@@ -200,9 +200,9 @@ export default class Block {
 
 		let dropdown_item = function (label, title, icon, action) {
 			let html = $(`
-				<div class="dropdown-item" title="${title}">
+				<div class="dropdown-item" title="${__(title)}">
 					<span class="dropdown-item-icon">${icon}</span>
-					<span class="dropdown-item-label">${label}</span>
+					<span class="dropdown-item-label">${__(label)}</span>
 				</div>
 			`);
 
