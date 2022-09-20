@@ -19,13 +19,16 @@ class FrappeTestCase(unittest.TestCase):
 	otherwise this class will become ineffective.
 	"""
 
+	TEST_SITE = "test_site"
+
 	SHOW_TRANSACTION_COMMIT_WARNINGS = False
 
 	@classmethod
 	def setUpClass(cls) -> None:
+		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
+		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
-		frappe.db.begin()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.add_before_commit(_commit_watcher)
 
@@ -63,6 +66,21 @@ class FrappeTestCase(unittest.TestCase):
 			self.assertEqual(str(expected), str(actual), msg=msg)
 		else:
 			self.assertEqual(expected, actual, msg=msg)
+
+	@contextmanager
+	def assertQueryCount(self, count):
+		def _sql_with_count(*args, **kwargs):
+			frappe.db.sql_query_count += 1
+			return orig_sql(*args, **kwargs)
+
+		try:
+			orig_sql = frappe.db.sql
+			frappe.db.sql_query_count = 0
+			frappe.db.sql = _sql_with_count
+			yield
+			self.assertLessEqual(frappe.db.sql_query_count, count)
+		finally:
+			frappe.db.sql = orig_sql
 
 
 def _commit_watcher():

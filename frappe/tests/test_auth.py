@@ -98,6 +98,7 @@ class TestAuth(FrappeTestCase):
 
 	def test_deny_multiple_login(self):
 		self.set_system_settings("deny_multiple_sessions", 1)
+		self.addCleanup(self.set_system_settings, "deny_multiple_sessions", 0)
 
 		first_login = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		first_login.get_list("ToDo")
@@ -113,6 +114,14 @@ class TestAuth(FrappeTestCase):
 		with self.assertRaises(Exception):
 			second_login.get_list("ToDo")
 		third_login.get_list("ToDo")
+
+	def test_disable_user_pass_login(self):
+		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
+		self.set_system_settings("disable_user_pass_login", 1)
+		self.addCleanup(self.set_system_settings, "disable_user_pass_login", 0)
+
+		with self.assertRaises(Exception):
+			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
 
 class TestLoginAttemptTracker(FrappeTestCase):
