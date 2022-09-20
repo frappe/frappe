@@ -5,7 +5,7 @@ from pypika.queries import QueryBuilder
 from pypika.terms import Criterion, Function, ValueWrapper
 from pypika.utils import format_alias_sql
 
-from frappe.utils.data import format_datetime, format_timedelta
+from frappe.utils.data import format_time, format_timedelta
 
 
 class NamedParameterWrapper:
@@ -59,7 +59,7 @@ class ParameterizedValueWrapper(ValueWrapper):
 			if isinstance(self.value, timedelta):
 				self.value = format_timedelta(self.value)
 			elif isinstance(self.value, time):
-				self.value = format_datetime(self.value)
+				self.value = format_time(self.value)
 
 			sql = self.get_value_sql(
 				quote_char=quote_char,
