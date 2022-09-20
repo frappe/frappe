@@ -72,7 +72,9 @@ def is_invalid_date_string(date_string: str) -> bool:
 	)
 
 
-def getdate(string_date: Optional["DateTimeLikeObject"] = None, day_first: bool = False) -> datetime.date | None:
+def getdate(
+	string_date: Optional["DateTimeLikeObject"] = None, day_first: bool = False
+) -> datetime.date | None:
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
@@ -548,7 +550,9 @@ def get_user_time_format() -> str:
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(string_date=None, format_string: str | None = None, day_first: bool = False) -> str:
+def format_date(
+	string_date=None, format_string: str | None = None, day_first: bool = False
+) -> str:
 	"""Converts the given string date to :data:`user_date_format`
 	User format specified in defaults
 
