@@ -1,3 +1,5 @@
+import typing
+
 from pypika import MySQLQuery, Order, PostgreSQLQuery, terms
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.queries import QueryBuilder, Schema, Table
@@ -12,6 +14,13 @@ class Base:
 	desc = Order.desc
 	Schema = Schema
 	Table = Table
+
+	# Added dynamic type hints for engine attribute
+	# which is to be assigned later.
+	if typing.TYPE_CHECKING:
+		from frappe.database.query import Engine
+
+		engine: Engine
 
 	@staticmethod
 	def functions(name: str, *args, **kwargs) -> Function:
@@ -76,7 +85,7 @@ class Postgres(Base, PostgreSQLQuery):
 		if isinstance(table, Table):
 			if table._schema:
 				if table._schema._name == "information_schema":
-					table = cls.schema_translation[table._table_name]
+					table = cls.schema_translation.get(table._table_name) or table
 
 		elif isinstance(table, str):
 			table = cls.DocType(table)

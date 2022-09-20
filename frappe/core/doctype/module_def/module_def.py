@@ -29,7 +29,7 @@ class ModuleDef(Document):
 		"""Adds to `[app]/modules.txt`"""
 		modules = None
 		if not frappe.local.module_app.get(frappe.scrub(self.name)):
-			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:
+			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
 				content = f.read()
 				if not self.name in content.splitlines():
 					modules = list(filter(None, content.splitlines()))
@@ -50,7 +50,7 @@ class ModuleDef(Document):
 
 		modules = None
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
-			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:
+			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
 				content = f.read()
 				if self.name in content.splitlines():
 					modules = list(filter(None, content.splitlines()))

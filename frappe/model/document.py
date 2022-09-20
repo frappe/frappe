@@ -3,7 +3,6 @@
 import hashlib
 import json
 import time
-from typing import List
 
 from werkzeug.exceptions import NotFound
 
@@ -16,6 +15,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
@@ -112,7 +112,7 @@ class Document(BaseDocument):
 
 		if kwargs:
 			# init base document
-			super(Document, self).__init__(kwargs)
+			super().__init__(kwargs)
 			self.init_child_tables()
 			self.init_valid_columns()
 
@@ -136,7 +136,7 @@ class Document(BaseDocument):
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
-			super(Document, self).__init__(single_doc)
+			super().__init__(single_doc)
 			self.init_valid_columns()
 			self._fix_numeric_types()
 
@@ -149,9 +149,16 @@ class Document(BaseDocument):
 					_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError
 				)
 
-			super(Document, self).__init__(d)
+			super().__init__(d)
 
 		for df in self._get_table_fields():
+			# Make sure not to query the DB for a child table, if it is a virtual one.
+			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
+			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
+			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
+				self.set(df.fieldname, [])
+				continue
+
 			children = (
 				frappe.db.get_values(
 					df.options,
@@ -169,7 +176,9 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	reload = load_from_db
+	def reload(self):
+		"""Reload document from database"""
+		self.load_from_db()
 
 	def get_latest(self):
 		if not getattr(self, "latest", None):
@@ -182,15 +191,19 @@ class Document(BaseDocument):
 			self.raise_no_permission_to(permlevel or permtype)
 
 	def has_permission(self, permtype="read", verbose=False) -> bool:
-		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
-		is not set.
+		"""
+		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
-		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
-		import frappe.permissions
+		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
+		:param verbose: DEPRECATED, will be removed in a future release.
+		"""
 
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
+
+		import frappe.permissions
+
+		return frappe.permissions.has_permission(self.doctype, permtype, self)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -262,9 +275,6 @@ class Document(BaseDocument):
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
-		# flag to prevent creation of event update log for create and update both
-		# during document creation
-		self.flags.update_log_for_doc_creation = True
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -379,7 +389,10 @@ class Document(BaseDocument):
 			d.db_update()
 			rows.append(d.name)
 
-		if df.options in (self.flags.ignore_children_type or []):
+		if (
+			df.options in (self.flags.ignore_children_type or [])
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
 			# do not delete rows for this because of flags
 			# hack for docperm :(
 			return
@@ -387,9 +400,9 @@ class Document(BaseDocument):
 		if rows:
 			# select rows that do not match the ones in the document
 			deleted_rows = frappe.db.sql(
-				"""select name from `tab{0}` where parent=%s
+				"""select name from `tab{}` where parent=%s
 				and parenttype=%s and parentfield=%s
-				and name not in ({1})""".format(
+				and name not in ({})""".format(
 					df.options, ",".join(["%s"] * len(rows))
 				),
 				[self.name, self.doctype, fieldname] + rows,
@@ -404,7 +417,7 @@ class Document(BaseDocument):
 				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
 			)
 
-	def get_doc_before_save(self):
+	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
@@ -742,7 +755,7 @@ class Document(BaseDocument):
 					conflict = True
 			else:
 				tmp = frappe.db.sql(
-					"""select modified, docstatus from `tab{0}`
+					"""select modified, docstatus from `tab{}`
 					where name = %s for update""".format(
 						self.doctype
 					),
@@ -765,7 +778,7 @@ class Document(BaseDocument):
 			if conflict:
 				frappe.msgprint(
 					_("Error: Document has been modified after you have opened it")
-					+ (" (%s, %s). " % (modified, self.modified))
+					+ (f" ({modified}, {self.modified}). ")
 					+ _("Please refresh to get the latest document."),
 					raise_exception=frappe.TimestampMismatchError,
 				)
@@ -860,7 +873,7 @@ class Document(BaseDocument):
 
 		raise frappe.MandatoryError(
 			"[{doctype}, {name}]: {fields}".format(
-				fields=", ".join((each[0] for each in missing)), doctype=self.doctype, name=self.name
+				fields=", ".join(each[0] for each in missing), doctype=self.doctype, name=self.name
 			)
 		)
 
@@ -876,14 +889,14 @@ class Document(BaseDocument):
 			cancelled_links.extend(result[1])
 
 		if invalid_links:
-			msg = ", ".join((each[2] for each in invalid_links))
+			msg = ", ".join(each[2] for each in invalid_links)
 			frappe.throw(_("Could not find {0}").format(msg), frappe.LinkValidationError)
 
 		if cancelled_links:
-			msg = ", ".join((each[2] for each in cancelled_links))
+			msg = ", ".join(each[2] for each in cancelled_links)
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
-	def get_all_children(self, parenttype=None) -> List["Document"]:
+	def get_all_children(self, parenttype=None) -> list["Document"]:
 		"""Returns all children documents from **Table** type fields in a list."""
 
 		children = []
@@ -1010,10 +1023,14 @@ class Document(BaseDocument):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False):
+	def delete(self, ignore_permissions=False, force=False):
 		"""Delete document."""
 		return frappe.delete_doc(
-			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
+			self.doctype,
+			self.name,
+			ignore_permissions=ignore_permissions,
+			flags=self.flags,
+			force=force,
 		)
 
 	def run_before_save_methods(self):
@@ -1079,7 +1096,9 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 		self.clear_cache()
-		self.notify_update()
+
+		if self.flags.get("notify_update", True):
+			self.notify_update()
 
 		update_global_search(self)
 
@@ -1132,7 +1151,7 @@ class Document(BaseDocument):
 		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
 		:param value: value of the property to be updated
 		:param update_modified: default True. updates the `modified` and `modified_by` properties
-		:param notify: default False. run doc.notify_updated() to send updates via socketio
+		:param notify: default False. run doc.notify_update() to send updates via socketio
 		:param commit: default False. run frappe.db.commit()
 		"""
 		if isinstance(fieldname, dict):
@@ -1254,7 +1273,7 @@ class Document(BaseDocument):
 	def is_whitelisted(self, method_name):
 		method = getattr(self, method_name, None)
 		if not method:
-			raise NotFound("Method {0} not found".format(method_name))
+			raise NotFound(f"Method {method_name} not found")
 
 		is_whitelisted(getattr(method, "__func__", method))
 
@@ -1347,7 +1366,7 @@ class Document(BaseDocument):
 		if not user:
 			user = frappe.session.user
 
-		if self.meta.track_seen:
+		if self.meta.track_seen and not frappe.flags.read_only:
 			_seen = self.get("_seen") or []
 			_seen = frappe.parse_json(_seen)
 
@@ -1362,15 +1381,19 @@ class Document(BaseDocument):
 			user = frappe.session.user
 
 		if hasattr(self.meta, "track_views") and self.meta.track_views:
-			frappe.get_doc(
+			view_log = frappe.get_doc(
 				{
 					"doctype": "View Log",
 					"viewed_by": frappe.session.user,
 					"reference_doctype": self.doctype,
 					"reference_name": self.name,
 				}
-			).insert(ignore_permissions=True)
-			frappe.local.flags.commit = True
+			)
+			if frappe.flags.read_only:
+				view_log.deferred_insert()
+			else:
+				view_log.insert(ignore_permissions=True)
+				frappe.local.flags.commit = True
 
 	def log_error(self, title=None, message=None):
 		"""Helper function to create an Error Log"""
@@ -1516,6 +1539,20 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
+	def deferred_insert(self) -> None:
+		"""Push the document to redis temporarily and insert later.
+
+		WARN: This doesn't guarantee insertion as redis can be restarted
+		before data is flushed to database.
+		"""
+
+		from frappe.deferred_insert import deferred_insert
+
+		self.set_user_and_timestamp()
+
+		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
+		deferred_insert(doctype=self.doctype, records=doc)
 
 	def __repr__(self):
 		name = self.name or "unsaved"

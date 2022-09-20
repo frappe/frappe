@@ -35,12 +35,10 @@ ASSET_KEYS = (
 def get_meta(doctype, cached=True):
 	# don't cache for developer mode as js files, templates may be edited
 	if cached and not frappe.conf.developer_mode:
-		meta = frappe.cache().hget("form_meta", doctype)
-		if meta:
-			meta = FormMeta(meta)
-		else:
+		meta = frappe.cache().hget("doctype_form_meta", doctype)
+		if not meta:
 			meta = FormMeta(doctype)
-			frappe.cache().hset("form_meta", doctype, meta.as_dict())
+			frappe.cache().hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
 
@@ -52,7 +50,7 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super(FormMeta, self).__init__(doctype)
+		super().__init__(doctype)
 		self.load_assets()
 
 	def load_assets(self):
@@ -74,7 +72,7 @@ class FormMeta(Meta):
 		self.set("__assets_loaded", True)
 
 	def as_dict(self, no_nulls=False):
-		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
+		d = super().as_dict(no_nulls=no_nulls)
 
 		for k in ASSET_KEYS:
 			d[k] = self.get(k)
@@ -133,7 +131,7 @@ class FormMeta(Meta):
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with io.open(os.path.join(path, fname), "r", encoding="utf-8") as f:
+				with open(os.path.join(path, fname), encoding="utf-8") as f:
 					templates[fname.split(".")[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
@@ -146,7 +144,7 @@ class FormMeta(Meta):
 		"""embed all require files"""
 		# custom script
 		client_scripts = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
 				fields=["name", "script", "view"],

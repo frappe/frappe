@@ -42,7 +42,7 @@ def user_to_str(date, date_format=None):
 	try:
 		return datetime.datetime.strptime(date, dateformats[date_format]).strftime("%Y-%m-%d")
 	except ValueError:
-		raise ValueError("Date %s must be in format %s" % (date, date_format))
+		raise ValueError(f"Date {date} must be in format {date_format}")
 
 
 def parse_date(date):

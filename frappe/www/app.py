@@ -18,7 +18,9 @@ CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
 def get_context(context):
 	if frappe.session.user == "Guest":
 		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
-	elif frappe.db.get_value("User", frappe.session.user, "user_type") == "Website User":
+	elif (
+		frappe.db.get_value("User", frappe.session.user, "user_type", order_by=None) == "Website User"
+	):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()
@@ -77,18 +79,18 @@ def get_desk_assets(build_version):
 			if path.startswith("/assets/"):
 				path = path.replace("/assets/", "assets/")
 			try:
-				with open(os.path.join(frappe.local.sites_path, path), "r") as f:
+				with open(os.path.join(frappe.local.sites_path, path)) as f:
 					assets[0]["data"] = assets[0]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
-			except IOError:
+			except OSError:
 				pass
 
 		for path in data["include_css"]:
 			if path.startswith("/assets/"):
 				path = path.replace("/assets/", "assets/")
 			try:
-				with open(os.path.join(frappe.local.sites_path, path), "r") as f:
+				with open(os.path.join(frappe.local.sites_path, path)) as f:
 					assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
-			except IOError:
+			except OSError:
 				pass
 
 	return {"build_version": data["build_version"], "boot": data["boot"], "assets": assets}

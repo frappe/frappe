@@ -1,17 +1,27 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
+
+from contextlib import contextmanager
 
 import frappe
 import frappe.utils
 import frappe.utils.scheduler
 from frappe.desk.form import assign_to
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["User", "Notification"]
 
 
-class TestNotification(unittest.TestCase):
+@contextmanager
+def get_test_notification(config):
+	try:
+		notification = frappe.get_doc(doctype="Notification", **config).insert()
+		yield notification
+	finally:
+		notification.delete()
+
+
+class TestNotification(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Queue")
 		frappe.set_user("test@example.com")
@@ -84,7 +94,7 @@ class TestNotification(unittest.TestCase):
 	def test_condition(self):
 		"""Check notification is triggered based on a condition."""
 		event = frappe.new_doc("Event")
-		event.subject = ("test",)
+		event.subject = "test"
 		event.event_type = "Private"
 		event.starts_on = "2014-06-06 12:00:00"
 		event.insert()
@@ -137,7 +147,7 @@ class TestNotification(unittest.TestCase):
 
 	def test_value_changed(self):
 		event = frappe.new_doc("Event")
-		event.subject = ("test",)
+		event.subject = "test"
 		event.event_type = "Private"
 		event.starts_on = "2014-06-06 12:00:00"
 		event.insert()
@@ -186,7 +196,7 @@ class TestNotification(unittest.TestCase):
 		frappe.db.commit()
 
 		event = frappe.new_doc("Event")
-		event.subject = ("test-2",)
+		event.subject = "test-2"
 		event.event_type = "Private"
 		event.starts_on = "2014-06-06 12:00:00"
 		event.insert()
@@ -200,9 +210,8 @@ class TestNotification(unittest.TestCase):
 		event.delete()
 
 	def test_date_changed(self):
-
 		event = frappe.new_doc("Event")
-		event.subject = ("test",)
+		event.subject = "test"
 		event.event_type = "Private"
 		event.starts_on = "2014-01-01 12:00:00"
 		event.insert()
@@ -344,6 +353,31 @@ class TestNotification(unittest.TestCase):
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
+
+	def test_notification_value_change_casted_types(self):
+		"""Make sure value change event dont fire because of incorrect type comparisons."""
+		frappe.set_user("Administrator")
+
+		notification = {
+			"document_type": "User",
+			"subject": "User changed birthdate",
+			"event": "Value Change",
+			"channel": "System Notification",
+			"value_changed": "birth_date",
+			"recipients": [{"receiver_by_document_field": "email"}],
+		}
+
+		with get_test_notification(notification) as n:
+			frappe.db.delete("Notification Log", {"subject": n.subject})
+
+			user = frappe.get_doc("User", "test@example.com")
+			user.birth_date = frappe.utils.add_days(user.birth_date, 1)
+			user.save()
+
+			user.reload()
+			user.birth_date = frappe.utils.getdate(user.birth_date)
+			user.save()
+			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
 	@classmethod
 	def tearDownClass(cls):

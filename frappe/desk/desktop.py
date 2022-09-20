@@ -40,7 +40,6 @@ class Workspace:
 		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
 		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
-
 		if (
 			self.doc
 			and self.doc.module
@@ -173,7 +172,7 @@ class Workspace:
 
 		if not exists and frappe.db.exists(name):
 			if not frappe.db.get_value("DocType", name, "issingle"):
-				exists = bool(frappe.db.get_all(name, limit=1))
+				exists = bool(frappe.get_all(name, limit=1))
 			else:
 				exists = True
 			self.table_counts[name] = exists
@@ -292,12 +291,13 @@ class Workspace:
 		quick_lists = self.doc.quick_lists
 
 		for item in quick_lists:
-			new_item = item.as_dict().copy()
+			if self.is_item_allowed(item.document_type, "doctype"):
+				new_item = item.as_dict().copy()
 
-			# Translate label
-			new_item["label"] = _(item.label) if item.label else _(item.document_type)
+				# Translate label
+				new_item["label"] = _(item.label) if item.label else _(item.document_type)
 
-			items.append(new_item)
+				items.append(new_item)
 
 		return items
 
@@ -486,9 +486,9 @@ def save_new_widget(doc, page, blocks, new_widgets):
 
 		# Error log body
 		log = """
-		page: {0}
-		config: {1}
-		exception: {2}
+		page: {}
+		config: {}
+		exception: {}
 		""".format(
 			page, json_config, e
 		)

@@ -1,17 +1,30 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
 import os
 import sys
 from collections import OrderedDict
-from typing import Dict, List, Tuple
 
 import click
 
 import frappe
 from frappe.defaults import _clear_cache
-from frappe.utils import is_git_url
+from frappe.utils import cint, is_git_url
+from frappe.utils.dashboard import sync_dashboards
+
+
+def _is_scheduler_enabled() -> bool:
+	enable_scheduler = False
+	try:
+		frappe.connect()
+		enable_scheduler = cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
+	except Exception:
+		pass
+	finally:
+		frappe.db.close()
+
+	return bool(enable_scheduler)
 
 
 def _new_site(
@@ -30,15 +43,13 @@ def _new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
-	new_site=False,
 ):
 	"""Install a new Frappe site"""
 
-	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.utils import get_site_path, scheduler, touch_file
 
 	if not force and os.path.exists(site):
-		print("Site {0} already exists".format(site))
+		print(f"Site {site} already exists")
 		sys.exit(1)
 
 	if no_mariadb_socket and not db_type == "mariadb":
@@ -151,7 +162,7 @@ def install_db(
 	frappe.flags.in_install_db = False
 
 
-def find_org(org_repo: str) -> Tuple[str, str]:
+def find_org(org_repo: str) -> tuple[str, str]:
 	"""find the org a repo is in
 
 	find_org()
@@ -179,7 +190,7 @@ def find_org(org_repo: str) -> Tuple[str, str]:
 	raise InvalidRemoteException
 
 
-def fetch_details_from_tag(_tag: str) -> Tuple[str, str, str]:
+def fetch_details_from_tag(_tag: str) -> tuple[str, str, str]:
 	"""parse org, repo, tag from string
 
 	fetch_details_from_tag()
@@ -263,7 +274,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		click.secho(f"App {name} already installed", fg="yellow")
 		return
 
-	print("\nInstalling {0}...".format(name))
+	print(f"\nInstalling {name}...")
 
 	if name != "frappe":
 		frappe.only_for("System Manager")
@@ -291,6 +302,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)
+	sync_dashboards(name)
 
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
@@ -371,7 +383,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 	frappe.flags.in_uninstall = False
 
 
-def _delete_modules(modules: List[str], dry_run: bool) -> List[str]:
+def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 	"""Delete modules belonging to the app and all related doctypes.
 
 	Note: All record linked linked to Module Def are also deleted.
@@ -404,7 +416,7 @@ def _delete_modules(modules: List[str], dry_run: bool) -> List[str]:
 
 
 def _delete_linked_documents(
-	module_name: str, doctype_linkfield_map: Dict[str, str], dry_run: bool
+	module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool
 ) -> None:
 
 	"""Deleted all records linked with module def"""
@@ -415,7 +427,7 @@ def _delete_linked_documents(
 				frappe.delete_doc(doctype, record, ignore_on_trash=True, force=True)
 
 
-def _get_module_linked_doctype_field_map() -> Dict[str, str]:
+def _get_module_linked_doctype_field_map() -> dict[str, str]:
 	"""Get all the doctypes which have module linked with them.
 
 	returns ordered dictionary with doctype->link field mapping."""
@@ -444,7 +456,7 @@ def _get_module_linked_doctype_field_map() -> Dict[str, str]:
 	return doctype_to_field_map
 
 
-def _delete_doctypes(doctypes: List[str], dry_run: bool) -> None:
+def _delete_doctypes(doctypes: list[str], dry_run: bool) -> None:
 	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
@@ -483,7 +495,7 @@ def init_singles():
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_validate = True
 			doc.save()
-		except ImportError:
+		except (ImportError, frappe.DoesNotExistError):
 			# The doctype exists, but controller is deleted,
 			# no need to attempt to init such single, ref: #16917
 			continue
@@ -529,7 +541,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 	if not site_config_path:
 		site_config_path = get_site_config_path()
 
-	with open(site_config_path, "r") as f:
+	with open(site_config_path) as f:
 		site_config = json.loads(f.read())
 
 	# In case of non-int value
@@ -664,7 +676,7 @@ def extract_sql_gzip(sql_gz_path):
 	try:
 		original_file = sql_gz_path
 		decompressed_file = original_file.rstrip(".gz")
-		cmd = "gzip --decompress --force < {0} > {1}".format(original_file, decompressed_file)
+		cmd = f"gzip --decompress --force < {original_file} > {decompressed_file}"
 		subprocess.check_call(cmd, shell=True)
 	except Exception:
 		raise
@@ -696,7 +708,7 @@ def extract_files(site_name, file_path):
 			subprocess.check_output(["tar", "xvf", tar_path, "--strip", "2"], cwd=abs_site_path)
 		elif file_path.endswith(".tgz"):
 			subprocess.check_output(["tar", "zxvf", tar_path, "--strip", "2"], cwd=abs_site_path)
-	except:
+	except Exception:
 		raise
 	finally:
 		frappe.destroy()
@@ -800,7 +812,7 @@ def validate_database_sql(path, _raise=True):
 
 	# dont bother checking if empty file
 	if not empty_file:
-		with open(path, "r") as f:
+		with open(path) as f:
 			for line in f:
 				if "tabDefaultValue" in line:
 					missing_table = False

@@ -114,6 +114,8 @@ core_doctypes_list = (
 	"Client Script",
 )
 
+# NOTE: this is being used for dynamic autoincrement in new sites,
+# removing any of these will require patches.
 log_types = (
 	"Version",
 	"Error Log",

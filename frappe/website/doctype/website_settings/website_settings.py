@@ -1,15 +1,13 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from typing import Dict, List
 from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import encode, get_request_site_address
-
-INDEXING_SCOPES = "https://www.googleapis.com/auth/indexing"
+from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
@@ -90,34 +88,14 @@ class WebsiteSettings(Document):
 		frappe.clear_cache()
 
 	def get_access_token(self):
-		import requests
-
-		google_settings = frappe.get_doc("Google Settings")
-
-		if not google_settings.enable:
-			frappe.throw(_("Google Integration is disabled."))
-
 		if not self.indexing_refresh_token:
 			button_label = frappe.bold(_("Allow API Indexing Access"))
 			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
-		data = {
-			"client_id": google_settings.client_id,
-			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-			"refresh_token": self.get_password(fieldname="indexing_refresh_token", raise_exception=False),
-			"grant_type": "refresh_token",
-			"scope": INDEXING_SCOPES,
-		}
-
-		try:
-			res = requests.post(get_auth_url(), data=data).json()
-		except requests.exceptions.HTTPError:
-			button_label = frappe.bold(_("Allow Google Indexing Access"))
-			frappe.throw(
-				_(
-					"Something went wrong during the token generation. Click on {0} to generate a new one."
-				).format(button_label)
-			)
+		oauth_obj = GoogleOAuth("indexing")
+		res = oauth_obj.refresh_access_token(
+			self.get_password(fieldname="indexing_refresh_token", raise_exception=False)
+		)
 
 		return res.get("access_token")
 
@@ -125,12 +103,12 @@ class WebsiteSettings(Document):
 def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
 	context = frappe._dict(context or {})
-	settings: "WebsiteSettings" = frappe.get_single("Website Settings")
+	settings: "WebsiteSettings" = frappe.get_cached_doc("Website Settings")
 
 	context = context.update(
 		{
-			"top_bar_items": get_items("top_bar_items"),
-			"footer_items": get_items("footer_items"),
+			"top_bar_items": modify_header_footer_items(settings.top_bar_items),
+			"footer_items": modify_header_footer_items(settings.footer_items),
 			"post_login": [
 				{"label": _("My Account"), "url": "/me"},
 				{"label": _("Log out"), "url": "/?cmd=web_logout"},
@@ -180,7 +158,7 @@ def get_website_settings(context=None):
 	if frappe.request:
 		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 
-	context.encoded_title = quote(encode(context.title or ""), str(""))
+	context.encoded_title = quote(encode(context.title or ""), "")
 
 	context.web_include_js = hooks.web_include_js or []
 
@@ -213,32 +191,37 @@ def get_website_settings(context=None):
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
 
+	context.read_only_mode = frappe.flags.read_only
+	context.boot = get_boot_data()
+
 	return context
 
 
-def get_items(parentfield: str) -> List[Dict]:
+def get_items(parentfield: str) -> list[dict]:
 	_items = frappe.get_all(
 		"Top Bar Item",
 		filters={"parent": "Website Settings", "parentfield": parentfield},
 		order_by="idx asc",
 		fields="*",
 	)
-	top_items = _items.copy()
+	return modify_header_footer_items(_items)
 
+
+def modify_header_footer_items(items: list):
+	top_items = items.copy()
 	# attach child items to top bar
-	for item in _items:
-		if not item["parent_label"]:
+	for item in items:
+		if not item.parent_label:
 			continue
 
 		for top_bar_item in top_items:
-			if top_bar_item["label"] != item["parent_label"]:
+			if top_bar_item.label != item.parent_label:
 				continue
 
-			if "child_items" not in top_bar_item:
-				top_bar_item["child_items"] = []
+			if not top_bar_item.get("child_items"):
+				top_bar_item.child_items = []
 
-			top_bar_item["child_items"].append(item)
-
+			top_bar_item.child_items.append(item)
 			break
 
 	return top_items

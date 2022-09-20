@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestAddressTemplate(unittest.TestCase):
+class TestAddressTemplate(FrappeTestCase):
 	def setUp(self):
 		self.make_default_address_template()
 

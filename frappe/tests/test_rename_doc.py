@@ -2,11 +2,9 @@
 # License: MIT. See LICENSE
 
 import os
-import unittest
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 from random import choice, sample
-from typing import List
 from unittest.mock import patch
 
 import frappe
@@ -19,11 +17,12 @@ from frappe.model.rename_doc import (
 	update_linked_doctypes,
 )
 from frappe.modules.utils import get_doc_path
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now
 
 
 @contextmanager
-def patch_db(endpoints: List[str] = None):
+def patch_db(endpoints: list[str] = None):
 	patched_endpoints = []
 
 	for point in endpoints:
@@ -42,11 +41,12 @@ def patch_db(endpoints: List[str] = None):
 		frappe.db.rollback(save_point=savepoint)
 
 
-class TestRenameDoc(unittest.TestCase):
+class TestRenameDoc(FrappeTestCase):
 	@classmethod
 	def setUpClass(self):
 		"""Setting Up data for the tests defined under TestRenameDoc"""
 		# set developer_mode to rename doc controllers
+		super().setUpClass()
 		self._original_developer_flag = frappe.conf.developer_mode
 		frappe.conf.developer_mode = 1
 
@@ -59,7 +59,7 @@ class TestRenameDoc(unittest.TestCase):
 				{
 					"doctype": self.test_doctype,
 					"date": add_to_date(now(), days=num),
-					"description": "this is todo #{}".format(num),
+					"description": f"this is todo #{num}",
 				}
 			).insert()
 			self.available_documents.append(doc.name)

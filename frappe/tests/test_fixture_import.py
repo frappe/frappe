@@ -1,24 +1,23 @@
 import os
-import unittest
-from typing import List
 
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
 from frappe.desk.form.save import savedocs
 from frappe.model.delete_doc import delete_doc
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestFixtureImport(unittest.TestCase):
+class TestFixtureImport(FrappeTestCase):
 	def create_new_doctype(self, DocType: str) -> None:
 		file = frappe.get_app_path("frappe", "custom", "fixtures", f"{DocType}.json")
 
-		file = open(file, "r")
+		file = open(file)
 		doc = file.read()
 		file.close()
 
 		savedocs(doc, "Save")
 
-	def insert_dummy_data_and_export(self, DocType: str, dummy_name_list: List[str]) -> str:
+	def insert_dummy_data_and_export(self, DocType: str, dummy_name_list: list[str]) -> str:
 		for name in dummy_name_list:
 			doc = frappe.get_doc({"doctype": DocType, "member_name": name})
 			doc.insert()

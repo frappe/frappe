@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -10,7 +9,7 @@ from frappe.desk.desktop import save_new_widget
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
-from frappe.modules.export_file import export_to_files
+from frappe.modules.export_file import delete_folder, export_to_files
 
 
 class Workspace(Document):
@@ -29,8 +28,25 @@ class Workspace(Document):
 		if disable_saving_as_public():
 			return
 
-		if frappe.conf.developer_mode and self.module and self.public:
-			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+		if frappe.conf.developer_mode and self.public:
+			if self.module:
+				export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+
+			if self.has_value_changed("title") or self.has_value_changed("module"):
+				previous = self.get_doc_before_save()
+				if previous and previous.get("module") and previous.get("title"):
+					delete_folder(previous.get("module"), "Workspace", previous.get("title"))
+
+	def before_export(self, doc):
+		if doc.title != doc.label and doc.label == doc.name:
+			self.name = doc.name = doc.label = doc.title
+
+	def after_delete(self):
+		if disable_saving_as_public():
+			return
+
+		if self.module and frappe.conf.developer_mode:
+			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
 	def get_module_page_map():
@@ -122,6 +138,7 @@ class Workspace(Document):
 def disable_saving_as_public():
 	return (
 		frappe.flags.in_install
+		or frappe.flags.in_uninstall
 		or frappe.flags.in_patch
 		or frappe.flags.in_test
 		or frappe.flags.in_fixtures
@@ -206,7 +223,7 @@ def update_page(name, title, icon, parent, public):
 			doc.sequence_id = frappe.db.count("Workspace", {"public": public}, cache=True)
 			doc.public = public
 		doc.for_user = "" if public else doc.for_user or frappe.session.user
-		doc.label = new_name = "{0}-{1}".format(title, doc.for_user) if doc.for_user else title
+		doc.label = new_name = f"{title}-{doc.for_user}" if doc.for_user else title
 		doc.save(ignore_permissions=True)
 
 		if name != new_name:
@@ -221,9 +238,7 @@ def update_page(name, title, icon, parent, public):
 					child_doc.public = public
 				child_doc.for_user = "" if public else child_doc.for_user or frappe.session.user
 				child_doc.label = new_child_name = (
-					"{0}-{1}".format(child_doc.title, child_doc.for_user)
-					if child_doc.for_user
-					else child_doc.title
+					f"{child_doc.title}-{child_doc.for_user}" if child_doc.for_user else child_doc.title
 				)
 				child_doc.save(ignore_permissions=True)
 
@@ -251,9 +266,10 @@ def duplicate_page(page_name, new_page):
 	doc.public = new_page.get("is_public")
 	doc.for_user = ""
 	doc.label = doc.title
+	doc.module = ""
 	if not doc.public:
 		doc.for_user = doc.for_user or frappe.session.user
-		doc.label = "{0}-{1}".format(doc.title, doc.for_user)
+		doc.label = f"{doc.title}-{doc.for_user}"
 	doc.name = doc.label
 	if old_doc.public == doc.public:
 		doc.sequence_id += 0.1

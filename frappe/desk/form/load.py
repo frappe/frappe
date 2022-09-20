@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import json
-from typing import List, Union
 from urllib.parse import quote
 
 import frappe
@@ -12,6 +11,7 @@ import frappe.share
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
@@ -31,28 +31,23 @@ def getdoc(doctype, name, user=None):
 	if not name:
 		name = doctype
 
-	if not frappe.db.exists(doctype, name):
+	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
 		return []
 
-	try:
-		doc = frappe.get_doc(doctype, name)
-		run_onload(doc)
+	doc = frappe.get_doc(doctype, name)
+	run_onload(doc)
 
-		if not doc.has_permission("read"):
-			frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-				frappe.bold(doctype + " " + name)
-			)
-			raise frappe.PermissionError(("read", doctype, name))
+	if not doc.has_permission("read"):
+		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
+			frappe.bold(doctype + " " + name)
+		)
+		raise frappe.PermissionError(("read", doctype, name))
 
-		doc.apply_fieldlevel_read_permissions()
+	doc.apply_fieldlevel_read_permissions()
 
-		# add file list
-		doc.add_viewed()
-		get_docinfo(doc)
-
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	# add file list
+	doc.add_viewed()
+	get_docinfo(doc)
 
 	doc.add_seen()
 	set_link_titles(doc)
@@ -69,11 +64,9 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	parent_dt = None
 
 	# with parent (called from report builder)
-	if with_parent:
-		parent_dt = frappe.model.meta.get_parent_dt(doctype)
-		if parent_dt:
-			docs = get_meta_bundle(parent_dt)
-			frappe.response["parent_dt"] = parent_dt
+	if with_parent and (parent_dt := frappe.model.meta.get_parent_dt(doctype)):
+		docs = get_meta_bundle(parent_dt)
+		frappe.response["parent_dt"] = parent_dt
 
 	if not docs:
 		docs = get_meta_bundle(doctype)
@@ -115,6 +108,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	docinfo.update(
 		{
+			"doctype": doc.doctype,
+			"name": doc.name,
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
@@ -183,7 +178,7 @@ def add_comments(doc, docinfo):
 
 
 def get_milestones(doctype, name):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Milestone",
 		fields=["creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=name),
@@ -218,8 +213,8 @@ def get_communications(doctype, name, start=0, limit=20):
 
 
 def get_comments(
-	doctype: str, name: str, comment_type: Union[str, List[str]] = "Comment"
-) -> List[frappe._dict]:
+	doctype: str, name: str, comment_type: str | list[str] = "Comment"
+) -> list[frappe._dict]:
 	if isinstance(comment_type, list):
 		comment_types = comment_type
 
@@ -254,7 +249,7 @@ def get_comments(
 
 
 def get_point_logs(doctype, docname):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Energy Point Log",
 		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
 		fields=["*"],
@@ -294,7 +289,7 @@ def get_communication_data(
 	if after:
 		# find after a particular date
 		conditions += """
-			AND C.creation > {0}
+			AND C.creation > {}
 		""".format(
 			after
 		)
@@ -378,7 +373,7 @@ def run_onload(doc):
 def get_view_logs(doctype, docname):
 	"""get and return the latest view logs if available"""
 	logs = []
-	if hasattr(frappe.get_meta(doctype), "track_views") and frappe.get_meta(doctype).track_views:
+	if getattr(frappe.get_meta(doctype), "track_views", None):
 		view_logs = frappe.get_all(
 			"View Log",
 			filters={
@@ -411,7 +406,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(cstr(name)), email[1])
+	return f"{email[0]}+{quote(doctype)}+{quote(cstr(name))}@{email[1]}"
 
 
 def get_automatic_email_link():
@@ -457,7 +452,9 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		if not meta or not (meta.title_field and meta.show_title_field_in_link):
 			continue
 
-		link_title = frappe.db.get_value(doctype, doc.get(field.fieldname), meta.title_field, cache=True)
+		link_title = frappe.db.get_value(
+			doctype, doc.get(field.fieldname), meta.title_field, cache=True, order_by=None
+		)
 		link_titles.update({doctype + "::" + doc.get(field.fieldname): link_title})
 
 	return link_titles

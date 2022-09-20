@@ -1,12 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import io
 import re
 
 import frappe
 from frappe import _
 from frappe.build import html_to_js_template
 from frappe.utils import cstr
+from frappe.utils.caching import site_cache
 
 STANDARD_FIELD_CONVERSION_MAP = {
 	"name": "Link",
@@ -47,7 +47,7 @@ def set_field_property(filters, key, value):
 	for d in docs:
 		d.get("fields", filters)[0].set(key, value)
 		d.save()
-		print("Updated {0}".format(d.name))
+		print(f"Updated {d.name}")
 
 	frappe.db.commit()
 
@@ -70,7 +70,7 @@ def render_include(content):
 
 			for path in paths:
 				app, app_path = path.split("/", 1)
-				with io.open(frappe.get_app_path(app, app_path), "r", encoding="utf-8") as f:
+				with open(frappe.get_app_path(app, app_path), encoding="utf-8") as f:
 					include = f.read()
 					if path.endswith(".html"):
 						include = html_to_js_template(path, include)
@@ -90,12 +90,44 @@ def get_fetch_values(doctype, fieldname, value):
 	:param fieldname: Link fieldname selected
 	:param value: Value selected
 	"""
-	out = {}
-	meta = frappe.get_meta(doctype)
-	link_df = meta.get_field(fieldname)
-	for df in meta.get_fields_to_fetch(fieldname):
-		# example shipping_address.gistin
-		link_field, source_fieldname = df.fetch_from.split(".", 1)
-		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
 
-	return out
+	result = frappe._dict()
+	meta = frappe.get_meta(doctype)
+
+	# fieldname in target doctype: fieldname in source doctype
+	fields_to_fetch = {
+		df.fieldname: df.fetch_from.split(".", 1)[1] for df in meta.get_fields_to_fetch(fieldname)
+	}
+
+	# nothing to fetch
+	if not fields_to_fetch:
+		return result
+
+	# initialise empty values for target fields
+	for target_fieldname in fields_to_fetch:
+		result[target_fieldname] = None
+
+	# fetch only if Link field has a truthy value
+	if not value:
+		return result
+
+	db_values = frappe.db.get_value(
+		meta.get_options(fieldname),  # source doctype
+		value,
+		tuple(set(fields_to_fetch.values())),  # unique source fieldnames
+		as_dict=True,
+	)
+
+	# if value doesn't exist in source doctype, get_value returns None
+	if not db_values:
+		return result
+
+	for target_fieldname, source_fieldname in fields_to_fetch.items():
+		result[target_fieldname] = db_values.get(source_fieldname)
+
+	return result
+
+
+@site_cache()
+def is_virtual_doctype(doctype):
+	return frappe.db.get_value("DocType", doctype, "is_virtual")

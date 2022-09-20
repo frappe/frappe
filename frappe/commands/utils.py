@@ -387,7 +387,7 @@ def import_doc(context, path, force=False):
 	if not os.path.exists(path):
 		path = os.path.join("..", path)
 	if not os.path.exists(path):
-		print("Invalid path {0}".format(path))
+		print(f"Invalid path {path}")
 		sys.exit(1)
 
 	for site in context.sites:
@@ -471,7 +471,7 @@ def bulk_rename(context, doctype, path):
 
 	site = get_site(context)
 
-	with open(path, "r") as csvfile:
+	with open(path) as csvfile:
 		rows = read_csv_content(csvfile.read())
 
 	frappe.init(site=site)
@@ -523,22 +523,24 @@ def postgres(context):
 
 
 def _mariadb():
+	from frappe.database.mariadb.database import MariaDBDatabase
+
 	mysql = find_executable("mysql")
-	os.execv(
+	command = [
 		mysql,
-		[
-			mysql,
-			"-u",
-			frappe.conf.db_name,
-			"-p" + frappe.conf.db_password,
-			frappe.conf.db_name,
-			"-h",
-			frappe.conf.db_host or "localhost",
-			"--pager=less -SFX",
-			"--safe-updates",
-			"-A",
-		],
-	)
+		"--port",
+		frappe.conf.db_port or MariaDBDatabase.default_port,
+		"-u",
+		frappe.conf.db_name,
+		f"-p{frappe.conf.db_password}",
+		frappe.conf.db_name,
+		"-h",
+		frappe.conf.db_host or "localhost",
+		"--pager=less -SFX",
+		"--safe-updates",
+		"-A",
+	]
+	os.execv(mysql, command)
 
 
 def _psql():
@@ -566,7 +568,7 @@ def jupyter(context):
 	try:
 		os.stat(jupyter_notebooks_path)
 	except OSError:
-		print("Creating folder to keep jupyter notebooks at {}".format(jupyter_notebooks_path))
+		print(f"Creating folder to keep jupyter notebooks at {jupyter_notebooks_path}")
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath("../env/bin")
 	print(
@@ -585,9 +587,9 @@ frappe.db.connect()
 		)
 	)
 	os.execv(
-		"{0}/jupyter".format(bin_path),
+		f"{bin_path}/jupyter",
 		[
-			"{0}/jupyter".format(bin_path),
+			f"{bin_path}/jupyter",
 			"notebook",
 			jupyter_notebooks_path,
 		],
@@ -780,7 +782,7 @@ def run_tests(
 		if not (allow_tests or os.environ.get("CI")):
 			click.secho("Testing is disabled for the site!", bold=True)
 			click.secho("You can enable tests by entering following command:")
-			click.secho("bench --site {0} set-config allow_tests true".format(site), fg="green")
+			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
 		frappe.init(site=site)
@@ -821,6 +823,8 @@ def run_tests(
 def run_parallel_tests(
 	context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False
 ):
+	from traceback_with_variables import activate_by_import
+
 	with CodeCoverage(with_coverage, app):
 		site = get_site(context)
 		if use_orchestrator:
@@ -833,15 +837,27 @@ def run_parallel_tests(
 			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
 
 
-@click.command("run-ui-tests")
+@click.command(
+	"run-ui-tests",
+	context_settings=dict(
+		ignore_unknown_options=True,
+	),
+)
 @click.argument("app")
+@click.argument("cypressargs", nargs=-1, type=click.UNPROCESSED)
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
-	context, app, headless=False, parallel=True, with_coverage=False, ci_build_id=None
+	context,
+	app,
+	headless=False,
+	parallel=True,
+	with_coverage=False,
+	ci_build_id=None,
+	cypressargs=None,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -858,7 +874,6 @@ def run_ui_tests(
 
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = f"{node_bin}/cypress"
-	plugin_path = f"{node_bin}/../cypress-file-upload"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
 	testing_library_path = f"{node_bin}/../@testing-library"
@@ -867,18 +882,24 @@ def run_ui_tests(
 	# check if cypress in path...if not, install it.
 	if not (
 		os.path.exists(cypress_path)
-		and os.path.exists(plugin_path)
 		and os.path.exists(drag_drop_plugin_path)
 		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
 		and os.path.exists(coverage_plugin_path)
-		and cint(subprocess.getoutput("npm view cypress version")[:1]) >= 6
 	):
-		# install cypress
+		# install cypress & dependent plugins
 		click.secho("Installing Cypress...", fg="yellow")
-		frappe.commands.popen(
-			"yarn add cypress@^6 cypress-file-upload@^5 @4tw/cypress-drag-drop@^2 cypress-real-events @testing-library/cypress@^8 @cypress/code-coverage@^3 --no-lockfile"
+		packages = " ".join(
+			[
+				"cypress@^10",
+				"@4tw/cypress-drag-drop@^2",
+				"cypress-real-events",
+				"@testing-library/cypress@^8",
+				"@testing-library/dom@8.17.1",
+				"@cypress/code-coverage@^3",
+			]
 		)
+		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
 
 	# run for headless mode
 	run_or_open = "run --browser chrome --record" if headless else "open"
@@ -889,6 +910,9 @@ def run_ui_tests(
 
 	if ci_build_id:
 		formatted_command += f" --ci-build-id {ci_build_id}"
+
+	if cypressargs:
+		formatted_command += " " + " ".join(cypressargs)
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
@@ -955,7 +979,7 @@ def request(context, args=None, path=None):
 				if args.startswith("/api/method"):
 					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
 			elif path:
-				with open(os.path.join("..", path), "r") as f:
+				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
 
 				frappe.local.form_dict = frappe._dict(args)

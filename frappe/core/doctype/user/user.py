@@ -2,8 +2,6 @@
 # License: MIT. See LICENSE
 from datetime import timedelta
 
-from bs4 import BeautifulSoup
-
 import frappe
 import frappe.defaults
 import frappe.permissions
@@ -134,11 +132,11 @@ class User(Document):
 		if self.time_zone:
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
-		if self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
-			frappe.cache().delete_key("users_for_mentions")
-
 		if self.has_value_changed("enabled"):
+			frappe.cache().delete_key("users_for_mentions")
 			frappe.cache().delete_key("enabled_users")
+		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
+			frappe.cache().delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -489,7 +487,7 @@ class User(Document):
 		self.save()
 
 	def remove_roles(self, *roles):
-		existing_roles = dict((d.role, d) for d in self.get("roles"))
+		existing_roles = {d.role: d for d in self.get("roles")}
 		for role in roles:
 			if role in existing_roles:
 				self.get("roles").remove(existing_roles[role])
@@ -498,7 +496,7 @@ class User(Document):
 
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
-			self.set("roles", list(set(d for d in self.get("roles") if d.role == "Guest")))
+			self.set("roles", list({d for d in self.get("roles") if d.role == "Guest"}))
 
 	def remove_disabled_roles(self):
 		disabled_roles = [d.name for d in frappe.get_all("Role", filters={"disabled": 1})]
@@ -542,7 +540,7 @@ class User(Document):
 			feedback = result.get("feedback", None)
 
 			if feedback and not feedback.get("password_policy_validation_passed", False):
-				handle_password_test_fail(result)
+				handle_password_test_fail(feedback)
 
 	def suggest_username(self):
 		def _check_suggestion(suggestion):
@@ -557,7 +555,7 @@ class User(Document):
 		if not username:
 			# @firstname_last_name
 			username = _check_suggestion(
-				frappe.scrub("{0} {1}".format(self.first_name, self.last_name or ""))
+				frappe.scrub("{} {}".format(self.first_name, self.last_name or ""))
 			)
 
 		if username:
@@ -586,7 +584,7 @@ class User(Document):
 			for p in self.social_logins:
 				if p.provider == provider:
 					return p.userid
-		except:
+		except Exception:
 			return None
 
 	def set_social_login_userid(self, provider, userid, username=None):
@@ -611,10 +609,10 @@ class User(Document):
 		"""
 
 		login_with_mobile = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")
+			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
 		)
 		login_with_username = cint(
-			frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")
+			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
 		)
 
 		or_filters = [{"name": user_name}]
@@ -623,7 +621,7 @@ class User(Document):
 		if login_with_username:
 			or_filters.append({"username": user_name})
 
-		users = frappe.db.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
+		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
 			return
 
@@ -688,7 +686,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	feedback = result.get("feedback", None)
 
 	if feedback and not feedback.get("password_policy_validation_passed", False):
-		handle_password_test_fail(result)
+		handle_password_test_fail(feedback)
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get("message"):
@@ -763,19 +761,11 @@ def has_email_account(email):
 
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
-	waiting = frappe.get_all(
+	return frappe.get_all(
 		"User Email",
 		fields=["email_account", "email_id"],
-		filters={"awaiting_password": 1, "parent": user},
+		filters={"awaiting_password": 1, "parent": user, "used_oauth": 0},
 	)
-	if waiting:
-		return waiting
-	else:
-		user_email_table = DocType("User Email")
-		frappe.qb.update(user_email_table).set(user_email_table.user_email_table, 0).where(
-			user_email_table.parent == user
-		).run()
-		return False
 
 
 def ask_pass_update():
@@ -783,7 +773,7 @@ def ask_pass_update():
 	from frappe.utils import set_default
 
 	password_list = frappe.get_all(
-		"User Email", filters={"awaiting_password": True}, pluck="parent", distinct=True
+		"User Email", filters={"awaiting_password": 1, "used_oauth": 0}, pluck="parent", distinct=True
 	)
 	set_default("email_user_password", ",".join(password_list))
 
@@ -869,7 +859,7 @@ def sign_up(email, full_name, redirect_to):
 		user.insert()
 
 		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_value("Portal Settings", None, "default_role")
+		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
 		if default_role:
 			user.add_roles(default_role)
 
@@ -918,7 +908,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		user_type_condition = ""
 		filters.pop("ignore_user_type")
 
-	txt = "%{}%".format(txt)
+	txt = f"%{txt}%"
 	return frappe.db.sql(
 		"""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
 		FROM `tabUser`
@@ -970,7 +960,7 @@ def get_system_users(exclude_users=None, limit=None):
 
 	limit_cond = ""
 	if limit:
-		limit_cond = "limit {0}".format(limit)
+		limit_cond = f"limit {limit}"
 
 	exclude_users += list(STANDARD_USERS)
 
@@ -1036,7 +1026,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 	):
 
 		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
-		date_and_time = "<b>{0}</b>".format(format_datetime(now_datetime(), format_string="medium"))
+		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
 		ip_address = frappe.local.request_ip
 
 		access_message = _("Administrator accessed {0} on {1} via IP Address {2}.").format(
@@ -1052,31 +1042,15 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		)
 
 
-def extract_mentions(txt):
-	"""Find all instances of @mentions in the html."""
-	soup = BeautifulSoup(txt, "html.parser")
-	emails = []
-	for mention in soup.find_all(class_="mention"):
-		if mention.get("data-is-group") == "true":
-			try:
-				user_group = frappe.get_cached_doc("User Group", mention["data-id"])
-				emails += [d.user for d in user_group.user_group_members]
-			except frappe.DoesNotExistError:
-				pass
-			continue
-		email = mention["data-id"]
-		emails.append(email)
+def handle_password_test_fail(feedback: dict):
+	# Backward compatibility
+	if "feedback" in feedback:
+		feedback = feedback["feedback"]
 
-	return emails
+	suggestions = feedback.get("suggestions", [])
+	warning = feedback.get("warning", "")
 
-
-def handle_password_test_fail(result):
-	suggestions = result["feedback"]["suggestions"][0] if result["feedback"]["suggestions"] else ""
-	warning = result["feedback"]["warning"] if "warning" in result["feedback"] else ""
-	suggestions += (
-		"<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + "<br>"
-	)
-	frappe.throw(" ".join([_("Invalid Password:"), warning, suggestions]))
+	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
 
 
 def update_gravatar(name):

@@ -4,18 +4,17 @@
 import frappe
 import frappe.utils.user
 from frappe.model import data_fieldtypes
-from frappe.permissions import check_admin_or_system_manager, rights
+from frappe.permissions import rights
 
 
 def execute(filters=None):
+	frappe.only_for("System Manager")
+
 	user, doctype, show_permissions = (
 		filters.get("user"),
 		filters.get("doctype"),
 		filters.get("show_permissions"),
 	)
-
-	if not validate(user, doctype):
-		return [], []
 
 	columns, fields = get_columns_and_fields(doctype)
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
@@ -30,19 +29,13 @@ def execute(filters=None):
 	return columns, data
 
 
-def validate(user, doctype):
-	# check if current user is System Manager
-	check_admin_or_system_manager()
-	return user and doctype
-
-
 def get_columns_and_fields(doctype):
-	columns = ["Name:Link/{}:200".format(doctype)]
-	fields = ["`name`"]
+	columns = [f"Name:Link/{doctype}:200"]
+	fields = ["name"]
 	for df in frappe.get_meta(doctype).fields:
 		if df.in_list_view and df.fieldtype in data_fieldtypes:
-			fields.append("`{0}`".format(df.fieldname))
-			fieldtype = "Link/{}".format(df.options) if df.fieldtype == "Link" else df.fieldtype
+			fields.append(f"`{df.fieldname}`")
+			fieldtype = f"Link/{df.options}" if df.fieldtype == "Link" else df.fieldtype
 			columns.append(
 				"{label}:{fieldtype}:{width}".format(
 					label=df.label, fieldtype=fieldtype, width=df.width or 100

@@ -1,3 +1,3 @@
-import Driver from 'driver.js';
+import Driver from "driver.js";
 
 frappe.Driver = Driver;

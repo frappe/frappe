@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import calendar
 from datetime import timedelta
+from email.utils import formataddr
 
 import frappe
 from frappe import _
@@ -37,6 +37,11 @@ class AutoEmailReport(Document):
 		self.validate_emails()
 		self.validate_report_format()
 		self.validate_mandatory_fields()
+
+	@property
+	def sender_email(self):
+		email_id, login_id = frappe.db.get_value("Email Account", self.sender, ["email_id", "login_id"])
+		return login_id if login_id else email_id
 
 	def validate_emails(self):
 		"""Cleanup list of emails"""
@@ -165,7 +170,7 @@ class AutoEmailReport(Document):
 		)
 
 	def get_file_name(self):
-		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
+		return "{}.{}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
 
 	def prepare_dynamic_filters(self):
 		self.filters = frappe.parse_json(self.filters)
@@ -204,6 +209,7 @@ class AutoEmailReport(Document):
 
 		frappe.sendmail(
 			recipients=self.email_to.split(),
+			sender=formataddr((self.sender, self.sender_email)) if self.sender else "",
 			subject=self.name,
 			message=message,
 			attachments=attachments,
@@ -260,9 +266,7 @@ def send_daily():
 		try:
 			auto_email_report.send()
 		except Exception as e:
-			auto_email_report.log_error(
-				"Failed to send {0} Auto Email Report".format(auto_email_report.name)
-			)
+			auto_email_report.log_error(f"Failed to send {auto_email_report.name} Auto Email Report")
 
 
 def send_monthly():

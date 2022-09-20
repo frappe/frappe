@@ -1,11 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestClient(unittest.TestCase):
+class TestClient(FrappeTestCase):
 	def test_set_value(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")
@@ -139,14 +138,15 @@ class TestClient(unittest.TestCase):
 
 		self.assertEqual(get("ToDo", filters=filters).description, "test")
 		self.assertEqual(get("ToDo", filters=filters_json).description, "test")
-
+		self.assertEqual(get("System Settings", "", "").doctype, "System Settings")
+		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
 		todo.delete()
 
 	def test_client_insert(self):
 		from frappe.client import insert
 
 		def get_random_title():
-			return "test-{0}".format(frappe.generate_hash())
+			return f"test-{frappe.generate_hash()}"
 
 		# test insert dict
 		doc = {"doctype": "Note", "title": get_random_title(), "content": "test"}
@@ -183,7 +183,7 @@ class TestClient(unittest.TestCase):
 		from frappe.client import insert, insert_many
 
 		def get_random_title():
-			return "test-{0}".format(frappe.generate_hash(length=5))
+			return f"test-{frappe.generate_hash(length=5)}"
 
 		# insert a (parent) doc
 		note1 = {"doctype": "Note", "title": get_random_title(), "content": "test"}

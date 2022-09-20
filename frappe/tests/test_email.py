@@ -3,15 +3,15 @@
 
 import email
 import re
-import unittest
 
 import frappe
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Email Account"]
 
 
-class TestEmail(unittest.TestCase):
+class TestEmail(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Email Unsubscribe")
 		frappe.db.delete("Email Queue")
@@ -281,7 +281,7 @@ class TestEmail(unittest.TestCase):
 
 		frappe.db.delete("Communication", {"sender": "sukh@yyy.com"})
 
-		with open(frappe.get_app_path("frappe", "tests", "data", "email_with_image.txt"), "r") as raw:
+		with open(frappe.get_app_path("frappe", "tests", "data", "email_with_image.txt")) as raw:
 			messages = {
 				'"INBOX"': {"latest_messages": [raw.read()], "seen_status": {2: "UNSEEN"}, "uid_list": [2]}
 			}
@@ -311,5 +311,7 @@ class TestEmail(unittest.TestCase):
 
 
 if __name__ == "__main__":
+	import unittest
+
 	frappe.connect()
 	unittest.main()

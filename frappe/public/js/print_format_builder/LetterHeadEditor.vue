@@ -150,14 +150,8 @@ export default {
 		}
 	},
 	mounted() {
-		if (!this.letterhead) {
-			frappe
-				.call("frappe.client.get_default", { key: "letter_head" })
-				.then(r => {
-					if (r.message) {
-						this.set_letterhead(r.message);
-					}
-				});
+		if (!this.letterhead && frappe.boot.sysdefaults.letter_head) {
+			this.set_letterhead(frappe.boot.sysdefaults.letter_head);
 		}
 
 		this.$watch(

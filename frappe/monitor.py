@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
@@ -31,6 +30,8 @@ def log_file():
 
 
 class Monitor:
+	__slots__ = ("data",)
+
 	def __init__(self, transaction_type, method, kwargs):
 		try:
 			self.data = frappe._dict(

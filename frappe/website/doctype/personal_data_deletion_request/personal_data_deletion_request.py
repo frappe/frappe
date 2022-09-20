@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -129,7 +128,6 @@ class PersonalDataDeletionRequest(Document):
 				"host_name": frappe.utils.get_url(),
 			},
 			header=[_("Your account has been deleted"), "green"],
-			now=True,
 		)
 
 	def add_deletion_steps(self):
@@ -392,4 +390,4 @@ def confirm_deletion(email, name, host_name):
 
 
 def get_pattern(full_match):
-	return re.compile(r"(?<!\.)\b{0}\b(?!\.)".format(re.escape(full_match)))
+	return re.compile(rf"(?<!\.)\b{re.escape(full_match)}\b(?!\.)")

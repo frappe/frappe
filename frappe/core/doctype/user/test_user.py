@@ -2,28 +2,29 @@
 # License: MIT. See LICENSE
 import json
 import time
-import unittest
 from unittest.mock import patch
 
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
-	extract_mentions,
+	handle_password_test_fail,
 	reset_password,
 	sign_up,
 	test_password_strength,
 	update_password,
 	verify_password,
 )
+from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
 test_records = frappe.get_test_records("User")
 
 
-class TestUser(unittest.TestCase):
+class TestUser(FrappeTestCase):
 	def tearDown(self):
 		# disable password strength test
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
@@ -191,6 +192,12 @@ class TestUser(unittest.TestCase):
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+		)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result
+		)  # test backwards compatibility
 
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
@@ -200,7 +207,7 @@ class TestUser(unittest.TestCase):
 		user = frappe.get_doc("User", "test@example.com")
 		frappe.flags.in_test = False
 		user.new_password = "password"
-		self.assertRaisesRegex(frappe.exceptions.ValidationError, "Invalid Password", user.save)
+		self.assertRaises(frappe.exceptions.ValidationError, user.save)
 		user.reload()
 		user.new_password = "Eastern_43A1W"
 		user.save()

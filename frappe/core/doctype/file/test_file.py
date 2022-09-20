@@ -3,7 +3,6 @@
 import base64
 import json
 import os
-import unittest
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
@@ -239,7 +238,7 @@ class TestFile(FrappeTestCase):
 			pass
 
 	def delete_test_data(self):
-		test_file_data = frappe.db.get_all(
+		test_file_data = frappe.get_all(
 			"File",
 			pluck="name",
 			filters={"is_home_folder": 0, "is_attachments_folder": 0},
@@ -510,12 +509,23 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_create_file_without_file_url(self):
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "logo",
+				"content": "frappe",
+			}
+		).insert()
+		assert test_file is not None
 
-class TestAttachment(unittest.TestCase):
+
+class TestAttachment(FrappeTestCase):
 	test_doctype = "Test For Attachment"
 
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		frappe.get_doc(
 			doctype="DocType",
 			name=cls.test_doctype,

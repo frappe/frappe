@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -18,6 +17,7 @@ def run_webhooks(doc, method):
 	if frappe.flags.webhooks_executed is None:
 		frappe.flags.webhooks_executed = {}
 
+	# TODO: remove this hazardous unnecessary cache in flags
 	if frappe.flags.webhooks is None:
 		# load webhooks from cache
 		webhooks = frappe.cache().get_value("webhooks")
@@ -25,7 +25,7 @@ def run_webhooks(doc, method):
 			# query webhooks
 			webhooks_list = frappe.get_all(
 				"Webhook",
-				fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"],
+				fields=["name", "condition", "webhook_docevent", "webhook_doctype"],
 				filters={"enabled": True},
 			)
 

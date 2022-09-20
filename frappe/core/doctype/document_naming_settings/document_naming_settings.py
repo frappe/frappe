@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from typing import List, Set
 
 import frappe
 from frappe import _
@@ -9,7 +8,6 @@ from frappe.core.doctype.doctype.doctype import validate_series
 from frappe.model.document import Document
 from frappe.model.naming import NamingSeries
 from frappe.permissions import get_doctypes_with_read
-from frappe.utils import cint
 
 
 class NamingSeriesNotSetError(frappe.ValidationError):
@@ -25,7 +23,7 @@ class DocumentNamingSettings(Document):
 
 		return {"transactions": transactions, "prefixes": prefixes}
 
-	def _get_transactions(self) -> List[str]:
+	def _get_transactions(self) -> list[str]:
 
 		readable_doctypes = set(get_doctypes_with_read())
 
@@ -34,7 +32,7 @@ class DocumentNamingSettings(Document):
 
 		return sorted(readable_doctypes.intersection(standard + custom))
 
-	def _get_prefixes(self, doctypes) -> List[str]:
+	def _get_prefixes(self, doctypes) -> list[str]:
 		"""Get all prefixes for naming series.
 
 		- For all templates prefix is evaluated considering today's date
@@ -63,7 +61,7 @@ class DocumentNamingSettings(Document):
 
 		return self._evaluate_and_clean_templates(series_templates)
 
-	def _evaluate_and_clean_templates(self, series_templates: Set[str]) -> List[str]:
+	def _evaluate_and_clean_templates(self, series_templates: set[str]) -> list[str]:
 		evalauted_prefix = set()
 
 		series = frappe.qb.DocType("Series")
@@ -71,15 +69,19 @@ class DocumentNamingSettings(Document):
 		evalauted_prefix.update(prefixes_from_db)
 
 		for series_template in series_templates:
-			prefix = NamingSeries(series_template).get_prefix()
-			if "{" in prefix:
-				# fieldnames can't be evalauted, rely on data in DB instead
-				continue
-			evalauted_prefix.add(prefix)
+			try:
+				prefix = NamingSeries(series_template).get_prefix()
+				if "{" in prefix:
+					# fieldnames can't be evalauted, rely on data in DB instead
+					continue
+				evalauted_prefix.add(prefix)
+			except Exception:
+				frappe.clear_last_message()
+				frappe.log_error(f"Invalid naming series {series_template}")
 
 		return sorted(evalauted_prefix)
 
-	def get_options_list(self, options: str) -> List[str]:
+	def get_options_list(self, options: str) -> list[str]:
 		return [op.strip() for op in options.split("\n") if op.strip()]
 
 	@frappe.whitelist()
@@ -111,6 +113,8 @@ class DocumentNamingSettings(Document):
 
 		option_string = "\n".join(options)
 
+		# Erase default first, it might not be in new options.
+		self.update_naming_series_property_setter(doctype, "default", "")
 		self.update_naming_series_property_setter(doctype, "options", option_string)
 		self.update_naming_series_property_setter(doctype, "default", default)
 

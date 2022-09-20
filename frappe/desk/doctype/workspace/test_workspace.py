@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestWorkspace(unittest.TestCase):
+class TestWorkspace(FrappeTestCase):
 	def setUp(self):
 		create_module("Test Module")
 

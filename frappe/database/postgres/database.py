@@ -1,14 +1,24 @@
 import re
-from typing import List, Tuple, Union
 
 import psycopg2
 import psycopg2.extensions
-from psycopg2.errorcodes import STRING_DATA_RIGHT_TRUNCATION
+from psycopg2.errorcodes import (
+	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
+	DEADLOCK_DETECTED,
+	DUPLICATE_COLUMN,
+	INSUFFICIENT_PRIVILEGE,
+	STRING_DATA_RIGHT_TRUNCATION,
+	UNDEFINED_COLUMN,
+	UNDEFINED_TABLE,
+	UNIQUE_VIOLATION,
+)
+from psycopg2.errors import ReadOnlySqlTransaction, SequenceGeneratorLimitExceeded, SyntaxError
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
+from frappe.database.utils import EmptyQueryValues, LazyDecode
 from frappe.utils import cstr, get_table_name
 
 # cast decimals as floats
@@ -26,7 +36,7 @@ PG_TRANSFORM_PATTERN = re.compile(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])"
 FROM_TAB_PATTERN = re.compile(r"from tab([\w-]*)", flags=re.IGNORECASE)
 
 
-class PostgresDatabase(Database):
+class PostgresExceptionUtil:
 	ProgrammingError = psycopg2.ProgrammingError
 	TableMissingError = psycopg2.ProgrammingError
 	OperationalError = psycopg2.OperationalError
@@ -34,13 +44,69 @@ class PostgresDatabase(Database):
 	SQLError = psycopg2.ProgrammingError
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
-	REGEX_CHARACTER = "~"
+	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
-	# NOTE; The sequence cache for postgres is per connection.
-	# Since we're opening and closing connections for every transaction this results in skipping the cache
-	# to the next non-cached value hence not using cache in postgres.
-	# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
-	SEQUENCE_CACHE = 0
+	@staticmethod
+	def is_deadlocked(e):
+		return getattr(e, "pgcode", None) == DEADLOCK_DETECTED
+
+	@staticmethod
+	def is_timedout(e):
+		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
+		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+
+	@staticmethod
+	def is_read_only_mode_error(e) -> bool:
+		return isinstance(e, ReadOnlySqlTransaction)
+
+	@staticmethod
+	def is_syntax_error(e):
+		return isinstance(e, SyntaxError)
+
+	@staticmethod
+	def is_table_missing(e):
+		return getattr(e, "pgcode", None) == UNDEFINED_TABLE
+
+	@staticmethod
+	def is_missing_table(e):
+		return PostgresDatabase.is_table_missing(e)
+
+	@staticmethod
+	def is_missing_column(e):
+		return getattr(e, "pgcode", None) == UNDEFINED_COLUMN
+
+	@staticmethod
+	def is_access_denied(e):
+		return getattr(e, "pgcode", None) == INSUFFICIENT_PRIVILEGE
+
+	@staticmethod
+	def cant_drop_field_or_key(e):
+		return getattr(e, "pgcode", None) == CLASS_INTEGRITY_CONSTRAINT_VIOLATION
+
+	@staticmethod
+	def is_duplicate_entry(e):
+		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION
+
+	@staticmethod
+	def is_primary_key_violation(e):
+		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_pkey" in cstr(e.args[0])
+
+	@staticmethod
+	def is_unique_key_violation(e):
+		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_key" in cstr(e.args[0])
+
+	@staticmethod
+	def is_duplicate_fieldname(e):
+		return getattr(e, "pgcode", None) == DUPLICATE_COLUMN
+
+	@staticmethod
+	def is_data_too_long(e):
+		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+
+
+class PostgresDatabase(PostgresExceptionUtil, Database):
+	REGEX_CHARACTER = "~"
+	default_port = "5432"
 
 	def setup_type_map(self):
 		self.db_type = "postgres"
@@ -81,6 +147,10 @@ class PostgresDatabase(Database):
 			"JSON": ("json", ""),
 		}
 
+	@property
+	def last_query(self):
+		return LazyDecode(self._cursor.query)
+
 	def get_connection(self):
 		conn = psycopg2.connect(
 			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
@@ -117,10 +187,11 @@ class PostgresDatabase(Database):
 		return db_size[0].get("database_size")
 
 	# pylint: disable=W0221
-	def sql(self, query, values=(), *args, **kwargs):
-		return super(PostgresDatabase, self).sql(
-			modify_query(query), modify_values(values), *args, **kwargs
-		)
+	def sql(self, query, values=EmptyQueryValues, *args, **kwargs):
+		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
+
+	def lazy_mogrify(self, *args, **kwargs) -> str:
+		return self.last_query
 
 	def get_tables(self, cached=True):
 		return [
@@ -128,9 +199,9 @@ class PostgresDatabase(Database):
 			for d in self.sql(
 				"""select table_name
 			from information_schema.tables
-			where table_catalog='{0}'
+			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
-				and table_schema='{1}'""".format(
+				and table_schema='{}'""".format(
 					frappe.conf.db_name, frappe.conf.get("db_schema", "public")
 				)
 			)
@@ -154,66 +225,12 @@ class PostgresDatabase(Database):
 	def is_type_datetime(code):
 		return code == psycopg2.DATETIME
 
-	# exception type
-	@staticmethod
-	def is_deadlocked(e):
-		return e.pgcode == "40P01"
-
-	@staticmethod
-	def is_timedout(e):
-		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
-		return isinstance(e, psycopg2.extensions.QueryCanceledError)
-
-	@staticmethod
-	def is_syntax_error(e):
-		return isinstance(e, psycopg2.errors.SyntaxError)
-
-	@staticmethod
-	def is_table_missing(e):
-		return getattr(e, "pgcode", None) == "42P01"
-
-	@staticmethod
-	def is_missing_table(e):
-		return PostgresDatabase.is_table_missing(e)
-
-	@staticmethod
-	def is_missing_column(e):
-		return getattr(e, "pgcode", None) == "42703"
-
-	@staticmethod
-	def is_access_denied(e):
-		return e.pgcode == "42501"
-
-	@staticmethod
-	def cant_drop_field_or_key(e):
-		return e.pgcode.startswith("23")
-
-	@staticmethod
-	def is_duplicate_entry(e):
-		return e.pgcode == "23505"
-
-	@staticmethod
-	def is_primary_key_violation(e):
-		return getattr(e, "pgcode", None) == "23505" and "_pkey" in cstr(e.args[0])
-
-	@staticmethod
-	def is_unique_key_violation(e):
-		return getattr(e, "pgcode", None) == "23505" and "_key" in cstr(e.args[0])
-
-	@staticmethod
-	def is_duplicate_fieldname(e):
-		return e.pgcode == "42701"
-
-	@staticmethod
-	def is_data_too_long(e):
-		return e.pgcode == STRING_DATA_RIGHT_TRUNCATION
-
-	def rename_table(self, old_name: str, new_name: str) -> Union[List, Tuple]:
+	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
 		new_name = get_table_name(new_name)
 		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
 
-	def describe(self, doctype: str) -> Union[List, Tuple]:
+	def describe(self, doctype: str) -> list | tuple:
 		table_name = get_table_name(doctype)
 		return self.sql(
 			f"SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_NAME = '{table_name}'"
@@ -221,7 +238,7 @@ class PostgresDatabase(Database):
 
 	def change_column_type(
 		self, doctype: str, column: str, type: str, nullable: bool = False, use_cast: bool = False
-	) -> Union[List, Tuple]:
+	) -> list | tuple:
 		table_name = get_table_name(doctype)
 		null_constraint = "SET NOT NULL" if not nullable else "DROP NOT NULL"
 		using_cast = f'using "{column}"::{type}' if use_cast else ""
@@ -272,17 +289,6 @@ class PostgresDatabase(Database):
 			)"""
 		)
 
-	def create_help_table(self):
-		self.sql(
-			"""CREATE TABLE "help"(
-				"path" varchar(255),
-				"content" text,
-				"title" text,
-				"intro" text,
-				"full_path" text)"""
-		)
-		self.sql("""CREATE INDEX IF NOT EXISTS "help_index" ON "help" ("path")""")
-
 	def updatedb(self, doctype, meta=None):
 		"""
 		Syncs a `DocType` to the table
@@ -290,9 +296,9 @@ class PostgresDatabase(Database):
 		* updates columns
 		* updates indices
 		"""
-		res = self.sql("select issingle from `tabDocType` where name='{}'".format(doctype))
+		res = self.sql(f"select issingle from `tabDocType` where name='{doctype}'")
 		if not res:
-			raise Exception("Wrong doctype {0} in updatedb".format(doctype))
+			raise Exception(f"Wrong doctype {doctype} in updatedb")
 
 		if not res[0][0]:
 			db_table = PostgresTable(doctype, meta)
@@ -306,7 +312,7 @@ class PostgresDatabase(Database):
 	def get_on_duplicate_update(key="name"):
 		if isinstance(key, list):
 			key = '", "'.join(key)
-		return 'ON CONFLICT ("{key}") DO UPDATE SET '.format(key=key)
+		return f'ON CONFLICT ("{key}") DO UPDATE SET '
 
 	def check_implicit_commit(self, query):
 		pass  # postgres can run DDL in transactions without implicit commits
@@ -319,7 +325,7 @@ class PostgresDatabase(Database):
 			)
 		)
 
-	def add_index(self, doctype: str, fields: List, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)
@@ -380,8 +386,8 @@ class PostgresDatabase(Database):
 			as_dict=1,
 		)
 
-	def get_database_list(self, target):
-		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
+	def get_database_list(self):
+		return self.sql("SELECT datname FROM pg_database", pluck=True)
 
 
 def modify_query(query):
@@ -403,29 +409,29 @@ def modify_query(query):
 
 
 def modify_values(values):
-	def stringify_value(value):
-		if isinstance(value, int):
+	def modify_value(value):
+		if isinstance(value, (list, tuple)):
+			value = tuple(modify_values(value))
+
+		elif isinstance(value, int):
 			value = str(value)
-		elif isinstance(value, float):
-			truncated_float = int(value)
-			if value == truncated_float:
-				value = str(truncated_float)
 
 		return value
 
-	if not values:
+	if not values or values == EmptyQueryValues:
 		return values
 
 	if isinstance(values, dict):
 		for k, v in values.items():
-			values[k] = stringify_value(v)
+			values[k] = modify_value(v)
 	elif isinstance(values, (tuple, list)):
 		new_values = []
 		for val in values:
-			new_values.append(stringify_value(val))
+			new_values.append(modify_value(val))
+
 		values = new_values
 	else:
-		values = stringify_value(values)
+		values = modify_value(values)
 
 	return values
 

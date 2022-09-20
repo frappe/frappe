@@ -3,7 +3,6 @@
 
 import os
 import shutil
-from typing import List
 
 import frappe
 import frappe.defaults
@@ -12,6 +11,7 @@ from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
 from frappe.utils.password import delete_all_passwords_for
@@ -31,6 +31,7 @@ doctypes_to_skip = (
 	"Notification Log",
 	"Email Queue",
 	"Document Share Key",
+	"Integration Request",
 )
 
 
@@ -57,11 +58,16 @@ def delete_doc(
 		doctype = frappe.form_dict.get("dt")
 		name = frappe.form_dict.get("dn")
 
+	is_virtual = is_virtual_doctype(doctype)
+
 	names = name
 	if isinstance(name, str) or isinstance(name, int):
 		names = [name]
 
 	for name in names or []:
+		if is_virtual:
+			frappe.get_doc(doctype, name).delete()
+			continue
 
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
@@ -89,8 +95,6 @@ def delete_doc(
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
-
-				frappe.db.delete("Custom DocPerm", {"parent": name})
 				frappe.db.delete("__global_search", {"doctype": name})
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
@@ -163,9 +167,6 @@ def delete_doc(
 				except ImportError:
 					pass
 
-			# delete user_permissions
-			frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
-
 
 def add_to_deleted_document(doc):
 	"""Add this document to Deleted Document table. Called after delete"""
@@ -190,13 +191,16 @@ def update_naming_series(doc):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
-def delete_from_table(doctype: str, name: str, ignore_doctypes: List[str], doc):
+def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 	if doctype != "DocType" and doctype == name:
 		frappe.db.delete("Singles", {"doctype": name})
 	else:
 		frappe.db.delete(doctype, {"name": name})
 	if doc:
-		child_doctypes = [d.options for d in doc.meta.get_table_fields()]
+		child_doctypes = [
+			d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0
+		]
+
 	else:
 		child_doctypes = frappe.get_all(
 			"DocField",
@@ -337,7 +341,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
-					at_position = "at Row: {0}".format(refdoc.idx) if meta.istable else ""
+					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
 
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
 
@@ -430,7 +434,7 @@ def insert_feed(doc):
 			"doctype": "Comment",
 			"comment_type": "Deleted",
 			"reference_doctype": doc.doctype,
-			"subject": "{0} {1}".format(_(doc.doctype), doc.name),
+			"subject": f"{_(doc.doctype)} {doc.name}",
 			"full_name": get_fullname(doc.owner),
 		}
 	).insert(ignore_permissions=True)

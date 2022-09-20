@@ -38,7 +38,6 @@ import configparser
 import time
 from enum import Enum
 from textwrap import dedent, indent
-from typing import List, Optional
 
 import frappe
 
@@ -52,7 +51,7 @@ class PatchType(Enum):
 	post_model_sync = "post_model_sync"
 
 
-def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) -> None:
+def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
 	executed = set(frappe.get_all("Patch Log", fields="patch", pluck="patch"))
 
@@ -81,7 +80,7 @@ def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) 
 		run_patch(patch)
 
 
-def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
+def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
 
 	if patch_type and not isinstance(patch_type, PatchType):
 		frappe.throw(f"Unsupported patch type specified: {patch_type}")
@@ -93,7 +92,7 @@ def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
 	return patches
 
 
-def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> List[str]:
+def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[str]:
 	"""Get patches from an app's patches.txt
 
 	patches.txt can be:
@@ -155,7 +154,7 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 
 def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
-	block_user(True)
+	_patch_mode(True)
 
 	if patchmodule.startswith("execute:"):
 		has_patch_file = False
@@ -198,7 +197,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	else:
 		frappe.db.commit()
 		end_time = time.time()
-		block_user(False)
+		_patch_mode(False)
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
@@ -217,18 +216,7 @@ def executed(patchmodule):
 	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
 
 
-def block_user(block, msg=None):
+def _patch_mode(enable):
 	"""stop/start execution till patch is run"""
-	frappe.local.flags.in_patch = block
-	frappe.db.begin()
-	if not msg:
-		msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.db.set_global("__session_status", block and "stop" or None)
-	frappe.db.set_global("__session_status_message", block and msg or None)
+	frappe.local.flags.in_patch = enable
 	frappe.db.commit()
-
-
-def check_session_stopped():
-	if frappe.db.get_global("__session_status") == "stop":
-		frappe.msgprint(frappe.db.get_global("__session_status_message"))
-		raise frappe.SessionStopped("Session Stopped")

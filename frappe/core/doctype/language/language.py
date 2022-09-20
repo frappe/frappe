@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -31,7 +30,7 @@ def validate_with_regex(name, label):
 
 def export_languages_json():
 	"""Export list of all languages"""
-	languages = frappe.db.get_all("Language", fields=["name", "language_name"])
+	languages = frappe.get_all("Language", fields=["name", "language_name"])
 	languages = [{"name": d.language_name, "code": d.name} for d in languages]
 
 	languages.sort(key=lambda a: a["code"])
@@ -42,7 +41,7 @@ def export_languages_json():
 
 def sync_languages():
 	"""Sync frappe/geo/languages.json with Language"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "r") as f:
+	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
 		data = json.loads(f.read())
 
 	for l in data:
@@ -59,7 +58,7 @@ def sync_languages():
 
 def update_language_names():
 	"""Update frappe/geo/languages.json names (for use via patch)"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "r") as f:
+	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
 		data = json.loads(f.read())
 
 	for l in data:

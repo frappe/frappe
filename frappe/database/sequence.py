@@ -57,12 +57,17 @@ def create_sequence(
 
 
 def get_next_val(doctype_name: str, slug: str = "_id_seq") -> int:
-	return db.multisql(
-		{
-			"postgres": f"select nextval('\"{scrub(doctype_name + slug)}\"')",
-			"mariadb": f"select nextval(`{scrub(doctype_name + slug)}`)",
-		}
-	)[0][0]
+	sequence_name = scrub(f"{doctype_name}{slug}")
+
+	if db.db_type == "postgres":
+		sequence_name = f"'\"{sequence_name}\"'"
+	elif db.db_type == "mariadb":
+		sequence_name = f"`{sequence_name}`"
+
+	try:
+		return db.sql(f"SELECT nextval({sequence_name})")[0][0]
+	except IndexError:
+		raise db.SequenceGeneratorLimitExceeded
 
 
 def set_next_val(

@@ -2,30 +2,18 @@
 # License: MIT. See LICENSE
 
 import base64
-import unittest
 
 import requests
 
 import frappe
 from frappe.core.doctype.user.user import generate_keys
-from frappe.frappeclient import AuthError, FrappeClient, FrappeException
+from frappe.frappeclient import FrappeClient, FrappeException
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import get_url
 
 
-class TestFrappeClient(unittest.TestCase):
+class TestFrappeClient(FrappeTestCase):
 	PASSWORD = frappe.conf.admin_password or "admin"
-
-	@classmethod
-	def setUpClass(cls) -> None:
-		site_url = get_url()
-		try:
-			FrappeClient(site_url, "Administrator", cls.PASSWORD, verify=False)
-		except AuthError:
-			raise unittest.SkipTest(
-				f"AuthError raised for {site_url} [usr=Administrator, pwd={cls.PASSWORD}]"
-			)
-
-		return super().setUpClass()
 
 	def test_insert_many(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
@@ -193,7 +181,7 @@ class TestFrappeClient(unittest.TestCase):
 		)
 
 		api_key = frappe.db.get_value("User", "Administrator", "api_key")
-		header = {"Authorization": "token {}:{}".format(api_key, generated_secret)}
+		header = {"Authorization": f"token {api_key}:{generated_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 
 		self.assertEqual(res.status_code, 200)
@@ -202,7 +190,7 @@ class TestFrappeClient(unittest.TestCase):
 
 		header = {
 			"Authorization": "Basic {}".format(
-				base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))).decode()
+				base64.b64encode(frappe.safe_encode(f"{api_key}:{generated_secret}")).decode()
 			)
 		}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
@@ -211,13 +199,13 @@ class TestFrappeClient(unittest.TestCase):
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
-		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
+		header = {"Authorization": f"token {api_key}:{api_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 403)
 
 		# random api key and api secret
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
-		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
+		header = {"Authorization": f"token {api_key}:{api_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)

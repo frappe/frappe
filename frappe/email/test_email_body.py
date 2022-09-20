@@ -3,8 +3,8 @@
 
 import base64
 import os
-import unittest
 
+import frappe
 from frappe import safe_decode
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder, SendMailContext
 from frappe.email.email_body import (
@@ -14,9 +14,10 @@ from frappe.email.email_body import (
 	replace_filename_with_cid,
 )
 from frappe.email.receive import Email
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestEmailBody(unittest.TestCase):
+class TestEmailBody(FrappeTestCase):
 	def setUp(self):
 		email_html = """
 <div>
@@ -54,26 +55,27 @@ This is the text version of this email
 		uni_chr1 = chr(40960)
 		uni_chr2 = chr(1972)
 
-		queue_doc = QueueBuilder(
+		QueueBuilder(
 			recipients=["test@example.com"],
 			sender="me@example.com",
 			subject="Test Subject",
-			message="<h1>" + uni_chr1 + "abcd" + uni_chr2 + "</h1>",
+			message=f"<h1>{uni_chr1}abcd{uni_chr2}</h1>",
 			text_content="whatever",
-		).process()[0]
+		).process()
+		queue_doc = frappe.get_last_doc("Email Queue")
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = mail_ctx.build_message(recipient_email="test@test.com")
 		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
 
 	def test_prepare_message_returns_cr_lf(self):
-		queue_doc = QueueBuilder(
+		QueueBuilder(
 			recipients=["test@example.com"],
 			sender="me@example.com",
 			subject="Test Subject",
 			message="<h1>\n this is a test of newlines\n" + "</h1>",
 			text_content="whatever",
-		).process()[0]
-
+		).process()
+		queue_doc = frappe.get_last_doc("Email Queue")
 		mail_ctx = SendMailContext(queue_doc=queue_doc)
 		result = safe_decode(mail_ctx.build_message(recipient_email="test@test.com"))
 
@@ -128,7 +130,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 		processed_message = """
 			<div>
-				<img src="cid:{0}" alt="test" />
+				<img src="cid:{}" alt="test" />
 				<img  />
 			</div>
 		""".format(
@@ -152,20 +154,19 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <h3>Hey John Doe!</h3>
 <p>This is embedded image you asked for</p>
 """
-		email_string = (
-			get_email(
-				recipients=["test@example.com"],
-				sender="me@example.com",
-				subject="Test Subject",
-				content=email_html,
-				header=["Email Title", "green"],
-			)
-			.as_string()
-			.replace("\r\n", "\n")
-		)
+		email_string = get_email(
+			recipients=["test@example.com"],
+			sender="me@example.com",
+			subject="Test Subject\u2028, with line break, \nand Line feed \rand carriage return.",
+			content=email_html,
+			header=["Email Title", "green"],
+		).as_string()
 		# REDESIGN-TODO: Add style for indicators in email
 		self.assertTrue("""<span class=3D"indicator indicator-green"></span>""" in email_string)
 		self.assertTrue("<span>Email Title</span>" in email_string)
+		self.assertIn(
+			"Subject: Test Subject, with line break, and Line feed and carriage return.", email_string
+		)
 
 	def test_get_email_header(self):
 		html = get_header(["This is test", "orange"])

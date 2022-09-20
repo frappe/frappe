@@ -6,7 +6,7 @@ import json
 import os
 import re
 import timeit
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 import frappe
 from frappe import _
@@ -50,7 +50,7 @@ class Importer:
 	def get_data_for_import_preview(self):
 		out = self.import_file.get_data_for_import_preview()
 
-		out.import_log = frappe.db.get_all(
+		out.import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success"],
 			filters={"data_import": self.data_import.name},
@@ -90,7 +90,7 @@ class Importer:
 
 		# setup import log
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -150,7 +150,7 @@ class Importer:
 
 					if self.console:
 						update_progress_bar(
-							"Importing {0} records".format(total_payload_count),
+							f"Importing {total_payload_count} records",
 							current_index,
 							total_payload_count,
 						)
@@ -204,7 +204,7 @@ class Importer:
 
 		# Logs are db inserted directly so will have to be fetched again
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success", "log_index"],
 				filters={"data_import": self.data_import.name},
@@ -297,7 +297,7 @@ class Importer:
 			return
 
 		import_log = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Data Import Log",
 				fields=["row_indexes", "success"],
 				filters={"data_import": self.data_import.name},
@@ -327,7 +327,7 @@ class Importer:
 		if not self.data_import:
 			return
 
-		import_log = frappe.db.get_all(
+		import_log = frappe.get_all(
 			"Data Import Log",
 			fields=["row_indexes", "success", "messages", "exception", "docname"],
 			filters={"data_import": self.data_import.name},
@@ -342,7 +342,7 @@ class Importer:
 			row_number = json.loads(log.get("row_indexes"))[0]
 			status = "Success" if log.get("success") else "Failure"
 			message = (
-				"Successfully Imported {0}".format(log.get("docname"))
+				"Successfully Imported {}".format(log.get("docname"))
 				if log.get("success")
 				else log.get("messages")
 			)
@@ -357,19 +357,17 @@ class Importer:
 
 		if successful_records:
 			print()
-			print(
-				"Successfully imported {0} records out of {1}".format(len(successful_records), len(import_log))
-			)
+			print(f"Successfully imported {len(successful_records)} records out of {len(import_log)}")
 
 		if failed_records:
-			print("Failed to import {0} records".format(len(failed_records)))
-			file_name = "{0}_import_on_{1}.txt".format(self.doctype, frappe.utils.now())
-			print("Check {0} for errors".format(os.path.join("sites", file_name)))
+			print(f"Failed to import {len(failed_records)} records")
+			file_name = f"{self.doctype}_import_on_{frappe.utils.now()}.txt"
+			print("Check {} for errors".format(os.path.join("sites", file_name)))
 			text = ""
 			for w in failed_records:
-				text += "Row Indexes: {0}\n".format(str(w.get("row_indexes", [])))
-				text += "Messages:\n{0}\n".format("\n".join(w.get("messages", [])))
-				text += "Traceback:\n{0}\n\n".format(w.get("exception"))
+				text += "Row Indexes: {}\n".format(str(w.get("row_indexes", [])))
+				text += "Messages:\n{}\n".format("\n".join(w.get("messages", [])))
+				text += "Traceback:\n{}\n\n".format(w.get("exception"))
 
 			with open(file_name, "w") as f:
 				f.write(text)
@@ -384,7 +382,7 @@ class Importer:
 				other_warnings.append(w)
 
 		for row_number, warnings in warnings_by_row.items():
-			print("Row {0}".format(row_number))
+			print(f"Row {row_number}")
 			for w in warnings:
 				print(w.get("message"))
 
@@ -578,7 +576,7 @@ class ImportFile:
 		extn = os.path.splitext(file_path)[1][1:]
 
 		file_content = None
-		with io.open(file_path, mode="rb") as f:
+		with open(file_path, mode="rb") as f:
 			file_content = f.read()
 
 		return file_content, extn
@@ -939,11 +937,13 @@ class Column:
 		"""
 
 		def guess_date_format(d):
-			if isinstance(d, (datetime, date)):
+			if isinstance(d, (datetime, date, time)):
 				if self.df.fieldtype == "Date":
 					return "%Y-%m-%d"
 				if self.df.fieldtype == "Datetime":
 					return "%Y-%m-%d %H:%M:%S"
+				if self.df.fieldtype == "Time":
+					return "%H:%M:%S"
 			if isinstance(d, str):
 				return frappe.utils.guess_date_format(d)
 
@@ -984,30 +984,38 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list({cstr(v) for v in self.column_values[1:] if v})
-			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})]
+			exists = [
+				cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
+			]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)
+				message = _("The following values do not exist for {0}: {1}")
 				self.warnings.append(
 					{
 						"col": self.column_number,
-						"message": (
-							"The following values do not exist for {}: {}".format(self.df.options, missing_values)
-						),
+						"message": message.format(self.df.options, missing_values),
 						"type": "warning",
 					}
 				)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
-			# guess date format
+			# guess date/time format
 			self.date_format = self.guess_date_format_for_column()
 			if not self.date_format:
-				self.date_format = "%Y-%m-%d"
+				if self.df.fieldtype == "Time":
+					self.date_format = "%H:%M:%S"
+					date_format = "HH:mm:ss"
+				else:
+					self.date_format = "%Y-%m-%d"
+					date_format = "yyyy-mm-dd"
+
+				message = _(
+					"{0} format could not be determined from the values in this column. Defaulting to {1}."
+				)
 				self.warnings.append(
 					{
 						"col": self.column_number,
-						"message": _(
-							"Date format could not be determined from the values in this column. Defaulting to yyyy-mm-dd."
-						),
+						"message": message.format(self.df.fieldtype, date_format),
 						"type": "info",
 					}
 				)
@@ -1019,13 +1027,11 @@ class Column:
 				if invalid:
 					valid_values = ", ".join(frappe.bold(o) for o in options)
 					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
+					message = _("The following values are invalid: {0}. Values must be one of {1}")
 					self.warnings.append(
 						{
 							"col": self.column_number,
-							"message": (
-								"The following values are invalid: {0}. Values must be"
-								" one of {1}".format(invalid_values, valid_values)
-							),
+							"message": message.format(invalid_values, valid_values),
 						}
 					)
 
@@ -1110,9 +1116,9 @@ def build_fields_dict_for_column_matching(parent_doctype):
 			)
 		else:
 			name_headers = (
-				"{0}.name".format(table_df.fieldname),  # fieldname
-				"ID ({0})".format(table_df.label),  # label
-				"{0} ({1})".format(_("ID"), translated_table_label),  # translated label
+				f"{table_df.fieldname}.name",  # fieldname
+				f"ID ({table_df.label})",  # label
+				"{} ({})".format(_("ID"), translated_table_label),  # translated label
 			)
 
 			name_df.is_child_table_field = True
@@ -1164,11 +1170,11 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 				for header in (
 					# fieldname
-					"{0}.{1}".format(table_df.fieldname, df.fieldname),
+					f"{table_df.fieldname}.{df.fieldname}",
 					# label
-					"{0} ({1})".format(label, table_df.label),
+					f"{label} ({table_df.label})",
 					# translated label
-					"{0} ({1})".format(translated_label, translated_table_label),
+					f"{translated_label} ({translated_table_label})",
 				):
 					out[header] = new_df
 
@@ -1177,8 +1183,8 @@ def build_fields_dict_for_column_matching(parent_doctype):
 	autoname_field = get_autoname_field(parent_doctype)
 	if autoname_field:
 		for header in (
-			"ID ({})".format(autoname_field.label),  # label
-			"{0} ({1})".format(_("ID"), _(autoname_field.label)),  # translated label
+			f"ID ({autoname_field.label})",  # label
+			"{} ({})".format(_("ID"), _(autoname_field.label)),  # translated label
 			# ID field should also map to the autoname field
 			"ID",
 			_("ID"),

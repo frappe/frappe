@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
@@ -17,6 +16,7 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Email Queue": 30,
 	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
+	"Route History": 90,
 }
 
 

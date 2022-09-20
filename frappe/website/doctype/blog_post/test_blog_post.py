@@ -57,7 +57,7 @@ class TestBlogPost(FrappeTestCase):
 		blog_page_html = frappe.safe_decode(blog_page_response.get_data())
 
 		# On blog post page find link to the category page
-		soup = BeautifulSoup(blog_page_html, "lxml")
+		soup = BeautifulSoup(blog_page_html, "html.parser")
 		category_page_link = list(soup.find_all("a", href=re.compile(blog.blog_category)))[0]
 		category_page_url = category_page_link["href"]
 
@@ -151,6 +151,29 @@ class TestBlogPost(FrappeTestCase):
 		# Cleanup
 		frappe.delete_doc("Blog Post", blog.name)
 		frappe.delete_doc("Blog Category", blog.blog_category)
+
+	def test_like_dislike(self):
+		test_blog = make_test_blog()
+
+		frappe.db.delete("Comment", {"comment_type": "Like", "reference_doctype": "Blog Post"})
+
+		from frappe.templates.includes.likes.likes import like
+
+		frappe.form_dict.reference_doctype = "Blog Post"
+		frappe.form_dict.reference_name = test_blog.name
+		frappe.form_dict.like = True
+		frappe.local.request_ip = "127.0.0.1"
+
+		liked = like()
+		self.assertEqual(liked, True)
+
+		frappe.form_dict.like = False
+
+		disliked = like()
+		self.assertEqual(disliked, False)
+
+		frappe.db.delete("Comment", {"comment_type": "Like", "reference_doctype": "Blog Post"})
+		test_blog.delete()
 
 
 def scrub(text):

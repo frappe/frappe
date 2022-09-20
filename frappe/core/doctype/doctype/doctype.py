@@ -17,7 +17,7 @@ from frappe.cache_manager import clear_controller_cache, clear_user_cache
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database.schema import validate_column_length, validate_column_name
-from frappe.desk.notifications import delete_notification_count_for
+from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
 from frappe.model import (
 	child_table_fields,
@@ -171,7 +171,7 @@ class DocType(Document):
 
 			if docfield.fieldname in method_set:
 				conflict_type = "controller method"
-			if docfield.fieldname in property_set:
+			if docfield.fieldname in property_set and not docfield.is_virtual:
 				conflict_type = "class property"
 
 			if conflict_type:
@@ -180,10 +180,6 @@ class DocType(Document):
 						field_label, conflict_type, field, self.name
 					)
 				)
-
-	def after_insert(self):
-		# clear user cache so that on the next reload this doctype is included in boot
-		clear_user_cache(frappe.session.user)
 
 	def set_defaults_for_single_and_table(self):
 		if self.issingle:
@@ -248,7 +244,7 @@ class DocType(Document):
 
 		self.flags.update_fields_to_fetch_queries = []
 
-		if set(old_fields_to_fetch) != set(df.fieldname for df in new_meta.get_fields_to_fetch()):
+		if set(old_fields_to_fetch) != {df.fieldname for df in new_meta.get_fields_to_fetch()}:
 			for df in new_meta.get_fields_to_fetch():
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split(".", 1)
@@ -329,7 +325,7 @@ class DocType(Document):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
 			return
-		parent_list = frappe.db.get_all(
+		parent_list = frappe.get_all(
 			"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=self.name)
 		)
 		for p in parent_list:
@@ -385,7 +381,7 @@ class DocType(Document):
 		try:
 			frappe.db.updatedb(self.name, Meta(self))
 		except Exception as e:
-			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
+			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e
 
 		self.change_modified_of_parent()
@@ -412,12 +408,11 @@ class DocType(Document):
 		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
 
+		# clear user cache so that on the next reload this doctype is included in boot
+		clear_user_cache(frappe.session.user)
+
 		if not frappe.flags.in_install and hasattr(self, "before_update"):
 			self.sync_global_search()
-
-		# clear from local cache
-		if self.name in frappe.local.meta_cache:
-			del frappe.local.meta_cache[self.name]
 
 		clear_linked_doctype_cache()
 
@@ -552,7 +547,7 @@ class DocType(Document):
 		for fname in ("{}.js", "{}.py", "{}_list.js", "{}_calendar.js", "test_{}.py", "test_{}.js"):
 			fname = os.path.join(new_path, fname.format(frappe.scrub(new)))
 			if os.path.exists(fname):
-				with open(fname, "r") as f:
+				with open(fname) as f:
 					code = f.read()
 				with open(fname, "w") as f:
 					if fname.endswith(".js"):
@@ -569,7 +564,7 @@ class DocType(Document):
 					f.write(file_content)
 
 		# updating json file with new name
-		doctype_json_path = os.path.join(new_path, "{}.json".format(frappe.scrub(new)))
+		doctype_json_path = os.path.join(new_path, f"{frappe.scrub(new)}.json")
 		current_data = frappe.get_file_json(doctype_json_path)
 		current_data["name"] = new
 
@@ -643,7 +638,7 @@ class DocType(Document):
 		path = get_file_path(self.module, "DocType", self.name)
 		if os.path.exists(path):
 			try:
-				with open(path, "r") as txtfile:
+				with open(path) as txtfile:
 					olddoc = json.loads(txtfile.read())
 
 				old_field_names = [f["fieldname"] for f in olddoc.get("fields", [])]
@@ -652,14 +647,14 @@ class DocType(Document):
 					remaining_field_names = [f.fieldname for f in self.fields]
 
 					for fieldname in old_field_names:
-						field_dict = list(filter(lambda d: d["fieldname"] == fieldname, docdict["fields"]))
+						field_dict = [f for f in docdict["fields"] if f["fieldname"] == fieldname]
 						if field_dict:
 							new_field_dicts.append(field_dict[0])
 							if fieldname in remaining_field_names:
 								remaining_field_names.remove(fieldname)
 
 					for fieldname in remaining_field_names:
-						field_dict = list(filter(lambda d: d["fieldname"] == fieldname, docdict["fields"]))
+						field_dict = [f for f in docdict["fields"] if f["fieldname"] == fieldname]
 						new_field_dicts.append(field_dict[0])
 
 					docdict["fields"] = new_field_dicts
@@ -674,14 +669,14 @@ class DocType(Document):
 			remaining_field_names = [f["fieldname"] for f in docdict.get("fields", [])]
 
 			for fieldname in docdict.get("field_order"):
-				field_dict = list(filter(lambda d: d["fieldname"] == fieldname, docdict.get("fields", [])))
+				field_dict = [f for f in docdict.get("fields", []) if f["fieldname"] == fieldname]
 				if field_dict:
 					new_field_dicts.append(field_dict[0])
 					if fieldname in remaining_field_names:
 						remaining_field_names.remove(fieldname)
 
 			for fieldname in remaining_field_names:
-				field_dict = list(filter(lambda d: d["fieldname"] == fieldname, docdict.get("fields", [])))
+				field_dict = [f for f in docdict.get("fields", []) if f["fieldname"] == fieldname]
 				new_field_dicts.append(field_dict[0])
 
 			docdict["fields"] = new_field_dicts
@@ -804,7 +799,7 @@ class DocType(Document):
 			{"label": "Old Parent", "fieldtype": "Link", "options": self.name, "fieldname": "old_parent"},
 		)
 
-		parent_field_label = "Parent {}".format(self.name)
+		parent_field_label = f"Parent {self.name}"
 		parent_field_name = frappe.scrub(parent_field_label)
 		self.append(
 			"fields",
@@ -818,7 +813,7 @@ class DocType(Document):
 		self.nsm_parent_field = parent_field_name
 
 	def validate_child_table(self):
-		if not self.get("istable") or self.is_new():
+		if not self.get("istable") or self.is_new() or self.get("is_virtual"):
 			# if the doctype is not a child table then return
 			# if the doctype is a new doctype and also a child table then
 			# don't move forward as it will be handled via schema
@@ -983,11 +978,7 @@ def validate_links_table_fieldnames(meta):
 
 	fieldnames = tuple(field.fieldname for field in meta.fields)
 	for index, link in enumerate(meta.links, 1):
-		if not frappe.get_meta(link.link_doctype).has_field(link.link_fieldname):
-			message = _("Document Links Row #{0}: Could not find field {1} in {2} DocType").format(
-				index, frappe.bold(link.link_fieldname), frappe.bold(link.link_doctype)
-			)
-			frappe.throw(message, InvalidFieldNameError, _("Invalid Fieldname"))
+		_test_connection_query(doctype=link.link_doctype, field=link.link_fieldname, idx=index)
 
 		if not link.is_child_table:
 			continue
@@ -1014,6 +1005,25 @@ def validate_links_table_fieldnames(meta):
 				index, frappe.bold(link.table_fieldname), frappe.bold(meta.name)
 			)
 			frappe.throw(message, frappe.ValidationError, _("Invalid Table Fieldname"))
+
+
+def _test_connection_query(doctype, field, idx):
+	"""Make sure that connection can be queried.
+
+	This function executes query similar to one that would be executed for
+	finding count on dashboard and hence validates if fieldname/doctype are
+	correct.
+	"""
+	filters = get_filters_for(doctype) or {}
+	filters[field] = ""
+
+	try:
+		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True)
+	except Exception as e:
+		frappe.clear_last_message()
+		msg = _("Document Links Row #{0}: Invalid doctype or fieldname.").format(idx)
+		msg += "<br>" + str(e)
+		frappe.throw(msg, InvalidFieldNameError)
 
 
 def validate_fields_for_doctype(doctype):
@@ -1184,6 +1194,9 @@ def validate_fields(meta):
 			frappe.throw(_("Precision should be between 1 and 6"))
 
 	def check_unique_and_text(docname, d):
+		if meta.is_virtual:
+			return
+
 		if meta.issingle:
 			d.unique = 0
 			d.search_index = 0
@@ -1298,7 +1311,7 @@ def validate_fields(meta):
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
 	def check_website_search_field(meta):
-		if not meta.website_search_field:
+		if not meta.get("website_search_field"):
 			return
 
 		if meta.website_search_field not in fieldname_list:
@@ -1417,7 +1430,7 @@ def validate_fields(meta):
 
 	def check_max_height(docfield):
 		if getattr(docfield, "max_height", None) and (docfield.max_height[-2:] not in ("px", "em")):
-			frappe.throw("Max for {} height must be in px, em, rem".format(frappe.bold(docfield.fieldname)))
+			frappe.throw(f"Max for {frappe.bold(docfield.fieldname)} height must be in px, em, rem")
 
 	def check_no_of_ratings(docfield):
 		if docfield.fieldtype == "Rating":
@@ -1726,3 +1739,24 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
+
+
+@frappe.whitelist()
+def set_field_order(doctype, field_order):
+	"""Update field order in doctype"""
+
+	frappe.only_for("System Manager")
+
+	field_order = json.loads(field_order)
+
+	idx = 1
+	for fieldname in field_order:
+		docfield = frappe.qb.DocType("DocField")
+		frappe.qb.update(docfield).set(docfield.idx, idx).where(
+			(docfield.fieldname == fieldname) & (docfield.parent == doctype)
+		).run()
+		idx += 1
+
+	# save to update
+	frappe.get_doc("DocType", doctype).save()
+	frappe.clear_cache(doctype=doctype)

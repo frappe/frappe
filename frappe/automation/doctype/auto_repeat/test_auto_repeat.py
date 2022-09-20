@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	create_repeated_entries,
@@ -10,6 +7,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	week_map,
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, getdate, today
 
 
@@ -27,7 +25,7 @@ def add_custom_fields():
 	create_custom_field("ToDo", df)
 
 
-class TestAutoRepeat(unittest.TestCase):
+class TestAutoRepeat(FrappeTestCase):
 	def setUp(self):
 		if not frappe.db.sql(
 			"SELECT `fieldname` FROM `tabCustom Field` WHERE `fieldname`='auto_repeat' and `dt`=%s", "Todo"
@@ -200,7 +198,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		# next_schedule_date is set as on or after current date
 		# it should not be a previous month's date
-		self.assertTrue((doc.next_schedule_date >= current_date))
+		self.assertTrue(doc.next_schedule_date >= current_date)
 
 		todo = frappe.get_doc(
 			dict(
@@ -229,7 +227,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		data = get_auto_repeat_entries(current_date)
 		create_repeated_entries(data)
-		docnames = frappe.db.get_all(
+		docnames = frappe.get_all(
 			doc.reference_doctype, filters={"auto_repeat": doc.name}, fields=["docstatus"], limit=1
 		)
 		self.assertEqual(docnames[0].docstatus, 1)

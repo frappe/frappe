@@ -1,20 +1,18 @@
-#  -*- coding: utf-8 -*-
-
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import time
-import unittest
 
 from werkzeug.wrappers import Response
 
 import frappe
 import frappe.rate_limiter
 from frappe.rate_limiter import RateLimiter
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 
 
-class TestRateLimiter(unittest.TestCase):
+class TestRateLimiter(FrappeTestCase):
 	def setUp(self):
 		pass
 

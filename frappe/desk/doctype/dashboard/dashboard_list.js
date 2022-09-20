@@ -1,4 +1,4 @@
-frappe.listview_settings['Dashboard'] = {
+frappe.listview_settings["Dashboard"] = {
 	button: {
 		show(doc) {
 			return doc.name;
@@ -7,10 +7,10 @@ frappe.listview_settings['Dashboard'] = {
 			return frappe.utils.icon("dashboard-list", "sm");
 		},
 		get_description(doc) {
-			return __('View {0}', [`${doc.name}`]);
+			return __("View {0}", [`${doc.name}`]);
 		},
 		action(doc) {
-			frappe.set_route('dashboard-view', doc.name);
-		}
+			frappe.set_route("dashboard-view", doc.name);
+		},
 	},
 };

@@ -1,10 +1,9 @@
 import time
-import unittest
-from typing import Dict, List, Tuple, Union
 from unittest.mock import MagicMock
 
 import frappe
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.caching import request_cache, site_cache
 
 CACHE_TTL = 4
@@ -13,7 +12,7 @@ register_with_external_service = MagicMock(return_value=True)
 
 
 @request_cache
-def request_specific_api(a: Union[List, Tuple, Dict, int], b: int) -> int:
+def request_specific_api(a: list | tuple | dict | int, b: int) -> int:
 	# API that takes very long to return a result
 	todays_value = external_service()
 	if not isinstance(a, (int, float)):
@@ -35,7 +34,7 @@ def ping_with_ttl() -> str:
 	return frappe.local.site
 
 
-class TestCachingUtils(unittest.TestCase):
+class TestCachingUtils(FrappeTestCase):
 	def test_request_cache(self):
 		retval = []
 		acceptable_args = [

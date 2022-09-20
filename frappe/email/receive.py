@@ -18,6 +18,7 @@ from email_reply_parser import EmailReplyParser
 import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
+from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
 	cint,
@@ -98,7 +99,23 @@ class EmailServer:
 				self.imap = Timed_IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
-			self.imap.login(self.settings.username, self.settings.password)
+
+				if cint(self.settings.use_starttls):
+					self.imap.starttls()
+
+			if self.settings.use_oauth:
+				Oauth(
+					self.imap,
+					self.settings.email_account,
+					self.settings.username,
+					self.settings.access_token,
+					self.settings.refresh_token,
+					self.settings.service,
+				).connect()
+
+			else:
+				self.imap.login(self.settings.username, self.settings.password)
+
 			# connection established!
 			return True
 
@@ -119,8 +136,19 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			self.pop.user(self.settings.username)
-			self.pop.pass_(self.settings.password)
+			if self.settings.use_oauth:
+				Oauth(
+					self.pop,
+					self.settings.email_account,
+					self.settings.username,
+					self.settings.access_token,
+					self.settings.refresh_token,
+					self.settings.service,
+				).connect()
+
+			else:
+				self.pop.user(self.settings.username)
+				self.pop.pass_(self.settings.password)
 
 			# connection established!
 			return True
@@ -269,7 +297,7 @@ class EmailServer:
 				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			)
 			# sync last 100 email
-			self.settings.email_sync_rule = "UID {}:{}".format(from_uid, uidnext)
+			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
 
 		elif uid_validity == current_uid_validity:
@@ -377,7 +405,7 @@ class EmailServer:
 			try:
 				# retrieve headers
 				incoming_mail = Email(b"\n".join(self.pop.top(msg_num, 5)[1]))
-			except:
+			except Exception:
 				pass
 
 		if incoming_mail:
@@ -437,7 +465,7 @@ class Email:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 				utc_dt = datetime.datetime.utcfromtimestamp(utc)
 				self.date = convert_utc_to_user_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
-			except:
+			except Exception:
 				self.date = now()
 		else:
 			self.date = now()
@@ -534,10 +562,10 @@ class Email:
 		for key in ("From", "To", "Subject", "Date"):
 			value = cstr(message.get(key))
 			if value:
-				headers.append("{label}: {value}".format(label=_(key), value=escape(value)))
+				headers.append(f"{_(key)}: {escape(value)}")
 
 		self.text_content += "\n".join(headers)
-		self.html_content += "<hr>" + "\n".join("<p>{0}</p>".format(h) for h in headers)
+		self.html_content += "<hr>" + "\n".join(f"<p>{h}</p>" for h in headers)
 
 		if not message.is_multipart() and message.get_content_type() == "text/plain":
 			# email.parser didn't parse it!
@@ -572,7 +600,7 @@ class Email:
 				try:
 					fname = fname.replace("\n", " ").replace("\r", "")
 					fname = cstr(decode_header(fname)[0][0])
-				except:
+				except Exception:
 					fname = get_random_filename(content_type=content_type)
 			else:
 				fname = get_random_filename(content_type=content_type)
@@ -710,7 +738,7 @@ class InboundMail(Email):
 		content = self.content
 		for file in attachments:
 			if file.name in self.cid_map and self.cid_map[file.name]:
-				content = content.replace("cid:{0}".format(self.cid_map[file.name]), file.file_url)
+				content = content.replace(f"cid:{self.cid_map[file.name]}", file.file_url)
 		return content
 
 	def is_notification(self):
@@ -895,7 +923,7 @@ class InboundMail(Email):
 		users = frappe.get_all(
 			"User Email", filters={"email_account": email_account.name}, fields=["parent"]
 		)
-		return list(set([user.get("parent") for user in users]))
+		return list({user.get("parent") for user in users})
 
 	@staticmethod
 	def clean_subject(subject):
@@ -946,7 +974,7 @@ class InboundMail(Email):
 		}
 
 
-class TimerMixin(object):
+class TimerMixin:
 	def __init__(self, *args, **kwargs):
 		self.timeout = kwargs.pop("timeout", 0.0)
 		self.elapsed_time = 0.0

@@ -1,12 +1,11 @@
-import unittest
-
 import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cstr
 
 
-class TestDBUpdate(unittest.TestCase):
+class TestDBUpdate(FrappeTestCase):
 	def test_db_update(self):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
@@ -18,7 +17,7 @@ class TestDBUpdate(unittest.TestCase):
 		frappe.db.updatedb(doctype)
 
 		field_defs = get_field_defs(doctype)
-		table_columns = frappe.db.get_table_columns_description("tab{}".format(doctype))
+		table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
 
 		self.assertEqual(len(field_defs), len(table_columns))
 
@@ -34,53 +33,53 @@ class TestDBUpdate(unittest.TestCase):
 			default = field_def.default if field_def.default is not None else fallback_default
 
 			self.assertEqual(fieldtype, table_column.type)
-			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), "'{}'".format(default)])
+			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), f"'{default}'"])
 
 	def test_index_and_unique_constraints(self):
 		doctype = "User"
 		frappe.reload_doctype("User", force=True)
 		frappe.model.meta.trim_tables("User")
 
-		make_property_setter(doctype, "restrict_ip", "unique", "1", "Int")
+		make_property_setter(doctype, "middle_name", "unique", "1", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertTrue(restrict_ip_in_table.unique)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertTrue(middle_name_in_table.unique)
 
-		make_property_setter(doctype, "restrict_ip", "unique", "0", "Int")
+		make_property_setter(doctype, "middle_name", "unique", "0", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertFalse(restrict_ip_in_table.unique)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertFalse(middle_name_in_table.unique)
 
-		make_property_setter(doctype, "restrict_ip", "search_index", "1", "Int")
+		make_property_setter(doctype, "middle_name", "search_index", "1", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertTrue(restrict_ip_in_table.index)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertTrue(middle_name_in_table.index)
 
-		make_property_setter(doctype, "restrict_ip", "search_index", "0", "Int")
+		make_property_setter(doctype, "middle_name", "search_index", "0", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertFalse(restrict_ip_in_table.index)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertFalse(middle_name_in_table.index)
 
-		make_property_setter(doctype, "restrict_ip", "search_index", "1", "Int")
-		make_property_setter(doctype, "restrict_ip", "unique", "1", "Int")
+		make_property_setter(doctype, "middle_name", "search_index", "1", "Check")
+		make_property_setter(doctype, "middle_name", "unique", "1", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertTrue(restrict_ip_in_table.index)
-		self.assertTrue(restrict_ip_in_table.unique)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertTrue(middle_name_in_table.index)
+		self.assertTrue(middle_name_in_table.unique)
 
-		make_property_setter(doctype, "restrict_ip", "search_index", "1", "Int")
-		make_property_setter(doctype, "restrict_ip", "unique", "0", "Int")
+		make_property_setter(doctype, "middle_name", "search_index", "1", "Check")
+		make_property_setter(doctype, "middle_name", "unique", "0", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertTrue(restrict_ip_in_table.index)
-		self.assertFalse(restrict_ip_in_table.unique)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertTrue(middle_name_in_table.index)
+		self.assertFalse(middle_name_in_table.unique)
 
-		make_property_setter(doctype, "restrict_ip", "search_index", "0", "Int")
-		make_property_setter(doctype, "restrict_ip", "unique", "1", "Int")
+		make_property_setter(doctype, "middle_name", "search_index", "0", "Check")
+		make_property_setter(doctype, "middle_name", "unique", "1", "Check")
 		frappe.db.updatedb(doctype)
-		restrict_ip_in_table = get_table_column("User", "restrict_ip")
-		self.assertFalse(restrict_ip_in_table.index)
-		self.assertTrue(restrict_ip_in_table.unique)
+		middle_name_in_table = get_table_column("User", "middle_name")
+		self.assertFalse(middle_name_in_table.index)
+		self.assertTrue(middle_name_in_table.unique)
 
 		# explicitly make a text index
 		frappe.db.add_index(doctype, ["email_signature(200)"])
@@ -93,7 +92,7 @@ def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))
 	fieldtype = fieldtuple[0]
 	if fieldtype in ("varchar", "datetime", "int"):
-		fieldtype += "({})".format(field_def.length or fieldtuple[1])
+		fieldtype += f"({field_def.length or fieldtuple[1]})"
 	return fieldtype
 
 
@@ -134,5 +133,5 @@ def get_other_fields_meta(meta):
 
 
 def get_table_column(doctype, fieldname):
-	table_columns = frappe.db.get_table_columns_description("tab{}".format(doctype))
+	table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
 	return find(table_columns, lambda d: d.get("name") == fieldname)

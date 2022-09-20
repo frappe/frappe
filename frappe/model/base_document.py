@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-from typing import Dict, List
 
 import frappe
 from frappe import _, _dict
@@ -21,7 +20,7 @@ from frappe.modules import load_doctype_module
 from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 
-max_positive_value = {"smallint": 2**15, "int": 2**31, "bigint": 2**63}
+max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
 DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="fields", options="DocField"),
@@ -59,9 +58,7 @@ def get_controller(doctype):
 				module_path, classname = import_path.rsplit(".", 1)
 				module = frappe.get_module(module_path)
 				if not hasattr(module, classname):
-					raise ImportError(
-						"{0}: {1} does not exist in module {2}".format(doctype, classname, module_path)
-					)
+					raise ImportError(f"{doctype}: {classname} does not exist in module {module_path}")
 			else:
 				module = load_doctype_module(doctype, module_name)
 				classname = doctype.replace(" ", "").replace("-", "")
@@ -86,7 +83,7 @@ def get_controller(doctype):
 	return site_controllers[doctype]
 
 
-class BaseDocument(object):
+class BaseDocument:
 	_reserved_keywords = {
 		"doctype",
 		"meta",
@@ -300,7 +297,7 @@ class BaseDocument(object):
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
-	) -> Dict:
+	) -> dict:
 		d = _dict()
 		for fieldname in self.meta.get_valid_columns():
 			# column is valid, we can use getattr
@@ -382,7 +379,7 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-	def get_valid_columns(self) -> List[str]:
+	def get_valid_columns(self) -> list[str]:
 		if self.doctype not in frappe.local.valid_columns:
 			if self.doctype in DOCTYPES_FOR_DOCTYPE:
 				from frappe.model.meta import get_table_columns
@@ -412,7 +409,7 @@ class BaseDocument(object):
 		no_default_fields=False,
 		convert_dates_to_str=False,
 		no_child_table_fields=False,
-	) -> Dict:
+	) -> dict:
 		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, ignore_nulls=no_nulls)
 		doc["doctype"] = self.doctype
 
@@ -542,7 +539,9 @@ class BaseDocument(object):
 			return
 
 		d = self.get_valid_dict(
-			convert_dates_to_str=True, ignore_nulls=self.doctype in DOCTYPES_FOR_DOCTYPE
+			convert_dates_to_str=True,
+			ignore_nulls=self.doctype in DOCTYPES_FOR_DOCTYPE,
+			ignore_virtual=True,
 		)
 
 		# don't update name, as case might've been changed
@@ -672,10 +671,19 @@ class BaseDocument(object):
 
 			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
 
+		def has_content(df):
+			value = cstr(self.get(df.fieldname))
+			has_text_content = strip_html(value).strip()
+			has_img_tag = "<img" in value
+			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+				return True
+			else:
+				return has_text_content
+
 		missing = []
 
 		for df in self.meta.get("fields", {"reqd": ("=", 1)}):
-			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
+			if self.get(df.fieldname) in (None, []) or not has_content(df):
 				missing.append((df.fieldname, get_msg(df)))
 
 		# check for missing parent and parenttype
@@ -694,7 +702,7 @@ class BaseDocument(object):
 			if self.get("parentfield"):
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
 
-			return "{}: {}".format(_(df.label), docname)
+			return f"{_(df.label)}: {docname}"
 
 		invalid_links = []
 		cancelled_links = []
@@ -928,7 +936,7 @@ class BaseDocument(object):
 		if self.get("parentfield"):
 			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
 		else:
-			reference = "{0} {1}".format(_(self.doctype), self.name)
+			reference = f"{_(self.doctype)} {self.name}"
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(

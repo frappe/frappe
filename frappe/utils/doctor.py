@@ -74,7 +74,7 @@ def get_pending_jobs(site=None):
 		for job in q.jobs:
 			method_kwargs = job.kwargs["kwargs"] if job.kwargs["kwargs"] else ""
 			if job.kwargs["site"] == site:
-				jobs_per_queue[queue].append("{0} {1}".format(job.kwargs["method"], method_kwargs))
+				jobs_per_queue[queue].append("{} {}".format(job.kwargs["method"], method_kwargs))
 
 	return jobs_per_queue
 
@@ -122,14 +122,14 @@ def doctor(site=None):
 
 	# TODO improve this
 	print("Workers online:", workers_online)
-	print("-----{0} Jobs-----".format(site))
+	print(f"-----{site} Jobs-----")
 	for queue in get_queue_list():
 		if jobs_per_queue[queue]:
 			print("Queue:", queue)
 			print("Number of Jobs: ", job_count[queue])
 			print("Methods:")
 			for method, count in jobs_per_queue[queue].items():
-				print("{0} : {1}".format(method, count))
+				print(f"{method} : {count}")
 			print("------------")
 
 	return True
@@ -140,5 +140,5 @@ def pending_jobs(site=None):
 	pending_jobs = get_pending_jobs(site)
 	for queue in get_queue_list():
 		if pending_jobs[queue]:
-			print("-----Queue :{0}-----".format(queue))
+			print(f"-----Queue :{queue}-----")
 			print("\n".join(pending_jobs[queue]))

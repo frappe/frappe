@@ -86,7 +86,6 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
-		new_site=True,
 	)
 
 	if set_default:
@@ -143,7 +142,7 @@ def restore(
 		is_partial,
 		validate_database_sql,
 	)
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
 
@@ -172,7 +171,7 @@ def restore(
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			encryption_key = frappe.get_site_config().encryption_key
+			encryption_key = get_or_generate_backup_encryption_key()
 			_backup.backup_decryption(encryption_key)
 
 		# Rollback on unsuccessful decryrption
@@ -256,7 +255,7 @@ def restore(
 		os.remove(private)
 		_backup.decryption_rollback()
 
-	success_message = "Site {0} has been restored{1}".format(
+	success_message = "Site {} has been restored{}".format(
 		site, " with files" if (with_public_files or with_private_files) else ""
 	)
 	click.secho(success_message, fg="green")
@@ -269,7 +268,7 @@ def restore(
 @pass_context
 def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	from frappe.installer import extract_sql_from_archive, partial_restore
-	from frappe.utils.backups import Backup
+	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
@@ -305,7 +304,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
-			key = frappe.get_site_config().encryption_key
+			key = get_or_generate_backup_encryption_key()
 
 		_backup.backup_decryption(key)
 
@@ -413,13 +412,16 @@ def install_app(context, apps, force=False):
 			try:
 				_install_app(app, verbose=context.verbose, force=force)
 			except frappe.IncompatibleApp as err:
-				err_msg = ":\n{}".format(err) if str(err) else ""
-				print("App {} is Incompatible with Site {}{}".format(app, site, err_msg))
+				err_msg = f":\n{err}" if str(err) else ""
+				print(f"App {app} is Incompatible with Site {site}{err_msg}")
 				exit_code = 1
 			except Exception as err:
-				err_msg = ": {}\n{}".format(str(err), frappe.get_traceback())
-				print("An error occurred while installing {}{}".format(app, err_msg))
+				err_msg = f": {str(err)}\n{frappe.get_traceback()}"
+				print(f"An error occurred while installing {app}{err_msg}")
 				exit_code = 1
+
+		if not exit_code:
+			frappe.db.commit()
 
 		frappe.destroy()
 
@@ -448,8 +450,8 @@ def list_apps(context, format):
 		apps = frappe.get_single("Installed Applications").installed_applications
 
 		if apps:
-			name_len, ver_len = [max([len(x.get(y)) for x in apps]) for y in ["app_name", "app_version"]]
-			template = "{{0:{0}}} {{1:{1}}} {{2}}".format(name_len, ver_len)
+			name_len, ver_len = (max(len(x.get(y)) for x in apps) for y in ["app_name", "app_version"])
+			template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
 
 			installed_applications = [
 				template.format(app.app_name, app.app_version, app.git_branch) for app in apps
@@ -490,6 +492,32 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 		frappe.connect(site=site)
 		try:
 			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email, password)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("add-user")
+@click.argument("email")
+@click.option("--first-name")
+@click.option("--last-name")
+@click.option("--password")
+@click.option("--user-type")
+@click.option("--add-role", multiple=True)
+@click.option("--send-welcome-email", default=False, is_flag=True)
+@pass_context
+def add_user_for_sites(
+	context, email, first_name, last_name, user_type, send_welcome_email, password, add_role
+):
+	"Add user to a site"
+	import frappe.utils.user
+
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -607,7 +635,7 @@ def reload_doctype(context, doctype):
 def add_to_hosts(context):
 	"Add site to hosts"
 	for site in context.sites:
-		frappe.commands.popen("echo 127.0.0.1\t{0} | sudo tee -a /etc/hosts".format(site))
+		frappe.commands.popen(f"echo 127.0.0.1\t{site} | sudo tee -a /etc/hosts")
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -623,9 +651,9 @@ def use(site, sites_path="."):
 	if os.path.exists(os.path.join(sites_path, site)):
 		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
-		print("Current Site set to {}".format(site))
+		print(f"Current Site set to {site}")
 	else:
-		print("Site {} does not exist".format(site))
+		print(f"Site {site} does not exist")
 
 
 @click.command("backup")
@@ -699,7 +727,7 @@ def backup(
 			)
 		except Exception:
 			click.secho(
-				"Backup failed for Site {0}. Database or site_config.json may be corrupted".format(site),
+				f"Backup failed for Site {site}. Database or site_config.json may be corrupted",
 				fg="red",
 			)
 			if verbose:
@@ -713,7 +741,7 @@ def backup(
 
 		odb.print_summary()
 		click.secho(
-			"Backup for Site {0} has been successfully completed{1}".format(
+			"Backup for Site {} has been successfully completed{}".format(
 				site, " with files" if with_files else ""
 			),
 			fg="green",
@@ -830,8 +858,8 @@ def _drop_site(
 		else:
 			messages = [
 				"=" * 80,
-				"Error: The operation has stopped because backup of {0}'s database failed.".format(site),
-				"Reason: {0}\n".format(str(err)),
+				f"Error: The operation has stopped because backup of {site}'s database failed.",
+				f"Reason: {str(err)}\n",
 				"Fix the issue and try again.",
 				"Hint: Use 'bench drop-site {0} --force' to force the removal of {0}".format(site),
 			]
@@ -844,9 +872,10 @@ def _drop_site(
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
 	)
+	archived_sites_path = os.path.realpath(archived_sites_path)
 
+	click.secho(f"Moving site to archive under {archived_sites_path}", fg="green")
 	os.makedirs(archived_sites_path, exist_ok=True)
-
 	move(archived_sites_path, site)
 
 
@@ -1080,7 +1109,7 @@ def build_search_index(context):
 	if not site:
 		raise SiteNotSpecifiedError
 
-	print("Building search index for {}".format(site))
+	print(f"Building search index for {site}")
 	frappe.init(site=site)
 	frappe.connect()
 	try:
@@ -1275,8 +1304,38 @@ def handle_data(data: dict, format="json"):
 		render_table(data)
 
 
+def add_new_user(
+	email,
+	first_name=None,
+	last_name=None,
+	user_type="System User",
+	send_welcome_email=False,
+	password=None,
+	role=None,
+):
+	user = frappe.new_doc("User")
+	user.update(
+		{
+			"name": email,
+			"email": email,
+			"enabled": 1,
+			"first_name": first_name or email,
+			"last_name": last_name,
+			"user_type": user_type,
+			"send_welcome_email": 1 if send_welcome_email else 0,
+		}
+	)
+	user.insert()
+	user.add_roles(*role)
+	if password:
+		from frappe.utils.password import update_password
+
+		update_password(user=user.name, pwd=password)
+
+
 commands = [
 	add_system_manager,
+	add_user_for_sites,
 	backup,
 	drop_site,
 	install_app,

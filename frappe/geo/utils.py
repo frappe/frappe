@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-
-from pymysql import InternalError
 
 import frappe
 
@@ -65,9 +62,9 @@ def return_location(doctype, filters_sql):
 	if filters_sql:
 		try:
 			coords = frappe.db.sql(
-				"""SELECT name, location FROM `tab{}`  WHERE {}""".format(doctype, filters_sql), as_dict=True
+				f"""SELECT name, location FROM `tab{doctype}`  WHERE {filters_sql}""", as_dict=True
 			)
-		except InternalError:
+		except frappe.db.InternalError:
 			frappe.msgprint(frappe._("This Doctype does not contain location fields"), raise_exception=True)
 			return
 	else:
@@ -80,10 +77,10 @@ def return_coordinates(doctype, filters_sql):
 	if filters_sql:
 		try:
 			coords = frappe.db.sql(
-				"""SELECT name, latitude, longitude FROM `tab{}`  WHERE {}""".format(doctype, filters_sql),
+				f"""SELECT name, latitude, longitude FROM `tab{doctype}`  WHERE {filters_sql}""",
 				as_dict=True,
 			)
-		except InternalError:
+		except frappe.db.InternalError:
 			frappe.msgprint(
 				frappe._("This Doctype does not contain latitude and longitude fields"), raise_exception=True
 			)

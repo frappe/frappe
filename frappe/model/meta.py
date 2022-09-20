@@ -17,7 +17,6 @@ Example:
 import json
 import os
 from datetime import datetime
-from typing import List
 
 import click
 
@@ -41,21 +40,31 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
+DEFAULT_FIELD_LABELS = {
+	"name": lambda: _("ID"),
+	"creation": lambda: _("Created On"),
+	"docstatus": lambda: _("Document Status"),
+	"idx": lambda: _("Index"),
+	"modified": lambda: _("Last Updated On"),
+	"modified_by": lambda: _("Last Updated By"),
+	"owner": lambda: _("Created By"),
+	"_user_tags": lambda: _("Tags"),
+	"_liked_by": lambda: _("Liked By"),
+	"_comments": lambda: _("Comments"),
+	"_assign": lambda: _("Assigned To"),
+}
 
-def get_meta(doctype, cached=True):
-	if cached:
-		if not frappe.local.meta_cache.get(doctype):
-			meta = frappe.cache().hget("meta", doctype)
-			if meta:
-				meta = Meta(meta)
-			else:
-				meta = Meta(doctype)
-				frappe.cache().hset("meta", doctype, meta.as_dict())
-			frappe.local.meta_cache[doctype] = meta
 
-		return frappe.local.meta_cache[doctype]
-	else:
-		return load_meta(doctype)
+def get_meta(doctype, cached=True) -> "Meta":
+	if not cached:
+		return Meta(doctype)
+
+	if meta := frappe.cache().hget("doctype_meta", doctype):
+		return meta
+
+	meta = Meta(doctype)
+	frappe.cache().hset("doctype_meta", doctype, meta)
+	return meta
 
 
 def load_meta(doctype):
@@ -68,7 +77,7 @@ def get_table_columns(doctype):
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)
-	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
+	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json")) as f:
 		txt = json.loads(f.read())
 
 	for d in txt.get("fields", []):
@@ -87,7 +96,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = (
+	special_doctypes = {
 		"DocField",
 		"DocPerm",
 		"DocType",
@@ -95,28 +104,29 @@ class Meta(Document):
 		"DocType Action",
 		"DocType Link",
 		"DocType State",
-	)
+	}
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
 	]
 
 	def __init__(self, doctype):
-		self._fields = {}
+		# from cache
 		if isinstance(doctype, dict):
-			super(Meta, self).__init__(doctype)
+			super().__init__(doctype)
+			self.init_field_map()
+			return
 
-		elif isinstance(doctype, Document):
-			super(Meta, self).__init__(doctype.as_dict())
-			self.process()
-
+		if isinstance(doctype, Document):
+			super().__init__(doctype.as_dict())
 		else:
-			super(Meta, self).__init__("DocType", doctype)
-			self.process()
+			super().__init__("DocType", doctype)
+
+		self.process()
 
 	def load_from_db(self):
 		try:
-			super(Meta, self).load_from_db()
+			super().load_from_db()
 		except frappe.DoesNotExistError:
 			if self.doctype == "DocType" and self.name in self.special_doctypes:
 				self.__dict__.update(load_doctype_from_file(self.name))
@@ -127,10 +137,12 @@ class Meta(Document):
 		# don't process for special doctypes
 		# prevent's circular dependency
 		if self.name in self.special_doctypes:
+			self.init_field_map()
 			return
 
 		self.add_custom_fields()
 		self.apply_property_setters()
+		self.init_field_map()
 		self.sort_fields()
 		self.get_valid_columns()
 		self.set_custom_permissions()
@@ -234,36 +246,24 @@ class Meta(Document):
 
 	def get_field(self, fieldname):
 		"""Return docfield from meta"""
-		if not self._fields:
-			for f in self.get("fields"):
-				self._fields[f.fieldname] = f
 
 		return self._fields.get(fieldname)
 
 	def has_field(self, fieldname):
 		"""Returns True if fieldname exists"""
-		return True if self.get_field(fieldname) else False
+
+		return fieldname in self._fields
 
 	def get_label(self, fieldname):
 		"""Get label of the given fieldname"""
-		df = self.get_field(fieldname)
-		if df:
-			label = df.label
-		else:
-			label = {
-				"name": _("ID"),
-				"creation": _("Created On"),
-				"docstatus": _("Document Status"),
-				"idx": _("Index"),
-				"modified": _("Last Updated On"),
-				"modified_by": _("Last Updated By"),
-				"owner": _("Created By"),
-				"_user_tags": _("Tags"),
-				"_liked_by": _("Liked By"),
-				"_comments": _("Comments"),
-				"_assign": _("Assigned To"),
-			}.get(fieldname) or _("No Label")
-		return label
+
+		if df := self.get_field(fieldname):
+			return df.label
+
+		if fieldname in DEFAULT_FIELD_LABELS:
+			return DEFAULT_FIELD_LABELS[fieldname]()
+
+		return _("No Label")
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
@@ -274,11 +274,8 @@ class Meta(Document):
 		if df.fieldtype == "Link":
 			return df.options
 
-		elif df.fieldtype == "Dynamic Link":
+		if df.fieldtype == "Dynamic Link":
 			return self.get_options(df.options)
-
-		else:
-			return None
 
 	def get_search_fields(self):
 		search_fields = self.search_fields or "name"
@@ -341,20 +338,20 @@ class Meta(Document):
 
 	def is_translatable(self, fieldname):
 		"""Return true of false given a field"""
-		field = self.get_field(fieldname)
-		return field and field.translatable
+
+		if field := self.get_field(fieldname):
+			return field.translatable
 
 	def get_workflow(self):
 		return get_workflow_name(self.name)
 
-	def get_naming_series_options(self) -> List[str]:
+	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
 
-		field = self.get_field("naming_series")
-		if field:
+		if field := self.get_field("naming_series"):
 			options = field.options or ""
-
 			return options.split("\n")
+
 		return []
 
 	def add_custom_fields(self):
@@ -434,7 +431,7 @@ class Meta(Document):
 
 			# set the fields in order if specified
 			# order is saved as `links_order`
-			order = json.loads(self.get("{}_order".format(fieldname)) or "[]")
+			order = json.loads(self.get(f"{fieldname}_order") or "[]")
 			if order:
 				name_map = {d.name: d for d in self.get(fieldname)}
 				new_list = []
@@ -450,6 +447,9 @@ class Meta(Document):
 						new_list.append(d)
 
 				self.set(fieldname, new_list)
+
+	def init_field_map(self):
+		self._fields = {field.fieldname: field for field in self.fields}
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
@@ -540,9 +540,9 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
-	def get_permlevel_access(self, permission_type="read", parenttype=None):
+	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
-		roles = frappe.get_roles()
+		roles = frappe.get_roles(user)
 		for perm in self.get_permissions(parenttype):
 			if perm.role in roles and perm.get(permission_type):
 				if perm.permlevel not in has_access_to:
@@ -667,10 +667,17 @@ def is_single(doctype):
 
 
 def get_parent_dt(dt):
-	parent_dt = frappe.db.get_all(
-		"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=dt), limit=1
+	if not frappe.is_table(dt):
+		return ""
+
+	return (
+		frappe.db.get_value(
+			"DocField",
+			{"fieldtype": ("in", frappe.model.table_fields), "options": dt},
+			"parent",
+		)
+		or ""
 	)
-	return parent_dt and parent_dt[0].parent or ""
 
 
 def set_fieldname(field_id, fieldname):
@@ -765,7 +772,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters=filters, pluck="name"):
+	for doctype in frappe.get_all("DocType", filters=filters, pluck="name"):
 		try:
 			dropped_columns = trim_table(doctype, dry_run=dry_run)
 			if dropped_columns:

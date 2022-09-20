@@ -161,9 +161,9 @@ def delete_communication(event, reference_doctype, reference_docname):
 def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
-	return """(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`=%(user)s)""" % {
-		"user": frappe.db.escape(user),
-	}
+	return """(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={user})""".format(
+		user=frappe.db.escape(user),
+	)
 
 
 def has_permission(doc, user):
@@ -205,7 +205,7 @@ def send_event_digest():
 
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False, filters=None):
+def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[frappe._dict]:
 	if not user:
 		user = frappe.session.user
 

@@ -4,7 +4,6 @@ import json
 import mimetypes
 
 import RestrictedPython.Guards
-from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
 
 import frappe
@@ -13,6 +12,7 @@ import frappe.integrations.utils
 import frappe.utils
 import frappe.utils.data
 from frappe import _
+from frappe.core.utils import html2text
 from frappe.frappeclient import FrappeClient
 from frappe.handler import execute_cmd
 from frappe.model.delete_doc import delete_doc
@@ -146,12 +146,13 @@ def get_safe_globals():
 			),
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
-			get_payment_gateway_controller=frappe.integrations.utils.get_payment_gateway_controller,
+			make_put_request=frappe.integrations.utils.make_put_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+			log=frappe.log,
 			db=NamespaceDict(
 				get_list=frappe.get_list,
 				get_all=frappe.get_all,
@@ -167,6 +168,7 @@ def get_safe_globals():
 				rollback=frappe.db.rollback,
 				add_index=frappe.db.add_index,
 			),
+			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
@@ -347,7 +349,7 @@ def _getattr(object, name, default=None):
 	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
-		raise SyntaxError("{name} is an unsafe attribute".format(name=name))
+		raise SyntaxError(f"{name} is an unsafe attribute")
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 

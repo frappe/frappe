@@ -73,9 +73,6 @@ def rebuild_for_doctype(doctype):
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
-	if frappe.local.conf.get("disable_global_search"):
-		return
-
 	def _get_filters():
 		filters = frappe._dict({"docstatus": ["!=", 2]})
 		if meta.has_field("enabled"):
@@ -223,12 +220,12 @@ def insert_values_for_multiple_docs(all_contents):
 			{
 				"mariadb": """INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {0} """.format(
+				VALUES {} """.format(
 					", ".join(batch_values)
 				),
 				"postgres": """INSERT INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {0}
+				VALUES {}
 				ON CONFLICT("name", "doctype") DO NOTHING""".format(
 					", ".join(batch_values)
 				),

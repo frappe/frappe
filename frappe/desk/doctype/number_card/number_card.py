@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import frappe
 from frappe import _
+from frappe.boot import get_allowed_report_names
 from frappe.config import get_modules_from_all_apps_for_user
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -90,9 +90,13 @@ def has_permission(doc, ptype, user):
 	if "System Manager" in roles:
 		return True
 
-	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	if doc.document_type in allowed_doctypes:
-		return True
+	if doc.type == "Report":
+		if doc.report_name in get_allowed_report_names():
+			return True
+	else:
+		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		if doc.document_type in allowed_doctypes:
+			return True
 
 	return False
 
@@ -112,7 +116,7 @@ def get_result(doc, filters, to_date=None):
 	function = sql_function_map[doc.function]
 
 	if function == "count":
-		fields = ["{function}(*) as result".format(function=function)]
+		fields = [f"{function}(*) as result"]
 	else:
 		fields = [
 			"{function}({based_on}) as result".format(
@@ -194,9 +198,9 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	numberCard = DocType("Number Card")
 
 	if txt:
-		search_conditions = [numberCard[field].like("%{txt}%".format(txt=txt)) for field in searchfields]
+		search_conditions = [numberCard[field].like(f"%{txt}%") for field in searchfields]
 
-	condition_query = frappe.db.query.build_conditions(doctype, filters)
+	condition_query = frappe.qb.engine.build_conditions(doctype, filters)
 
 	return (
 		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)

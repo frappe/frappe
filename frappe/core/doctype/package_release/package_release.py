@@ -60,7 +60,7 @@ class PackageRelease(Document):
 		self.make_tarfile(package)
 
 	def export_modules(self):
-		for m in frappe.db.get_all("Module Def", dict(package=self.package)):
+		for m in frappe.get_all("Module Def", dict(package=self.package)):
 			module = frappe.get_doc("Module Def", m.name)
 			for l in module.meta.links:
 				if l.link_doctype == "Module Def":
@@ -87,7 +87,7 @@ class PackageRelease(Document):
 
 	def make_tarfile(self, package):
 		# make tarfile
-		filename = "{}.tar.gz".format(self.name)
+		filename = f"{self.name}.tar.gz"
 		subprocess.check_output(
 			["tar", "czf", filename, package.package_name], cwd=frappe.get_site_path("packages")
 		)

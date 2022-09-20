@@ -90,7 +90,7 @@ class WebsiteTheme(Document):
 		if stderr:
 			stderr = frappe.safe_decode(stderr)
 			stderr = stderr.replace("\n", "<br>")
-			frappe.throw('<div style="font-family: monospace;">{stderr}</div>'.format(stderr=stderr))
+			frappe.throw(f'<div style="font-family: monospace;">{stderr}</div>')
 		else:
 			self.theme_url = "/files/website_theme/" + file_name
 
@@ -133,9 +133,9 @@ class WebsiteTheme(Document):
 
 
 def get_active_theme() -> Optional["WebsiteTheme"]:
-	if website_theme := frappe.db.get_single_value("Website Settings", "website_theme"):
+	if website_theme := frappe.get_website_settings("website_theme"):
 		try:
-			return frappe.get_doc("Website Theme", website_theme)
+			return frappe.get_cached_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
 			pass
 
