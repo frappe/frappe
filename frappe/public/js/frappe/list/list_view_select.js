@@ -264,29 +264,35 @@ frappe.views.ListViewSelect = class ListViewSelect {
 	}
 
 	setup_kanban_boards() {
-		const last_opened_kanban =
-			frappe.model.user_settings[this.doctype]["Kanban"] &&
-			frappe.model.user_settings[this.doctype]["Kanban"]
-				.last_kanban_board;
-
-		if (!last_opened_kanban) {
-			return frappe.views.KanbanView.show_kanban_dialog(
-				this.doctype,
-				true
+		function fetch_kanban_board(doctype) {
+			frappe.db.get_value(
+				"Kanban Board",
+				{ reference_doctype: doctype },
+				"name",
+				(board) => {
+					if (!$.isEmptyObject(board)) {
+						frappe.set_route("list", doctype, "kanban", board.name);
+					} else {
+						frappe.views.KanbanView.show_kanban_dialog(doctype);
+					}
+				}
 			);
 		}
-		frappe.db.exists("Kanban Board", last_opened_kanban).then(exists => {
-			if (exists) {
-				frappe.set_route(
-					"list",
-					this.doctype,
-					"kanban",
-					last_opened_kanban
-				);
-			} else {
-				frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
-			}
-		});
+
+		const last_opened_kanban =
+			frappe.model.user_settings[this.doctype]["Kanban"] &&
+			frappe.model.user_settings[this.doctype]["Kanban"].last_kanban_board;
+		if (!last_opened_kanban) {
+			fetch_kanban_board(this.doctype);
+		} else {
+			frappe.db.exists("Kanban Board", last_opened_kanban).then((exists) => {
+				if (exists) {
+					frappe.set_route("list", this.doctype, "kanban", last_opened_kanban);
+				} else {
+					fetch_kanban_board(this.doctype);
+				}
+			});
+		}
 	}
 
 	get_calendars() {

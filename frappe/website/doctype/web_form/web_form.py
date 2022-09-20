@@ -36,17 +36,20 @@ class WebForm(WebsiteGenerator):
 		if not self.module:
 			self.module = frappe.db.get_value("DocType", self.doc_type, "module")
 
-		if (
-			not (
-				frappe.flags.in_install
-				or frappe.flags.in_patch
-				or frappe.flags.in_test
-				or frappe.flags.in_fixtures
-			)
-			and self.is_standard
-			and not frappe.conf.developer_mode
-		):
-			frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
+		in_user_env = not (
+			frappe.flags.in_install
+			or frappe.flags.in_patch
+			or frappe.flags.in_test
+			or frappe.flags.in_fixtures
+		)
+		if in_user_env and self.is_standard and not frappe.conf.developer_mode:
+			# only published can be changed for standard web forms
+			if self.has_value_changed("published"):
+				published_value = self.published
+				self.reload()
+				self.published = published_value
+			else:
+				frappe.throw(_("You need to be in developer mode to edit a Standard Web Form"))
 
 		if not frappe.flags.in_import:
 			self.validate_fields()
