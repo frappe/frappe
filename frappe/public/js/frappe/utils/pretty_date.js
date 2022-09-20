@@ -11,7 +11,6 @@ function prettyDate(date, mini) {
 		);
 	}
 
-	let diff = ((new Date(frappe.datetime.now_datetime().replace(/-/g, "/"))).getTime() - date.getTime()) / 1000;
 	let diff =
 		(new Date(frappe.datetime.now_datetime().replace(/-/g, "/")).getTime() - date.getTime()) /
 		1000;
