@@ -73,7 +73,7 @@ def is_invalid_date_string(date_string: str) -> bool:
 
 
 def getdate(
-	string_date: Optional["DateTimeLikeObject"] = None, day_first: bool = False
+	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
@@ -93,7 +93,7 @@ def getdate(
 	if is_invalid_date_string(string_date):
 		return None
 	try:
-		return parser.parse(string_date, dayfirst=day_first).date()
+		return parser.parse(string_date, dayfirst=parse_day_first).date()
 	except ParserError:
 		frappe.throw(
 			frappe._("{} is not a valid date string.").format(frappe.bold(string_date)),
@@ -551,7 +551,7 @@ def get_user_time_format() -> str:
 
 
 def format_date(
-	string_date=None, format_string: str | None = None, day_first: bool = False
+	string_date=None, format_string: str | None = None, parse_day_first: bool = False
 ) -> str:
 	"""Converts the given string date to :data:`user_date_format`
 	User format specified in defaults
@@ -568,7 +568,7 @@ def format_date(
 	if not string_date:
 		return ""
 
-	date = getdate(string_date, day_first)
+	date = getdate(string_date, parse_day_first)
 	if not format_string:
 		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM").replace("Y", "y")
