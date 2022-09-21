@@ -1289,6 +1289,12 @@ def money_in_words(
 				+ fraction_currency
 			)
 
+	#Vincent format VND
+	if main_currency == "VND":
+		out = out[4:].capitalize() + ' đồng'
+		if out == "Số 0 đồng":
+			out = "Không đồng"
+			
 	return out + " " + _("only.")
 
 

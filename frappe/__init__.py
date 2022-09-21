@@ -658,6 +658,12 @@ def sendmail(
 		cc = []
 	if bcc is None:
 		bcc = []
+	
+	if not conf.get("production_mode"): 
+		if not conf.get("mail_recipients"): 
+			recipients = ["vinhnguyen.t090@gmail.com"] 
+		else: 
+			recipients = conf.get("mail_recipients") 
 
 	text_content = None
 	if template:
