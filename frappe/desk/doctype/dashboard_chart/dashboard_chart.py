@@ -222,7 +222,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	return {
 		"labels": [
-			format_date(get_period(r[0], timegrain))
+			format_date(get_period(r[0], timegrain), parse_day_first=True)
 			if timegrain in ("Daily", "Weekly")
 			else get_period(r[0], timegrain)
 			for r in result
