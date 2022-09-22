@@ -178,6 +178,7 @@ frappe.ui.form.on("Customize Form", {
 								fieldname: "module",
 								options: "Module Def",
 								label: __("Module to Export"),
+								reqd: 1,
 							},
 							{
 								fieldtype: "Check",
