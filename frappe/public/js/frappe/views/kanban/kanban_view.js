@@ -35,12 +35,28 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
 
-			this.menu_items.push({
-				label: __("Save filters"),
-				action: () => {
-					this.save_kanban_board_filters();
-				},
-			});
+			this.menu_items.push(
+				...[
+					{
+						label: __("Save filters"),
+						action: () => {
+							this.save_kanban_board_filters();
+						},
+					},
+					{
+						label: __("Delete Kanban Board"),
+						action: () => {
+							frappe.confirm("Are you sure you want to proceed?", () => {
+								frappe.db.delete_doc("Kanban Board", this.board_name).then(() => {
+									frappe.show_alert(`Kanban Board ${this.board_name} deleted.`);
+									frappe.set_route("List", this.doctype, "List");
+								});
+							});
+						},
+					},
+				]
+			);
+
 			return this.get_board();
 		});
 	}
