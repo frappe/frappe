@@ -179,7 +179,8 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 			CombineDatetime(note.posting_date, note.posting_time)
 			>= CombineDatetime("2021-01-01", time(0, 0, 1))
 		)
-		self.assertIn("""where "posting_date"+"posting_time">=cast('2021-01-01' as date)+cast('00:00:01' as time)""",
+		self.assertIn(
+			"""where "posting_date"+"posting_time">=cast('2021-01-01' as date)+cast('00:00:01' as time)""",
 			str(select_query).lower(),
 		)
 
