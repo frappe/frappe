@@ -25,6 +25,13 @@ def stop(response=None):
 		frappe.local.monitor.dump(response)
 
 
+def add_data_to_monitor(**kwargs) -> None:
+	"""Add additional custom key-value pairs along with monitor log.
+	Note: Key-value pairs should be simple JSON exportable types."""
+	if hasattr(frappe.local, "monitor"):
+		frappe.local.monitor.add_custom_data(**kwargs)
+
+
 def log_file():
 	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
 
@@ -70,6 +77,10 @@ class Monitor:
 			self.data.uuid = job.id
 			waitdiff = self.data.timestamp - job.enqueued_at
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
+
+	def add_custom_data(self, **kwargs):
+		if self.data:
+			self.data.update(kwargs)
 
 	def dump(self, response=None):
 		try:
