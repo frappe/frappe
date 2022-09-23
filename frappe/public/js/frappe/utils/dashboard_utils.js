@@ -26,16 +26,14 @@ frappe.dashboard_utils = {
 				options_html = filter.options
 					.map(
 						(option, i) =>
-							// TODO: Make option translatable - be careful, since the text of the a tag is later used to perform some action
 							`<li>
-						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}">${option}</a>
+						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}" option-name="${option}">${__(option)}</a>
 					</li>`
 					)
 					.join("");
 			} else {
-				// TODO: Make option translatable - be careful, since the text of the a tag is later used to perform some action
 				options_html = filter.options
-					.map((option) => `<li><a class="dropdown-item">${option}</a></li>`)
+					.map((option) => `<li><a class="dropdown-item" option-name="${option}">${__(option)}</a></li>`)
 					.join("");
 			}
 
@@ -54,8 +52,8 @@ frappe.dashboard_utils = {
 					fieldname = $el.attr("data-fieldname");
 				}
 
-				let selected_item = $el.text();
-				$el.parents(`.${button_class}`).find(".filter-label").text(selected_item);
+				let selected_item = $el.attr("option-name");
+				$el.parents(`.${button_class}`).find(".filter-label").html(__(selected_item));
 				filter.action(selected_item, fieldname);
 			});
 		});
