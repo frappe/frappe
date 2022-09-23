@@ -7,6 +7,7 @@ import json
 
 import frappe
 from frappe.desk.form.load import run_onload
+from frappe.monitor import add_data_to_monitor
 
 
 @frappe.whitelist()
@@ -26,6 +27,8 @@ def savedocs(doc, action):
 	# update recent documents
 	run_onload(doc)
 	send_updated_docs(doc)
+
+	add_data_to_monitor(doctype=doc.doctype, action=action)
 
 	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 

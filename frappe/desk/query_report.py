@@ -15,6 +15,7 @@ from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
+from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions
 from frappe.utils import (
 	cint,
@@ -251,6 +252,8 @@ def run(
 		result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
+
+	add_data_to_monitor(report=report)
 
 	return result
 
