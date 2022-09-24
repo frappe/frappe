@@ -37,7 +37,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && env.GITHUB_REPOSITORY_OWNER == 'frappe' }}
     timeout-minutes: 60
 
     strategy:

@@ -26,9 +26,9 @@ class FrappeTestCase(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
+		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
-		frappe.db.begin()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
 			frappe.db.add_before_commit(_commit_watcher)
 
