@@ -85,7 +85,8 @@
   "website_search_field",
   "advanced",
   "engine",
-  "migration_hash"
+  "migration_hash",
+  "bg_submit"
  ],
  "fields": [
   {
@@ -605,6 +606,12 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "bg_submit",
+   "fieldtype": "Check",
+   "label": "BgSubmit"
   }
  ],
  "icon": "fa fa-bolt",
@@ -687,7 +694,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-08-24 06:42:27.779699",
+ "modified": "2022-09-24 11:10:26.020900",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
