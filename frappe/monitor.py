@@ -105,7 +105,7 @@ class Monitor:
 	def store(self):
 		if frappe.cache().llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
 			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
-		serialized = json.dumps(self.data, sort_keys=True, default=str)
+		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
 		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
 
 
