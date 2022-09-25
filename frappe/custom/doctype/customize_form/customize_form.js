@@ -183,7 +183,12 @@ frappe.ui.form.on("Customize Form", {
 								fieldtype: "Link",
 								fieldname: "module",
 								options: "Module Def",
+<<<<<<< HEAD
 								label: __("Module to Export")
+=======
+								label: __("Module to Export"),
+								reqd: 1,
+>>>>>>> 5330814d7a (fix: make module to export required. (#18204))
 							},
 							{
 								fieldtype: "Check",
