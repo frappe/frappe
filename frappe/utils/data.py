@@ -20,7 +20,27 @@ from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
+<<<<<<< HEAD
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
+=======
+DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
+TIMEDELTA_DAY_PATTERN = re.compile(
+	r"(?P<days>[-\d]+) day[s]*, (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)"
+)
+TIMEDELTA_BASE_PATTERN = re.compile(r"(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)")
+URLS_HTTP_TAG_PATTERN = re.compile(
+	r'(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)'
+)  # href='https://...
+URLS_NOT_HTTP_TAG_PATTERN = re.compile(
+	r'(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)'
+)  # href=/assets/...
+URL_NOTATION_PATTERN = re.compile(
+	r'(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))'
+)  # background-image: url('/assets/...')
+DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
+HTML_TAG_PATTERN = re.compile("<[^>]+>")
+MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
+>>>>>>> 9c84d078fa (fix: remove mariadb specific comments from column)
 
 
 class Weekday(Enum):
@@ -1681,8 +1701,11 @@ def sanitize_column(column_name):
 
 	from frappe import _
 
-	regex = re.compile("^.*[,'();].*")
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
+	if frappe.db and frappe.db.db_type == "mariadb":
+		# strip mariadb specific comments which are like python single line comments
+		column_name = MARIADB_SPECIFIC_COMMENT.sub("", column_name)
+
 	blacklisted_keywords = [
 		"select",
 		"create",
@@ -1698,6 +1721,7 @@ def sanitize_column(column_name):
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
+	regex = re.compile("^.*[,'();].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
