@@ -20,27 +20,8 @@ from frappe.desk.utils import slug
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
-<<<<<<< HEAD
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
-=======
-DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
-TIMEDELTA_DAY_PATTERN = re.compile(
-	r"(?P<days>[-\d]+) day[s]*, (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)"
-)
-TIMEDELTA_BASE_PATTERN = re.compile(r"(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)")
-URLS_HTTP_TAG_PATTERN = re.compile(
-	r'(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)'
-)  # href='https://...
-URLS_NOT_HTTP_TAG_PATTERN = re.compile(
-	r'(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)'
-)  # href=/assets/...
-URL_NOTATION_PATTERN = re.compile(
-	r'(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))'
-)  # background-image: url('/assets/...')
-DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
-HTML_TAG_PATTERN = re.compile("<[^>]+>")
 MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
->>>>>>> 9c84d078fa (fix: remove mariadb specific comments from column)
 
 
 class Weekday(Enum):
