@@ -413,6 +413,14 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
+		frappe.db.commit()
+
+		# Reset it back to original password
+		original_password = frappe.conf.admin_password or "admin"
+		self.execute("bench --site {site} set-admin-password %s" % original_password)
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password("Administrator", original_password), "Administrator")
+		frappe.db.commit()
 
 	@skipIf(
 		not (
