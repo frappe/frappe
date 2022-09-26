@@ -5,6 +5,7 @@ from functools import cached_property
 from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, Callable
 
+import sqlparse
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
@@ -14,6 +15,7 @@ from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumn
+from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -510,8 +512,22 @@ class Engine:
 
 		return fields
 
+	def sanitize_fields(self, fields: str | list | tuple):
+		if isinstance(fields, (list, tuple)):
+			for idx, field in enumerate(fields):
+				field = MARIADB_SPECIFIC_COMMENT.sub(
+					"", sqlparse.format(field, strip_comments=True, keyword_case="lower")
+				)
+				fields[idx] = field
+		else:
+			fields = MARIADB_SPECIFIC_COMMENT.sub(
+				"", sqlparse.format(fields, strip_comments=True, keyword_case="lower")
+			)
+		return fields
+
 	def set_fields(self, table, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
+		fields = self.sanitize_fields(fields)
 		if isinstance(fields, list) and None in fields and Field not in fields:
 			return None
 		function_objects = []
