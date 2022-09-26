@@ -433,7 +433,7 @@ def get_site_base_path(sites_dir=None, hostname=None):
 
 
 def get_site_path(*path):
-	return get_path(base=get_site_base_path(), *path)
+	return get_path(*path, base=get_site_base_path())
 
 
 def get_files_path(*path, **kwargs):
