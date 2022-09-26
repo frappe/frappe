@@ -103,7 +103,7 @@ async function execute() {
 		log_error("There were some problems during build");
 		log();
 		log(chalk.dim(e.stack));
-		if (process.env.CI) {
+		if (process.env.CI || PRODUCTION) {
 			process.kill(process.pid);
 		}
 		return;
