@@ -514,12 +514,17 @@ class Engine:
 
 	def sanitize_fields(self, fields: str | list | tuple):
 		if isinstance(fields, (list, tuple)):
+			fields = list(fields)
 			for idx, field in enumerate(fields):
+				if not isinstance(field, str):
+					field = field.get_sql()
 				field = MARIADB_SPECIFIC_COMMENT.sub(
 					"", sqlparse.format(field, strip_comments=True, keyword_case="lower")
 				)
 				fields[idx] = field
 		else:
+			if not isinstance(fields, str):
+				fields = fields.get_sql()
 			fields = MARIADB_SPECIFIC_COMMENT.sub(
 				"", sqlparse.format(fields, strip_comments=True, keyword_case="lower")
 			)
