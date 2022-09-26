@@ -516,21 +516,19 @@ class Engine:
 		if isinstance(fields, (list, tuple)):
 			fields = list(fields)
 			for idx, field in enumerate(fields):
-				if not isinstance(field, str):
-					field = field.get_sql()
-				field = MARIADB_SPECIFIC_COMMENT.sub(
-					"", sqlparse.format(field, strip_comments=True, keyword_case="lower")
-				)
-				fields[idx] = field
+				if isinstance(field, str):
+					field = MARIADB_SPECIFIC_COMMENT.sub(
+						"", sqlparse.format(field, strip_comments=True, keyword_case="lower")
+					)
+					fields[idx] = field
 		else:
-			if not isinstance(fields, str):
-				fields = fields.get_sql()
-			fields = MARIADB_SPECIFIC_COMMENT.sub(
-				"", sqlparse.format(fields, strip_comments=True, keyword_case="lower")
-			)
+			if isinstance(fields, str):
+				fields = MARIADB_SPECIFIC_COMMENT.sub(
+					"", sqlparse.format(fields, strip_comments=True, keyword_case="lower")
+				)
 		return fields
 
-	def set_fields(self, table, fields, **kwargs) -> list:
+	def set_fields(self, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		fields = self.sanitize_fields(fields)
 		if isinstance(fields, list) and None in fields and Field not in fields:
@@ -652,7 +650,7 @@ class Engine:
 		self.linked_doctype = None
 		self.fieldname = None
 
-		fields = self.set_fields(table, kwargs.get("field_objects") or fields, **kwargs)
+		fields = self.set_fields(kwargs.get("field_objects") or fields, **kwargs)
 		criterion = self.build_conditions(table, filters, **kwargs)
 		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 		criterion, fields = self.join_(criterion=criterion, fields=fields, table=table, join=join)
