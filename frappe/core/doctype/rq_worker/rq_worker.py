@@ -23,8 +23,10 @@ class RQWorker(Document):
 		start = cint(args.get("start")) or 0
 		page_length = cint(args.get("page_length")) or 20
 
-		workers = get_workers()[start : start + page_length]
-		return [serialize_worker(worker) for worker in workers]
+		workers = get_workers()
+
+		valid_workers = [w for w in workers if w.pid][start : start + page_length]
+		return [serialize_worker(worker) for worker in valid_workers]
 
 	@staticmethod
 	def get_count(args) -> int:
