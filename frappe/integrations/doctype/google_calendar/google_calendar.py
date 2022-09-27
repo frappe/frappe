@@ -409,8 +409,7 @@ def insert_event_in_google_calendar(doc, method=None):
 	if doc.repeat_on:
 		event.update({"recurrence": repeat_on_to_google_calendar_recurrence_rule(doc)})
 
-	if len(doc.event_participants):
-		event.update({"attendees": get_attendees(doc)})
+	event.update({"attendees": get_attendees(doc)})
 
 	conference_data_version = 0
 
@@ -495,8 +494,7 @@ def update_event_in_google_calendar(doc, method=None):
 			event.update({"conferenceData": None})
 			conference_data_version = 1
 
-		if len(doc.event_participants):
-			event.update({"attendees": get_attendees(doc)})
+		event.update({"attendees": get_attendees(doc)})
 
 		event = (
 			google_calendar.events()
