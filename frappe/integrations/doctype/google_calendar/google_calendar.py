@@ -750,7 +750,9 @@ def get_attendees(doc):
 		if participant.get("email"):
 			attendees.append({"email": participant.email})
 		else:
-			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})
+			email_not_found.append(
+				{"dt": participant.reference_doctype, "dn": participant.reference_docname}
+			)
 
 	if len(email_not_found):
 		frappe.msgprint(

@@ -141,8 +141,12 @@ class Event(Document):
 		for participant in self.event_participants:
 			if participant.email:
 				continue
-			participant_contact = get_default_contact(participant.reference_doctype, participant.reference_docname)
-			participant.email = frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else ""
+			participant_contact = get_default_contact(
+				participant.reference_doctype, participant.reference_docname
+			)
+			participant.email = (
+				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else ""
+			)
 
 
 @frappe.whitelist()
