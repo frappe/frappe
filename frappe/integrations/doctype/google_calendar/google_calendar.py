@@ -744,31 +744,24 @@ def get_conference_data(doc):
 
 def get_attendees(doc):
 	"""
-	Returns a list of dicts with attendee emails
-	attendee emails are fetched from documents linked (dynamic) in event_participants table
-	only checks for fieldnames 'user', 'user_id', 'email' to find email ids
-	TODO: also check fields of fieldtype Data with options Email
+	Returns a list of dicts with attendee emails, if available in event_participants table
 	"""
-	attendees = []
+	attendees, email_not_found = [], []
 
 	for participant in doc.event_participants:
-
-		participant_doc = frappe.get_doc(participant.reference_doctype, participant.reference_docname)
-
-		if participant_doc.meta.has_field("user") and participant_doc.user:
-			attendees.append({"email": participant_doc.user})
-		elif participant_doc.meta.has_field("user_id") and participant_doc.user_id:
-			attendees.append({"email": participant_doc.user_id})
-		elif participant_doc.meta.has_field("email") and participant_doc.email:
-			attendees.append({"email": participant_doc.email})
+		if participant.get("email"):
+			attendees.append({"email": participant.email})
 		else:
-			frappe.msgprint(
-				_("Google Calendar - User / Email field not found, did not add attendee for {0} {1}").format(
-					participant.reference_doctype, participant.reference_docname
-				),
-				alert=True,
-				indicator="red",
-			)
+			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})
+
+	if len(email_not_found):
+		frappe.msgprint(
+			_("Google Calendar - Contact / email not found, did not add attendee for -<br>{0}").format(
+				"<br>".join(f"{d.get('dt')} {d.get('dn')}" for d in email_not_found)
+			),
+			alert=True,
+			indicator="red",
+		)
 
 	return attendees
 

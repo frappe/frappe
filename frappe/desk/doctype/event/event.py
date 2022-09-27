@@ -6,6 +6,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 )
@@ -57,6 +58,8 @@ class Event(Document):
 
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
+
+		self.set_participants_email()
 
 	def on_update(self):
 		self.sync_communication()
@@ -133,6 +136,13 @@ class Event(Document):
 		"""
 		for participant in participants:
 			self.add_participant(participant["doctype"], participant["docname"])
+
+	def set_participants_email(self):
+		for participant in self.event_participants:
+			if participant.email:
+				continue
+			participant_contact = get_default_contact(participant.reference_doctype, participant.reference_docname)
+			participant.email = frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else ""
 
 
 @frappe.whitelist()
