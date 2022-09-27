@@ -30,7 +30,7 @@ frappe.views.Workspace = class Workspace {
 			public: {},
 			private: {},
 		};
-		this.sidebar_categories = ["My Workspaces", "Public"];
+		this.sidebar_categories = ["My Workspaces", "PCG Live", "Public"];
 
 		this.prepare_container();
 		this.setup_pages();
@@ -116,6 +116,9 @@ frappe.views.Workspace = class Workspace {
 				root_pages = this.private_pages.filter(
 					(page) => page.parent_page == "" || page.parent_page == null
 				);
+			}
+			if (category === "PCG Live") {
+				root_pages = this.public_pages.filter((page) => ["PCG Live", "PCG Web"].includes(page.parent_page))
 			}
 			this.build_sidebar_section(category, root_pages);
 		});

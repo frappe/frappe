@@ -1187,6 +1187,10 @@ Object.assign(frappe.utils, {
 		} else {
 			size_class = `icon-${size}`;
 		}
+		if (icon_name.startsWith("fa-")){
+			size_class = size_class ? "fa-" + size_class.replace("icon-", "") : "" ;
+			return `<i class="icon-fa fa ${size_class} ${icon_name}" aria-hidden="true"></i>`
+		}
 		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="#icon-${icon_name}"></use>
 		</svg>`;
