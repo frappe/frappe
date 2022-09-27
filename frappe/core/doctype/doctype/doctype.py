@@ -627,7 +627,8 @@ class DocType(Document):
 			for attr in to_remove:
 				del o[attr]
 
-		remove_null_fields(docdict)
+		if self.name not in Meta.special_doctypes:
+			remove_null_fields(docdict)
 
 		# retain order of 'fields' table and change order in 'field_order'
 		docdict["field_order"] = [f.fieldname for f in self.fields]
