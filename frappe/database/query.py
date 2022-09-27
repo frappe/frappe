@@ -168,6 +168,14 @@ def table_from_string(table: str) -> "DocType":
 	return frappe.qb.DocType(table_name=table_name.replace("`", ""))
 
 
+def replace_fields(replacements: dict, fields: list | tuple) -> list:
+	"Helper function to avoid list mutations while iterating over Fields"
+	return [
+		field if fields.index(field) not in replacements else replacements[fields.index(field)]
+		for field in fields
+	]
+
+
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
 	"+": operator.add,
@@ -494,6 +502,7 @@ class Engine:
 	def get_fieldnames_from_child_table(self, doctype, fields):
 		# Hacky and flaky implementation of implicit joins.
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
+		replacements = {}
 		for idx, field in enumerate(fields, start=0):
 			if "." in field and "tab" not in field:
 				alias = None
@@ -508,11 +517,12 @@ class Engine:
 				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
-				fields[idx] = field
+				replacements[idx] = field
 
-		return fields
+		return replace_fields(replacements, fields)
 
 	def sanitize_fields(self, fields: str | list | tuple):
+		replacements = {}
 		if isinstance(fields, (list, tuple)):
 			fields = list(fields)
 			for idx, field in enumerate(fields):
@@ -520,7 +530,9 @@ class Engine:
 					field = MARIADB_SPECIFIC_COMMENT.sub(
 						"", sqlparse.format(field, strip_comments=True, keyword_case="lower")
 					)
-					fields[idx] = field
+					replacements[idx] = field
+			return replace_fields(replacements, fields)
+
 		else:
 			if isinstance(fields, str):
 				fields = MARIADB_SPECIFIC_COMMENT.sub(
@@ -637,10 +649,7 @@ class Engine:
 				has_join = True
 
 		if not isinstance(fields, Criterion):
-			return criterion, [
-				field if fields.index(field) not in replacements else replacements[fields.index(field)]
-				for field in fields
-			]
+			return criterion, replace_fields(replacements, fields)
 		else:
 			return criterion, fields
 
