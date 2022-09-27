@@ -598,6 +598,7 @@ class Engine:
 	def join_(self, criterion, fields, table, join):
 		"""Handles all join operations on criterion objects"""
 		has_join = False
+		replacements = {}
 		if not isinstance(fields, Criterion):
 			for field in fields:
 				# Only perform this bit if foreign doctype in fields
@@ -622,11 +623,10 @@ class Engine:
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
 						if not TABLE_PATTERN.search(str(field)):
-							fields[idx] = getattr(frappe.qb.DocType(table), field)
+							replacements[idx] = getattr(frappe.qb.DocType(table), field)
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-						field.args[0] = getattr(frappe.qb.DocType(table), field.args[0].get_sql())
-						fields[idx] = field
+						replacements[idx] = field
 
 		if len(self.tables) > 1:
 			primary_table = self.tables.pop(table)
@@ -636,7 +636,13 @@ class Engine:
 				)
 				has_join = True
 
-		return criterion, fields
+		if not isinstance(fields, Criterion):
+			return criterion, [
+				field if fields.index(field) not in replacements else replacements[fields.index(field)]
+				for field in fields
+			]
+		else:
+			return criterion, fields
 
 	def get_query(
 		self,
