@@ -21,6 +21,7 @@ from frappe.desk.utils import slug
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
+MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
 
 
 class Weekday(Enum):
@@ -1681,8 +1682,11 @@ def sanitize_column(column_name):
 
 	from frappe import _
 
-	regex = re.compile("^.*[,'();].*")
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
+	if frappe.db and frappe.db.db_type == "mariadb":
+		# strip mariadb specific comments which are like python single line comments
+		column_name = MARIADB_SPECIFIC_COMMENT.sub("", column_name)
+
 	blacklisted_keywords = [
 		"select",
 		"create",
@@ -1698,6 +1702,7 @@ def sanitize_column(column_name):
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
+	regex = re.compile("^.*[,'();].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
