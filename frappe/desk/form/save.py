@@ -18,9 +18,15 @@ def savedocs(doc, action):
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 
 	if doc.docstatus == 1:
-		doc.submit()
+		if doc.bg_submit and doc.is_submittable:
+			doc.queue_action("submit", timeout=4000)
+		else:
+			doc.submit()
 	else:
-		doc.save()
+		if doc.bg_submit and doc.is_submittable:
+			doc.queue_action("save", timeout=4000)
+		else:
+			doc.save()
 
 	# update recent documents
 	run_onload(doc)
