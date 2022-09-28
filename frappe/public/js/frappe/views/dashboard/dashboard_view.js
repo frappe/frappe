@@ -395,7 +395,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldtype: "Select",
 					fieldname: "aggregate_function_based_on",
 					options: fields.aggregate_function_fields,
-					depends_on: 'eval: ["Sum", "Avergage"].includes(doc.group_by_type)',
+					depends_on: 'eval: ["Sum", "Average"].includes(doc.group_by_type)',
 				},
 				{
 					fieldname: "cb_2",
