@@ -257,8 +257,8 @@ function get_build_options(files, outdir, plugins, entry_names) {
 		nodePaths: NODE_PATHS,
 		define: {
 			"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
-			"__VUE_OPTIONS_API__": JSON.stringify(true),
-			"__VUE_PROD_DEVTOOLS__": JSON.stringify(false),
+			__VUE_OPTIONS_API__: JSON.stringify(true),
+			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
 		},
 		plugins: plugins,
 		watch: get_watch_config(),
@@ -388,8 +388,8 @@ async function write_assets_json(metafile) {
 				if (input.includes(".vue?type=style")) {
 					// remove hash from css file name
 					let key = path.basename(asset_path);
-					key = key.split('.css')[0];
-					key = key.substring(0, key.lastIndexOf(".")) + '.css';
+					key = key.split(".css")[0];
+					key = key.substring(0, key.lastIndexOf(".")) + ".css";
 					out[key] = asset_path;
 				}
 			}

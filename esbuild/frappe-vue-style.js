@@ -18,7 +18,7 @@ module.exports = {
 					let modified = include_css + out.text;
 					out.contents = Buffer.from(modified);
 				}
-				if (!fs.existsSync(dir)){
+				if (!fs.existsSync(dir)) {
 					fs.mkdirSync(dir);
 				}
 				fs.writeFile(out.path, out.contents, (err) => {
