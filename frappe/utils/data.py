@@ -450,7 +450,7 @@ def get_user_time_format():
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False):
+def format_date(string_date=None, format_string=None, parse_day_first: bool = False):
 	"""Converts the given string date to :data:`user_date_format`
 	User format specified in defaults
 
