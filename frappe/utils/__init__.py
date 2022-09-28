@@ -755,6 +755,11 @@ def get_site_info():
 		"limit": "10",
 	}
 
+	last_activity = []
+	for user in users:
+		if user.name in system_managers:
+			last_activity.append(user)
+
 	site_info = {
 		"installed_apps": get_installed_apps_info(),
 		"users": users,
@@ -770,6 +775,7 @@ def get_site_info():
 		"backup_size": space_usage.backup_size,
 		"files_size": space_usage.files_size,
 		"last_logins": frappe.get_all("Activity Log", **kwargs),
+		"last_active": last_activity,
 	}
 
 	# from other apps
