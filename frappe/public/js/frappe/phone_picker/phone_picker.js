@@ -17,7 +17,7 @@ class PhonePicker {
 		this.phone_picker_wrapper = $(`
 			<div class="phone-picker">
 				<div class="search-phones">
-					<input type="search" placeholder="${__("Search for countries...")}" class="form-control">
+					<input type="search" placeholder="${__('Search for countries...')}" class="form-control">
 					<span class="search-phone">${frappe.utils.icon("search", "sm")}</span>
 				</div>
 				<div class="phone-section">
