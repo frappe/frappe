@@ -177,7 +177,7 @@ class TestDashboardChart(FrappeTestCase):
 		self.assertEqual(result.get("datasets")[0].get("values"), [200.0, 400.0, 300.0, 0.0, 100.0, 0.0])
 		self.assertEqual(
 			result.get("labels"),
-			["06-01-2019", "07-01-2019", "08-01-2019", "09-01-2019", "10-01-2019", "11-01-2019"],
+			["01-06-2019", "01-07-2019", "01-08-2019", "01-09-2019", "01-10-2019", "01-11-2019"],
 		)
 
 	def test_weekly_dashboard_chart(self):
@@ -207,7 +207,7 @@ class TestDashboardChart(FrappeTestCase):
 			result = get(chart_name="Test Weekly Dashboard Chart", refresh=1)
 
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 300.0, 800.0, 0.0])
-			self.assertEqual(result.get("labels"), ["12-30-2018", "06-01-2019", "01-13-2019", "01-20-2019"])
+			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 
 	def test_avg_dashboard_chart(self):
 		insert_test_records()
@@ -234,7 +234,7 @@ class TestDashboardChart(FrappeTestCase):
 
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			result = get(chart_name="Test Average Dashboard Chart", refresh=1)
-			self.assertEqual(result.get("labels"), ["12-30-2018", "06-01-2019", "01-13-2019", "01-20-2019"])
+			self.assertEqual(result.get("labels"), ["12-30-2018", "01-06-2019", "01-13-2019", "01-20-2019"])
 			self.assertEqual(result.get("datasets")[0].get("values"), [50.0, 150.0, 266.6666666666667, 0.0])
 
 	def test_user_date_label_dashboard_chart(self):
@@ -259,13 +259,13 @@ class TestDashboardChart(FrappeTestCase):
 		with patch.object(frappe.utils.data, "get_user_date_format", return_value="dd.mm.yyyy"):
 			result = get(chart_name="Test Dashboard Chart Date Label")
 			self.assertEqual(
-				sorted(result.get("labels")), sorted(["01.05.2019", "01.12.2019", "19.01.2019"])
+				sorted(result.get("labels")), sorted(["05.01.2019", "12.01.2019", "19.01.2019"])
 			)
 
 		with patch.object(frappe.utils.data, "get_user_date_format", return_value="mm-dd-yyyy"):
 			result = get(chart_name="Test Dashboard Chart Date Label")
 			self.assertEqual(
-				sorted(result.get("labels")), sorted(["01-19-2019", "05-01-2019", "12-01-2019"])
+				sorted(result.get("labels")), sorted(["01-19-2019", "01-05-2019", "01-12-2019"])
 			)
 
 
