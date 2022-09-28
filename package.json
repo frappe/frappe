@@ -74,7 +74,6 @@
     "md5": "^2.3.0",
     "postcss": "8",
     "rtlcss": "^3.2.1",
-    "@vue/compiler-sfc": "^3.2.39",
     "yargs": "^17.5.1"
   },
   "snyk": true,
