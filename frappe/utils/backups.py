@@ -389,8 +389,9 @@ class BackupGenerator:
 				)
 
 			cmd_string = (
-				"{db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
-				" {include} {exclude} | {gzip} >> {backup_path_db}"
+				"self=$$; "
+				"( {db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
+				" {include} {exclude} || kill $self ) | {gzip} >> {backup_path_db}"
 			)
 
 		else:
@@ -405,8 +406,10 @@ class BackupGenerator:
 				)
 
 			cmd_string = (
-				"{db_exc} --single-transaction --quick --lock-tables=false -u {user}"
-				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude}"
+				# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
+				"self=$$; "
+				" ( {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
+				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude} || kill $self ) "
 				" | {gzip} >> {backup_path_db}"
 			)
 
@@ -426,7 +429,7 @@ class BackupGenerator:
 		if self.verbose:
 			print(command.replace(args.password, "*" * 10) + "\n")
 
-		frappe.utils.execute_in_shell(command, low_priority=True)
+		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
 
 	def send_email(self):
 		"""

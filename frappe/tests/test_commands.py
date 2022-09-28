@@ -15,7 +15,7 @@ import frappe
 import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.utils import add_to_date, get_bench_relative_path, now
-from frappe.utils.backups import fetch_latest_backups
+from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 
 
 # TODO: check frappe.cli.coloured_output to set coloured output!
@@ -316,6 +316,19 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} partial-restore {path}", {"path": db_path})
 		self.assertEquals(self.returncode, 0)
 		self.assertEquals(frappe.db.count("ToDo"), todo_count)
+
+	def test_backup_fails_with_exit_code(self):
+		"""Provide incorrect options to check if exit code is 1"""
+		odb = BackupGenerator(
+			frappe.conf.db_name,
+			frappe.conf.db_name,
+			frappe.conf.db_password + "INCORRECT PASSWORD",
+			db_host=frappe.db.host,
+			db_port=frappe.db.port,
+			db_type=frappe.conf.db_type,
+		)
+		with self.assertRaises(Exception):
+			odb.take_dump()
 
 	def test_recorder(self):
 		frappe.recorder.stop()
