@@ -522,22 +522,21 @@ class Engine:
 		return replace_fields(replacements, fields)
 
 	def sanitize_fields(self, fields: str | list | tuple):
-		replacements = {}
-		if isinstance(fields, (list, tuple)):
-			fields = list(fields)
-			for idx, field in enumerate(fields):
-				if isinstance(field, str):
-					field = MARIADB_SPECIFIC_COMMENT.sub(
-						"", sqlparse.format(field, strip_comments=True, keyword_case="lower")
-					)
-					replacements[idx] = field
-			return replace_fields(replacements, fields)
+		is_mariadb = frappe.db.db_type == "mariadb"
 
-		else:
-			if isinstance(fields, str):
-				fields = MARIADB_SPECIFIC_COMMENT.sub(
-					"", sqlparse.format(fields, strip_comments=True, keyword_case="lower")
-				)
+		def _sanitize_field(field: str):
+			if not isinstance(field, str):
+				return field
+			stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
+			if is_mariadb:
+				return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
+			return stripped_field
+
+		if isinstance(fields, (list, tuple)):
+			return [_sanitize_field(field) for field in fields]
+		elif isinstance(fields, str):
+			return _sanitize_field(fields)
+
 		return fields
 
 	def set_fields(self, fields, **kwargs) -> list:
