@@ -5,7 +5,7 @@
 				<div class="tag-filters-area">
 					<div class="active-tag-filters">
 						<button class="btn btn-default btn-xs add-filter text-muted">
-							{{ translated_string("Add Filter") }}
+							{{ __("Add Filter") }}
 						</button>
 					</div>
 				</div>
@@ -82,15 +82,15 @@
 				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
 					<p>
 						<button class="btn btn-primary btn-sm btn-new-doc" @click="start()">
-							{{ translated_string("Start Recording") }}
+							{{ __("Start Recording") }}
 						</button>
 					</p>
-					<p>{{ translated_string("Recorder is Inactive.") }}</p>
-					<p>{{ translated_string("Start recording or drag & drop a previously exported data file to view it.") }}</p>
+					<p>{{ __("Recorder is Inactive.") }}</p>
+					<p>{{ __("Start recording or drag & drop a previously exported data file to view it.") }}</p>
 				</div>
 				<div class="msg-box no-border" v-if="status.status == 'Active'" >
-					<p>{{ translated_string("No Requests found") }}</p>
-					<p>{{ translated_string("Go make some noise") }}</p>
+					<p>{{ __("No Requests found") }}</p>
+					<p>{{ __("Go make some noise") }}</p>
 				</div>
 			</div>
 			<div v-else class="list-paging-area">
@@ -118,7 +118,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import { translated_string } from "./utils"
 
 // variables
 let router = ref(useRouter());

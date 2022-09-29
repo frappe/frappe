@@ -2,4 +2,7 @@ import { createApp } from "vue";
 import RecorderRoot from "./RecorderRoot.vue";
 import router from "./router.js";
 
-frappe.recorder.view = createApp(RecorderRoot).use(router).mount(".recorder-container");
+let app = createApp(RecorderRoot).use(router);
+SetVueGlobals(app);
+app.mount(".recorder-container");
+frappe.recorder.view = app;

@@ -1,7 +1,9 @@
 import "./jquery-bootstrap";
-import { createApp } from "vue";
 import "./lib/moment";
 import Sortable from "sortablejs";
 
-window.Vue = createApp;
+window.SetVueGlobals = (app) => {
+	app.config.globalProperties.__ = window.__;
+	app.config.globalProperties.frappe = window.frappe;
+};
 window.Sortable = Sortable;
