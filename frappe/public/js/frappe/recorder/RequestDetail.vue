@@ -191,9 +191,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { translated_string } from './utils'
+import { computed, onMounted, ref } from "vue"
+import { useRoute } from "vue-router"
+import { translated_string } from "./utils"
 
 // variables
 let route = ref(useRoute());
@@ -279,9 +279,9 @@ let pages = computed(() => {
 // Mounted
 onMounted(async () => {
 	frappe.breadcrumbs.add({
-		type: 'Custom',
-		label: __('Recorder'),
-		route: '/app/recorder'
+		type: "Custom",
+		label: __("Recorder"),
+		route: "/app/recorder"
 	});
 
 	const req = route.value.meta.request;

@@ -7,8 +7,8 @@
 </template>
 
 <script setup>
-import { watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { watch } from "vue"
+import { useRoute } from "vue-router"
 
 let route = useRoute();
 

@@ -116,14 +116,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { translated_string } from './utils'
+import { ref, computed, onMounted } from "vue"
+import { useRouter } from "vue-router"
+import { translated_string } from "./utils"
 
 // variables
 let router = ref(useRouter());
 let requests = ref([]);
-let page = frappe.pages['recorder'].page;
+let page = frappe.pages["recorder"].page;
 
 let columns = [
 	{label: __("Path"), slug: "path"},
@@ -154,7 +154,7 @@ let status = ref({
 frappe.recorder.router = router.value;
 let route = frappe.get_route();
 if (route[2]) {
-	router.value.push({name: 'RequestDetail', params: {id: route[2]}});
+	router.value.push({name: "RequestDetail", params: {id: route[2]}});
 }
 
 // Methods
@@ -229,7 +229,7 @@ function route_to_request_detail(request) {
 			to.meta.request = await request
 		}
 	});
-	router.value.push({name: 'RequestDetail', params: {id: request.uuid}});
+	router.value.push({name: "RequestDetail", params: {id: request.uuid}});
 }
 function export_data() {
 	if (!requests.value) {
@@ -238,11 +238,11 @@ function export_data() {
 	frappe.call("frappe.recorder.export_data")
 		.then((r) => {
 			const data = r.message;
-			const filename = `${data[0]['uuid']}..${data[data.length -1]['uuid']}.json`
+			const filename = `${data[0]["uuid"]}..${data[data.length -1]["uuid"]}.json`
 
-			const el = document.createElement('a');
-			el.setAttribute('href', 'data:application/json,' + encodeURIComponent(JSON.stringify(data)));
-			el.setAttribute('download', filename);
+			const el = document.createElement("a");
+			el.setAttribute("href", "data:application/json," + encodeURIComponent(JSON.stringify(data)));
+			el.setAttribute("download", filename);
 			el.click();
 		});
 }
@@ -254,7 +254,7 @@ function import_data(e) {
 	const request_file = e.dataTransfer.files[0];
 
 	const file_reader = new FileReader();
-	file_reader.readAsText(request_file, 'UTF-8');
+	file_reader.readAsText(request_file, "UTF-8");
 	file_reader.onload = ({target: {result}}) => {
 		requests.value = JSON.parse(result);
 	}
