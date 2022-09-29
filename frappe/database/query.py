@@ -550,6 +550,19 @@ class Engine:
 					updated_fields.append(Field(field))
 		return updated_fields
 
+	def get_string_fields(self, fields: str) -> Field:
+		if fields == "*":
+			return fields
+		if "`" in fields:
+			fields = PseudoColumn(fields)
+		if " as " in str(fields):
+			fields, reference = str(fields).split(" as ")
+			if "`" in str(fields):
+				fields = PseudoColumn(f"{fields} as {reference}")
+			else:
+				fields = Field(fields).as_(reference)
+		return fields
+
 	def set_fields(self, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		fields = self.sanitize_fields(fields)
@@ -576,19 +589,10 @@ class Engine:
 			is_list, is_str = True, False
 
 		if is_str:
-			if fields == "*":
-				return fields
-			if "`" in fields:
-				fields = PseudoColumn(fields)
-			if " as " in str(fields):
-				fields, reference = str(fields).split(" as ")
-				if "`" in str(fields):
-					fields = PseudoColumn(f"{fields} as {reference}")
-				else:
-					fields = Field(fields).as_(reference)
-
+			fields = self.get_string_fields(fields)
 		if not is_str and fields:
 			fields = self.get_list_fields(fields)
+
 		# Need to check instance again since fields modified.
 		if not isinstance(fields, (list, tuple, set)):
 			fields = [fields] if fields else []
