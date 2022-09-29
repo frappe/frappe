@@ -161,11 +161,7 @@
 		frappe.reference_doc = {{ reference_doc | json }};
 	</script>
 
-	<script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
-	<script>
-		Vue.prototype.__ = window.__;
-		Vue.prototype.frappe = window.frappe;
-	</script>
+	<script type="text/javascript" src="/assets/frappe/node_modules/vue"></script>
 
 	{{ include_script("web_form.bundle.js") }}
 
