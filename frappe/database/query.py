@@ -168,14 +168,6 @@ def table_from_string(table: str) -> "DocType":
 	return frappe.qb.DocType(table_name=table_name.replace("`", ""))
 
 
-def replace_fields(replacements: dict, fields: list | tuple) -> list:
-	"Helper function to avoid list mutations while iterating over Fields"
-	return [
-		field if fields.index(field) not in replacements else replacements[fields.index(field)]
-		for field in fields
-	]
-
-
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
 	"+": operator.add,
@@ -502,8 +494,8 @@ class Engine:
 	def get_fieldnames_from_child_table(self, doctype, fields):
 		# Hacky and flaky implementation of implicit joins.
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
-		replacements = {}
-		for idx, field in enumerate(fields, start=0):
+		_fields = []
+		for field in fields:
 			if "." in field and "tab" not in field:
 				alias = None
 				if " as " in field:
@@ -517,9 +509,9 @@ class Engine:
 				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
-				replacements[idx] = field
+				_fields.append(field)
 
-		return replace_fields(replacements, fields)
+			return _fields
 
 	def sanitize_fields(self, fields: str | list | tuple):
 		is_mariadb = frappe.db.db_type == "mariadb"
@@ -538,6 +530,25 @@ class Engine:
 			return _sanitize_field(fields)
 
 		return fields
+
+	def get_list_fields(self, fields: list) -> list:
+		updated_fields = []
+		if issubclass(type(fields), Criterion) or "*" in fields:
+			return fields
+		# fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
+		for field in fields:
+			if not isinstance(field, Criterion) and field:
+				if " as " in field:
+					field, reference = field.split(" as ")
+					if "`" in field:
+						updated_fields.append(PseudoColumn(f"{field} as {reference}"))
+					else:
+						updated_fields.append(Field(field.strip()).as_(reference))
+				elif "`" in str(field):
+					updated_fields.append(PseudoColumn(field.strip()))
+				else:
+					updated_fields.append(Field(field))
+		return updated_fields
 
 	def set_fields(self, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
@@ -577,28 +588,7 @@ class Engine:
 					fields = Field(fields).as_(reference)
 
 		if not is_str and fields:
-			if issubclass(type(fields), Criterion):
-				return fields
-			updated_fields = []
-			if "*" in fields:
-				return fields
-			# fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
-			for field in fields:
-				if not isinstance(field, Criterion) and field:
-					if " as " in field:
-						field, reference = field.split(" as ")
-						if "`" in field:
-							updated_fields.append(PseudoColumn(f"{field} as {reference}"))
-						else:
-							updated_fields.append(Field(field.strip()).as_(reference))
-
-					elif "`" in str(field):
-						updated_fields.append(PseudoColumn(field.strip()))
-					else:
-						updated_fields.append(Field(field))
-
-			fields = updated_fields
-
+			fields = self.get_list_fields(fields)
 		# Need to check instance again since fields modified.
 		if not isinstance(fields, (list, tuple, set)):
 			fields = [fields] if fields else []
@@ -609,7 +599,6 @@ class Engine:
 	def join_(self, criterion, fields, table, join):
 		"""Handles all join operations on criterion objects"""
 		has_join = False
-		replacements = {}
 		if not isinstance(fields, Criterion):
 			for field in fields:
 				# Only perform this bit if foreign doctype in fields
@@ -630,14 +619,17 @@ class Engine:
 					has_join = True
 
 			if has_join:
-				for idx, field in enumerate(fields):
+
+				def _update_pypika_fields(field):
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
 						if not TABLE_PATTERN.search(str(field)):
-							replacements[idx] = getattr(frappe.qb.DocType(table), field)
+							return getattr(frappe.qb.DocType(table), field)
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-						replacements[idx] = field
+						return field
+
+				fields = [_update_pypika_fields(field) for field in fields]
 
 		if len(self.tables) > 1:
 			primary_table = self.tables.pop(table)
@@ -647,10 +639,7 @@ class Engine:
 				)
 				has_join = True
 
-		if not isinstance(fields, Criterion):
-			return criterion, replace_fields(replacements, fields)
-		else:
-			return criterion, fields
+		return criterion, fields
 
 	def get_query(
 		self,
