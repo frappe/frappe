@@ -391,7 +391,7 @@ def unesc(s, esc_chars):
 	return s
 
 
-def execute_in_shell(cmd, verbose=0, low_priority=False):
+def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False):
 	# using Popen instead of os.system - as recommended by python docs
 	import tempfile
 	from subprocess import Popen
@@ -404,7 +404,7 @@ def execute_in_shell(cmd, verbose=0, low_priority=False):
 				kwargs["preexec_fn"] = lambda: os.nice(10)
 
 			p = Popen(cmd, **kwargs)
-			p.wait()
+			exit_code = p.wait()
 
 			stdout.seek(0)
 			out = stdout.read()
@@ -412,11 +412,16 @@ def execute_in_shell(cmd, verbose=0, low_priority=False):
 			stderr.seek(0)
 			err = stderr.read()
 
-	if verbose:
+	failed = check_exit_code and exit_code
+
+	if verbose or failed:
 		if err:
 			print(err)
 		if out:
 			print(out)
+
+	if failed:
+		raise Exception("Command failed")
 
 	return err, out
 
