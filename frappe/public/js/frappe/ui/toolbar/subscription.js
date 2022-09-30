@@ -38,7 +38,6 @@ $(document).on("startup", async () => {
 });
 
 function redirectToUrl() {
-	console.log('executing');
 	frappe.call({
 		method: "frappe.utils.subscription.remote_login",
 		callback: (url) => {
