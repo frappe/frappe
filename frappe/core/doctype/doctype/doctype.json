@@ -86,7 +86,7 @@
   "advanced",
   "engine",
   "migration_hash",
-  "bg_submit"
+  "submit_in_background"
  ],
  "fields": [
   {
@@ -609,9 +609,9 @@
   },
   {
    "default": "0",
-   "fieldname": "bg_submit",
+   "fieldname": "submit_in_background",
    "fieldtype": "Check",
-   "label": "BgSubmit"
+   "label": "Submit in background"
   }
  ],
  "icon": "fa fa-bolt",
@@ -694,7 +694,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-09-24 11:10:26.020900",
+ "modified": "2022-09-30 19:18:02.789866",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
