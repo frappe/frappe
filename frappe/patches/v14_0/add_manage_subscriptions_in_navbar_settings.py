@@ -17,6 +17,7 @@ def execute():
 			"item_type": "Action",
 			"action": "frappe.ui.toolbar.redirectToUrl()",
 			"is_standard": 1,
+			"hidden": 1,
 			"idx": 3,
 		},
 	)
