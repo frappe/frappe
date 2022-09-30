@@ -191,7 +191,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		await Promise.all(fields.map((f) => {
 			return new Promise((resolve) => {
 				const df = typeof f === "string" ? frappe.meta.get_docfield(this.doctype, f) : f;
-				if (df && df.fieldtype == "Link") {
+				if (df && df.fieldtype == "Link" && frappe.boot.link_title_doctypes.includes(df.options)) {
 					frappe.model.with_doctype(df.options, () => {
 						const meta = frappe.get_meta(df.options);
 						if (meta.show_title_field_in_link) {
