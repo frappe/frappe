@@ -301,6 +301,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				where table_name="{table_name}"
 					and column_name=columns.column_name
 					and NON_UNIQUE=1
+					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique'
