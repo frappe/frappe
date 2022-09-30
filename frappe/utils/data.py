@@ -45,6 +45,7 @@ URL_NOTATION_PATTERN = re.compile(
 )  # background-image: url('/assets/...')
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 HTML_TAG_PATTERN = re.compile("<[^>]+>")
+MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
 
 
 class Weekday(Enum):
@@ -72,7 +73,9 @@ def is_invalid_date_string(date_string: str) -> bool:
 	)
 
 
-def getdate(string_date: Optional["DateTimeLikeObject"] = None) -> datetime.date | None:
+def getdate(
+	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
+) -> datetime.date | None:
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
@@ -91,7 +94,7 @@ def getdate(string_date: Optional["DateTimeLikeObject"] = None) -> datetime.date
 	if is_invalid_date_string(string_date):
 		return None
 	try:
-		return parser.parse(string_date).date()
+		return parser.parse(string_date, dayfirst=parse_day_first).date()
 	except ParserError:
 		frappe.throw(
 			frappe._("{} is not a valid date string.").format(frappe.bold(string_date)),
@@ -548,7 +551,9 @@ def get_user_time_format() -> str:
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(string_date=None, format_string: str | None = None) -> str:
+def format_date(
+	string_date=None, format_string: str | None = None, parse_day_first: bool = False
+) -> str:
 	"""Converts the given string date to :data:`user_date_format`
 	User format specified in defaults
 
@@ -564,7 +569,7 @@ def format_date(string_date=None, format_string: str | None = None) -> str:
 	if not string_date:
 		return ""
 
-	date = getdate(string_date)
+	date = getdate(string_date, parse_day_first)
 	if not format_string:
 		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM").replace("Y", "y")
@@ -1823,8 +1828,11 @@ def sanitize_column(column_name: str) -> None:
 
 	from frappe import _
 
-	regex = re.compile("^.*[,'();].*")
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
+	if frappe.db and frappe.db.db_type == "mariadb":
+		# strip mariadb specific comments which are like python single line comments
+		column_name = MARIADB_SPECIFIC_COMMENT.sub("", column_name)
+
 	blacklisted_keywords = [
 		"select",
 		"create",
@@ -1840,6 +1848,7 @@ def sanitize_column(column_name: str) -> None:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
+	regex = re.compile("^.*[,'();].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or

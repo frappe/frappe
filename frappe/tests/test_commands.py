@@ -31,7 +31,7 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
-from frappe.utils.backups import fetch_latest_backups
+from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
 
 _result: Result | None = None
@@ -413,6 +413,14 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
+		frappe.db.commit()
+
+		# Reset it back to original password
+		original_password = frappe.conf.admin_password or "admin"
+		self.execute("bench --site {site} set-admin-password %s" % original_password)
+		self.assertEqual(self.returncode, 0)
+		self.assertEqual(check_password("Administrator", original_password), "Administrator")
+		frappe.db.commit()
 
 	@skipIf(
 		not (
@@ -506,6 +514,19 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertIn("successfully completed", self.stdout)
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
+
+	def test_backup_fails_with_exit_code(self):
+		"""Provide incorrect options to check if exit code is 1"""
+		odb = BackupGenerator(
+			frappe.conf.db_name,
+			frappe.conf.db_name,
+			frappe.conf.db_password + "INCORRECT PASSWORD",
+			db_host=frappe.db.host,
+			db_port=frappe.db.port,
+			db_type=frappe.conf.db_type,
+		)
+		with self.assertRaises(Exception):
+			odb.take_dump()
 
 	def test_backup_with_files(self):
 		"""Take a backup with files (--with-files)"""
