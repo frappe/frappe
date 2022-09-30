@@ -26,7 +26,7 @@ export default class QuickListWidget extends Widget {
 
 	setup_add_new_button() {
 		this.add_new_button = $(
-			`<div class="add-new btn btn-xs pull-right" 
+			`<div class="add-new btn btn-xs pull-right"
 			title="${__("Add New")}  ${__(this.document_type)}
 			">
 				${frappe.utils.icon("add", "sm")}
