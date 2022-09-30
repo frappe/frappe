@@ -171,11 +171,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_fields() {
-		return super.get_fields().concat(Object.entries(this.link_field_title_fields || {}).map((entry) => entry.join(".") + ' as ' + entry.join("_")))
+		return super.get_fields().concat(Object.entries(this.link_field_title_fields || {}).map((entry) => entry.join(".") + ' as ' + entry.join("_")));
 	}
 
 	async set_fields() {
-		this.link_field_title_fields = {}
+		this.link_field_title_fields = {};
 		let fields = [].concat(
 			frappe.model.std_fields_list,
 			this.get_fields_in_list_view(),
@@ -193,20 +193,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				const df = typeof f === "string" ? frappe.meta.get_docfield(this.doctype, f) : f;
 				if (df && df.fieldtype == "Link") {
 					frappe.model.with_doctype(df.options, () => {
-						const meta = frappe.get_meta(df.options)
+						const meta = frappe.get_meta(df.options);
 						if (meta.show_title_field_in_link) {
-							this.link_field_title_fields[typeof f === "string"  ? f : f.fieldname] = meta.title_field
+							this.link_field_title_fields[typeof f === "string"  ? f : f.fieldname] = meta.title_field;
 						}
 
-						this._add_field(f)
-						resolve()
-					})
+						this._add_field(f);
+						resolve();
+					});
 				} else {
-					this._add_field(f)
-					resolve()
+					this._add_field(f);
+					resolve();
 				}
-			})
-		}))
+			});
+		}));
 
 		this.fields.forEach((f) => {
 			const df = frappe.meta.get_docfield(f[1], f[0]);
@@ -714,9 +714,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const df = col.df || {};
 		const label = df.label;
 		const fieldname = df.fieldname;
-		const link_title_fieldname = this.link_field_title_fields[fieldname]
+		const link_title_fieldname = this.link_field_title_fields[fieldname];
 		const value = doc[fieldname] || "";
-		const value_display = link_title_fieldname ? doc[fieldname + '_' + link_title_fieldname] || value : value
+		const value_display = link_title_fieldname ? doc[fieldname + '_' + link_title_fieldname] || value : value;
 		const format = () => {
 			if (df.fieldtype === "Code") {
 				return value;
