@@ -588,7 +588,7 @@ class DatabaseQuery(object):
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
 
-			if f.operator in (">", "<") and (f.fieldname in ("creation", "modified")):
+			if f.operator in (">", "<", ">=", "<=") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
 				fallback = "NULL"
 
