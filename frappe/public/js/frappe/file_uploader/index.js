@@ -55,6 +55,8 @@ export default class FileUploader {
 
 		if (!this.dialog) {
 			this.uploader.wrapper_ready = true;
+		} else {
+			this.dialog.show();
 		}
 
 		this.uploader.$watch(
@@ -118,7 +120,6 @@ export default class FileUploader {
 		});
 
 		this.wrapper = this.dialog.body;
-		this.dialog.show();
 		this.dialog.$wrapper.on("hidden.bs.modal", function () {
 			$(this).data("bs.modal", null);
 			$(this).remove();
