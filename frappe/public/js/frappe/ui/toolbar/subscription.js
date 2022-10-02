@@ -1,16 +1,19 @@
 $(document).on("startup", async () => {
-	let response = await frappe.call({
-		method: "frappe.utils.subscription.show_banner",
-		callback: (response) => response,
-	});
+	let response = await frappe.xcall("frappe.utils.subscription.show_banner");
 
-	if (response.message !== false && frappe.boot.setup_complete) {
+	if (
+		response.length > 0 &&
+		frappe.boot.setup_complete &&
+		frappe.user.has_role("System Manager")
+	) {
 		let diff_days =
-			frappe.datetime.get_day_diff(cstr(response.message), frappe.datetime.get_today()) - 1;
+			frappe.datetime.get_day_diff(cstr(response), frappe.datetime.get_today()) - 1;
 
-		let subscription_string = `Your subscription will end in ${cstr(diff_days).bold()} ${
-			diff_days > 1 ? "days" : "day"
-		}. After that your site will be suspended.`;
+		let subscription_string = __(
+			`Your subscription will end in ${cstr(diff_days).bold()} ${
+				diff_days > 1 ? "days" : "day"
+			}. After that your site will be suspended.`
+		);
 
 		let $bar = $(`
 		<div
