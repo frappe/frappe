@@ -1,11 +1,11 @@
 $(document).on("startup", async () => {
+	if (!frappe.boot.setup_complete || !frappe.user.has_role("System Manager")) {
+		return;
+	}
+
 	let response = await frappe.xcall("frappe.utils.subscription.show_banner");
 
-	if (
-		response.length > 0 &&
-		frappe.boot.setup_complete &&
-		frappe.user.has_role("System Manager")
-	) {
+	if (response.length > 0) {
 		let diff_days =
 			frappe.datetime.get_day_diff(cstr(response), frappe.datetime.get_today()) - 1;
 
