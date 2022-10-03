@@ -449,7 +449,7 @@ class ImportFile:
 				continue
 
 			if not header:
-				header = Header(i, row, self.doctype, self.raw_data, self.column_to_field_map)
+				header = Header(i, row, self.doctype, self.raw_data[1:], self.column_to_field_map)
 			else:
 				row_obj = Row(i, row, self.doctype, header, self.import_type)
 				data.append(row_obj)
@@ -981,9 +981,12 @@ class Column:
 		if self.skip_import:
 			return
 
+		if not any(self.column_values):
+			return
+
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
-			values = list({cstr(v) for v in self.column_values[1:] if v})
+			values = list({cstr(v) for v in self.column_values if v})
 			exists = [
 				cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
 			]
@@ -1022,7 +1025,7 @@ class Column:
 		elif self.df.fieldtype == "Select":
 			options = get_select_options(self.df)
 			if options:
-				values = {cstr(v) for v in self.column_values[1:] if v}
+				values = {cstr(v) for v in self.column_values if v}
 				invalid = values - set(options)
 				if invalid:
 					valid_values = ", ".join(frappe.bold(o) for o in options)
