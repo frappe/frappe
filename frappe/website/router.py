@@ -5,7 +5,8 @@ import io
 import os
 import re
 
-from werkzeug.routing import Map, NotFound, Rule
+from werkzeug.exceptions import NotFound
+from werkzeug.routing import Map, Rule
 
 import frappe
 from frappe.website.utils import extract_title, get_frontmatter

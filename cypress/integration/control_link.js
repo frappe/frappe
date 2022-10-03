@@ -177,14 +177,14 @@ context("Control Link", () => {
 			cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
 
 			cy.get(".frappe-control[data-fieldname=assigned_by] input").focus().as("input");
-			cy.get("@input").type("Administrator", { delay: 100 }).blur();
+			cy.get("@input").type(cy.config("testUser"), { delay: 100 }).blur();
 			cy.wait("@validate_link");
 			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
 				"contain",
-				"Administrator"
+				"Frappe"
 			);
 
-			cy.window().its("cur_frm.doc.assigned_by").should("eq", "Administrator");
+			cy.window().its("cur_frm.doc.assigned_by").should("eq", cy.config("testUser"));
 
 			// invalid input
 			cy.get("@input").clear().type("invalid input", { delay: 100 }).blur();
@@ -198,10 +198,10 @@ context("Control Link", () => {
 			// set valid value again
 			cy.get("@input").clear().focus();
 			cy.wait("@search_link");
-			cy.get("@input").type("Administrator", { delay: 100 }).blur();
+			cy.get("@input").type(cy.config("testUser"), { delay: 100 }).blur();
 			cy.wait("@validate_link");
 
-			cy.window().its("cur_frm.doc.assigned_by").should("eq", "Administrator");
+			cy.window().its("cur_frm.doc.assigned_by").should("eq", cy.config("testUser"));
 
 			// clear input
 			cy.get("@input").clear().blur();

@@ -111,15 +111,15 @@ function get_redis_subscriber(kind) {
 	let retry_strategy;
 	let { get_redis_subscriber: get_redis, get_conf } = require("../node_utils");
 
-	if (process.env.CI == 1 || get_conf().developer_mode == 1) {
+	if (process.env.CI == 1 || get_conf().developer_mode == 0) {
 		retry_strategy = () => {};
 	} else {
 		retry_strategy = function (options) {
-			// abort after 10 connection attempts
-			if (options.attempt > 10) {
+			// abort after 5 x 3 connection attempts ~= 3 seconds
+			if (options.attempt > 4) {
 				return undefined;
 			}
-			return Math.min(options.attempt * 100, 2000);
+			return options.attempt * 100;
 		};
 	}
 	return get_redis(kind, { retry_strategy });

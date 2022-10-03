@@ -237,6 +237,31 @@ def validate_loop(doctype, name, lft, rgt):
 		frappe.throw(_("Item cannot be added to its own descendents"), NestedSetRecursionError)
 
 
+def remove_subtree(doctype: str, name: str, throw=True):
+	"""Remove doc and all its children.
+
+	WARN: This does not run any controller hooks for deletion and deletes them with raw SQL query.
+	"""
+	frappe.has_permission(doctype, ptype="delete", throw=throw)
+
+	# Determine the `lft` and `rgt` of the subtree to be removed.
+	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
+
+	# Delete the subtree by removing all nodes whose values for `lft` and `rgt`
+	# lie within above values or match them.
+	frappe.db.delete(doctype, {"lft": (">=", lft), "rgt": ("<=", rgt)})
+
+	# The width of the subtree is calculated as the difference between `rgt` and
+	# `lft` plus 1.
+	width = rgt - lft + 1
+
+	# All `lft` and `rgt` values, that are greater than the `rgt` of the removed
+	# subtree, must be reduced by the width of the subtree.
+	table = frappe.qb.DocType(doctype)
+	frappe.qb.update(table).set(table.lft, table.lft - width).where(table.lft > rgt).run()
+	frappe.qb.update(table).set(table.rgt, table.rgt - width).where(table.rgt > rgt).run()
+
+
 class NestedSet(Document):
 	def __setup__(self):
 		if self.meta.get("nsm_parent_field"):
@@ -247,11 +272,17 @@ class NestedSet(Document):
 		self.validate_ledger()
 
 	def on_trash(self, allow_root_deletion=False):
+		"""
+		Runs on deletion of a document/node
+
+		:param allow_root_deletion: used for allowing root document deletion (DEPRECATED)
+		"""
+
 		if not getattr(self, "nsm_parent_field", None):
 			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 
 		parent = self.get(self.nsm_parent_field)
-		if not parent and not allow_root_deletion:
+		if not parent and not getattr(self, "allow_root_deletion", True):
 			frappe.throw(_("Root {0} cannot be deleted").format(_(self.doctype)))
 
 		# cannot delete non-empty group

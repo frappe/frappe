@@ -2,11 +2,10 @@
 # License: MIT. See LICENSE
 
 import json
-import os
 
 import frappe
 from frappe.geo.country_info import get_country_info
-from frappe.translate import get_dict, send_translations, set_default_language
+from frappe.translate import get_messages_for_boot, send_translations, set_default_language
 from frappe.utils import cint, strip
 from frappe.utils.password import update_password
 
@@ -290,15 +289,7 @@ def load_messages(language):
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))
 	frappe.db.commit()
-	m = get_dict("page", "setup-wizard")
-
-	for path in frappe.get_hooks("setup_wizard_requires"):
-		# common folder `assets` served from `sites/`
-		js_file_path = os.path.abspath(frappe.get_site_path("..", *path.strip("/").split("/")))
-		m.update(get_dict("jsfile", js_file_path))
-
-	m.update(get_dict("boot"))
-	send_translations(m)
+	send_translations(get_messages_for_boot())
 	return frappe.local.lang
 
 

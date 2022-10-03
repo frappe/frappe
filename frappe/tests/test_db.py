@@ -460,6 +460,14 @@ class TestDB(FrappeTestCase):
 			# recover transaction to continue other tests
 			raise Exception
 
+	def test_read_only_errors(self):
+		frappe.db.rollback()
+		frappe.db.begin(read_only=True)
+		self.addCleanup(frappe.db.rollback)
+
+		with self.assertRaises(frappe.InReadOnlyMode):
+			frappe.db.set_value("User", "Administrator", "full_name", "Haxor")
+
 	def test_exists(self):
 		dt, dn = "User", "Administrator"
 		self.assertEqual(frappe.db.exists(dt, dn, cache=True), dn)

@@ -191,6 +191,7 @@ def get_website_settings(context=None):
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
 
+	context.read_only_mode = frappe.flags.read_only
 	context.boot = get_boot_data()
 
 	return context
@@ -218,7 +219,7 @@ def modify_header_footer_items(items: list):
 				continue
 
 			if not top_bar_item.get("child_items"):
-				top_bar_item["child_items"] = []
+				top_bar_item.child_items = []
 
 			top_bar_item.child_items.append(item)
 			break

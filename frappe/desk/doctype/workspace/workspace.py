@@ -42,7 +42,10 @@ class Workspace(Document):
 			self.name = doc.name = doc.label = doc.title
 
 	def after_delete(self):
-		if self.module:
+		if disable_saving_as_public():
+			return
+
+		if self.module and frappe.conf.developer_mode:
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
@@ -135,6 +138,7 @@ class Workspace(Document):
 def disable_saving_as_public():
 	return (
 		frappe.flags.in_install
+		or frappe.flags.in_uninstall
 		or frappe.flags.in_patch
 		or frappe.flags.in_test
 		or frappe.flags.in_fixtures
@@ -262,6 +266,7 @@ def duplicate_page(page_name, new_page):
 	doc.public = new_page.get("is_public")
 	doc.for_user = ""
 	doc.label = doc.title
+	doc.module = ""
 	if not doc.public:
 		doc.for_user = doc.for_user or frappe.session.user
 		doc.label = f"{doc.title}-{doc.for_user}"

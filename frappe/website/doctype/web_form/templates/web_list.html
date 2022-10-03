@@ -29,10 +29,7 @@
 		frappe.web_form_doc = {{ web_form_doc | json }};
 	</script>
 
-	{{ include_script("controls.bundle.js") }}
-	{{ include_script("dialog.bundle.js") }}
 	{{ include_script("web_form.bundle.js") }}
-	{{ include_script("bootstrap-4-web.bundle.js") }}
 {% endblock script %}
 
 {% block style %}

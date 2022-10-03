@@ -2,6 +2,8 @@ import frappe
 from frappe import _
 from frappe.utils import add_to_date, now
 
+UI_TEST_USER = "frappe@example.com"
+
 
 @frappe.whitelist()
 def create_if_not_exists(doc):
@@ -38,8 +40,7 @@ def create_if_not_exists(doc):
 
 @frappe.whitelist()
 def create_todo_records():
-	if frappe.get_all("ToDo", {"description": "this is first todo"}):
-		return
+	frappe.db.truncate("ToDo")
 
 	frappe.get_doc(
 		{"doctype": "ToDo", "date": add_to_date(now(), days=7), "description": "this is first todo"}
@@ -53,6 +54,15 @@ def create_todo_records():
 	frappe.get_doc(
 		{"doctype": "ToDo", "date": add_to_date(now(), months=-2), "description": "this is fourth todo"}
 	).insert()
+
+
+@frappe.whitelist()
+def clear_notes():
+	if not frappe.local.dev_server:
+		frappe.throw(_("Not allowed"), frappe.PermissionError)
+
+	for note in frappe.get_all("Note", pluck="name"):
+		frappe.delete_doc("Note", note, force=True)
 
 
 @frappe.whitelist()
@@ -367,3 +377,57 @@ def insert_translations():
 	for doc in translation:
 		if not frappe.db.exists("doc"):
 			frappe.get_doc(doc).insert()
+
+
+@frappe.whitelist()
+def create_blog_post():
+
+	blog_category = frappe.get_doc(
+		{"name": "general", "doctype": "Blog Category", "title": "general"}
+	).insert(ignore_if_duplicate=True)
+
+	blogger = frappe.get_doc(
+		{
+			"name": "attachment blogger",
+			"doctype": "Blogger",
+			"full_name": "attachment blogger",
+			"short_name": "attachment blogger",
+		}
+	).insert(ignore_if_duplicate=True)
+
+	doc = frappe.get_doc(
+		{
+			"name": "test-blog-attachment-post",
+			"doctype": "Blog Post",
+			"title": "test-blog-attachment-post",
+			"blog_category": blog_category.name,
+			"blogger": blogger.name,
+			"content_type": "Rich Text",
+		},
+	).insert(ignore_if_duplicate=True)
+
+	return doc
+
+
+def create_test_user():
+	if frappe.db.exists("User", UI_TEST_USER):
+		return
+
+	user = frappe.new_doc("User")
+	user.email = UI_TEST_USER
+	user.first_name = "Frappe"
+	user.new_password = frappe.local.conf.admin_password
+	user.send_welcome_email = 0
+	user.time_zone = "Asia/Kolkata"
+	user.flags.ignore_password_policy = True
+	user.insert(ignore_if_duplicate=True)
+
+	user.reload()
+
+	blocked_roles = {"Administrator", "Guest", "All"}
+	all_roles = set(frappe.get_all("Role", pluck="name"))
+
+	for role in all_roles - blocked_roles:
+		user.append("roles", {"role": role})
+
+	user.save()

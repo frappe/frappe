@@ -68,9 +68,10 @@ context("Workspace Blocks", () => {
 
 		cy.intercept({
 			method: "GET",
-			url: "api/method/frappe.desk.form.load.getdoctype",
+			url: "api/method/frappe.desk.form.load.getdoctype?**",
 		}).as("get_doctype");
 
+		cy.visit("/app/tools");
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
 

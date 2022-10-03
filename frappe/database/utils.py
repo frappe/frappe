@@ -1,11 +1,16 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import typing
 from functools import cached_property
 from types import NoneType
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.functions import Function
+
+if typing.TYPE_CHECKING:
+	from frappe.query_builder import DocType
 
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | NoneType
@@ -16,6 +21,10 @@ FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
 
 def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
+
+
+def is_pypika_function_object(field: str) -> bool:
+	return getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
 
 
 class LazyString:
