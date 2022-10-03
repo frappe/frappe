@@ -17,7 +17,7 @@ def savedocs(doc, action):
 	# action
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 	if doc.docstatus == 1:
-		if doc.meta.submit_in_background and doc.meta.is_submittable:
+		if doc.meta.submit_in_background:
 			doc.queue_action("submit", timeout=4000)
 		else:
 			doc.submit()
