@@ -14,7 +14,7 @@ module.exports = {
 				let dir = path.dirname(out.path);
 				if (out.path.endsWith(".js") && keys.includes(asset_path)) {
 					let bundle_css = files[asset_path];
-					let include_css = '\nfrappe.require("' + bundle_css + '");\n';
+					let include_css = '\nfrappe.require("' + bundle_css + '", null, true);\n';
 					let modified = include_css + out.text;
 					out.contents = Buffer.from(modified);
 				}

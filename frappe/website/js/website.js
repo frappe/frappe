@@ -13,11 +13,22 @@ $.extend(frappe, {
 		lang: "en",
 	},
 	_assets_loaded: [],
-	require: async function (links, callback) {
+	require: async function (links, callback, from_assets_json = false) {
 		if (typeof links === "string") {
 			links = [links];
 		}
 		for (let link of links) {
+			if (from_assets_json) {
+				if (frappe.boot.assets_json) {
+					link = frappe.boot.assets_json[link];
+				} else {
+					let r = await frappe.call("frappe.sessions.get_boot_assets_json");
+					if (r.message) {
+						frappe.boot.assets_json = r.message;
+						link = frappe.boot.assets_json[link];
+					}
+				}
+			}
 			await this.add_asset_to_head(link);
 		}
 		callback && callback();
