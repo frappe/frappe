@@ -15,7 +15,7 @@ frappe.dashboard_utils = {
 			let chart_filter_html = `<div class="${button_class} ${filter_class} btn-group dropdown pull-right">
 					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<button class="btn btn-secondary btn-xs">
-			 				${icon_html}
+							${icon_html}
 							<span class="filter-label">${__(filter.label)}</span>
 							${frappe.utils.icon("select", "xs")}
 						</button>
@@ -26,16 +26,21 @@ frappe.dashboard_utils = {
 				options_html = filter.options
 					.map(
 						(option, i) =>
-							// TODO: Make option translatable - be careful, since the text of the a tag is later used to perform some action
 							`<li>
-						<a class="dropdown-item" data-fieldname="${filter.fieldnames[i]}">${option}</a>
+						<a class="dropdown-item" data-fieldname="${
+							filter.fieldnames[i]
+						}" data-option="${encodeURIComponent(option)}">${__(option)}</a>
 					</li>`
 					)
 					.join("");
 			} else {
-				// TODO: Make option translatable - be careful, since the text of the a tag is later used to perform some action
 				options_html = filter.options
-					.map((option) => `<li><a class="dropdown-item">${option}</a></li>`)
+					.map(
+						(option) =>
+							`<li><a class="dropdown-item" data-option="${encodeURIComponent(
+								option
+							)}">${__(option)}</a></li>`
+					)
 					.join("");
 			}
 
@@ -54,8 +59,8 @@ frappe.dashboard_utils = {
 					fieldname = $el.attr("data-fieldname");
 				}
 
-				let selected_item = $el.text();
-				$el.parents(`.${button_class}`).find(".filter-label").text(selected_item);
+				let selected_item = decodeURIComponent($el.data("option"));
+				$el.parents(`.${button_class}`).find(".filter-label").html(__(selected_item));
 				filter.action(selected_item, fieldname);
 			});
 		});
