@@ -3,11 +3,11 @@ $(document).on("startup", async () => {
 		return;
 	}
 
-	let response = await frappe.xcall("frappe.utils.subscription.show_banner");
+	const expiry = frappe.boot.subscription_expiry;
 
-	if (response.length > 0) {
+	if (expiry) {
 		let diff_days =
-			frappe.datetime.get_day_diff(cstr(response), frappe.datetime.get_today()) - 1;
+			frappe.datetime.get_day_diff(cstr(expiry), frappe.datetime.get_today()) - 1;
 
 		let subscription_string = __(
 			`Your subscription will end in ${cstr(diff_days).bold()} ${
