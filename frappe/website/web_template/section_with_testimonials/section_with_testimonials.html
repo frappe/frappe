@@ -2,18 +2,18 @@
 
 <div class="section-with-features">
 	{%- if title -%}
-	<h2 class="section-title">{{ title }}</h2>
+	<h2 class="section-title" wt-fieldname="title">{{ title }}</h2>
 	{%- endif -%}
 	{%- if subtitle -%}
-	<p class="section-description">{{ subtitle }}</p>
+	<p class="section-description" wt-fieldname="subtitle">{{ subtitle }}</p>
 	{%- endif -%}
 
 	<div class="section-features" data-columns="{{ columns or 3 }}">
 		{%- for testimonial in testimonials -%}
-		<div class="section-feature">
+		<div class="section-feature"  wt-table-fieldname="testimonials" wt-type="Table" wt-row-idx="{{ loop.index0 }}">
 			<div>
 				{%- if testimonial.content -%}
-				<p class="feature-content">{{ testimonial.content }}</p>
+				<p class="feature-content"  wt-fieldname="content">{{ testimonial.content }}</p>
 				{%- endif -%}
 			</div>
 			<div class="testimonial-author">

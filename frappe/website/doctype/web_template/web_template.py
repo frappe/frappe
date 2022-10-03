@@ -111,3 +111,32 @@ class WebTemplate(Document):
 		template = self.get_template(self.standard)
 
 		return frappe.render_template(template, values)
+
+	def render_block(self, block):
+		rendered_html = frappe.render_template(
+			"templates/includes/web_block.html",
+			context={
+				"web_block": block,
+				"web_template_html": self.render(block.web_template_values),
+				"web_template_type": self.type,
+			},
+		)
+		return extract_script_and_style_tags(rendered_html)
+
+
+def extract_script_and_style_tags(html):
+	from bs4 import BeautifulSoup
+
+	soup = BeautifulSoup(html, "html.parser")
+	scripts = []
+	styles = []
+
+	for script in soup.find_all("script"):
+		scripts.append(script.string)
+		script.extract()
+
+	for style in soup.find_all("style"):
+		styles.append(style.string)
+		style.extract()
+
+	return str(soup), scripts, styles

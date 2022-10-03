@@ -1,13 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
 import re
 
 from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
-from frappe.utils import get_datetime, now, quoted, strip_html
+from frappe.utils import get_datetime, now, quoted, strip_html, to_markdown
 from frappe.utils.jinja import render_template
 from frappe.utils.safe_exec import safe_exec
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
@@ -210,15 +211,7 @@ def get_web_blocks_html(blocks):
 	extracted_styles = {}
 	for block in blocks:
 		web_template = frappe.get_cached_doc("Web Template", block.web_template)
-		rendered_html = frappe.render_template(
-			"templates/includes/web_block.html",
-			context={
-				"web_block": block,
-				"web_template_html": web_template.render(block.web_template_values),
-				"web_template_type": web_template.type,
-			},
-		)
-		html, scripts, styles = extract_script_and_style_tags(rendered_html)
+		html, scripts, styles = web_template.render_block(block)
 		out.html += html
 		if block.web_template not in extracted_scripts:
 			extracted_scripts.setdefault(block.web_template, [])
@@ -232,21 +225,3 @@ def get_web_blocks_html(blocks):
 	out.styles = extracted_styles
 
 	return out
-
-
-def extract_script_and_style_tags(html):
-	from bs4 import BeautifulSoup
-
-	soup = BeautifulSoup(html, "html.parser")
-	scripts = []
-	styles = []
-
-	for script in soup.find_all("script"):
-		scripts.append(script.string)
-		script.extract()
-
-	for style in soup.find_all("style"):
-		styles.append(style.string)
-		style.extract()
-
-	return str(soup), scripts, styles

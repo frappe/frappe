@@ -1,4 +1,4 @@
-{%- macro card(title, content, url, image) -%}
+{%- macro card(title, content, url, image, index) -%}
 {%- set col_classes = resolve_class({
 	'col-12 col-sm-6 col-lg-3': card_size == 'Small',
 	'col-12 col-sm-6 col-lg-4': card_size == 'Medium',
@@ -18,8 +18,8 @@
 		}) }}
 		{%- endif -%}
 		<div class="card-body">
-			<h3 class="card-title mt-0">{{ title or '' }}</h3>
-			<p class="card-text">{{ content or '' }}</p>
+			<h3 class="card-title mt-0" wt-fieldname="card_{{ index }}_title">{{ title or '' }}</h3>
+			<p class="card-text" wt-fieldname="card_{{ index }}_content">{{ content or '' }}</p>
 		</div>
 		<a href="{{ url or '#' }}" class="stretched-link"></a>
 	</div>
@@ -28,10 +28,10 @@
 
 <div class="section-with-cards">
 	{%- if title -%}
-	<h2 class="section-title">{{ title }}</h2>
+	<h2 class="section-title" wt-fieldname="title">{{ title }}</h2>
 	{%- endif -%}
 	{%- if subtitle -%}
-	<p class="section-description">{{ subtitle }}</p>
+	<p class="section-description" wt-fieldname="subtitle">{{ subtitle }}</p>
 	{%- endif -%}
 	{%- set card_size = card_size or 'Small' -%}
 	<div class="{{ resolve_class({'mt-6': title}) }}">
@@ -42,7 +42,7 @@
 			{%- set url = values['card_' + index + '_url'] -%}
 			{%- set image = values['card_' + index + '_image'] -%}
 			{%- if title -%}
-			{{ card(title, content, url, image) }}
+			{{ card(title, content, url, image, index) }}
 			{%- endif -%}
 			{%- endfor -%}
 		</div>

@@ -16,7 +16,12 @@
 
 {% block page_content %}
 {%- if content_type == 'Page Builder' -%}
-	{{ page_builder_html }}
+	<div class="web-page-content" id="{{ name }}">
+		{{ page_builder_html }}
+	</div>
+	<div class="add-section-container container hidden my-5">
+		<button class="btn btn-sm btn-add-section">Add Section</button>
+	</div>
 {%- else -%}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
@@ -59,4 +64,17 @@
 	{%- endfor -%}
 	{%- endif -%}
 	{%- endfor -%}
+
+	<script>
+
+		frappe.ready(() => {
+			frappe.make_editable = async () => {
+				import('{{ bundled_asset("page-editor.bundle.js") }}').then(() => {
+					new frappe.EditablePage().setup();
+				});
+			}
+			frappe.make_editable();
+		});
+	</script>
 {% endblock %}
+

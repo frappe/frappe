@@ -82,6 +82,13 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				.on("click", () => this.toggle_minimize());
 		}
 
+		if (this.scrollable === false) {
+			// modals are scrollable by default (why?)
+			// autosuggest options make the modal scrollable
+			// 		autosuggest shoud "pop-out" not scroll
+			this.$wrapper.find(".modal-dialog").removeClass("modal-dialog-scrollable");
+		}
+
 		var me = this;
 		this.$wrapper
 			.on("hide.bs.modal", function () {

@@ -1,29 +1,31 @@
 <div class="section-with-features">
 	{%- if title -%}
-	<h2 class="section-title">{{ _(title) }}</h2>
+	<h2 class="section-title" wt-fieldname="title" wt-type="text">{{ _(title) }}</h2>
 	{%- endif -%}
 	{%- if subtitle -%}
-	<p class="section-description">{{ _(subtitle) }}</p>
+	<p class="section-description" wt-fieldname="subtitle" wt-type="text">{{ _(subtitle) }}</p>
 	{%- endif -%}
 
 	<div class="section-features" data-columns="{{ columns or 3 }}"
 		{% if not subtitle %}style="margin-top: -1.5rem"{% endif %}>
 		{%- for feature in features -%}
-		<div class="section-feature">
+		<div class="section-feature" wt-table-fieldname="features" wt-type="Table" wt-row-idx="{{ loop.index0 }}">
 			<div>
 				{%- if feature.icon -%}
 				<img class="feature-icon" src="{{ feature.icon }}" alt="Icon for {{ feature.title }}">
 				{%- endif -%}
 				{%- if feature.title -%}
-				<h3 class="feature-title mt-0">{{ _(feature.title) }}</h3>
+				<h3 class="feature-title mt-0" wt-fieldname="title" wt-type="text">{{ _(feature.title) }}</h3>
 				{%- endif -%}
 				{%- if feature.content -%}
-				<p class="feature-content">{{ frappe.utils.md_to_html(_(feature.content)) }}</p>
+				<div class="feature-content" wt-fieldname="content" wt-type="markdown">
+					{{ frappe.utils.md_to_html(_(feature.content)) }}
+				</div>
 				{%- endif -%}
 			</div>
 			<div>
 				{%- if feature.url -%}
-				<a href="{{ feature.url }}" class="feature-url stretched-link"> {{ _("Learn more") }} →</a>
+				<a href="{{ feature.url }}" class="feature-url stretched-link" wt-fieldname="url" wt-type="link"> {{ _("Learn more") }} →</a>
 				{%- endif -%}
 			</div>
 		</div>

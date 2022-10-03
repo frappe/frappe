@@ -371,7 +371,7 @@ def today() -> str:
 
 def get_abbr(string: str, max_len: int = 2) -> str:
 	abbr = ""
-	for part in string.split(" "):
+	for part in (string or "").split(" "):
 		if len(abbr) < max_len and part:
 			abbr += part[0]
 
@@ -1937,7 +1937,7 @@ def to_markdown(html: str) -> str:
 	from frappe.core.utils import html2text
 
 	try:
-		return html2text(html or "")
+		return html2text(html or "").strip()
 	except HTMLParser.HTMLParseError:
 		pass
 

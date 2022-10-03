@@ -279,19 +279,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						}
 
 						if (!me.df.only_select) {
-							if (frappe.model.can_create(doctype)) {
-								// new item
-								r.results.push({
-									html:
-										"<span class='text-primary link-option'>" +
-										"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
-										__("Create a new {0}", [__(me.get_options())]) +
-										"</span>",
-									label: __("Create a new {0}", [__(me.get_options())]),
-									value: "create_new__link_option",
-									action: me.new_doc,
-								});
-							}
+							// new item
+							r.results.push({
+								html:
+									"<span class='text-primary link-option'>" +
+									"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
+									__("Create a new {0}", [__(me.get_options())]) +
+									"</span>",
+								label: __("Create a new {0}", [__(me.get_options())]),
+								value: "create_new__link_option",
+								action: me.new_doc,
+							});
 
 							//custom link actions
 							let custom__link_options =

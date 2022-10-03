@@ -1,9 +1,9 @@
 {%- if title -%}
-<h2 class="section-title">{{ title }}</h2>
+<h2 class="section-title" wt-fieldname="title">{{ title }}</h2>
 {%- endif -%}
 
 {%- if subtitle -%}
-<p class="section-description">{{ subtitle }}</p>
+<p class="section-description" wt-fieldname="subtitle">{{ subtitle }}</p>
 {%- endif -%}
 
 <div class="mt-12">
@@ -32,7 +32,9 @@
 		<li class="nav-item">
 			<a class="nav-link {{ 'active' if first_tab else '' }}" id="{{ tab.buttonid }}" data-toggle="tab"
 				href="#{{ tab.panelid }}"
-				role="tab" aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if first_tab else 'false' }}">
+				role="tab" aria-controls="{{ tab.panelid }}"
+				aria-selected="{{ 'true' if first_tab else 'false' }}"
+				wt-fieldname="tab_{{ index }}_title">
 				{{ tab.title }}
 			</a>
 		</li>
@@ -43,7 +45,7 @@
 		{%- set first_tab = true if loop.index0 == 0 else false -%}
 		<div class="tab-pane fade {{ 'show active' if first_tab else '' }}" id="{{ tab.panelid }}" role="tabpanel"
 			aria-labelledby="{{ tab.buttonid }}">
-			<div class="from-markdown">
+			<div class="from-markdown" wt-fieldname="tab_{{ index }}_content">
 				{{ frappe.utils.md_to_html(tab.content) }}
 			</div>
 		</div>

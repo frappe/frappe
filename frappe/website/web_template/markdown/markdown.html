@@ -1,5 +1,6 @@
 <div class="section-markdown">
-	<div class="from-markdown {{ 'mx-auto' if align == 'Center' else '' }}">
+	<div class="from-markdown {{ 'mx-auto' if align == 'Center' else '' }}"
+		wt-fieldname="content", wt-type="markdown">
 		{{ frappe.utils.md_to_html(_(content)) }}
 	</div>
 </div>
