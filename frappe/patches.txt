@@ -213,3 +213,4 @@ frappe.patches.v14_0.update_multistep_webforms
 execute:frappe.delete_doc('Page', 'background_jobs', ignore_missing=True, force=True)
 frappe.patches.v14_0.drop_unused_indexes
 frappe.patches.v15_0.drop_modified_index
+frappe.patches.v14_0.add_manage_subscriptions_in_navbar_settings
