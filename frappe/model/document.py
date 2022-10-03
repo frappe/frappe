@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from datetime import datetime
 import hashlib
 import json
 import time
@@ -983,6 +984,28 @@ class Document(BaseDocument):
 				_evaluate_alert(alert)
 			elif alert.event == "Method" and method == alert.method:
 				_evaluate_alert(alert)
+
+	def submit_in_background(self):
+		job = self.queue_action("_submit_in_background")
+		doc = frappe.new_doc("Queued Submit")
+		doc.title = self.name
+		doc.state = "Queued"
+		doc.start_time = datetime.now()
+		doc.job_id = job.id
+		doc.created_by = frappe.session.user
+		doc.insert()
+
+	def _submit_in_background(self):
+		try:
+			self.submit()
+			doc = frappe.get_doc("Queued Submit", self.title)
+			doc.state = "Submitted"
+			doc.insert()
+		except Exception as e:
+			doc = frappe.get_doc("Queued Submit", self.title)
+			doc.state = "Failed"
+			doc.error = str(e)
+			doc.insert()
 
 	@whitelist.__func__
 	def _submit(self):

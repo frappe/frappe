@@ -18,9 +18,10 @@ def savedocs(doc, action):
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 	if doc.docstatus == 1:
 		if doc.meta.submit_in_background:
-			doc.queue_action("submit", timeout=4000)
+			doc.submit_in_background()
 		else:
 			doc.submit()
+
 	else:
 		doc.save()
 
@@ -29,7 +30,6 @@ def savedocs(doc, action):
 	send_updated_docs(doc)
 
 	add_data_to_monitor(doctype=doc.doctype, action=action)
-
 	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 
 

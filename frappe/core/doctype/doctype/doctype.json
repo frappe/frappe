@@ -58,6 +58,7 @@
   "icon",
   "color",
   "show_preview_popup",
+  "submit_in_background",
   "show_name_in_global_search",
   "email_settings_sb",
   "default_email_template",
@@ -85,8 +86,7 @@
   "website_search_field",
   "advanced",
   "engine",
-  "migration_hash",
-  "submit_in_background"
+  "migration_hash"
  ],
  "fields": [
   {
@@ -694,7 +694,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-09-30 19:18:02.789866",
+ "modified": "2022-10-03 16:14:46.432770",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
