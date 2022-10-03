@@ -445,12 +445,6 @@ def msgprint(
 	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
-<<<<<<< HEAD
-=======
-	if sys.stdin and sys.stdin.isatty():
-		msg = _strip_html_tags(out.message)
-
->>>>>>> 35ba00a54e (fix: handle isatty correctly (#18277))
 	if flags.print_messages and out.message:
 		print(f"Message: {strip_html_tags(out.message)}")
 
