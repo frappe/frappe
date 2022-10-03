@@ -7,6 +7,9 @@ def execute():
 	if frappe.db.exists("Navbar Item", {"item_label": "Manage Subscriptions"}):
 		return
 
+	for idx, row in enumerate(navbar_settings.settings_dropdown[2:], start=4):
+		row.idx = idx
+
 	navbar_settings.append(
 		"settings_dropdown",
 		{
@@ -18,8 +21,5 @@ def execute():
 			"idx": 3,
 		},
 	)
-
-	for idx, row in enumerate(navbar_settings.settings_dropdown, start=1):
-		row.idx = idx
 
 	navbar_settings.save()
