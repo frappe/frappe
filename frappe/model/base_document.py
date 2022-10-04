@@ -152,8 +152,9 @@ class BaseDocument:
 		if "name" in d:
 			self.name = d["name"]
 
+		ignore_children = hasattr(self, "flags") and self.flags.ignore_children
 		for key, value in d.items():
-			self.set(key, value)
+			self.set(key, value, as_value=ignore_children)
 
 		return self
 
@@ -744,7 +745,7 @@ class BaseDocument:
 						# don't cache if fetching other values too
 						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
 
-				if frappe.get_meta(doctype).issingle:
+				if getattr(frappe.get_meta(doctype), "issingle", 0):
 					values.name = doctype
 
 				if frappe.get_meta(doctype).get("is_virtual"):
@@ -884,7 +885,7 @@ class BaseDocument:
 		if frappe.flags.in_install:
 			return
 
-		if self.meta.issingle:
+		if getattr(self.meta, "issingle", 0):
 			# single doctype value type is mediumtext
 			return
 

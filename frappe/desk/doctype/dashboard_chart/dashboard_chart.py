@@ -215,14 +215,13 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		group_by="_unit",
 		order_by="_unit asc",
 		as_list=True,
-		ignore_ifnull=True,
 	)
 
 	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
 
 	return {
 		"labels": [
-			format_date(get_period(r[0], timegrain))
+			format_date(get_period(r[0], timegrain), parse_day_first=True)
 			if timegrain in ("Daily", "Weekly")
 			else get_period(r[0], timegrain)
 			for r in result
