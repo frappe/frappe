@@ -6,21 +6,17 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "state",
+  "status",
   "start_time",
   "created_by",
   "job_id",
+  "column_break_5",
   "ref_doctype",
-  "ref_docname"
+  "ref_docname",
+  "section_break_8",
+  "message"
  ],
  "fields": [
-  {
-   "fieldname": "state",
-   "fieldtype": "Select",
-   "label": "State",
-   "options": "Submitted\nQueued\nFailed",
-   "read_only": 1
-  },
   {
    "fieldname": "start_time",
    "fieldtype": "Datetime",
@@ -44,18 +40,43 @@
    "fieldname": "ref_doctype",
    "fieldtype": "Link",
    "label": "Reference DocType",
-   "options": "DocType"
+   "options": "DocType",
+   "read_only": 1
   },
   {
    "fieldname": "ref_docname",
    "fieldtype": "Dynamic Link",
    "label": "Reference Docname",
-   "options": "ref_doctype"
+   "options": "ref_doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Queued\nCompleted\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Text",
+   "label": "Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-04 16:16:42.962361",
+ "modified": "2022-10-04 18:41:08.495515",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -74,5 +95,18 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Queued"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  }
+ ]
 }
