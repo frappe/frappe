@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -10,7 +10,21 @@ import click
 
 import frappe
 from frappe.defaults import _clear_cache
-from frappe.utils import is_git_url
+from frappe.utils import cint, is_git_url
+from frappe.utils.dashboard import sync_dashboards
+
+
+def _is_scheduler_enabled() -> bool:
+	enable_scheduler = False
+	try:
+		frappe.connect()
+		enable_scheduler = cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
+	except Exception:
+		pass
+	finally:
+		frappe.db.close()
+
+	return bool(enable_scheduler)
 
 
 def _new_site(
@@ -29,11 +43,9 @@ def _new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
-	new_site=False,
 ):
 	"""Install a new Frappe site"""
 
-	from frappe.commands.scheduler import _is_scheduler_enabled
 	from frappe.utils import get_site_path, scheduler, touch_file
 
 	if not force and os.path.exists(site):
@@ -290,6 +302,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	sync_jobs()
 	sync_fixtures(name)
 	sync_customizations(name)
+	sync_dashboards(name)
 
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
@@ -482,7 +495,7 @@ def init_singles():
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_validate = True
 			doc.save()
-		except ImportError:
+		except (ImportError, frappe.DoesNotExistError):
 			# The doctype exists, but controller is deleted,
 			# no need to attempt to init such single, ref: #16917
 			continue

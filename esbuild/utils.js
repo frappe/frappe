@@ -26,24 +26,20 @@ const bundle_map = app_list.reduce((out, app) => {
 	const public_js_path = public_js_paths[app];
 	if (fs.existsSync(public_js_path)) {
 		const all_files = fs.readdirSync(public_js_path);
-		const js_files = all_files.filter(file => file.endsWith(".js"));
+		const js_files = all_files.filter((file) => file.endsWith(".js"));
 
 		for (let js_file of js_files) {
 			const filename = path.basename(js_file).split(".")[0];
-			out[path.join(app, "js", filename)] = path.resolve(
-				public_js_path,
-				js_file
-			);
+			out[path.join(app, "js", filename)] = path.resolve(public_js_path, js_file);
 		}
 	}
 
 	return out;
 }, {});
 
-const get_public_path = app => public_paths[app];
+const get_public_path = (app) => public_paths[app];
 
-const get_build_json_path = app =>
-	path.resolve(get_public_path(app), "build.json");
+const get_build_json_path = (app) => path.resolve(get_public_path(app), "build.json");
 
 function get_build_json(app) {
 	try {
@@ -62,7 +58,7 @@ function delete_file(path) {
 
 function run_serially(tasks) {
 	let result = Promise.resolve();
-	tasks.forEach(task => {
+	tasks.forEach((task) => {
 		if (task) {
 			result = result.then ? result.then(task) : Promise.resolve();
 		}
@@ -70,12 +66,12 @@ function run_serially(tasks) {
 	return result;
 }
 
-const get_app_path = app => app_paths[app];
+const get_app_path = (app) => app_paths[app];
 
 function get_apps_list() {
 	return fs
 		.readFileSync(path.resolve(sites_path, "apps.txt"), {
-			encoding: "utf-8"
+			encoding: "utf-8",
 		})
 		.split("\n")
 		.filter(Boolean);
@@ -112,16 +108,21 @@ function log(...args) {
 
 function get_redis_subscriber(kind) {
 	// get redis subscriber that aborts after 10 connection attempts
-	let { get_redis_subscriber: get_redis } = require("../node_utils");
-	return get_redis(kind, {
-		retry_strategy: function(options) {
-			// abort after 10 connection attempts
-			if (options.attempt > 10) {
+	let retry_strategy;
+	let { get_redis_subscriber: get_redis, get_conf } = require("../node_utils");
+
+	if (process.env.CI == 1 || get_conf().developer_mode == 0) {
+		retry_strategy = () => {};
+	} else {
+		retry_strategy = function (options) {
+			// abort after 5 x 3 connection attempts ~= 3 seconds
+			if (options.attempt > 4) {
 				return undefined;
 			}
-			return Math.min(options.attempt * 100, 2000);
-		}
-	});
+			return options.attempt * 100;
+		};
+	}
+	return get_redis(kind, { retry_strategy });
 }
 
 module.exports = {
@@ -141,5 +142,5 @@ module.exports = {
 	log,
 	log_warn,
 	log_error,
-	get_redis_subscriber
+	get_redis_subscriber,
 };

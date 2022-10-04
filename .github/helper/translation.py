@@ -20,19 +20,12 @@ for _file in files_to_scan:
 			if 'frappe-lint: disable-translate' in line:
 				continue
 
-			start_matches = start_pattern.search(line)
-			if start_matches:
-				starts_with_f = starts_with_f_pattern.search(line)
-
-				if starts_with_f:
-					has_f_string = f_string_pattern.search(line)
-					if has_f_string:
+			if start_matches := start_pattern.search(line):
+				if starts_with_f := starts_with_f_pattern.search(line):
+					if has_f_string := f_string_pattern.search(line):
 						errors_encounter += 1
 						print(f'\nF-strings are not supported for translations at line number {line_number}\n{line.strip()[:100]}')
-						continue
-					else:
-						continue
-
+					continue
 				match = pattern.search(line)
 				error_found = False
 

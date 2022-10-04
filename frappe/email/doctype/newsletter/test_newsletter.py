@@ -107,7 +107,7 @@ class TestNewsletterMixin:
 			"content_type": "Rich Text",
 			"message": "Testing my news.",
 		}
-		similar_newsletters = frappe.db.get_all(doctype, newsletter_content, pluck="name")
+		similar_newsletters = frappe.get_all(doctype, newsletter_content, pluck="name")
 
 		for similar_newsletter in similar_newsletters:
 			frappe.delete_doc(doctype, similar_newsletter)
@@ -180,7 +180,7 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		newsletter.save = MagicMock()
 		self.assertFalse(newsletter.save.called)
 		# check if the test email is in the queue
-		email_queue = frappe.db.get_all(
+		email_queue = frappe.get_all(
 			"Email Queue",
 			filters=[
 				["reference_doctype", "=", "Newsletter"],
@@ -236,13 +236,15 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
 
-		# emulate partial send
-		email_queue_list[0].status = "Error"
-		email_queue_list[0].recipients[0].status = "Error"
-		email_queue_list[0].save()
+		# delete a queue document to emulate partial send
+		queue_recipient_name = email_queue_list[0].recipients[0].recipient
+		email_queue_list[0].delete()
 		newsletter.email_sent = False
+
+		# make sure the pending recipient is only the one which has been deleted
+		self.assertEqual(newsletter.get_pending_recipients(), [queue_recipient_name])
 
 		# retry
 		newsletter.send_emails()
-		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
-		self.assertEqual(len(email_queue_list), 5)
+		self.assertEqual(frappe.db.count("Email Queue"), 4)
+		self.assertTrue(newsletter.email_sent)

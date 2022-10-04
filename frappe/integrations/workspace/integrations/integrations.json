@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports & Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Backup\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Payments\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
+ "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Backup\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
  "creation": "2020-03-02 15:16:18.714190",
  "docstatus": 0,
  "doctype": "Workspace",
@@ -106,8 +106,49 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Authentication",
+   "label": "Settings",
    "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Webhook",
+   "link_count": 0,
+   "link_to": "Webhook",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Slack Webhook URL",
+   "link_count": 0,
+   "link_to": "Slack Webhook URL",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "SMS Settings",
+   "link_count": 0,
+   "link_to": "SMS Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Authentication",
+   "link_count": 4,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -154,119 +195,16 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Payments",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Braintree Settings",
-   "link_count": 0,
-   "link_to": "Braintree Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "PayPal Settings",
-   "link_count": 0,
-   "link_to": "PayPal Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Razorpay Settings",
-   "link_count": 0,
-   "link_to": "Razorpay Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Stripe Settings",
-   "link_count": 0,
-   "link_to": "Stripe Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Paytm Settings",
-   "link_count": 0,
-   "link_to": "Paytm Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Settings",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Webhook",
-   "link_count": 0,
-   "link_to": "Webhook",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Slack Webhook URL",
-   "link_count": 0,
-   "link_to": "Slack Webhook URL",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "SMS Settings",
-   "link_count": 0,
-   "link_to": "SMS Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2022-01-13 17:39:01.292154",
+ "modified": "2022-07-23 18:00:28.805405",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
+ "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 15.0,

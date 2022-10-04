@@ -11,6 +11,7 @@ from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
 from frappe.utils.password import delete_all_passwords_for
@@ -57,11 +58,16 @@ def delete_doc(
 		doctype = frappe.form_dict.get("dt")
 		name = frappe.form_dict.get("dn")
 
+	is_virtual = is_virtual_doctype(doctype)
+
 	names = name
 	if isinstance(name, str) or isinstance(name, int):
 		names = [name]
 
 	for name in names or []:
+		if is_virtual:
+			frappe.get_doc(doctype, name).delete()
+			continue
 
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
@@ -160,9 +166,6 @@ def delete_doc(
 					insert_feed(doc)
 				except ImportError:
 					pass
-
-			# delete user_permissions
-			frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
 
 
 def add_to_deleted_document(doc):

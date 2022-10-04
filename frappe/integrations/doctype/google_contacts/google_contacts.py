@@ -45,7 +45,6 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 	if not oauth_code or reauthorize:
 		return oauth_obj.get_authentication_url(
 			{
-				"method": "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
 				"g_contact": g_contact,
 				"redirect": f"/app/Form/{quote('Google Contacts')}/{quote(g_contact)}",
 			},

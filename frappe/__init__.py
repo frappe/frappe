@@ -203,6 +203,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 			"mute_emails": False,
 			"has_dataurl": False,
 			"new_site": new_site,
+			"read_only": False,
 		}
 	)
 	local.rollback_observers = []
@@ -238,8 +239,8 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jloader = None
 	local.cache = {}
 	local.document_cache = {}
-	local.meta_cache = {}
 	local.form_dict = _dict()
+	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
@@ -325,10 +326,9 @@ def get_conf(site: str | None = None) -> dict[str, Any]:
 	if hasattr(local, "conf"):
 		return local.conf
 
-	else:
-		# if no site, get from common_site_config.json
-		with init_site(site):
-			return local.conf
+	# if no site, get from common_site_config.json
+	with init_site(site):
+		return local.conf
 
 
 class init_site:
@@ -452,7 +452,7 @@ def msgprint(
 	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
-	if sys.stdin.isatty():
+	if sys.stdin and sys.stdin.isatty():
 		msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:
@@ -816,23 +816,30 @@ def write_only():
 	return innfn
 
 
-def only_for(roles: list[str] | str, message=False):
-	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
+def only_for(roles: list[str] | tuple[str] | str, message=False):
+	"""
+	Raises `frappe.PermissionError` if the user does not have any of the permitted roles.
 
-	:param roles: List of roles to check."""
-	if local.flags.in_test:
+	:param roles: Permitted role(s)
+	"""
+
+	if local.flags.in_test or local.session.user == "Administrator":
 		return
 
-	if not isinstance(roles, (tuple, list)):
+	if isinstance(roles, str):
 		roles = (roles,)
-	roles = set(roles)
-	myroles = set(get_roles())
-	if not roles.intersection(myroles):
-		if message:
-			msgprint(
-				_("This action is only allowed for {}").format(bold(", ".join(roles))), _("Not Permitted")
-			)
-		raise PermissionError
+
+	if not set(roles).intersection(get_roles()):
+		if not message:
+			raise PermissionError
+
+		throw(
+			_("This action is only allowed for {}").format(
+				", ".join(bold(_(role)) for role in roles),
+			),
+			PermissionError,
+			_("Not Permitted"),
+		)
 
 
 def get_domain_data(module):
@@ -903,15 +910,26 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 
 
 def has_permission(
-	doctype=None, ptype="read", doc=None, user=None, verbose=False, throw=False, parent_doctype=None
+	doctype=None,
+	ptype="read",
+	doc=None,
+	user=None,
+	verbose=False,
+	throw=False,
+	*,
+	parent_doctype=None,
 ):
-	"""Raises `frappe.PermissionError` if not permitted.
+	"""
+	Returns True if the user has permission `ptype` for given `doctype` or `doc`
+	Raises `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
-	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified)."""
+	:param verbose: DEPRECATED, will be removed in a future release.
+	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
+	"""
 	import frappe.permissions
 
 	if not doctype and doc:
@@ -921,7 +939,6 @@ def has_permission(
 		doctype,
 		ptype,
 		doc=doc,
-		verbose=verbose,
 		user=user,
 		raise_exception=throw,
 		parent_doctype=parent_doctype,
@@ -1046,21 +1063,9 @@ def set_value(doctype, docname, fieldname, value=None):
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
 
-@overload
-def get_cached_doc(doctype, docname, _allow_dict=True) -> dict:
-	...
-
-
-@overload
 def get_cached_doc(*args, **kwargs) -> "Document":
-	...
-
-
-def get_cached_doc(*args, **kwargs):
-	allow_dict = kwargs.pop("_allow_dict", False)
-
 	def _respond(doc, from_redis=False):
-		if not allow_dict and isinstance(doc, dict):
+		if isinstance(doc, dict):
 			local.document_cache[key] = doc = get_doc(doc)
 
 		elif from_redis:
@@ -1084,6 +1089,12 @@ def get_cached_doc(*args, **kwargs):
 	if not key:
 		key = get_document_cache_key(doc.doctype, doc.name)
 
+	_set_document_in_cache(key, doc)
+
+	return doc
+
+
+def _set_document_in_cache(key: str, doc: "Document") -> None:
 	local.document_cache[key] = doc
 
 	# Avoid setting in local.cache since we're already using local.document_cache above
@@ -1092,8 +1103,6 @@ def get_cached_doc(*args, **kwargs):
 		cache().hset("document_cache", key, doc, cache_locally=False)
 	except Exception:
 		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
-
-	return doc
 
 
 def can_cache_doc(args) -> str | None:
@@ -1133,7 +1142,7 @@ def get_cached_value(
 	doctype: str, name: str, fieldname: str = "name", as_dict: bool = False
 ) -> Any:
 	try:
-		doc = get_cached_doc(doctype, name, _allow_dict=True)
+		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
 		clear_last_message()
 		return
@@ -1169,22 +1178,18 @@ def get_doc(*args, **kwargs) -> "Document":
 
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
-	# Replace cache
-	if key := can_cache_doc(args):
-		if key in local.document_cache:
-			local.document_cache[key] = doc
-
-		if cache().hexists("document_cache", key):
-			cache().hset("document_cache", key, doc.as_dict())
+	# Replace cache if stale one exists
+	if (key := can_cache_doc(args)) and cache().hexists("document_cache", key):
+		_set_document_in_cache(key, doc)
 
 	return doc
 
 
-def get_last_doc(doctype, filters=None, order_by="creation desc"):
+def get_last_doc(doctype, filters=None, order_by="creation desc", *, for_update=False):
 	"""Get last created document of this type."""
 	d = get_all(doctype, filters=filters, limit_page_length=1, order_by=order_by, pluck="name")
 	if d:
-		return get_doc(doctype, d[0])
+		return get_doc(doctype, d[0], for_update=for_update)
 	else:
 		raise DoesNotExistError
 
@@ -1796,6 +1801,14 @@ def respond_as_web_page(
 	local.response["context"] = context
 
 
+def redirect(url):
+	"""Raise a 301 redirect to url"""
+	from frappe.exceptions import Redirect
+
+	flags.redirect_location = url
+	raise Redirect
+
+
 def redirect_to_message(title, html, http_status_code=None, context=None, indicator_color=None):
 	"""Redirects to /message?id=random
 	Similar to respond_as_web_page, but used to 'redirect' and show message pages like success, failure, etc. with a detailed message
@@ -2197,13 +2210,18 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	title = title or "Error"
 	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
-	return get_doc(
+	error_log = get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-	).insert(ignore_permissions=True)
+	)
+
+	if flags.read_only:
+		error_log.deferred_insert()
+	else:
+		return error_log.insert(ignore_permissions=True)
 
 
 def get_desk_link(doctype, name):
@@ -2257,14 +2275,22 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 def get_website_settings(key):
 	if not hasattr(local, "website_settings"):
-		local.website_settings = db.get_singles_dict("Website Settings", cast=True)
+		try:
+			local.website_settings = get_cached_doc("Website Settings")
+		except DoesNotExistError:
+			clear_last_message()
+			return
 
 	return local.website_settings.get(key)
 
 
 def get_system_settings(key):
 	if not hasattr(local, "system_settings"):
-		local.system_settings = db.get_singles_dict("System Settings", cast=True)
+		try:
+			local.system_settings = get_cached_doc("System Settings")
+		except DoesNotExistError:  # possible during new install
+			clear_last_message()
+			return
 
 	return local.system_settings.get(key)
 
@@ -2294,7 +2320,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	"""
 	meta = get_meta(doctype)
 	if meta.track_changes:
-		names = db.get_all(
+		names = get_all(
 			"Version",
 			filters={
 				"ref_doctype": doctype,

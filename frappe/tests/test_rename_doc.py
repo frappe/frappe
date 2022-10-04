@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import os
-import unittest
 from contextlib import contextmanager, redirect_stdout
 from io import StringIO
 from random import choice, sample
@@ -18,6 +17,7 @@ from frappe.model.rename_doc import (
 	update_linked_doctypes,
 )
 from frappe.modules.utils import get_doc_path
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now
 
 
@@ -41,11 +41,12 @@ def patch_db(endpoints: list[str] = None):
 		frappe.db.rollback(save_point=savepoint)
 
 
-class TestRenameDoc(unittest.TestCase):
+class TestRenameDoc(FrappeTestCase):
 	@classmethod
 	def setUpClass(self):
 		"""Setting Up data for the tests defined under TestRenameDoc"""
 		# set developer_mode to rename doc controllers
+		super().setUpClass()
 		self._original_developer_flag = frappe.conf.developer_mode
 		frappe.conf.developer_mode = 1
 

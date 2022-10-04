@@ -48,7 +48,7 @@
 	height: 24px;
 }
 
-.indicator-pill::before,
+.indicator-pill:not(.no-indicator-dot)::before,
 .indicator-pill-right::after {
 	content:'';
 	display: inline-table;

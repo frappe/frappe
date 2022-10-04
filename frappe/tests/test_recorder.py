@@ -1,17 +1,16 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import sqlparse
 
 import frappe
 import frappe.recorder
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response_content
 
 
-class TestRecorder(unittest.TestCase):
+class TestRecorder(FrappeTestCase):
 	def setUp(self):
 		frappe.recorder.stop()
 		frappe.recorder.delete()

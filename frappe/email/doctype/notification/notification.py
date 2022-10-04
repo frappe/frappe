@@ -387,6 +387,9 @@ def get_context(context):
 		if not is_html(self.message):
 			self.message = frappe.utils.md_to_html(self.message)
 
+	def on_trash(self):
+		frappe.cache().hdel("notifications", self.document_type)
+
 
 @frappe.whitelist()
 def get_documents_for_today(notification):

@@ -1,6 +1,3 @@
-import psycopg2
-import pymysql
-
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
@@ -35,9 +32,7 @@ class TestSequence(FrappeTestCase):
 
 		try:
 			frappe.db.get_next_sequence_val(seq_name)
-		except pymysql.err.OperationalError as e:
-			self.assertEqual(e.args[0], 4084)
-		except psycopg2.errors.SequenceGeneratorLimitExceeded:
+		except frappe.db.SequenceGeneratorLimitExceeded:
 			pass
 		else:
 			self.fail("NEXTVAL didn't raise any error upon sequence's end")

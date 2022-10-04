@@ -7,6 +7,7 @@ from frappe import _
 from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import encode, get_request_site_address
+from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
@@ -102,12 +103,12 @@ class WebsiteSettings(Document):
 def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
 	context = frappe._dict(context or {})
-	settings: "WebsiteSettings" = frappe.get_single("Website Settings")
+	settings: "WebsiteSettings" = frappe.get_cached_doc("Website Settings")
 
 	context = context.update(
 		{
-			"top_bar_items": get_items("top_bar_items"),
-			"footer_items": get_items("footer_items"),
+			"top_bar_items": modify_header_footer_items(settings.top_bar_items),
+			"footer_items": modify_header_footer_items(settings.footer_items),
 			"post_login": [
 				{"label": _("My Account"), "url": "/me"},
 				{"label": _("Log out"), "url": "/?cmd=web_logout"},
@@ -190,6 +191,9 @@ def get_website_settings(context=None):
 	if settings.splash_image:
 		context["splash_image"] = settings.splash_image
 
+	context.read_only_mode = frappe.flags.read_only
+	context.boot = get_boot_data()
+
 	return context
 
 
@@ -200,22 +204,24 @@ def get_items(parentfield: str) -> list[dict]:
 		order_by="idx asc",
 		fields="*",
 	)
-	top_items = _items.copy()
+	return modify_header_footer_items(_items)
 
+
+def modify_header_footer_items(items: list):
+	top_items = items.copy()
 	# attach child items to top bar
-	for item in _items:
-		if not item["parent_label"]:
+	for item in items:
+		if not item.parent_label:
 			continue
 
 		for top_bar_item in top_items:
-			if top_bar_item["label"] != item["parent_label"]:
+			if top_bar_item.label != item.parent_label:
 				continue
 
-			if "child_items" not in top_bar_item:
-				top_bar_item["child_items"] = []
+			if not top_bar_item.get("child_items"):
+				top_bar_item.child_items = []
 
-			top_bar_item["child_items"].append(item)
-
+			top_bar_item.child_items.append(item)
 			break
 
 	return top_items

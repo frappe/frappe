@@ -1,14 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.cache_manager import clear_controller_cache
 from frappe.desk.doctype.todo.todo import ToDo
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestHooks(unittest.TestCase):
+class TestHooks(FrappeTestCase):
 	def test_hooks(self):
 		hooks = frappe.get_hooks()
 		self.assertTrue(isinstance(hooks.get("app_name"), list))

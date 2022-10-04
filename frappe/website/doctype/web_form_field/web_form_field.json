@@ -10,7 +10,6 @@
   "label",
   "allow_read_on_all_link_options",
   "reqd",
-  "depends_on",
   "read_only",
   "show_in_filter",
   "hidden",
@@ -19,6 +18,7 @@
   "max_length",
   "max_value",
   "property_depends_on_section",
+  "depends_on",
   "mandatory_depends_on",
   "column_break_16",
   "read_only_depends_on",
@@ -32,20 +32,20 @@
    "fieldname": "fieldname",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Fieldname"
+   "label": "Field"
   },
   {
    "fieldname": "fieldtype",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldtype",
-   "options": "Attach\nAttach Image\nCheck\nCurrency\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nPassword\nRating\nSelect\nSignature\nSmall Text\nText\nText Editor\nTable\nTime\nSection Break\nColumn Break"
+   "options": "Attach\nAttach Image\nCheck\nCurrency\nColor\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nPassword\nRating\nSelect\nSignature\nSmall Text\nText\nText Editor\nTable\nTime\nSection Break\nColumn Break\nPage Break"
   },
   {
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Label"
+   "label": "Custom Label"
   },
   {
    "default": "0",
@@ -58,12 +58,13 @@
    "default": "0",
    "fieldname": "reqd",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Mandatory"
   },
   {
    "fieldname": "depends_on",
    "fieldtype": "Code",
-   "label": "Depends On"
+   "label": "Display Depends On"
   },
   {
    "default": "0",
@@ -146,12 +147,13 @@
  ],
  "istable": 1,
  "links": [],
- "modified": "2022-01-28 10:41:25.422345",
+ "modified": "2022-08-22 17:22:39.026893",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }

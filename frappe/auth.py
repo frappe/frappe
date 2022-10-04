@@ -6,9 +6,8 @@ import frappe
 import frappe.database
 import frappe.utils
 import frappe.utils.user
-from frappe import _, conf
+from frappe import _
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.modules.patch_handler import check_session_stopped
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.translate import get_language
 from frappe.twofactor import (
@@ -30,9 +29,6 @@ class HTTPRequest:
 		# load cookies
 		self.set_cookies()
 
-		# set frappe.local.db
-		self.connect()
-
 		# login and start/resume user session
 		self.set_session()
 
@@ -44,9 +40,6 @@ class HTTPRequest:
 
 		# write out latest cookies
 		frappe.local.cookie_manager.init_cookies()
-
-		# check session status
-		check_session_stopped()
 
 	@property
 	def domain(self):
@@ -97,16 +90,6 @@ class HTTPRequest:
 	def set_lang(self):
 		frappe.local.lang = get_language()
 
-	def get_db_name(self):
-		"""get database name from conf"""
-		return conf.db_name
-
-	def connect(self):
-		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.get_db(
-			user=self.get_db_name(), password=getattr(conf, "db_password", "")
-		)
-
 
 class LoginManager:
 
@@ -140,6 +123,9 @@ class LoginManager:
 				self.set_user_info()
 
 	def login(self):
+		if frappe.get_system_settings("disable_user_pass_login"):
+			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
+
 		# clear cache
 		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
@@ -156,6 +142,7 @@ class LoginManager:
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
 				return False
+		frappe.form_dict.pop("pwd", None)
 		self.post_login()
 
 	def post_login(self):
@@ -225,14 +212,16 @@ class LoginManager:
 
 	def clear_active_sessions(self):
 		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
+		if frappe.session.user == "Guest":
+			return
+
 		if not (
 			cint(frappe.conf.get("deny_multiple_sessions"))
 			or cint(frappe.db.get_system_setting("deny_multiple_sessions"))
 		):
 			return
 
-		if frappe.session.user != "Guest":
-			clear_sessions(frappe.session.user, keep_current=True)
+		clear_sessions(frappe.session.user, keep_current=True)
 
 	def authenticate(self, user: str = None, pwd: str = None):
 		from frappe.core.doctype.user.user import User

@@ -1,3 +1,4 @@
+from datetime import time
 from enum import Enum
 
 from pypika.functions import *
@@ -17,7 +18,19 @@ class Concat_ws(Function):
 
 class Locate(Function):
 	def __init__(self, *terms, **kwargs):
+		terms = list(terms)
+		if not isinstance(terms[0], str):
+			terms[0] = terms[0].get_sql()
 		super().__init__("LOCATE", *terms, **kwargs)
+
+
+class Ifnull(IfNull):
+	def __init__(self, condition, term, **kwargs):
+		if not isinstance(condition, str):
+			condition = condition.get_sql()
+		if not isinstance(term, str):
+			term = term.get_sql()
+		super().__init__(condition, term, **kwargs)
 
 
 class Timestamp(Function):
@@ -35,6 +48,9 @@ Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTO
 
 class _PostgresTimestamp(ArithmeticExpression):
 	def __init__(self, datepart, timepart, alias=None):
+		"""Postgres would need both datepart and timepart to be a string for concatenation"""
+		if isinstance(timepart, time) or isinstance(datepart, time):
+			timepart, datepart = str(timepart), str(datepart)
 		if isinstance(datepart, str):
 			datepart = Cast(datepart, "date")
 		if isinstance(timepart, str):
@@ -105,6 +121,7 @@ class SqlFunctions(Enum):
 	Min = "min"
 	Abs = "abs"
 	Timestamp = "timestamp"
+	IfNull = "ifnull"
 
 
 def _max(dt, fieldname, filters=None, **kwargs):

@@ -128,15 +128,11 @@ class Newsletter(WebsiteGenerator):
 			pluck="name",
 		)
 
-	def get_success_recipients(self) -> list[str]:
-		"""Recipients who have already received the newsletter.
-
-		Couldn't think of a better name ;)
-		"""
+	def get_queued_recipients(self) -> list[str]:
+		"""Recipients who have already been queued for receiving the newsletter."""
 		return frappe.get_all(
 			"Email Queue Recipient",
 			filters={
-				"status": ("in", ["Not Sent", "Sending", "Sent"]),
 				"parent": ("in", self.get_linked_email_queue()),
 			},
 			pluck="recipient",
@@ -146,8 +142,7 @@ class Newsletter(WebsiteGenerator):
 		"""Get list of pending recipients of the newsletter. These
 		recipients may not have receive the newsletter in the previous iteration.
 		"""
-		success_recipients = set(self.get_success_recipients())
-		return [x for x in self.newsletter_recipients if x not in success_recipients]
+		return [x for x in self.newsletter_recipients if x not in self.get_queued_recipients()]
 
 	def queue_all(self):
 		"""Queue Newsletter to all the recipients generated from the `Email Group` table"""
@@ -283,7 +278,6 @@ def subscribe(email, email_group=_("Website")):  # noqa
 		email,
 		subject=email_subject,
 		content=content,
-		now=True,
 	)
 
 

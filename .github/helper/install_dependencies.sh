@@ -1,19 +1,13 @@
 #!/bin/bash
-
 set -e
 
-# Check for merge conflicts before proceeding
-python -m compileall -f "${GITHUB_WORKSPACE}"
-if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
-    then echo "Found merge conflicts"
-    exit 1
-fi
+echo "Setting Up System Dependencies..."
 
- # install wkhtmltopdf
-wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
-tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
-sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
-sudo chmod o+x /usr/local/bin/wkhtmltopdf
+sudo apt update
+sudo apt install libcups2-dev redis-server mariadb-client-10.3
 
-# install cups
-sudo apt update && sudo apt install libcups2-dev redis-server
+install_wkhtmltopdf() {
+  wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.focal_amd64.deb
+  sudo apt install ./wkhtmltox_0.12.6-1.focal_amd64.deb
+}
+install_wkhtmltopdf &

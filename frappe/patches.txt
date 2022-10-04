@@ -66,14 +66,12 @@ execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
 frappe.patches.v10_0.set_no_copy_to_workflow_state
 frappe.patches.v10_0.increase_single_table_column_length
 frappe.patches.v11_0.create_contact_for_user
-frappe.patches.v11_0.sync_stripe_settings_before_migrate
 frappe.patches.v11_0.update_list_user_settings
 frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-2018
 frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
 frappe.patches.v11_0.delete_duplicate_user_permissions
 frappe.patches.v11_0.set_dropbox_file_backup
 frappe.patches.v10_0.set_default_locking_time
-frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
 frappe.patches.v10_0.modify_naming_series_table
 frappe.patches.v10_0.enhance_security
@@ -158,7 +156,6 @@ frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
 execute:frappe.db.set_value('Website Settings', 'Website Settings', {'navbar_template': 'Standard Navbar', 'footer_template': 'Standard Footer'})
-frappe.patches.v13_0.delete_event_producer_and_consumer_keys
 frappe.patches.v13_0.web_template_set_module #2020-10-05
 frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
@@ -184,6 +181,7 @@ frappe.patches.v13_0.jinja_hook
 frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
 frappe.patches.v13_0.encrypt_2fa_secrets
+frappe.patches.v13_0.reset_corrupt_defaults
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
@@ -194,6 +192,9 @@ frappe.patches.v14_0.remove_is_first_startup
 frappe.patches.v14_0.clear_long_pending_stale_logs
 frappe.patches.v14_0.log_settings_migration
 frappe.patches.v14_0.setup_likes_from_feedback
+frappe.patches.v14_0.update_webforms
+frappe.patches.v14_0.delete_payment_gateways
+frappe.patches.v15_0.remove_event_streaming
 
 [post_model_sync]
 frappe.patches.v14_0.drop_data_import_legacy
@@ -207,3 +208,9 @@ frappe.patches.v14_0.update_integration_request
 frappe.patches.v14_0.set_document_expiry_default
 frappe.patches.v14_0.delete_data_migration_tool
 frappe.patches.v14_0.set_suspend_email_queue_default
+frappe.patches.v14_0.different_encryption_key
+frappe.patches.v14_0.update_multistep_webforms
+execute:frappe.delete_doc('Page', 'background_jobs', ignore_missing=True, force=True)
+frappe.patches.v14_0.drop_unused_indexes
+frappe.patches.v15_0.drop_modified_index
+frappe.patches.v14_0.add_manage_subscriptions_in_navbar_settings

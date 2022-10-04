@@ -221,7 +221,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Open\nClosed"
+   "options": "Open\nCompleted\nClosed"
   },
   {
    "collapsible": 1,

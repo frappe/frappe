@@ -45,6 +45,7 @@ URL_NOTATION_PATTERN = re.compile(
 )  # background-image: url('/assets/...')
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 HTML_TAG_PATTERN = re.compile("<[^>]+>")
+MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
 
 
 class Weekday(Enum):
@@ -72,7 +73,9 @@ def is_invalid_date_string(date_string: str) -> bool:
 	)
 
 
-def getdate(string_date: Optional["DateTimeLikeObject"] = None) -> datetime.date | None:
+def getdate(
+	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
+) -> datetime.date | None:
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
@@ -91,7 +94,7 @@ def getdate(string_date: Optional["DateTimeLikeObject"] = None) -> datetime.date
 	if is_invalid_date_string(string_date):
 		return None
 	try:
-		return parser.parse(string_date).date()
+		return parser.parse(string_date, dayfirst=parse_day_first).date()
 	except ParserError:
 		frappe.throw(
 			frappe._("{} is not a valid date string.").format(frappe.bold(string_date)),
@@ -483,13 +486,11 @@ def get_quarter_ending(date):
 	return date
 
 
-def get_year_ending(date):
+def get_year_ending(date) -> datetime.date:
 	"""returns year ending of the given date"""
 	date = getdate(date)
-	# first day of next year (note year starts from 1)
-	date = add_to_date(f"{date.year}-01-01", months=12)
-	# last day of this month
-	return add_to_date(date, days=-1)
+	next_year_start = datetime.date(date.year + 1, 1, 1)
+	return add_to_date(next_year_start, days=-1)
 
 
 def get_time(time_str: str) -> datetime.time:
@@ -550,7 +551,9 @@ def get_user_time_format() -> str:
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(string_date=None, format_string: str | None = None) -> str:
+def format_date(
+	string_date=None, format_string: str | None = None, parse_day_first: bool = False
+) -> str:
 	"""Converts the given string date to :data:`user_date_format`
 	User format specified in defaults
 
@@ -566,7 +569,7 @@ def format_date(string_date=None, format_string: str | None = None) -> str:
 	if not string_date:
 		return ""
 
-	date = getdate(string_date)
+	date = getdate(string_date, parse_day_first)
 	if not format_string:
 		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM").replace("Y", "y")
@@ -724,60 +727,77 @@ def get_weekday(datetime: datetime.datetime | None = None) -> str:
 	return weekdays[datetime.weekday()]
 
 
-def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime]:
-	today = nowdate()
-	date_range_map = {
-		"last week": lambda: (
-			get_first_day_of_week(add_to_date(today, days=-7)),
-			get_last_day_of_week(add_to_date(today, days=-7)),
-		),
-		"last month": lambda: (
-			get_first_day(add_to_date(today, months=-1)),
-			get_last_day(add_to_date(today, months=-1)),
-		),
-		"last quarter": lambda: (
-			get_quarter_start(add_to_date(today, months=-3)),
-			get_quarter_ending(add_to_date(today, months=-3)),
-		),
-		"last 6 months": lambda: (
-			get_quarter_start(add_to_date(today, months=-6)),
-			get_quarter_ending(add_to_date(today, months=-3)),
-		),
-		"last year": lambda: (
-			get_year_start(add_to_date(today, years=-1)),
-			get_year_ending(add_to_date(today, years=-1)),
-		),
-		"yesterday": lambda: (add_to_date(today, days=-1),) * 2,
-		"today": lambda: (today, today),
-		"tomorrow": lambda: (add_to_date(today, days=1),) * 2,
-		"this week": lambda: (get_first_day_of_week(today), get_last_day_of_week(today)),
-		"this month": lambda: (get_first_day(today), get_last_day(today)),
-		"this quarter": lambda: (get_quarter_start(today), get_quarter_ending(today)),
-		"this year": lambda: (get_year_start(today), get_year_ending(today)),
-		"next week": lambda: (
-			get_first_day_of_week(add_to_date(today, days=7)),
-			get_last_day_of_week(add_to_date(today, days=7)),
-		),
-		"next month": lambda: (
-			get_first_day(add_to_date(today, months=1)),
-			get_last_day(add_to_date(today, months=1)),
-		),
-		"next quarter": lambda: (
-			get_quarter_start(add_to_date(today, months=3)),
-			get_quarter_ending(add_to_date(today, months=3)),
-		),
-		"next 6 months": lambda: (
-			get_quarter_start(add_to_date(today, months=3)),
-			get_quarter_ending(add_to_date(today, months=6)),
-		),
-		"next year": lambda: (
-			get_year_start(add_to_date(today, years=1)),
-			get_year_ending(add_to_date(today, years=1)),
-		),
-	}
+def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime] | None:
+	today = getdate()
 
-	if timespan in date_range_map:
-		return date_range_map[timespan]()
+	match timespan:
+		case "last week":
+			return (
+				get_first_day_of_week(add_to_date(today, days=-7)),
+				get_last_day_of_week(add_to_date(today, days=-7)),
+			)
+		case "last month":
+			return (
+				get_first_day(add_to_date(today, months=-1)),
+				get_last_day(add_to_date(today, months=-1)),
+			)
+		case "last quarter":
+			return (
+				get_quarter_start(add_to_date(today, months=-3)),
+				get_quarter_ending(add_to_date(today, months=-3)),
+			)
+		case "last 6 months":
+			return (
+				get_quarter_start(add_to_date(today, months=-6)),
+				get_quarter_ending(add_to_date(today, months=-3)),
+			)
+		case "last year":
+			return (
+				get_year_start(add_to_date(today, years=-1)),
+				get_year_ending(add_to_date(today, years=-1)),
+			)
+
+		case "yesterday":
+			return (add_to_date(today, days=-1),) * 2
+		case "today":
+			return (today, today)
+		case "tomorrow":
+			return (add_to_date(today, days=1),) * 2
+		case "this week":
+			return (get_first_day_of_week(today), get_last_day_of_week(today))
+		case "this month":
+			return (get_first_day(today), get_last_day(today))
+		case "this quarter":
+			return (get_quarter_start(today), get_quarter_ending(today))
+		case "this year":
+			return (get_year_start(today), get_year_ending(today))
+		case "next week":
+			return (
+				get_first_day_of_week(add_to_date(today, days=7)),
+				get_last_day_of_week(add_to_date(today, days=7)),
+			)
+		case "next month":
+			return (
+				get_first_day(add_to_date(today, months=1)),
+				get_last_day(add_to_date(today, months=1)),
+			)
+		case "next quarter":
+			return (
+				get_quarter_start(add_to_date(today, months=3)),
+				get_quarter_ending(add_to_date(today, months=3)),
+			)
+		case "next 6 months":
+			return (
+				get_quarter_start(add_to_date(today, months=3)),
+				get_quarter_ending(add_to_date(today, months=6)),
+			)
+		case "next year":
+			return (
+				get_year_start(add_to_date(today, years=1)),
+				get_year_ending(add_to_date(today, years=1)),
+			)
+		case _:
+			return
 
 
 def global_date_format(date, format="long"):
@@ -1460,15 +1480,15 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	elif dt_diff_days < 12:
 		return _("1 week ago")
 	elif dt_diff_days < 31.0:
-		return _("{0} weeks ago").format(cint(math.ceil(dt_diff_days / 7.0)))
+		return _("{0} weeks ago").format(dt_diff_days // 7)
 	elif dt_diff_days < 46:
 		return _("1 month ago")
 	elif dt_diff_days < 365.0:
-		return _("{0} months ago").format(cint(math.ceil(dt_diff_days / 30.0)))
+		return _("{0} months ago").format(dt_diff_days // 30)
 	elif dt_diff_days < 550.0:
 		return _("1 year ago")
 	else:
-		return f"{cint(math.floor(dt_diff_days / 365.0))} years ago"
+		return _("{0} years ago").format(dt_diff_days // 365)
 
 
 def comma_or(some_list, add_quotes=True):
@@ -1658,14 +1678,14 @@ operator_map = {
 	"in": lambda a, b: operator.contains(b, a),
 	"not in": lambda a, b: not operator.contains(b, a),
 	# comparison operators
-	"=": lambda a, b: operator.eq(a, b),
-	"!=": lambda a, b: operator.ne(a, b),
-	">": lambda a, b: operator.gt(a, b),
-	"<": lambda a, b: operator.lt(a, b),
-	">=": lambda a, b: operator.ge(a, b),
-	"<=": lambda a, b: operator.le(a, b),
-	"not None": lambda a, b: a and True or False,
-	"None": lambda a, b: (not a) and True or False,
+	"=": operator.eq,
+	"!=": operator.ne,
+	">": operator.gt,
+	"<": operator.lt,
+	">=": operator.ge,
+	"<=": operator.le,
+	"not None": lambda a, b: a is not None,
+	"None": lambda a, b: a is None,
 }
 
 
@@ -1687,13 +1707,12 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 
 
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
-	ret = False
 	if fieldtype:
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
-		ret = operator_map[condition](val1, val2)
+		return operator_map[condition](val1, val2)
 
-	return ret
+	return False
 
 
 def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe._dict":
@@ -1809,8 +1828,11 @@ def sanitize_column(column_name: str) -> None:
 
 	from frappe import _
 
-	regex = re.compile("^.*[,'();].*")
 	column_name = sqlparse.format(column_name, strip_comments=True, keyword_case="lower")
+	if frappe.db and frappe.db.db_type == "mariadb":
+		# strip mariadb specific comments which are like python single line comments
+		column_name = MARIADB_SPECIFIC_COMMENT.sub("", column_name)
+
 	blacklisted_keywords = [
 		"select",
 		"create",
@@ -1826,6 +1848,7 @@ def sanitize_column(column_name: str) -> None:
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
+	regex = re.compile("^.*[,'();].*")
 	if "ifnull" in column_name:
 		if regex.match(column_name):
 			# to avoid and, or
@@ -1951,6 +1974,15 @@ def generate_hash(*args, **kwargs) -> str:
 	return frappe.generate_hash(*args, **kwargs)
 
 
+def dict_with_keys(dict, keys):
+	"""Returns a new dict with a subset of keys"""
+	out = {}
+	for key in dict:
+		if key in keys:
+			out[key] = dict[key]
+	return out
+
+
 def guess_date_format(date_string: str) -> str:
 	DATE_FORMATS = [
 		r"%d/%b/%y",
@@ -2014,6 +2046,11 @@ def guess_date_format(date_string: str) -> str:
 	date_format = _get_date_format(date_string)
 	if date_format:
 		return date_format
+
+	# check if time format can be guessed
+	time_format = _get_time_format(date_string)
+	if time_format:
+		return time_format
 
 	# date_string doesnt look like date, it can have a time part too
 	# split the date string into date and time parts

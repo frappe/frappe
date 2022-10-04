@@ -1,15 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 import frappe.desk.form.assign_to
 from frappe.automation.doctype.assignment_rule.test_assignment_rule import make_note
 from frappe.desk.form.load import get_assignments
 from frappe.desk.listview import get_group_by_count
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestAssign(unittest.TestCase):
+class TestAssign(FrappeTestCase):
 	def test_assign(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 		if not frappe.db.exists("User", "test@example.com"):

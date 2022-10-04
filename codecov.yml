@@ -2,34 +2,41 @@ codecov:
   require_ci_to_pass: yes
 
 coverage:
+  range: 60..90
   status:
     project:
-      default: false
-      server:
+      default:
         target: auto
         threshold: 0.5%
         flags:
-          - server
+          - server-mariadb
     patch:
-      default: false
-      server:
+      default:
         target: 85%
         threshold: 0%
         only_pulls: true
         if_ci_failed: ignore
         flags:
-          - server
+          - server-mariadb
 
 comment:
   layout: "diff, flags"
   require_changes: true
 
 flags:
-  server:
+  server-mariadb:
     paths:
-      - ".*\\.py"
+      - "**/*.py"
+    carryforward: true
+  server-postgres:
+    paths:
+      - "**/*.py"
     carryforward: true
   ui-tests:
     paths:
-      - ".*\\.js"
+      - "**/*.js"
+    carryforward: true
+  server-ui:
+    paths:
+      - "**/*.py"
     carryforward: true

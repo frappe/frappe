@@ -3,12 +3,13 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
+from rq.command import send_stop_job_command
 from rq.logutils import setup_loghandlers
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -21,6 +22,11 @@ from frappe.utils.redis_queue import RedisQueue
 
 if TYPE_CHECKING:
 	from rq.job import Job
+
+
+# TTL to keep RQ job logs in redis for.
+RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
+RQ_RESULTS_TTL = 10 * 60
 
 
 @lru_cache
@@ -55,7 +61,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-) -> "Job":
+) -> "Job" | Any:
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -78,11 +84,17 @@ def enqueue(
 			)
 		)
 
-	call_directly = now or frappe.flags.in_migrate or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.flags.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
-	q = get_queue(queue, is_async=is_async)
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except ConnectionError:
+		# If redis is not available for queueing execute the job directly
+		print(f"Redis queue is unreachable: Executing {method} synchronously")
+		return frappe.call(method, **kwargs)
+
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
@@ -103,7 +115,14 @@ def enqueue(
 		)
 		return frappe.flags.enqueue_after_commit
 
-	return q.enqueue_call(execute_job, timeout=timeout, kwargs=queue_args, at_front=at_front)
+	return q.enqueue_call(
+		execute_job,
+		timeout=timeout,
+		kwargs=queue_args,
+		at_front=at_front,
+		failure_ttl=RQ_JOB_FAILURE_TTL,
+		result_ttl=RQ_RESULTS_TTL,
+	)
 
 
 def enqueue_doc(
@@ -295,6 +314,7 @@ def validate_queue(queue, default_queue_list=None):
 	retry=retry_if_exception_type(BusyLoadingError) | retry_if_exception_type(ConnectionError),
 	stop=stop_after_attempt(10),
 	wait=wait_fixed(1),
+	reraise=True,
 )
 def get_redis_conn(username=None, password=None):
 	if not hasattr(frappe.local, "conf"):
@@ -362,3 +382,14 @@ def test_job(s):
 
 	print("sleeping...")
 	time.sleep(s)
+
+
+def is_job_queued(job_name: str) -> bool:
+	for queue in get_queues():
+		for job_id in queue.get_job_ids():
+			if not job_id:
+				continue
+			job = queue.fetch_job(job_id)
+			if job.kwargs.get("job_name") == job_name and job.kwargs.get("site") == frappe.local.site:
+				return True
+	return False
