@@ -152,8 +152,9 @@ class BaseDocument:
 		if "name" in d:
 			self.name = d["name"]
 
+		ignore_children = hasattr(self, "flags") and self.flags.ignore_children
 		for key, value in d.items():
-			self.set(key, value)
+			self.set(key, value, as_value=ignore_children)
 
 		return self
 
