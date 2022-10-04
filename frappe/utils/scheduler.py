@@ -21,7 +21,7 @@ import schedule
 import frappe
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
-from frappe.utils import get_sites, now_datetime
+from frappe.utils import get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import get_jobs
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -132,7 +132,7 @@ def schedule_jobs_based_on_activity(check_time=None):
 	Returns True for inactive sites once in 24 hours"""
 	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
-		last_job_timestamp = frappe.db.get_last_created("Scheduled Job Log")
+		last_job_timestamp = _get_last_modified_timestamp("Scheduled Job Log")
 		if not last_job_timestamp:
 			return True
 		else:
@@ -148,13 +148,21 @@ def schedule_jobs_based_on_activity(check_time=None):
 
 
 def is_dormant(check_time=None):
-	last_activity_log_timestamp = frappe.db.get_last_created("Activity Log")
+	last_activity_log_timestamp = _get_last_modified_timestamp("Activity Log")
 	since = (frappe.get_system_settings("dormant_days") or 4) * 86400
 	if not last_activity_log_timestamp:
 		return True
 	if ((check_time or now_datetime()) - last_activity_log_timestamp).total_seconds() >= since:
 		return True
 	return False
+
+
+def _get_last_modified_timestamp(doctype):
+	timestamp = frappe.db.get_value(
+		doctype, filters={}, fieldname="modified", order_by="modified desc"
+	)
+	if timestamp:
+		return get_datetime(timestamp)
 
 
 @frappe.whitelist()

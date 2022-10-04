@@ -38,8 +38,6 @@ def verify_request():
 		frappe.local.flags.signed_query_string or getattr(frappe.request, "query_string", None)
 	)
 
-	valid = False
-
 	signature_string = "&_signature="
 	if signature_string in query_string:
 		params, signature = query_string.split(signature_string)
@@ -47,15 +45,19 @@ def verify_request():
 		given_signature = hmac.new(params.encode("utf-8"), digestmod=hashlib.md5)
 
 		given_signature.update(get_secret().encode())
-		valid = signature == given_signature.hexdigest()
+		valid_signature = signature == given_signature.hexdigest()
+		valid_method = frappe.request.method == "GET"
+		valid_request_data = not (frappe.request.form or frappe.request.data)
 
-	if not valid:
-		frappe.respond_as_web_page(
-			_("Invalid Link"),
-			_("This link is invalid or expired. Please make sure you have pasted correctly."),
-		)
+		if valid_signature and valid_method and valid_request_data:
+			return True
 
-	return valid
+	frappe.respond_as_web_page(
+		_("Invalid Link"),
+		_("This link is invalid or expired. Please make sure you have pasted correctly."),
+	)
+
+	return False
 
 
 def get_url(cmd, params, nonce=None, secret=None):
