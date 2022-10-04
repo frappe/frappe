@@ -452,7 +452,7 @@ def msgprint(
 	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
-	if sys.stdin.isatty():
+	if sys.stdin and sys.stdin.isatty():
 		msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:

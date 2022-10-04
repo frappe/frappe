@@ -38,6 +38,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.bind_leaflet_draw_control();
 		this.bind_leaflet_locate_control();
 		this.bind_leaflet_refresh_button();
+		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 	}
 
 	format_for_input(value) {

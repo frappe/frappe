@@ -557,7 +557,7 @@ def is_cli() -> bool:
 	try:
 		invoked_from_terminal = bool(os.get_terminal_size())
 	except Exception:
-		invoked_from_terminal = sys.stdin.isatty()
+		invoked_from_terminal = sys.stdin and sys.stdin.isatty()
 	return invoked_from_terminal
 
 
