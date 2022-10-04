@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.core.doctype.submission_queue.submission_queue import submit_in_background
 from frappe.desk.form.load import run_onload
 from frappe.monitor import add_data_to_monitor
 
@@ -18,10 +19,10 @@ def savedocs(doc, action):
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 	if doc.docstatus == 1:
 		if doc.meta.submit_in_background:
-			doc.submit_in_background()
+			submit_in_background(doc)
+			frappe.msgprint(frappe._("Queued"), indicator="green", alert=True)
 		else:
 			doc.submit()
-
 	else:
 		doc.save()
 
@@ -30,7 +31,8 @@ def savedocs(doc, action):
 	send_updated_docs(doc)
 
 	add_data_to_monitor(doctype=doc.doctype, action=action)
-	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
+	if not doc.meta.submit_in_background:
+		frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 
 
 @frappe.whitelist()

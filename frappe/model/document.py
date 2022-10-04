@@ -985,25 +985,6 @@ class Document(BaseDocument):
 			elif alert.event == "Method" and method == alert.method:
 				_evaluate_alert(alert)
 
-	def submit_in_background(self):
-		job = self.queue_action("_submit_in_background")
-		doc = frappe.new_doc("Submission Queue")
-		doc.state = "Queued"
-		doc.start_time = datetime.now()
-		doc.created_by = frappe.session.user
-		doc.name = self.doctype + str(self.name)
-		doc.job_id = job.id
-		doc.insert()
-
-	def _submit_in_background(self):
-		try:
-			self.submit()
-			frappe.db.set_value("Submission Queue", self.doctype + str(self.name), {"state": "Submitted"})
-		except Exception as e:
-			frappe.db.set_value(
-				"Submission Queue", self.doctype + str(self.name), {"state": "Failed", "error": e}
-			)
-
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""

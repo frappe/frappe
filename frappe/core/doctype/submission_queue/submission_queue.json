@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2022-10-04 00:41:00.028163",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "state",
+  "start_time",
+  "created_by",
+  "job_id",
+  "ref_doctype",
+  "ref_docname"
+ ],
+ "fields": [
+  {
+   "fieldname": "state",
+   "fieldtype": "Select",
+   "label": "State",
+   "options": "Submitted\nQueued\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Datetime",
+   "label": "Start time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "job_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Job Id",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "ref_docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Docname",
+   "options": "ref_doctype"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-10-04 16:16:42.962361",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Submission Queue",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
