@@ -1,6 +1,7 @@
+import { createApp } from "vue";
 import FileUploaderComponent from "./FileUploader.vue";
 
-export default class FileUploader {
+class FileUploader {
 	constructor({
 		wrapper,
 		method,
@@ -28,30 +29,24 @@ export default class FileUploader {
 			this.wrapper = wrapper.get ? wrapper.get(0) : wrapper;
 		}
 
-		this.$fileuploader = new Vue({
-			el: this.wrapper,
-			render: (h) =>
-				h(FileUploaderComponent, {
-					props: {
-						show_upload_button: !Boolean(this.dialog),
-						doctype,
-						docname,
-						fieldname,
-						method,
-						folder,
-						on_success,
-						restrictions,
-						upload_notes,
-						allow_multiple,
-						as_dataurl,
-						disable_file_browser,
-						attach_doc_image,
-						make_attachments_public,
-					},
-				}),
+		let app = createApp(FileUploaderComponent, {
+			show_upload_button: !Boolean(this.dialog),
+			doctype,
+			docname,
+			fieldname,
+			method,
+			folder,
+			on_success,
+			restrictions,
+			upload_notes,
+			allow_multiple,
+			as_dataurl,
+			disable_file_browser,
+			attach_doc_image,
+			make_attachments_public,
 		});
-
-		this.uploader = this.$fileuploader.$children[0];
+		SetVueGlobals(app);
+		this.uploader = app.mount(this.wrapper);
 
 		if (!this.dialog) {
 			this.uploader.wrapper_ready = true;
@@ -125,3 +120,7 @@ export default class FileUploader {
 		});
 	}
 }
+
+frappe.provide("frappe.ui");
+frappe.ui.FileUploader = FileUploader;
+export default FileUploader;
