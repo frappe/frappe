@@ -37,6 +37,7 @@ def submit_in_background(doc: Document):
 
 
 def _submit_in_background(name: str, doc: Document):
+	doc.unlock()
 	try:
 		doc.submit()
 		frappe.db.set_value("Submission Queue", name, {"state": "Submitted"})
