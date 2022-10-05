@@ -19,8 +19,14 @@ def savedocs(doc, action):
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 	if doc.docstatus == 1:
 		if doc.meta.submit_in_background:
-			queue_submission(doc, action)
-			frappe.msgprint(frappe._("Queued for Submission"), indicator="green", alert=True)
+			queue_name = queue_submission(doc, action)
+			frappe.msgprint(
+				frappe._("Queued for Submission. You can track the progress over {0}.").format(
+					f"<a href='/app/submission-queue/{queue_name}'><b>here</b></a>"
+				),
+				indicator="green",
+				alert=True,
+			)
 			return
 		else:
 			doc.submit()

@@ -11,11 +11,11 @@
   "enqueued_by",
   "job_id",
   "column_break_5",
+  "ended_at",
   "ref_doctype",
   "ref_docname",
   "section_break_8",
-  "message",
-  "completed_at"
+  "message"
  ],
  "fields": [
   {
@@ -75,15 +75,15 @@
    "read_only": 1
   },
   {
-   "fieldname": "completed_at",
-   "fieldtype": "Data",
-   "label": "Completed At",
+   "fieldname": "ended_at",
+   "fieldtype": "Datetime",
+   "label": "Ended At",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-05 16:09:36.663459",
+ "modified": "2022-10-06 01:11:11.835985",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
