@@ -9,6 +9,10 @@ from frappe.utils import now
 
 
 class SubmissionQueue(Document):
+	@property
+	def created_at(self):
+		return self.creation
+
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
@@ -32,7 +36,7 @@ class SubmissionQueue(Document):
 		frappe.db.set_value(
 			self.doctype,
 			self.name,
-			{"job_id": job.id, "enqueued_at": now()},
+			{"job_id": job.id},
 			update_modified=False,
 		)
 

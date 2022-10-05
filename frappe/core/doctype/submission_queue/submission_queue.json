@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "enqueued_at",
+  "created_at",
   "enqueued_by",
   "job_id",
   "column_break_5",
@@ -63,12 +63,6 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "enqueued_at",
-   "fieldtype": "Datetime",
-   "label": "Enqueued At",
-   "read_only": 1
-  },
-  {
    "fieldname": "enqueued_by",
    "fieldtype": "Data",
    "label": "Enqueued By",
@@ -79,11 +73,18 @@
    "fieldtype": "Datetime",
    "label": "Ended At",
    "read_only": 1
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "is_virtual": 1,
+   "label": "Created At",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-06 01:11:11.835985",
+ "modified": "2022-10-06 01:57:19.253609",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
