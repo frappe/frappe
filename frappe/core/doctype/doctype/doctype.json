@@ -23,6 +23,7 @@
   "custom",
   "beta",
   "is_virtual",
+  "submit_in_background",
   "fields_section_break",
   "fields",
   "sb1",
@@ -58,7 +59,6 @@
   "icon",
   "color",
   "show_preview_popup",
-  "submit_in_background",
   "show_name_in_global_search",
   "email_settings_sb",
   "default_email_template",
@@ -609,6 +609,7 @@
   },
   {
    "default": "0",
+   "depends_on": "is_submittable",
    "fieldname": "submit_in_background",
    "fieldtype": "Check",
    "label": "Submit in background"
@@ -694,7 +695,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-10-03 16:14:46.432770",
+ "modified": "2022-10-05 22:39:47.594977",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
