@@ -38,7 +38,7 @@ class SubmissionQueue(Document):
 
 		try:
 			getattr(to_be_queued_doc, _action)()
-			values = {"status": "Completed"}
+			values = {"status": "Completed", "completed_at": datetime.now()}
 		except Exception as e:
 			values = {"status": "Failed", "message": str(e)}
 
@@ -47,6 +47,7 @@ class SubmissionQueue(Document):
 
 
 def notify(name: str):
+	# Todo: fix notification
 	notification_doc =  {
 			"type": "Notification",
 			"document_type": "Submission Queue",
@@ -66,8 +67,8 @@ def notify(name: str):
 def queue_submission(doc: Document, action: str):
 	queue = frappe.new_doc("Submission Queue")
 	queue.state = "Queued"
-	queue.start_time = datetime.now()
-	queue.created_by = frappe.session.user
+	queue.enqueued_at = datetime.now()
+	queue.enqueued_by = frappe.session.user
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)

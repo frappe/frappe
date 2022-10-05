@@ -7,28 +7,17 @@
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "start_time",
-  "created_by",
+  "enqueued_at",
+  "enqueued_by",
   "job_id",
   "column_break_5",
   "ref_doctype",
   "ref_docname",
   "section_break_8",
-  "message"
+  "message",
+  "completed_at"
  ],
  "fields": [
-  {
-   "fieldname": "start_time",
-   "fieldtype": "Datetime",
-   "label": "Start time",
-   "read_only": 1
-  },
-  {
-   "fieldname": "created_by",
-   "fieldtype": "Data",
-   "label": "Created By",
-   "read_only": 1
-  },
   {
    "fieldname": "job_id",
    "fieldtype": "Data",
@@ -72,11 +61,29 @@
   {
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "enqueued_at",
+   "fieldtype": "Datetime",
+   "label": "Enqueued At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "enqueued_by",
+   "fieldtype": "Data",
+   "label": "Enqueued By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "completed_at",
+   "fieldtype": "Data",
+   "label": "Completed At",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-04 18:41:08.495515",
+ "modified": "2022-10-05 16:09:36.663459",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
