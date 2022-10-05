@@ -15,6 +15,25 @@ class SubmissionQueue(Document):
 		self.action_for_queuing = action
 		super().insert()
 
+	def queue_action(self, action, **kwargs):
+		from frappe.utils.background_jobs import enqueue
+
+		try:
+			self.to_be_queued_doc.lock()
+		except frappe.DocumentLockedError:
+			frappe.throw(
+				_("Docuement is already queued for execution"),
+				title=_("Documenet Queued"),
+				exc=frappe.DocumentLockedError
+			)
+		return enqueue(
+			"frappe.model.document.execute_action",
+			__doctype=self.to_be_queued_doc,
+			__name=self.to_be_queued_doc.name,
+			__action=action,
+			**kwargs
+		)
+
 	def after_insert(self):
 		job = self.queue_action(
 			"queue_in_background",
