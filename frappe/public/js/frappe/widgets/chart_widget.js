@@ -589,11 +589,7 @@ export default class ChartWidget extends Widget {
 			type: chart_type_map[this.chart_doc.type],
 			colors: colors,
 			height: this.height,
-<<<<<<< HEAD
-			maxSlices: ['Pie', 'Donut'].includes(this.chart_doc.type) ? 6 : 9,
-=======
 			maxSlices: this.chart_doc.number_of_groups || max_slices,
->>>>>>> d597acb5e2 (fix: let charts handle aggregation (#18293))
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1
