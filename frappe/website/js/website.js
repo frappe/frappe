@@ -13,25 +13,25 @@ $.extend(frappe, {
 		lang: "en",
 	},
 	_assets_loaded: [],
-	require: async function (links, callback, from_assets_json = false) {
+	require: async function (links, callback) {
 		if (typeof links === "string") {
 			links = [links];
 		}
+		links = links.map((link) => frappe.bundled_asset(link));
 		for (let link of links) {
-			if (from_assets_json) {
-				if (frappe.boot.assets_json) {
-					link = frappe.boot.assets_json[link];
-				} else {
-					let r = await frappe.call("frappe.sessions.get_boot_assets_json");
-					if (r.message) {
-						frappe.boot.assets_json = r.message;
-						link = frappe.boot.assets_json[link];
-					}
-				}
-			}
 			await this.add_asset_to_head(link);
 		}
 		callback && callback();
+	},
+	bundled_asset(path, is_rtl = null) {
+		if (!path.startsWith("/assets") && path.includes(".bundle.")) {
+			if (path.endsWith(".css") && is_rtl) {
+				path = `rtl_${path}`;
+			}
+			path = frappe.boot.assets_json[path] || path;
+			return path;
+		}
+		return path;
 	},
 	add_asset_to_head(link) {
 		return new Promise((resolve) => {

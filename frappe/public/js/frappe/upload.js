@@ -5,6 +5,6 @@ if (frappe.require) {
 	frappe.require("file_uploader.bundle.js");
 } else {
 	frappe.ready(function () {
-		frappe.require("file_uploader.bundle.js", null, true);
+		frappe.require("file_uploader.bundle.js");
 	});
 }
