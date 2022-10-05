@@ -1,3 +1,4 @@
+import datetime
 import re
 
 import pymysql
@@ -7,7 +8,15 @@ from pymysql.converters import conversions, escape_string
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
+from frappe.utils import (
+	UnicodeWithAttrs,
+	cstr,
+	get_date_str,
+	get_datetime,
+	get_datetime_str,
+	get_table_name,
+	get_time_str,
+)
 
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
 
@@ -207,6 +216,15 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		# pymysql expects unicode argument to escape_string with Python 3
 		s = frappe.as_unicode(escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
+
+		if isinstance(s, datetime.datetime):
+			s = get_datetime_str(s)
+
+		elif isinstance(s, datetime.date):
+			s = get_date_str(s)
+
+		elif isinstance(s, datetime.timedelta):
+			s = get_time_str(s)
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s

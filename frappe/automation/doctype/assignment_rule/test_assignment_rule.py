@@ -257,13 +257,17 @@ class TestAutoAssign(FrappeTestCase):
 		)[0]
 
 		note1_todo_doc = frappe.get_doc("ToDo", note1_todo.name)
-		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), expiry_date)
+		self.assertEqual(
+			frappe.utils.get_date_str(note1_todo_doc.date), frappe.utils.get_date_str(expiry_date)
+		)
 
 		# due date should be updated if the reference doc's date is updated.
 		note1.expiry_date = frappe.utils.add_days(expiry_date, 2)
 		note1.save()
 		note1_todo_doc.reload()
-		self.assertEqual(frappe.utils.get_date_str(note1_todo_doc.date), note1.expiry_date)
+		self.assertEqual(
+			frappe.utils.get_date_str(note1_todo_doc.date), frappe.utils.get_date_str(note1.expiry_date)
+		)
 
 		# saving one note's expiry should not update other note todo's due date
 		note2_todo = frappe.get_all(
@@ -271,8 +275,12 @@ class TestAutoAssign(FrappeTestCase):
 			filters=dict(reference_type="Note", reference_name=note2.name, status="Open"),
 			fields=["name", "date"],
 		)[0]
-		self.assertNotEqual(frappe.utils.get_date_str(note2_todo.date), note1.expiry_date)
-		self.assertEqual(frappe.utils.get_date_str(note2_todo.date), expiry_date)
+		self.assertNotEqual(
+			frappe.utils.get_date_str(note2_todo.date), frappe.utils.get_date_str(note1.expiry_date)
+		)
+		self.assertEqual(
+			frappe.utils.get_date_str(note2_todo.date), frappe.utils.get_date_str(expiry_date)
+		)
 		assignment_rule.delete()
 		frappe.db.commit()  # undo changes commited by DDL
 

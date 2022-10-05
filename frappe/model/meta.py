@@ -17,6 +17,7 @@ Example:
 import json
 import os
 from datetime import datetime
+from typing import Dict, List
 
 import click
 
@@ -108,6 +109,10 @@ class Meta(Document):
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
+	]
+	standard_datetime_fields = [
+		frappe._dict(fieldname="creation", fieldtype="Datetime"),
+		frappe._dict(fieldname="modified", fieldtype="Datetime"),
 	]
 
 	def __init__(self, doctype):
@@ -654,6 +659,27 @@ class Meta(Document):
 
 	def is_nested_set(self):
 		return self.has_field("lft") and self.has_field("rgt")
+
+	def get_date_fields(self) -> list[dict[str, str]]:
+		if not hasattr(self, "_date_fields"):
+			self._date_fields = self.get("fields", {"fieldtype": "Date"})
+
+		return self._date_fields
+
+	def get_time_fields(self) -> list[dict[str, str]]:
+		if not hasattr(self, "_time_fields"):
+			self._time_fields = self.get("fields", {"fieldtype": "Time"})
+
+		return self._time_fields
+
+	def get_datetime_fields(self, with_standard_datetime_fields=False) -> list[dict[str, str]]:
+		if not hasattr(self, "_datetime_fields"):
+			self._datetime_fields = self.get("fields", {"fieldtype": "Datetime"}, default=[])
+
+			if with_standard_datetime_fields:
+				self._datetime_fields += self.standard_datetime_fields
+
+		return self._datetime_fields
 
 
 #######

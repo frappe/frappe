@@ -133,13 +133,13 @@ def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
 	valid time format. Returns None if `time` is not a valid format
 
 	Args:
-	        time (str): A valid time representation. This string is parsed
-	        using `dateutil.parser.parse`. Examples of valid inputs are:
-	        '0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
-	        https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
+	                time (str): A valid time representation. This string is parsed
+	                using `dateutil.parser.parse`. Examples of valid inputs are:
+	                '0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
+	                https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
 
 	Returns:
-	        datetime.timedelta: Timedelta object equivalent of the passed `time` string
+	                datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
 	from dateutil import parser
 	from dateutil.parser import ParserError
@@ -174,6 +174,15 @@ def to_timedelta(time_str: str | datetime.time) -> datetime.timedelta:
 
 	else:
 		return time_str
+
+
+def to_datetime(
+	datetime_str: str | datetime.datetime, format: str | None = None
+) -> datetime.datetime:
+	if isinstance(datetime_str, datetime.datetime):
+		return datetime_str
+	elif isinstance(datetime_str, str):
+		return datetime.datetime.strptime(datetime_str, format or DATETIME_FORMAT)
 
 
 @typing.overload
@@ -860,12 +869,12 @@ def cast(fieldtype, value=None):
 	If value can't be cast as fieldtype due to an invalid input, None will be returned.
 
 	Mapping of Python types => Frappe types:
-	        * str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
-	        * float => ("Currency", "Float", "Percent")
-	        * int => ("Int", "Check")
-	        * datetime.datetime => ("Datetime",)
-	        * datetime.date => ("Date",)
-	        * datetime.time => ("Time",)
+	                                * str => ("Data", "Text", "Small Text", "Long Text", "Text Editor", "Select", "Link", "Dynamic Link")
+	                                * float => ("Currency", "Float", "Percent")
+	                                * int => ("Int", "Check")
+	                                * datetime.datetime => ("Datetime",)
+	                                * datetime.date => ("Date",)
+	                                * datetime.time => ("Time",)
 	"""
 	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
@@ -973,13 +982,11 @@ def floor(s):
 
 	Parameters
 	----------
-	s : int or str or Decimal object
-	        The mathematical value to be floored
+	s : int or str or Decimal object. The mathematical value to be floored.
 
 	Returns
 	-------
-	int
-	        number representing the largest integer less than or equal to the specified number
+	int: number representing the largest integer less than or equal to the specified number
 
 	"""
 	try:
@@ -995,13 +1002,11 @@ def ceil(s):
 
 	Parameters
 	----------
-	s : int or str or Decimal object
-	        The mathematical value to be ceiled
+	s : int or str or Decimal object. The mathematical value to be ceiled
 
 	Returns
 	-------
-	int
-	        smallest integer greater than or equal to the given number
+	int: smallest integer greater than or equal to the given number
 
 	"""
 	try:
@@ -1018,15 +1023,15 @@ def cstr(s, encoding="utf-8"):
 def sbool(x: str) -> bool | Any:
 	"""Converts str object to Boolean if possible.
 	Example:
-	        "true" becomes True
-	        "1" becomes True
-	        "{}" remains "{}"
+	                "true" becomes True
+	                "1" becomes True
+	                "{}" remains "{}"
 
 	Args:
-	        x (str): String to be converted to Bool
+	                x (str): String to be converted to Bool
 
 	Returns:
-	        object: Returns Boolean or x
+	                object: Returns Boolean or x
 	"""
 	try:
 		val = x.lower()
@@ -1719,11 +1724,11 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	"""Returns a _dict like
 
 	{
-	        "doctype":
-	        "fieldname":
-	        "operator":
-	        "value":
-	        "fieldtype":
+	                                "doctype":
+	                                "fieldname":
+	                                "operator":
+	                                "value":
+	                                "fieldtype":
 	}
 	"""
 	from frappe.model import child_table_fields, default_fields, optional_fields
@@ -2093,8 +2098,8 @@ def validate_python_code(
 	"""Validate python code fields by using compile_command to ensure that expression is valid python.
 
 	args:
-	        fieldname: name of field being validated.
-	        is_expression: true for validating simple single line python expression, else validated as script.
+	                fieldname: name of field being validated.
+	                is_expression: true for validating simple single line python expression, else validated as script.
 	"""
 
 	if not string:
@@ -2160,3 +2165,5 @@ def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
 	if doc_name:
 		job_name += f"_{doc_name}"
 	return job_name
+
+DEFAULT_DATETIME_SHORTCUTS = ["Today", "__today", "now", "Now"]

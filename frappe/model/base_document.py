@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+from typing import Any
 
 import frappe
 from frappe import _, _dict
@@ -17,7 +18,18 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
+from frappe.utils import (
+	DEFAULT_DATETIME_SHORTCUTS,
+	cast,
+	cast_fieldtype,
+	cint,
+	cstr,
+	flt,
+	now,
+	now_datetime,
+	sanitize_html,
+	strip_html,
+)
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
@@ -94,19 +106,40 @@ class BaseDocument:
 		"_table_fieldnames",
 		"_reserved_keywords",
 		"dont_update_if_missing",
+		"_datetime_fieldnames",
+		"_date_fieldnames",
+		"_time_fieldnames",
 	}
 
-	def __init__(self, d):
-		if d.get("doctype"):
-			self.doctype = d["doctype"]
+	def __init__(self, doc):
+		if doc.get("doctype"):
+			self.doctype = doc["doctype"]
 
 		self._table_fieldnames = (
-			d["_table_fieldnames"]  # from cache
-			if "_table_fieldnames" in d
+			doc["_table_fieldnames"]
+			if "_table_fieldnames" in doc
 			else {df.fieldname for df in self._get_table_fields()}
 		)
 
-		self.update(d)
+		self._datetime_fieldnames = (
+			doc["_datetime_fieldnames"]
+			if "_datetime_fieldnames" in doc
+			else {df.fieldname for df in self._get_datetime_fields()}
+		)
+
+		self._date_fieldnames = (
+			doc["_date_fieldnames"]
+			if "_date_fieldnames" in doc
+			else {df.fieldname for df in self._get_date_fields()}
+		)
+
+		self._time_fieldnames = (
+			doc["_time_fieldnames"]
+			if "_time_fieldnames" in doc
+			else {df.fieldname for df in self._get_time_fields()}
+		)
+
+		self.update(doc)
 		self.dont_update_if_missing = []
 
 		if hasattr(self, "__setup__"):
@@ -138,14 +171,30 @@ class BaseDocument:
 
 		state.pop("_meta", None)
 
+	def __setattr__(self, __name: str, __value: Any) -> None:
+		"""
+		Cast datetime/date/time/string value to datetime, date and time respectively for Datetime, Date and Time fields only.
+		"""
+		if __value in DEFAULT_DATETIME_SHORTCUTS:
+			__value = now_datetime()
+
+		if hasattr(self, "_datetime_fieldnames") and __value and __name in self._datetime_fieldnames:
+			__value = cast("Datetime", __value)
+		elif hasattr(self, "_date_fieldnames") and __value and __name in self._date_fieldnames:
+			__value = cast("Date", __value)
+		elif hasattr(self, "_time_fieldnames") and __value and __name in self._time_fieldnames:
+			__value = cast("Time", __value)
+
+		self.__dict__[__name] = __value
+
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
 
 		Example:
-		        doc.update({
+		doc.update({
 		                "user": "admin",
 		                "balance": 42000
-		        })
+		})
 		"""
 
 		# set name first, as it is used a reference in child document
@@ -201,6 +250,9 @@ class BaseDocument:
 		if key in self._reserved_keywords:
 			return
 
+		if value in DEFAULT_DATETIME_SHORTCUTS:
+			value = now_datetime()
+
 		if not as_value and key in self._table_fieldnames:
 			self.__dict__[key] = []
 
@@ -209,6 +261,12 @@ class BaseDocument:
 				self.extend(key, value)
 
 			return
+		elif value and key in self._datetime_fieldnames:
+			value = cast("Datetime", value)
+		elif value and key in self._date_fieldnames:
+			value = cast("Date", value)
+		elif value and key in self._time_fieldnames:
+			value = cast("Time", value)
 
 		self.__dict__[key] = value
 
@@ -220,11 +278,11 @@ class BaseDocument:
 		"""Append an item to a child table.
 
 		Example:
-		        doc.append("childtable", {
+		doc.append("childtable", {
 		                "child_table_field": "value",
 		                "child_table_int_field": 0,
 		                ...
-		        })
+		})
 		"""
 		if value is None:
 			value = {}
@@ -295,6 +353,45 @@ class BaseDocument:
 			return ()
 
 		return self.meta.get_table_fields()
+
+	def _get_datetime_fields(self):
+		"""
+		To get datetime fields during Document init
+		"""
+		if (
+			self.doctype == "DocType"
+			or self.doctype in DOCTYPES_FOR_DOCTYPE
+			or getattr(self, "parentfield", None)
+		):
+			return ()
+
+		return self.meta.get_datetime_fields(with_standard_datetime_fields=True)
+
+	def _get_date_fields(self):
+		"""
+		To get date fields during Document init
+		"""
+		if (
+			self.doctype == "DocType"
+			or self.doctype in DOCTYPES_FOR_DOCTYPE
+			or getattr(self, "parentfield", None)
+		):
+			return ()
+
+		return self.meta.get_date_fields()
+
+	def _get_time_fields(self):
+		"""
+		To get time fields during Document init
+		"""
+		if (
+			self.doctype == "DocType"
+			or self.doctype in DOCTYPES_FOR_DOCTYPE
+			or getattr(self, "parentfield", None)
+		):
+			return ()
+
+		return self.meta.get_time_fields()
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
@@ -469,9 +566,7 @@ class BaseDocument:
 		"""INSERT the document (with valid columns) in the database.
 
 		args:
-		        ignore_if_duplicate: ignore primary key collision
-		                                        at database level (postgres)
-		                                        in python (mariadb)
+		ignore_if_duplicate: ignore primary key collision at database level (postgres) in python (mariadb)
 		"""
 		if not self.name:
 			# name will be set by document class in most cases
@@ -596,13 +691,13 @@ class BaseDocument:
 		This function returns the `column_name` associated with the `key_name` passed
 
 		Args:
-		        key_name (str): The name of the database index.
+		key_name (str): The name of the database index.
 
 		Raises:
-		        IndexError: If the key is not found in the table.
+		IndexError: If the key is not found in the table.
 
 		Returns:
-		        str: The column name associated with the key.
+		str: The column name associated with the key.
 		"""
 		return frappe.db.sql(
 			f"""
@@ -623,10 +718,10 @@ class BaseDocument:
 		"""Returns the associated label for fieldname
 
 		Args:
-		        fieldname (str): The fieldname in the DocType to use to pull the label.
+		fieldname (str): The fieldname in the DocType to use to pull the label.
 
 		Returns:
-		        str: The label associated with the fieldname, if found, otherwise `None`.
+		str: The label associated with the fieldname, if found, otherwise `None`.
 		"""
 		df = self.meta.get_field(fieldname)
 		if df:
@@ -1122,9 +1217,9 @@ class BaseDocument:
 		Print Hide can be set via the Print Format Builder or in the controller as a list
 		of hidden fields. Example
 
-		        class MyDoc(Document):
+		class MyDoc(Document):
 		                def __setup__(self):
-		                        self.print_hide = ["field1", "field2"]
+		                                self.print_hide = ["field1", "field2"]
 
 		:param fieldname: Fieldname to be checked if hidden.
 		"""

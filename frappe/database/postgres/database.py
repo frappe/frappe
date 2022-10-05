@@ -1,3 +1,4 @@
+import datetime
 import re
 
 import psycopg2
@@ -19,7 +20,7 @@ import frappe
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode
-from frappe.utils import cstr, get_table_name
+from frappe.utils import cstr, get_date_str, get_datetime_str, get_table_name, get_time_str
 
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
@@ -165,6 +166,15 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		"""Escape quotes and percent in given string."""
 		if isinstance(s, bytes):
 			s = s.decode("utf-8")
+
+		if isinstance(s, datetime.datetime):
+			s = get_datetime_str(s)
+
+		elif isinstance(s, datetime.date):
+			s = get_date_str(s)
+
+		elif isinstance(s, datetime.timedelta):
+			s = get_time_str(s)
 
 		# MariaDB's driver treats None as an empty string
 		# So Postgres should do the same
@@ -401,7 +411,7 @@ def modify_query(query):
 	# only find int (with/without signs), ignore decimals (with/without signs), ignore hashes (which start with numbers),
 	# drop .0 from decimals and add quotes around them
 	#
-	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =   40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
+	# >>> query = "c='abcd' , a >= 45, b = -45.0, c =	40, d=4500.0, e=3500.53, f=40psdfsd, g=9092094312, h=12.00023"
 	# >>> re.sub(r"([=><]+)\s*([+-]?\d+)(\.0)?(?![a-zA-Z\.\d])", r"\1 '\2'", query)
 	# 	"c='abcd' , a >= '45', b = '-45', c = '40', d= '4500', e=3500.53, f=40psdfsd, g= '9092094312', h=12.00023
 
