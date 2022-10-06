@@ -51,7 +51,7 @@
   },
   {
    "default": "0",
-   "description": "Checking this will export the data without any header notes and variable descriptions",
+   "description": "Export the data without any header notes and column descriptions",
    "fieldname": "export_without_main_header",
    "fieldtype": "Check",
    "label": "Export without main header"
