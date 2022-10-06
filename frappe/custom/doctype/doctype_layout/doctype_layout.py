@@ -18,12 +18,16 @@ class DocTypeLayout(Document):
 
 	@frappe.whitelist()
 	def sync_fields(self):
-		layout_fieldnames = {field.fieldname for field in self.fields}
 		doctype_fields = frappe.get_meta(self.document_type).fields
-		doctype_fieldnames = {field.fieldname for field in doctype_fields}
 
-		added_fields = list(doctype_fieldnames - layout_fieldnames)
-		removed_fields = list(layout_fieldnames - doctype_fieldnames)
+		if self.is_new():
+			added_fields = [field.fieldname for field in doctype_fields]
+			removed_fields = []
+		else:
+			doctype_fieldnames = {field.fieldname for field in doctype_fields}
+			layout_fieldnames = {field.fieldname for field in self.fields}
+			added_fields = list(doctype_fieldnames - layout_fieldnames)
+			removed_fields = list(layout_fieldnames - doctype_fieldnames)
 
 		if not (added_fields or removed_fields):
 			return
@@ -45,19 +49,22 @@ class DocTypeLayout(Document):
 
 			# remove 'doctype' data from the DocField to allow adding it to the layout
 			row = self.append("fields", field_details.as_dict(no_default_fields=True))
-			if field_details.insert_after:
+			row_data = row.as_dict()
+
+			if field_details.get("insert_after"):
 				insert_after = next(
 					(f for f in self.fields if f.fieldname == field_details.insert_after),
 					None,
 				)
 
 				# initialize new row to just after the insert_after field
-				self.fields.insert(insert_after.idx, row)
-				self.fields.pop()
+				if insert_after:
+					self.fields.insert(insert_after.idx, row)
+					self.fields.pop()
 
-				added.append({"idx": insert_after.idx + 1, "fieldname": row.fieldname, "label": row.label})
-			else:
-				added.append(row.as_dict())
+					row_data = {"idx": insert_after.idx + 1, "fieldname": row.fieldname, "label": row.label}
+
+			added.append(row_data)
 		return added
 
 	def remove_fields(self, removed_fields: list[str]) -> list[dict]:
