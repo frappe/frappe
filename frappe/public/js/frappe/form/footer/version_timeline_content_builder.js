@@ -31,29 +31,53 @@ function get_version_timeline_content(version_doc, frm) {
 				if (p[2] === 1) {
 					let message = updater_reference_link
 						? get_user_message(
-							version_doc.owner,
-							__("You submitted this document {0}", [updater_reference_link], "Form timeline"),
-							__("{0} submitted this document {1}", [get_user_link(version_doc.owner), updater_reference_link], "Form timeline"),
-						)
+								version_doc.owner,
+								__(
+									"You submitted this document {0}",
+									[updater_reference_link],
+									"Form timeline"
+								),
+								__(
+									"{0} submitted this document {1}",
+									[get_user_link(version_doc.owner), updater_reference_link],
+									"Form timeline"
+								)
+						  )
 						: get_user_message(
-							version_doc.owner,
-							__("You submitted this document", null, "Form timeline"),
-							__("{0} submitted this document", [get_user_link(version_doc.owner)], "Form timeline"),
-						);
+								version_doc.owner,
+								__("You submitted this document", null, "Form timeline"),
+								__(
+									"{0} submitted this document",
+									[get_user_link(version_doc.owner)],
+									"Form timeline"
+								)
+						  );
 
 					out.push(get_version_comment(version_doc, message));
 				} else if (p[2] === 2) {
 					let message = updater_reference_link
 						? get_user_message(
-							version_doc.owner,
-							__("You cancelled this document {1}", [updater_reference_link], "Form timeline"),
-							__("{0} cancelled this document {1}", [get_user_link(version_doc.owner), updater_reference_link], "Form timeline"),
-						)
+								version_doc.owner,
+								__(
+									"You cancelled this document {1}",
+									[updater_reference_link],
+									"Form timeline"
+								),
+								__(
+									"{0} cancelled this document {1}",
+									[get_user_link(version_doc.owner), updater_reference_link],
+									"Form timeline"
+								)
+						  )
 						: get_user_message(
-							version_doc.owner,
-							__("You cancelled this document", null, "Form timeline"),
-							__("{0} cancelled this document", [get_user_link(version_doc.owner)], "Form timeline"),
-						);
+								version_doc.owner,
+								__("You cancelled this document", null, "Form timeline"),
+								__(
+									"{0} cancelled this document",
+									[get_user_link(version_doc.owner)],
+									"Form timeline"
+								)
+						  );
 
 					out.push(get_version_comment(version_doc, message));
 				}
@@ -81,15 +105,25 @@ function get_version_timeline_content(version_doc, frm) {
 		if (parts.length) {
 			let message = updater_reference_link
 				? get_user_message(
-					version_doc.owner,
-					__("You changed the value of {0} {1}", [parts.join(', '), updater_reference_link]),
-					__("{0} changed the value of {1} {2}", [get_user_link(version_doc.owner), parts.join(', '), updater_reference_link]),
-				)
+						version_doc.owner,
+						__("You changed the value of {0} {1}", [
+							parts.join(", "),
+							updater_reference_link,
+						]),
+						__("{0} changed the value of {1} {2}", [
+							get_user_link(version_doc.owner),
+							parts.join(", "),
+							updater_reference_link,
+						])
+				  )
 				: get_user_message(
-					version_doc.owner,
-					__("You changed the value of {0}", [parts.join(', ')]),
-					__("{0} changed the value of {1}", [get_user_link(version_doc.owner), parts.join(', ')]),
-				);
+						version_doc.owner,
+						__("You changed the value of {0}", [parts.join(", ")]),
+						__("{0} changed the value of {1}", [
+							get_user_link(version_doc.owner),
+							parts.join(", "),
+						])
+				  );
 
 			out.push(get_version_comment(version_doc, message));
 		}
@@ -133,15 +167,25 @@ function get_version_timeline_content(version_doc, frm) {
 		if (parts.length) {
 			let message = updater_reference_link
 				? get_user_message(
-					version_doc.owner,
-					__("You changed the values for {0} {1}", [parts.join(', '), updater_reference_link]),
-					__("{0} changed the values for {1} {2}", [get_user_link(version_doc.owner), parts.join(', '), updater_reference_link]),
-				)
+						version_doc.owner,
+						__("You changed the values for {0} {1}", [
+							parts.join(", "),
+							updater_reference_link,
+						]),
+						__("{0} changed the values for {1} {2}", [
+							get_user_link(version_doc.owner),
+							parts.join(", "),
+							updater_reference_link,
+						])
+				  )
 				: get_user_message(
-					version_doc.owner,
-					__("You changed the values for {0}", [parts.join(', ')]),
-					__("{0} changed the values for {1}", [get_user_link(version_doc.owner), parts.join(', ')]),
-				);
+						version_doc.owner,
+						__("You changed the values for {0}", [parts.join(", ")]),
+						__("{0} changed the values for {1}", [
+							get_user_link(version_doc.owner),
+							parts.join(", "),
+						])
+				  );
 
 			out.push(get_version_comment(version_doc, message));
 		}
@@ -241,8 +285,8 @@ function format_content_for_timeline(content) {
 }
 
 function get_user_link(user) {
-	const user_display_text = (frappe.user_info(user).fullname || '').bold();
-	return frappe.utils.get_form_link('User', user, true, user_display_text);
+	const user_display_text = (frappe.user_info(user).fullname || "").bold();
+	return frappe.utils.get_form_link("User", user, true, user_display_text);
 }
 
 function get_user_message(user, message_self, message_other) {
