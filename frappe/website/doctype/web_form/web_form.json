@@ -5,48 +5,50 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
-  "title_and_route_tab",
+  "form_tab",
   "title",
   "route",
   "published",
-  "column_break_4",
+  "column_break_1",
   "doc_type",
   "module",
   "is_standard",
-  "introduction",
+  "section_break_1",
   "introduction_text",
-  "form_settings_tab",
+  "web_form_fields",
+  "settings_tab",
   "login_required",
-  "is_multi_step_form",
   "allow_multiple",
   "allow_edit",
   "allow_delete",
-  "column_break_18",
+  "column_break_2",
   "apply_document_permissions",
   "allow_print",
   "print_format",
   "allow_comments",
   "show_attachments",
   "allow_incomplete",
-  "form_fields",
-  "web_form_fields",
+  "section_break_2",
   "max_attachment_size",
-  "actions",
-  "breadcrumbs",
-  "button_label",
-  "column_break_29",
-  "success_message",
-  "route_to_success_link",
-  "success_url",
-  "list_settings_tab",
+  "section_break_3",
   "list_setting_message",
   "show_list",
   "list_title",
   "list_columns",
-  "sidebar_settings_tab",
+  "section_break_4",
   "show_sidebar",
   "website_sidebar",
-  "scripting_style_tab",
+  "customization_tab",
+  "button_label",
+  "banner_image",
+  "column_break_3",
+  "breadcrumbs",
+  "section_break_5",
+  "success_title",
+  "success_url",
+  "column_break_4",
+  "success_message",
+  "section_break_6",
   "client_script",
   "custom_css"
  ],
@@ -80,10 +82,6 @@
    "options": "Module Def"
   },
   {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
@@ -100,13 +98,6 @@
    "fieldname": "login_required",
    "fieldtype": "Check",
    "label": "Login Required"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.login_required",
-   "fieldname": "route_to_success_link",
-   "fieldtype": "Check",
-   "label": "Route to Success Link"
   },
   {
    "default": "0",
@@ -164,14 +155,8 @@
    "label": "Allow Incomplete Forms"
   },
   {
-   "collapsible": 1,
-   "fieldname": "introduction",
-   "fieldtype": "Section Break",
-   "label": "Introduction"
-  },
-  {
    "fieldname": "introduction_text",
-   "fieldtype": "Small Text",
+   "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
    "label": "Introduction"
   },
@@ -193,25 +178,18 @@
    "label": "Client Script"
   },
   {
-   "collapsible": 1,
-   "fieldname": "actions",
-   "fieldtype": "Section Break",
-   "label": "Customization"
-  },
-  {
    "default": "Save",
    "fieldname": "button_label",
    "fieldtype": "Data",
    "label": "Submit Button Label"
   },
   {
-   "description": "Message to be displayed on successful completion (only for Guest users)",
+   "description": "Message to be displayed on successful completion",
    "fieldname": "success_message",
    "fieldtype": "Text",
    "label": "Success Message"
   },
   {
-   "depends_on": "route_to_success_link",
    "description": "Go to this URL after completing the form",
    "fieldname": "success_url",
    "fieldtype": "Data",
@@ -227,7 +205,8 @@
    "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
    "fieldname": "breadcrumbs",
    "fieldtype": "Code",
-   "label": "Breadcrumbs"
+   "label": "Breadcrumbs",
+   "max_height": "140px"
   },
   {
    "fieldname": "custom_css",
@@ -240,12 +219,6 @@
    "fieldname": "apply_document_permissions",
    "fieldtype": "Check",
    "label": "Apply Document Permissions"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_multi_step_form",
-   "fieldtype": "Check",
-   "label": "Is Multi Step Form"
   },
   {
    "default": "0",
@@ -268,29 +241,10 @@
    "options": "Web Form List Column"
   },
   {
-   "fieldname": "title_and_route_tab",
-   "fieldtype": "Tab Break",
-   "label": "Title & Route"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "form_fields",
-   "fieldtype": "Section Break",
-   "label": "Form Fields"
-  },
-  {
-   "fieldname": "column_break_18",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "website_sidebar",
    "fieldtype": "Link",
    "label": "Website Sidebar",
    "options": "Website Sidebar"
-  },
-  {
-   "fieldname": "column_break_29",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "list_setting_message",
@@ -298,26 +252,81 @@
    "label": "List Setting Message"
   },
   {
-   "fieldname": "form_settings_tab",
+   "fieldname": "customization_tab",
    "fieldtype": "Tab Break",
-   "label": "Form Settings"
+   "label": "Customization"
+  },
+  {
+   "fieldname": "success_title",
+   "fieldtype": "Data",
+   "label": "Success Title"
+  },
+  {
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Banner Image"
+  },
+  {
+   "fieldname": "form_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
   },
   {
    "collapsible": 1,
    "collapsible_depends_on": "show_list",
-   "fieldname": "list_settings_tab",
-   "fieldtype": "Tab Break",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
    "label": "List Settings"
   },
   {
    "collapsible": 1,
-   "fieldname": "sidebar_settings_tab",
-   "fieldtype": "Tab Break",
+   "collapsible_depends_on": "show_sidebar",
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
    "label": "Sidebar Settings"
   },
   {
-   "fieldname": "scripting_style_tab",
-   "fieldtype": "Tab Break",
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.success_title || doc.success_message || doc.success_url",
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "After Submission"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.client_script || doc.custom_css",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
    "label": "Scripting / Style"
   }
  ],
@@ -325,7 +334,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-07-24 20:29:23.059834",
+ "modified": "2022-08-17 18:58:49.451658",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

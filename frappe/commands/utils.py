@@ -823,6 +823,8 @@ def run_tests(
 def run_parallel_tests(
 	context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False
 ):
+	from traceback_with_variables import activate_by_import
+
 	with CodeCoverage(with_coverage, app):
 		site = get_site(context)
 		if use_orchestrator:
@@ -835,15 +837,27 @@ def run_parallel_tests(
 			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
 
 
-@click.command("run-ui-tests")
+@click.command(
+	"run-ui-tests",
+	context_settings=dict(
+		ignore_unknown_options=True,
+	),
+)
 @click.argument("app")
+@click.argument("cypressargs", nargs=-1, type=click.UNPROCESSED)
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
-	context, app, headless=False, parallel=True, with_coverage=False, ci_build_id=None
+	context,
+	app,
+	headless=False,
+	parallel=True,
+	with_coverage=False,
+	ci_build_id=None,
+	cypressargs=None,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -860,7 +874,6 @@ def run_ui_tests(
 
 	node_bin = subprocess.getoutput("npm bin")
 	cypress_path = f"{node_bin}/cypress"
-	plugin_path = f"{node_bin}/../cypress-file-upload"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
 	testing_library_path = f"{node_bin}/../@testing-library"
@@ -869,7 +882,6 @@ def run_ui_tests(
 	# check if cypress in path...if not, install it.
 	if not (
 		os.path.exists(cypress_path)
-		and os.path.exists(plugin_path)
 		and os.path.exists(drag_drop_plugin_path)
 		and os.path.exists(real_events_plugin_path)
 		and os.path.exists(testing_library_path)
@@ -879,11 +891,11 @@ def run_ui_tests(
 		click.secho("Installing Cypress...", fg="yellow")
 		packages = " ".join(
 			[
-				"cypress@^6",
-				"cypress-file-upload@^5",
+				"cypress@^10",
 				"@4tw/cypress-drag-drop@^2",
 				"cypress-real-events",
 				"@testing-library/cypress@^8",
+				"@testing-library/dom@8.17.1",
 				"@cypress/code-coverage@^3",
 			]
 		)
@@ -898,6 +910,9 @@ def run_ui_tests(
 
 	if ci_build_id:
 		formatted_command += f" --ci-build-id {ci_build_id}"
+
+	if cypressargs:
+		formatted_command += " " + " ".join(cypressargs)
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)

@@ -158,7 +158,6 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	refresh: function (frm) {
-		frm.events.set_domain_fields(frm);
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
 		frm.events.show_gmail_message_for_less_secure_apps(frm);
@@ -211,42 +210,24 @@ frappe.ui.form.on("Email Account", {
 		oauth_access(frm);
 	},
 
-	email_id: function (frm) {
-		//pull domain and if no matching domain go create one
-		frm.events.update_domain(frm);
-	},
-
-	update_domain: function (frm) {
-		if (!frm.doc.email_id && !frm.doc.service) {
-			return;
+	domain: frappe.utils.debounce((frm) => {
+		if (frm.doc.domain) {
+			frappe.call({
+				method: "get_domain_values",
+				doc: frm.doc,
+				args: {
+					domain: frm.doc.domain,
+				},
+				callback: function (r) {
+					if (!r.exc) {
+						for (let field in r.message) {
+							frm.set_value(field, r.message[field]);
+						}
+					}
+				},
+			});
 		}
-
-		frappe.call({
-			method: "get_domain",
-			doc: frm.doc,
-			args: {
-				email_id: frm.doc.email_id,
-			},
-			callback: function (r) {
-				if (r.message) {
-					frm.events.set_domain_fields(frm, r.message);
-				}
-			},
-		});
-	},
-
-	set_domain_fields: function (frm, args) {
-		if (!args) {
-			args = frappe.route_flags.set_domain_values ? frappe.route_options : {};
-		}
-
-		for (var field in args) {
-			frm.set_value(field, args[field]);
-		}
-
-		delete frappe.route_flags.set_domain_values;
-		frappe.route_options = {};
-	},
+	}),
 
 	email_sync_option: function (frm) {
 		// confirm if the ALL sync option is selected

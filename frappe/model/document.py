@@ -15,6 +15,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
@@ -128,6 +129,7 @@ class Document(BaseDocument):
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
+		self.flags.ignore_children = True
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			single_doc = frappe.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
 			if not single_doc:
@@ -149,16 +151,13 @@ class Document(BaseDocument):
 				)
 
 			super().__init__(d)
+		self.flags.pop("ignore_children", None)
 
 		for df in self._get_table_fields():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
 			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
 			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
-			if (
-				hasattr(self, "doctype")
-				and not hasattr(self, "module")
-				and frappe.db.get_value("DocType", df.options, "is_virtual", cache=True)
-			):
+			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
 				self.set(df.fieldname, [])
 				continue
 
@@ -194,15 +193,19 @@ class Document(BaseDocument):
 			self.raise_no_permission_to(permlevel or permtype)
 
 	def has_permission(self, permtype="read", verbose=False) -> bool:
-		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
-		is not set.
+		"""
+		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
-		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
-		import frappe.permissions
+		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
+		:param verbose: DEPRECATED, will be removed in a future release.
+		"""
 
 		if self.flags.ignore_permissions:
 			return True
-		return frappe.permissions.has_permission(self.doctype, permtype, self, verbose=verbose)
+
+		import frappe.permissions
+
+		return frappe.permissions.has_permission(self.doctype, permtype, self)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -274,9 +277,6 @@ class Document(BaseDocument):
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
-		# flag to prevent creation of event update log for create and update both
-		# during document creation
-		self.flags.update_log_for_doc_creation = True
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -419,7 +419,7 @@ class Document(BaseDocument):
 				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
 			)
 
-	def get_doc_before_save(self):
+	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
@@ -1025,10 +1025,14 @@ class Document(BaseDocument):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False):
+	def delete(self, ignore_permissions=False, force=False):
 		"""Delete document."""
 		return frappe.delete_doc(
-			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
+			self.doctype,
+			self.name,
+			ignore_permissions=ignore_permissions,
+			flags=self.flags,
+			force=force,
 		)
 
 	def run_before_save_methods(self):
@@ -1364,7 +1368,7 @@ class Document(BaseDocument):
 		if not user:
 			user = frappe.session.user
 
-		if self.meta.track_seen:
+		if self.meta.track_seen and not frappe.flags.read_only:
 			_seen = self.get("_seen") or []
 			_seen = frappe.parse_json(_seen)
 
@@ -1379,15 +1383,19 @@ class Document(BaseDocument):
 			user = frappe.session.user
 
 		if hasattr(self.meta, "track_views") and self.meta.track_views:
-			frappe.get_doc(
+			view_log = frappe.get_doc(
 				{
 					"doctype": "View Log",
 					"viewed_by": frappe.session.user,
 					"reference_doctype": self.doctype,
 					"reference_name": self.name,
 				}
-			).insert(ignore_permissions=True)
-			frappe.local.flags.commit = True
+			)
+			if frappe.flags.read_only:
+				view_log.deferred_insert()
+			else:
+				view_log.insert(ignore_permissions=True)
+				frappe.local.flags.commit = True
 
 	def log_error(self, title=None, message=None):
 		"""Helper function to create an Error Log"""
@@ -1533,6 +1541,20 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+
+	def deferred_insert(self) -> None:
+		"""Push the document to redis temporarily and insert later.
+
+		WARN: This doesn't guarantee insertion as redis can be restarted
+		before data is flushed to database.
+		"""
+
+		from frappe.deferred_insert import deferred_insert
+
+		self.set_user_and_timestamp()
+
+		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
+		deferred_insert(doctype=self.doctype, records=doc)
 
 	def __repr__(self):
 		name = self.name or "unsaved"

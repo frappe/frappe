@@ -29,6 +29,7 @@
   "default_incoming",
   "use_imap",
   "use_ssl",
+  "use_starttls",
   "email_server",
   "incoming_port",
   "column_break_18",
@@ -144,7 +145,7 @@
    "hide_seconds": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Domain (optional)",
+   "label": "Domain",
    "options": "Email Domain"
   },
   {
@@ -153,7 +154,7 @@
    "fieldtype": "Select",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Service (optional)",
+   "label": "Service",
    "options": "\nGMail\nSendgrid\nSparkPost\nYahoo Mail\nOutlook.com\nYandex.Mail"
   },
   {
@@ -214,7 +215,7 @@
   },
   {
    "depends_on": "eval: doc.enable_incoming && !doc.use_imap",
-   "description": "Append as communication against this DocType (must have field \"Status\" and both \"Sender\" and \"Subject\" defined in the related doctype Email Settings)",
+   "description": "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype.",
    "fieldname": "append_to",
    "fieldtype": "Link",
    "hide_days": 1,
@@ -601,12 +602,20 @@
    "fieldtype": "Select",
    "label": "Method",
    "options": "Basic\nOAuth"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_imap && !doc.use_ssl",
+   "fetch_from": "domain.use_starttls",
+   "fieldname": "use_starttls",
+   "fieldtype": "Check",
+   "label": "Use STARTTLS"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-07-13 13:05:45.445572",
+ "modified": "2022-08-23 00:31:05.305462",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

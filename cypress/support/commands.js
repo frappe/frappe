@@ -1,4 +1,3 @@
-import "cypress-file-upload";
 import "@testing-library/cypress/add-commands";
 import "@4tw/cypress-drag-drop";
 import "cypress-real-events/support";
@@ -30,7 +29,7 @@ import "cypress-real-events/support";
 
 Cypress.Commands.add("login", (email, password) => {
 	if (!email) {
-		email = "Administrator";
+		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
 		password = Cypress.env("adminPassword");
@@ -240,6 +239,10 @@ Cypress.Commands.add("new_form", (doctype) => {
 	cy.get("body").should("have.attr", "data-ajax-state", "complete");
 });
 
+Cypress.Commands.add("select_form_tab", (label) => {
+	cy.get(".form-tabs-list [data-toggle='tab']").contains(label).click().wait(500);
+});
+
 Cypress.Commands.add("go_to_list", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
 	cy.visit(`/app/${dt_in_route}`);
@@ -281,12 +284,12 @@ Cypress.Commands.add("get_open_dialog", () => {
 });
 
 Cypress.Commands.add("save", () => {
-	cy.intercept("/api").as("api");
+	cy.intercept("/api/method/frappe.desk.form.save.savedocs").as("save_call");
 	cy.get(`button[data-label="Save"]:visible`).click({ scrollBehavior: false, force: true });
-	cy.wait("@api");
+	cy.wait("@save_call");
 });
 Cypress.Commands.add("hide_dialog", () => {
-	cy.wait(300);
+	cy.wait(500);
 	cy.get_open_dialog().focus().find(".btn-modal-close").click();
 	cy.get(".modal:visible").should("not.exist");
 });
@@ -458,4 +461,27 @@ Cypress.Commands.add("select_listview_row_checkbox", (row_no) => {
 
 Cypress.Commands.add("click_form_section", (section_name) => {
 	cy.get(".section-head").contains(section_name).click();
+});
+
+const compare_document = (expected, actual) => {
+	for (const prop in expected) {
+		if (expected[prop] instanceof Array) {
+			// recursively compare child documents.
+			expected[prop].forEach((item, idx) => {
+				compare_document(item, actual[prop][idx]);
+			});
+		} else {
+			assert.equal(expected[prop], actual[prop], `${prop} should be equal.`);
+		}
+	}
+};
+
+Cypress.Commands.add("compare_document", (expected_document) => {
+	cy.window()
+		.its("cur_frm")
+		.then((frm) => {
+			// Don't remove this, cypress can't magically wait for events it has no control over.
+			cy.wait(1000);
+			compare_document(expected_document, frm.doc);
+		});
 });

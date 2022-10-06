@@ -97,6 +97,7 @@ class DatabaseQuery:
 		strict=True,
 		pluck=None,
 		ignore_ddl=False,
+		*,
 		parent_doctype=None,
 	) -> list:
 
@@ -237,7 +238,7 @@ class DatabaseQuery:
 		# left join parent, child tables
 		for child in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
 		# left join link tables
 		for link in self.link_tables:
@@ -611,6 +612,12 @@ class DatabaseQuery:
 			)
 
 		elif f.operator.lower() in ("in", "not in"):
+			# if values contain '' or falsy values then only coalesce column
+			# for `in` query this is only required if values contain '' or values are empty.
+			# for `not in` queries we can't be sure as column values might contain null.
+			if f.operator.lower() == "in":
+				can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+
 			values = f.value or ""
 			if isinstance(values, str):
 				values = values.split(",")
@@ -635,7 +642,7 @@ class DatabaseQuery:
 				f.value = date_range
 				fallback = f"'{FallBackDateTimeStr}'"
 
-			if f.operator in (">", "<") and (f.fieldname in ("creation", "modified")):
+			if f.operator in (">", "<", ">=", "<=") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
 				fallback = f"'{FallBackDateTimeStr}'"
 

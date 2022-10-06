@@ -1,15 +1,14 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.test_importer import create_doctype_if_not_exists
+from frappe.tests.utils import FrappeTestCase
 
 doctype_name = "DocType for Export"
 
 
-class TestExporter(unittest.TestCase):
+class TestExporter(FrappeTestCase):
 	def setUp(self):
 		create_doctype_if_not_exists(doctype_name)
 

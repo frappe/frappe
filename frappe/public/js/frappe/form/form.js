@@ -13,6 +13,7 @@ import "./script_helpers";
 import "./sidebar/form_sidebar";
 import "./footer/footer";
 import "./form_tour";
+import "./form_editor";
 import { UndoManager } from "./undo_manager";
 
 frappe.ui.form.Controller = class FormController {
@@ -201,7 +202,7 @@ frappe.ui.form.Form = class FrappeForm {
 			},
 			{
 				shortcut: "shift+alt+down",
-				description: __("To duplcate current row"),
+				description: __("Duplicate current row"),
 			},
 		];
 
@@ -260,6 +261,10 @@ frappe.ui.form.Form = class FrappeForm {
 		this.dashboard = new frappe.ui.form.Dashboard(dashboard_parent, this);
 
 		this.tour = new frappe.ui.form.FormTour({
+			frm: this,
+		});
+
+		this.form_editor = new frappe.ui.form.FormEditor({
 			frm: this,
 		});
 
@@ -393,10 +398,16 @@ frappe.ui.form.Form = class FrappeForm {
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
 			// check permissions
+			this.fetch_permissions();
 			if (!this.has_read_permission()) {
 				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
+
+			// update grids with new permissions
+			this.grids.forEach((table) => {
+				table.grid.refresh();
+			});
 
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
@@ -439,6 +450,10 @@ frappe.ui.form.Form = class FrappeForm {
 				.toggleClass("cancelled-form", this.doc.docstatus === 2);
 
 			this.show_conflict_message();
+
+			if (frappe.boot.read_only) {
+				this.disable_form();
+			}
 		}
 	}
 
@@ -1147,11 +1162,12 @@ frappe.ui.form.Form = class FrappeForm {
 			.attr("target", "_blank");
 	}
 
-	has_read_permission() {
-		// get perm
-		var dt = this.parent_doctype ? this.parent_doctype : this.doctype;
+	fetch_permissions() {
+		let dt = this.parent_doctype ? this.parent_doctype : this.doctype;
 		this.perm = frappe.perm.get_perm(dt, this.doc);
+	}
 
+	has_read_permission() {
 		if (!this.perm[0].read) {
 			return 0;
 		}
@@ -1900,7 +1916,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// uncollapse section
-		if (field.section.is_collapsed()) {
+		if (field.section?.is_collapsed()) {
 			field.section.collapse(false);
 		}
 
@@ -1909,7 +1925,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// focus if text field
 		if (focus) {
-			$el.find("input, select, textarea").focus();
+			setTimeout(() => {
+				$el.find("input, select, textarea").focus();
+			}, 500);
 		}
 
 		// highlight control inside field

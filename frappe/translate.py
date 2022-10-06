@@ -23,7 +23,7 @@ from pypika.terms import PseudoColumn
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
-from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags
+from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
 TRANSLATE_PATTERN = re.compile(
 	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
@@ -99,8 +99,8 @@ def get_language(lang_list: list = None) -> str:
 		if parent_language in lang_set:
 			return parent_language
 
-	# fallback to language set in User or System Settings
-	return frappe.local.lang
+	# fallback to language set in System Settings or "en"
+	return frappe.db.get_default("lang") or "en"
 
 
 @functools.lru_cache
@@ -1270,13 +1270,13 @@ def get_translator_url():
 
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name=False):
-	"""Returns all language codes ar, ch etc"""
+	"""Returns all enabled language codes ar, ch etc"""
 
 	def get_language_codes():
-		return frappe.get_all("Language", pluck="name")
+		return frappe.get_all("Language", filters={"enabled": 1}, pluck="name")
 
 	def get_all_language_with_name():
-		return frappe.db.get_all("Language", ["language_code", "language_name"])
+		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
 
 	if not frappe.db:
 		frappe.connect()
@@ -1294,3 +1294,11 @@ def set_preferred_language_cookie(preferred_language):
 
 def get_preferred_language_cookie():
 	return frappe.request.cookies.get("preferred_language")
+
+
+def get_translated_doctypes():
+	dts = frappe.get_all("DocType", {"translated_doctype": 1}, pluck="name")
+	custom_dts = frappe.get_all(
+		"Property Setter", {"property": "translated_doctype", "value": "1"}, pluck="doc_type"
+	)
+	return unique(dts + custom_dts)

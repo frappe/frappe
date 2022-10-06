@@ -37,7 +37,6 @@ def on_doctype_update():
 	"""Add indexes in `tabActivity Log`"""
 	frappe.db.add_index("Activity Log", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Activity Log", ["timeline_doctype", "timeline_name"])
-	frappe.db.add_index("Activity Log", ["link_doctype", "link_name"])
 
 
 def add_authentication_log(subject, user, operation="Login", status="Success"):

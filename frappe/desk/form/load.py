@@ -64,11 +64,9 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	parent_dt = None
 
 	# with parent (called from report builder)
-	if with_parent:
-		parent_dt = frappe.model.meta.get_parent_dt(doctype)
-		if parent_dt:
-			docs = get_meta_bundle(parent_dt)
-			frappe.response["parent_dt"] = parent_dt
+	if with_parent and (parent_dt := frappe.model.meta.get_parent_dt(doctype)):
+		docs = get_meta_bundle(parent_dt)
+		frappe.response["parent_dt"] = parent_dt
 
 	if not docs:
 		docs = get_meta_bundle(doctype)
@@ -110,6 +108,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	docinfo.update(
 		{
+			"doctype": doc.doctype,
+			"name": doc.name,
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
@@ -178,7 +178,7 @@ def add_comments(doc, docinfo):
 
 
 def get_milestones(doctype, name):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Milestone",
 		fields=["creation", "owner", "track_field", "value"],
 		filters=dict(reference_type=doctype, reference_name=name),
@@ -249,7 +249,7 @@ def get_comments(
 
 
 def get_point_logs(doctype, docname):
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Energy Point Log",
 		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
 		fields=["*"],
@@ -373,7 +373,7 @@ def run_onload(doc):
 def get_view_logs(doctype, docname):
 	"""get and return the latest view logs if available"""
 	logs = []
-	if hasattr(frappe.get_meta(doctype), "track_views") and frappe.get_meta(doctype).track_views:
+	if getattr(frappe.get_meta(doctype), "track_views", None):
 		view_logs = frappe.get_all(
 			"View Log",
 			filters={
@@ -452,7 +452,9 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		if not meta or not (meta.title_field and meta.show_title_field_in_link):
 			continue
 
-		link_title = frappe.db.get_value(doctype, doc.get(field.fieldname), meta.title_field, cache=True)
+		link_title = frappe.db.get_value(
+			doctype, doc.get(field.fieldname), meta.title_field, cache=True, order_by=None
+		)
 		link_titles.update({doctype + "::" + doc.get(field.fieldname): link_title})
 
 	return link_titles

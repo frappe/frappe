@@ -7,6 +7,7 @@ from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.integrations.oauth2_logins import decoder_compat
+from frappe.utils import cint
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
 from frappe.utils.oauth import (
@@ -39,8 +40,10 @@ def get_context(context):
 	context.no_header = True
 	context.for_test = "login.html"
 	context["title"] = "Login"
+	context["hide_login"] = True  # dont show login link on login page again.
 	context["provider_logins"] = []
-	context["disable_signup"] = frappe.utils.cint(frappe.get_website_settings("disable_signup"))
+	context["disable_signup"] = cint(frappe.get_website_settings("disable_signup"))
+	context["disable_user_pass_login"] = cint(frappe.get_system_settings("disable_user_pass_login"))
 	context["logo"] = frappe.get_website_settings("app_logo") or frappe.get_hooks("app_logo_url")[-1]
 	context["app_name"] = (
 		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")

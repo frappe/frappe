@@ -64,9 +64,10 @@ def generate_and_cache_results(args, function, cache_key, chart):
 		else:
 			raise
 
-	frappe.db.set_value(
-		"Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified=False
-	)
+	if not frappe.flags.read_only:
+		frappe.db.set_value(
+			"Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified=False
+		)
 	return results
 
 
@@ -84,13 +85,8 @@ def get_dashboards_with_link(docname, doctype):
 
 
 def sync_dashboards(app=None):
-	"""Import, overwrite fixtures from `[app]/fixtures`"""
-	if not cint(frappe.db.get_single_value("System Settings", "setup_complete")):
-		return
-	if app:
-		apps = [app]
-	else:
-		apps = frappe.get_installed_apps()
+	"""Import, overwrite dashboards from `[app]/[app]_dashboard`"""
+	apps = [app] if app else frappe.get_installed_apps()
 
 	for app_name in apps:
 		print(f"Updating Dashboard for {app_name}")

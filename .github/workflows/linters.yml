@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: commitcheck-frappe-${{ github.event.number }}
+  group: commitcheck-frappe-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 jobs:

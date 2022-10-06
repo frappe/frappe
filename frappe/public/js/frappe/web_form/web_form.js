@@ -10,6 +10,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		frappe.web_form.events = {};
 		Object.assign(frappe.web_form.events, EventEmitterMixin);
 		this.current_section = 0;
+		this.is_multi_step_form = false;
 	}
 
 	prepare(web_form_doc, doc) {
@@ -19,21 +20,22 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make() {
+		this.parent.empty();
 		super.make();
-		this.set_sections();
+		this.set_page_breaks();
 		this.set_field_values();
-		this.setup_listeners();
 
-		if (this.is_new || this.is_form_editable) {
+		if (this.is_new || this.in_edit_mode) {
 			this.setup_primary_action();
+			this.setup_discard_action();
 		}
 
-		this.setup_footer_actions();
 		this.setup_previous_next_button();
 		this.toggle_section();
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
+		this.setup_listeners();
 		frappe.web_form.events.trigger("after_load");
 		this.after_load && this.after_load();
 	}
@@ -42,41 +44,39 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let field = this.fields_dict[fieldname];
 		field.df.change = () => {
 			handler(field, field.value);
+			this.make_form_dirty();
 		};
 	}
 
 	setup_listeners() {
-		// Event listener for triggering Save/Next button for Multi Step Forms
-		// Do not use `on` event here since that can be used by user which will render this function useless
-		// setTimeout has 200ms delay so that all the base_control triggers for the fields have been run
-		let me = this;
+		// setup change event for all fields if not already set through client script
+		this.fields.forEach((field) => {
+			if (!field.change) {
+				field.change = () => {
+					this.make_form_dirty();
+				};
+			}
+		});
+	}
 
-		if (!me.is_multi_step_form) {
-			return;
-		}
+	make_form_dirty() {
+		frappe.form_dirty = true;
+		$(".indicator-pill.orange").removeClass("hide");
+	}
 
-		for (let field of $(".input-with-feedback")) {
-			$(field).change((e) => {
-				setTimeout(() => {
-					e.stopPropagation();
-					me.toggle_buttons();
-				}, 200);
+	set_page_breaks() {
+		this.page_breaks = $(".page-break");
+
+		if (this.page_breaks.length) {
+			this.page_breaks.each((i, page_break) => {
+				if (!$(page_break).find("form").length) {
+					$(page_break).remove();
+				}
 			});
 		}
-	}
 
-	set_sections() {
-		if (this.sections.length) return;
-
-		this.sections = $(`.form-section`);
-	}
-
-	setup_footer_actions() {
-		if (this.is_multi_step_form) return;
-
-		if ($(".web-form-container").height() > 600) {
-			$(".web-form-footer").removeClass("hide");
-		}
+		this.page_breaks = $(".page-break");
+		this.is_multi_step_form = !!this.page_breaks.length;
 	}
 
 	setup_previous_next_button() {
@@ -86,14 +86,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return;
 		}
 
-		$(".web-form-footer").after(`
-			<div id="form-step-footer" class="text-right">
-				<button class="btn btn-default btn-previous btn-sm ml-2">${__("Previous")}</button>
-				<button class="btn btn-default btn-next btn-sm ml-2">${__("Next")}</button>
-			</div>
-		`);
+		this.$next_button = $(`<button class="btn btn-default btn-next btn-sm ml-2">
+			${__("Next")}
+		</button>`);
 
-		$(".btn-previous").on("click", function () {
+		this.$previous_button = $(`<button class="btn btn-default btn-previous btn-sm">
+			${__("Previous")}
+		</button>`);
+
+		this.$next_button.insertAfter(".web-form-footer .right-area .discard-btn");
+		this.in_view_mode && $(".web-form-footer .right-area").append(this.$next_button);
+		$(".web-form-footer .left-area").prepend(this.$previous_button);
+
+		this.$previous_button.on("click", () => {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return false;
@@ -120,7 +125,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return false;
 		});
 
-		$(".btn-next").on("click", function () {
+		this.$next_button.on("click", () => {
 			let is_validated = me.validate_section();
 
 			if (!is_validated) return false;
@@ -160,13 +165,35 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_primary_action() {
-		$(".web-form-container").on("submit", () => this.save());
+		$(".web-form").on("submit", () => this.save());
+	}
+
+	setup_discard_action() {
+		$(".web-form-footer .discard-btn").on("click", () => this.discard_form());
+	}
+
+	discard_form() {
+		let path = window.location.href;
+		// remove new or edit after last / from url
+		path = path.substring(0, path.lastIndexOf("/"));
+
+		if (frappe.form_dirty) {
+			frappe.warn(
+				__("Discard?"),
+				__("Are you sure you want to discard the changes?"),
+				() => (window.location.href = path),
+				__("Discard")
+			);
+		} else {
+			window.location.href = path;
+		}
+		return false;
 	}
 
 	validate_section() {
 		if (this.allow_incomplete) return true;
 
-		let fields = $(`.form-section:eq(${this.current_section}) .form-control`);
+		let fields = $(`.form-page:eq(${this.current_section}) .form-control`);
 		let errors = [];
 		let invalid_values = [];
 
@@ -220,14 +247,51 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	toggle_section() {
 		if (!this.is_multi_step_form) return;
 
+		this.render_progress_dots();
 		this.toggle_previous_button();
-		this.hide_sections();
-		this.show_section();
+		this.hide_form_pages();
+		this.show_form_page();
 		this.toggle_buttons();
 	}
 
+	render_progress_dots() {
+		if (!this.is_multi_step_form) return;
+		$(".center-area.paging").empty();
+
+		if (this.in_view_mode) {
+			let paging_text = __("Page {0} of {1}", [
+				this.current_section + 1,
+				this.page_breaks.length + 1,
+			]);
+			$(".center-area.paging").append(`<div>${paging_text}</div>`);
+			return;
+		}
+
+		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
+			$(".center-area.paging")
+		);
+		this.$slide_progress.empty();
+
+		if (this.page_breaks.length < 1) return;
+
+		for (let i = 0; i <= this.page_breaks.length; i++) {
+			let $dot = $(`<div class="slide-step">
+				<div class="slide-step-indicator"></div>
+				<div class="slide-step-complete">${frappe.utils.icon("tick", "xs")}</div>
+			</div>`).attr({ "data-step-id": i });
+
+			if (i < this.current_section) {
+				$dot.addClass("step-success");
+			}
+			if (i === this.current_section) {
+				$dot.addClass("active");
+			}
+			this.$slide_progress.append($dot);
+		}
+	}
+
 	toggle_buttons() {
-		for (let idx = this.current_section; idx < this.sections.length; idx++) {
+		for (let idx = this.current_section; idx <= this.page_breaks.length; idx++) {
 			if (this.is_next_section_empty(idx)) {
 				this.show_save_and_hide_next_button();
 			} else {
@@ -238,18 +302,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	is_next_section_empty(section) {
-		if (section + 1 > this.sections.length) return true;
+		if (section + 1 > this.page_breaks.length + 1) return true;
 
-		let _section = $(`.form-section:eq(${section + 1})`);
+		let _section = $(`.form-page:eq(${section + 1})`);
 		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
 	}
 
 	is_previous_section_empty(section) {
-		if (section - 1 > this.sections.length) return true;
+		if (section - 1 > this.page_breaks.length + 1) return true;
 
-		let _section = $(`.form-section:eq(${section - 1})`);
+		let _section = $(`.form-page:eq(${section - 1})`);
 		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
@@ -257,26 +321,26 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	show_save_and_hide_next_button() {
 		$(".btn-next").hide();
-		$(".web-form-footer").show();
+		$(".submit-btn").show();
 	}
 
 	show_next_and_hide_save_button() {
 		$(".btn-next").show();
-		$(".web-form-footer").hide();
+		!this.allow_incomplete && $(".submit-btn").hide();
 	}
 
 	toggle_previous_button() {
 		this.current_section == 0 ? $(".btn-previous").hide() : $(".btn-previous").show();
 	}
 
-	show_section() {
-		$(`.form-section:eq(${this.current_section})`).show();
+	show_form_page() {
+		$(`.form-page:eq(${this.current_section})`).show();
 	}
 
-	hide_sections() {
-		for (let idx = 0; idx < this.sections.length; idx++) {
+	hide_form_pages() {
+		for (let idx = 0; idx <= this.page_breaks.length; idx++) {
 			if (idx !== this.current_section) {
-				$(`.form-section:eq(${idx})`).hide();
+				$(`.form-page:eq(${idx})`).hide();
 			}
 		}
 	}
@@ -293,9 +357,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// validation hack: get_values will check for missing data
 		let doc_values = super.get_values(this.allow_incomplete);
 
-		if (!doc_values) return;
+		if (!doc_values) return false;
 
-		if (window.saving) return;
+		if (window.saving) return false;
 		// TODO: remove this (used for payments app)
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
@@ -344,45 +408,45 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		return false;
 	}
 
-	edit() {
-		window.location.href = window.location.pathname + "/edit";
-	}
-
-	cancel() {
-		let path = window.location.pathname;
-		if (this.is_new) {
-			path = path.replace("/new", "");
-		} else {
-			path = path.replace("/edit", "");
-		}
-		window.location.href = path;
-	}
-
 	handle_success(data) {
 		// TODO: remove this (used for payments app)
 		if (this.accept_payment && !this.doc.paid) {
 			window.location.href = data;
 		}
 
-		const success_message = this.success_message || __("Submitted");
+		if (!this.is_new) {
+			$(".success-title").text(__("Updated"));
+			$(".success-message").text(__("Your form has been successfully updated"));
+		}
 
-		frappe.toast({ message: success_message, indicator: "green" });
+		$(".web-form-container").hide();
+		$(".success-page").removeClass("hide");
 
-		// redirect
-		setTimeout(() => {
-			let path = window.location.pathname;
+		if (this.success_url) {
+			frappe.utils.setup_timer(5, 0, $(".time"));
+			setTimeout(() => {
+				window.location.href = this.success_url;
+			}, 5000);
+		} else {
+			this.render_success_page(data);
+		}
+	}
 
-			if (this.success_url) {
-				path = this.success_url;
-			} else if (this.login_required) {
-				if (this.is_new && data.name) {
-					path = path.replace("/new", "");
-					path = path + "/" + data.name;
-				} else if (this.is_form_editable) {
-					path = path.replace("/edit", "");
-				}
-			}
-			window.location.href = path;
-		}, 1000);
+	render_success_page(data) {
+		if (this.allow_edit && data.name) {
+			$(".success-footer").append(`
+				<a href="/${this.route}/${data.name}/edit" class="edit-button btn btn-default btn-md">
+					${__("Edit your response", null, "Button in web form")}
+				</a>
+			`);
+		}
+
+		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
+			$(".success-footer").append(`
+				<a href="/${this.route}/${data.name}" class="view-button btn btn-default btn-md">
+					${__("View your response", null, "Button in web form")}
+				</a>
+			`);
+		}
 	}
 }

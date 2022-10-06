@@ -19,7 +19,7 @@ from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_p
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
-from frappe.translate import get_lang_dict, get_messages_for_boot
+from frappe.translate import get_lang_dict, get_messages_for_boot, get_translated_doctypes
 from frappe.utils import add_user_info, cstr, get_time_zone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -100,7 +100,8 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
-	bootinfo.translatable_doctypes = get_translatable_doctypes()
+	bootinfo.translated_doctypes = get_translated_doctypes()
+	bootinfo.subscription_expiry = add_subscription_expiry()
 
 	return bootinfo
 
@@ -336,7 +337,7 @@ def get_success_action():
 def get_link_preview_doctypes():
 	from frappe.utils import cint
 
-	link_preview_doctypes = [d.name for d in frappe.db.get_all("DocType", {"show_preview_popup": 1})]
+	link_preview_doctypes = [d.name for d in frappe.get_all("DocType", {"show_preview_popup": 1})]
 	customizations = frappe.get_all(
 		"Property Setter", fields=["doc_type", "value"], filters={"property": "show_preview_popup"}
 	)
@@ -399,14 +400,6 @@ def set_time_zone(bootinfo):
 	}
 
 
-def get_translatable_doctypes():
-	dts = frappe.get_all("DocType", {"translate_link_fields": 1}, pluck="name")
-	custom_dts = frappe.get_all(
-		"Property Setter", {"property": "translate_link_fields", "value": "1"}, pluck="doc_type"
-	)
-	return dts + custom_dts
-
-
 def load_country_doc(bootinfo):
 	country = frappe.db.get_default("country")
 	if not country:
@@ -436,3 +429,10 @@ def load_currency_docs(bootinfo):
 	)
 
 	bootinfo.docs += currency_docs
+
+
+def add_subscription_expiry():
+	try:
+		return frappe.conf.subscription["expiry"]
+	except Exception:
+		return ""

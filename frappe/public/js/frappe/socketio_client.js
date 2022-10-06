@@ -59,7 +59,7 @@ frappe.socketio = {
 		frappe.socketio.setup_reconnect();
 
 		$(document).on("form-load form-rename", function (e, frm) {
-			if (frm.is_new()) {
+			if (!frm.doc || frm.is_new()) {
 				return;
 			}
 
@@ -75,7 +75,7 @@ frappe.socketio = {
 		});
 
 		$(document).on("form-refresh", function (e, frm) {
-			if (frm.is_new()) {
+			if (!frm.doc || frm.is_new()) {
 				return;
 			}
 
@@ -83,7 +83,7 @@ frappe.socketio = {
 		});
 
 		$(document).on("form-unload", function (e, frm) {
-			if (frm.is_new()) {
+			if (!frm.doc || frm.is_new()) {
 				return;
 			}
 
@@ -100,14 +100,11 @@ frappe.socketio = {
 		});
 
 		window.addEventListener("beforeunload", () => {
-			if (!cur_frm || cur_frm.is_new()) {
+			if (!cur_frm || !cur_frm.doc || cur_frm.is_new()) {
 				return;
 			}
 
-			// if tab/window is closed, notify other users
-			if (cur_frm.doc) {
-				frappe.socketio.doc_close(cur_frm.doctype, cur_frm.docname);
-			}
+			frappe.socketio.doc_close(cur_frm.doctype, cur_frm.docname);
 		});
 	},
 	get_host: function (port = 3000) {

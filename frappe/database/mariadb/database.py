@@ -33,6 +33,10 @@ class MariaDBExceptionUtil:
 		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
 	@staticmethod
+	def is_read_only_mode_error(e: pymysql.Error) -> bool:
+		return e.args[0] == 1792
+
+	@staticmethod
 	def is_table_missing(e: pymysql.Error) -> bool:
 		return e.args[0] == ER.NO_SUCH_TABLE
 
@@ -190,7 +194,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return db_size[0].get("database_size")
 
 	def log_query(self, query, values, debug, explain):
-		self.last_query = self._cursor._last_executed
+		self.last_query = query = self._cursor._last_executed
 		self._log_query(query, debug, explain)
 		return self.last_query
 
@@ -297,6 +301,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				where table_name="{table_name}"
 					and column_name=columns.column_name
 					and NON_UNIQUE=1
+					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique'
@@ -314,6 +319,37 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				table_name=table_name, index_name=index_name
 			)
 		)
+
+	def get_column_index(
+		self, table_name: str, fieldname: str, unique: bool = False
+	) -> frappe._dict | None:
+		"""Check if column exists for a specific fields in specified order.
+
+		This differs from db.has_index because it doesn't rely on index name but columns inside an
+		index.
+		"""
+
+		indexes = self.sql(
+			f"""SHOW INDEX FROM `{table_name}`
+				WHERE Column_name = "{fieldname}"
+					AND Seq_in_index = 1
+					AND Non_unique={int(not unique)}
+				""",
+			as_dict=True,
+		)
+
+		# Same index can be part of clustered index which contains more fields
+		# We don't want those.
+		for index in indexes:
+			clustered_index = self.sql(
+				f"""SHOW INDEX FROM `{table_name}`
+					WHERE Key_name = "{index.Key_name}"
+						AND Seq_in_index = 2
+					""",
+				as_dict=True,
+			)
+			if not clustered_index:
+				return index
 
 	def add_index(self, doctype: str, fields: list, index_name: str = None):
 		"""Creates an index with given fields if not already created.

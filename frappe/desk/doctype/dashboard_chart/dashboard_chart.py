@@ -215,14 +215,13 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		group_by="_unit",
 		order_by="_unit asc",
 		as_list=True,
-		ignore_ifnull=True,
 	)
 
 	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
 
 	return {
 		"labels": [
-			format_date(get_period(r[0], timegrain))
+			format_date(get_period(r[0], timegrain), parse_day_first=True)
 			if timegrain in ("Daily", "Weekly")
 			else get_period(r[0], timegrain)
 			for r in result
@@ -249,7 +248,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 		timestamp_field = f"extract(epoch from timestamp {datefield})"
 
 	data = dict(
-		frappe.db.get_all(
+		frappe.get_all(
 			doctype,
 			fields=[
 				timestamp_field,
@@ -294,13 +293,6 @@ def get_group_by_chart_config(chart, filters):
 	)
 
 	if data:
-		if chart.number_of_groups and chart.number_of_groups < len(data):
-			other_count = 0
-			for i in range(chart.number_of_groups - 1, len(data)):
-				other_count += data[i]["count"]
-			data = data[0 : chart.number_of_groups - 1]
-			data.append({"name": "Other", "count": other_count})
-
 		chart_config = {
 			"labels": [item["name"] if item["name"] else "Not Specified" for item in data],
 			"datasets": [{"name": chart.name, "values": [item["count"] for item in data]}],
@@ -392,3 +384,25 @@ class DashboardChart(Document):
 				json.loads(self.custom_options)
 			except ValueError as error:
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
+
+
+@frappe.whitelist()
+def get_parent_doctypes(child_type: str) -> list[str]:
+	"""Get all parent doctypes that have the child doctype."""
+	assert isinstance(child_type, str)
+
+	standard = frappe.get_all(
+		"DocField",
+		fields="parent",
+		filters={"fieldtype": "Table", "options": child_type},
+		pluck="parent",
+	)
+
+	custom = frappe.get_all(
+		"Custom Field",
+		fields="dt",
+		filters={"fieldtype": "Table", "options": child_type},
+		pluck="dt",
+	)
+
+	return standard + custom

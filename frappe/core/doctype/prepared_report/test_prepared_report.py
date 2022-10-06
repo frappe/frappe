@@ -1,12 +1,12 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
-import unittest
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestPreparedReport(unittest.TestCase):
+class TestPreparedReport(FrappeTestCase):
 	def setUp(self):
 		self.report = frappe.get_doc({"doctype": "Report", "name": "Permitted Documents For User"})
 		self.filters = {"user": "Administrator", "doctype": "Role"}

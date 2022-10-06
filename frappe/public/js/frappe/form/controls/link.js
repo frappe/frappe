@@ -87,25 +87,21 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.is_translatable() ? __(value) : value;
 	}
 	is_translatable() {
-		return in_list(frappe.boot?.translatable_doctypes || [], this.get_options());
+		return in_list(frappe.boot?.translated_doctypes || [], this.get_options());
 	}
-	set_link_title(value) {
-		let doctype = this.get_options();
+	async set_link_title(value) {
+		const doctype = this.get_options();
 
-		if (!doctype) return;
-
-		if (in_list(frappe.boot.link_title_doctypes, doctype)) {
-			let link_title = frappe.utils.get_link_title(doctype, value);
-			if (!link_title) {
-				link_title = frappe.utils.fetch_link_title(doctype, value).then((link_title) => {
-					this.translate_and_set_input_value(link_title, value);
-				});
-			} else {
-				this.translate_and_set_input_value(link_title, value);
-			}
-		} else {
+		if (!doctype || !in_list(frappe.boot.link_title_doctypes, doctype)) {
 			this.translate_and_set_input_value(value, value);
+			return;
 		}
+
+		const link_title =
+			frappe.utils.get_link_title(doctype, value) ||
+			(await frappe.utils.fetch_link_title(doctype, value));
+
+		this.translate_and_set_input_value(link_title, value);
 	}
 	translate_and_set_input_value(link_title, value) {
 		let translated_link_text = this.get_translated(link_title);
@@ -288,8 +284,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 									action: me.new_doc,
 								});
 							}
-							// advanced search
 
+							//custom link actions
+							let custom__link_options =
+								frappe.ui.form.ControlLink.link_options &&
+								frappe.ui.form.ControlLink.link_options(me);
+
+							if (custom__link_options) {
+								r.results = r.results.concat(custom__link_options);
+							}
+
+							// advanced search
 							if (locals && locals["DocType"]) {
 								// not applicable in web forms
 								r.results.push({
@@ -380,22 +385,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			let o = e.originalEvent;
 			if (o.text.value.indexOf("__link_option") !== -1) {
 				me.$input.val("");
-			}
-		});
-
-		this.$input.on("focus", function () {
-			if (!frappe.boot.translated_search_doctypes.includes(me.df.options)) {
-				me.show_untranslated();
-			}
-		});
-
-		this.$input.keydown((e) => {
-			let BACKSPACE = 8;
-			if (
-				e.keyCode === BACKSPACE &&
-				!frappe.boot.translated_search_doctypes.includes(me.df.options)
-			) {
-				me.show_untranslated();
 			}
 		});
 	}

@@ -2,6 +2,8 @@ import frappe
 from frappe import _
 from frappe.utils import add_to_date, now
 
+UI_TEST_USER = "frappe@example.com"
+
 
 @frappe.whitelist()
 def create_if_not_exists(doc):
@@ -38,8 +40,7 @@ def create_if_not_exists(doc):
 
 @frappe.whitelist()
 def create_todo_records():
-	if frappe.db.get_all("ToDo", {"description": "this is first todo"}):
-		return
+	frappe.db.truncate("ToDo")
 
 	frappe.get_doc(
 		{"doctype": "ToDo", "date": add_to_date(now(), days=7), "description": "this is first todo"}
@@ -53,6 +54,15 @@ def create_todo_records():
 	frappe.get_doc(
 		{"doctype": "ToDo", "date": add_to_date(now(), months=-2), "description": "this is fourth todo"}
 	).insert()
+
+
+@frappe.whitelist()
+def clear_notes():
+	if not frappe.local.dev_server:
+		frappe.throw(_("Not allowed"), frappe.PermissionError)
+
+	for note in frappe.get_all("Note", pluck="name"):
+		frappe.delete_doc("Note", note, force=True)
 
 
 @frappe.whitelist()
@@ -80,7 +90,7 @@ def setup_workflow():
 
 @frappe.whitelist()
 def create_contact_phone_nos_records():
-	if frappe.db.get_all("Contact", {"first_name": "Test Contact"}):
+	if frappe.get_all("Contact", {"first_name": "Test Contact"}):
 		return
 
 	doc = frappe.new_doc("Contact")
@@ -127,7 +137,7 @@ def create_child_doctype(name, fields):
 
 @frappe.whitelist()
 def create_contact_records():
-	if frappe.db.get_all("Contact", {"first_name": "Test Form Contact 1"}):
+	if frappe.get_all("Contact", {"first_name": "Test Form Contact 1"}):
 		return
 
 	insert_contact("Test Form Contact 1", "12345")
@@ -137,7 +147,7 @@ def create_contact_records():
 
 @frappe.whitelist()
 def create_multiple_todo_records():
-	if frappe.db.get_all("ToDo", {"description": "Multiple ToDo 1"}):
+	if frappe.get_all("ToDo", {"description": "Multiple ToDo 1"}):
 		return
 
 	values = [(f"100{i}", f"Multiple ToDo {i}") for i in range(1, 1002)]
@@ -264,9 +274,9 @@ def update_webform_to_multistep():
 	if not frappe.db.exists("Web Form", "update-profile-duplicate"):
 		doc = frappe.get_doc("Web Form", "edit-profile")
 		_doc = frappe.copy_doc(doc)
-		_doc.is_multi_step_form = 1
 		_doc.title = "update-profile-duplicate"
 		_doc.route = "update-profile-duplicate"
+		_doc.web_form_fields[5].fieldtype = "Page Break"
 		_doc.is_standard = False
 		_doc.save()
 
@@ -291,7 +301,7 @@ def update_child_table(name):
 
 @frappe.whitelist()
 def insert_doctype_with_child_table_record(name):
-	if frappe.db.get_all(name, {"title": "Test Grid Search"}):
+	if frappe.get_all(name, {"title": "Test Grid Search"}):
 		return
 
 	def insert_child(doc, data, barcode, check, rating, duration, date):
@@ -333,3 +343,91 @@ def insert_doctype_with_child_table_record(name):
 	insert_child(doc, "Drag", "08189DIHAA2981", 0, 0.7, 342628, "2022-05-04")
 
 	doc.insert()
+
+
+@frappe.whitelist()
+def insert_translations():
+	translation = [
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Other",
+			"translated_text": "Sonstiges",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Genderqueer",
+			"translated_text": "Nichtbinär",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Non-Conforming",
+			"translated_text": "Nicht konform",
+		},
+		{
+			"doctype": "Translation",
+			"language": "de",
+			"source_text": "Prefer not to say",
+			"translated_text": "Keine Angabe",
+		},
+	]
+
+	for doc in translation:
+		if not frappe.db.exists("doc"):
+			frappe.get_doc(doc).insert()
+
+
+@frappe.whitelist()
+def create_blog_post():
+
+	blog_category = frappe.get_doc(
+		{"name": "general", "doctype": "Blog Category", "title": "general"}
+	).insert(ignore_if_duplicate=True)
+
+	blogger = frappe.get_doc(
+		{
+			"name": "attachment blogger",
+			"doctype": "Blogger",
+			"full_name": "attachment blogger",
+			"short_name": "attachment blogger",
+		}
+	).insert(ignore_if_duplicate=True)
+
+	doc = frappe.get_doc(
+		{
+			"name": "test-blog-attachment-post",
+			"doctype": "Blog Post",
+			"title": "test-blog-attachment-post",
+			"blog_category": blog_category.name,
+			"blogger": blogger.name,
+			"content_type": "Rich Text",
+		},
+	).insert(ignore_if_duplicate=True)
+
+	return doc
+
+
+def create_test_user():
+	if frappe.db.exists("User", UI_TEST_USER):
+		return
+
+	user = frappe.new_doc("User")
+	user.email = UI_TEST_USER
+	user.first_name = "Frappe"
+	user.new_password = frappe.local.conf.admin_password
+	user.send_welcome_email = 0
+	user.time_zone = "Asia/Kolkata"
+	user.flags.ignore_password_policy = True
+	user.insert(ignore_if_duplicate=True)
+
+	user.reload()
+
+	blocked_roles = {"Administrator", "Guest", "All"}
+	all_roles = set(frappe.get_all("Role", pluck="name"))
+
+	for role in all_roles - blocked_roles:
+		user.append("roles", {"role": role})
+
+	user.save()

@@ -14,7 +14,6 @@
    "fieldname": "viewed_by",
    "fieldtype": "Data",
    "label": "Viewed By",
-   "search_index": 1,
    "set_only_once": 1
   },
   {
@@ -22,7 +21,6 @@
    "fieldtype": "Link",
    "label": "Reference Document Type",
    "options": "DocType",
-   "search_index": 1,
    "set_only_once": 1
   },
   {
@@ -35,7 +33,7 @@
   }
  ],
  "links": [],
- "modified": "2022-08-03 12:20:52.857103",
+ "modified": "2022-09-07 05:16:14.587628",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "View Log",

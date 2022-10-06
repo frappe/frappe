@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 from unittest.mock import patch
 
 import frappe
@@ -8,6 +7,7 @@ import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
 from frappe.model.document import Document
+from frappe.tests.utils import FrappeTestCase
 
 TEST_DOCTYPE_NAME = "VirtualDoctypeTest"
 
@@ -80,7 +80,7 @@ class VirtualDoctypeTest(Document):
 		return {}
 
 
-class TestVirtualDoctypes(unittest.TestCase):
+class TestVirtualDoctypes(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		frappe.flags.allow_doctype_export = True

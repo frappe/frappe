@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Field
@@ -12,6 +14,7 @@ from frappe.utils.nestedset import (
 	NestedSetRecursionError,
 	get_descendants_of,
 	rebuild_tree,
+	remove_subtree,
 )
 
 records = [
@@ -206,6 +209,10 @@ class TestNestedSet(FrappeTestCase):
 		with self.assertRaises(NestedSetChildExistsError):
 			frappe.delete_doc("Test Tree DocType", "Parent 1")
 
+	def test_remove_subtree(self):
+		remove_subtree("Test Tree DocType", "Parent 2")
+		self.test_basic_tree()
+
 	def test_merge_groups(self):
 		global records
 		el = {"some_fieldname": "Parent 2", "parent_test_tree_doctype": "Root Node", "is_group": 1}
@@ -233,3 +240,20 @@ class TestNestedSet(FrappeTestCase):
 	def test_merge_group_into_leaf(self):
 		with self.assertRaises(NestedSetInvalidMergeError):
 			frappe.rename_doc("Test Tree DocType", "Parent 1", "Child 1", merge=True)
+
+	def test_root_deletion(self):
+		for doc in ["Child 3", "Child 2", "Child 1", "Parent 2", "Parent 1"]:
+			frappe.delete_doc("Test Tree DocType", doc)
+
+		root_node = frappe.get_doc("Test Tree DocType", "Root Node")
+
+		# root deletion with allow_root_deletion
+		# patched as delete_doc create a new instance of Root Node (using get_doc)
+		root_node.allow_root_deletion = False
+		with patch("frappe.get_doc", return_value=root_node):
+			with self.assertRaises(frappe.ValidationError):
+				root_node.delete()
+
+		# root deletion without allow_root_deletion
+		root_node.delete()
+		self.assertFalse(frappe.db.exists("Test Tree DocType", "Root Node"))

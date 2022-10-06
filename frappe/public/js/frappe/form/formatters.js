@@ -294,7 +294,10 @@ frappe.form.formatters = {
 		let formatted_value = frappe.form.formatters.Text(value);
 		// to use ql-editor styles
 		try {
-			if (!$(formatted_value).find(".ql-editor").length) {
+			if (
+				!$(formatted_value).find(".ql-editor").length &&
+				!$(formatted_value).hasClass("ql-editor")
+			) {
 				formatted_value = `<div class="ql-editor read-mode">${formatted_value}</div>`;
 			}
 		} catch (e) {
