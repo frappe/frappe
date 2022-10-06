@@ -77,10 +77,9 @@ context("Workspace Blocks", () => {
 		// test quick list creation
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
 		cy.get(".block-list-container .block-list-item").contains("Quick List").click();
-		cy.wait(300);
 
+		cy.fill_field("label", "ToDo", "Data");
 		cy.fill_field("document_type", "ToDo", "Link").blur();
-		cy.fill_field("label", "ToDo", "Data").blur();
 		cy.wait("@get_doctype");
 
 		cy.get_open_dialog().find(".filter-edit-area").should("contain", "No filters selected");
