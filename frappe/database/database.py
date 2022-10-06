@@ -83,14 +83,12 @@ class Database:
 		ac_name=None,
 		use_default=0,
 		port=None,
-		read_only=False,
 	):
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or "127.0.0.1"
 		self.port = port or frappe.conf.db_port or ""
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
-		self.read_only = read_only  # Uses READ ONLY connection if set
 		self._conn = None
 
 		if ac_name:
@@ -220,6 +218,15 @@ class Database:
 
 			elif self.is_timedout(e):
 				raise frappe.QueryTimeoutError(e) from e
+
+			elif self.is_read_only_mode_error(e):
+				frappe.throw(
+					_(
+						"Site is running in read only mode, this action can not be performed right now. Please try again later."
+					),
+					title=_("In Read Only Mode"),
+					exc=frappe.InReadOnlyMode,
+				)
 
 			# TODO: added temporarily
 			elif self.db_type == "postgres":
@@ -834,7 +841,7 @@ class Database:
 		val=None,
 		modified=None,
 		modified_by=None,
-		update_modified=True,
+		update_modified=False,
 		debug=False,
 		for_update=True,
 	):
@@ -958,8 +965,10 @@ class Database:
 
 		return defaults.get(frappe.scrub(key))
 
-	def begin(self):
-		self.sql("START TRANSACTION")
+	def begin(self, *, read_only=False):
+		read_only = read_only or frappe.flags.read_only
+		mode = "READ ONLY" if read_only else ""
+		self.sql(f"START TRANSACTION {mode}")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -967,9 +976,7 @@ class Database:
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
 		self.sql("commit")
-		if self.db_type == "postgres":
-			# Postgres requires explicitly starting new transaction
-			self.begin()
+		self.begin()  # explicitly start a new transaction
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
@@ -1300,12 +1307,23 @@ class Database:
 
 
 def enqueue_jobs_after_commit():
-	from frappe.utils.background_jobs import execute_job, get_queue
+	from frappe.utils.background_jobs import (
+		RQ_JOB_FAILURE_TTL,
+		RQ_RESULTS_TTL,
+		execute_job,
+		get_queue,
+	)
 
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
 			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
-			q.enqueue_call(execute_job, timeout=job.get("timeout"), kwargs=job.get("queue_args"))
+			q.enqueue_call(
+				execute_job,
+				timeout=job.get("timeout"),
+				kwargs=job.get("queue_args"),
+				failure_ttl=RQ_JOB_FAILURE_TTL,
+				result_ttl=RQ_RESULTS_TTL,
+			)
 		frappe.flags.enqueue_after_commit = []
 
 

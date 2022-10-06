@@ -64,11 +64,9 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	parent_dt = None
 
 	# with parent (called from report builder)
-	if with_parent:
-		parent_dt = frappe.model.meta.get_parent_dt(doctype)
-		if parent_dt:
-			docs = get_meta_bundle(parent_dt)
-			frappe.response["parent_dt"] = parent_dt
+	if with_parent and (parent_dt := frappe.model.meta.get_parent_dt(doctype)):
+		docs = get_meta_bundle(parent_dt)
+		frappe.response["parent_dt"] = parent_dt
 
 	if not docs:
 		docs = get_meta_bundle(doctype)
@@ -110,6 +108,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 
 	docinfo.update(
 		{
+			"doctype": doc.doctype,
+			"name": doc.name,
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
@@ -373,7 +373,7 @@ def run_onload(doc):
 def get_view_logs(doctype, docname):
 	"""get and return the latest view logs if available"""
 	logs = []
-	if hasattr(frappe.get_meta(doctype), "track_views") and frappe.get_meta(doctype).track_views:
+	if getattr(frappe.get_meta(doctype), "track_views", None):
 		view_logs = frappe.get_all(
 			"View Log",
 			filters={

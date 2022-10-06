@@ -7,6 +7,8 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 	font-size: 16px;
 	color: $body-color;
+	display: flex;
+	flex-direction: column;
 }
 
 img {

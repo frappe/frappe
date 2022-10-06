@@ -1,0 +1,162 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "autoname": "field:job_id",
+ "creation": "2022-09-10 16:19:37.934903",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "job_info_section",
+  "job_id",
+  "job_name",
+  "queue",
+  "timeout",
+  "column_break_5",
+  "arguments",
+  "job_status_section",
+  "status",
+  "time_taken",
+  "column_break_11",
+  "started_at",
+  "ended_at",
+  "exception_section",
+  "exc_info"
+ ],
+ "fields": [
+  {
+   "fieldname": "queue",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Queue",
+   "options": "default\nshort\nlong"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "queued\nstarted\nfinished\nfailed\ndeferred\nscheduled\ncanceled"
+  },
+  {
+   "fieldname": "job_id",
+   "fieldtype": "Data",
+   "label": "Job ID",
+   "unique": 1
+  },
+  {
+   "fieldname": "exc_info",
+   "fieldtype": "Code",
+   "label": "Exception"
+  },
+  {
+   "fieldname": "job_name",
+   "fieldtype": "Data",
+   "label": "Job Name"
+  },
+  {
+   "fieldname": "arguments",
+   "fieldtype": "Code",
+   "label": "Arguments"
+  },
+  {
+   "fieldname": "timeout",
+   "fieldtype": "Duration",
+   "label": "Timeout"
+  },
+  {
+   "fieldname": "time_taken",
+   "fieldtype": "Duration",
+   "label": "Time Taken"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started At"
+  },
+  {
+   "fieldname": "ended_at",
+   "fieldtype": "Datetime",
+   "label": "Ended At"
+  },
+  {
+   "fieldname": "job_info_section",
+   "fieldtype": "Section Break",
+   "label": "Job Info"
+  },
+  {
+   "fieldname": "job_status_section",
+   "fieldtype": "Section Break",
+   "label": "Job Status"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "exception_section",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "in_create": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2022-09-11 05:27:50.878534",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "RQ Job",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Yellow",
+   "title": "queued"
+  },
+  {
+   "color": "Blue",
+   "title": "started"
+  },
+  {
+   "color": "Red",
+   "title": "failed"
+  },
+  {
+   "color": "Green",
+   "title": "finished"
+  },
+  {
+   "color": "Orange",
+   "title": "cancelled"
+  }
+ ],
+ "title_field": "job_name"
+}
