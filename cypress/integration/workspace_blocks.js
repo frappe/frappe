@@ -71,15 +71,13 @@ context("Workspace Blocks", () => {
 			url: "api/method/frappe.desk.form.load.getdoctype?**",
 		}).as("get_doctype");
 
-		cy.visit("/app/tools");
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
 
 		// test quick list creation
 		cy.get(".ce-block").first().click({ force: true }).type("{enter}");
 		cy.get(".block-list-container .block-list-item").contains("Quick List").click();
-
-		cy.get_open_dialog().find(".modal-header").click();
+		cy.wait(300);
 
 		cy.fill_field("document_type", "ToDo", "Link").blur();
 		cy.fill_field("label", "ToDo", "Data").blur();
@@ -122,6 +120,7 @@ context("Workspace Blocks", () => {
 
 		cy.get_open_dialog()
 			.find(".filter-field .input-with-feedback")
+			.focus()
 			.type("{selectall}Approved");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
