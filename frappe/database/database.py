@@ -28,7 +28,6 @@ from frappe.database.utils import (
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
-from frappe.query_builder.utils import DocType
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
 
@@ -880,23 +879,11 @@ class Database:
 			frappe.clear_document_cache(dt, dt)
 
 		else:
-			table = DocType(dt)
-
-			if for_update:
-				docnames = tuple(
-					self.get_values(dt, dn, "name", debug=debug, for_update=for_update, pluck=True)
-				) or (NullValue(),)
-				query = frappe.qb.update(table).where(table.name.isin(docnames))
-
-				for docname in docnames:
-					frappe.clear_document_cache(dt, docname)
-
-			else:
-				query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
-				# TODO: Fix this; doesn't work rn - gavin@frappe.io
-				# frappe.cache().hdel_keys(dt, "document_cache")
-				# Workaround: clear all document caches
-				frappe.cache().delete_value("document_cache")
+			query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
+			# TODO: Fix this; doesn't work rn - gavin@frappe.io
+			# frappe.cache().hdel_keys(dt, "document_cache")
+			# Workaround: clear all document caches
+			frappe.cache().delete_value("document_cache")
 
 			for column, value in to_update.items():
 				query = query.set(column, value)
