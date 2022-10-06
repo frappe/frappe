@@ -840,7 +840,7 @@ class Database:
 		val=None,
 		modified=None,
 		modified_by=None,
-		update_modified=False,
+		update_modified=True,
 		debug=False,
 		for_update=True,
 	):

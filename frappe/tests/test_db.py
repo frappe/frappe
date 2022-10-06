@@ -728,7 +728,6 @@ class TestDBSetValue(FrappeTestCase):
 			"test_set_value change 1",
 			modified=custom_modified,
 			modified_by=custom_modified_by,
-			update_modified=True,
 		)
 		self.assertTupleEqual(
 			(custom_modified, custom_modified_by),
