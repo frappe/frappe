@@ -129,6 +129,7 @@ class Document(BaseDocument):
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
+		self.flags.ignore_children = True
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			single_doc = frappe.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
 			if not single_doc:
@@ -150,6 +151,7 @@ class Document(BaseDocument):
 				)
 
 			super().__init__(d)
+		self.flags.pop("ignore_children", None)
 
 		for df in self._get_table_fields():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
@@ -1142,7 +1144,7 @@ class Document(BaseDocument):
 			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
-	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
+	def db_set(self, fieldname, value=None, update_modified=False, notify=False, commit=False):
 		"""Set a value in the document object, update the timestamp and update the database.
 
 		WARNING: This method does not trigger controller validations and should

@@ -642,7 +642,7 @@ class DatabaseQuery:
 				f.value = date_range
 				fallback = f"'{FallBackDateTimeStr}'"
 
-			if f.operator in (">", "<") and (f.fieldname in ("creation", "modified")):
+			if f.operator in (">", "<", ">=", "<=") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
 				fallback = f"'{FallBackDateTimeStr}'"
 

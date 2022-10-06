@@ -375,6 +375,12 @@ class TestDocument(FrappeTestCase):
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
 
+		# setting a string value should fail
+		self.assertRaises(TypeError, doc.set, "user_emails", "fail")
+		# but not when loading from db
+		doc.flags.ignore_children = True
+		doc.update({"user_emails": "ok"})
+
 	def test_doc_events(self):
 		"""validate that all present doc events are correct methods"""
 
