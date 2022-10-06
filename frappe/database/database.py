@@ -841,7 +841,7 @@ class Database:
 		val=None,
 		modified=None,
 		modified_by=None,
-		update_modified=True,
+		update_modified=False,
 		debug=False,
 		for_update=True,
 	):
