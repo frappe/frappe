@@ -20,7 +20,7 @@ def execute():
 		if end != -1:
 			content = content[: end + 4]
 
-		frappe.db.set_value("Comment", name, "content", content)
+		frappe.db.set_value("Comment", name, "content", content, update_modified=False)
 
 	# Strip "Removed " from comments of type "Attachment Removed"
 	for name, content in frappe.get_all(
@@ -30,4 +30,4 @@ def execute():
 		as_list=True,
 	):
 		if content and content.startswith("Removed "):
-			frappe.db.set_value("Comment", name, "content", content[8:])
+			frappe.db.set_value("Comment", name, "content", content[8:], update_modified=False)
