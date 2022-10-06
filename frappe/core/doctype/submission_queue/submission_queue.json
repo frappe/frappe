@@ -21,13 +21,13 @@
   {
    "fieldname": "job_id",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Job Id",
    "read_only": 1
   },
   {
    "fieldname": "ref_doctype",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Reference DocType",
    "options": "DocType",
    "read_only": 1
@@ -35,6 +35,7 @@
   {
    "fieldname": "ref_docname",
    "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
    "label": "Reference Docname",
    "options": "ref_doctype",
    "read_only": 1
@@ -84,7 +85,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-06 01:57:19.253609",
+ "modified": "2022-10-06 18:21:01.129702",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
