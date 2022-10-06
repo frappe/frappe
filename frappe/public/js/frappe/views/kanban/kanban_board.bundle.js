@@ -1,6 +1,6 @@
 // TODO: Refactor for better UX
 
-import Vuex from "vuex";
+import { createStore } from "vuex";
 
 frappe.provide("frappe.views");
 
@@ -9,7 +9,7 @@ frappe.provide("frappe.views");
 
 	let columns_unwatcher = null;
 
-	var store = new Vuex.Store({
+	var store = createStore({
 		state: {
 			doctype: "",
 			board: {},

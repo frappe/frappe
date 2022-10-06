@@ -17,10 +17,21 @@ $.extend(frappe, {
 		if (typeof links === "string") {
 			links = [links];
 		}
+		links = links.map((link) => frappe.bundled_asset(link));
 		for (let link of links) {
 			await this.add_asset_to_head(link);
 		}
 		callback && callback();
+	},
+	bundled_asset(path, is_rtl = null) {
+		if (!path.startsWith("/assets") && path.includes(".bundle.")) {
+			if (path.endsWith(".css") && is_rtl) {
+				path = `rtl_${path}`;
+			}
+			path = frappe.boot.assets_json[path] || path;
+			return path;
+		}
+		return path;
 	},
 	add_asset_to_head(link) {
 		return new Promise((resolve) => {
