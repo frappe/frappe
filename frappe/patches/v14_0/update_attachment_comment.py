@@ -2,6 +2,8 @@ import frappe
 
 
 def execute():
+	frappe.db.auto_commit_on_many_writes = 1
+
 	# Strip everything except link to attachment and icon from comments of type "Attached"
 	for name, content in frappe.get_all(
 		"Comment", filters={"comment_type": "Attachment"}, fields=["name", "content"], as_list=True
