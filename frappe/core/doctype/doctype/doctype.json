@@ -23,7 +23,7 @@
   "custom",
   "beta",
   "is_virtual",
-  "submit_in_background",
+  "queue_in_background",
   "fields_section_break",
   "fields",
   "sb1",
@@ -609,10 +609,10 @@
   },
   {
    "default": "0",
-   "depends_on": "is_submittable",
-   "fieldname": "submit_in_background",
+   "depends_on": "eval: doc.is_submittable",
+   "fieldname": "queue_in_background",
    "fieldtype": "Check",
-   "label": "Submit in background"
+   "label": "Queue in Background"
   }
  ],
  "icon": "fa fa-bolt",
@@ -695,7 +695,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-10-05 22:39:47.594977",
+ "modified": "2022-10-06 15:20:12.186038",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
