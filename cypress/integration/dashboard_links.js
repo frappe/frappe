@@ -17,7 +17,7 @@ context("Dashboard links", () => {
 			.window()
 			.its("frappe")
 			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.update_child_table", {
+				frappe.call("frappe.tests.ui_test_helpers.update_child_table", {
 					name: child_table_doctype_name,
 				});
 			});
