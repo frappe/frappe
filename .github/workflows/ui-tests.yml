@@ -37,7 +37,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.repository_owner == 'frappe' }}
     timeout-minutes: 60
 
     strategy:
@@ -82,7 +82,6 @@ jobs:
       - name: Add to Hosts
         run: |
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
-          echo "127.0.0.1 test_site_producer" | sudo tee -a /etc/hosts
 
       - name: Cache pip
         uses: actions/cache@v3
@@ -101,18 +100,15 @@ jobs:
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-ui-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-yarn-ui-
 
       - name: Cache cypress binary
         uses: actions/cache@v3
         with:
-          path: ~/.cache
-          key: ${{ runner.os }}-cypress-
-          restore-keys: |
-            ${{ runner.os }}-cypress-
-            ${{ runner.os }}-
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress
 
       - name: Install Dependencies
         run: |
@@ -131,7 +127,10 @@ jobs:
         run: cd ~/frappe-bench/ && bench build --apps frappe
 
       - name: Site Setup
-        run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
+        run: |
+          cd ~/frappe-bench/
+          bench --site test_site execute frappe.utils.install.complete_setup_wizard
+          bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
       - name: UI Tests
         run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --with-coverage --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT

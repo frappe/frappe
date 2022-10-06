@@ -4,9 +4,9 @@ pull_request_rules:
       - and:
         - and:
           - author!=surajshetty3416
-          - author!=gavindsouza
           - author!=deepeshgarg007
           - author!=ankush
+          - author!=frappe-pr-bot
           - author!=mergify[bot]
         - or:
           - base=version-15

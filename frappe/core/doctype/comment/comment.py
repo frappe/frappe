@@ -60,7 +60,6 @@ class Comment(Document):
 
 def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
-	frappe.db.add_index("Comment", ["link_doctype", "link_name"])
 
 
 def update_comment_in_doc(doc):
@@ -161,12 +160,13 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 
 		else:
 			raise ImplicitCommitError
-
 	else:
-		if not frappe.flags.in_patch:
-			reference_doc = frappe.get_doc(reference_doctype, reference_name)
-			if getattr(reference_doc, "route", None):
-				clear_cache(reference_doc.route)
+		if frappe.flags.in_patch:
+			return
+
+		# Clear route cache
+		if route := frappe.get_cached_value(reference_doctype, reference_name, "route"):
+			clear_cache(route)
 
 
 def update_comments_in_parent_after_request():

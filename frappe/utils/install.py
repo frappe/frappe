@@ -259,6 +259,13 @@ def add_standard_navbar_items():
 			"is_standard": 1,
 		},
 		{
+			"item_label": "Manage Subscriptions",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.redirectToUrl()",
+			"hidden": 1,
+			"is_standard": 1,
+		},
+		{
 			"item_label": "Session Defaults",
 			"item_type": "Action",
 			"action": "frappe.ui.toolbar.setup_session_defaults()",
@@ -289,12 +296,10 @@ def add_standard_navbar_items():
 			"is_standard": 1,
 		},
 		{
-			"item_label": "Background Jobs",
-			"item_type": "Route",
-			"route": "/app/background_jobs",
+			"item_type": "Separator",
 			"is_standard": 1,
+			"item_label": "",
 		},
-		{"item_type": "Separator", "is_standard": 1},
 		{
 			"item_label": "Log out",
 			"item_type": "Action",
