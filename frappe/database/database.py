@@ -857,7 +857,7 @@ class Database:
 		:param modified_by: Set this user as `modified_by`.
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
-		:param for_update: Will add a row-level lock to the value that is being set so that it can be released on commit.
+		:param for_update: [DEPRECATED] This function now performs updates in single query, locking is not required.
 		"""
 		is_single_doctype = not (dn and dt != dn)
 		to_update = field if isinstance(field, dict) else {field: val}
@@ -880,10 +880,14 @@ class Database:
 
 		else:
 			query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
-			# TODO: Fix this; doesn't work rn - gavin@frappe.io
-			# frappe.cache().hdel_keys(dt, "document_cache")
-			# Workaround: clear all document caches
-			frappe.cache().delete_value("document_cache")
+
+			if isinstance(dn, str):
+				frappe.clear_document_cache(dt, dn)
+			else:
+				# TODO: Fix this; doesn't work rn - gavin@frappe.io
+				# frappe.cache().hdel_keys(dt, "document_cache")
+				# Workaround: clear all document caches
+				frappe.cache().delete_value("document_cache")
 
 			for column, value in to_update.items():
 				query = query.set(column, value)
