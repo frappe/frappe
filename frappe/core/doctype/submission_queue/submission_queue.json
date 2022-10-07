@@ -85,7 +85,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-06 18:21:01.129702",
+ "modified": "2022-10-08 04:26:01.657818",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -116,6 +116,14 @@
   {
    "color": "Green",
    "title": "Completed"
+  },
+  {
+   "color": "Yellow",
+   "title": "Stopped"
+  },
+  {
+   "color": "Red",
+   "title": "Canceled"
   }
  ]
 }

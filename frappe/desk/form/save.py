@@ -22,7 +22,6 @@ def savedocs(doc, action):
 		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, action)
 			return
-
 		doc.submit()
 	else:
 		doc.save()

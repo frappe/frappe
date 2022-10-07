@@ -1,13 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from rq.exceptions import NoSuchJobError
+from rq.job import Job
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.model.document import Document
 from frappe.utils import now
-from rq.exceptions import NoSuchJobError
-from rq.job import Job
 from frappe.utils.background_jobs import get_redis_conn
 
 
@@ -84,17 +85,22 @@ class SubmissionQueue(Document):
 
 	@frappe.whitelist()
 	def unlock_doc(self):
-		if self.is_locked:
+		to_be_unlocked_doc = frappe.get_doc(self.ref_doctype, self.ref_docname)
+		if to_be_unlocked_doc.is_locked:
 			try:
 				job = Job(self.job_id, connection=get_redis_conn())
-				if not job.get_status(refresh=True):
+				status = job.get_status(refresh=True)
+				if not status:
 					raise NoSuchJobError
+				if status := status in ("failed", "canceled", "stopped"):
+					to_be_unlocked_doc.unlock()
+					self.status = status.capitalize()
+					self.save()
 			except NoSuchJobError:
-				self.to_be_queued_doc.unlock()
+				to_be_unlocked_doc.unlock()
 				frappe.msgprint(_("Unlocked document as no such document exists in queue"))
 		else:
 			frappe.msgprint(_("Document is already unlocked"))
-
 
 
 def queue_submission(doc: Document, action: str):
