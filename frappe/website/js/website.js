@@ -9,9 +9,6 @@ frappe.provide("frappe.awesome_bar_path");
 window.cur_frm = null;
 
 $.extend(frappe, {
-	boot: {
-		lang: "en",
-	},
 	_assets_loaded: [],
 	require: async function (links, callback) {
 		if (typeof links === "string") {
