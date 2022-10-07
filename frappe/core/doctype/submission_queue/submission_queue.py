@@ -88,4 +88,10 @@ def queue_submission(doc: Document, action: str):
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)
 
-	return queue.name
+	frappe.msgprint(
+		frappe._("Queued for Submission. You can track the progress over {0}.").format(
+			f"<a href='/app/submission-queue/{queue.name}'><b>here</b></a>"
+		),
+		indicator="green",
+		alert=True,
+	)

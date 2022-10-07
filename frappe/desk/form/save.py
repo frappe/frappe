@@ -7,6 +7,7 @@ import frappe
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.desk.form.load import run_onload
 from frappe.monitor import add_data_to_monitor
+from frappe.utils.scheduler import is_scheduler_inactive
 
 
 @frappe.whitelist()
@@ -18,18 +19,11 @@ def savedocs(doc, action):
 	# action
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 	if doc.docstatus == 1:
-		if doc.meta.submit_in_background:
-			queue_name = queue_submission(doc, action)
-			frappe.msgprint(
-				frappe._("Queued for Submission. You can track the progress over {0}.").format(
-					f"<a href='/app/submission-queue/{queue_name}'><b>here</b></a>"
-				),
-				indicator="green",
-				alert=True,
-			)
+		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, action)
 			return
-		else:
-			doc.submit()
+
+		doc.submit()
 	else:
 		doc.save()
 
