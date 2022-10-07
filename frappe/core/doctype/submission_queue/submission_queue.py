@@ -86,17 +86,13 @@ class SubmissionQueue(Document):
 	def unlock_doc(self):
 		if self.is_locked:
 			try:
-				Job(self.job_id, connection=get_redis_conn())
-				frappe.msgprint(_("Document already exists in queue!"))
+				job = Job(self.job_id, connection=get_redis_conn())
+				if not job.get_status(refresh=True):
+					raise NoSuchJobError
 			except NoSuchJobError:
 				self.to_be_queued_doc.unlock()
-				self.status = "Failed"
-				self.save()
 				frappe.msgprint(_("Unlocked document as no such document exists in queue"))
 		else:
-			# failed, completed don't know at this point
-			self.status = "Failed"
-			self.save()
 			frappe.msgprint(_("Document is already unlocked"))
 
 
