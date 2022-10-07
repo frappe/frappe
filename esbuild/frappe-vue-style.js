@@ -19,7 +19,7 @@ module.exports = {
 					out.contents = Buffer.from(modified);
 				}
 				if (!fs.existsSync(dir)) {
-					fs.mkdirSync(dir);
+					fs.mkdirSync(dir, { recursive: true });
 				}
 				fs.writeFile(out.path, out.contents, (err) => {
 					err && console.error(err);
