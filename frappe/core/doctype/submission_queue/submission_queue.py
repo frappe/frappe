@@ -90,9 +90,15 @@ class SubmissionQueue(Document):
 				frappe.msgprint(_("Document already exists in queue!"))
 			except NoSuchJobError:
 				self.to_be_queued_doc.unlock()
+				self.status = "Failed"
+				self.save()
 				frappe.msgprint(_("Unlocked document as no such document exists in queue"))
 		else:
+			# failed, completed don't know at this point
+			self.status = "Failed"
+			self.save()
 			frappe.msgprint(_("Document is already unlocked"))
+
 
 
 def queue_submission(doc: Document, action: str):
