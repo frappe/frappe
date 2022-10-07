@@ -91,7 +91,11 @@ def is_transition_condition_satisfied(transition, doc):
 @frappe.whitelist()
 def apply_workflow(doc, action):
 	"""Allow workflow action on the current doc"""
-	doc = frappe.get_doc(frappe.parse_json(doc))
+	if isinstance(doc, str):
+		doc = frappe.get_doc(frappe.parse_json(doc), for_update=True)
+	elif isinstance(doc, dict):
+		doc = frappe.get_doc(doc, for_update=True)
+
 	workflow = get_workflow(doc.doctype)
 	transitions = get_transitions(doc, workflow)
 	user = frappe.session.user
@@ -241,7 +245,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
-			apply_workflow(frappe.get_doc(doctype, docname), action)
+			apply_workflow(frappe.get_doc(doctype, docname, for_update=True), action)
 			frappe.db.commit()
 		except Exception as e:
 			if not frappe.message_log:
