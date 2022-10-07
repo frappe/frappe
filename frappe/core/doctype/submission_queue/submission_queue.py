@@ -6,6 +6,9 @@ from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.model.document import Document
 from frappe.utils import now
+from rq.exceptions import NoSuchJobError
+from rq.job import Job
+from frappe.utils.background_jobs import get_redis_conn
 
 
 class SubmissionQueue(Document):
@@ -78,6 +81,18 @@ class SubmissionQueue(Document):
 
 		notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
 		enqueue_create_notification([notify_to], notification_doc)
+
+	@frappe.whitelist()
+	def unlock_doc(self):
+		if self.is_locked:
+			try:
+				Job(self.job_id, connection=get_redis_conn())
+				frappe.msgprint(_("Document already exists in queue!"))
+			except NoSuchJobError:
+				self.to_be_queued_doc.unlock()
+				frappe.msgprint(_("Unlocked document as no such document exists in queue"))
+		else:
+			frappe.msgprint(_("Document is already unlocked"))
 
 
 def queue_submission(doc: Document, action: str):

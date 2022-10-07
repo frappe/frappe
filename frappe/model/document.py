@@ -91,6 +91,7 @@ class Document(BaseDocument):
 		self.doctype = None
 		self.name = None
 		self.flags = frappe._dict()
+		self.is_locked = False
 
 		if args and args[0]:
 			if isinstance(args[0], str):
@@ -1492,12 +1493,14 @@ class Document(BaseDocument):
 				raise frappe.DocumentLockedError
 		file_lock.create_lock(signature)
 		frappe.local.locked_documents.append(self)
+		self.is_locked = True
 
 	def unlock(self):
 		"""Delete the lock file for this document"""
 		file_lock.delete_lock(self.get_signature())
 		if self in frappe.local.locked_documents:
 			frappe.local.locked_documents.remove(self)
+			self.is_locked = False
 
 	# validation helpers
 	def validate_from_to_dates(self, from_date_field, to_date_field):
