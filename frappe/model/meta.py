@@ -453,11 +453,7 @@ class Meta(Document):
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
-		custom_fields = sorted(self.get_custom_fields(), key=lambda df: (df.idx, df.creation))
-		# for field in self.fields:
-		# 	if field.label == "Test Field":
-		# 		frappe.msgprint(str(field.as_json()))
-
+		custom_fields = self.get_custom_fields()
 		if not custom_fields:
 			return
 
