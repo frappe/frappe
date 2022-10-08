@@ -46,7 +46,7 @@
    "hidden": 1,
    "in_list_view": 1,
    "label": "Status",
-   "options": "Queued\nCompleted\nFailed",
+   "options": "Queued\nFinished\nFailed\nStopped\nCanceled",
    "read_only": 1
   },
   {
@@ -85,7 +85,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-08 04:26:01.657818",
+ "modified": "2022-10-08 18:07:02.753123",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -115,7 +115,7 @@
   },
   {
    "color": "Green",
-   "title": "Completed"
+   "title": "Finished"
   },
   {
    "color": "Yellow",
