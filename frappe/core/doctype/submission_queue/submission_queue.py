@@ -52,7 +52,7 @@ class SubmissionQueue(Document):
 
 		try:
 			getattr(to_be_queued_doc, _action)()
-			values = {"status": "Completed"}
+			values = {"status": "Finished"}
 		except Exception:
 			values = {"status": "Failed", "message": frappe.get_traceback()}
 			frappe.db.rollback()
@@ -76,7 +76,9 @@ class SubmissionQueue(Document):
 			"document_type": doctype,
 			"document_name": docname,
 			"subject": message.format(
-				frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
+				f"<a href='/app/{str(self.ref_doctype).lower().replace(' ', '-')}/{str(self.ref_docname)}'><b>{str(self.ref_doctype)}</b></a>",
+				frappe.bold(self.ref_docname),
+				frappe.bold(action)
 			),
 		}
 
@@ -85,31 +87,34 @@ class SubmissionQueue(Document):
 
 	def unlock_doc_and_update_status(self, doc_to_be_unlocked: Document, possible_status: tuple):
 		try:
-			if not doc_to_be_unlocked.is_locked:
-				frappe.msgprint(_("Document is already unlocked updating status"))
-
 			job = Job(self.job_id, connection=get_redis_conn())
 			status = job.get_status(refresh=True)
 			if not status:
 				raise NoSuchJobError
 
-			if status == "Queued":
+			if not doc_to_be_unlocked.is_locked:
+				frappe.msgprint(_("Document is already unlocked updating status"))
+
+			# Checking if job is queue to be executed
+			if status == "queued":
 				frappe.msgprint(_("Document in queue for execution!"))
 				return
 
-			if status := status in possible_status:
+			# Checking any one of the possible termination statuses
+			if status in possible_status:
 				doc_to_be_unlocked.unlock()
-				self.status = status
+				self.status = status.capitalize()
 				self.save()
 				frappe.msgprint(_("Document unlocked!"))
 
 		except NoSuchJobError:
+			# Need to update status
 			doc_to_be_unlocked.unlock()
 			frappe.msgprint(_("Unlocked document as no such document exists in queue"))
 
 	@frappe.whitelist()
 	def unlock_doc(self):
-		possible_status = ("Failed", "Canceled", "Stopped", "Completed")
+		possible_status = ("failed", "canceled", "stopped", "finished")
 		doc_to_be_unlocked = frappe.get_doc(self.ref_doctype, self.ref_docname)
 		self.unlock_doc_and_update_status(
 			doc_to_be_unlocked=doc_to_be_unlocked, possible_status=possible_status
