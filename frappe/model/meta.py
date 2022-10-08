@@ -453,42 +453,61 @@ class Meta(Document):
 
 	def sort_fields(self):
 		"""sort on basis of insert_after"""
-		custom_fields = sorted(self.get_custom_fields(), key=lambda df: df.idx)
+		custom_fields = sorted(self.get_custom_fields(), key=lambda df: (df.idx, df.creation))
+		# for field in self.fields:
+		# 	if field.label == "Test Field":
+		# 		frappe.msgprint(str(field.as_json()))
 
+		if not custom_fields:
+			return
+
+		# new_field_list will be the updated self.fields after adding custom fields
+		# insert_after_map is a dict containing list of custom fields to be inserted after a specific field
+		# insert_after_keys holds the value of insert_after fields of all custom fields
+		new_field_list, insert_after_map, insert_after_keys = [], {}, []
+
+		# if custom field is at top, insert_after doesn't exist
+		for custom_field in list(custom_fields):
+			if not custom_field.insert_after:
+				new_field_list.append(custom_field)
+				custom_fields.pop(custom_fields.index(custom_field))
+				continue
+			insert_after_map.setdefault(custom_field.insert_after, [])
+			insert_after_map[custom_field.insert_after].append(custom_field)
+			insert_after_keys.append(custom_field.insert_after)
+
+		# adding standard fields
+		new_field_list += [df for df in self.get("fields") if not df.get("is_custom_field")]
+		existing_fields = [df.fieldname for df in new_field_list]
+
+		# avoid duplication
+		insert_after_keys = list(set(insert_after_keys))
+		retry_field_insertion = True
+
+		while retry_field_insertion:
+			retry_field_insertion = False
+			for insert_after in insert_after_keys:
+				if insert_after_map.get(insert_after) and insert_after in existing_fields:
+					retry_field_insertion = True
+					insert_after_idx = existing_fields.index(insert_after)
+					for custom_field in insert_after_map.pop(insert_after, []):
+						insert_after_idx += 1
+						cf = custom_fields.pop(custom_fields.index(custom_field))
+						new_field_list.insert(insert_after_idx, cf)
+						existing_fields.insert(insert_after_idx, cf.fieldname)
+
+			if not insert_after_map:
+				break
+
+		# worst case, add remaining custom fields to last
 		if custom_fields:
-			newlist = []
+			new_field_list += custom_fields
 
-			# if custom field is at top
-			# insert_after is false
-			for c in list(custom_fields):
-				if not c.insert_after:
-					newlist.append(c)
-					custom_fields.pop(custom_fields.index(c))
+		# renum idx
+		for i, f in enumerate(new_field_list):
+			f.idx = i + 1
 
-			# standard fields
-			newlist += [df for df in self.get("fields") if not df.get("is_custom_field")]
-
-			newlist_fieldnames = [df.fieldname for df in newlist]
-			for i in range(2):
-				for df in list(custom_fields):
-					if df.insert_after in newlist_fieldnames:
-						cf = custom_fields.pop(custom_fields.index(df))
-						idx = newlist_fieldnames.index(df.insert_after)
-						newlist.insert(idx + 1, cf)
-						newlist_fieldnames.insert(idx + 1, cf.fieldname)
-
-				if not custom_fields:
-					break
-
-			# worst case, add remaining custom fields to last
-			if custom_fields:
-				newlist += custom_fields
-
-			# renum idx
-			for i, f in enumerate(newlist):
-				f.idx = i + 1
-
-			self.fields = newlist
+		self.fields = new_field_list
 
 	def set_custom_permissions(self):
 		"""Reset `permissions` with Custom DocPerm if exists"""
