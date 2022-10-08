@@ -83,9 +83,9 @@ class SubmissionQueue(Document):
 		notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
 		enqueue_create_notification([notify_to], notification_doc)
 
-	def unlock_doc_and_update_status(self, to_be_unlocked_doc: Document, possible_status: tuple):
+	def unlock_doc_and_update_status(self, doc_to_be_unlocked: Document, possible_status: tuple):
 		try:
-			if not to_be_unlocked_doc.is_locked:
+			if not doc_to_be_unlocked.is_locked:
 				frappe.msgprint(_("Document is already unlocked updating status"))
 
 			job = Job(self.job_id, connection=get_redis_conn())
@@ -98,21 +98,21 @@ class SubmissionQueue(Document):
 				return
 
 			if status := status in possible_status:
-				to_be_unlocked_doc.unlock()
+				doc_to_be_unlocked.unlock()
 				self.status = status
 				self.save()
 				frappe.msgprint(_("Document unlocked!"))
 
 		except NoSuchJobError:
-			to_be_unlocked_doc.unlock()
+			doc_to_be_unlocked.unlock()
 			frappe.msgprint(_("Unlocked document as no such document exists in queue"))
 
 	@frappe.whitelist()
 	def unlock_doc(self):
 		possible_status = ("Failed", "Canceled", "Stopped", "Completed")
-		to_be_unlocked_doc = frappe.get_doc(self.ref_doctype, self.ref_docname)
+		doc_to_be_unlocked = frappe.get_doc(self.ref_doctype, self.ref_docname)
 		self.unlock_doc_and_update_status(
-			to_be_unlocked_doc=to_be_unlocked_doc, possible_status=possible_status
+			doc_to_be_unlocked=doc_to_be_unlocked, possible_status=possible_status
 		)
 
 
