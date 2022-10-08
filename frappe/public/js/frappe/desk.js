@@ -43,7 +43,6 @@ frappe.Application = class Application {
 			throw "boot failed";
 		}
 
-		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
 		this.make_nav_bar();
@@ -181,11 +180,6 @@ frappe.Application = class Application {
 		frappe.router.on("change", () => {
 			$(".tooltip").hide();
 		});
-	}
-
-	setup_frappe_vue() {
-		Vue.prototype.__ = window.__;
-		Vue.prototype.frappe = window.frappe;
 	}
 
 	set_password(user) {

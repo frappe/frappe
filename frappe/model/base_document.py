@@ -152,8 +152,9 @@ class BaseDocument:
 		if "name" in d:
 			self.name = d["name"]
 
+		ignore_children = hasattr(self, "flags") and self.flags.ignore_children
 		for key, value in d.items():
-			self.set(key, value)
+			self.set(key, value, as_value=ignore_children)
 
 		return self
 
@@ -1174,7 +1175,10 @@ class BaseDocument:
 				# get values from old doc
 				if self.get("parent_doc"):
 					parent_doc = self.parent_doc.get_latest()
-					ref_doc = [d for d in parent_doc.get(self.parentfield) if d.name == self.name][0]
+					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
+					if not child_docs:
+						return
+					ref_doc = child_docs[0]
 				else:
 					ref_doc = self.get_latest()
 

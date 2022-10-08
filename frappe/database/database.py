@@ -28,7 +28,6 @@ from frappe.database.utils import (
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
-from frappe.query_builder.utils import DocType
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
 
@@ -858,7 +857,7 @@ class Database:
 		:param modified_by: Set this user as `modified_by`.
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
-		:param for_update: Will add a row-level lock to the value that is being set so that it can be released on commit.
+		:param for_update: [DEPRECATED] This function now performs updates in single query, locking is not required.
 		"""
 		is_single_doctype = not (dn and dt != dn)
 		to_update = field if isinstance(field, dict) else {field: val}
@@ -880,19 +879,11 @@ class Database:
 			frappe.clear_document_cache(dt, dt)
 
 		else:
-			table = DocType(dt)
+			query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
 
-			if for_update:
-				docnames = tuple(
-					self.get_values(dt, dn, "name", debug=debug, for_update=for_update, pluck=True)
-				) or (NullValue(),)
-				query = frappe.qb.update(table).where(table.name.isin(docnames))
-
-				for docname in docnames:
-					frappe.clear_document_cache(dt, docname)
-
+			if isinstance(dn, str):
+				frappe.clear_document_cache(dt, dn)
 			else:
-				query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
 				# TODO: Fix this; doesn't work rn - gavin@frappe.io
 				# frappe.cache().hdel_keys(dt, "document_cache")
 				# Workaround: clear all document caches

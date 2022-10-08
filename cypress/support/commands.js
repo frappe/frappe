@@ -285,7 +285,7 @@ Cypress.Commands.add("get_open_dialog", () => {
 
 Cypress.Commands.add("save", () => {
 	cy.intercept("/api/method/frappe.desk.form.save.savedocs").as("save_call");
-	cy.get(`button[data-label="Save"]:visible`).click({ scrollBehavior: false, force: true });
+	cy.get(`button[data-label="Save"]:visible`).click({ scrollBehavior: "top", force: true });
 	cy.wait("@save_call");
 });
 Cypress.Commands.add("hide_dialog", () => {
