@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.model.document import Document
+from frappe.monitor import add_data_to_monitor
 from frappe.utils import now
 from frappe.utils.background_jobs import get_redis_conn
 
@@ -52,6 +53,7 @@ class SubmissionQueue(Document):
 
 		try:
 			getattr(to_be_queued_doc, _action)()
+			add_data_to_monitor(doctype=to_be_queued_doc.doctype, action=_action)
 			values = {"status": "Finished"}
 		except Exception:
 			values = {"status": "Failed", "message": frappe.get_traceback()}
