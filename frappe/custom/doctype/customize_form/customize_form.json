@@ -19,6 +19,7 @@
   "track_views",
   "allow_auto_repeat",
   "allow_import",
+  "queue_in_background",
   "fields_section_break",
   "fields",
   "naming_section",
@@ -337,6 +338,12 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "queue_in_background",
+   "fieldtype": "Check",
+   "label": "Queue in Background"
   }
  ],
  "hide_toolbar": 1,
@@ -345,7 +352,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-24 06:57:47.966331",
+ "modified": "2022-10-09 17:36:03.259470",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
