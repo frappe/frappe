@@ -841,9 +841,10 @@ def run_parallel_tests(
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--ci-build-id")
+@click.option("--record", is_flag=True, help="Record using Cypress Dashboard")
 @pass_context
 def run_ui_tests(
-	context, app, headless=False, parallel=True, with_coverage=False, ci_build_id=None
+	context, app, headless=False, parallel=True, with_coverage=False, ci_build_id=None, record=False
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -888,8 +889,11 @@ def run_ui_tests(
 		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
 
 	# run for headless mode
-	run_or_open = "run --browser chrome --record" if headless else "open"
+	run_or_open = "run --browser chrome" if headless else "open"
 	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
+
+	if record:
+		run_or_open += " --record"
 
 	if parallel:
 		formatted_command += " --parallel"
