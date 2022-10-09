@@ -76,9 +76,7 @@ class SubmissionQueue(Document):
 			"document_type": doctype,
 			"document_name": docname,
 			"subject": message.format(
-				f"<a href='/app/{str(self.ref_doctype).lower().replace(' ', '-')}/{str(self.ref_docname)}'><b>{str(self.ref_doctype)}</b></a>",
-				frappe.bold(self.ref_docname),
-				frappe.bold(action)
+				frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
 			),
 		}
 
@@ -91,9 +89,6 @@ class SubmissionQueue(Document):
 			status = job.get_status(refresh=True)
 			if not status:
 				raise NoSuchJobError
-
-			if not doc_to_be_unlocked.is_locked:
-				frappe.msgprint(_("Document is already unlocked updating status"))
 
 			# Checking if job is queue to be executed
 			if status == "queued":
@@ -130,7 +125,7 @@ def queue_submission(doc: Document, action: str):
 	queue.insert(doc, action)
 
 	frappe.msgprint(
-		frappe._("Queued for Submission. You can track the progress over {0}.").format(
+		_("Queued for Submission. You can track the progress over {0}.").format(
 			f"<a href='/app/submission-queue/{queue.name}'><b>here</b></a>"
 		),
 		indicator="green",
