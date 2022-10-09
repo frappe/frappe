@@ -327,12 +327,12 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	get_item_link(notification_doc) {
-		const link_doctype =
-			notification_doc.type == "Alert" ? "Notification Log" : notification_doc.document_type;
-		const link_docname =
-			notification_doc.type == "Alert"
-				? notification_doc.name
-				: notification_doc.document_name;
+		const link_doctype = notification_doc.document_type
+			? notification_doc.document_type
+			: "Notification Log";
+		const link_docname = notification_doc.document_name
+			? notification_doc.document_name
+			: notification_doc.name;
 		return frappe.utils.get_form_link(link_doctype, link_docname);
 	}
 
