@@ -72,7 +72,7 @@ class SubmissionQueue(Document):
 			message = _("Submission of {0} {1} with action {2} completed successfully")
 
 		notification_doc = {
-			"type": "Alert",
+			"type": "Mention",
 			"document_type": doctype,
 			"document_name": docname,
 			"subject": message.format(
