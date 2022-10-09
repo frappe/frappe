@@ -117,6 +117,14 @@ class SubmissionQueue(Document):
 			doc_to_be_unlocked=doc_to_be_unlocked, possible_status=possible_status
 		)
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		from frappe.query_builder.functions import Now
+		from frappe.query_builder import Interval
+
+		table = frappe.qb.DocType("Submission Queue")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+
 
 def queue_submission(doc: Document, action: str):
 	queue = frappe.new_doc("Submission Queue")
