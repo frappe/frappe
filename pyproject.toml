@@ -59,7 +59,6 @@ dependencies = [
     "requests~=2.27.1",
     "rq~=1.10.1",
     "rsa>=4.1",
-    "schedule~=1.1.0",
     "semantic-version~=2.10.0",
     "sqlparse~=0.4.1",
     "tenacity~=8.0.1",
