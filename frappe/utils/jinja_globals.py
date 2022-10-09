@@ -1,5 +1,6 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import re
 
 
 def resolve_class(*classes):
@@ -75,7 +76,9 @@ def web_blocks(blocks):
 		# see render_dynamic method web_page.py
 		if template not in frappe.flags.web_block_scripts:
 			for script in scripts:
-				html += f"<script data-web-template='{template}'>{script}</script>"
+				html += re.sub(
+					"<script", f"<script data-web-template='{template}'", script, count=1, flags=re.I
+				)
 			frappe.flags.web_block_scripts[template] = True
 
 	for template, styles in out.styles.items():
