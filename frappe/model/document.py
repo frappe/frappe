@@ -294,6 +294,10 @@ class Document(BaseDocument):
 				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
+	def check_locked_document(self):
+		if self.is_locked:
+			raise frappe.DocumentLockedError
+
 	def save(self, *args, **kwargs):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
@@ -309,6 +313,8 @@ class Document(BaseDocument):
 		:param ignore_version: Do not save version if True."""
 		if self.flags.in_print:
 			return
+
+		self.check_locked_document()
 
 		self.flags.notifications_executed = []
 
@@ -988,12 +994,14 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
+		self.check_locked_document()
 		self.docstatus = DocStatus.submitted()
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
+		self.check_locked_document()
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
