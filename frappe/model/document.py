@@ -91,7 +91,6 @@ class Document(BaseDocument):
 		self.doctype = None
 		self.name = None
 		self.flags = frappe._dict()
-		self.is_locked = False
 
 		if args and args[0]:
 			if isinstance(args[0], str):
@@ -120,6 +119,10 @@ class Document(BaseDocument):
 		else:
 			# incorrect arguments. let's not proceed.
 			raise ValueError("Illegal arguments")
+
+	@property
+	def is_locked(self):
+		return file_lock.lock_exists(self.get_signature())
 
 	@staticmethod
 	def whitelist(fn):
@@ -1412,7 +1415,9 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+		return hashlib.sha224(
+			get_datetime_str(self.creation or self.modified or now()).encode()
+		).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
@@ -1501,12 +1506,10 @@ class Document(BaseDocument):
 				raise frappe.DocumentLockedError
 		file_lock.create_lock(signature)
 		frappe.local.locked_documents.append(self)
-		self.is_locked = True
 
 	def unlock(self):
 		"""Delete the lock file for this document"""
 		file_lock.delete_lock(self.get_signature())
-		self.is_locked = False
 		if self in frappe.local.locked_documents:
 			frappe.local.locked_documents.remove(self)
 
