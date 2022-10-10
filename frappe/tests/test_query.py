@@ -202,6 +202,7 @@ class TestQuery(FrappeTestCase):
 			),
 		)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_comment_stripping(self):
 		self.assertNotIn(
 			"email", frappe.qb.engine.get_query("User", fields=["name", "#email"], filters={}).get_sql()
