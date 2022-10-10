@@ -20,6 +20,14 @@ class NotificationLog(Document):
 			except frappe.OutgoingEmailError:
 				self.log_error(_("Failed to send notification email"))
 
+	@staticmethod
+	def clear_old_logs(days=180):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Notification Log")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+
 
 def get_permission_query_conditions(for_user):
 	if not for_user:
