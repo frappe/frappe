@@ -22,7 +22,7 @@ class Recorder {
 	}
 
 	show() {
-		if (!this.view || this.view.$route.name == "recorder-detail") return;
-		this.view.$router.replace({ name: "recorder-detail" });
+		if (!this.route || this.route.name == "RecorderDetail") return;
+		this.router?.replace({ name: "RecorderDetail" });
 	}
 }

@@ -3,11 +3,12 @@ const path = require("path");
 const fs = require("fs");
 const glob = require("fast-glob");
 const esbuild = require("esbuild");
-const vue = require("esbuild-vue");
+const vue = require("esbuild-plugin-vue3");
 const yargs = require("yargs");
 const cliui = require("cliui")();
 const chalk = require("chalk");
 const html_plugin = require("./frappe-html");
+const vue_style_plugin = require("./frappe-vue-style");
 const rtlcss = require("rtlcss");
 const postCssPlugin = require("@frappe/esbuild-plugin-postcss2").default;
 const ignore_assets = require("./ignore-assets");
@@ -155,7 +156,7 @@ function build_assets_for_apps(apps, files) {
 				style_file_map[output_name] = file;
 				rtl_style_file_map[output_name.replace("/css/", "/css-rtl/")] = file;
 			} else {
-				file_map[output_name] = file;
+				file_map[output_name.replace("/js/", "/")] = file;
 			}
 		}
 		let build = build_files({
@@ -218,8 +219,9 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	let build_plugins = [html_plugin, build_cleanup_plugin, vue()];
-	return esbuild.build(get_build_options(files, outdir, build_plugins));
+	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
+	let entry_names = "[dir]/[ext]/[name].[hash]";
+	return esbuild.build(get_build_options(files, outdir, build_plugins, entry_names));
 }
 
 function build_style_files({ files, outdir, rtl_style = false }) {
@@ -241,10 +243,11 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
-function get_build_options(files, outdir, plugins) {
+function get_build_options(files, outdir, plugins, entry_names) {
+	let entryNames = entry_names || "[dir]/[name].[hash]";
 	return {
 		entryPoints: files,
-		entryNames: "[dir]/[name].[hash]",
+		entryNames,
 		target: ["es2017"],
 		outdir,
 		sourcemap: true,
@@ -254,6 +257,8 @@ function get_build_options(files, outdir, plugins) {
 		nodePaths: NODE_PATHS,
 		define: {
 			"process.env.NODE_ENV": JSON.stringify(PRODUCTION ? "production" : "development"),
+			__VUE_OPTIONS_API__: JSON.stringify(true),
+			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
 		},
 		plugins: plugins,
 		watch: get_watch_config(),
@@ -378,6 +383,16 @@ async function write_assets_json(metafile) {
 				key = `rtl_${key}`;
 			}
 			out[key] = asset_path;
+		} else if (Object.keys(info.inputs).length !== 0) {
+			for (let input in info.inputs) {
+				if (input.includes(".vue?type=style")) {
+					// remove hash from css file name
+					let key = path.basename(asset_path);
+					key = key.split(".css")[0];
+					key = key.substring(0, key.lastIndexOf(".")) + ".css";
+					out[key] = asset_path;
+				}
+			}
 		}
 	}
 
