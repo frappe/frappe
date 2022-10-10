@@ -217,7 +217,7 @@ watch(
 
 </script>
 
-<style>
+<style scoped>
 .field {
 	text-align: left;
 	width: 100%;

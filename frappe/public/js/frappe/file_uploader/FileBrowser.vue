@@ -176,7 +176,7 @@ onMounted(() => {
 defineExpose({ selected_node });
 </script>
 
-<style>
+<style scoped>
 .file-browser-list {
 	height: 300px;
 	overflow: hidden;
