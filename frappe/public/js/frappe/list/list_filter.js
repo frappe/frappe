@@ -25,12 +25,7 @@ export default class ListFilter {
 		this.$saved_filters = this.wrapper.find(".saved-filters").hide();
 		this.$saved_filters_preview = this.wrapper.find(".saved-filters-preview");
 		this.saved_filters_hidden = true;
-
-		// show saved filters by default based on list setting; since a local
-		// state (saved_filters_hidden) is also maintained, add a conditional check
-		if (this.list_view.list_view_settings.show_saved_filters) {
-			this.toggle_saved_filters(true);
-		}
+		this.toggle_saved_filters(true);
 
 		this.filter_input = frappe.ui.form.make_control({
 			df: {
