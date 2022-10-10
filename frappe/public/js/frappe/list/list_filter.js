@@ -26,6 +26,12 @@ export default class ListFilter {
 		this.$saved_filters_preview = this.wrapper.find(".saved-filters-preview");
 		this.saved_filters_hidden = true;
 
+		// show saved filters by default based on list setting; since a local
+		// state (saved_filters_hidden) is also maintained, add a conditional check
+		if (this.list_view.list_view_settings.show_saved_filters) {
+			this.toggle_saved_filters(true);
+		}
+
 		this.filter_input = frappe.ui.form.make_control({
 			df: {
 				fieldtype: "Data",
@@ -102,11 +108,18 @@ export default class ListFilter {
 	bind_remove_filter() {
 		this.wrapper.on("click", ".filter-pill .remove", (e) => {
 			const $li = $(e.currentTarget).closest(".filter-pill");
-			const name = $li.attr("data-name");
-			const applied_filters = this.get_filters_values(name);
-			$li.remove();
-			this.remove_filter(name).then(() => this.refresh());
-			this.list_view.filter_area.remove_filters(applied_filters);
+			const filter_label = $li.text().trim();
+
+			frappe.confirm(
+				__("Are you sure you want to remove the {0} filter?", [filter_label.bold()]),
+				() => {
+					const name = $li.attr("data-name");
+					const applied_filters = this.get_filters_values(name);
+					$li.remove();
+					this.remove_filter(name).then(() => this.refresh());
+					this.list_view.filter_area.remove_filters(applied_filters);
+				}
+			);
 		});
 	}
 
