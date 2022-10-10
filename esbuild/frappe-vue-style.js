@@ -16,13 +16,18 @@ module.exports = {
 					let name = out.path.split(".bundle.")[0];
 					name = path.basename(name);
 
-					let related_css_file = result.outputFiles.filter((f) => {
+					let index = result.outputFiles.findIndex((f) => {
 						return f.path.endsWith(".css") && f.path.includes(`/${name}.bundle.`);
 					});
 
-					let css_data = JSON.stringify(related_css_file[0].text).slice(1, -1);
+					let css_data = JSON.stringify(result.outputFiles[index].text).slice(1, -1);
 					let modified = `frappe.dom.set_style("${css_data}");\n` + out.text;
 					out.contents = Buffer.from(modified);
+
+					result.outputFiles.splice(index, 1);
+					if (result.outputFiles[index - 1].path.endsWith(".css.map")) {
+						result.outputFiles.splice(index - 1, 1);
+					}
 				}
 				if (!fs.existsSync(dir)) {
 					fs.mkdirSync(dir, { recursive: true });
