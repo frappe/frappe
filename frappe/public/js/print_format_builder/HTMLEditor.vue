@@ -58,7 +58,7 @@ function get_value() {
 }
 </script>
 
-<style>
+<style scoped>
 .html-editor {
 	position: relative;
 	border: 1px solid var(--dark-border-color);
