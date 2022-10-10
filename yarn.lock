@@ -3048,10 +3048,10 @@ side-channel@^1.0.2:
     es-abstract "^1.17.0-next.1"
     object-inspect "^1.7.0"
 
-snyk@^1.685.0:
-  version "1.707.0"
-  resolved "https://registry.yarnpkg.com/snyk/-/snyk-1.707.0.tgz#83c2778f119b8403ee4b4473f1a5fadedf6a3f92"
-  integrity sha512-r99f8akVRFPryHAkcgmwH0TA2DdTyT1p0BwgnxPOK6Aak2phfhDF3w+EkmNoVC8p+lGYKeR3PaFW++tV9RQVrQ==
+snyk@^1.996.0:
+  version "1.996.0"
+  resolved "https://registry.yarnpkg.com/snyk/-/snyk-1.996.0.tgz#0369ca9e6a3a148751294c1320f59a79d5eb3c88"
+  integrity sha512-nq//Ely0bSt50LzX9Er5lCQNqTpaKn7I7xkhUB3Z+8rs8Jqha360HeQwhbVzsuQS3xT/1+36zt6CcgyLPM1QbA==
 
 socket.io-adapter@~2.4.0:
   version "2.4.0"
