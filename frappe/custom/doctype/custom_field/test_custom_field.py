@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
-from .custom_field import create_custom_fields
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 test_records = frappe.get_test_records("Custom Field")
 
