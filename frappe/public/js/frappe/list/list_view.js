@@ -175,7 +175,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			.get_fields()
 			.concat(
 				Object.entries(this.link_field_title_fields || {}).map(
-					entry => entry.join(".") + " as " + entry.join("_")
+					(entry) => entry.join(".") + " as " + entry.join("_")
 				)
 			);
 	}
@@ -195,8 +195,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		await Promise.all(
-			fields.map(f => {
-				return new Promise(resolve => {
+			fields.map((f) => {
+				return new Promise((resolve) => {
 					const df =
 						typeof f === "string" ? frappe.meta.get_docfield(this.doctype, f) : f;
 					if (
@@ -223,7 +223,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 		);
 
-		this.fields.forEach(f => {
+		this.fields.forEach((f) => {
 			const df = frappe.meta.get_docfield(f[1], f[0]);
 			if (df && df.fieldtype === "Currency" && df.options && !df.options.includes(":")) {
 				this._add_field(df.options);
