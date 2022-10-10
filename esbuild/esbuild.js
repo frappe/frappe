@@ -383,16 +383,6 @@ async function write_assets_json(metafile) {
 				key = `rtl_${key}`;
 			}
 			out[key] = asset_path;
-		} else if (Object.keys(info.inputs).length !== 0) {
-			for (let input in info.inputs) {
-				if (input.includes(".vue?type=style")) {
-					// remove hash from css file name
-					let key = path.basename(asset_path);
-					key = key.split(".css")[0];
-					key = key.substring(0, key.lastIndexOf(".")) + ".css";
-					out[key] = asset_path;
-				}
-			}
 		}
 	}
 
