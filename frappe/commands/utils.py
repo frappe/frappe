@@ -835,16 +835,27 @@ def run_parallel_tests(
 			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
 
 
-@click.command("run-ui-tests")
+@click.command(
+	"run-ui-tests",
+	context_settings=dict(
+		ignore_unknown_options=True,
+	),
+)
 @click.argument("app")
+@click.argument("cypressargs", nargs=-1, type=click.UNPROCESSED)
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--ci-build-id")
-@click.option("--record", is_flag=True, help="Record using Cypress Dashboard")
 @pass_context
 def run_ui_tests(
-	context, app, headless=False, parallel=True, with_coverage=False, ci_build_id=None, record=False
+	context,
+	app,
+	headless=False,
+	parallel=True,
+	with_coverage=False,
+	ci_build_id=None,
+	cypressargs=None,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -892,14 +903,14 @@ def run_ui_tests(
 	run_or_open = "run --browser chrome" if headless else "open"
 	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
 
-	if record:
-		run_or_open += " --record"
-
 	if parallel:
 		formatted_command += " --parallel"
 
 	if ci_build_id:
 		formatted_command += f" --ci-build-id {ci_build_id}"
+
+	if cypressargs:
+		formatted_command += " " + " ".join(cypressargs)
 
 	click.secho("Running Cypress...", fg="yellow")
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
