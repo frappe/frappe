@@ -47,10 +47,19 @@
     "quill-image-resize": "^3.0.9",
     "qz-tray": "^2.0.8",
     "redis": "^3.1.1",
+<<<<<<< HEAD
     "rtlcss": "2.6.2",
     "showdown": "^1.9.1",
     "snyk": "^1.518.0",
     "socket.io": "^2.4.0",
+=======
+    "sass": "^1.53.0",
+    "showdown": "^2.1.0",
+    "snyk": "^1.996.0",
+    "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
+    "sortablejs": "1.9.0",
+>>>>>>> 6c2f73a030 (build(deps): bump snyk from 1.707.0 to 1.996.0 (#18311))
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
     "vue": "^2.6.11",
