@@ -27,7 +27,7 @@ let url = ref("");
 defineExpose({ url });
 </script>
 
-<style>
+<style scoped>
 .file-web-link .input-group {
 	margin-top: 10px;
 }

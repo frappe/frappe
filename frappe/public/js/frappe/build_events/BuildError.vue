@@ -48,7 +48,7 @@ function error_component(error, i) {
 defineExpose({show, hide});
 </script>
 
-<style>
+<style scoped>
 .build-error-overlay {
 	position: fixed;
 	top: 0;

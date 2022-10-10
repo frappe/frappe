@@ -46,7 +46,7 @@ function reload() {
 defineExpose({show, hide});
 </script>
 
-<style>
+<style scoped>
 .build-success-message {
 	position: fixed;
 	z-index: 9999;

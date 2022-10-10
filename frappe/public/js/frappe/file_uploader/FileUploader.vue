@@ -599,7 +599,7 @@ defineExpose({
 });
 </script>
 
-<style>
+<style scoped>
 .file-upload-area {
 	min-height: 16rem;
 	display: flex;
