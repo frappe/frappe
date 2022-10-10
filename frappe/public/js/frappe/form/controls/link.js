@@ -145,7 +145,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
-		frappe._from_link = this;
+		frappe._from_link = frappe.utils.deep_clone(this);
 		frappe._from_link_scrollY = $(document).scrollTop();
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
