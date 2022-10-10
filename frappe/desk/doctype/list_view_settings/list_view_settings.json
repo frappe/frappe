@@ -9,6 +9,7 @@
   "disable_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
+  "show_saved_filters",
   "total_fields",
   "fields_html",
   "fields"
@@ -49,10 +50,16 @@
    "hidden": 1,
    "label": "Fields",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "show_saved_filters",
+   "fieldtype": "Check",
+   "label": "Auto-Show Saved Filters"
   }
  ],
  "links": [],
- "modified": "2020-05-12 18:27:15.568199",
+ "modified": "2022-10-10 04:45:04.081715",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
