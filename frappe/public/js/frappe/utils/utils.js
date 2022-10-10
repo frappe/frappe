@@ -2,11 +2,7 @@
 // MIT License. See license.txt
 
 import deep_equal from "fast-deep-equal";
-<<<<<<< HEAD
-=======
-import number_systems from "./number_systems";
 import cloneDeepWith from "lodash/cloneDeepWith";
->>>>>>> 426ecc5a1e (fix: link field self linking (#18330))
 
 frappe.provide("frappe.utils");
 
