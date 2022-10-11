@@ -20,8 +20,8 @@ module.exports = {
 						return f.path.endsWith(".css") && f.path.includes(`/${name}.bundle.`);
 					});
 
-					let css_data = JSON.stringify(result.outputFiles[index].text).slice(1, -1);
-					let modified = `frappe.dom.set_style("${css_data}");\n` + out.text;
+					let css_data = JSON.stringify(result.outputFiles[index].text);
+					let modified = `frappe.dom.set_style(${css_data});\n${out.text}`;
 					out.contents = Buffer.from(modified);
 
 					result.outputFiles.splice(index, 1);
