@@ -165,7 +165,8 @@ class CommunicationEmailMixin:
 				)
 
 				if self.sent_or_received == "Sent" and self._outgoing_email_account:
-					self.db_set("email_account", self._outgoing_email_account.name)
+					if frappe.db.exists("Email Account", self._outgoing_email_account.name):
+						self.db_set("email_account", self._outgoing_email_account.name)
 
 		return self._outgoing_email_account
 
