@@ -169,7 +169,7 @@ class Communication(Document):
 
 		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
 
-		if (_signature or signature) not in self.content:
+		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
 
 	def before_save(self):
