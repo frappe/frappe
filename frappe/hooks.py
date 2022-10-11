@@ -31,6 +31,13 @@ app_include_js = [
 	"report.bundle.js",
 	"telemetry.bundle.js",
 ]
+
+# JS code to include for error reporting
+# This is only loaded if error reporting is enabled.
+error_reporting_js = [
+	"sentry.bundle.js",
+]
+
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
@@ -436,6 +443,7 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
+	"frappe.utils.sentry.add_bootinfo",
 ]
 
 export_python_type_annotations = True
