@@ -1011,6 +1011,7 @@ export default class Grid {
 				Int: (val) => cint(val),
 				Check: (val) => cint(val),
 				Float: (val) => flt(val),
+				Currency: (val) => flt(val),
 			};
 
 			// upload
