@@ -47,6 +47,9 @@ def get_context(context):
 	include_icons = hooks.get("app_include_icons", [])
 	frappe.local.preload_assets["icons"].extend(include_icons)
 
+	if frappe.get_system_settings("auto_report_errors"):
+		include_js = hooks["error_reporting_js"] + include_js
+
 	context.update(
 		{
 			"no_cache": 1,
