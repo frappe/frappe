@@ -8,16 +8,32 @@ frappe.ui.form.on("DocType Layout", {
 		// to manage other field metadata (hidden, etc.)
 		frm.set_df_property("fields", "cannot_add_rows", true);
 		frm.set_df_property("fields", "cannot_delete_rows", true);
+
+		$(frm.wrapper).on("grid-move-row", (e, frm) => {
+			// refresh the layout after moving a row
+			frm.dirty();
+		});
 	},
 
 	refresh(frm) {
 		frm.events.add_buttons(frm);
 	},
 
-	document_type(frm) {
+	async document_type(frm) {
 		if (frm.doc.document_type) {
+			// refreshing the doctype fields resets the new name input field;
+			// once the fields are set, reset the name to the original input
+			if (frm.is_new()) {
+				const document_name = frm.doc.__newname || frm.doc.name;
+			}
+
 			frm.set_value("fields", []);
-			frm.events.sync_fields(frm, false);
+			await frm.events.sync_fields(frm, false);
+
+			if (frm.is_new()) {
+				frm.doc.__newname = document_name;
+				frm.refresh_field("__newname");
+			}
 		}
 	},
 
@@ -49,7 +65,7 @@ frappe.ui.form.on("DocType Layout", {
 			const addedFields = response.message.added;
 			const removedFields = response.message.removed;
 
-			const getChangedMessage = (fields) => {
+			const getChangedMessage = fields => {
 				let changes = "";
 				for (const field of fields) {
 					if (field.label) {
@@ -81,9 +97,9 @@ frappe.ui.form.on("DocType Layout", {
 				frappe.msgprint({
 					message: __(message),
 					indicator: "green",
-					title: __("Synced Fields"),
+					title: __("Synced Fields")
 				});
 			}
 		}
-	},
+	}
 });
