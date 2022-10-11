@@ -569,6 +569,7 @@ doctype_properties = {
 	"sort_order": "Data",
 	"default_print_format": "Data",
 	"allow_copy": "Check",
+	"is_submittable": "Check",
 	"istable": "Check",
 	"quick_entry": "Check",
 	"editable_grid": "Check",

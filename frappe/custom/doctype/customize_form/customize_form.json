@@ -12,6 +12,7 @@
   "label",
   "search_fields",
   "column_break_5",
+  "is_submittable",
   "istable",
   "editable_grid",
   "quick_entry",
@@ -341,9 +342,19 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.is_submittable",
    "fieldname": "queue_in_background",
    "fieldtype": "Check",
    "label": "Queue in Background"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.is_submittable",
+   "fetch_from": "doc_type.is_submittable",
+   "fieldname": "is_submittable",
+   "fieldtype": "Check",
+   "label": "Is Submittable",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
@@ -352,7 +363,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-10-09 17:36:03.259470",
+ "modified": "2022-10-11 21:23:36.669135",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
