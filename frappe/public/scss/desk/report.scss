@@ -159,11 +159,13 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
+	justify-content: space-evenly;
+	gap: 20px;
 
 	.summary-item {
 		// SIZE & SPACING
-		margin: 0px 30px;
-		min-width: 180px;
+		margin: 0px 20px;
+		min-width: 160px;
 		max-width: 300px;
 		height: 62px;
 
