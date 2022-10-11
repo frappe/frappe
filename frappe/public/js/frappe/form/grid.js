@@ -836,10 +836,18 @@ export default class Grid {
 			this.setup_download();
 
 			const value_formatter_map = {
+<<<<<<< HEAD
 				"Date": val => val ? frappe.datetime.user_to_str(val) : val,
 				"Int": val => cint(val),
 				"Check": val => cint(val),
 				"Float": val => flt(val),
+=======
+				Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
+				Int: (val) => cint(val),
+				Check: (val) => cint(val),
+				Float: (val) => flt(val),
+				Currency: (val) => flt(val),
+>>>>>>> 95f23b3adb (fix: format currency value as float while grid upload)
 			};
 
 			// upload
