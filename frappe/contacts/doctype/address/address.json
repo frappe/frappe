@@ -2,12 +2,13 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2013-01-10 16:34:32",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
-  "address_details",
+  "naming_series",
   "address_title",
   "address_type",
   "address_line1",
@@ -28,11 +29,6 @@
   "links"
  ],
  "fields": [
-  {
-   "fieldname": "address_details",
-   "fieldtype": "Section Break",
-   "options": "fa fa-map-marker"
-  },
   {
    "fieldname": "address_title",
    "fieldtype": "Data",
@@ -143,16 +139,26 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "Dynamic Link"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "no_copy": 1,
+   "options": "{address_title}.-.{address_type}.-.#",
+   "set_only_once": 1
   }
  ],
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2020-10-21 16:14:37.284830",
+ "modified": "2022-10-11 14:49:25.729358",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
  "name_case": "Title Case",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -212,5 +218,6 @@
  ],
  "search_fields": "country, state",
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }

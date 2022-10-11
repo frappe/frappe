@@ -16,19 +16,12 @@ class Address(Document):
 	def __setup__(self):
 		self.flags.linked = False
 
-	def autoname(self):
+	def before_naming(self):
 		if not self.address_title:
-			if self.links:
-				self.address_title = self.links[0].link_name
+			if not self.links:
+				throw(_("Address Title is mandatory."))
 
-		if self.address_title:
-			self.name = cstr(self.address_title).strip() + "-" + cstr(_(self.address_type)).strip()
-			if frappe.db.exists("Address", self.name):
-				self.name = make_autoname(
-					cstr(self.address_title).strip() + "-" + cstr(self.address_type).strip() + "-.#"
-				)
-		else:
-			throw(_("Address Title is mandatory."))
+			self.address_title = self.links[0].link_name
 
 	def validate(self):
 		self.link_address()

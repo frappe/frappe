@@ -90,8 +90,8 @@ class TestAddressesAndContacts(FrappeTestCase):
 	def test_get_data(self):
 		linked_docs = [get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]
-		d = create_linked_address(links_list)
-		create_linked_contact(links_list, d)
+		address_name = create_linked_address(links_list)
+		create_linked_contact(links_list, address_name)
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
 		for idx, link in enumerate(links_list):
 			test_item = [
@@ -105,7 +105,7 @@ class TestAddressesAndContacts(FrappeTestCase):
 				0,
 				"_Test First Name",
 				"_Test Last Name",
-				"_Test Address-Billing",
+				address_name,
 				"+91 0000000000",
 				"",
 				"test_contact@example.com",
