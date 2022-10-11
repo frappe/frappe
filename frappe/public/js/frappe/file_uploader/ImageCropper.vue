@@ -124,7 +124,7 @@ watch(aspect_ratio, (value) => {
 
 </script>
 
-<style>
+<style scoped>
 img {
 	display: block;
 	max-width: 100%;

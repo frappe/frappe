@@ -18,9 +18,9 @@ module.exports = {
 			return fs
 				.readFile(filepath, "utf-8")
 				.then((content) => {
-					content = scrub_html_template(content);
+					content = JSON.stringify(scrub_html_template(content));
 					return {
-						contents: `\n\tfrappe.templates['${filename}'] = \`${content}\`;\n`,
+						contents: `\n\tfrappe.templates['${filename}'] = ${content};\n`,
 						watchFiles: [filepath],
 					};
 				})

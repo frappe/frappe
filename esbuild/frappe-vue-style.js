@@ -13,10 +13,21 @@ module.exports = {
 				let asset_path = "/" + path.relative(sites_path, out.path);
 				let dir = path.dirname(out.path);
 				if (out.path.endsWith(".js") && keys.includes(asset_path)) {
-					let bundle_css = files[asset_path];
-					let include_css = '\nfrappe.require("' + bundle_css + '");\n';
-					let modified = include_css + out.text;
+					let name = out.path.split(".bundle.")[0];
+					name = path.basename(name);
+
+					let index = result.outputFiles.findIndex((f) => {
+						return f.path.endsWith(".css") && f.path.includes(`/${name}.bundle.`);
+					});
+
+					let css_data = JSON.stringify(result.outputFiles[index].text);
+					let modified = `frappe.dom.set_style(${css_data});\n${out.text}`;
 					out.contents = Buffer.from(modified);
+
+					result.outputFiles.splice(index, 1);
+					if (result.outputFiles[index - 1].path.endsWith(".css.map")) {
+						result.outputFiles.splice(index - 1, 1);
+					}
 				}
 				if (!fs.existsSync(dir)) {
 					fs.mkdirSync(dir, { recursive: true });
