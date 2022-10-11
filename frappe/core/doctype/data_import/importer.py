@@ -14,6 +14,7 @@ from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
+from frappe.utils.file_manager import is_safe_path
 from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 	read_xlsx_file_from_attached_file,
@@ -572,12 +573,15 @@ class ImportFile:
 
 	######
 
-	def read_file(self, file_path):
+	def read_file(self, file_path: str):
 		extn = os.path.splitext(file_path)[1][1:]
 
 		file_content = None
-		with open(file_path, mode="rb") as f:
-			file_content = f.read()
+
+		file_name = frappe.db.get_value("File", {"file_url": file_path})
+		if file_name:
+			file = frappe.get_doc("File", file_name)
+			file_content = file.get_content()
 
 		return file_content, extn
 
