@@ -86,8 +86,9 @@ class SubmissionQueue(Document):
 		enqueue_create_notification([notify_to], notification_doc)
 
 	def unlock_doc_and_update_status(self, doc_to_be_unlocked: Document, possible_status: tuple):
+		unlocked_doc_message = "Document Unlocked"
 		try:
-			job = Job(self.job_id, connection=get_redis_conn())
+			job = Job.fetch(self.job_id, connection=get_redis_conn())
 			status = job.get_status(refresh=True)
 			if not status:
 				raise NoSuchJobError
@@ -102,12 +103,12 @@ class SubmissionQueue(Document):
 				doc_to_be_unlocked.unlock()
 				self.status = status.capitalize()
 				self.save()
-				frappe.msgprint(_("Document unlocked!"))
+				frappe.msgprint(_(unlocked_doc_message))
 
 		except NoSuchJobError:
 			# Need to update status
 			doc_to_be_unlocked.unlock()
-			frappe.msgprint(_("Unlocked document as no such document exists in queue"))
+			frappe.msgprint(_(unlocked_doc_message))
 
 	@frappe.whitelist()
 	def unlock_doc(self):
