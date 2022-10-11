@@ -30,6 +30,13 @@ app_include_js = [
 	"controls.bundle.js",
 	"report.bundle.js",
 ]
+
+# JS code to include for error reporting
+# This is only loaded if error reporting is enabled.
+error_reporting_js = [
+	"sentry.bundle.js",
+]
+
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
@@ -59,6 +66,8 @@ website_redirects = [
 ]
 
 base_template = "templates/base.html"
+
+extend_bootinfo = "frappe.utils.sentry.add_bootinfo"
 
 write_file_keys = ["file_url", "file_name"]
 
