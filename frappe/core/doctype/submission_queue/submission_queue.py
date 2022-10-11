@@ -85,7 +85,7 @@ class SubmissionQueue(Document):
 		notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
 		enqueue_create_notification([notify_to], notification_doc)
 
-	def unlock_doc_and_update_status(self, doc_to_be_unlocked: Document, possible_status: tuple):
+	def unlock_doc_and_update_status(self, doc_to_be_unlocked: Document, termination_statues: tuple):
 		unlocked_doc_message = "Document Unlocked"
 		try:
 			job = Job.fetch(self.job_id, connection=get_redis_conn())
@@ -99,7 +99,7 @@ class SubmissionQueue(Document):
 				return
 
 			# Checking any one of the possible termination statuses
-			if status in possible_status:
+			if status in termination_statues:
 				doc_to_be_unlocked.unlock()
 				self.status = status.capitalize()
 				self.save()
@@ -112,10 +112,10 @@ class SubmissionQueue(Document):
 
 	@frappe.whitelist()
 	def unlock_doc(self):
-		possible_status = ("failed", "canceled", "stopped", "finished")
+		termination_statues = ("failed", "canceled", "stopped", "finished")
 		doc_to_be_unlocked = frappe.get_doc(self.ref_doctype, self.ref_docname)
 		self.unlock_doc_and_update_status(
-			doc_to_be_unlocked=doc_to_be_unlocked, possible_status=possible_status
+			doc_to_be_unlocked=doc_to_be_unlocked, termination_statues=termination_statues
 		)
 
 	@staticmethod
