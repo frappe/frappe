@@ -40,9 +40,11 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "disable_user_pass_login",
-  "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
+  "error_reporting_section",
+  "allow_error_traceback",
+  "auto_report_errors",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -533,12 +535,24 @@
    "fieldname": "disable_user_pass_login",
    "fieldtype": "Check",
    "label": "Disable Username/Password Login"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "error_reporting_section",
+   "fieldtype": "Section Break",
+   "label": "Error Reporting"
+  },
+  {
+   "default": "0",
+   "fieldname": "auto_report_errors",
+   "fieldtype": "Check",
+   "label": "Automatically Report Errors To Service Provider"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-09-06 03:16:59.090906",
+ "modified": "2022-10-11 03:11:51.399709",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
