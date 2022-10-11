@@ -156,7 +156,7 @@ function build_assets_for_apps(apps, files) {
 				style_file_map[output_name] = file;
 				rtl_style_file_map[output_name.replace("/css/", "/css-rtl/")] = file;
 			} else {
-				file_map[output_name.replace("/js/", "/")] = file;
+				file_map[output_name] = file;
 			}
 		}
 		let build = build_files({
@@ -220,8 +220,7 @@ function get_files_to_build(files) {
 
 function build_files({ files, outdir }) {
 	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
-	let entry_names = "[dir]/[ext]/[name].[hash]";
-	return esbuild.build(get_build_options(files, outdir, build_plugins, entry_names));
+	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
 function build_style_files({ files, outdir, rtl_style = false }) {
@@ -243,11 +242,10 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 
-function get_build_options(files, outdir, plugins, entry_names) {
-	let entryNames = entry_names || "[dir]/[name].[hash]";
+function get_build_options(files, outdir, plugins) {
 	return {
 		entryPoints: files,
-		entryNames,
+		entryNames: "[dir]/[name].[hash]",
 		target: ["es2017"],
 		outdir,
 		sourcemap: true,
@@ -383,16 +381,6 @@ async function write_assets_json(metafile) {
 				key = `rtl_${key}`;
 			}
 			out[key] = asset_path;
-		} else if (Object.keys(info.inputs).length !== 0) {
-			for (let input in info.inputs) {
-				if (input.includes(".vue?type=style")) {
-					// remove hash from css file name
-					let key = path.basename(asset_path);
-					key = key.split(".css")[0];
-					key = key.substring(0, key.lastIndexOf(".")) + ".css";
-					out[key] = asset_path;
-				}
-			}
 		}
 	}
 
