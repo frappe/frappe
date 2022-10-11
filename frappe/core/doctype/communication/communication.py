@@ -20,8 +20,19 @@ from frappe.core.doctype.comment.comment import update_comment_in_doc
 from frappe.core.doctype.communication.email import _notify, notify, validate_email
 from frappe.core.utils import get_parent_doc
 from frappe.model.document import Document
+<<<<<<< HEAD
 from frappe.utils import cstr, parse_addr, strip_html, time_diff_in_seconds, validate_email_address
 from frappe.utils.bot import BotReply
+=======
+from frappe.utils import (
+	cstr,
+	parse_addr,
+	split_emails,
+	strip_html,
+	time_diff_in_seconds,
+	validate_email_address,
+)
+>>>>>>> 768daf0961 (fix: type-error in email signature code (#18353))
 from frappe.utils.user import is_system_user
 
 exclude_from_linked_with = True
@@ -169,7 +180,7 @@ class Communication(Document):
 
 		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
 
-		if (_signature or signature) not in self.content:
+		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
 
 	def before_save(self):
