@@ -154,19 +154,12 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				f.set_input(f.df['default'] || '');
 			}
 		}
-<<<<<<< HEAD
 	},
 	set_df_property: function (fieldname, prop, value) {
-		const field    = this.get_field(fieldname);
-=======
-	}
-
-	set_df_property(fieldname, prop, value) {
 		if (!fieldname) {
 			return;
 		}
-		const field = this.get_field(fieldname);
->>>>>>> b03e0752b9 (fix: ignore if df doesn't exist (#18358))
+		const field    = this.get_field(fieldname);
 		field.df[prop] = value;
 		field.refresh();
 	}
