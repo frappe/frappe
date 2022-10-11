@@ -128,6 +128,7 @@ jobs:
           DB: mariadb
 
       - name: Verify yarn.lock
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/apps/frappe
           yarn install --immutable --immutable-cache --check-cache
