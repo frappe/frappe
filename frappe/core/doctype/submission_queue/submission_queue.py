@@ -74,7 +74,7 @@ class SubmissionQueue(Document):
 			message = _("Submission of {0} {1} with action {2} completed successfully")
 
 		notification_doc = {
-			"type": "Mention",
+			"type": "Alert",
 			"document_type": doctype,
 			"document_name": docname,
 			"subject": message.format(
@@ -128,6 +128,12 @@ class SubmissionQueue(Document):
 
 
 def queue_submission(doc: Document, action: str):
+	# Allowing only submittable doctypes to be queued
+
+	if not doc.meta.is_submittable:
+		getattr(doc, action.lower())()
+		return
+
 	queue = frappe.new_doc("Submission Queue")
 	queue.state = "Queued"
 	queue.enqueued_by = frappe.session.user
