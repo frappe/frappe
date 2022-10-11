@@ -298,7 +298,7 @@ class Document(BaseDocument):
 		return self
 
 	def check_locked_document(self):
-		if self.is_locked:
+		if self.creation and self.is_locked:
 			raise frappe.DocumentLockedError
 
 	def save(self, *args, **kwargs):
@@ -317,8 +317,6 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.check_locked_document()
-
 		self.flags.notifications_executed = []
 
 		if ignore_permissions is not None:
@@ -329,6 +327,7 @@ class Document(BaseDocument):
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
 
+		self.check_locked_document()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
@@ -997,14 +996,12 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
-		self.check_locked_document()
 		self.docstatus = DocStatus.submitted()
 		return self.save()
 
 	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
-		self.check_locked_document()
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
@@ -1415,9 +1412,7 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(
-			get_datetime_str(self.creation or self.modified or now()).encode()
-		).hexdigest()
+		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
