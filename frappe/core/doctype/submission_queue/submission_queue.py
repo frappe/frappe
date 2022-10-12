@@ -11,12 +11,23 @@ from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import now
 from frappe.utils.background_jobs import get_redis_conn
+from rq import get_current_job
+
+
+class SubmissionQueueEntries(dict):
+	def save(self):
+		with open("./submission_queue_entries.json", "w+") as f:
+			f.write(frappe.json.dumps(self, indent=4))
 
 
 class SubmissionQueue(Document):
 	@property
 	def created_at(self):
 		return self.creation
+
+	def __init__(self, *args, **kwargs):
+		self.queue_entries = read_submission_queue_entries()
+		super().__init__(*args, **kwargs)
 
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.to_be_queued_doc = to_be_queued_doc
@@ -38,6 +49,13 @@ class SubmissionQueue(Document):
 			action_for_queuing=self.action_for_queuing,
 			timeout=600,
 		)
+		self.queue_entries[job.id] = {
+			"DocType": self.ref_doctype,
+			"Docname": self.ref_docname,
+			"Status": job.get_status(refresh=True)
+		}
+		self.queue_entries.save()
+
 		frappe.db.set_value(
 			self.doctype,
 			self.name,
@@ -47,6 +65,7 @@ class SubmissionQueue(Document):
 
 	def queue_in_background(self, to_be_queued_doc: Document, action_for_queuing: str):
 		_action = action_for_queuing.lower()
+		job = get_current_job(connection=get_redis_conn())
 
 		if _action == "update":
 			_action = "submit"
@@ -61,6 +80,13 @@ class SubmissionQueue(Document):
 
 		values["ended_at"] = now()
 		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
+		self.queue_entries[job.id] = {
+			"DocType": to_be_queued_doc.doctype,
+			"Docname": to_be_queued_doc.name,
+			"Status": values["status"]
+		}
+		self.queue_entries.save()
+
 		self.notify(values["status"], action_for_queuing)
 
 	def notify(self, submission_status: str, action: str):
@@ -86,6 +112,9 @@ class SubmissionQueue(Document):
 		enqueue_create_notification([notify_to], notification_doc)
 
 	def unlock_doc_and_update_status(self, doc_to_be_unlocked: Document, termination_statues: tuple):
+		# Problem: If someone tries to unlock a previously failed job,
+		# however someone else has already queued that document again
+		# this will cause the queued document to be unlocked.
 		unlocked_doc_message = "Document Unlocked"
 		try:
 			job = Job.fetch(self.job_id, connection=get_redis_conn())
@@ -120,11 +149,21 @@ class SubmissionQueue(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		from frappe.query_builder.functions import Now
 		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Submission Queue")
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+
+
+def read_submission_queue_entries():
+	try:
+		with open("./submission_queue_entries.json") as f:
+			return SubmissionQueueEntries(frappe.json.loads(f.read()))
+	except FileNotFoundError:
+		with open("./submission_queue_entries.json", "w+") as f:
+			f.write(frappe.json.dumps({}))
+		return SubmissionQueueEntries()
 
 
 def queue_submission(doc: Document, action: str):
