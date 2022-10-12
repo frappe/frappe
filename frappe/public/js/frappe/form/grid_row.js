@@ -254,7 +254,7 @@ export default class GridRow {
 			).appendTo(this.row);
 
 			this.row_index = $(
-				`<div class="row-index sortable-handle col hidden-xs">
+				`<div class="row-index sortable-handle col">
 					<span>${txt}</span>
 				</div>`
 			)
@@ -268,7 +268,7 @@ export default class GridRow {
 			this.row_check = $(`<div class="row-check col search"></div>`).appendTo(this.row);
 
 			this.row_index = $(
-				`<div class="row-index col search hidden-xs">
+				`<div class="row-index col search">
 					<input type="text" class="form-control input-xs text-center" >
 				</div>`
 			).appendTo(this.row);
@@ -327,7 +327,7 @@ export default class GridRow {
 		if (this.doc && !this.grid.df.in_place_edit) {
 			// remove row
 			if (!this.open_form_button) {
-				this.open_form_button = $('<div class="col col-xs-1"></div>').appendTo(this.row);
+				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
 
 				if (!this.configure_columns) {
 					this.open_form_button = $(`
@@ -356,7 +356,7 @@ export default class GridRow {
 
 		if (this.configure_columns && this.frm) {
 			this.configure_columns_button = $(`
-				<div class="col grid-static-col col-xs-1 d-flex justify-content-center" style="cursor: pointer;">
+				<div class="col grid-static-col d-flex justify-content-center" style="cursor: pointer;">
 					<a>${frappe.utils.icon("setting-gear", "sm", "", "filter: opacity(0.5)")}</a>
 				</div>
 			`)
@@ -366,7 +366,7 @@ export default class GridRow {
 				});
 		} else if (this.configure_columns && !this.frm) {
 			this.configure_columns_button = $(`
-				<div class="col grid-static-col col-xs-1"></div>
+				<div class="col grid-static-col"></div>
 			`).appendTo(this.row);
 		}
 	}
@@ -688,7 +688,7 @@ export default class GridRow {
 
 		if (this.show_search) {
 			// last empty column
-			$(`<div class="col grid-static-col col-xs-1"></div>`).appendTo(this.row);
+			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
 		}
 	}
 
@@ -1149,6 +1149,9 @@ export default class GridRow {
 		return this;
 	}
 	show_form() {
+		if (frappe.utils.is_xs()) {
+			$(this.grid.form_grid).css("min-width", "0");
+		}
 		if (!this.grid_form) {
 			this.grid_form = new GridRowForm({
 				row: this,
@@ -1187,6 +1190,9 @@ export default class GridRow {
 		}
 	}
 	hide_form() {
+		if (frappe.utils.is_xs()) {
+			$(this.grid.form_grid).css("min-width", "1000px");
+		}
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
 		if (!frappe.dom.is_element_in_modal(this.row)) {
