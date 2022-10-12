@@ -43,12 +43,23 @@ frappe.socketio = {
 			if(data.progress) {
 				data.percent = flt(data.progress[0]) / data.progress[1] * 100;
 			}
+<<<<<<< HEAD
 			if(data.percent) {
 				if(data.percent==100) {
 					frappe.hide_progress();
 				} else {
 					frappe.show_progress(data.title || __("Progress"), data.percent, 100, data.description);
 				}
+=======
+			if (data.percent) {
+				frappe.show_progress(
+					data.title || __("Progress"),
+					data.percent,
+					100,
+					data.description,
+					true
+				);
+>>>>>>> 729be707cb (fix: progress bar not disappearing (#18375))
 			}
 		});
 
