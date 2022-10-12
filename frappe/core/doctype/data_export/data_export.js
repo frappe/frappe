@@ -29,7 +29,7 @@ frappe.ui.form.on("Data Export", {
 	},
 	export_without_main_header: (frm) => {
 		frm.refresh();
-	}
+	},
 });
 
 const can_export = (frm) => {
