@@ -18,11 +18,12 @@ if click_ctx:
 
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1):
+	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False):
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
+		self.dry_run = dry_run
 		self.setup_test_site()
 		self.run_tests()
 
@@ -30,6 +31,9 @@ class ParallelTestRunner:
 		frappe.init(site=self.site)
 		if not frappe.db:
 			frappe.connect()
+
+		if self.dry_run:
+			return
 
 		frappe.flags.in_test = True
 		frappe.clear_cache()
@@ -62,6 +66,10 @@ class ParallelTestRunner:
 
 	def run_tests_for_file(self, file_info):
 		if not file_info:
+			return
+
+		if self.dry_run:
+			print("running tests from", "".join(file_info))
 			return
 
 		frappe.set_user("Administrator")
