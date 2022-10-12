@@ -484,6 +484,21 @@
 	margin-bottom: 4px;
 }
 
+@media (max-width: map-get($grid-breakpoints, "md")) {
+	.form-grid-container {
+		overflow-x: scroll;
+
+		.form-grid {
+			min-width: 1000px;
+		}
+	}
+
+	.form-column.col-sm-6 .form-grid {
+		.row-index {
+			display: block;
+		}
+	}
+}
 
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	.form-in-grid .form-section .form-column {
