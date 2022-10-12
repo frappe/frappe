@@ -408,7 +408,7 @@ $.extend(frappe.model, {
 		}
 	},
 
-	set_value: function(doctype, docname, fieldname, value, fieldtype) {
+	set_value: function(doctype, docname, fieldname, value, fieldtype, skip_dirty_trigger=false) {
 		/* help: Set a value locally (if changed) and execute triggers */
 
 		var doc;
@@ -434,11 +434,11 @@ $.extend(frappe.model, {
 				}
 
 				doc[key] = value;
-				tasks.push(() => frappe.model.trigger(key, value, doc));
+				tasks.push(() => frappe.model.trigger(key, value, doc, skip_dirty_trigger));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
 				if(in_list(["Link", "Dynamic Link"], fieldtype) && doc) {
-					tasks.push(() => frappe.model.trigger(key, value, doc));
+					tasks.push(() => frappe.model.trigger(key, value, doc, skip_dirty_trigger));
 				}
 			}
 		});
@@ -463,7 +463,7 @@ $.extend(frappe.model, {
 		frappe.model.events[doctype][fieldname].push(fn);
 	},
 
-	trigger: function(fieldname, value, doc) {
+	trigger: function(fieldname, value, doc, skip_dirty_trigger=false) {
 		const tasks = [];
 
 		function enqueue_events(events) {
@@ -473,7 +473,7 @@ $.extend(frappe.model, {
 				if (!fn) continue;
 
 				tasks.push(() => {
-					const return_value = fn(fieldname, value, doc);
+					const return_value = fn(fieldname, value, doc, skip_dirty_trigger);
 
 					// if the trigger returns a promise, return it,
 					// or use the default promise frappe.after_ajax
