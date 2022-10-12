@@ -69,7 +69,7 @@ class ParallelTestRunner:
 			return
 
 		if self.dry_run:
-			print("running tests from", "".join(file_info))
+			print("running tests from", "/".join(file_info))
 			return
 
 		frappe.set_user("Administrator")
@@ -116,11 +116,47 @@ class ParallelTestRunner:
 				sys.exit(1)
 
 	def get_test_file_list(self):
+		# Load balance based on total # of tests ~ each runner should get roughly same # of tests.
 		test_list = get_all_tests(self.app)
-		split_size = frappe.utils.ceil(len(test_list) / self.total_builds)
-		# [1,2,3,4,5,6] to [[1,2], [3,4], [4,6]] if split_size is 2
-		test_chunks = [test_list[x : x + split_size] for x in range(0, len(test_list), split_size)]
+
+		test_counts = [self.get_test_count(test) for test in test_list]
+		test_chunks = split_by_weight(test_list, test_counts, chunk_count=self.total_builds)
+
 		return test_chunks[self.build_number - 1]
+
+	@staticmethod
+	def get_test_count(test):
+		"""Get approximate count of tests inside a file"""
+		file_name = "/".join(test)
+
+		with open(file_name) as f:
+			test_count = f.read().count("def test_")
+
+		return test_count
+
+
+def split_by_weight(work, weights, chunk_count):
+	"""Roughly split work by respective weight while keep ordering."""
+	expected_weight = sum(weights) // chunk_count
+
+	chunks = [[] for _ in range(chunk_count)]
+
+	chunk_no = 0
+	chunk_weight = 0
+
+	for task, weight in zip(work, weights):
+		if chunk_weight > expected_weight:
+			chunk_weight = 0
+			chunk_no += 1
+			assert chunk_no < chunk_count
+
+		chunks[chunk_no].append(task)
+		chunk_weight += weight
+
+	assert len(work) == sum(len(chunk) for chunk in chunks)
+	assert len(chunks) == chunk_count
+
+	return chunks
 
 
 class ParallelTestResult(unittest.TextTestResult):
