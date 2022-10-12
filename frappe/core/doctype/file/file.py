@@ -422,7 +422,6 @@ class File(Document):
 		return os.path.exists(self.get_full_path())
 
 	def get_content(self) -> bytes:
-		"""Returns [`file_name`, `content`] for given file name `fname`"""
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 

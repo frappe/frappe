@@ -211,17 +211,21 @@ $.extend(frappe.datetime, {
 		return frappe.datetime._date(frappe.defaultDatetimeFormat, as_obj);
 	},
 
-	_date: function (format, as_obj = false) {
-		/**
-		 * Whenever we are getting now_date/datetime, always make sure dates are fetched using user time zone.
-		 * This is to make sure that time is as per user time zone set in User doctype, If a user had to change the timezone,
-		 * we will end up having multiple timezone by not honouring timezone in User doctype.
-		 * This will make sure that at any point we know which timezone the user if following and not have random timezone
-		 * when the timezone of the local machine changes.
-		 */
-		let time_zone = frappe.boot.time_zone
-			? frappe.boot.time_zone.user || frappe.boot.time_zone.system
-			: frappe.sys_defaults.time_zone;
+	system_datetime: function (as_obj = false) {
+		return frappe.datetime._date(frappe.defaultDatetimeFormat, as_obj, true);
+	},
+
+	_date: function (format, as_obj = false, system_time = false) {
+		let time_zone = frappe.boot.time_zone?.system || frappe.sys_defaults.time_zone;
+
+		// Whenever we are getting now_date/datetime, always make sure dates are fetched using user time zone.
+		// This is to make sure that time is as per user time zone set in User doctype, If a user had to change the timezone,
+		// we will end up having multiple timezone by not honouring timezone in User doctype.
+		// This will make sure that at any point we know which timezone the user if following and not have random timezone
+		// when the timezone of the local machine changes.
+		if (!system_time) {
+			time_zone = frappe.boot.time_zone?.user || time_zone;
+		}
 		let date = moment.tz(time_zone);
 
 		return as_obj ? frappe.datetime.moment_to_date_obj(date) : date.format(format);

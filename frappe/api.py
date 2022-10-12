@@ -3,6 +3,7 @@
 import base64
 import binascii
 import json
+from typing import Literal
 from urllib.parse import urlencode, urlparse
 
 import frappe
@@ -49,106 +50,148 @@ def handle():
 	if len(parts) > 3:
 		name = parts[3]
 
-	if call == "method":
-		frappe.local.form_dict.cmd = doctype
-		return frappe.handler.handle()
+	return _RESTAPIHandler(call, doctype, name).get_response()
 
-	elif call == "resource":
-		if "run_method" in frappe.local.form_dict:
-			method = frappe.local.form_dict.pop("run_method")
-			doc = frappe.get_doc(doctype, name)
-			doc.is_whitelisted(method)
 
-			if frappe.local.request.method == "GET":
-				if not doc.has_permission("read"):
-					frappe.throw(_("Not permitted"), frappe.PermissionError)
-				frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
+class _RESTAPIHandler:
+	def __init__(self, call: Literal["method", "resource"], doctype: str | None, name: str | None):
+		self.call = call
+		self.doctype = doctype
+		self.name = name
 
-			if frappe.local.request.method == "POST":
-				if not doc.has_permission("write"):
-					frappe.throw(_("Not permitted"), frappe.PermissionError)
+	def get_response(self):
+		"""Prepare and get response based on URL and form body.
 
-				frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
-				frappe.db.commit()
-
-		else:
-			if name:
-				if frappe.local.request.method == "GET":
-					doc = frappe.get_doc(doctype, name)
-					if not doc.has_permission("read"):
-						raise frappe.PermissionError
-					frappe.local.response.update({"data": doc})
-
-				if frappe.local.request.method == "PUT":
-					data = get_request_form_data()
-
-					doc = frappe.get_doc(doctype, name, for_update=True)
-
-					if "flags" in data:
-						del data["flags"]
-
-					# Not checking permissions here because it's checked in doc.save
-					doc.update(data)
-
-					frappe.local.response.update({"data": doc.save().as_dict()})
-
-					# check for child table doctype
-					if doc.get("parenttype"):
-						frappe.get_doc(doc.parenttype, doc.parent).save()
-
-					frappe.db.commit()
-
-				if frappe.local.request.method == "DELETE":
-					# Not checking permissions here because it's checked in delete_doc
-					frappe.delete_doc(doctype, name, ignore_missing=False)
-					frappe.local.response.http_status_code = 202
-					frappe.local.response.message = "ok"
-					frappe.db.commit()
-
-			elif doctype:
-				if frappe.local.request.method == "GET":
-					# set fields for frappe.get_list
-					if frappe.local.form_dict.get("fields"):
-						frappe.local.form_dict["fields"] = json.loads(frappe.local.form_dict["fields"])
-
-					# set limit of records for frappe.get_list
-					frappe.local.form_dict.setdefault(
-						"limit_page_length",
-						frappe.local.form_dict.limit or frappe.local.form_dict.limit_page_length or 20,
-					)
-
-					# convert strings to native types - only as_dict and debug accept bool
-					for param in ["as_dict", "debug"]:
-						param_val = frappe.local.form_dict.get(param)
-						if param_val is not None:
-							frappe.local.form_dict[param] = sbool(param_val)
-
-					# evaluate frappe.get_list
-					data = frappe.call(frappe.client.get_list, doctype, **frappe.local.form_dict)
-
-					# set frappe.get_list result to response
-					frappe.local.response.update({"data": data})
-
-				if frappe.local.request.method == "POST":
-					# fetch data from from dict
-					data = get_request_form_data()
-					data.update({"doctype": doctype})
-
-					# insert document from request data
-					doc = frappe.get_doc(data).insert()
-
-					# set response data
-					frappe.local.response.update({"data": doc.as_dict()})
-
-					# commit for POST requests
-					frappe.db.commit()
-			else:
+		Note: most methods of this class directly operate on the response local.
+		"""
+		match self.call:
+			case "method":
+				return self.handle_method()
+			case "resource":
+				self.handle_resource()
+			case _:
 				raise frappe.DoesNotExistError
 
-	else:
-		raise frappe.DoesNotExistError
+		return build_response("json")
 
-	return build_response("json")
+	def handle_method(self):
+		frappe.local.form_dict.cmd = self.doctype
+		return frappe.handler.handle()
+
+	def handle_resource(self):
+		if self.doctype and self.name:
+			self.handle_document_resource()
+		elif self.doctype:
+			self.handle_doctype_resource()
+		else:
+			raise frappe.DoesNotExistError
+
+	def handle_document_resource(self):
+		if "run_method" in frappe.local.form_dict:
+			self.execute_doc_method()
+			return
+
+		match frappe.local.request.method:
+			case "GET":
+				self.get_doc()
+			case "PUT":
+				self.update_doc()
+			case "DELETE":
+				self.delete_doc()
+			case _:
+				raise frappe.DoesNotExistError
+
+	def handle_doctype_resource(self):
+		match frappe.local.request.method:
+			case "GET":
+				self.get_doc_list()
+			case "POST":
+				self.create_doc()
+			case _:
+				raise frappe.DoesNotExistError
+
+	def execute_doc_method(self):
+		method = frappe.local.form_dict.pop("run_method")
+		doc = frappe.get_doc(self.doctype, self.name)
+		doc.is_whitelisted(method)
+
+		if frappe.local.request.method == "GET":
+			if not doc.has_permission("read"):
+				frappe.throw(_("Not permitted"), frappe.PermissionError)
+			frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
+
+		elif frappe.local.request.method == "POST":
+			if not doc.has_permission("write"):
+				frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+			frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
+			frappe.db.commit()
+
+	def get_doc(self):
+		doc = frappe.get_doc(self.doctype, self.name)
+		if not doc.has_permission("read"):
+			raise frappe.PermissionError
+		frappe.local.response.update({"data": doc})
+
+	def update_doc(self):
+		data = get_request_form_data()
+
+		doc = frappe.get_doc(self.doctype, self.name, for_update=True)
+
+		if "flags" in data:
+			del data["flags"]
+
+		# Not checking permissions here because it's checked in doc.save
+		doc.update(data)
+
+		frappe.local.response.update({"data": doc.save().as_dict()})
+
+		# check for child table doctype
+		if doc.get("parenttype"):
+			frappe.get_doc(doc.parenttype, doc.parent).save()
+		frappe.db.commit()
+
+	def delete_doc(self):
+		# Not checking permissions here because it's checked in delete_doc
+		frappe.delete_doc(self.doctype, self.name, ignore_missing=False)
+		frappe.local.response.http_status_code = 202
+		frappe.local.response.message = "ok"
+		frappe.db.commit()
+
+	def get_doc_list(self):
+		if frappe.local.form_dict.get("fields"):
+			frappe.local.form_dict["fields"] = json.loads(frappe.local.form_dict["fields"])
+
+		# set limit of records for frappe.get_list
+		frappe.local.form_dict.setdefault(
+			"limit_page_length",
+			frappe.local.form_dict.limit or frappe.local.form_dict.limit_page_length or 20,
+		)
+
+		# convert strings to native types - only as_dict and debug accept bool
+		for param in ["as_dict", "debug"]:
+			param_val = frappe.local.form_dict.get(param)
+			if param_val is not None:
+				frappe.local.form_dict[param] = sbool(param_val)
+
+		# evaluate frappe.get_list
+		data = frappe.call(frappe.client.get_list, self.doctype, **frappe.local.form_dict)
+
+		# set frappe.get_list result to response
+		frappe.local.response.update({"data": data})
+
+	def create_doc(self):
+		data = get_request_form_data()
+		data.update({"doctype": self.doctype})
+
+		# insert document from request data
+		doc = frappe.get_doc(data).insert()
+
+		# set response data
+		frappe.local.response.update({"data": doc.as_dict()})
+
+		# commit for POST requests
+		frappe.db.commit()
 
 
 def get_request_form_data():

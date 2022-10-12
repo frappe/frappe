@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import cloneDeepWith from "lodash/cloneDeepWith";
 
 frappe.provide("frappe.utils");
 
@@ -998,6 +999,10 @@ Object.assign(frappe.utils, {
 
 	deep_equal(a, b) {
 		return deep_equal(a, b);
+	},
+
+	deep_clone(obj, customizer) {
+		return cloneDeepWith(obj, customizer);
 	},
 
 	file_name_ellipsis(filename, length) {
