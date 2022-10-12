@@ -42,9 +42,13 @@ export default class Grid {
 	}
 
 	allow_on_grid_editing() {
+<<<<<<< HEAD
 		if (frappe.utils.is_xs()) {
 			return false;
 		} else if (this.meta && this.meta.editable_grid || !this.meta) {
+=======
+		if ((this.meta && this.meta.editable_grid) || !this.meta) {
+>>>>>>> 9280a41e27 (fix(UI): Child table responsive)
 			return true;
 		} else {
 			return false;
@@ -56,17 +60,19 @@ export default class Grid {
 			<label class="control-label">${__(this.df.label || '')}</label>
 			<p class="text-muted small grid-description"></p>
 			<div class="grid-custom-buttons grid-field"></div>
-			<div class="form-grid">
-				<div class="grid-heading-row"></div>
-				<div class="grid-body">
-					<div class="rows"></div>
-					<div class="grid-empty text-center">
-						<img
-							src="/assets/frappe/images/ui-states/grid-empty-state.svg"
-							alt="Grid Empty State"
-							class="grid-empty-illustration"
-						>
-						${__("No Data")}
+			<div class="form-grid-container">
+				<div class="form-grid">
+					<div class="grid-heading-row"></div>
+					<div class="grid-body">
+						<div class="rows"></div>
+						<div class="grid-empty text-center">
+							<img
+								src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+								alt="Grid Empty State"
+								class="grid-empty-illustration"
+							>
+							${__("No Data")}
+						</div>
 					</div>
 				</div>
 			</div>
