@@ -120,6 +120,13 @@ jobs:
           TYPE: ui
           DB: mariadb
 
+      - name: Verify yarn.lock
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: |
+          cd ~/frappe-bench/apps/frappe
+          yarn install --immutable --immutable-cache --check-cache
+          git diff --exit-code yarn.lock
+
       - name: Instrument Source Code
         run: cd ~/frappe-bench/apps/frappe/ && npx nyc instrument -x 'frappe/public/dist/**' -x 'frappe/public/js/lib/**' -x '**/*.bundle.js' --compact=false --in-place frappe
 
