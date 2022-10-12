@@ -216,14 +216,14 @@ frappe.router = {
 			} else {
 				route = ["List", doctype_route.doctype, "List"];
 			}
-
-			if (doctype_route.doctype_layout) {
-				// set the layout
-				this.doctype_layout = doctype_route.doctype_layout;
-			}
-
-			return route;
-		});
+		} else if (frappe.model.is_single(doctype_route.doctype)) {
+			route = ["Form", doctype_route.doctype, doctype_route.doctype];
+		} else {
+			route = ["List", doctype_route.doctype, "List"];
+		}
+		// reset the layout to avoid using incorrect views
+		this.doctype_layout = doctype_route.doctype_layout;
+		return route;
 	},
 
 	get_standard_route_for_list(route, doctype_route, default_view) {
