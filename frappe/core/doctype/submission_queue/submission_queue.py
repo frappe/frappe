@@ -125,12 +125,40 @@ class SubmissionQueue(Document):
 			notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
 			enqueue_create_notification([notify_to], notification_doc)
 
+	def unlock_reference_doc(self):
+		try:
+			job = Job.fetch(self.job_id, connection=get_redis_conn())
+			status = job.get_status(refresh=True)
+		except NoSuchJobError:
+			# assuming the job failed here (?)
+			status = "failed"
+
+		for docs in self.queue_entries.values():
+			if (
+				docs["DocType"] == self.ref_doctype
+				and docs["Docname"] == self.ref_docname
+				and docs["Status"] == "Queued"
+			):
+				status = "queued"
+				break
+		# Checking if job is queue to be executed/executing
+		if status in ("queued", "started"):
+			frappe.msgprint(_("Document in queue for execution!"))
+
+		# Checking any one of the possible termination statuses
+		elif status in ("failed", "canceled", "stopped"):
+			self.queued_doc.unlock()
+			frappe.db.set_value(
+				"Submission Queue", self.name, "status", "Failed", update_modified=False
+			)
+			frappe.msgprint(_("Document Unlocked"))
+
 	@frappe.whitelist()
 	def unlock_doc(self):
 		if self.status != "Queued":
 			return
 
-		unlock_reference_doc(self.queued_doc, self.job_id, self.name)
+		self.unlock_reference_doc()
 
 	@staticmethod
 	def clear_old_logs(days=30):
@@ -139,6 +167,7 @@ class SubmissionQueue(Document):
 
 		table = frappe.qb.DocType("Submission Queue")
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		SubmissionQueueEntries().save()
 
 
 def read_submission_queue_entries():
@@ -149,31 +178,6 @@ def read_submission_queue_entries():
 		with open("./submission_queue_entries.json", "w+") as f:
 			f.write(frappe.json.dumps({}))
 		return SubmissionQueueEntries()
-
-
-def unlock_reference_doc(ref_doc: Document, job_id: str, submission_name: str):
-	# TODO: If someone tries to unlock a previously failed job,
-	# and someone else has already queued that document again
-	# this will cause the queued document to be unlocked.
-
-	try:
-		job = Job.fetch(job_id, connection=get_redis_conn())
-		status = job.get_status(refresh=True)
-	except NoSuchJobError:
-		# assuming the job failed here (?)
-		status = "failed"
-
-	# Checking if job is queue to be executed/executing
-	if status in ("queued", "started"):
-		frappe.msgprint(_("Document in queue for execution!"))
-
-	# Checking any one of the possible termination statuses
-	elif status in ("failed", "canceled", "stopped"):
-		ref_doc.unlock()
-		frappe.db.set_value(
-			"Submission Queue", submission_name, "status", "Failed", update_modified=False
-		)
-		frappe.msgprint(_("Document Unlocked"))
 
 
 def queue_submission(doc: Document, action: str):
