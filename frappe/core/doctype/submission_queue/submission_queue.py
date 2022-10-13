@@ -170,17 +170,13 @@ def unlock_reference_doc(ref_doc: Document, job_id: str, submission_name: str):
 	# Checking any one of the possible termination statuses
 	elif status in ("failed", "canceled", "stopped"):
 		ref_doc.unlock()
-		frappe.db.set_value("Submission Queue", submission_name, "status", "Failed")
+		frappe.db.set_value(
+			"Submission Queue", submission_name, "status", "Failed", update_modified=False
+		)
 		frappe.msgprint(_("Document Unlocked"))
 
 
 def queue_submission(doc: Document, action: str):
-	# Allowing only submittable doctypes to be queued
-
-	if not doc.meta.is_submittable:
-		getattr(doc, action.lower())()
-		return
-
 	queue = frappe.new_doc("Submission Queue")
 	queue.state = "Queued"
 	queue.enqueued_by = frappe.session.user
