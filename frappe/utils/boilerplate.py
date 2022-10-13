@@ -136,9 +136,6 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
 
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
-		f.write(frappe.as_unicode(desktop_template.format(**hooks)))
-
 	app_directory = os.path.join(dest, hooks.app_name)
 
 	if hooks.create_github_workflow:
@@ -376,18 +373,6 @@ app_license = "{app_license}"
 # auth_hooks = [
 #	"{app_name}.auth.validate"
 # ]
-"""
-
-desktop_template = """from frappe import _
-
-def get_data():
-	return [
-		{{
-			"module_name": "{app_title}",
-			"type": "module",
-			"label": _("{app_title}")
-		}}
-	]
 """
 
 setup_template = """from setuptools import setup, find_packages
