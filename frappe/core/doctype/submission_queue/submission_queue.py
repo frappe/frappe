@@ -107,7 +107,8 @@ class SubmissionQueue(Document):
 				{
 					"message": message.format(
 						frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
-					),
+					)
+					+ f" view it <a href='/app/{self.ref_doctype.lower().replace(' ', '-')}/{self.ref_docname}'><b>here</b></a>",
 					"status": submission_status,
 				},
 			)
