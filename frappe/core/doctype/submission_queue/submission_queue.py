@@ -101,17 +101,28 @@ class SubmissionQueue(Document):
 			docname = self.ref_docname
 			message = _("Submission of {0} {1} with action {2} completed successfully")
 
-		notification_doc = {
-			"type": "Alert",
-			"document_type": doctype,
-			"document_name": docname,
-			"subject": message.format(
-				frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
-			),
-		}
+		if self.enqueued_by == frappe.session.user:
+			frappe.publish_realtime(
+				"termination_status",
+				{
+					"message": message.format(
+						frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
+					),
+					"status": submission_status,
+				},
+			)
+		else:
+			notification_doc = {
+				"type": "Alert",
+				"document_type": doctype,
+				"document_name": docname,
+				"subject": message.format(
+					frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
+				),
+			}
 
-		notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
-		enqueue_create_notification([notify_to], notification_doc)
+			notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
+			enqueue_create_notification([notify_to], notification_doc)
 
 	@frappe.whitelist()
 	def unlock_doc(self):
