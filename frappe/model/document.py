@@ -299,7 +299,7 @@ class Document(BaseDocument):
 				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
-	def check_locked_document(self):
+	def check_if_locked(self):
 		if self.creation and self.is_locked:
 			raise frappe.DocumentLockedError
 
@@ -329,7 +329,7 @@ class Document(BaseDocument):
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
 
-		self.check_locked_document()
+		self.check_if_locked()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
