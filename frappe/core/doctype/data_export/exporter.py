@@ -53,7 +53,7 @@ def export_data(
 	template_bool = template
 	if isinstance(template, str):
 		template_bool = template.lower() == "true"
-	
+
 	export_without_column_meta_bool = export_without_column_meta
 	if isinstance(export_without_column_meta, str):
 		export_without_column_meta_bool = export_without_column_meta.lower() == "true"
