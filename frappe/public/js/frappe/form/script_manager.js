@@ -167,13 +167,12 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 	setup() {
 		const doctype = this.frm.meta;
 		const me = this;
-		let client_script;
+		let client_script = doctype.__js;
 
-		// process the custom script for this form
-		if (this.frm.doctype_layout) {
-			client_script = this.frm.doctype_layout.client_script;
-		} else {
-			client_script = doctype.__js;
+		// append the custom script for this form's layout
+		if (this.frm.doctype_layout?.client_script) {
+			// add a newline to avoid conflict with doctype JS
+			client_script += `\n${this.frm.doctype_layout.client_script}`;
 		}
 
 		if (client_script) {
