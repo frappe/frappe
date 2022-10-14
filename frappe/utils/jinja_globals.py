@@ -2,7 +2,10 @@
 # License: MIT. See LICENSE
 
 
-def resolve_class(classes):
+def resolve_class(*classes):
+	if classes and len(classes) == 1:
+		classes = classes[0]
+
 	if classes is None:
 		return ""
 	if classes is False:
