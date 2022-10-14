@@ -65,22 +65,25 @@ def remove(doctype, name, user, flags=None):
 
 
 @frappe.whitelist()
-def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
+def set_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
 	"""Set share permission."""
-	check_share_permission(doctype, name)
+	if not (flags or {}).get("ignore_share_permission"):
+		check_share_permission(doctype, name)
 
 	share_name = get_share_name(doctype, name, user, everyone)
 	value = int(value)
 
 	if not share_name:
 		if value:
-			share = add(doctype, name, user, everyone=everyone, **{permission_to: 1})
+			share = add(doctype, name, user, everyone=everyone, **{permission_to: 1}, flags=flags)
 		else:
 			# no share found, nothing to remove
 			share = {}
 			pass
 	else:
 		share = frappe.get_doc("DocShare", share_name)
+		if flags:
+			share.flags.update(flags)
 		share.flags.ignore_permissions = True
 		share.set(permission_to, value)
 
