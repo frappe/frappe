@@ -5,6 +5,8 @@
 def resolve_class(classes):
 	if classes is None:
 		return ""
+	if classes is False:
+		return ""
 
 	if isinstance(classes, str):
 		return classes
