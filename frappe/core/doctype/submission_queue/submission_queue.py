@@ -23,13 +23,10 @@ class SubmissionQueue(Document):
 	def queued_doc(self):
 		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
-		super().insert()
+		super().insert(ignore_permissions=True)
 
 	def lock(self):
 		self.queued_doc.lock()
