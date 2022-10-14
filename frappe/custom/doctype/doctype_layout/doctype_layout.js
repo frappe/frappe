@@ -65,7 +65,7 @@ frappe.ui.form.on("DocType Layout", {
 			const addedFields = response.message.added;
 			const removedFields = response.message.removed;
 
-			const getChangedMessage = fields => {
+			const getChangedMessage = (fields) => {
 				let changes = "";
 				for (const field of fields) {
 					if (field.label) {
@@ -97,9 +97,9 @@ frappe.ui.form.on("DocType Layout", {
 				frappe.msgprint({
 					message: __(message),
 					indicator: "green",
-					title: __("Synced Fields")
+					title: __("Synced Fields"),
 				});
 			}
 		}
-	}
+	},
 });
