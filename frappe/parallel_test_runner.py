@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import re
@@ -9,6 +10,7 @@ import click
 import requests
 
 import frappe
+from frappe.utils import flt
 
 from .test_runner import SLOW_TEST_THRESHOLD, make_test_records, set_test_email_config
 
@@ -18,12 +20,23 @@ if click_ctx:
 
 
 class ParallelTestRunner:
-	def __init__(self, app, site, build_number=1, total_builds=1, dry_run=False):
+	def __init__(
+		self,
+		app,
+		site,
+		build_number=1,
+		total_builds=1,
+		*,
+		dry_run=False,
+		test_timing_file="test_times.csv",
+	):
 		self.app = app
 		self.site = site
 		self.build_number = frappe.utils.cint(build_number) or 1
 		self.total_builds = frappe.utils.cint(total_builds)
 		self.dry_run = dry_run
+		self.test_timing_file = test_timing_file
+		self.test_timing_data = {}
 		self.setup_test_site()
 		self.run_tests()
 
@@ -58,28 +71,42 @@ class ParallelTestRunner:
 
 	def run_tests(self):
 		self.test_result = ParallelTestResult(stream=sys.stderr, descriptions=True, verbosity=2)
-
 		for test_file_info in self.get_test_file_list():
 			self.run_tests_for_file(test_file_info)
 
 		self.print_result()
+		self.dump_timing_info()
+
+	def dump_timing_info(self):
+		with open("test_times.csv", "w") as csv_file:
+			writer = csv.writer(csv_file)
+			for test, test_time in self.test_timing_data.items():
+				writer.writerow([test, test_time])
+
+	@staticmethod
+	def _get_file_name(file_info):
+		return "/".join(file_info)
 
 	def run_tests_for_file(self, file_info):
 		if not file_info:
 			return
 
 		if self.dry_run:
-			print("running tests from", "/".join(file_info))
+			print("running tests from", self._get_file_name(file_info))
 			return
 
 		frappe.set_user("Administrator")
 		path, filename = file_info
 		module = self.get_module(path, filename)
 		self.create_test_dependency_records(module, path, filename)
+
 		test_suite = unittest.TestSuite()
+
+		start = time.monotonic()
 		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
 		test_suite.addTest(module_test_cases)
 		test_suite(self.test_result)
+		self.test_timing_data[self._get_file_name(file_info)] = time.monotonic() - start
 
 	def create_test_dependency_records(self, module, path, filename):
 		if hasattr(module, "test_dependencies"):
@@ -119,10 +146,33 @@ class ParallelTestRunner:
 		# Load balance based on total # of tests ~ each runner should get roughly same # of tests.
 		test_list = get_all_tests(self.app)
 
-		test_counts = [self.get_test_count(test) for test in test_list]
-		test_chunks = split_by_weight(test_list, test_counts, chunk_count=self.total_builds)
+		test_weights = self.get_test_weights_for_load_balancing(test_list)
+		test_chunks = split_by_weight(test_list, test_weights, chunk_count=self.total_builds)
 
 		return test_chunks[self.build_number - 1]
+
+	def get_test_weights_for_load_balancing(self, test_list):
+		"""Attempt to load balance on basis of :
+		1. Test timing file from previous test runs
+		2. Number of tests in a test file
+		"""
+		test_weights = None
+		if self.test_timing_file:
+			try:
+				test_weights = self.get_test_timing_from_file(test_list)
+				print(test_weights)
+			except Exception as e:
+				print(f"Couldn't retrieve test timing detail from file {self.test_timing_file}", str(e))
+
+		if not test_weights:
+			test_weights = [self.get_test_count(test) for test in test_list]
+
+		return test_weights
+
+	def get_test_timing_from_file(self, test_list) -> list[int]:
+		with open(self.test_timing_file) as csv_file:
+			timing_info = dict(csv.reader(csv_file))
+			return [flt(timing_info.get(self._get_file_name(test), 0), 3) for test in test_list]
 
 	@staticmethod
 	def get_test_count(test):
@@ -137,7 +187,7 @@ class ParallelTestRunner:
 
 def split_by_weight(work, weights, chunk_count):
 	"""Roughly split work by respective weight while keep ordering."""
-	expected_weight = sum(weights) // chunk_count
+	expected_weight = sum(weights) / chunk_count
 
 	chunks = [[] for _ in range(chunk_count)]
 

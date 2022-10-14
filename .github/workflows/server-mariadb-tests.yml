@@ -113,6 +113,20 @@ jobs:
           TYPE: server
           DB: mariadb
 
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "::set-output name=date::$(/bin/date -u "+%Y%m")"
+        shell: bash
+
+      - name: Fetch test timing data
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/test_times.csv
+          key: timingdata-${{ steps.get-date.outputs.date }}}}-
+          restore-keys: |
+            timingdata-${{ steps.get-date.outputs.date }}}}-
+
       - name: Run Tests
         run: cd ~/frappe-bench/sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
         env:
@@ -126,6 +140,12 @@ jobs:
         with:
           name: coverage-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
+
+      - name: Upload test timing data
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-times-${{ matrix.container }}
+          path: /home/runner/frappe-bench/sites/test_times.csv
 
   coverage:
     name: Coverage Wrap Up
@@ -146,3 +166,19 @@ jobs:
           fail_ci_if_error: true
           verbose: true
           flags: server-mariadb
+
+      - name: Join test timing data
+        run: |
+          cat **/test_times.csv > /home/runner/test_times.csv
+
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "::set-output name=date::$(/bin/date -u "+%Y%m")"
+        shell: bash
+
+      - name: Cache test timing data
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/test_times.csv
+          key: timingdata-${{ steps.get-date.outputs.date }}}}-${{ hashFiles('/home/runner/test_times.csv') }}

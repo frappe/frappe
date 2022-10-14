@@ -100,4 +100,10 @@ if __name__ == "__main__":
 		else:
 			from frappe.parallel_test_runner import ParallelTestRunner
 
-			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
+			ParallelTestRunner(
+				app,
+				site=site,
+				build_number=build_number,
+				total_builds=total_builds,
+				test_timing_file="/home/runner/test_times.csv",
+			)
