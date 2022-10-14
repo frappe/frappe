@@ -101,7 +101,7 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 
 	if not share_name:
 		if value:
-			share = add(doctype, name, user, everyone=everyone, **{permission_to: 1}, flags=flags)
+			share = add_docshare(doctype, name, user, everyone=everyone, **{permission_to: 1}, flags=flags)
 		else:
 			# no share found, nothing to remove
 			share = {}
