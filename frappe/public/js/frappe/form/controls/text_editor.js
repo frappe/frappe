@@ -272,6 +272,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 					],
 				},
 			],
+			['video'],
 		];
 	}
 
