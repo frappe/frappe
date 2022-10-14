@@ -150,7 +150,7 @@ frappe.ui.form.Layout = class Layout {
 			} else {
 				// reshuffle __newname field to accomodate under 1st Tab Break
 				let newname_field = this.fields.find((df) => df.fieldname === "__newname");
-				if (newname_field.get_status(this) === "Write") {
+				if (newname_field && newname_field.get_status(this) === "Write") {
 					this.fields.splice(0, 1);
 					this.fields.splice(1, 0, newname_field);
 				}
