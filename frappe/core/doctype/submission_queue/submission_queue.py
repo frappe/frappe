@@ -14,12 +14,6 @@ from frappe.utils import now
 from frappe.utils.background_jobs import get_redis_conn
 
 
-class SubmissionQueueEntries(dict):
-	def save(self):
-		with open("./submission_queue_entries.json", "w+") as f:
-			f.write(frappe.json.dumps(self, indent=4))
-
-
 class SubmissionQueue(Document):
 	@property
 	def created_at(self):
@@ -30,7 +24,6 @@ class SubmissionQueue(Document):
 		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
 	def __init__(self, *args, **kwargs):
-		self.queue_entries = read_submission_queue_entries()
 		super().__init__(*args, **kwargs)
 
 	def insert(self, to_be_queued_doc: Document, action: str):
@@ -51,13 +44,6 @@ class SubmissionQueue(Document):
 			action_for_queuing=self.action_for_queuing,
 			timeout=600,
 		)
-		self.queue_entries[job.id] = {
-			"DocType": self.ref_doctype,
-			"Docname": self.ref_docname,
-			"Status": job.get_status(refresh=True),
-		}
-		self.queue_entries.save()
-
 		frappe.db.set_value(
 			self.doctype,
 			self.name,
@@ -82,13 +68,6 @@ class SubmissionQueue(Document):
 
 		values["ended_at"] = now()
 		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
-		self.queue_entries[job.id] = {
-			"DocType": to_be_queued_doc.doctype,
-			"Docname": to_be_queued_doc.name,
-			"Status": values["status"],
-		}
-		self.queue_entries.save()
-
 		self.notify(values["status"], action_for_queuing)
 
 	def notify(self, submission_status: str, action: str):
@@ -133,14 +112,6 @@ class SubmissionQueue(Document):
 			# assuming the job failed here (?)
 			status = "failed"
 
-		for docs in self.queue_entries.values():
-			if (
-				docs["DocType"] == self.ref_doctype
-				and docs["Docname"] == self.ref_docname
-				and docs["Status"] == "Queued"
-			):
-				status = "queued"
-				break
 		# Checking if job is queue to be executed/executing
 		if status in ("queued", "started"):
 			frappe.msgprint(_("Document in queue for execution!"))
@@ -148,9 +119,7 @@ class SubmissionQueue(Document):
 		# Checking any one of the possible termination statuses
 		elif status in ("failed", "canceled", "stopped"):
 			self.queued_doc.unlock()
-			frappe.db.set_value(
-				"Submission Queue", self.name, "status", "Failed", update_modified=False
-			)
+			frappe.db.set_value("Submission Queue", self.name, "status", "Failed", update_modified=False)
 			frappe.msgprint(_("Document Unlocked"))
 
 	@frappe.whitelist()
@@ -167,17 +136,6 @@ class SubmissionQueue(Document):
 
 		table = frappe.qb.DocType("Submission Queue")
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
-		SubmissionQueueEntries().save()
-
-
-def read_submission_queue_entries():
-	try:
-		with open("./submission_queue_entries.json") as f:
-			return SubmissionQueueEntries(frappe.json.loads(f.read()))
-	except FileNotFoundError:
-		with open("./submission_queue_entries.json", "w+") as f:
-			f.write(frappe.json.dumps({}))
-		return SubmissionQueueEntries()
 
 
 def queue_submission(doc: Document, action: str):
