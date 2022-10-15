@@ -14,6 +14,7 @@ import pydoc
 import sys
 import traceback
 
+import six
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult
 
 import frappe
