@@ -22,6 +22,10 @@ class SubmissionQueue(Document):
 	def queued_doc(self):
 		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
+	@property
+	def enqueued_by(self):
+		return self.owner
+
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
@@ -75,15 +79,20 @@ class SubmissionQueue(Document):
 			docname = self.ref_docname
 			message = _("Submission of {0} {1} with action {2} completed successfully")
 
+		message = (
+			message.format(
+				frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
+			)
+			+ f" view it <a href='/app/{self.ref_doctype.lower().replace(' ', '-')}/{self.ref_docname}'><b>here</b></a>"
+		)
+
 		if self.enqueued_by == frappe.session.user:
 			frappe.publish_realtime(
-				"termination_status",
+				"msgprint",
 				{
-					"message": message.format(
-						frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
-					)
-					+ f" view it <a href='/app/{self.ref_doctype.lower().replace(' ', '-')}/{self.ref_docname}'><b>here</b></a>",
-					"status": submission_status,
+					"message": message,
+					"alert": True,
+					"indicator": "orange" if submission_status == "Failed" else "green",
 				},
 			)
 		else:
@@ -136,7 +145,6 @@ class SubmissionQueue(Document):
 def queue_submission(doc: Document, action: str):
 	queue = frappe.new_doc("Submission Queue")
 	queue.state = "Queued"
-	queue.enqueued_by = frappe.session.user
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)
