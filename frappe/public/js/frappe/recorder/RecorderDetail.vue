@@ -298,7 +298,7 @@ let pages = computed(() => {
 });
 </script>
 
-<style>
+<style scoped>
 	.list-row .level-left {
 		flex: 8;
 		width: 100%;
