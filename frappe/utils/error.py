@@ -11,10 +11,10 @@ import json
 import linecache
 import os
 import pydoc
-import six
 import sys
 import traceback
 
+import six
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult
 
 import frappe
