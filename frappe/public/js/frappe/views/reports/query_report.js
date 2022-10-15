@@ -1383,6 +1383,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
 		});
 
+		let filter_values = [];
+		for (var key of Object.keys(applied_filters)) {
+			filter_values.push(applied_filters[key]);
+		}
+		print_settings.report_name = `${__(this.report_name)}_${filter_values.join("_")}.pdf`;
 		frappe.render_pdf(html, print_settings);
 	}
 
