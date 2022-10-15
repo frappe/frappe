@@ -819,9 +819,16 @@ def run_tests(
 @click.option("--total-builds", help="Total number of builds", default=1)
 @click.option("--with-coverage", is_flag=True, help="Build coverage file")
 @click.option("--use-orchestrator", is_flag=True, help="Use orchestrator to run parallel tests")
+@click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
 @pass_context
 def run_parallel_tests(
-	context, app, build_number, total_builds, with_coverage=False, use_orchestrator=False
+	context,
+	app,
+	build_number,
+	total_builds,
+	with_coverage=False,
+	use_orchestrator=False,
+	dry_run=False,
 ):
 	from traceback_with_variables import activate_by_import
 
@@ -834,7 +841,13 @@ def run_parallel_tests(
 		else:
 			from frappe.parallel_test_runner import ParallelTestRunner
 
-			ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
+			ParallelTestRunner(
+				app,
+				site=site,
+				build_number=build_number,
+				total_builds=total_builds,
+				dry_run=dry_run,
+			)
 
 
 @click.command(

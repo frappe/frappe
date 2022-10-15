@@ -63,34 +63,3 @@ def get_context(context):
 	)
 
 	return context
-
-
-@frappe.whitelist()
-def get_desk_assets(build_version):
-	"""Get desk assets to be loaded for mobile app"""
-	data = get_context({"for_mobile": True})
-	assets = [{"type": "js", "data": ""}, {"type": "css", "data": ""}]
-
-	if build_version != data["build_version"]:
-		# new build, send assets
-		for path in data["include_js"]:
-			# assets path shouldn't start with /
-			# as it points to different location altogether
-			if path.startswith("/assets/"):
-				path = path.replace("/assets/", "assets/")
-			try:
-				with open(os.path.join(frappe.local.sites_path, path)) as f:
-					assets[0]["data"] = assets[0]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
-			except OSError:
-				pass
-
-		for path in data["include_css"]:
-			if path.startswith("/assets/"):
-				path = path.replace("/assets/", "assets/")
-			try:
-				with open(os.path.join(frappe.local.sites_path, path)) as f:
-					assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
-			except OSError:
-				pass
-
-	return {"build_version": data["build_version"], "boot": data["boot"], "assets": assets}

@@ -118,7 +118,8 @@ jobs:
         env:
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
-          ORCHESTRATOR_URL: http://test-orchestrator.frappe.io
+          BUILD_NUMBER: ${{ matrix.container }}
+          TOTAL_BUILDS: 2
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v3

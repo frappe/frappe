@@ -109,7 +109,7 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 .file-preview {
 	display: flex;
 	align-items: center;
