@@ -176,7 +176,7 @@ frappe.ui.form.on("Notification", {
 					},
 					callback: function (r) {
 						if (r.message && r.message.length > 0) {
-							frappe.msgprint(r.message);
+							frappe.msgprint(r.message.toString());
 						} else {
 							frappe.msgprint(__("No alerts for today"));
 						}
