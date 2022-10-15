@@ -11,6 +11,7 @@ import json
 import linecache
 import os
 import pydoc
+import six
 import sys
 import traceback
 
