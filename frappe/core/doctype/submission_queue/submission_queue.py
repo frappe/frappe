@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from rq import get_current_job
 from rq.exceptions import NoSuchJobError
 from rq.job import Job
 
@@ -50,7 +49,6 @@ class SubmissionQueue(Document):
 
 	def queue(self, to_be_queued_doc: Document, action_for_queuing: str):
 		_action = action_for_queuing.lower()
-		job = get_current_job(connection=get_redis_conn())
 
 		if _action == "update":
 			_action = "submit"
