@@ -53,6 +53,8 @@ def enqueue(
 	method,
 	queue="default",
 	timeout=None,
+	on_success=None,
+	on_failure=None,
 	event=None,
 	is_async=True,
 	job_name=None,
@@ -117,6 +119,8 @@ def enqueue(
 
 	return q.enqueue_call(
 		execute_job,
+		on_success=on_success,
+		on_failure=on_failure,
 		timeout=timeout,
 		kwargs=queue_args,
 		at_front=at_front,
