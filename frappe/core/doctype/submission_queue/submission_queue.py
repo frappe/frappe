@@ -116,6 +116,10 @@ class SubmissionQueue(Document):
 			# assuming the job failed here (?)
 			status = "failed"
 
+		# Job finished successfully however action was never completed (?)
+		if status == "finished" and self.queued_doc.docstatus != 1:
+			status = "failed"
+
 		# Checking if job is queue to be executed/executing
 		if status in ("queued", "started"):
 			frappe.msgprint(_("Document in queue for execution!"))
