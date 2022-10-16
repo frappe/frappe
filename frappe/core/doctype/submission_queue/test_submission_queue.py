@@ -1,8 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies and Contributors
 # See license.txt
 
-import time
-
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.background_jobs import get_queue
@@ -21,8 +19,3 @@ class TestSubmissionQueue(FrappeTestCase):
 		# Test queueing / starting
 		job = self.queue.fetch_job(submission_queue.job_id)
 		self.assertIn(job.get_status(refresh=True), ("queued", "started"))
-
-		time.sleep(2)
-
-		# Test completion
-		self.assertEqual(job.get_status(refresh=True), "finished")
