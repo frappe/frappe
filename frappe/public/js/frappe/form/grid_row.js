@@ -835,6 +835,18 @@ export default class GridRow {
 				: "";
 		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
 
+		let grid;
+		let gridContainer;
+
+		let initalPositionX = 0;
+		let startX = 0;
+		let startY = 0;
+
+		let inputInFocus = false;
+
+		let vertical = false;
+		let horizontal = false;
+
 		var $col = $(
 			'<div class="col grid-static-col col-xs-' + colsize + " " + add_class + '"></div>'
 		)
@@ -842,15 +854,107 @@ export default class GridRow {
 			.attr("data-fieldtype", df.fieldtype)
 			.data("df", df)
 			.appendTo(this.row)
-			.on("click", function () {
-				if (frappe.ui.form.editable_row === me) {
-					return;
+			// initialize grid for horizontal scroll on mobile devices.
+			.on("touchstart", function (event) {
+				gridContainer = $(event.currentTarget).closest(".form-grid-container")[0];
+				grid = $(event.currentTarget).closest(".form-grid")[0];
+
+				grid.style.position != "relative" && $(grid).css("position", "relative");
+				!grid.style.left && $(grid).css("left", 0);
+
+				startX = event.touches[0].clientX;
+				startY = event.touches[0].clientY;
+
+				initalPositionX = -parseFloat(grid.style.left || 0) + startX;
+			})
+			// calculate X and Y movement based on touch events.
+			.on("touchmove", function (event) {
+				if (inputInFocus) return;
+
+				let movedX;
+				let movedY;
+
+				if (!horizontal && !vertical) {
+					movedX = Math.abs(startX - event.touches[0].clientX);
+					movedY = Math.abs(startY - event.touches[0].clientY);
 				}
-				var out = me.toggle_editable_row();
+
+				if (!vertical && movedX > 16) {
+					horizontal = true;
+				} else if (!horizontal && movedY > 16) {
+					vertical = true;
+				}
+				if (horizontal) {
+					event.preventDefault();
+
+					let gridStart = initalPositionX - event.touches[0].clientX;
+					let gridEnd = grid.clientWidth - gridContainer.clientWidth;
+
+					if (gridStart < 0) {
+						gridStart = 0;
+					} else if (gridStart > gridEnd) {
+						gridStart = gridEnd;
+					}
+					grid.style.left = `-${gridStart}px`;
+				}
+			})
+			.on("touchend", function () {
+				vertical = false;
+				horizontal = false;
+			})
+			.on("click", function () {
+				if (frappe.ui.form.editable_row !== me) {
+					var out = me.toggle_editable_row();
+				}
 				var col = this;
-				setTimeout(function () {
-					$(col).find('input[type="Text"]:first').focus();
-				}, 500);
+				let firstInputField = $(col).find('input[type="Text"]:first');
+				// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
+				function onInputFocus(el) {
+					inputInFocus = true;
+
+					let containerWidth = gridContainer.getBoundingClientRect().width;
+					let containerLeft = gridContainer.getBoundingClientRect().left;
+					let gridLeft = parseFloat(grid.style.left);
+					let elementLeft = el.offset().left;
+					let fieldType = el.data("fieldtype");
+
+					let offsetRight = containerWidth - (elementLeft + el.width());
+					let offsetLeft = 0;
+					let elementScreenX = elementLeft - containerLeft;
+					let elementPositionX = containerWidth - (elementLeft - containerLeft);
+
+					if (["Date", "Time", "Datetime"].includes(fieldType)) {
+						offsetLeft = elementPositionX - 220;
+					}
+					if (["Link", "Dynamic Link"].includes(fieldType)) {
+						offsetLeft = elementPositionX - 250;
+					}
+					if (elementScreenX < 0) {
+						grid.style.left = `${gridLeft - elementScreenX}px`;
+					} else if (offsetLeft < 0) {
+						grid.style.left = `${gridLeft + offsetLeft}px`;
+					} else if (offsetRight < 0) {
+						grid.style.left = `${gridLeft + offsetRight}px`;
+					}
+				}
+
+				firstInputField.length && onInputFocus(firstInputField);
+
+				firstInputField.focus();
+				firstInputField.one("blur", () => (inputInFocus = false));
+
+				// Delay datePicker widget to prevent temparary layout shift (UX).
+				if (firstInputField.data("fieldtype") == "Date") {
+					let dateTimePicker = document.querySelectorAll(".datepicker.active")[0];
+
+					dateTimePicker.classList.remove("active");
+
+					dateTimePicker.style.width = "220px";
+
+					setTimeout(() => {
+						dateTimePicker.classList.add("active");
+					}, 600);
+				}
 				return out;
 			});
 
@@ -1151,6 +1255,7 @@ export default class GridRow {
 	show_form() {
 		if (frappe.utils.is_xs()) {
 			$(this.grid.form_grid).css("min-width", "0");
+			$(this.grid.form_grid).css("position", "unset");
 		}
 		if (!this.grid_form) {
 			this.grid_form = new GridRowForm({
@@ -1191,7 +1296,8 @@ export default class GridRow {
 	}
 	hide_form() {
 		if (frappe.utils.is_xs()) {
-			$(this.grid.form_grid).css("min-width", "1000px");
+			$(this.grid.form_grid).css("min-width", "738px");
+			$(this.grid.form_grid).css("position", "relative");
 		}
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
