@@ -450,6 +450,40 @@
 	margin-bottom: 4px;
 }
 
+<<<<<<< HEAD
+=======
+@media (max-width: map-get($grid-breakpoints, "md")) {
+	.form-grid-container {
+		overflow-x: clip;
+
+		.form-grid {
+			min-width: 738px;
+		}
+	}
+
+	.form-column.col-sm-6 .form-grid {
+		.row-index {
+			display: block;
+		}
+	}
+}
+
+@media (min-width: map-get($grid-breakpoints, "md")) {
+	.form-grid-container {
+		overflow-x: unset!important;
+
+		.form-grid {
+			position: unset!important;
+		}
+	}
+
+	.form-column.col-sm-6 .form-grid {
+		.row-index {
+			display: block;
+		}
+	}
+}
+>>>>>>> 60d6cb1040 (fix(UI): child table custom horizontal scroll)
 
 @media (max-width: map-get($grid-breakpoints, "sm")) {
 	.form-in-grid .form-section .form-column {
