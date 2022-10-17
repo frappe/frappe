@@ -77,12 +77,12 @@ frappe.views.BaseList = class BaseList {
 			.then((doc) => (this.list_view_settings = doc.message || {}));
 	}
 
-	setup_fields() {
-		this.set_fields();
+	async setup_fields() {
+		await this.set_fields();
 		this.build_fields();
 	}
 
-	set_fields() {
+	async set_fields() {
 		let fields = [].concat(frappe.model.std_fields_list, this.meta.title_field);
 
 		fields.forEach((f) => this._add_field(f));

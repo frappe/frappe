@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "reference_doctype",
+  "export_without_main_header",
   "column_break_2",
   "file_type",
   "section_break",
@@ -47,12 +48,19 @@
    "fieldname": "fields_multicheck",
    "fieldtype": "HTML",
    "label": "Fields Multicheck"
+  },
+  {
+   "default": "0",
+   "description": "Export the data without any header notes and column descriptions",
+   "fieldname": "export_without_main_header",
+   "fieldtype": "Check",
+   "label": "Export without main header"
   }
  ],
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-03 12:20:53.658574",
+ "modified": "2022-09-28 03:51:02.404681",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Export",
