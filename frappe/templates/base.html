@@ -25,6 +25,8 @@
 	{%- block head -%}
 		{% if head_html is defined -%}
 		{{ head_html or "" }}
+		{%- elif (frappe.get_hooks("head_html")) is not none -%}
+		{{ (frappe.get_hooks("head_html"))[0] }}
 		{%- endif %}
 
 		{%- if theme.name != 'Standard' -%}
