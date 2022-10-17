@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import hashlib
+import inspect
 import json
 import time
 
@@ -926,6 +927,12 @@ class Document(BaseDocument):
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
 
+		# run methods decorated with Document.run
+		for name, fn in inspect.getmembers(self, inspect.ismethod):
+			event = getattr(fn, "__document_event__", None)
+			if event and event == method:
+				fn(*args, **kwargs)
+
 		self.run_notifications(method)
 		run_webhooks(self, method)
 		run_server_script_for_doc_event(self, method)
@@ -1271,6 +1278,16 @@ class Document(BaseDocument):
 			return composed(self, method, *args, **kwargs)
 
 		return composer
+
+	# decorator that runs methods on specified lifecycle hooks
+	# like on_update, after_insert, on_submit etc.
+	@staticmethod
+	def run(event):
+		def wrapper(fn):
+			setattr(fn, "__document_event__", event)
+			return fn
+
+		return wrapper
 
 	def is_whitelisted(self, method_name):
 		method = getattr(self, method_name, None)
