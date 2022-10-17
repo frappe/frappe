@@ -43,16 +43,32 @@ def create_todo_records():
 	frappe.db.truncate("ToDo")
 
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), days=7), "description": "this is first todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), days=7),
+			"description": "this is first todo",
+		}
 	).insert()
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), days=-7), "description": "this is second todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), days=-7),
+			"description": "this is second todo",
+		}
 	).insert()
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), months=2), "description": "this is third todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), months=2),
+			"description": "this is third todo",
+		}
 	).insert()
 	frappe.get_doc(
-		{"doctype": "ToDo", "date": add_to_date(now(), months=-2), "description": "this is fourth todo"}
+		{
+			"doctype": "ToDo",
+			"date": add_to_date(now(), months=-2),
+			"description": "this is fourth todo",
+		}
 	).insert()
 
 
@@ -431,3 +447,134 @@ def create_test_user():
 		user.append("roles", {"role": role})
 
 	user.save()
+
+
+@frappe.whitelist()
+def setup_tree_doctype():
+	frappe.delete_doc_if_exists("DocType", "Custom Tree")
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{"fieldname": "tree", "fieldtype": "Data", "label": "Tree"},
+			],
+			"permissions": [{"role": "System Manager", "read": 1}],
+			"name": "Custom Tree",
+			"is_tree": True,
+			"naming_rule": "By fieldname",
+			"autoname": "field:tree",
+		}
+	).insert()
+
+	if not frappe.db.exists("Custom Tree", "All Trees"):
+		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees"}).insert()
+
+
+@frappe.whitelist()
+def setup_image_doctype():
+	frappe.delete_doc_if_exists("DocType", "Custom Image")
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{"fieldname": "image", "fieldtype": "Attach Image", "label": "Image"},
+			],
+			"permissions": [{"role": "System Manager", "read": 1}],
+			"name": "Custom Image",
+			"image_field": "image",
+		}
+	).insert()
+
+
+@frappe.whitelist()
+def setup_inbox():
+	frappe.db.sql("DELETE FROM `tabUser Email`")
+
+	user = frappe.get_doc("User", frappe.session.user)
+	user.append("user_emails", {"email_account": "Email Linking"})
+	user.save()
+
+
+@frappe.whitelist()
+def setup_default_view(view, force_reroute=None):
+	frappe.delete_doc_if_exists("Property Setter", "Event-main-default_view")
+	frappe.delete_doc_if_exists("Property Setter", "Event-main-force_re_route_to_default_view")
+
+	frappe.get_doc(
+		{
+			"is_system_generated": 0,
+			"doctype_or_field": "DocType",
+			"doc_type": "Event",
+			"property": "default_view",
+			"property_type": "Select",
+			"value": view,
+			"doctype": "Property Setter",
+		}
+	).insert()
+
+	if force_reroute:
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"doctype_or_field": "DocType",
+				"doc_type": "Event",
+				"property": "force_re_route_to_default_view",
+				"property_type": "Check",
+				"value": "1",
+				"doctype": "Property Setter",
+			}
+		).insert()
+
+
+@frappe.whitelist()
+def create_note():
+	if not frappe.db.exists("Note", "Routing Test"):
+		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
+
+
+@frappe.whitelist()
+def create_kanban():
+	if not frappe.db.exists("Custom Field", "Note-kanban"):
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"dt": "Note",
+				"label": "Kanban",
+				"fieldname": "kanban",
+				"insert_after": "seen_by",
+				"fieldtype": "Select",
+				"options": "Open\nClosed",
+				"doctype": "Custom Field",
+			}
+		).insert()
+
+	if not frappe.db.exists("Kanban Board", "_Note _Kanban"):
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"name": "_Note _Kanban",
+				"kanban_board_name": "_Note _Kanban",
+				"reference_doctype": "Note",
+				"field_name": "kanban",
+				"private": 1,
+				"show_labels": 0,
+				"columns": [
+					{
+						"column_name": "Open",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Closed",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+				],
+			}
+		).insert()
