@@ -2,12 +2,14 @@
 # License: MIT. See LICENSE
 
 
-def resolve_class(classes):
+def resolve_class(*classes):
+	if classes and len(classes) == 1:
+		classes = classes[0]
+
 	if classes is None:
 		return ""
-
-	if isinstance(classes, str):
-		return classes
+	if classes is False:
+		return ""
 
 	if isinstance(classes, (list, tuple)):
 		return " ".join(resolve_class(c) for c in classes).strip()
