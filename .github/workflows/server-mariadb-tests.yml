@@ -37,7 +37,7 @@ jobs:
 
   test:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     timeout-minutes: 60
@@ -63,7 +63,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11.0-rc.2'
 
       - name: Check for valid Python & Merge Conflicts
         run: |

@@ -34,7 +34,7 @@ jobs:
 
   test:
     name: Patch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     timeout-minutes: 60
