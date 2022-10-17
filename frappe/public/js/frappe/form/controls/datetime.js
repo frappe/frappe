@@ -7,6 +7,8 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			return;
 		} else if (value === "Today") {
 			value = this.get_now_date();
+		} else if (value.toLowerCase() === "now") {
+			value = frappe.datetime.now_datetime();
 		}
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
