@@ -13,31 +13,24 @@ from frappe.utils import cint
 
 
 @frappe.whitelist()
-def add(
-	doctype, 
-	name, 
-	user=None, 
-	read=1, 
-	write=0, 
-	submit=0, 
-	share=0, 
-	everyone=0, 
-	notify=0
-):
+def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0):
 	"""Expose function without flags to the client-side"""
 	return add_docshare(
 		doctype,
-		name, 
-		user=user, 
-		read=read, 
-		write=write, 
-		submit=submit, 
-		share=share, 
-		everyone=everyone, 
-		notify=notify
+		name,
+		user=user,
+		read=read,
+		write=write,
+		submit=submit,
+		share=share,
+		everyone=everyone,
+		notify=notify,
 	)
-	
-def add_docshare(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0):
+
+
+def add_docshare(
+	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
+):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -90,6 +83,7 @@ def remove(doctype, name, user, flags=None):
 def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 	"""Expose function without flags to the client-side"""
 	set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
+
 
 def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
 	"""Set share permission."""
