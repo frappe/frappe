@@ -1265,7 +1265,7 @@ Object.assign(frappe.utils, {
 							if (item.filters) {
 								frappe.route_options = item.filters;
 							}
-							route = doctype_slug;
+							route = `${doctype_slug}/view/list`;
 							break;
 						case "Tree":
 							route = `${doctype_slug}/view/tree`;
