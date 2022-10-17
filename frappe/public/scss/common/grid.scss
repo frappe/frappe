@@ -508,12 +508,6 @@
 			position: unset!important;
 		}
 	}
-
-	.form-column.col-sm-6 .form-grid {
-		.row-index {
-			display: block;
-		}
-	}
 }
 
 @media (max-width: map-get($grid-breakpoints, "sm")) {

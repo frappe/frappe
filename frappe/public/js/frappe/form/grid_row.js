@@ -836,16 +836,58 @@ export default class GridRow {
 		add_class += ["Check"].indexOf(df.fieldtype) !== -1 ? " text-center" : "";
 
 		let grid;
-		let gridContainer;
+		let grid_container;
 
-		let initalPositionX = 0;
-		let startX = 0;
-		let startY = 0;
+		let inital_position_x = 0;
+		let start_x = 0;
+		let start_y = 0;
 
-		let inputInFocus = false;
+		let input_in_focus = false;
 
 		let vertical = false;
 		let horizontal = false;
+
+		// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
+		function on_input_focus(el) {
+			input_in_focus = true;
+
+			let container_width = grid_container.getBoundingClientRect().width;
+			let container_left = grid_container.getBoundingClientRect().left;
+			let grid_left = parseFloat(grid.style.left);
+			let element_left = el.offset().left;
+			let fieldtype = el.data("fieldtype");
+
+			let offset_right = container_width - (element_left + el.width());
+			let offset_left = 0;
+			let element_screen_x = element_left - container_left;
+			let element_position_x = container_width - (element_left - container_left);
+
+			if (["Date", "Time", "Datetime"].includes(fieldtype)) {
+				offset_left = element_position_x - 220;
+			}
+			if (["Link", "Dynamic Link"].includes(fieldtype)) {
+				offset_left = element_position_x - 250;
+			}
+			if (element_screen_x < 0) {
+				grid.style.left = `${grid_left - element_screen_x}px`;
+			} else if (offset_left < 0) {
+				grid.style.left = `${grid_left + offset_left}px`;
+			} else if (offset_right < 0) {
+				grid.style.left = `${grid_left + offset_right}px`;
+			}
+		}
+
+		// Delay date_picker widget to prevent temparary layout shift (UX).
+		function handle_date_picker() {
+			let date_time_picker = document.querySelectorAll(".datepicker.active")[0];
+
+			date_time_picker.classList.remove("active");
+			date_time_picker.style.width = "220px";
+
+			setTimeout(() => {
+				date_time_picker.classList.add("active");
+			}, 600);
+		}
 
 		var $col = $(
 			'<div class="col grid-static-col col-xs-' + colsize + " " + add_class + '"></div>'
@@ -856,46 +898,46 @@ export default class GridRow {
 			.appendTo(this.row)
 			// initialize grid for horizontal scroll on mobile devices.
 			.on("touchstart", function (event) {
-				gridContainer = $(event.currentTarget).closest(".form-grid-container")[0];
+				grid_container = $(event.currentTarget).closest(".form-grid-container")[0];
 				grid = $(event.currentTarget).closest(".form-grid")[0];
 
 				grid.style.position != "relative" && $(grid).css("position", "relative");
 				!grid.style.left && $(grid).css("left", 0);
 
-				startX = event.touches[0].clientX;
-				startY = event.touches[0].clientY;
+				start_x = event.touches[0].clientX;
+				start_y = event.touches[0].clientY;
 
-				initalPositionX = -parseFloat(grid.style.left || 0) + startX;
+				inital_position_x = -parseFloat(grid.style.left || 0) + start_x;
 			})
 			// calculate X and Y movement based on touch events.
 			.on("touchmove", function (event) {
-				if (inputInFocus) return;
+				if (input_in_focus) return;
 
-				let movedX;
-				let movedY;
+				let moved_x;
+				let moved_y;
 
 				if (!horizontal && !vertical) {
-					movedX = Math.abs(startX - event.touches[0].clientX);
-					movedY = Math.abs(startY - event.touches[0].clientY);
+					moved_x = Math.abs(start_x - event.touches[0].clientX);
+					moved_y = Math.abs(start_y - event.touches[0].clientY);
 				}
 
-				if (!vertical && movedX > 16) {
+				if (!vertical && moved_x > 16) {
 					horizontal = true;
-				} else if (!horizontal && movedY > 16) {
+				} else if (!horizontal && moved_y > 16) {
 					vertical = true;
 				}
 				if (horizontal) {
 					event.preventDefault();
 
-					let gridStart = initalPositionX - event.touches[0].clientX;
-					let gridEnd = grid.clientWidth - gridContainer.clientWidth;
+					let grid_start = inital_position_x - event.touches[0].clientX;
+					let grid_end = grid.clientWidth - grid_container.clientWidth;
 
-					if (gridStart < 0) {
-						gridStart = 0;
-					} else if (gridStart > gridEnd) {
-						gridStart = gridEnd;
+					if (grid_start < 0) {
+						grid_start = 0;
+					} else if (grid_start > grid_end) {
+						grid_start = grid_end;
 					}
-					grid.style.left = `-${gridStart}px`;
+					grid.style.left = `-${grid_start}px`;
 				}
 			})
 			.on("touchend", function () {
@@ -907,54 +949,15 @@ export default class GridRow {
 					var out = me.toggle_editable_row();
 				}
 				var col = this;
-				let firstInputField = $(col).find('input[type="Text"]:first');
-				// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
-				function onInputFocus(el) {
-					inputInFocus = true;
+				let first_input_field = $(col).find('input[type="Text"]:first');
 
-					let containerWidth = gridContainer.getBoundingClientRect().width;
-					let containerLeft = gridContainer.getBoundingClientRect().left;
-					let gridLeft = parseFloat(grid.style.left);
-					let elementLeft = el.offset().left;
-					let fieldType = el.data("fieldtype");
+				first_input_field.length && on_input_focus(first_input_field);
 
-					let offsetRight = containerWidth - (elementLeft + el.width());
-					let offsetLeft = 0;
-					let elementScreenX = elementLeft - containerLeft;
-					let elementPositionX = containerWidth - (elementLeft - containerLeft);
+				first_input_field.trigger("focus");
+				first_input_field.one("blur", () => (input_in_focus = false));
 
-					if (["Date", "Time", "Datetime"].includes(fieldType)) {
-						offsetLeft = elementPositionX - 220;
-					}
-					if (["Link", "Dynamic Link"].includes(fieldType)) {
-						offsetLeft = elementPositionX - 250;
-					}
-					if (elementScreenX < 0) {
-						grid.style.left = `${gridLeft - elementScreenX}px`;
-					} else if (offsetLeft < 0) {
-						grid.style.left = `${gridLeft + offsetLeft}px`;
-					} else if (offsetRight < 0) {
-						grid.style.left = `${gridLeft + offsetRight}px`;
-					}
-				}
+				first_input_field.data("fieldtype") == "Date" && handle_date_picker();
 
-				firstInputField.length && onInputFocus(firstInputField);
-
-				firstInputField.focus();
-				firstInputField.one("blur", () => (inputInFocus = false));
-
-				// Delay datePicker widget to prevent temparary layout shift (UX).
-				if (firstInputField.data("fieldtype") == "Date") {
-					let dateTimePicker = document.querySelectorAll(".datepicker.active")[0];
-
-					dateTimePicker.classList.remove("active");
-
-					dateTimePicker.style.width = "220px";
-
-					setTimeout(() => {
-						dateTimePicker.classList.add("active");
-					}, 600);
-				}
 				return out;
 			});
 
