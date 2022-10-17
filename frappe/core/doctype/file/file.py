@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import zipfile
+import urllib.request
 from urllib.parse import quote, unquote
 
 from PIL import Image, ImageFile, ImageOps
@@ -21,6 +22,9 @@ from frappe.utils.image import optimize_image, strip_exif_data
 
 from .exceptions import AttachmentLimitReached, FolderNotEmpty, MaxFileSizeReachedError
 from .utils import *
+
+
+
 
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -437,15 +441,37 @@ class File(Document):
 			self.validate_file_url()
 		file_path = self.get_full_path()
 
+		if self.get_full_path().startswith(URL_PREFIXES):
+			if self.get_full_path().startswith("https://" + frappe.local.site + "/api/method/storage_integration"):
+				import storage_integration.controller as s3
+				with s3.MinioConnection(doc=None).client.get_object(frappe.db.get_single_value('Storage Integration Settings', 'bucket_name'), file_path[file_path.rfind(frappe.local.site):]) as response:
+					self._content = response.read()
+					try:
+						# for plain text files
+						self._content = self._content.decode()
+					except UnicodeDecodeError:
+						# for .png, .jpg, etc
+						pass
+			elif not self.get_full_path().startswith("https://" + frappe.local.site + "/api/method/storage_integration"):
+				with urllib.request.urlopen(file_path) as response:
+					self._content = response.read()
+					try:
+						# for plain text files
+						self._content = self._content.decode()
+					except UnicodeDecodeError:
+						# for .png, .jpg, etc
+						pass
+
+		else:
 		# read the file
-		with open(file_path, mode="rb") as f:
-			self._content = f.read()
-			try:
-				# for plain text files
-				self._content = self._content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc
-				pass
+			with open(file_path, mode="rb") as f:
+				self._content = f.read()
+				try:
+					# for plain text files
+					self._content = self._content.decode()
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc
+					pass
 
 		return self._content
 
