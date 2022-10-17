@@ -1,6 +1,33 @@
+<<<<<<< HEAD
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_date_options: function() {
 		this._super();
+=======
+frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
+	set_formatted_input(value) {
+		if (this.timepicker_only) return;
+		if (!this.datepicker) return;
+		if (!value) {
+			this.datepicker.clear();
+			return;
+		} else if (value === "Today") {
+			value = this.get_now_date();
+		} else if (value.toLowerCase() === "now") {
+			value = frappe.datetime.now_datetime();
+		}
+		value = this.format_for_input(value);
+		this.$input && this.$input.val(value);
+		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+	}
+
+	get_start_date() {
+		this.value = this.value == null ? undefined : this.value;
+		let value = frappe.datetime.convert_to_user_tz(this.value);
+		return frappe.datetime.str_to_obj(value);
+	}
+	set_date_options() {
+		super.set_date_options();
+>>>>>>> 5bbb9b42e1 (fix: consider now datetime if the default value is now for datetime field)
 		this.today_text = __("Now");
 		let sysdefaults = frappe.boot.sysdefaults;
 		this.date_format = frappe.defaultDatetimeFormat;
