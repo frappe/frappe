@@ -207,21 +207,16 @@ def get_web_blocks_html(blocks):
 	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
 
 	out = frappe._dict(html="", scripts={}, styles={})
-	extracted_scripts = {}
-	extracted_styles = {}
 	for block in blocks:
 		web_template = frappe.get_cached_doc("Web Template", block.web_template)
 		html, scripts, styles = web_template.render_block(block)
 		out.html += html
-		if block.web_template not in extracted_scripts:
-			extracted_scripts.setdefault(block.web_template, [])
-			extracted_scripts[block.web_template] += scripts
+		if block.web_template not in out.scripts:
+			out.scripts.setdefault(block.web_template, [])
+			out.scripts[block.web_template] += scripts
 
-		if block.web_template not in extracted_styles:
-			extracted_styles.setdefault(block.web_template, [])
-			extracted_styles[block.web_template] += styles
-
-	out.scripts = extracted_scripts
-	out.styles = extracted_styles
+		if block.web_template not in out.styles:
+			out.styles.setdefault(block.web_template, [])
+			out.styles[block.web_template] += styles
 
 	return out

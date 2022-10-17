@@ -3,11 +3,13 @@
 Make the page editable
 
 TODO:
-- Add Section (select type)
-- Add Row (duplicate last row)
-- Remove Section
-- Link Editing
-- Image Editing
+- [x] Add Section (select type)
+- [ ] Edit markdown as markdown
+- [ ] Edit Section properties
+- [ ] Add Row (duplicate last row)
+- [ ] Remove Section
+- [ ] Link Editing
+- [ ] Image Editing
 */
 
 import Sortable from "sortablejs";
@@ -18,6 +20,7 @@ class EditablePage {
 		this.setup_add_section();
 		this.setup_editable_properties();
 		this.setup_sortable_sections();
+		return this;
 	}
 
 	setup_add_section() {
@@ -43,10 +46,11 @@ class EditablePage {
 			primary_action: () => {
 				frappe
 					.call("frappe.website.doctype.web_page.page_editor.get_section", {
+						page: $(".web-page-content").attr("id"),
 						section_type: d.get_value("section_type"),
 					})
 					.then((r) => {
-						console.log(r);
+						$(r.message).appendTo(".web-page-content");
 					});
 			},
 		});
@@ -56,8 +60,11 @@ class EditablePage {
 	setup_editable_properties() {
 		$("[wt-fieldname]")
 			.attr("contenteditable", "true")
+			.on("keypress", (e) => {
+				e.target.dirty = true;
+			})
 			.on("blur", (e) => {
-				console.log(e.target.innerHTML);
+				if (!e.target.dirty) return;
 				let element = $(e.target);
 				let table_element = element.parents("[wt-type='Table']");
 
@@ -75,7 +82,7 @@ class EditablePage {
 						}
 					)
 					.then(() => {
-						frappe.toast("Updated");
+						e.target.dirty = false;
 					});
 			});
 

@@ -70,7 +70,7 @@
 		frappe.ready(() => {
 			frappe.make_editable = async () => {
 				import('{{ bundled_asset("page-editor.bundle.js") }}').then(() => {
-					new frappe.EditablePage().setup();
+					frappe.editable_page = new frappe.EditablePage().setup();
 				});
 			}
 			frappe.make_editable();
