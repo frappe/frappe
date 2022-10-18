@@ -2,12 +2,12 @@
 import Section from "./Section.vue";
 import draggable from "vuedraggable";
 import { useStore } from "../store";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 let store = useStore();
 
-let layout = store.layout;
-let active_tab = ref(layout.tabs[0].df.name);
+let layout = computed(() => store.layout);
+let active_tab = ref(layout.value.tabs[0].df.name);
 
 function activate_tab(tab) {
 	active_tab.value = tab.df.name;

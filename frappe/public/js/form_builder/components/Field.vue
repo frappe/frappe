@@ -15,8 +15,6 @@ watch(
 		if (value && !props.field.remove) {
 			nextTick(() => label_input.value.focus());
 			store.selected_field = props.field.df;
-		} else {
-			store.selected_field = null;
 		}
 	},
 	{ deep: true }
