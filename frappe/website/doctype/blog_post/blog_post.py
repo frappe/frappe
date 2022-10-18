@@ -204,13 +204,19 @@ def get_list_context(context=None):
 		title=_("Blog"),
 	)
 
-	category = frappe.utils.escape_html(
+	blog_settings = frappe.get_doc("Blog Settings").as_dict(no_default_fields=True)
+	list_context.update(blog_settings)
+
+	category_name = frappe.utils.escape_html(
 		frappe.local.form_dict.blog_category or frappe.local.form_dict.category
 	)
-	if category:
-		category_title = get_blog_category(category)
-		list_context.sub_title = _("Posts filed under {0}").format(category_title)
-		list_context.title = category_title
+	if category_name:
+		category = frappe.get_doc("Blog Category", category_name)
+		list_context.blog_introduction = category.description or _("Posts filed under {0}").format(
+			category.title
+		)
+		list_context.blog_title = category.title
+		list_context.preview_image = category.preview_image
 
 	elif frappe.local.form_dict.blogger:
 		blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.blogger}, "full_name")
@@ -225,11 +231,15 @@ def get_list_context(context=None):
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
-	blog_settings = frappe.get_doc("Blog Settings").as_dict(no_default_fields=True)
-	list_context.update(blog_settings)
-
 	if blog_settings.browse_by_category:
 		list_context.blog_categories = get_blog_categories()
+
+	list_context.metatags = {
+		"name": list_context.blog_title,
+		"title": list_context.blog_title,
+		"description": list_context.blog_introduction,
+		"image": list_context.preview_image,
+	}
 
 	return list_context
 
@@ -263,10 +273,6 @@ def clear_blog_cache():
 		clear_cache(blog)
 
 	clear_cache("writers")
-
-
-def get_blog_category(route):
-	return frappe.db.get_value("Blog Category", {"name": route}, "title") or route
 
 
 def get_blog_list(
