@@ -12,7 +12,7 @@ let active_tab = ref(tab_titles[0]);
 watch(
 	() => store.selected_field,
 	value => {
-		if (value) active_tab.value = tab_titles[1];
+		active_tab.value = value ? tab_titles[1] : tab_titles[0];
 	},
 	{ deep: true }
 );
