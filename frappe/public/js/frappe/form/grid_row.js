@@ -750,7 +750,7 @@ export default class GridRow {
 					event.preventDefault();
 
 					let grid_start = inital_position_x - event.touches[0].clientX;
-					let grid_end = grid.clientWidth - grid_container.clientWidth;
+					let grid_end = grid.clientWidth - grid_container.clientWidth + 2;
 
 					if (grid_start < 0) {
 						grid_start = 0;
