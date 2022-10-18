@@ -245,9 +245,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// using $.each to preserve df via closure
 		$.each(table_fields, function(i, df) {
-			frappe.model.on(df.options, "*", function(fieldname, value, doc) {
+			frappe.model.on(df.options, "*", function(fieldname, value, doc, skip_dirty_trigger=false) {
 				if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
-					me.dirty();
+					if (!skip_dirty_trigger) {
+						me.dirty();
+					}
 					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
@@ -924,10 +926,12 @@ frappe.ui.form.Form = class FrappeForm {
 		this.toolbar.set_primary_action();
 	}
 
-	disable_save() {
+	disable_save(set_dirty=false) {
 		// IMPORTANT: this function should be called in refresh event
 		this.save_disabled = true;
 		this.toolbar.current_status = null;
+		// field changes should make form dirty
+		this.set_dirty = set_dirty;
 		this.page.clear_primary_action();
 	}
 
@@ -1416,7 +1420,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return doc;
 	}
 
-	set_value(field, value, if_missing) {
+	set_value(field, value, if_missing, skip_dirty_trigger=false) {
 		var me = this;
 		var _set = function(f, v) {
 			var fieldobj = me.fields_dict[f];
@@ -1436,7 +1440,7 @@ frappe.ui.form.Form = class FrappeForm {
 						me.refresh_field(f);
 						return Promise.resolve();
 					} else {
-						return frappe.model.set_value(me.doctype, me.doc.name, f, v);
+						return frappe.model.set_value(me.doctype, me.doc.name, f, v, me.fieldtype, skip_dirty_trigger);
 					}
 				}
 			} else {

@@ -235,12 +235,13 @@ def get_company_address(company):
 def address_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	doctype = "Address"
 	link_doctype = filters.pop("link_doctype")
 	link_name = filters.pop("link_name")
 
 	condition = ""
-	meta = frappe.get_meta("Address")
-	for fieldname, value in iteritems(filters):
+	meta = frappe.get_meta(doctype)
+	for fieldname, value in filters.items():
 		if meta.get_field(fieldname) or fieldname in frappe.db.DEFAULT_COLUMNS:
 			condition += " and {field}={value}".format(field=fieldname, value=frappe.db.escape(value))
 
