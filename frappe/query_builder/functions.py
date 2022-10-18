@@ -33,6 +33,11 @@ class Ifnull(IfNull):
 		super().__init__(condition, term, **kwargs)
 
 
+class Exists(Function):
+	def __init__(self, subquery, alias=None):
+		super().__init__("EXISTS", subquery, alias=alias)
+
+
 class Timestamp(Function):
 	def __init__(self, term: str, time=None, alias=None):
 		if time:
