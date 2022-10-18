@@ -237,7 +237,7 @@ class User(Document):
 		)
 
 	def share_with_self(self):
-		frappe.share.add(
+		frappe.share.add_docshare(
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
