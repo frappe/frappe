@@ -754,13 +754,13 @@ def get_attendees(doc):
 				{"dt": participant.reference_doctype, "dn": participant.reference_docname}
 			)
 
-	if len(email_not_found):
+	if email_not_found:
 		frappe.msgprint(
-			_("Google Calendar - Contact / email not found, did not add attendee for -<br>{0}").format(
+			_("Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}").format(
 				"<br>".join(f"{d.get('dt')} {d.get('dn')}" for d in email_not_found)
 			),
 			alert=True,
-			indicator="red",
+			indicator="yellow",
 		)
 
 	return attendees

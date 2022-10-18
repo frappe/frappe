@@ -59,6 +59,7 @@ class Event(Document):
 		if not self.sync_with_google_calendar:
 			self.add_video_conferencing = 0
 
+	def before_save(self):
 		self.set_participants_email()
 
 	def on_update(self):
@@ -141,11 +142,12 @@ class Event(Document):
 		for participant in self.event_participants:
 			if participant.email:
 				continue
+
 			participant_contact = get_default_contact(
 				participant.reference_doctype, participant.reference_docname
 			)
 			participant.email = (
-				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else ""
+				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else None
 			)
 
 
