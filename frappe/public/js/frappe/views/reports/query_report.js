@@ -1391,8 +1391,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			filter_values.push(applied_filters[key]);
 		}
 		print_settings.report_name = `${__(this.report_name)}_${filter_values.join("_")}.pdf`;
-		console.log(print_settings.report_name);
-		// frappe.render_pdf(html, print_settings);
+		frappe.render_pdf(html, print_settings);
 	}
 
 	get_filters_html_for_print() {
