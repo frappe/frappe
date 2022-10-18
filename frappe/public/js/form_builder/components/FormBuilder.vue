@@ -46,7 +46,7 @@ onMounted(() => store.fetch());
 		box-shadow: var(--card-shadow);
 		background-color: var(--card-bg);
 
-		:deep(.drag-container .field.sortable-chosen) {
+		:deep(.column-container .field.sortable-chosen) {
 			background-color: var(--bg-light-gray);
 			border-radius: var(--border-radius);
 			border: 1px dashed var(--gray-400);

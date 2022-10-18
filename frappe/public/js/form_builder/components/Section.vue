@@ -60,7 +60,7 @@ let hovered = ref(false);
 					@mouseover.stop="hovered = false"
 				>
 					<draggable
-						class="drag-container"
+						class="column-container"
 						:style="{
 							backgroundColor: column.fields.length ? null : 'var(--gray-50)'
 						}"
@@ -165,7 +165,7 @@ let hovered = ref(false);
 					padding-right: 0px;
 				}
 
-				.drag-container {
+				.column-container {
 					height: 100%;
 					min-height: 2rem;
 					border-radius: var(--border-radius);

@@ -97,10 +97,6 @@ function activate_tab(tab) {
 	.tab-content {
 		display: none;
 
-		.tab-content-container {
-			margin-bottom: var(--margin-md);
-		}
-
 		&.active {
 			display: block;
 		}
