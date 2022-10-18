@@ -471,9 +471,10 @@ def delete_doc(doctype, name):
 	"""
 
 	if frappe.is_table(doctype):
-		parenttype, parent, parentfield = frappe.db.get_value(
-			doctype, name, ["parenttype", "parent", "parentfield"]
-		)
+		values = frappe.db.get_value(doctype, name, ["parenttype", "parent", "parentfield"])
+		if not values:
+			raise frappe.DoesNotExistError
+		parenttype, parent, parentfield = values
 		parent = frappe.get_doc(parenttype, parent)
 		for row in parent.get(parentfield):
 			if row.name == name:
