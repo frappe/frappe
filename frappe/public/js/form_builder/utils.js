@@ -14,57 +14,58 @@ export function create_layout(fields) {
 		layout.tabs.push(tab);
 	}
 
-	function set_column(df) {
-		if (!section) {
-			set_section();
-		}
-		column = get_new_column(df);
-		section.columns.push(column);
-	}
-
 	function set_section(df) {
-		if (!tab) {
-			set_tab();
-		}
+		if (!tab) set_tab();
+
 		section = get_new_section(df, tab);
 		column = null;
 		tab.sections.push(section);
 	}
 
+	function set_column(df) {
+		if (!section) set_section();
+
+		column = get_new_column(df);
+		section.columns.push(column);
+	}
+
 	function get_new_tab(df) {
-		let field = {};
+		let _tab = {};
 		if (!df) {
 			df = {
 				label: __("Details"),
 				fieldtype: "Tab Break",
 			};
-			field.new_field = true;
+			_tab.new_field = true;
 		}
-		field.df = df;
-		field.sections = [];
-		return field;
+		_tab.df = df;
+		_tab.sections = [];
+		return _tab;
 	}
 
 	function get_new_section(df) {
-		let field = {};
+		let _section = {};
 		if (!df) {
-			df = { fieldtype: "Section Break" };
-			field.new_field = true;
+			df = {
+				name: frappe.utils.get_random(8),
+				fieldtype: "Section Break",
+			};
+			_section.new_field = true;
 		}
-		field.df = df;
-		field.columns = [];
-		return field;
+		_section.df = df;
+		_section.columns = [];
+		return _section;
 	}
 
 	function get_new_column(df) {
-		let field = {};
+		let _column = {};
 		if (!df) {
 			df = { fieldtype: "Column Break" };
-			field.new_field = true;
+			_column.new_field = true;
 		}
-		field.df = df;
-		field.fields = [];
-		return field;
+		_column.df = df;
+		_column.fields = [];
+		return _column;
 	}
 
 	for (let df of fields) {

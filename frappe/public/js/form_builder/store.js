@@ -11,9 +11,6 @@ export const useStore = defineStore("store", {
 		dirty: false,
 	}),
 	actions: {
-		is_dirty() {
-			return this.dirty;
-		},
 		fetch() {
 			return new Promise((resolve) => {
 				frappe.model.clear_doc("DocType", this.doctype);
