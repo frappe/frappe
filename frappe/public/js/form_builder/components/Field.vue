@@ -1,16 +1,20 @@
 <script setup>
 import { watch, ref, nextTick } from "vue";
+import { useStore } from "../store";
 
 let props = defineProps(["field"]);
+let store = useStore();
 
 let label_input = ref(null);
 let editing = ref(false);
+let hovered = ref(false);
 
 watch(
 	editing,
 	value => {
 		if (value) {
 			nextTick(() => label_input.value.focus());
+			store.selected_field = props.field.df;
 		}
 	},
 	{ deep: true }
@@ -19,10 +23,16 @@ watch(
 
 <template>
 	<div
-		class="field"
-		v-show="!field.remove"
+		:class="[
+			'field',
+			hovered ? 'hovered' : '',
+			store.selected(field.df.name) ? 'selected' : ''
+		]"
+		v-show="!field.df.remove"
 		:title="field.df.fieldname"
 		@click.stop="editing = true"
+		@mouseover.stop="hovered = true"
+		@mouseout.stop="hovered = false"
 	>
 		<div class="field-controls">
 			<div>
@@ -49,7 +59,7 @@ watch(
 						<use href="#icon-edit"></use>
 					</svg>
 				</button>
-				<button class="btn btn-xs btn-icon" @click="field.remove = true">
+				<button class="btn btn-xs btn-icon" @click="$set(field, 'remove', true)">
 					<svg class="icon icon-sm">
 						<use href="#icon-close"></use>
 					</svg>
@@ -94,7 +104,9 @@ watch(
 		border-color: var(--gray-600);
 	}
 
-	&:hover {
+	&.hovered,
+	&.selected {
+		border-color: var(--primary);
 		.btn.btn-icon {
 			opacity: 1 !important;
 		}

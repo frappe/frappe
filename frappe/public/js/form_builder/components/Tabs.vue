@@ -11,6 +11,7 @@ let active_tab = ref(layout.tabs[0].df.name);
 
 function activate_tab(tab) {
 	active_tab.value = tab.df.name;
+	store.selected_field = tab.df;
 }
 </script>
 

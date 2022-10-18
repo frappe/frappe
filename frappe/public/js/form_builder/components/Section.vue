@@ -1,14 +1,27 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
+import { ref } from "vue";
+import { useStore } from "../store";
 
 let props = defineProps(["section"]);
+let store = useStore();
 
+let hovered = ref(false);
 </script>
 
 <template>
 	<div class="form-section-container" v-if="!section.remove">
-		<div class="form-section">
+		<div
+			:class="[
+				'form-section',
+				hovered ? 'hovered' : '',
+				store.selected(section.df.name) ? 'selected' : ''
+			]"
+			@click="store.selected_field = section.df"
+			@mouseover.stop="hovered = true"
+			@mouseout.stop="hovered = false"
+		>
 			<div :class="['section-header', section.df.label ? '' : 'hidden']">
 				<input
 					class="input-section-label"
@@ -44,6 +57,7 @@ let props = defineProps(["section"]);
 					class="column col"
 					v-for="(column, i) in section.columns"
 					:key="i"
+					@mouseover.stop="hovered = false"
 				>
 					<draggable
 						class="drag-container"
@@ -84,6 +98,15 @@ let props = defineProps(["section"]);
 			border-bottom-right-radius: var(--border-radius);
 		}
 
+		&.hovered,
+		&.selected {
+			border-color: var(--primary);
+		}
+
+		&.selected .section-header {
+			display: flex !important;
+		}
+
 		&:not(:first-child) {
 			margin-top: 1rem;
 		}
@@ -93,6 +116,10 @@ let props = defineProps(["section"]);
 			justify-content: space-between;
 			align-items: center;
 			padding-bottom: 0.75rem;
+
+			&.hidden {
+				display: none;
+			}
 
 			.input-section-label {
 				border: 1px solid transparent;

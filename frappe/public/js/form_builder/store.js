@@ -8,8 +8,15 @@ export const useStore = defineStore("store", {
 		fields: [],
 		docfields: [],
 		layout: {},
+		selected_field: null,
+		hovered: false,
 		dirty: false,
 	}),
+	getters: {
+		selected: (state) => {
+			return (name) => state.selected_field?.name == name;
+		},
+	},
 	actions: {
 		fetch() {
 			return new Promise((resolve) => {
