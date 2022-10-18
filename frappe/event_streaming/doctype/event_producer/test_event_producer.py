@@ -44,44 +44,6 @@ class TestEventProducer(FrappeTestCase):
 		self.pull_producer_data()
 		self.assertFalse(frappe.db.exists("ToDo", producer_doc.name))
 
-	@run_only_if(db_type_is.MARIADB)
-	def test_multiple_doctypes_sync(self):
-		# TODO: This test is extremely flaky with Postgres. Rewrite this!
-		producer = get_remote_site()
-
-		# insert todo and note in producer
-		producer_todo = insert_into_producer(producer, "test multiple doc sync")
-		producer_note1 = frappe._dict(doctype="Note", title="test multiple doc sync 1")
-		delete_on_remote_if_exists(producer, "Note", {"title": producer_note1["title"]})
-		frappe.db.delete("Note", {"title": producer_note1["title"]})
-		producer_note1 = producer.insert(producer_note1)
-		producer_note2 = frappe._dict(doctype="Note", title="test multiple doc sync 2")
-		delete_on_remote_if_exists(producer, "Note", {"title": producer_note2["title"]})
-		frappe.db.delete("Note", {"title": producer_note2["title"]})
-		producer_note2 = producer.insert(producer_note2)
-
-		# update in producer
-		producer_todo["description"] = "test multiple doc update sync"
-		producer_todo = producer.update(producer_todo)
-		producer_note1["content"] = "testing update sync"
-		producer_note1 = producer.update(producer_note1)
-
-		producer.delete("Note", producer_note2.name)
-
-		self.pull_producer_data()
-
-		# check inserted
-		self.assertTrue(frappe.db.exists("ToDo", producer_todo.name))
-
-		# check update
-		local_todo = frappe.get_doc("ToDo", producer_todo.name)
-		self.assertEqual(local_todo.description, producer_todo.description)
-		local_note1 = frappe.get_doc("Note", producer_note1.name)
-		self.assertEqual(local_note1.content, producer_note1.content)
-
-		# check delete
-		self.assertFalse(frappe.db.exists("Note", producer_note2.name))
-
 	def test_child_table_sync_with_dependencies(self):
 		producer = get_remote_site()
 		producer_user = frappe._dict(

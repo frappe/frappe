@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "Prompt",
+ "autoname": "prompt",
  "creation": "2020-11-16 17:05:35.306846",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -19,7 +19,8 @@
    "in_list_view": 1,
    "label": "Document Type",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "fields",
@@ -42,10 +43,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-12-10 15:01:04.352184",
+ "modified": "2022-09-01 03:22:33.973058",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -68,5 +70,6 @@
  "route": "doctype-layout",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

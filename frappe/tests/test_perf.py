@@ -50,6 +50,20 @@ class TestPerformance(FrappeTestCase):
 		with self.assertQueryCount(0):
 			frappe.get_meta("User")
 
+	def test_set_value_query_count(self):
+		frappe.db.set_value("User", "Administrator", "interest", "Nothing")
+
+		with self.assertQueryCount(1):
+			frappe.db.set_value("User", "Administrator", "interest", "Nothing")
+
+		with self.assertQueryCount(1):
+			frappe.db.set_value("User", {"user_type": "System User"}, "interest", "Nothing")
+
+		with self.assertQueryCount(1):
+			frappe.db.set_value(
+				"User", {"user_type": "System User"}, {"interest": "Nothing", "bio": "boring person"}
+			)
+
 	def test_controller_caching(self):
 
 		get_controller("User")

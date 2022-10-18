@@ -734,7 +734,7 @@ class TestDBSetValue(FrappeTestCase):
 			frappe.db.get_value("ToDo", todo.name, ["modified", "modified_by"]),
 		)
 
-	def test_for_update(self):
+	def test_set_value(self):
 		self.todo1.reload()
 
 		with patch.object(Database, "sql") as sql_called:
@@ -745,28 +745,23 @@ class TestDBSetValue(FrappeTestCase):
 				f"{self.todo1.description}-edit by `test_for_update`",
 			)
 			first_query = sql_called.call_args_list[0].args[0]
-			second_query = sql_called.call_args_list[1].args[0]
 
-			self.assertTrue(sql_called.call_count == 2)
-			self.assertTrue("FOR UPDATE" in first_query)
 			if frappe.conf.db_type == "postgres":
 				from frappe.database.postgres.database import modify_query
 
-				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in second_query)
+				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in first_query)
 			if frappe.conf.db_type == "mariadb":
-				self.assertTrue("UPDATE `tabToDo` SET" in second_query)
+				self.assertTrue("UPDATE `tabToDo` SET" in first_query)
 
 	def test_cleared_cache(self):
 		self.todo2.reload()
+		frappe.get_cached_doc(self.todo2.doctype, self.todo2.name)  # init cache
 
-		with patch.object(frappe, "clear_document_cache") as clear_cache:
-			frappe.db.set_value(
-				self.todo2.doctype,
-				self.todo2.name,
-				"description",
-				f"{self.todo2.description}-edit by `test_cleared_cache`",
-			)
-			clear_cache.assert_called()
+		description = f"{self.todo2.description}-edit by `test_cleared_cache`"
+
+		frappe.db.set_value(self.todo2.doctype, self.todo2.name, "description", description)
+		cached_doc = frappe.get_cached_doc(self.todo2.doctype, self.todo2.name)
+		self.assertEqual(cached_doc.description, description)
 
 	def test_update_alias(self):
 		args = (self.todo1.doctype, self.todo1.name, "description", "Updated by `test_update_alias`")

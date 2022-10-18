@@ -190,12 +190,8 @@ frappe.router = {
 		} else {
 			route = ["List", doctype_route.doctype, "List"];
 		}
-
-		if (doctype_route.doctype_layout) {
-			// set the layout
-			this.doctype_layout = doctype_route.doctype_layout;
-		}
-
+		// reset the layout to avoid using incorrect views
+		this.doctype_layout = doctype_route.doctype_layout;
 		return route;
 	},
 
