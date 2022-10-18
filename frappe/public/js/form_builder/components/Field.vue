@@ -101,11 +101,6 @@ watch(
 		margin-top: 0.5rem;
 	}
 
-	&:focus-within {
-		border-style: solid;
-		border-color: var(--gray-600);
-	}
-
 	&.hovered,
 	&.selected {
 		border-color: var(--primary);
