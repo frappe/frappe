@@ -133,3 +133,34 @@ export function get_table_columns(df) {
 	}
 	return table_columns;
 }
+
+export function evaluate_depends_on_value(expression, doc) {
+	if (!doc) return;
+
+	let out = null;
+	let parent = doc || null;
+
+	if (typeof expression === "boolean") {
+		out = expression;
+	} else if (typeof expression === "function") {
+		out = expression(doc);
+	} else if (expression.substr(0, 5) == "eval:") {
+		try {
+			out = frappe.utils.eval(expression.substr(5), { doc, parent });
+			if (parent && parent.istable && expression.includes("is_submittable")) {
+				out = true;
+			}
+		} catch (e) {
+			frappe.throw(__('Invalid "depends_on" expression'));
+		}
+	} else {
+		var value = doc[expression];
+		if ($.isArray(value)) {
+			out = !!value.length;
+		} else {
+			out = !!value;
+		}
+	}
+
+	return out;
+}

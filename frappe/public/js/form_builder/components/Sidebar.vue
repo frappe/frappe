@@ -1,11 +1,21 @@
 <script setup>
 import FieldTypes from "./FieldTypes.vue";
 import FieldProperties from "./FieldProperties.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useStore } from "../store";
+
+let store = useStore();
 
 let tab_titles = [__("Field Types"), __("Field Properties")];
 let active_tab = ref(tab_titles[0]);
 
+watch(
+	() => store.selected_field,
+	value => {
+		if (value) active_tab.value = tab_titles[1];
+	},
+	{ deep: true }
+);
 </script>
 
 <template>
