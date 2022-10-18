@@ -1,4 +1,5 @@
 <script setup>
+import SearchBox from "./SearchBox.vue";
 import draggable from "vuedraggable";
 import { ref, computed } from "vue";
 
@@ -46,19 +47,7 @@ let fields = computed(() => {
 </script>
 
 <template>
-	<div class="search-box">
-		<input
-			class="search-input form-control form-control-sm"
-			type="text"
-			:placeholder="__('Search fields')"
-			v-model="search_text"
-		/>
-		<span class="search-icon">
-			<svg class="icon icon-sm">
-				<use href="#icon-search"></use>
-			</svg>
-		</span>
-	</div>
+	<SearchBox v-model="search_text" />
 	<draggable
 		class="fields-container"
 		:list="fields"
@@ -79,23 +68,6 @@ let fields = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-.search-box {
-	display: flex;
-	position: relative;
-	margin-bottom: 0.5rem;
-
-	.search-input {
-		padding-left: 30px;
-	}
-
-	.search-icon {
-		position: absolute;
-		margin-left: 8px;
-		display: flex;
-		align-items: center;
-		height: 100%;
-	}
-}
 .fields-container {
 	max-height: calc(100vh - 240px);
 	overflow-y: auto;
