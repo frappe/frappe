@@ -74,7 +74,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			this.page_title = __("File Manager");
 
 			const route = frappe.get_route();
-			this.current_folder = route.slice(2).join("/");
+			this.current_folder = route.slice(2).join("/") || "Home";
 			this.filters = [["File", "folder", "=", this.current_folder, true]];
 			this.order_by = this.view_user_settings.order_by || "file_name asc";
 
@@ -286,7 +286,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	get_breadcrumbs_html() {
-		const route = frappe.router.parse();
+		const route = frappe.get_route();
 		const folders = route.slice(2);
 
 		return folders

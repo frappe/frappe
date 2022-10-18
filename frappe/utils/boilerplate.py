@@ -136,12 +136,6 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
 
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
-		f.write(frappe.as_unicode(desktop_template.format(**hooks)))
-
-	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
-		f.write(frappe.as_unicode(docs_template.format(**hooks)))
-
 	app_directory = os.path.join(dest, hooks.app_name)
 
 	if hooks.create_github_workflow:
@@ -381,18 +375,6 @@ app_license = "{app_license}"
 # ]
 """
 
-desktop_template = """from frappe import _
-
-def get_data():
-	return [
-		{{
-			"module_name": "{app_title}",
-			"type": "module",
-			"label": _("{app_title}")
-		}}
-	]
-"""
-
 setup_template = """from setuptools import setup, find_packages
 
 with open("requirements.txt") as f:
@@ -419,21 +401,7 @@ gitignore_template = """.DS_Store
 *.egg-info
 *.swp
 tags
-{app_name}/docs/current
-node_modules/"""
-
-docs_template = '''"""
-Configuration for docs
-"""
-
-# source_link = "https://github.com/[org_name]/{app_name}"
-# headline = "App that does everything"
-# sub_heading = "Yes, you got that right the first time, everything"
-
-def get_context(context):
-	context.brand_html = "{app_title}"
-'''
-
+node_modules"""
 
 github_workflow_template = """
 name: CI
