@@ -28,7 +28,7 @@ watch(
 			hovered ? 'hovered' : '',
 			store.selected(field.df.name) ? 'selected' : ''
 		]"
-		v-show="!field.df.remove"
+		v-show="!field.remove"
 		:title="field.df.fieldname"
 		@click.stop="editing = true"
 		@mouseover.stop="hovered = true"
@@ -59,7 +59,7 @@ watch(
 						<use href="#icon-edit"></use>
 					</svg>
 				</button>
-				<button class="btn btn-xs btn-icon" @click="$set(field, 'remove', true)">
+				<button class="btn btn-xs btn-icon" @click="field.remove =true">
 					<svg class="icon icon-sm">
 						<use href="#icon-close"></use>
 					</svg>
