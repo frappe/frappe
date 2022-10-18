@@ -42,7 +42,7 @@ function activate_tab(tab) {
 			:class="[active_tab == tab.df.name ? 'active' : '']"
 		>
 			<draggable
-				class="mb-4"
+				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
 				:animation="200"
@@ -92,6 +92,13 @@ function activate_tab(tab) {
 .tab-contents {
 	.tab-content {
 		display: none;
+
+		.tab-content-container {
+			overflow-y: auto;
+			max-height: calc(100vh - 220px);
+			margin-bottom: var(--margin-md);
+			border-radius: var(--border-radius);
+		}
 
 		&.active {
 			display: block;

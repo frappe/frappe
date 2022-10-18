@@ -87,8 +87,8 @@ let hovered = ref(false);
 		border-bottom: none;
 	}
 	.form-section {
-		background-color: white;
-		border: 1px solid white;
+		background-color: var(--fg-color);
+		border: 1px solid transparent;
 		border-radius: var(--border-radius);
 		padding: 1rem;
 		cursor: pointer;

@@ -9,7 +9,6 @@ export const useStore = defineStore("store", {
 		docfields: [],
 		layout: {},
 		selected_field: null,
-		hovered: false,
 		dirty: false,
 	}),
 	getters: {

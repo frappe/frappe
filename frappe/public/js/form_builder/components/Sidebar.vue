@@ -5,6 +5,7 @@ import { ref } from "vue";
 
 let tab_titles = [__("Field Types"), __("Field Properties")];
 let active_tab = ref(tab_titles[0]);
+
 </script>
 
 <template>
@@ -29,16 +30,33 @@ let active_tab = ref(tab_titles[0]);
 <style lang="scss" scoped>
 .tab-header {
 	display: flex;
-	gap: 10px;
+	justify-content: space-between;
 	align-items: center;
+	margin-bottom: 0.5rem;
 
 	.tab {
-		padding: 5px 10px;
-		border-radius: 5px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		height: 2rem;
+		border-radius: var(--border-radius-md);
+		border: 1px solid var(--dark-border-color);
 		cursor: pointer;
+
+		&:not(:first-child) {
+			border-left: none;
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+		}
+
+		&:first-child {
+			border-top-right-radius: 0;
+			border-bottom-right-radius: 0;
+		}
+
 		&.active {
-			background-color: var(--primary);
-			color: white;
+			background-color: var(--bg-gray);
 		}
 	}
 }

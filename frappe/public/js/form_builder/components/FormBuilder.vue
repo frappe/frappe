@@ -32,7 +32,6 @@ onMounted(() => store.fetch());
 
 	.form-container {
 		height: calc(100vh - 140px);
-		overflow-y: auto;
 		padding-top: 0.2rem;
 		padding-bottom: 2rem;
 
