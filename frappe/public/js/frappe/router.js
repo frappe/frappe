@@ -27,6 +27,7 @@ window.addEventListener("popstate", (e) => {
 	// forward-back button, just re-render based on current route
 	frappe.router.route();
 	e.preventDefault();
+	e.stopImmediatePropagation();
 	return false;
 });
 
