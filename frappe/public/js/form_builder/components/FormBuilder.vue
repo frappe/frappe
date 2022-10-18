@@ -1,7 +1,7 @@
 <script setup>
 import Sidebar from "./Sidebar.vue";
 import Tabs from "./Tabs.vue";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useStore } from "../store";
 
 let store = useStore();
@@ -9,6 +9,12 @@ let store = useStore();
 let should_render = computed(() => {
 	return Object.keys(store.layout).length !== 0;
 });
+
+watch(
+	() => store.layout,
+	() => (store.dirty = true),
+	{ deep: true }
+);
 
 onMounted(() => store.fetch());
 </script>
