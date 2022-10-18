@@ -16,6 +16,9 @@ watch(
 			nextTick(() => label_input.value.focus());
 			store.selected_field = props.field.df;
 		}
+		if (props.field.remove) {
+			store.selected_field = null;
+		}
 	},
 	{ deep: true }
 );
