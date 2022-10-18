@@ -42,14 +42,18 @@ watch(
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 0.5rem;
+	padding: var(--padding-sm);
+	background-color: var(--fg-color);
+	position: sticky;
+	top: 0;
+	z-index: 1;
 
 	.tab {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		width: 100%;
-		height: 2rem;
+		height: 32px;
 		border-radius: var(--border-radius-md);
 		border: 1px solid var(--dark-border-color);
 		cursor: pointer;

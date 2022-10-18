@@ -16,7 +16,9 @@ onMounted(() => store.fetch());
 <template>
 	<div class="layout-main-section row" v-if="should_render">
 		<div class="form-controls col-3">
-			<Sidebar />
+			<div class="form-sidebar">
+				<Sidebar />
+			</div>
 		</div>
 		<div class="form-container col-9">
 			<div class="form-main">
@@ -30,16 +32,13 @@ onMounted(() => store.fetch());
 .layout-main-section {
 	margin-bottom: -60px;
 
-	.form-container {
-		height: calc(100vh - 140px);
-		padding-top: 0.2rem;
-		padding-bottom: 2rem;
-
-		.form-main {
-			border-radius: var(--border-radius-md);
-			box-shadow: var(--card-shadow);
-			background-color: var(--card-bg);
-		}
+	.form-sidebar,
+	.form-main {
+		max-height: calc(100vh - 160px);
+		overflow-y: auto;
+		border-radius: var(--border-radius);
+		box-shadow: var(--card-shadow);
+		background-color: var(--card-bg);
 	}
 }
 </style>

@@ -61,8 +61,12 @@ function activate_tab(tab) {
 	display: flex;
 	align-items: center;
 	margin-bottom: 0;
-	padding-left: 5px;
+	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
+	padding-left: var(--padding-xs);
+	position: sticky;
+	top: 0;
+	z-index: 1;
 
 	.tab {
 		padding: var(--padding-md) 0;
@@ -94,10 +98,7 @@ function activate_tab(tab) {
 		display: none;
 
 		.tab-content-container {
-			overflow-y: auto;
-			max-height: calc(100vh - 220px);
 			margin-bottom: var(--margin-md);
-			border-radius: var(--border-radius);
 		}
 
 		&.active {

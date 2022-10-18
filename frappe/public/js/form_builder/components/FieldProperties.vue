@@ -58,9 +58,7 @@ let docfield_df = computed(() => {
 
 <style lang="scss" scoped>
 .control-data {
-	max-height: calc(100vh - 240px);
-	overflow-y: auto;
-
+	padding: 8px;
 	.field {
 		margin: 5px;
 		margin-top: 0;

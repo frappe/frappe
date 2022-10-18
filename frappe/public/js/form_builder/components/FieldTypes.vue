@@ -13,9 +13,7 @@ function clone_field(field) {
 let fields = computed(() => {
 	let fields = frappe.model.all_fieldtypes
 		.filter(df => {
-			if (
-				in_list(["Tab Break", "Section Break", "Column Break", "Fold"], df)
-			) {
+			if (in_list(["Tab Break", "Section Break", "Column Break", "Fold"], df)) {
 				return false;
 			}
 			if (search_text.value) {
@@ -57,10 +55,7 @@ let fields = computed(() => {
 		item-key="id"
 	>
 		<template #item="{ element }">
-			<div
-				class="field"
-				:title="element.df.fieldtype"
-			>
+			<div class="field" :title="element.df.fieldtype">
 				{{ element.df.fieldtype }}
 			</div>
 		</template>
@@ -69,25 +64,18 @@ let fields = computed(() => {
 
 <style lang="scss" scoped>
 .fields-container {
-	max-height: calc(100vh - 240px);
-	overflow-y: auto;
+	display: grid;
+	gap: 8px;
+	padding: 8px;
+	grid-template-columns: 1fr 1fr;
 
 	.field {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
 		background-color: var(--bg-light-gray);
 		border-radius: var(--border-radius);
 		border: 1px dashed var(--gray-400);
 		padding: 0.5rem 0.75rem;
-		margin: 5px;
-		margin-top: 0;
 		font-size: var(--text-sm);
 		cursor: pointer;
-
-		&:not(:first-child) {
-			margin-top: 0.5rem;
-		}
 	}
 }
 </style>
