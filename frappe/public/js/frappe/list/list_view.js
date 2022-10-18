@@ -1494,6 +1494,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		items.push({
+			label: __("Export Data", null, "Button in list view menu"),
+			action: () => frappe.require("data_import_tools.bundle.js", () => {
+				new frappe.data_import.DataExporter(doctype, 'Update Existing Records');
+			}),
+			standard: true,
+		});
+
 		if (frappe.model.can_set_user_permissions(doctype)) {
 			items.push({
 				label: __("User Permissions", null, "Button in list view menu"),
