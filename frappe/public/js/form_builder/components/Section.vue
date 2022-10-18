@@ -1,0 +1,150 @@
+<script setup>
+import draggable from "vuedraggable";
+import Field from "./Field.vue";
+
+let props = defineProps(["section"]);
+
+</script>
+
+<template>
+	<div class="form-section-container" v-if="!section.remove">
+		<div class="form-section">
+			<div :class="['section-header', section.df.label ? '' : 'hidden']">
+				<input
+					class="input-section-label"
+					type="text"
+					:placeholder="__('Section Title')"
+					v-model="section.df.label"
+				/>
+				<div class="d-flex align-items-center">
+					<div class="dropdown">
+						<button
+							class="btn btn-xs btn-section dropdown-button"
+							data-toggle="dropdown"
+						>
+							<svg class="icon icon-sm">
+								<use href="#icon-dot-horizontal"></use>
+							</svg>
+						</button>
+						<div class="dropdown-menu dropdown-menu-right" role="menu">
+							<!-- <button
+								v-for="(option, i) in section_options"
+								:key="i"
+								class="dropdown-item"
+								@click="option.action"
+							>
+								{{ option.label }}
+							</button> -->
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="section-columns">
+				<div
+					class="column col"
+					v-for="(column, i) in section.columns"
+					:key="i"
+				>
+					<draggable
+						class="drag-container"
+						:style="{
+							backgroundColor: column.fields.length ? null : 'var(--gray-50)'
+						}"
+						v-model="column.fields"
+						group="fields"
+						:animation="150"
+						item-key="id"
+					>
+						<template #item="{ element }">
+							<Field :field="element" />
+						</template>
+					</draggable>
+				</div>
+			</div>
+		</div>
+	</div>
+</template>
+
+<style lang="scss" scoped>
+.form-section-container {
+	border-bottom: 1px solid var(--border-color);
+
+	&:last-child {
+		border-bottom: none;
+	}
+	.form-section {
+		background-color: white;
+		border: 1px solid white;
+		border-radius: var(--border-radius);
+		padding: 1rem;
+		cursor: pointer;
+
+		&:last-child {
+			border-bottom-left-radius: var(--border-radius);
+			border-bottom-right-radius: var(--border-radius);
+		}
+
+		&:not(:first-child) {
+			margin-top: 1rem;
+		}
+
+		.section-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding-bottom: 0.75rem;
+
+			.input-section-label {
+				border: 1px solid transparent;
+				border-radius: var(--border-radius);
+				font-size: var(--text-md);
+				font-weight: 600;
+
+				&:focus {
+					border-color: var(--border-color);
+					outline: none;
+					background-color: var(--control-bg);
+				}
+
+				&::placeholder {
+					font-style: italic;
+					font-weight: normal;
+				}
+			}
+
+			.btn-section {
+				padding: var(--padding-xs);
+				box-shadow: none;
+
+				&:hover {
+					background-color: var(--bg-light-gray);
+				}
+			}
+		}
+
+		.section-columns {
+			display: flex;
+			flex-wrap: wrap;
+
+			.column {
+				padding-left: 8px;
+				padding-right: 8px;
+
+				&:first-child {
+					padding-left: 0px;
+				}
+
+				&:last-child {
+					padding-right: 0px;
+				}
+
+				.drag-container {
+					height: 100%;
+					min-height: 2rem;
+					border-radius: var(--border-radius);
+				}
+			}
+		}
+	}
+}
+</style>

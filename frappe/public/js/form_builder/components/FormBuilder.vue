@@ -1,5 +1,6 @@
 <script setup>
 import Sidebar from "./Sidebar.vue";
+import Tabs from "./Tabs.vue";
 import { computed, onMounted } from "vue";
 import { useStore } from "../store";
 
@@ -19,7 +20,7 @@ onMounted(() => store.fetch());
 		</div>
 		<div class="form-container col-9">
 			<div class="form-main">
-				<!-- <Tabs /> -->
+				<Tabs />
 			</div>
 		</div>
 	</div>
