@@ -42,6 +42,8 @@ function activate_tab(tab) {
 			:class="[active_tab == tab.df.name ? 'active' : '']"
 		>
 			<draggable
+				:scroll-sensitivity="100"
+				:force-fallback="true"
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"

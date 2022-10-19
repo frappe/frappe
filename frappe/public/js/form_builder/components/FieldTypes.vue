@@ -48,6 +48,8 @@ let fields = computed(() => {
 	<SearchBox v-model="search_text" />
 	<draggable
 		class="fields-container"
+		:scroll-sensitivity="100"
+		:force-fallback="true"
 		:list="fields"
 		:group="{ name: 'fields', pull: 'clone', put: false }"
 		:sort="false"
