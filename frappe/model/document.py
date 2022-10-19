@@ -952,7 +952,8 @@ class Document(BaseDocument):
 		if self.flags.notifications is None:
 
 			def _get_notifications():
-				"""get notifications for this doctype to use as generator in `hget()`"""
+				"""returns all notifications for the doctype"""
+
 				return frappe.get_all(
 					"Notification",
 					fields=["name", "event", "method"],
