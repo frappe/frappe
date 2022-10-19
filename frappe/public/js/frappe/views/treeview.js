@@ -37,6 +37,10 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 		let treeview = frappe.views.trees[route[1]];
 		treeview && treeview.make_tree();
 	}
+
+	get view_name() {
+		return "Tree";
+	}
 };
 
 frappe.views.TreeView = class TreeView {
@@ -196,6 +200,7 @@ frappe.views.TreeView = class TreeView {
 		});
 
 		cur_tree = this.tree;
+		cur_tree.view_name = "Tree";
 		this.post_render();
 	}
 
