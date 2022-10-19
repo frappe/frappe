@@ -17,7 +17,18 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 				});
 			}
 		});
+
+		this.img_wrapper = $(`<div class="signature-display">
+		<div class="missing-image attach-missing-image">
+			${frappe.utils.icon("restriction", "md")}</i>
+		</div></div>`).appendTo(this.wrapper);
+		this.img = $("<img class='img-responsive attach-image-display'>")
+		.appendTo(this.img_wrapper)
+		.toggle(false);
+
+
 	}
+
 	make_pad() {
 		let width = this.body.width();
 		if (width > 0 && !this.$pad) {
@@ -25,6 +36,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 				.jSignature({
 					height: 200,
 					color: "var(--text-color)",
+					"decor-color": "black",
 					width: this.body.width(),
 					lineWidth: 2,
 					"background-color": "var(--control-bg)",
@@ -43,15 +55,9 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 					this.on_reset_sign();
 					return false;
 				});
+			this.body.toggle(false);
 		}
 
-		this.img_wrapper = $(`<div class="signature-display">
-			<div class="missing-image attach-missing-image">
-				${frappe.utils.icon("restriction", "md")}</i>
-			</div></div>`).appendTo(this.wrapper);
-		this.img = $("<img class='img-responsive attach-image-display'>")
-			.appendTo(this.img_wrapper)
-			.toggle(false);
 	}
 	refresh_input() {
 		// signature dom is not ready
