@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "reference_doctype",
-  "reference_docname"
+  "reference_docname",
+  "email"
  ],
  "fields": [
   {
@@ -24,11 +25,17 @@
    "label": "Reference Name",
    "options": "reference_doctype",
    "reqd": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2022-08-03 12:20:50.466370",
+ "modified": "2022-10-18 17:49:33.549459",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event Participants",
