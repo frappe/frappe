@@ -1,13 +1,60 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useStore } from "../store";
 
 let props = defineProps(["section"]);
+let emit = defineEmits(["add_section_above"]);
 let store = useStore();
 
 let hovered = ref(false);
+
+function add_column() {
+	if (props.section.columns.length < 4) {
+		props.section.columns.push({
+			df: { fieldtype: "Column Break" },
+			new_field: true,
+			fields: []
+		});
+	}
+}
+function remove_column() {
+	if (props.section.columns.length <= 1) return;
+
+	let columns = props.section.columns.slice();
+	let last_column_fields = columns.slice(-1)[0].fields.slice();
+	let index = columns.length - 1;
+	columns = columns.slice(0, index);
+	let last_column = columns[index - 1];
+	last_column.fields = [...last_column.fields, ...last_column_fields];
+
+	props.section.columns = columns;
+}
+
+let section_options = computed(() => {
+	return [
+		{
+			label: __("Add section above"),
+			action: () => emit("add_section_above")
+		},
+		{
+			label: __("Add column"),
+			action: add_column,
+			condition: () => props.section.columns.length < 4
+		},
+		{
+			label: __("Remove column"),
+			action: remove_column,
+			condition: () => props.section.columns.length > 1
+		},
+		{
+			label: __("Remove section"),
+			action: () => props.section.remove = true
+		}
+	].filter(option => (option.condition ? option.condition() : true));
+});
+
 </script>
 
 <template>
@@ -40,14 +87,14 @@ let hovered = ref(false);
 							</svg>
 						</button>
 						<div class="dropdown-menu dropdown-menu-right" role="menu">
-							<!-- <button
+							<button
 								v-for="(option, i) in section_options"
 								:key="i"
 								class="dropdown-item"
 								@click="option.action"
 							>
 								{{ option.label }}
-							</button> -->
+							</button>
 						</div>
 					</div>
 				</div>

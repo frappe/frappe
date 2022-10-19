@@ -8,7 +8,7 @@ let store = useStore();
 
 let dragged = ref(false);
 let layout = computed(() => store.layout);
-let layout_height = computed(() => layout.value.tabs.length > 1 ? 210 : 160);
+let layout_height = computed(() => (layout.value.tabs.length > 1 ? 210 : 160));
 let active_tab = ref(layout.value.tabs[0].df.name);
 
 function activate_tab(tab) {
@@ -17,9 +17,32 @@ function activate_tab(tab) {
 }
 
 function drag_over(tab) {
-	!dragged.value && setTimeout(() => {
-		active_tab.value = tab.df.name;
-	}, 500);
+	!dragged.value &&
+		setTimeout(() => {
+			active_tab.value = tab.df.name;
+		}, 500);
+}
+
+function add_section_above(section) {
+	let sections = [];
+	let current_tab = layout.value.tabs.find(tab => tab.df.name == active_tab.value);
+	for (let _section of current_tab.sections) {
+		if (_section === section) {
+			sections.push({
+				df: {
+					name: frappe.utils.get_random(8),
+					fieldtype: "Section Break"
+				},
+				new_field: true,
+				columns: [
+					{ df: { fieldtype: "Column Break" }, new_field: true, fields: [] },
+					{ df: { fieldtype: "Column Break" }, new_field: true, fields: [] }
+				]
+			});
+		}
+		sections.push(_section);
+	}
+	current_tab.sections = sections;
 }
 </script>
 
@@ -60,7 +83,7 @@ function drag_over(tab) {
 				item-key="id"
 			>
 				<template #item="{ element }">
-					<Section :section="element" />
+					<Section :section="element" @add_section_above="add_section_above(element)" />
 				</template>
 			</draggable>
 		</div>
