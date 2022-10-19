@@ -567,12 +567,20 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 	Both have been mapped in a dict for easier mapping.
 	"""
 	repeat_on = {
-		"starts_on": get_datetime(start.get("date"))
-		if start.get("date")
-		else parser.parse(start.get("dateTime")).astimezone(ZoneInfo(get_time_zone())).replace(tzinfo=None),
-		"ends_on": get_datetime(end.get("date"))
-		if end.get("date")
-		else parser.parse(end.get("dateTime")).astimezone(ZoneInfo(get_time_zone())).replace(tzinfo=None),
+		"starts_on": (
+			get_datetime(start.get("date")) 
+			if start.get("date")
+			else parser.parse(start.get("dateTime"))
+				.astimezone(ZoneInfo(get_time_zone()))
+				.replace(tzinfo=None)
+		),
+		"ends_on": (
+			get_datetime(end.get("date"))
+			if end.get("date")
+			else parser.parse(end.get("dateTime"))
+				.astimezone(ZoneInfo(get_time_zone()))
+				.replace(tzinfo=None)
+		),
 		"all_day": 1 if start.get("date") else 0,
 		"repeat_this_event": 1 if recurrence else 0,
 		"repeat_on": None,
