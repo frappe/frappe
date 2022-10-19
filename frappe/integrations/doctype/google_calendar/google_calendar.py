@@ -4,11 +4,11 @@
 
 from datetime import datetime, timedelta
 from urllib.parse import quote
+from zoneinfo import ZoneInfo
 
 import google.oauth2.credentials
 import requests
 from dateutil import parser
-from zoneinfo import ZoneInfo
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -568,7 +568,7 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 	"""
 	repeat_on = {
 		"starts_on": (
-			get_datetime(start.get("date")) 
+			get_datetime(start.get("date"))
 			if start.get("date")
 			else parser.parse(start.get("dateTime"))
 			.astimezone(ZoneInfo(get_time_zone()))
