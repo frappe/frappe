@@ -950,14 +950,16 @@ class Document(BaseDocument):
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
 		if self.flags.notifications is None:
-			alerts = frappe.cache().hget("notifications", self.doctype)
-			if alerts is None:
-				alerts = frappe.get_all(
+
+			def _get_notifications():
+				"""get notifications for this doctype to use as generator in `hget()`"""
+				return frappe.get_all(
 					"Notification",
 					fields=["name", "event", "method"],
 					filters={"enabled": 1, "document_type": self.doctype},
 				)
-				frappe.cache().hset("notifications", self.doctype, alerts)
+
+			alerts = frappe.cache().hget("notifications", self.doctype, _get_notifications)
 			self.flags.notifications = alerts
 
 		if not self.flags.notifications:
