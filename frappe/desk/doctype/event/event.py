@@ -143,9 +143,13 @@ class Event(Document):
 			if participant.email:
 				continue
 
-			participant_contact = get_default_contact(
-				participant.reference_doctype, participant.reference_docname
-			)
+			if participant.reference_doctype != "Contact":
+				participant_contact = get_default_contact(
+					participant.reference_doctype, participant.reference_docname
+				)
+			else:
+				participant_contact = participant.reference_docname
+
 			participant.email = (
 				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else None
 			)
