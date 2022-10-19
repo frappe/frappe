@@ -6,6 +6,7 @@ import { ref, computed } from "vue";
 
 let store = useStore();
 
+let dragged = ref(false);
 let layout = computed(() => store.layout);
 let layout_height = computed(() => layout.value.tabs.length > 1 ? 210 : 160);
 let active_tab = ref(layout.value.tabs[0].df.name);
@@ -13,6 +14,12 @@ let active_tab = ref(layout.value.tabs[0].df.name);
 function activate_tab(tab) {
 	active_tab.value = tab.df.name;
 	store.selected_field = tab.df;
+}
+
+function drag_over(tab) {
+	!dragged.value && setTimeout(() => {
+		active_tab.value = tab.df.name;
+	}, 500);
 }
 </script>
 
@@ -29,6 +36,9 @@ function activate_tab(tab) {
 			<div
 				:class="['tab', active_tab == element.df.name ? 'active' : '']"
 				@click="activate_tab(element)"
+				@dragstart="dragged = true"
+				@dragend="dragged = false"
+				@dragover="drag_over(element)"
 			>
 				{{ element.df.label }}
 			</div>
