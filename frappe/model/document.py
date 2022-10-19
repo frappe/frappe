@@ -952,7 +952,7 @@ class Document(BaseDocument):
 		if self.flags.notifications is None:
 
 			def _get_notifications():
-				"""returns all notifications for the doctype"""
+				"""returns enabled notifications for the current doctype"""
 
 				return frappe.get_all(
 					"Notification",
