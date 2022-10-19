@@ -20,13 +20,13 @@ onMounted(() => store.fetch());
 </script>
 
 <template>
-	<div class="layout-main-section row" v-if="should_render">
-		<div class="form-controls col-3">
+	<div class="form-builder-container" v-if="should_render">
+		<div class="form-controls">
 			<div class="form-sidebar">
 				<Sidebar />
 			</div>
 		</div>
-		<div class="form-container col-9">
+		<div class="form-container">
 			<div class="form-main">
 				<Tabs />
 			</div>
@@ -35,8 +35,23 @@ onMounted(() => store.fetch());
 </template>
 
 <style lang="scss" scoped>
-.layout-main-section {
+.form-builder-container {
 	margin-bottom: -60px;
+	display: flex;
+	gap: 20px;
+
+	&.resizing {
+		user-select: none;
+		cursor: col-resize;
+	}
+
+	.form-controls {
+		position: relative;
+	}
+
+	.form-container {
+		flex: 1;
+	}
 
 	.form-sidebar,
 	.form-main {
