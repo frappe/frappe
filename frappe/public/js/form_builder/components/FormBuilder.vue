@@ -55,8 +55,6 @@ onMounted(() => store.fetch());
 
 	.form-sidebar,
 	.form-main {
-		max-height: calc(100vh - 160px);
-		overflow-y: auto;
 		border-radius: var(--border-radius);
 		box-shadow: var(--card-shadow);
 		background-color: var(--card-bg);

@@ -64,8 +64,6 @@ let hovered = ref(false);
 						:style="{
 							backgroundColor: column.fields.length ? null : 'var(--gray-50)'
 						}"
-						:scroll-sensitivity="100"
-						:force-fallback="true"
 						v-model="column.fields"
 						group="fields"
 						:animation="150"

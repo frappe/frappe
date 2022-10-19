@@ -7,6 +7,7 @@ import { ref, computed } from "vue";
 let store = useStore();
 
 let layout = computed(() => store.layout);
+let layout_height = computed(() => layout.value.tabs.length > 1 ? 210 : 160);
 let active_tab = ref(layout.value.tabs[0].df.name);
 
 function activate_tab(tab) {
@@ -34,7 +35,7 @@ function activate_tab(tab) {
 		</template>
 	</draggable>
 
-	<div class="tab-contents">
+	<div class="tab-contents" :style="{ maxHeight: `calc(100vh - ${layout_height}px)` }">
 		<div
 			class="tab-content"
 			v-for="(tab, i) in layout.tabs"
@@ -42,8 +43,6 @@ function activate_tab(tab) {
 			:class="[active_tab == tab.df.name ? 'active' : '']"
 		>
 			<draggable
-				:scroll-sensitivity="100"
-				:force-fallback="true"
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
@@ -62,13 +61,11 @@ function activate_tab(tab) {
 .tab-header {
 	display: flex;
 	align-items: center;
-	margin-bottom: 0;
 	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
 	padding-left: var(--padding-xs);
-	position: sticky;
-	top: 0;
-	z-index: 1;
+	border-top-left-radius: var(--border-radius);
+	border-top-right-radius: var(--border-radius);
 
 	.tab {
 		padding: var(--padding-md) 0;
@@ -96,6 +93,10 @@ function activate_tab(tab) {
 }
 
 .tab-contents {
+	overflow-y: auto;
+	border-radius: var(--border-radius);
+	min-height: 70px;
+
 	.tab-content {
 		display: none;
 

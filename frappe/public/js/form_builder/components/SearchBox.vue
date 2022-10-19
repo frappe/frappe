@@ -19,12 +19,10 @@
 <style lang="scss" scoped>
 .search-box {
 	display: flex;
+	position: relative;
 	padding: 0px 9px 9px;
 	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
-	position: sticky;
-	top: 52px;
-	z-index: 1;
 
 	.search-input {
 		padding-left: 30px;
@@ -32,11 +30,8 @@
 
 	.search-icon {
 		position: absolute;
-		top: -4px;
-		margin-left: 8px;
-		display: flex;
-		align-items: center;
-		height: 100%;
+		left: 16px;
+		top: 3px;
 	}
 }
 </style>

@@ -90,9 +90,8 @@ watch(
 	align-items: center;
 	padding: var(--padding-sm);
 	background-color: var(--fg-color);
-	position: sticky;
-	top: 0;
-	z-index: 1;
+	border-top-left-radius: var(--border-radius);
+	border-top-right-radius: var(--border-radius);
 
 	.tab {
 		display: flex;
