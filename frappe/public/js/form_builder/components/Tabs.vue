@@ -67,10 +67,22 @@ function add_new_tab() {
 }
 
 function remove_tab() {
-	let current_tab = layout.value.tabs.find(tab => tab.df.name == store.active_tab);
-	layout.value.tabs = layout.value.tabs.filter(tab => tab !== current_tab);
-	store.active_tab = layout.value.tabs[0].df.name;
-	store.selected_field = null;
+	frappe.confirm(
+		__(
+			"All the section and fields inside the tab will also be removed, are you sure you want to continue?"
+		),
+		() => {
+			let tab_index = layout.value.tabs.findIndex(tab => tab.df.name == store.active_tab);
+
+			// remove tab
+			layout.value.tabs.splice(tab_index, 1);
+
+			// activate previous tab
+			let index = tab_index == 0 ? 0 : tab_index - 1;
+			store.active_tab = layout.value.tabs[index].df.name;
+			store.selected_field = null;
+		},
+	);
 }
 </script>
 

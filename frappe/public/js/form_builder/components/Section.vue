@@ -26,12 +26,27 @@ function remove_column() {
 
 	let columns = visible_columns.value.slice();
 	let last_column_fields = columns.slice(-1)[0].fields.slice();
+
+	// remove last column
 	let index = columns.length - 1;
 	columns = columns.slice(0, index);
+
+	// move fields from last column to second last column
 	let last_column = columns[index - 1];
 	last_column.fields = [...last_column.fields, ...last_column_fields];
 
 	props.section.columns = columns;
+}
+function remove_section() {
+	frappe.confirm(
+		__(
+			"All the fields inside the section will also be removed, are you sure you want to continue?"
+		),
+		() => {
+			props.section.remove = true;
+			props.section.columns = [];
+		},
+	);
 }
 
 let section_options = computed(() => {
@@ -52,7 +67,7 @@ let section_options = computed(() => {
 		},
 		{
 			label: __("Remove section"),
-			action: () => props.section.remove = true,
+			action: remove_section,
 		}
 	].filter(option => (option.condition ? option.condition() : true));
 });
