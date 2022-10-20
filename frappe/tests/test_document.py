@@ -163,6 +163,12 @@ class TestDocument(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
 
+	def test_db_set_no_query_on_new_docs(self):
+		user = frappe.new_doc("User")
+		user.db_set("user_type", "Magical Wizard")
+		with self.assertQueryCount(0):
+			user.db_set("user_type", "Magical Wizard")
+
 	def test_update_after_submit(self):
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"
@@ -374,6 +380,12 @@ class TestDocument(FrappeTestCase):
 		# setting None should init a table field to empty list
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
+
+		# setting a string value should fail
+		self.assertRaises(TypeError, doc.set, "user_emails", "fail")
+		# but not when loading from db
+		doc.flags.ignore_children = True
+		doc.update({"user_emails": "ok"})
 
 	def test_doc_events(self):
 		"""validate that all present doc events are correct methods"""

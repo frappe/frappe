@@ -1,3 +1,4 @@
+from datetime import time
 from enum import Enum
 
 from pypika.functions import *
@@ -47,6 +48,9 @@ Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTO
 
 class _PostgresTimestamp(ArithmeticExpression):
 	def __init__(self, datepart, timepart, alias=None):
+		"""Postgres would need both datepart and timepart to be a string for concatenation"""
+		if isinstance(timepart, time) or isinstance(datepart, time):
+			timepart, datepart = str(timepart), str(datepart)
 		if isinstance(datepart, str):
 			datepart = Cast(datepart, "date")
 		if isinstance(timepart, str):

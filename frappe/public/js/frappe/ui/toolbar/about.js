@@ -5,26 +5,26 @@ frappe.ui.misc.about = function () {
 
 		$(d.body).html(
 			repl(
-				"<div>\
-		<p>" +
-					__("Open Source Applications for the Web") +
-					"</p>  \
-		<p><i class='fa fa-globe fa-fw'></i>\
-			Website: <a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>\
-		<p><i class='fa fa-github fa-fw'></i>\
-			Source: <a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>\
-		<p><i class='fa fa-linkedin fa-fw'></i>\
-			Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>\
-		<p><i class='fa fa-facebook fa-fw'></i>\
-			Facebook: <a href='https://facebook.com/erpnext' target='_blank'>https://facebook.com/erpnext</a></p>\
-		<p><i class='fa fa-twitter fa-fw'></i>\
-			Twitter: <a href='https://twitter.com/erpnext' target='_blank'>https://twitter.com/erpnext</a></p>\
-		<hr>\
-		<h4>Installed Apps</h4>\
-		<div id='about-app-versions'>Loading versions...</div>\
-		<hr>\
-		<p class='text-muted'>&copy; Frappe Technologies Pvt. Ltd. and contributors </p> \
-		</div>",
+				`<div>
+					<p>${__("Open Source Applications for the Web")}</p>
+					<p><i class='fa fa-globe fa-fw'></i>
+						${__("Website")}:
+						<a href='https://frappeframework.com' target='_blank'>https://frappeframework.com</a></p>
+					<p><i class='fa fa-github fa-fw'></i>
+						${__("Source")}:
+						<a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>
+					<p><i class='fa fa-linkedin fa-fw'></i>
+						Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>
+					<p><i class='fa fa-facebook fa-fw'></i>
+						Facebook: <a href='https://facebook.com/erpnext' target='_blank'>https://facebook.com/erpnext</a></p>
+					<p><i class='fa fa-twitter fa-fw'></i>
+						Twitter: <a href='https://twitter.com/erpnext' target='_blank'>https://twitter.com/erpnext</a></p>
+					<hr>
+					<h4>${__("Installed Apps")}</h4>
+					<div id='about-app-versions'>${__("Loading versions...")}</div>
+					<hr>
+					<p class='text-muted'>${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")} </p>
+					</div>`,
 				frappe.app
 			)
 		);

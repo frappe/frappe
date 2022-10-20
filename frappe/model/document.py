@@ -129,6 +129,7 @@ class Document(BaseDocument):
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
+		self.flags.ignore_children = True
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			single_doc = frappe.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
 			if not single_doc:
@@ -150,6 +151,7 @@ class Document(BaseDocument):
 				)
 
 			super().__init__(d)
+		self.flags.pop("ignore_children", None)
 
 		for df in self._get_table_fields():
 			# Make sure not to query the DB for a child table, if it is a virtual one.
@@ -948,15 +950,19 @@ class Document(BaseDocument):
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
 		if self.flags.notifications is None:
-			alerts = frappe.cache().hget("notifications", self.doctype)
-			if alerts is None:
-				alerts = frappe.get_all(
+
+			def _get_notifications():
+				"""returns enabled notifications for the current doctype"""
+
+				return frappe.get_all(
 					"Notification",
 					fields=["name", "event", "method"],
 					filters={"enabled": 1, "document_type": self.doctype},
 				)
-				frappe.cache().hset("notifications", self.doctype, alerts)
-			self.flags.notifications = alerts
+
+			self.flags.notifications = frappe.cache().hget(
+				"notifications", self.doctype, _get_notifications
+			)
 
 		if not self.flags.notifications:
 			return
@@ -1171,6 +1177,9 @@ class Document(BaseDocument):
 
 		# to trigger notification on value change
 		self.run_method("before_change")
+
+		if self.name is None:
+			return
 
 		frappe.db.set_value(
 			self.doctype,

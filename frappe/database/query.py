@@ -5,6 +5,7 @@ from functools import cached_property
 from types import BuiltinFunctionType
 from typing import TYPE_CHECKING, Callable
 
+import sqlparse
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
@@ -15,6 +16,7 @@ from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumn
 from frappe.utils import cstr
+from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -538,7 +540,8 @@ class Engine:
 	def get_fieldnames_from_child_table(self, doctype, fields):
 		# Hacky and flaky implementation of implicit joins.
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
-		for idx, field in enumerate(fields, start=0):
+		_fields = []
+		for field in fields:
 			if "." in field and "tab" not in field:
 				alias = None
 				if " as " in field:
@@ -552,12 +555,63 @@ class Engine:
 				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
-				fields[idx] = field
+				_fields.append(field)
 
+			return _fields
+
+	def sanitize_fields(self, fields: str | list | tuple):
+		is_mariadb = frappe.db.db_type == "mariadb"
+
+		def _sanitize_field(field: str):
+			if not isinstance(field, str):
+				return field
+			stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
+			if is_mariadb:
+				return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
+			return stripped_field
+
+		if isinstance(fields, (list, tuple)):
+			return [_sanitize_field(field) for field in fields]
+		elif isinstance(fields, str):
+			return _sanitize_field(fields)
+
+		return fields
+
+	def get_list_fields(self, fields: list) -> list:
+		updated_fields = []
+		if issubclass(type(fields), Criterion) or "*" in fields:
+			return fields
+		# fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
+		for field in fields:
+			if not isinstance(field, Criterion) and field:
+				if " as " in field:
+					field, reference = field.split(" as ")
+					if "`" in field:
+						updated_fields.append(PseudoColumn(f"{field} as {reference}"))
+					else:
+						updated_fields.append(Field(field.strip()).as_(reference))
+				elif "`" in str(field):
+					updated_fields.append(PseudoColumn(field.strip()))
+				else:
+					updated_fields.append(Field(field))
+		return updated_fields
+
+	def get_string_fields(self, fields: str) -> Field:
+		if fields == "*":
+			return fields
+		if "`" in fields:
+			fields = PseudoColumn(fields)
+		if " as " in str(fields):
+			fields, reference = str(fields).split(" as ")
+			if "`" in str(fields):
+				fields = PseudoColumn(f"{fields} as {reference}")
+			else:
+				fields = Field(fields).as_(reference)
 		return fields
 
 	def set_fields(self, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
+		fields = self.sanitize_fields(fields)
 		if isinstance(fields, list) and None in fields and Field not in fields:
 			return None
 		function_objects = []
@@ -581,39 +635,9 @@ class Engine:
 			is_list, is_str = True, False
 
 		if is_str:
-			if fields == "*":
-				return fields
-			if "`" in fields:
-				fields = PseudoColumn(fields)
-			if " as " in str(fields):
-				fields, reference = str(fields).split(" as ")
-				if "`" in str(fields):
-					fields = PseudoColumn(f"{fields} as {reference}")
-				else:
-					fields = Field(fields).as_(reference)
-
+			fields = self.get_string_fields(fields)
 		if not is_str and fields:
-			if issubclass(type(fields), Criterion):
-				return fields
-			updated_fields = []
-			if "*" in fields:
-				return fields
-			# fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
-			for field in fields:
-				if not isinstance(field, Criterion) and field:
-					if " as " in field:
-						field, reference = field.split(" as ")
-						if "`" in field:
-							updated_fields.append(PseudoColumn(f"{field} as {reference}"))
-						else:
-							updated_fields.append(Field(field.strip()).as_(reference))
-
-					elif "`" in str(field):
-						updated_fields.append(PseudoColumn(field.strip()))
-					else:
-						updated_fields.append(Field(field))
-
-			fields = updated_fields
+			fields = self.get_list_fields(fields)
 
 		# Need to check instance again since fields modified.
 		if not isinstance(fields, (list, tuple, set)):
@@ -636,29 +660,18 @@ class Engine:
 					and (f"`tab{table}`" not in str(field))
 				):
 					has_join = True
-					join_table = table_from_string(str(field))
-					# check for already joined tables
-					if joined_tables.get("left_join") != join_table:
-						if self.fieldname:
-							criterion = criterion.left_join(join_table).on(
-								getattr(join_table, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
-							)
-							joined_tables["left_join"] = join_table
-						else:
-							criterion = criterion.left_join(join_table).on(
-								getattr(join_table, "parent") == getattr(frappe.qb.DocType(table), "name")
-							)
-							joined_tables["left_join"] = join_table
 
-				if has_join:
-					for idx, field in enumerate(fields):
-						if not is_pypika_function_object(field):
-							field = field if isinstance(field, str) else field.get_sql()
-							if not TABLE_PATTERN.search(str(field)):
-								fields[idx] = getattr(frappe.qb.DocType(table), field)
-						else:
-							field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-							fields[idx] = field
+			if has_join:
+				def _update_pypika_fields(field):
+					if not is_pypika_function_object(field):
+						field = field if isinstance(field, str) else field.get_sql()
+						if not TABLE_PATTERN.search(str(field)):
+							return getattr(frappe.qb.DocType(table), field)
+					else:
+						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
+						return field
+
+				fields = [_update_pypika_fields(field) for field in fields]
 
 		if len(self.tables) > 1:
 			primary_table = self.tables.pop(table)

@@ -237,7 +237,7 @@ class User(Document):
 		)
 
 	def share_with_self(self):
-		frappe.share.add(
+		frappe.share.add_docshare(
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
@@ -901,6 +901,7 @@ def reset_password(user):
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_filters_cond, get_match_cond
 
+	doctype = "User"
 	conditions = []
 
 	user_type_condition = "and user_type != 'Website User'"

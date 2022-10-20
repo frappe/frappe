@@ -305,13 +305,16 @@ def make_boilerplate(
 			def db_update(self):
 				pass
 
-			def get_list(self, args):
+			@staticmethod
+			def get_list(args):
 				pass
 
-			def get_count(self, args):
+			@staticmethod
+			def get_count(args):
 				pass
 
-			def get_stats(self, args):
+			@staticmethod
+			def get_stats(args):
 				pass
 			"""
 			),

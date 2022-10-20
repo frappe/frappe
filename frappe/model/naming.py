@@ -165,16 +165,7 @@ def set_new_name(doc):
 	if not doc.name and autoname:
 		set_name_from_naming_options(autoname, doc)
 
-	# if the autoname option is 'field:' and no name was derived, we need to
-	# notify
-	if not doc.name and autoname.startswith("field:"):
-		fieldname = autoname[6:]
-		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
-
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name and autoname == "hash":
-		doc.name = make_autoname("hash", doc.doctype)
-
 	if not doc.name:
 		doc.name = make_autoname("hash", doc.doctype)
 
@@ -220,6 +211,13 @@ def set_name_from_naming_options(autoname, doc):
 
 	if _autoname.startswith("field:"):
 		doc.name = _field_autoname(autoname, doc)
+
+		# if the autoname option is 'field:' and no name was derived, we need to
+		# notify
+		if not doc.name:
+			fieldname = autoname[6:]
+			frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
+
 	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
 	elif _autoname.startswith("prompt"):
@@ -275,8 +273,8 @@ def make_autoname(key="", doctype="", doc=""):
 
 	*Example:*
 
-	              * DE/./.YY./.MM./.##### will create a series like
-	                DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
+	              * DE./.YY./.MM./.##### will create a series like
+	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
 		return frappe.generate_hash(doctype, 10)

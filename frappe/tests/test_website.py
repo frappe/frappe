@@ -317,6 +317,22 @@ class TestWebsite(FrappeTestCase):
 		self.assertIn('<meta name="title" content="Test Title Metatag">', content)
 		self.assertIn('<meta name="description" content="Test Description for Metatag">', content)
 
+	def test_resolve_class(self):
+		from frappe.utils.jinja_globals import resolve_class
+
+		context = frappe._dict(primary=True)
+		self.assertEqual(resolve_class("test"), "test")
+		self.assertEqual(resolve_class("test", "test-2"), "test test-2")
+		self.assertEqual(resolve_class("test", {"test-2": False, "test-3": True}), "test test-3")
+		self.assertEqual(
+			resolve_class(["test1", "test2", context.primary and "primary"]), "test1 test2 primary"
+		)
+
+		content = '<a class="{{ resolve_class("btn btn-default", primary and "btn-primary") }}">Test</a>'
+		self.assertEqual(
+			frappe.render_template(content, context), '<a class="btn btn-default btn-primary">Test</a>'
+		)
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks
