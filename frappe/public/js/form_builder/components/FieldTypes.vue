@@ -2,7 +2,9 @@
 import SearchBox from "./SearchBox.vue";
 import draggable from "vuedraggable";
 import { ref, computed } from "vue";
+import { useStore } from "../store";
 
+let store = useStore();
 let search_text = ref("");
 
 function clone_field(field) {
@@ -27,12 +29,7 @@ let fields = computed(() => {
 		})
 		.map(df => {
 			let out = {
-				df: {
-					label: "",
-					fieldname: "",
-					fieldtype: df,
-					options: "",
-				},
+				df: store.get_df(df),
 				table_columns: [],
 				new_field: true,
 			};

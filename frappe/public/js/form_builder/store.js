@@ -16,6 +16,16 @@ export const useStore = defineStore("store", {
 		selected: (state) => {
 			return (name) => state.selected_field?.name == name;
 		},
+		get_df() {
+			return (fieldtype, fieldname = "", label = "") => {
+				let df = frappe.model.get_new_doc("DocField");
+				df.name = frappe.utils.get_random(8);
+				df.fieldtype = fieldtype;
+				df.fieldname = fieldname;
+				df.label = label;
+				return df;
+			};
+		},
 	},
 	actions: {
 		async fetch() {
@@ -38,7 +48,7 @@ export const useStore = defineStore("store", {
 			this.selected_field = first_tab.df;
 		},
 		get_layout() {
-			return create_layout(this.fields);
+			return create_layout(this.fields, this.get_df);
 		},
 	},
 });

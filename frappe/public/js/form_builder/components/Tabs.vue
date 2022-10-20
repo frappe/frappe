@@ -23,22 +23,33 @@ function drag_over(tab) {
 		}, 500);
 }
 
+function section_boilerplate() {
+	return [
+		{
+			df: store.get_df("Section Break"),
+			columns: [
+				{
+					df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+					fields: [],
+					new_field: true,
+				},
+				{
+					df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+					fields: [],
+					new_field: true,
+				}
+			],
+			new_field: true,
+		}
+	];
+}
+
 function add_section_above(section) {
 	let sections = [];
 	let current_tab = layout.value.tabs.find(tab => tab.df.name == store.active_tab);
 	for (let _section of current_tab.sections) {
 		if (_section === section) {
-			sections.push({
-				df: {
-					name: frappe.utils.get_random(8),
-					fieldtype: "Section Break"
-				},
-				new_field: true,
-				columns: [
-					{ df: { fieldtype: "Column Break" }, new_field: true, fields: [] },
-					{ df: { fieldtype: "Column Break" }, new_field: true, fields: [] }
-				]
-			});
+			sections.push(section_boilerplate());
 		}
 		sections.push(_section);
 	}
@@ -47,24 +58,10 @@ function add_section_above(section) {
 
 function add_new_tab() {
 	let tab = {
-		df: {
-			label: "Tab " + (layout.value.tabs.length + 1),
-			name: frappe.utils.get_random(8),
-			fieldtype: "Tab Break"
-		},
-		sections: [{
-			df: {
-				name: frappe.utils.get_random(8),
-				fieldtype: "Section Break"
-			},
-			columns: [
-				{ df: { fieldtype: "Column Break" }, fields: [], new_field: true },
-				{ df: { fieldtype: "Column Break" }, fields: [], new_field: true }
-			],
-			new_field: true,
-		}],
-		new_field: true,
-	}
+		df: store.get_df("Tab Break", "", "Tab " + (layout.value.tabs.length + 1)),
+		sections: section_boilerplate(),
+	};
+
 	layout.value.tabs.push(tab);
 	activate_tab(tab);
 }
@@ -111,7 +108,7 @@ function remove_tab() {
 					<use href="#icon-add"></use>
 				</svg>
 				<div class="add-btn-text" v-else>
-					{{ __('Add new tab') }}
+					{{ __("Add new tab") }}
 				</div>
 			</button>
 			<button

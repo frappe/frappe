@@ -1,4 +1,4 @@
-export function create_layout(fields) {
+export function create_layout(fields, get_df) {
 	let layout = {
 		tabs: [],
 	};
@@ -32,10 +32,7 @@ export function create_layout(fields) {
 	function get_new_tab(df) {
 		let _tab = {};
 		if (!df) {
-			df = {
-				label: __("Details"),
-				fieldtype: "Tab Break",
-			};
+			df = get_df("Tab Break", "", __("Details"));
 			_tab.new_field = true;
 		}
 		_tab.df = df;
@@ -46,10 +43,7 @@ export function create_layout(fields) {
 	function get_new_section(df) {
 		let _section = {};
 		if (!df) {
-			df = {
-				name: frappe.utils.get_random(8),
-				fieldtype: "Section Break",
-			};
+			df = get_df("Section Break");
 			_section.new_field = true;
 		}
 		_section.df = df;
@@ -60,7 +54,7 @@ export function create_layout(fields) {
 	function get_new_column(df) {
 		let _column = {};
 		if (!df) {
-			df = { fieldtype: "Column Break" };
+			df = get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
 			_column.new_field = true;
 		}
 		_column.df = df;

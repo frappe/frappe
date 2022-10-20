@@ -10,19 +10,21 @@ let store = useStore();
 
 let hovered = ref(false);
 
+let visible_columns = computed(() => props.section.columns.filter(c => !c.remove));
+
 function add_column() {
-	if (props.section.columns.length < 4) {
+	if (visible_columns.value.length < 4) {
 		props.section.columns.push({
-			df: { fieldtype: "Column Break" },
+			df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
 			new_field: true,
-			fields: []
+			fields: [],
 		});
 	}
 }
 function remove_column() {
-	if (props.section.columns.length <= 1) return;
+	if (visible_columns.value.length <= 1) return;
 
-	let columns = props.section.columns.slice();
+	let columns = visible_columns.value.slice();
 	let last_column_fields = columns.slice(-1)[0].fields.slice();
 	let index = columns.length - 1;
 	columns = columns.slice(0, index);
@@ -36,25 +38,24 @@ let section_options = computed(() => {
 	return [
 		{
 			label: __("Add section above"),
-			action: () => emit("add_section_above")
+			action: () => emit("add_section_above"),
 		},
 		{
 			label: __("Add column"),
 			action: add_column,
-			condition: () => props.section.columns.length < 4
+			condition: () => visible_columns.value.length < 4,
 		},
 		{
 			label: __("Remove column"),
 			action: remove_column,
-			condition: () => props.section.columns.length > 1
+			condition: () => visible_columns.value.length > 1,
 		},
 		{
 			label: __("Remove section"),
-			action: () => props.section.remove = true
+			action: () => props.section.remove = true,
 		}
 	].filter(option => (option.condition ? option.condition() : true));
 });
-
 </script>
 
 <template>
@@ -102,7 +103,7 @@ let section_options = computed(() => {
 			<div class="section-columns">
 				<div
 					class="column col"
-					v-for="(column, i) in section.columns"
+					v-for="(column, i) in visible_columns"
 					:key="i"
 					@mouseover.stop="hovered = false"
 				>
