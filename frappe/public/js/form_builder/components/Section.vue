@@ -16,7 +16,6 @@ function add_column() {
 	if (visible_columns.value.length < 4) {
 		props.section.columns.push({
 			df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-			new_field: true,
 			fields: [],
 		});
 	}

@@ -31,33 +31,21 @@ export function create_layout(fields, get_df) {
 
 	function get_new_tab(df) {
 		let _tab = {};
-		if (!df) {
-			df = get_df("Tab Break", "", __("Details"));
-			_tab.new_field = true;
-		}
-		_tab.df = df;
+		_tab.df = df || get_df("Tab Break", "", __("Details"));
 		_tab.sections = [];
 		return _tab;
 	}
 
 	function get_new_section(df) {
 		let _section = {};
-		if (!df) {
-			df = get_df("Section Break");
-			_section.new_field = true;
-		}
-		_section.df = df;
+		_section.df = df || get_df("Section Break");
 		_section.columns = [];
 		return _section;
 	}
 
 	function get_new_column(df) {
 		let _column = {};
-		if (!df) {
-			df = get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
-			_column.new_field = true;
-		}
-		_column.df = df;
+		_column.df = df || get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
 		_column.fields = [];
 		return _column;
 	}

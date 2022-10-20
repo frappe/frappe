@@ -31,15 +31,12 @@ function section_boilerplate() {
 				{
 					df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
 					fields: [],
-					new_field: true,
 				},
 				{
 					df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
 					fields: [],
-					new_field: true,
 				}
 			],
-			new_field: true,
 		}
 	];
 }

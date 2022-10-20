@@ -31,7 +31,6 @@ let fields = computed(() => {
 			let out = {
 				df: store.get_df(df),
 				table_columns: [],
-				new_field: true,
 			};
 			return out;
 		});
