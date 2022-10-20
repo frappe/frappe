@@ -218,7 +218,7 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
-		if value:
+		if value is not None:
 			value = pickle.loads(value)
 			frappe.local.cache[_name][key] = value
 		elif generator:
