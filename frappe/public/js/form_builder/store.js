@@ -5,7 +5,7 @@ import { nextTick } from "vue";
 export const useStore = defineStore("store", {
 	state: () => ({
 		doctype: "",
-		fields: [],
+		doc: null,
 		docfields: [],
 		layout: {},
 		active_tab: "",
@@ -31,7 +31,7 @@ export const useStore = defineStore("store", {
 		async fetch() {
 			await frappe.model.clear_doc("DocType", this.doctype);
 			await frappe.model.with_doctype(this.doctype);
-			this.fields = frappe.get_meta(this.doctype).fields;
+			this.doc = frappe.get_doc("DocType", this.doctype);
 
 			if (!this.docfields.length) {
 				await frappe.model.with_doctype("DocField");
@@ -45,10 +45,65 @@ export const useStore = defineStore("store", {
 			await this.fetch();
 			let first_tab = this.layout.tabs[0];
 			this.active_tab = first_tab.df.name;
-			this.selected_field = first_tab.df;
+			this.selected_field = null;
+		},
+		save_changes() {
+			frappe.dom.freeze(__("Saving..."));
+
+			let fields = [];
+			let idx = 0;
+
+			this.layout.tabs.forEach((tab) => {
+				idx++;
+				tab.df.idx = idx;
+				fields.push(tab.df);
+
+				tab.sections
+					.filter((section) => !section.remove)
+					.forEach((section, i) => {
+						// do not consider first section if label is not set
+						if ((i == 0 && section.df.label) || i > 0) {
+							idx++;
+							section.df.idx = idx;
+							fields.push(section.df);
+						}
+
+						section.columns
+							.filter((column) => !column.remove)
+							.forEach((column, j) => {
+								// do not consider first column
+								if (j > 0) {
+									idx++;
+									column.df.idx = idx;
+									fields.push(column.df);
+								}
+
+								column.fields
+									.filter((field) => !field.remove)
+									.forEach((field) => {
+										idx++;
+										field.df.idx = idx;
+										fields.push(field.df);
+									});
+							});
+					});
+			});
+
+			// update fields table with latest changes
+			this.doc.fields = fields;
+
+			frappe
+				.call("frappe.client.save", {
+					doc: this.doc,
+				})
+				.then(() => {
+					this.fetch();
+					frappe.toast("Fields Table Updated");
+				})
+				.always(() => frappe.dom.unfreeze());
 		},
 		get_layout() {
-			return create_layout(this.fields, this.get_df);
+			return create_layout(this.doc.fields, this.get_df);
 		},
 	},
 });

@@ -18,6 +18,8 @@ class FormBuilder {
 		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
 
 		// setup page actions
+		this.page.set_primary_action(__("Save"), () => this.store.save_changes());
+
 		this.reset_changes_btn = this.page.add_button(__("Reset Changes"), () => {
 			this.store.reset_changes();
 		});
