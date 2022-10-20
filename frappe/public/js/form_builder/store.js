@@ -8,6 +8,7 @@ export const useStore = defineStore("store", {
 		fields: [],
 		docfields: [],
 		layout: {},
+		active_tab: "",
 		selected_field: null,
 		dirty: false,
 	}),
@@ -17,22 +18,24 @@ export const useStore = defineStore("store", {
 		},
 	},
 	actions: {
-		fetch() {
-			return new Promise((resolve) => {
-				frappe.model.clear_doc("DocType", this.doctype);
-				frappe.model.with_doctype(this.doctype, () => {
-					this.fields = frappe.get_meta(this.doctype).fields;
-					frappe.model.with_doctype("DocField", () => {
-						this.docfields = frappe.get_meta("DocField").fields;
-						this.layout = this.get_layout();
-						nextTick(() => (this.dirty = false));
-						resolve();
-					});
-				});
-			});
+		async fetch() {
+			await frappe.model.clear_doc("DocType", this.doctype);
+			await frappe.model.with_doctype(this.doctype);
+			this.fields = frappe.get_meta(this.doctype).fields;
+
+			if (!this.docfields.length) {
+				await frappe.model.with_doctype("DocField");
+				this.docfields = frappe.get_meta("DocField").fields;
+			}
+
+			this.layout = this.get_layout();
+			nextTick(() => (this.dirty = false));
 		},
-		reset_changes() {
-			this.fetch();
+		async reset_changes() {
+			await this.fetch();
+			let first_tab = this.layout.tabs[0];
+			this.active_tab = first_tab.df.name;
+			this.selected_field = first_tab.df;
 		},
 		get_layout() {
 			return create_layout(this.fields);
