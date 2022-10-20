@@ -24,21 +24,19 @@ function drag_over(tab) {
 }
 
 function section_boilerplate() {
-	return [
-		{
-			df: store.get_df("Section Break"),
-			columns: [
-				{
-					df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-					fields: [],
-				},
-				{
-					df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-					fields: [],
-				}
-			],
-		}
-	];
+	return {
+		df: store.get_df("Section Break"),
+		columns: [
+			{
+				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				fields: [],
+			},
+			{
+				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				fields: [],
+			}
+		],
+	};
 }
 
 function add_section_above(section) {
@@ -56,7 +54,7 @@ function add_section_above(section) {
 function add_new_tab() {
 	let tab = {
 		df: store.get_df("Tab Break", "", "Tab " + (layout.value.tabs.length + 1)),
-		sections: section_boilerplate(),
+		sections: [section_boilerplate()],
 	};
 
 	layout.value.tabs.push(tab);
