@@ -287,7 +287,7 @@ class Engine:
 		return conditions
 
 	@staticmethod
-	def get_condition_from_nested_sets(value: list | tuple, table: str):
+	def get_nested_set_hierarchy_result(value: list | tuple, table: str):
 		field = frappe.meta.get_field("name")
 		ref_doctype = field.options if field else table
 		lft, rgt = "", ""
@@ -382,7 +382,7 @@ class Engine:
 			# Nested set support
 			if isinstance(value, (list, tuple)):
 				if value in self.OPERATOR_MAP["nested_set"]:
-					result = self.get_condition_from_nested_sets(value, table)
+					result = self.get_nested_set_hierarchy_result(value, table)
 					if result:
 						_value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in result]
 						_operator = (
