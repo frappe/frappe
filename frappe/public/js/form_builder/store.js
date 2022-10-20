@@ -48,6 +48,11 @@ export const useStore = defineStore("store", {
 			this.selected_field = null;
 		},
 		save_changes() {
+			if (!this.dirty) {
+				frappe.show_alert({ message: __("No changes to save"), indicator: "orange" });
+				return;
+			}
+
 			frappe.dom.freeze(__("Saving..."));
 
 			let fields = [];
