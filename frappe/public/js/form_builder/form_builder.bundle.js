@@ -18,9 +18,9 @@ class FormBuilder {
 		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
 
 		// setup page actions
-		let $reset_changes_btn = this.page.add_button(__("Reset Changes"), () =>
-			store.reset_changes()
-		);
+		this.reset_changes_btn = this.page.add_button(__("Reset Changes"), () => {
+			this.store.reset_changes();
+		});
 
 		this.page.add_menu_item(__("Go to {0} Doctype", [this.doctype]), () =>
 			frappe.set_route("Form", "DocType", this.doctype)
@@ -35,22 +35,22 @@ class FormBuilder {
 		app.use(pinia);
 
 		// create a store
-		let store = useStore();
-		store.doctype = this.doctype;
+		this.store = useStore();
+		this.store.doctype = this.doctype;
 
 		// mount the app
 		this.$form_builder = app.mount(this.$wrapper.get(0));
 
 		// watch for changes
 		watch(
-			() => store.dirty,
+			() => this.store.dirty,
 			(dirty) => {
 				if (dirty) {
 					this.page.set_indicator("Not Saved", "orange");
-					$reset_changes_btn.show();
+					this.reset_changes_btn.show();
 				} else {
 					this.page.clear_indicator();
-					$reset_changes_btn.hide();
+					this.reset_changes_btn.hide();
 				}
 			},
 			{ immediate: true }

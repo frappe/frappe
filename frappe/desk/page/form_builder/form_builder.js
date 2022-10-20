@@ -21,7 +21,10 @@ function load_form_builder(wrapper) {
 	if (route.length > 1) {
 		let doctype = frappe.router.routes[route[1]].doctype;
 
-		if (frappe.form_builder?.doctype == doctype) return;
+		if (frappe.form_builder?.doctype == doctype) {
+			frappe.form_builder.store.fetch();
+			return;
+		}
 
 		let $parent = $(wrapper).find(".layout-main-section");
 		$parent.empty();
