@@ -19,14 +19,12 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		});
 
 		this.img_wrapper = $(`<div class="signature-display">
-		<div class="missing-image attach-missing-image">
-			${frappe.utils.icon("restriction", "md")}</i>
-		</div></div>`).appendTo(this.wrapper);
+			<div class="missing-image attach-missing-image">
+				${frappe.utils.icon("restriction", "md")}</i>
+			</div></div>`).appendTo(this.wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")
-		.appendTo(this.img_wrapper)
-		.toggle(false);
-
-
+			.appendTo(this.img_wrapper)
+			.toggle(false);
 	}
 
 	make_pad() {
@@ -57,7 +55,6 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 				});
 			this.body.toggle(false);
 		}
-
 	}
 	refresh_input() {
 		// signature dom is not ready
