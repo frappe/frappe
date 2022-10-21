@@ -287,14 +287,13 @@ class Engine:
 		return conditions
 
 	@staticmethod
-	def get_nested_set_hierarchy_result(value: list | tuple, table: str):
+	def get_nested_set_hierarchy_result(hierarchy: str, field: str, table: str):
 		ref_doctype = table
 		lft, rgt = "", ""
 		lft, rgt = (
-			frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == value[1]).run()[0]
+			frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == field).run()[0]
 		)
-
-		if value in ("descendants of", "not descendants of"):
+		if hierarchy in ("descendants of", "not descendants of"):
 			result = (
 				frappe.qb.from_(ref_doctype)
 				.select(Field("name"))
@@ -381,15 +380,17 @@ class Engine:
 			# Nested set support
 			if isinstance(value, (list, tuple)):
 				if value[0] in self.OPERATOR_MAP["nested_set"]:
-					result = self.get_nested_set_hierarchy_result(value, table)
-					if result:
-						_value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in result]
-						_operator = (
+					hierarchy, _field = value
+					result = self.get_nested_set_hierarchy_result(hierarchy, _field, table)
+					_operator = (
 							self.OPERATOR_MAP["not in"]
-							if value in ("not ancestors of", "not descendants of")
+							if hierarchy in ("not ancestors of", "not descendants of")
 							else self.OPERATOR_MAP["in"]
 						)
-						return conditions.where(_operator(getattr(table, key), _value))
+					if result:
+						return conditions.where(_operator(getattr(table, key), result[0]))
+					else:
+						return conditions.where(_operator(getattr(table, key),("",)))
 
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
 				_value = value[1] if value[1] else ("",)
