@@ -88,6 +88,7 @@ frappe.router = {
 		"dashboard",
 		"image",
 		"inbox",
+		"map",
 	],
 	list_views_route: {
 		list: "List",
@@ -100,6 +101,7 @@ frappe.router = {
 		image: "Image",
 		inbox: "Inbox",
 		file: "Home",
+		map: "Map",
 	},
 	layout_mapped: {},
 
