@@ -288,11 +288,10 @@ class Engine:
 
 	@staticmethod
 	def get_nested_set_hierarchy_result(value: list | tuple, table: str):
-		field = frappe.meta.get_field("name")
-		ref_doctype = field.options if field else table
+		ref_doctype = table
 		lft, rgt = "", ""
 		lft, rgt = (
-			frappe.qb.from_(ref_doctype).select(["lft", "rgt"]).where(Field("name") == value[1]).run()
+			frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == value[1]).run()[0]
 		)
 
 		if value in ("descendants of", "not descendants of"):
@@ -381,7 +380,7 @@ class Engine:
 				continue
 			# Nested set support
 			if isinstance(value, (list, tuple)):
-				if value in self.OPERATOR_MAP["nested_set"]:
+				if value[0] in self.OPERATOR_MAP["nested_set"]:
 					result = self.get_nested_set_hierarchy_result(value, table)
 					if result:
 						_value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in result]
