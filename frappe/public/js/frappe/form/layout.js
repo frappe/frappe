@@ -144,8 +144,16 @@ frappe.ui.form.Layout = class Layout {
 				fieldname: "__details",
 			};
 			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
+
 			if (!first_tab) {
-				this.fields.splice(1, 0, default_tab);
+				this.fields.splice(0, 0, default_tab);
+			} else {
+				// reshuffle __newname field to accomodate under 1st Tab Break
+				let newname_field = this.fields.find((df) => df.fieldname === "__newname");
+				if (newname_field && newname_field.get_status(this) === "Write") {
+					this.fields.splice(0, 1);
+					this.fields.splice(1, 0, newname_field);
+				}
 			}
 		}
 

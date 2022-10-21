@@ -92,17 +92,17 @@ def resolve_redirect(path, query_string=None):
 
 	Example:
 
-	        website_redirect = [
-	                # absolute location
-	                {"source": "/from", "target": "https://mysite/from"},
+	                website_redirect = [
+	                                # absolute location
+	                                {"source": "/from", "target": "https://mysite/from"},
 
-	                # relative location
-	                {"source": "/from", "target": "/main"},
+	                                # relative location
+	                                {"source": "/from", "target": "/main"},
 
-	                # use regex
-	                {"source": r"/from/(.*)", "target": r"/main/\1"}
-	                # use r as a string prefix if you use regex groups or want to escape any string literal
-	        ]
+	                                # use regex
+	                                {"source": r"/from/(.*)", "target": r"/main/\1"}
+	                                # use r as a string prefix if you use regex groups or want to escape any string literal
+	                ]
 	"""
 	redirects = frappe.get_hooks("website_redirects")
 	redirects += frappe.get_all("Website Route Redirect", ["source", "target"], order_by=None)
@@ -122,7 +122,12 @@ def resolve_redirect(path, query_string=None):
 		if rule.get("match_with_query_string"):
 			path_to_match = path + "?" + frappe.safe_decode(query_string)
 
-		if re.match(pattern, path_to_match):
+		try:
+			match = re.match(pattern, path_to_match)
+		except re.error as e:
+			frappe.log_error("Broken Redirect: " + pattern)
+
+		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
 			frappe.cache().hset("website_redirects", path_to_match, redirect_to)

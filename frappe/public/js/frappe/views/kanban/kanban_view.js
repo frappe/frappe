@@ -9,14 +9,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)["Kanban"] || {};
 			if (!user_settings.last_kanban_board) {
-				frappe.msgprint({
-					title: __("Error"),
-					indicator: "red",
-					message: __("Missing parameter Kanban Board Name"),
-				});
-				frappe.set_route("List", doctype, "List");
-				return true;
+				return new frappe.views.KanbanView({ doctype: doctype });
 			}
+
 			route.push(user_settings.last_kanban_board);
 			frappe.set_route(route);
 			return true;
@@ -28,9 +23,35 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return "Kanban";
 	}
 
+	show() {
+		frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
+			if (!kanbans.length) {
+				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			} else if (kanbans.length && frappe.get_route().length !== 4) {
+				return frappe.views.KanbanView.show_kanban_dialog(this.doctype, true);
+			} else {
+				this.kanbans = kanbans;
+
+				return frappe.run_serially([
+					() => this.show_skeleton(),
+					() => this.fetch_meta(),
+					() => this.hide_skeleton(),
+					() => this.check_permissions(),
+					() => this.init(),
+					() => this.before_refresh(),
+					() => this.refresh(),
+				]);
+			}
+		});
+	}
+
 	setup_defaults() {
 		return super.setup_defaults().then(() => {
-			this.board_name = frappe.get_route()[3];
+			let get_board_name = () => {
+				return this.kanbans.length && this.kanbans[0].name;
+			};
+
+			this.board_name = frappe.get_route()[3] || get_board_name() || null;
 			this.page_title = __(this.board_name);
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
@@ -143,21 +164,22 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	render() {
 		const board_name = this.board_name;
-		if (this.kanban && board_name === this.kanban.board_name) {
-			this.kanban.update(this.data);
-			return;
+		if (!this.kanban) {
+			this.kanban = new frappe.views.KanbanBoard({
+				doctype: this.doctype,
+				board: this.board,
+				board_name: board_name,
+				cards: this.data,
+				card_meta: this.card_meta,
+				wrapper: this.$result,
+				cur_list: this,
+				user_settings: this.view_user_settings,
+			});
 		}
 
-		this.kanban = new frappe.views.KanbanBoard({
-			doctype: this.doctype,
-			board: this.board,
-			board_name: board_name,
-			cards: this.data,
-			card_meta: this.card_meta,
-			wrapper: this.$result,
-			cur_list: this,
-			user_settings: this.view_user_settings,
-		});
+		if (this.kanban && board_name === this.kanban.board_name) {
+			this.kanban.update(this.data);
+		}
 	}
 
 	get_card_meta() {
