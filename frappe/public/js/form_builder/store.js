@@ -33,6 +33,13 @@ export const useStore = defineStore("store", {
 				return df;
 			};
 		},
+		is_custom: (state) => {
+			return (field) => {
+				if (!state.is_customize_form) return;
+				if (field.is_first) return 0;
+				return field.df.is_custom_field;
+			};
+		},
 	},
 	actions: {
 		async fetch() {

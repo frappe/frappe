@@ -88,12 +88,15 @@ function remove_tab() {
 			class="tabs"
 			v-model="layout.tabs"
 			group="tabs"
+			filter="[data-is-custom='0']"
 			:animation="200"
 			item-key="id"
 		>
 			<template #item="{ element }">
 				<div
 					:class="['tab', store.active_tab == element.df.name ? 'active' : '']"
+					:title="element.df.fieldname"
+					:data-is-custom="store.is_custom(element)"
 					@click="activate_tab(element)"
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
@@ -142,6 +145,7 @@ function remove_tab() {
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
+				filter="[data-is-custom='0']"
 				:animation="200"
 				item-key="id"
 			>

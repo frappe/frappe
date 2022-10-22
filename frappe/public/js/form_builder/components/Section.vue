@@ -80,6 +80,8 @@ let section_options = computed(() => {
 				hovered ? 'hovered' : '',
 				store.selected(section.df.name) ? 'selected' : ''
 			]"
+			:title="section.df.fieldname"
+			:data-is-custom="store.is_custom(section)"
 			@click="store.selected_field = section.df"
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
@@ -128,11 +130,12 @@ let section_options = computed(() => {
 						}"
 						v-model="column.fields"
 						group="fields"
+						filter="[data-is-custom='0']"
 						:animation="150"
 						item-key="id"
 					>
 						<template #item="{ element }">
-							<Field :field="element" />
+							<Field :field="element" :data-is-custom="store.is_custom(element)" />
 						</template>
 					</draggable>
 				</div>
@@ -167,10 +170,6 @@ let section_options = computed(() => {
 
 		&.selected .section-header {
 			display: flex !important;
-		}
-
-		&:not(:first-child) {
-			margin-top: 1rem;
 		}
 
 		.section-header {

@@ -71,6 +71,10 @@ onMounted(() => store.fetch());
 				margin-top: 0.5rem;
 			}
 		}
+
+		:deep([data-is-custom="1"]) {
+			background-color: var(--yellow-highlight-color);
+		}
 	}
 }
 </style>
