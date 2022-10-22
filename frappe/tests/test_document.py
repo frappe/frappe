@@ -163,6 +163,12 @@ class TestDocument(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
 
+	def test_db_set_no_query_on_new_docs(self):
+		user = frappe.new_doc("User")
+		user.db_set("user_type", "Magical Wizard")
+		with self.assertQueryCount(0):
+			user.db_set("user_type", "Magical Wizard")
+
 	def test_update_after_submit(self):
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"

@@ -121,6 +121,7 @@ jobs:
           DB: mariadb
 
       - name: Verify yarn.lock
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/apps/frappe
           yarn install --immutable --immutable-cache --check-cache
@@ -173,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
