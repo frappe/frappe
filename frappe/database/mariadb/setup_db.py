@@ -19,15 +19,16 @@ expected_settings_10_3_later = {
 }
 
 
-def get_mariadb_versions():
+def get_mariadb_variables():
+	return frappe._dict(frappe.db.sql("show variables"))
+
+
+def get_mariadb_version(version_string: str = ""):
 	# MariaDB classifies their versions as Major (1st and 2nd number), and Minor (3rd number)
 	# Example: Version 10.3.13 is Major Version = 10.3, Minor Version = 13
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	version_string = mariadb_variables.get("version").split("-")[0]
-	versions = {}
-	versions["major"] = version_string.split(".")[0] + "." + version_string.split(".")[1]
-	versions["minor"] = version_string.split(".")[2]
-	return versions
+	version_string = version_string or get_mariadb_variables().get("version")
+	version = version_string.split("-")[0]
+	return version.rsplit(".", 1)
 
 
 def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
@@ -129,13 +130,17 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 
 def check_database_settings():
-	versions = get_mariadb_versions()
-	if versions["major"] <= "10.2":
+	mariadb_variables = get_mariadb_variables()
+	versions = get_mariadb_version(mariadb_variables.get("version"))
+	if versions[0] <= "10.2":
 		expected_variables = expected_settings_10_2_earlier
 	else:
 		expected_variables = expected_settings_10_3_later
 
+<<<<<<< HEAD
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
+=======
+>>>>>>> c6557e0ed6 (fix: don't print multiple print statements when database settings dont match with expected settings (#18492))
 	# Check each expected value vs. actuals:
 	result = True
 	for key, expected_value in expected_variables.items():
@@ -145,7 +150,9 @@ def check_database_settings():
 				% (key, expected_value, mariadb_variables.get(key))
 			)
 			result = False
+
 	if not result:
+<<<<<<< HEAD
 		site = frappe.local.site
 		msg = (
 			"Creation of your site - {x} failed because MariaDB is not properly {sep}"
@@ -156,6 +163,18 @@ def check_database_settings():
 			""
 		).format(x=site, sep2="\n" * 2, sep="\n")
 		print_db_config(msg)
+=======
+		print(
+			(
+				"{sep2}Creation of your site - {site} failed because MariaDB is not properly {sep}"
+				"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
+				"the Barracuda storage engine.{sep2}"
+				"Please verify the above settings in MariaDB's my.cnf.  Restart MariaDB.{sep}"
+				"And then run `bench new-site {site}` again.{sep2}"
+			).format(site=frappe.local.site, sep2="\n\n", sep="\n")
+		)
+
+>>>>>>> c6557e0ed6 (fix: don't print multiple print statements when database settings dont match with expected settings (#18492))
 	return result
 
 
