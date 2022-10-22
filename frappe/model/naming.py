@@ -235,13 +235,21 @@ def set_naming_from_document_naming_rule(doc):
 	if doc.doctype in log_types:
 		return
 
-	# ignore_ddl if naming is not yet bootstrapped
-	for d in frappe.get_all(
-		"Document Naming Rule",
-		dict(document_type=doc.doctype, disabled=0),
-		order_by="priority desc",
-		ignore_ddl=True,
-	):
+	def _get_document_naming_rule():
+		# ignore_ddl if naming is not yet bootstrapped
+
+		return frappe.get_all(
+			"Document Naming Rule",
+			{"document_type": doc.doctype, "disabled": 0},
+			order_by="priority desc",
+			ignore_ddl=True,
+		)
+
+	document_naming_rules = frappe.cache().hget(
+		"document_naming_rule", doc.doctype, _get_document_naming_rule
+	)
+
+	for d in document_naming_rules:
 		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
 		if doc.name:
 			break
