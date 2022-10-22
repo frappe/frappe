@@ -33,6 +33,7 @@ export function create_layout(fields, get_df) {
 		let _tab = {};
 		_tab.df = df || get_df("Tab Break", "", __("Details"));
 		_tab.sections = [];
+		_tab.is_first = !df;
 		return _tab;
 	}
 
@@ -40,6 +41,7 @@ export function create_layout(fields, get_df) {
 		let _section = {};
 		_section.df = df || get_df("Section Break");
 		_section.columns = [];
+		_section.is_first = !df;
 		return _section;
 	}
 
@@ -47,6 +49,7 @@ export function create_layout(fields, get_df) {
 		let _column = {};
 		_column.df = df || get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
 		_column.fields = [];
+		_column.is_first = !df;
 		return _column;
 	}
 
