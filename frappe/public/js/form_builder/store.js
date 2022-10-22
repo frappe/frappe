@@ -105,8 +105,8 @@ export const useStore = defineStore("store", {
 			let fields = [];
 			let idx = 0;
 
-			this.layout.tabs.forEach((tab) => {
-				if (!tab.is_first) {
+			this.layout.tabs.forEach((tab, i) => {
+				if ((i == 0 && tab.df.label != "Details") || i > 0) {
 					idx++;
 					tab.df.idx = idx;
 					fields.push(tab.df);
@@ -114,9 +114,9 @@ export const useStore = defineStore("store", {
 
 				tab.sections
 					.filter((section) => !section.remove)
-					.forEach((section) => {
+					.forEach((section, j) => {
 						// do not consider first section if label is not set
-						if ((section.is_first && section.df.label) || !section.is_first) {
+						if ((j == 0 && section.df.label) || j > 0) {
 							idx++;
 							section.df.idx = idx;
 							fields.push(section.df);
@@ -124,9 +124,9 @@ export const useStore = defineStore("store", {
 
 						section.columns
 							.filter((column) => !column.remove)
-							.forEach((column) => {
+							.forEach((column, k) => {
 								// do not consider first column
-								if (!column.is_first) {
+								if (k > 0) {
 									idx++;
 									column.df.idx = idx;
 									fields.push(column.df);
