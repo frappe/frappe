@@ -23,11 +23,18 @@ function add_column() {
 function remove_column() {
 	if (visible_columns.value.length <= 1) return;
 
+	// get last column's index
+	let index = visible_columns.value.length - 1;
+
+	if (store.is_customize_form && store.is_custom(visible_columns.value[index]) == 0) {
+		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		throw "cannot delete standard field";
+	}
+
 	let columns = visible_columns.value.slice();
 	let last_column_fields = columns.slice(-1)[0].fields.slice();
 
 	// remove last column
-	let index = columns.length - 1;
 	columns = columns.slice(0, index);
 
 	// move fields from last column to second last column
@@ -37,6 +44,31 @@ function remove_column() {
 	props.section.columns = columns;
 }
 function remove_section() {
+	if (store.is_customize_form && props.section.df.is_custom_field == 0) {
+		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		throw "cannot delete standard field";
+	} else {
+		props.section.columns.forEach((column, i) => {
+			if (store.is_custom(column) == 0) {
+				frappe.msgprint(
+					__("Column {0} is a standard field and it cannot be deleted.", [i + 1])
+				);
+				throw "cannot delete standard field";
+			} else {
+				column.fields.forEach(field => {
+					if (store.is_custom(field) == 0) {
+						frappe.msgprint(
+							__(
+								"Field <b>{0}</b> inside the section is a standard field. Remove the field from the section and try again.",
+								[field.df.label]
+							)
+						);
+						throw "cannot delete standard field";
+					}
+				});
+			}
+		});
+	}
 	frappe.confirm(
 		__(
 			"All the fields inside the section will also be removed, are you sure you want to continue?"

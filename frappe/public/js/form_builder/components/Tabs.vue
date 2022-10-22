@@ -11,6 +11,10 @@ let layout = computed(() => store.layout);
 let has_tabs = computed(() => layout.value.tabs.length > 1);
 store.active_tab = layout.value.tabs[0].df.name;
 
+let current_tab = computed(() => {
+	return layout.value.tabs.find(t => t.df.name === store.active_tab);
+});
+
 function activate_tab(tab) {
 	store.active_tab = tab.df.name;
 	store.selected_field = tab.df;
@@ -41,14 +45,13 @@ function section_boilerplate() {
 
 function add_section_above(section) {
 	let sections = [];
-	let current_tab = layout.value.tabs.find(tab => tab.df.name == store.active_tab);
-	for (let _section of current_tab.sections) {
+	for (let _section of current_tab.value.sections) {
 		if (_section === section) {
 			sections.push(section_boilerplate());
 		}
 		sections.push(_section);
 	}
-	current_tab.sections = sections;
+	current_tab.value.sections = sections;
 }
 
 function add_new_tab() {
@@ -62,6 +65,38 @@ function add_new_tab() {
 }
 
 function remove_tab() {
+	if (store.is_customize_form && current_tab.value.df.is_custom_field == 0) {
+		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		throw "cannot delete standard field";
+	} else {
+		current_tab.value.sections.forEach((section, i) => {
+			if (section.df.is_custom_field == 0) {
+				frappe.msgprint(__("Section {0} is a standard field and it cannot be deleted.", [i + 1]));
+				throw "cannot delete standard field";
+			} else {
+				section.columns.forEach((column, j) => {
+					if (store.is_custom(column) == 0) {
+						frappe.msgprint(
+							__("Column {0} is a standard field and it cannot be deleted.", [j + 1])
+						);
+						throw "cannot delete standard field";
+					} else {
+						column.fields.forEach(field => {
+							if (store.is_custom(field) == 0) {
+								frappe.msgprint(
+									__(
+										"Field <b>{0}</b> inside the section is a standard field. Remove the field from the section and try again.",
+										[field.df.label]
+									)
+								);
+								throw "cannot delete standard field";
+							}
+						});
+					}
+				});
+			}
+		});
+	}
 	frappe.confirm(
 		__(
 			"All the section and fields inside the tab will also be removed, are you sure you want to continue?"

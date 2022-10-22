@@ -9,6 +9,14 @@ let label_input = ref(null);
 let editing = ref(false);
 let hovered = ref(false);
 
+function remove_field() {
+	if (store.is_customize_form && store.is_custom(props.field) == 0) {
+		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		throw "cannot delete standard field";
+	}
+	props.field.remove = true;
+}
+
 watch(
 	editing,
 	value => {
@@ -62,7 +70,7 @@ watch(
 						<use href="#icon-edit"></use>
 					</svg>
 				</button>
-				<button class="btn btn-xs btn-icon" @click="field.remove = true">
+				<button class="btn btn-xs btn-icon" @click="remove_field">
 					<svg class="icon icon-sm">
 						<use href="#icon-close"></use>
 					</svg>
