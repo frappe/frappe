@@ -4,10 +4,11 @@ import { useStore } from "./store";
 import FormBuilderComponent from "./components/FormBuilder.vue";
 
 class FormBuilder {
-	constructor({ wrapper, page, doctype }) {
+	constructor({ wrapper, page, doctype, customize }) {
 		this.$wrapper = $(wrapper);
 		this.page = page;
 		this.doctype = doctype;
+		this.customize = customize;
 
 		// clear actions
 		this.page.clear_actions();
@@ -39,6 +40,7 @@ class FormBuilder {
 		// create a store
 		this.store = useStore();
 		this.store.doctype = this.doctype;
+		this.store.is_customize_form = this.customize;
 
 		// mount the app
 		this.$form_builder = app.mount(this.$wrapper.get(0));

@@ -7,22 +7,29 @@ export const useStore = defineStore("store", {
 		doctype: "",
 		doc: null,
 		docfields: [],
+		custom_docfields: [],
 		layout: {},
 		active_tab: "",
 		selected_field: null,
 		dirty: false,
+		is_customize_form: false,
 	}),
 	getters: {
 		selected: (state) => {
 			return (name) => state.selected_field?.name == name;
 		},
-		get_df() {
+		get_docfields: (state) => {
+			return state.is_customize_form ? state.custom_docfields : state.docfields;
+		},
+		get_df: (state) => {
 			return (fieldtype, fieldname = "", label = "") => {
-				let df = frappe.model.get_new_doc("DocField");
+				let docfield = state.is_customize_form ? "Customize Form Field" : "DocField";
+				let df = frappe.model.get_new_doc(docfield);
 				df.name = frappe.utils.get_random(8);
 				df.fieldtype = fieldtype;
 				df.fieldname = fieldname;
 				df.label = label;
+				state.is_customize_form && (df.is_custom_field = 1);
 				return df;
 			};
 		},
@@ -31,14 +38,30 @@ export const useStore = defineStore("store", {
 		async fetch() {
 			await frappe.model.clear_doc("DocType", this.doctype);
 			await frappe.model.with_doctype(this.doctype);
-			this.doc = frappe.get_doc("DocType", this.doctype);
 
-			if (!this.docfields.length) {
-				await frappe.model.with_doctype("DocField");
-				this.docfields = frappe.get_meta("DocField").fields;
+			if (this.is_customize_form) {
+				await frappe.model.with_doc("Customize Form");
+				let doc = frappe.get_doc("Customize Form");
+				doc.doc_type = this.doctype;
+				let r = await frappe.call({ method: "fetch_to_customize", doc });
+				this.doc = r.docs[0];
+			} else {
+				this.doc = await frappe.db.get_doc("DocType", this.doctype);
+			}
+
+			if (!this.get_docfields.length) {
+				let docfield = this.is_customize_form ? "Customize Form Field" : "DocField";
+				await frappe.model.with_doctype(docfield);
+				let df = frappe.get_meta(docfield).fields;
+				if (this.is_customize_form) {
+					this.custom_docfields = df;
+				} else {
+					this.docfields = df;
+				}
 			}
 
 			this.layout = this.get_layout();
+			this.active_tab = this.layout.tabs[0].df.name;
 			nextTick(() => (this.dirty = false));
 		},
 		async reset_changes() {
@@ -47,7 +70,7 @@ export const useStore = defineStore("store", {
 			this.active_tab = first_tab.df.name;
 			this.selected_field = null;
 		},
-		save_changes() {
+		async save_changes() {
 			if (!this.dirty) {
 				frappe.show_alert({ message: __("No changes to save"), indicator: "orange" });
 				return;
@@ -55,6 +78,23 @@ export const useStore = defineStore("store", {
 
 			frappe.dom.freeze(__("Saving..."));
 
+			try {
+				if (this.is_customize_form) {
+					let doc = frappe.get_doc("Customize Form");
+					doc.doc_type = this.doctype;
+					doc.fields = this.get_updated_fields();
+					await frappe.call({ method: "save_customization", doc });
+				} else {
+					this.doc.fields = this.get_updated_fields();
+					await frappe.call("frappe.client.save", { doc: this.doc });
+					frappe.toast("Fields Table Updated");
+				}
+				this.fetch();
+			} finally {
+				frappe.dom.unfreeze();
+			}
+		},
+		get_updated_fields() {
 			let fields = [];
 			let idx = 0;
 
@@ -94,18 +134,7 @@ export const useStore = defineStore("store", {
 					});
 			});
 
-			// update fields table with latest changes
-			this.doc.fields = fields;
-
-			frappe
-				.call("frappe.client.save", {
-					doc: this.doc,
-				})
-				.then(() => {
-					this.fetch();
-					frappe.toast("Fields Table Updated");
-				})
-				.always(() => frappe.dom.unfreeze());
+			return fields;
 		},
 		get_layout() {
 			return create_layout(this.doc.fields, this.get_df);

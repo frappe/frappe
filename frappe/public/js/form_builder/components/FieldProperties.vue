@@ -9,14 +9,14 @@ let store = useStore();
 let search_text = ref("");
 
 let docfield_df = computed(() => {
-	let fields = store.docfields.filter(df => {
+	let fields = store.get_docfields.filter(df => {
 		if (
 			in_list(["Tab Break", "Section Break", "Column Break", "Fold"], df.fieldtype) ||
 			!df.label
 		) {
 			return false;
 		}
-		if (df.depends_on && !evaluate_depends_on_value(df.depends_on, store.selected_field)) {
+		if (df.depends_on && !df.depends_on.includes("cur_frm") && !evaluate_depends_on_value(df.depends_on, store.selected_field)) {
 			return false;
 		}
 

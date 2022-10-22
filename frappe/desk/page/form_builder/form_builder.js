@@ -20,8 +20,10 @@ function load_form_builder(wrapper) {
 	let route = frappe.get_route();
 	if (route.length > 1) {
 		let doctype = frappe.router.routes[route[1]].doctype;
+		let is_customize_form = route[2] === "customize";
 
 		if (frappe.form_builder?.doctype == doctype) {
+			frappe.form_builder.store.is_customize_form = is_customize_form;
 			frappe.form_builder.store.fetch();
 			return;
 		}
@@ -34,6 +36,7 @@ function load_form_builder(wrapper) {
 				wrapper: $parent,
 				page: wrapper.page,
 				doctype: doctype,
+				customize: is_customize_form,
 			});
 		});
 	}
