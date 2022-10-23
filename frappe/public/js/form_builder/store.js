@@ -12,6 +12,7 @@ export const useStore = defineStore("store", {
 		active_tab: "",
 		selected_field: null,
 		dirty: false,
+		read_only: false,
 		is_customize_form: false,
 	}),
 	getters: {
@@ -52,8 +53,10 @@ export const useStore = defineStore("store", {
 				doc.doc_type = this.doctype;
 				let r = await frappe.call({ method: "fetch_to_customize", doc });
 				this.doc = r.docs[0];
+				this.read_only = false;
 			} else {
 				this.doc = await frappe.db.get_doc("DocType", this.doctype);
+				this.read_only = !frappe.boot.developer_mode && !this.doc.custom;
 			}
 
 			if (!this.get_docfields.length) {

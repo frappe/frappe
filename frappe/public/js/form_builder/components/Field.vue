@@ -51,6 +51,7 @@ watch(
 					v-if="editing"
 					ref="label_input"
 					class="label-input"
+					:disabled="store.read_only"
 					type="text"
 					:placeholder="__('Label')"
 					v-model="field.df.label"
@@ -60,7 +61,7 @@ watch(
 				<span v-else-if="field.df.label">{{ field.df.label }}</span>
 				<i class="text-muted" v-else> {{ __("No Label") }} ({{ field.df.fieldtype }}) </i>
 			</div>
-			<div class="field-actions">
+			<div class="field-actions" :hidden="store.read_only">
 				<button
 					v-if="field.df.fieldtype == 'HTML'"
 					class="btn btn-xs btn-icon"

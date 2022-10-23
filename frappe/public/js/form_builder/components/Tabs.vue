@@ -126,6 +126,7 @@ function remove_tab() {
 			filter="[data-is-custom='0']"
 			:animation="200"
 			item-key="id"
+			:disabled="store.read_only"
 		>
 			<template #item="{ element }">
 				<div
@@ -142,7 +143,7 @@ function remove_tab() {
 				</div>
 			</template>
 		</draggable>
-		<div class="tab-actions">
+		<div class="tab-actions" :hidden="store.read_only">
 			<button
 				class="new-tab-btn btn btn-xs"
 				:class="{ 'no-tabs' : !has_tabs }"
@@ -183,6 +184,7 @@ function remove_tab() {
 				filter="[data-is-custom='0']"
 				:animation="200"
 				item-key="id"
+				:disabled="store.read_only"
 			>
 				<template #item="{ element }">
 					<Section :section="element" @add_section_above="add_section_above(element)" />

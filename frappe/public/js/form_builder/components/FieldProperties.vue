@@ -48,6 +48,7 @@ let docfield_df = computed(() => {
 						class="mb-2 form-control form-control-sm"
 						type="text"
 						v-model="store.selected_field[df.fieldname]"
+						:disabled="store.read_only"
 					/>
 				</div>
 				<div class="description" v-if="df.description">{{ df.description }}</div>

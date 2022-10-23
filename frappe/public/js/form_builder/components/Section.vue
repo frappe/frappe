@@ -125,7 +125,7 @@ let section_options = computed(() => {
 					:placeholder="__('Section Title')"
 					v-model="section.df.label"
 				/>
-				<div class="d-flex align-items-center">
+				<div class="section-actions" :hidden="store.read_only">
 					<div class="dropdown">
 						<button
 							class="btn btn-xs btn-section dropdown-button"
@@ -165,6 +165,7 @@ let section_options = computed(() => {
 						filter="[data-is-custom='0']"
 						:animation="150"
 						item-key="id"
+						:disabled="store.read_only"
 					>
 						<template #item="{ element }">
 							<Field :field="element" :data-is-custom="store.is_custom(element)" />
@@ -230,6 +231,11 @@ let section_options = computed(() => {
 					font-style: italic;
 					font-weight: normal;
 				}
+			}
+
+			.section-actions {
+				display: flex;
+				align-items: center;
 			}
 
 			.btn-section {

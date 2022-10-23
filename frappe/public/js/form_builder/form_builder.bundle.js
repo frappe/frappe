@@ -19,7 +19,9 @@ class FormBuilder {
 		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
 
 		// setup page actions
-		this.page.set_primary_action(__("Save"), () => this.store.save_changes());
+		this.primary_btn = this.page.set_primary_action(__("Save"), () =>
+			this.store.save_changes()
+		);
 
 		this.customize_form_btn = this.page.add_button(__("Switch to Customize Form"), () => {
 			frappe.set_route("form-builder", this.doctype, "customize");
@@ -78,6 +80,12 @@ class FormBuilder {
 				this.customize_form_btn.toggle(!value);
 				this.doctype_form_btn.toggle(value);
 			},
+			{ immediate: true }
+		);
+
+		watch(
+			() => this.store.read_only,
+			(value) => this.primary_btn.toggle(!value),
 			{ immediate: true }
 		);
 	}
