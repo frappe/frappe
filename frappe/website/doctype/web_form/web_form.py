@@ -141,12 +141,6 @@ def get_context(context):
 
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
-<<<<<<< HEAD
-		self.set_web_form_module()
-=======
-		context.in_edit_mode = False
-		context.in_view_mode = False
->>>>>>> 3491d0dcb0 (refactor: dynamically load web form module (#18486))
 
 		doc, delimeter = make_route_string(frappe.form_dict)
 		context.doc = doc
