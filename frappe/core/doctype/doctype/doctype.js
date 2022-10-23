@@ -23,7 +23,7 @@ frappe.ui.form.on("DocType", {
 
 		if (!frm.is_new() && !frm.doc.istable) {
 			frm.add_custom_button(__("Try new form builder", [__(frm.doc.name)]), () => {
-				frappe.set_route("form-builder", frappe.router.slug(frm.doc.name));
+				frappe.set_route("form-builder", frm.doc.name);
 			});
 
 			if (frm.doc.issingle) {

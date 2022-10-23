@@ -116,11 +116,7 @@ frappe.ui.form.on("Customize Form", {
 
 			if (!frm.is_new() && !frm.doc.istable) {
 				frm.add_custom_button(__("Try new form builder", [__(frm.doc.doc_type)]), () => {
-					frappe.set_route(
-						"form-builder",
-						frappe.router.slug(frm.doc.doc_type),
-						"customize"
-					);
+					frappe.set_route("form-builder", frm.doc.doc_type, "customize");
 				});
 			}
 

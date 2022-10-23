@@ -19,7 +19,7 @@ frappe.pages["form-builder"].on_page_show = function (wrapper) {
 function load_form_builder(wrapper) {
 	let route = frappe.get_route();
 	if (route.length > 1) {
-		let doctype = frappe.router.routes[route[1]].doctype;
+		let doctype = route[1];
 		let is_customize_form = route[2] === "customize";
 
 		if (frappe.form_builder?.doctype == doctype) {

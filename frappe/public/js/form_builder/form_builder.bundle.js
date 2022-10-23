@@ -22,10 +22,10 @@ class FormBuilder {
 		this.page.set_primary_action(__("Save"), () => this.store.save_changes());
 
 		this.customize_form_btn = this.page.add_button(__("Switch to Customize Form"), () => {
-			frappe.set_route("form-builder", frappe.router.slug(this.doctype), "customize");
+			frappe.set_route("form-builder", this.doctype, "customize");
 		});
 		this.doctype_form_btn = this.page.add_button(__("Switch to Doctype Form"), () => {
-			frappe.set_route("form-builder", frappe.router.slug(this.doctype));
+			frappe.set_route("form-builder", this.doctype);
 		});
 
 		this.reset_changes_btn = this.page.add_button(__("Reset Changes"), () => {
