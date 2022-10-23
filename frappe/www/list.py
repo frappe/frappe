@@ -162,6 +162,7 @@ def prepare_filters(doctype, controller, kwargs):
 
 def get_list_context(context, doctype, web_form_name=None):
 	from frappe.modules import load_doctype_module
+	from frappe.website.doctype.web_form.web_form import get_web_form_module
 
 	list_context = context or frappe._dict()
 	meta = frappe.get_meta(doctype)
@@ -192,7 +193,7 @@ def get_list_context(context, doctype, web_form_name=None):
 	# get context from web form module
 	if web_form_name:
 		web_form = frappe.get_doc("Web Form", web_form_name)
-		list_context = update_context_from_module(web_form.get_web_form_module(), list_context)
+		list_context = update_context_from_module(get_web_form_module(web_form), list_context)
 
 	# get path from '/templates/' folder of the doctype
 	if not meta.custom and not list_context.row_template:
