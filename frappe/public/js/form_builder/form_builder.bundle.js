@@ -64,7 +64,7 @@ class FormBuilder {
 			() => this.store.dirty,
 			(dirty) => {
 				if (dirty) {
-					this.page.set_indicator("Not Saved", "orange");
+					this.page.set_indicator(__("Not Saved"), "orange");
 					this.reset_changes_btn.show();
 				} else {
 					this.page.clear_indicator();
@@ -85,7 +85,10 @@ class FormBuilder {
 
 		watch(
 			() => this.store.read_only,
-			(value) => this.primary_btn.toggle(!value),
+			(value) => {
+				this.primary_btn.toggle(!value);
+				value && this.page.set_indicator(__("Read Only"), "orange");
+			},
 			{ immediate: true }
 		);
 	}

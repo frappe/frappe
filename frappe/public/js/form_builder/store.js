@@ -53,10 +53,8 @@ export const useStore = defineStore("store", {
 				doc.doc_type = this.doctype;
 				let r = await frappe.call({ method: "fetch_to_customize", doc });
 				this.doc = r.docs[0];
-				this.read_only = false;
 			} else {
 				this.doc = await frappe.db.get_doc("DocType", this.doctype);
-				this.read_only = !frappe.boot.developer_mode && !this.doc.custom;
 			}
 
 			if (!this.get_docfields.length) {
@@ -72,7 +70,11 @@ export const useStore = defineStore("store", {
 
 			this.layout = this.get_layout();
 			this.active_tab = this.layout.tabs[0].df.name;
-			nextTick(() => (this.dirty = false));
+			nextTick(() => {
+				this.dirty = false;
+				this.read_only =
+					!this.is_customize_form && !frappe.boot.developer_mode && !this.doc.custom;
+			});
 		},
 		async reset_changes() {
 			await this.fetch();
