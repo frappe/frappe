@@ -273,21 +273,30 @@ def get_full_dict(lang: str) -> dict[str, str]:
 	"""
 	if not lang:
 		return {}
-
 	# found in local, return!
-	if getattr(frappe.local, "lang_full_dict", None) is not None:
+	if frappe.local.lang == lang:
+		if getattr(frappe.local, "lang_full_dict", None) is not None:
+			return frappe.local.lang_full_dict
+
+		frappe.local.lang_full_dict = load_lang(lang)
+		try:
+			# get user specific translation data
+			user_translations = get_user_translations(lang)
+			frappe.local.lang_full_dict.update(user_translations)
+		except Exception:
+			pass
+
 		return frappe.local.lang_full_dict
+	else:
+		lang_full_dict = load_lang(lang)
+		try:
+			# get user specific translation data
+			user_translations = get_user_translations(lang)
+			lang_full_dict.update(user_translations)
+		except Exception:
+			pass
 
-	frappe.local.lang_full_dict = load_lang(lang)
-
-	try:
-		# get user specific translation data
-		user_translations = get_user_translations(lang)
-		frappe.local.lang_full_dict.update(user_translations)
-	except Exception:
-		pass
-
-	return frappe.local.lang_full_dict
+		return lang_full_dict
 
 
 def load_lang(lang, apps=None):
