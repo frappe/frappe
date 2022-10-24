@@ -69,16 +69,18 @@ class FrappeTestCase(unittest.TestCase):
 
 	@contextmanager
 	def assertQueryCount(self, count):
+		queries = []
+
 		def _sql_with_count(*args, **kwargs):
-			frappe.db.sql_query_count += 1
-			return orig_sql(*args, **kwargs)
+			ret = orig_sql(*args, **kwargs)
+			queries.append(frappe.db.last_query)
+			return ret
 
 		try:
 			orig_sql = frappe.db.sql
-			frappe.db.sql_query_count = 0
 			frappe.db.sql = _sql_with_count
 			yield
-			self.assertLessEqual(frappe.db.sql_query_count, count)
+			self.assertLessEqual(len(queries), count, msg="Queries executed: " + "\n\n".join(queries))
 		finally:
 			frappe.db.sql = orig_sql
 

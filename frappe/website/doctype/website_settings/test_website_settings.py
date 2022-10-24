@@ -27,3 +27,9 @@ class TestWebsiteSettings(FrappeTestCase):
 				break
 		else:
 			self.fail("Child items not found")
+
+	def test_redirect_setups(self):
+		ws = frappe.get_doc("Website Settings")
+
+		ws.append("route_redirects", {"source": "/engineering/(*.)", "target": "/development/(*.)"})
+		self.assertRaises(frappe.ValidationError, ws.validate)
