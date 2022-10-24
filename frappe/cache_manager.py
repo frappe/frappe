@@ -8,11 +8,14 @@ from frappe.desk.notifications import clear_notifications, delete_notification_c
 
 common_default_keys = ["__default", "__global"]
 
-doctype_map_keys = (
-	"energy_point_rule_map",
-	"assignment_rule_map",
-	"milestone_tracker_map",
-)
+doctypes_for_mapping = {
+	"Energy Point Rule",
+	"Assignment Rule",
+	"Milestone Tracker",
+	"Document Naming Rule",
+}
+
+doctype_map_keys = tuple(f"{frappe.scrub(doctype)}_map" for doctype in doctypes_for_mapping)
 
 bench_cache_keys = ("assets_json",)
 
@@ -163,21 +166,11 @@ def clear_controller_cache(doctype=None):
 def get_doctype_map(doctype, name, filters=None, order_by=None):
 	cache = frappe.cache()
 	cache_key = frappe.scrub(doctype) + "_map"
-	doctype_map = cache.hget(cache_key, name)
 
-	if doctype_map is not None:
-		# cached, return
-		items = json.loads(doctype_map)
-	else:
-		# non cached, build cache
-		try:
-			items = frappe.get_all(doctype, filters=filters, order_by=order_by)
-			cache.hset(cache_key, name, json.dumps(items))
-		except frappe.db.TableMissingError:
-			# executed from inside patch, ignore
-			items = []
+	def _get_items():
+		return frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True)
 
-	return items
+	return cache.hget(cache_key, name, _get_items)
 
 
 def clear_doctype_map(doctype, name):
