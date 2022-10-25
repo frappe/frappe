@@ -1,0 +1,65 @@
+name: 'Release'
+
+on:
+  release:
+    types: [released]
+
+permissions:
+  contents: read
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+  build-release-and-publish:
+    name: 'Build and Publish Assets built for Releases'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: 'frappe'
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Set up bench and build assets
+        run: |
+          npm install -g yarn
+          pip3 install -U frappe-bench
+          bench -v init frappe-bench --no-procfile --no-backups --skip-assets --skip-redis-config-generation --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
+          cd frappe-bench && bench build
+
+      - name: Package assets
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/build
+          tar -cvpzf $GITHUB_WORKSPACE/build/assets.tar.gz ./frappe-bench/sites/assets/frappe/dist
+
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.3.1
+
+      - name: Upload built Assets to Release
+        uses: actions/upload-release-asset@v1.0.2
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: build/assets.tar.gz
+          asset_name: assets.tar.gz
+          asset_content_type: application/octet-stream
+
+  docker-release:
+    name: 'Trigger Docker build on release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: none
+    container:
+      image: alpine:latest
+    steps:
+    - name: curl
+      run: |
+        apk add curl bash
+        curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer ${{ secrets.CI_PAT }}" https://api.github.com/repos/frappe/frappe_docker/actions/workflows/build_stable.yml/dispatches -d '{"ref":"main"}'
