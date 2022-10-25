@@ -1260,20 +1260,12 @@ Object.assign(frappe.utils, {
 				if (frappe.model.is_single(item.doctype)) {
 					route = doctype_slug;
 				} else {
-					if (!item.doc_view) {
-						if (frappe.model.is_tree(item.doctype)) {
-							item.doc_view = "Tree";
-						} else {
-							item.doc_view = "List";
-						}
-					}
-
 					switch (item.doc_view) {
 						case "List":
 							if (item.filters) {
 								frappe.route_options = item.filters;
 							}
-							route = doctype_slug;
+							route = `${doctype_slug}/view/list`;
 							break;
 						case "Tree":
 							route = `${doctype_slug}/view/tree`;
@@ -1290,12 +1282,11 @@ Object.assign(frappe.utils, {
 						case "Calendar":
 							route = `${doctype_slug}/view/calendar/default`;
 							break;
+						case "Kanban":
+							route = `${doctype_slug}/view/kanban`;
+							break;
 						default:
-							frappe.throw({
-								message: __("Not a valid view:") + item.doc_view,
-								title: __("Unknown View"),
-							});
-							route = "";
+							route = doctype_slug;
 					}
 				}
 			} else if (type === "report") {

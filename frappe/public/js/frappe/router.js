@@ -88,7 +88,21 @@ frappe.router = {
 		"dashboard",
 		"image",
 		"inbox",
+		"map",
 	],
+	list_views_route: {
+		list: "List",
+		kanban: "Kanban",
+		report: "Report",
+		calendar: "Calendar",
+		tree: "Tree",
+		gantt: "Gantt",
+		dashboard: "Dashboard",
+		image: "Image",
+		inbox: "Inbox",
+		file: "Home",
+		map: "Map",
+	},
 	layout_mapped: {},
 
 	is_app_route(path) {
@@ -115,7 +129,7 @@ frappe.router = {
 		}
 	},
 
-	route() {
+	async route() {
 		// resolve the route from the URL or hash
 		// translate it so the objects are well defined
 		// and render the page as required
@@ -126,22 +140,22 @@ frappe.router = {
 		if (this.re_route(sub_path)) return;
 
 		this.current_sub_path = sub_path;
-		this.current_route = this.parse();
+		this.current_route = await this.parse();
 		this.set_history(sub_path);
 		this.render();
 		this.set_title(sub_path);
 		this.trigger("change");
 	},
 
-	parse(route) {
+	async parse(route) {
 		route = this.get_sub_path_string(route).split("/");
 		if (!route) return [];
 		route = $.map(route, this.decode_component);
 		this.set_route_options_from_url();
-		return this.convert_to_standard_route(route);
+		return await this.convert_to_standard_route(route);
 	},
 
-	convert_to_standard_route(route) {
+	async convert_to_standard_route(route) {
 		// /app/settings = ["Workspaces", "Settings"]
 		// /app/private/settings = ["Workspaces", "private", "Settings"]
 		// /app/user = ["List", "User"]
@@ -161,7 +175,7 @@ frappe.router = {
 			route = ["Workspaces", "private", frappe.workspaces[private_workspace].title];
 		} else if (this.routes[route[0]]) {
 			// route
-			route = this.set_doctype_route(route);
+			route = await this.set_doctype_route(route);
 		}
 
 		return route;
@@ -174,36 +188,85 @@ frappe.router = {
 
 	set_doctype_route(route) {
 		let doctype_route = this.routes[route[0]];
-		// doctype route
-		if (route[1]) {
-			if (route[2] && route[1] === "view") {
-				route = this.get_standard_route_for_list(route, doctype_route);
-			} else {
+
+		return frappe.model.with_doctype(doctype_route.doctype).then(() => {
+			// doctype route
+			let meta = frappe.get_meta(doctype_route.doctype);
+
+			if (route[1] && route[1] === "view" && route[2]) {
+				route = this.get_standard_route_for_list(
+					route,
+					doctype_route,
+					meta.force_re_route_to_default_view && meta.default_view
+						? meta.default_view
+						: null
+				);
+			} else if (route[1] && route[1] !== "view" && !route[2]) {
 				let docname = route[1];
 				if (route.length > 2) {
 					docname = route.slice(1).join("/");
 				}
 				route = ["Form", doctype_route.doctype, docname];
+			} else if (frappe.model.is_single(doctype_route.doctype)) {
+				route = ["Form", doctype_route.doctype, doctype_route.doctype];
+			} else if (meta.default_view) {
+				route = [
+					"List",
+					doctype_route.doctype,
+					this.list_views_route[meta.default_view.toLowerCase()],
+				];
+			} else {
+				route = ["List", doctype_route.doctype, "List"];
 			}
-		} else if (frappe.model.is_single(doctype_route.doctype)) {
-			route = ["Form", doctype_route.doctype, doctype_route.doctype];
-		} else {
-			route = ["List", doctype_route.doctype, "List"];
-		}
-		// reset the layout to avoid using incorrect views
-		this.doctype_layout = doctype_route.doctype_layout;
-		return route;
+			// reset the layout to avoid using incorrect views
+			this.doctype_layout = doctype_route.doctype_layout;
+			return route;
+		});
 	},
 
-	get_standard_route_for_list(route, doctype_route) {
+	get_standard_route_for_list(route, doctype_route, default_view) {
 		let standard_route;
-		if (route[2].toLowerCase() === "tree") {
+		let _route = default_view || route[2] || "";
+
+		if (_route.toLowerCase() === "tree") {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
-			standard_route = ["List", doctype_route.doctype, frappe.utils.to_title_case(route[2])];
+			let new_route = this.list_views_route[_route.toLowerCase()];
+			let re_route = route[2].toLowerCase() !== new_route.toLowerCase();
+
+			if (re_route) {
+				/**
+				 * In case of force_re_route, the url of the route should change,
+				 * if the _route and route[2] are different, it means there is a default_view
+				 * with force_re_route enabled.
+				 *
+				 * To change the url, to the correct view, the route[2] is changed with default_view
+				 *
+				 * Eg: If default_view is set to Report with force_re_route enabled and user routes
+				 * to List,
+				 * route: [todo, view, list]
+				 * default_view: report
+				 *
+				 * replaces the list to report and re-routes to the new route but should be replaced in
+				 * the history since the list route should not exist in history as we are rerouting it to
+				 * report
+				 */
+				frappe.route_flags.replace_route = true;
+
+				route[2] = _route.toLowerCase();
+				this.set_route(route);
+			}
+
+			standard_route = [
+				"List",
+				doctype_route.doctype,
+				this.list_views_route[_route.toLowerCase()],
+			];
+
 			// calendar / kanban / dashboard / folder
 			if (route[3]) standard_route.push(...route.slice(3, route.length));
 		}
+
 		return standard_route;
 	},
 
@@ -345,6 +408,7 @@ frappe.router = {
 		} else if (view === "tree") {
 			new_route = [this.slug(route[1]), "view", "tree"];
 		}
+
 		return new_route;
 	},
 

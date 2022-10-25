@@ -384,18 +384,22 @@ class ShortcutDialog extends WidgetDialog {
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						let doctype = this.dialog.get_value("link_to");
-						if (doctype && frappe.boot.single_types.includes(doctype)) {
-							this.hide_filters();
-						} else if (doctype) {
-							this.setup_filter(doctype);
-							this.show_filters();
-						}
+						frappe.model.with_doctype(doctype, () => {
+							let meta = frappe.get_meta(doctype);
 
-						const views = ["List", "Report Builder", "Dashboard", "New"];
-						if (frappe.boot.treeviews.includes(doctype)) views.push("Tree");
-						if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
+							if (doctype && frappe.boot.single_types.includes(doctype)) {
+								this.hide_filters();
+							} else if (doctype) {
+								this.setup_filter(doctype);
+								this.show_filters();
+							}
 
-						this.dialog.set_df_property("doc_view", "options", views.join("\n"));
+							const views = ["List", "Report Builder", "Dashboard", "New"];
+							if (meta.is_tree === "Tree") views.push("Tree");
+							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
+
+							this.dialog.set_df_property("doc_view", "options", views.join("\n"));
+						});
 					} else {
 						this.hide_filters();
 					}
@@ -405,7 +409,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "doc_view",
 				label: "DocType View",
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar",
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),

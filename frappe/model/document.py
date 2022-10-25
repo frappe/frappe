@@ -953,15 +953,19 @@ class Document(BaseDocument):
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
 		if self.flags.notifications is None:
-			alerts = frappe.cache().hget("notifications", self.doctype)
-			if alerts is None:
-				alerts = frappe.get_all(
+
+			def _get_notifications():
+				"""returns enabled notifications for the current doctype"""
+
+				return frappe.get_all(
 					"Notification",
 					fields=["name", "event", "method"],
 					filters={"enabled": 1, "document_type": self.doctype},
 				)
-				frappe.cache().hset("notifications", self.doctype, alerts)
-			self.flags.notifications = alerts
+
+			self.flags.notifications = frappe.cache().hget(
+				"notifications", self.doctype, _get_notifications
+			)
 
 		if not self.flags.notifications:
 			return
@@ -1172,6 +1176,9 @@ class Document(BaseDocument):
 
 		# to trigger notification on value change
 		self.run_method("before_change")
+
+		if self.name is None:
+			return
 
 		frappe.db.set_value(
 			self.doctype,
