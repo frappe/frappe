@@ -1,3 +1,4 @@
+import itertools
 import operator
 import re
 from ast import literal_eval
@@ -388,7 +389,8 @@ class Engine:
 						else self.OPERATOR_MAP["in"]
 					)
 					if result:
-						return conditions.where(_operator(getattr(table, key), result[0]))
+						result = list(itertools.chain.from_iterable(result))
+						return conditions.where(_operator(getattr(table, key), result))
 					else:
 						return conditions.where(_operator(getattr(table, key), ("",)))
 
