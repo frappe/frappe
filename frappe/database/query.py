@@ -169,6 +169,34 @@ def table_from_string(table: str) -> "DocType":
 	return frappe.qb.DocType(table_name=table_name.replace("`", ""))
 
 
+def get_nested_set_hierarchy_result(hierarchy: str, field: str, table: str):
+	ref_doctype = table
+	lft, rgt = "", ""
+	lft, rgt = (
+		frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == field).run()[0]
+	)
+	if hierarchy in ("descendants of", "not descendants of"):
+		result = (
+			frappe.qb.from_(ref_doctype)
+			.select(Field("name"))
+			.where(Field("lft") > lft)
+			.where(Field("rgt") < rgt)
+			.orderby(Field("lft"), order=Order.asc)
+			.run()
+		)
+	else:
+		# Get ancestor elements of a DocType with a tree structure
+		result = (
+			frappe.qb.from_(ref_doctype)
+			.select(Field("name"))
+			.where(Field("lft") < lft)
+			.where(Field("rgt") > rgt)
+			.orderby(Field("lft"), order=Order.desc)
+			.run()
+		)
+	return result
+
+
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
 	"+": operator.add,
@@ -286,34 +314,6 @@ class Engine:
 
 		return conditions
 
-	@staticmethod
-	def get_nested_set_hierarchy_result(hierarchy: str, field: str, table: str):
-		ref_doctype = table
-		lft, rgt = "", ""
-		lft, rgt = (
-			frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == field).run()[0]
-		)
-		if hierarchy in ("descendants of", "not descendants of"):
-			result = (
-				frappe.qb.from_(ref_doctype)
-				.select(Field("name"))
-				.where(Field("lft") > lft)
-				.where(Field("rgt") < rgt)
-				.orderby(Field("lft"), order=Order.asc)
-				.run()
-			)
-		else:
-			# Get ancestor elements of a DocType with a tree structure
-			result = (
-				frappe.qb.from_(ref_doctype)
-				.select(Field("name"))
-				.where(Field("lft") < lft)
-				.where(Field("rgt") > rgt)
-				.orderby(Field("lft"), order=Order.desc)
-				.run()
-			)
-		return result
-
 	def misc_query(self, table: str, filters: list | tuple = None, **kwargs):
 		"""Build conditions using the given Lists or Tuple filters
 
@@ -381,16 +381,16 @@ class Engine:
 			if isinstance(value, (list, tuple)):
 				if value[0] in self.OPERATOR_MAP["nested_set"]:
 					hierarchy, _field = value
-					result = self.get_nested_set_hierarchy_result(hierarchy, _field, table)
+					result = get_nested_set_hierarchy_result(hierarchy, _field, table)
 					_operator = (
-							self.OPERATOR_MAP["not in"]
-							if hierarchy in ("not ancestors of", "not descendants of")
-							else self.OPERATOR_MAP["in"]
-						)
+						self.OPERATOR_MAP["not in"]
+						if hierarchy in ("not ancestors of", "not descendants of")
+						else self.OPERATOR_MAP["in"]
+					)
 					if result:
 						return conditions.where(_operator(getattr(table, key), result[0]))
 					else:
-						return conditions.where(_operator(getattr(table, key),("",)))
+						return conditions.where(_operator(getattr(table, key), ("",)))
 
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
 				_value = value[1] if value[1] else ("",)
@@ -662,6 +662,7 @@ class Engine:
 					has_join = True
 
 			if has_join:
+
 				def _update_pypika_fields(field):
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field, str) else field.get_sql()
