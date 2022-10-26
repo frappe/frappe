@@ -903,15 +903,10 @@ class Column:
 
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
-<<<<<<< HEAD
-			values = list(set([cstr(v) for v in self.column_values[1:] if v]))
-			exists = [d.name for d in frappe.db.get_all(self.df.options, filters={"name": ("in", values)})]
-=======
 			values = list({cstr(v) for v in self.column_values if v})
 			exists = [
 				cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
 			]
->>>>>>> 513321810d (fix(Data Import): don't validate empty values (#17923))
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)
@@ -947,13 +942,8 @@ class Column:
 		elif self.df.fieldtype == "Select":
 			options = get_select_options(self.df)
 			if options:
-<<<<<<< HEAD
-				values = list(set([cstr(v) for v in self.column_values[1:] if v]))
-				invalid = list(set(values) - set(options))
-=======
 				values = {cstr(v) for v in self.column_values if v}
 				invalid = values - set(options)
->>>>>>> 513321810d (fix(Data Import): don't validate empty values (#17923))
 				if invalid:
 					valid_values = ", ".join(frappe.bold(o) for o in options)
 					invalid_values = ", ".join(frappe.bold(i) for i in invalid)
