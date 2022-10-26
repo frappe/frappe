@@ -390,9 +390,11 @@ class Engine:
 					)
 					if result:
 						result = list(itertools.chain.from_iterable(result))
-						return conditions.where(_operator(getattr(table, key), result))
+						conditions =  conditions.where(_operator(getattr(table, key), result))
 					else:
-						return conditions.where(_operator(getattr(table, key), ("",)))
+						conditions = conditions.where(_operator(getattr(table, key), ("",)))
+					# Allow additional conditions
+					break
 
 				_operator = self.OPERATOR_MAP[value[0].casefold()]
 				_value = value[1] if value[1] else ("",)

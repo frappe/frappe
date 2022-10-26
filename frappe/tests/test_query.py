@@ -1,4 +1,5 @@
 import itertools
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Field
@@ -256,8 +257,13 @@ class TestQuery(FrappeTestCase):
 			d.insert()
 
 		result = frappe.qb.engine.get_query(
-			"Test Tree DocType", fields=["name"], filters={"name": ("descendants of", "Parent 1")}
+			"Test Tree DocType",
+			fields=["name"],
+			filters={"name": ("descendants of", "Parent 1")},
+			orderby="modified",
 		).run(as_list=1)
 		result = list(itertools.chain.from_iterable(result))
-		result.reverse()
 		self.assertListEqual(result, get_descendants_of("Test Tree DocType", "Parent 1"))
+
+		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
+		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
