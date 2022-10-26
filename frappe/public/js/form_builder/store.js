@@ -117,35 +117,29 @@ export const useStore = defineStore("store", {
 					fields.push(tab.df);
 				}
 
-				tab.sections
-					.filter((section) => !section.remove)
-					.forEach((section, j) => {
-						// do not consider first section if label is not set
-						if ((j == 0 && section.df.label) || j > 0) {
+				tab.sections.forEach((section, j) => {
+					// do not consider first section if label is not set
+					if ((j == 0 && section.df.label) || j > 0) {
+						idx++;
+						section.df.idx = idx;
+						fields.push(section.df);
+					}
+
+					section.columns.forEach((column, k) => {
+						// do not consider first column
+						if (k > 0) {
 							idx++;
-							section.df.idx = idx;
-							fields.push(section.df);
+							column.df.idx = idx;
+							fields.push(column.df);
 						}
 
-						section.columns
-							.filter((column) => !column.remove)
-							.forEach((column, k) => {
-								// do not consider first column
-								if (k > 0) {
-									idx++;
-									column.df.idx = idx;
-									fields.push(column.df);
-								}
-
-								column.fields
-									.filter((field) => !field.remove)
-									.forEach((field) => {
-										idx++;
-										field.df.idx = idx;
-										fields.push(field.df);
-									});
-							});
+						column.fields.forEach((field) => {
+							idx++;
+							field.df.idx = idx;
+							fields.push(field.df);
+						});
 					});
+				});
 			});
 
 			return fields;

@@ -44,7 +44,7 @@ function remove_section() {
 </script>
 
 <template>
-	<div class="form-section-container" v-if="!section.remove">
+	<div class="form-section-container">
 		<div
 			:class="[
 				'form-section',

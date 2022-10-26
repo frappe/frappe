@@ -21,12 +21,9 @@ function remove_field() {
 watch(
 	editing,
 	value => {
-		if (value && !props.field.remove) {
+		if (value) {
 			nextTick(() => label_input.value.focus());
 			store.selected_field = props.field.df;
-		}
-		if (props.field.remove) {
-			store.selected_field = null;
 		}
 	},
 	{ deep: true }
@@ -40,7 +37,6 @@ watch(
 			hovered ? 'hovered' : '',
 			store.selected(field.df.name) ? 'selected' : ''
 		]"
-		v-if="!field.remove"
 		:title="field.df.fieldname"
 		@click.stop="editing = true"
 		@mouseover.stop="hovered = true"
