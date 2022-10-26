@@ -214,8 +214,9 @@ def update_contact(doc, method):
 def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
+	doctype = "Contact"
 	if (
-		not frappe.get_meta("Contact").get_field(searchfield)
+		not frappe.get_meta(doctype).get_field(searchfield)
 		and searchfield not in frappe.db.DEFAULT_COLUMNS
 	):
 		return []

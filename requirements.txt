@@ -33,7 +33,7 @@ markdown2~=2.4.0
 maxminddb-geolite2==2018.703
 ndg-httpsclient~=0.5.1
 num2words~=0.5.10
-oauthlib~=3.1.0
+oauthlib~=3.2.1
 openpyxl~=3.0.7
 parse~=1.19.0
 passlib~=1.7.4

@@ -518,10 +518,10 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 	repeat_on = {
 		"starts_on": get_datetime(start.get("date"))
 		if start.get("date")
-		else parser.parse(start.get("dateTime")).utcnow(),
+		else parser.parse(start.get("dateTime")).astimezone().replace(tzinfo=None),
 		"ends_on": get_datetime(end.get("date"))
 		if end.get("date")
-		else parser.parse(end.get("dateTime")).utcnow(),
+		else parser.parse(end.get("dateTime")).astimezone().replace(tzinfo=None),
 		"all_day": 1 if start.get("date") else 0,
 		"repeat_this_event": 1 if recurrence else 0,
 		"repeat_on": None,

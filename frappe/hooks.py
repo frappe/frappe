@@ -215,7 +215,6 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
-		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",

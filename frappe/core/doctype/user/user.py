@@ -903,6 +903,7 @@ def reset_password(user):
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_filters_cond, get_match_cond
 
+	doctype = "User"
 	conditions = []
 
 	user_type_condition = "and user_type != 'Website User'"

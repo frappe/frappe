@@ -1169,6 +1169,9 @@ class Document(BaseDocument):
 		# to trigger notification on value change
 		self.run_method("before_change")
 
+		if self.name is None:
+			return
+
 		frappe.db.set_value(
 			self.doctype,
 			self.name,
