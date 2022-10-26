@@ -1,6 +1,6 @@
 <script setup>
 import draggable from "vuedraggable";
-import Field from "./Field.vue";
+import Column from "./Column.vue";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
 
@@ -147,29 +147,19 @@ let section_options = computed(() => {
 				</div>
 			</div>
 			<div class="section-columns">
-				<div
-					class="column col"
-					v-for="(column, i) in visible_columns"
-					:key="i"
-					@mouseover.stop="hovered = false"
+				<draggable
+					class="section-columns-container"
+					v-model="section.columns"
+					group="columns"
+					item-key="id"
 				>
-					<draggable
-						class="column-container"
-						:style="{
-							backgroundColor: column.fields.length ? null : 'var(--gray-50)'
-						}"
-						v-model="column.fields"
-						group="fields"
-						filter="[data-is-custom='0']"
-						:animation="150"
-						item-key="id"
-						:disabled="store.read_only"
-					>
-						<template #item="{ element }">
-							<Field :field="element" :data-is-custom="store.is_custom(element)" />
-						</template>
-					</draggable>
-				</div>
+					<template #item="{ element }">
+						<Column
+							:column="element"
+							:data-is-custom="store.is_custom(element)"
+						/>
+					</template>
+				</draggable>
 			</div>
 		</div>
 	</div>
@@ -209,10 +199,6 @@ let section_options = computed(() => {
 			align-items: center;
 			padding-bottom: 0.75rem;
 
-			&.hidden {
-				display: none;
-			}
-
 			.input-section-label {
 				border: 1px solid transparent;
 				border-radius: var(--border-radius);
@@ -246,28 +232,8 @@ let section_options = computed(() => {
 			}
 		}
 
-		.section-columns {
+		.section-columns-container {
 			display: flex;
-			flex-wrap: wrap;
-
-			.column {
-				padding-left: 8px;
-				padding-right: 8px;
-
-				&:first-child {
-					padding-left: 0px;
-				}
-
-				&:last-child {
-					padding-right: 0px;
-				}
-
-				.column-container {
-					height: 100%;
-					min-height: 2rem;
-					border-radius: var(--border-radius);
-				}
-			}
 		}
 	}
 }
