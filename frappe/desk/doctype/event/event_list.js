@@ -3,7 +3,7 @@ frappe.listview_settings["Event"] = {
 	get_indicator: function(doc) {
 		if (doc.status === "Closed") {
 			return [__("Closed"), "green", "status,=,Closed"];
-		}, else if (doc.status === "Completed") {
+		} else if (doc.status === "Completed") {
 			return [__("Completed"), "green", "status,=,Completed"];
 		} else if (doc.status === "Open") {
 			return [__("Open"), "red", "status,=,Open"];
