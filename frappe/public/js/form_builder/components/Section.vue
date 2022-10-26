@@ -51,19 +51,6 @@ function remove_section() {
 		},
 	);
 }
-
-let section_options = computed(() => {
-	return [
-		{
-			label: __("Add section above"),
-			action: add_section_above,
-		},
-		{
-			label: __("Remove section"),
-			action: remove_section,
-		}
-	].filter(option => (option.condition ? option.condition() : true));
-});
 </script>
 
 <template>
@@ -88,24 +75,20 @@ let section_options = computed(() => {
 					v-model="section.df.label"
 				/>
 				<div class="section-actions" :hidden="store.read_only">
-					<div class="dropdown">
-						<button
-							class="btn btn-xs btn-section dropdown-button"
-							data-toggle="dropdown"
-						>
-							<div v-html="frappe.utils.icon('dot-horizontal', 'sm')"></div>
-						</button>
-						<div class="dropdown-menu dropdown-menu-right" role="menu">
-							<button
-								v-for="(option, i) in section_options"
-								:key="i"
-								class="dropdown-item"
-								@click="option.action"
-							>
-								{{ option.label }}
-							</button>
-						</div>
-					</div>
+					<button
+						class="btn btn-xs btn-section"
+						:title="__('Add section above')"
+						@click="add_section_above"
+					>
+						<div v-html="frappe.utils.icon('add', 'sm')"></div>
+					</button>
+					<button
+						class="btn btn-xs btn-section"
+						:title="__('Remove section')"
+						@click="remove_section"
+					>
+						<div v-html="frappe.utils.icon('close', 'sm')"></div>
+					</button>
 				</div>
 			</div>
 			<div class="section-columns">

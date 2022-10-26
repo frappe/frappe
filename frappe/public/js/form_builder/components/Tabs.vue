@@ -192,7 +192,8 @@ function remove_tab() {
 		.btn {
 			opacity: 0;
 			padding: 2px;
-			margin-left: 8px;
+			margin-left: 4px;
+			box-shadow: none;
 
 			.add-btn-text {
 				padding: 4px 8px;
