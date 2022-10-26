@@ -25,15 +25,35 @@ function remove_column() {
 	}
 
 	// move all fields to previous column
-	let index = props.section.columns.indexOf(props.column);
+	let columns = props.section.columns;
+	let index = columns.indexOf(props.column);
 
 	if (index > 0) {
-		let prev_column = props.section.columns[index - 1];
-		prev_column.fields = prev_column.fields.concat(props.column.fields);
-
-		// remove column
-		props.section.columns.splice(index, 1);
+		let prev_column = columns[index - 1];
+		prev_column.fields = [...prev_column.fields, ...props.column.fields];
+	} else {
+		if (props.column.fields.length != 0) {
+			// create a new column if current column has fields and push fields to it
+			columns.unshift({
+				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				fields: props.column.fields,
+				is_first: true
+			});
+			index++;
+		} else {
+			// set next column as first column
+			let next_column = columns[index + 1];
+			if (next_column) {
+				next_column.is_first = true;
+			} else {
+				frappe.msgprint(__("Section must have at least one column"));
+				throw "section must have at least one column";
+			}
+		}
 	}
+
+	// remove column
+	columns.splice(index, 1);
 }
 </script>
 

@@ -42,51 +42,32 @@ function remove_tab() {
 	if (store.is_customize_form && current_tab.value.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
-	} else {
-		current_tab.value.sections.forEach((section, i) => {
-			if (section.df.is_custom_field == 0) {
-				frappe.msgprint(__("Section {0} is a standard field and it cannot be deleted.", [i + 1]));
-				throw "cannot delete standard field";
-			} else {
-				section.columns.forEach((column, j) => {
-					if (store.is_custom(column) == 0) {
-						frappe.msgprint(
-							__("Column {0} is a standard field and it cannot be deleted.", [j + 1])
-						);
-						throw "cannot delete standard field";
-					} else {
-						column.fields.forEach(field => {
-							if (store.is_custom(field) == 0) {
-								frappe.msgprint(
-									__(
-										"Field <b>{0}</b> inside the section is a standard field. Remove the field from the section and try again.",
-										[field.df.label]
-									)
-								);
-								throw "cannot delete standard field";
-							}
-						});
-					}
-				});
-			}
-		});
 	}
-	frappe.confirm(
-		__(
-			"All the section and fields inside the tab will also be removed, are you sure you want to continue?"
-		),
-		() => {
-			let tab_index = layout.value.tabs.findIndex(tab => tab.df.name == store.active_tab);
 
-			// remove tab
-			layout.value.tabs.splice(tab_index, 1);
+	// move all sections from current tab to previous tab
+	let tabs = layout.value.tabs;
+	let index = tabs.indexOf(current_tab.value);
 
-			// activate previous tab
-			let index = tab_index == 0 ? 0 : tab_index - 1;
-			store.active_tab = layout.value.tabs[index].df.name;
-			store.selected_field = null;
-		},
-	);
+	if (index > 0) {
+		let prev_tab = tabs[index - 1];
+		prev_tab.sections = [...prev_tab.sections, ...current_tab.value.sections];
+	} else {
+		// create a new tab and push sections to it
+		tabs.unshift({
+			df: store.get_df("Tab Break"),
+			sections: current_tab.value.sections,
+			is_first: true,
+		});
+		index++;
+	}
+
+	// remove tab
+	tabs.splice(index, 1);
+
+	// activate previous tab
+	let prev_tab_index = index == 0 ? 0 : index - 1;
+	store.active_tab = tabs[prev_tab_index].df.name;
+	store.selected_field = null;
 }
 </script>
 

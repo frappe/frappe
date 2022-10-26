@@ -19,37 +19,27 @@ function remove_section() {
 	if (store.is_customize_form && props.section.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
-	} else {
-		props.section.columns.forEach((column, i) => {
-			if (store.is_custom(column) == 0) {
-				frappe.msgprint(
-					__("Column {0} is a standard field and it cannot be deleted.", [i + 1])
-				);
-				throw "cannot delete standard field";
-			} else {
-				column.fields.forEach(field => {
-					if (store.is_custom(field) == 0) {
-						frappe.msgprint(
-							__(
-								"Field <b>{0}</b> inside the section is a standard field. Remove the field from the section and try again.",
-								[field.df.label]
-							)
-						);
-						throw "cannot delete standard field";
-					}
-				});
-			}
-		});
 	}
-	frappe.confirm(
-		__(
-			"All the fields inside the section will also be removed, are you sure you want to continue?"
-		),
-		() => {
-			props.section.remove = true;
-			props.section.columns = [];
-		},
-	);
+
+	// move all columns from current section to previous section
+	let sections = props.tab.sections;
+	let index = sections.indexOf(props.section);
+
+	if (index > 0) {
+		let prev_section = sections[index - 1];
+		prev_section.columns = [...prev_section.columns, ...props.section.columns];
+	} else {
+		// create a new section and push columns to it
+		sections.unshift({
+			df: store.get_df("Section Break"),
+			columns: props.section.columns,
+			is_first: true,
+		});
+		index++;
+	}
+
+	// remove section
+	sections.splice(index, 1);
 }
 </script>
 
