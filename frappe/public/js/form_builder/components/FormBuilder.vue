@@ -20,8 +20,8 @@ onMounted(() => store.fetch());
 </script>
 
 <template>
-	<div class="form-builder-container" v-if="should_render">
-		<div class="form-controls">
+	<div class="form-builder-container" v-if="should_render" @click="store.selected_field = null">
+		<div class="form-controls" @click.stop>
 			<div class="form-sidebar">
 				<Sidebar />
 			</div>

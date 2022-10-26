@@ -107,7 +107,7 @@ function remove_tab() {
 					:class="['tab', store.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
 					:data-is-custom="store.is_custom(element)"
-					@click="activate_tab(element)"
+					@click.stop="activate_tab(element)"
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"

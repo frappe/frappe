@@ -63,7 +63,7 @@ function remove_section() {
 			]"
 			:title="section.df.fieldname"
 			:data-is-custom="store.is_custom(section)"
-			@click="store.selected_field = section.df"
+			@click.stop="store.selected_field = section.df"
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
 		>
