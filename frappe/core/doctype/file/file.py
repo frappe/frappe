@@ -63,11 +63,12 @@ class File(Document):
 			return
 
 		if self.is_remote_file:
-			self.validate_remote_file()
-		else:
-			self.save_file(content=self.get_content())
-			self.flags.new_file = True
-			frappe.local.rollback_observers.append(self)
+			self.convert_site_url_to_local_file_path()
+			return
+
+		self.save_file(content=self.get_content())
+		self.flags.new_file = True
+		frappe.local.rollback_observers.append(self)
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -254,11 +255,11 @@ class File(Document):
 					title=_("Attachment Limit Reached"),
 				)
 
-	def validate_remote_file(self):
-		"""Validates if file uploaded using URL already exist"""
-		site_url = get_url()
-		if self.file_url and "/files/" in self.file_url and self.file_url.startswith(site_url):
-			self.file_url = self.file_url.split(site_url, 1)[1]
+	def convert_site_url_to_local_file_path(self):
+		"""Handle case where an existing file URL was re-attached."""
+
+		if self.file_url and "/files/" in self.file_url:
+			self.file_url = self.file_url.split(get_url(), 1)[-1]
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -450,10 +451,6 @@ class File(Document):
 		"""Returns file path from given file name"""
 
 		file_path = self.file_url or self.file_name
-
-		site_url = get_url()
-		if "/files/" in file_path and file_path.startswith(site_url):
-			file_path = file_path.split(site_url, 1)[1]
 
 		if file_path.startswith(URL_PREFIXES):
 			return file_path

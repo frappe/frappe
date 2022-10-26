@@ -215,3 +215,4 @@ frappe.patches.v14_0.drop_unused_indexes
 frappe.patches.v15_0.drop_modified_index
 frappe.patches.v14_0.add_manage_subscriptions_in_navbar_settings
 frappe.patches.v14_0.update_attachment_comment
+frappe.patches.v14_0.set_relative_file_urls
