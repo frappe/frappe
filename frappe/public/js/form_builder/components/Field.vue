@@ -67,14 +67,10 @@ watch(
 					class="btn btn-xs btn-icon"
 					@click="edit_html"
 				>
-					<svg class="icon icon-sm">
-						<use href="#icon-edit"></use>
-					</svg>
+					<div v-html="frappe.utils.icon('edit', 'sm')"></div>
 				</button>
 				<button class="btn btn-xs btn-icon" @click="remove_field">
-					<svg class="icon icon-sm">
-						<use href="#icon-close"></use>
-					</svg>
+					<div v-html="frappe.utils.icon('close', 'sm')"></div>
 				</button>
 			</div>
 		</div>
@@ -143,7 +139,7 @@ watch(
 				padding: 2px;
 
 				&:hover {
-					background-color: white;
+					background-color: var(--fg-color);
 				}
 			}
 		}

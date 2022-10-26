@@ -146,13 +146,11 @@ function remove_tab() {
 		<div class="tab-actions" :hidden="store.read_only">
 			<button
 				class="new-tab-btn btn btn-xs"
-				:class="{ 'no-tabs' : !has_tabs }"
+				:class="{ 'no-tabs': !has_tabs }"
 				:title="__('Add new tab')"
-				@click="add_new_tab()"
+				@click="add_new_tab"
 			>
-				<svg class="icon icon-sm" v-if="has_tabs">
-					<use href="#icon-add"></use>
-				</svg>
+				<div v-if="has_tabs" v-html="frappe.utils.icon('add', 'sm')"></div>
 				<div class="add-btn-text" v-else>
 					{{ __("Add new tab") }}
 				</div>
@@ -161,11 +159,9 @@ function remove_tab() {
 				v-if="has_tabs"
 				class="remove-tab-btn btn btn-xs"
 				:title="__('Remove selected tab')"
-				@click="remove_tab()"
+				@click="remove_tab"
 			>
-				<svg class="icon icon-sm">
-					<use href="#icon-close"></use>
-				</svg>
+				<div v-html="frappe.utils.icon('close', 'sm')"></div>
 			</button>
 		</div>
 	</div>

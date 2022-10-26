@@ -9,9 +9,7 @@
 			@input="event => $emit('update:modelValue', event.target.value)"
 		/>
 		<span class="search-icon">
-			<svg class="icon icon-sm">
-				<use href="#icon-search"></use>
-			</svg>
+			<div v-html="frappe.utils.icon('search', 'sm')"></div>
 		</span>
 	</div>
 </template>

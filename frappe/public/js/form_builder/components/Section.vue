@@ -131,9 +131,7 @@ let section_options = computed(() => {
 							class="btn btn-xs btn-section dropdown-button"
 							data-toggle="dropdown"
 						>
-							<svg class="icon icon-sm">
-								<use href="#icon-dot-horizontal"></use>
-							</svg>
+							<div v-html="frappe.utils.icon('dot-horizontal', 'sm')"></div>
 						</button>
 						<div class="dropdown-menu dropdown-menu-right" role="menu">
 							<button
