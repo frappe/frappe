@@ -151,7 +151,7 @@ export const useStore = defineStore("store", {
 			return fields;
 		},
 		get_layout() {
-			return create_layout(this.doc.fields, this.get_df);
+			return create_layout(this.doc.fields);
 		},
 	},
 });

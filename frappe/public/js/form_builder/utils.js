@@ -1,4 +1,8 @@
-export function create_layout(fields, get_df) {
+import { useStore } from "./store";
+
+export function create_layout(fields) {
+	let store = useStore();
+
 	let layout = {
 		tabs: [],
 	};
@@ -31,7 +35,7 @@ export function create_layout(fields, get_df) {
 
 	function get_new_tab(df) {
 		let _tab = {};
-		_tab.df = df || get_df("Tab Break", "", __("Details"));
+		_tab.df = df || store.get_df("Tab Break", "", __("Details"));
 		_tab.sections = [];
 		_tab.is_first = !df;
 		return _tab;
@@ -39,7 +43,7 @@ export function create_layout(fields, get_df) {
 
 	function get_new_section(df) {
 		let _section = {};
-		_section.df = df || get_df("Section Break");
+		_section.df = df || store.get_df("Section Break");
 		_section.columns = [];
 		_section.is_first = !df;
 		return _section;
@@ -47,7 +51,8 @@ export function create_layout(fields, get_df) {
 
 	function get_new_column(df) {
 		let _column = {};
-		_column.df = df || get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
+		_column.df =
+			df || store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
 		_column.fields = [];
 		_column.is_first = !df;
 		return _column;
@@ -148,4 +153,22 @@ export function evaluate_depends_on_value(expression, doc) {
 	}
 
 	return out;
+}
+
+export function section_boilerplate() {
+	let store = useStore();
+
+	return {
+		df: store.get_df("Section Break"),
+		columns: [
+			{
+				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				fields: [],
+			},
+			{
+				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				fields: [],
+			},
+		],
+	};
 }

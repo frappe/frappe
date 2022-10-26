@@ -2,6 +2,7 @@
 import Section from "./Section.vue";
 import draggable from "vuedraggable";
 import { useStore } from "../store";
+import { section_boilerplate } from "../utils";
 import { ref, computed } from "vue";
 
 let store = useStore();
@@ -25,22 +26,6 @@ function drag_over(tab) {
 		setTimeout(() => {
 			store.active_tab = tab.df.name;
 		}, 500);
-}
-
-function section_boilerplate() {
-	return {
-		df: store.get_df("Section Break"),
-		columns: [
-			{
-				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-				fields: [],
-			},
-			{
-				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-				fields: [],
-			}
-		],
-	};
 }
 
 function add_section_above(section) {
