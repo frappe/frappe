@@ -4,10 +4,37 @@ import Field from "./Field.vue";
 import { ref } from "vue";
 import { useStore } from "../store";
 
-let props = defineProps(["column"]);
+let props = defineProps(["section", "column"]);
 let store = useStore();
 
 let hovered = ref(false);
+
+function add_column() {
+	// insert new column after the current column
+	let index = props.section.columns.indexOf(props.column);
+	props.section.columns.splice(index + 1, 0, {
+		df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+		fields: []
+	});
+}
+
+function remove_column() {
+	if (store.is_customize_form && store.is_custom(props.column) == 0) {
+		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
+		throw "cannot delete standard field";
+	}
+
+	// move all fields to previous column
+	let index = props.section.columns.indexOf(props.column);
+
+	if (index > 0) {
+		let prev_column = props.section.columns[index - 1];
+		prev_column.fields = prev_column.fields.concat(props.column.fields);
+
+		// remove column
+		props.section.columns.splice(index, 1);
+	}
+}
 </script>
 
 <template>
@@ -22,6 +49,18 @@ let hovered = ref(false);
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
+		<div class="column-actions hidden" :hidden="store.read_only">
+			<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
+				<div v-html="frappe.utils.icon('add', 'sm')"></div>
+			</button>
+			<button
+				class="btn btn-xs btn-icon"
+				:title="__('Remove Column')"
+				@click="remove_column"
+			>
+				<div v-html="frappe.utils.icon('close', 'sm')"></div>
+			</button>
+		</div>
 		<draggable
 			class="column-container"
 			:style="{
@@ -36,6 +75,7 @@ let hovered = ref(false);
 		>
 			<template #item="{ element }">
 				<Field
+					:column="column"
 					:field="element"
 					:data-is-custom="store.is_custom(element)"
 				/>
@@ -46,6 +86,8 @@ let hovered = ref(false);
 
 <style lang="scss" scoped>
 .column {
+	display: flex;
+	flex-direction: column;
 	width: 100%;
 	background-color: var(--bg-light-gray);
 	border-radius: var(--border-radius);
@@ -81,9 +123,26 @@ let hovered = ref(false);
 	}
 
 	.column-container {
-		height: 100%;
+		flex: 1;
 		min-height: 2rem;
 		border-radius: var(--border-radius);
+	}
+
+	.column-actions {
+		display: flex;
+		justify-content: flex-end;
+		padding-bottom: 0.5rem;
+
+		.btn.btn-icon {
+			padding: 2px;
+			box-shadow: none;
+			opacity: 0;
+
+			&:hover {
+				opacity: 1;
+				background-color: var(--fg-color);
+			}
+		}
 	}
 }
 </style>

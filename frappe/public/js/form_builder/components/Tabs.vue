@@ -28,17 +28,6 @@ function drag_over(tab) {
 		}, 500);
 }
 
-function add_section_above(section) {
-	let sections = [];
-	for (let _section of current_tab.value.sections) {
-		if (_section === section) {
-			sections.push(section_boilerplate());
-		}
-		sections.push(_section);
-	}
-	current_tab.value.sections = sections;
-}
-
 function add_new_tab() {
 	let tab = {
 		df: store.get_df("Tab Break", "", "Tab " + (layout.value.tabs.length + 1)),
@@ -168,7 +157,7 @@ function remove_tab() {
 				:disabled="store.read_only"
 			>
 				<template #item="{ element }">
-					<Section :section="element" @add_section_above="add_section_above(element)" />
+					<Section :tab="tab" :section="element" />
 				</template>
 			</draggable>
 		</div>

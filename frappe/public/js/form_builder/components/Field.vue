@@ -2,7 +2,7 @@
 import { watch, ref, nextTick } from "vue";
 import { useStore } from "../store";
 
-let props = defineProps(["field"]);
+let props = defineProps(["column", "field"]);
 let store = useStore();
 
 let label_input = ref(null);
@@ -14,7 +14,8 @@ function remove_field() {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	}
-	props.field.remove = true;
+	let index = props.column.fields.indexOf(props.field);
+	props.column.fields.splice(index, 1);
 }
 
 watch(

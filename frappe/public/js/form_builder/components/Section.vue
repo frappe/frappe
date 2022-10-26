@@ -3,46 +3,18 @@ import draggable from "vuedraggable";
 import Column from "./Column.vue";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
+import { section_boilerplate } from "../utils";
 
-let props = defineProps(["section"]);
-let emit = defineEmits(["add_section_above"]);
+let props = defineProps(["tab", "section"]);
 let store = useStore();
 
 let hovered = ref(false);
 
-let visible_columns = computed(() => props.section.columns.filter(c => !c.remove));
-
-function add_column() {
-	if (visible_columns.value.length < 4) {
-		props.section.columns.push({
-			df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-			fields: [],
-		});
-	}
+function add_section_above() {
+	let index = props.tab.sections.indexOf(props.section);
+	props.tab.sections.splice(index, 0, section_boilerplate());
 }
-function remove_column() {
-	if (visible_columns.value.length <= 1) return;
 
-	// get last column's index
-	let index = visible_columns.value.length - 1;
-
-	if (store.is_customize_form && store.is_custom(visible_columns.value[index]) == 0) {
-		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
-		throw "cannot delete standard field";
-	}
-
-	let columns = visible_columns.value.slice();
-	let last_column_fields = columns.slice(-1)[0].fields.slice();
-
-	// remove last column
-	columns = columns.slice(0, index);
-
-	// move fields from last column to second last column
-	let last_column = columns[index - 1];
-	last_column.fields = [...last_column.fields, ...last_column_fields];
-
-	props.section.columns = columns;
-}
 function remove_section() {
 	if (store.is_customize_form && props.section.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
@@ -84,17 +56,7 @@ let section_options = computed(() => {
 	return [
 		{
 			label: __("Add section above"),
-			action: () => emit("add_section_above"),
-		},
-		{
-			label: __("Add column"),
-			action: add_column,
-			condition: () => visible_columns.value.length < 4,
-		},
-		{
-			label: __("Remove column"),
-			action: remove_column,
-			condition: () => visible_columns.value.length > 1,
+			action: add_section_above,
 		},
 		{
 			label: __("Remove section"),
@@ -155,6 +117,7 @@ let section_options = computed(() => {
 				>
 					<template #item="{ element }">
 						<Column
+							:section="section"
 							:column="element"
 							:data-is-custom="store.is_custom(element)"
 						/>
