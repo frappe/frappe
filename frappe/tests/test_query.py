@@ -6,7 +6,7 @@ from frappe.query_builder import Field
 from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils.nestedset import get_descendants_of
+from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
 
 
 class TestQuery(FrappeTestCase):
@@ -212,9 +212,7 @@ class TestQuery(FrappeTestCase):
 			"email", frappe.qb.engine.get_query("User", fields=["name", "#email"], filters={}).get_sql()
 		)
 
-	def test_nestedset(self):
-		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
-		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
+	def insert_tree_docs(self):
 		records = [
 			{
 				"some_fieldname": "Root Node",
@@ -256,14 +254,32 @@ class TestQuery(FrappeTestCase):
 			d.update(record)
 			d.insert()
 
-		result = frappe.qb.engine.get_query(
+
+	def test_nestedset(self):
+		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
+		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
+		self.insert_tree_docs()
+		descendants_result = frappe.qb.engine.get_query(
 			"Test Tree DocType",
 			fields=["name"],
 			filters={"name": ("descendants of", "Parent 1")},
 			orderby="modified",
 		).run(as_list=1)
-		result = list(itertools.chain.from_iterable(result))
-		self.assertListEqual(result, get_descendants_of("Test Tree DocType", "Parent 1"))
+
+		# Format decendants result
+		descendants_result = list(itertools.chain.from_iterable(descendants_result))
+		self.assertListEqual(descendants_result, get_descendants_of("Test Tree DocType", "Parent 1"))
+
+		ancestors_result = frappe.qb.engine.get_query(
+			"Test Tree DocType",
+			fields=["name"],
+			filters={"name": ("ancestors of", "Child 2")},
+			orderby="modified",
+		).run(as_list=1)
+
+		# Format ancestors result
+		ancestors_result = list(itertools.chain.from_iterable(ancestors_result))
+		self.assertListEqual(ancestors_result, get_ancestors_of("Test Tree DocType", "Child 2"))
 
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
