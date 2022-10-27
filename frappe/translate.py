@@ -53,6 +53,12 @@ REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
 
+# Cache keys
+MERGED_TRANSLATION_KEY = "merged_translations"
+APP_TRANSLATION_KEY = "translations_from_apps"
+USER_TRANSLATION_KEY = "lang_user_translations"
+
+
 def get_language(lang_list: list = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
@@ -267,27 +273,25 @@ def get_lang_js(fortype: str, name: str) -> str:
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
-	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
+	"""Load and return the entire translations dictionary for a language from apps + user translations.
 
 	:param lang: Language Code, e.g. `hi`
 	"""
 	if not lang:
 		return {}
 
-	# found in local, return!
-	if getattr(frappe.local, "lang_full_dict", None) is not None:
-		return frappe.local.lang_full_dict
+	def _merge_translations():
+		all_translations = get_translations_from_apps(lang).copy()
+		try:
+			# get user specific translation data
+			user_translations = get_user_translations(lang)
+			all_translations.update(user_translations)
+		except Exception:
+			pass
 
-	frappe.local.lang_full_dict = get_translations_from_apps(lang)
+		return all_translations
 
-	try:
-		# get user specific translation data
-		user_translations = get_user_translations(lang)
-		frappe.local.lang_full_dict.update(user_translations)
-	except Exception:
-		pass
-
-	return frappe.local.lang_full_dict
+	return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 
 
 def get_translations_from_apps(lang, apps=None):
@@ -298,22 +302,20 @@ def get_translations_from_apps(lang, apps=None):
 	if lang == "en":
 		return {}
 
-	out = frappe.cache().hget("lang_full_dict", lang, shared=True)
-	if not out:
-		out = {}
+	def _get_from_disk():
+		translations = {}
 		for app in apps or frappe.get_all_apps(True):
 			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-			out.update(get_translation_dict_from_file(path, lang, app) or {})
-
+			translations.update(get_translation_dict_from_file(path, lang, app) or {})
 		if "-" in lang:
 			parent = lang.split("-")[0]
-			parent_out = get_translations_from_apps(parent)
-			parent_out.update(out)
-			out = parent_out
+			parent_translations = get_translations_from_apps(parent)
+			parent_translations.update(translations)
+			return parent_translations
 
-		frappe.cache().hset("lang_full_dict", lang, out, shared=True)
+		return translations
 
-	return out or {}
+	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=_get_from_disk)
 
 
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
@@ -342,23 +344,22 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 def get_user_translations(lang):
 	if not frappe.db:
 		frappe.connect()
-	out = frappe.cache().hget("lang_user_translations", lang)
-	if out is None:
-		out = {}
-		user_translations = frappe.get_all(
+
+	def _read_from_db():
+		user_translations = {}
+		translations = frappe.get_all(
 			"Translation", fields=["source_text", "translated_text", "context"], filters={"language": lang}
 		)
 
-		for translation in user_translations:
-			key = translation.source_text
-			value = translation.translated_text
-			if translation.context:
-				key += ":" + translation.context
-			out[key] = value
+		for t in translations:
+			key = t.source_text
+			value = t.translated_text
+			if t.context:
+				key += ":" + t.context
+			user_translations[key] = value
+		return user_translations
 
-		frappe.cache().hset("lang_user_translations", lang, out)
-
-	return out
+	return frappe.cache().hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
 
 
 def clear_cache():
@@ -368,9 +369,10 @@ def clear_cache():
 
 	# clear translations saved in boot cache
 	cache.delete_key("bootinfo")
-	cache.delete_key("lang_full_dict", shared=True)
 	cache.delete_key("translation_assets", shared=True)
-	cache.delete_key("lang_user_translations")
+	cache.delete_key(APP_TRANSLATION_KEY, shared=True)
+	cache.delete_key(USER_TRANSLATION_KEY)
+	cache.delete_key(MERGED_TRANSLATION_KEY)
 
 
 def get_messages_for_app(app, deduplicate=True):

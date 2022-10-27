@@ -107,14 +107,15 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	msg = as_unicode(msg).strip()
 
 	translated_string = ""
+
+	all_translations = get_all_translations(lang)
 	if context:
 		string_key = f"{msg}:{context}"
-		translated_string = get_all_translations(lang).get(string_key)
+		translated_string = all_translations.get(string_key)
 
 	if not translated_string:
-		translated_string = get_all_translations(lang).get(msg)
+		translated_string = all_translations.get(msg)
 
-	# return lang_full_dict according to lang passed parameter
 	return translated_string or non_translated_string
 
 
@@ -222,7 +223,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
-	local.lang_full_dict = None
 
 	local.module_app = None
 	local.app_modules = None
