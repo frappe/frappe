@@ -39,6 +39,7 @@ $('body').on('click', 'a', function(e) {
 	};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	const href = e.currentTarget.getAttribute('href');
 
 	// click handled, but not by href
@@ -49,10 +50,15 @@ $('body').on('click', 'a', function(e) {
 	const targetElement = e.currentTarget;
 	const href = targetElement.getAttribute("href");
 	const isOfSameHost = targetElement.hostname === window.location.hostname;
+=======
+	const target_element = e.currentTarget;
+	const href = target_element.getAttribute("href");
+	const is_on_same_host = target_element.hostname === window.location.hostname;
+>>>>>>> ccbd6ffab3 (fix(formatting): use snake case for variable names)
 
 	// click handled, but not by href
 	if (
-		targetElement.getAttribute("onclick") || // has a handler
+		target_element.getAttribute("onclick") || // has a handler
 		e.ctrlKey ||
 		e.metaKey || // open in a new tab
 		href === "#" // hash is home
@@ -67,24 +73,28 @@ $('body').on('click', 'a', function(e) {
 
 	if (href && href.startsWith('#')) {
 		// target startswith "#", this is a v1 style route, so remake it.
-		return override(targetElement.hash);
+		return override(target_element.hash);
 	}
 
-	if (isOfSameHost && frappe.router.is_app_route(targetElement.pathname)) {
+	if (is_on_same_host && frappe.router.is_app_route(target_element.pathname)) {
 		// target has "/app, this is a v2 style route.
 <<<<<<< HEAD
 		return override(e.currentTarget.pathname + e.currentTarget.hash);
 =======
 
-		if (targetElement.search) {
+		if (target_element.search) {
 			frappe.route_options = {};
-			let params = new URLSearchParams(targetElement.search);
+			let params = new URLSearchParams(target_element.search);
 			for (const [key, value] of params) {
 				frappe.route_options[key] = value;
 			}
 		}
+<<<<<<< HEAD
 		return override(targetElement.pathname + targetElement.hash);
 >>>>>>> 8cdda2e721 (fix(router-js): handle case when link is not of same host)
+=======
+		return override(target_element.pathname + target_element.hash);
+>>>>>>> ccbd6ffab3 (fix(formatting): use snake case for variable names)
 	}
 
 });
