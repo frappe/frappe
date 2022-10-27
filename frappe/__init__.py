@@ -89,7 +89,7 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	        _('Change')
 	        _('Change', context='Coins')
 	"""
-	from frappe.translate import get_full_dict
+	from frappe.translate import get_all_translations
 	from frappe.utils import is_html, strip_html_tags
 
 	if not hasattr(local, "lang"):
@@ -109,10 +109,10 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	translated_string = ""
 	if context:
 		string_key = f"{msg}:{context}"
-		translated_string = get_full_dict(lang).get(string_key)
+		translated_string = get_all_translations(lang).get(string_key)
 
 	if not translated_string:
-		translated_string = get_full_dict(lang).get(msg)
+		translated_string = get_all_translations(lang).get(msg)
 
 	# return lang_full_dict according to lang passed parameter
 	return translated_string or non_translated_string
