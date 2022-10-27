@@ -1,49 +1,30 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
 
-import unittest
 
 import frappe
 from frappe import _
-<<<<<<< HEAD
-=======
 from frappe.tests.utils import FrappeTestCase
 from frappe.translate import clear_cache
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 
 
-class TestTranslation(unittest.TestCase):
+class TestTranslation(FrappeTestCase):
 	def setUp(self):
 		frappe.db.sql("delete from tabTranslation")
 
 	def tearDown(self):
 		frappe.local.lang = "en"
-<<<<<<< HEAD
-		frappe.local.lang_full_dict = None
-=======
 		clear_cache()
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 
 	def test_doctype(self):
 		translation_data = get_translation_data()
 		for key, val in translation_data.items():
 			frappe.local.lang = key
-<<<<<<< HEAD
-			frappe.local.lang_full_dict = None
-=======
-
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 			translation = create_translation(key, val)
 			self.assertEqual(_(val[0]), val[1])
 
 			frappe.delete_doc("Translation", translation.name)
-<<<<<<< HEAD
-			frappe.local.lang_full_dict = None
-
-=======
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 			self.assertEqual(_(val[0]), val[0])
 
 	def test_parent_language(self):
@@ -133,10 +114,3 @@ def create_translation(key, val):
 	translation.translated_text = val[1]
 	translation.save()
 	return translation
-<<<<<<< HEAD
-=======
-
-
-def clear_translation_cache():
-	frappe.cache().delete_key("translations_from_apps", shared=True)
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))

@@ -110,13 +110,8 @@ def _(msg, lang=None, context=None) -> str:
 
 	all_translations = get_all_translations(lang)
 	if context:
-<<<<<<< HEAD
-		string_key = "{msg}:{context}".format(msg=msg, context=context)
-		translated_string = get_full_dict(lang).get(string_key)
-=======
 		string_key = f"{msg}:{context}"
 		translated_string = all_translations.get(string_key)
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 
 	if not translated_string:
 		translated_string = all_translations.get(msg)

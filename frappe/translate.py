@@ -63,17 +63,13 @@ TRANSLATE_PATTERN = re.compile(
 )
 
 
-<<<<<<< HEAD
-def get_language(lang_list: List = None) -> str:
-=======
 # Cache keys
 MERGED_TRANSLATION_KEY = "merged_translations"
 APP_TRANSLATION_KEY = "translations_from_apps"
 USER_TRANSLATION_KEY = "lang_user_translations"
 
 
-def get_language(lang_list: list = None) -> str:
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
+def get_language(lang_list: List = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -229,17 +225,6 @@ def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 	return translation_map
 
 
-<<<<<<< HEAD
-=======
-def get_messages_for_boot():
-	"""Return all message translations that are required on boot."""
-	messages = get_all_translations(frappe.local.lang)
-	messages.update(get_dict_from_hooks("boot", None))
-
-	return messages
-
-
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 def get_dict_from_hooks(fortype, name):
 	translated_dict = {}
 
@@ -285,13 +270,8 @@ def get_lang_js(fortype: str, name: str) -> str:
 	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
-<<<<<<< HEAD
-def get_full_dict(lang):
-	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
-=======
-def get_all_translations(lang: str) -> dict[str, str]:
+def get_all_translations(lang: str):
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
->>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 
 	:param lang: Language Code, e.g. `hi`
 	"""
