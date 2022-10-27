@@ -108,7 +108,11 @@ def _restore_thread_locals(flags):
 	frappe.local.conf = frappe._dict(frappe.get_site_config())
 	frappe.local.cache = {}
 	frappe.local.lang = "en"
+<<<<<<< HEAD
 	frappe.local.lang_full_dict = None
+=======
+	frappe.local.preload_assets = {"style": [], "script": []}
+>>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 
 
 @contextmanager
