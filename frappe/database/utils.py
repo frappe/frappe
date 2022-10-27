@@ -18,7 +18,7 @@ QueryValues = tuple | list | dict | NoneType
 EmptyQueryValues = object()
 FallBackDateTimeStr = "0001-01-01 00:00:00.000000"
 
-NESTED_SET_HIERARCHY = (
+NestedSetHierarchy = (
 	"ancestors of",
 	"descendants of",
 	"not ancestors of",

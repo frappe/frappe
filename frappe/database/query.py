@@ -11,7 +11,7 @@ from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
 import frappe
 from frappe import _
-from frappe.database.utils import NESTED_SET_HIERARCHY, is_pypika_function_object
+from frappe.database.utils import NestedSetHierarchy, is_pypika_function_object
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -220,7 +220,7 @@ OPERATOR_MAP: dict[str, Callable] = {
 	"between": func_between,
 	"is": func_is,
 	"timespan": func_timespan,
-	"nested_set": NESTED_SET_HIERARCHY,
+	"nested_set": NestedSetHierarchy,
 	# TODO: Add support for custom operators (WIP) - via filters_config hooks
 }
 
@@ -390,7 +390,7 @@ class Engine:
 					)
 					if result:
 						result = list(itertools.chain.from_iterable(result))
-						conditions =  conditions.where(_operator(getattr(table, key), result))
+						conditions = conditions.where(_operator(getattr(table, key), result))
 					else:
 						conditions = conditions.where(_operator(getattr(table, key), ("",)))
 					# Allow additional conditions

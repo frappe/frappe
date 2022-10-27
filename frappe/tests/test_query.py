@@ -254,7 +254,6 @@ class TestQuery(FrappeTestCase):
 			d.update(record)
 			d.insert()
 
-
 	def test_nestedset(self):
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
