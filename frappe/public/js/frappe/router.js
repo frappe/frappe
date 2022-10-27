@@ -38,16 +38,17 @@ $("body").on("click", "a", function (e) {
 		return false;
 	};
 
-	const href = e.currentTarget.getAttribute("href");
+	const targetElement = e.currentTarget;
+	const href = targetElement.getAttribute("href");
+	const isOfSameHost = targetElement.hostname === window.location.hostname;
 
 	// click handled, but not by href
 	if (
-		e.currentTarget.getAttribute("onclick") || // has a handler
+		targetElement.getAttribute("onclick") || // has a handler
 		e.ctrlKey ||
 		e.metaKey || // open in a new tab
-		href === "#"
+		href === "#" // hash is home
 	) {
-		// hash is home
 		return;
 	}
 
@@ -57,20 +58,20 @@ $("body").on("click", "a", function (e) {
 
 	if (href && href.startsWith("#")) {
 		// target startswith "#", this is a v1 style route, so remake it.
-		return override(e.currentTarget.hash);
+		return override(targetElement.hash);
 	}
 
-	if (frappe.router.is_app_route(e.currentTarget.pathname)) {
+	if (isOfSameHost && frappe.router.is_app_route(targetElement.pathname)) {
 		// target has "/app, this is a v2 style route.
 
-		if (e.currentTarget.search) {
+		if (targetElement.search) {
 			frappe.route_options = {};
-			let params = new URLSearchParams(e.currentTarget.search);
+			let params = new URLSearchParams(targetElement.search);
 			for (const [key, value] of params) {
 				frappe.route_options[key] = value;
 			}
 		}
-		return override(e.currentTarget.pathname + e.currentTarget.hash);
+		return override(targetElement.pathname + targetElement.hash);
 	}
 });
 
