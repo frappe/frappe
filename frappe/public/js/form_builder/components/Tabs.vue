@@ -3,7 +3,7 @@ import Section from "./Section.vue";
 import draggable from "vuedraggable";
 import { useStore } from "../store";
 import { section_boilerplate } from "../utils";
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 
 let store = useStore();
 
@@ -19,6 +19,14 @@ let current_tab = computed(() => {
 function activate_tab(tab) {
 	store.active_tab = tab.df.name;
 	store.selected_field = tab.df;
+
+	// scroll to active tab
+	nextTick(() => {
+		$(".tabs .tab.active")[0].scrollIntoView({
+			behavior: "smooth",
+			inline: "center"
+		});
+	});
 }
 
 function drag_over(tab) {
@@ -165,6 +173,9 @@ function remove_tab() {
 
 	.tabs {
 		display: flex;
+		flex: 1;
+		overflow-x: auto;
+		width: 0px;
 	}
 
 	.tab-actions {
@@ -196,6 +207,7 @@ function remove_tab() {
 		margin: 0 var(--margin-md);
 		color: var(--text-muted);
 		border-bottom: 1px solid var(--white);
+		min-width: max-content;
 		cursor: pointer;
 
 		.tab-name {

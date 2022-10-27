@@ -1,7 +1,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Column from "./Column.vue";
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useStore } from "../store";
 import { section_boilerplate } from "../utils";
 
@@ -108,6 +108,7 @@ function remove_section() {
 	&:last-child {
 		border-bottom: none;
 	}
+
 	.form-section {
 		background-color: var(--fg-color);
 		border: 1px solid transparent;
