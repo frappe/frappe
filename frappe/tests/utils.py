@@ -14,10 +14,84 @@ class FrappeTestCase(unittest.TestCase):
 		frappe.db.commit()
 		return super().setUpClass()
 
+<<<<<<< HEAD
 	@classmethod
 	def tearDownClass(cls) -> None:
 		frappe.db.rollback()
 		return super().tearDownClass()
+=======
+	# --- Frappe Framework specific assertions
+	def assertDocumentEqual(self, expected, actual):
+		"""Compare a (partial) expected document with actual Document."""
+
+		if isinstance(expected, BaseDocument):
+			expected = expected.as_dict()
+
+		for field, value in expected.items():
+			if isinstance(value, list):
+				actual_child_docs = actual.get(field)
+				self.assertEqual(len(value), len(actual_child_docs), msg=f"{field} length should be same")
+				for exp_child, actual_child in zip(value, actual_child_docs):
+					self.assertDocumentEqual(exp_child, actual_child)
+			else:
+				self._compare_field(value, actual.get(field), actual, field)
+
+	def _compare_field(self, expected, actual, doc, field):
+		msg = f"{field} should be same."
+
+		if isinstance(expected, float):
+			precision = doc.precision(field)
+			self.assertAlmostEqual(expected, actual, f"{field} should be same to {precision} digits")
+		elif isinstance(expected, (bool, int)):
+			self.assertEqual(expected, cint(actual), msg=msg)
+		elif isinstance(expected, datetime_like_types):
+			self.assertEqual(str(expected), str(actual), msg=msg)
+		else:
+			self.assertEqual(expected, actual, msg=msg)
+
+	@contextmanager
+	def assertQueryCount(self, count):
+		queries = []
+
+		def _sql_with_count(*args, **kwargs):
+			ret = orig_sql(*args, **kwargs)
+			queries.append(frappe.db.last_query)
+			return ret
+
+		try:
+			orig_sql = frappe.db.sql
+			frappe.db.sql = _sql_with_count
+			yield
+			self.assertLessEqual(len(queries), count, msg="Queries executed: " + "\n\n".join(queries))
+		finally:
+			frappe.db.sql = orig_sql
+
+
+def _commit_watcher():
+	import traceback
+
+	print("Warning:, transaction committed during tests.")
+	traceback.print_stack(limit=5)
+
+
+def _rollback_db():
+	frappe.local.before_commit = []
+	frappe.local.rollback_observers = []
+	frappe.db.value_cache = {}
+	frappe.db.rollback()
+
+
+def _restore_thread_locals(flags):
+	frappe.local.flags = flags
+	frappe.local.error_log = []
+	frappe.local.message_log = []
+	frappe.local.debug_log = []
+	frappe.local.realtime_log = []
+	frappe.local.conf = frappe._dict(frappe.get_site_config())
+	frappe.local.cache = {}
+	frappe.local.lang = "en"
+	frappe.local.preload_assets = {"style": [], "script": []}
+>>>>>>> 3ddac5fe92 (refactor: accurate translation caching (#18595))
 
 
 @contextmanager
