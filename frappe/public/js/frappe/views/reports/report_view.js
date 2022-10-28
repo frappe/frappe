@@ -1489,6 +1489,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							options: ["Excel", "CSV"],
 							default: "Excel",
 						},
+						{
+							fieldtype: "Data",
+							label: __("Delimiter"),
+							fieldname: "csv_delimiter",
+							default: ",",
+							length: 1,
+							depends_on: "eval:doc.file_format_type=='CSV'",
+						},
+						{
+							fieldtype: "Select",
+							label: __("Quoting"),
+							fieldname: "csv_quoting",
+							options: [
+								{ value: 0, label: "Minimal" },
+								{ value: 1, label: "All" },
+								{ value: 2, label: "Non-numeric" },
+								{ value: 3, label: "None" },
+							],
+							default: 2,
+							depends_on: "eval:doc.file_format_type=='CSV'",
+						},
 					];
 
 					if (this.total_count > this.count_without_children || args.page_length) {
@@ -1507,6 +1528,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							args.cmd = "frappe.desk.reportview.export_query";
 							args.file_format_type = data.file_format_type;
 							args.title = this.report_name || this.doctype;
+
+							if (data.file_format_type == "CSV") {
+								args.csv_delimiter = data.csv_delimiter;
+								args.csv_quoting = data.csv_quoting;
+							}
 
 							if (this.add_totals_row) {
 								args.add_totals_row = 1;
