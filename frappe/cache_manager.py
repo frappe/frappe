@@ -45,7 +45,7 @@ global_cache_keys = (
 	"sitemap_routes",
 	"db_tables",
 	"server_script_autocompletion_items",
-)
+) + doctype_map_keys
 
 user_cache_keys = (
 	"bootinfo",
@@ -74,7 +74,7 @@ doctype_cache_keys = (
 	"notifications",
 	"workflow",
 	"data_import_column_header_map",
-) + doctype_map_keys
+)
 
 
 def clear_user_cache(user=None):
