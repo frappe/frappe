@@ -146,7 +146,11 @@ function remove_tab() {
 				:disabled="store.read_only"
 			>
 				<template #item="{ element }">
-					<Section :tab="tab" :section="element" />
+					<Section
+						:tab="tab"
+						:section="element"
+						:data-is-custom="store.is_custom(element)"
+					/>
 				</template>
 			</draggable>
 		</div>
@@ -239,6 +243,10 @@ function remove_tab() {
 
 		&.active {
 			display: block;
+		}
+
+		.tab-content-container {
+			min-height: 4rem;
 		}
 	}
 }

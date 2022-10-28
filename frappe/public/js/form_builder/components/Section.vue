@@ -52,7 +52,6 @@ function remove_section() {
 				store.selected(section.df.name) ? 'selected' : ''
 			]"
 			:title="section.df.fieldname"
-			:data-is-custom="store.is_custom(section)"
 			@click.stop="store.selected_field = section.df"
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
@@ -84,9 +83,14 @@ function remove_section() {
 			<div class="section-columns">
 				<draggable
 					class="section-columns-container"
+					:style="{
+						backgroundColor: section.columns.length ? null : 'var(--gray-50)'
+					}"
 					v-model="section.columns"
+					filter="[data-is-custom='0']"
 					group="columns"
 					item-key="id"
+					:disabled="store.read_only"
 				>
 					<template #item="{ element }">
 						<Column
@@ -171,6 +175,8 @@ function remove_section() {
 
 		.section-columns-container {
 			display: flex;
+			min-height: 4rem;
+			border-radius: var(--border-radius);
 		}
 	}
 }
