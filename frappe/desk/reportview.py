@@ -14,7 +14,7 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, cint, format_duration
+from frappe.utils import add_user_info, cint, cstr, format_duration
 from frappe.utils.data import sbool
 
 
@@ -357,7 +357,11 @@ def export_query():
 	add_totals_row = None
 	file_format_type = form_params["file_format_type"]
 	title = title or doctype
+	csv_delimiter = cstr(form_params.get("csv_delimiter", ","))
+	csv_quoting = cint(form_params.get("csv_quoting", 2))
 
+	del form_params["csv_delimiter"]
+	del form_params["csv_quoting"]
 	del form_params["doctype"]
 	del form_params["file_format_type"]
 
@@ -398,7 +402,7 @@ def export_query():
 		from frappe.utils.xlsxutils import handle_html
 
 		f = StringIO()
-		writer = csv.writer(f)
+		writer = csv.writer(f, quoting=csv_quoting, delimiter=csv_delimiter)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
 			writer.writerow([handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r])
