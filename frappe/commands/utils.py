@@ -37,6 +37,8 @@ from frappe.utils import cint, get_bench_path, update_progress_bar
 )
 def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=False, force=False):
 	"Minify + concatenate JS and CSS files, build translations"
+	import frappe.build
+
 	frappe.init("")
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
