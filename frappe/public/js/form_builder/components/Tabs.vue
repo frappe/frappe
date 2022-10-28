@@ -46,6 +46,12 @@ function add_new_tab() {
 	activate_tab(tab);
 }
 
+function add_new_section() {
+	let section = section_boilerplate();
+	current_tab.value.sections.push(section);
+	store.selected_field = section.df;
+}
+
 function is_current_tab_empty() {
 	// check if sections have columns and it contains fields
 	return !current_tab.value.sections.some(section => {
@@ -172,6 +178,16 @@ function remove_tab() {
 					/>
 				</template>
 			</draggable>
+			<div class="empty-tab">
+				<div>{{ __("Drag & Drop a section here") }}</div>
+				<div>{{ __("OR") }}</div>
+				<button
+					class="btn btn-default btn-sm"
+					@click="add_new_section()"
+				>
+					{{ __("Add a new section") }}
+				</button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -259,6 +275,7 @@ function remove_tab() {
 
 	.tab-content {
 		display: none;
+		position: relative;
 
 		&.active {
 			display: block;
@@ -266,6 +283,32 @@ function remove_tab() {
 
 		.tab-content-container {
 			min-height: 4rem;
+			background-color: var(--gray-50);
+			border-radius: var(--border-radius);
+
+			&:empty {
+				height: 7rem;
+				margin: 1rem;
+
+				&+ .empty-tab {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					position: absolute;
+					top: 0;
+					gap: 5px;
+					width: 100%;
+					padding: 15px;
+
+					&button:hover {
+						background-color: var(--border-color);
+					}
+				}
+			}
+
+			&+ .empty-tab {
+				display: none;
+			}
 		}
 	}
 }
