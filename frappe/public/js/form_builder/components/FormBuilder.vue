@@ -72,7 +72,7 @@ onMounted(() => store.fetch());
 			}
 		}
 
-		:deep([data-is-custom="1"]) {
+		:deep([data-has-std-field="false"]), :deep([data-is-custom="1"]) {
 			background-color: var(--yellow-highlight-color);
 		}
 	}

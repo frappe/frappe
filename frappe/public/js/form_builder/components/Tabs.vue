@@ -120,7 +120,7 @@ function remove_tab() {
 				<div
 					:class="['tab', store.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
-					:data-is-custom="store.is_custom(element)"
+					:data-is-custom="element.df.is_custom_field"
 					:data-has-std-field="store.has_standard_field(element)"
 					@click.stop="activate_tab(element)"
 					@dragstart="dragged = true"
@@ -175,7 +175,7 @@ function remove_tab() {
 					<Section
 						:tab="tab"
 						:section="element"
-						:data-is-custom="store.is_custom(element)"
+						:data-is-custom="element.df.is_custom_field"
 						:data-has-std-field="store.has_standard_field(element)"
 					/>
 				</template>

@@ -19,7 +19,7 @@ function add_column() {
 }
 
 function remove_column() {
-	if (store.is_customize_form && store.is_custom(props.column) == 0) {
+	if (store.is_customize_form && props.column.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	}
@@ -97,7 +97,7 @@ function remove_column() {
 				<Field
 					:column="column"
 					:field="element"
-					:data-is-custom="store.is_custom(element)"
+					:data-is-custom="element.df.is_custom_field"
 				/>
 			</template>
 		</draggable>

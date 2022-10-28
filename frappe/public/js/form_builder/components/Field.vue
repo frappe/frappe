@@ -10,7 +10,7 @@ let editing = ref(false);
 let hovered = ref(false);
 
 function remove_field() {
-	if (store.is_customize_form && store.is_custom(props.field) == 0) {
+	if (store.is_customize_form && props.field.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	}

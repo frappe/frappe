@@ -102,7 +102,7 @@ function remove_section() {
 						<Column
 							:section="section"
 							:column="element"
-							:data-is-custom="store.is_custom(element)"
+							:data-is-custom="element.df.is_custom_field"
 							:data-has-std-field="store.has_standard_field(element)"
 						/>
 					</template>
@@ -115,13 +115,14 @@ function remove_section() {
 <style lang="scss" scoped>
 .form-section-container {
 	border-bottom: 1px solid var(--border-color);
+	background-color: var(--fg-color);
 
 	&:last-child {
 		border-bottom: none;
 	}
 
 	.form-section {
-		background-color: var(--fg-color);
+		background-color: inherit;
 		border: 1px solid transparent;
 		border-radius: var(--border-radius);
 		padding: 1rem;
