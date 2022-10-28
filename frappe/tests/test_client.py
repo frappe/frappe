@@ -234,8 +234,7 @@ class TestClient(FrappeTestCase):
 		# insert all docs
 		docs = insert_many(doc_list)
 
-		# make sure only 1 name is returned for the parent upon insertion of child docs
-		self.assertEqual(len(docs), 3)
+		self.assertEqual(len(docs), 5)
 		self.assertIn(note1.name, docs)
 
 		# cleanup
