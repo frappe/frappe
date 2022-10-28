@@ -46,19 +46,38 @@ function add_new_tab() {
 	activate_tab(tab);
 }
 
+function is_current_tab_empty() {
+	// check if sections have columns and it contains fields
+	return !current_tab.value.sections.some(section => {
+		// if section doesnt have fields remove the section
+		let has_fields = section.columns.some(column => column.fields.length);
+
+		if (!has_fields) {
+			// remove section if empty
+			let index = current_tab.value.sections.indexOf(section);
+			current_tab.value.sections.splice(index, 1);
+			has_fields = true;
+		}
+
+		return has_fields;
+	});
+}
+
 function remove_tab() {
 	if (store.is_customize_form && current_tab.value.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	}
 
-	// move all sections from current tab to previous tab
 	let tabs = layout.value.tabs;
 	let index = tabs.indexOf(current_tab.value);
 
 	if (index > 0) {
 		let prev_tab = tabs[index - 1];
-		prev_tab.sections = [...prev_tab.sections, ...current_tab.value.sections];
+		if (!is_current_tab_empty()) {
+			// move all sections from current tab to previous tab
+			prev_tab.sections = [...prev_tab.sections, ...current_tab.value.sections];
+		}
 	} else {
 		// create a new tab and push sections to it
 		tabs.unshift({

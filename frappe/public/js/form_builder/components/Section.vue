@@ -15,20 +15,26 @@ function add_section_above() {
 	props.tab.sections.splice(index, 0, section_boilerplate());
 }
 
+function is_section_empty() {
+	return !props.section.columns.some(column => column.fields.length);
+}
+
 function remove_section() {
 	if (store.is_customize_form && props.section.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	}
 
-	// move all columns from current section to previous section
 	let sections = props.tab.sections;
 	let index = sections.indexOf(props.section);
 
 	if (index > 0) {
 		let prev_section = sections[index - 1];
-		prev_section.columns = [...prev_section.columns, ...props.section.columns];
-	} else {
+		if (!is_section_empty()) {
+			// move all columns from current section to previous section
+			prev_section.columns = [...prev_section.columns, ...props.section.columns];
+		}
+	} else if (index == 0 && !is_section_empty()) {
 		// create a new section and push columns to it
 		sections.unshift({
 			df: store.get_df("Section Break"),
