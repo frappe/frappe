@@ -15,7 +15,12 @@ doctypes_for_mapping = {
 	"Document Naming Rule",
 }
 
-doctype_map_keys = tuple(f"{frappe.scrub(doctype)}_map" for doctype in doctypes_for_mapping)
+
+def get_doctype_map_key(doctype):
+	return frappe.scrub(doctype) + "_map"
+
+
+doctype_map_keys = tuple(map(get_doctype_map_key, doctypes_for_mapping))
 
 bench_cache_keys = ("assets_json",)
 
@@ -40,7 +45,7 @@ global_cache_keys = (
 	"sitemap_routes",
 	"db_tables",
 	"server_script_autocompletion_items",
-) + doctype_map_keys
+)
 
 user_cache_keys = (
 	"bootinfo",
@@ -164,13 +169,11 @@ def clear_controller_cache(doctype=None):
 
 
 def get_doctype_map(doctype, name, filters=None, order_by=None):
-	cache = frappe.cache()
-	cache_key = frappe.scrub(doctype) + "_map"
-
-	def _get_items():
-		return frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True)
-
-	return cache.hget(cache_key, name, _get_items)
+	return frappe.cache().hget(
+		get_doctype_map_key(doctype),
+		name,
+		lambda: frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True),
+	)
 
 
 def clear_doctype_map(doctype, name):
