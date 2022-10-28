@@ -21,7 +21,7 @@ def run_webhooks(doc, method):
 		"Webhook",
 		doc.doctype,
 		fields=["name", "condition", "webhook_docevent"],
-		filters={"enabled": True},
+		filters={"webhook_doctype": doc.doctype, "enabled": True},
 	)
 
 	if not webhooks_for_doc:
