@@ -9,11 +9,12 @@ from frappe.utils.data import evaluate_filters
 
 
 class DocumentNamingRule(Document):
+	@property
+	def doctype_map_names(self):
+		return self.document_type
+
 	def validate(self):
 		self.validate_fields_in_conditions()
-
-	def clear_doctype_map(self):
-		frappe.cache_manager.clear_doctype_map(self.doctype, self.document_type)
 
 	def on_update(self):
 		self.clear_doctype_map()

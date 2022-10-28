@@ -6,6 +6,11 @@ import json
 import frappe
 from frappe.desk.notifications import clear_notifications, delete_notification_count_for
 
+
+def get_doctype_map_key(doctype):
+	return frappe.scrub(doctype) + "_map"
+
+
 common_default_keys = ["__default", "__global"]
 
 doctypes_for_mapping = {
@@ -13,12 +18,9 @@ doctypes_for_mapping = {
 	"Assignment Rule",
 	"Milestone Tracker",
 	"Document Naming Rule",
+	"Notification",
+	"Webhook",
 }
-
-
-def get_doctype_map_key(doctype):
-	return frappe.scrub(doctype) + "_map"
-
 
 doctype_map_keys = tuple(map(get_doctype_map_key, doctypes_for_mapping))
 
@@ -33,7 +35,6 @@ global_cache_keys = (
 	"system_settings",
 	"scheduler_events",
 	"time_zone",
-	"webhooks",
 	"active_domains",
 	"active_modules",
 	"assignment_rule",
@@ -71,7 +72,6 @@ doctype_cache_keys = (
 	"table_columns",
 	"last_modified",
 	"linked_doctypes",
-	"notifications",
 	"workflow",
 	"data_import_column_header_map",
 )
@@ -168,16 +168,39 @@ def clear_controller_cache(doctype=None):
 		site_controllers.pop(doctype, None)
 
 
-def get_doctype_map(doctype, name, filters=None, order_by=None):
+def get_doctype_map(doctype, name, filters=None, order_by=None, fields=None):
 	return frappe.cache().hget(
 		get_doctype_map_key(doctype),
 		name,
-		lambda: frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True),
+		lambda: frappe.get_all(
+			doctype,
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			ignore_ddl=True,
+		),
 	)
 
 
-def clear_doctype_map(doctype, name):
-	frappe.cache().hdel(frappe.scrub(doctype) + "_map", name)
+def clear_doctype_map(doctype, name=None):
+	cache_key = get_doctype_map_key(doctype)
+
+	if name:
+		frappe.cache().hdel(cache_key, name)
+	else:
+		frappe.cache().delete_value(cache_key)
+
+
+def clear_doctype_maps(doc):
+	doctype_map_names = getattr(doc, "doctype_map_names", None)
+	if not doctype_map_names:
+		return
+
+	if isinstance(doctype_map_names, str):
+		doctype_map_names = (doctype_map_names,)
+
+	for name in doctype_map_names:
+		clear_doctype_map(doc.doctype, name)
 
 
 def build_table_count_cache():

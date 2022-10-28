@@ -2,17 +2,14 @@
 # License: MIT. See LICENSE
 
 import frappe
-import frappe.cache_manager
 from frappe.model import log_types
 from frappe.model.document import Document
 
 
 class MilestoneTracker(Document):
-	def on_update(self):
-		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
-
-	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
+	@property
+	def doctype_map_names(self):
+		return self.document_type
 
 	def apply(self, doc):
 		before_save = doc.get_doc_before_save()

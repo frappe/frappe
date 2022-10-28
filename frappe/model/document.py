@@ -950,18 +950,11 @@ class Document(BaseDocument):
 		from frappe.email.doctype.notification.notification import evaluate_alert
 
 		if self.flags.notifications is None:
-
-			def _get_notifications():
-				"""returns enabled notifications for the current doctype"""
-
-				return frappe.get_all(
-					"Notification",
-					fields=["name", "event", "method"],
-					filters={"enabled": 1, "document_type": self.doctype},
-				)
-
-			self.flags.notifications = frappe.cache().hget(
-				"notifications", self.doctype, _get_notifications
+			self.flags.notifications = frappe.cache_manager.get_doctype_map(
+				"Notification",
+				self.doctype,
+				fields=["name", "event", "method"],
+				filters={"enabled": 1, "document_type": self.doctype},
 			)
 
 		if not self.flags.notifications:
@@ -1119,6 +1112,7 @@ class Document(BaseDocument):
 
 	def clear_cache(self):
 		frappe.clear_document_cache(self.doctype, self.name)
+		frappe.cache_manager.clear_doctype_maps(self)
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""

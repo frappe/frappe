@@ -20,6 +20,10 @@ WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 
 class Webhook(Document):
+	@property
+	def doctype_map_names(self):
+		return self.webhook_doctype
+
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
@@ -27,9 +31,6 @@ class Webhook(Document):
 		self.validate_request_body()
 		self.validate_repeating_fields()
 		self.preview_document = None
-
-	def on_update(self):
-		frappe.cache().delete_value("webhooks")
 
 	def validate_docevent(self):
 		if self.webhook_doctype:

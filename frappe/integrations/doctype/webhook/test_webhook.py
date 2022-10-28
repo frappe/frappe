@@ -97,7 +97,7 @@ class TestWebhook(FrappeTestCase):
 	def test_webhook_trigger_with_enabled_webhooks(self):
 		"""Test webhook trigger for enabled webhooks"""
 
-		frappe.cache().delete_value("webhooks")
+		frappe.cache_manager.clear_doctype_map("Webhook")
 		frappe.flags.webhooks = None
 
 		# Insert the user to db

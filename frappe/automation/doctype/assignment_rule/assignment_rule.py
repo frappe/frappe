@@ -5,21 +5,20 @@ from collections.abc import Iterable
 
 import frappe
 from frappe import _
-from frappe.cache_manager import clear_doctype_map, get_doctype_map
+from frappe.cache_manager import get_doctype_map
 from frappe.desk.form import assign_to
 from frappe.model import log_types
 from frappe.model.document import Document
 
 
 class AssignmentRule(Document):
+	@property
+	def doctype_map_names(self):
+		return (self.document_type, f"due_date_rules_for_{self.document_type}")
+
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()
-
-	def clear_cache(self):
-		super().clear_cache()
-		clear_doctype_map(self.doctype, self.document_type)
-		clear_doctype_map(self.doctype, f"due_date_rules_for_{self.document_type}")
 
 	def validate_document_types(self):
 		if self.document_type == "ToDo":

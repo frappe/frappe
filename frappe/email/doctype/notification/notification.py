@@ -18,6 +18,10 @@ from frappe.utils.safe_exec import get_safe_globals
 
 
 class Notification(Document):
+	@property
+	def doctype_map_names(self):
+		return self.document_type
+
 	def onload(self):
 		"""load message"""
 		if self.is_standard:
@@ -42,7 +46,6 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
-		frappe.cache().hdel("notifications", self.document_type)
 
 	def on_update(self):
 		path = export_module_json(self, self.is_standard, self.module)
@@ -386,9 +389,6 @@ def get_context(context):
 
 		if not is_html(self.message):
 			self.message = frappe.utils.md_to_html(self.message)
-
-	def on_trash(self):
-		frappe.cache().hdel("notifications", self.document_type)
 
 
 @frappe.whitelist()

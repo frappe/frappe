@@ -17,28 +17,12 @@ def run_webhooks(doc, method):
 	if frappe.flags.webhooks_executed is None:
 		frappe.flags.webhooks_executed = {}
 
-	# TODO: remove this hazardous unnecessary cache in flags
-	if frappe.flags.webhooks is None:
-		# load webhooks from cache
-		webhooks = frappe.cache().get_value("webhooks")
-		if webhooks is None:
-			# query webhooks
-			webhooks_list = frappe.get_all(
-				"Webhook",
-				fields=["name", "condition", "webhook_docevent", "webhook_doctype"],
-				filters={"enabled": True},
-			)
-
-			# make webhooks map for cache
-			webhooks = {}
-			for w in webhooks_list:
-				webhooks.setdefault(w.webhook_doctype, []).append(w)
-			frappe.cache().set_value("webhooks", webhooks)
-
-		frappe.flags.webhooks = webhooks
-
-	# get webhooks for this doctype
-	webhooks_for_doc = frappe.flags.webhooks.get(doc.doctype, None)
+	webhooks_for_doc = frappe.cache_manager.get_doctype_map(
+		"Webhook",
+		doc.doctype,
+		fields=["name", "condition", "webhook_docevent"],
+		filters={"enabled": True},
+	)
 
 	if not webhooks_for_doc:
 		# no webhooks, quit

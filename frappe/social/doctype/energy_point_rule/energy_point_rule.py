@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-import frappe.cache_manager
 from frappe import _
 from frappe.core.doctype.user.user import get_enabled_users
 from frappe.model import log_types
@@ -14,11 +13,9 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 
 
 class EnergyPointRule(Document):
-	def on_update(self):
-		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
-
-	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
+	@property
+	def doctype_map_names(self):
+		return self.reference_doctype
 
 	def apply(self, doc):
 		if self.rule_condition_satisfied(doc):
