@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 from datetime import timedelta
+from io import StringIO
 
 import frappe
 import frappe.desk.reportview
@@ -332,47 +333,60 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
-	data = frappe._dict(frappe.local.form_dict)
-	data.pop("cmd", None)
-	data.pop("csrf_token", None)
+	form_params = frappe._dict(frappe.local.form_dict)
+	form_params.pop("cmd", None)
+	form_params.pop("csrf_token", None)
 
-	if isinstance(data.get("filters"), str):
-		filters = json.loads(data["filters"])
+	if isinstance(form_params.get("filters"), str):
+		filters = json.loads(form_params["filters"])
 
-	if data.get("report_name"):
-		report_name = data["report_name"]
+	if form_params.get("report_name"):
+		report_name = form_params["report_name"]
 		frappe.permissions.can_export(
 			frappe.get_cached_value("Report", report_name, "ref_doctype"),
 			raise_exception=True,
 		)
 
-	file_format_type = data.get("file_format_type")
-	custom_columns = frappe.parse_json(data.get("custom_columns", "[]"))
-	include_indentation = data.get("include_indentation")
-	visible_idx = data.get("visible_idx")
+	file_format_type = form_params.get("file_format_type")
+	custom_columns = frappe.parse_json(form_params.get("custom_columns", "[]"))
+	include_indentation = form_params.get("include_indentation")
+	visible_idx = form_params.get("visible_idx")
+	csv_delimiter = cstr(form_params.get("csv_delimiter", ","))
+	csv_quoting = cint(form_params.get("csv_quoting", 2))
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	if file_format_type == "Excel":
-		data = run(report_name, filters, custom_columns=custom_columns)
-		data = frappe._dict(data)
-		if not data.columns:
-			frappe.respond_as_web_page(
-				_("No data to export"),
-				_("You can try changing the filters of your report."),
-			)
-			return
+	data = run(report_name, filters, custom_columns=custom_columns)
+	data = frappe._dict(data)
+	if not data.columns:
+		frappe.respond_as_web_page(
+			_("No data to export"),
+			_("You can try changing the filters of your report."),
+		)
+		return
 
+	format_duration_fields(data)
+	xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
+
+	if file_format_type == "CSV":
+		import csv
+
+		file = StringIO()
+		writer = csv.writer(file, quoting=csv_quoting, delimiter=csv_delimiter)
+		writer.writerows(xlsx_data)
+		content = file.getvalue().encode("utf-8")
+		file_extension = "csv"
+	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
 
-		format_duration_fields(data)
-		xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
-		xlsx_file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
+		file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
+		file_extension = "xlsx"
+		content = file.getvalue()
 
-		frappe.response["filename"] = report_name + ".xlsx"
-		frappe.response["filecontent"] = xlsx_file.getvalue()
-		frappe.response["type"] = "binary"
+	frappe.response["filename"] = f"{report_name}.{file_extension}"
+	frappe.response["filecontent"] = content
+	frappe.response["type"] = "binary"
 
 
 def format_duration_fields(data: frappe._dict) -> None:
