@@ -12,11 +12,14 @@ class DocumentNamingRule(Document):
 	def validate(self):
 		self.validate_fields_in_conditions()
 
-	def on_update(self):
+	def clear_doctype_map(self):
 		frappe.cache_manager.clear_doctype_map("Document Naming Rule", self.document_type)
 
+	def on_update(self):
+		self.clear_doctype_map()
+
 	def on_trash(self):
-		frappe.cache_manager.clear_doctype_map("Document Naming Rule", self.document_type)
+		self.clear_doctype_map()
 
 	def validate_fields_in_conditions(self):
 		if self.has_value_changed("document_type"):
