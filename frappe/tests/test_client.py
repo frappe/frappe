@@ -227,14 +227,18 @@ class TestClient(FrappeTestCase):
 				"parent": note1.name,
 				"parentfield": "seen_by",
 			},
+			{"doctype": "Note", "title": "not-a-random-title", "content": "test"},
 			{"doctype": "Note", "title": get_random_title(), "content": "test"},
 			{"doctype": "Note", "title": get_random_title(), "content": "test"},
+			{"doctype": "Note", "title": "another-note-title", "content": "test"},
 		]
 
 		# insert all docs
 		docs = insert_many(doc_list)
 
-		self.assertEqual(len(docs), 5)
+		self.assertEqual(len(docs), 7)
+		self.assertEqual(docs[3], "not-a-random-title")
+		self.assertEqual(docs[6], "another-note-title")
 		self.assertIn(note1.name, docs)
 
 		# cleanup
