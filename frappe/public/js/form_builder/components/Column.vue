@@ -69,7 +69,7 @@ function remove_column() {
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
-		<div class="column-actions hidden" :hidden="store.read_only">
+		<div class="column-actions" :hidden="store.read_only">
 			<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
 				<div v-html="frappe.utils.icon('add', 'sm')"></div>
 			</button>
@@ -126,7 +126,7 @@ function remove_column() {
 
 	&.selected {
 		.column-actions {
-			display: flex !important;
+			display: flex;
 		}
 
 		.column-container {
@@ -149,7 +149,7 @@ function remove_column() {
 	}
 
 	.column-actions {
-		display: flex;
+		display: none;
 		justify-content: flex-end;
 		padding-bottom: 0.5rem;
 
