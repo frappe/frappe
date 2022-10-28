@@ -33,7 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint
+from frappe.utils import cint, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -359,7 +359,7 @@ class DocType(Document):
 						elif d.fieldtype == "Tab Break":
 							d.fieldname = d.fieldname + "_tab"
 					else:
-						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(d.idx)
+						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(random_string(4))
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
