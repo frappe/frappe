@@ -2022,7 +2022,7 @@ def logger(
 	)
 
 
-def log_error(message=None, title=_("Error")):
+def log_error(message=None, title="Error"):
 	"""Log error to Error Log"""
 
 	# AI ALERT:
