@@ -93,7 +93,7 @@ function remove_section() {
 						backgroundColor: section.columns.length ? null : 'var(--gray-50)'
 					}"
 					v-model="section.columns"
-					filter="[data-is-custom='0']"
+					filter="[data-has-std-field='true']"
 					group="columns"
 					item-key="id"
 					:disabled="store.read_only"
@@ -103,6 +103,7 @@ function remove_section() {
 							:section="section"
 							:column="element"
 							:data-is-custom="store.is_custom(element)"
+							:data-has-std-field="store.has_standard_field(element)"
 						/>
 					</template>
 				</draggable>
@@ -181,7 +182,7 @@ function remove_section() {
 
 		.section-columns-container {
 			display: flex;
-			min-height: 4rem;
+			min-height: 2rem;
 			border-radius: var(--border-radius);
 		}
 	}

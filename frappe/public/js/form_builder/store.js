@@ -41,6 +41,25 @@ export const useStore = defineStore("store", {
 				return field.df.is_custom_field;
 			};
 		},
+		has_standard_field: (state) => {
+			return (field) => {
+				if (!state.is_customize_form) return;
+				if (!field.df.is_custom_field) return true;
+
+				let children = {
+					"Tab Break": "sections",
+					"Section Break": "columns",
+					"Column Break": "fields",
+				}[field.df.fieldtype];
+
+				if (!children) return false;
+
+				return field[children].some((child) => {
+					if (!child.df.is_custom_field) return true;
+					return state.has_standard_field(child);
+				});
+			};
+		},
 	},
 	actions: {
 		async fetch() {
@@ -70,17 +89,16 @@ export const useStore = defineStore("store", {
 
 			this.layout = this.get_layout();
 			this.active_tab = this.layout.tabs[0].df.name;
+			this.selected_field = null;
+
 			nextTick(() => {
 				this.dirty = false;
 				this.read_only =
 					!this.is_customize_form && !frappe.boot.developer_mode && !this.doc.custom;
 			});
 		},
-		async reset_changes() {
-			await this.fetch();
-			let first_tab = this.layout.tabs[0];
-			this.active_tab = first_tab.df.name;
-			this.selected_field = null;
+		reset_changes() {
+			this.fetch();
 		},
 		async save_changes() {
 			if (!this.dirty) {

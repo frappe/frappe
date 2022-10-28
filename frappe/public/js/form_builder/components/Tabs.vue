@@ -121,6 +121,7 @@ function remove_tab() {
 					:class="['tab', store.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
 					:data-is-custom="store.is_custom(element)"
+					:data-has-std-field="store.has_standard_field(element)"
 					@click.stop="activate_tab(element)"
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
@@ -165,7 +166,7 @@ function remove_tab() {
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
-				filter="[data-is-custom='0']"
+				filter="[data-has-std-field='true']"
 				:animation="200"
 				item-key="id"
 				:disabled="store.read_only"
@@ -175,6 +176,7 @@ function remove_tab() {
 						:tab="tab"
 						:section="element"
 						:data-is-custom="store.is_custom(element)"
+						:data-has-std-field="store.has_standard_field(element)"
 					/>
 				</template>
 			</draggable>
