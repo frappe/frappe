@@ -16,12 +16,6 @@ class DocumentNamingRule(Document):
 	def validate(self):
 		self.validate_fields_in_conditions()
 
-	def on_update(self):
-		self.clear_doctype_map()
-
-	def on_trash(self):
-		self.clear_doctype_map()
-
 	def validate_fields_in_conditions(self):
 		if self.has_value_changed("document_type"):
 			docfields = [x.fieldname for x in frappe.get_meta(self.document_type).fields]
