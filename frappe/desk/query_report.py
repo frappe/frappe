@@ -11,6 +11,7 @@ import frappe
 import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
+from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
@@ -334,30 +335,24 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 def export_query():
 	"""export from query reports"""
 	form_params = frappe._dict(frappe.local.form_dict)
-	form_params.pop("cmd", None)
-	form_params.pop("csrf_token", None)
+	clean_params(form_params)
+	parse_json(form_params)
 
-	if isinstance(form_params.get("filters"), str):
-		filters = json.loads(form_params["filters"])
+	report_name = form_params.report_name
+	frappe.permissions.can_export(
+		frappe.get_cached_value("Report", report_name, "ref_doctype"),
+		raise_exception=True,
+	)
 
-	if form_params.get("report_name"):
-		report_name = form_params["report_name"]
-		frappe.permissions.can_export(
-			frappe.get_cached_value("Report", report_name, "ref_doctype"),
-			raise_exception=True,
-		)
-
-	file_format_type = form_params.get("file_format_type")
-	custom_columns = frappe.parse_json(form_params.get("custom_columns", "[]"))
-	include_indentation = form_params.get("include_indentation")
-	visible_idx = form_params.get("visible_idx")
-	csv_delimiter = cstr(form_params.get("csv_delimiter", ","))
-	csv_quoting = cint(form_params.get("csv_quoting", 2))
+	file_format_type = form_params.file_format_type
+	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
+	include_indentation = form_params.include_indentation
+	visible_idx = form_params.visible_idx
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	data = run(report_name, filters, custom_columns=custom_columns)
+	data = run(report_name, form_params.filters, custom_columns=custom_columns)
 	data = frappe._dict(data)
 	if not data.columns:
 		frappe.respond_as_web_page(
@@ -373,7 +368,13 @@ def export_query():
 		import csv
 
 		file = StringIO()
-		writer = csv.writer(file, quoting=csv_quoting, delimiter=csv_delimiter)
+		writer = csv.writer(
+			file,
+			quoting=csv.QUOTE_NONNUMERIC
+			if form_params.csv_quoting is None
+			else cint(form_params.csv_quoting),
+			delimiter=cstr(form_params.csv_delimiter or ","),
+		)
 		writer.writerows(xlsx_data)
 		content = file.getvalue().encode("utf-8")
 		file_extension = "csv"
