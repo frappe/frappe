@@ -53,7 +53,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 					this.on_reset_sign();
 					return false;
 				});
-			this.body.toggle(false);
+			this.refresh_input();
 		}
 	}
 	refresh_input() {
