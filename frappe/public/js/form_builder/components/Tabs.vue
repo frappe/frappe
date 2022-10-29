@@ -105,7 +105,7 @@ function remove_tab() {
 </script>
 
 <template>
-	<div class="tab-header">
+	<div class="tab-header" :hidden="layout.tabs.length == 1 && store.read_only">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"

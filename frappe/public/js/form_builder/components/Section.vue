@@ -1,7 +1,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Column from "./Column.vue";
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import { useStore } from "../store";
 import { section_boilerplate } from "../utils";
 
@@ -9,6 +9,8 @@ let props = defineProps(["tab", "section"]);
 let store = useStore();
 
 let hovered = ref(false);
+let label_input = ref(null);
+let editing = ref(false);
 
 function add_section_above() {
 	let index = props.tab.sections.indexOf(props.section);
@@ -47,6 +49,14 @@ function remove_section() {
 	// remove section
 	sections.splice(index, 1);
 }
+
+function select_section() {
+	if (!store.read_only) {
+		editing.value = true;
+		nextTick(() => label_input.value.focus());
+		store.selected_field = props.section.df;
+	}
+}
 </script>
 
 <template>
@@ -58,17 +68,24 @@ function remove_section() {
 				store.selected(section.df.name) ? 'selected' : ''
 			]"
 			:title="section.df.fieldname"
-			@click.stop="store.selected_field = section.df"
+			@click.stop="select_section"
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
 		>
 			<div :class="['section-header', section.df.label ? '' : 'hidden']">
 				<input
+					v-if="editing"
+					ref="label_input"
 					class="input-section-label"
+					:disabled="store.read_only"
 					type="text"
 					:placeholder="__('Section Title')"
 					v-model="section.df.label"
+					@keydown.enter="editing = false"
+					@blur="editing = false"
 				/>
+				<span v-else-if="section.df.label">{{ section.df.label }}</span>
+				<i class="text-muted" v-else> {{ __("No Label") }} </i>
 				<div class="section-actions" :hidden="store.read_only">
 					<button
 						class="btn btn-xs btn-section"
@@ -150,15 +167,11 @@ function remove_section() {
 			padding-bottom: 0.75rem;
 
 			.input-section-label {
-				border: 1px solid transparent;
-				border-radius: var(--border-radius);
-				font-size: var(--text-md);
-				font-weight: 600;
+				border: none;
+				margin-left: -2px;
 
 				&:focus {
-					border-color: var(--border-color);
 					outline: none;
-					background-color: var(--control-bg);
 				}
 
 				&::placeholder {
