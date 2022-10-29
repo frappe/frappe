@@ -1412,48 +1412,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
-		let export_dialog_fields = [
-			{
-				label: __("Select File Format"),
-				fieldname: "file_format",
-				fieldtype: "Select",
-				options: ["Excel", "CSV"],
-				default: "Excel",
-				reqd: 1,
-			},
-			{
-				fieldtype: "Data",
-				label: __("Delimiter"),
-				fieldname: "csv_delimiter",
-				default: ",",
-				length: 1,
-				depends_on: "eval:doc.file_format=='CSV'",
-			},
-			{
-				fieldtype: "Select",
-				label: __("Quoting"),
-				fieldname: "csv_quoting",
-				options: [
-					{ value: 0, label: "Minimal" },
-					{ value: 1, label: "All" },
-					{ value: 2, label: "Non-numeric" },
-					{ value: 3, label: "None" },
-				],
-				default: 2,
-				depends_on: "eval:doc.file_format=='CSV'",
-			},
-		];
-
+		let extra_fields = null;
 		if (this.tree_report) {
-			export_dialog_fields.push({
-				label: __("Include indentation"),
-				fieldname: "include_indentation",
-				fieldtype: "Check",
-			});
+			extra_fields = [
+				{
+					label: __("Include indentation"),
+					fieldname: "include_indentation",
+					fieldtype: "Check",
+				},
+			];
 		}
 
-		this.export_dialog = frappe.prompt(
-			export_dialog_fields,
+		this.export_dialog = frappe.report_utils.get_export_dialog(
+			__(this.report_name),
+			extra_fields,
 			({ file_format, include_indentation, csv_delimiter, csv_quoting }) => {
 				this.make_access_log("Export", file_format);
 
@@ -1483,10 +1455,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				};
 
 				open_url_post(frappe.request.url, args);
-			},
-			__("Export Report: {0}", [this.report_name]),
-			__("Download")
+
+				this.export_dialog.hide();
+			}
 		);
+
+		this.export_dialog.show();
 	}
 
 	get_data_for_csv(include_indentation) {

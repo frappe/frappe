@@ -158,4 +158,48 @@ frappe.report_utils = {
 		};
 		return get_result[fn](values);
 	},
+
+	get_export_dialog(report_name, extra_fields, callback) {
+		const fields = [
+			{
+				label: __("Select File Format"),
+				fieldname: "file_format",
+				fieldtype: "Select",
+				options: ["Excel", "CSV"],
+				default: "Excel",
+				reqd: 1,
+			},
+			{
+				fieldtype: "Data",
+				label: __("Delimiter"),
+				fieldname: "csv_delimiter",
+				default: ",",
+				length: 1,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+			{
+				fieldtype: "Select",
+				label: __("Quoting"),
+				fieldname: "csv_quoting",
+				options: [
+					{ value: 0, label: "Minimal" },
+					{ value: 1, label: "All" },
+					{ value: 2, label: "Non-numeric" },
+					{ value: 3, label: "None" },
+				],
+				default: 2,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+		];
+		if (extra_fields) {
+			fields.push(...extra_fields);
+		}
+
+		return new frappe.ui.Dialog({
+			title: __("Export Report: {0}", [report_name]),
+			fields: fields,
+			primary_action_label: __("Download"),
+			primary_action: callback,
+		});
+	},
 };
