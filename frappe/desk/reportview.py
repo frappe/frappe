@@ -349,11 +349,12 @@ def export_query():
 	add_totals_row = None
 	file_format_type = form_params["file_format_type"]
 	title = title or doctype
-	csv_delimiter = cstr(form_params.get("csv_delimiter", ","))
-	csv_quoting = cint(form_params.get("csv_quoting", 2))
+	if file_format_type == "CSV":
+		csv_delimiter = cstr(form_params.get("csv_delimiter", ","))
+		csv_quoting = cint(form_params.get("csv_quoting", 2))
+		del form_params["csv_delimiter"]
+		del form_params["csv_quoting"]
 
-	del form_params["csv_delimiter"]
-	del form_params["csv_quoting"]
 	del form_params["doctype"]
 	del form_params["file_format_type"]
 
