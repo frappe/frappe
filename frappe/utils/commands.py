@@ -59,7 +59,7 @@ def log(message, colour=""):
 	print(colour + message + end_line)
 
 
-def warn(message, category=None, stacklevel=2):
+def warn(message, category=None, stacklevel=3):
 	from warnings import warn
 
 	warn(message=message, category=category, stacklevel=stacklevel)

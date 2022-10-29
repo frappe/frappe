@@ -11,14 +11,21 @@
  "document_type": "Other",
  "engine": "InnoDB",
  "field_order": [
+  "home_tab",
   "sb0",
   "home_page",
   "cb4",
   "title_prefix",
+  "misc_section",
+  "app_name",
+  "disable_signup",
+  "column_break_9",
+  "app_logo",
   "section_break_6",
   "website_theme",
   "website_theme_image",
   "website_theme_image_link",
+  "navbar_tab",
   "brand",
   "banner_image",
   "splash_image",
@@ -38,17 +45,22 @@
   "call_to_action_url",
   "banner",
   "banner_html",
+  "footer_tab",
   "footer",
-  "footer_logo",
-  "copyright",
-  "address",
   "footer_items",
+  "footer_details_section",
+  "hide_footer_signup",
+  "copyright",
+  "footer_logo",
+  "column_break_37",
+  "address",
   "footer_powered",
+  "custom_footer_section",
   "footer_template",
   "footer_template_values",
   "edit_footer_template_values",
-  "hide_footer_signup",
   "integrations",
+  "analytics_section",
   "enable_view_tracking",
   "enable_google_indexing",
   "authorize_api_indexing_access",
@@ -57,18 +69,15 @@
   "column_break_17",
   "google_analytics_id",
   "google_analytics_anonymize_ip",
-  "misc_section",
-  "app_name",
-  "app_logo",
-  "disable_signup",
+  "account_deletion_settings_section",
+  "auto_account_deletion",
+  "show_account_deletion_link",
   "section_break_38",
   "subdomain",
   "head_html",
   "robots_txt",
-  "route_redirects",
-  "account_deletion_settings_section",
-  "show_account_deletion_link",
-  "auto_account_deletion"
+  "redirects_tab",
+  "route_redirects"
  ],
  "fields": [
   {
@@ -96,7 +105,8 @@
   },
   {
    "fieldname": "section_break_6",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Theme"
   },
   {
    "default": "Standard",
@@ -143,7 +153,6 @@
    "label": "Set Banner from Image"
   },
   {
-   "collapsible": 1,
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
    "label": "Navbar"
@@ -175,11 +184,10 @@
    "options": "HTML"
   },
   {
-   "collapsible": 1,
    "collapsible_depends_on": "footer_items",
    "fieldname": "footer",
    "fieldtype": "Section Break",
-   "label": "Footer"
+   "label": "Footer Items"
   },
   {
    "fieldname": "copyright",
@@ -189,7 +197,7 @@
   {
    "description": "Address and other legal information you may want to put in the footer.",
    "fieldname": "address",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Small Text",
    "label": "Address",
    "max_height": "8rem"
   },
@@ -208,7 +216,7 @@
   {
    "collapsible": 1,
    "fieldname": "integrations",
-   "fieldtype": "Section Break",
+   "fieldtype": "Tab Break",
    "label": "Integrations"
   },
   {
@@ -221,7 +229,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
    "fieldname": "misc_section",
    "fieldtype": "Section Break",
    "label": "Login Page"
@@ -249,8 +256,8 @@
   {
    "collapsible": 1,
    "fieldname": "section_break_38",
-   "fieldtype": "Section Break",
-   "label": "HTML Header, Robots and Redirects"
+   "fieldtype": "Tab Break",
+   "label": "Header, Robots"
   },
   {
    "description": "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",
@@ -393,7 +400,6 @@
    "label": "App Logo"
   },
   {
-   "collapsible": 1,
    "fieldname": "account_deletion_settings_section",
    "fieldtype": "Section Break",
    "label": "Account Deletion Settings"
@@ -413,12 +419,56 @@
   {
    "fieldname": "footer_powered",
    "fieldtype": "Small Text",
-   "label": "Footer \"Powered By\""
+   "label": "Footer \"Powered By\"",
+   "max_height": "2rem"
   },
   {
    "fieldname": "splash_image",
    "fieldtype": "Attach Image",
    "label": "Splash Image"
+  },
+  {
+   "fieldname": "home_tab",
+   "fieldtype": "Tab Break",
+   "label": "Home"
+  },
+  {
+   "fieldname": "navbar_tab",
+   "fieldtype": "Tab Break",
+   "label": "Navbar"
+  },
+  {
+   "fieldname": "footer_tab",
+   "fieldtype": "Tab Break",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "footer_details_section",
+   "fieldtype": "Section Break",
+   "label": "Footer Details"
+  },
+  {
+   "fieldname": "column_break_37",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_footer_section",
+   "fieldtype": "Section Break",
+   "label": "Custom Footer"
+  },
+  {
+   "fieldname": "redirects_tab",
+   "fieldtype": "Tab Break",
+   "label": "Redirects"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "analytics_section",
+   "fieldtype": "Section Break",
+   "label": "Analytics"
   }
  ],
  "icon": "fa fa-cog",
@@ -426,7 +476,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-05-27 12:33:29.019998",
+ "modified": "2022-10-18 09:50:24.621839",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

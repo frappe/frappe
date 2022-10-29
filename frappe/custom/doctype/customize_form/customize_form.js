@@ -72,6 +72,7 @@ frappe.ui.form.on("Customize Form", {
 						} else {
 							frm.refresh();
 							frm.trigger("setup_sortable");
+							frm.trigger("setup_default_views");
 						}
 					}
 					localStorage["customize_doctype"] = frm.doc.doc_type;
@@ -82,8 +83,12 @@ frappe.ui.form.on("Customize Form", {
 		}
 	},
 
+	is_calendar_and_gantt: function (frm) {
+		frm.trigger("setup_default_views");
+	},
+
 	setup_sortable: function (frm) {
-		frm.doc.fields.forEach(function (f, i) {
+		frm.doc.fields.forEach(function (f) {
 			if (!f.is_custom_field) {
 				f._sortable = false;
 			}
@@ -222,6 +227,10 @@ frappe.ui.form.on("Customize Form", {
 			frm.set_df_property("sort_field", "options", fields);
 		}
 	},
+
+	setup_default_views(frm) {
+		frappe.model.set_default_views_for_doctype(frm.doc.doc_type, frm);
+	},
 });
 
 // can't delete standard fields
@@ -237,6 +246,7 @@ frappe.ui.form.on("Customize Form Field", {
 		var f = frappe.model.get_doc(cdt, cdn);
 		f.is_system_generated = false;
 		f.is_custom_field = true;
+		frm.trigger("setup_default_views");
 	},
 });
 
