@@ -89,6 +89,7 @@ function remove_column() {
 			v-model="column.fields"
 			group="fields"
 			filter="[data-is-custom='0']"
+			:prevent-on-filter="false"
 			:animation="150"
 			item-key="id"
 			:disabled="store.read_only"

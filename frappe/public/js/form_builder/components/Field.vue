@@ -18,16 +18,11 @@ function remove_field() {
 	props.column.fields.splice(index, 1);
 }
 
-watch(
-	editing,
-	value => {
-		if (value) {
-			nextTick(() => label_input.value.focus());
-			store.selected_field = props.field.df;
-		}
-	},
-	{ deep: true }
-);
+function select_field() {
+	editing.value = true;
+	nextTick(() => label_input.value.focus());
+	store.selected_field = props.field.df;
+}
 </script>
 
 <template>
@@ -38,7 +33,7 @@ watch(
 			store.selected(field.df.name) ? 'selected' : ''
 		]"
 		:title="field.df.fieldname"
-		@click.stop="editing = true"
+		@click.stop="select_field"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>

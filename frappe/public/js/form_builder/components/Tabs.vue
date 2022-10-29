@@ -167,6 +167,7 @@ function remove_tab() {
 				v-model="tab.sections"
 				group="sections"
 				filter="[data-has-std-field='true']"
+				:prevent-on-filter="false"
 				:animation="200"
 				item-key="id"
 				:disabled="store.read_only"
@@ -180,7 +181,7 @@ function remove_tab() {
 					/>
 				</template>
 			</draggable>
-			<div class="empty-tab">
+			<div class="empty-tab" :hidden="store.read_only">
 				<div>{{ __("Drag & Drop a section here") }}</div>
 				<div>{{ __("OR") }}</div>
 				<button

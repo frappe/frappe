@@ -94,6 +94,7 @@ function remove_section() {
 					}"
 					v-model="section.columns"
 					filter="[data-has-std-field='true']"
+					:prevent-on-filter="false"
 					group="columns"
 					item-key="id"
 					:disabled="store.read_only"
