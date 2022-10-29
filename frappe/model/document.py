@@ -1057,7 +1057,7 @@ class Document(BaseDocument):
 			return
 
 		try:
-			self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=True)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 
