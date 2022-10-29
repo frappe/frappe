@@ -76,5 +76,9 @@ onMounted(() => store.fetch());
 			background-color: var(--yellow-highlight-color);
 		}
 	}
+
+	.form-main:not(:has(.tab-header)) :deep(.tab-contents) {
+		max-height: calc(100vh - 160px);
+	}
 }
 </style>
