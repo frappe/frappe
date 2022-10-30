@@ -19,12 +19,12 @@ class SubmissionQueue(Document):
 		return self.creation
 
 	@property
-	def queued_doc(self):
-		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
-
-	@property
 	def enqueued_by(self):
 		return self.owner
+
+	@property
+	def queued_doc(self):
+		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
 	def insert(self, to_be_queued_doc: Document, action: str):
 		self.to_be_queued_doc = to_be_queued_doc
@@ -39,7 +39,7 @@ class SubmissionQueue(Document):
 
 	def after_insert(self):
 		job = self.queue_action(
-			"queue",
+			"background_submission",
 			to_be_queued_doc=self.queued_doc,
 			action_for_queuing=self.action_for_queuing,
 			timeout=600,
@@ -51,7 +51,7 @@ class SubmissionQueue(Document):
 			update_modified=False,
 		)
 
-	def queue(self, to_be_queued_doc: Document, action_for_queuing: str):
+	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
 		_action = action_for_queuing.lower()
 
 		if _action == "update":
@@ -86,6 +86,7 @@ class SubmissionQueue(Document):
 			+ f" view it <a href='/app/{self.ref_doctype.lower().replace(' ', '-')}/{self.ref_docname}'><b>here</b></a>"
 		)
 
+		# TODO: this is messed up
 		if self.enqueued_by == frappe.session.user:
 			frappe.publish_realtime(
 				"msgprint",
