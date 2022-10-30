@@ -28,6 +28,14 @@ class SubmissionQueue(Document):
 	def queued_doc(self):
 		return getattr(self, "to_be_queued_doc", frappe.get_doc(self.ref_doctype, self.ref_docname))
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Submission Queue")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+
 	def insert(self, to_be_queued_doc: Document, action: str, session_id: str):
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
@@ -139,14 +147,6 @@ class SubmissionQueue(Document):
 			return
 
 		self._unlock_reference_doc()
-
-	@staticmethod
-	def clear_old_logs(days=30):
-		from frappe.query_builder import Interval
-		from frappe.query_builder.functions import Now
-
-		table = frappe.qb.DocType("Submission Queue")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 def get_user_last_request_time(session_id):

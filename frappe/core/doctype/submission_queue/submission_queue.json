@@ -66,6 +66,7 @@
   {
    "fieldname": "enqueued_by",
    "fieldtype": "Data",
+   "is_virtual": 1,
    "label": "Enqueued By",
    "read_only": 1
   },
@@ -85,7 +86,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-13 18:07:02.753123",
+ "modified": "2022-10-30 19:16:59.284681",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
