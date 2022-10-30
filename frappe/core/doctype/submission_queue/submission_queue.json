@@ -15,7 +15,7 @@
   "ref_doctype",
   "ref_docname",
   "section_break_8",
-  "message"
+  "exception"
  ],
  "fields": [
   {
@@ -54,12 +54,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "message",
-   "fieldtype": "Text",
-   "label": "Message",
-   "read_only": 1
-  },
-  {
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
   },
@@ -82,11 +76,17 @@
    "is_virtual": 1,
    "label": "Created At",
    "read_only": 1
+  },
+  {
+   "fieldname": "exception",
+   "fieldtype": "Text",
+   "label": "Exception",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-30 19:16:59.284681",
+ "modified": "2022-10-30 19:22:20.998753",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -117,14 +117,6 @@
   {
    "color": "Green",
    "title": "Finished"
-  },
-  {
-   "color": "Yellow",
-   "title": "Stopped"
-  },
-  {
-   "color": "Red",
-   "title": "Canceled"
   }
  ]
 }

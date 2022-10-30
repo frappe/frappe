@@ -76,7 +76,7 @@ class SubmissionQueue(Document):
 			add_data_to_monitor(doctype=to_be_queued_doc.doctype, action=_action)
 			values = {"status": "Finished"}
 		except Exception:
-			values = {"status": "Failed", "message": frappe.get_traceback()}
+			values = {"status": "Failed", "exception": frappe.get_traceback()}
 			frappe.db.rollback()
 
 		values["ended_at"] = now()
