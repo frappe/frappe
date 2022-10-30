@@ -13,6 +13,7 @@ from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import DATETIME_FORMAT, now, time_diff_in_seconds
 from frappe.utils.background_jobs import get_redis_conn
+from frappe.utils.data import cint
 
 
 class SubmissionQueue(Document):
@@ -97,7 +98,7 @@ class SubmissionQueue(Document):
 			frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
 		)
 
-		if time_diff_in_seconds(now(), get_user_last_request_time(session_id)) < 60:
+		if cint(time_diff_in_seconds(now(), get_user_last_request_time(session_id))) <= 60:
 			frappe.publish_realtime(
 				"msgprint",
 				{
