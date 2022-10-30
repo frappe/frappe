@@ -172,3 +172,16 @@ def queue_submission(doc: Document, action: str):
 		indicator="green",
 		alert=True,
 	)
+
+
+@frappe.whitelist()
+def get_latest_submissions(doctype, docname):
+	# NOTE: not used creation as orderby intentianlly as we have used update_modified=False everywhere
+	# hence assuming modified will be equal to creation for submission queue documents
+
+	dt = "Submission Queue"
+	filters = {"ref_doctype": doctype, "ref_docname": docname}
+	return {
+		"latest_submission": frappe.db.get_value(dt, filters),
+		"latest_failed_submission": frappe.db.get_value(dt, filters.update({"status": "Failed"})),
+	}
