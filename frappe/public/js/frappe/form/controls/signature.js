@@ -9,17 +9,11 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 			$(this.wrapper).find("label").text(__(this.df.label));
 		}
 
-		this.load_lib().then(() => {
+		frappe.require("/assets/frappe/js/lib/jSignature.min.js").then(() => {
 			// make jSignature field
-			this.body = $('<div class="signature-field"></div>').prependTo(me.$input_wrapper);
+			me.body = $('<div class="signature-field"></div>').prependTo(me.$input_wrapper);
 
-			if (this.body.is(":visible")) {
-				this.make_pad();
-			} else {
-				$(document).on("frappe.ui.Dialog:shown", () => {
-					this.make_pad();
-				});
-			}
+			new ResizeObserver(() => me.make_pad()).observe(me.body[0]);
 		});
 
 		this.img_wrapper = $(`<div class="signature-display">
@@ -38,10 +32,10 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 				.jSignature({
 					height: 200,
 					color: "var(--text-color)",
-					"decor-color": "black",
-					width: this.body.width(),
+					decorColor: "black",
+					width,
 					lineWidth: 2,
-					"background-color": "var(--control-bg)",
+					backgroundColor: "var(--control-bg)",
 				})
 				.on("change", this.on_save_sign.bind(this));
 			this.load_pad();
@@ -137,12 +131,5 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		var base64_img = this.$pad.jSignature("getData");
 		this.set_my_value(base64_img);
 		this.set_image(this.get_value());
-	}
-
-	load_lib() {
-		if (!this.load_lib_promise) {
-			this.load_lib_promise = frappe.require("/assets/frappe/js/lib/jSignature.min.js");
-		}
-		return this.load_lib_promise;
 	}
 };
