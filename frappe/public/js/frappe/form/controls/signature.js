@@ -5,9 +5,13 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		this.loading = false;
 		super.make();
 
+		if (this.df.label) {
+			$(this.wrapper).find("label").text(__(this.df.label));
+		}
+
 		this.load_lib().then(() => {
 			// make jSignature field
-			this.body = $('<div class="signature-field"></div>').appendTo(me.wrapper);
+			this.body = $('<div class="signature-field"></div>').prependTo(me.$input_wrapper);
 
 			if (this.body.is(":visible")) {
 				this.make_pad();
@@ -21,7 +25,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">
 				${frappe.utils.icon("restriction", "md")}</i>
-			</div></div>`).appendTo(this.wrapper);
+			</div></div>`).prependTo(this.$input_wrapper);
 		this.img = $("<img class='img-responsive attach-image-display'>")
 			.appendTo(this.img_wrapper)
 			.toggle(false);
