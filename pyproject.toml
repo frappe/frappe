@@ -13,7 +13,11 @@ dependencies = [
     "Click~=7.1.2",
     "GitPython~=3.1.14",
     "Jinja2~=3.1.2",
+<<<<<<< HEAD
     "Pillow~=9.1.1",
+=======
+    "Pillow~=9.3.0",
+>>>>>>> 623633f35e (chore: bump `Pillow` to `9.3.0` (#18683))
     "PyJWT~=2.4.0",
     "PyMySQL~=1.0.2",
     "PyPDF2~=2.1.0",
