@@ -200,9 +200,9 @@ export default class Block {
 
 		let dropdown_item = function (label, title, icon, action) {
 			let html = $(`
-				<div class="dropdown-item" title="${title}">
+				<div class="dropdown-item" title="${__(title)}">
 					<span class="dropdown-item-icon">${icon}</span>
-					<span class="dropdown-item-label">${label}</span>
+					<span class="dropdown-item-label">${__(label)}</span>
 				</div>
 			`);
 

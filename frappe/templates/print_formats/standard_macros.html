@@ -181,7 +181,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% if no_of_cols >= 3 %}{{ "" }}
 	{%- elif df.align -%}{{ "text-" + df.align }}
 	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Percent") -%}{{ "text-right" }}
-	{%- elif df.fieldtype in ("Check") -%}{{ "text-center" }}
+	{%- elif df.fieldtype in ("Check",) -%}{{ "text-center" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}
 {% endmacro %}

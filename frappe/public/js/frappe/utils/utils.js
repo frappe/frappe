@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import cloneDeepWith from "lodash/cloneDeepWith";
 
 frappe.provide("frappe.utils");
 
@@ -1000,6 +1001,10 @@ Object.assign(frappe.utils, {
 		return deep_equal(a, b);
 	},
 
+	deep_clone(obj, customizer) {
+		return cloneDeepWith(obj, customizer);
+	},
+
 	file_name_ellipsis(filename, length) {
 		let first_part_length = (length * 2) / 3;
 		let last_part_length = length - first_part_length;
@@ -1255,20 +1260,12 @@ Object.assign(frappe.utils, {
 				if (frappe.model.is_single(item.doctype)) {
 					route = doctype_slug;
 				} else {
-					if (!item.doc_view) {
-						if (frappe.model.is_tree(item.doctype)) {
-							item.doc_view = "Tree";
-						} else {
-							item.doc_view = "List";
-						}
-					}
-
 					switch (item.doc_view) {
 						case "List":
 							if (item.filters) {
 								frappe.route_options = item.filters;
 							}
-							route = doctype_slug;
+							route = `${doctype_slug}/view/list`;
 							break;
 						case "Tree":
 							route = `${doctype_slug}/view/tree`;
@@ -1285,12 +1282,11 @@ Object.assign(frappe.utils, {
 						case "Calendar":
 							route = `${doctype_slug}/view/calendar/default`;
 							break;
+						case "Kanban":
+							route = `${doctype_slug}/view/kanban`;
+							break;
 						default:
-							frappe.throw({
-								message: __("Not a valid view:") + item.doc_view,
-								title: __("Unknown View"),
-							});
-							route = "";
+							route = doctype_slug;
 					}
 				}
 			} else if (type === "report") {

@@ -175,6 +175,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 	start_time = time.time()
 	frappe.db.begin()
+	frappe.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:
 			if patchmodule.startswith("finally:"):

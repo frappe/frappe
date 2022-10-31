@@ -23,7 +23,7 @@ export default class Spacer extends Block {
 			let $spacer = $(`
 				<div class="widget-head">
 					<div class="spacer-left"></div>
-					<div>Spacer</div>
+					<div>${__("Spacer")}</div>
 					<div class="widget-control"></div>
 				</div>
 			`);

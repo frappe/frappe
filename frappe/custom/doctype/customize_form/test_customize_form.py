@@ -54,7 +54,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
-		self.assertEqual(len(d.get("fields")), 36)
+		self.assertEqual(len(d.get("fields")), 38)
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")

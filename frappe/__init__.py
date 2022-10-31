@@ -89,7 +89,7 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	        _('Change')
 	        _('Change', context='Coins')
 	"""
-	from frappe.translate import get_full_dict
+	from frappe.translate import get_all_translations
 	from frappe.utils import is_html, strip_html_tags
 
 	if not hasattr(local, "lang"):
@@ -107,14 +107,15 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	msg = as_unicode(msg).strip()
 
 	translated_string = ""
+
+	all_translations = get_all_translations(lang)
 	if context:
 		string_key = f"{msg}:{context}"
-		translated_string = get_full_dict(lang).get(string_key)
+		translated_string = all_translations.get(string_key)
 
 	if not translated_string:
-		translated_string = get_full_dict(lang).get(msg)
+		translated_string = all_translations.get(msg)
 
-	# return lang_full_dict according to lang passed parameter
 	return translated_string or non_translated_string
 
 
@@ -222,7 +223,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
-	local.lang_full_dict = None
 
 	local.module_app = None
 	local.app_modules = None
@@ -452,7 +452,7 @@ def msgprint(
 	if as_list and type(msg) in (list, tuple):
 		out.as_list = 1
 
-	if sys.stdin.isatty():
+	if sys.stdin and sys.stdin.isatty():
 		msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:
@@ -1115,7 +1115,7 @@ def can_cache_doc(args) -> str | None:
 		return
 
 	doctype = args[0]
-	name = doctype if len(args) == 1 else args[1]
+	name = doctype if len(args) == 1 or args[1] is None else args[1]
 
 	# Only cache if both doctype and name are strings
 	if isinstance(doctype, str) and isinstance(name, str):

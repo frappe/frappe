@@ -102,6 +102,20 @@ class CustomField(Document):
 
 		# delete property setter entries
 		frappe.db.delete("Property Setter", {"doc_type": self.dt, "field_name": self.fieldname})
+
+		# update doctype layouts
+		doctype_layouts = frappe.get_all(
+			"DocType Layout", filters={"document_type": self.dt}, pluck="name"
+		)
+
+		for layout in doctype_layouts:
+			layout_doc = frappe.get_doc("DocType Layout", layout)
+			for field in layout_doc.fields:
+				if field.fieldname == self.fieldname:
+					layout_doc.remove(field)
+					layout_doc.save()
+					break
+
 		frappe.clear_cache(doctype=self.dt)
 
 	def validate_insert_after(self, meta):

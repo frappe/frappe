@@ -165,20 +165,11 @@ def set_new_name(doc):
 	if not doc.name and autoname:
 		set_name_from_naming_options(autoname, doc)
 
-	# if the autoname option is 'field:' and no name was derived, we need to
-	# notify
-	if not doc.name and autoname.startswith("field:"):
-		fieldname = autoname[6:]
-		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
-
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name and autoname == "hash":
-		doc.name = make_autoname("hash", doc.doctype)
-
 	if not doc.name:
 		doc.name = make_autoname("hash", doc.doctype)
 
-	doc.name = validate_name(doc.doctype, doc.name, meta.get_field("name_case"))
+	doc.name = validate_name(doc.doctype, doc.name)
 
 
 def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
@@ -220,6 +211,13 @@ def set_name_from_naming_options(autoname, doc):
 
 	if _autoname.startswith("field:"):
 		doc.name = _field_autoname(autoname, doc)
+
+		# if the autoname option is 'field:' and no name was derived, we need to
+		# notify
+		if not doc.name:
+			fieldname = autoname[6:]
+			frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
+
 	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
 	elif _autoname.startswith("prompt"):
@@ -275,8 +273,8 @@ def make_autoname(key="", doctype="", doc=""):
 
 	*Example:*
 
-	              * DE/./.YY./.MM./.##### will create a series like
-	                DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
+	              * DE./.YY./.MM./.##### will create a series like
+	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
 		return frappe.generate_hash(doctype, 10)
@@ -441,7 +439,7 @@ def get_default_naming_series(doctype: str) -> str | None:
 			return option
 
 
-def validate_name(doctype: str, name: int | str, case: str | None = None):
+def validate_name(doctype: str, name: int | str):
 
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
@@ -459,10 +457,6 @@ def validate_name(doctype: str, name: int | str, case: str | None = None):
 		frappe.throw(
 			_("There were some errors setting the name, please contact the administrator"), frappe.NameError
 		)
-	if case == "Title Case":
-		name = name.title()
-	if case == "UPPER CASE":
-		name = name.upper()
 	name = name.strip()
 
 	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name != "DocType"):
