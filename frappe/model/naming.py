@@ -169,7 +169,7 @@ def set_new_name(doc):
 	if not doc.name:
 		doc.name = make_autoname("hash", doc.doctype)
 
-	doc.name = validate_name(doc.doctype, doc.name, meta.get_field("name_case"))
+	doc.name = validate_name(doc.doctype, doc.name)
 
 
 def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
@@ -439,7 +439,7 @@ def get_default_naming_series(doctype: str) -> str | None:
 			return option
 
 
-def validate_name(doctype: str, name: int | str, case: str | None = None):
+def validate_name(doctype: str, name: int | str):
 
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
@@ -457,10 +457,6 @@ def validate_name(doctype: str, name: int | str, case: str | None = None):
 		frappe.throw(
 			_("There were some errors setting the name, please contact the administrator"), frappe.NameError
 		)
-	if case == "Title Case":
-		name = name.title()
-	if case == "UPPER CASE":
-		name = name.upper()
 	name = name.strip()
 
 	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name != "DocType"):
