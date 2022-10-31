@@ -280,5 +280,37 @@ class TestQuery(FrappeTestCase):
 		ancestors_result = list(itertools.chain.from_iterable(ancestors_result))
 		self.assertListEqual(ancestors_result, get_ancestors_of("Test Tree DocType", "Child 2"))
 
+		not_descendants_result = frappe.qb.engine.get_query(
+			"Test Tree DocType",
+			fields=["name"],
+			filters={"name": ("not descendants of", "Parent 1")},
+			orderby="modified",
+		).run(as_dict=1)
+
+		self.assertListEqual(
+			not_descendants_result,
+			frappe.db.get_all(
+				"Test Tree DocType",
+				fields=["name"],
+				filters={"name": ("not descendants of", "Parent 1")},
+			),
+		)
+
+		not_ancestors_result = frappe.qb.engine.get_query(
+			"Test Tree DocType",
+			fields=["name"],
+			filters={"name": ("not ancestors of", "Child 2")},
+			orderby="modified",
+		).run(as_dict=1)
+
+		self.assertListEqual(
+			not_ancestors_result,
+			frappe.db.get_all(
+				"Test Tree DocType",
+				fields=["name"],
+				filters={"name": ("not ancestors of", "Child 2")},
+			),
+		)
+
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
