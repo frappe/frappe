@@ -1,3 +1,5 @@
+import types
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.safe_exec import get_safe_globals, safe_exec
@@ -59,3 +61,17 @@ class TestSafeExec(FrappeTestCase):
 
 		# enqueue whitelisted method
 		safe_exec("""frappe.enqueue("ping", now=True)""")
+
+	def test_ensure_getattrable_globals(self):
+		def check_safe(objects):
+			for obj in objects:
+				if isinstance(obj, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
+					self.fail(f"{obj} wont work in safe exec.")
+				elif isinstance(obj, dict):
+					check_safe(obj.values())
+
+		check_safe(get_safe_globals().values())
+
+	def test_unsafe_objects(self):
+		unsafe_global = {"frappe": frappe}
+		self.assertRaises(SyntaxError, safe_exec, """frappe.msgprint("Hello")""", unsafe_global)
