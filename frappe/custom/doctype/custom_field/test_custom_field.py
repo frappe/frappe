@@ -79,4 +79,5 @@ class TestCustomField(FrappeTestCase):
 			)
 
 			# undo changes commited by DDL
+			# nosemgrep
 			frappe.db.commit()
