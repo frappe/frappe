@@ -424,7 +424,8 @@ class File(Document):
 
 	def exists_on_disk(self):
 		return os.path.exists(self.get_full_path())
-
+	
+	@frappe.whitelist()
 	def get_content(self) -> bytes:
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
@@ -442,25 +443,14 @@ class File(Document):
 		file_path = self.get_full_path()
 
 		if self.get_full_path().startswith(URL_PREFIXES):
-			if self.get_full_path().startswith("https://" + frappe.local.site + "/api/method/storage_integration"):
-				import storage_integration.controller as s3
-				with s3.MinioConnection(doc=None).client.get_object(frappe.db.get_single_value('Storage Integration Settings', 'bucket_name'), file_path[file_path.rfind(frappe.local.site):]) as response:
-					self._content = response.read()
-					try:
-						# for plain text files
-						self._content = self._content.decode()
-					except UnicodeDecodeError:
-						# for .png, .jpg, etc
-						pass
-			elif not self.get_full_path().startswith("https://" + frappe.local.site + "/api/method/storage_integration"):
-				with urllib.request.urlopen(file_path) as response:
-					self._content = response.read()
-					try:
-						# for plain text files
-						self._content = self._content.decode()
-					except UnicodeDecodeError:
-						# for .png, .jpg, etc
-						pass
+			with urllib.request.urlopen(file_path) as response:
+				self._content = response.read()
+				try:
+					# for plain text files
+					self._content = self._content.decode()
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc
+					pass
 
 		else:
 		# read the file
