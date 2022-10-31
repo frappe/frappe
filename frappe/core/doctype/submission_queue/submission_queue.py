@@ -120,6 +120,8 @@ class SubmissionQueue(Document):
 			notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
 			enqueue_create_notification([notify_to], notification_doc)
 
+		frappe.publish_realtime(f"reload_doc_{self.ref_doctype}_{self.ref_docname}")
+
 	def _unlock_reference_doc(self):
 		try:
 			job = Job.fetch(self.job_id, connection=get_redis_conn())

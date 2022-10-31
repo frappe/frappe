@@ -397,6 +397,8 @@ frappe.ui.form.Form = class FrappeForm {
 			// set the doc
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
+			if (!this.doc.__islocal) this.setup_reload_listener();
+
 			// check permissions
 			this.fetch_permissions();
 			if (!this.has_read_permission()) {
@@ -1977,6 +1979,19 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
+	setup_reload_listener() {
+		let doctype = this.doctype;
+		let docname = this.docname;
+		let listener_name = `reload_doc_${doctype}_${docname}`;
+
+		frappe.realtime.off(listener_name);
+		frappe.realtime.on(listener_name, () => {
+			if (frappe.get_route_str() === `Form/${doctype}/${docname}`) {
+				this.reload_doc();
+			}
+		});
+	}
+
 	// Filters fields from the reference doctype and sets them as options for a Select field
 	set_fields_as_options(
 		fieldname,
@@ -2039,6 +2054,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	show_submission_queue_banner() {
+		let wrapper = this.layout.wrapper.find(".submission-queue-banner");
+
 		if (
 			!(
 				this.meta.is_submittable &&
@@ -2046,10 +2063,15 @@ frappe.ui.form.Form = class FrappeForm {
 				!this.doc.__islocal &&
 				this.doc.docstatus === 0
 			)
-		)
-			return;
+		) {
+			if (wrapper.length) {
+				wrapper.hide();
+				wrapper.html("");
+			}
 
-		let wrapper = this.layout.wrapper.find(".submission-queue-banner");
+			return;
+		}
+
 		if (!wrapper.length) {
 			wrapper = $('<div class="submission-queue-banner form-message blue">');
 			this.layout.wrapper.prepend(wrapper);
@@ -2070,7 +2092,7 @@ frappe.ui.form.Form = class FrappeForm {
 						col_width = 3;
 						failed_link = `<div class="col-md-3">
 							<a href='/app/submission-queue/${r.message.latest_failed_submission}'>${__(
-							"Latest Failed Submission"
+							"Previous Failed Submission"
 						)}</a>
 						</div>`;
 					}
@@ -2081,7 +2103,7 @@ frappe.ui.form.Form = class FrappeForm {
 						<strong>${__("Submission Status:")}</strong>
 					</div>
 					<div class="col-md-${col_width}">
-						<a href='/app/submission-queue/${r.message.latest_submission}'>${__("Latest Submission")}</a>
+						<a href='/app/submission-queue/${r.message.latest_submission}'>${__("Previous Submission")}</a>
 					</div>
 					${failed_link}
 					<div class="col-md-${col_width}">
