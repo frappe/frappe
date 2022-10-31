@@ -626,6 +626,8 @@ class Engine:
 					if not is_pypika_function_object(field):
 						field = field if isinstance(field,(str, PseudoColumn)) else field.get_sql()
 						if not TABLE_PATTERN.search(str(field)):
+							if isinstance(field, PseudoColumn):
+								field = field.get_sql()
 							return getattr(frappe.qb.DocType(table), field)
 						else:
 							return field
