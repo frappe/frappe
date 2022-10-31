@@ -98,7 +98,6 @@ def get_context(context):
 		"""Build context to render the `web_form.html` template"""
 		context.in_edit_mode = False
 		context.in_view_mode = False
-		self.set_web_form_module()
 
 		if frappe.form_dict.is_list:
 			context.template = "website/doctype/web_form/templates/web_list.html"
@@ -284,13 +283,14 @@ def get_context(context):
 
 	def add_custom_context_and_script(self, context):
 		"""Update context from module if standard and append script"""
-		if self.web_form_module:
-			new_context = self.web_form_module.get_context(context)
+		if self.is_standard:
+			web_form_module = get_web_form_module(self)
+			new_context = web_form_module.get_context(context)
 
 			if new_context:
 				context.update(new_context)
 
-			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + ".js")
+			js_path = os.path.join(os.path.dirname(web_form_module.__file__), scrub(self.name) + ".js")
 			if os.path.exists(js_path):
 				script = frappe.render_template(open(js_path).read(), context)
 
@@ -300,9 +300,7 @@ def get_context(context):
 
 				context.script = script
 
-			css_path = os.path.join(
-				os.path.dirname(self.web_form_module.__file__), scrub(self.name) + ".css"
-			)
+			css_path = os.path.join(os.path.dirname(web_form_module.__file__), scrub(self.name) + ".css")
 			if os.path.exists(css_path):
 				style = open(css_path).read()
 
@@ -321,14 +319,6 @@ def get_context(context):
 			parents = context.parents
 
 		return parents
-
-	def set_web_form_module(self):
-		"""Get custom web form module if exists"""
-		self.web_form_module = self.get_web_form_module()
-
-	def get_web_form_module(self):
-		if self.is_standard:
-			return get_doc_module(self.module, self.doctype, self.name)
 
 	def validate_mandatory(self, doc):
 		"""Validate mandatory web form fields"""
@@ -366,6 +356,11 @@ def get_context(context):
 
 		else:
 			return False
+
+
+def get_web_form_module(doc):
+	if doc.is_standard:
+		return get_doc_module(doc.module, doc.doctype, doc.name)
 
 
 @frappe.whitelist(allow_guest=True)
