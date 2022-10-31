@@ -188,7 +188,6 @@ CREATE TABLE "tabDocType" (
   "app" varchar(255) DEFAULT NULL,
   "autoname" varchar(255) DEFAULT NULL,
   "naming_rule" varchar(40) DEFAULT NULL,
-  "name_case" varchar(255) DEFAULT NULL,
   "title_field" varchar(255) DEFAULT NULL,
   "image_field" varchar(255) DEFAULT NULL,
   "timeline_field" varchar(255) DEFAULT NULL,
