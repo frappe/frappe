@@ -130,8 +130,10 @@ class SubmissionQueue(Document):
 			# assuming the job failed here (?)
 			status = "failed"
 
+		queued_doc = self.queued_doc
+
 		# Job finished successfully however action was never completed (?)
-		if status == "finished" and self.queued_doc.docstatus != 1:
+		if status == "finished" and queued_doc.docstatus == 0:
 			status = "failed"
 
 		# Checking if job is queue to be executed/executing
@@ -140,12 +142,16 @@ class SubmissionQueue(Document):
 
 		# Checking any one of the possible termination statuses
 		elif status in ("failed", "canceled", "stopped"):
-			self.queued_doc.unlock()
+			queued_doc.unlock()
 			frappe.db.set_value("Submission Queue", self.name, "status", "Failed", update_modified=False)
 			frappe.msgprint(_("Document Unlocked"))
 
 	@frappe.whitelist()
 	def unlock_doc(self):
+		# NOTE: this can lead to some weird unlocking/locking behaviours.
+		# for example: hitting unlock on a submission could lead to unlocking of another submission
+		# of the same reference document.
+
 		if self.status != "Queued":
 			return
 
