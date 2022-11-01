@@ -664,14 +664,24 @@ class Engine:
 					and (f"`tab{table}`" not in str(field))
 				):
 					has_join = True
+					table_to_join_on = table_from_string(str(field))
+					if joined_tables.get(join) != table_to_join_on:
+						criterion = getattr(criterion, join)(table_to_join_on).on(
+							getattr(table_to_join_on, "parent") == getattr(frappe.qb.DocType(table), "name")
+						)
+						joined_tables[join] = table_to_join_on
 
 			if has_join:
 
 				def _update_pypika_fields(field):
 					if not is_pypika_function_object(field):
-						field = field if isinstance(field, str) else field.get_sql()
+						field = field if isinstance(field, (str, PseudoColumn)) else field.get_sql()
 						if not TABLE_PATTERN.search(str(field)):
+							if isinstance(field, PseudoColumn):
+								field = field.get_sql()
 							return getattr(frappe.qb.DocType(table), field)
+						else:
+							return field
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
 						return field
