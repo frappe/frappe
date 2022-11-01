@@ -43,10 +43,16 @@ frappe.form.formatters = {
 				}
 			}
 
+<<<<<<< HEAD
 			return frappe.form.formatters._right(
 				((value==null || value==="")
 					? ""
 					: format_number(value, null, precision)), options);
+=======
+			value = value == null || value === "" ? "" : value;
+
+			return frappe.form.formatters._right(format_number(value, null, precision), options);
+>>>>>>> 97f97a81f9 (fix: show 0 for empty currency, float, & duration fields in list view)
 		}
 	},
 	Int: function(value, docfield, options) {
@@ -91,7 +97,12 @@ frappe.form.formatters = {
 			}
 		}
 
+<<<<<<< HEAD
 		value = (value == null || value === "") ? "" : format_currency(value, currency, precision);
+=======
+		value = value == null || value === "" ? "" : value;
+		value = format_currency(value, currency, precision);
+>>>>>>> 97f97a81f9 (fix: show 0 for empty currency, float, & duration fields in list view)
 
 		if ( options && options.only_value ) {
 			return value;
@@ -209,7 +220,7 @@ frappe.form.formatters = {
 			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
 
-		return value || "";
+		return value || "0s";
 	},
 	LikedBy: function(value) {
 		var html = "";
