@@ -423,12 +423,11 @@ textarea.form-control {
 	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
 	position: relative;
-	margin-top: -10px;
 }
 
 .signature-display {
-	margin: 7px 0px;
 	background: var(--control-bg);
+	border-radius: var(--border-radius);
 	.attach-missing-image,
 	.attach-image-display {
 		cursor: pointer;
