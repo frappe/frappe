@@ -653,7 +653,8 @@ class Engine:
 	def join_(self, criterion: Criterion, join_type, table_to_join_on: Table, primary_table: Table):
 		if self.joined_tables.get(join_type) != table_to_join_on:
 			criterion = getattr(criterion, join_type)(table_to_join_on).on(
-				table_to_join_on.parent == primary_table.name
+				(table_to_join_on.parent == primary_table.name)
+				& (table_to_join_on.parenttype == primary_table._table_name.replace("tab", ""))
 			)
 			self.joined_tables[join_type] = table_to_join_on
 		return criterion
