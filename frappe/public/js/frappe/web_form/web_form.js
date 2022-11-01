@@ -347,11 +347,13 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	save() {
 		let is_new = this.is_new;
-		if (this.validate && !this.validate()) {
-			frappe.throw(
+		let valid = this.validate && this.validate();
+		if (!valid && valid !== undefined) {
+			frappe.msgprint(
 				__("Couldn't save, please check the data you have entered"),
 				__("Validation Error")
 			);
+			return false;
 		}
 
 		// validation hack: get_values will check for missing data

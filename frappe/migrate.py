@@ -173,7 +173,7 @@ class SiteMigration:
 		try:
 			self.pre_schema_updates()
 			self.run_schema_updates()
-		finally:
 			self.post_schema_updates()
+		finally:
 			self.tearDown()
 			frappe.destroy()
