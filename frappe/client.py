@@ -206,9 +206,9 @@ def insert_many(docs=None):
 	if len(docs) > 200:
 		frappe.throw(_("Only 200 inserts allowed in one request"))
 
-	out = set()
+	out = []
 	for doc in docs:
-		out.add(insert_doc(doc).name)
+		out.append(insert_doc(doc).name)
 
 	return out
 

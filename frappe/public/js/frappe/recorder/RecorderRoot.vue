@@ -12,8 +12,8 @@ import { useRoute } from "vue-router"
 
 let route = useRoute();
 
-watch(route, () => {
-	frappe.router.current_route = frappe.router.parse();
+watch(route, async () => {
+	frappe.router.current_route = await frappe.router.parse();
 	frappe.breadcrumbs.update();
 	frappe.recorder.route = route;
 });
