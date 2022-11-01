@@ -1,33 +1,30 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
 
-import unittest
 
 import frappe
 from frappe import _
+from frappe.tests.utils import FrappeTestCase
+from frappe.translate import clear_cache
 
 
-class TestTranslation(unittest.TestCase):
+class TestTranslation(FrappeTestCase):
 	def setUp(self):
 		frappe.db.sql("delete from tabTranslation")
 
 	def tearDown(self):
 		frappe.local.lang = "en"
-		frappe.local.lang_full_dict = None
+		clear_cache()
 
 	def test_doctype(self):
 		translation_data = get_translation_data()
 		for key, val in translation_data.items():
 			frappe.local.lang = key
-			frappe.local.lang_full_dict = None
 			translation = create_translation(key, val)
 			self.assertEqual(_(val[0]), val[1])
 
 			frappe.delete_doc("Translation", translation.name)
-			frappe.local.lang_full_dict = None
-
 			self.assertEqual(_(val[0]), val[0])
 
 	def test_parent_language(self):
@@ -57,6 +54,10 @@ class TestTranslation(unittest.TestCase):
 		# from spanish (general)
 		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[1][0]), data[1][1])
+
+	def test_multi_language_translations(self):
+		source = "User"
+		self.assertNotEqual(_(source, lang="de"), _(source, lang="es"))
 
 	def test_html_content_data_translation(self):
 		source = """
