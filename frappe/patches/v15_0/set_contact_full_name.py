@@ -10,6 +10,7 @@ def execute():
 	contacts = frappe.get_all(
 		"Contact",
 		fields=["name", "first_name", "middle_name", "last_name", "company_name"],
+		filters={"full_name": ("is", "not set")},
 		as_list=True,
 	)
 	total = len(contacts)
