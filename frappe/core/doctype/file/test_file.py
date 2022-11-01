@@ -433,7 +433,6 @@ class TestFile(FrappeTestCase):
 		self.assertRaisesRegex(IOError, "does not exist", test_file.validate)
 
 		test_file.file_url = None
-		test_file.is_private = 1
 		test_file.file_name = "/private/files/_file"
 		self.assertRaisesRegex(ValidationError, "File name cannot have", test_file.validate)
 
