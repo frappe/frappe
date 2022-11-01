@@ -9,6 +9,16 @@ frappe.ui.form.on("Workspace", {
 	refresh: function (frm) {
 		frm.enable_save();
 
+		let url = `/app/${
+			frm.doc.public
+				? frappe.router.slug(frm.doc.title)
+				: "private/" + frappe.router.slug(frm.doc.title)
+		}`;
+		frm.sidebar
+			.add_user_action(__("Go to Workspace"))
+			.attr("href", url)
+			.attr("target", "_blank");
+
 		frm.layout.message.empty();
 		let message = __(
 			"This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
