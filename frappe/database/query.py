@@ -603,6 +603,8 @@ class Engine:
 	def join_(self, criterion, fields, table, join):
 		"""Handles all join operations on criterion objects"""
 		has_join = False
+		joined_tables = {}
+
 		if not isinstance(fields, Criterion):
 			for field in fields:
 				# Only perform this bit if foreign doctype in fields
@@ -611,24 +613,24 @@ class Engine:
 					and str(field).startswith("`tab")
 					and (f"`tab{table}`" not in str(field))
 				):
-					join_table = table_from_string(str(field))
-					if self.fieldname:
-						criterion = criterion.left_join(join_table).on(
-							getattr(join_table, "name") == getattr(frappe.qb.DocType(table), self.fieldname)
-						)
-					else:
-						criterion = criterion.left_join(join_table).on(
-							getattr(join_table, "parent") == getattr(frappe.qb.DocType(table), "name")
-						)
 					has_join = True
+					table_to_join_on = table_from_string(str(field))
+					if joined_tables.get(join) != table_to_join_on:
+						criterion = getattr(criterion, join)(table_to_join_on).on(
+							getattr(table_to_join_on, "parent") == getattr(frappe.qb.DocType(table), "name")
+						)
+						joined_tables[join] = table_to_join_on
 
 			if has_join:
-
 				def _update_pypika_fields(field):
 					if not is_pypika_function_object(field):
-						field = field if isinstance(field, str) else field.get_sql()
+						field = field if isinstance(field,(str, PseudoColumn)) else field.get_sql()
 						if not TABLE_PATTERN.search(str(field)):
+							if isinstance(field, PseudoColumn):
+								field = field.get_sql()
 							return getattr(frappe.qb.DocType(table), field)
+						else:
+							return field
 					else:
 						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
 						return field
@@ -638,10 +640,10 @@ class Engine:
 		if len(self.tables) > 1:
 			primary_table = self.tables.pop(table)
 			for table_object in self.tables.values():
-				criterion = getattr(criterion, join)(table_object).on(
-					table_object.parent == primary_table.name
-				)
-				has_join = True
+				if joined_tables.get("left_join") != table_object:
+					criterion = getattr(criterion, join)(table_object).on(
+						table_object.parent == primary_table.name
+					)
 
 		return criterion, fields
 
