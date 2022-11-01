@@ -650,13 +650,15 @@ class Engine:
 		fields.extend(function_objects)
 		return fields
 
-	def join_(self, criterion: Criterion, join_type, table_to_join_on: Table, primary_table: Table):
-		if self.joined_tables.get(join_type) != table_to_join_on:
-			criterion = getattr(criterion, join_type)(table_to_join_on).on(
-				(table_to_join_on.parent == primary_table.name)
-				& (table_to_join_on.parenttype == primary_table._table_name.replace("tab", ""))
+	def join_(
+		self, criterion: Criterion, join_type: str, child_table: Table, parent_table: Table
+	) -> Criterion:
+		if self.joined_tables.get(join_type) != child_table:
+			criterion = getattr(criterion, join_type)(child_table).on(
+				(child_table.parent == parent_table.name)
+				& (child_table.parenttype == parent_table._table_name.replace("tab", ""))
 			)
-			self.joined_tables[join_type] = table_to_join_on
+			self.joined_tables[join_type] = child_table
 		return criterion
 
 	def join(self, criterion, fields, table, join_type):
@@ -685,21 +687,26 @@ class Engine:
 					and (f"`tab{table}`" not in str(field))
 				):
 					has_join = True
-					table_to_join_on = table_from_string(str(field))
-					primary_table = frappe.qb.DocType(table) if not isinstance(table, Table) else table
-					criterion = self.join_(criterion, join_type, table_to_join_on, primary_table)
+					child_table = table_from_string(str(field))
+					parent_table = frappe.qb.DocType(table) if not isinstance(table, Table) else table
+					criterion = self.join_(
+						criterion=criterion,
+						join_type=join_type,
+						child_table=child_table,
+						parent_table=parent_table,
+					)
 
 			if has_join:
 				fields = [_update_pypika_fields(field) for field in fields]
 
 		if len(self.tables) > 1:
-			primary_table = self.tables.pop(table)
-			for table_object in self.tables.values():
+			parent_table = self.tables.pop(table)
+			for child_table in self.tables.values():
 				criterion = self.join_(
 					criterion,
 					join_type=join_type,
-					table_to_join_on=table_object,
-					primary_table=primary_table,
+					child_table=child_table,
+					parent_table=parent_table,
 				)
 
 		return criterion, fields
