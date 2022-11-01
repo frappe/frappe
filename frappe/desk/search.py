@@ -284,7 +284,6 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[dict]:
 			item = list(item)
 			label = item[1]  # use title as label
 			item[1] = item[0]  # show name in description instead of title
-			del item[2]  # remove redundant title ("label") value
 			results.append({"value": item[0], "label": label, "description": to_string(item[1:])})
 	else:
 		results.extend({"value": item[0], "description": to_string(item[1:])} for item in res)
