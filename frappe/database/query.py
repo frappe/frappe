@@ -650,10 +650,30 @@ class Engine:
 		fields.extend(function_objects)
 		return fields
 
-	def join_(self, criterion, fields, table, join):
+	def join_(self, criterion: Criterion, join_type, table_to_join_on: Table, primary_table: Table):
+		if self.joined_tables.get(join_type) != table_to_join_on:
+			criterion = getattr(criterion, join_type)(table_to_join_on).on(
+				table_to_join_on.parent == primary_table.name
+			)
+			self.joined_tables[join_type] = table_to_join_on
+		return criterion
+
+	def join(self, criterion, fields, table, join_type):
 		"""Handles all join operations on criterion objects"""
 		has_join = False
-		joined_tables = {}
+
+		def _update_pypika_fields(field):
+			if not is_pypika_function_object(field):
+				field = field if isinstance(field, (str, PseudoColumn)) else field.get_sql()
+				if not TABLE_PATTERN.search(str(field)):
+					if isinstance(field, PseudoColumn):
+						field = field.get_sql()
+					return getattr(frappe.qb.DocType(table), field)
+				else:
+					return field
+			else:
+				field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
+				return field
 
 		if not isinstance(fields, Criterion):
 			for field in fields:
@@ -665,36 +685,21 @@ class Engine:
 				):
 					has_join = True
 					table_to_join_on = table_from_string(str(field))
-					if joined_tables.get(join) != table_to_join_on:
-						criterion = getattr(criterion, join)(table_to_join_on).on(
-							getattr(table_to_join_on, "parent") == getattr(frappe.qb.DocType(table), "name")
-						)
-						joined_tables[join] = table_to_join_on
+					primary_table = frappe.qb.DocType(table) if not isinstance(table, Table) else table
+					criterion = self.join_(criterion, join_type, table_to_join_on, primary_table)
 
 			if has_join:
-
-				def _update_pypika_fields(field):
-					if not is_pypika_function_object(field):
-						field = field if isinstance(field, (str, PseudoColumn)) else field.get_sql()
-						if not TABLE_PATTERN.search(str(field)):
-							if isinstance(field, PseudoColumn):
-								field = field.get_sql()
-							return getattr(frappe.qb.DocType(table), field)
-						else:
-							return field
-					else:
-						field.args = [getattr(frappe.qb.DocType(table), arg.get_sql()) for arg in field.args]
-						return field
-
 				fields = [_update_pypika_fields(field) for field in fields]
 
 		if len(self.tables) > 1:
 			primary_table = self.tables.pop(table)
 			for table_object in self.tables.values():
-				if joined_tables.get("left_join") != table_object:
-					criterion = getattr(criterion, join)(table_object).on(
-						table_object.parent == primary_table.name
-					)
+				criterion = self.join_(
+					criterion,
+					join_type=join_type,
+					table_to_join_on=table_object,
+					primary_table=primary_table,
+				)
 
 		return criterion, fields
 
@@ -707,13 +712,16 @@ class Engine:
 	) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
 		# Clean up state before each query
 		self.tables = {}
+		self.joined_tables = {}
 		self.linked_doctype = None
 		self.fieldname = None
 
 		fields = self.set_fields(fields, **kwargs)
 		criterion = self.build_conditions(table, filters, **kwargs)
-		join = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
-		criterion, fields = self.join_(criterion=criterion, fields=fields, table=table, join=join)
+		join_type = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
+		criterion, fields = self.join(
+			criterion=criterion, fields=fields, table=table, join_type=join_type
+		)
 
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*fields)
