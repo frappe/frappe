@@ -211,9 +211,8 @@ class TestQuery(FrappeTestCase):
 			frappe.get_list(
 				"Note",
 				filters={"name": "Test Note Title"},
-				fields=["name", "`tabNote Seen By`.`user` as seen_by",  "`tabNote Seen By`.`idx` as idx"],
+				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			),
-
 		)
 
 	@run_only_if(db_type_is.MARIADB)

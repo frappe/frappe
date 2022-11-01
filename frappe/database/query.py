@@ -622,9 +622,10 @@ class Engine:
 						joined_tables[join] = table_to_join_on
 
 			if has_join:
+
 				def _update_pypika_fields(field):
 					if not is_pypika_function_object(field):
-						field = field if isinstance(field,(str, PseudoColumn)) else field.get_sql()
+						field = field if isinstance(field, (str, PseudoColumn)) else field.get_sql()
 						if not TABLE_PATTERN.search(str(field)):
 							if isinstance(field, PseudoColumn):
 								field = field.get_sql()
