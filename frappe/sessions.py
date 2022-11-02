@@ -271,7 +271,7 @@ class Session:
 		frappe.db.sql(
 			"""insert into `tabSessions`
 			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`)
-			values (%s , %s, NOW(), %s, 'Active', %s)""",
+			values (%s , %s, NOW(), %s, 'Active')""",
 			(str(self.data["data"]), self.data["user"], self.data["sid"]),
 		)
 
