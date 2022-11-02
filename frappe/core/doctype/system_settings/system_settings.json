@@ -33,7 +33,6 @@
   "allow_guests_to_upload_files",
   "security",
   "session_expiry",
-  "session_expiry_mobile",
   "document_share_key_expiry",
   "column_break_13",
   "deny_multiple_sessions",
@@ -213,13 +212,6 @@
    "fieldname": "session_expiry",
    "fieldtype": "Data",
    "label": "Session Expiry (idle timeout)"
-  },
-  {
-   "default": "720:00",
-   "description": "In Hours",
-   "fieldname": "session_expiry_mobile",
-   "fieldtype": "Data",
-   "label": "Session Expiry Mobile"
   },
   {
    "fieldname": "column_break_13",
@@ -538,7 +530,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-10-30 12:02:46.639170",
+ "modified": "2022-11-02 14:38:14.514604",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
