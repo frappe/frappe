@@ -553,18 +553,14 @@ class Engine:
 				alias = None
 				if " as " in field:
 					field, alias = field.split(" as ")
-				self.fieldname, linked_fieldname = field.split(".")
-				linked_field = frappe.get_meta(doctype, cached=True).get_field(self.fieldname)
-				try:
-					self.linked_doctype = linked_field.options
-				except AttributeError:
-					return fields
-				field = f"`tab{self.linked_doctype}`.`{linked_fieldname}`"
-				if alias:
-					field = f"{field} as {alias}"
-				_fields.append(field)
+				fieldname, linked_fieldname = field.split(".")
+				linked_doctype = frappe.get_meta(doctype).get_field(fieldname).options
 
-			return _fields
+				field = f"`tab{linked_doctype}`.`{linked_fieldname}`"
+				if alias:
+					field = f"{field} {alias}"
+			_fields.append(field)
+		return _fields
 
 	def sanitize_fields(self, fields: str | list | tuple):
 		is_mariadb = frappe.db.db_type == "mariadb"
@@ -584,11 +580,11 @@ class Engine:
 
 		return fields
 
-	def get_list_fields(self, fields: list) -> list:
+	def get_list_fields(self, table: str, fields: list) -> list:
 		updated_fields = []
 		if issubclass(type(fields), Criterion) or "*" in fields:
 			return fields
-		# fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
+		fields = self.get_fieldnames_from_child_table(doctype=table, fields=fields)
 		for field in fields:
 			if not isinstance(field, Criterion) and field:
 				if " as " in field:
@@ -616,7 +612,7 @@ class Engine:
 				fields = Field(fields).as_(reference)
 		return fields
 
-	def set_fields(self, fields, **kwargs) -> list:
+	def set_fields(self, table: str, fields, **kwargs) -> list:
 		fields = kwargs.get("pluck") if kwargs.get("pluck") else fields or "name"
 		fields = self.sanitize_fields(fields)
 		if isinstance(fields, list) and None in fields and Field not in fields:
@@ -644,7 +640,7 @@ class Engine:
 		if is_str:
 			fields = self.get_string_fields(fields)
 		if not is_str and fields:
-			fields = self.get_list_fields(fields)
+			fields = self.get_list_fields(table, fields)
 
 		# Need to check instance again since fields modified.
 		if not isinstance(fields, (list, tuple, set)):
@@ -707,8 +703,9 @@ class Engine:
 				fields = [_update_pypika_fields(field) for field in fields]
 
 		if len(self.tables) > 1:
-			parent_table = self.tables.pop(table)
-			for child_table in self.tables.values():
+			parent_table = self.tables[table]
+			child_tables = list(self.tables.values())[1:]
+			for child_table in child_tables:
 				criterion = self.join_child_tables(
 					criterion,
 					join_type=join_type,
@@ -731,8 +728,8 @@ class Engine:
 		self.linked_doctype = None
 		self.fieldname = None
 
-		fields = self.set_fields(fields, **kwargs)
 		criterion = self.build_conditions(table, filters, **kwargs)
+		fields = self.set_fields(table, fields, **kwargs)
 		join_type = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 		criterion, fields = self.join(
 			criterion=criterion, fields=fields, table=table, join_type=join_type

@@ -241,12 +241,8 @@ class TestQuery(FrappeTestCase):
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
-			).run(as_dict=1),
-			frappe.get_list(
-				"Note",
-				filters={"name": "Test Note Title"},
-				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
-			),
+			).get_sql(),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
 		self.assertEqual(
@@ -254,12 +250,17 @@ class TestQuery(FrappeTestCase):
 				"Note",
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
-			).run(as_dict=1),
-			frappe.get_list(
+			).get_sql(),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by,`tabNote Seen By`.`idx` idx FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
+		)
+
+		self.assertEqual(
+			frappe.qb.engine.get_query(
 				"Note",
 				filters={"name": "Test Note Title"},
-				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
-			),
+				fields=["name", "seen_by.user as seen_by", "`tabNote Seen By`.`idx` as idx"],
+			).get_sql(),
+			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by,`tabNote Seen By`.`idx` idx FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'",
 		)
 
 	@run_only_if(db_type_is.MARIADB)
