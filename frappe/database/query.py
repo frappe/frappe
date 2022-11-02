@@ -172,10 +172,13 @@ def table_from_string(table: str) -> "DocType":
 
 def get_nested_set_hierarchy_result(hierarchy: str, field: str, table: str):
 	ref_doctype = table
-	lft, rgt = "", ""
-	lft, rgt = (
-		frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == field).run()[0]
-	)
+	try:
+		lft, rgt = (
+			frappe.qb.from_(ref_doctype).select("lft", "rgt").where(Field("name") == field).run()[0]
+		)
+	except IndexError:
+		lft, rgt = None, None
+
 	if hierarchy in ("descendants of", "not descendants of"):
 		result = (
 			frappe.qb.from_(ref_doctype)
@@ -591,7 +594,7 @@ class Engine:
 				if " as " in field:
 					field, reference = field.split(" as ")
 					if "`" in field:
-						updated_fields.append(PseudoColumn(f"{field} as {reference}"))
+						updated_fields.append(PseudoColumn(f"{field} {reference}"))
 					else:
 						updated_fields.append(Field(field.strip()).as_(reference))
 				elif "`" in str(field):
@@ -650,13 +653,17 @@ class Engine:
 		fields.extend(function_objects)
 		return fields
 
-	def join_(
-		self, criterion: Criterion, join_type: str, child_table: Table, parent_table: Table
+	def join_child_tables(
+		self,
+		criterion: Criterion,
+		join_type: str,
+		child_table: Table,
+		parent_table: Table,
 	) -> Criterion:
 		if self.joined_tables.get(join_type) != child_table:
 			criterion = getattr(criterion, join_type)(child_table).on(
 				(child_table.parent == parent_table.name)
-				& (child_table.parenttype == parent_table._table_name.replace("tab", ""))
+				& (child_table.parenttype == TAB_PATTERN.sub("", parent_table._table_name))
 			)
 			self.joined_tables[join_type] = child_table
 		return criterion
@@ -689,7 +696,7 @@ class Engine:
 					has_join = True
 					child_table = table_from_string(str(field))
 					parent_table = frappe.qb.DocType(table) if not isinstance(table, Table) else table
-					criterion = self.join_(
+					criterion = self.join_child_tables(
 						criterion=criterion,
 						join_type=join_type,
 						child_table=child_table,
@@ -702,7 +709,7 @@ class Engine:
 		if len(self.tables) > 1:
 			parent_table = self.tables.pop(table)
 			for child_table in self.tables.values():
-				criterion = self.join_(
+				criterion = self.join_child_tables(
 					criterion,
 					join_type=join_type,
 					child_table=child_table,

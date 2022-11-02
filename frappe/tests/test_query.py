@@ -9,6 +9,49 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
 
 
+def create_tree_docs():
+	records = [
+		{
+			"some_fieldname": "Root Node",
+			"parent_test_tree_doctype": None,
+			"is_group": 1,
+		},
+		{
+			"some_fieldname": "Parent 1",
+			"parent_test_tree_doctype": "Root Node",
+			"is_group": 1,
+		},
+		{
+			"some_fieldname": "Parent 2",
+			"parent_test_tree_doctype": "Root Node",
+			"is_group": 1,
+		},
+		{
+			"some_fieldname": "Child 1",
+			"parent_test_tree_doctype": "Parent 1",
+			"is_group": 0,
+		},
+		{
+			"some_fieldname": "Child 2",
+			"parent_test_tree_doctype": "Parent 1",
+			"is_group": 0,
+		},
+		{
+			"some_fieldname": "Child 3",
+			"parent_test_tree_doctype": "Parent 2",
+			"is_group": 0,
+		},
+	]
+
+	tree_doctype = new_doctype("Test Tree DocType", is_tree=True, autoname="field:some_fieldname")
+	tree_doctype.insert()
+
+	for record in records:
+		d = frappe.new_doc("Test Tree DocType")
+		d.update(record)
+		d.insert()
+
+
 class TestQuery(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
@@ -225,52 +268,10 @@ class TestQuery(FrappeTestCase):
 			"email", frappe.qb.engine.get_query("User", fields=["name", "#email"], filters={}).get_sql()
 		)
 
-	def insert_tree_docs(self):
-		records = [
-			{
-				"some_fieldname": "Root Node",
-				"parent_test_tree_doctype": None,
-				"is_group": 1,
-			},
-			{
-				"some_fieldname": "Parent 1",
-				"parent_test_tree_doctype": "Root Node",
-				"is_group": 1,
-			},
-			{
-				"some_fieldname": "Parent 2",
-				"parent_test_tree_doctype": "Root Node",
-				"is_group": 1,
-			},
-			{
-				"some_fieldname": "Child 1",
-				"parent_test_tree_doctype": "Parent 1",
-				"is_group": 0,
-			},
-			{
-				"some_fieldname": "Child 2",
-				"parent_test_tree_doctype": "Parent 1",
-				"is_group": 0,
-			},
-			{
-				"some_fieldname": "Child 3",
-				"parent_test_tree_doctype": "Parent 2",
-				"is_group": 0,
-			},
-		]
-
-		tree_doctype = new_doctype("Test Tree DocType", is_tree=True, autoname="field:some_fieldname")
-		tree_doctype.insert()
-
-		for record in records:
-			d = frappe.new_doc("Test Tree DocType")
-			d.update(record)
-			d.insert()
-
 	def test_nestedset(self):
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
-		self.insert_tree_docs()
+		create_tree_docs()
 		descendants_result = frappe.qb.engine.get_query(
 			"Test Tree DocType",
 			fields=["name"],
