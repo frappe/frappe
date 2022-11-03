@@ -12,6 +12,16 @@ from frappe.query_builder.terms import NamedParameterWrapper
 from .builder import MariaDB, Postgres
 
 
+class PseudoColumnMapper(PseudoColumn):
+	def __init__(self, name: str) -> None:
+		super().__init__(name)
+
+	def get_sql(self, **kwargs):
+		if frappe.db.db_type == "postgres":
+			self.name = self.name.replace("`", '"')
+		return self.name
+
+
 class db_type_is(Enum):
 	MARIADB = "mariadb"
 	POSTGRES = "postgres"
