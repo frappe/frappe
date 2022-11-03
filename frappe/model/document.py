@@ -759,35 +759,6 @@ class Document(BaseDocument):
 
 		Will also validate document transitions (Save > Submit > Cancel) calling
 		`self.check_docstatus_transition`."""
-<<<<<<< HEAD
-		conflict = False
-		self._action = "save"
-		if not self.get("__islocal") and not self.meta.get("is_virtual"):
-			if self.meta.issingle:
-				modified = frappe.db.sql(
-					"""select value from tabSingles
-					where doctype=%s and field='modified' for update""",
-					self.doctype,
-				)
-				modified = modified and modified[0][0]
-				if modified and modified != cstr(self._original_modified):
-					conflict = True
-			else:
-				tmp = frappe.db.sql(
-					"""select modified, docstatus from `tab{0}`
-					where name = %s for update""".format(
-						self.doctype
-					),
-					self.name,
-					as_dict=True,
-				)
-
-				if not tmp:
-					frappe.throw(_("Record does not exist"))
-				else:
-					tmp = tmp[0]
-=======
->>>>>>> 6d45b500a1 (perf: load `_doc_before_save` sooner to avoid DB call in `check_if_latest` (#18666))
 
 		self._action = "save"
 		previous = self.get_doc_before_save()
@@ -804,20 +775,8 @@ class Document(BaseDocument):
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
-<<<<<<< HEAD
-			if conflict:
-				frappe.msgprint(
-					_("Error: Document has been modified after you have opened it")
-					+ (" (%s, %s). " % (modified, self.modified))
-					+ _("Please refresh to get the latest document."),
-					raise_exception=frappe.TimestampMismatchError,
-				)
-		else:
-			self.check_docstatus_transition(0)
-=======
 		if not self.meta.issingle:
 			self.check_docstatus_transition(previous.docstatus)
->>>>>>> 6d45b500a1 (perf: load `_doc_before_save` sooner to avoid DB call in `check_if_latest` (#18666))
 
 	def check_docstatus_transition(self, docstatus):
 		"""Ensures valid `docstatus` transition.
