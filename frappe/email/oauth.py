@@ -53,7 +53,7 @@ class Oauth:
 		return f"user={self.email}\1auth=Bearer {self._access_token}\1\1"
 
 	def connect(self, _retry: int = 0) -> None:
-		"""Connection method with retry on exception for Oauth"""
+		"""Connection method with retry on exception for connection errors"""
 		try:
 			if isinstance(self._conn, POP3):
 				res = self._connect_pop()
@@ -69,18 +69,14 @@ class Oauth:
 				self._connect_smtp()
 
 		except Exception as e:
-			# maybe the access token expired - refreshing
-			access_token = self._refresh_access_token()
-
-			if not access_token or _retry > 0:
+			if _retry > 0:
 				frappe.log_error(
-					"OAuth Error - Authentication Failed", str(e), "Email Account", self.email_account
+					"SMTP Connection Error - Authentication Failed", str(e), "Email Account", self.email_account
 				)
 				# raising a bare exception here as we have a lot of exception handling present
 				# where the connect method is called from - hence just logging and raising.
 				raise
 
-			self._access_token = access_token
 			self.connect(_retry + 1)
 
 	def _connect_pop(self) -> bytes:
@@ -98,70 +94,3 @@ class Oauth:
 
 	def _connect_smtp(self) -> None:
 		self._conn.auth(self._mechanism, lambda x: self._auth_string, initial_response_ok=False)
-
-	def _refresh_access_token(self) -> str:
-		"""Refreshes access token via calling `refresh_access_token` method of oauth service object"""
-		service_obj = self._get_service_object()
-		access_token = service_obj.refresh_access_token(self._refresh_token).get("access_token")
-
-		if access_token:
-			# set the new access token in db
-			frappe.db.set_value(
-				"Email Account",
-				self.email_account,
-				"access_token",
-				encrypt(access_token),
-				update_modified=False,
-			)
-
-		return access_token
-
-	def _get_service_object(self):
-		"""Get Oauth service object"""
-
-		return {
-			"GMail": GoogleOAuth("mail", validate=False),
-		}[self.service]
-
-
-@frappe.whitelist(methods=["POST"])
-def oauth_access(email_account: str, service: str):
-	"""Used as a default endpoint/caller for all oauth services.
-	Returns authorization url for redirection"""
-
-	if not service:
-		frappe.throw(frappe._("No Service is selected. Please select one and try again!"))
-
-	if service == "GMail":
-		return authorize_google_access(email_account)
-
-	raise NotImplementedError(f"Service {service} currently doesn't have oauth implementation.")
-
-
-def authorize_google_access(email_account: str, code: str = None):
-	"""Facilitates google oauth for email.
-	This is invoked 2 times - first time when user clicks `Authorize API Access` for getting the authorization url
-	and second time for setting the refresh and access token in db when google redirects back with oauth code."""
-
-	doctype = "Email Account"
-	oauth_obj = GoogleOAuth("mail")
-
-	if not code:
-		return oauth_obj.get_authentication_url(
-			{
-				"redirect": f"/app/Form/{quote(doctype)}/{quote(email_account)}",
-				"success_query_param": "successful_authorization=1",
-				"email_account": email_account,
-			},
-		)
-
-	res = oauth_obj.authorize(code)
-	frappe.db.set_value(
-		doctype,
-		email_account,
-		{
-			"refresh_token": encrypt(res.get("refresh_token")),
-			"access_token": encrypt(res.get("access_token")),
-		},
-		update_modified=False,
-	)

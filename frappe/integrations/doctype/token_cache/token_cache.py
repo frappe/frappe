@@ -3,6 +3,8 @@
 
 from datetime import datetime, timedelta
 
+import pytz
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -50,8 +52,11 @@ class TokenCache(Document):
 		return self
 
 	def get_expires_in(self):
-		expiry_time = frappe.utils.get_datetime(self.modified) + timedelta(self.expires_in)
-		return (datetime.now() - expiry_time).total_seconds()
+		now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
+		expiry_time = frappe.utils.get_datetime(self.modified) + timedelta(seconds=self.expires_in)
+		expiry_local = expiry_time.replace(tzinfo=pytz.timezone(frappe.utils.get_time_zone()))
+		expiry_utc = expiry_local.astimezone(pytz.utc)
+		return (expiry_utc - now_utc).total_seconds()
 
 	def is_expired(self):
 		return self.get_expires_in() < 0
