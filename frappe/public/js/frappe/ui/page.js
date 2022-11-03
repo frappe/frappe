@@ -574,7 +574,12 @@ frappe.ui.Page = Class.extend({
 			let response = action();
 			me.btn_disable_enable(btn, response);
 		};
-		if(group) {
+		// Add actions as menu item in Mobile View
+		let menu_item_label = group ? `${group} > ${label}` : label;
+		let menu_item = this.add_menu_item(menu_item_label, _action, false);
+		menu_item.parent().addClass("hidden-xl");
+
+		if (group) {
 			var $group = this.get_or_add_inner_group_button(group);
 			$(this.inner_toolbar).removeClass("hide");
 
