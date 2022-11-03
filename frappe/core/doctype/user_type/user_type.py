@@ -19,6 +19,12 @@ class UserType(Document):
 		self.set_modules()
 		self.add_select_perm_doctypes()
 
+	def clear_cache(self):
+		super().clear_cache()
+
+		if not self.is_standard:
+			frappe.cache().delete_value("non_standard_user_types")
+
 	def on_update(self):
 		if self.is_standard:
 			return
@@ -29,7 +35,6 @@ class UserType(Document):
 		self.add_role_permissions_for_select_doctypes()
 		self.add_role_permissions_for_file()
 		self.update_users()
-		get_non_standard_user_type_details()
 		self.remove_permission_for_deleted_doctypes()
 
 	def on_trash(self):
@@ -188,19 +193,14 @@ def add_role_permissions(doctype, role):
 	return name
 
 
-def get_non_standard_user_type_details():
+def get_non_standard_user_types():
 	user_types = frappe.get_all(
 		"User Type",
 		fields=["apply_user_permission_on", "name", "user_id_field"],
 		filters={"is_standard": 0},
 	)
 
-	if user_types:
-		user_type_details = {d.name: [d.apply_user_permission_on, d.user_id_field] for d in user_types}
-
-		frappe.cache().set_value("non_standard_user_types", user_type_details)
-
-		return user_type_details
+	return {d.name: [d.apply_user_permission_on, d.user_id_field] for d in user_types}
 
 
 @frappe.whitelist()
@@ -294,10 +294,10 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 	if not frappe.db.table_exists("User Type"):
 		return
 
-	user_types = frappe.cache().get_value("non_standard_user_types")
-
-	if not user_types:
-		user_types = get_non_standard_user_type_details()
+	user_types = frappe.cache().get_value(
+		"non_standard_user_types",
+		get_non_standard_user_types,
+	)
 
 	if not user_types:
 		return
