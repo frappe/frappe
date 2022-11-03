@@ -202,6 +202,19 @@ class TestQuery(FrappeTestCase):
 			),
 		)
 
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"Note",
+				filters={"name": "Test Note Title"},
+				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
+			).run(as_dict=1),
+			frappe.get_list(
+				"Note",
+				filters={"name": "Test Note Title"},
+				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
+			),
+		)
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_comment_stripping(self):
 		self.assertNotIn(

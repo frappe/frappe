@@ -23,19 +23,7 @@
 	<link rel="canonical" href="{{ canonical }}">
 
 	{%- block head -%}
-		{% if head_html is defined -%}
-		{{ head_html or "" }}
-		{%- endif %}
-
-		{%- if theme.name != 'Standard' -%}
-		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
-		{%- else -%}
-		{{ include_style('website.bundle.css') }}
-		{%- endif -%}
-
-		{%- for link in web_include_css %}
-		{{ include_style(link) }}
-		{%- endfor -%}
+		{% include "templates/includes/head.html" %}
 	{%- endblock -%}
 
 	{%- block head_include %}

@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
+from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
 
 from .exceptions import AttachmentLimitReached, FolderNotEmpty, MaxFileSizeReachedError
@@ -86,9 +87,9 @@ class File(Document):
 			self.handle_is_private_changed()
 
 		if not self.is_folder:
-			# get_full_path validates file URL and name
-			full_path = self.get_full_path()
-			self.validate_file_on_disk(full_path)
+			self.validate_file_path()
+			self.validate_file_url()
+			self.validate_file_on_disk()
 
 		self.file_size = frappe.form_dict.file_size or self.file_size
 
@@ -139,12 +140,16 @@ class File(Document):
 	def get_successors(self):
 		return frappe.get_all("File", filters={"folder": self.name}, pluck="name")
 
-	def is_file_path_valid(self, file_path):
-		"""Return True if file path is a valid path for a local file"""
+	def validate_file_path(self):
+		if self.is_remote_file:
+			return
 
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
-		if os.path.realpath(file_path).startswith(base_path):
-			return True
+		if not os.path.realpath(self.get_full_path()).startswith(base_path):
+			frappe.throw(
+				_("The File URL you've entered is incorrect"),
+				title=_("Invalid File URL"),
+			)
 
 	def validate_file_url(self):
 		if self.is_remote_file or not self.file_url:
@@ -271,11 +276,9 @@ class File(Document):
 		elif not self.is_home_folder:
 			self.folder = "Home"
 
-	def validate_file_on_disk(self, full_path=None):
+	def validate_file_on_disk(self):
 		"""Validates existence file"""
-
-		if full_path is None:
-			full_path = self.get_full_path()
+		full_path = self.get_full_path()
 
 		if full_path.startswith(URL_PREFIXES):
 			return True
@@ -455,9 +458,6 @@ class File(Document):
 		if "/files/" in file_path and file_path.startswith(site_url):
 			file_path = file_path.split(site_url, 1)[1]
 
-		if file_path.startswith(URL_PREFIXES):
-			return file_path
-
 		if "/" not in file_path:
 			if self.is_private:
 				file_path = f"/private/files/{file_path}"
@@ -470,10 +470,13 @@ class File(Document):
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
+		elif file_path.startswith(URL_PREFIXES):
+			pass
+
 		elif not self.file_url:
 			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
-		if not self.is_file_path_valid(file_path):
+		if not is_safe_path(file_path):
 			frappe.throw(_("Cannot access file path {0}").format(file_path))
 
 		if os.path.sep in self.file_name:
