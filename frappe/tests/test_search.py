@@ -134,6 +134,7 @@ class TestSearch(unittest.TestCase):
 	def test_link_search_in_foreign_language(self):
 		try:
 			frappe.local.lang = "fr"
+			frappe.local.lang_full_dict = None  # discard translation cache
 			search_widget(doctype="DocType", txt="pay", page_length=20)
 			output = frappe.response["values"]
 
