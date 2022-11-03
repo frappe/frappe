@@ -89,7 +89,7 @@ def _(msg, lang=None, context=None) -> str:
 	        _('Change')
 	        _('Change', context='Coins')
 	"""
-	from frappe.translate import get_all_translations
+	from frappe.translate import get_full_dict
 	from frappe.utils import is_html, strip_html_tags
 
 	if not hasattr(local, "lang"):
@@ -107,15 +107,14 @@ def _(msg, lang=None, context=None) -> str:
 	msg = as_unicode(msg).strip()
 
 	translated_string = ""
-
-	all_translations = get_all_translations(lang)
 	if context:
-		string_key = f"{msg}:{context}"
-		translated_string = all_translations.get(string_key)
+		string_key = "{msg}:{context}".format(msg=msg, context=context)
+		translated_string = get_full_dict(lang).get(string_key)
 
 	if not translated_string:
-		translated_string = all_translations.get(msg)
+		translated_string = get_full_dict(lang).get(msg)
 
+	# return lang_full_dict according to lang passed parameter
 	return translated_string or non_translated_string
 
 
@@ -222,6 +221,7 @@ def init(site, sites_path=None, new_site=False):
 
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
+	local.lang_full_dict = None
 
 	local.module_app = None
 	local.app_modules = None
@@ -2022,7 +2022,7 @@ def logger(
 	)
 
 
-def log_error(message=None, title="Error"):
+def log_error(message=None, title=_("Error")):
 	"""Log error to Error Log"""
 
 	# AI ALERT:
