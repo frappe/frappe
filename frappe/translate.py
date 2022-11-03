@@ -291,7 +291,12 @@ def get_all_translations(lang: str) -> dict[str, str]:
 
 		return all_translations
 
-	return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
+	try:
+		return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
+	except Exception:
+		# People mistakenly call translation function on global variables
+		# where locals are not initalized, translations dont make much sense there
+		return {}
 
 
 def get_translations_from_apps(lang, apps=None):
