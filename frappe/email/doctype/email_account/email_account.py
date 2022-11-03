@@ -11,6 +11,7 @@ from poplib import error_proto
 
 import frappe
 from frappe import _, are_emails_muted, safe_encode
+from frappe.integrations.doctype.connected_app.connected_app import check_active_token
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
@@ -85,21 +86,13 @@ class EmailAccount(Document):
 		use_oauth = self.auth_method == "OAuth"
 		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 
-		if getattr(self, "service", "") != "GMail" and use_oauth:
-			self.auth_method = "Basic"
-			use_oauth = False
-
 		if use_oauth:
 			# no need for awaiting password for oauth
 			self.awaiting_password = 0
 			self.password = None
 
-		elif self.refresh_token:
-			# clear access & refresh token
-			self.refresh_token = self.access_token = None
-
 		if not frappe.local.flags.in_install and not self.awaiting_password:
-			if self.refresh_token or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
+			if self.auth_method == "OAuth" or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
@@ -188,6 +181,7 @@ class EmailAccount(Document):
 		if frappe.cache().get_value("workers:no-internet") == True:
 			return None
 
+		oauth_token = self.get_oauth_token()
 		args = frappe._dict(
 			{
 				"email_account_name": self.email_account_name,
@@ -202,8 +196,8 @@ class EmailAccount(Document):
 				"incoming_port": get_port(self),
 				"initial_sync_count": self.initial_sync_count or 100,
 				"use_oauth": self.auth_method == "OAuth",
-				"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
-				"access_token": decrypt(self.access_token) if self.access_token else None,
+				"refresh_token": oauth_token.get_password("refresh_token") if oauth_token else None,
+				"access_token": oauth_token.get_password("refresh_token") if oauth_token else None,
 			}
 		)
 
@@ -392,8 +386,6 @@ class EmailAccount(Document):
 			},
 			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
 			"auth_method": {"conf_names": ("auth_method"), "default": "Basic"},
-			"access_token": {"conf_names": ("mail_access_token")},
-			"refresh_token": {"conf_names": ("mail_refresh_token")},
 			"from_site_config": {"default": True},
 		}
 
@@ -401,15 +393,13 @@ class EmailAccount(Document):
 		for doc_field_name, d in field_to_conf_name_map.items():
 			conf_names, default = d.get("conf_names") or [], d.get("default")
 			value = [frappe.conf.get(k) for k in conf_names if frappe.conf.get(k)]
-
-			if doc_field_name in ("refresh_token", "access_token"):
-				account_details[doc_field_name] = value and encrypt(value[0])
-			else:
-				account_details[doc_field_name] = (value and value[0]) or default
+			account_details[doc_field_name] = (value and value[0]) or default
 
 		return account_details
 
 	def sendmail_config(self):
+		oauth_token = self.get_oauth_token()
+
 		return {
 			"email_account": self.name,
 			"server": self.smtp_server,
@@ -420,8 +410,8 @@ class EmailAccount(Document):
 			"use_tls": cint(self.use_tls),
 			"service": getattr(self, "service", ""),
 			"use_oauth": self.auth_method == "OAuth",
-			"refresh_token": decrypt(self.refresh_token) if self.refresh_token else None,
-			"access_token": decrypt(self.access_token) if self.access_token else None,
+			"refresh_token": oauth_token.get_password("refresh_token") if oauth_token else None,
+			"access_token": oauth_token.get_password("refresh_token") if oauth_token else None,
 		}
 
 	def get_smtp_server(self):
@@ -681,6 +671,13 @@ class EmailAccount(Document):
 			except Exception:
 				self.log_error("Unable to add to Sent folder")
 
+	def get_oauth_token(self):
+		token = None
+		if self.auth_method == "OAuth":
+			connected_app = frappe.get_doc("Connected App", self.connected_app)
+			token = connected_app.get_active_token(self.connected_user)
+
+		return token
 
 @frappe.whitelist()
 def get_append_to(
@@ -786,15 +783,20 @@ def pull(now=False):
 	doctype = frappe.qb.DocType("Email Account")
 	email_accounts = (
 		frappe.qb.from_(doctype)
-		.select(doctype.name)
+		.select(doctype.name, doctype.auth_method)
 		.where(doctype.enable_incoming == 1)
 		.where(
-			(doctype.awaiting_password == 0)
-			| ((doctype.auth_method == "OAuth") & (doctype.refresh_token.isnotnull()))
+			(doctype.awaiting_password == 0) | (doctype.auth_method == "OAuth")
 		)
 		.run(as_dict=1)
 	)
 	for email_account in email_accounts:
+		if email_account.auth_method == "OAuth" and not check_active_token(
+			connected_app=doctype.connected_app,
+			connected_user=doctype.connected_user,
+		):
+			continue
+
 		if now:
 			pull_from_email_account(email_account.name)
 
