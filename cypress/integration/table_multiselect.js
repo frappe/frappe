@@ -54,6 +54,6 @@ context("Table MultiSelect", () => {
 			"existing_value"
 		);
 		cy.get("@existing_value").find(".btn-link-to-form").click();
-		cy.location("pathname").should("contain", "/user/test@erpnext.com");
+		cy.location("pathname").should("contain", "/user/test%40erpnext.com");
 	});
 });
