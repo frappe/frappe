@@ -169,7 +169,7 @@ def set_new_name(doc):
 	if not doc.name:
 		doc.name = make_autoname("hash", doc.doctype)
 
-	doc.name = validate_name(doc.doctype, doc.name, meta.get_field("name_case"))
+	doc.name = validate_name(doc.doctype, doc.name)
 
 
 def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
@@ -235,13 +235,14 @@ def set_naming_from_document_naming_rule(doc):
 	if doc.doctype in log_types:
 		return
 
-	# ignore_ddl if naming is not yet bootstrapped
-	for d in frappe.get_all(
+	document_naming_rules = frappe.cache_manager.get_doctype_map(
 		"Document Naming Rule",
-		dict(document_type=doc.doctype, disabled=0),
+		doc.doctype,
+		filters={"document_type": doc.doctype, "disabled": 0},
 		order_by="priority desc",
-		ignore_ddl=True,
-	):
+	)
+
+	for d in document_naming_rules:
 		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
 		if doc.name:
 			break
@@ -439,7 +440,7 @@ def get_default_naming_series(doctype: str) -> str | None:
 			return option
 
 
-def validate_name(doctype: str, name: int | str, case: str | None = None):
+def validate_name(doctype: str, name: int | str):
 
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
@@ -457,10 +458,6 @@ def validate_name(doctype: str, name: int | str, case: str | None = None):
 		frappe.throw(
 			_("There were some errors setting the name, please contact the administrator"), frappe.NameError
 		)
-	if case == "Title Case":
-		name = name.title()
-	if case == "UPPER CASE":
-		name = name.upper()
 	name = name.strip()
 
 	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name != "DocType"):

@@ -944,19 +944,21 @@ export default class GridRow {
 				vertical = false;
 				horizontal = false;
 			})
-			.on("click", function () {
+			.on("click", function (event) {
 				if (frappe.ui.form.editable_row !== me) {
 					var out = me.toggle_editable_row();
 				}
 				var col = this;
 				let first_input_field = $(col).find('input[type="Text"]:first');
-
-				first_input_field.length && on_input_focus(first_input_field);
-
 				first_input_field.trigger("focus");
-				first_input_field.one("blur", () => (input_in_focus = false));
 
-				first_input_field.data("fieldtype") == "Date" && handle_date_picker();
+				if (event.pointerType == "touch") {
+					first_input_field.length && on_input_focus(first_input_field);
+
+					first_input_field.one("blur", () => (input_in_focus = false));
+
+					first_input_field.data("fieldtype") == "Date" && handle_date_picker();
+				}
 
 				return out;
 			});

@@ -786,13 +786,11 @@ class Database:
 		distinct=False,
 		limit=None,
 	):
-		field_objects = []
 		query = frappe.qb.engine.get_query(
 			table=doctype,
 			filters=filters,
 			orderby=order_by,
 			for_update=for_update,
-			field_objects=field_objects,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,

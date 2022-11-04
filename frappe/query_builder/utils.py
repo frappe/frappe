@@ -12,6 +12,16 @@ from frappe.query_builder.terms import NamedParameterWrapper
 from .builder import MariaDB, Postgres
 
 
+class PseudoColumnMapper(PseudoColumn):
+	def __init__(self, name: str) -> None:
+		super().__init__(name)
+
+	def get_sql(self, **kwargs):
+		if frappe.db.db_type == "postgres":
+			self.name = self.name.replace("`", '"')
+		return self.name
+
+
 class db_type_is(Enum):
 	MARIADB = "mariadb"
 	POSTGRES = "postgres"
@@ -102,8 +112,7 @@ def patch_query_execute():
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 		return query, param_collector.get_parameters()
 
-	query_class = get_attr(str(frappe.qb).split("'")[1])
-	builder_class = get_type_hints(query_class._builder).get("return")
+	builder_class = frappe.qb._BuilderClasss
 
 	if not builder_class:
 		raise BuilderIdentificationFailed
