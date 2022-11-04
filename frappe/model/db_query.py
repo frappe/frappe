@@ -156,6 +156,14 @@ class DatabaseQuery:
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
 
+		results = frappe.qb.engine.get_query(
+			table=self.doctype,
+			fields=fields,
+			filters=filters,
+			limit=self.limit_page_length,
+			order=order_by,
+		).run(as_dict=not self.as_list, debug=debug, update=self.update, run=self.run)
+		return results
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
 		self.reference_doctype = reference_doctype or self.doctype
