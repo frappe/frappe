@@ -2022,10 +2022,8 @@ def logger(
 	)
 
 
-def log_error(message=None, title=None):
+def log_error(message=None, title="Error"):
 	"""Log error to Error Log"""
-	if title is None:
-		title = _("Error")
 
 	# AI ALERT:
 	# the title and message may be swapped
