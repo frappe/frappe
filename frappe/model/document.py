@@ -245,7 +245,6 @@ class Document(BaseDocument):
 		self._set_defaults()
 		self.set_user_and_timestamp()
 		self.set_docstatus()
-		self.load_doc_before_save()
 		self.check_if_latest()
 		self._validate_links()
 		self.check_permission("create")
@@ -329,7 +328,6 @@ class Document(BaseDocument):
 
 		self.set_user_and_timestamp()
 		self.set_docstatus()
-		self.load_doc_before_save()
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.set_name_in_children()
@@ -748,6 +746,8 @@ class Document(BaseDocument):
 
 		Will also validate document transitions (Save > Submit > Cancel) calling
 		`self.check_docstatus_transition`."""
+
+		self.load_doc_before_save()
 
 		self._action = "save"
 		previous = self.get_doc_before_save()
