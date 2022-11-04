@@ -47,6 +47,8 @@ class Base:
 class MariaDB(Base, MySQLQuery):
 	Field = terms.Field
 
+	_BuilderClasss = MySQLQueryBuilder
+
 	@classmethod
 	def _builder(cls, *args, **kwargs) -> "MySQLQueryBuilder":
 		return super()._builder(*args, wrapper_cls=ParameterizedValueWrapper, **kwargs)
@@ -69,6 +71,8 @@ class Postgres(Base, PostgreSQLQuery):
 	# function can not see the arguments passed to the "select" function as
 	# they are two different objects. The quick fix used here is to replace the
 	# Field names in the "Field" function.
+
+	_BuilderClasss = PostgreSQLQueryBuilder
 
 	@classmethod
 	def _builder(cls, *args, **kwargs) -> "PostgreSQLQueryBuilder":
