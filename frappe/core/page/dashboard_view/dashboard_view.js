@@ -27,8 +27,11 @@ class Dashboard {
 		this.page = wrapper.page;
 	}
 
-	show() {
+	async show() {
 		this.route = frappe.get_route();
+		if (!locals.DocType["Dashboard"]) {
+			await frappe.model.with_doctype("Dashboard")
+		}
 		this.set_breadcrumbs();
 		if (this.route.length > 1) {
 			// from route
