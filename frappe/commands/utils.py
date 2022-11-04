@@ -37,6 +37,8 @@ from frappe.utils import cint, get_bench_path, update_progress_bar
 )
 def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=False, force=False):
 	"Minify + concatenate JS and CSS files, build translations"
+	from frappe.build import bundle, download_frappe_assets
+
 	frappe.init("")
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
@@ -44,7 +46,7 @@ def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=Fal
 	# dont try downloading assets if force used, app specified or running via CI
 	if not (force or app or os.environ.get("CI")):
 		# skip building frappe if assets exist remotely
-		skip_frappe = frappe.build.download_frappe_assets(verbose=verbose)
+		skip_frappe = download_frappe_assets(verbose=verbose)
 	else:
 		skip_frappe = False
 
@@ -55,7 +57,7 @@ def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=Fal
 			fg="yellow",
 		)
 
-	frappe.build.bundle(
+	bundle(
 		skip_frappe=skip_frappe,
 		no_compress=no_compress,
 		hard_link=hard_link,
@@ -67,10 +69,10 @@ def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=Fal
 @click.command("watch")
 def watch():
 	"Watch and concatenate JS and CSS files as and when they change"
-	import frappe.build
+	from frappe.build import watch
 
 	frappe.init("")
-	frappe.build.watch(True)
+	watch(True)
 
 
 @click.command("clear-cache")
