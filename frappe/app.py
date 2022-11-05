@@ -86,7 +86,7 @@ def application(request: Request):
 
 		log_request(request, response)
 		process_response(response)
-		frappe.destroy()
+		frappe.db.close()
 
 	return response
 
