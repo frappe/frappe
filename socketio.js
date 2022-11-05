@@ -31,11 +31,6 @@ io.on("connection", function (socket) {
 
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 
-	socket.on("task_subscribe", function (task_id) {
-		var room = get_task_room(socket, task_id);
-		socket.join(room);
-	});
-
 	let retries = 0;
 	let join_user_room = () => {
 		request
@@ -61,13 +56,13 @@ io.on("connection", function (socket) {
 
 	join_user_room();
 
-	socket.on("task_unsubscribe", function (task_id) {
+	socket.on("task_subscribe", function (task_id) {
 		var room = get_task_room(socket, task_id);
-		socket.leave(room);
+		socket.join(room);
 	});
 
 	socket.on("task_unsubscribe", function (task_id) {
-		var room = "task:" + task_id;
+		var room = get_task_room(socket, task_id);
 		socket.leave(room);
 	});
 
