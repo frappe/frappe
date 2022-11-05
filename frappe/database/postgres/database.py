@@ -100,6 +100,10 @@ class PostgresExceptionUtil:
 		return getattr(e, "pgcode", None) == DUPLICATE_COLUMN
 
 	@staticmethod
+	def is_statement_timeout(e):
+		return PostgresDatabase.is_timedout(e) or isinstance(e, frappe.QueryTimeoutError)
+
+	@staticmethod
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
 
@@ -160,6 +164,10 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
+
+	def set_execution_timeout(self, seconds: int):
+		# Postgres expects milliseconds as input
+		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
 
 	def escape(self, s, percent=True):
 		"""Escape quotes and percent in given string."""

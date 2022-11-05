@@ -9,7 +9,6 @@ from uuid import uuid4
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
-from rq.command import send_stop_job_command
 from rq.logutils import setup_loghandlers
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
