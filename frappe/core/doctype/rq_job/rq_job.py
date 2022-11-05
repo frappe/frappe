@@ -5,10 +5,12 @@ import functools
 import re
 
 from rq.command import send_stop_job_command
+from rq.exceptions import InvalidJobOperation
 from rq.job import Job
 from rq.queue import Queue
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -93,7 +95,10 @@ class RQJob(Document):
 
 	@check_permissions
 	def stop_job(self):
-		send_stop_job_command(connection=get_redis_conn(), job_id=self.job_id)
+		try:
+			send_stop_job_command(connection=get_redis_conn(), job_id=self.job_id)
+		except InvalidJobOperation:
+			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
 	@staticmethod
 	def get_count(args) -> int:
