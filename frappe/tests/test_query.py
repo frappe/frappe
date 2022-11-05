@@ -269,6 +269,15 @@ class TestQuery(FrappeTestCase):
 			),
 		)
 
+		self.assertEqual(
+			frappe.qb.engine.get_query(
+				"ToDo", fields=["name", "allocated_to.email as allocated_email"]
+			).get_sql(),
+			"SELECT `tabToDo`.`name`,`tabUser`.`email` allocated_email FROM `tabToDo` LEFT JOIN `tabUser` ON `tabUser`.`name`=`tabToDo`.`allocated_to`".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_comment_stripping(self):
 		self.assertNotIn(

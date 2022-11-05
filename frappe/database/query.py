@@ -557,8 +557,12 @@ class Engine:
 				if " as " in field:
 					field, alias = field.split(" as ")
 				fieldname, linked_fieldname = field.split(".")
-				linked_doctype = frappe.get_meta(doctype).get_field(fieldname).options
-
+				linked_field = frappe.get_meta(doctype).get_field(fieldname)
+				linked_doctype = linked_field.options
+				if linked_field.fieldtype == "Link":
+					self.linked_tables.append(
+						{"child_table": frappe.qb.DocType(linked_doctype), "parent_field": fieldname}
+					)
 				field = f"`tab{linked_doctype}`.`{linked_fieldname}`"
 				if alias:
 					field = f"{field} {alias}"
@@ -652,6 +656,21 @@ class Engine:
 		fields.extend(function_objects)
 		return fields
 
+	def join_linked_tables(
+		self,
+		criterion: Criterion,
+		join_type: str,
+		parent_table: Table,
+	) -> Criterion:
+		for table in self.linked_tables:
+			child_table, parent_field = table["child_table"], table["parent_field"]
+			if self.joined_tables.get(join_type) != child_table:
+				criterion = getattr(criterion, join_type)(child_table).on(
+					child_table.name == getattr(parent_table, parent_field)
+				)
+				self.joined_tables[join_type] = child_table
+		return criterion
+
 	def join_child_tables(
 		self,
 		criterion: Criterion,
@@ -672,6 +691,12 @@ class Engine:
 		has_join = False
 		table_pattern = (
 			re.compile(r"`\btab\w+") if frappe.db.db_type == "mariadb" else re.compile(r'"\btab\w+')
+		)
+		parent_table = frappe.qb.DocType(table) if not isinstance(table, Table) else table
+		criterion = self.join_linked_tables(
+			criterion=criterion,
+			join_type=join_type,
+			parent_table=parent_table,
 		)
 
 		def _update_pypika_fields(field):
@@ -697,7 +722,6 @@ class Engine:
 				):
 					has_join = True
 					child_table = table_from_string(str(field))
-					parent_table = frappe.qb.DocType(table) if not isinstance(table, Table) else table
 					criterion = self.join_child_tables(
 						criterion=criterion,
 						join_type=join_type,
@@ -731,7 +755,7 @@ class Engine:
 		# Clean up state before each query
 		self.tables = {}
 		self.joined_tables = {}
-		self.linked_doctype = None
+		self.linked_tables = []
 		self.fieldname = None
 
 		criterion = self.build_conditions(table, filters, **kwargs)
