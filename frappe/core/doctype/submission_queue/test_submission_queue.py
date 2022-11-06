@@ -1,21 +1,47 @@
 # Copyright (c) 2022, Frappe Technologies and Contributors
 # See license.txt
 
+import time
+import typing
+
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils.background_jobs import get_queue
+
+if typing.TYPE_CHECKING:
+	from rq.job import Job
 
 
 class TestSubmissionQueue(FrappeTestCase):
 	queue = get_queue(qtype="default")
 
+	@timeout(seconds=20)
+	def check_status(self, job: "Job", status, wait=True):
+		if wait:
+			while True:
+				if job.is_queued or job.is_started:
+					time.sleep(0.2)
+				else:
+					break
+		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
+
 	def test_queue_operation(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
 		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 
-		doc = frappe.get_doc({"doctype": "ToDo", "description": "Something"}).insert()
-		queue_submission(doc, "submit")
+		doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
+		doc.insert()
+
+		d = frappe.new_doc("Test Submission Queue")
+		d.update({"some_fieldname": "Random"})
+		d.insert()
+
+		queue_submission(d, "submit")
 		submission_queue = frappe.get_last_doc("Submission Queue")
 
 		# Test queueing / starting
 		job = self.queue.fetch_job(submission_queue.job_id)
 		self.assertIn(job.get_status(refresh=True), ("queued", "started"))
+
+		# Test completion
+		self.check_status(job, status="finished")
