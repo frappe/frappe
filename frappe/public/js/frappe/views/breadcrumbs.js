@@ -30,7 +30,7 @@ frappe.breadcrumbs = {
 		return localStorage["preferred_breadcrumbs:" + doctype];
 	},
 
-	add(module, doctype, type) {
+	async add(module, doctype, type) {
 		let obj;
 		if (typeof module === "object") {
 			obj = module;
@@ -41,7 +41,7 @@ frappe.breadcrumbs = {
 				type: type,
 			};
 		}
-
+		await frappe.model.with_doctype(doctype);
 		this.all[frappe.breadcrumbs.current_page()] = obj;
 		this.update();
 	},
