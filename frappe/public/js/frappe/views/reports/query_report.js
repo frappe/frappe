@@ -994,9 +994,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					default: me.chart_fields? me.chart_fields.chart_type: 'Bar',
 				},
 				{
+<<<<<<< HEAD
 					fieldname: 'sb_1',
 					fieldtype: 'Section Break',
 					label: 'Y axis'
+=======
+					fieldname: "sb_1",
+					fieldtype: "Section Break",
+					label: "Y Axis",
+>>>>>>> e3a0b007c2 (fix: translations (#18765))
 				},
 				{
 					fieldname: 'y_axis_fields', fieldtype: 'Table',
