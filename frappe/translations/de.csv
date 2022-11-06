@@ -4079,7 +4079,7 @@ Scheduler Event,Scheduler-Ereignis,
 Select Event Type,Wählen Sie den Ereignistyp,
 Schedule Script,Zeitplan-Skript,
 Duration,Dauer,
-Donut,Krapfen,
+Donut,Donut,
 Custom Options,Benutzerdefinierte Optionen,
 "Ex: ""colors"": [""#d1d8dd"", ""#ff5858""]","Beispiel: &quot;Farben&quot;: [&quot;# d1d8dd&quot;, &quot;# ff5858&quot;]",
 Confirmation Email Template,Bestätigungs-E-Mail-Vorlage,
@@ -4813,3 +4813,8 @@ K,Tsd,Number system
 M,Mio,Number system
 B,Mrd,Number system
 T,Bio,Number system
+Type of Chart,Diagrammtyp,
+Preview Chart,Vorschau erzeugen,
+Please select X and Y fields,Bitte Felder für die X- und Y-Achse wählen,
+Notification sent to,Benachrichtigung gesendet an,
+Add to this activity by mailing to {0},"Senden Sie eine E-Mail an {0}, damit sie hier erscheint",
