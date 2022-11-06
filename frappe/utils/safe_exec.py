@@ -281,7 +281,8 @@ def patched_qb():
 def _flatten(module):
 	new_mod = NamespaceDict()
 	for name, obj in inspect.getmembers(module, lambda x: not inspect.ismodule(x)):
-		new_mod[name] = obj
+		if not name.startswith("_"):
+			new_mod[name] = obj
 	return new_mod
 
 
