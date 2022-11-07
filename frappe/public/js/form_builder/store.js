@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { create_layout } from "./utils";
 import { nextTick } from "vue";
 
-export const useStore = defineStore("store", {
+export const useStore = defineStore("form-builder-store", {
 	state: () => ({
 		doctype: "",
 		doc: null,
@@ -113,6 +113,8 @@ export const useStore = defineStore("store", {
 					frappe.toast("Fields Table Updated");
 				}
 				this.fetch();
+			} catch (e) {
+				console.error(e);
 			} finally {
 				frappe.dom.unfreeze();
 			}
