@@ -11,6 +11,7 @@ let store = useStore();
 let hovered = ref(false);
 let label_input = ref(null);
 let editing = ref(false);
+let collapsed = ref(false);
 
 function add_section_above() {
 	let index = props.tab.sections.indexOf(props.section);
@@ -55,6 +56,9 @@ function select_section() {
 		editing.value = true;
 		nextTick(() => label_input.value.focus());
 	}
+	if (props.section.df.collapsible) {
+		collapsed.value = !collapsed.value;
+	}
 	store.selected_field = props.section.df;
 }
 </script>
@@ -75,20 +79,28 @@ function select_section() {
 			<div
 				:class="['section-header', section.df.label ? 'has-label' : '']"
 				:hidden="!section.df.label && store.read_only"
+				:style="{ paddingBottom: !collapsed ? '0.75rem' : '' }"
 			>
-				<input
-					v-if="editing"
-					ref="label_input"
-					class="input-section-label"
-					:disabled="store.read_only"
-					type="text"
-					:placeholder="__('Section Title')"
-					v-model="section.df.label"
-					@keydown.enter="editing = false"
-					@blur="editing = false"
-				/>
-				<span v-else-if="section.df.label">{{ section.df.label }}</span>
-				<i class="text-muted" v-else> {{ __("No Label") }} </i>
+				<div class="section-label">
+					<input
+						v-if="editing"
+						ref="label_input"
+						class="input-section-label"
+						:disabled="store.read_only"
+						type="text"
+						:placeholder="__('Section Title')"
+						v-model="section.df.label"
+						@keydown.enter="editing = false"
+						@blur="editing = false"
+					/>
+					<span v-else-if="section.df.label">{{ section.df.label }}</span>
+					<i class="text-muted" v-else> {{ __("No Label") }} </i>
+					<div
+						v-if="section.df.collapsible"
+						class="collapse-indicator"
+						v-html="frappe.utils.icon( collapsed ? 'down' : 'up-line', 'sm')"
+					></div>
+				</div>
 				<div class="section-actions" :hidden="store.read_only">
 					<button
 						class="btn btn-xs btn-section"
@@ -106,7 +118,7 @@ function select_section() {
 					</button>
 				</div>
 			</div>
-			<div class="section-columns">
+			<div class="section-columns" :class="{'hidden': section.df.collapsible && collapsed}">
 				<draggable
 					class="section-columns-container"
 					:style="{
@@ -167,23 +179,30 @@ function select_section() {
 			display: none;
 			justify-content: space-between;
 			align-items: center;
-			padding-bottom: 0.75rem;
 
 			&.has-label {
 				display: flex;
 			}
 
-			.input-section-label {
-				border: none;
-				margin-left: -2px;
+			.section-label {
+				display: flex;
 
-				&:focus {
-					outline: none;
+				.collapse-indicator {
+					margin-left: 7px;
 				}
 
-				&::placeholder {
-					font-style: italic;
-					font-weight: normal;
+				.input-section-label {
+					border: none;
+					margin-left: -2px;
+
+					&:focus {
+						outline: none;
+					}
+
+					&::placeholder {
+						font-style: italic;
+						font-weight: normal;
+					}
 				}
 			}
 
