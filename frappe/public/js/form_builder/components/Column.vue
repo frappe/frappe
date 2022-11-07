@@ -112,7 +112,7 @@ function remove_column() {
 	width: 100%;
 	background-color: var(--bg-light-gray);
 	border-radius: var(--border-radius);
-	border: 1px solid var(--gray-400);
+	border: 1px dashed var(--gray-400);
 	padding: 0.5rem;
 	margin-left: 4px;
 	margin-right: 4px;
@@ -120,6 +120,8 @@ function remove_column() {
 	&.hovered,
 	&.selected {
 		border-color: var(--primary);
+		border-style: solid;
+
 		.btn.btn-icon {
 			opacity: 1 !important;
 		}

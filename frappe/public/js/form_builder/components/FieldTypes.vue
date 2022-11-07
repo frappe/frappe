@@ -70,7 +70,7 @@ let fields = computed(() => {
 	.field {
 		background-color: var(--bg-light-gray);
 		border-radius: var(--border-radius);
-		border: 1px dashed var(--gray-400);
+		border: 0.5px solid var(--gray-400);
 		padding: 0.5rem 0.75rem;
 		font-size: var(--text-sm);
 		cursor: pointer;
