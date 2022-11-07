@@ -749,6 +749,7 @@ class Document(BaseDocument):
 		self._action = "save"
 		previous = self._doc_before_save
 
+		# previous is None for new document insert
 		if not previous:
 			self.check_docstatus_transition(0)
 			return
