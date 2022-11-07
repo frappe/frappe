@@ -5,6 +5,7 @@ from datetime import datetime
 
 from rq.exceptions import NoSuchJobError
 from rq.job import Job
+from rq.registry import FailedJobRegistry
 
 import frappe
 from frappe import _
@@ -12,7 +13,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import DATETIME_FORMAT, now, time_diff_in_seconds
-from frappe.utils.background_jobs import get_redis_conn
+from frappe.utils.background_jobs import get_queue, get_redis_conn
 from frappe.utils.data import cint
 
 
@@ -68,7 +69,6 @@ class SubmissionQueue(Document):
 		self, to_be_queued_doc: Document, action_for_queuing: str, enqueued_by_session_id: str
 	):
 		_action = action_for_queuing.lower()
-
 		if _action == "update":
 			_action = "submit"
 
@@ -143,7 +143,15 @@ class SubmissionQueue(Document):
 		# Checking any one of the possible termination statuses
 		elif status in ("failed", "canceled", "stopped"):
 			queued_doc.unlock()
-			frappe.db.set_value("Submission Queue", self.name, "status", "Failed", update_modified=False)
+			values = {"status": "Failed"}
+
+			# Defining job exception when unlocking document.
+			registry = FailedJobRegistry(queue=get_queue(qtype="default"))
+			for job_id in registry.get_job_ids():
+				if job_id == self.job_id:
+					values = {"status": "Failed", "exception": job.exc_info}
+
+			frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
 			frappe.msgprint(_("Document Unlocked"))
 
 	@frappe.whitelist()
