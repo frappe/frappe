@@ -125,10 +125,15 @@ export function get_table_columns(df) {
 }
 
 export function evaluate_depends_on_value(expression, doc) {
+	let store = useStore();
 	if (!doc) return;
 
 	let out = null;
 	let parent = doc || null;
+
+	if (!store.is_customize_form) {
+		parent = store.doc;
+	}
 
 	if (typeof expression === "boolean") {
 		out = expression;
