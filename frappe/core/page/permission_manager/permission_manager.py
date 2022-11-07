@@ -19,7 +19,6 @@ from frappe.permissions import (
 	setup_custom_perms,
 	update_permission_property,
 )
-from frappe.translate import send_translations
 from frappe.utils.user import get_users_with_role as _get_user_with_role
 
 not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def", "Transaction Log"]
@@ -28,7 +27,6 @@ not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def", "Tran
 @frappe.whitelist()
 def get_roles_and_doctypes():
 	frappe.only_for("System Manager")
-	send_translations(frappe.get_lang_dict("doctype", "DocPerm"))
 
 	active_domains = frappe.get_active_domains()
 
