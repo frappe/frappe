@@ -1,4 +1,4 @@
-import { createApp, watch } from "vue";
+import { createApp, watchEffect } from "vue";
 import { createPinia } from "pinia";
 import { useStore } from "./store";
 import FormBuilderComponent from "./components/FormBuilder.vue";
@@ -60,37 +60,26 @@ class FormBuilder {
 		this.$form_builder = app.mount(this.$wrapper.get(0));
 
 		// watch for changes
-		watch(
-			() => this.store.dirty,
-			(dirty) => {
-				if (dirty) {
-					this.page.set_indicator(__("Not Saved"), "orange");
-					this.reset_changes_btn.show();
-				} else {
-					this.page.clear_indicator();
-					this.reset_changes_btn.hide();
-				}
-			},
-			{ immediate: true }
-		);
+		watchEffect(() => {
+			if (this.store.dirty) {
+				this.page.set_indicator(__("Not Saved"), "orange");
+				this.reset_changes_btn.show();
+			} else {
+				this.page.clear_indicator();
+				this.reset_changes_btn.hide();
+			}
 
-		watch(
-			() => this.store.is_customize_form,
-			(value) => {
-				this.customize_form_btn.toggle(!value);
-				this.doctype_form_btn.toggle(value);
-			},
-			{ immediate: true }
-		);
+			// toggle doctype / customize form btn based on url
+			this.customize_form_btn.toggle(!this.store.is_customize_form);
+			this.doctype_form_btn.toggle(this.store.is_customize_form);
 
-		watch(
-			() => this.store.read_only,
-			(value) => {
-				this.primary_btn.toggle(!value);
-				value && this.page.set_indicator(__("Read Only"), "orange");
-			},
-			{ immediate: true }
-		);
+			// hide customize form btn if doc is custom
+			this.store.doc?.custom && this.customize_form_btn.hide();
+
+			// toggle primary btn and show indicator based on read_only state
+			this.primary_btn.toggle(!this.store.read_only);
+			this.store.read_only && this.page.set_indicator(__("Read Only"), "orange");
+		});
 	}
 }
 
