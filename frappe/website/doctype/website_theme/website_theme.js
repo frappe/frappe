@@ -19,6 +19,7 @@ frappe.ui.form.on("Website Theme", {
 		} else {
 			frm.enable_save();
 		}
+		frm.set_df_property("custom_scss", "max_lines", 45);
 	},
 
 	set_default_theme_button_and_indicator(frm) {

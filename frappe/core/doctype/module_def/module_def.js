@@ -9,5 +9,12 @@ frappe.ui.form.on("Module Def", {
 				frm.set_value("app_name", "frappe");
 			}
 		});
+
+		if (!frappe.boot.developer_mode) {
+			frm.set_df_property("custom", "read_only", 1);
+			if (frm.is_new()) {
+				frm.set_value("custom", 1);
+			}
+		}
 	},
 });

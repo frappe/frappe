@@ -208,11 +208,11 @@
    "label": "Security"
   },
   {
-   "default": "06:00",
-   "description": "Session Expiry in Hours e.g. 06:00",
+   "default": "24:00",
+   "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
-   "label": "Session Expiry"
+   "label": "Session Expiry (idle timeout)"
   },
   {
    "default": "720:00",
@@ -538,7 +538,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-09-06 03:16:59.090906",
+ "modified": "2022-10-30 12:02:46.639170",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

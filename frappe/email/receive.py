@@ -604,6 +604,9 @@ class Email:
 					fname = get_random_filename(content_type=content_type)
 			else:
 				fname = get_random_filename(content_type=content_type)
+			# Don't clobber existing filename
+			while fname in self.cid_map:
+				fname = get_random_filename(content_type=content_type)
 
 			self.attachments.append(
 				{

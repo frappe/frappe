@@ -12,13 +12,13 @@ from werkzeug.wrappers import Request, Response
 
 import frappe
 import frappe.api
-import frappe.auth
 import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import get_site_name, sanitize_html
@@ -29,8 +29,6 @@ local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
-SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
-UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
 @local_manager.middleware
@@ -88,7 +86,8 @@ def application(request: Request):
 
 		log_request(request, response)
 		process_response(response)
-		frappe.destroy()
+		if frappe.db:
+			frappe.db.close()
 
 	return response
 
@@ -118,7 +117,7 @@ def init_request(request):
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
-		frappe.local.http_request = frappe.auth.HTTPRequest()
+		frappe.local.http_request = HTTPRequest()
 
 
 def setup_read_only_mode():
