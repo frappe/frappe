@@ -54,8 +54,8 @@ function select_section() {
 	if (!store.read_only) {
 		editing.value = true;
 		nextTick(() => label_input.value.focus());
-		store.selected_field = props.section.df;
 	}
+	store.selected_field = props.section.df;
 }
 </script>
 
@@ -72,7 +72,10 @@ function select_section() {
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
 		>
-			<div :class="['section-header', section.df.label ? '' : 'hidden']">
+			<div
+				:class="['section-header', section.df.label ? 'has-label' : '']"
+				:hidden="!section.df.label && store.read_only"
+			>
 				<input
 					v-if="editing"
 					ref="label_input"
@@ -157,14 +160,18 @@ function select_section() {
 		}
 
 		&.selected .section-header {
-			display: flex !important;
+			display: flex;
 		}
 
 		.section-header {
-			display: flex;
+			display: none;
 			justify-content: space-between;
 			align-items: center;
 			padding-bottom: 0.75rem;
+
+			&.has-label {
+				display: flex;
+			}
 
 			.input-section-label {
 				border: none;
