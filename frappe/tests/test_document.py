@@ -411,8 +411,8 @@ class TestDocument(FrappeTestCase):
 		todo.save()
 		self.assertEqual(todo.notify_update.call_count, 1)
 
-	def test_error_on_saving_new_doc(self):
-		"""Trying to insert a new doc with `doc.save()` should raise error"""
+	def test_error_on_saving_new_doc_with_name(self):
+		"""Trying to save a new doc with name should raise DoesNotExistError"""
 
 		doc = frappe.get_doc(
 			{
