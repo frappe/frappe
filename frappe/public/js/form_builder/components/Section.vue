@@ -52,14 +52,17 @@ function remove_section() {
 }
 
 function select_section() {
-	if (!store.read_only) {
-		editing.value = true;
-		nextTick(() => label_input.value.focus());
-	}
 	if (props.section.df.collapsible) {
 		collapsed.value = !collapsed.value;
 	}
 	store.selected_field = props.section.df;
+}
+
+function focus_on_label() {
+	if (!store.read_only) {
+		editing.value = true;
+		nextTick(() => label_input.value.focus());
+	}
 }
 </script>
 
@@ -81,7 +84,7 @@ function select_section() {
 				:hidden="!section.df.label && store.read_only"
 				:style="{ paddingBottom: !collapsed ? '0.75rem' : '' }"
 			>
-				<div class="section-label">
+				<div class="section-label" @dblclick="focus_on_label">
 					<input
 						v-if="editing"
 						ref="label_input"
@@ -92,6 +95,7 @@ function select_section() {
 						v-model="section.df.label"
 						@keydown.enter="editing = false"
 						@blur="editing = false"
+						@click.stop
 					/>
 					<span v-else-if="section.df.label">{{ section.df.label }}</span>
 					<i class="text-muted" v-else> {{ __("No Label") }} </i>
@@ -187,22 +191,27 @@ function select_section() {
 			.section-label {
 				display: flex;
 
-				.collapse-indicator {
-					margin-left: 7px;
-				}
-
 				.input-section-label {
 					border: none;
 					margin-left: -2px;
 
 					&:focus {
-						outline: none;
+						outline: 1px solid var(--primary);
+						border-radius: var(--border-radius);
 					}
 
 					&::placeholder {
 						font-style: italic;
 						font-weight: normal;
 					}
+				}
+
+				span {
+					font-weight: 600;
+				}
+
+				.collapse-indicator {
+					margin-left: 7px;
 				}
 			}
 

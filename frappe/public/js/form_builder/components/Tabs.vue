@@ -102,6 +102,14 @@ function remove_tab() {
 	store.active_tab = tabs[prev_tab_index].df.name;
 	store.selected_field = null;
 }
+
+function focus_on_label(tab, event) {
+	if (!store.read_only) {
+		tab.editing = true;
+		let $tab = event.target.closest(".tab.active");
+		nextTick(() => $($tab).find("input").focus());
+	}
+}
 </script>
 
 <template>
@@ -126,9 +134,21 @@ function remove_tab() {
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
+					@dblclick="(event) => focus_on_label(element, event)"
 				>
-					<div v-if="element.df.label">{{ element.df.label }}</div>
-					<i class="text-muted" v-else> {{ __("No Label") }}</i>
+					<input
+						v-if="element.editing"
+						class="input-tab-label"
+						:disabled="store.read_only"
+						type="text"
+						:placeholder="__('Tab Label')"
+						v-model="element.df.label"
+						@keydown.enter="element.editing = false"
+						@blur="element.editing = false"
+						@click.stop
+					/>
+					<span v-else-if="element.df.label">{{ element.df.label }}</span>
+					<i class="text-muted" v-else> {{ __("No Label") }} </i>
 				</div>
 			</template>
 		</draggable>
@@ -251,6 +271,15 @@ function remove_tab() {
 		border-bottom: 1px solid var(--white);
 		min-width: max-content;
 		cursor: pointer;
+
+		.input-tab-label {
+			border: none;
+
+			&:focus {
+				outline: 1px solid var(--primary);
+				border-radius: var(--border-radius);
+			}
+		}
 
 		.tab-name {
 			outline: none;
