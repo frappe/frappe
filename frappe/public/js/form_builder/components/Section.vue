@@ -67,7 +67,10 @@ function focus_on_label() {
 </script>
 
 <template>
-	<div class="form-section-container">
+	<div
+		class="form-section-container"
+		:style="{ borderBottom: props.section.df.hide_border ? 'none' : '' }"
+	>
 		<div
 			:class="[
 				'form-section',
@@ -102,7 +105,7 @@ function focus_on_label() {
 					<div
 						v-if="section.df.collapsible"
 						class="collapse-indicator"
-						v-html="frappe.utils.icon( collapsed ? 'down' : 'up-line', 'sm')"
+						v-html="frappe.utils.icon( collapsed ? 'down' : 'up-line', 'sm' )"
 					></div>
 				</div>
 				<div class="section-actions" :hidden="store.read_only">
@@ -122,7 +125,7 @@ function focus_on_label() {
 					</button>
 				</div>
 			</div>
-			<div class="section-columns" :class="{'hidden': section.df.collapsible && collapsed}">
+			<div class="section-columns" :class="{ hidden: section.df.collapsible && collapsed }">
 				<draggable
 					class="section-columns-container"
 					:style="{
