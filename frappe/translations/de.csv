@@ -4803,15 +4803,8 @@ See all Activity,Alle Aktivitäten anzeigen,
 Go to Notification Settings List,Gehe zur Listenansicht Benachrichtigungseinstellungen,
 Load more,Mehr laden,
 Edit Full Form,Vollständiges Formular bearbeiten,
-<<<<<<< HEAD
-=======
-K,Tsd,Number system
-M,Mio,Number system
-B,Mrd,Number system
-T,Bio,Number system
 Type of Chart,Diagrammtyp,
 Preview Chart,Vorschau erzeugen,
 Please select X and Y fields,Bitte Felder für die X- und Y-Achse wählen,
 Notification sent to,Benachrichtigung gesendet an,
 Add to this activity by mailing to {0},"Senden Sie eine E-Mail an {0}, damit sie hier erscheint",
->>>>>>> e3a0b007c2 (fix: translations (#18765))
