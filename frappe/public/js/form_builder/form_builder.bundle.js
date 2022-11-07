@@ -10,13 +10,19 @@ class FormBuilder {
 		this.doctype = doctype;
 		this.customize = customize;
 
+		// set page title
+		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
+
+		this.setup_page_actions();
+		this.setup_app();
+		this.watch_changes();
+	}
+
+	async setup_page_actions() {
 		// clear actions
 		this.page.clear_actions();
 		this.page.clear_menu();
 		this.page.clear_custom_actions();
-
-		// set page title
-		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
 
 		// setup page actions
 		this.primary_btn = this.page.set_primary_action(__("Save"), () =>
@@ -42,7 +48,9 @@ class FormBuilder {
 				doc_type: this.doctype,
 			})
 		);
+	}
 
+	setup_app() {
 		// create a pinia instance
 		let pinia = createPinia();
 
@@ -58,8 +66,9 @@ class FormBuilder {
 
 		// mount the app
 		this.$form_builder = app.mount(this.$wrapper.get(0));
+	}
 
-		// watch for changes
+	watch_changes() {
 		watchEffect(() => {
 			if (this.store.dirty) {
 				this.page.set_indicator(__("Not Saved"), "orange");
