@@ -74,8 +74,9 @@ class SubmissionQueue(Document):
 			getattr(to_be_queued_doc, _action)()
 			add_data_to_monitor(
 				doctype=to_be_queued_doc.doctype,
+				docname=to_be_queued_doc.name,
 				action=_action,
-				execution_time=cint(time_diff_in_seconds(now(), self.created_at)),
+				execution_time=time_diff_in_seconds(now(), self.created_at),
 				enqueued_by=self.enqueued_by,
 			)
 			values = {"status": "Finished"}
@@ -100,13 +101,14 @@ class SubmissionQueue(Document):
 		message = message.format(
 			frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
 		)
-
-		if cint(time_diff_in_seconds(now(), self.created_at)) <= 60:
+		time_diff = time_diff_in_seconds(now(), self.created_at)
+		if cint(time_diff) <= 60:
 			frappe.publish_realtime(
 				"msgprint",
 				{
 					"message": message
-					+ f". View it <a href='/app/{doctype.lower().replace(' ', '-')}/{docname}'><b>here</b></a>",
+					+ f". View it <a href='/app/{doctype.lower().replace(' ', '-')}/{docname}'><b>here</b></a>"
+					+ f". Execution time {round(float(time_diff), 2)} seconds",
 					"alert": True,
 					"indicator": "red" if submission_status == "Failed" else "green",
 				},
@@ -128,7 +130,6 @@ class SubmissionQueue(Document):
 		if not job_id:
 			# assuming the job failed here (?)
 			status = "failed"
-
 		queued_doc = self.queued_doc
 
 		# Job finished successfully however action was never completed (?)
