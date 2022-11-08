@@ -40,10 +40,10 @@ class FormBuilder {
 			this.store.reset_changes();
 		});
 
-		this.page.add_menu_item(__("Go to Doctype"), () =>
+		this.go_to_doctype_btn = this.page.add_menu_item(__("Go to Doctype"), () =>
 			frappe.set_route("Form", "DocType", this.doctype)
 		);
-		this.page.add_menu_item(__("Go to Customize Form"), () =>
+		this.go_to_customize_form_btn = this.page.add_menu_item(__("Go to Customize Form"), () =>
 			frappe.set_route("Form", "Customize Form", {
 				doc_type: this.doctype,
 			})
@@ -82,8 +82,16 @@ class FormBuilder {
 			this.customize_form_btn.toggle(!this.store.is_customize_form);
 			this.doctype_form_btn.toggle(this.store.is_customize_form);
 
-			// hide customize form btn if doc is custom
-			this.store.doc?.custom && this.customize_form_btn.hide();
+			// hide customize form & Go to customize form btn
+			if (
+				this.store.doc &&
+				(this.store.doc.custom || this.store.doc.issingle,
+				in_list(frappe.model.core_doctypes_list, this.doctype) ||
+					!in_list(frappe.boot.active_domains, this.store.doc.restrict_to_domain))
+			) {
+				this.customize_form_btn.hide();
+				this.go_to_customize_form_btn.hide();
+			}
 
 			// toggle primary btn and show indicator based on read_only state
 			this.primary_btn.toggle(!this.store.read_only);
