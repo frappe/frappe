@@ -1,5 +1,6 @@
 <script setup>
 import Section from "./Section.vue";
+import EditableInput from "./EditableInput.vue";
 import draggable from "vuedraggable";
 import { useStore } from "../store";
 import { section_boilerplate } from "../utils";
@@ -102,14 +103,6 @@ function remove_tab() {
 	store.active_tab = tabs[prev_tab_index].df.name;
 	store.selected_field = null;
 }
-
-function focus_on_label(tab, event) {
-	if (!store.read_only) {
-		tab.editing = true;
-		let $tab = event.target.closest(".tab.active");
-		nextTick(() => $($tab).find("input").focus());
-	}
-}
 </script>
 
 <template>
@@ -134,21 +127,12 @@ function focus_on_label(tab, event) {
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
-					@dblclick="(event) => focus_on_label(element, event)"
 				>
-					<input
-						v-if="element.editing"
-						class="input-tab-label"
-						:disabled="store.read_only"
-						type="text"
+					<EditableInput
+						:text="element.df.label"
 						:placeholder="__('Tab Label')"
 						v-model="element.df.label"
-						@keydown.enter="element.editing = false"
-						@blur="element.editing = false"
-						@click.stop
 					/>
-					<span v-else-if="element.df.label">{{ element.df.label }}</span>
-					<i class="text-muted" v-else> {{ __("No Label") }} </i>
 				</div>
 			</template>
 		</draggable>
@@ -204,10 +188,7 @@ function focus_on_label(tab, event) {
 			<div class="empty-tab" :hidden="store.read_only">
 				<div>{{ __("Drag & Drop a section here") }}</div>
 				<div>{{ __("OR") }}</div>
-				<button
-					class="btn btn-default btn-sm"
-					@click="add_new_section()"
-				>
+				<button class="btn btn-default btn-sm" @click="add_new_section()">
 					{{ __("Add a new section") }}
 				</button>
 			</div>
@@ -272,21 +253,6 @@ function focus_on_label(tab, event) {
 		min-width: max-content;
 		cursor: pointer;
 
-		.input-tab-label {
-			border: none;
-
-			&:focus {
-				outline: 1px solid var(--primary);
-				border-radius: var(--border-radius);
-			}
-		}
-
-		.tab-name {
-			outline: none;
-			border: none;
-			width: fit-content;
-		}
-
 		&:hover {
 			border-bottom: 1px solid var(--gray-300);
 		}
@@ -322,7 +288,7 @@ function focus_on_label(tab, event) {
 				height: 7rem;
 				margin: 1rem;
 
-				&+ .empty-tab {
+				& + .empty-tab {
 					display: flex;
 					flex-direction: column;
 					align-items: center;
@@ -338,7 +304,7 @@ function focus_on_label(tab, event) {
 				}
 			}
 
-			&+ .empty-tab {
+			& + .empty-tab {
 				display: none;
 			}
 		}

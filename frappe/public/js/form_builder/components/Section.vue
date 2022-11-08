@@ -1,7 +1,8 @@
 <script setup>
 import draggable from "vuedraggable";
 import Column from "./Column.vue";
-import { ref, nextTick } from "vue";
+import EditableInput from "./EditableInput.vue";
+import { ref } from "vue";
 import { useStore } from "../store";
 import { section_boilerplate } from "../utils";
 
@@ -9,8 +10,6 @@ let props = defineProps(["tab", "section"]);
 let store = useStore();
 
 let hovered = ref(false);
-let label_input = ref(null);
-let editing = ref(false);
 let collapsed = ref(false);
 
 function add_section_above() {
@@ -57,13 +56,6 @@ function select_section() {
 	}
 	store.selected_field = props.section.df;
 }
-
-function focus_on_label() {
-	if (!store.read_only) {
-		editing.value = true;
-		nextTick(() => label_input.value.focus());
-	}
-}
 </script>
 
 <template>
@@ -87,21 +79,12 @@ function focus_on_label() {
 				:hidden="!section.df.label && store.read_only"
 				:style="{ paddingBottom: !collapsed ? '0.75rem' : '' }"
 			>
-				<div class="section-label" @dblclick="focus_on_label">
-					<input
-						v-if="editing"
-						ref="label_input"
-						class="input-section-label"
-						:disabled="store.read_only"
-						type="text"
+				<div class="section-label">
+					<EditableInput
+						:text="section.df.label"
 						:placeholder="__('Section Title')"
 						v-model="section.df.label"
-						@keydown.enter="editing = false"
-						@blur="editing = false"
-						@click.stop
 					/>
-					<span v-else-if="section.df.label">{{ section.df.label }}</span>
-					<i class="text-muted" v-else> {{ __("No Label") }} </i>
 					<div
 						v-if="section.df.collapsible"
 						class="collapse-indicator"
@@ -194,22 +177,7 @@ function focus_on_label() {
 			.section-label {
 				display: flex;
 
-				.input-section-label {
-					border: none;
-					margin-left: -2px;
-
-					&:focus {
-						outline: 1px solid var(--primary);
-						border-radius: var(--border-radius);
-					}
-
-					&::placeholder {
-						font-style: italic;
-						font-weight: normal;
-					}
-				}
-
-				span {
+				:deep(span) {
 					font-weight: 600;
 				}
 

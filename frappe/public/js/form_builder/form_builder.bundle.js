@@ -86,8 +86,7 @@ class FormBuilder {
 			if (
 				this.store.doc &&
 				(this.store.doc.custom || this.store.doc.issingle,
-				in_list(frappe.model.core_doctypes_list, this.doctype) ||
-					!in_list(frappe.boot.active_domains, this.store.doc.restrict_to_domain))
+				in_list(frappe.model.core_doctypes_list, this.doctype))
 			) {
 				this.customize_form_btn.hide();
 				this.go_to_customize_form_btn.hide();
