@@ -36,6 +36,27 @@ class TestDB(FrappeTestCase):
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
 
+	def test_db_statement_execution_timeout(self):
+		frappe.db.set_execution_timeout(2)
+		# Setting 0 means no timeout.
+		self.addCleanup(frappe.db.set_execution_timeout, 0)
+
+		try:
+			savepoint = "statement_timeout"
+			frappe.db.savepoint(savepoint)
+			frappe.db.multisql(
+				{
+					"mariadb": "select sleep(10)",
+					"postgres": "select pg_sleep(10)",
+				}
+			)
+		except Exception as e:
+			self.assertTrue(frappe.db.is_statement_timeout(e), f"exepcted {e} to be timeout error")
+			frappe.db.rollback(save_point=savepoint)
+		else:
+			frappe.db.rollback(save_point=savepoint)
+			self.fail("Long running queries not timing out")
+
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")

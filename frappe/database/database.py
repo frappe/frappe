@@ -7,7 +7,7 @@ import random
 import re
 import string
 import traceback
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from time import time
 
 from pypika.terms import Criterion, NullValue
@@ -28,7 +28,7 @@ from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
-from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -112,6 +112,17 @@ class Database:
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
 		frappe.local.rollback_observers = []
+
+		try:
+			if execution_timeout := get_query_execution_timeout():
+				self.set_execution_timeout(execution_timeout)
+		except Exception as e:
+			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
+
+	def set_execution_timeout(self, seconds: int):
+		"""Set session speicifc timeout on exeuction of statements.
+		If any statement takes more time it will be killed along with entire transaction."""
+		raise NotImplementedError
 
 	def use(self, db_name):
 		"""`USE` db_name."""
@@ -1342,3 +1353,28 @@ def savepoint(catch: type | tuple[type, ...] = Exception):
 		frappe.db.rollback(save_point=savepoint)
 	else:
 		frappe.db.release_savepoint(savepoint)
+
+
+def get_query_execution_timeout() -> int:
+	"""Get execution timeout based on current timeout in different contexts.
+
+	    HTTP requests: HTTP timeout or a default (300)
+	    Background jobs: Job timeout
+	Console/Commands: No timeout = 0.
+
+	    Note: Timeout adds 1.5x as "safety factor"
+	"""
+	from rq import get_current_job
+
+	if not frappe.conf.get("enable_db_statement_timeout"):
+		return 0
+
+	# Zero means no timeout, which is the default value in db.
+	timeout = 0
+	with suppress(Exception):
+		if getattr(frappe.local, "request", None):
+			timeout = frappe.conf.http_timeout or 300
+		elif job := get_current_job():
+			timeout = job.timeout
+
+	return int(cint(timeout) * 1.5)
