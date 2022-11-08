@@ -29,19 +29,23 @@ class TestSubmissionQueue(FrappeTestCase):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 
-		doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
-		doc.insert()
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
+			doc.insert()
 
 		d = frappe.new_doc("Test Submission Queue")
 		d.update({"some_fieldname": "Random"})
 		d.insert()
 
+		frappe.db.commit()
 		queue_submission(d, "submit")
+		frappe.db.commit()
+
+		# Waiting for execution
+		time.sleep(4)
 		submission_queue = frappe.get_last_doc("Submission Queue")
 
 		# Test queueing / starting
 		job = self.queue.fetch_job(submission_queue.job_id)
-		self.assertIn(job.get_status(refresh=True), ("queued", "started"))
-
 		# Test completion
 		self.check_status(job, status="finished")
