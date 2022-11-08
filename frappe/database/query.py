@@ -28,7 +28,7 @@ SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
 
-def like(key: Field, value: str) -> frappe.qb:
+def like(key: Field, value: str) -> Criterion:
 	"""Wrapper method for `LIKE`
 
 	Args:
@@ -41,7 +41,7 @@ def like(key: Field, value: str) -> frappe.qb:
 	return key.like(value)
 
 
-def func_in(key: Field, value: list | tuple) -> frappe.qb:
+def func_in(key: Field, value: list | tuple) -> Criterion:
 	"""Wrapper method for `IN`
 
 	Args:
@@ -56,7 +56,7 @@ def func_in(key: Field, value: list | tuple) -> frappe.qb:
 	return key.isin(value)
 
 
-def not_like(key: Field, value: str) -> frappe.qb:
+def not_like(key: Field, value: str) -> Criterion:
 	"""Wrapper method for `NOT LIKE`
 
 	Args:
@@ -84,7 +84,7 @@ def func_not_in(key: Field, value: list | tuple | str):
 	return key.notin(value)
 
 
-def func_regex(key: Field, value: str) -> frappe.qb:
+def func_regex(key: Field, value: str) -> Criterion:
 	"""Wrapper method for `REGEX`
 
 	Args:
@@ -97,7 +97,7 @@ def func_regex(key: Field, value: str) -> frappe.qb:
 	return key.regex(value)
 
 
-def func_between(key: Field, value: list | tuple) -> frappe.qb:
+def func_between(key: Field, value: list | tuple) -> Criterion:
 	"""Wrapper method for `BETWEEN`
 
 	Args:
@@ -115,7 +115,7 @@ def func_is(key, value):
 	return key.isnotnull() if value.lower() == "set" else key.isnull()
 
 
-def func_timespan(key: Field, value: str) -> frappe.qb:
+def func_timespan(key: Field, value: str) -> Criterion:
 	"""Wrapper method for `TIMESPAN`
 
 	Args:
@@ -248,7 +248,7 @@ class Engine:
 
 		return all_operators
 
-	def get_condition(self, table: str | Table, **kwargs) -> frappe.qb:
+	def get_condition(self, table: str | Table, **kwargs) -> Criterion:
 		"""Get initial table object
 
 		Args:
@@ -272,7 +272,7 @@ class Engine:
 			self.tables[table_name] = frappe.qb.DocType(table_name)
 		return self.tables[table_name]
 
-	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> frappe.qb:
+	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> Criterion:
 		"""Generate filters from Criterion objects
 
 		Args:
@@ -282,17 +282,17 @@ class Engine:
 		Returns:
 		        frappe.qb: condition object
 		"""
-		condition = self.add_conditions(self.get_condition(table, **kwargs), **kwargs)
+		condition = self.get_condition(table, **kwargs)
 		return condition.where(criterion)
 
-	def add_conditions(self, conditions: frappe.qb, **kwargs):
+	def add_conditions(self, conditions: Criterion, fields: list, **kwargs):
 		"""Adding additional conditions
 
 		Args:
 		        conditions (frappe.qb): built conditions
 
 		Returns:
-		        conditions (frappe.qb): frappe.qb object
+		        conditions (frappe.qb): Criterion object
 		"""
 		if kwargs.get("orderby") and kwargs.get("orderby") != "KEEP_DEFAULT_ORDERING":
 			orderby = kwargs.get("orderby")
@@ -300,6 +300,13 @@ class Engine:
 				for ordby in orderby.split(","):
 					if ordby := ordby.strip():
 						orderby, order = change_orderby(ordby)
+						if fields[0] != "*":
+							_alias_list = [
+								(field.alias) or (field.get_sql(quote_char=None)) if isinstance(field, Field) else None
+								for field in fields
+							]
+							if orderby in _alias_list:
+								orderby = PseudoColumnMapper(orderby)
 						conditions = conditions.orderby(orderby, order=order)
 			else:
 				conditions = conditions.orderby(orderby, order=kwargs.get("order") or Order.desc)
@@ -349,9 +356,9 @@ class Engine:
 					conditions = conditions.where(_operator(Field(filters[0]), filters[2]))
 					break
 
-		return self.add_conditions(conditions, **kwargs)
+		return conditions
 
-	def dict_query(self, table: str, filters: dict[str, str | int] = None, **kwargs) -> frappe.qb:
+	def dict_query(self, table: str, filters: dict[str, str | int] = None, **kwargs) -> Criterion:
 		"""Build conditions using the given dictionary filters
 
 		Args:
@@ -365,7 +372,6 @@ class Engine:
 		if isinstance(table, str):
 			table = frappe.qb.DocType(table)
 		if not filters:
-			conditions = self.add_conditions(conditions, **kwargs)
 			return conditions
 
 		for key, value in filters.items():
@@ -411,11 +417,11 @@ class Engine:
 					field = getattr(_table, key)
 					conditions = conditions.where(field.isnull())
 
-		return self.add_conditions(conditions, **kwargs)
+		return conditions
 
 	def build_conditions(
 		self, table: str, filters: dict[str, str | int] | str | int = None, **kwargs
-	) -> frappe.qb:
+	) -> Criterion:
 		"""Build conditions for sql query
 
 		Args:
@@ -423,7 +429,7 @@ class Engine:
 		        table (str): DocType
 
 		Returns:
-		        frappe.qb: frappe.qb conditions object
+		        frappe.qb: Criterion conditions object
 		"""
 		if isinstance(filters, int) or isinstance(filters, str):
 			filters = {"name": str(filters)}
@@ -760,6 +766,7 @@ class Engine:
 
 		criterion = self.build_conditions(table, filters, **kwargs)
 		fields = self.set_fields(table, fields, **kwargs)
+		criterion = self.add_conditions(criterion, fields, **kwargs)
 		join_type = kwargs.get("join").replace(" ", "_") if kwargs.get("join") else "left_join"
 		criterion, fields = self.join(
 			criterion=criterion, fields=fields, table=table, join_type=join_type
@@ -767,10 +774,6 @@ class Engine:
 
 		if isinstance(fields, (list, tuple)):
 			query = criterion.select(*fields)
-
-		elif isinstance(fields, Criterion):
-			query = criterion.select(fields)
-
 		else:
 			query = criterion.select(fields)
 
