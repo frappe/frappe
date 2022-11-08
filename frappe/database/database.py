@@ -114,7 +114,7 @@ class Database:
 		frappe.local.rollback_observers = []
 
 		try:
-			if execution_timeout := get_ideal_query_execution_timeout():
+			if execution_timeout := get_query_execution_timeout():
 				self.set_execution_timeout(execution_timeout)
 		except Exception as e:
 			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
@@ -1355,20 +1355,24 @@ def savepoint(catch: type | tuple[type, ...] = Exception):
 		frappe.db.release_savepoint(savepoint)
 
 
-def get_ideal_query_execution_timeout() -> int:
-	"""Get execution timeout based on current timeout in contexts.
+def get_query_execution_timeout() -> int:
+	"""Get execution timeout based on current timeout in different contexts.
 
-	HTTP requests: HTTP timeout or a default (300)
-	Background jobs: Job timeout
+	    HTTP requests: HTTP timeout or a default (300)
+	    Background jobs: Job timeout
+	Console/Commands: No timeout = 0.
 
-	Note: Timeout adds 1.5x as "safety factor"
+	    Note: Timeout adds 1.5x as "safety factor"
 	"""
 	from rq import get_current_job
+
+	if not frappe.conf.get("enable_db_statement_timeout"):
+		return 0
 
 	# Zero means no timeout, which is the default value in db.
 	timeout = 0
 	with suppress(Exception):
-		if hasattr(frappe.local, "request"):
+		if getattr(frappe.local, "request", None):
 			timeout = frappe.conf.http_timeout or 300
 		elif job := get_current_job():
 			timeout = job.timeout
