@@ -12,7 +12,7 @@ let docfield_df = computed(() => {
 	let fields = store.get_docfields.filter(df => {
 		if (
 			in_list(frappe.model.layout_fields, df.fieldtype) ||
-			!df.label
+			df.hidden
 		) {
 			return false;
 		}
@@ -28,9 +28,8 @@ let docfield_df = computed(() => {
 				return true;
 			}
 			return false;
-		} else {
-			return true;
 		}
+		return true;
 	});
 
 	return [...fields];
