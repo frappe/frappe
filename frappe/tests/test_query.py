@@ -52,6 +52,10 @@ def create_tree_docs():
 		d.insert()
 
 
+def mapper(s):
+	return s.replace("`", '"' if frappe.db.db_type == "postgres" else "`")
+
+
 class TestQuery(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_multiple_tables_in_filters(self):
@@ -225,6 +229,10 @@ class TestQuery(FrappeTestCase):
 			.select(user_doctype.email.as_("id"), Count(Field("name")).as_("count"))
 			.get_sql(),
 		)
+		self.assertEqual(
+			frappe.qb.engine.get_query("ToDo", fields=["name as n"], orderby="n desc").get_sql(),
+			mapper("SELECT `name` `n` FROM `tabToDo` ORDER BY n DESC"),
+		)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_filters(self):
@@ -242,8 +250,8 @@ class TestQuery(FrappeTestCase):
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			mapper(
+				"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'"
 			),
 		)
 
@@ -253,8 +261,8 @@ class TestQuery(FrappeTestCase):
 				filters={"name": "Test Note Title"},
 				fields=["name", "`tabNote Seen By`.`user` as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by,`tabNote Seen By`.`idx` idx FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			mapper(
+				"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by,`tabNote Seen By`.`idx` idx FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'"
 			),
 		)
 
@@ -264,8 +272,8 @@ class TestQuery(FrappeTestCase):
 				filters={"name": "Test Note Title"},
 				fields=["name", "seen_by.user as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
-			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by,`tabNote Seen By`.`idx` idx FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			mapper(
+				"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` seen_by,`tabNote Seen By`.`idx` idx FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'"
 			),
 		)
 
@@ -273,8 +281,8 @@ class TestQuery(FrappeTestCase):
 			frappe.qb.engine.get_query(
 				"ToDo", fields=["name", "allocated_to.email as allocated_email"]
 			).get_sql(),
-			"SELECT `tabToDo`.`name`,`tabUser`.`email` allocated_email FROM `tabToDo` LEFT JOIN `tabUser` ON `tabUser`.`name`=`tabToDo`.`allocated_to`".replace(
-				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			mapper(
+				"SELECT `tabToDo`.`name`,`tabUser`.`email` allocated_email FROM `tabToDo` LEFT JOIN `tabUser` ON `tabUser`.`name`=`tabToDo`.`allocated_to`"
 			),
 		)
 
