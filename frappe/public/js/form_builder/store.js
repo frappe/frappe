@@ -145,7 +145,7 @@ export const useStore = defineStore("form-builder-store", {
 
 					section.columns.forEach((column, k) => {
 						// do not consider first column
-						if (k > 0) {
+						if (k > 0 || column.fields.length == 0) {
 							idx++;
 							column.df.idx = idx;
 							fields.push(column.df);
