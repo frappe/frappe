@@ -746,49 +746,26 @@ class Document(BaseDocument):
 
 		Will also validate document transitions (Save > Submit > Cancel) calling
 		`self.check_docstatus_transition`."""
-		conflict = False
+
+		self.load_doc_before_save()
+
 		self._action = "save"
-		if not self.get("__islocal") and not self.meta.get("is_virtual"):
-			if self.meta.issingle:
-				modified = frappe.db.sql(
-					"""select value from tabSingles
-					where doctype=%s and field='modified' for update""",
-					self.doctype,
-				)
-				modified = modified and modified[0][0]
-				if modified and modified != cstr(self._original_modified):
-					conflict = True
-			else:
-				tmp = frappe.db.sql(
-					"""select modified, docstatus from `tab{}`
-					where name = %s for update""".format(
-						self.doctype
-					),
-					self.name,
-					as_dict=True,
-				)
+		previous = self.get_doc_before_save()
 
-				if not tmp:
-					frappe.throw(_("Record does not exist"))
-				else:
-					tmp = tmp[0]
-
-				modified = cstr(tmp.modified)
-
-				if modified and modified != cstr(self._original_modified):
-					conflict = True
-
-				self.check_docstatus_transition(tmp.docstatus)
-
-			if conflict:
-				frappe.msgprint(
-					_("Error: Document has been modified after you have opened it")
-					+ (f" ({modified}, {self.modified}). ")
-					+ _("Please refresh to get the latest document."),
-					raise_exception=frappe.TimestampMismatchError,
-				)
-		else:
+		if not previous or self.meta.get("is_virtual"):
 			self.check_docstatus_transition(0)
+			return
+
+		if cstr(previous.modified) != cstr(self._original_modified):
+			frappe.msgprint(
+				_("Error: Document has been modified after you have opened it")
+				+ (f" ({previous.modified}, {self.modified}). ")
+				+ _("Please refresh to get the latest document."),
+				raise_exception=frappe.TimestampMismatchError,
+			)
+
+		if not self.meta.issingle:
+			self.check_docstatus_transition(previous.docstatus)
 
 	def check_docstatus_transition(self, to_docstatus):
 		"""Ensures valid `docstatus` transition.
@@ -1048,7 +1025,6 @@ class Document(BaseDocument):
 
 		Will also update title_field if set"""
 
-		self.load_doc_before_save()
 		self.reset_seen()
 
 		# before_validate method should be executed before ignoring validations
@@ -1072,14 +1048,17 @@ class Document(BaseDocument):
 		self.set_title_field()
 
 	def load_doc_before_save(self):
-		"""Save load document from db before saving"""
+		"""load existing document from db before saving"""
+
 		self._doc_before_save = None
-		if not self.is_new():
-			try:
-				self._doc_before_save = frappe.get_doc(self.doctype, self.name)
-			except frappe.DoesNotExistError:
-				self._doc_before_save = None
-				frappe.clear_last_message()
+
+		if self.is_new():
+			return
+
+		try:
+			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=True)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 
 	def run_post_save_methods(self):
 		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:

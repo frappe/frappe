@@ -331,7 +331,7 @@ function close_grid_and_dialog() {
 	}
 
 	// close open dialog
-	if (cur_dialog && !cur_dialog.no_cancel_flag) {
+	if (cur_dialog && !cur_dialog.no_cancel_flag && !cur_dialog.static) {
 		cur_dialog.cancel();
 		return false;
 	}
