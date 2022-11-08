@@ -72,7 +72,12 @@ class SubmissionQueue(Document):
 
 		try:
 			getattr(to_be_queued_doc, _action)()
-			add_data_to_monitor(doctype=to_be_queued_doc.doctype, action=_action)
+			add_data_to_monitor(
+				doctype=to_be_queued_doc.doctype,
+				action=_action,
+				execution_time=cint(time_diff_in_seconds(now(), self.created_at)),
+				enqueued_by=self.enqueued_by,
+			)
 			values = {"status": "Finished"}
 		except Exception:
 			values = {"status": "Failed", "exception": frappe.get_traceback()}
@@ -96,7 +101,7 @@ class SubmissionQueue(Document):
 			frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
 		)
 
-		if cint(time_diff_in_seconds(self.created_at, now())) <= 60:
+		if cint(time_diff_in_seconds(now(), self.created_at)) <= 60:
 			frappe.publish_realtime(
 				"msgprint",
 				{
