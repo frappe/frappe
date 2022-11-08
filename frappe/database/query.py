@@ -301,7 +301,11 @@ class Engine:
 					if ordby := ordby.strip():
 						orderby, order = change_orderby(ordby)
 						if fields[0] != "*":
-							if orderby in conditions._list_aliases(fields):
+							_alias_list = [
+								(field.alias) or (field.get_sql(quote_char=None)) if isinstance(field, Field) else None
+								for field in fields
+							]
+							if orderby in _alias_list:
 								orderby = PseudoColumnMapper(orderby)
 						conditions = conditions.orderby(orderby, order=order)
 			else:
