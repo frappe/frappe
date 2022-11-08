@@ -78,6 +78,10 @@ class PostgresDatabase(Database):
 
 		return conn
 
+	def set_execution_timeout(self, seconds: int):
+		# Postgres expects milliseconds as input
+		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
+
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
 		if isinstance(s, bytes):
@@ -156,6 +160,10 @@ class PostgresDatabase(Database):
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
 		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+
+	@staticmethod
+	def is_statement_timeout(e):
+		return PostgresDatabase.is_timedout(e) or isinstance(e, frappe.QueryTimeoutError)
 
 	@staticmethod
 	def is_table_missing(e):

@@ -95,6 +95,19 @@ class TestDB(unittest.TestCase):
 		# teardown
 		clear_custom_fields("Print Settings")
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_db_statement_execution_timeout(self):
+		frappe.db.set_execution_timeout(2)
+		# Setting 0 means no timeout.
+		self.addCleanup(frappe.db.set_execution_timeout, 0)
+
+		try:
+			frappe.db.sql("select sleep(10)")
+		except Exception as e:
+			self.assertTrue(frappe.db.is_statement_timeout(e), f"exepcted {e} to be timeout error")
+		else:
+			self.fail("Long running queries not timing out")
+
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
 		frappe.flags.touched_tables = set()
