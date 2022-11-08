@@ -15,7 +15,7 @@ function clone_field(field) {
 let fields = computed(() => {
 	let fields = frappe.model.all_fieldtypes
 		.filter(df => {
-			if (in_list(["Tab Break", "Section Break", "Column Break", "Fold"], df)) {
+			if (in_list(frappe.model.layout_fields, df)) {
 				return false;
 			}
 			if (search_text.value) {
