@@ -16,11 +16,20 @@ watch(
 	{ deep: true }
 );
 
+function lose_focus() {
+	store.selected_field = null;
+}
+
 onMounted(() => store.fetch());
 </script>
 
 <template>
-	<div class="form-builder-container" v-if="should_render" @click="store.selected_field = null">
+	<div
+		class="form-builder-container"
+		v-if="should_render"
+		v-on-outside-click="lose_focus"
+		@click="lose_focus"
+	>
 		<div class="form-controls" @click.stop>
 			<div class="form-sidebar">
 				<Sidebar />
@@ -72,7 +81,8 @@ onMounted(() => store.fetch());
 			}
 		}
 
-		:deep([data-has-std-field="false"]), :deep([data-is-custom="1"]) {
+		:deep([data-has-std-field="false"]),
+		:deep([data-is-custom="1"]) {
 			background-color: var(--yellow-highlight-color);
 		}
 	}

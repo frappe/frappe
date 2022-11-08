@@ -19,8 +19,10 @@ function remove_field() {
 }
 
 function select_field() {
-	editing.value = true;
-	nextTick(() => label_input.value.focus());
+	if(!store.read_only) {
+		editing.value = true;
+		nextTick(() => label_input.value.focus());
+	}
 	store.selected_field = props.field.df;
 }
 </script>
