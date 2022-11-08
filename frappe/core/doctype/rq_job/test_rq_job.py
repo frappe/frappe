@@ -80,20 +80,6 @@ class TestRQJob(FrappeTestCase):
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()
 
-<<<<<<< HEAD
-=======
-	def test_is_enqueued(self):
-
-		dummy_job = frappe.enqueue(self.BG_JOB, sleep=10, queue="short")
-		job_name = "uniq_test_job"
-		actual_job = frappe.enqueue(self.BG_JOB, job_name=job_name, queue="short")
-
-		self.assertTrue(is_job_queued(job_name))
-		stop_job(dummy_job.id)
-		self.check_status(actual_job, "finished")
-		self.assertFalse(is_job_queued(job_name))
-
->>>>>>> 032df946be (test: bg jobs test cleanup (#18767))
 
 def test_func(fail=False, sleep=0):
 	if fail:
