@@ -219,6 +219,14 @@ def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 	return translation_map
 
 
+def get_messages_for_boot():
+	"""Return all message translations that are required on boot."""
+	messages = get_full_dict(frappe.local.lang)
+	messages.update(get_dict_from_hooks("boot", None))
+
+	return messages
+
+
 def get_dict_from_hooks(fortype, name):
 	translated_dict = {}
 
