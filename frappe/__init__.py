@@ -40,7 +40,7 @@ from .utils.lazy_loader import lazy_import
 # Lazy imports
 faker = lazy_import("faker")
 
-__version__ = "13.36.2"
+__version__ = "13.43.1"
 
 __title__ = "Frappe Framework"
 
@@ -2022,7 +2022,7 @@ def logger(
 	)
 
 
-def log_error(message=None, title="Error"):
+def log_error(message=None, title=_("Error")):
 	"""Log error to Error Log"""
 
 	# AI ALERT:

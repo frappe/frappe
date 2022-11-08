@@ -39,6 +39,7 @@ def build(app=None, hard_link=False, make_copy=False, restore=False, verbose=Fal
 	"Minify + concatenate JS and CSS files, build translations"
 	from frappe.build import bundle, download_frappe_assets
 
+
 	frappe.init("")
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
