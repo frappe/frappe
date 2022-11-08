@@ -66,6 +66,7 @@ let fields = computed(() => {
 	gap: 8px;
 	padding: 8px;
 	grid-template-columns: 1fr 1fr;
+	grid-auto-rows: max-content;
 
 	.field {
 		background-color: var(--bg-light-gray);

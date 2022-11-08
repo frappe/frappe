@@ -88,7 +88,8 @@ export function create_layout(fields) {
 
 	// remove empty sections
 	for (let tab of layout.tabs) {
-		for (let section of tab.sections) {
+		for (let i = tab.sections.length - 1; i >= 0; --i) {
+			let section = tab.sections[i];
 			if (!section.has_fields) {
 				tab.sections.splice(tab.sections.indexOf(section), 1);
 			}

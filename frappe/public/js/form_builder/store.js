@@ -131,6 +131,11 @@ export const useStore = defineStore("form-builder-store", {
 				}
 
 				tab.sections.forEach((section, j) => {
+					// data before section is added
+					let fields_copy = JSON.parse(JSON.stringify(fields));
+					let old_idx = idx;
+					section.has_fields = false;
+
 					// do not consider first section if label is not set
 					if ((j == 0 && section.df.label) || j > 0) {
 						idx++;
@@ -150,8 +155,15 @@ export const useStore = defineStore("form-builder-store", {
 							idx++;
 							field.df.idx = idx;
 							fields.push(field.df);
+							section.has_fields = true;
 						});
 					});
+
+					// restore data back to data before section is added.
+					if (!section.has_fields) {
+						fields = fields_copy || [];
+						idx = old_idx;
+					}
 				});
 			});
 
