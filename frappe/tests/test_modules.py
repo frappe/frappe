@@ -69,7 +69,7 @@ class TestUtils(FrappeTestCase):
 			delattr(self, "note")
 
 		if self._testMethodName == "test_make_boilerplate":
-			self.doctype.delete()
+			self.doctype.delete(force=True)
 			scrubbed = frappe.scrub(self.doctype.name)
 			self.addCleanup(
 				delete_path,

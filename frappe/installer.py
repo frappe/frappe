@@ -402,7 +402,7 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 
 			if not dry_run:
 				if doctype.issingle:
-					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True)
+					frappe.delete_doc("DocType", doctype.name, ignore_on_trash=True, force=True)
 				else:
 					drop_doctypes.append(doctype.name)
 
@@ -460,7 +460,7 @@ def _delete_doctypes(doctypes: list[str], dry_run: bool) -> None:
 	for doctype in set(doctypes):
 		print(f"* dropping Table for '{doctype}'...")
 		if not dry_run:
-			frappe.delete_doc("DocType", doctype, ignore_on_trash=True)
+			frappe.delete_doc("DocType", doctype, ignore_on_trash=True, force=True)
 			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
 
 
