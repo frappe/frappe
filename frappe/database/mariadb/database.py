@@ -93,6 +93,9 @@ class MariaDBDatabase(Database):
 
 		return conn
 
+	def set_execution_timeout(self, seconds: int):
+		self.sql("set session max_statement_time = %s", int(seconds))
+
 	def get_database_size(self):
 		"""'Returns database size in MB"""
 		db_size = self.sql(
@@ -153,6 +156,10 @@ class MariaDBDatabase(Database):
 	@staticmethod
 	def is_timedout(e):
 		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+
+	@staticmethod
+	def is_statement_timeout(e):
+		return e.args[0] == 1969
 
 	@staticmethod
 	def is_table_missing(e):
