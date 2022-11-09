@@ -88,7 +88,7 @@ function remove_tab() {
 	} else {
 		// create a new tab and push sections to it
 		tabs.unshift({
-			df: store.get_df("Tab Break"),
+			df: store.get_df("Tab Break", "", __("Details")),
 			sections: current_tab.value.sections,
 			is_first: true,
 		});

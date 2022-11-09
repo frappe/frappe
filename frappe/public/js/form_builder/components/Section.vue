@@ -75,7 +75,7 @@ function select_section() {
 			@mouseout.stop="hovered = false"
 		>
 			<div
-				:class="['section-header', section.df.label ? 'has-label' : '']"
+				:class="['section-header', section.df.label || section.df.collapsible ? 'has-label' : '']"
 				:hidden="!section.df.label && store.read_only"
 				:style="{ paddingBottom: !collapsed ? '0.75rem' : '' }"
 			>

@@ -124,7 +124,11 @@ export const useStore = defineStore("form-builder-store", {
 			let idx = 0;
 
 			this.layout.tabs.forEach((tab, i) => {
-				if ((i == 0 && tab.df.label != "Details") || i > 0) {
+				if (
+					(i == 0 &&
+						this.is_df_updated(tab.df, this.get_df("Tab Break", "", __("Details")))) ||
+					i > 0
+				) {
 					idx++;
 					tab.df.idx = idx;
 					fields.push(tab.df);
@@ -137,7 +141,10 @@ export const useStore = defineStore("form-builder-store", {
 					section.has_fields = false;
 
 					// do not consider first section if label is not set
-					if ((j == 0 && section.df.label) || j > 0) {
+					if (
+						(j == 0 && this.is_df_updated(section.df, this.get_df("Section Break"))) ||
+						j > 0
+					) {
 						idx++;
 						section.df.idx = idx;
 						fields.push(section.df);
@@ -168,6 +175,11 @@ export const useStore = defineStore("form-builder-store", {
 			});
 
 			return fields;
+		},
+		is_df_updated(df, new_df) {
+			delete df.name;
+			delete new_df.name;
+			return JSON.stringify(df) != JSON.stringify(new_df);
 		},
 		get_layout() {
 			return create_layout(this.doc.fields);
