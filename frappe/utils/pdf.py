@@ -3,6 +3,7 @@
 import io
 import os
 import re
+import sys
 import subprocess
 from distutils.version import LooseVersion
 
@@ -22,6 +23,18 @@ PDF_CONTENT_ERRORS = [
 	"RemoteHostClosedError",
 ]
 
+class PDFLogger(object):
+	def __init__(self):
+		self.logger = frappe.logger("wkhtmltopdf", max_size=100000, file_count=5)
+
+	def write(self, text):
+		self.logger.info(text)
+
+	def flush(self):
+		for h in self.logger.handlers:
+			h.flush()
+
+logger = PDFLogger()
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
 	html = scrub_urls(html)
@@ -34,8 +47,13 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 		options.update({"disable-smart-shrinking": ""})
 
 	try:
+		# wkhtmltopdf writes the pdf to stdout and errors to stderr
+		# pdfkit v1.0.0 writes the pdf to file or returns it
+		# stderr is written to sys.stdout if verbose=True is supplied
 		# Set filename property to false, so no file is actually created
-		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
+		old_stdout = sys.stdout
+		sys.stdout = logger
+		filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True)
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))
@@ -51,6 +69,7 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 		else:
 			raise
 	finally:
+		sys.stdout = old_stdout
 		cleanup(options)
 
 	if "password" in options:
@@ -93,7 +112,6 @@ def prepare_options(html, options):
 			"print-media-type": None,
 			"background": None,
 			"images": None,
-			"quiet": None,
 			# 'no-outline': None,
 			"encoding": "UTF-8",
 			# 'load-error-handling': 'ignore'
