@@ -101,7 +101,7 @@ frappe.ui.form.PrintView = class {
 		this.language_sel = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "language",
-			placeholder: "Language",
+			placeholder: __("Language"),
 			options: "Language",
 			change: () => {
 				this.set_user_lang();
