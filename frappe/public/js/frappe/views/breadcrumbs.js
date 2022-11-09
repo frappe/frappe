@@ -29,7 +29,7 @@ frappe.breadcrumbs = {
 		return localStorage["preferred_breadcrumbs:" + doctype];
 	},
 
-	async add(module, doctype, type) {
+	add(module, doctype, type) {
 		let obj;
 		if (typeof module === "object") {
 			obj = module;
@@ -40,7 +40,6 @@ frappe.breadcrumbs = {
 				type: type,
 			};
 		}
-		await frappe.model.with_doctype(doctype);
 		this.all[frappe.breadcrumbs.current_page()] = obj;
 		this.update();
 	},
@@ -132,8 +131,9 @@ frappe.breadcrumbs = {
 		}
 	},
 
-	set_list_breadcrumb(breadcrumbs) {
+	async set_list_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
+		await frappe.model.with_doctype(doctype);
 		const doctype_meta = frappe.get_doc("DocType", doctype);
 		if (
 			(doctype === "User" && !frappe.user.has_role("System Manager")) ||
