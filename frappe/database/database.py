@@ -923,8 +923,8 @@ class Database:
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-	@deprecated
 	@staticmethod
+	@deprecated
 	def set(doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
