@@ -97,14 +97,10 @@ frappe.ui.form.PrintView = class {
 		}).$input;
 
 		this.language_sel = this.add_sidebar_item({
-			fieldtype: "Select",
+			fieldtype: "Link",
 			fieldname: "language",
 			placeholder: "Language",
-			options: [
-				this.get_default_option_for_select(__("Select Language")),
-				...this.get_language_options(),
-			],
-			default: __("Select Language"),
+			options: "Language",
 			change: () => {
 				this.set_user_lang();
 				this.preview();
@@ -374,10 +370,6 @@ frappe.ui.form.PrintView = class {
 
 	set_user_lang() {
 		this.lang_code = this.language_sel.val();
-	}
-
-	get_language_options() {
-		return frappe.get_languages();
 	}
 
 	set_default_print_language() {
