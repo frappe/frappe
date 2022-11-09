@@ -7,6 +7,7 @@ import random
 import re
 import string
 import traceback
+import warnings
 from contextlib import contextmanager, suppress
 from time import time
 
@@ -273,6 +274,20 @@ class Database:
 		if pluck:
 			return [r[0] for r in self.last_result]
 
+		if as_utf8:
+			warnings.warn(
+				"as_utf8 parameter is deprecated and will be removed in version 15.",
+				DeprecationWarning,
+				stacklevel=2,
+			)
+
+		if formatted:
+			warnings.warn(
+				"formatted parameter is deprecated and will be removed in version 15.",
+				DeprecationWarning,
+				stacklevel=2,
+			)
+
 		# scrub output if required
 		if as_dict:
 			ret = self.fetch_as_dict(formatted, as_utf8)
@@ -391,10 +406,13 @@ class Database:
 	def fetch_as_dict(self, formatted=0, as_utf8=0) -> list[frappe._dict]:
 		"""Internal. Converts results to dict."""
 		result = self.last_result
-		ret = []
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
+		if not as_utf8:
+			return [frappe._dict(zip(keys, row)) for row in result]
+
+		ret = []
 		for r in result:
 			values = []
 			for value in r:
@@ -429,6 +447,9 @@ class Database:
 	@staticmethod
 	def convert_to_lists(res, formatted=0, as_utf8=0):
 		"""Convert tuple output to lists (internal)."""
+		if not as_utf8:
+			return [[value for value in row] for row in res]
+
 		nres = []
 		for r in res:
 			nr = []
