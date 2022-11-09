@@ -79,5 +79,6 @@ function focus_on_label() {
 .hidden-span {
 	visibility: hidden;
 	position: absolute;
+	width: max-content;
 }
 </style>

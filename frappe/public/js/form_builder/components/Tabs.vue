@@ -113,6 +113,7 @@ function remove_tab() {
 			v-model="layout.tabs"
 			group="tabs"
 			filter="[data-is-custom='0']"
+			:prevent-on-filter="false"
 			:animation="200"
 			item-key="id"
 			:disabled="store.read_only"
@@ -246,21 +247,34 @@ function remove_tab() {
 	}
 
 	.tab {
-		padding: var(--padding-md) 0;
-		margin: 0 var(--margin-md);
+		position: relative;
+		padding: var(--padding-md);
 		color: var(--text-muted);
-		border-bottom: 1px solid var(--white);
 		min-width: max-content;
 		cursor: pointer;
 
-		&:hover {
+		&::before {
+			content: "";
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: 0 var(--margin-md);
+			width: auto;
+			border-bottom: 1px solid var(--white);
+		}
+
+		&:hover::before {
 			border-bottom: 1px solid var(--gray-300);
 		}
 
 		&.active {
 			font-weight: 600;
 			color: var(--text-color);
-			border-bottom: 1px solid var(--primary);
+
+			&::before {
+				border-bottom: 1px solid var(--primary);
+			}
 		}
 	}
 }
