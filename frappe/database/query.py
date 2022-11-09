@@ -766,7 +766,12 @@ class Engine:
 		self.tables = {}
 		self.joined_tables = {}
 		self.linked_tables = []
-		self.fieldname = None
+
+		if isinstance(fields, dict) or (
+			fields and isinstance(fields, list) and isinstance(fields[0], list)
+		):
+			# if fields is given as dict/list of list, its probably filters
+			filters, fields = fields, filters
 
 		criterion = self.build_conditions(table, filters, **kwargs)
 		fields = self.set_fields(table, fields, **kwargs)
