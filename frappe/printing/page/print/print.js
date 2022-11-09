@@ -88,12 +88,14 @@ frappe.ui.form.PrintView = class {
 		this.sidebar = this.page.sidebar.addClass("print-preview-sidebar");
 
 		this.print_sel = this.add_sidebar_item({
-			fieldtype: "Select",
+			fieldtype: "Link",
 			fieldname: "print_format",
-			label: "Print Format",
-			options: [this.get_default_option_for_select(__("Select Print Format"))],
+			options: "Print Format",
+			placeholder: __("Print Format"),
+			get_query: () => {
+				return { filters: { doc_type: this.frm.doctype } };
+			},
 			change: () => this.refresh_print_format(),
-			default: __("Select Print Format"),
 		}).$input;
 
 		this.language_sel = this.add_sidebar_item({
@@ -140,14 +142,6 @@ frappe.ui.form.PrintView = class {
 		}
 
 		return field;
-	}
-
-	get_default_option_for_select(value) {
-		return {
-			label: value,
-			value: value,
-			disabled: true,
-		};
 	}
 
 	setup_menu() {
@@ -736,12 +730,8 @@ frappe.ui.form.PrintView = class {
 	refresh_print_options() {
 		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
 		const print_format_select_val = this.print_sel.val();
-		this.print_sel
-			.empty()
-			.add_options([
-				this.get_default_option_for_select(__("Select Print Format")),
-				...this.print_formats,
-			]);
+		this.print_sel.empty();
+
 		return (
 			this.print_formats.includes(print_format_select_val) &&
 			this.print_sel.val(print_format_select_val)
