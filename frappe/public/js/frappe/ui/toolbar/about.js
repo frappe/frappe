@@ -19,6 +19,8 @@ frappe.ui.misc.about = function () {
 						Facebook: <a href='https://facebook.com/erpnext' target='_blank'>https://facebook.com/erpnext</a></p>
 					<p><i class='fa fa-twitter fa-fw'></i>
 						Twitter: <a href='https://twitter.com/erpnext' target='_blank'>https://twitter.com/erpnext</a></p>
+					<p><i class='fa fa-youtube fa-fw'></i>
+						YouTube: <a href='https://www.youtube.com/@erpnextofficial' target='_blank'>https://www.youtube.com/@erpnextofficial</a></p>
 					<hr>
 					<h4>${__("Installed Apps")}</h4>
 					<div id='about-app-versions'>${__("Loading versions...")}</div>
