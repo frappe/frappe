@@ -7,7 +7,6 @@ import random
 import re
 import string
 import traceback
-import warnings
 from contextlib import contextmanager, suppress
 from time import time
 
@@ -31,6 +30,7 @@ from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils.deprecations import deprecated, deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -275,18 +275,9 @@ class Database:
 			return [r[0] for r in self.last_result]
 
 		if as_utf8:
-			warnings.warn(
-				"as_utf8 parameter is deprecated and will be removed in version 15.",
-				DeprecationWarning,
-				stacklevel=2,
-			)
-
+			deprecation_warning("as_utf8 parameter is deprecated and will be removed in version 15.")
 		if formatted:
-			warnings.warn(
-				"formatted parameter is deprecated and will be removed in version 15.",
-				DeprecationWarning,
-				stacklevel=2,
-			)
+			deprecation_warning("formatted parameter is deprecated and will be removed in version 15.")
 
 		# scrub output if required
 		if as_dict:
@@ -858,6 +849,7 @@ class Database:
 			).run(debug=debug, run=run, as_dict=as_dict)
 		return {}
 
+	@deprecated
 	def update(self, *args, **kwargs):
 		"""Update multiple values. Alias for `set_value`."""
 		return self.set_value(*args, **kwargs)
@@ -897,6 +889,9 @@ class Database:
 			modified_by = modified_by or frappe.session.user
 			to_update.update({"modified": modified, "modified_by": modified_by})
 
+		if for_update:
+			deprecation_warning("for_update parameter is deprecated and will be removed in v15.")
+
 		if is_single_doctype:
 			frappe.db.delete(
 				"Singles", filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
@@ -927,11 +922,13 @@ class Database:
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
+	@deprecated
 	@staticmethod
 	def set(doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
 
+	@deprecated
 	def touch(self, doctype, docname):
 		"""Update the modified timestamp of this document."""
 		modified = now()
@@ -1254,6 +1251,7 @@ class Database:
 		"""
 		return self.sql_ddl(f"truncate `{get_table_name(doctype)}`")
 
+	@deprecated
 	def clear_table(self, doctype):
 		return self.truncate(doctype)
 
