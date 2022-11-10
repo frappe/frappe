@@ -146,7 +146,18 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
+<<<<<<< HEAD
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=self.flags.for_update)
+=======
+			get_value_kwargs = {"for_update": self.flags.for_update, "as_dict": True}
+			if not isinstance(self.name, (dict, list)):
+				get_value_kwargs["order_by"] = None
+
+			d = frappe.db.get_value(
+				doctype=self.doctype, filters=self.name, fieldname="*", **get_value_kwargs
+			)
+
+>>>>>>> 9ad0538521 (perf(doc): skip order_by when name is set in load_from_db (#18837))
 			if not d:
 				frappe.throw(
 					_("{0} {1} not found").format(_(self.doctype), self.name),
