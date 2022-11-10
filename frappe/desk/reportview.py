@@ -3,7 +3,6 @@
 
 """build query for doclistview and return results"""
 
-import copy
 import json
 from io import StringIO
 
@@ -90,10 +89,9 @@ def validate_args(data):
 
 
 def validate_fields(data):
-	data_fields = copy.copy(data.fields)
 	wildcard = update_wildcard_field_param(data)
 
-	for field in data_fields or []:
+	for field in list(data.fields or []):
 		fieldname = extract_fieldname(field)
 		if is_standard(fieldname):
 			continue
