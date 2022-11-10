@@ -333,6 +333,30 @@ class TestWebsite(FrappeTestCase):
 			frappe.render_template(content, context), '<a class="btn btn-default btn-primary">Test</a>'
 		)
 
+	def test_app_include(self):
+		from frappe import hooks
+
+		frappe.conf.update({"developer_mode": 1})
+		frappe.set_user("Administrator")
+		hooks.app_include_js.append("test_app_include.js")
+		hooks.app_include_css.append("test_app_include.css")
+		frappe.conf.update({"app_include_js": ["test_app_include_via_site_config.js"]})
+		frappe.conf.update({"app_include_css": ["test_app_include_via_site_config.css"]})
+
+		set_request(method="GET", path="/app")
+		content = get_response_content("/app")
+		self.assertIn('<script type="text/javascript" src="/test_app_include.js"></script>', content)
+		self.assertIn(
+			'<script type="text/javascript" src="/test_app_include_via_site_config.js"></script>', content
+		)
+		self.assertIn('<link type="text/css" rel="stylesheet" href="/test_app_include.css">', content)
+		self.assertIn(
+			'<link type="text/css" rel="stylesheet" href="/test_app_include_via_site_config.css">', content
+		)
+		frappe.conf.update({"developer_mode": 0})
+		frappe.local.request = None
+		frappe.set_user("Guest")
+
 
 def set_home_page_hook(key, value):
 	from frappe import hooks
