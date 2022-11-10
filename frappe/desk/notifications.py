@@ -150,8 +150,6 @@ def clear_notifications(user=None):
 		else:
 			cache.delete_key("notification_count:" + name)
 
-	frappe.publish_realtime("clear_notifications")
-
 
 def clear_notification_config(user):
 	frappe.cache().hdel("notification_config", user)
@@ -159,7 +157,6 @@ def clear_notification_config(user):
 
 def delete_notification_count_for(doctype):
 	frappe.cache().delete_key("notification_count:" + doctype)
-	frappe.publish_realtime("clear_notifications")
 
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
