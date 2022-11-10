@@ -316,13 +316,22 @@ frappe.ui.Page = Class.extend({
 
 	//--- Menu --//
 
+<<<<<<< HEAD
 	add_menu_item: function(label, click, standard, shortcut) {
+=======
+	add_menu_item(label, click, standard, shortcut, show_parent) {
+>>>>>>> faab012022 (fix: page has an empty menu button)
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			parent: this.menu,
+<<<<<<< HEAD
 			shortcut
+=======
+			shortcut,
+			show_parent,
+>>>>>>> faab012022 (fix: page has an empty menu button)
 		});
 	},
 
@@ -406,7 +415,7 @@ frappe.ui.Page = Class.extend({
 	*/
 	add_dropdown_item: function({label, click, standard, parent, shortcut, show_parent=true, icon=null}) {
 		if (show_parent) {
-			parent.parent().removeClass("hide");
+			parent.parent().removeClass("hide hidden-xl");
 		}
 
 		let $link = this.is_in_group_button_dropdown(parent, 'li > a.grey-link > span', label);
@@ -576,8 +585,11 @@ frappe.ui.Page = Class.extend({
 		};
 		// Add actions as menu item in Mobile View
 		let menu_item_label = group ? `${group} > ${label}` : label;
-		let menu_item = this.add_menu_item(menu_item_label, _action, false);
+		let menu_item = this.add_menu_item(menu_item_label, _action, false, false, false);
 		menu_item.parent().addClass("hidden-xl");
+		if (this.menu_btn_group.hasClass("hide")) {
+			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
+		}
 
 		if (group) {
 			var $group = this.get_or_add_inner_group_button(group);
