@@ -451,7 +451,7 @@ def create_test_user():
 
 @frappe.whitelist()
 def setup_tree_doctype():
-	frappe.delete_doc_if_exists("DocType", "Custom Tree")
+	frappe.delete_doc_if_exists("DocType", "Custom Tree", force=True)
 
 	frappe.get_doc(
 		{
@@ -475,7 +475,7 @@ def setup_tree_doctype():
 
 @frappe.whitelist()
 def setup_image_doctype():
-	frappe.delete_doc_if_exists("DocType", "Custom Image")
+	frappe.delete_doc_if_exists("DocType", "Custom Image", force=True)
 
 	frappe.get_doc(
 		{

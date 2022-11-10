@@ -59,7 +59,6 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: ['flake8-bugbear',]
-        args: ['--config', '.github/helper/flake8.conf']
 
 ci:
     autoupdate_schedule: weekly
