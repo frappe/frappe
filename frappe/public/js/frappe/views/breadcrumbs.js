@@ -29,7 +29,7 @@ frappe.breadcrumbs = {
 		return localStorage["preferred_breadcrumbs:" + doctype];
 	},
 
-	add(module, doctype, type) {
+	async add(module, doctype, type) {
 		let obj;
 		if (typeof module === "object") {
 			obj = module;
@@ -40,6 +40,7 @@ frappe.breadcrumbs = {
 				type: type,
 			};
 		}
+		await frappe.model.with_doctype(doctype);
 		this.all[frappe.breadcrumbs.current_page()] = obj;
 		this.update();
 	},
@@ -131,9 +132,8 @@ frappe.breadcrumbs = {
 		}
 	},
 
-	async set_list_breadcrumb(breadcrumbs) {
+	set_list_breadcrumb(breadcrumbs) {
 		const doctype = breadcrumbs.doctype;
-		await frappe.model.with_doctype(doctype);
 		const doctype_meta = frappe.get_doc("DocType", doctype);
 		if (
 			(doctype === "User" && !frappe.user.has_role("System Manager")) ||
@@ -185,11 +185,12 @@ frappe.breadcrumbs = {
 		}
 	},
 
-	rename(doctype, old_name, new_name) {
+	async rename(doctype, old_name, new_name) {
 		var old_route_str = ["Form", doctype, old_name].join("/");
 		var new_route_str = ["Form", doctype, new_name].join("/");
 		this.all[new_route_str] = this.all[old_route_str];
 		delete frappe.breadcrumbs.all[old_route_str];
+		await frappe.model.with_doctype(doctype);
 		this.update();
 	},
 
