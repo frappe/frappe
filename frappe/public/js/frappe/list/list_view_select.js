@@ -314,24 +314,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		let accounts = frappe.boot.email_accounts;
 		accounts.forEach((account) => {
 			let email_account =
-<<<<<<< HEAD
 				account.email_id == "All Accounts" ? "All Accounts" : account.email_account;
-			let route = `/app/communication/inbox/${email_account}`;
+			let route = `/app/communication/view/inbox/${email_account}`;
 			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(
 				account.email_id
 			)
-=======
-				account.email_id == "All Accounts"
-					? "All Accounts"
-					: account.email_account;
-			let route = `/app/communication/view/inbox/${email_account}`;
-			let display_name = [
-				"All Accounts",
-				"Sent Mail",
-				"Spam",
-				"Trash"
-			].includes(account.email_id)
->>>>>>> cd7bafa072 (fix : correct inbox view route (#18807))
 				? __(account.email_id)
 				: account.email_account;
 
