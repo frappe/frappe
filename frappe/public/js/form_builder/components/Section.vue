@@ -4,7 +4,7 @@ import Column from "./Column.vue";
 import EditableInput from "./EditableInput.vue";
 import { ref } from "vue";
 import { useStore } from "../store";
-import { section_boilerplate } from "../utils";
+import { section_boilerplate, move_children_to_parent } from "../utils";
 
 let props = defineProps(["tab", "section"]);
 let store = useStore();
@@ -56,6 +56,13 @@ function select_section() {
 	}
 	store.selected_field = props.section.df;
 }
+
+function move_sections_to_tab() {
+	let new_tab = move_children_to_parent(props, "tab", "section", store.layout);
+
+	// activate tab
+	store.active_tab = new_tab;
+}
 </script>
 
 <template>
@@ -92,6 +99,14 @@ function select_section() {
 					></div>
 				</div>
 				<div class="section-actions" :hidden="store.read_only">
+					<button
+						v-if="tab.sections.indexOf(section)"
+						class="btn btn-xs btn-section"
+						:title="__('Move the current section and the following sections to a new tab')"
+						@click="move_sections_to_tab"
+					>
+						<div :style="{ strokeWidth: 0.6 }" v-html="frappe.utils.icon('arrow-up-right', 'sm')"></div>
+					</button>
 					<button
 						class="btn btn-xs btn-section"
 						:title="__('Add section above')"

@@ -179,3 +179,29 @@ export function section_boilerplate() {
 		],
 	};
 }
+
+export function move_children_to_parent(props, parent, child, current_container) {
+	let store = useStore();
+
+	let children = props[parent][child + "s"];
+	let index = children.indexOf(props[child]);
+
+	if (index > 0) {
+		const name = parent.charAt(0).toUpperCase() + parent.slice(1);
+		// move current children and children after that to a new column
+		let new_parent = {
+			df: store.get_df(name + " Break"),
+			[child + "s"]: children.splice(index),
+		};
+
+		// add new parent after current parent
+		let parents = current_container[parent + "s"];
+		let parent_index = parents.indexOf(props[parent]);
+		parents.splice(parent_index + 1, 0, new_parent);
+
+		// remove current child and after that
+		children.splice(index + 1);
+
+		return new_parent.df.name;
+	}
+}

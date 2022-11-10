@@ -3,6 +3,7 @@ import draggable from "vuedraggable";
 import Field from "./Field.vue";
 import { ref } from "vue";
 import { useStore } from "../store";
+import { move_children_to_parent } from "../utils";
 
 let props = defineProps(["section", "column"]);
 let store = useStore();
@@ -55,6 +56,10 @@ function remove_column() {
 	// remove column
 	columns.splice(index, 1);
 }
+
+function move_columns_to_section() {
+	move_children_to_parent(props, "section", "column", store.current_tab);
+}
 </script>
 
 <template>
@@ -70,6 +75,14 @@ function remove_column() {
 		@mouseout.stop="hovered = false"
 	>
 		<div class="column-actions" :hidden="store.read_only">
+			<button
+				v-if="section.columns.indexOf(column)"
+				class="btn btn-xs btn-icon"
+				:title="__('Move the current column & the following columns to a new section')"
+				@click="move_columns_to_section"
+			>
+				<div :style="{ strokeWidth: 0.6 }" v-html="frappe.utils.icon('arrow-up-right', 'sm')"></div>
+			</button>
 			<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
 				<div v-html="frappe.utils.icon('add', 'sm')"></div>
 			</button>

@@ -1,6 +1,7 @@
 <script setup>
-import { watch, ref, nextTick } from "vue";
+import { ref, nextTick } from "vue";
 import { useStore } from "../store";
+import { move_children_to_parent } from "../utils";
 
 let props = defineProps(["column", "field"]);
 let store = useStore();
@@ -19,11 +20,18 @@ function remove_field() {
 }
 
 function select_field() {
-	if(!store.read_only) {
+	if (!store.read_only) {
 		editing.value = true;
 		nextTick(() => label_input.value.focus());
 	}
 	store.selected_field = props.field.df;
+}
+
+function move_fields_to_column() {
+	let current_section = store.current_tab.sections.find(section =>
+		section.columns.find(column => column == props.column)
+	);
+	move_children_to_parent(props, "column", "field", current_section);
 }
 </script>
 
@@ -62,6 +70,17 @@ function select_field() {
 					@click="edit_html"
 				>
 					<div v-html="frappe.utils.icon('edit', 'sm')"></div>
+				</button>
+				<button
+					v-if="column.fields.indexOf(field)"
+					class="btn btn-xs btn-icon"
+					:title="__('Move the current field and the following fields to a new column')"
+					@click="move_fields_to_column"
+				>
+					<div
+						:style="{ strokeWidth: 0.6 }"
+						v-html="frappe.utils.icon('arrow-up-right', 'sm')"
+					></div>
 				</button>
 				<button class="btn btn-xs btn-icon" @click="remove_field">
 					<div v-html="frappe.utils.icon('close', 'sm')"></div>

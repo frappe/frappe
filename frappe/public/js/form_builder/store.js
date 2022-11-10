@@ -53,6 +53,9 @@ export const useStore = defineStore("form-builder-store", {
 				});
 			};
 		},
+		current_tab: (state) => {
+			return state.layout.tabs.find((tab) => tab.df.name == state.active_tab);
+		},
 	},
 	actions: {
 		async fetch() {
