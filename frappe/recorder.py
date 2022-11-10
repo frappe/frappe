@@ -110,7 +110,9 @@ class Recorder:
 		}
 		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(
-			event="recorder-dump-event", message=json.dumps(request_data, default=str)
+			event="recorder-dump-event",
+			message=json.dumps(request_data, default=str),
+			user="Administrator",
 		)
 
 		self.mark_duplicates()
