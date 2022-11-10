@@ -18,7 +18,9 @@ function add_section_above() {
 }
 
 function is_section_empty() {
-	return !props.section.columns.some(column => column.fields.length);
+	return !props.section.columns.some(
+		column => (store.is_customize_form && !column.df.is_custom_field) || column.fields.length
+	);
 }
 
 function remove_section() {
