@@ -316,22 +316,14 @@ frappe.ui.Page = Class.extend({
 
 	//--- Menu --//
 
-<<<<<<< HEAD
-	add_menu_item: function(label, click, standard, shortcut) {
-=======
-	add_menu_item(label, click, standard, shortcut, show_parent) {
->>>>>>> faab012022 (fix: page has an empty menu button)
+	add_menu_item: function(label, click, standard, shortcut, show_parent) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			parent: this.menu,
-<<<<<<< HEAD
-			shortcut
-=======
 			shortcut,
 			show_parent,
->>>>>>> faab012022 (fix: page has an empty menu button)
 		});
 	},
 
