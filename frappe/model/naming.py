@@ -277,7 +277,7 @@ def make_autoname(key="", doctype="", doc=""):
 	                DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
 	if key == "hash":
-		return frappe.generate_hash(doctype, 10)
+		return frappe.generate_hash(length=10)
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc)
