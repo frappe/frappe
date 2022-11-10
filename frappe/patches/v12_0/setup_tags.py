@@ -28,7 +28,7 @@ def execute():
 
 				tag_list.append((tag.strip(), time, time, "Administrator"))
 
-				tag_link_name = frappe.generate_hash(_user_tags.name + tag.strip() + doctype.name, 10)
+				tag_link_name = frappe.generate_hash(length=10)
 				tag_links.append(
 					(tag_link_name, doctype.name, _user_tags.name, tag.strip(), time, time, "Administrator")
 				)

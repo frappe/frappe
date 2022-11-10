@@ -1018,10 +1018,13 @@ def get_precision(
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
 
-def generate_hash(txt: str | None = None, length: int | None = 56) -> str:
+def generate_hash(txt: str | None = None, length: int = 56) -> str:
 	"""Generate random hash using best available randomness source."""
 	import math
 	import secrets
+
+	if not length:
+		length = 56
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
 
