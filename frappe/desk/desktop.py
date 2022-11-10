@@ -616,9 +616,10 @@ def reset_customization(page: str) -> None:
 	if not isinstance(page, str):
 		raise TypeError("page must be a string")
 
-	if workspace_name := frappe.db.get_value(
+	workspace_name = frappe.db.get_value(
 		"Workspace", {"extends": page, "for_user": frappe.session.user}
-	):
+	)
+	if workspace_name:
 		frappe.delete_doc("Workspace", workspace_name, ignore_permissions=True)
 
 
