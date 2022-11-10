@@ -14,8 +14,8 @@ function add_column() {
 	// insert new column after the current column
 	let index = props.section.columns.indexOf(props.column);
 	props.section.columns.splice(index + 1, 0, {
-		df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
-		fields: []
+		df: store.get_df("Column Break"),
+		fields: [],
 	});
 }
 
@@ -36,9 +36,9 @@ function remove_column() {
 		if (props.column.fields.length != 0) {
 			// create a new column if current column has fields and push fields to it
 			columns.unshift({
-				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				df: store.get_df("Column Break"),
 				fields: props.column.fields,
-				is_first: true
+				is_first: true,
 			});
 			index++;
 		} else {

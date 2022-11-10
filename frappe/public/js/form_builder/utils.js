@@ -51,8 +51,7 @@ export function create_layout(fields) {
 
 	function get_new_column(df) {
 		let _column = {};
-		_column.df =
-			df || store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4));
+		_column.df = df || store.get_df("Column Break");
 		_column.fields = [];
 		_column.is_first = !df;
 		return _column;
@@ -169,11 +168,11 @@ export function section_boilerplate() {
 		df: store.get_df("Section Break"),
 		columns: [
 			{
-				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				df: store.get_df("Column Break"),
 				fields: [],
 			},
 			{
-				df: store.get_df("Column Break", "column_break_" + frappe.utils.get_random(4)),
+				df: store.get_df("Column Break"),
 				fields: [],
 			},
 		],
