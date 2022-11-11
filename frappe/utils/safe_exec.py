@@ -269,12 +269,15 @@ def call_with_form_dict(function, kwargs):
 
 @contextmanager
 def patched_qb():
+	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
 	try:
-		_terms = frappe.qb.terms
-		frappe.qb.terms = _flatten(frappe.qb.terms)
+		if require_patching:
+			_terms = frappe.qb.terms
+			frappe.qb.terms = _flatten(frappe.qb.terms)
 		yield
 	finally:
-		frappe.qb.terms = _terms
+		if require_patching:
+			frappe.qb.terms = _terms
 
 
 @lru_cache
