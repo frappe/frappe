@@ -1,4 +1,5 @@
 <script setup>
+import EditableInput from "./EditableInput.vue";
 import { ref, nextTick } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent } from "../utils";
@@ -6,8 +7,6 @@ import { move_children_to_parent } from "../utils";
 let props = defineProps(["column", "field"]);
 let store = useStore();
 
-let label_input = ref(null);
-let editing = ref(false);
 let hovered = ref(false);
 
 function remove_field() {
@@ -17,14 +16,6 @@ function remove_field() {
 	}
 	let index = props.column.fields.indexOf(props.field);
 	props.column.fields.splice(index, 1);
-}
-
-function select_field() {
-	if (!store.read_only) {
-		editing.value = true;
-		nextTick(() => label_input.value.focus());
-	}
-	store.selected_field = props.field.df;
 }
 
 function move_fields_to_column() {
@@ -43,26 +34,18 @@ function move_fields_to_column() {
 			store.selected(field.df.name) ? 'selected' : ''
 		]"
 		:title="field.df.fieldname"
-		@click.stop="select_field"
+		@click.stop="store.selected_field = field.df;"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
 		<div class="field-controls">
-			<div :class="{ 'reqd': field.df.reqd }">
-				<input
-					v-if="editing"
-					ref="label_input"
-					class="label-input"
-					:disabled="store.read_only"
-					type="text"
-					:placeholder="__('Label')"
-					v-model="field.df.label"
-					@keydown.enter="editing = false"
-					@blur="editing = false"
-				/>
-				<span v-else-if="field.df.label">{{ field.df.label }}</span>
-				<i class="text-muted" v-else> {{ __("No Label") }} ({{ field.df.fieldtype }}) </i>
-			</div>
+			<EditableInput
+				:class="{ 'reqd': field.df.reqd }"
+				:text="field.df.label"
+				:placeholder="__('Label')"
+				:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
+				v-model="field.df.label"
+			/>
 			<div class="field-actions" :hidden="store.read_only">
 				<button
 					v-if="field.df.fieldtype == 'HTML'"

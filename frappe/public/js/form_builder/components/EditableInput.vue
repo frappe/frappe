@@ -9,7 +9,10 @@ let props = defineProps({
 	},
 	placeholder: {
 		default: __("No Label")
-	}
+	},
+	empty_label: {
+		default: __("No Label")
+	},
 });
 
 let editing = ref(false);
@@ -52,7 +55,7 @@ function focus_on_label() {
 		/>
 		<span v-else-if="text">{{ text }}</span>
 		<i v-else class="text-muted">
-			{{ __("No Label") }}
+			{{ empty_label }}
 		</i>
 		<span class="hidden-span" ref="hidden_text">{{ text }}</span>
 		<span class="hidden-span" ref="hidden_placeholder">{{ placeholder }}</span>
