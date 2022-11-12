@@ -48,7 +48,7 @@ function move_fields_to_column() {
 		@mouseout.stop="hovered = false"
 	>
 		<div class="field-controls">
-			<div>
+			<div :class="{ 'reqd': field.df.reqd }">
 				<input
 					v-if="editing"
 					ref="label_input"
@@ -132,6 +132,11 @@ function move_fields_to_column() {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+
+		.reqd::after {
+			content: " *";
+			color: var(--red-400);
+		}
 
 		.label-input {
 			background-color: transparent;
