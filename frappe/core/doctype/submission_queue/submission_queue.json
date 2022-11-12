@@ -38,7 +38,8 @@
    "in_list_view": 1,
    "label": "Reference Docname",
    "options": "ref_doctype",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "status",
@@ -86,7 +87,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-11-09 01:01:27.185383",
+ "modified": "2022-11-12 16:48:37.797232",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
