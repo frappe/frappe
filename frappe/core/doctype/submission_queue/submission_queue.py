@@ -70,6 +70,9 @@ class SubmissionQueue(Document):
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
 		# Set the job id for that submission doctype
 		self.update_job_id(get_current_job().id)
+		import time
+
+		time.sleep(10)
 
 		_action = action_for_queuing.lower()
 		if _action == "update":
@@ -133,18 +136,13 @@ class SubmissionQueue(Document):
 		"""
 		Only execute if self.job_id is defined.
 		"""
-		exc = None
 		try:
 			job = Job.fetch(self.job_id, connection=get_redis_conn())
 			status = job.get_status(refresh=True)
 			exc = job.exc_info
 		except NoSuchJobError:
-			# Document is submitted.
-			if self.queued_doc.docstatus == 1:
-				status = "finished"
-			# Document is not submitted and job doesn't exist.
-			else:
-				status = "failed"
+			exc = None
+			status = "failed"
 
 		if status in ("queued", "started"):
 			frappe.msgprint(_("Document in queue for execution!"))
