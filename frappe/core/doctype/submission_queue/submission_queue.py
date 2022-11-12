@@ -188,5 +188,5 @@ def get_latest_submissions(doctype, docname):
 	filters = {"ref_doctype": doctype, "ref_docname": docname}
 	return {
 		"latest_submission": frappe.db.get_value(dt, filters),
-		"latest_failed_submission": frappe.db.get_value(dt, filters.update({"status": "Failed"})),
+		"latest_failed_submission": frappe.db.get_value(dt, filters | {"status": "Failed"}),
 	}
