@@ -135,6 +135,10 @@ class SubmissionQueue(Document):
 
 		if status in ("queued", "started"):
 			frappe.msgprint(_("Document in queue for execution!"))
+		elif status == "finished":
+			self.queued_doc.unlock()
+			frappe.db.set_value(self.doctype, self.name, {"status": "Finished"}, update_modified=False)
+			frappe.msgprint(_("Document Unlocked"))
 		else:
 			self.queued_doc.unlock()
 			values = {"status": "Failed", "exception": job.exc_info}
