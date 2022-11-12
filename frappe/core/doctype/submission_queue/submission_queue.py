@@ -47,6 +47,15 @@ class SubmissionQueue(Document):
 	def unlock(self):
 		self.queued_doc.unlock()
 
+	def update_job_id(self, id):
+		frappe.db.set_value(
+			self.doctype,
+			self.name,
+			{"job_id": id},
+			update_modified=False,
+		)
+		frappe.db.commit()
+
 	def after_insert(self):
 		self.queue_action(
 			"background_submission",
@@ -58,14 +67,8 @@ class SubmissionQueue(Document):
 
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
 		current_job = get_current_job()
-
 		# Set the job id for that submission doctype
-		frappe.db.set_value(
-			self.doctype,
-			self.name,
-			{"job_id": current_job.id},
-			update_modified=False,
-		)
+		self.update_job_id(current_job.id)
 		_action = action_for_queuing.lower()
 		if _action == "update":
 			_action = "submit"
@@ -107,8 +110,7 @@ class SubmissionQueue(Document):
 				"msgprint",
 				{
 					"message": message
-					+ f". View it <a href='/app/{doctype.lower().replace(' ', '-')}/{docname}'><b>here</b></a>"
-					+ f". Execution time {round(float(time_diff), 2)} seconds",
+					+ f". View it <a href='/app/{doctype.lower().replace(' ', '-')}/{docname}'><b>here</b></a>",
 					"alert": True,
 					"indicator": "red" if submission_status == "Failed" else "green",
 				},
@@ -128,8 +130,13 @@ class SubmissionQueue(Document):
 	def _unlock_reference_doc(self):
 		job_id = frappe.db.get_value(self.doctype, self.name, "job_id")
 		if not job_id:
-			# assuming the job failed here (?)
+			# Assuming the job failed here (?)
+			# Or could be in Queue also since we are setting the job id during job.perform()
+			# No way to tell
 			status = "failed"
+		else:
+			status = Job.fetch(job_id, connection=get_redis_conn()).get_status(refresh=True)
+
 		queued_doc = self.queued_doc
 
 		# Job finished successfully however action was never completed (?)
