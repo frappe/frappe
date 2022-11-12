@@ -247,7 +247,6 @@ class Session:
 		if self.user == "Guest":
 			sid = "Guest"
 			guest_id = frappe.generate_hash(length=8)
-			print('hello', guest_id)
 			frappe.local.cookie_manager.set_cookie("guest_id", guest_id)
 		else:
 			sid = frappe.generate_hash()
