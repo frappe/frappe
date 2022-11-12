@@ -19,11 +19,7 @@ def savedocs(doc, action):
 	# action
 	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 	if doc.docstatus == 1:
-		if (
-			action == "Submit"
-			and doc.meta.queue_in_background
-			and not is_scheduler_inactive()
-		):
+		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, action)
 			return
 		doc.submit()

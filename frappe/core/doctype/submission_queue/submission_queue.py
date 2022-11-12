@@ -70,10 +70,6 @@ class SubmissionQueue(Document):
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
 		# Set the job id for that submission doctype
 		self.update_job_id(get_current_job().id)
-		import time
-
-		time.sleep(10)
-
 		_action = action_for_queuing.lower()
 		if _action == "update":
 			_action = "submit"

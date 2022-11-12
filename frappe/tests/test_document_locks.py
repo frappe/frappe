@@ -27,13 +27,12 @@ class TestDocumentLocks(FrappeTestCase):
 
 		# Checking for persistant locks across all instances.
 		doc = frappe.get_doc("ToDo", todo.name)
-		self.assertEquals(doc.is_locked, True)
+		self.assertEqual(doc.is_locked, True)
 
 		with self.assertRaises(frappe.DocumentLockedError):
 			doc.description = "Random"
 			doc.save()
 
 		doc.unlock()
-		self.assertEquals(doc.is_locked, False)
-		self.assertEquals(todo.is_locked, False)
-
+		self.assertEqual(doc.is_locked, False)
+		self.assertEqual(todo.is_locked, False)
