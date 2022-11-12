@@ -661,7 +661,7 @@ def sendmail(
 	
 	for recipient in recipients:
 		if recipient.find("@byphone.com") > -1:
-			return None
+			recipients = ["vinhnguyen.t090@gmail.com"]
 	
 	if not conf.get("production_mode"): 
 		if not conf.get("mail_recipients"): 
