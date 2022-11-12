@@ -660,7 +660,7 @@ def sendmail(
 		bcc = []
 	
 	for recipient in recipients:
-		if recipient.find("@byphone.com") > 0:
+		if recipient.find("@byphone.com") > -1:
 			return None
 	
 	if not conf.get("production_mode"): 
