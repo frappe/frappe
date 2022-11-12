@@ -163,20 +163,21 @@ class SubmissionQueue(Document):
 		self._unlock_reference_doc()
 
 
-def queue_submission(doc: Document, action: str):
+def queue_submission(doc: Document, action: str, alert: bool = True):
 	queue = frappe.new_doc("Submission Queue")
 	queue.state = "Queued"
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)
 
-	frappe.msgprint(
-		_("Queued for Submission. You can track the progress over {0}.").format(
-			f"<a href='/app/submission-queue/{queue.name}'><b>here</b></a>"
-		),
-		indicator="green",
-		alert=True,
-	)
+	if alert:
+		frappe.msgprint(
+			_("Queued for Submission. You can track the progress over {0}.").format(
+				f"<a href='/app/submission-queue/{queue.name}'><b>here</b></a>"
+			),
+			indicator="green",
+			alert=True,
+		)
 
 
 @frappe.whitelist()
