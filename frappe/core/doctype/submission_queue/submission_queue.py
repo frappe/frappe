@@ -1,6 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from urllib.parse import quote
+
 from rq import get_current_job
 from rq.exceptions import NoSuchJobError
 from rq.job import Job
@@ -110,7 +112,7 @@ class SubmissionQueue(Document):
 				"msgprint",
 				{
 					"message": message
-					+ f". View it <a href='/app/{doctype.lower().replace(' ', '-')}/{docname}'><b>here</b></a>",
+					+ f". View it <a href='/app/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
 					"alert": True,
 					"indicator": "red" if submission_status == "Failed" else "green",
 				},
