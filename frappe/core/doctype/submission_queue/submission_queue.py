@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 from rq import get_current_job
+from rq.exceptions import NoSuchJobError
 from rq.job import Job
 
 import frappe
@@ -46,11 +47,11 @@ class SubmissionQueue(Document):
 	def unlock(self):
 		self.queued_doc.unlock()
 
-	def update_job_id(self, id):
+	def update_job_id(self, job_id):
 		frappe.db.set_value(
 			self.doctype,
 			self.name,
-			{"job_id": id},
+			{"job_id": job_id},
 			update_modified=False,
 		)
 		frappe.db.commit()
@@ -65,9 +66,9 @@ class SubmissionQueue(Document):
 		)
 
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
-		current_job = get_current_job()
 		# Set the job id for that submission doctype
-		self.update_job_id(current_job.id)
+		self.update_job_id(get_current_job().id)
+
 		_action = action_for_queuing.lower()
 		if _action == "update":
 			_action = "submit"
@@ -130,21 +131,25 @@ class SubmissionQueue(Document):
 		"""
 		Only execute if self.job_id is defined.
 		"""
-		job = Job.fetch(self.job_id, connection=get_redis_conn())
-		status = job.get_status(refresh=True)
+		try:
+			job = Job.fetch(self.job_id, connection=get_redis_conn())
+			status = job.get_status(refresh=True)
+		except NoSuchJobError:
+			# assuming job failed over here (?)
+			status = "failed"
 
 		if status in ("queued", "started"):
 			frappe.msgprint(_("Document in queue for execution!"))
-		elif status == "finished":
-			self.queued_doc.unlock()
-			frappe.db.set_value(self.doctype, self.name, {"status": "Finished"}, update_modified=False)
-			frappe.msgprint(_("Document Unlocked"))
-		else:
-			self.queued_doc.unlock()
-			values = {"status": "Failed", "exception": job.exc_info}
+			return
 
-			frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
-			frappe.msgprint(_("Document Unlocked"))
+		self.queued_doc.unlock()
+		values = (
+			{"status": "Finished"}
+			if status == "finished"
+			else {"status": "Failed", "exception": job.exc_info}
+		)
+		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
+		frappe.msgprint(_("Document Unlocked"))
 
 	@frappe.whitelist()
 	def unlock_doc(self):
@@ -152,7 +157,7 @@ class SubmissionQueue(Document):
 		# for example: hitting unlock on a submission could lead to unlocking of another submission
 		# of the same reference document.
 
-		if (self.status != "Queued") or (not self.job_id):
+		if self.status != "Queued" and not self.job_id:
 			return
 
 		self._unlock_reference_doc()
