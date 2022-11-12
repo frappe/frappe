@@ -670,6 +670,9 @@ class TestDocType(FrappeTestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	def test_no_delete_doc(self):
+		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
+
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_custom_field_deletion(self):
 		"""Custom child tables whose doctype doesn't exist should be auto deleted."""

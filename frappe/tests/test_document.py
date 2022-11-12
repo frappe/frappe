@@ -411,6 +411,19 @@ class TestDocument(FrappeTestCase):
 		todo.save()
 		self.assertEqual(todo.notify_update.call_count, 1)
 
+	def test_error_on_saving_new_doc_with_name(self):
+		"""Trying to save a new doc with name should raise DoesNotExistError"""
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "this should raise frappe.DoesNotExistError",
+				"name": "lets-trick-doc-save",
+			}
+		)
+
+		self.assertRaises(frappe.DoesNotExistError, doc.save)
+
 
 class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):

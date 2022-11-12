@@ -16,15 +16,15 @@ def get_signed_params(params):
 	if not isinstance(params, str):
 		params = urlencode(params)
 
-	signature = hmac.new(params.encode(), digestmod=hashlib.md5)
+	signature = hmac.new(params.encode(), digestmod=hashlib.sha512)
 	signature.update(get_secret().encode())
 	return params + "&_signature=" + signature.hexdigest()
 
 
 def get_secret():
-	return frappe.local.conf.get("secret") or str(
-		frappe.db.get_value("User", "Administrator", "creation")
-	)
+	from frappe.utils.password import get_encryption_key
+
+	return frappe.local.conf.get("secret") or get_encryption_key()
 
 
 def verify_request():
@@ -37,10 +37,10 @@ def verify_request():
 	if signature_string in query_string:
 		params, signature = query_string.split(signature_string)
 
-		given_signature = hmac.new(params.encode("utf-8"), digestmod=hashlib.md5)
+		given_signature = hmac.new(params.encode("utf-8"), digestmod=hashlib.sha512)
 
 		given_signature.update(get_secret().encode())
-		valid_signature = signature == given_signature.hexdigest()
+		valid_signature = hmac.compare_digest(signature, given_signature.hexdigest())
 		valid_method = frappe.request.method == "GET"
 		valid_request_data = not (frappe.request.form or frappe.request.data)
 

@@ -9,6 +9,7 @@ import frappe
 @frappe.whitelist()
 def download_pdf(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -21,6 +22,7 @@ def download_pdf(doctype, name, print_format, letterhead=None):
 
 def get_html(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	return generator.get_html_preview()
 

@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.translate import send_translations
 
 
 @frappe.whitelist()
@@ -30,10 +29,6 @@ def getpage():
 	"""
 	page = frappe.form_dict.get("name")
 	doc = get(page)
-
-	# load translations
-	if frappe.lang != "en":
-		send_translations(frappe.get_lang_dict("page", page))
 
 	frappe.response.docs.append(doc)
 

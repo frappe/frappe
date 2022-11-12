@@ -14,7 +14,6 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions
-from frappe.translate import send_translations
 from frappe.utils import (
 	cint,
 	cstr,
@@ -201,10 +200,6 @@ def get_script(report_name):
 
 	if not script:
 		script = "frappe.query_reports['%s']={}" % report_name
-
-	# load translations
-	if frappe.lang != "en":
-		send_translations(frappe.get_lang_dict("report", report_name))
 
 	return {
 		"script": render_include(script),

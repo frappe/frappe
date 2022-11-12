@@ -86,7 +86,6 @@ def main(
 			frappe.utils.scheduler.disable_scheduler()
 
 		set_test_email_config()
-		frappe.conf.update({"bench_id": "test_bench", "use_rq_auth": False})
 
 		if not frappe.flags.skip_before_tests:
 			if verbose:
