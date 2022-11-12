@@ -397,8 +397,6 @@ frappe.ui.form.Form = class FrappeForm {
 			// set the doc
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
-			if (!this.doc.__islocal) this.setup_reload_listener();
-
 			// check permissions
 			this.fetch_permissions();
 			if (!this.has_read_permission()) {
@@ -1975,19 +1973,6 @@ frappe.ui.form.Form = class FrappeForm {
 				)
 			) {
 				this.timeline && this.timeline.refresh();
-			}
-		});
-	}
-
-	setup_reload_listener() {
-		let doctype = this.doctype;
-		let docname = this.docname;
-		let listener_name = `reload_doc_${doctype}_${docname}`;
-
-		frappe.realtime.off(listener_name);
-		frappe.realtime.on(listener_name, () => {
-			if (frappe.get_route_str() === `Form/${doctype}/${docname}`) {
-				this.reload_doc();
 			}
 		});
 	}
