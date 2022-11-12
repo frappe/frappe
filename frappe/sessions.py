@@ -246,6 +246,9 @@ class Session:
 		# generate sid
 		if self.user == "Guest":
 			sid = "Guest"
+			guest_id = frappe.generate_hash(length=8)
+			print('hello', guest_id)
+			frappe.local.cookie_manager.set_cookie("guest_id", guest_id)
 		else:
 			sid = frappe.generate_hash()
 
@@ -315,6 +318,7 @@ class Session:
 		if self.sid != "Guest":
 			frappe.local.user_lang = frappe.translate.get_user_lang(self.data.user)
 			frappe.local.lang = frappe.local.user_lang
+
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""
