@@ -3,7 +3,6 @@
 
 from rq import get_current_job
 from rq.job import Job
-from rq.registry import FailedJobRegistry
 
 import frappe
 from frappe import _
@@ -11,7 +10,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import now, time_diff_in_seconds
-from frappe.utils.background_jobs import get_queue, get_redis_conn
+from frappe.utils.background_jobs import get_redis_conn
 from frappe.utils.data import cint
 
 
@@ -128,37 +127,17 @@ class SubmissionQueue(Document):
 			enqueue_create_notification([notify_to], notification_doc)
 
 	def _unlock_reference_doc(self):
-		job_id = frappe.db.get_value(self.doctype, self.name, "job_id")
-		if not job_id:
-			# Assuming the job failed here (?)
-			# Or could be in Queue also since we are setting the job id during job.perform()
-			# No way to tell
-			status = "failed"
-		else:
-			status = Job.fetch(job_id, connection=get_redis_conn()).get_status(refresh=True)
+		"""
+		Only execute if self.job_id is defined.
+		"""
+		job = Job.fetch(self.job_id, connection=get_redis_conn())
+		status = job.get_status(refresh=True)
 
-		queued_doc = self.queued_doc
-
-		# Job finished successfully however action was never completed (?)
-		if status == "finished" and queued_doc.docstatus == 0:
-			status = "failed"
-
-		# Checking if job is queue to be executed/executing
 		if status in ("queued", "started"):
 			frappe.msgprint(_("Document in queue for execution!"))
-
-		# Checking any one of the possible termination statuses
-		elif status in ("failed", "canceled", "stopped"):
-			queued_doc.unlock()
-			values = {"status": "Failed"}
-
-			# Defining job exception when unlocking document.
-			registry = FailedJobRegistry(queue=get_queue(qtype="default"))
-			# If job id is None then this job won't exist in the failed registry
-			for jid in registry.get_job_ids():
-				if jid == job_id:
-					job = Job.fetch(job_id, connection=get_redis_conn())
-					values = {"status": "Failed", "exception": job.exc_info}
+		else:
+			self.queued_doc.unlock()
+			values = {"status": "Failed", "exception": job.exc_info}
 
 			frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
 			frappe.msgprint(_("Document Unlocked"))
@@ -169,7 +148,7 @@ class SubmissionQueue(Document):
 		# for example: hitting unlock on a submission could lead to unlocking of another submission
 		# of the same reference document.
 
-		if self.status != "Queued":
+		if (self.status != "Queued") or (not self.job_id):
 			return
 
 		self._unlock_reference_doc()
