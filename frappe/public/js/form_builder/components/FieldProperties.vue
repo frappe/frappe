@@ -10,10 +10,7 @@ let search_text = ref("");
 
 let docfield_df = computed(() => {
 	let fields = store.get_docfields.filter(df => {
-		if (
-			in_list(frappe.model.layout_fields, df.fieldtype) ||
-			df.hidden
-		) {
+		if (in_list(frappe.model.layout_fields, df.fieldtype) || df.hidden) {
 			return false;
 		}
 		if (df.depends_on && !evaluate_depends_on_value(df.depends_on, store.selected_field)) {
@@ -41,16 +38,12 @@ let docfield_df = computed(() => {
 	<div class="control-data">
 		<div v-if="store.selected_field">
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
-				<div class="label">{{ df.label }}</div>
-				<div class="input">
-					<input
-						class="mb-2 form-control form-control-sm"
-						type="text"
-						v-model="store.selected_field[df.fieldname]"
-						:disabled="store.read_only || df.read_only"
-					/>
-				</div>
-				<div class="description" v-if="df.description">{{ df.description }}</div>
+				<component
+					:is="df.fieldtype.replace(' ', '') + 'Control'"
+					:df="df"
+					:value="store.selected_field[df.fieldname]"
+					v-model="store.selected_field[df.fieldname]"
+				/>
 			</div>
 		</div>
 	</div>
@@ -66,15 +59,6 @@ let docfield_df = computed(() => {
 		margin: 5px;
 		margin-top: 0;
 		margin-bottom: 1rem;
-
-		.label {
-			margin-bottom: 0.3rem;
-		}
-		.description {
-			font-size: var(--text-sm);
-			color: var(--text-muted);
-		}
 	}
 }
-
 </style>

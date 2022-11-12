@@ -96,9 +96,7 @@ function move_columns_to_section() {
 		</div>
 		<draggable
 			class="column-container"
-			:style="{
-				backgroundColor: column.fields.length ? null : 'var(--gray-50)'
-			}"
+			:style="{ backgroundColor: column.fields.length ? '' : 'var(--gray-50)' }"
 			v-model="column.fields"
 			group="fields"
 			filter="[data-is-custom='0']"

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, computed, onMounted } from "vue";
+import { ref, nextTick, computed } from "vue";
 import { useStore } from "../store";
 let store = useStore();
 

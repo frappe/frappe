@@ -38,6 +38,14 @@ let fields = computed(() => {
 	return [...fields];
 });
 
+function on_drag_start(evt) {
+	$(evt.item).html('<div class="drag-it-here"></div>');
+}
+
+function on_drag_end(evt) {
+	let old_html = evt.clone.innerHTML;
+	$(evt.item).html(old_html);
+}
 </script>
 
 <template>
@@ -49,6 +57,9 @@ let fields = computed(() => {
 		:sort="false"
 		:clone="clone_field"
 		item-key="id"
+		:remove-clone-on-hide="false"
+		@start="on_drag_start"
+		@end="on_drag_end"
 	>
 		<template #item="{ element }">
 			<div class="field" :title="element.df.fieldtype">
@@ -69,12 +80,18 @@ let fields = computed(() => {
 	grid-auto-rows: max-content;
 
 	.field {
+		display: block !important;
 		background-color: var(--bg-light-gray);
 		border-radius: var(--border-radius);
 		border: 0.5px solid var(--gray-400);
 		padding: 0.5rem 0.75rem;
 		font-size: var(--text-sm);
 		cursor: pointer;
+
+		&.sortable-ghost {
+			position: absolute;
+			opacity: 0;
+		}
 	}
 }
 </style>

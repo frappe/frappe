@@ -3,7 +3,7 @@
 <template>
 	<div class="search-box">
 		<input
-			class="search-input form-control form-control-sm"
+			class="search-input form-control"
 			type="text"
 			:placeholder="__('Search fields')"
 			@input="event => $emit('update:modelValue', event.target.value)"
@@ -29,7 +29,7 @@
 	.search-icon {
 		position: absolute;
 		left: 16px;
-		top: 3px;
+		top: 5px;
 	}
 }
 </style>

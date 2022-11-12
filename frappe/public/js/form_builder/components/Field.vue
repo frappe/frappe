@@ -1,6 +1,5 @@
 <script setup>
-import EditableInput from "./EditableInput.vue";
-import { ref, nextTick } from "vue";
+import { ref } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent } from "../utils";
 
@@ -34,58 +33,39 @@ function move_fields_to_column() {
 			store.selected(field.df.name) ? 'selected' : ''
 		]"
 		:title="field.df.fieldname"
-		@click.stop="store.selected_field = field.df;"
+		@click.stop="store.selected_field = field.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
-		<div class="field-controls">
-			<EditableInput
-				:class="{ 'reqd': field.df.reqd }"
-				:text="field.df.label"
-				:placeholder="__('Label')"
-				:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
-				v-model="field.df.label"
-			/>
-			<div class="field-actions" :hidden="store.read_only">
-				<button
-					v-if="field.df.fieldtype == 'HTML'"
-					class="btn btn-xs btn-icon"
-					@click="edit_html"
-				>
-					<div v-html="frappe.utils.icon('edit', 'sm')"></div>
-				</button>
-				<button
-					v-if="column.fields.indexOf(field)"
-					class="btn btn-xs btn-icon"
-					:title="__('Move the current field and the following fields to a new column')"
-					@click="move_fields_to_column"
-				>
-					<div
-						:style="{ strokeWidth: 0.6 }"
-						v-html="frappe.utils.icon('arrow-up-right', 'sm')"
-					></div>
-				</button>
-				<button class="btn btn-xs btn-icon" @click="remove_field">
-					<div v-html="frappe.utils.icon('close', 'sm')"></div>
-				</button>
-			</div>
-		</div>
-		<div
-			v-if="field.df.fieldtype == 'Table'"
-			class="table-controls row no-gutters"
-			:style="{ opacity: 1 }"
-		>
-			<div
-				class="table-column"
-				:style="{ width: tf.width + '%' }"
-				v-for="tf in field.table_columns"
-				:key="tf.fieldname"
-			>
-				<div class="table-field">
-					{{ tf.label }}
+		<component :is="field.df.fieldtype.replace(' ', '') + 'Control'" :df="field.df">
+			<template #actions>
+				<div class="field-actions" :hidden="store.read_only">
+					<button
+						v-if="field.df.fieldtype == 'HTML'"
+						class="btn btn-xs btn-icon"
+						@click="edit_html"
+					>
+						<div v-html="frappe.utils.icon('edit', 'sm')"></div>
+					</button>
+					<button
+						v-if="column.fields.indexOf(field)"
+						class="btn btn-xs btn-icon"
+						:title="
+							__('Move the current field and the following fields to a new column')
+						"
+						@click="move_fields_to_column"
+					>
+						<div
+							:style="{ strokeWidth: 0.6 }"
+							v-html="frappe.utils.icon('arrow-up-right', 'sm')"
+						></div>
+					</button>
+					<button class="btn btn-xs btn-icon" @click="remove_field">
+						<div v-html="frappe.utils.icon('close', 'sm')"></div>
+					</button>
 				</div>
-			</div>
-		</div>
+			</template>
+		</component>
 	</div>
 </template>
 
@@ -94,13 +74,13 @@ function move_fields_to_column() {
 	text-align: left;
 	width: 100%;
 	background-color: var(--bg-light-gray);
-	border-radius: var(--border-radius);
-	border: 1px solid var(--gray-400);
-	padding: 0.5rem 0.75rem;
+	border-radius: var(--border-radius-sm);
+	border: 1px solid transparent;
+	padding: 0.3rem;
 	font-size: var(--text-sm);
 
 	&:not(:first-child) {
-		margin-top: 0.5rem;
+		margin-top: 0.4rem;
 	}
 
 	&.hovered,
@@ -111,25 +91,11 @@ function move_fields_to_column() {
 		}
 	}
 
-	.field-controls {
+	:deep(.field-controls) {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-
-		.reqd::after {
-			content: " *";
-			color: var(--red-400);
-		}
-
-		.label-input {
-			background-color: transparent;
-			border: none;
-			padding: 0;
-
-			&:focus {
-				outline: none;
-			}
-		}
+		margin-bottom: 0.3rem;
 
 		.field-actions {
 			flex: none;
@@ -142,28 +108,6 @@ function move_fields_to_column() {
 				&:hover {
 					background-color: var(--fg-color);
 				}
-			}
-		}
-	}
-
-	.table-controls {
-		display: flex;
-		margin-top: 1rem;
-
-		.table-column {
-			position: relative;
-
-			.table-field {
-				text-align: left;
-				width: 100%;
-				background-color: white;
-				border-radius: var(--border-radius);
-				border: 1px dashed var(--gray-400);
-				padding: 0.5rem 0.75rem;
-				font-size: var(--text-sm);
-				user-select: none;
-				white-space: nowrap;
-				overflow: hidden;
 			}
 		}
 	}
