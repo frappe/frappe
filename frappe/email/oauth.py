@@ -132,19 +132,18 @@ def oauth_access(email_account: str, service: str):
 	if not service:
 		frappe.throw(frappe._("No Service is selected. Please select one and try again!"))
 
-	doctype = "Email Account"
-
 	if service == "GMail":
-		return authorize_google_access(email_account, doctype)
+		return authorize_google_access(email_account)
 
 	raise NotImplementedError(f"Service {service} currently doesn't have oauth implementation.")
 
 
-def authorize_google_access(email_account, doctype: str = "Email Account", code: str = None):
+def authorize_google_access(email_account: str, code: str = None):
 	"""Facilitates google oauth for email.
-	This is invoked 2 times - first time when user clicks `Authorze API Access` for getting the authorization url
+	This is invoked 2 times - first time when user clicks `Authorize API Access` for getting the authorization url
 	and second time for setting the refresh and access token in db when google redirects back with oauth code."""
 
+	doctype = "Email Account"
 	oauth_obj = GoogleOAuth("mail")
 
 	if not code:
