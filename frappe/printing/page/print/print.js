@@ -712,14 +712,14 @@ frappe.ui.form.PrintView = class {
 	}
 
 	refresh_print_options() {
-		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
-		const print_format_select_val = this.print_sel.val();
-		this.print_sel.empty();
+		if (
+			frappe.meta.get_print_formats(this.frm.doctype).includes(this.print_sel.val()) ||
+			!this.frm.meta.default_print_format
+		)
+			return;
 
-		return (
-			this.print_formats.includes(print_format_select_val) &&
-			this.print_sel.val(print_format_select_val)
-		);
+		this.print_sel.empty();
+		this.print_sel.val(this.frm.meta.default_print_format);
 	}
 
 	selected_format() {
@@ -778,7 +778,7 @@ frappe.ui.form.PrintView = class {
 								fieldtype: "Select",
 								fieldname: "print_format",
 								default: 0,
-								options: this.print_formats,
+								options: frappe.meta.get_print_formats(this.frm.doctype),
 								read_only: 0,
 								in_list_view: 1,
 								label: __("Print Format"),
