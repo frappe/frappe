@@ -180,7 +180,7 @@ frappe.ui.form.PrintView = class {
 		let tasks = [
 			this.refresh_print_options,
 			this.set_default_print_language,
-			this.set_letterhead_options,
+			this.set_default_letterhead,
 			this.preview,
 		].map((fn) => fn.bind(this));
 
@@ -335,27 +335,15 @@ frappe.ui.form.PrintView = class {
 		});
 	}
 
-	set_letterhead_options() {
-		let letterhead_options = [__("No Letterhead")];
-		let default_letterhead;
-		let doc_letterhead = this.frm.doc.letter_head;
+	set_default_letterhead() {
+		if (this.frm.doc.letter_head) {
+			this.letterhead_selector.val(this.frm.doc.letter_head);
+			return;
+		}
 
 		return frappe.db
-			.get_list("Letter Head", {
-				filters: { disabled: 0 },
-				fields: ["name", "is_default"],
-				limit: 0,
-			})
-			.then((letterheads) => {
-				letterheads.map((letterhead) => {
-					if (letterhead.is_default) default_letterhead = letterhead.name;
-					return letterhead_options.push(letterhead.name);
-				});
-
-				this.letterhead_selector_df.set_data(letterhead_options);
-				let selected_letterhead = doc_letterhead || default_letterhead;
-				if (selected_letterhead) this.letterhead_selector.val(selected_letterhead);
-			});
+			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
+			.then(({ message }) => this.letterhead_selector.val(message.name));
 	}
 
 	set_user_lang() {
