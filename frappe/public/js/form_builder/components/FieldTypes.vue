@@ -39,7 +39,7 @@ let fields = computed(() => {
 });
 
 function on_drag_start(evt) {
-	$(evt.item).html('<div class="drag-it-here"></div>');
+	$(evt.item).html('<div class="drop-it-here"></div>');
 }
 
 function on_drag_end(evt) {

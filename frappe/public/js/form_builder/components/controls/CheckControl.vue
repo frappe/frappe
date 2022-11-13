@@ -1,17 +1,23 @@
 <script setup>
-import EditableInput from "../EditableInput.vue";
 import { useStore } from "../../store";
 import { useSlots } from "vue";
 
 let store = useStore();
 let props = defineProps(["df", "value"]);
 let slots = useSlots();
-
 </script>
 
 <template>
-	<div v-if="!slots.actions" class="control checkbox">
-		<label>
+	<div class="control checkbox" :class="{ editable: slots.label }">
+		<!-- checkbox -->
+		<label v-if="slots.label" class="field-controls">
+			<div class="checkbox">
+				<input type="checkbox" disabled />
+				<slot name="label" />
+			</div>
+			<slot name="actions" />
+		</label>
+		<label v-else>
 			<input
 				type="checkbox"
 				:checked="value"
@@ -20,22 +26,8 @@ let slots = useSlots();
 			/>
 			<span class="label-area" :class="{ reqd: df.reqd }">{{ df.label }}</span>
 		</label>
-		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
-	</div>
-	<div class="control checkbox editable" v-else>
-		<label class="field-controls">
-			<div class="checkbox">
-				<input type="checkbox" disabled />
-				<EditableInput
-					:class="{ reqd: df.reqd }"
-					:text="df.label"
-					:placeholder="__('Label')"
-					:empty_label="`${__('No Label')} (${df.fieldtype})`"
-					v-model="df.label"
-				/>
-			</div>
-			<slot name="actions"></slot>
-		</label>
+
+		<!-- description -->
 		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
 	</div>
 </template>

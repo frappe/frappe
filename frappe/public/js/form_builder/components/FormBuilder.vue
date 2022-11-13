@@ -76,17 +76,17 @@ onMounted(() => store.fetch());
 			font-size: var(--text-sm);
 			cursor: pointer;
 
-			&:has(.drag-it-here) {
+			&:has(.drop-it-here) {
 				position: relative;
 				background-color: transparent;
 				height: 60px;
 
-				.drag-it-here {
+				.drop-it-here {
 					display: flex;
 					justify-content: center;
 
 					&::after {
-						content: "Drag it here";
+						content: "Drop it here";
 						top: 31%;
 						position: absolute;
 						padding: 2px 10px;
@@ -113,14 +113,24 @@ onMounted(() => store.fetch());
 		}
 
 		:deep(.field) {
-			.description {
-				font-size: var(--text-sm);
-				color: var(--text-muted);
+			.label {
+				margin-bottom: 0.3rem;
+			}
+
+			.editable {
+				input, textarea, select {
+					background-color: var(--fg-color);
+					cursor: pointer;
+				}
 			}
 
 			.reqd::after {
 				content: " *";
 				color: var(--red-400);
+			}
+			.description {
+				font-size: var(--text-sm);
+				color: var(--text-muted);
 			}
 		}
 

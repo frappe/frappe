@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from "vue";
+import EditableInput from "./EditableInput.vue";
+import { ref, computed } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent } from "../utils";
 
@@ -7,6 +8,9 @@ let props = defineProps(["column", "field"]);
 let store = useStore();
 
 let hovered = ref(false);
+let component = computed(() => {
+	return props.field.df.fieldtype.replace(' ', '') + 'Control';
+});
 
 function remove_field() {
 	if (store.is_customize_form && props.field.df.is_custom_field == 0) {
@@ -37,7 +41,16 @@ function move_fields_to_column() {
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
-		<component :is="field.df.fieldtype.replace(' ', '') + 'Control'" :df="field.df">
+		<component :is="component" :df="field.df">
+			<template #label>
+				<EditableInput
+					:class="{ reqd: field.df.reqd }"
+					:text="field.df.label"
+					:placeholder="__('Label')"
+					:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
+					v-model="field.df.label"
+				/>
+			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
