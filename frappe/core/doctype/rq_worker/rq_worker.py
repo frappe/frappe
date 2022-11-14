@@ -1,6 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import datetime
+from contextlib import suppress
+
 from rq import Worker
 
 import frappe
@@ -66,4 +69,11 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 		_comment_count=0,
 		modified=convert_utc_to_user_timezone(worker.last_heartbeat),
 		creation=convert_utc_to_user_timezone(worker.birth_date),
+		utilization_percent=compute_utilization(worker),
 	)
+
+
+def compute_utilization(worker: Worker) -> float:
+	with suppress(Exception):
+		total_time = (datetime.datetime.utcnow() - worker.birth_date).total_seconds()
+		return worker.total_working_time / total_time * 100
