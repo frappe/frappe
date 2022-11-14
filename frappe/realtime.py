@@ -122,8 +122,10 @@ def get_user_info():
 	from frappe.sessions import Session
 
 	session = Session(None, resume=True).get_session_data()
+
 	return {
 		"user": session.user,
+		"user_type": session.user_type,
 	}
 
 
