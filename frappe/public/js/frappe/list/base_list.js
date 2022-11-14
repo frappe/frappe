@@ -30,6 +30,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_main_section,
 			this.setup_view,
 			this.setup_view_menu,
+			() => this.settings.onload && this.settings.onload(this),
 		].map((fn) => fn.bind(this));
 
 		this.init_promise = frappe.run_serially(tasks);

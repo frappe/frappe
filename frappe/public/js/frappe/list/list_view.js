@@ -253,7 +253,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_header();
 		this.render_skeleton();
 		this.setup_events();
-		this.settings.onload && this.settings.onload(this);
 		this.show_restricted_list_indicator_if_applicable();
 	}
 
