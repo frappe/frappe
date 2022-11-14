@@ -211,16 +211,18 @@ frappe.report_utils = {
 		});
 
 		function update_csv_preview(dialog) {
+			const is_query_report = frappe.get_route()[0] === "query-report";
+			const report = is_query_report ? frappe.query_report : cur_list;
+			const columns = report.columns.filter((col) => col.hidden !== 1);
 			PREVIEW_DATA = [
-				[
-					__("Text", null, "Export report"),
-					__("Number", null, "Export report"),
-					__("Float", null, "Export report"),
-					__("Check", null, "Export report"),
-				],
-				[__("Hello, World", null, "Export report"), 42, 3.14, 0],
-				[__("Hello World", null, "Export report"), 0, 99.99, 1],
+				columns.map((col) => __(is_query_report ? col.label : col.name)),
+				...report.data
+					.slice(0, 3)
+					.map((row) =>
+						columns.map((col) => row[is_query_report ? col.fieldname : col.field])
+					),
 			];
+
 			dialog.set_value(
 				"csv_preview",
 				frappe.report_utils.get_csv_preview(
