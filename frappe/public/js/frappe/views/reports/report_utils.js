@@ -190,16 +190,97 @@ frappe.report_utils = {
 				default: 2,
 				depends_on: "eval:doc.file_format=='CSV'",
 			},
+			{
+				fieldtype: "Small Text",
+				label: __("CSV Preview", null, "Export report"),
+				fieldname: "csv_preview",
+				read_only: 1,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
 		];
+
 		if (extra_fields) {
 			fields.push(...extra_fields);
 		}
 
-		return new frappe.ui.Dialog({
+		const dialog = new frappe.ui.Dialog({
 			title: __("Export Report: {0}", [report_name], "Export report"),
 			fields: fields,
 			primary_action_label: __("Download", null, "Export report"),
 			primary_action: callback,
 		});
+
+		function update_csv_preview(dialog) {
+			PREVIEW_DATA = [
+				[
+					__("Text", null, "Export report"),
+					__("Number", null, "Export report"),
+					__("Float", null, "Export report"),
+					__("Check", null, "Export report"),
+				],
+				[__("Hello, World", null, "Export report"), 42, 3.14, 0],
+				[__("Hello World", null, "Export report"), 0, 99.99, 1],
+			];
+			dialog.set_value(
+				"csv_preview",
+				frappe.report_utils.get_csv_preview(
+					PREVIEW_DATA,
+					dialog.get_value("csv_quoting"),
+					dialog.get_value("csv_delimiter")
+				)
+			);
+		}
+
+		dialog.fields_dict["file_format"].df.onchange = () => update_csv_preview(dialog);
+		dialog.fields_dict["csv_quoting"].df.onchange = () => update_csv_preview(dialog);
+		dialog.fields_dict["csv_delimiter"].df.onchange = () => update_csv_preview(dialog);
+
+		return dialog;
+	},
+
+	get_csv_preview(data, quoting, delimiter) {
+		// data: array of arrays
+		// quoting: 0 - minimal, 1 - all, 2 - non-numeric, 3 - none
+		// delimiter: any single character
+		quoting = cint(quoting);
+		const QUOTING = {
+			Minimal: 0,
+			All: 1,
+			NonNumeric: 2,
+			None: 3,
+		};
+
+		if (delimiter.length > 1) {
+			frappe.throw(__("Delimiter must be a single character"));
+		}
+
+		if (0 > quoting || quoting > 3) {
+			frappe.throw(__("Quoting must be between 0 and 3"));
+		}
+
+		return data
+			.map((row) => {
+				return row
+					.map((col) => {
+						if (typeof col == "string" && col.includes('"')) {
+							col = col.replace(/"/g, '""');
+						}
+
+						switch (quoting) {
+							case QUOTING.Minimal:
+								return typeof col === "string" && col.includes(delimiter)
+									? `"${col}"`
+									: `${col}`;
+							case QUOTING.All:
+								return `"${col}"`;
+							case QUOTING.NonNumeric:
+								return isNaN(col) ? `"${col}"` : `${col}`;
+							case QUOTING.None:
+								return `${col}`;
+						}
+					})
+					.join(delimiter);
+			})
+			.join("\n");
 	},
 };
