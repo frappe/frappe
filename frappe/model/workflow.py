@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import json
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List, Union
 
 from six import string_types
 
@@ -43,7 +43,7 @@ def get_workflow_name(doctype):
 @frappe.whitelist()
 def get_transitions(
 	doc: Union["Document", str, dict], workflow: "Workflow" = None, raise_exception: bool = False
-) -> list[dict]:
+) -> List[dict]:
 	"""Return list of possible transitions for the given doc"""
 	from frappe.model.document import Document
 
