@@ -102,7 +102,6 @@ io.use((socket, next) => {
 			sid: socket.sid,
 		})
 		.then((res) => {
-			console.log(`User ${res.body.message.user} found`);
 			socket.user = res.body.message.user;
 			socket.user_type = res.body.message.user_type;
 		})
