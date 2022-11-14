@@ -3,7 +3,7 @@
 
 {% if parent %}
 
-{%- set dropdown_id = 'id-' + frappe.utils.generate_hash('Dropdown', 12) -%}
+{%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
 <li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
 	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
 		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -16,7 +16,7 @@
 	</ul>
 </li>
 {% else %}
-{%- set dropdown_id = 'id-' + frappe.utils.generate_hash('Dropdown', 12) -%}
+{%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
 <li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
 	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
 		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

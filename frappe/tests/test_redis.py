@@ -1,4 +1,5 @@
 import functools
+from unittest.mock import patch
 
 import redis
 
@@ -30,12 +31,14 @@ def skip_if_redis_version_lt(version):
 
 class TestRedisAuth(FrappeTestCase):
 	@skip_if_redis_version_lt("6.0")
+	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
 	def test_rq_gen_acllist(self):
 		"""Make sure that ACL list is genrated"""
 		acl_list = RedisQueue.gen_acl_list()
 		self.assertEqual(acl_list[1]["bench"][0], get_bench_id())
 
 	@skip_if_redis_version_lt("6.0")
+	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
 	def test_adding_redis_user(self):
 		acl_list = RedisQueue.gen_acl_list()
 		username, password = acl_list[1]["bench"]
@@ -47,6 +50,7 @@ class TestRedisAuth(FrappeTestCase):
 		conn.acl_deluser(username)
 
 	@skip_if_redis_version_lt("6.0")
+	@patch.dict(frappe.conf, {"bench_id": "test_bench", "use_rq_auth": False})
 	def test_rq_namespace(self):
 		"""Make sure that user can access only their respective namespace."""
 		# Current bench ID

@@ -450,6 +450,7 @@ frappe.ui.form.Form = class FrappeForm {
 				.toggleClass("cancelled-form", this.doc.docstatus === 2);
 
 			this.show_conflict_message();
+			this.show_submission_queue_banner();
 
 			if (frappe.boot.read_only) {
 				this.disable_form();
@@ -2035,6 +2036,83 @@ frappe.ui.form.Form = class FrappeForm {
 			.uniqBy((u) => u)
 			.filter((user) => !["Administrator", frappe.session.user].includes(user))
 			.filter(Boolean);
+	}
+
+	show_submission_queue_banner() {
+		let wrapper = this.layout.wrapper.find(".submission-queue-banner");
+
+		if (
+			!(
+				this.meta.is_submittable &&
+				this.meta.queue_in_background &&
+				!this.doc.__islocal &&
+				this.doc.docstatus === 0
+			)
+		) {
+			if (wrapper.length) {
+				wrapper.hide();
+				wrapper.html("");
+			}
+
+			return;
+		}
+
+		if (!wrapper.length) {
+			wrapper = $('<div class="submission-queue-banner form-message yellow">');
+			this.layout.wrapper.prepend(wrapper);
+		}
+
+		frappe
+			.call({
+				method: "frappe.core.doctype.submission_queue.submission_queue.get_latest_submissions",
+				args: { doctype: this.doctype, docname: this.docname },
+			})
+			.then((r) => {
+				if (r.message.latest_submission) {
+					// if we are here that means some submission(s) were queued and are in queued/failed state
+					let col_width = 4;
+					let failed_link = "";
+					let submission_label = __("Previous Submission");
+
+					if (r.message.latest_failed_submission) {
+						if (r.message.latest_failed_submission !== r.message.latest_submission) {
+							col_width = 3;
+							failed_link = `<div class="col-md-3">
+								<a href='/app/submission-queue/${r.message.latest_failed_submission}'>${__(
+								"Previous Falied Submission"
+							)}</a>
+							</div>`;
+						} else {
+							submission_label = __("Previous Falied Submission");
+						}
+					}
+
+					let html = `
+				<div class="row">
+					<div class="col-md-${col_width}">
+						<strong>${__("Submission Status:")}</strong>
+					</div>
+					<div class="col-md-${col_width}">
+						<a href='/app/submission-queue/${r.message.latest_submission}'>${submission_label}</a>
+					</div>
+					${failed_link}
+					<div class="col-md-${col_width}">
+						<a href='/app/submission-queue?ref_doctype=${encodeURIComponent(
+							this.doctype
+						)}&ref_docname=${encodeURIComponent(this.docname)}'>${__(
+						"All Submissions"
+					)}</a>
+					</div>
+				</div>
+				`;
+
+					wrapper.show();
+					wrapper.html(html);
+				} else {
+					wrapper.hide();
+					wrapper.html("");
+				}
+			});
 	}
 };
 

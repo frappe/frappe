@@ -3,13 +3,12 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Union
 from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
-from rq.command import send_stop_job_command
 from rq.logutils import setup_loghandlers
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -53,6 +52,8 @@ def enqueue(
 	method,
 	queue="default",
 	timeout=None,
+	on_success=None,
+	on_failure=None,
 	event=None,
 	is_async=True,
 	job_name=None,
@@ -61,7 +62,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-) -> "Job" | Any:
+) -> Union["Job", Any]:
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -117,6 +118,8 @@ def enqueue(
 
 	return q.enqueue_call(
 		execute_job,
+		on_success=on_success,
+		on_failure=on_failure,
 		timeout=timeout,
 		kwargs=queue_args,
 		at_front=at_front,

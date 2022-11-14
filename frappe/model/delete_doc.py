@@ -92,6 +92,8 @@ def delete_doc(
 
 			else:
 				doc = frappe.get_doc(doctype, name)
+				if not (doc.custom or frappe.conf.developer_mode or frappe.flags.in_patch or force):
+					frappe.throw(_("Standard DocType can not be deleted."))
 
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
