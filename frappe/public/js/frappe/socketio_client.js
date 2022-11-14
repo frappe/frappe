@@ -17,6 +17,7 @@ frappe.socketio = {
 
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
+<<<<<<< HEAD
 			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {secure: true});
 		}
 		else if (window.location.protocol == "http:") {
@@ -24,6 +25,23 @@ frappe.socketio = {
 		}
 		else if (window.location.protocol == "file:") {
 			frappe.socketio.socket = io.connect(window.localStorage.server);
+=======
+			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {
+				secure: true,
+				withCredentials: true,
+				reconnectionAttempts: 3,
+			});
+		} else if (window.location.protocol == "http:") {
+			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {
+				withCredentials: true,
+				reconnectionAttempts: 3,
+			});
+		} else if (window.location.protocol == "file:") {
+			frappe.socketio.socket = io.connect(window.localStorage.server, {
+				withCredentials: true,
+				reconnectionAttempts: 3,
+			});
+>>>>>>> 5210ea593f (fix(socketio): Re-try thrice before trying to reconnect)
 		}
 
 		if (!frappe.socketio.socket) {
