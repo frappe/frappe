@@ -302,19 +302,31 @@ function get_chat_room(socket, room) {
 }
 
 function get_site_name(socket) {
+<<<<<<< HEAD
 	var hostname_from_host = get_hostname(socket.request.headers.host);
 
 	if (socket.request.headers['x-frappe-site-name']) {
 		return get_hostname(socket.request.headers['x-frappe-site-name']);
 	} else if (['localhost', '127.0.0.1'].indexOf(hostname_from_host) !== -1 &&
 		conf.default_site) {
+=======
+	if (socket.site_name) {
+		return socket.site_name;
+	} else if (socket.request.headers["x-frappe-site-name"]) {
+		socket.site_name = get_hostname(socket.request.headers["x-frappe-site-name"]);
+	} else if (
+		conf.default_site &&
+		["localhost", "127.0.0.1"].indexOf(get_hostname(socket.request.headers.host)) !== -1
+	) {
+>>>>>>> 54bf617d09 (perf(socketio): get_site_name)
 		// from currentsite.txt since host is localhost
-		return conf.default_site;
+		socket.site_name = conf.default_site;
 	} else if (socket.request.headers.origin) {
-		return get_hostname(socket.request.headers.origin);
+		socket.site_name = get_hostname(socket.request.headers.origin);
 	} else {
-		return get_hostname(socket.request.headers.host);
+		socket.site_name = get_hostname(socket.request.headers.host);
 	}
+	return socket.site_name;
 }
 
 function get_hostname(url) {
