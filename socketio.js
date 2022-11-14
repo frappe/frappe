@@ -15,74 +15,53 @@ server.listen(conf.socketio_port, function () {
 	log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
-// on socket connection
-io.on('connection', function (socket) {
+io.use((socket, next) => {
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
+		next(new Error("Invalid origin"));
 		return;
 	}
 
 	if (!socket.request.headers.cookie) {
+		next(new Error("No cookie transmitted."));
 		return;
 	}
 
-	const sid = cookie.parse(socket.request.headers.cookie).sid;
-	if (!sid) {
+	const cookies = cookie.parse(socket.request.headers.cookie);
+
+	if (!cookies.sid) {
+		next(new Error("No sid transmitted."));
 		return;
 	}
+	socket.sid = cookies.sid;
+	socket.user = cookies.user_id;
 
-	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
-
-	// frappe.chat
-	socket.on("frappe.chat.room:subscribe", function (rooms) {
-		if (!Array.isArray(rooms)) {
-			rooms = [rooms];
-		}
-
-		for (var room of rooms) {
-			log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room);
-			room = get_chat_room(socket, room);
-
-			log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room);
-			socket.join(room);
-		}
-	});
-
-	socket.on("frappe.chat.message:typing", function (data) {
-		const user = data.user;
-		const room = get_chat_room(socket, data.room);
-
-		log('frappe.chat: Dispatching ' + user + ' typing to room ' + room);
-
-		io.to(room).emit('frappe.chat.room:typing', {
-			room: data.room,
-			user: user
+	request
+		.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
+		.type("form")
+		.query({
+			sid: socket.sid,
+		})
+		.then((res) => {
+			console.log(`User ${res.body.message.user} found`);
+			socket.user = res.body.message.user;
+			socket.user_type = res.body.message.user_type;
+		})
+		.catch((e) => {
+			next(new Error(`Unauthorized: ${e}`));
+			return;
 		});
-	});
-	// end frappe.chat
 
-	let retries = 0;
-	let join_chat_room = () => {
-		request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
-			.type('form')
-			.query({
-				sid: sid
-			})
-			.then(res => {
-				const room = get_user_room(socket, res.body.message.user);
-				socket.join(room);
-				socket.join(get_site_room(socket));
-			})
-			.catch(e => {
-				if (e.code === 'ECONNREFUSED' && retries < 5) {
-					// retry after 1s
-					retries += 1;
-					return setTimeout(join_chat_room, 1000);
-				}
-				log(`Unable to join chat room. ${e}`);
-			});
-	};
+	next();
+});
 
-	join_chat_room();
+// on socket connection
+io.on("connection", function (socket) {
+	const room = get_user_room(socket);
+	socket.join(room);
+
+	if (socket.user == "System User") {
+		socket.join(get_site_room(socket));
+	}
 
 	socket.on('task_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
@@ -103,7 +82,6 @@ io.on('connection', function (socket) {
 	socket.on('doc_subscribe', function (doctype, docname) {
 		can_subscribe_doc({
 			socket,
-			sid,
 			doctype,
 			docname,
 			callback: () => {
@@ -126,7 +104,6 @@ io.on('connection', function (socket) {
 	socket.on('doc_open', function (doctype, docname) {
 		can_subscribe_doc({
 			socket,
-			sid,
 			doctype,
 			docname,
 			callback: () => {
@@ -239,7 +216,7 @@ function get_typing_room(socket, doctype, docname) {
 }
 
 function get_user_room(socket, user) {
-	return get_site_name(socket) + ':user:' + user;
+	return get_site_name(socket) + ":user:" + user || socket.user;
 }
 
 function get_site_room(socket) {
@@ -296,7 +273,7 @@ function can_subscribe_doc(args) {
 	request.get(get_url(args.socket, '/api/method/frappe.realtime.can_subscribe_doc'))
 		.type('form')
 		.query({
-			sid: args.sid,
+			sid: args.socket.sid,
 			doctype: args.doctype,
 			docname: args.docname
 		})
