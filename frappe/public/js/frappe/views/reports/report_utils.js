@@ -162,7 +162,7 @@ frappe.report_utils = {
 	get_export_dialog(report_name, extra_fields, callback) {
 		const fields = [
 			{
-				label: __("Select File Format"),
+				label: __("Select File Format", null, "Export report"),
 				fieldname: "file_format",
 				fieldtype: "Select",
 				options: ["Excel", "CSV"],
@@ -171,7 +171,7 @@ frappe.report_utils = {
 			},
 			{
 				fieldtype: "Data",
-				label: __("Delimiter"),
+				label: __("CSV Delimiter", null, "Export report"),
 				fieldname: "csv_delimiter",
 				default: ",",
 				length: 1,
@@ -179,13 +179,13 @@ frappe.report_utils = {
 			},
 			{
 				fieldtype: "Select",
-				label: __("Quoting"),
+				label: __("CSV Quoting", null, "Export report"),
 				fieldname: "csv_quoting",
 				options: [
-					{ value: 0, label: "Minimal" },
-					{ value: 1, label: "All" },
-					{ value: 2, label: "Non-numeric" },
-					{ value: 3, label: "None" },
+					{ value: 0, label: __("Minimal", null, "Export report") },
+					{ value: 1, label: __("All", null, "Export report") },
+					{ value: 2, label: __("Non-numeric", null, "Export report") },
+					{ value: 3, label: __("None", null, "Export report") },
 				],
 				default: 2,
 				depends_on: "eval:doc.file_format=='CSV'",
@@ -196,9 +196,9 @@ frappe.report_utils = {
 		}
 
 		return new frappe.ui.Dialog({
-			title: __("Export Report: {0}", [report_name]),
+			title: __("Export Report: {0}", [report_name], "Export report"),
 			fields: fields,
-			primary_action_label: __("Download"),
+			primary_action_label: __("Download", null, "Export report"),
 			primary_action: callback,
 		});
 	},
