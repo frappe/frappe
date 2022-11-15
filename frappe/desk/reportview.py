@@ -94,7 +94,7 @@ def validate_args(data):
 def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
-	for field in data.fields or []:
+	for field in list(data.fields or []):
 		fieldname = extract_fieldname(field)
 		if is_standard(fieldname):
 			continue

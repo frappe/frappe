@@ -607,14 +607,20 @@ def update_onboarding_step(name, field, value):
 
 
 @frappe.whitelist()
-def reset_customization(page):
+def reset_customization(page: str) -> None:
 	"""Reset workspace customizations for a user
 
 	Args:
 	        page (string): Name of the page to be reset
 	"""
-	page_doc = get_custom_workspace_for_user(page)
-	page_doc.delete()
+	if not isinstance(page, str):
+		raise TypeError("page must be a string")
+
+	workspace_name = frappe.db.get_value(
+		"Workspace", {"extends": page, "for_user": frappe.session.user}
+	)
+	if workspace_name:
+		frappe.delete_doc("Workspace", workspace_name, ignore_permissions=True)
 
 
 def merge_cards_based_on_label(cards):

@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import datetime
 import re
+from contextlib import suppress
 from time import time
 from typing import Dict, List, Union
 
@@ -21,7 +22,7 @@ from frappe import _
 from frappe.database.query import Query
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.utils import DocType
-from frappe.utils import cast, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import cast, cint, get_datetime, get_table_name, getdate, now, sbool
 
 
 class Database(object):
@@ -84,6 +85,18 @@ class Database(object):
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
 		frappe.local.rollback_observers = []
+
+		try:
+			execution_timeout = get_query_execution_timeout()
+			if execution_timeout:
+				self.set_execution_timeout(execution_timeout)
+		except Exception as e:
+			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
+
+	def set_execution_timeout(self, seconds: int):
+		"""Set session speicifc timeout on exeuction of statements.
+		If any statement takes more time it will be killed along with entire transaction."""
+		raise NotImplementedError
 
 	def use(self, db_name):
 		"""`USE` db_name."""
@@ -1273,3 +1286,26 @@ def enqueue_jobs_after_commit():
 				result_ttl=RQ_RESULTS_TTL,
 			)
 		frappe.flags.enqueue_after_commit = []
+
+
+def get_query_execution_timeout() -> int:
+	"""Get execution timeout based on current timeout in different contexts.
+	    HTTP requests: HTTP timeout or a default (300)
+	    Background jobs: Job timeout
+	Console/Commands: No timeout = 0.
+	    Note: Timeout adds 1.5x as "safety factor"
+	"""
+	from rq import get_current_job
+
+	if not frappe.conf.get("enable_db_statement_timeout"):
+		return 0
+
+	# Zero means no timeout, which is the default value in db.
+	timeout = 0
+	with suppress(Exception):
+		if getattr(frappe.local, "request", None):
+			timeout = frappe.conf.http_timeout or 300
+		elif get_current_job():
+			timeout = get_current_job().timeout
+
+	return int(cint(timeout) * 1.5)

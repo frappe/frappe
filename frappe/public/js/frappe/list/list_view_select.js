@@ -336,7 +336,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				account.email_id == "All Accounts"
 					? "All Accounts"
 					: account.email_account;
-			let route = `/app/communication/inbox/${email_account}`;
+			let route = `/app/communication/view/inbox/${email_account}`;
 			let display_name = [
 				"All Accounts",
 				"Sent Mail",
