@@ -5,6 +5,7 @@ import logging
 import os
 
 from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.local import LocalManager
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
@@ -24,10 +25,13 @@ from frappe.utils import get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
+local_manager = LocalManager(frappe.local)
+
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
 
 
+@local_manager.middleware
 @Request.application
 def application(request: Request):
 	response = None
