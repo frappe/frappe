@@ -57,9 +57,9 @@ def publish_realtime(
 		user = frappe.session.user
 	elif event == "list_update":
 		doctype = doctype or message.get("doctype")
-		room = get_list_room(doctype)
+		room = get_doctype_room(doctype)
 	elif event == "docinfo_update":
-		room = get_docinfo_room(doctype, docname)
+		room = get_doc_room(doctype, docname)
 
 	if not task_id and hasattr(frappe.local, "task_id"):
 		task_id = frappe.local.task_id
@@ -153,15 +153,11 @@ def get_user_info():
 	}
 
 
-def get_list_room(doctype):
-	return f"{frappe.local.site}:list:{doctype}"
+def get_doctype_room(doctype):
+	return f"{frappe.local.site}:doctype:{doctype}"
 
 
 def get_doc_room(doctype, docname):
-	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
-
-
-def get_docinfo_room(doctype, docname):
 	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
 
 
