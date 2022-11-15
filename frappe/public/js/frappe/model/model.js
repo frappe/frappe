@@ -254,7 +254,7 @@ $.extend(frappe.model, {
 					},
 					callback: function (r) {
 						callback && callback(name, r);
-						resolve(frappe.get_doc(doctype, name));
+						resolve(frappe.get_doc(doctype, name) || r.docs[0]); // if called via website
 					},
 				});
 			}

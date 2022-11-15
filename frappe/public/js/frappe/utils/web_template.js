@@ -70,3 +70,5 @@ function open_web_template_values_editor(template, current_values = {}) {
 		return fields;
 	}
 }
+
+frappe.open_web_template_values_editor = open_web_template_values_editor;
