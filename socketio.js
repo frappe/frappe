@@ -59,11 +59,21 @@ io.on("connection", function (socket) {
 	const room = get_user_room(socket);
 	socket.join(room);
 
-	if (socket.user == "System User") {
+	if (socket.user_type == "System User") {
 		socket.join(get_site_room(socket));
 	}
 
-	socket.on('task_subscribe', function (task_id) {
+	socket.on("list_update", function (doctype) {
+		can_subscribe_list({
+			socket,
+			doctype,
+			callback: () => {
+				socket.join(get_list_room(socket, doctype));
+			},
+		});
+	});
+
+	socket.on("task_subscribe", function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
 	});
@@ -223,17 +233,12 @@ function get_site_room(socket) {
 	return get_site_name(socket) + ':all';
 }
 
-function get_task_room(socket, task_id) {
-	return get_site_name(socket) + ':task_progress:' + task_id;
+function get_list_room(socket, doctype) {
+	return get_site_name(socket) + ":list:" + doctype;
 }
 
-// frappe.chat
-// If you're thinking on multi-site or anything, please
-// update frappe.async as well.
-function get_chat_room(socket, room) {
-	var room = get_site_name(socket) + ":room:" + room;
-
-	return room
+function get_task_room(socket, task_id) {
+	return get_site_name(socket) + ":task_progress:" + task_id;
 }
 
 function get_site_name(socket) {
@@ -299,6 +304,29 @@ function can_subscribe_doc(args) {
 		});
 }
 
+function can_subscribe_list(args) {
+	if (!args) return;
+	if (!args.doctype) return;
+	request
+		.get(get_url(args.socket, "/api/method/frappe.realtime.can_subscribe_list"))
+		.type("form")
+		.query({
+			sid: args.socket.sid,
+			doctype: args.doctype,
+		})
+		.end(function (err, res) {
+			if (!res || res.status == 403 || err) {
+				if (err) {
+					log(err);
+				}
+				return false;
+			} else if (res.status == 200) {
+				args?.callback(err, res);
+				return true;
+			}
+			log("ERROR (can_subscribe_list): ", err, res);
+		});
+}
 
 function send_users(args, action) {
 	if (!(args && args.doctype && args.docname)) {

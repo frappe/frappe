@@ -129,7 +129,10 @@ frappe.socketio = {
 	task_unsubscribe: function(task_id) {
 		frappe.socketio.socket.emit('task_unsubscribe', task_id);
 	},
-	doc_subscribe: function(doctype, docname) {
+	list_subscribe: function (doctype) {
+		frappe.socketio.socket.emit("list_update", doctype);
+	},
+	doc_subscribe: function (doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
 			console.log('throttled');
 			return;
