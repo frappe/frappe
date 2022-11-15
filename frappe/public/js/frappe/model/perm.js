@@ -37,11 +37,13 @@ $.extend(frappe.perm, {
 
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
-		if (!frappe.perm.doctype_perm[doctype]) {
+		if (!frappe.perm.doctype_perm[doctype] && !doc) {
 			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
 		}
 
-		let perms = frappe.perm.doctype_perm[doctype];
+		// if document object is passed, get fresh doc based perms
+		// (with ownership and user perms applied) else stale doctype perms
+		let perms = doc ? frappe.perm.get_perm(doctype, doc) : frappe.perm.doctype_perm[doctype];
 
 		if (!perms || !perms[permlevel]) return false;
 
@@ -152,7 +154,7 @@ $.extend(frappe.perm, {
 						// if_owner is enabled for perm,
 						// construct perm object inside "if_owner" property
 						if (!perm[permlevel]["if_owner"]) {
-							perm[permlevel]["if_owner"] = {}
+							perm[permlevel]["if_owner"] = {};
 						}
 						perm[permlevel]["if_owner"][right] = value;
 					} else if (value) {
