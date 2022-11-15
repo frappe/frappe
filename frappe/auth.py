@@ -20,6 +20,8 @@ from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.password import check_password
 from frappe.website.utils import get_home_page
 
+from aetesis.whitelisted.cart import transfer_cart_from_guest
+
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 
@@ -92,14 +94,15 @@ class HTTPRequest:
 
 class LoginManager:
 
-	__slots__ = ("user", "info", "full_name", "user_type", "resume")
+	__slots__ = ("user", "info", "full_name", "user_type", "resume", "guest_id", "cart_count")
 
 	def __init__(self):
 		self.user = None
 		self.info = None
 		self.full_name = None
 		self.user_type = None
-
+		self.guest_id = frappe.local.form_dict.get("guest_id")
+		self.cart_count = frappe.local.form_dict.get("cart_count")
 		if (
 			frappe.local.form_dict.get("cmd") == "login" or frappe.local.request.path == "/api/method/login"
 		):
@@ -152,6 +155,9 @@ class LoginManager:
 		self.make_session()
 		self.setup_boot_cache()
 		self.set_user_info()
+		if self.guest_id and self.cart_count:
+			transfer_cart_from_guest(guest_id= self.guest_id, user= self.user)
+		
 
 	def get_user_info(self):
 		self.info = frappe.get_cached_value(

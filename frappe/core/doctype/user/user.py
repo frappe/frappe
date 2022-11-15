@@ -677,23 +677,36 @@ def get_perm_info(role):
 
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
+def update_password(new_password, logout_all_sessions=0, key=None, old_password=None, user=None):
 	# validate key to avoid key input like ['like', '%'], '', ['in', ['']]
 	if key and not isinstance(key, str):
 		frappe.throw(_("Invalid key type"))
 
-	result = test_password_strength(new_password, key, old_password)
+	if user:
+		user_data = {'first_name': user.first_name,
+		'middle_name': user.middle_name,
+		'last_name': user.last_name,
+		'email': user.email,
+		'birth_date': user.birth_date
+		}
+	else:
+		user_data = None
+	
+	result = test_password_strength(new_password, key, old_password, user_data)
 	feedback = result.get("feedback", None)
 
 	if feedback and not feedback.get("password_policy_validation_passed", False):
 		handle_password_test_fail(feedback)
 
-	res = _get_user_for_update_password(key, old_password)
-	if res.get("message"):
-		frappe.local.response.http_status_code = 410
-		return res["message"]
+	if not user:
+		res = _get_user_for_update_password(key, old_password)
+		if res.get("message"):
+			frappe.local.response.http_status_code = 410
+			return res["message"]
+		else:
+			user = res["user"]
 	else:
-		user = res["user"]
+		user = user.email
 
 	logout_all_sessions = cint(logout_all_sessions) or frappe.db.get_single_value(
 		"System Settings", "logout_on_password_reset"
@@ -744,12 +757,13 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
-
+		print('this', result)
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:
 			password_policy_validation_passed = True
 
 		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
+		print(result)
 		return result
 
 
@@ -822,7 +836,7 @@ def verify_password(password):
 
 
 @frappe.whitelist(allow_guest=True)
-def sign_up(email, full_name, redirect_to):
+def sign_up(email, full_name, redirect_to, new_password):
 	if is_signup_disabled():
 		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
 
@@ -857,6 +871,8 @@ def sign_up(email, full_name, redirect_to):
 		user.flags.ignore_permissions = True
 		user.flags.ignore_password_policy = True
 		user.insert()
+		if new_password:
+			update_password(new_password, user=user)
 
 		# set default signup role as per Portal Settings
 		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
@@ -867,7 +883,7 @@ def sign_up(email, full_name, redirect_to):
 			frappe.cache().hset("redirect_after_login", user.name, redirect_to)
 
 		if user.flags.email_sent:
-			return 1, _("Please check your email for verification")
+			return 'No App'
 		else:
 			return 2, _("Please ask your administrator to verify your sign-up")
 
