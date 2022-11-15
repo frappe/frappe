@@ -87,6 +87,7 @@ class File(Document):
 		if self.content:
 			self.save_file(content=self.content, decode=self.decode)
 
+<<<<<<< HEAD
 	def get_name_based_on_parent_folder(self):
 		if self.folder:
 			return "/".join([self.folder, self.file_name])
@@ -116,13 +117,51 @@ class File(Document):
 					)
 				),
 			)
+=======
+	def validate(self):
+		if self.is_folder:
+			return
+
+		# Ensure correct formatting and type
+		self.file_url = unquote(self.file_url) if self.file_url else ""
+
+		self.validate_attachment_references()
+
+		# when dict is passed to get_doc for creation of new_doc, is_new returns None
+		# this case is handled inside handle_is_private_changed
+		if not self.is_new() and self.has_value_changed("is_private"):
+			self.handle_is_private_changed()
+
+		self.validate_file_path()
+		self.validate_file_url()
+		self.validate_file_on_disk()
+>>>>>>> 425e4bf1b3 (fix(File): validate `attached_to_*` when saving (#18880))
 
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
 			setup_folder_path(successor[0], self.name)
 
+<<<<<<< HEAD
 	def get_successor(self):
 		return frappe.db.get_values(doctype="File", filters={"folder": self.name}, fieldname="name")
+=======
+	def validate_attachment_references(self):
+		if not self.attached_to_doctype:
+			return
+
+		if self.attached_to_name and not isinstance(self.attached_to_name, str):
+			frappe.throw(_("Attached To Name must be a string"), TypeError)
+
+		if not self.attached_to_field:
+			return
+
+		if not frappe.get_meta(self.attached_to_doctype).has_field(self.attached_to_field):
+			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
+
+	def after_rename(self, *args, **kwargs):
+		for successor in self.get_successors():
+			setup_folder_path(successor, self.name)
+>>>>>>> 425e4bf1b3 (fix(File): validate `attached_to_*` when saving (#18880))
 
 	def validate(self):
 		if self.is_new():
