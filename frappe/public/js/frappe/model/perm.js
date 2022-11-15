@@ -37,11 +37,17 @@ $.extend(frappe.perm, {
 
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
+<<<<<<< HEAD
 		if (!frappe.perm.doctype_perm[doctype]) {
+=======
+		if (!frappe.perm.doctype_perm[doctype] && !doc) {
+>>>>>>> 92d9e7d611 (fix: Don't assign document level perms to doctype level permission store)
 			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
 		}
 
-		let perms = frappe.perm.doctype_perm[doctype];
+		// if document object is passed, get fresh doc based perms
+		// (with ownership and user perms applied) else stale doctype perms
+		let perms = doc ? frappe.perm.get_perm(doctype, doc) : frappe.perm.doctype_perm[doctype];
 
 		if (!perms || !perms[permlevel]) return false;
 
