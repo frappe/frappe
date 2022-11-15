@@ -1943,7 +1943,12 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		frappe.socketio.docinfo_subscribe(doctype, docname);
+		frappe.socketio.doc_subscribe(doctype, docname);
+
+		if (frappe.socketio.is_docinfo_listener_setup) {
+			return;
+		}
+
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
 			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
 			if (action === "add") {
@@ -1974,6 +1979,7 @@ frappe.ui.form.Form = class FrappeForm {
 				this.timeline && this.timeline.refresh();
 			}
 		});
+		frappe.socketio.is_docinfo_listener_setup = true;
 	}
 
 	// Filters fields from the reference doctype and sets them as options for a Select field

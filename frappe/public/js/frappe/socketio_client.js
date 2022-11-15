@@ -3,6 +3,9 @@ frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
+	is_docinfo_listener_setup: false,
+	is_document_listener_setup: false,
+
 	init: function (port = 3000) {
 		if (frappe.boot.disable_async) {
 			return;
@@ -151,9 +154,6 @@ frappe.socketio = {
 
 		frappe.socketio.socket.emit("doc_subscribe", doctype, docname);
 		frappe.socketio.open_docs.push({ doctype: doctype, docname: docname });
-	},
-	docinfo_subscribe: function (doctype, docname) {
-		frappe.socketio.socket.emit("docinfo_update", doctype, docname);
 	},
 	doc_unsubscribe: function (doctype, docname) {
 		frappe.socketio.socket.emit("doc_unsubscribe", doctype, docname);
