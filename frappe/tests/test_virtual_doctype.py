@@ -87,7 +87,7 @@ class TestVirtualDoctypes(FrappeTestCase):
 		cls.addClassCleanup(frappe.flags.pop, "allow_doctype_export", None)
 
 		vdt = new_doctype(name=TEST_DOCTYPE_NAME, is_virtual=1, custom=0).insert()
-		cls.addClassCleanup(vdt.delete)
+		cls.addClassCleanup(vdt.delete, force=True)
 
 		patch_virtual_doc = patch(
 			"frappe.controllers", new={frappe.local.site: {TEST_DOCTYPE_NAME: VirtualDoctypeTest}}

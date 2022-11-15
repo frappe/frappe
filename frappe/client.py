@@ -333,11 +333,6 @@ def get_js(items):
 		with open(contentpath) as srcfile:
 			code = frappe.utils.cstr(srcfile.read())
 
-		if frappe.local.lang != "en":
-			messages = frappe.get_lang_dict("jsfile", contentpath)
-			messages = json.dumps(messages)
-			code += f"\n\n$.extend(frappe._messages, {messages})"
-
 		out.append(code)
 
 	return out

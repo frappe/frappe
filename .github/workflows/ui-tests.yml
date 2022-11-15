@@ -64,7 +64,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -121,7 +121,6 @@ jobs:
           DB: mariadb
 
       - name: Verify yarn.lock
-        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/apps/frappe
           yarn install --immutable --immutable-cache --check-cache

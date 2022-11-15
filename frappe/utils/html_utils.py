@@ -277,6 +277,7 @@ acceptable_elements = [
 	"li",
 	"m",
 	"map",
+	"mark",
 	"menu",
 	"meter",
 	"multicol",

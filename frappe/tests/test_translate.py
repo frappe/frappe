@@ -112,6 +112,14 @@ class TestTranslate(FrappeTestCase):
 
 		self.assertIn(return_val, [second_lang, get_parent_language(second_lang)])
 
+	def test_global_translations(self):
+		""" """
+		site = frappe.local.site
+		frappe.destroy()
+		_("this shouldn't break")
+		frappe.init(site=site)
+		frappe.connect()
+
 	def test_guest_request_language_resolution_with_request_header(self):
 		"""Test for frappe.translate.get_language
 

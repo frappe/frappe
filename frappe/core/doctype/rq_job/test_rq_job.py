@@ -19,12 +19,11 @@ class TestRQJob(FrappeTestCase):
 
 	@timeout(seconds=20)
 	def check_status(self, job: Job, status, wait=True):
-		if wait:
-			while True:
-				if job.is_queued or job.is_started:
-					time.sleep(0.2)
-				else:
-					break
+		while wait:
+			if not (job.is_queued or job.is_started):
+				break
+			time.sleep(0.2)
+
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
 
 	def test_serialization(self):
@@ -69,7 +68,7 @@ class TestRQJob(FrappeTestCase):
 		self.assertGreaterEqual(len(non_failed_jobs), 1)
 
 		# Create a slow job and check if it's stuck in "Started"
-		job = frappe.enqueue(method=self.BG_JOB, queue="short", sleep=1000)
+		job = frappe.enqueue(method=self.BG_JOB, queue="short", sleep=10)
 		time.sleep(3)
 		self.check_status(job, "started", wait=False)
 		stop_job(job_id=job.id)
@@ -84,8 +83,8 @@ class TestRQJob(FrappeTestCase):
 
 	def test_is_enqueued(self):
 
+		dummy_job = frappe.enqueue(self.BG_JOB, sleep=10, queue="short")
 		job_name = "uniq_test_job"
-		dummy_job = frappe.enqueue(self.BG_JOB, sleep=100, queue="short")
 		actual_job = frappe.enqueue(self.BG_JOB, job_name=job_name, queue="short")
 
 		self.assertTrue(is_job_queued(job_name))

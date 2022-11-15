@@ -254,7 +254,6 @@
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
- "name_case": "Title Case",
  "owner": "Administrator",
  "permissions": [
   {

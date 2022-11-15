@@ -71,15 +71,6 @@ pull_request_rules:
         assignees:
           - "{{ author }}"
 
-  - name: backport to develop
-    conditions:
-      - label="backport develop"
-    actions:
-      backport:
-        branches:
-          - develop
-        assignees:
-          - "{{ author }}"
 
   - name: backport to version-13-pre-release
     conditions:

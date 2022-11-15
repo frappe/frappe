@@ -27,7 +27,7 @@ def execute():
 			email_values.append(
 				(
 					1,
-					frappe.generate_hash(contact_detail.email_id, 10),
+					frappe.generate_hash(length=10),
 					contact_detail.email_id,
 					"email_ids",
 					"Contact",
@@ -44,7 +44,7 @@ def execute():
 			phone_values.append(
 				(
 					phone_counter,
-					frappe.generate_hash(contact_detail.email_id, 10),
+					frappe.generate_hash(length=10),
 					contact_detail.phone,
 					"phone_nos",
 					"Contact",
@@ -63,7 +63,7 @@ def execute():
 			phone_values.append(
 				(
 					phone_counter,
-					frappe.generate_hash(contact_detail.email_id, 10),
+					frappe.generate_hash(length=10),
 					contact_detail.mobile_no,
 					"phone_nos",
 					"Contact",

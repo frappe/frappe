@@ -1018,19 +1018,15 @@ def get_precision(
 	return get_field_precision(get_meta(doctype).get_field(fieldname), doc, currency)
 
 
-def generate_hash(txt: str | None = None, length: int | None = None) -> str:
-	"""Generates random hash for given text + current timestamp + random string."""
-	import hashlib
-	import time
+def generate_hash(txt: str | None = None, length: int = 56) -> str:
+	"""Generate random hash using best available randomness source."""
+	import math
+	import secrets
 
-	from .utils import random_string
+	if not length:
+		length = 56
 
-	digest = hashlib.sha224(
-		((txt or "") + repr(time.time()) + repr(random_string(8))).encode()
-	).hexdigest()
-	if length:
-		digest = digest[:length]
-	return digest
+	return secrets.token_hex(math.ceil(length / 2))[:length]
 
 
 def reset_metadata_version():
@@ -1115,7 +1111,7 @@ def can_cache_doc(args) -> str | None:
 		return
 
 	doctype = args[0]
-	name = doctype if len(args) == 1 else args[1]
+	name = doctype if len(args) == 1 or args[1] is None else args[1]
 
 	# Only cache if both doctype and name are strings
 	if isinstance(doctype, str) and isinstance(name, str):
