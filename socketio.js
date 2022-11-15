@@ -131,7 +131,7 @@ io.on("connection", function (socket) {
 			socket,
 			doctype,
 			callback: () => {
-				socket.join(get_list_room(socket, doctype));
+				socket.join(get_doctype_room(socket, doctype));
 			},
 		});
 	});
@@ -154,6 +154,7 @@ io.on("connection", function (socket) {
 	});
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	socket.on('doc_subscribe', function (doctype, docname) {
 =======
 	socket.on("docinfo_update", function (doctype, docname) {
@@ -168,6 +169,8 @@ io.on("connection", function (socket) {
 		});
 	});
 
+=======
+>>>>>>> 3a8fa6cbd5 (refactor(socketio): Use same room for doc & info events)
 	socket.on("doc_subscribe", function (doctype, docname) {
 >>>>>>> 97d2eab3e2 (refactor(socketio): docinfo_update)
 		can_subscribe_doc({
@@ -297,10 +300,6 @@ function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':doc:' + doctype + '/' + docname;
 }
 
-function get_docinfo_room(socket, doctype, docname) {
-	return get_site_name(socket) + ":docinfo:" + doctype + "/" + docname;
-}
-
 function get_open_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':open_doc:' + doctype + '/' + docname;
 }
@@ -321,8 +320,8 @@ function get_site_room(socket) {
 	return get_site_name(socket) + ':all';
 }
 
-function get_list_room(socket, doctype) {
-	return get_site_name(socket) + ":list:" + doctype;
+function get_doctype_room(socket, doctype) {
+	return get_site_name(socket) + ":doctype:" + doctype;
 }
 
 function get_task_room(socket, task_id) {
