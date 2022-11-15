@@ -233,8 +233,10 @@ class Communication(Document, CommunicationEmailMixin):
 
 	def notify_change(self, action):
 		frappe.publish_realtime(
-			f"update_docinfo_for_{self.reference_doctype}_{self.reference_name}",
+			"docinfo_update",
 			{"doc": self.as_dict(), "key": "communications", "action": action},
+			doctype=self.reference_doctype,
+			docname=self.reference_name,
 			after_commit=True,
 		)
 
