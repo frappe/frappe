@@ -136,9 +136,23 @@ class File(Document):
 		if self.is_folder:
 			self.file_url = ""
 		else:
+			self.validate_attachment_references()
 			self.validate_url()
 
 		self.file_size = frappe.form_dict.file_size or self.file_size
+
+	def validate_attachment_references(self):
+		if not self.attached_to_doctype:
+			return
+
+		if self.attached_to_name and not isinstance(self.attached_to_name, str):
+			frappe.throw(_("Attached To Name must be a string"), TypeError)
+
+		if not self.attached_to_field:
+			return
+
+		if not frappe.get_meta(self.attached_to_doctype).has_field(self.attached_to_field):
+			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def validate_url(self):
 		if not self.file_url or self.file_url.startswith(("http://", "https://")):
