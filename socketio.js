@@ -153,7 +153,23 @@ io.on("connection", function (socket) {
 		send_existing_lines(task_id, socket);
 	});
 
+<<<<<<< HEAD
 	socket.on('doc_subscribe', function (doctype, docname) {
+=======
+	socket.on("docinfo_update", function (doctype, docname) {
+		can_subscribe_doc({
+			socket,
+			doctype,
+			docname,
+			callback: () => {
+				var room = get_docinfo_room(socket, doctype, docname);
+				socket.join(room);
+			},
+		});
+	});
+
+	socket.on("doc_subscribe", function (doctype, docname) {
+>>>>>>> 97d2eab3e2 (refactor(socketio): docinfo_update)
 		can_subscribe_doc({
 			socket,
 			doctype,
@@ -279,6 +295,10 @@ function send_existing_lines(task_id, socket) {
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ':doc:' + doctype + '/' + docname;
+}
+
+function get_docinfo_room(socket, doctype, docname) {
+	return get_site_name(socket) + ":docinfo:" + doctype + "/" + docname;
 }
 
 function get_open_doc_room(socket, doctype, docname) {

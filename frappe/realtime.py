@@ -58,6 +58,8 @@ def publish_realtime(
 	elif event == "list_update":
 		doctype = doctype or message.get("doctype")
 		room = get_list_room(doctype)
+	elif event == "docinfo_update":
+		room = get_docinfo_room(doctype, docname)
 
 	if not task_id and hasattr(frappe.local, "task_id"):
 		task_id = frappe.local.task_id
@@ -161,6 +163,10 @@ def get_doc_room(doctype, docname):
 =======
 	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
 >>>>>>> 9931c3af04 (refactor(socketio)!: list_update)
+
+
+def get_docinfo_room(doctype, docname):
+	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
 
 
 def get_user_room(user):

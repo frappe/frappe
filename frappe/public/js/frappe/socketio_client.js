@@ -168,10 +168,20 @@ frappe.socketio = {
 		frappe.socketio.socket.emit('doc_subscribe', doctype, docname);
 		frappe.socketio.open_docs.push({doctype: doctype, docname: docname});
 	},
+<<<<<<< HEAD
 	doc_unsubscribe: function(doctype, docname) {
 		frappe.socketio.socket.emit('doc_unsubscribe', doctype, docname);
 		frappe.socketio.open_docs = $.filter(frappe.socketio.open_docs, function(d) {
 			if(d.doctype===doctype && d.name===docname) {
+=======
+	docinfo_subscribe: function (doctype, docname) {
+		frappe.socketio.socket.emit("docinfo_update", doctype, docname);
+	},
+	doc_unsubscribe: function (doctype, docname) {
+		frappe.socketio.socket.emit("doc_unsubscribe", doctype, docname);
+		frappe.socketio.open_docs = $.filter(frappe.socketio.open_docs, function (d) {
+			if (d.doctype === doctype && d.name === docname) {
+>>>>>>> 97d2eab3e2 (refactor(socketio): docinfo_update)
 				return null;
 			} else {
 				return d;

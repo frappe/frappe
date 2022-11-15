@@ -1764,12 +1764,20 @@ frappe.ui.form.Form = class FrappeForm {
 	setup_docinfo_change_listener() {
 		let doctype = this.doctype;
 		let docname = this.docname;
+<<<<<<< HEAD
 		let listener_name = `update_docinfo_for_${doctype}_${docname}`;
 		// to avoid duplicates
 		frappe.realtime.off(listener_name);
 		frappe.realtime.on(listener_name, ({doc, key, action='update'}) => {
 			let doc_list = (frappe.model.docinfo[doctype][docname][key] || []);
 			if (action === 'add') {
+=======
+
+		frappe.socketio.docinfo_subscribe(doctype, docname);
+		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
+			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
+			if (action === "add") {
+>>>>>>> 97d2eab3e2 (refactor(socketio): docinfo_update)
 				frappe.model.docinfo[doctype][docname][key].push(doc);
 			}
 
