@@ -124,20 +124,38 @@ $.extend(frappe.perm, {
 	},
 
 	get_role_permissions: (meta) => {
+		/** Returns a `dict` of evaluated Role Permissions like:
+		{
+			"read": 1,
+			"write": 0,
+			"if_owner": [if "if_owner" is enabled]
+				{
+					"read": 1,
+					"write": 0
+				}
+		} */
 		let perm = [{ read: 0, permlevel: 0 }];
-		// Returns a `dict` of evaluated Role Permissions
+
 		(meta.permissions || []).forEach((p) => {
-			// if user has this role
 			let permlevel = cint(p.permlevel);
 			if (!perm[permlevel]) {
 				perm[permlevel] = {};
 				perm[permlevel]["permlevel"] = permlevel;
 			}
 
+			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
 				frappe.perm.rights.forEach((right) => {
 					let value = perm[permlevel][right] || p[right] || 0;
-					if (value) {
+
+					if (p.if_owner && value) {
+						// if_owner is enabled for perm,
+						// construct perm object inside "if_owner" property
+						if (!perm[permlevel]["if_owner"]) {
+							perm[permlevel]["if_owner"] = {}
+						}
+						perm[permlevel]["if_owner"][right] = value;
+					} else if (value) {
 						perm[permlevel][right] = value;
 					}
 				});
