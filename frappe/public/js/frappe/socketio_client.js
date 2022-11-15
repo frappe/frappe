@@ -152,6 +152,9 @@ frappe.socketio = {
 		frappe.socketio.socket.emit("doc_subscribe", doctype, docname);
 		frappe.socketio.open_docs.push({ doctype: doctype, docname: docname });
 	},
+	docinfo_subscribe: function (doctype, docname) {
+		frappe.socketio.socket.emit("docinfo_update", doctype, docname);
+	},
 	doc_unsubscribe: function (doctype, docname) {
 		frappe.socketio.socket.emit("doc_unsubscribe", doctype, docname);
 		frappe.socketio.open_docs = $.filter(frappe.socketio.open_docs, function (d) {
