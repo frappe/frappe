@@ -747,12 +747,13 @@ class Document(BaseDocument):
 		Will also validate document transitions (Save > Submit > Cancel) calling
 		`self.check_docstatus_transition`."""
 
-		self.load_doc_before_save()
+		self.load_doc_before_save(raise_exception=True)
 
 		self._action = "save"
-		previous = self.get_doc_before_save()
+		previous = self._doc_before_save
 
-		if not previous or self.meta.get("is_virtual"):
+		# previous is None for new document insert
+		if not previous:
 			self.check_docstatus_transition(0)
 			return
 
@@ -1047,7 +1048,7 @@ class Document(BaseDocument):
 
 		self.set_title_field()
 
-	def load_doc_before_save(self):
+	def load_doc_before_save(self, *, raise_exception: bool = False):
 		"""load existing document from db before saving"""
 
 		self._doc_before_save = None
@@ -1058,6 +1059,9 @@ class Document(BaseDocument):
 		try:
 			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=True)
 		except frappe.DoesNotExistError:
+			if raise_exception:
+				raise
+
 			frappe.clear_last_message()
 
 	def run_post_save_methods(self):

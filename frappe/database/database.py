@@ -7,7 +7,7 @@ import random
 import re
 import string
 import traceback
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from time import time
 
 from pypika.terms import Criterion, NullValue
@@ -28,7 +28,8 @@ from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
-from frappe.utils import get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils.deprecations import deprecated, deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -112,6 +113,17 @@ class Database:
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
 		frappe.local.rollback_observers = []
+
+		try:
+			if execution_timeout := get_query_execution_timeout():
+				self.set_execution_timeout(execution_timeout)
+		except Exception as e:
+			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
+
+	def set_execution_timeout(self, seconds: int):
+		"""Set session speicifc timeout on exeuction of statements.
+		If any statement takes more time it will be killed along with entire transaction."""
+		raise NotImplementedError
 
 	def use(self, db_name):
 		"""`USE` db_name."""
@@ -258,6 +270,11 @@ class Database:
 		if pluck:
 			return [r[0] for r in self.last_result]
 
+		if as_utf8:
+			deprecation_warning("as_utf8 parameter is deprecated and will be removed in version 15.")
+		if formatted:
+			deprecation_warning("formatted parameter is deprecated and will be removed in version 15.")
+
 		# scrub output if required
 		if as_dict:
 			ret = self.fetch_as_dict(formatted, as_utf8)
@@ -376,10 +393,13 @@ class Database:
 	def fetch_as_dict(self, formatted=0, as_utf8=0) -> list[frappe._dict]:
 		"""Internal. Converts results to dict."""
 		result = self.last_result
-		ret = []
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
+		if not as_utf8:
+			return [frappe._dict(zip(keys, row)) for row in result]
+
+		ret = []
 		for r in result:
 			values = []
 			for value in r:
@@ -414,6 +434,9 @@ class Database:
 	@staticmethod
 	def convert_to_lists(res, formatted=0, as_utf8=0):
 		"""Convert tuple output to lists (internal)."""
+		if not as_utf8:
+			return [[value for value in row] for row in res]
+
 		nres = []
 		for r in res:
 			nr = []
@@ -827,6 +850,7 @@ class Database:
 			)
 		return {}
 
+	@deprecated
 	def update(self, *args, **kwargs):
 		"""Update multiple values. Alias for `set_value`."""
 		return self.set_value(*args, **kwargs)
@@ -866,6 +890,9 @@ class Database:
 			modified_by = modified_by or frappe.session.user
 			to_update.update({"modified": modified, "modified_by": modified_by})
 
+		if for_update:
+			deprecation_warning("for_update parameter is deprecated and will be removed in v15.")
+
 		if is_single_doctype:
 			frappe.db.delete(
 				"Singles", filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
@@ -897,10 +924,12 @@ class Database:
 			del self.value_cache[dt]
 
 	@staticmethod
+	@deprecated
 	def set(doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
 
+	@deprecated
 	def touch(self, doctype, docname):
 		"""Update the modified timestamp of this document."""
 		modified = now()
@@ -1224,6 +1253,7 @@ class Database:
 		"""
 		return self.sql_ddl(f"truncate `{get_table_name(doctype)}`")
 
+	@deprecated
 	def clear_table(self, doctype):
 		return self.truncate(doctype)
 
@@ -1342,3 +1372,28 @@ def savepoint(catch: type | tuple[type, ...] = Exception):
 		frappe.db.rollback(save_point=savepoint)
 	else:
 		frappe.db.release_savepoint(savepoint)
+
+
+def get_query_execution_timeout() -> int:
+	"""Get execution timeout based on current timeout in different contexts.
+
+	    HTTP requests: HTTP timeout or a default (300)
+	    Background jobs: Job timeout
+	Console/Commands: No timeout = 0.
+
+	    Note: Timeout adds 1.5x as "safety factor"
+	"""
+	from rq import get_current_job
+
+	if not frappe.conf.get("enable_db_statement_timeout"):
+		return 0
+
+	# Zero means no timeout, which is the default value in db.
+	timeout = 0
+	with suppress(Exception):
+		if getattr(frappe.local, "request", None):
+			timeout = frappe.conf.http_timeout or 300
+		elif job := get_current_job():
+			timeout = job.timeout
+
+	return int(cint(timeout) * 1.5)

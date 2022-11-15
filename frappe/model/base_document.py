@@ -100,12 +100,7 @@ class BaseDocument:
 		if d.get("doctype"):
 			self.doctype = d["doctype"]
 
-		self._table_fieldnames = (
-			d["_table_fieldnames"]  # from cache
-			if "_table_fieldnames" in d
-			else {df.fieldname for df in self._get_table_fields()}
-		)
-
+		self._table_fieldnames = {df.fieldname for df in self._get_table_fields()}
 		self.update(d)
 		self.dont_update_if_missing = []
 
