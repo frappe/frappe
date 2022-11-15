@@ -1280,6 +1280,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		) {
 			return;
 		}
+		frappe.socketio.list_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => {
 			if (this.filter_area.is_being_edited()) {
 				return;
