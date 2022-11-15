@@ -66,7 +66,7 @@ io.on("connection", function (socket) {
 			socket,
 			doctype,
 			callback: () => {
-				socket.join(get_list_room(socket, doctype));
+				socket.join(get_doctype_room(socket, doctype));
 			},
 		});
 	});
@@ -85,18 +85,6 @@ io.on("connection", function (socket) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
 		send_existing_lines(task_id, socket);
-	});
-
-	socket.on("docinfo_update", function (doctype, docname) {
-		can_subscribe_doc({
-			socket,
-			doctype,
-			docname,
-			callback: () => {
-				var room = get_docinfo_room(socket, doctype, docname);
-				socket.join(room);
-			},
-		});
 	});
 
 	socket.on("doc_subscribe", function (doctype, docname) {
@@ -226,10 +214,6 @@ function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
 }
 
-function get_docinfo_room(socket, doctype, docname) {
-	return get_site_name(socket) + ":docinfo:" + doctype + "/" + docname;
-}
-
 function get_open_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":open_doc:" + doctype + "/" + docname;
 }
@@ -246,8 +230,8 @@ function get_site_room(socket) {
 	return get_site_name(socket) + ":all";
 }
 
-function get_list_room(socket, doctype) {
-	return get_site_name(socket) + ":list:" + doctype;
+function get_doctype_room(socket, doctype) {
+	return get_site_name(socket) + ":doctype:" + doctype;
 }
 
 function get_task_room(socket, task_id) {
