@@ -1315,6 +1315,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
 			return;
 		}
+		frappe.socketio.list_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => {
 			if (this.avoid_realtime_update()) {
 				return;
