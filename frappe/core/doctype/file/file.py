@@ -124,10 +124,6 @@ class File(Document):
 	def get_successor(self):
 		return frappe.db.get_values(doctype="File", filters={"folder": self.name}, fieldname="name")
 
-	def after_rename(self, *args, **kwargs):
-		for successor in self.get_successors():
-			setup_folder_path(successor, self.name)
-
 	def validate(self):
 		if self.is_new():
 			self.set_is_private()
