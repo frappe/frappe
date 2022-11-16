@@ -40,6 +40,9 @@ function move_fields_to_column() {
 		@click.stop="store.selected_field = field.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
+		@mousemove.stop="store.drag = true"
+		@mousedown.stop="store.drag = false"
+		@mouseup.stop="store.start_drag(field.df.is_custom_field)"
 	>
 		<component :is="component" :df="field.df">
 			<template #label>

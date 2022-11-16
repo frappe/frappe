@@ -14,8 +14,12 @@ export const useStore = defineStore("form-builder-store", {
 		dirty: false,
 		read_only: false,
 		is_customize_form: false,
+		drag: false,
 	}),
 	getters: {
+		get_animation: () => {
+			return "cubic-bezier(0.34, 1.56, 0.64, 1)";
+		},
 		selected: (state) => {
 			return (name) => state.selected_field?.name == name;
 		},
@@ -186,6 +190,14 @@ export const useStore = defineStore("form-builder-store", {
 		},
 		get_layout() {
 			return create_layout(this.doc.fields);
+		},
+		start_drag(is_custom) {
+			if (this.drag && is_custom == 0) {
+				frappe.show_alert({
+					message: __("Cannot drag standard fields"),
+					indicator: "yellow",
+				});
+			}
 		},
 	},
 });

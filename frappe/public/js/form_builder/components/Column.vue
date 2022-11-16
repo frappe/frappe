@@ -73,6 +73,9 @@ function move_columns_to_section() {
 		@click.stop="store.selected_field = column.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
+		@mousemove.stop="store.drag = true"
+		@mousedown.stop="store.drag = false"
+		@mouseup.stop="store.start_drag(column.df.is_custom_field)"
 	>
 		<div class="column-actions" :hidden="store.read_only">
 			<button
@@ -101,7 +104,8 @@ function move_columns_to_section() {
 			group="fields"
 			filter="[data-is-custom='0']"
 			:prevent-on-filter="false"
-			:animation="150"
+			:animation="200"
+			:easing="store.get_animation"
 			item-key="id"
 			:disabled="store.read_only"
 		>

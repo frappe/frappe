@@ -111,6 +111,7 @@ function remove_tab() {
 			filter="[data-is-custom='0']"
 			:prevent-on-filter="false"
 			:animation="200"
+			:easing="store.get_animation"
 			item-key="id"
 			:disabled="store.read_only"
 		>
@@ -124,6 +125,9 @@ function remove_tab() {
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
+					@mousemove.stop="store.drag = true"
+					@mousedown.stop="store.drag = false"
+					@mouseup.stop="store.start_drag(element.df.is_custom_field)"
 				>
 					<EditableInput
 						:text="element.df.label"
@@ -170,6 +174,7 @@ function remove_tab() {
 				filter="[data-has-std-field='true']"
 				:prevent-on-filter="false"
 				:animation="200"
+				:easing="store.get_animation"
 				item-key="id"
 				:disabled="store.read_only"
 			>

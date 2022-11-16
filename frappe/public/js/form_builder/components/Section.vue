@@ -82,6 +82,9 @@ function move_sections_to_tab() {
 			@click.stop="select_section"
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
+			@mousemove.stop="store.drag = true"
+			@mousedown.stop="store.drag = false"
+			@mouseup.stop="store.start_drag(section.df.is_custom_field)"
 		>
 			<div
 				:class="['section-header', section.df.label || section.df.collapsible ? 'has-label' : '']"
@@ -136,6 +139,8 @@ function move_sections_to_tab() {
 					:prevent-on-filter="false"
 					group="columns"
 					item-key="id"
+					:animation="200"
+					:easing="store.get_animation"
 					:disabled="store.read_only"
 				>
 					<template #item="{ element }">
