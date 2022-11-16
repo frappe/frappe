@@ -70,6 +70,7 @@ const show_new_topic_modal = (e) => {
 };
 
 const setup_socket_io = () => {
+<<<<<<< HEAD
 	const assets = [
 		"/assets/frappe/js/lib/socket.io.min.js",
 		"/assets/frappe/js/frappe/socketio_client.js"
@@ -83,6 +84,18 @@ const setup_socket_io = () => {
 		frappe.socketio.socket.on("publish_message", (data) => {
 			publish_message(data);
 		});
+=======
+	frappe.socketio.init(window.socketio_port || "9000");
+	frappe.socketio.socket.emit("website");
+	frappe.socketio.socket.on("publish_message", (data) => {
+		publish_message(data);
+	});
+	frappe.socketio.socket.on("update_message", (data) => {
+		update_message(data);
+	});
+	frappe.socketio.socket.on("delete_message", (data) => {
+		delete_message(data);
+>>>>>>> 96fee8c293 (feat: {site}:website room open to all users)
 	});
 };
 

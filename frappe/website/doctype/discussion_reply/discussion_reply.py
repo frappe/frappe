@@ -6,6 +6,17 @@ from frappe.model.document import Document
 
 
 class DiscussionReply(Document):
+<<<<<<< HEAD
+=======
+	def on_update(self):
+		frappe.publish_realtime(
+			event="update_message",
+			room="website",
+			message={"reply": frappe.utils.md_to_html(self.reply), "reply_name": self.name},
+			after_commit=True,
+		)
+
+>>>>>>> 96fee8c293 (feat: {site}:website room open to all users)
 	def after_insert(self):
 
 		replies = frappe.db.count("Discussion Reply", {"topic": self.topic})
@@ -30,6 +41,7 @@ class DiscussionReply(Document):
 
 		frappe.publish_realtime(
 			event="publish_message",
+			room="website",
 			message={
 				"template": template,
 				"topic_info": topic_info[0],
@@ -38,3 +50,16 @@ class DiscussionReply(Document):
 			},
 			after_commit=True,
 		)
+<<<<<<< HEAD
+=======
+
+	def after_delete(self):
+		frappe.publish_realtime(
+			event="delete_message", room="website", message={"reply_name": self.name}, after_commit=True
+		)
+
+
+@frappe.whitelist()
+def delete_message(reply_name):
+	frappe.delete_doc("Discussion Reply", reply_name, ignore_permissions=True)
+>>>>>>> 96fee8c293 (feat: {site}:website room open to all users)

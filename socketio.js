@@ -124,8 +124,15 @@ io.on("connection", function (socket) {
 >>>>>>> 4de9c39bb8 (refactor: SocketIO)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	socket.on('task_subscribe', function (task_id) {
 =======
+=======
+	socket.on("website", () => {
+		socket.join(get_website_room(socket));
+	});
+
+>>>>>>> 96fee8c293 (feat: {site}:website room open to all users)
 	socket.on("list_update", function (doctype) {
 		can_subscribe_list({
 			socket,
@@ -320,6 +327,10 @@ function get_user_room(socket, user) {
 
 function get_site_room(socket) {
 	return get_site_name(socket) + ':all';
+}
+
+function get_website_room(socket) {
+	return get_site_name(socket) + ":website";
 }
 
 function get_doctype_room(socket, doctype) {
