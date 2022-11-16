@@ -87,9 +87,12 @@ function move_sections_to_tab() {
 			@mouseup.stop="store.start_drag(section.df.is_custom_field)"
 		>
 			<div
-				:class="['section-header', section.df.label || section.df.collapsible ? 'has-label' : '']"
+				:class="[
+					'section-header',
+					section.df.label || section.df.collapsible ? 'has-label' : '',
+					collapsed ? 'collapsed' : ''
+				]"
 				:hidden="!section.df.label && store.read_only"
-				:style="{ paddingBottom: !collapsed ? '0.75rem' : '' }"
 			>
 				<div class="section-label">
 					<EditableInput
@@ -191,6 +194,11 @@ function move_sections_to_tab() {
 			display: none;
 			justify-content: space-between;
 			align-items: center;
+			padding-bottom: 0.75rem;
+
+			&.collapsed {
+				padding-bottom: 0;
+			}
 
 			&.has-label {
 				display: flex;

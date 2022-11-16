@@ -36,7 +36,7 @@ onMounted(() => store.fetch());
 			</div>
 		</div>
 		<div class="form-container">
-			<div class="form-main">
+			<div class="form-main" :class="[store.preview ? 'preview' : '']">
 				<Tabs />
 			</div>
 		</div>
@@ -150,6 +150,72 @@ onMounted(() => store.fetch());
 		:deep([data-has-std-field="false"]),
 		:deep([data-is-custom="1"]) {
 			background-color: var(--yellow-highlight-color);
+		}
+	}
+
+	:deep(.preview) {
+		.tab, .column, .field, [data-is-custom="1"] {
+			background-color: var(--fg-color);
+		}
+
+		.column, .field {
+			border: none;
+			padding: 0;
+		}
+
+		.form-section {
+			padding: 5px;
+
+			.section-header {
+				&.has-label {
+					padding: 10px 15px;
+					margin-bottom: 8px;
+				}
+
+				&.collapsed {
+					margin-bottom: 0;
+				}
+			}
+
+			.section-columns {
+				margin-top: 8px;
+
+				.section-columns-container {
+					.column {
+						padding-left: 15px;
+						padding-right: 15px;
+						margin: 0;
+
+						.field {
+							margin: 0;
+							margin-bottom: 1rem;
+							.field-controls {
+								margin-bottom: 5px;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		.selected, .hovered {
+			border-color: transparent;
+		}
+
+		input,
+		textarea,
+		select,
+		.ace_editor,
+		.ace_gutter,
+		.ace_content,
+		.signature-field,
+		.missing-image,
+		.ql-editor {
+			background-color: var(--control-bg) !important;
+		}
+
+		input[type="checkbox"] {
+			background-color: var(--fg-bg) !important;
 		}
 	}
 

@@ -14,6 +14,7 @@ export const useStore = defineStore("form-builder-store", {
 		dirty: false,
 		read_only: false,
 		is_customize_form: false,
+		preview: false,
 		drag: false,
 	}),
 	getters: {
@@ -95,6 +96,7 @@ export const useStore = defineStore("form-builder-store", {
 				this.dirty = false;
 				this.read_only =
 					!this.is_customize_form && !frappe.boot.developer_mode && !this.doc.custom;
+				this.preview = false;
 			});
 		},
 		reset_changes() {

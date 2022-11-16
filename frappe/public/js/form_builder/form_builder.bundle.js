@@ -11,6 +11,7 @@ class FormBuilder {
 		this.page = page;
 		this.doctype = doctype;
 		this.customize = customize;
+		this.read_only = false;
 
 		// set page title
 		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
@@ -31,6 +32,16 @@ class FormBuilder {
 			this.store.save_changes()
 		);
 
+		this.preview_btn = this.page.add_button(__("Show Preview"), () => {
+			this.store.preview = !this.store.preview;
+
+			if (this.store.read_only && !this.read_only) {
+				return;
+			}
+
+			this.store.read_only = this.store.preview;
+			this.read_only = true;
+		});
 		this.customize_form_btn = this.page.add_button(__("Switch to Customize Form"), () => {
 			frappe.set_route("form-builder", this.doctype, "customize");
 		});
@@ -100,9 +111,15 @@ class FormBuilder {
 				this.go_to_customize_form_btn.hide();
 			}
 
+			// toggle preview btn text
+			this.preview_btn.text(this.store.preview ? __("Hide Preview") : __("Show Preview"));
+
 			// toggle primary btn and show indicator based on read_only state
 			this.primary_btn.toggle(!this.store.read_only);
-			this.store.read_only && this.page.set_indicator(__("Read Only"), "orange");
+			if (this.store.read_only) {
+				let message = this.store.preview ? __("Preview Mode") : __("Read Only");
+				this.page.set_indicator(message, "orange");
+			}
 		});
 	}
 }
