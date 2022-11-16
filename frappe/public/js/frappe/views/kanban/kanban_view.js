@@ -36,6 +36,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				this.card_meta = this.get_card_meta();
 				this.page_length = 0;
 
+<<<<<<< HEAD
 				this.menu_items.push({
 					label: __('Save filters'),
 					action: () => {
@@ -44,6 +45,38 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				});
 				return this.get_board();
 			});
+=======
+			this.board_name = frappe.get_route()[3] || get_board_name() || null;
+			this.page_title = __(this.board_name);
+			this.card_meta = this.get_card_meta();
+			this.page_length = 0;
+
+			// frappe run serially get/set perms > push menu items > get_board
+			this.menu_items.push(
+				...[
+					{
+						label: __("Save filters"),
+						action: () => {
+							this.save_kanban_board_filters();
+						},
+					},
+					{
+						label: __("Delete Kanban Board"),
+						action: () => {
+							frappe.confirm("Are you sure you want to proceed?", () => {
+								frappe.db.delete_doc("Kanban Board", this.board_name).then(() => {
+									frappe.show_alert(`Kanban Board ${this.board_name} deleted.`);
+									frappe.set_route("List", this.doctype, "List");
+								});
+							});
+						},
+					},
+				]
+			);
+
+			return this.get_board();
+		});
+>>>>>>> 299831d209 (fix: server method to return evaluated dict of perms for a document)
 	}
 
 	setup_paging_area() {
