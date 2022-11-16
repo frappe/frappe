@@ -26,4 +26,18 @@ repos:
     rev: 5.9.1
     hooks:
       - id: isort
+<<<<<<< HEAD
         exclude: ".*setup.py$"
+=======
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
+    hooks:
+      - id: flake8
+        additional_dependencies: ['flake8-bugbear',]
+
+ci:
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false
+>>>>>>> 0d5d2cf95c (ci: fix flake8 URL (#18895))
