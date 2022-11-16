@@ -28,7 +28,7 @@ from frappe.query_builder import (
 	patch_query_aggregation,
 	patch_query_execute,
 )
-from frappe.utils.caching import request_cache
+from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import cstr, sbool
 
 # Local application imports
@@ -2396,3 +2396,4 @@ def mock(type, size=1, locale="en"):
 
 
 from frappe.desk.search import validate_and_sanitize_search_inputs  # noqa
+from frappe.desk.treeview import validate_tree_doctype  # noqa

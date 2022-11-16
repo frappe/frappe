@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import functools
+
 import frappe
 from frappe import _
 
@@ -36,7 +38,26 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 	return out
 
 
+def validate_tree_doctype(fn):
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+
+		if kwargs.get("doctype") and kwargs.get("doctype") not in get_tree_doctypes():
+			return []
+
+		return fn(**kwargs)
+
+	return wrapper
+
+
+@frappe.site_cache()
+def get_tree_doctypes():
+	return frappe.db.get_values("DocType", filters={"is_tree": 1}, pluck="name")
+
+
 @frappe.whitelist()
+@validate_tree_doctype
 def get_children(doctype, parent="", **filters):
 	return _get_children(doctype, parent)
 
