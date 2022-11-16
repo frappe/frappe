@@ -43,12 +43,15 @@ frappe.socketio = {
 				withCredentials: true,
 				reconnectionAttempts: 3,
 			});
+<<<<<<< HEAD
 		} else if (window.location.protocol == "file:") {
 			frappe.socketio.socket = io.connect(window.localStorage.server, {
 				withCredentials: true,
 				reconnectionAttempts: 3,
 			});
 >>>>>>> 5210ea593f (fix(socketio): Re-try thrice before trying to reconnect)
+=======
+>>>>>>> 45b0c3e28d (chore: remove dead code)
 		}
 
 		if (!frappe.socketio.socket) {
