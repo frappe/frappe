@@ -120,6 +120,10 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise ValueError("Illegal arguments")
 
+	@property
+	def is_locked(self):
+		return file_lock.lock_exists(self.get_signature())
+
 	@staticmethod
 	def whitelist(fn):
 		"""Decorator: Whitelist method to be called remotely via REST API."""
@@ -300,6 +304,10 @@ class Document(BaseDocument):
 				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
+	def check_if_locked(self):
+		if self.creation and self.is_locked:
+			raise frappe.DocumentLockedError
+
 	def save(self, *args, **kwargs):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
@@ -326,6 +334,7 @@ class Document(BaseDocument):
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
 
+		self.check_if_locked()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()

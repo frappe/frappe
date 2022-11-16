@@ -4,7 +4,6 @@ import os
 import re
 import shutil
 import subprocess
-from distutils.spawn import find_executable
 from subprocess import getoutput
 from tempfile import mkdtemp, mktemp
 from urllib.parse import urlparse
@@ -280,7 +279,7 @@ def check_node_executable():
 	warn = "⚠️ "
 	if node_version.major < 14:
 		click.echo(f"{warn} Please update your node version to 14")
-	if not find_executable("yarn"):
+	if not shutil.which("yarn"):
 		click.echo(f"{warn} Please install yarn using below command and try again.\nnpm install -g yarn")
 	click.echo()
 
