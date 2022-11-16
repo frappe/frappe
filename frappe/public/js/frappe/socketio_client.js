@@ -27,11 +27,6 @@ frappe.socketio = {
 				withCredentials: true,
 				reconnectionAttempts: 3,
 			});
-		} else if (window.location.protocol == "file:") {
-			frappe.socketio.socket = io.connect(window.localStorage.server, {
-				withCredentials: true,
-				reconnectionAttempts: 3,
-			});
 		}
 
 		if (!frappe.socketio.socket) {

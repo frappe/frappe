@@ -84,7 +84,6 @@ io.on("connection", function (socket) {
 	socket.on("progress_subscribe", function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
-		send_existing_lines(task_id, socket);
 	});
 
 	socket.on("doc_subscribe", function (doctype, docname) {
@@ -197,18 +196,6 @@ subscriber.on("message", function (_channel, message) {
 });
 
 subscriber.subscribe("events");
-
-function send_existing_lines(task_id, socket) {
-	var room = get_task_room(socket, task_id);
-	subscriber.hgetall("task_log:" + task_id, function (_err, lines) {
-		io.to(room).emit("task_progress", {
-			task_id: task_id,
-			message: {
-				lines: lines,
-			},
-		});
-	});
-}
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
