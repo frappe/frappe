@@ -3,8 +3,12 @@
 
 import json
 import os
+import re
+import subprocess
 import sys
 from collections import OrderedDict
+from contextlib import suppress
+from shutil import which
 
 import click
 
@@ -653,9 +657,21 @@ def convert_archive_content(sql_file_path):
 	if frappe.conf.db_type == "mariadb":
 		# ever since mariaDB 10.6, row_format COMPRESSED has been deprecated and removed
 		# this step is added to ease restoring sites depending on older mariaDB servers
+		# This change was reverted by mariadb in 10.6.6
+		# Ref: https://mariadb.com/kb/en/innodb-compressed-row-format/#read-only
 		from pathlib import Path
 
 		from frappe.utils import random_string
+
+		version = _guess_mariadb_version()
+		if not version or (version <= (10, 6, 0) or version >= (10, 6, 6)):
+			return
+
+		click.secho(
+			"MariaDB version being used does not support ROW_FORMAT=COMPRESSED, "
+			"converting into DYNAMIC format.",
+			fg="yellow",
+		)
 
 		old_sql_file_path = Path(f"{sql_file_path}_{random_string(10)}")
 		sql_file_path = Path(sql_file_path)
@@ -682,6 +698,20 @@ def extract_sql_gzip(sql_gz_path):
 		raise
 
 	return decompressed_file
+
+
+def _guess_mariadb_version() -> tuple[int] | None:
+	# Using command-line because we *might* not have a connection yet and this command is required
+	# in non-interactive mode.
+	# Use db.sql("select version()") instead if connection is available.
+	with suppress(Exception):
+		mysql = which("mysql")
+		version_output = subprocess.getoutput(f"{mysql} --version")
+		version_regex = r"(?P<version>\d+\.\d+\.\d+)-MariaDB"
+
+		version = re.search(version_regex, version_output).group("version")
+
+		return tuple(int(v) for v in version.split("."))
 
 
 def extract_files(site_name, file_path):
