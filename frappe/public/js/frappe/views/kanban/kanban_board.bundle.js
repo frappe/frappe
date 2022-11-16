@@ -333,12 +333,13 @@ frappe.provide("frappe.views");
 
 			if (self.$kanban_board.length === 0) {
 				self.$kanban_board = $(frappe.render_template("kanban_board"));
+				// add column
 				self.$kanban_board.appendTo(self.wrapper);
 			}
 
 			self.$filter_area = self.cur_list.$page.find(".active-tag-filters");
 			bind_events();
-			setup_sortable();
+			setup_sortable(); // column
 		}
 
 		function make_columns() {
@@ -355,7 +356,7 @@ frappe.provide("frappe.views");
 			bind_clickdrag();
 		}
 
-		function setup_sortable() {
+		function setup_sortable() { // drag column
 			var sortable = new Sortable(self.$kanban_board.get(0), {
 				group: "columns",
 				animation: 150,
@@ -518,7 +519,7 @@ frappe.provide("frappe.views");
 
 		function init() {
 			make_dom();
-			setup_sortable();
+			// setup_sortable(); // drag card
 			make_cards();
 			store.watch((state, getters) => {
 				return state.cards;
@@ -535,6 +536,7 @@ frappe.provide("frappe.views");
 					indicator: frappe.scrub(column.indicator, "-"),
 				})
 			).appendTo(wrapper);
+			// add task, archive
 			self.$kanban_cards = self.$kanban_column.find(".kanban-cards");
 		}
 
@@ -564,7 +566,7 @@ frappe.provide("frappe.views");
 			}
 		}
 
-		function setup_sortable() {
+		function setup_sortable() { // drag card
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
 				animation: 150,
