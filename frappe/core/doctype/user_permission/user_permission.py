@@ -22,11 +22,11 @@ class UserPermission(Document):
 
 	def on_update(self):
 		frappe.cache().hdel("user_permissions", self.user)
-		frappe.publish_realtime("update_user_permissions")
+		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
 
-	def on_trash(self):  # pylint: disable=no-self-use
+	def on_trash(self):
 		frappe.cache().hdel("user_permissions", self.user)
-		frappe.publish_realtime("update_user_permissions")
+		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
 
 	def validate_user_permission(self):
 		"""checks for duplicate user permission records"""

@@ -380,12 +380,17 @@ class EmailAccount(Document):
 						self.handle_bad_emails(email_server, uid, msg, frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
+<<<<<<< HEAD
 				else:
 					frappe.db.commit()
 					if communication and self.flags.notify:
 
 						# If email already exists in the system
 						# then do not send notifications for the same email.
+=======
+		if exceptions:
+			raise Exception(frappe.as_json(exceptions))
+>>>>>>> c3c1848b2a (fix: Restrict socket data to respective users after commit)
 
 						attachments = []
 
