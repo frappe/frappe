@@ -56,6 +56,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
 
+			// frappe run serially get/set perms > push menu items > get_board
 			this.menu_items.push(
 				...[
 					{

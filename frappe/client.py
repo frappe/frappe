@@ -302,6 +302,15 @@ def has_permission(doctype, docname, perm_type="read"):
 	# perm_type can be one of read, write, create, submit, cancel, report
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
 
+@frappe.whitelist()
+def get_doc_permissions(doctype, docname):
+	"""Returns an evaluated document permissions dict like `{"read":1, "write":1}`
+
+	:param doctype: DocType of the document to be evaluated
+	:param docname: `name` of the document to be evaluated
+	"""
+	doc = frappe.get_doc(doctype, docname)
+	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
 
 @frappe.whitelist()
 def get_password(doctype, name, fieldname):
