@@ -1774,12 +1774,9 @@ frappe.ui.form.Form = class FrappeForm {
 =======
 
 		frappe.socketio.doc_subscribe(doctype, docname);
-
-		if (frappe.socketio.is_docinfo_listener_setup) {
-			return;
-		}
-
+		frappe.realtime.off("docinfo_update");
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
+<<<<<<< HEAD
 			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
 			if (action === "add") {
 >>>>>>> 97d2eab3e2 (refactor(socketio): docinfo_update)
@@ -1787,9 +1784,24 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 
 			let docindex = doc_list.findIndex(old_doc => {
+=======
+			if (
+				!doc.reference_doctype ||
+				!doc.reference_name ||
+				doc.reference_doctype !== doctype ||
+				doc.reference_name !== docname
+			) {
+				return;
+			}
+			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
+			let docindex = doc_list.findIndex((old_doc) => {
+>>>>>>> 2b7e4554c4 (fix(desk): maintain realtime & cached data consistency)
 				return old_doc.name === doc.name;
 			});
 
+			if (action === "add") {
+				frappe.model.docinfo[doctype][docname][key].push(doc);
+			}
 			if (docindex > -1) {
 				if (action === 'update') {
 					frappe.model.docinfo[doctype][docname][key].splice(docindex, 1, doc);
@@ -1804,7 +1816,6 @@ frappe.ui.form.Form = class FrappeForm {
 				this.timeline && this.timeline.refresh();
 			}
 		});
-		frappe.socketio.is_docinfo_listener_setup = true;
 	}
 
 	// Filters fields from the reference doctype and sets them as options for a Select field
