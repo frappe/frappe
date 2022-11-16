@@ -205,6 +205,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 				mention: this.get_mention_options(),
 			},
 			theme: "snow",
+			readOnly: this.disabled,
 		};
 	}
 

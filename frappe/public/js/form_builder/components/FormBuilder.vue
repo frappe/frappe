@@ -118,7 +118,15 @@ onMounted(() => store.fetch());
 			}
 
 			.editable {
-				input, textarea, select {
+				input,
+				textarea,
+				select,
+				.ace_editor,
+				.ace_gutter,
+				.ace_content,
+				.signature-field,
+				.missing-image,
+				.ql-editor {
 					background-color: var(--fg-color);
 					cursor: pointer;
 				}
@@ -128,7 +136,8 @@ onMounted(() => store.fetch());
 				content: " *";
 				color: var(--red-400);
 			}
-			.description {
+			.description,
+			.time-zone {
 				font-size: var(--text-sm);
 				color: var(--text-muted);
 			}

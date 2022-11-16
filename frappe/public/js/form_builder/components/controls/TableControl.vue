@@ -1,64 +1,85 @@
 <script setup>
-import EditableInput from "../EditableInput.vue";
-import { useStore } from "../../store";
-import { useSlots } from "vue";
+import { get_table_columns } from "../../utils";
+import { computedAsync } from "@vueuse/core";
 
-let store = useStore();
-let props = defineProps(["df", "value"]);
-let slots = useSlots();
+let props = defineProps(["df"]);
 
+let table_columns = computedAsync(async () => {
+	let doctype = props.df.options;
+	await frappe.model.with_doctype(doctype);
+	let child_doctype = frappe.get_meta(doctype);
+	return get_table_columns(props.df, child_doctype);
+}, []);
 </script>
 
 <template>
-	<div v-if="!slots.actions" class="control">
-		<div class="label">{{ df.label }}</div>
-		<input
-			class="form-control"
-			type="text"
-			:value="value"
-			:disabled="store.read_only || df.read_only"
-			@input="event => $emit('update:modelValue', event.target.value)"
-		/>
-		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
-	</div>
-	<div class="control editable" v-else>
+	<div class="control editable">
+		<!-- label -->
 		<div class="field-controls">
-			<EditableInput
-				:class="{ reqd: df.reqd }"
-				:text="df.label"
-				:placeholder="__('Label')"
-				:empty_label="`${__('No Label')} (${df.fieldtype})`"
-				v-model="df.label"
-			/>
-			<slot name="actions"></slot>
+			<slot name="label" />
+			<slot name="actions" />
 		</div>
-		<input
-			class="form-control"
-			type="text"
-			disabled
-		/>
+
+		<!-- table grid -->
+		<div
+			v-if="df.fieldtype == 'Table'"
+			class="table-controls row no-gutters"
+			:style="{ opacity: 1 }"
+		>
+			<div
+				class="table-column"
+				:style="{ width: size * 10 + '%' }"
+				v-for="([tf, size], i) in table_columns"
+				:key="i"
+			>
+				<div class="table-field ellipsis">
+					{{ tf.label }}
+				</div>
+			</div>
+		</div>
+		<div class="grid-empty text-center">
+			<img
+				src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+				:alt="__('Grid Empty State')"
+				class="grid-empty-illustration"
+			/>
+			{{ __("No Data") }}
+		</div>
+
+		<!-- description -->
 		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
 	</div>
 </template>
 
 <style lang="scss" scoped>
-.label {
-	margin-bottom: 0.3rem;
-}
-
-.editable input {
+.grid-empty {
 	background-color: var(--fg-color);
-	cursor: pointer;
+	border-bottom-left-radius: var(--border-radius);
+	border-bottom-right-radius: var(--border-radius);
+	border: 1px solid var(--table-border-color);
 }
-
-.reqd::after {
-	content: " *";
-	color: var(--red-400);
-}
-
-.label-actions {
+.table-controls {
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
+
+	.table-column {
+		position: relative;
+
+		.table-field {
+			background-color: var(--fg-color);
+			border: 1px solid var(--table-border-color);
+			border-left: none;
+			padding: 8px 10px;
+			user-select: none;
+			white-space: nowrap;
+			overflow: hidden;
+		}
+		&:first-child .table-field {
+			border-top-left-radius: var(--border-radius);
+			border-left: 1px solid var(--table-border-color);
+		}
+		&:last-child .table-field {
+			border-top-right-radius: var(--border-radius);
+		}
+	}
 }
 </style>

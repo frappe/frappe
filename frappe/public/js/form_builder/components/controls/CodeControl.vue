@@ -1,64 +1,70 @@
 <script setup>
-import EditableInput from "../EditableInput.vue";
+import { computed, onMounted, ref, useSlots, watch } from "vue";
 import { useStore } from "../../store";
-import { useSlots } from "vue";
 
 let store = useStore();
-let props = defineProps(["df", "value"]);
+let props = defineProps(["df", "modelValue"]);
+let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
+let code = ref(null);
+let code_control = ref(null);
+let update_control = ref(true);
+
+let content = computed({
+	get: () => props.modelValue,
+	set: (value) => emit('update:modelValue', value)
+});
+
+onMounted(() => {
+	if (code.value) {
+		props.df.fieldtype = "Code";
+		props.df.hidden = 0;
+		code_control.value = frappe.ui.form.make_control({
+			parent: code.value,
+			df: {
+				...props.df,
+				change: () => {
+					if (update_control.value) {
+						content.value = code_control.value.get_value();
+					}
+					update_control.value = true;
+				}
+			},
+			value: content.value,
+			disabled: Boolean(slots.label) || store.read_only,
+			render_input: true,
+			only_input: Boolean(slots.label),
+		});
+	}
+});
+
+watch(
+	() => content.value,
+	(value) => {
+		update_control.value = false;
+		code_control.value.set_value(value);
+	}
+);
+
+watch(
+	() => props.df.max_height,
+	(value) => {
+		if (code_control.value) {
+			code_control.value.ace_editor_target.css("max-height", value);
+		}
+	},
+);
 </script>
 
 <template>
-	<div v-if="!slots.actions" class="control">
-		<div class="label">{{ df.label }}</div>
-		<input
-			class="form-control"
-			type="text"
-			:value="value"
-			:disabled="store.read_only || df.read_only"
-			@input="event => $emit('update:modelValue', event.target.value)"
-		/>
-		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
-	</div>
-	<div class="control editable" v-else>
+	<div v-if="slots.label" class="control" :class="{ editable: slots.label }">
 		<div class="field-controls">
-			<EditableInput
-				:class="{ reqd: df.reqd }"
-				:text="df.label"
-				:placeholder="__('Label')"
-				:empty_label="`${__('No Label')} (${df.fieldtype})`"
-				v-model="df.label"
-			/>
-			<slot name="actions"></slot>
+			<slot name="label" />
+			<slot name="actions" />
 		</div>
-		<input
-			class="form-control"
-			type="text"
-			disabled
-		/>
+		<div ref="code"></div>
 		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
 	</div>
+	<div v-else class="control" ref="code"></div>
 </template>
-
-<style lang="scss" scoped>
-.label {
-	margin-bottom: 0.3rem;
-}
-
-.editable input {
-	background-color: var(--fg-color);
-	cursor: pointer;
-}
-
-.reqd::after {
-	content: " *";
-	color: var(--red-400);
-}
-
-.label-actions {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-</style>

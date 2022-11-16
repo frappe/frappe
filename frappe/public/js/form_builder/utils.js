@@ -98,28 +98,102 @@ export function create_layout(fields) {
 	return layout;
 }
 
-export function get_table_columns(df) {
+export async function get_table_columns(df, child_doctype) {
 	let table_columns = [];
-	let table_fields = frappe.get_meta(df.options).fields;
-	let total_width = 0;
+
+	if (!frappe.get_meta(df.options)) {
+		await frappe.model.with_doctype(df.options);
+	}
+	if (!child_doctype) {
+		child_doctype = frappe.get_meta(df.options);
+	}
+
+	let table_fields = child_doctype.fields;
+	let total_colsize = 1;
+	table_columns.push([
+		{
+			label: __("No."),
+		},
+		1,
+	]);
 	for (let tf of table_fields) {
-		if (
-			!in_list(frappe.model.layout_fields, tf.fieldtype) &&
-			!tf.print_hide &&
-			df.label &&
-			total_width < 100
-		) {
-			let width =
-				typeof tf.width == "number" && tf.width < 100 ? tf.width : tf.width ? 20 : 10;
-			table_columns.push({
-				label: tf.label,
-				fieldname: tf.fieldname,
-				fieldtype: tf.fieldtype,
-				options: tf.options,
-				width,
-			});
-			total_width += width;
+		if (!in_list(frappe.model.layout_fields, tf.fieldtype) && tf.in_list_view && tf.label) {
+			let colsize;
+
+			if (tf.columns) {
+				colsize = tf.columns;
+			} else {
+				colsize = update_default_colsize(tf);
+			}
+
+			if (total_colsize > 11 + colsize) {
+				continue;
+			} else {
+				total_colsize += colsize;
+				table_columns.push([
+					{
+						label: tf.label,
+						fieldname: tf.fieldname,
+						fieldtype: tf.fieldtype,
+					},
+					colsize,
+				]);
+			}
 		}
+	}
+
+	// adjust by increasing column width
+	adjust_column_size(total_colsize, true);
+
+	// adjust by decreasing column width
+	adjust_column_size(total_colsize);
+
+	function adjust_column_size(total_colsize, increase) {
+		let passes = 0;
+		let start_condition = increase ? total_colsize < 11 : total_colsize >= 11;
+
+		while (start_condition && passes < 11) {
+			for (var i in table_columns) {
+				var _df = table_columns[i][0];
+				var colsize = table_columns[i][1];
+				if (colsize > 1 && colsize < 11 && frappe.model.is_non_std_field(_df.fieldname)) {
+					if (
+						passes < 3 &&
+						["Int", "Currency", "Float", "Check", "Percent"].indexOf(_df.fieldtype) !==
+							-1
+					) {
+						// don't increase/decrease col size of these fields in first 3 passes
+						continue;
+					}
+
+					if (increase) {
+						table_columns[i][1] += 1;
+						total_colsize++;
+					} else {
+						table_columns[i][1] -= 1;
+						total_colsize--;
+					}
+				}
+
+				if (increase && total_colsize > 9) break;
+				if (!increase && total_colsize < 11) break;
+			}
+			passes++;
+		}
+	}
+
+	function update_default_colsize(_df) {
+		let colsize = 2;
+		switch (_df.fieldtype) {
+			case "Text":
+				break;
+			case "Small Text":
+				colsize = 3;
+				break;
+			case "Check":
+				colsize = 1;
+		}
+		return colsize;
 	}
 	return table_columns;
 }

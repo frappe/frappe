@@ -8,7 +8,19 @@ let slots = useSlots();
 
 function get_options() {
 	let options = props.df.options?.split("\n") || "";
-	return options && options.filter(opt => !in_list(frappe.model.layout_fields, opt));
+
+	if (props.value) {
+		if (
+			props.df.fieldname == "fieldtype" &&
+			!in_list(frappe.model.layout_fields, props.value)
+		) {
+			return options && options.filter(opt => !in_list(frappe.model.layout_fields, opt));
+		} else {
+			return [props.value];
+		}
+	}
+
+	return options;
 }
 </script>
 
@@ -16,14 +28,14 @@ function get_options() {
 	<div class="control" :class="{ editable: slots.label }">
 		<!-- label -->
 		<div v-if="slots.label" class="field-controls">
-			<slot name="label"/>
+			<slot name="label" />
 			<slot name="actions" />
 		</div>
 		<div v-else class="label" :class="{ reqd: df.reqd }">{{ df.label }}</div>
 
 		<!-- select input -->
-		<div v-if="slots.label"  class="select-input">
-			<select class="form-control" disabled></select>
+		<div v-if="slots.label" class="select-input">
+			<input class="form-control" disabled />
 			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
 		</div>
 		<div v-else class="select-input">
