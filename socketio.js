@@ -63,6 +63,10 @@ io.on("connection", function (socket) {
 		socket.join(get_site_room(socket));
 	}
 
+	socket.on("website", () => {
+		socket.join(get_website_room(socket));
+	});
+
 	socket.on("list_update", function (doctype) {
 		can_subscribe_list({
 			socket,
@@ -231,6 +235,10 @@ function get_user_room(socket, user) {
 
 function get_site_room(socket) {
 	return get_site_name(socket) + ':all';
+}
+
+function get_website_room(socket) {
+	return get_site_name(socket) + ":website";
 }
 
 function get_doctype_room(socket, doctype) {

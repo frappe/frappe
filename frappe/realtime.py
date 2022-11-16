@@ -175,3 +175,7 @@ def get_task_progress_room(task_id):
 
 def get_chat_room(room):
 	return f"{frappe.local.site}:room:{room}"
+
+
+def get_website_room():
+	return f"{frappe.local.site}:website"

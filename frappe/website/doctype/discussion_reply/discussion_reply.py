@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.realtime import get_website_room
 
 
 class DiscussionReply(Document):
@@ -30,6 +31,7 @@ class DiscussionReply(Document):
 
 		frappe.publish_realtime(
 			event="publish_message",
+			room=get_website_room(),
 			message={
 				"template": template,
 				"topic_info": topic_info[0],
