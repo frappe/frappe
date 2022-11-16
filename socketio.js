@@ -26,37 +26,34 @@ io.use((socket, next) => {
 		return;
 	}
 
-	const cookies = cookie.parse(socket.request.headers.cookie);
+	let cookies = cookie.parse(socket.request.headers.cookie);
 
 	if (!cookies.sid) {
 		next(new Error("No sid transmitted."));
 		return;
 	}
-	socket.sid = cookies.sid;
-	socket.user = cookies.user_id;
 
 	request
 		.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
 		.type("form")
 		.query({
-			sid: socket.sid,
+			sid: cookies.sid,
 		})
 		.then((res) => {
 			console.log(`User ${res.body.message.user} found`);
 			socket.user = res.body.message.user;
 			socket.user_type = res.body.message.user_type;
+			socket.sid = cookies.sid;
+			next();
 		})
 		.catch((e) => {
 			next(new Error(`Unauthorized: ${e}`));
-			return;
 		});
-
-	next();
 });
 
 // on socket connection
 io.on("connection", function (socket) {
-	const room = get_user_room(socket);
+	const room = get_user_room(socket, socket.user);
 	socket.join(room);
 
 	if (socket.user_type == "System User") {
