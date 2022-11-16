@@ -9,6 +9,7 @@ class DiscussionReply(Document):
 	def on_update(self):
 		frappe.publish_realtime(
 			event="update_message",
+			room="website",
 			message={"reply": frappe.utils.md_to_html(self.reply), "reply_name": self.name},
 			after_commit=True,
 		)
@@ -41,6 +42,7 @@ class DiscussionReply(Document):
 
 		frappe.publish_realtime(
 			event="publish_message",
+			room="website",
 			message={
 				"template": template,
 				"topic_info": topic_info[0],
@@ -53,7 +55,7 @@ class DiscussionReply(Document):
 
 	def after_delete(self):
 		frappe.publish_realtime(
-			event="delete_message", message={"reply_name": self.name}, after_commit=True
+			event="delete_message", room="website", message={"reply_name": self.name}, after_commit=True
 		)
 
 
