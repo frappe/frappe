@@ -130,6 +130,10 @@ onMounted(() => store.fetch());
 					background-color: var(--fg-color);
 					cursor: pointer;
 				}
+
+				.input-text {
+					background-color: inherit;
+				}
 			}
 
 			.reqd::after {

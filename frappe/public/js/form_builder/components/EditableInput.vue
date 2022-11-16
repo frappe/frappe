@@ -38,7 +38,7 @@ function focus_on_label() {
 </script>
 
 <template>
-	<div @dblclick="focus_on_label">
+	<div @dblclick="focus_on_label" :title="__('Double click to edit label')">
 		<input
 			v-if="editing"
 			class="input-text"
@@ -69,7 +69,7 @@ function focus_on_label() {
 	margin-left: -2px;
 
 	&:focus {
-		outline: 1px solid var(--primary);
+		outline: none;
 		border-radius: var(--border-radius);
 	}
 
