@@ -519,7 +519,7 @@ frappe.provide("frappe.views");
 
 		function init() {
 			make_dom();
-			// setup_sortable(); // drag card
+			setup_sortable(); // drag card
 			make_cards();
 			store.watch((state, getters) => {
 				return state.cards;
