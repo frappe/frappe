@@ -127,7 +127,7 @@ function remove_tab() {
 					@dragover="drag_over(element)"
 					@mousemove.stop="store.drag = true"
 					@mousedown.stop="store.drag = false"
-					@mouseup.stop="store.start_drag(element.df.is_custom_field)"
+					@mouseup.stop="store.start_drag(element)"
 				>
 					<EditableInput
 						:text="element.df.label"

@@ -84,7 +84,7 @@ function move_sections_to_tab() {
 			@mouseout.stop="hovered = false"
 			@mousemove.stop="store.drag = true"
 			@mousedown.stop="store.drag = false"
-			@mouseup.stop="store.start_drag(section.df.is_custom_field)"
+			@mouseup.stop="store.start_drag(section)"
 		>
 			<div
 				:class="[

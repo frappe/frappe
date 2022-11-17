@@ -193,8 +193,8 @@ export const useStore = defineStore("form-builder-store", {
 		get_layout() {
 			return create_layout(this.doc.fields);
 		},
-		start_drag(is_custom) {
-			if (this.drag && is_custom == 0) {
+		start_drag(field) {
+			if (this.drag && this.has_standard_field(field)) {
 				frappe.show_alert({
 					message: __(
 						"Standard field or custom tab, section, or column containing standard fields cannot be dragged"

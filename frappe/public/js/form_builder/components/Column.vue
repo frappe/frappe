@@ -75,7 +75,7 @@ function move_columns_to_section() {
 		@mouseout.stop="hovered = false"
 		@mousemove.stop="store.drag = true"
 		@mousedown.stop="store.drag = false"
-		@mouseup.stop="store.start_drag(column.df.is_custom_field)"
+		@mouseup.stop="store.start_drag(column)"
 	>
 		<div class="column-actions" :hidden="store.read_only">
 			<button
