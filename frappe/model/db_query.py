@@ -455,10 +455,10 @@ class DatabaseQuery:
 		)
 
 	def check_read_permission(self, doctype):
-		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
-
 		if not self.flags.ignore_permissions and not frappe.has_permission(
-			doctype, ptype=ptype, parent_doctype=self.doctype
+			doctype,
+			ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+			parent_doctype=self.doctype,
 		):
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
