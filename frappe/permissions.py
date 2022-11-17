@@ -4,13 +4,10 @@
 from __future__ import print_function, unicode_literals
 
 import copy
-<<<<<<< HEAD
 import json
+from typing import List
 
 from six import string_types
-=======
-from typing import List
->>>>>>> 084a1e6c31 (refactor: get_permissions)
 
 import frappe
 import frappe.share

@@ -1,10 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
-from typing import Optional
-
 import frappe
 import frappe.defaults
 from frappe import _
@@ -71,7 +67,7 @@ def get_roles_and_doctypes():
 
 
 @frappe.whitelist()
-def get_permissions(doctype: Optional[str] = None, role: Optional[str] = None):
+def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
 
 	if role:
@@ -99,7 +95,8 @@ def get_permissions(doctype: Optional[str] = None, role: Optional[str] = None):
 				frappe.clear_last_message()
 				continue
 		d.linked_doctypes = linked_doctypes[d.parent]
-		if meta := frappe.get_meta(d.parent):
+		meta = frappe.get_meta(d.parent)
+		if meta:
 			d.is_submittable = meta.is_submittable
 			d.in_create = meta.in_create
 
