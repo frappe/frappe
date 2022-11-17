@@ -461,7 +461,12 @@ frappe.ui.Page = class Page {
 			`);
 		}
 
-		$link = $li.find("a").on("click", click);
+		$link = $li.find("a").on("click", (e) => {
+			if (e.ctrlKey || e.metaKey) {
+				frappe.open_in_new_tab = true;
+			}
+			return click();
+		});
 
 		if (standard) {
 			$li.appendTo(parent);
