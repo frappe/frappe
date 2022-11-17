@@ -3,6 +3,7 @@ frappe.socketio = {
 	open_docs: [],
 	emit_queue: [],
 <<<<<<< HEAD
+<<<<<<< HEAD
 	init: function(port = 3000) {
 		if (!window.io) {
 			return;
@@ -11,6 +12,8 @@ frappe.socketio = {
 =======
 	is_docinfo_listener_setup: false,
 	is_document_listener_setup: false,
+=======
+>>>>>>> 862a5a398d (fix(socketio): Revert irrelevant & unused changes)
 
 	init: function (port = 3000) {
 >>>>>>> 3a8fa6cbd5 (refactor(socketio): Use same room for doc & info events)

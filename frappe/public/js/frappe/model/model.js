@@ -46,6 +46,7 @@ $.extend(frappe.model, {
 	init: function() {
 		// setup refresh if the document is updated somewhere else
 <<<<<<< HEAD
+<<<<<<< HEAD
 		frappe.realtime.on("doc_update", function(data) {
 			// set list dirty
 			frappe.views.ListView.trigger_list_update(data);
@@ -54,6 +55,8 @@ $.extend(frappe.model, {
 			return;
 		}
 
+=======
+>>>>>>> 862a5a398d (fix(socketio): Revert irrelevant & unused changes)
 		frappe.realtime.on("doc_update", function (data) {
 >>>>>>> 3a8fa6cbd5 (refactor(socketio): Use same room for doc & info events)
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
@@ -77,6 +80,7 @@ $.extend(frappe.model, {
 			}
 		});
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 		frappe.realtime.on("list_update", function(data) {
 			frappe.views.ListView.trigger_list_update(data);
@@ -85,6 +89,8 @@ $.extend(frappe.model, {
 =======
 		frappe.socketio.is_document_listener_setup = true;
 >>>>>>> 3a8fa6cbd5 (refactor(socketio): Use same room for doc & info events)
+=======
+>>>>>>> 862a5a398d (fix(socketio): Revert irrelevant & unused changes)
 	},
 
 	is_value_type: function(fieldtype) {
