@@ -79,10 +79,6 @@ $.extend(frappe.model, {
 
 	init: function () {
 		// setup refresh if the document is updated somewhere else
-		if (frappe.socketio.is_document_listener_setup) {
-			return;
-		}
-
 		frappe.realtime.on("doc_update", function (data) {
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 
@@ -108,7 +104,6 @@ $.extend(frappe.model, {
 				}
 			}
 		});
-		frappe.socketio.is_document_listener_setup = true;
 	},
 
 	is_value_type: function (fieldtype) {
