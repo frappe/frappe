@@ -112,14 +112,15 @@ io.use((socket, next) => {
 
 // on socket connection
 io.on("connection", function (socket) {
-	const room = get_user_room(socket, socket.user);
-	socket.join(room);
+	socket.join(get_user_room(socket, socket.user));
+	socket.join(get_website_room(socket));
 
 	if (socket.user_type == "System User") {
 		socket.join(get_site_room(socket));
 	}
 >>>>>>> 4de9c39bb8 (refactor: SocketIO)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 	socket.on('task_subscribe', function (task_id) {
@@ -130,6 +131,8 @@ io.on("connection", function (socket) {
 	});
 
 >>>>>>> 96fee8c293 (feat: {site}:website room open to all users)
+=======
+>>>>>>> 40df601a73 (fix: Auto-add all users to website room)
 	socket.on("list_update", function (doctype) {
 		can_subscribe_list({
 			socket,

@@ -181,4 +181,11 @@ def get_chat_room(room):
 	return room
 =======
 	return f"{frappe.local.site}:task_progress:{task_id}"
+<<<<<<< HEAD
 >>>>>>> 9931c3af04 (refactor(socketio)!: list_update)
+=======
+
+
+def get_website_room():
+	return f"{frappe.local.site}:website"
+>>>>>>> 40df601a73 (fix: Auto-add all users to website room)
