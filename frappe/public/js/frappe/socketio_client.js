@@ -2,8 +2,6 @@ frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
-	is_docinfo_listener_setup: false,
-	is_document_listener_setup: false,
 
 	init: function (port = 3000) {
 		if (!window.io) {

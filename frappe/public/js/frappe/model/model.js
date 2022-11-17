@@ -69,7 +69,6 @@ $.extend(frappe.model, {
 				}
 			}
 		});
-		frappe.socketio.is_document_listener_setup = true;
 	},
 
 	is_value_type: function(fieldtype) {

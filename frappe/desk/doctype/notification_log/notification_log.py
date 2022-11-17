@@ -146,7 +146,7 @@ def mark_as_read(docname):
 
 @frappe.whitelist()
 def trigger_indicator_hide():
-	frappe.publish_realtime("indicator_hide", user=frappe.session.user, after_commit=True)
+	frappe.publish_realtime("indicator_hide", user=frappe.session.user)
 
 
 def set_notifications_as_unseen(user):
