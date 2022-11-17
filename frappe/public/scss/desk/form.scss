@@ -319,8 +319,13 @@
 }
 
 .form-tabs-list {
+	position: sticky;
+	background-color: var(--card-bg);
+	z-index: 3;
+	transition: 0.5s top;
 	padding-left: var(--padding-xs);
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: 2px solid var(--border-color);
+	border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
 
 	.form-tabs {
 		.nav-item {
