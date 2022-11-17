@@ -61,6 +61,7 @@ export default class Grid {
 
 	make() {
 		let template = `
+<<<<<<< HEAD
 			<div class="grid-field">
 				<label class="control-label">${__(this.df.label || "")}</label>
 				<p class="text-muted small grid-description"></p>
@@ -78,6 +79,24 @@ export default class Grid {
 								>
 								${__("No Data")}
 							</div>
+=======
+			<label class="control-label">${__(this.df.label || "")}</label>
+			<span class="ml-1 help"></span>
+			<p class="text-muted small grid-description"></p>
+			<div class="grid-custom-buttons grid-field"></div>
+			<div class="form-grid-container">
+				<div class="form-grid">
+					<div class="grid-heading-row"></div>
+					<div class="grid-body">
+						<div class="rows"></div>
+						<div class="grid-empty text-center">
+							<img
+								src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+								alt="Grid Empty State"
+								class="grid-empty-illustration"
+							>
+							${__("No Data")}
+>>>>>>> e78c74cbc1 (feat: inline doc link for each field)
 						</div>
 					</div>
 				</div>
@@ -118,6 +137,7 @@ export default class Grid {
 		this.wrapper = $(template).appendTo(this.parent);
 		$(this.parent).addClass("form-group");
 		this.set_grid_description();
+		this.set_doc_url();
 
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
@@ -147,6 +167,17 @@ export default class Grid {
 			description_wrapper.hide();
 		}
 	}
+
+	set_doc_url() {
+		if (!this.df?.doc_url) return;
+
+		let $help = $(this.parent).find("span.help");
+		$help.empty();
+		$(`<a href="${this.df.doc_url}" target="_blank">
+			${frappe.utils.icon("help", "sm")}
+		</a>`).appendTo($help);
+	}
+
 	setup_grid_pagination() {
 		this.grid_pagination = new GridPagination({
 			grid: this,
