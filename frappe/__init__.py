@@ -716,6 +716,27 @@ xss_safe_methods = []
 allowed_http_methods_for_whitelisted_func = {}
 
 
+def validate_argument_types(func):
+	return func
+	from pydantic import validate_arguments as pyd_validator
+
+	def validator(*args, **kwargs):
+		return pyd_validator(func)(*args, **kwargs)
+
+	import sys
+
+	# from frappe.model.document import Document
+	# localns = {
+	# 	"Document": Document,
+	# }
+
+	try:
+		return validator(func)
+	except NameError:
+		sys.stderr.write(f"{func} has unsupported type annotations")
+	return func
+
+
 def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
@@ -753,7 +774,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 			if xss_safe:
 				xss_safe_methods.append(fn)
 
-		return method or fn
+		return validate_argument_types(method or fn)
 
 	return innerfn
 
