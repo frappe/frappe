@@ -56,31 +56,51 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.card_meta = this.get_card_meta();
 			this.page_length = 0;
 
-			// frappe run serially get/set perms > push menu items > get_board
-			this.menu_items.push(
-				...[
-					{
-						label: __("Save filters"),
-						action: () => {
-							this.save_kanban_board_filters();
-						},
-					},
-					{
-						label: __("Delete Kanban Board"),
-						action: () => {
-							frappe.confirm("Are you sure you want to proceed?", () => {
-								frappe.db.delete_doc("Kanban Board", this.board_name).then(() => {
-									frappe.show_alert(`Kanban Board ${this.board_name} deleted.`);
-									frappe.set_route("List", this.doctype, "List");
-								});
-							});
-						},
-					},
-				]
-			);
-
-			return this.get_board();
+			return frappe.run_serially([
+				() => this.set_board_perms_and_push_menu_items(),
+				() => this.get_board(),
+			]);
 		});
+	}
+
+	set_board_perms_and_push_menu_items() {
+		// needs server-side call as client-side document instance is absent before kanban render
+		return frappe.call({
+			method: "frappe.client.get_doc_permissions",
+			args: {
+				doctype: "Kanban Board",
+				docname: this.board_name
+			},
+			callback: (result) => {
+				this.board_perms = result.message.permissions || {};
+				this.push_menu_items();
+			},
+		});
+	}
+
+	push_menu_items() {
+		if (this.board_perms.write) {
+			this.menu_items.push({
+				label: __("Save filters"),
+				action: () => {
+					this.save_kanban_board_filters();
+				}
+			});
+		}
+
+		if (this.board_perms.delete) {
+			this.menu_items.push({
+				label: __("Delete Kanban Board"),
+				action: () => {
+					frappe.confirm("Are you sure you want to proceed?", () => {
+						frappe.db.delete_doc("Kanban Board", this.board_name).then(() => {
+							frappe.show_alert(`Kanban Board ${this.board_name} deleted.`);
+							frappe.set_route("List", this.doctype, "List");
+						});
+					});
+				},
+			});
+		}
 	}
 
 	setup_paging_area() {
