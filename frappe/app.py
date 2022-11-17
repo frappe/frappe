@@ -21,7 +21,7 @@ from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe.middlewares import StaticDataMiddleware
-from frappe.utils import get_site_name, sanitize_html
+from frappe.utils import cint, get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
@@ -112,7 +112,7 @@ def init_request(request):
 	else:
 		frappe.connect(set_admin_as_user=False)
 
-	request.max_content_length = frappe.local.conf.get("max_file_size") or 10 * 1024 * 1024
+	request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 10 * 1024 * 1024
 
 	make_form_dict(request)
 
