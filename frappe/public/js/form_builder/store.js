@@ -196,7 +196,9 @@ export const useStore = defineStore("form-builder-store", {
 		start_drag(is_custom) {
 			if (this.drag && is_custom == 0) {
 				frappe.show_alert({
-					message: __("Cannot drag standard fields"),
+					message: __(
+						"Standard field or custom tab, section, or column containing standard fields cannot be dragged"
+					),
 					indicator: "yellow",
 				});
 			}

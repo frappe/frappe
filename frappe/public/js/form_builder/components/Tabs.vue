@@ -108,7 +108,7 @@ function remove_tab() {
 			class="tabs"
 			v-model="layout.tabs"
 			group="tabs"
-			filter="[data-is-custom='0']"
+			filter="[data-has-std-field='true']"
 			:prevent-on-filter="false"
 			:animation="200"
 			:easing="store.get_animation"
