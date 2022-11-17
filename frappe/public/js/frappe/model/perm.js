@@ -37,24 +37,14 @@ $.extend(frappe.perm, {
 
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
-		if (!frappe.perm.doctype_perm[doctype] && !doc) {
-			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
-		}
 
 		// if document object is passed, get fresh doc based perms
-		// (with ownership and user perms applied) else stale doctype perms
-		let perms = doc ? frappe.perm.get_perm(doctype, doc) : frappe.perm.doctype_perm[doctype];
+		// (with ownership and user perms applied) else cached doctype perms
+		const perms = doc
+			? frappe.perm.get_perm(doctype, doc)
+			: (frappe.perm.doctype_perm[doctype] ??= frappe.perm.get_perm(doctype));
 
-		if (!perms || !perms[permlevel]) return false;
-
-		let perm = !!perms[permlevel][ptype];
-
-		if (permlevel === 0 && perm && doc) {
-			let docinfo = frappe.model.get_docinfo(doctype, doc.name);
-			if (docinfo && !docinfo.permissions[ptype]) perm = false;
-		}
-
-		return perm;
+		return !!perms?.[permlevel]?.[ptype];
 	},
 
 	get_perm: (doctype, doc) => {
@@ -70,56 +60,50 @@ $.extend(frappe.perm, {
 		if (!meta) return perm;
 
 		perm = frappe.perm.get_role_permissions(meta);
+		const base_perm = perm[0];
 
 		if (doc) {
 			// apply user permissions via docinfo (which is processed server-side)
 			let docinfo = frappe.model.get_docinfo(doctype, doc.name);
 			if (docinfo && docinfo.permissions) {
 				Object.keys(docinfo.permissions).forEach((ptype) => {
-					perm[0][ptype] = docinfo.permissions[ptype];
+					base_perm[ptype] = docinfo.permissions[ptype];
 				});
 			}
 
 			// if owner
-			if (!$.isEmptyObject(perm[0].if_owner)) {
-				if (doc.owner === user) {
-					$.extend(perm[0], perm[0].if_owner);
-				} else {
-					// not owner, remove permissions
-					$.each(perm[0].if_owner, (ptype) => {
-						if (perm[0].if_owner[ptype]) {
-							perm[0][ptype] = 0;
-						}
-					});
+			if (doc.owner !== user) {
+				for (const right of frappe.perm.rights) {
+					if (base_perm[right] && !base_perm.rights_without_if_owner.has(right)) {
+						base_perm[right] = 0;
+					}
 				}
 			}
 
 			// apply permissions from shared
 			if (docinfo && docinfo.shared) {
-				for (let i = 0; i < docinfo.shared.length; i++) {
-					let s = docinfo.shared[i];
-					if (s.user === user) {
-						perm[0]["read"] = perm[0]["read"] || s.read;
-						perm[0]["write"] = perm[0]["write"] || s.write;
-						perm[0]["submit"] = perm[0]["submit"] || s.submit;
-						perm[0]["share"] = perm[0]["share"] || s.share;
+				for (const s of docinfo.shared) {
+					if (s.user !== user) continue;
 
-						if (s.read) {
-							// also give print, email permissions if read
-							// and these permissions exist at level [0]
-							perm[0].email =
-								frappe.boot.user.can_email.indexOf(doctype) !== -1 ? 1 : 0;
-							perm[0].print =
-								frappe.boot.user.can_print.indexOf(doctype) !== -1 ? 1 : 0;
-						}
+					for (const right of ["read", "write", "submit", "share"]) {
+						if (!base_perm[right]) base_perm[right] = s[right];
+					}
+
+					if (s.read) {
+						// also give print, email permissions if read
+						// and these permissions exist at level [0]
+						base_perm.email =
+							frappe.boot.user.can_email.indexOf(doctype) !== -1 ? 1 : 0;
+						base_perm.print =
+							frappe.boot.user.can_print.indexOf(doctype) !== -1 ? 1 : 0;
 					}
 				}
 			}
 		}
 
-		if (frappe.model.can_read(doctype) && !perm[0].read) {
+		if (frappe.model.can_read(doctype) && !base_perm.read) {
 			// read via sharing
-			perm[0].read = 1;
+			base_perm.read = 1;
 		}
 
 		return perm;
@@ -130,35 +114,29 @@ $.extend(frappe.perm, {
 		{
 			"read": 1,
 			"write": 0,
-			"if_owner": [if "if_owner" is enabled]
-				{
-					"read": 1,
-					"write": 0
-				}
-		} */
+			"rights_without_if_owner": {"read", "write"}  // for permlevel 0
+		}
+		*/
+
 		let perm = [{ read: 0, permlevel: 0 }];
 
 		(meta.permissions || []).forEach((p) => {
-			let permlevel = cint(p.permlevel);
-			if (!perm[permlevel]) {
-				perm[permlevel] = {};
-				perm[permlevel]["permlevel"] = permlevel;
+			const permlevel = cint(p.permlevel);
+			const current_perm = (perm[permlevel] ??= { permlevel });
+
+			if (permlevel === 0) {
+				current_perm.rights_without_if_owner ??= new Set();
 			}
 
 			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
 				frappe.perm.rights.forEach((right) => {
-					let value = perm[permlevel][right] || p[right] || 0;
+					if (!p[right]) return;
 
-					if (p.if_owner && value) {
-						// if_owner is enabled for perm,
-						// construct perm object inside "if_owner" property
-						if (!perm[permlevel]["if_owner"]) {
-							perm[permlevel]["if_owner"] = {};
-						}
-						perm[permlevel]["if_owner"][right] = value;
-					} else if (value) {
-						perm[permlevel][right] = value;
+					current_perm[right] = 1;
+
+					if (permlevel === 0 && !p.if_owner) {
+						current_perm.rights_without_if_owner.add(right);
 					}
 				});
 			}
@@ -196,7 +174,8 @@ $.extend(frappe.perm, {
 			}
 		}
 
-		if (perm[0].if_owner && perm[0].read) {
+		const base_perm = perm[0];
+		if (base_perm.read && !base_perm.rights_without_if_owner.has("read")) {
 			match_rules.push({ Owner: frappe.session.user });
 		}
 		return match_rules;
