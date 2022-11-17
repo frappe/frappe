@@ -349,6 +349,7 @@ frappe.router = {
 			// replace each # occurrences in the URL with encoded character except for last
 			// sub_path = sub_path.replace(/[#](?=.*[#])/g, "%23");
 			if (frappe.open_in_new_tab) {
+				localStorage["route_options"] = JSON.stringify(frappe.route_options);
 				window.open(sub_path, "_blank");
 				frappe.open_in_new_tab = false;
 			} else {
@@ -496,6 +497,11 @@ frappe.router = {
 
 		if (!frappe.route_options) {
 			frappe.route_options = {};
+		}
+
+		if (localStorage.getItem("route_options")) {
+			frappe.route_options = JSON.parse(localStorage.getItem("route_options"));
+			localStorage.removeItem("route_options");
 		}
 
 		let params = new URLSearchParams(query_string);
