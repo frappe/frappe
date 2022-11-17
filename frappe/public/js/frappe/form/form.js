@@ -1750,7 +1750,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (this.meta.title_field) {
 			return this.doc[this.meta.title_field];
 		} else {
-			return this.doc.name;
+			return String(this.doc.name);
 		}
 	}
 
