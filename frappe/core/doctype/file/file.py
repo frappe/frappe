@@ -101,8 +101,8 @@ class File(Document):
 		if not self.attached_to_doctype:
 			return
 
-		if self.attached_to_name and not isinstance(self.attached_to_name, str):
-			frappe.throw(_("Attached To Name must be a string"), TypeError)
+		if not self.attached_to_name:
+			frappe.throw(_("Attached To Name is not set"), frappe.ValidationError)
 
 		if not self.attached_to_field:
 			return
