@@ -13,18 +13,19 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
 			this.$wrapper = $(
-				'<div class="frappe-control">\
-				<div class="form-group">\
-					<div class="clearfix">\
-						<label class="control-label" style="padding-right: 0px;"></label>\
-					</div>\
-					<div class="control-input-wrapper">\
-						<div class="control-input"></div>\
-						<div class="control-value like-disabled-input" style="display: none;"></div>\
-						<p class="help-box small text-muted"></p>\
-					</div>\
-				</div>\
-			</div>'
+				`<div class="frappe-control">
+				<div class="form-group">
+					<div class="clearfix">
+						<label class="control-label" style="padding-right: 0px;"></label>
+						<span class="ml-1 help"></span>
+					</div>
+					<div class="control-input-wrapper">
+						<div class="control-input"></div>
+						<div class="control-value like-disabled-input" style="display: none;"></div>
+						<p class="help-box small text-muted"></p>
+					</div>
+				</div>
+			</div>`
 			).appendTo(this.parent);
 		}
 	}
@@ -104,6 +105,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 			me.set_description();
 			me.set_label();
+			me.set_doc_url();
 			me.set_mandatory(me.value);
 			me.set_bold();
 			me.set_required();
@@ -141,6 +143,17 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			(icon ? '<i class="' + icon + '"></i> ' : "") + __(this.df.label) || "&nbsp;";
 		this._label = this.df.label;
 	}
+
+	set_doc_url() {
+		if (!this.df?.doc_url) return;
+
+		let $help = this.$wrapper.find("span.help");
+		$help.empty();
+		$(`<a href="${this.df.doc_url}" target="_blank">
+			${frappe.utils.icon("help", "sm")}
+		</a>`).appendTo($help);
+	}
+
 	set_description(description) {
 		if (description !== undefined) {
 			this.df.description = description;
