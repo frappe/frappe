@@ -53,16 +53,12 @@ io.use((socket, next) => {
 
 // on socket connection
 io.on("connection", function (socket) {
-	const room = get_user_room(socket, socket.user);
-	socket.join(room);
+	socket.join(get_user_room(socket, socket.user));
+	socket.join(get_website_room(socket));
 
 	if (socket.user_type == "System User") {
 		socket.join(get_site_room(socket));
 	}
-
-	socket.on("website", () => {
-		socket.join(get_website_room(socket));
-	});
 
 	socket.on("list_update", function (doctype) {
 		can_subscribe_list({
