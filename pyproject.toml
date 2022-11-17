@@ -48,11 +48,7 @@ dependencies = [
     "premailer~=3.8.0",
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
-<<<<<<< HEAD
-=======
-    "pyasn1~=0.4.8",
     "pyOpenSSL~=22.1.0",
->>>>>>> f70db1f539 (build: pin pyopenssl)
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
     "python-dateutil~=2.8.1",
