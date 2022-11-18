@@ -155,7 +155,7 @@ def get_doctype_room(doctype):
 
 
 def get_doc_room(doctype, docname):
-	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
+	return f"{frappe.local.site}:doc:{doctype}/{docname}"
 
 
 def get_user_room(user):
