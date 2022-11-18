@@ -4,6 +4,8 @@
 
 import json
 
+from rq import get_current_job
+
 import frappe
 from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
@@ -20,13 +22,22 @@ class PreparedReport(Document):
 
 	def after_insert(self):
 		enqueue(
-			run_background, queue="long", prepared_report=self.name, timeout=1800, enqueue_after_commit=True
+			generate_report,
+			queue="long",
+			prepared_report=self.name,
+			timeout=1800,
+			enqueue_after_commit=True,
 		)
 
+	def update_job_id(self, job_id):
+		frappe.db.set_value(self.doctype, self.name, "job_id", job_id, update_modified=False)
+		frappe.db.commit()
 
-def run_background(prepared_report):
+
+def generate_report(prepared_report):
 	instance = frappe.get_doc("Prepared Report", prepared_report)
 	report = frappe.get_doc("Report", instance.report_name)
+	instance.update_job_id(get_current_job().id)
 
 	add_data_to_monitor(report=instance.report_name)
 
@@ -50,8 +61,6 @@ def run_background(prepared_report):
 		instance.save(ignore_permissions=True)
 
 	except Exception:
-		report.log_error("Prepared report failed")
-		instance = frappe.get_doc("Prepared Report", prepared_report)
 		instance.status = "Error"
 		instance.error_message = frappe.get_traceback()
 		instance.save(ignore_permissions=True)
