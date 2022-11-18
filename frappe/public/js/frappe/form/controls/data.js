@@ -77,7 +77,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 
 	setup_url_field() {
 		this.$wrapper.find(".control-input").append(
-			`<span class="link-btn scan-icon">
+			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
 					${frappe.utils.icon("link-url", "sm")}
 				</a>

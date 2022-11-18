@@ -145,10 +145,6 @@ select.form-control {
 		background-color: none;
 		display: none;
 	}
-
-	.scan-icon {
-		z-index: 1;
-	}
 }
 
 .frappe-control:not([data-fieldtype='MultiSelectPills']):not([data-fieldtype='Table MultiSelect']) {
