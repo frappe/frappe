@@ -78,10 +78,6 @@ def publish_realtime(
 		else:
 			# This will be broadcasted to all Desk users
 			room = get_site_room()
-	else:
-		# frappe.chat
-		room = get_chat_room(room)
-		# end frappe.chat
 
 	if after_commit:
 		params = [event, message, room]
@@ -168,10 +164,6 @@ def get_site_room():
 
 def get_task_progress_room(task_id):
 	return f"{frappe.local.site}:task_progress:{task_id}"
-
-
-def get_chat_room(room):
-	return f"{frappe.local.site}:room:{room}"
 
 
 def get_website_room():
