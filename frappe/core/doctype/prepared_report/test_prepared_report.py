@@ -15,7 +15,6 @@ class TestPreparedReport(FrappeTestCase):
 				"doctype": "Prepared Report",
 				"report_name": self.report.name,
 				"filters": json.dumps(self.filters),
-				"ref_report_doctype": self.report.name,
 			}
 		).insert()
 

@@ -61,7 +61,7 @@ class Report(Document):
 
 	def delete_prepared_reports(self):
 		prepared_reports = frappe.get_all(
-			"Prepared Report", filters={"ref_report_doctype": self.name}, pluck="name"
+			"Prepared Report", filters={"report_name": self.name}, pluck="name"
 		)
 
 		for report in prepared_reports:

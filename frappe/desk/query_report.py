@@ -145,8 +145,9 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
-def background_enqueue_run(report_name, filters=None, user=None):
+def background_enqueue_run(report_name, filters=None):
 	"""run reports in background"""
+<<<<<<< HEAD
 	from frappe.core.doctype.prepared_report.prepared_report import (
 		process_filters_for_prepared_report,
 	)
@@ -163,14 +164,20 @@ def background_enqueue_run(report_name, filters=None, user=None):
 			"report_type": report.report_type,
 			"query": report.query,
 			"module": report.module,
+=======
+	prepared_report = frappe.get_doc(
+		{
+			"doctype": "Prepared Report",
+			"report_name": report_name,
+			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
+			# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
+			"filters": json.dumps(json.loads(filters)),
+>>>>>>> 4fe8eadf5e (refactor: remove unnecessary fields from prepared report)
 		}
 	)
-	track_instance.insert(ignore_permissions=True)
+	prepared_report.insert(ignore_permissions=True)
 
-	return {
-		"name": track_instance.name,
-		"redirect_url": get_url_to_form("Prepared Report", track_instance.name),
-	}
+	return {"name": prepared_report.name}
 
 
 @frappe.whitelist()
