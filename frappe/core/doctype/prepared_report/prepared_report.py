@@ -26,9 +26,9 @@ class PreparedReport(Document):
 
 def run_background(prepared_report):
 	instance = frappe.get_doc("Prepared Report", prepared_report)
-	report = frappe.get_doc("Report", instance.ref_report_doctype)
+	report = frappe.get_doc("Report", instance.report_name)
 
-	add_data_to_monitor(report=instance.ref_report_doctype)
+	add_data_to_monitor(report=instance.report_name)
 
 	try:
 		report.custom_columns = []
@@ -46,7 +46,6 @@ def run_background(prepared_report):
 		create_json_gz_file(result["result"], "Prepared Report", instance.name)
 
 		instance.status = "Completed"
-		instance.columns = json.dumps(result["columns"])
 		instance.report_end_time = frappe.utils.now()
 		instance.save(ignore_permissions=True)
 
@@ -151,9 +150,7 @@ def get_permission_query_condition(user):
 
 	reports = [frappe.db.escape(report) for report in user.get_all_reports().keys()]
 
-	return """`tabPrepared Report`.ref_report_doctype in ({reports})""".format(
-		reports=",".join(reports)
-	)
+	return """`tabPrepared Report`.report_name in ({reports})""".format(reports=",".join(reports))
 
 
 def has_permission(doc, user):
@@ -169,4 +166,4 @@ def has_permission(doc, user):
 	if "System Manager" in user.roles:
 		return True
 
-	return doc.ref_report_doctype in user.get_all_reports().keys()
+	return doc.report_name in user.get_all_reports().keys()
