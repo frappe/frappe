@@ -53,7 +53,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_events() {
-		if (this.list_view_settings?.disable_auto_refresh) {
+		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
 			return;
 		}
 		frappe.socketio.list_subscribe(this.doctype);
