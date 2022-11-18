@@ -145,11 +145,20 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_doc_url() {
-		if (!this.df?.doc_url) return;
+		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
+			(x) => frappe.model.table_fields.indexOf(x) === -1
+		);
+
+		if (
+			!this.df.label ||
+			!this.df?.documentation_url ||
+			in_list(unsupported_fieldtypes, this.df.fieldtype)
+		)
+			return;
 
 		let $help = this.$wrapper.find("span.help");
 		$help.empty();
-		$(`<a href="${this.df.doc_url}" target="_blank">
+		$(`<a href="${this.df.documentation_url}" target="_blank">
 			${frappe.utils.icon("help", "sm")}
 		</a>`).appendTo($help);
 	}

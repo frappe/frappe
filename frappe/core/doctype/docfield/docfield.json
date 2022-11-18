@@ -70,7 +70,7 @@
   "columns",
   "column_break_22",
   "description",
-  "doc_url",
+  "documentation_url",
   "oldfieldname",
   "oldfieldtype"
  ],
@@ -545,9 +545,9 @@
   },
   {
    "depends_on": "eval:!in_list([\"Tab Break\", \"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
-   "fieldname": "doc_url",
-   "fieldtype": "Data",
-   "label": "Doc URL"
+   "fieldname": "documentation_url",
+   "fieldtype": "Small Text",
+   "label": "Documentation URL"
   }
  ],
  "idx": 1,
