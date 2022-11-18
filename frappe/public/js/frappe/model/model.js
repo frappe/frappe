@@ -48,7 +48,6 @@ $.extend(frappe.model, {
 		frappe.realtime.on("doc_update", function(data) {
 			// set list dirty
 			frappe.views.ListView.trigger_list_update(data);
-
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 
 			if(doc) {
@@ -68,6 +67,9 @@ $.extend(frappe.model, {
 					}
 				}
 			}
+		});
+		frappe.realtime.on("list_update", function(data) {
+			frappe.views.ListView.trigger_list_update(data);
 		});
 	},
 

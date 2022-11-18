@@ -80,7 +80,6 @@ const setup_socket_io = () => {
 			frappe.boot.socketio_port = "9000";
 		}
 		frappe.socketio.init(window.socketio_port || frappe.boot.socketio_port || "9000");
-		frappe.socketio.socket.emit("website");
 		frappe.socketio.socket.on("publish_message", (data) => {
 			publish_message(data);
 		});
