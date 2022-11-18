@@ -36,8 +36,8 @@ class PreparedReport(Document):
 
 def generate_report(prepared_report):
 	instance = frappe.get_doc("Prepared Report", prepared_report)
-	report = frappe.get_doc("Report", instance.report_name)
 	instance.update_job_id(get_current_job().id)
+	report = frappe.get_doc("Report", instance.report_name)
 
 	add_data_to_monitor(report=instance.report_name)
 
@@ -57,13 +57,12 @@ def generate_report(prepared_report):
 		create_json_gz_file(result["result"], "Prepared Report", instance.name)
 
 		instance.status = "Completed"
-		instance.report_end_time = frappe.utils.now()
-		instance.save(ignore_permissions=True)
-
 	except Exception:
 		instance.status = "Error"
 		instance.error_message = frappe.get_traceback()
-		instance.save(ignore_permissions=True)
+
+	instance.report_end_time = frappe.utils.now()
+	instance.save(ignore_permissions=True)
 
 	frappe.publish_realtime(
 		"report_generated",
