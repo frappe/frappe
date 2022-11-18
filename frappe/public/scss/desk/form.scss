@@ -321,7 +321,7 @@
 .form-tabs-list {
 	position: sticky;
 	background-color: var(--card-bg);
-	z-index: 3;
+	z-index: 5;
 	transition: 0.5s top;
 	padding-left: var(--padding-xs);
 	border-bottom: 2px solid var(--border-color);
