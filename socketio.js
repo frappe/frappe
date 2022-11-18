@@ -14,47 +14,59 @@ const io = require("socket.io")(conf.socketio_port, {
 	},
 });
 
-// on socket connection
-io.on("connection", function (socket) {
+io.use((socket, next) => {
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
+		next(new Error("Invalid origin"));
 		return;
 	}
 
 	if (!socket.request.headers.cookie) {
+		next(new Error("No cookie transmitted."));
 		return;
 	}
 
-	const sid = cookie.parse(socket.request.headers.cookie).sid;
-	if (!sid) {
+	let cookies = cookie.parse(socket.request.headers.cookie);
+
+	if (!cookies.sid) {
+		next(new Error("No sid transmitted."));
 		return;
 	}
 
-	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
+	request
+		.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
+		.type("form")
+		.query({
+			sid: cookies.sid,
+		})
+		.then((res) => {
+			socket.user = res.body.message.user;
+			socket.user_type = res.body.message.user_type;
+			socket.sid = cookies.sid;
+			next();
+		})
+		.catch((e) => {
+			next(new Error(`Unauthorized: ${e}`));
+		});
+});
 
-	let retries = 0;
-	let join_user_room = () => {
-		request
-			.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
-			.type("form")
-			.query({
-				sid: sid,
-			})
-			.then((res) => {
-				const room = get_user_room(socket, res.body.message.user);
-				socket.join(room);
-				socket.join(get_site_room(socket));
-			})
-			.catch((e) => {
-				if (e.code === "ECONNREFUSED" && retries < 5) {
-					// retry after 1s
-					retries += 1;
-					return setTimeout(join_user_room, 1000);
-				}
-				log(`Unable to join user room. ${e}`);
-			});
-	};
+// on socket connection
+io.on("connection", function (socket) {
+	socket.join(get_user_room(socket, socket.user));
+	socket.join(get_website_room(socket));
 
-	join_user_room();
+	if (socket.user_type == "System User") {
+		socket.join(get_site_room(socket));
+	}
+
+	socket.on("list_update", function (doctype) {
+		can_subscribe_list({
+			socket,
+			doctype,
+			callback: () => {
+				socket.join(get_doctype_room(socket, doctype));
+			},
+		});
+	});
 
 	socket.on("task_subscribe", function (task_id) {
 		var room = get_task_room(socket, task_id);
@@ -69,13 +81,11 @@ io.on("connection", function (socket) {
 	socket.on("progress_subscribe", function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);
-		send_existing_lines(task_id, socket);
 	});
 
 	socket.on("doc_subscribe", function (doctype, docname) {
 		can_subscribe_doc({
 			socket,
-			sid,
 			doctype,
 			docname,
 			callback: () => {
@@ -93,7 +103,6 @@ io.on("connection", function (socket) {
 	socket.on("doc_open", function (doctype, docname) {
 		can_subscribe_doc({
 			socket,
-			sid,
 			doctype,
 			docname,
 			callback: () => {
@@ -185,18 +194,6 @@ subscriber.on("message", function (_channel, message) {
 
 subscriber.subscribe("events");
 
-function send_existing_lines(task_id, socket) {
-	var room = get_task_room(socket, task_id);
-	subscriber.hgetall("task_log:" + task_id, function (_err, lines) {
-		io.to(room).emit("task_progress", {
-			task_id: task_id,
-			message: {
-				lines: lines,
-			},
-		});
-	});
-}
-
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
 }
@@ -210,11 +207,19 @@ function get_typing_room(socket, doctype, docname) {
 }
 
 function get_user_room(socket, user) {
-	return get_site_name(socket) + ":user:" + user;
+	return get_site_name(socket) + ":user:" + user || socket.user;
 }
 
 function get_site_room(socket) {
 	return get_site_name(socket) + ":all";
+}
+
+function get_website_room(socket) {
+	return get_site_name(socket) + ":website";
+}
+
+function get_doctype_room(socket, doctype) {
+	return get_site_name(socket) + ":doctype:" + doctype;
 }
 
 function get_task_room(socket, task_id) {
@@ -222,21 +227,22 @@ function get_task_room(socket, task_id) {
 }
 
 function get_site_name(socket) {
-	var hostname_from_host = get_hostname(socket.request.headers.host);
-
-	if (socket.request.headers["x-frappe-site-name"]) {
-		return get_hostname(socket.request.headers["x-frappe-site-name"]);
+	if (socket.site_name) {
+		return socket.site_name;
+	} else if (socket.request.headers["x-frappe-site-name"]) {
+		socket.site_name = get_hostname(socket.request.headers["x-frappe-site-name"]);
 	} else if (
-		["localhost", "127.0.0.1"].indexOf(hostname_from_host) !== -1 &&
-		conf.default_site
+		conf.default_site &&
+		["localhost", "127.0.0.1"].indexOf(get_hostname(socket.request.headers.host)) !== -1
 	) {
 		// from currentsite.txt since host is localhost
-		return conf.default_site;
+		socket.site_name = conf.default_site;
 	} else if (socket.request.headers.origin) {
-		return get_hostname(socket.request.headers.origin);
+		socket.site_name = get_hostname(socket.request.headers.origin);
 	} else {
-		return get_hostname(socket.request.headers.host);
+		socket.site_name = get_hostname(socket.request.headers.host);
 	}
+	return socket.site_name;
 }
 
 function get_hostname(url) {
@@ -261,7 +267,7 @@ function can_subscribe_doc(args) {
 		.get(get_url(args.socket, "/api/method/frappe.realtime.can_subscribe_doc"))
 		.type("form")
 		.query({
-			sid: args.sid,
+			sid: args.socket.sid,
 			doctype: args.doctype,
 			docname: args.docname,
 		})
@@ -277,6 +283,30 @@ function can_subscribe_doc(args) {
 			} else {
 				log("Something went wrong", err, res);
 			}
+		});
+}
+
+function can_subscribe_list(args) {
+	if (!args) return;
+	if (!args.doctype) return;
+	request
+		.get(get_url(args.socket, "/api/method/frappe.realtime.can_subscribe_list"))
+		.type("form")
+		.query({
+			sid: args.socket.sid,
+			doctype: args.doctype,
+		})
+		.end(function (err, res) {
+			if (!res || res.status == 403 || err) {
+				if (err) {
+					log(err);
+				}
+				return false;
+			} else if (res.status == 200) {
+				args?.callback(err, res);
+				return true;
+			}
+			log("ERROR (can_subscribe_list): ", err, res);
 		});
 }
 
