@@ -867,7 +867,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return new Promise((resolve) =>
 				frappe.call({
 					method: "frappe.desk.query_report.background_enqueue_run",
-					type: "GET",
 					args: {
 						report_name: this.report_name,
 						filters: filters,
