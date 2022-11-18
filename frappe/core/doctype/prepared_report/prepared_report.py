@@ -18,8 +18,10 @@ class PreparedReport(Document):
 		self.status = "Queued"
 		self.report_start_time = frappe.utils.now()
 
-	def enqueue_report(self):
-		enqueue(run_background, prepared_report=self.name, timeout=6000)
+	def after_insert(self):
+		enqueue(
+			run_background, queue="long", prepared_report=self.name, timeout=1800, enqueue_after_commit=True
+		)
 
 
 def run_background(prepared_report):

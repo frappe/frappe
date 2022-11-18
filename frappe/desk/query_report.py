@@ -165,8 +165,6 @@ def background_enqueue_run(report_name, filters=None, user=None):
 		}
 	)
 	track_instance.insert(ignore_permissions=True)
-	frappe.db.commit()
-	track_instance.enqueue_report()
 
 	return {
 		"name": track_instance.name,
