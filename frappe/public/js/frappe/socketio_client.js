@@ -2,11 +2,11 @@ frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
-	init: function(port = 3000) {
+
+	init: function (port = 3000) {
 		if (!window.io) {
 			return;
 		}
-
 		if (frappe.boot.disable_async) {
 			return;
 		}
@@ -129,7 +129,10 @@ frappe.socketio = {
 	task_unsubscribe: function(task_id) {
 		frappe.socketio.socket.emit('task_unsubscribe', task_id);
 	},
-	doc_subscribe: function(doctype, docname) {
+	list_subscribe: function (doctype) {
+		frappe.socketio.socket.emit("list_update", doctype);
+	},
+	doc_subscribe: function (doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
 			console.log('throttled');
 			return;
@@ -143,10 +146,10 @@ frappe.socketio = {
 		frappe.socketio.socket.emit('doc_subscribe', doctype, docname);
 		frappe.socketio.open_docs.push({doctype: doctype, docname: docname});
 	},
-	doc_unsubscribe: function(doctype, docname) {
-		frappe.socketio.socket.emit('doc_unsubscribe', doctype, docname);
-		frappe.socketio.open_docs = $.filter(frappe.socketio.open_docs, function(d) {
-			if(d.doctype===doctype && d.name===docname) {
+	doc_unsubscribe: function (doctype, docname) {
+		frappe.socketio.socket.emit("doc_unsubscribe", doctype, docname);
+		frappe.socketio.open_docs = $.filter(frappe.socketio.open_docs, function (d) {
+			if (d.doctype === doctype && d.name === docname) {
 				return null;
 			} else {
 				return d;

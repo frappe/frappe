@@ -37,10 +37,11 @@ class EnergyPointLog(Document):
 	def after_insert(self):
 		alert_dict = get_alert_dict(self)
 		if alert_dict:
-			frappe.publish_realtime("energy_point_alert", message=alert_dict, user=self.user)
+			frappe.publish_realtime(
+				"energy_point_alert", message=alert_dict, user=self.user, after_commit=True
+			)
 
 		frappe.cache().hdel("energy_points", self.user)
-		frappe.publish_realtime("update_points", after_commit=True)
 
 		if self.type != "Review" and frappe.get_cached_value(
 			"Notification Settings", self.user, "energy_points_system_notifications"

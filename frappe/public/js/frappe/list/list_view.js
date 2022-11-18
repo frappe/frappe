@@ -1280,7 +1280,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		) {
 			return;
 		}
+		frappe.socketio.list_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => {
+			if (data && data.doctype && data.name) {
+				let doc = frappe.get_doc(data.doctype, data.name);
+				if (doc && doc.__unsaved) {
+					frappe.model.remove_from_locals(data.doctype, data.name);
+				}
+			}
+
 			if (this.filter_area.is_being_edited()) {
 				return;
 			}

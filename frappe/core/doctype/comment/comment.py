@@ -54,8 +54,10 @@ class Comment(Document):
 			return
 
 		frappe.publish_realtime(
-			"update_docinfo_for_{}_{}".format(self.reference_doctype, self.reference_name),
+			"docinfo_update",
 			{"doc": self.as_dict(), "key": key, "action": action},
+			doctype=self.reference_doctype,
+			docname=self.reference_name,
 			after_commit=True,
 		)
 

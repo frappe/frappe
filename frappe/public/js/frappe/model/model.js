@@ -68,11 +68,9 @@ $.extend(frappe.model, {
 				}
 			}
 		});
-
 		frappe.realtime.on("list_update", function(data) {
 			frappe.views.ListView.trigger_list_update(data);
 		});
-
 	},
 
 	is_value_type: function(fieldtype) {
