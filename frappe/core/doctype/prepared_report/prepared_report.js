@@ -30,6 +30,11 @@ frappe.ui.form.on("Prepared Report", {
 
 	refresh: function (frm) {
 		frm.disable_save();
+
+		// always keep report_name hidden - we do this as we can't set mandatory and hidden
+		// property on a docfield at the same time
+		frm.toggle_display(["report_name"], 0);
+
 		if (frm.doc.status == "Completed") {
 			frm.page.set_primary_action(__("Show Report"), () => {
 				frappe.set_route(
