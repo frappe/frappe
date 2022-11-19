@@ -159,7 +159,7 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 			.do_update(Auth.password, hashPwd)
 			.do_update(Auth.encrypted, 0)
 		)
-	print(query)
+		
 	query.run()
 
 	# clear all the sessions except current

@@ -840,6 +840,12 @@ def sign_up(email, full_name, redirect_to, new_password):
 	if is_signup_disabled():
 		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
 
+	result = test_password_strength(new_password)
+	feedback = result.get("feedback", None)
+
+	if feedback and not feedback.get("password_policy_validation_passed", False):
+		handle_password_test_fail(feedback)
+
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.enabled:
