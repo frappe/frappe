@@ -24,7 +24,7 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	setup_events() {
-		this.widget.click(() => {
+		this.widget.click((e) => {
 			if (this.in_customize_mode) return;
 
 			let route = frappe.utils.generate_route({
@@ -40,6 +40,11 @@ export default class ShortcutWidget extends Widget {
 			if (this.type == "DocType" && filters) {
 				frappe.route_options = filters;
 			}
+
+			if (e.ctrlKey || e.metaKey) {
+				frappe.open_in_new_tab = true;
+			}
+
 			frappe.set_route(route);
 		});
 	}

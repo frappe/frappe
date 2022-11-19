@@ -47,7 +47,7 @@ class TestUtils(FrappeTestCase):
 
 		if self._testMethodName == "test_export_doc":
 			self.note = frappe.new_doc("Note")
-			self.note.title = frappe.generate_hash("Note", length=10)
+			self.note.title = frappe.generate_hash(length=10)
 			self.note.save()
 
 		if self._testMethodName == "test_make_boilerplate":
@@ -69,7 +69,7 @@ class TestUtils(FrappeTestCase):
 			delattr(self, "note")
 
 		if self._testMethodName == "test_make_boilerplate":
-			self.doctype.delete()
+			self.doctype.delete(force=True)
 			scrubbed = frappe.scrub(self.doctype.name)
 			self.addCleanup(
 				delete_path,

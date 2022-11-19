@@ -493,6 +493,10 @@ class TestDateUtils(FrappeTestCase):
 			frappe.utils.get_last_day_of_week("2020-12-28"), frappe.utils.getdate("2021-01-02")
 		)
 
+	def test_is_last_day_of_the_month(self):
+		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
+		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-31"), True)
+
 	def test_get_time(self):
 		datetime_input = now_datetime()
 		timedelta_input = get_timedelta()

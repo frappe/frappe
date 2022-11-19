@@ -266,7 +266,7 @@ def update_oauth_user(user, data, provider):
 				"email": get_email(data),
 				"gender": gender,
 				"enabled": 1,
-				"new_password": frappe.generate_hash(get_email(data)),
+				"new_password": frappe.generate_hash(),
 				"location": data.get("location"),
 				"user_type": "Website User",
 				"user_image": data.get("picture") or data.get("avatar_url"),

@@ -1179,7 +1179,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.on("click", ".list-row, .image-view-header, .file-header", (e) => {
 			const $target = $(e.target);
 			// tick checkbox if Ctrl/Meta key is pressed
-			if (e.ctrlKey || (e.metaKey && !$target.is("a"))) {
+			if ((e.ctrlKey || e.metaKey) && !$target.is("a")) {
 				const $list_row = $(e.currentTarget);
 				const $check = $list_row.find(".list-row-checkbox");
 				$check.prop("checked", !$check.prop("checked"));
@@ -1315,7 +1315,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
 			return;
 		}
+		frappe.socketio.list_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => {
+			if (!frappe.get_doc(data?.doctype, data?.name)?.__unsaved) {
+				frappe.model.remove_from_locals(data.doctype, data.name);
+			}
+
 			if (this.avoid_realtime_update()) {
 				return;
 			}
