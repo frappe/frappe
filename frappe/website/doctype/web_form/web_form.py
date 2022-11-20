@@ -577,6 +577,9 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 
 			if not allow_read_on_all_link_options:
 				limited_to_user = True
+		else:
+			print(vars(frappe.request))
+			frappe.throw("You must be logged in to use this form.", frappe.PermissionError)
 
 	else:
 		for field in web_form_doc.web_form_fields:
@@ -607,4 +610,4 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			return "\n".join([doc.value for doc in link_options])
 
 	else:
-		raise frappe.PermissionError(f"Not Allowed, {doctype}")
+		raise frappe.PermissionError(f"You don't have permission to access the {doctype} DocType.")
