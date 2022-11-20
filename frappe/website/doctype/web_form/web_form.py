@@ -578,7 +578,6 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			if not allow_read_on_all_link_options:
 				limited_to_user = True
 		else:
-			print(vars(frappe.request))
 			frappe.throw("You must be logged in to use this form.", frappe.PermissionError)
 
 	else:
