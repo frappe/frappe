@@ -54,12 +54,11 @@
    "label": "Reference Report"
   },
   {
+   "default": "0",
    "fieldname": "is_standard",
-   "fieldtype": "Select",
+   "fieldtype": "Check",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Is Standard",
-   "options": "No\nYes",
    "reqd": 1
   },
   {
@@ -92,7 +91,7 @@
    "label": "Disabled"
   },
   {
-   "depends_on": "eval: doc.is_standard == \"No\"",
+   "depends_on": "eval: !doc.is_standard",
    "fieldname": "letter_head",
    "fieldtype": "Link",
    "label": "Letter Head",
@@ -110,7 +109,7 @@
    "label": "Query"
   },
   {
-   "depends_on": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",
+   "depends_on": "eval:doc.report_type==\"Script Report\" && !doc.is_standard",
    "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}",
    "fieldname": "javascript",
    "fieldtype": "Code",
@@ -148,7 +147,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& doc.is_standard===\"No\"",
+   "depends_on": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& !doc.is_standard",
    "description": "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>",
    "fieldname": "report_script",
    "fieldtype": "Code",
@@ -191,7 +190,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-15 13:37:24.531848",
+ "modified": "2022-11-21 01:13:43.462981",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

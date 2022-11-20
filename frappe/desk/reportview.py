@@ -289,7 +289,7 @@ def save_report(name, doctype, report_settings):
 
 	if frappe.db.exists("Report", name):
 		report = frappe.get_doc("Report", name)
-		if report.is_standard == "Yes":
+		if report.is_standard:
 			frappe.throw(_("Standard Reports cannot be edited"))
 
 		if report.report_type != "Report Builder":
@@ -318,7 +318,7 @@ def delete_report(name):
 	"""Delete reports of type Report Builder from Report View"""
 
 	report = frappe.get_doc("Report", name)
-	if report.is_standard == "Yes":
+	if report.is_standard:
 		frappe.throw(_("Standard Reports cannot be deleted"))
 
 	if report.report_type != "Report Builder":

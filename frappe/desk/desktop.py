@@ -439,7 +439,7 @@ def get_custom_report_list(module):
 	reports = frappe.get_all(
 		"Report",
 		fields=["name", "ref_doctype", "report_type"],
-		filters={"is_standard": "No", "disabled": 0, "module": module},
+		filters={"is_standard": 0, "disabled": 0, "module": module},
 		order_by="name",
 	)
 

@@ -8,7 +8,7 @@
  "doctype": "Report",
  "filters": [],
  "idx": 0,
- "is_standard": "Yes",
+ "is_standard": 1,
  "letter_head": "abc",
  "modified": "2022-10-19 02:59:00.365307",
  "modified_by": "Administrator",

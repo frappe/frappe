@@ -527,7 +527,7 @@ def save_report(reference_report, report_name, columns):
 		"Report",
 		{
 			"report_name": report_name,
-			"is_standard": "No",
+			"is_standard": 0,
 			"report_type": "Custom Report",
 		},
 	)
@@ -548,7 +548,7 @@ def save_report(reference_report, report_name, columns):
 				"report_name": report_name,
 				"json": f'{{"columns":{columns}}}',
 				"ref_doctype": report_doc.ref_doctype,
-				"is_standard": "No",
+				"is_standard": 0,
 				"report_type": "Custom Report",
 				"reference_report": reference_report,
 			}
