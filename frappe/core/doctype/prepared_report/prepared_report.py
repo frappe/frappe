@@ -16,6 +16,16 @@ from frappe.utils.background_jobs import enqueue
 
 
 class PreparedReport(Document):
+	@staticmethod
+	def clear_old_logs(days=30):
+		prepared_reports_to_delete = frappe.get_all(
+			"Prepared Report",
+			filters={"creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
+		)
+
+		for batch in frappe.utils.create_batch(prepared_reports_to_delete, 100):
+			enqueue(method=delete_prepared_reports, reports=batch)
+
 	def before_insert(self):
 		self.status = "Queued"
 		self.report_start_time = frappe.utils.now()
@@ -32,6 +42,11 @@ class PreparedReport(Document):
 	def update_job_id(self, job_id):
 		frappe.db.set_value(self.doctype, self.name, "job_id", job_id, update_modified=False)
 		frappe.db.commit()
+
+	def get_prepared_data(self, attachment_name=None):
+		if attached_file_name := attachment_name or get_attachments(self.doctype, self.name)[0]:
+			attached_file = frappe.get_doc("File", attached_file_name)
+			return gzip_decompress(attached_file.get_content())
 
 
 def generate_report(prepared_report):
@@ -54,7 +69,7 @@ def generate_report(prepared_report):
 					report.custom_columns = data["columns"]
 
 		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
-		create_json_gz_file(result["result"], "Prepared Report", instance.name)
+		create_json_gz_file(result, instance.doctype, instance.name)
 
 		instance.status = "Completed"
 	except Exception:
@@ -72,6 +87,22 @@ def generate_report(prepared_report):
 
 
 @frappe.whitelist()
+def make_prepared_report(report_name, filters=None):
+	"""run reports in background"""
+	prepared_report = frappe.get_doc(
+		{
+			"doctype": "Prepared Report",
+			"report_name": report_name,
+			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
+			# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
+			"filters": json.dumps(json.loads(filters)),
+		}
+	).insert(ignore_permissions=True)
+
+	return {"name": prepared_report.name}
+
+
+@frappe.whitelist()
 def get_reports_in_queued_state(report_name, filters):
 	reports = frappe.get_all(
 		"Prepared Report",
@@ -79,27 +110,22 @@ def get_reports_in_queued_state(report_name, filters):
 			"report_name": report_name,
 			"filters": json.dumps(json.loads(filters)),
 			"status": "Queued",
+			"owner": frappe.session.user,
 		},
 	)
 	return reports
 
 
-def delete_expired_prepared_reports():
-	system_settings = frappe.get_single("System Settings")
-	enable_auto_deletion = system_settings.enable_prepared_report_auto_deletion
-	if enable_auto_deletion:
-		expiry_period = system_settings.prepared_report_expiry_period
-		prepared_reports_to_delete = frappe.get_all(
-			"Prepared Report",
-			filters={"creation": ["<", frappe.utils.add_days(frappe.utils.now(), -expiry_period)]},
-		)
-
-		batches = frappe.utils.create_batch(prepared_reports_to_delete, 100)
-		for batch in batches:
-			args = {
-				"reports": batch,
-			}
-			enqueue(method=delete_prepared_reports, job_name="delete_prepared_reports", **args)
+def get_completed_prepared_report(filters, user, report_name):
+	return frappe.db.get_value(
+		"Prepared Report",
+		filters={
+			"status": "Completed",
+			"filters": json.dumps(filters),
+			"owner": user,
+			"report_name": report_name,
+		},
+	)
 
 
 @frappe.whitelist()
@@ -137,7 +163,7 @@ def create_json_gz_file(data, dt, dn):
 @frappe.whitelist()
 def download_attachment(dn):
 	attachment = get_attachments("Prepared Report", dn)[0]
-	frappe.local.response.filename = attachment.file_name[:-2]
+	frappe.local.response.filename = attachment.file_name[:-3]
 	attached_file = frappe.get_doc("File", attachment.name)
 	frappe.local.response.filecontent = gzip_decompress(attached_file.get_content())
 	frappe.local.response.type = "binary"
