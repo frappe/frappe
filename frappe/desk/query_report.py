@@ -145,6 +145,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def background_enqueue_run(report_name, filters=None):
 	"""run reports in background"""
 <<<<<<< HEAD
@@ -181,6 +182,8 @@ def background_enqueue_run(report_name, filters=None):
 
 
 @frappe.whitelist()
+=======
+>>>>>>> 18d48ddeb8 (refactor: cleanup peprared result render and old logs cleanup)
 def get_script(report_name):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -237,12 +240,7 @@ def run(
 
 	result = None
 
-	if (
-		report.prepared_report
-		and not report.disable_prepared_report
-		and not ignore_prepared_report
-		and not custom_columns
-	):
+	if report.prepared_report and not ignore_prepared_report and not custom_columns:
 		if filters:
 			if isinstance(filters, str):
 				filters = json.loads(filters)
@@ -278,6 +276,7 @@ def add_custom_column_data(custom_columns, result):
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
+<<<<<<< HEAD
 	from frappe.core.doctype.prepared_report.prepared_report import (
 		process_filters_for_prepared_report,
 	)
@@ -299,40 +298,43 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			},
 			order_by="creation desc",
 		)
+=======
+	from frappe.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
 
-		if doc_list:
-			# Get latest
-			doc = frappe.get_doc("Prepared Report", doc_list[0])
+	def get_report_data(doc, data):
+		# backwards compatibility - prepared report used to have a columns field,
+		# we now directly fetch it from the result file
+		if isinstance(data, list):
+			columns = (doc.get("columns") and json.loads(doc.columns)) or data[0]
+			result = data
+		else:
+			columns = data.get("columns")
+			result = data.get("result")
+>>>>>>> 18d48ddeb8 (refactor: cleanup peprared result render and old logs cleanup)
 
+		for column in columns:
+			if isinstance(column, dict) and column.get("label"):
+				column["label"] = _(column["label"])
+
+		return {"columns": columns, "result": result}
+
+	report_data = {}
+	if not dn:
+		dn = get_completed_prepared_report(
+			filters, user, report.get("custom_report") or report.get("report_name")
+		)
+
+	doc = frappe.get_doc("Prepared Report", dn) if dn else None
 	if doc:
 		try:
-			# Prepared Report data is stored in a GZip compressed JSON file
-			attached_file_name = frappe.db.get_value(
-				"File",
-				{"attached_to_doctype": doc.doctype, "attached_to_name": doc.name},
-				"name",
-			)
-			attached_file = frappe.get_doc("File", attached_file_name)
-			compressed_content = attached_file.get_content()
-			uncompressed_content = gzip_decompress(compressed_content)
-			data = json.loads(uncompressed_content.decode("utf-8"))
-			if data:
-				columns = json.loads(doc.columns) if doc.columns else data[0]
-
-				for column in columns:
-					if isinstance(column, dict) and column.get("label"):
-						column["label"] = _(column["label"])
-
-				latest_report_data = {"columns": columns, "result": data}
+			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
+				report_data = get_report_data(doc, data)
 		except Exception:
-			doc.log_error("Prepared report failed")
-			frappe.delete_doc("Prepared Report", doc.name)
-			frappe.db.commit()
+			doc.log_error("Prepared report render failed")
+			frappe.msgprint(_("Prepared report render failed"))
 			doc = None
 
-	latest_report_data.update({"prepared_report": True, "doc": doc})
-
-	return latest_report_data
+	return report_data | {"prepared_report": True, "doc": doc}
 
 
 @frappe.whitelist()

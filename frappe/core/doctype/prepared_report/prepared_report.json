@@ -22,9 +22,8 @@
  "fields": [
   {
    "fieldname": "report_name",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Report Name",
-   "options": "Report",
    "read_only": 1,
    "reqd": 1
   },
@@ -99,7 +98,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-11-18 21:52:45.444209",
+ "modified": "2022-11-20 15:15:00.907626",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
