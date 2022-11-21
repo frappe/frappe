@@ -59,10 +59,10 @@ $.extend(frappe.perm, {
 		 */
 		// Cache doctype perms and document perms (with user perms and ownership) if absent
 		const doctype_perm = (frappe.perm.doc_perm[doctype] ??= {});
-		const perms = (doctype_perm[doc ? doc.name : "doctype_perm"] ??= frappe.perm.get_perm(
-			doctype,
-			doc
-		));
+		const doc_exists = doc && !doc.__islocal;
+
+		const perms = (doctype_perm[doc_exists ? doc.name : "doctype_perm"] ??=
+			frappe.perm.get_perm(doctype, doc));
 
 <<<<<<< HEAD
 		let perm = !!perms[permlevel][ptype];
