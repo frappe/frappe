@@ -280,10 +280,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				set_section(f.label);
 			} else if (f.fieldtype === "Column Break") {
 				set_column();
-			} else if (
-				!in_list(["Section Break", "Column Break", "Tab Break", "Fold"], f.fieldtype) &&
-				f.label
-			) {
+			} else if (!in_list(frappe.model.layout_fields, f.fieldtype)) {
 				if (!column) set_column();
 
 				if (f.fieldtype === "Table") {
