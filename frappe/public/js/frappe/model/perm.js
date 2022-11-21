@@ -33,27 +33,12 @@ $.extend(frappe.perm, {
 		"set_user_permissions",
 	],
 
-	doc_perm: {},
+	role_perms: {},
 
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
 
-		/** frappe.perm.doc_perm structure:
-		 * {
-		 * 	DocType: {
-		 * 		"doctype_perm": {...perms},
-		 * 		<docname_1>: {...document perms},
-		 * 		<docname_2>: {...document perms},
-		 * 	}
-		 * }
-		 */
-		// Cache doctype perms and document perms (with user perms and ownership) if absent
-		const doctype_perm = (frappe.perm.doc_perm[doctype] ??= {});
-		const doc_exists = doc && !doc.__islocal;
-
-		const perms = (doctype_perm[doc_exists ? doc.name : "doctype_perm"] ??=
-			frappe.perm.get_perm(doctype, doc));
-
+		const perms = frappe.perm.get_perm(doctype, doc);
 		return !!perms?.[permlevel]?.[ptype];
 	},
 
@@ -69,7 +54,7 @@ $.extend(frappe.perm, {
 
 		if (!meta) return perm;
 
-		perm = frappe.perm.get_role_permissions(meta);
+		perm = frappe.perm.role_perms[doctype] ??= frappe.perm.get_role_permissions(meta);
 		const base_perm = perm[0];
 
 		if (doc) {
