@@ -33,16 +33,26 @@ $.extend(frappe.perm, {
 		"set_user_permissions",
 	],
 
-	doctype_perm: {},
+	doc_perm: {},
 
 	has_perm: (doctype, permlevel, ptype, doc) => {
 		if (!permlevel) permlevel = 0;
 
-		// if document object is passed, get fresh doc based perms
-		// (with ownership and user perms applied) else cached doctype perms
-		const perms = doc
-			? frappe.perm.get_perm(doctype, doc)
-			: (frappe.perm.doctype_perm[doctype] ??= frappe.perm.get_perm(doctype));
+		/** frappe.perm.doc_perm structure:
+		 * {
+		 * 	DocType: {
+		 * 		"doctype_perm": {...perms},
+		 * 		<docname_1>: {...document perms},
+		 * 		<docname_2>: {...document perms},
+		 * 	}
+		 * }
+		 */
+		// Cache doctype perms and document perms (with user perms and ownership) if absent
+		const doctype_perm = (frappe.perm.doc_perm[doctype] ??= {});
+		const perms = (doctype_perm[doc ? doc.name : "doctype_perm"] ??= frappe.perm.get_perm(
+			doctype,
+			doc
+		));
 
 		return !!perms?.[permlevel]?.[ptype];
 	},
