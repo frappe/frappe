@@ -260,6 +260,13 @@ frappe.PrintFormatBuilder = Class.extend({
 
 			} else if(f.fieldtype==="Column Break") {
 				set_column();
+<<<<<<< HEAD
+=======
+			} else if (
+				!in_list(frappe.model.layout_fields, f.fieldtype)
+			) {
+				if (!column) set_column();
+>>>>>>> 09adc450f8 (fix: show fields without labels in print format builder (#18939))
 
 			} else if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)
 				&& f.label) {
