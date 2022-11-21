@@ -578,3 +578,12 @@ def create_kanban():
 				],
 			}
 		).insert()
+
+
+@frappe.whitelist()
+def add_remove_role(action, user, role):
+	user_doc = frappe.get_doc("User", user)
+	if action == "remove":
+		user_doc.remove_roles(role)
+	else:
+		user_doc.add_roles(role)
