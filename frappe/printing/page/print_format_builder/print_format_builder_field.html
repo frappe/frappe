@@ -34,7 +34,7 @@
 			<span class="drag-handle">
 				<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
 			</span>
-			<span class="field-label">{{ __(field.label) }}
+			<span class="field-label">{{ __(field.label) || __(field.fieldname) }}
 				<span> ({%= __("Table") %})</span>
 			</span>
 			<a class="pull-right select-columns btn btn-default btn-xs">
