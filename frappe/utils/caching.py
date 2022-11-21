@@ -128,3 +128,21 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 		return time_cache_wrapper(ttl)
 
 	return time_cache_wrapper
+
+
+def redis_memoize(fn):
+	"""Decorator to memoize function calls in Redis.
+
+	Note: Make sure memoized function has a return value and no side effects.
+	"""
+
+	@wraps(fn)
+	def wrapper(*args, **kwargs):
+		key = f"memoize:{fn.__module__}:{fn.__name__}:{args}:{kwargs}"
+		value = frappe.cache().get_value(key)
+		if value is None:
+			value = fn(*args, **kwargs)
+			frappe.cache().set_value(key, value)
+		return value
+
+	return wrapper
