@@ -581,7 +581,7 @@ def create_kanban():
 		).insert()
 
 
-@whitelist_for_tests()
+@whitelist_for_tests
 def add_remove_role(action, user, role):
 	user_doc = frappe.get_doc("User", user)
 	if action == "remove":
