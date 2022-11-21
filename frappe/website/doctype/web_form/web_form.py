@@ -609,4 +609,4 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			return "\n".join([doc.value for doc in link_options])
 
 	else:
-		raise frappe.PermissionError(f"You don't have permission to access the {doctype} DocType.")
+		raise frappe.PermissionError(_("You don't have permission to access the {0} DocType.").format(doctype))
