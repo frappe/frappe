@@ -96,7 +96,7 @@ $.extend(frappe.perm, {
 			}
 		}
 
-		if (frappe.model.can_read(doctype) && !base_perm.read) {
+		if (!base_perm.read && frappe.model.can_read(doctype)) {
 			// read via sharing
 			base_perm.read = 1;
 		}
