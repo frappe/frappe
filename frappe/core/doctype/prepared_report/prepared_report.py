@@ -46,10 +46,6 @@ class PreparedReport(Document):
 			enqueue_after_commit=True,
 		)
 
-	def update_job_id(self, job_id):
-		frappe.db.set_value(self.doctype, self.name, "job_id", job_id, update_modified=False)
-		frappe.db.commit()
-
 	def get_prepared_data(self, with_file_name=False):
 		if attachments := get_attachments(self.doctype, self.name):
 			attachment = attachments[0]
@@ -61,8 +57,9 @@ class PreparedReport(Document):
 
 
 def generate_report(prepared_report):
+	update_job_id(prepared_report, get_current_job().id)
+
 	instance = frappe.get_doc("Prepared Report", prepared_report)
-	instance.update_job_id(get_current_job().id)
 	report = frappe.get_doc("Report", instance.report_name)
 
 	add_data_to_monitor(report=instance.report_name)
@@ -95,6 +92,11 @@ def generate_report(prepared_report):
 		{"report_name": instance.report_name, "name": instance.name},
 		user=frappe.session.user,
 	)
+
+
+def update_job_id(prepared_report, job_id):
+	frappe.db.set_value("Prepared Report", prepared_report, "job_id", job_id, update_modified=False)
+	frappe.db.commit()
 
 
 @frappe.whitelist()
