@@ -15,15 +15,7 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions
-from frappe.utils import (
-	cint,
-	cstr,
-	flt,
-	format_duration,
-	get_html_format,
-	get_url_to_form,
-	gzip_decompress,
-)
+from frappe.utils import cint, cstr, flt, format_duration, get_html_format
 
 
 def get_report_doc(report_name):
@@ -243,8 +235,8 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 	def get_report_data(doc, data):
 		# backwards compatibility - prepared report used to have a columns field,
 		# we now directly fetch it from the result file
-		if isinstance(data, list):
-			columns = (doc.get("columns") and json.loads(doc.columns)) or data[0]
+		if doc.get("columns"):
+			columns = json.loads(doc.columns) or data[0]
 			result = data
 		else:
 			columns = data.get("columns")
