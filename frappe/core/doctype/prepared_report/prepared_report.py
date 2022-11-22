@@ -24,7 +24,7 @@ class PreparedReport(Document):
 	def clear_old_logs(days=30):
 		prepared_reports_to_delete = frappe.get_all(
 			"Prepared Report",
-			filters={"creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
+			filters={"modified": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
 		)
 
 		for batch in frappe.utils.create_batch(prepared_reports_to_delete, 100):
