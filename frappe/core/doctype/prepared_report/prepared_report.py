@@ -20,6 +20,10 @@ class PreparedReport(Document):
 	def queued_by(self):
 		return self.owner
 
+	@property
+	def queued_at(self):
+		return self.creation
+
 	@staticmethod
 	def clear_old_logs(days=30):
 		prepared_reports_to_delete = frappe.get_all(
@@ -32,7 +36,6 @@ class PreparedReport(Document):
 
 	def before_insert(self):
 		self.status = "Queued"
-		self.report_start_time = frappe.utils.now()
 
 	def after_insert(self):
 		enqueue(
