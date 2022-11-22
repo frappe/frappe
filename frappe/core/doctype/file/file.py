@@ -78,20 +78,37 @@ class File(Document):
 		self.validate_duplicate_entry()
 
 	def validate(self):
+		if self.is_folder:
+			return
+
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
+
+		self.validate_attachment_references()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
 		# this case is handled inside handle_is_private_changed
 		if not self.is_new() and self.has_value_changed("is_private"):
 			self.handle_is_private_changed()
 
-		if not self.is_folder:
-			self.validate_file_path()
-			self.validate_file_url()
-			self.validate_file_on_disk()
+		self.validate_file_path()
+		self.validate_file_url()
+		self.validate_file_on_disk()
 
 		self.file_size = frappe.form_dict.file_size or self.file_size
+
+	def validate_attachment_references(self):
+		if not self.attached_to_doctype:
+			return
+
+		if not self.attached_to_name or not isinstance(self.attached_to_name, (str, int)):
+			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
+
+		if not self.attached_to_field:
+			return
+
+		if not frappe.get_meta(self.attached_to_doctype).has_field(self.attached_to_field):
+			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():

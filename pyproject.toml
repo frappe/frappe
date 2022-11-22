@@ -50,6 +50,7 @@ dependencies = [
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
     "pyasn1~=0.4.8",
+    "pyOpenSSL~=22.1.0",
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
     "pypng~=0.20220715.0",
