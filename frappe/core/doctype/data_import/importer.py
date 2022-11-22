@@ -117,6 +117,7 @@ class Importer:
 								"skipping": True,
 								"data_import": self.data_import.name,
 							},
+							user=frappe.session.user,
 						)
 					continue
 
@@ -144,6 +145,7 @@ class Importer:
 								"row_indexes": row_indexes,
 								"eta": eta,
 							},
+							user=frappe.session.user,
 						)
 
 					import_log.append(frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes))

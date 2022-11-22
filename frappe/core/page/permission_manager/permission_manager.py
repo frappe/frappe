@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 import frappe
 import frappe.defaults
 from frappe import _
@@ -10,6 +8,7 @@ from frappe.core.doctype.doctype.doctype import (
 	clear_permissions_cache,
 	validate_permissions_for_doctype,
 )
+from frappe.exceptions import DoesNotExistError
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.permissions import (
 	add_permission,
@@ -70,15 +69,17 @@ def get_roles_and_doctypes():
 @frappe.whitelist()
 def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
+
 	if role:
 		out = get_all_perms(role)
 		if doctype:
 			out = [p for p in out if p.parent == doctype]
+
 	else:
-		filters = dict(parent=doctype)
+		filters = {"parent": doctype}
 		if frappe.session.user != "Administrator":
-			custom_roles = frappe.get_all("Role", filters={"is_custom": 1})
-			filters["role"] = ["not in", [row.name for row in custom_roles]]
+			custom_roles = frappe.get_all("Role", filters={"is_custom": 1}, pluck="name")
+			filters["role"] = ["not in", custom_roles]
 
 		out = frappe.get_all("Custom DocPerm", fields="*", filters=filters, order_by="permlevel")
 		if not out:
@@ -86,8 +87,13 @@ def get_permissions(doctype=None, role=None):
 
 	linked_doctypes = {}
 	for d in out:
-		if not d.parent in linked_doctypes:
-			linked_doctypes[d.parent] = get_linked_doctypes(d.parent)
+		if d.parent not in linked_doctypes:
+			try:
+				linked_doctypes[d.parent] = get_linked_doctypes(d.parent)
+			except DoesNotExistError:
+				# exclude & continue if linked doctype is not found
+				frappe.clear_last_message()
+				continue
 		d.linked_doctypes = linked_doctypes[d.parent]
 		meta = frappe.get_meta(d.parent)
 		if meta:

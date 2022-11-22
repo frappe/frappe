@@ -10,6 +10,7 @@ import unittest
 from six import PY3
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Email Account"]
 
@@ -289,6 +290,20 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue(
 			re.search("""<img[^>]*src=["']/private/files/rtco2.png[^>]*>""", communication.content)
 		)
+
+
+class TestVerifiedRequests(FrappeTestCase):
+	def test_round_trip(self):
+		from frappe.utils import set_request
+		from frappe.utils.verified_command import get_signed_params, verify_request
+
+		test_cases = [{"xyz": "abc"}, {"email": "a@b.com", "user": "xyz"}]
+
+		for params in test_cases:
+			signed_url = get_signed_params(params)
+			set_request(method="GET", path="?" + signed_url)
+			self.assertTrue(verify_request())
+		frappe.local.request = None
 
 
 if __name__ == "__main__":

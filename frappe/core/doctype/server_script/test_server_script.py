@@ -190,3 +190,25 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 """
 		script.save()
 		script.execute_method()
+
+	def test_scripts_all_the_way_down(self):
+		# why not
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_nested_scripts_1",
+			script_type="API",
+			api_method="test_nested_scripts_1",
+			script=f"""log("nothing")""",
+		)
+		script.insert()
+		script.execute_method()
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_nested_scripts_2",
+			script_type="API",
+			api_method="test_nested_scripts_2",
+			script=f"""frappe.call("test_nested_scripts_1")""",
+		)
+		script.insert()
+		script.execute_method()

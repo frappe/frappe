@@ -5,12 +5,14 @@ context('List View Settings', () => {
 	});
 	it('Default settings', () => {
 		cy.visit('/app/List/DocType/List');
+		cy.clear_filters();
 		cy.get('.list-count').should('contain', "20 of");
 		cy.get('.list-stats').should('contain', "Tags");
 	});
 	it('disable count and sidebar stats then verify', () => {
 		cy.wait(300);
 		cy.visit('/app/List/DocType/List');
+		cy.clear_filters();
 		cy.wait(300);
 		cy.get('.list-count').should('contain', "20 of");
 		cy.get('.menu-btn-group button').click();

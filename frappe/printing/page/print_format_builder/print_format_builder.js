@@ -261,8 +261,7 @@ frappe.PrintFormatBuilder = Class.extend({
 			} else if(f.fieldtype==="Column Break") {
 				set_column();
 
-			} else if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)
-				&& f.label) {
+			} else if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)) {
 				if(!column) set_column();
 
 				if(f.fieldtype==="Table") {
