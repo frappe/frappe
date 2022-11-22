@@ -50,9 +50,13 @@ class PreparedReport(Document):
 		frappe.db.set_value(self.doctype, self.name, "job_id", job_id, update_modified=False)
 		frappe.db.commit()
 
-	def get_prepared_data(self, attachment_name=None):
-		if attached_file_name := attachment_name or get_attachments(self.doctype, self.name)[0]:
-			attached_file = frappe.get_doc("File", attached_file_name)
+	def get_prepared_data(self, with_file_name=False):
+		if attachments := get_attachments(self.doctype, self.name):
+			attachment = attachments[0]
+			attached_file = frappe.get_doc("File", attachment.name)
+
+			if with_file_name:
+				return (gzip_decompress(attached_file.get_content()), attachment.file_name)
 			return gzip_decompress(attached_file.get_content())
 
 
@@ -169,10 +173,9 @@ def create_json_gz_file(data, dt, dn):
 
 @frappe.whitelist()
 def download_attachment(dn):
-	attachment = get_attachments("Prepared Report", dn)[0]
-	frappe.local.response.filename = attachment.file_name[:-3]
-	attached_file = frappe.get_doc("File", attachment.name)
-	frappe.local.response.filecontent = gzip_decompress(attached_file.get_content())
+	data, file_name = frappe.get_doc("Prepared Report", dn).get_prepared_data(with_file_name=True)
+	frappe.local.response.filename = file_name[:-3]
+	frappe.local.response.filecontent = data
 	frappe.local.response.type = "binary"
 
 
