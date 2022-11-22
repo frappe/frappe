@@ -199,8 +199,7 @@ def run(
 			if isinstance(filters, str):
 				filters = json.loads(filters)
 
-			dn = filters.get("prepared_report_name")
-			filters.pop("prepared_report_name", None)
+			dn = filters.pop("prepared_report_name", None)
 		else:
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
@@ -235,18 +234,17 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 	def get_report_data(doc, data):
 		# backwards compatibility - prepared report used to have a columns field,
 		# we now directly fetch it from the result file
-		if doc.get("columns"):
-			columns = json.loads(doc.columns) or data[0]
-			result = data
+		if doc.get("columns") or isinstance(data, list):
+			columns = (doc.get("columns") and json.loads(doc.columns)) or data[0]
+			data = {"result": data}
 		else:
 			columns = data.get("columns")
-			result = data.get("result")
 
 		for column in columns:
 			if isinstance(column, dict) and column.get("label"):
 				column["label"] = _(column["label"])
 
-		return {"columns": columns, "result": result}
+		return data | {"columns": columns}
 
 	report_data = {}
 	if not dn:
