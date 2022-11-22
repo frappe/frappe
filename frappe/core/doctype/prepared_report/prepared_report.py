@@ -16,6 +16,10 @@ from frappe.utils.background_jobs import enqueue
 
 
 class PreparedReport(Document):
+	@property
+	def queued_by(self):
+		return self.owner
+
 	@staticmethod
 	def clear_old_logs(days=30):
 		prepared_reports_to_delete = frappe.get_all(
