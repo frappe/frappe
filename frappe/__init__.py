@@ -1985,6 +1985,7 @@ def get_print(
 	doc=None,
 	output=None,
 	no_letterhead=0,
+	letterhead=None,
 	password=None,
 	pdf_options=None,
 ):
@@ -2005,6 +2006,7 @@ def get_print(
 	local.form_dict.style = style
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
+	local.form_dict.letterhead = letterhead
 
 	pdf_options = pdf_options or {}
 	if password:
