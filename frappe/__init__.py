@@ -716,25 +716,20 @@ xss_safe_methods = []
 allowed_http_methods_for_whitelisted_func = {}
 
 
-def validate_argument_types(func):
-	return func
-	from pydantic import validate_arguments as pyd_validator
+def apply_validate_argument_types_wrapper(func):
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		"""Validate argument types of whitelisted functions.
 
-	def validator(*args, **kwargs):
-		return pyd_validator(func)(*args, **kwargs)
+		:param args: Function arguments.
+		:param kwargs: Function keyword arguments."""
+		from frappe.utils.typing_validations import validate_argument_types
 
-	import sys
+		if getattr(local, "request", None):
+			validate_argument_types(func, args, kwargs)
+		return func(*args, **kwargs)
 
-	# from frappe.model.document import Document
-	# localns = {
-	# 	"Document": Document,
-	# }
-
-	try:
-		return validator(func)
-	except NameError:
-		sys.stderr.write(f"{func} has unsupported type annotations")
-	return func
+	return wrapper
 
 
 def whitelist(allow_guest=False, xss_safe=False, methods=None):
@@ -762,8 +757,10 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		# this is needed because functions can be compared, but not methods
 		method = None
 		if hasattr(fn, "__func__"):
-			method = fn
+			method = apply_validate_argument_types_wrapper(fn)
 			fn = method.__func__
+		else:
+			fn = apply_validate_argument_types_wrapper(fn)
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
@@ -774,7 +771,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 			if xss_safe:
 				xss_safe_methods.append(fn)
 
-		return validate_argument_types(method or fn)
+		return method or fn
 
 	return innerfn
 
