@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
  "allow_copy": 1, 
  "allow_events_in_timeline": 0, 
  "allow_guest_to_view": 0, 
@@ -12,6 +13,24 @@
  "document_type": "", 
  "editable_grid": 1, 
  "engine": "InnoDB", 
+=======
+ "actions": [],
+ "allow_copy": 1,
+ "creation": "2017-02-13 17:33:25.157332",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "set_role_for",
+  "page",
+  "report",
+  "column_break_4",
+  "enable_prepared_report",
+  "roles_permission",
+  "roles_html",
+  "roles"
+ ],
+>>>>>>> 1a5019432d (refactor(minor): disable_prepared_report -> enable_prepared_report)
  "fields": [
   {
    "allow_bulk_edit": 0, 
@@ -146,6 +165,7 @@
    "unique": 0
   }, 
   {
+<<<<<<< HEAD
    "allow_bulk_edit": 0, 
    "allow_in_quick_entry": 0, 
    "allow_on_submit": 0, 
@@ -211,6 +231,12 @@
    "translatable": 0, 
    "unique": 0
   }, 
+=======
+   "fieldname": "roles_permission",
+   "fieldtype": "Section Break",
+   "label": "Allow Roles"
+  },
+>>>>>>> 1a5019432d (refactor(minor): disable_prepared_report -> enable_prepared_report)
   {
    "allow_bulk_edit": 0, 
    "allow_in_quick_entry": 0, 
@@ -245,6 +271,7 @@
    "unique": 0
   }, 
   {
+<<<<<<< HEAD
    "allow_bulk_edit": 0, 
    "allow_in_quick_entry": 0, 
    "allow_on_submit": 0, 
@@ -294,6 +321,31 @@
  "name": "Role Permission for Page and Report", 
  "name_case": "", 
  "owner": "Administrator", 
+=======
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Roles",
+   "options": "Has Role",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "report",
+   "fieldname": "enable_prepared_report",
+   "fieldtype": "Check",
+   "label": "Enable Prepared Report"
+  }
+ ],
+ "hide_toolbar": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-11-23 12:39:05.750386",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Role Permission for Page and Report",
+ "owner": "Administrator",
+>>>>>>> 1a5019432d (refactor(minor): disable_prepared_report -> enable_prepared_report)
  "permissions": [
   {
    "amend": 0, 
