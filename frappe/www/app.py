@@ -44,12 +44,15 @@ def get_context(context):
 	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
 	boot_json = json.dumps(boot_json)
 
+	include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
+	include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])
+
 	context.update(
 		{
 			"no_cache": 1,
 			"build_version": frappe.utils.get_build_version(),
-			"include_js": hooks["app_include_js"],
-			"include_css": hooks["app_include_css"],
+			"include_js": include_js,
+			"include_css": include_css,
 			"layout_direction": "rtl" if is_rtl() else "ltr",
 			"lang": frappe.local.lang,
 			"sounds": hooks["sounds"],
