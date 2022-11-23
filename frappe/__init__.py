@@ -1879,7 +1879,7 @@ def attach_print(
 	if lang_change_needed:
 		# save original values
 		_lang = local.lang
-		_lang_full_dict = local.lang_full_dict
+		_lang_full_dict = getattr(local, "lang_full_dict", None)
 
 		# set lang as specified in print format attachment
 		local.lang = lang
