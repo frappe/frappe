@@ -43,9 +43,41 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 		L.control.scale().addTo(this.map);
 		if (this.coords.features && this.coords.features.length) {
+			//custom modification in code to bind other details for doctype task
+			$.each(this.coords.features, function(i, cords_data) {
+				if(cords_data.properties.name.startsWith("TASK-")){
+					//Getting task data 
+					frappe.call({
+						method: 'erpnext.projects.doctype.task.task.get_task_details',
+						args: {
+							"task_name": cords_data.properties.name
+						},
+						async: false,
+						callback: function(task_data) {
+							console.log(task_data)
+							if(task_data.message.length>0){
+								cords_data.properties.project =  task_data.message[0].project_name
+								cords_data.properties.name =  task_data.message[0].subject
+								cords_data.properties.task_phase =  task_data.message[0].task_phase
+								//cords_data.properties.project = task_data.message[0].project
+							}
+						}
+					});
+					
+					console.log(this.coords)
+				}else{
+					cords_data.properties.project = ""
+					cords_data.properties.task_phase = ""
+				}
+			})
+			
 			this.coords.features.forEach(
-				coords => L.geoJSON(coords).bindPopup(coords.properties.name).addTo(this.map)
+				coords => L.geoJSON(coords).bindPopup(coords.properties.name+"<br>"+coords.properties.project+"<br>"+coords.properties.task_phase).addTo(this.map)
 			);
+			// end here below commented code is orignal code.
+			// this.coords.features.forEach(
+			// 	coords => L.geoJSON(coords).bindPopup(coords.properties.name).addTo(this.map)
+			// );
 			let lastCoords = this.coords.features[0].geometry.coordinates.reverse();
 			this.map.panTo(lastCoords, 8);
 		}
