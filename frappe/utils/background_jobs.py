@@ -3,11 +3,7 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-<<<<<<< HEAD
-from typing import TYPE_CHECKING
-=======
 from typing import TYPE_CHECKING, Any, Union
->>>>>>> 0ed7600604 (build: py3.11 support (#18550))
 from uuid import uuid4
 
 import redis
@@ -64,11 +60,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-<<<<<<< HEAD
-) -> "Job":
-=======
 ) -> Union["Job", Any]:
->>>>>>> 0ed7600604 (build: py3.11 support (#18550))
 	"""
 	Enqueue method to be executed using a background worker
 
