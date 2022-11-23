@@ -306,8 +306,8 @@ def validate_print_permission(doc):
 		if frappe.has_permission(doc.doctype, ptype, doc) or frappe.has_website_permission(doc):
 			return
 
-	key = frappe.form_dict.get("key")
-	if key:
+	key = frappe.form_dict.key
+	if key and isinstance(key, str):
 		validate_key(key, doc)
 	else:
 		raise frappe.PermissionError(_("You do not have permission to view this document"))
