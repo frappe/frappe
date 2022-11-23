@@ -10,7 +10,7 @@
   "page",
   "report",
   "column_break_4",
-  "disable_prepared_report",
+  "enable_prepared_report",
   "roles_permission",
   "roles_html",
   "roles"
@@ -43,13 +43,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "depends_on": "report",
-   "fieldname": "disable_prepared_report",
-   "fieldtype": "Check",
-   "label": "Disable Prepared Report"
-  },
-  {
    "fieldname": "roles_permission",
    "fieldtype": "Section Break",
    "label": "Allow Roles"
@@ -66,12 +59,19 @@
    "label": "Roles",
    "options": "Has Role",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "report",
+   "fieldname": "enable_prepared_report",
+   "fieldtype": "Check",
+   "label": "Enable Prepared Report"
   }
  ],
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-03 12:20:54.079809",
+ "modified": "2022-11-23 12:39:05.750386",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role Permission for Page and Report",

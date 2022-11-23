@@ -28,7 +28,7 @@ class RolePermissionforPageandReport(Document):
 
 	def check_prepared_report_disabled(self):
 		if self.report:
-			self.disable_prepared_report = not is_prepared_report_enabled(self.report)
+			self.enable_prepared_report = is_prepared_report_enabled(self.report)
 
 	def get_standard_roles(self):
 		doctype = self.set_role_for
@@ -70,7 +70,7 @@ class RolePermissionforPageandReport(Document):
 			frappe.db.sql(
 				"""update `tabReport` set prepared_report = %s
 				where name = %s""",
-				(1 - cint(self.disable_prepared_report), self.report),
+				(self.enable_prepared_report, self.report),
 			)
 
 	def get_args(self, row=None):
