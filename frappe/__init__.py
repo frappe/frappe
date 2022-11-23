@@ -1874,11 +1874,19 @@ def attach_print(
 
 	print_settings = db.get_singles_dict("Print Settings")
 
-	_lang = local.lang
+	lang_change_needed = lang and lang != local.lang
 
-	# set lang as specified in print format attachment
-	if lang:
+	if lang_change_needed:
+		# save original values
+		_lang = local.lang
+		_lang_full_dict = local.lang_full_dict
+
+		# set lang as specified in print format attachment
 		local.lang = lang
+
+		# unset lang_full_dict to load new language
+		local.lang_full_dict = None
+
 	local.flags.ignore_print_permissions = True
 
 	no_letterhead = not print_letterhead
@@ -1904,8 +1912,11 @@ def attach_print(
 	out = {"fname": file_name + ext, "fcontent": content}
 
 	local.flags.ignore_print_permissions = False
-	# reset lang to original local lang
-	local.lang = _lang
+
+	if lang_change_needed:
+		# reset original values
+		local.lang = _lang
+		local.lang_full_dict = _lang_full_dict
 
 	return out
 
