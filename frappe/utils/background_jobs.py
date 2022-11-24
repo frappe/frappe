@@ -34,9 +34,11 @@ def get_queues_timeout():
 	custom_workers_config = common_site_config.get("workers", {})
 	default_timeout = 300
 
+	# Note: Order matters here
+	# If no queues are specified then RQ prioritizes queues in specified order
 	return {
-		"default": default_timeout,
 		"short": default_timeout,
+		"default": default_timeout,
 		"long": 1500,
 		**{
 			worker: config.get("timeout", default_timeout)
