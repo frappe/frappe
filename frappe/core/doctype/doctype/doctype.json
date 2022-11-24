@@ -24,6 +24,7 @@
   "custom",
   "beta",
   "is_virtual",
+  "queue_in_background",
   "fields_section_break",
   "fields",
   "sb1",
@@ -599,6 +600,13 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.is_submittable",
+   "fieldname": "queue_in_background",
+   "fieldtype": "Check",
+   "label": "Queue in Background"
   },
   {
    "fieldname": "default_view",

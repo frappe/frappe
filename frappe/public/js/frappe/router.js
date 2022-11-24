@@ -12,6 +12,7 @@ frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
+frappe.open_in_new_tab = false;
 frappe.route_hooks = {};
 
 $(window).on("hashchange", function (e) {
@@ -347,8 +348,13 @@ frappe.router = {
 			let sub_path = this.make_url(route);
 			// replace each # occurrences in the URL with encoded character except for last
 			// sub_path = sub_path.replace(/[#](?=.*[#])/g, "%23");
-			this.push_state(sub_path);
-
+			if (frappe.open_in_new_tab) {
+				localStorage["route_options"] = JSON.stringify(frappe.route_options);
+				window.open(sub_path, "_blank");
+				frappe.open_in_new_tab = false;
+			} else {
+				this.push_state(sub_path);
+			}
 			setTimeout(() => {
 				frappe.after_ajax &&
 					frappe.after_ajax(() => {
@@ -491,6 +497,11 @@ frappe.router = {
 
 		if (!frappe.route_options) {
 			frappe.route_options = {};
+		}
+
+		if (localStorage.getItem("route_options")) {
+			frappe.route_options = JSON.parse(localStorage.getItem("route_options"));
+			localStorage.removeItem("route_options");
 		}
 
 		let params = new URLSearchParams(query_string);

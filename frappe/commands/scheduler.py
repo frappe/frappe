@@ -183,7 +183,7 @@ def start_scheduler():
 @click.option("-u", "--rq-username", default=None, help="Redis ACL user")
 @click.option("-p", "--rq-password", default=None, help="Redis ACL user password")
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None):
-	"""Site is used to find redis credentals."""
+	"""Site is used to find redis credentials."""
 	from frappe.utils.background_jobs import start_worker
 
 	start_worker(queue, quiet=quiet, rq_username=rq_username, rq_password=rq_password)
