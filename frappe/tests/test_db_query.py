@@ -282,21 +282,21 @@ class TestReportview(unittest.TestCase):
 			)
 			self.assertTrue("date_diff" in data[0])
 
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(frappe.DataError):
 			DatabaseQuery("DocType").execute(
 				fields=["name", "issingle", "if (issingle=1, (select name from tabUser), count(name))"],
 				limit_start=0,
 				limit_page_length=1,
 			)
 
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(frappe.DataError):
 			DatabaseQuery("DocType").execute(
 				fields=["name", "issingle", "if(issingle=1, (select name from tabUser), count(name))"],
 				limit_start=0,
 				limit_page_length=1,
 			)
 
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(frappe.DataError):
 			DatabaseQuery("DocType").execute(
 				fields=[
 					"name",
@@ -308,7 +308,7 @@ class TestReportview(unittest.TestCase):
 				ignore_permissions=True,
 			)
 
-		with self.assertRaises(frappe.ValidationError):
+		with self.assertRaises(frappe.DataError):
 			DatabaseQuery("DocType").execute(
 				fields=[
 					"name",

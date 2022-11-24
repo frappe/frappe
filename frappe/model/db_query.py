@@ -348,6 +348,7 @@ class DatabaseQuery(object):
 
 		for field in self.fields:
 			lower_field = field.lower()
+<<<<<<< HEAD
 			function = lower_field.split("(", 1)[0].rstrip()
 
 <<<<<<< HEAD
@@ -356,6 +357,8 @@ class DatabaseQuery(object):
 =======
 			if function in blacklisted_functions:
 				frappe.throw(_("Use of function {0} in field is restricted").format(function))
+=======
+>>>>>>> 1a5e5f546b (fix: Move function check inside subquery)
 
 			if SUB_QUERY_PATTERN.match(field):
 				if field[0] == "(":
@@ -363,6 +366,12 @@ class DatabaseQuery(object):
 					if subquery_token in blacklisted_keywords:
 						_raise_exception()
 >>>>>>> 575d32ec35 (fix(db_query): Space resilient matching)
+
+				function = lower_field.split("(", 1)[0].rstrip()
+				if function in blacklisted_functions:
+					frappe.throw(
+						_("Use of function {0} in field is restricted").format(function), exc=frappe.DataError
+					)
 
 				if "@" in lower_field:
 					# prevent access to global variables
