@@ -69,7 +69,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			method: "frappe.client.get_doc_permissions",
 			args: {
 				doctype: "Kanban Board",
-				docname: this.board_name
+				docname: this.board_name,
 			},
 			callback: (result) => {
 				this.board_perms = result.message.permissions || {};
@@ -84,7 +84,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				label: __("Save filters"),
 				action: () => {
 					this.save_kanban_board_filters();
-				}
+				},
 			});
 		}
 
@@ -124,6 +124,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.hide_sidebar = true;
 		this.hide_page_form = true;
 		this.hide_card_layout = true;
+		this.hide_sort_selector = true;
 		super.setup_page();
 	}
 
