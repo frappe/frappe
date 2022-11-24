@@ -229,12 +229,19 @@ body {
 		.widget-head {
 			padding: var(--padding-sm);
 			position: relative;
+			@media (max-width: 1300px) {
+				display: grid;
+			}
 		}
 
 		.widget-control {
-			position: absolute;
+			position: inherit;
 			right: var(--margin-sm);
 			top: var(--padding-sm);
+			@media (min-width: 1300px) {
+				top: auto;
+			}
+
 		}
 
 		.chart-loading-state {
