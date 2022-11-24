@@ -377,6 +377,8 @@ def generate_qname(qtype: str) -> str:
 
 	qnames are useful to define namespaces of customers.
 	"""
+	if isinstance(qtype, list):
+		qtype = ",".join(qtype)
 	return f"{get_bench_id()}:{qtype}"
 
 
