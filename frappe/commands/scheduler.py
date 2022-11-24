@@ -178,7 +178,11 @@ def start_scheduler():
 
 
 @click.command("worker")
-@click.option("--queue", type=str)
+@click.option(
+	"--queue",
+	type=str,
+	help="Queue to consume from. Multiple queues can be specified using comma-separated string. If not specified all queues are consumed.",
+)
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("-u", "--rq-username", default=None, help="Redis ACL user")
 @click.option("-p", "--rq-password", default=None, help="Redis ACL user password")
