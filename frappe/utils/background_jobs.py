@@ -6,16 +6,24 @@ import time
 from collections import defaultdict
 from functools import lru_cache
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 from typing import TYPE_CHECKING, Any, NoReturn, Union
 >>>>>>> 40b2929c0d (feat(workers): allow consuming multiple queues)
+=======
+from typing import TYPE_CHECKING, Any, Literal, NoReturn, Union
+>>>>>>> a8bf86ef75 (feat: support dequeuing strategies for worker)
 from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
 from rq.logutils import setup_loghandlers
+<<<<<<< HEAD
 from six import string_types
+=======
+from rq.worker import RandomWorker, RoundRobinWorker
+>>>>>>> a8bf86ef75 (feat: support dequeuing strategies for worker)
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
@@ -204,8 +212,11 @@ def start_worker(
 	rq_username: str | None = None,
 	rq_password: str | None = None,
 	burst: bool = False,
+	strategy: Literal["round_robbin", "random"] | None = None,
 ) -> NoReturn | None:
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
+	DEQUEUE_STRATEGIES = {"round_robbin": RoundRobinWorker, "random": RandomWorker}
+
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
@@ -219,11 +230,16 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
+	WorkerKlass = Worker
+	if strategy and strategy in DEQUEUE_STRATEGIES:
+		WorkerKlass = DEQUEUE_STRATEGIES[strategy]
+
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
 		logging_level = "INFO"
 		if quiet:
 			logging_level = "WARNING"
+<<<<<<< HEAD
 <<<<<<< HEAD
 		Worker(queues, name=get_worker_name(queue)).work(
 			logging_level=logging_level,
@@ -233,6 +249,10 @@ def start_worker(
 =======
 		Worker(queues, name=get_worker_name(queue_name)).work(logging_level=logging_level, burst=burst)
 >>>>>>> aece93fbc5 (feat: burst mode in workers)
+=======
+		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
+		worker.work(logging_level=logging_level, burst=burst)
+>>>>>>> a8bf86ef75 (feat: support dequeuing strategies for worker)
 
 
 def get_worker_name(queue):
