@@ -191,12 +191,31 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None):
 	"""Site is used to find redis credentals."""
 =======
 @click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
+<<<<<<< HEAD
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False):
 	"""Site is used to find redis credentials."""
 >>>>>>> aece93fbc5 (feat: burst mode in workers)
+=======
+@click.option(
+	"--strategy",
+	required=False,
+	type=click.Choice(["round_robbin", "random"]),
+	help="dequeuing strategy to use.",
+)
+def start_worker(
+	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None
+):
+>>>>>>> a8bf86ef75 (feat: support dequeuing strategies for worker)
 	from frappe.utils.background_jobs import start_worker
 
-	start_worker(queue, quiet=quiet, rq_username=rq_username, rq_password=rq_password, burst=burst)
+	start_worker(
+		queue,
+		quiet=quiet,
+		rq_username=rq_username,
+		rq_password=rq_password,
+		burst=burst,
+		strategy=strategy,
+	)
 
 
 @click.command("ready-for-migration")
