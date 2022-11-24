@@ -5,6 +5,10 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
+<<<<<<< HEAD
+=======
+from typing import TYPE_CHECKING, Any, NoReturn, Union
+>>>>>>> 40b2929c0d (feat(workers): allow consuming multiple queues)
 from uuid import uuid4
 
 import redis
@@ -187,11 +191,29 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.destroy()
 
 
+<<<<<<< HEAD
 def start_worker(queue=None, quiet=False):
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn()
+=======
+def start_worker(
+	queue: str | None = None,
+	quiet: bool = False,
+	rq_username: str | None = None,
+	rq_password: str | None = None,
+) -> NoReturn:
+	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
+	with frappe.init_site():
+		# empty init is required to get redis_queue from common_site_config.json
+		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
+
+		if queue:
+			queue = [q.strip() for q in queue.split(",")]
+		queues = get_queue_list(queue, build_queue_name=True)
+		queue_name = queue and generate_qname(queue)
+>>>>>>> 40b2929c0d (feat(workers): allow consuming multiple queues)
 
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
