@@ -186,11 +186,17 @@ def start_scheduler():
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("-u", "--rq-username", default=None, help="Redis ACL user")
 @click.option("-p", "--rq-password", default=None, help="Redis ACL user password")
+<<<<<<< HEAD
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None):
 	"""Site is used to find redis credentals."""
+=======
+@click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
+def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False):
+	"""Site is used to find redis credentials."""
+>>>>>>> aece93fbc5 (feat: burst mode in workers)
 	from frappe.utils.background_jobs import start_worker
 
-	start_worker(queue, quiet=quiet, rq_username=rq_username, rq_password=rq_password)
+	start_worker(queue, quiet=quiet, rq_username=rq_username, rq_password=rq_password, burst=burst)
 
 
 @click.command("ready-for-migration")

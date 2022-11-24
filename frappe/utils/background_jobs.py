@@ -206,7 +206,8 @@ def start_worker(
 	quiet: bool = False,
 	rq_username: str | None = None,
 	rq_password: str | None = None,
-) -> NoReturn:
+	burst: bool = False,
+) -> NoReturn | None:
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
@@ -224,7 +225,7 @@ def start_worker(
 		logging_level = "INFO"
 		if quiet:
 			logging_level = "WARNING"
-		Worker(queues, name=get_worker_name(queue_name)).work(logging_level=logging_level)
+		Worker(queues, name=get_worker_name(queue_name)).work(logging_level=logging_level, burst=burst)
 
 
 def get_worker_name(queue):
