@@ -385,16 +385,18 @@ class DatabaseQuery:
 
 		for field in self.fields:
 			lower_field = field.lower()
-			function = lower_field.split("(", 1)[0].rstrip()
-
-			if function in blacklisted_functions:
-				frappe.throw(_("Use of function {0} in field is restricted").format(function))
 
 			if SUB_QUERY_PATTERN.match(field):
 				if field[0] == "(":
 					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
 					if subquery_token in blacklisted_keywords:
 						_raise_exception()
+
+				function = lower_field.split("(", 1)[0].rstrip()
+				if function in blacklisted_functions:
+					frappe.throw(
+						_("Use of function {0} in field is restricted").format(function), exc=frappe.DataError
+					)
 
 				if "@" in lower_field:
 					# prevent access to global variables
