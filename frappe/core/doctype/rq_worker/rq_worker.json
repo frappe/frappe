@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "creation": "2022-09-10 14:54:57.342170",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "worker_information_section",
+  "queue",
+  "queue_type",
+  "column_break_4",
+  "worker_name",
+  "statistics_section",
+  "status",
+  "pid",
+  "current_job_id",
+  "successful_job_count",
+  "failed_job_count",
+  "column_break_12",
+  "birth_date",
+  "last_heartbeat",
+  "total_working_time",
+  "utilization_percent"
+ ],
+ "fields": [
+  {
+   "fieldname": "worker_name",
+   "fieldtype": "Data",
+   "label": "Worker Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status"
+  },
+  {
+   "fieldname": "current_job_id",
+   "fieldtype": "Link",
+   "label": "Current Job ID",
+   "options": "RQ Job"
+  },
+  {
+   "fieldname": "pid",
+   "fieldtype": "Data",
+   "label": "PID"
+  },
+  {
+   "fieldname": "last_heartbeat",
+   "fieldtype": "Datetime",
+   "label": "Last Heartbeat"
+  },
+  {
+   "fieldname": "birth_date",
+   "fieldtype": "Datetime",
+   "label": "Start Time"
+  },
+  {
+   "fieldname": "successful_job_count",
+   "fieldtype": "Int",
+   "label": "Successful Job Count"
+  },
+  {
+   "fieldname": "failed_job_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Failed Job Count"
+  },
+  {
+   "fieldname": "total_working_time",
+   "fieldtype": "Duration",
+   "label": "Total Working Time"
+  },
+  {
+   "fieldname": "queue",
+   "fieldtype": "Data",
+   "label": "Queue(s)"
+  },
+  {
+   "fieldname": "queue_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Queue Type(s)",
+   "options": "default\nlong\nshort"
+  },
+  {
+   "fieldname": "worker_information_section",
+   "fieldtype": "Section Break",
+   "label": "Worker Information"
+  },
+  {
+   "fieldname": "statistics_section",
+   "fieldtype": "Section Break",
+   "label": "Statistics"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "utilization_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Utilization %"
+  }
+ ],
+ "in_create": 1,
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2022-11-24 14:50:48.511706",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "RQ Worker",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "idle"
+  },
+  {
+   "color": "Yellow",
+   "title": "busy"
+  }
+ ]
+}

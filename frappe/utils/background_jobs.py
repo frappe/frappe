@@ -335,6 +335,31 @@ def get_redis_conn():
 	return redis_connection
 
 
+<<<<<<< HEAD
+=======
+def get_queues() -> list[Queue]:
+	"""Get all the queues linked to the current bench."""
+	queues = Queue.all(connection=get_redis_conn())
+	return [q for q in queues if is_queue_accessible(q)]
+
+
+def generate_qname(qtype: str) -> str:
+	"""Generate qname by combining bench ID and queue type.
+
+	qnames are useful to define namespaces of customers.
+	"""
+	if isinstance(qtype, list):
+		qtype = ",".join(qtype)
+	return f"{get_bench_id()}:{qtype}"
+
+
+def is_queue_accessible(qobj: Queue) -> bool:
+	"""Checks whether queue is relate to current bench or not."""
+	accessible_queues = [generate_qname(q) for q in list(get_queues_timeout())]
+	return qobj.name in accessible_queues
+
+
+>>>>>>> 0ebd3945ff (refactor: consider multi-queue consumption)
 def enqueue_test_job():
 	enqueue("frappe.utils.background_jobs.test_job", s=100)
 
