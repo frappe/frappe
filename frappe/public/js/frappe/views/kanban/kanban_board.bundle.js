@@ -326,11 +326,7 @@ frappe.provide("frappe.views");
 			store.watch((state, getters) => {
 				return state.empty_state;
 			}, show_empty_state);
-
-			if (self.board_perms.write) {
-				// If write access to Board, update Kanban cards order on load
-				store.dispatch("update_order");
-			}
+			store.dispatch("update_order");
 		}
 
 		function prepare() {
@@ -338,13 +334,12 @@ frappe.provide("frappe.views");
 
 			if (self.$kanban_board.length === 0) {
 				self.$kanban_board = $(frappe.render_template("kanban_board"));
-				// add column
 				self.$kanban_board.appendTo(self.wrapper);
 			}
 
 			self.$filter_area = self.cur_list.$page.find(".active-tag-filters");
 			bind_events();
-			setup_sortable(); // column
+			setup_sortable();
 		}
 
 		function make_columns() {
@@ -533,7 +528,7 @@ frappe.provide("frappe.views");
 
 		function init() {
 			make_dom();
-			setup_sortable(); // drag card
+			setup_sortable();
 			make_cards();
 			store.watch((state, getters) => {
 				return state.cards;
@@ -581,9 +576,6 @@ frappe.provide("frappe.views");
 		}
 
 		function setup_sortable() {
-			// If no write access, editing board (by dragging card) should be blocked
-			if (!board_perms.write) return;
-
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
 				animation: 150,
