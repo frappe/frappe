@@ -1985,9 +1985,9 @@ def get_print(
 	doc=None,
 	output=None,
 	no_letterhead=0,
-	letterhead=None,
 	password=None,
 	pdf_options=None,
+	letterhead=None,
 ):
 	"""Get Print Format for given document.
 
