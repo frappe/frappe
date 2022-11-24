@@ -347,14 +347,24 @@ class DatabaseQuery(object):
 				_raise_exception()
 
 		for field in self.fields:
-			if SUB_QUERY_PATTERN.match(field):
-				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
-					_raise_exception()
+			lower_field = field.lower()
+			function = lower_field.split("(", 1)[0].rstrip()
 
+<<<<<<< HEAD
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
 					_raise_exception()
+=======
+			if function in blacklisted_functions:
+				frappe.throw(_("Use of function {0} in field is restricted").format(function))
 
-				if "@" in field.lower():
+			if SUB_QUERY_PATTERN.match(field):
+				if field[0] == "(":
+					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
+					if subquery_token in blacklisted_keywords:
+						_raise_exception()
+>>>>>>> 575d32ec35 (fix(db_query): Space resilient matching)
+
+				if "@" in lower_field:
 					# prevent access to global variables
 					_raise_exception()
 
@@ -370,7 +380,7 @@ class DatabaseQuery(object):
 				if STRICT_FIELD_PATTERN.match(field):
 					frappe.throw(_("Illegal SQL Query"))
 
-				if STRICT_UNION_PATTERN.match(field.lower()):
+				if STRICT_UNION_PATTERN.match(lower_field):
 					frappe.throw(_("Illegal SQL Query"))
 
 	def extract_tables(self):
