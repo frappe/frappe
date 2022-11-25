@@ -20,7 +20,7 @@ dependencies = [
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=5.4.1",
-    "RestrictedPython~=5.2",
+    "RestrictedPython~=6.0",
     "WeasyPrint==52.5",
     "Werkzeug~=2.2.2",
     "Whoosh~=2.7.4",
