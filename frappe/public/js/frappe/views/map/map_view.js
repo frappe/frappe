@@ -55,14 +55,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 						async: false,
 						callback: function(task_data) {
 							if(task_data.message.length>0){
-								cords_data.properties.project =  task_data.message[0].project_name
-								cords_data.properties.name =  task_data.message[0].subject
-								cords_data.properties.task_phase =  task_data.message[0].task_phase
-								//cords_data.properties.project = task_data.message[0].project
+								cords_data.properties.project =  task_data.message[0].project_name?task_data.message[0].project_name:""
+								cords_data.properties.name =  task_data.message[0].subject?task_data.message[0].subject:""
+								cords_data.properties.task_phase =  task_data.message[0].task_phase?task_data.message[0].task_phase:""
 							}
 						}
 					});
-
 				}else{
 					cords_data.properties.project = ""
 					cords_data.properties.task_phase = ""
@@ -81,6 +79,27 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 		}
 	}
 
+	// get_coords() {
+	// 	let get_coords_method = this.settings && this.settings.get_coords_method || 'frappe.geo.utils.get_coords';
+
+	// 	if (cur_list.meta.fields.find(i => i.fieldname === 'location' && i.fieldtype === 'Geolocation')) {
+	// 		this.type = 'location_field';
+	// 	} else if  (cur_list.meta.fields.find(i => i.fieldname === "latitude") &&
+	// 		cur_list.meta.fields.find(i => i.fieldname === "longitude")) {
+	// 		this.type = 'coordinates';
+	// 	}
+	// 	return frappe.call({
+	// 		method: get_coords_method,
+	// 		args: {
+	// 			doctype: this.doctype,
+	// 			filters: cur_list.filter_area.get(),
+	// 			type: this.type
+	// 		}
+	// 	}).then(r => {
+	// 		this.coords = r.message;
+
+	// 	});
+	// }
 	get_coords() {
 		let get_coords_method = this.settings && this.settings.get_coords_method || 'frappe.geo.utils.get_coords';
 
@@ -90,17 +109,32 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 			cur_list.meta.fields.find(i => i.fieldname === "longitude")) {
 			this.type = 'coordinates';
 		}
-		return frappe.call({
-			method: get_coords_method,
-			args: {
-				doctype: this.doctype,
-				filters: cur_list.filter_area.get(),
-				type: this.type
-			}
-		}).then(r => {
-			this.coords = r.message;
-
-		});
+		if(this.doctype == "Task"){
+			return frappe.call({
+				method: 'foxerp_madinah.api.project.get_coords',
+				args: {
+					doctype: "Locations",
+					filters: cur_list.filter_area.get(),
+					type: this.type,
+					parent: "Task"
+				}
+			}).then(r => {
+				this.coords = r.message;
+	
+			});
+		}else{
+			return frappe.call({
+				method: get_coords_method,
+				args: {
+					doctype: this.doctype,
+					filters: cur_list.filter_area.get(),
+					type: this.type
+				}
+			}).then(r => {
+				this.coords = r.message;
+			});
+		}
+		
 	}
 
 
