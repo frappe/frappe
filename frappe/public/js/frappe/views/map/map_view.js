@@ -48,13 +48,12 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 				if(cords_data.properties.name.startsWith("TASK-")){
 					//Getting task data 
 					frappe.call({
-						method: 'erpnext.projects.doctype.task.task.get_task_details',
+						method: 'foxerp_madinah.foxerp_madinah.api.project.get_task_details',
 						args: {
 							"task_name": cords_data.properties.name
 						},
 						async: false,
 						callback: function(task_data) {
-							console.log(task_data)
 							if(task_data.message.length>0){
 								cords_data.properties.project =  task_data.message[0].project_name
 								cords_data.properties.name =  task_data.message[0].subject
@@ -63,8 +62,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 							}
 						}
 					});
-					
-					console.log(this.coords)
+
 				}else{
 					cords_data.properties.project = ""
 					cords_data.properties.task_phase = ""
