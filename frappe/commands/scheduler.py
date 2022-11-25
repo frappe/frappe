@@ -200,7 +200,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 	"--strategy",
 	required=False,
 	type=click.Choice(["round_robbin", "random"]),
-	help="dequeuing strategy to use.",
+	help="Dequeuing strategy to use",
 )
 def start_worker(
 	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None

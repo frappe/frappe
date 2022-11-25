@@ -225,9 +225,7 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
-	WorkerKlass = Worker
-	if strategy and strategy in DEQUEUE_STRATEGIES:
-		WorkerKlass = DEQUEUE_STRATEGIES[strategy]
+	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
 
 	with Connection(redis_connection):
 		logging_level = "INFO"
