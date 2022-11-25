@@ -48,7 +48,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 				if(cords_data.properties.name.startsWith("TASK-")){
 					//Getting task data 
 					frappe.call({
-						method: 'foxerp_madinah.foxerp_madinah.api.project.get_task_details',
+						method: 'foxerp_madinah.api.project.get_task_details',
 						args: {
 							"task_name": cords_data.properties.name
 						},
