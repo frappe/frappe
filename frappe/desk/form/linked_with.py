@@ -142,7 +142,6 @@ def get_exempted_doctypes():
 	return auto_cancel_exempt_doctypes
 
 
-@frappe.whitelist()
 def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	if isinstance(linkinfo, string_types):
 		# additional fields are added in linkinfo
