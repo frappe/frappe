@@ -362,7 +362,7 @@ frappe.provide("frappe.views");
 		}
 
 		function setup_sortable() {
-			// If no write access, editing board (by dragging column) should be blocked
+			// If no write access to board, editing board (by dragging column) should be blocked
 			if (!self.board_perms.write) return;
 
 			var sortable = new Sortable(self.$kanban_board.get(0), {
@@ -381,7 +381,7 @@ frappe.provide("frappe.views");
 
 		function bind_add_column() {
 			if (!self.board_perms.write) {
-				// If no write access, editing board (by adding column) should be blocked
+				// If no write access to board, editing board (by adding column) should be blocked
 				self.$kanban_board.find(".add-new-column").remove();
 				return;
 			}
@@ -581,7 +581,7 @@ frappe.provide("frappe.views");
 		}
 
 		function setup_sortable() {
-			// Block card dragging/record editing without 'write' access
+			// Block card dragging/record editing without 'write' access to reference doctype
 			if (!frappe.model.can_write(store.state.doctype)) return;
 
 			Sortable.create(self.$kanban_cards.get(0), {
@@ -619,7 +619,7 @@ frappe.provide("frappe.views");
 			var $new_card_area = $wrapper.find(".new-card-area");
 
 			if (!frappe.model.can_create(store.state.doctype)) {
-				// Block record/card creation without 'create' access
+				// Block record/card creation without 'create' access to reference doctype
 				$btn_add.remove();
 				$new_card_area.remove();
 				return;
@@ -667,7 +667,7 @@ frappe.provide("frappe.views");
 
 		function bind_options() {
 			if (!board_perms.write) {
-				// If no write access, column options should be hidden
+				// If no write access to board, column options should be hidden
 				self.$kanban_column.find(".column-options").remove();
 				return;
 			}
@@ -721,6 +721,11 @@ frappe.provide("frappe.views");
 			};
 
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
+
+			if (!frappe.model.can_write(card.doctype)) {
+				// Undraggable card without 'write' access to reference doctype
+				self.$card.find(".kanban-card-body").css("cursor", "default");
+			}
 		}
 
 		function get_doc_content(card) {
