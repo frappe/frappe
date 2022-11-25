@@ -191,10 +191,15 @@ def get_linked_docs(doctype, name, linkinfo=None):
 					ret = frappe.get_all(doctype=dt, fields=fields, filters=link.get("filters"))
 
 				elif link.get("get_parent"):
-					if me and me.parent and me.parenttype == dt:
+					ret = None
+
+					# check for child table
+					if not frappe.get_meta(doctype).istable:
+						continue
+
+					me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+					if me and me.parenttype == dt:
 						ret = frappe.get_all(doctype=dt, fields=fields, filters=[[dt, "name", "=", me.parent]])
-					else:
-						ret = None
 
 				elif link.get("child_doctype"):
 					or_filters = [
