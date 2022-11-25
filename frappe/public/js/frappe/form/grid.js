@@ -53,6 +53,7 @@ export default class Grid {
 
 	make() {
 		let template = `
+<<<<<<< HEAD
 			<label class="control-label">${__(this.df.label || '')}</label>
 			<p class="text-muted small grid-description"></p>
 			<div class="grid-custom-buttons grid-field"></div>
@@ -67,40 +68,58 @@ export default class Grid {
 							class="grid-empty-illustration"
 						>
 						${__("No Data")}
+=======
+			<div class="grid-field">
+				<label class="control-label">${__(this.df.label || "")}</label>
+				<span class="ml-1 help"></span>
+				<p class="text-muted small grid-description"></p>
+				<div class="grid-custom-buttons"></div>
+				<div class="form-grid-container">
+					<div class="form-grid">
+						<div class="grid-heading-row"></div>
+						<div class="grid-body">
+							<div class="rows"></div>
+							<div class="grid-empty text-center">
+								<img
+									src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+									alt="Grid Empty State"
+									class="grid-empty-illustration"
+								>
+								${__("No Data")}
+							</div>
+						</div>
+>>>>>>> 375de8647a (fix: discovery and styling issues in grid buttons)
 					</div>
 				</div>
-			</div>
-			<div class="small form-clickable-section grid-footer">
-				<div class="flex justify-between">
-					<div class="grid-buttons">
-						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
-							style="margin-right: 4px;"
-							data-action="delete_rows">
-							${__("Delete")}
-						</button>
-						<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
-							style="margin-right: 4px;"
-							data-action="delete_all_rows">
-							${__("Delete All")}
-						</button>
-						<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden"
-							style="margin-right: 4px;">
-							${__("Add Multiple")}</a>
-						</button>
-						<!-- hack to allow firefox include this in tabs -->
-						<button class="btn btn-xs btn-secondary grid-add-row">
-							${__("Add Row")}
-						</button>
-					</div>
-					<div class="grid-pagination">
-					</div>
-					<div class="text-right">
-						<a href="#" class="grid-download btn btn-xs btn-secondary hidden">
-							${__("Download")}
-						</a>
-						<a href="#" class="grid-upload btn btn-xs btn-secondary hidden">
-							${__("Upload")}
-						</a>
+				<div class="small form-clickable-section grid-footer">
+					<div class="flex justify-between">
+						<div class="grid-buttons">
+							<button class="btn btn-xs btn-danger grid-remove-rows hidden"
+								data-action="delete_rows">
+								${__("Delete")}
+							</button>
+							<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
+								data-action="delete_all_rows">
+								${__("Delete All")}
+							</button>
+							<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden">
+								${__("Add Multiple")}</a>
+							</button>
+							<!-- hack to allow firefox include this in tabs -->
+							<button class="btn btn-xs btn-secondary grid-add-row">
+								${__("Add Row")}
+							</button>
+						</div>
+						<div class="grid-pagination">
+						</div>
+						<div class="grid-bulk-actions text-right">
+							<button class="grid-download btn btn-xs btn-secondary hidden">
+								${__("Download")}
+							</button>
+							<button class="grid-upload btn btn-xs btn-secondary hidden">
+								${__("Upload")}
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -940,7 +959,7 @@ export default class Grid {
 		const $wrapper = position === 'top' ? this.grid_custom_buttons : this.grid_buttons;
 		let $btn = this.custom_buttons[label];
 		if (!$btn) {
-			$btn = $(`<button class="btn btn-default btn-xs btn-custom">${__(label)}</button>`)
+			$btn = $(`<button class="btn btn-secondary btn-xs btn-custom">${__(label)}</button>`)
 				.prependTo($wrapper)
 				.on('click', click);
 			this.custom_buttons[label] = $btn;
