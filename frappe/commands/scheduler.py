@@ -190,7 +190,7 @@ def start_scheduler():
 @click.option(
 	"--strategy",
 	required=False,
-	type=click.Choice(["round_robbin", "random"]),
+	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
 def start_worker(
