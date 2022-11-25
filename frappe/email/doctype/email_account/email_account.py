@@ -486,12 +486,6 @@ class EmailAccount(Document):
 			else:
 				frappe.db.commit()
 
-		# notify if user is linked to account
-		if len(inbound_mails) > 0 and not frappe.local.flags.in_test:
-			frappe.publish_realtime(
-				"new_email", {"account": self.email_account_name, "number": len(inbound_mails)}
-			)
-
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
 
