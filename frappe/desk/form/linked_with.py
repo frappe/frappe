@@ -1,25 +1,11 @@
-<<<<<<< HEAD
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
-=======
-# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
-# License: MIT. See LICENSE
->>>>>>> 39fc90cb5b (fix(ux): Pop from message_log if DoesNotExistError)
 
 import json
 from collections import defaultdict
-<<<<<<< HEAD
 
 from six import string_types
-=======
-import itertools
-<<<<<<< HEAD
-from typing import Dict, List
->>>>>>> 6edb1f09e4 (refactor: Fetch Linked Documents in single request ;))
-=======
-from typing import Dict, List, Optional
->>>>>>> 39fc90cb5b (fix(ux): Pop from message_log if DoesNotExistError)
 
 import frappe
 import frappe.desk.form.load
@@ -156,14 +142,8 @@ def get_exempted_doctypes():
 	return auto_cancel_exempt_doctypes
 
 
-<<<<<<< HEAD
-def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
+def get_linked_docs(doctype, name, linkinfo=None):
 	if isinstance(linkinfo, string_types):
-=======
-@frappe.whitelist()
-def get_linked_docs(doctype: str, name: str, linkinfo: Optional[Dict] = None) -> Dict[str, List]:
-	if isinstance(linkinfo, str):
->>>>>>> 6edb1f09e4 (refactor: Fetch Linked Documents in single request ;))
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
 
@@ -172,23 +152,6 @@ def get_linked_docs(doctype: str, name: str, linkinfo: Optional[Dict] = None) ->
 	if not linkinfo:
 		return results
 
-<<<<<<< HEAD
-	if for_doctype:
-		links = frappe.get_doc(doctype, name).get_link_filters(for_doctype)
-
-		if links:
-			linkinfo = links
-
-		if for_doctype in linkinfo:
-			# only get linked with for this particular doctype
-			linkinfo = {for_doctype: linkinfo.get(for_doctype)}
-		else:
-			return results
-
-	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-
-=======
->>>>>>> 6edb1f09e4 (refactor: Fetch Linked Documents in single request ;))
 	for dt, link in linkinfo.items():
 		filters = []
 		link["doctype"] = dt
