@@ -53,9 +53,11 @@ class RQWorker(Document):
 
 
 def serialize_worker(worker: Worker) -> frappe._dict:
-	queue = ", ".join(worker.queue_names())
+	queue_names = worker.queue_names()
 
-	queue_types = ",".join(q.rsplit(":", 1)[1] for q in worker.queue_names())
+	queue = ", ".join(queue_names)
+	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
+
 	return frappe._dict(
 		name=worker.pid,
 		queue=queue,
