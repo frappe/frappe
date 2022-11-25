@@ -384,10 +384,10 @@ class DatabaseQuery:
 				_raise_exception()
 
 		for field in self.fields:
-			lower_field = field.lower()
+			lower_field = field.lower().strip()
 
 			if SUB_QUERY_PATTERN.match(field):
-				if field[0] == "(":
+				if lower_field[0] == "(":
 					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
 					if subquery_token in blacklisted_keywords:
 						_raise_exception()
