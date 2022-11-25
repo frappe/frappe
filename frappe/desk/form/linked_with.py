@@ -142,9 +142,14 @@ def get_exempted_doctypes():
 	return auto_cancel_exempt_doctypes
 
 
+<<<<<<< HEAD
 @frappe.whitelist()
 def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	if isinstance(linkinfo, string_types):
+=======
+def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
+	if isinstance(linkinfo, str):
+>>>>>>> b1703117fc (chore: remove unused whitelisting from API (#19000))
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
 
