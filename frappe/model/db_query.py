@@ -347,6 +347,7 @@ class DatabaseQuery(object):
 				_raise_exception()
 
 		for field in self.fields:
+<<<<<<< HEAD
 			lower_field = field.lower()
 <<<<<<< HEAD
 			function = lower_field.split("(", 1)[0].rstrip()
@@ -359,9 +360,12 @@ class DatabaseQuery(object):
 				frappe.throw(_("Use of function {0} in field is restricted").format(function))
 =======
 >>>>>>> 1a5e5f546b (fix: Move function check inside subquery)
+=======
+			lower_field = field.lower().strip()
+>>>>>>> 35827af172 (fix: Strip white spaces on lower cased field value)
 
 			if SUB_QUERY_PATTERN.match(field):
-				if field[0] == "(":
+				if lower_field[0] == "(":
 					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
 					if subquery_token in blacklisted_keywords:
 						_raise_exception()
