@@ -326,7 +326,12 @@ frappe.provide("frappe.views");
 			store.watch((state, getters) => {
 				return state.empty_state;
 			}, show_empty_state);
-			store.dispatch("update_order");
+
+			if (frappe.model.can_write(store.state.doctype)) {
+				// Check for reference doctype access before initiating
+				// non-deliberate action
+				store.dispatch("update_order");
+			}
 		}
 
 		function prepare() {
@@ -377,7 +382,7 @@ frappe.provide("frappe.views");
 		function bind_add_column() {
 			if (!self.board_perms.write) {
 				// If no write access, editing board (by adding column) should be blocked
-				self.$kanban_board.find(".add-new-column").hide();
+				self.$kanban_board.find(".add-new-column").remove();
 				return;
 			}
 
@@ -576,6 +581,9 @@ frappe.provide("frappe.views");
 		}
 
 		function setup_sortable() {
+			// Block card dragging/record editing without 'write' access
+			if (!frappe.model.can_write(store.state.doctype)) return;
+
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
 				animation: 150,
@@ -609,6 +617,14 @@ frappe.provide("frappe.views");
 			var $wrapper = self.$kanban_column;
 			var $btn_add = $wrapper.find(".add-card");
 			var $new_card_area = $wrapper.find(".new-card-area");
+
+			if (!frappe.model.can_create(store.state.doctype)) {
+				// Block record/card creation without 'create' access
+				$btn_add.remove();
+				$new_card_area.remove();
+				return;
+			}
+
 			var $textarea = $new_card_area.find("textarea");
 
 			//Add card button
@@ -652,7 +668,7 @@ frappe.provide("frappe.views");
 		function bind_options() {
 			if (!board_perms.write) {
 				// If no write access, column options should be hidden
-				self.$kanban_column.find(".column-options").hide();
+				self.$kanban_column.find(".column-options").remove();
 				return;
 			}
 
