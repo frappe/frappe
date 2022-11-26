@@ -4,7 +4,6 @@
 """build query for doclistview and return results"""
 
 import json
-from io import StringIO
 
 import frappe
 import frappe.permissions
@@ -14,7 +13,7 @@ from frappe.model import child_table_fields, default_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, cint, cstr, format_duration
+from frappe.utils import add_user_info, format_duration
 
 
 @frappe.whitelist()
@@ -339,6 +338,8 @@ def delete_report(name):
 @frappe.read_only()
 def export_query():
 	"""export from report builder"""
+	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+
 	title = frappe.form_dict.title
 	frappe.form_dict.pop("title", None)
 
@@ -349,11 +350,7 @@ def export_query():
 	add_totals_row = None
 	file_format_type = form_params["file_format_type"]
 	title = title or doctype
-	if file_format_type == "CSV":
-		csv_delimiter = cstr(form_params.get("csv_delimiter", ","))
-		csv_quoting = cint(form_params.get("csv_quoting", 2))
-		del form_params["csv_delimiter"]
-		del form_params["csv_quoting"]
+	csv_params = pop_csv_params(form_params)
 
 	del form_params["doctype"]
 	del form_params["file_format_type"]
@@ -382,37 +379,26 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [[_("Sr")] + get_labels(db_query.fields, doctype)]
-	for i, row in enumerate(ret):
-		data.append([i + 1] + list(row))
-
+	data = [[_("Sr")] + get_labels(db_query.fields, doctype)].extend(
+		[i + 1] + list(row) for i, row in enumerate(ret)
+	)
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-		import csv
-
 		from frappe.utils.xlsxutils import handle_html
 
-		f = StringIO()
-		writer = csv.writer(f, quoting=csv_quoting, delimiter=csv_delimiter)
-		for r in data:
-			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r])
-
-		f.seek(0)
-		frappe.response["result"] = cstr(f.read())
-		frappe.response["type"] = "csv"
-		frappe.response["doctype"] = title
-
+		file_extension = "csv"
+		content = get_csv_bytes(
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			csv_params,
+		)
 	elif file_format_type == "Excel":
-
 		from frappe.utils.xlsxutils import make_xlsx
 
-		xlsx_file = make_xlsx(data, doctype)
+		file_extension = "xlsx"
+		content = make_xlsx(data, doctype).getvalue()
 
-		frappe.response["filename"] = title + ".xlsx"
-		frappe.response["filecontent"] = xlsx_file.getvalue()
-		frappe.response["type"] = "binary"
+	provide_binary_file(title, file_extension, content)
 
 
 def append_totals_row(data):

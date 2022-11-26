@@ -5,7 +5,6 @@ import datetime
 import json
 import os
 from datetime import timedelta
-from io import StringIO
 
 import frappe
 import frappe.desk.reportview
@@ -329,7 +328,10 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
+	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
+
 	form_params = frappe._dict(frappe.local.form_dict)
+	csv_params = pop_csv_params(form_params)
 	clean_params(form_params)
 	parse_json(form_params)
 
@@ -360,29 +362,15 @@ def export_query():
 	xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
 
 	if file_format_type == "CSV":
-		import csv
-
-		file = StringIO()
-		writer = csv.writer(
-			file,
-			quoting=csv.QUOTE_NONNUMERIC
-			if form_params.csv_quoting is None
-			else cint(form_params.csv_quoting),
-			delimiter=cstr(form_params.csv_delimiter or ","),
-		)
-		writer.writerows(xlsx_data)
-		content = file.getvalue().encode("utf-8")
+		content = get_csv_bytes(xlsx_data, csv_params)
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
 
-		file = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 		file_extension = "xlsx"
-		content = file.getvalue()
+		content = make_xlsx(xlsx_data, "Query Report", column_widths=column_widths).getvalue()
 
-	frappe.response["filename"] = f"{report_name}.{file_extension}"
-	frappe.response["filecontent"] = content
-	frappe.response["type"] = "binary"
+	provide_binary_file(report_name, file_extension, content)
 
 
 def format_duration_fields(data: frappe._dict) -> None:
