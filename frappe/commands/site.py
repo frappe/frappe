@@ -1119,7 +1119,7 @@ def build_search_index(context):
 
 
 @click.command("clear-log-table")
-@click.option("--doctype", default="text", type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--doctype", required=True, type=click.Choice(LOG_DOCTYPES), help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
 @pass_context

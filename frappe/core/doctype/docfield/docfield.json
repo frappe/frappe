@@ -70,6 +70,7 @@
   "columns",
   "column_break_22",
   "description",
+  "documentation_url",
   "oldfieldname",
   "oldfieldtype"
  ],
@@ -541,13 +542,19 @@
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Virtual"
+  },
+  {
+   "depends_on": "eval:!in_list([\"Tab Break\", \"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
+   "fieldname": "documentation_url",
+   "fieldtype": "Small Text",
+   "label": "Documentation URL"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-04-19 12:27:28.641580",
+ "modified": "2022-11-17 14:14:39.404696",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

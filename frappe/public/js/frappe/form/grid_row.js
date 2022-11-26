@@ -649,13 +649,19 @@ export default class GridRow {
 		this.search_columns = {};
 
 		this.grid.setup_visible_columns();
+		let fields =
+			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
+				? this.grid.user_defined_columns
+				: this.docfields;
+
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
-			let df = this.docfields.find((field) => field.fieldname === col[0].fieldname);
+			let df = fields.find((field) => field.fieldname === col[0].fieldname);
 
 			this.set_dependant_property(df);
 
 			let colsize = col[1];
+
 			let txt = this.doc
 				? frappe.format(this.doc[df.fieldname], df, null, this.doc)
 				: __(df.label);
@@ -1348,7 +1354,12 @@ export default class GridRow {
 		}
 	}
 	refresh_field(fieldname, txt) {
-		let df = this.docfields.find((col) => {
+		let fields =
+			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
+				? this.grid.user_defined_columns
+				: this.docfields;
+
+		let df = fields.find((col) => {
 			return col.fieldname === fieldname;
 		});
 

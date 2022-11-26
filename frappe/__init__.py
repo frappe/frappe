@@ -1432,6 +1432,8 @@ def get_doc_hooks():
 
 @request_cache
 def _load_app_hooks(app_name: str | None = None):
+	import types
+
 	hooks = {}
 	apps = [app_name] if app_name else get_installed_apps(sort=True)
 
@@ -1447,9 +1449,13 @@ def _load_app_hooks(app_name: str | None = None):
 			if not request:
 				raise SystemExit
 			raise
-		for key in dir(app_hooks):
+
+		def _is_valid_hook(obj):
+			return not isinstance(obj, (types.ModuleType, types.FunctionType, type))
+
+		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
 			if not key.startswith("_"):
-				append_hook(hooks, key, getattr(app_hooks, key))
+				append_hook(hooks, key, value)
 	return hooks
 
 
@@ -1981,6 +1987,7 @@ def get_print(
 	no_letterhead=0,
 	password=None,
 	pdf_options=None,
+	letterhead=None,
 ):
 	"""Get Print Format for given document.
 
@@ -1999,6 +2006,7 @@ def get_print(
 	local.form_dict.style = style
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
+	local.form_dict.letterhead = letterhead
 
 	pdf_options = pdf_options or {}
 	if password:
