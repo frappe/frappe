@@ -170,6 +170,13 @@ frappe.report_utils = {
 				reqd: 1,
 			},
 			{
+				fieldtype: "Section Break",
+				fieldname: "csv_settings",
+				label: __("Settings", null, "Export report"),
+				collapsible: 1,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+			{
 				fieldtype: "Data",
 				label: __("CSV Delimiter", null, "Export report"),
 				fieldname: "csv_delimiter",
@@ -200,7 +207,14 @@ frappe.report_utils = {
 		];
 
 		if (extra_fields) {
-			fields.push(...extra_fields);
+			fields.push(
+				{
+					fieldtype: "Section Break",
+					fieldname: "extra_fields",
+					collapsible: 0,
+				},
+				...extra_fields
+			);
 		}
 
 		const dialog = new frappe.ui.Dialog({
