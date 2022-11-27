@@ -162,7 +162,7 @@ frappe.report_utils = {
 	get_export_dialog(report_name, extra_fields, callback) {
 		const fields = [
 			{
-				label: __("Select File Format", null, "Export report"),
+				label: "File Format",
 				fieldname: "file_format",
 				fieldtype: "Select",
 				options: ["Excel", "CSV"],
@@ -172,13 +172,13 @@ frappe.report_utils = {
 			{
 				fieldtype: "Section Break",
 				fieldname: "csv_settings",
-				label: __("Settings", null, "Export report"),
+				label: "Settings",
 				collapsible: 1,
 				depends_on: "eval:doc.file_format=='CSV'",
 			},
 			{
 				fieldtype: "Data",
-				label: __("CSV Delimiter", null, "Export report"),
+				label: "CSV Delimiter",
 				fieldname: "csv_delimiter",
 				default: ",",
 				length: 1,
@@ -186,20 +186,20 @@ frappe.report_utils = {
 			},
 			{
 				fieldtype: "Select",
-				label: __("CSV Quoting", null, "Export report"),
+				label: "CSV Quoting",
 				fieldname: "csv_quoting",
 				options: [
-					{ value: 0, label: __("Minimal", null, "Export report") },
-					{ value: 1, label: __("All", null, "Export report") },
-					{ value: 2, label: __("Non-numeric", null, "Export report") },
-					{ value: 3, label: __("None", null, "Export report") },
+					{ value: 0, label: "Minimal" },
+					{ value: 1, label: "All" },
+					{ value: 2, label: "Non-numeric" },
+					{ value: 3, label: "None" },
 				],
 				default: 2,
 				depends_on: "eval:doc.file_format=='CSV'",
 			},
 			{
 				fieldtype: "Small Text",
-				label: __("CSV Preview", null, "Export report"),
+				label: "CSV Preview",
 				fieldname: "csv_preview",
 				read_only: 1,
 				depends_on: "eval:doc.file_format=='CSV'",
