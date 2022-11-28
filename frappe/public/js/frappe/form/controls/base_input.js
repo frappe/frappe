@@ -108,7 +108,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					$(me.disp_area).attr(
 						"title",
 						__(
-							"Its value is getting fetched from {0}'s {1} field",
+							"This value is fetched from {0}'s {1} field",
 							me.df.fetch_from.split(".")
 						)
 					);
