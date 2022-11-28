@@ -61,26 +61,8 @@ export default class Grid {
 
 	make() {
 		let template = `
-<<<<<<< HEAD
-			<label class="control-label">${__(this.df.label || "")}</label>
-			<p class="text-muted small grid-description"></p>
-			<div class="grid-custom-buttons grid-field"></div>
-			<div class="form-grid-container">
-				<div class="form-grid">
-					<div class="grid-heading-row"></div>
-					<div class="grid-body">
-						<div class="rows"></div>
-						<div class="grid-empty text-center">
-							<img
-								src="/assets/frappe/images/ui-states/grid-empty-state.svg"
-								alt="Grid Empty State"
-								class="grid-empty-illustration"
-							>
-							${__("No Data")}
-=======
 			<div class="grid-field">
 				<label class="control-label">${__(this.df.label || "")}</label>
-				<span class="ml-1 help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
 				<div class="form-grid-container">
@@ -96,7 +78,6 @@ export default class Grid {
 								>
 								${__("No Data")}
 							</div>
->>>>>>> 375de8647a (fix: discovery and styling issues in grid buttons)
 						</div>
 					</div>
 				</div>
