@@ -339,6 +339,9 @@ def after_request(rollback):
 	):
 		frappe.db.commit()
 		rollback = False
+	elif frappe.db:
+		frappe.db.rollback()
+		rollback = False
 
 	# update session
 	if getattr(frappe.local, "session_obj", None):
