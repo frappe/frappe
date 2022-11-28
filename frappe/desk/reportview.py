@@ -340,31 +340,19 @@ def export_query():
 	"""export from report builder"""
 	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
-	title = frappe.form_dict.title
-	frappe.form_dict.pop("title", None)
-
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
-	doctype = form_params.doctype
-	add_totals_row = None
-	file_format_type = form_params["file_format_type"]
-	title = title or doctype
+	doctype = form_params.pop("doctype")
+	file_format_type = form_params.pop("file_format_type")
+	title = frappe.form_dict.pop("title", doctype)
 	csv_params = pop_csv_params(form_params)
-
-	del form_params["doctype"]
-	del form_params["file_format_type"]
-
-	if "add_totals_row" in form_params and form_params["add_totals_row"] == "1":
-		add_totals_row = 1
-		del form_params["add_totals_row"]
+	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
-	if "selected_items" in form_params:
-		si = json.loads(frappe.form_dict.get("selected_items"))
-		form_params["filters"] = {"name": ("in", si)}
-		del form_params["selected_items"]
+	if selection := form_params.pop("selected_items", None):
+		form_params["filters"] = {"name": ("in", json.loads(selection))}
 
 	make_access_log(
 		doctype=doctype,
@@ -379,9 +367,8 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [[_("Sr")] + get_labels(db_query.fields, doctype)].extend(
-		[i + 1] + list(row) for i, row in enumerate(ret)
-	)
+	data = [[_("Sr")] + get_labels(db_query.fields, doctype)]
+	data.extend([i + 1] + list(row) for i, row in enumerate(ret))
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
