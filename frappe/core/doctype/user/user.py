@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from datetime import timedelta
+from typing import Optional, Sequence
 
 import frappe
 import frappe.defaults
@@ -536,7 +537,7 @@ class User(Document):
 
 		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
-			result = test_password_strength(self.__new_password, "", None, user_data)
+			result = test_password_strength(self.__new_password, user_data)
 			feedback = result.get("feedback", None)
 
 			if feedback and not feedback.get("password_policy_validation_passed", False):
@@ -677,12 +678,19 @@ def get_perm_info(role):
 
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
-	# validate key to avoid key input like ['like', '%'], '', ['in', ['']]
-	if key and not isinstance(key, str):
-		frappe.throw(_("Invalid key type"))
+def update_password(
+	new_password: str, logout_all_sessions: int | bool = 0, key: str = None, old_password: str = None
+):
+	"""Update password for the current user.
 
-	result = test_password_strength(new_password, key, old_password)
+	Args:
+	        new_password (str): New password.
+	        logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+	        key (str, optional): Password reset key. Defaults to None.
+	        old_password (str, optional): Old password. Defaults to None.
+	"""
+
+	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
 
 	if feedback and not feedback.get("password_policy_validation_passed", False):
@@ -716,22 +724,14 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	if user_doc.user_type == "System User":
 		return "/app"
 	else:
-		return redirect_url if redirect_url else "/"
+		return redirect_url or "/"
 
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None, user_data=None):
+def test_password_strength(new_password: str, user_data: tuple = None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
-	password_policy = (
-		frappe.db.get_value(
-			"System Settings", None, ["enable_password_policy", "minimum_password_score"], as_dict=True
-		)
-		or {}
-	)
-
-	enable_password_policy = cint(password_policy.get("enable_password_policy", 0))
-	minimum_password_score = cint(password_policy.get("minimum_password_score", 0))
+	enable_password_policy = frappe.get_system_settings("enable_password_policy") or 0
 
 	if not enable_password_policy:
 		return {}
@@ -744,6 +744,7 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
+		minimum_password_score = frappe.get_system_settings("minimum_password_score") or 0
 
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:
@@ -753,9 +754,8 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 		return result
 
 
-# for login
 @frappe.whitelist()
-def has_email_account(email):
+def has_email_account(email: str):
 	return frappe.get_list("Email Account", filters={"email_id": email})
 
 
@@ -822,7 +822,7 @@ def verify_password(password):
 
 
 @frappe.whitelist(allow_guest=True)
-def sign_up(email, full_name, redirect_to):
+def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	if is_signup_disabled():
 		frappe.throw(_("Sign Up is disabled"), title=_("Not Allowed"))
 
@@ -874,12 +874,12 @@ def sign_up(email, full_name, redirect_to):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60, methods=["POST"])
-def reset_password(user):
+def reset_password(user: str) -> str:
 	if user == "Administrator":
 		return "not allowed"
 
 	try:
-		user = frappe.get_doc("User", user)
+		user: User = frappe.get_doc("User", user)
 		if not user.enabled:
 			return "disabled"
 
@@ -1069,13 +1069,12 @@ def throttle_user_creation():
 
 
 @frappe.whitelist()
-def get_role_profile(role_profile):
-	roles = frappe.get_doc("Role Profile", {"role_profile": role_profile})
-	return roles.roles
+def get_role_profile(role_profile: str):
+	return frappe.get_doc("Role Profile", {"role_profile": role_profile}).roles
 
 
 @frappe.whitelist()
-def get_module_profile(module_profile):
+def get_module_profile(module_profile: str):
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 
@@ -1148,14 +1147,14 @@ def get_restricted_ip_list(user):
 
 
 @frappe.whitelist()
-def generate_keys(user):
+def generate_keys(user: str):
 	"""
 	generate api key and api secret
 
 	:param user: str
 	"""
 	frappe.only_for("System Manager")
-	user_details = frappe.get_doc("User", user)
+	user_details: User = frappe.get_doc("User", user)
 	api_secret = frappe.generate_hash(length=15)
 	# if api key is not set generate api key
 	if not user_details.api_key:
