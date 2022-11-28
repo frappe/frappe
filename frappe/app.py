@@ -90,7 +90,7 @@ def application(request: Request):
 		rollback = after_request(rollback)
 
 	finally:
-		if request.method in ("POST", "PUT") and frappe.db and rollback:
+		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
 
 		frappe.rate_limiter.update()
