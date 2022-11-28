@@ -282,6 +282,45 @@ def make_boilerplate(template, doc, opts=None):
 		doc = {}
 
 	app_publisher = get_app_publisher(doc.module)
+<<<<<<< HEAD
+=======
+	base_class = "Document"
+	base_class_import = "from frappe.model.document import Document"
+	controller_body = "pass"
+
+	if doc.get("is_tree"):
+		base_class = "NestedSet"
+		base_class_import = "from frappe.utils.nestedset import NestedSet"
+
+	if doc.get("is_virtual"):
+		controller_body = indent(
+			dedent(
+				"""
+			def db_insert(self, *args, **kwargs):
+				pass
+
+			def load_from_db(self):
+				pass
+
+			def db_update(self):
+				pass
+
+			@staticmethod
+			def get_list(args):
+				pass
+
+			@staticmethod
+			def get_count(args):
+				pass
+
+			@staticmethod
+			def get_stats(args):
+				pass
+			"""
+			),
+			"\t",
+		)
+>>>>>>> a534e7a66a (fix: Pass *args and **kwargs in `db_insert` boilerplate for Virtual DocType (#19018))
 
 	if not os.path.exists(target_file_path):
 		if not opts:
