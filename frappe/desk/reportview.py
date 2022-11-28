@@ -345,7 +345,7 @@ def export_query():
 	form_params["as_list"] = True
 	doctype = form_params.pop("doctype")
 	file_format_type = form_params.pop("file_format_type")
-	title = frappe.form_dict.pop("title", doctype)
+	title = form_params.pop("title", doctype)
 	csv_params = pop_csv_params(form_params)
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 
