@@ -873,12 +873,16 @@ class DatabaseQuery(object):
 				if hasattr(meta, "is_submittable") and meta.is_submittable:
 					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
-	def validate_order_by_and_group_by(self, parameters):
+	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
 		if not parameters:
 			return
 
+		blacklisted_sql_functions = {
+			"sleep",
+		}
 		_lower = parameters.lower()
+
 		if "select" in _lower and "from" in _lower:
 			frappe.throw(_("Cannot use sub-query in order by"))
 
@@ -886,12 +890,19 @@ class DatabaseQuery(object):
 			frappe.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
-			if "." in field and field.strip().startswith("`tab"):
-				tbl = field.strip().split(".")[0]
+			field = field.strip()
+			function = field.split("(", 1)[0].rstrip().lower()
+			full_field_name = "." in field and field.startswith("`tab")
+
+			if full_field_name:
+				tbl = field.split(".", 1)[0]
 				if tbl not in self.tables:
 					if tbl.startswith("`"):
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
+
+			if function in blacklisted_sql_functions:
+				frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
 	def add_limit(self):
 		if self.limit_page_length:
