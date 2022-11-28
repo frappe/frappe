@@ -757,13 +757,11 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
-		print('this', result)
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:
 			password_policy_validation_passed = True
 
-		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
-		print(result)
+		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passe
 		return result
 
 
@@ -877,13 +875,16 @@ def sign_up(email, full_name, redirect_to, new_password):
 		user.flags.ignore_permissions = True
 		user.flags.ignore_password_policy = True
 		user.insert()
-		if new_password:
-			update_password(new_password, user=user)
+		
 
 		# set default signup role as per Portal Settings
 		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
 		if default_role:
+			print('default role', default_role)
 			user.add_roles(default_role)
+
+		if new_password:
+			update_password(new_password, user=user)
 
 		if redirect_to:
 			frappe.cache().hset("redirect_after_login", user.name, redirect_to)
