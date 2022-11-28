@@ -80,9 +80,10 @@
   },
   {
    "fieldname": "job_id",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Job ID",
    "no_copy": 1,
+   "options": "RQ Job",
    "read_only": 1
   },
   {
@@ -102,7 +103,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-11-22 15:22:45.523427",
+ "modified": "2022-11-28 21:29:39.883803",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
