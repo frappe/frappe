@@ -247,14 +247,14 @@ frappe.ui.form.Layout = class Layout {
 
 	make_page(df) {
 		// eslint-disable-line no-unused-vars
-		let me = this,
-			head = $(
-				'<div class="form-clickable-section text-center">\
-				<a class="btn-fold h6 text-muted">' +
-				__("Show more details") +
-				"</a>\
-			</div>"
-			).appendTo(this.wrapper);
+		let me = this;
+		let head = $(`
+			<div class="form-clickable-section text-center">
+				<a class="btn-fold h6 text-muted">
+					${__("Show more details")}
+				</a>
+			</div>
+		`).appendTo(this.wrapper);
 
 		this.page = $('<div class="form-page second-page hide"></div>').appendTo(this.wrapper);
 
