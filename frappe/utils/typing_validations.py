@@ -3,24 +3,9 @@ from typing import Callable, ForwardRef, Union
 
 from typeguard import check_type
 
-
-def qualified_name(obj) -> str:
-	"""
-	Return the qualified name (e.g. package.module.Type) for the given object.
-
-	Builtins and types from the :mod:`typing` package get special treatment by having the module
-	name stripped from the generated name.
-
-	"""
-	discovered_type = obj if isclass(obj) else type(obj)
-	module, qualname = discovered_type.__module__, discovered_type.__qualname__
-
-	if module == "typing":
-		return obj
-	elif module in {"types", "builtins"}:
-		return qualname
-	else:
-		return f"{module}.{qualname}"
+SLACK_DICT = {
+	bool: (int, bool, float),
+}
 
 
 def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
@@ -52,6 +37,10 @@ def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
 				continue
 			elif any(isinstance(x, (ForwardRef, str)) for x in getattr(current_arg_type, "__args__", [])):
 				continue
+
+			# allow slack for Frappe types
+			if current_arg_type in SLACK_DICT:
+				current_arg_type = SLACK_DICT[current_arg_type]
 
 			param_def = func_params.get(current_arg)
 
