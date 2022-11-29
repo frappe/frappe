@@ -1,6 +1,8 @@
 from inspect import _empty, isclass, signature
 from typing import Callable, ForwardRef, Union
 
+from typeguard import check_type
+
 
 def qualified_name(obj) -> str:
 	"""
@@ -53,6 +55,7 @@ def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
 
 			param_def = func_params.get(current_arg)
 
+			# add default value's type in acceptable types
 			if param_def.default is not _empty:
 				if isinstance(current_arg_type, tuple):
 					if param_def.default not in current_arg_type:
@@ -60,7 +63,4 @@ def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
 				elif param_def.default != current_arg_type:
 					current_arg_type = Union[current_arg_type, type(param_def.default)]
 
-			if not isinstance(current_arg_value, current_arg_type):
-				raise TypeError(
-					f"Argument '{current_arg}' must be of type '{qualified_name(current_arg_type)}' but got '{qualified_name(current_arg_value)}'"
-				)
+			check_type(current_arg, current_arg_value, current_arg_type)
