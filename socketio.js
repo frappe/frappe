@@ -40,7 +40,6 @@ io.use((socket, next) => {
 			sid: cookies.sid,
 		})
 		.then((res) => {
-			console.log(`User ${res.body.message.user} found`);
 			socket.user = res.body.message.user;
 			socket.user_type = res.body.message.user_type;
 			socket.sid = cookies.sid;
