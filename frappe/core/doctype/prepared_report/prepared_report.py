@@ -42,7 +42,7 @@ class PreparedReport(Document):
 			generate_report,
 			queue="long",
 			prepared_report=self.name,
-			timeout=1800,
+			timeout=1500,
 			enqueue_after_commit=True,
 		)
 
