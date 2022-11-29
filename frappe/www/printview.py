@@ -288,6 +288,8 @@ def get_html_and_style(
 	else:
 		document = frappe.get_doc(json.loads(doc))
 
+	document.check_permission()
+
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 	set_link_titles(document)
 
@@ -316,6 +318,8 @@ def get_rendered_raw_commands(doc: str, name: str = None, print_format: str = No
 		document = frappe.get_doc(doc, name)
 	else:
 		document = frappe.get_doc(json.loads(doc))
+
+	document.check_permission()
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
