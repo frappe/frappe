@@ -106,7 +106,6 @@ def get_safe_globals():
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
-		as_dict=frappe._dict,
 		args=form_dict,
 		frappe=NamespaceDict(
 			call=call_whitelisted_function,
@@ -117,6 +116,7 @@ def get_safe_globals():
 			time_format=time_format,
 			format_date=frappe.utils.data.global_date_format,
 			form_dict=form_dict,
+			as_dict=frappe._dict,
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
