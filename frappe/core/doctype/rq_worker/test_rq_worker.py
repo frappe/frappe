@@ -10,7 +10,7 @@ class TestRQWorker(FrappeTestCase):
 	def test_get_worker_list(self):
 		workers = RQWorker.get_list({})
 		self.assertGreaterEqual(len(workers), 1)
-		self.assertTrue(any(w.queue_type == "short" for w in workers))
+		self.assertTrue(any("short" in w.queue_type for w in workers))
 
 	def test_worker_serialization(self):
 		workers = RQWorker.get_list({})
