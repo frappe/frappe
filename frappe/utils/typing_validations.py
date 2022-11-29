@@ -17,9 +17,17 @@ def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
 	if annotations := func.__annotations__:
 		# generate kwargs dict from args
 		arg_names = func.__code__.co_varnames[: func.__code__.co_argcount]
-		arg_values = args or func.__defaults__ or []
-		prepared_args = dict(zip(arg_names, arg_values))
-		prepared_args.update(kwargs)
+
+		if not args:
+			prepared_args = kwargs
+
+		elif kwargs:
+			arg_values = args or func.__defaults__ or []
+			prepared_args = dict(zip(arg_names, arg_values))
+			prepared_args.update(kwargs)
+
+		else:
+			prepared_args = dict(zip(arg_names, args))
 
 		# check if type hints dont match the default values
 		func_signature = signature(func)
