@@ -142,8 +142,7 @@ def get_exempted_doctypes():
 	return auto_cancel_exempt_doctypes
 
 
-@frappe.whitelist()
-def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
+def get_linked_docs(doctype, name, linkinfo=None):
 	if isinstance(linkinfo, string_types):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
@@ -153,25 +152,21 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	if not linkinfo:
 		return results
 
-	if for_doctype:
-		links = frappe.get_doc(doctype, name).get_link_filters(for_doctype)
-
-		if links:
-			linkinfo = links
-
-		if for_doctype in linkinfo:
-			# only get linked with for this particular doctype
-			linkinfo = {for_doctype: linkinfo.get(for_doctype)}
-		else:
-			return results
-
-	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-
 	for dt, link in linkinfo.items():
 		filters = []
 		link["doctype"] = dt
-		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
+		try:
+			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
+		except Exception as e:
+			if isinstance(e, frappe.DoesNotExistError):
+				if frappe.local.message_log:
+					frappe.local.message_log.pop()
+			continue
 		linkmeta = link_meta_bundle[0]
+
+		if not linkmeta.has_permission():
+			continue
+
 		if not linkmeta.get("issingle"):
 			fields = [
 				d.fieldname
@@ -196,10 +191,15 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					ret = frappe.get_all(doctype=dt, fields=fields, filters=link.get("filters"))
 
 				elif link.get("get_parent"):
-					if me and me.parent and me.parenttype == dt:
+					ret = None
+
+					# check for child table
+					if not frappe.get_meta(doctype).istable:
+						continue
+
+					me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+					if me and me.parenttype == dt:
 						ret = frappe.get_all(doctype=dt, fields=fields, filters=[[dt, "name", "=", me.parent]])
-					else:
-						ret = None
 
 				elif link.get("child_doctype"):
 					or_filters = [
@@ -239,6 +239,12 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 				results[dt] = ret
 
 	return results
+
+
+@frappe.whitelist()
+def get(doctype, docname):
+	linked_doctypes = get_linked_doctypes(doctype=doctype)
+	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
 
 
 @frappe.whitelist()
