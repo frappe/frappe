@@ -90,7 +90,7 @@ def application(request: Request):
 		rollback = after_request(rollback)
 
 	finally:
-		if request.method in ("POST", "PUT") and frappe.db and rollback:
+		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
 
 		frappe.rate_limiter.update()
@@ -332,12 +332,16 @@ def handle_exception(e):
 
 def after_request(rollback):
 	# if HTTP method would change server state, commit if necessary
-	if frappe.db and (
-		frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS
+	if (
+		frappe.db
+		and (frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS)
+		and frappe.db.transaction_writes
 	):
-		if frappe.db.transaction_writes:
-			frappe.db.commit()
-			rollback = False
+		frappe.db.commit()
+		rollback = False
+	elif frappe.db:
+		frappe.db.rollback()
+		rollback = False
 
 	# update session
 	if getattr(frappe.local, "session_obj", None):
