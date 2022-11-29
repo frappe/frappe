@@ -642,8 +642,8 @@ def prepare_message(email, recipient, recipients_list):
 		message = message.replace(
 			"<!--email_open_check-->",
 			quopri.encodestring(
-				'<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(
-					frappe.local.site, email.communication
+				'<img src="{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(
+					get_url(), email.communication
 				).encode()
 			).decode(),
 		)
