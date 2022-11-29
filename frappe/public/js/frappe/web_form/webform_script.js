@@ -55,7 +55,7 @@ frappe.ready(function () {
 	function setup_fields(web_form_doc, doc_data) {
 		web_form_doc.web_form_fields.forEach((df) => {
 			df.is_web_form = true;
-			df.read_only = !web_form_doc.is_new && !web_form_doc.in_edit_mode;
+			df.read_only = df.read_only || (!web_form_doc.is_new && !web_form_doc.in_edit_mode);
 			if (df.fieldtype === "Table") {
 				df.get_data = () => {
 					let data = [];

@@ -79,7 +79,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			if (me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
 			} else if (me.doc) {
-				me.value = me.doc[me.df.fieldname];
+				me.value = me.doc[me.df.fieldname] || "";
 			}
 
 			if (me.can_write()) {
