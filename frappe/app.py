@@ -245,6 +245,9 @@ def handle_exception(e):
 		# usually.
 		frappe.session.user = "Guest"
 
+	if isinstance(e, TypeError):
+		http_status_code = 417
+
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
