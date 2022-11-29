@@ -208,10 +208,10 @@ def start_worker(
 	rq_username: str | None = None,
 	rq_password: str | None = None,
 	burst: bool = False,
-	strategy: Literal["round_robbin", "random"] | None = None,
+	strategy: Literal["round_robin", "random"] | None = None,
 ) -> NoReturn | None:
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
-	DEQUEUE_STRATEGIES = {"round_robbin": RoundRobinWorker, "random": RandomWorker}
+	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
