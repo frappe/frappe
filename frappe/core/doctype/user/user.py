@@ -744,7 +744,7 @@ def test_password_strength(new_password: str, user_data: tuple = None):
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
-		minimum_password_score = frappe.get_system_settings("minimum_password_score") or 0
+		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score")) or 0
 
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:

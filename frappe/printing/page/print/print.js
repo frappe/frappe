@@ -673,7 +673,6 @@ frappe.ui.form.PrintView = class {
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
-				_lang: this.lang_code,
 			},
 			callback: function (r) {
 				if (!r.exc) {
