@@ -175,7 +175,11 @@ def create_json_gz_file(data, dt, dn):
 
 @frappe.whitelist()
 def download_attachment(dn):
-	data, file_name = frappe.get_doc("Prepared Report", dn).get_prepared_data(with_file_name=True)
+	pr = frappe.get_doc("Prepared Report", dn)
+	if not pr.has_permission("read"):
+		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
+
+	data, file_name = pr.get_prepared_data(with_file_name=True)
 	frappe.local.response.filename = file_name[:-3]
 	frappe.local.response.filecontent = data
 	frappe.local.response.type = "binary"
