@@ -140,7 +140,10 @@ frappe.ui.form.Layout = class Layout {
 				fieldtype: "Tab Break",
 				fieldname: "__details",
 			};
-			let first_tab = this.fields[1].fieldtype === "Tab Break" ? this.fields[1] : null;
+
+			let first_field_visible = this.fields.find((element) => element.hidden == false);
+			let first_tab =
+				first_field_visible?.fieldtype === "Tab Break" ? first_field_visible : null;
 
 			if (!first_tab) {
 				this.fields.splice(0, 0, default_tab);
@@ -245,14 +248,14 @@ frappe.ui.form.Layout = class Layout {
 
 	make_page(df) {
 		// eslint-disable-line no-unused-vars
-		let me = this,
-			head = $(
-				'<div class="form-clickable-section text-center">\
-				<a class="btn-fold h6 text-muted">' +
-					__("Show more details") +
-					"</a>\
-			</div>"
-			).appendTo(this.wrapper);
+		let me = this;
+		let head = $(`
+			<div class="form-clickable-section text-center">
+				<a class="btn-fold h6 text-muted">
+					${__("Show more details")}
+				</a>
+			</div>
+		`).appendTo(this.wrapper);
 
 		this.page = $('<div class="form-page second-page hide"></div>').appendTo(this.wrapper);
 
