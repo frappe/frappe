@@ -2,8 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.core.doctype.report.report import is_prepared_report_disabled
+from frappe.core.doctype.report.report import is_prepared_report_enabled
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class RolePermissionforPageandReport(Document):
@@ -27,7 +28,7 @@ class RolePermissionforPageandReport(Document):
 
 	def check_prepared_report_disabled(self):
 		if self.report:
-			self.disable_prepared_report = is_prepared_report_disabled(self.report)
+			self.enable_prepared_report = is_prepared_report_enabled(self.report)
 
 	def get_standard_roles(self):
 		doctype = self.set_role_for
@@ -67,9 +68,9 @@ class RolePermissionforPageandReport(Document):
 		if self.report:
 			# intentionally written update query in frappe.db.sql instead of frappe.db.set_value
 			frappe.db.sql(
-				""" update `tabReport` set disable_prepared_report = %s
+				"""update `tabReport` set prepared_report = %s
 				where name = %s""",
-				(self.disable_prepared_report, self.report),
+				(self.enable_prepared_report, self.report),
 			)
 
 	def get_args(self, row=None):
