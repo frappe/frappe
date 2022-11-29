@@ -141,8 +141,9 @@ frappe.ui.form.Layout = class Layout {
 				fieldname: "__details",
 			};
 
-			let first_field_visible = this.fields.find(element => element.hidden == false);
-			let first_tab = first_field_visible?.fieldtype === "Tab Break" ? first_field_visible : null;
+			let first_field_visible = this.fields.find((element) => element.hidden == false);
+			let first_tab =
+				first_field_visible?.fieldtype === "Tab Break" ? first_field_visible : null;
 
 			if (!first_tab) {
 				this.fields.splice(0, 0, default_tab);
