@@ -89,14 +89,16 @@ class TestQueryReport(FrappeTestCase):
 
 		for delimiter in (",", ";", "\t", "|"):
 			for quoting in (QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC):
-				frappe.local.form_dict = {
-					"report_name": REPORT_NAME,
-					"file_format_type": "CSV",
-					"csv_quoting": quoting,
-					"csv_delimiter": delimiter,
-					"include_indentation": 0,
-					"visible_idx": [0, 1, 2],
-				}
+				frappe.local.form_dict = frappe._dict(
+					{
+						"report_name": REPORT_NAME,
+						"file_format_type": "CSV",
+						"csv_quoting": quoting,
+						"csv_delimiter": delimiter,
+						"include_indentation": 0,
+						"visible_idx": [0, 1, 2],
+					}
+				)
 				export_query()
 
 				self.assertTrue(frappe.response["filename"].endswith(".csv"))
