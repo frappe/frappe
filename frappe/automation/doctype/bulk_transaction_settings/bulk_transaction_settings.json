@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2022-11-29 18:55:44.349110",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "standard_doctype"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "standard_doctype",
+   "fieldtype": "Table",
+   "label": "Standard DocType",
+   "options": "Bulk Transaction DocType Mapping"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-11-29 21:15:48.155003",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Bulk Transaction Settings",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

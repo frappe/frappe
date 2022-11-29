@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2022-11-29 19:18:10.949856",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "source",
+  "target",
+  "column_break_3",
+  "method",
+  "ignore_validation",
+  "submit_target",
+  "section_break_7",
+  "from_doctype_field",
+  "to_doctype_field",
+  "column_break_10",
+  "docname_field",
+  "batch_size"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Method",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "ignore_validation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Ignore Validation"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_target",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Submit Target"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "from_doctype_field",
+   "fieldtype": "Data",
+   "label": "From DocType Field"
+  },
+  {
+   "fieldname": "to_doctype_field",
+   "fieldtype": "Data",
+   "label": "To DocType Field"
+  },
+  {
+   "fieldname": "docname_field",
+   "fieldtype": "Data",
+   "label": "Docname FIeld",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Target",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Source",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "default": "10",
+   "fieldname": "batch_size",
+   "fieldtype": "Int",
+   "label": "Batch Size",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-11-29 20:53:35.080622",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Bulk Transaction DocType Mapping",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
