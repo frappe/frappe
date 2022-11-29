@@ -1,5 +1,5 @@
 from inspect import _empty, isclass, signature
-from typing import Callable, ForwardRef, Sequence, Union
+from typing import Callable, ForwardRef, Union
 
 
 def qualified_name(obj) -> str:
@@ -48,11 +48,8 @@ def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
 			# if the type is a ForwardRef or str, ignore it
 			if isinstance(current_arg_type, (ForwardRef, str)):
 				continue
-
-			if isinstance(current_arg_type, Sequence):
-				current_arg_type = tuple(
-					x for x in current_arg_type.__args__ if not isinstance(x, (ForwardRef, str))
-				)
+			elif any(isinstance(x, (ForwardRef, str)) for x in getattr(current_arg_type, "__args__", [])):
+				continue
 
 			param_def = func_params.get(current_arg)
 
