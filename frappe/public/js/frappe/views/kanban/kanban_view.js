@@ -175,9 +175,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				cur_list: this,
 				user_settings: this.view_user_settings,
 			});
-		}
-
-		if (this.kanban && board_name === this.kanban.board_name) {
+		} else if (board_name === this.kanban.board_name) {
 			this.kanban.update(this.data);
 		}
 	}
