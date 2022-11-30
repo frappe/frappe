@@ -347,29 +347,13 @@ class DatabaseQuery(object):
 				_raise_exception()
 
 		for field in self.fields:
-<<<<<<< HEAD
-			lower_field = field.lower()
-<<<<<<< HEAD
-			function = lower_field.split("(", 1)[0].rstrip()
-
-<<<<<<< HEAD
-				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
-					_raise_exception()
-=======
-			if function in blacklisted_functions:
-				frappe.throw(_("Use of function {0} in field is restricted").format(function))
-=======
->>>>>>> 1a5e5f546b (fix: Move function check inside subquery)
-=======
 			lower_field = field.lower().strip()
->>>>>>> 35827af172 (fix: Strip white spaces on lower cased field value)
 
 			if SUB_QUERY_PATTERN.match(field):
 				if lower_field[0] == "(":
 					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
 					if subquery_token in blacklisted_keywords:
 						_raise_exception()
->>>>>>> 575d32ec35 (fix(db_query): Space resilient matching)
 
 				function = lower_field.split("(", 1)[0].rstrip()
 				if function in blacklisted_functions:
