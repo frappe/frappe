@@ -6,6 +6,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
 
+SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
+
 
 class InvalidColumnName(frappe.ValidationError):
 	pass
@@ -299,7 +301,7 @@ class DbColumn:
 
 
 def validate_column_name(n):
-	special_characters = re.findall(r"[\W]", n, re.UNICODE)
+	special_characters = SPECIAL_CHAR_PATTERN.findall(n)
 	if special_characters:
 		special_characters = ", ".join('"{0}"'.format(c) for c in special_characters)
 		frappe.throw(
