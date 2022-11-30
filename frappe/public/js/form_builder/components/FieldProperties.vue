@@ -17,6 +17,20 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		if (df.fieldname === "options") {
+			df.fieldtype = "Small Text";
+			df.options = "";
+
+			if (in_list(["Table", "Link"], store.selected_field.fieldtype)) {
+				df.fieldtype = "Link";
+				df.options = "DocType";
+
+				if (store.selected_field.fieldtype === "Table") {
+					df.is_table_field = 1;
+				}
+			}
+		}
+
 		if (search_text.value) {
 			if (
 				df.label.toLowerCase().includes(search_text.value.toLowerCase()) ||

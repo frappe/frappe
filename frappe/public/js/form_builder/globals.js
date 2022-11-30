@@ -5,6 +5,7 @@ import CodeControl from "./components/controls/CodeControl.vue";
 import DataControl from "./components/controls/DataControl.vue";
 import GeolocationControl from "./components/controls/GeolocationControl.vue";
 import ImageControl from "./components/controls/ImageControl.vue";
+import LinkControl from "./components/controls/LinkControl.vue";
 import RatingControl from "./components/controls/RatingControl.vue";
 import SelectControl from "./components/controls/SelectControl.vue";
 import SignatureControl from "./components/controls/SignatureControl.vue";
@@ -36,7 +37,7 @@ export function registerGlobalComponents(app) {
 		.component("ImageControl", ImageControl)
 		.component("IntControl", DataControl)
 		.component("JSONControl", CodeControl)
-		.component("LinkControl", DataControl)
+		.component("LinkControl", LinkControl)
 		.component("LongTextControl", TextControl)
 		.component("MarkdownEditorControl", CodeControl)
 		.component("PasswordControl", DataControl)

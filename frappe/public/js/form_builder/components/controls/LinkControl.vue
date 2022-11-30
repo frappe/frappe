@@ -1,0 +1,76 @@
+<!-- Used as Link Control -->
+<script setup>
+import { onMounted, ref, useSlots, computed, watch } from "vue";
+import { useStore } from "../../store";
+
+let store = useStore();
+let props = defineProps(["df", "modelValue"]);
+let emit = defineEmits(["update:modelValue"]);
+let slots = useSlots();
+
+let link = ref(null);
+let link_control = ref(null);
+let update_control = ref(true);
+
+let content = computed({
+	get: () => props.modelValue,
+	set: value => emit("update:modelValue", value)
+});
+
+onMounted(() => {
+	if (link.value) {
+		props.df.hidden = 0;
+
+		if (props.df.is_table_field) {
+			props.df.filters = { istable: 1 };
+		}
+
+		link_control.value = frappe.ui.form.make_control({
+			parent: link.value,
+			df: {
+				...props.df,
+				change: () => {
+					if (update_control.value) {
+						content.value = link_control.value.get_value();
+					}
+					update_control.value = true;
+				}
+			},
+			disabled: Boolean(slots.label) || store.read_only,
+			value: content.value,
+			render_input: true,
+			only_input: Boolean(slots.label)
+		});
+	}
+});
+
+watch(
+	() => content.value,
+	value => {
+		update_control.value = false;
+		link_control.value.set_value(value);
+	}
+);
+</script>
+
+<template>
+	<div
+		v-if="slots.label"
+		class="control frappe-control"
+		:data-fieldtype="df.fieldtype"
+		:class="{ editable: slots.label }"
+	>
+		<!-- label -->
+		<div class="field-controls">
+			<slot name="label" />
+			<slot name="actions" />
+		</div>
+
+		<!-- link input -->
+		<input class="form-control" type="text" disabled />
+
+		<!-- description -->
+		<div v-if="df.description" class="mt-2 description" v-html="df.description" />
+	</div>
+	<div v-else ref="link"></div>
+</template>

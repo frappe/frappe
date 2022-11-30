@@ -6,6 +6,7 @@ let props = defineProps(["df"]);
 
 let table_columns = computedAsync(async () => {
 	let doctype = props.df.options;
+	if (!doctype) return [];
 	await frappe.model.with_doctype(doctype);
 	let child_doctype = frappe.get_meta(doctype);
 	return get_table_columns(props.df, child_doctype);
