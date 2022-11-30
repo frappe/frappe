@@ -18,6 +18,13 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		if (
+			in_list(["fetch_from", "fetch_if_empty"], df.fieldname) &&
+			in_list(frappe.model.no_value_type, store.selected_field.fieldtype)
+		) {
+			return false;
+		}
+
 		if (df.fieldname === "options") {
 			df.fieldtype = "Small Text";
 			df.options = "";
