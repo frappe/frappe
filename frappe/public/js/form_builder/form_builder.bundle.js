@@ -2,7 +2,6 @@ import { createApp, watchEffect } from "vue";
 import { createPinia } from "pinia";
 import { useStore } from "./store";
 import FormBuilderComponent from "./components/FormBuilder.vue";
-import { default as onOutsideClickDirective } from "./directives/onOutsideClick.js";
 import { registerGlobalComponents } from "./globals.js";
 
 class FormBuilder {
@@ -79,9 +78,6 @@ class FormBuilder {
 
 		// register global components
 		registerGlobalComponents(app);
-
-		// directive
-		app.directive("on-outside-click", onOutsideClickDirective);
 
 		// mount the app
 		this.$form_builder = app.mount(this.$wrapper.get(0));

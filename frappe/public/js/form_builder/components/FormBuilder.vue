@@ -1,8 +1,9 @@
 <script setup>
 import Sidebar from "./Sidebar.vue";
 import Tabs from "./Tabs.vue";
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "../store";
+import { onClickOutside } from '@vueuse/core'
 
 let store = useStore();
 
@@ -10,25 +11,24 @@ let should_render = computed(() => {
 	return Object.keys(store.layout).length !== 0;
 });
 
+let container = ref(null);
+onClickOutside(container, () => store.selected_field = null);
+
 watch(
 	() => store.layout,
 	() => (store.dirty = true),
 	{ deep: true }
 );
 
-function lose_focus() {
-	store.selected_field = null;
-}
-
 onMounted(() => store.fetch());
 </script>
 
 <template>
 	<div
-		class="form-builder-container"
 		v-if="should_render"
-		v-on-outside-click="lose_focus"
-		@click="lose_focus"
+		ref="container"
+		class="form-builder-container"
+		@click="store.selected_field = null"
 	>
 		<div class="form-controls" @click.stop>
 			<div class="form-sidebar">
