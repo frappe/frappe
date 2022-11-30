@@ -156,7 +156,7 @@ class LoginManager:
 		self.setup_boot_cache()
 		self.set_user_info()
 		if self.guest_id and self.cart_count:
-			transfer_cart_from_guest(guest_id= self.guest_id, user= self.user)
+			transfer_cart_from_guest(self.guest_id,self.user)
 		
 
 	def get_user_info(self):
