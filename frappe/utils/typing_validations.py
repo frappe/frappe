@@ -1,4 +1,4 @@
-from inspect import _empty, isclass, signature
+from inspect import _empty, signature
 from typing import Callable, ForwardRef, Union
 
 from typeguard import check_type
