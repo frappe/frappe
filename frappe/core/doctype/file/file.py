@@ -28,7 +28,12 @@ from six import PY2, BytesIO, string_types, text_type
 from six.moves.urllib.parse import quote, unquote
 
 import frappe
+<<<<<<< HEAD
 from frappe import _, conf, safe_decode
+=======
+from frappe import _
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
+>>>>>>> 2e2f8e8175 (fix: only check for special characters in fieldname (#19061))
 from frappe.model.document import Document
 from frappe.utils import (
 	call_hook_method,
@@ -148,10 +153,7 @@ class File(Document):
 		if self.attached_to_name and not isinstance(self.attached_to_name, str):
 			frappe.throw(_("Attached To Name must be a string"), TypeError)
 
-		if not self.attached_to_field:
-			return
-
-		if not frappe.get_meta(self.attached_to_doctype).has_field(self.attached_to_field):
+		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def validate_url(self):
