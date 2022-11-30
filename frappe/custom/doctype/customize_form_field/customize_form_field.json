@@ -348,7 +348,7 @@
    "width": "50px"
   },
   {
-   "depends_on": "eval:cur_frm.doc.istable",
+   "depends_on": "eval:parent.istable",
    "description": "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)",
    "fieldname": "columns",
    "fieldtype": "Int",
@@ -467,7 +467,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-04-13 22:31:14.162661",
+ "modified": "2022-11-30 14:25:50.649449",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

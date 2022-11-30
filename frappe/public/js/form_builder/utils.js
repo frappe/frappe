@@ -203,12 +203,7 @@ export function evaluate_depends_on_value(expression, doc) {
 	if (!doc) return;
 
 	let out = null;
-	let parent = doc || null;
-	let cur_frm = { doc: store.doc };
-
-	if (!store.is_customize_form) {
-		parent = store.doc;
-	}
+	let parent = store.doc;
 
 	if (typeof expression === "boolean") {
 		out = expression;
@@ -216,7 +211,7 @@ export function evaluate_depends_on_value(expression, doc) {
 		out = expression(doc);
 	} else if (expression.substr(0, 5) == "eval:") {
 		try {
-			out = frappe.utils.eval(expression.substr(5), { doc, parent, cur_frm });
+			out = frappe.utils.eval(expression.substr(5), { doc, parent });
 			if (parent && parent.istable && expression.includes("is_submittable")) {
 				out = true;
 			}
