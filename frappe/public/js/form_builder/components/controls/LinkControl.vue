@@ -4,7 +4,7 @@ import { onMounted, ref, useSlots, computed, watch } from "vue";
 import { useStore } from "../../store";
 
 let store = useStore();
-let props = defineProps(["df", "modelValue"]);
+let props = defineProps(["args", "df", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
@@ -21,8 +21,19 @@ onMounted(() => {
 	if (link.value) {
 		props.df.hidden = 0;
 
-		if (props.df.is_table_field) {
-			props.df.filters = { istable: 1 };
+		if (props.args?.is_table_field) {
+			if (props.df.filters) {
+				// update filters
+				props.df.filters.istable = 1;
+			} else {
+				// add filters
+				props.df.filters = { istable: 1 };
+			}
+		} else {
+			// reset filters
+			if (props.df.filters && 'istable' in props.df.filters) {
+				delete props.df.filters.istable;
+			}
 		}
 
 		link_control.value = frappe.ui.form.make_control({

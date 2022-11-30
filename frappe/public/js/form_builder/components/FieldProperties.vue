@@ -7,6 +7,7 @@ import { useStore } from "../store";
 let store = useStore();
 
 let search_text = ref("");
+let args = ref({});
 
 let docfield_df = computed(() => {
 	let fields = store.get_docfields.filter(df => {
@@ -20,13 +21,14 @@ let docfield_df = computed(() => {
 		if (df.fieldname === "options") {
 			df.fieldtype = "Small Text";
 			df.options = "";
+			args.value = {};
 
 			if (in_list(["Table", "Link"], store.selected_field.fieldtype)) {
 				df.fieldtype = "Link";
 				df.options = "DocType";
 
 				if (store.selected_field.fieldtype === "Table") {
-					df.is_table_field = 1;
+					args.value.is_table_field = 1;
 				}
 			}
 		}
@@ -54,6 +56,7 @@ let docfield_df = computed(() => {
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
 				<component
 					:is="df.fieldtype.replace(' ', '') + 'Control'"
+					:args="args"
 					:df="df"
 					:value="store.selected_field[df.fieldname]"
 					v-model="store.selected_field[df.fieldname]"
