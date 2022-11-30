@@ -761,7 +761,7 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 		if result.get("score") and result.get("score") >= minimum_password_score:
 			password_policy_validation_passed = True
 
-		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passe
+		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
 		return result
 
 
