@@ -332,6 +332,43 @@ class TestReportview(FrappeTestCase):
 			)
 			self.assertTrue("date_diff" in data[0])
 
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=["name", "issingle", "if (issingle=1, (select name from tabUser), count(name))"],
+				limit_start=0,
+				limit_page_length=1,
+			)
+
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=["name", "issingle", "if(issingle=1, (select name from tabUser), count(name))"],
+				limit_start=0,
+				limit_page_length=1,
+			)
+
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=[
+					"name",
+					"issingle",
+					"( select name from `tabUser` where `tabDocType`.owner = `tabUser`.name )",
+				],
+				limit_start=0,
+				limit_page_length=1,
+				ignore_permissions=True,
+			)
+
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=[
+					"name",
+					"issingle",
+					"(select name from `tabUser` where `tabDocType`.owner = `tabUser`.name )",
+				],
+				limit_start=0,
+				limit_page_length=1,
+			)
+
 	def test_nested_permission(self):
 		frappe.set_user("Administrator")
 		create_nested_doctype()
