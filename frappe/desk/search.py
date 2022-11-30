@@ -206,11 +206,16 @@ def search_widget(
 				)
 				order_by = f"_relevance, {order_by}"
 
-			ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 			ignore_permissions = (
 				True
 				if doctype == "DocType"
-				else (cint(ignore_user_permissions) and has_permission(doctype, ptype=ptype))
+				else (
+					cint(ignore_user_permissions)
+					and has_permission(
+						doctype,
+						ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+					)
+				)
 			)
 
 			values = frappe.get_list(

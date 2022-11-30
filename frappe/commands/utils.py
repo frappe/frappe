@@ -552,6 +552,7 @@ def _psql():
 @click.command("jupyter")
 @pass_context
 def jupyter(context):
+	"""Start an interactive jupyter notebook"""
 	installed_packages = (
 		r.split("==")[0]
 		for r in subprocess.check_output([sys.executable, "-m", "pip", "freeze"], encoding="utf8")
@@ -770,6 +771,7 @@ def run_tests(
 	failfast=False,
 	case=None,
 ):
+	"""Run python unit-tests"""
 
 	with CodeCoverage(coverage, app):
 		import frappe

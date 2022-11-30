@@ -398,16 +398,21 @@
 	}
 }
 
-.grid-buttons {
+.grid-buttons, .grid-bulk-actions {
 	display: inline-flex;
 }
 
-.grid-footer {
+.grid-footer, .grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
 	.btn {
 		box-shadow: none;
 		margin-top: -3px;
+		margin-bottom: -3px;
+	}
+
+	.btn:not(:last-child) {
+		margin-right: 4px;
 	}
 }
 

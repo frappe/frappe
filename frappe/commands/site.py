@@ -529,6 +529,7 @@ def add_user_for_sites(
 @click.argument("email")
 @pass_context
 def disable_user(context, email):
+	"""Disable a user account on site."""
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
@@ -829,6 +830,7 @@ def drop_site(
 	force=False,
 	no_backup=False,
 ):
+	"""Remove a site from database and filesystem."""
 	_drop_site(site, db_root_username, db_root_password, archived_sites_path, force, no_backup)
 
 
@@ -840,7 +842,6 @@ def _drop_site(
 	force=False,
 	no_backup=False,
 ):
-	"Remove site from database and filesystem"
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
 
@@ -1051,6 +1052,7 @@ def browse(context, site, user=None):
 @click.command("start-recording")
 @pass_context
 def start_recording(context):
+	"""Start Frappe Recorder."""
 	import frappe.recorder
 
 	for site in context.sites:
@@ -1064,6 +1066,7 @@ def start_recording(context):
 @click.command("stop-recording")
 @pass_context
 def stop_recording(context):
+	"""Stop Frappe Recorder."""
 	import frappe.recorder
 
 	for site in context.sites:
@@ -1080,6 +1083,7 @@ def stop_recording(context):
 )
 @pass_context
 def start_ngrok(context, bind_tls):
+	"""Start a ngrok tunnel to your local development server."""
 	from pyngrok import ngrok
 
 	site = get_site(context)
@@ -1103,6 +1107,7 @@ def start_ngrok(context, bind_tls):
 @click.command("build-search-index")
 @pass_context
 def build_search_index(context):
+	"""Rebuild search index used by global search."""
 	from frappe.search.website_search import build_index_for_all_routes
 
 	site = get_site(context)
@@ -1119,7 +1124,7 @@ def build_search_index(context):
 
 
 @click.command("clear-log-table")
-@click.option("--doctype", default="text", type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--doctype", required=True, type=click.Choice(LOG_DOCTYPES), help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
 @pass_context
@@ -1171,6 +1176,7 @@ def clear_log_table(context, doctype, days, no_backup):
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the site")
 @pass_context
 def trim_database(context, dry_run, format, no_backup):
+	"""Remove database tables for deleted DocTypes."""
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -1266,6 +1272,7 @@ def get_standard_tables():
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the site")
 @pass_context
 def trim_tables(context, dry_run, format, no_backup):
+	"""Remove columns from tables where fields are deleted from doctypes."""
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
