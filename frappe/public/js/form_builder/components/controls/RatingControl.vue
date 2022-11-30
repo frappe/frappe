@@ -8,10 +8,9 @@ let rating_control = ref(null);
 
 onMounted(() => {
 	if (rating.value) {
-		props.df.hidden = 0;
 		rating_control.value = frappe.ui.form.make_control({
 			parent: rating.value,
-			df: props.df,
+			df: { ...props.df, hidden: 0 },
 			disabled: true,
 			render_input: true,
 			only_input: true,

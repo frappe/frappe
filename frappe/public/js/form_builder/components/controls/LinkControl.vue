@@ -19,8 +19,6 @@ let content = computed({
 
 onMounted(() => {
 	if (link.value) {
-		props.df.hidden = 0;
-
 		if (props.args?.is_table_field) {
 			if (props.df.filters) {
 				// update filters
@@ -40,6 +38,7 @@ onMounted(() => {
 			parent: link.value,
 			df: {
 				...props.df,
+				hidden: 0,
 				change: () => {
 					if (update_control.value) {
 						content.value = link_control.value.get_value();

@@ -8,10 +8,9 @@ let quill_control = ref(null);
 
 onMounted(() => {
 	if (quill.value) {
-		props.df.hidden = 0;
 		quill_control.value = frappe.ui.form.make_control({
 			parent: quill.value,
-			df: props.df,
+			df: { ...props.df, hidden: 0 },
 			disabled: true,
 			render_input: true,
 			only_input: true,

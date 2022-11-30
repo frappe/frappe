@@ -18,12 +18,12 @@ let content = computed({
 
 onMounted(() => {
 	if (code.value) {
-		props.df.fieldtype = "Code";
-		props.df.hidden = 0;
 		code_control.value = frappe.ui.form.make_control({
 			parent: code.value,
 			df: {
 				...props.df,
+				fieldtype: "Code",
+				hidden: 0,
 				change: () => {
 					if (update_control.value) {
 						content.value = code_control.value.get_value();

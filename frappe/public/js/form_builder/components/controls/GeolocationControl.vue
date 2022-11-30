@@ -8,10 +8,9 @@ let map_control = ref(null);
 
 onMounted(() => {
 	if (map.value) {
-		props.df.hidden = 0;
 		map_control.value = frappe.ui.form.make_control({
 			parent: map.value,
-			df: props.df,
+			df: { ...props.df, hidden: 0 },
 			frm: true,
 			disabled: true,
 			render_input: true,
