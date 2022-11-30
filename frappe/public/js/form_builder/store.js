@@ -132,7 +132,9 @@ export const useStore = defineStore("form-builder-store", {
 			let fields = [];
 			let idx = 0;
 
-			this.layout.tabs.forEach((tab, i) => {
+			let layout_fields = JSON.parse(JSON.stringify(this.layout.tabs));
+
+			layout_fields.forEach((tab, i) => {
 				if (
 					(i == 0 &&
 						this.is_df_updated(tab.df, this.get_df("Tab Break", "", __("Details")))) ||

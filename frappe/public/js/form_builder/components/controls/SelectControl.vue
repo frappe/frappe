@@ -1,60 +1,107 @@
 <script setup>
 import { useStore } from "../../store";
-import { useSlots } from "vue";
+import { useSlots, onMounted, ref, computed, watch } from "vue";
 
 let store = useStore();
-let props = defineProps(["df", "value"]);
+let props = defineProps(["df", "modelValue", "no_label"]);
+let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
-function get_options() {
-	let options = props.df.options?.split("\n") || "";
+let select = ref(null);
+let update_control = ref(true);
 
-	if (props.value) {
-		if (
-			props.df.fieldname == "fieldtype" &&
-			!in_list(frappe.model.layout_fields, props.value)
-		) {
-			return options && options.filter(opt => !in_list(frappe.model.layout_fields, opt));
+function get_options() {
+	let options = props.df.options;
+
+	if (typeof options == "string") {
+		options = options.split("\n") || "";
+		options = options.map(opt => {
+			return { label: __(opt), value: opt };
+		});
+	}
+
+	if (options?.length && typeof options[0] == "string") {
+		options = options.map(opt => {
+			return { label: __(opt), value: opt };
+		});
+	}
+
+	if (props.df.fieldname == "fieldtype") {
+		if (!in_list(frappe.model.layout_fields, props.modelValue)) {
+			options = options && options.filter(opt => !in_list(frappe.model.layout_fields, opt.label));
 		} else {
-			return [props.value];
+			options = [{ label: __(props.modelValue), value: props.modelValue }];
 		}
 	}
 
 	return options;
 }
+
+let select_control = computed(() => {
+	if (!select.value) return;
+	select.value.innerHTML = "";
+
+	return frappe.ui.form.make_control({
+		parent: select.value,
+		df: {
+			...props.df,
+			fieldtype: "Select",
+			hidden: 0,
+			options: get_options(),
+			change: () => {
+				if (update_control.value) {
+					content.value = select_control.value.get_value();
+				}
+				update_control.value = true;
+			}
+		},
+		value: content.value,
+		disabled: Boolean(slots.label) || store.read_only,
+		render_input: true,
+		only_input: Boolean(slots.label) || props.no_label
+	});
+});
+
+let content = computed({
+	get: () => props.modelValue,
+	set: value => emit("update:modelValue", value)
+});
+
+onMounted(() => {
+	if (select.value) select_control.value;
+});
+
+watch(
+	() => content.value,
+	value => {
+		update_control.value = false;
+		select_control.value?.set_value(value);
+	}
+);
+
+watch(() => props.df.options, () => {
+	select_control.value;
+})
 </script>
 
 <template>
-	<div class="control" :class="{ editable: slots.label }">
+	<div v-if="slots.label" class="control" :class="{ editable: slots.label }">
 		<!-- label -->
-		<div v-if="slots.label" class="field-controls">
+		<div class="field-controls">
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div v-else class="label" :class="{ reqd: df.reqd }">{{ df.label }}</div>
 
 		<!-- select input -->
-		<div v-if="slots.label" class="select-input">
+		<div class="select-input">
 			<input class="form-control" disabled />
-			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
-		</div>
-		<div v-else class="select-input">
-			<select
-				class="form-control"
-				v-model="value"
-				:disabled="store.read_only || df.read_only"
-				@change="event => $emit('update:modelValue', event.target.value)"
-			>
-				<option v-for="option in get_options()" :key="option" :value="option">{{
-					option
-				}}</option>
-			</select>
 			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
 		</div>
 
 		<!-- description -->
 		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
 	</div>
+	<div v-else class="control" ref="select"></div>
 </template>
 
 <style lang="scss" scoped>
