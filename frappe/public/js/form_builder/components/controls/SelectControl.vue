@@ -48,6 +48,7 @@ let select_control = computed(() => {
 			fieldtype: "Select",
 			hidden: 0,
 			options: get_options(),
+			read_only: Boolean(slots.label) || store.read_only,
 			change: () => {
 				if (update_control.value) {
 					content.value = select_control.value.get_value();
@@ -56,7 +57,6 @@ let select_control = computed(() => {
 			}
 		},
 		value: content.value,
-		disabled: Boolean(slots.label) || store.read_only,
 		render_input: true,
 		only_input: Boolean(slots.label) || props.no_label
 	});

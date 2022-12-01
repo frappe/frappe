@@ -24,6 +24,7 @@ onMounted(() => {
 				...props.df,
 				fieldtype: "Code",
 				hidden: 0,
+				read_only: store.read_only,
 				change: () => {
 					if (update_control.value) {
 						content.value = code_control.value.get_value();

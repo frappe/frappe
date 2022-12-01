@@ -83,6 +83,12 @@ let docfield_df = computed(() => {
 		margin: 5px;
 		margin-top: 0;
 		margin-bottom: 1rem;
+
+		:deep(.form-control:disabled) {
+			color: var(--disabled-text-color);
+			background-color: var(--disabled-control-bg);
+			cursor: default;
+		}
 	}
 }
 </style>

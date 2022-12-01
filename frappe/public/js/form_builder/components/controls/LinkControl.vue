@@ -39,6 +39,7 @@ onMounted(() => {
 			df: {
 				...props.df,
 				hidden: 0,
+				read_only: Boolean(slots.label) || store.read_only,
 				change: () => {
 					if (update_control.value) {
 						content.value = link_control.value.get_value();
@@ -46,7 +47,6 @@ onMounted(() => {
 					update_control.value = true;
 				}
 			},
-			disabled: Boolean(slots.label) || store.read_only,
 			value: content.value,
 			render_input: true,
 			only_input: Boolean(slots.label)
