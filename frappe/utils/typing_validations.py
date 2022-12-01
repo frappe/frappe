@@ -1,13 +1,20 @@
+from functools import lru_cache
 from inspect import _empty, isclass, signature
 from types import EllipsisType
-from typing import Callable, ForwardRef, Union
+from typing import Any, Callable, ForwardRef, Type, TypeVar, Union
 
-from pydantic import parse_obj_as
+from pydantic.config import BaseConfig
 from pydantic.error_wrappers import ValidationError as PyValidationError
+from pydantic.tools import NameFactory, _generate_parsing_type_name
 
 SLACK_DICT = {
 	bool: (int, bool, float),
 }
+T = TypeVar("T")
+
+
+class FrappePydanticConfig:
+	arbitrary_types_allowed = True
 
 
 def qualified_name(obj) -> str:
@@ -41,6 +48,32 @@ def raise_type_error(
 		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
 		f"'{qualified_name(arg_value)}' instead."
 	) from current_exception
+
+
+@lru_cache(maxsize=2048)
+def _get_parsing_type(
+	type_: Any, *, type_name: NameFactory | None = None, config: type[BaseConfig] = None
+) -> Any:
+	# Note: this is a copy of pydantic.tools._get_parsing_type with the addition of allowing a config argument
+	from pydantic.main import create_model
+
+	if type_name is None:
+		type_name = _generate_parsing_type_name
+	if not isinstance(type_name, str):
+		type_name = type_name(type_)
+	return create_model(type_name, __root__=(type_, ...), __config__=config)
+
+
+def parse_obj_as(
+	type_: type[T],
+	obj: Any,
+	*,
+	type_name: NameFactory | None = None,
+	config: type[BaseConfig] | None = None,
+) -> T:
+	# Note: This is a copy of pydantic.tools.parse_obj_as with the addition of allowing a config argument
+	model_type = _get_parsing_type(type_, type_name=type_name, config=config)  # type: ignore[arg-type]
+	return model_type(__root__=obj).__root__
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
@@ -99,7 +132,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 
 			try:
 				current_arg_value_after = parse_obj_as(
-					current_arg_type, current_arg_value, type_name=current_arg
+					current_arg_type, current_arg_value, type_name=current_arg, config=FrappePydanticConfig
 				)
 			except PyValidationError as e:
 				raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
