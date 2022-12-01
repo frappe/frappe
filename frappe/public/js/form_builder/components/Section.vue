@@ -82,9 +82,6 @@ function move_sections_to_tab() {
 			@click.stop="select_section"
 			@mouseover.stop="hovered = true"
 			@mouseout.stop="hovered = false"
-			@mousemove.stop="store.drag = true"
-			@mousedown.stop="store.drag = false"
-			@mouseup.stop="store.start_drag(section)"
 		>
 			<div
 				:class="[

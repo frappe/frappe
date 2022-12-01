@@ -125,9 +125,6 @@ function remove_tab() {
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
-					@mousemove.stop="store.drag = true"
-					@mousedown.stop="store.drag = false"
-					@mouseup.stop="store.start_drag(element)"
 				>
 					<EditableInput
 						:text="element.df.label"

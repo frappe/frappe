@@ -1,4 +1,4 @@
-<!-- Used as Text & Small Text, Long Text Control -->
+<!-- Used as Text, Small Text & Long Text Control -->
 <script setup>
 import { useStore } from "../../store";
 import { useSlots, ref, computed, watch } from "vue";

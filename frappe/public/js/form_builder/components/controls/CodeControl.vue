@@ -1,3 +1,4 @@
+<!-- Used as Code, HTML Editor, Markdown Editor & JSON Control -->
 <script setup>
 import { computed, onMounted, ref, useSlots, watch } from "vue";
 import { useStore } from "../../store";

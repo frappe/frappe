@@ -73,9 +73,6 @@ function move_columns_to_section() {
 		@click.stop="store.selected_field = column.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
-		@mousemove.stop="store.drag = true"
-		@mousedown.stop="store.drag = false"
-		@mouseup.stop="store.start_drag(column)"
 	>
 		<div class="column-actions" :hidden="store.read_only">
 			<button
