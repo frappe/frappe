@@ -1506,17 +1506,13 @@ class Document(BaseDocument):
 		if self in frappe.local.locked_documents:
 			frappe.local.locked_documents.remove(self)
 
-	# validation helpers
 	def validate_from_to_dates(self, from_date_field: str, to_date_field: str) -> None:
-		"""
-		Generic validation to verify date sequence
-		"""
+		"""Validate that the value of `from_date_field` is not later than the value of `to_date_field`."""
 		from_date = self.get(from_date_field)
 		to_date = self.get(to_date_field)
 		if not (from_date and to_date):
 			return
 
-		# an empty to_date is deemed to be later than every possible from_date
 		if date_diff(to_date, from_date) < 0:
 			frappe.throw(
 				_("{0} must be after {1}").format(
