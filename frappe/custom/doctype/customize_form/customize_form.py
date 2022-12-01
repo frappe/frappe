@@ -663,12 +663,9 @@ doctype_state_properties = {"title": "Data", "color": "Select"}
 
 ALLOWED_FIELDTYPE_CHANGE = (
 	("Currency", "Float", "Percent"),
-	("Small Text", "Data"),
-	("Text", "Data"),
 	("Text", "Text Editor", "Code", "Signature", "HTML Editor"),
-	("Data", "Select"),
-	("Text", "Small Text"),
-	("Text", "Data", "Barcode"),
+	("Data", "Select", "Barcode"),
+	("Text", "Long Text", "Small Text", "Barcode"),
 	("Code", "Geolocation"),
 	("Table", "Table MultiSelect"),
 )
