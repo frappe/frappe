@@ -108,7 +108,9 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				action: () => this.set_route("tree"),
 			},
 			Kanban: {
-				condition: this.doctype != "File",
+				condition:
+					this.doctype != "File" &&
+					!(frappe.listview_settings[this.doctype] != null && frappe.listview_settings[this.doctype].skip_kanban),
 				action: () => this.setup_kanban_boards(),
 				current_view_handler: () => {
 					frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) =>
