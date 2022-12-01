@@ -1,20 +1,57 @@
-from inspect import _empty, signature
+from inspect import _empty, isclass, signature
+from types import EllipsisType
 from typing import Callable, ForwardRef, Union
 
-from typeguard import check_type
+from pydantic import parse_obj_as
+from pydantic.error_wrappers import ValidationError as PyValidationError
 
 SLACK_DICT = {
 	bool: (int, bool, float),
 }
 
 
-def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
+def qualified_name(obj) -> str:
+	"""
+	Return the qualified name (e.g. package.module.Type) for the given object.
+
+	Builtins and types from the :mod:typing package get special treatment by having the module
+	name stripped from the generated name.
+
+	"""
+	discovered_type = obj if isclass(obj) else type(obj)
+	module, qualname = discovered_type.__module__, discovered_type.__qualname__
+
+	if module in {"typing", "types"}:
+		return obj
+	elif module in {"builtins"}:
+		return qualname
+	else:
+		return f"{module}.{qualname}"
+
+
+def raise_type_error(
+	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception = None
+):
+	"""
+	Raise a TypeError with a message that includes the name of the argument, the expected type
+	and the actual type of the value passed.
+
+	"""
+	raise TypeError(
+		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
+		f"'{qualified_name(arg_value)}' instead."
+	) from current_exception
+
+
+def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
 
 	"""
 	if annotations := func.__annotations__:
+		new_args, new_kwargs = list(args), kwargs
+
 		# generate kwargs dict from args
 		arg_names = func.__code__.co_varnames[: func.__code__.co_argcount]
 
@@ -60,4 +97,22 @@ def validate_argument_types(func: Callable, args: tuple, kwargs: dict):
 				elif param_def.default != current_arg_type:
 					current_arg_type = Union[current_arg_type, type(param_def.default)]
 
-			check_type(current_arg, current_arg_value, current_arg_type)
+			try:
+				current_arg_value_after = parse_obj_as(
+					current_arg_type, current_arg_value, type_name=current_arg
+				)
+			except PyValidationError as e:
+				raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
+
+			if isinstance(current_arg_value_after, EllipsisType):
+				raise_type_error(current_arg, current_arg_type, current_arg_value)
+
+			else:
+				if current_arg in kwargs:
+					new_kwargs[current_arg] = current_arg_value_after
+				else:
+					new_args[arg_names.index(current_arg)] = current_arg_value_after
+
+		return new_args, new_kwargs
+
+	return args, kwargs

@@ -723,10 +723,10 @@ def apply_validate_argument_types_wrapper(func):
 
 		:param args: Function arguments.
 		:param kwargs: Function keyword arguments."""
-		from frappe.utils.typing_validations import validate_argument_types
+		from frappe.utils.typing_validations import transform_parameter_types
 
 		if getattr(local, "request", None) or local.flags.in_test:
-			validate_argument_types(func, args, kwargs)
+			args, kwargs = transform_parameter_types(func, args, kwargs)
 
 		return func(*args, **kwargs)
 

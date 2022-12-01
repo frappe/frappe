@@ -922,7 +922,7 @@ class TestMiscUtils(FrappeTestCase):
 
 
 class TestTypingValidations(FrappeTestCase):
-	ERR_REGEX = "^type of .* must be .*; got (object|list) instead$"
+	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
 		from inspect import signature
