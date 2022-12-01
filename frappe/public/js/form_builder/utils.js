@@ -273,3 +273,48 @@ export function move_children_to_parent(props, parent, child, current_container)
 		return new_parent.df.name;
 	}
 }
+
+export function scrub_field_names(fields) {
+	fields.forEach((d) => {
+		if (d.fieldtype) {
+			if (!d.fieldname) {
+				if (d.label) {
+					d.fieldname = d.label.trim().toLowerCase().replace(" ", "_");
+					if (d.fieldname.endsWith("?")) {
+						d.fieldname = d.fieldname.slice(0, -1);
+					}
+					if (in_list(frappe.model.restricted_fields, d.fieldname)) {
+						d.fieldname = d.fieldname + "1";
+					}
+					if (d.fieldtype == "Section Break") {
+						d.fieldname = d.fieldname + "_section";
+					} else if (d.fieldtype == "Column Break") {
+						d.fieldname = d.fieldname + "_column";
+					} else if (d.fieldtype == "Tab Break") {
+						d.fieldname = d.fieldname + "_tab";
+					}
+				} else {
+					d.fieldname =
+						d.fieldtype.toLowerCase().replace(" ", "_") +
+						"_" +
+						frappe.utils.get_random(4);
+				}
+			} else {
+				if (in_list(frappe.model.restricted_fields, d.fieldname)) {
+					frappe.throw(__("Fieldname {0} is restricted", [d.fieldname]));
+				}
+			}
+			let regex = new RegExp(/['",./%@()<>{}]/g);
+			d.fieldname = d.fieldname.replace(regex, "");
+			// fieldnames should be lowercase
+			d.fieldname = d.fieldname.toLowerCase();
+		}
+
+		// unique is automatically an index
+		if (d.unique) {
+			d.search_index = 0;
+		}
+	});
+
+	return fields;
+}

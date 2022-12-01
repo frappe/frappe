@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { create_layout } from "./utils";
+import { create_layout, scrub_field_names } from "./utils";
 import { nextTick } from "vue";
 
 export const useStore = defineStore("form-builder-store", {
@@ -102,6 +102,68 @@ export const useStore = defineStore("form-builder-store", {
 		reset_changes() {
 			this.fetch();
 		},
+		validate_fields(fields, is_table) {
+			fields = scrub_field_names(fields);
+
+			let not_allowed_in_list_view = ["Attach Image", ...frappe.model.no_value_type];
+			if (is_table) {
+				not_allowed_in_list_view = not_allowed_in_list_view.filter((f) => f != "Button");
+			}
+
+			function get_field_data(df) {
+				let fieldname = `<b>${df.label} (${df.fieldname})</b>`;
+				if (!df.label) {
+					fieldname = `<b>${df.fieldname}</b>`;
+				}
+				let fieldtype = `<b>${df.fieldtype}</b>`;
+				return [fieldname, fieldtype];
+			}
+
+			fields.forEach((df) => {
+				// check if fieldname already exist
+				let duplicate = fields.filter((f) => f.fieldname == df.fieldname);
+				if (duplicate.length > 1) {
+					frappe.throw(__("Fieldname {0} appears multiple times", get_field_data(df)));
+				}
+
+				// Link & Table fields should always have options set
+				if (in_list(["Link", ...frappe.model.table_fields], df.fieldtype) && !df.options) {
+					frappe.throw(
+						__("Options is required for field {0} of type {1}", get_field_data(df))
+					);
+				}
+
+				// Do not allow if field is hidden & required but doesn't have default value
+				if (df.hidden && df.reqd && !df.default) {
+					frappe.throw(
+						__(
+							"{0} cannot be hidden and mandatory without any default value",
+							get_field_data(df)
+						)
+					);
+				}
+
+				// In List View is not allowed for some fieldtypes
+				if (df.in_list_view && in_list(not_allowed_in_list_view, df.fieldtype)) {
+					frappe.throw(
+						__(
+							"'In List View' is not allowed for field {0} of type {1}",
+							get_field_data(df)
+						)
+					);
+				}
+
+				// In Global Search is not allowed for no_value_type fields
+				if (df.in_global_search && in_list(frappe.model.no_value_type, df.fieldtype)) {
+					frappe.throw(
+						__(
+							"'In Global Search' is not allowed for field {0} of type {1}",
+							get_field_data(df)
+						)
+					);
+				}
+			});
+		},
 		async save_changes() {
 			if (!this.dirty) {
 				frappe.show_alert({ message: __("No changes to save"), indicator: "orange" });
@@ -115,9 +177,11 @@ export const useStore = defineStore("form-builder-store", {
 					let doc = frappe.get_doc("Customize Form");
 					doc.doc_type = this.doctype;
 					doc.fields = this.get_updated_fields();
+					this.validate_fields(doc.fields, doc.istable);
 					await frappe.call({ method: "save_customization", doc });
 				} else {
 					this.doc.fields = this.get_updated_fields();
+					this.validate_fields(this.doc.fields, this.doc.istable);
 					await frappe.call("frappe.client.save", { doc: this.doc });
 					frappe.toast("Fields Table Updated");
 				}
