@@ -61,7 +61,7 @@ class TestBase64File(unittest.TestCase):
 				"doctype": "File",
 				"file_name": "test_base64.txt",
 				"attached_to_doctype": self.attached_to_doctype,
-				"attached_to_docname": self.attached_to_docname,
+				"attached_to_name": self.attached_to_docname,
 				"content": self.test_content,
 				"decode": True,
 			}
