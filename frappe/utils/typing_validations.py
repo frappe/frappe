@@ -125,8 +125,10 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 			# add default value's type in acceptable types
 			if param_def.default is not _empty:
 				if isinstance(current_arg_type, tuple):
-					if param_def.default not in current_arg_type:
+					if type(param_def.default) not in current_arg_type:
 						current_arg_type += (type(param_def.default),)
+					current_arg_type = Union[current_arg_type]
+
 				elif param_def.default != current_arg_type:
 					current_arg_type = Union[current_arg_type, type(param_def.default)]
 
