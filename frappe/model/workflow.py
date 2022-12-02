@@ -101,6 +101,9 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 @frappe.whitelist()
 def apply_workflow(doc, action):
 	"""Allow workflow action on the current doc"""
+	from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+	from frappe.utils.scheduler import is_scheduler_inactive
+
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	workflow = get_workflow(doc.doctype)
 	transitions = get_transitions(doc, workflow)
@@ -132,7 +135,10 @@ def apply_workflow(doc, action):
 	if doc.docstatus.is_draft() and new_docstatus == DocStatus.draft():
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus == DocStatus.submitted():
-		doc.submit()
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, action="submit")
+		else:
+			doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.submitted():
 		doc.save()
 	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.cancelled():
