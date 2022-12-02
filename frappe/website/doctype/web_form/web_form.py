@@ -342,7 +342,7 @@ def get_context(context):
 			return False
 
 		if self.apply_document_permissions:
-			return frappe.get_doc(doctype, name).has_permission()
+			return frappe.get_doc(doctype, name).has_permission(permtype=ptype)
 
 		# owner matches
 		elif frappe.db.get_value(doctype, name, "owner") == frappe.session.user:
