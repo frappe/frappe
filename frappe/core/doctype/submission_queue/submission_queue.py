@@ -69,6 +69,10 @@ class SubmissionQueue(Document):
 
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
 		# Set the job id for that submission doctype
+		submission_doc = frappe.get_doc(self.doctype, self.name)
+		if submission_doc.state == "Failed":
+			# If the document has already been unlocked by _unlock_reference_doc_unlock_reference_doc
+			return
 		self.update_job_id(get_current_job().id)
 		_action = action_for_queuing.lower()
 		if _action == "update":
@@ -129,9 +133,10 @@ class SubmissionQueue(Document):
 			enqueue_create_notification([notify_to], notification_doc)
 
 	def _unlock_reference_doc(self):
-		"""
-		Only execute if self.job_id is defined.
-		"""
+		if not self.job_id:
+			self.queued_doc.unlock()
+			frappe.db.set_value(self.doctype, self.name, {"status": "Failed"})
+
 		try:
 			job = Job.fetch(self.job_id, connection=get_redis_conn())
 			status = job.get_status(refresh=True)
@@ -156,8 +161,7 @@ class SubmissionQueue(Document):
 		# NOTE: this can lead to some weird unlocking/locking behaviours.
 		# for example: hitting unlock on a submission could lead to unlocking of another submission
 		# of the same reference document.
-
-		if self.status != "Queued" and not self.job_id:
+		if self.status != "Queued":
 			return
 
 		self._unlock_reference_doc()
