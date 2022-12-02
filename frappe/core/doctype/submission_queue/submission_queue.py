@@ -68,11 +68,10 @@ class SubmissionQueue(Document):
 		)
 
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
-		# Set the job id for that submission doctype
-		submission_doc = frappe.get_doc(self.doctype, self.name)
-		if submission_doc.state == "Failed":
-			# If the document has already been unlocked by _unlock_reference_doc_unlock_reference_doc
+		if self.status == "Failed":
+			# If the document has already been unlocked by _unlock_reference_doc
 			return
+		# Set the job id for that submission doctyp
 		self.update_job_id(get_current_job().id)
 		_action = action_for_queuing.lower()
 		if _action == "update":
@@ -97,17 +96,20 @@ class SubmissionQueue(Document):
 		self.notify(values["status"], action_for_queuing)
 
 	def notify(self, submission_status: str, action: str):
+		message = _("Action {0} run on {1} {2} ")
 		if submission_status == "Failed":
 			doctype = self.doctype
 			docname = self.name
-			message = _("Submission of {0} {1} with action {2} failed")
+			message += "failed"
 		else:
 			doctype = self.ref_doctype
 			docname = self.ref_docname
-			message = _("Submission of {0} {1} with action {2} completed successfully")
+			message += "finished"
 
 		message = message.format(
-			frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
+			frappe.bold(action),
+			frappe.bold(str(self.ref_doctype)),
+			frappe.bold(self.ref_docname),
 		)
 		time_diff = time_diff_in_seconds(now(), self.created_at)
 		if cint(time_diff) <= 60:
@@ -133,10 +135,6 @@ class SubmissionQueue(Document):
 			enqueue_create_notification([notify_to], notification_doc)
 
 	def _unlock_reference_doc(self):
-		if not self.job_id:
-			self.queued_doc.unlock()
-			frappe.db.set_value(self.doctype, self.name, {"status": "Failed"})
-
 		try:
 			job = Job.fetch(self.job_id, connection=get_redis_conn())
 			status = job.get_status(refresh=True)
@@ -169,7 +167,7 @@ class SubmissionQueue(Document):
 
 def queue_submission(doc: Document, action: str, alert: bool = True):
 	queue = frappe.new_doc("Submission Queue")
-	queue.state = "Queued"
+	queue.status = "Queued"
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)
