@@ -571,6 +571,7 @@ doctype_properties = {
 	"allow_copy": "Check",
 	"istable": "Check",
 	"quick_entry": "Check",
+	"queue_in_background": "Check",
 	"editable_grid": "Check",
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
@@ -586,6 +587,10 @@ doctype_properties = {
 	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
+	"translate_link_fields": "Check",
+	"is_calendar_and_gantt": "Check",
+	"default_view": "Select",
+	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
 }
 

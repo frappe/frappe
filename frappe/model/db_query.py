@@ -13,7 +13,7 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import FallBackDateTimeStr
+from frappe.database.utils import FallBackDateTimeStr, NestedSetHierarchy
 from frappe.model import optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -384,14 +384,21 @@ class DatabaseQuery:
 				_raise_exception()
 
 		for field in self.fields:
+			lower_field = field.lower().strip()
+
 			if SUB_QUERY_PATTERN.match(field):
-				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
-					_raise_exception()
+				if lower_field[0] == "(":
+					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
+					if subquery_token in blacklisted_keywords:
+						_raise_exception()
 
-				if any(f"{keyword}(" in field.lower() for keyword in blacklisted_functions):
-					_raise_exception()
+				function = lower_field.split("(", 1)[0].rstrip()
+				if function in blacklisted_functions:
+					frappe.throw(
+						_("Use of function {0} in field is restricted").format(function), exc=frappe.DataError
+					)
 
-				if "@" in field.lower():
+				if "@" in lower_field:
 					# prevent access to global variables
 					_raise_exception()
 
@@ -407,7 +414,7 @@ class DatabaseQuery:
 				if STRICT_FIELD_PATTERN.match(field):
 					frappe.throw(_("Illegal SQL Query"))
 
-				if STRICT_UNION_PATTERN.match(field.lower()):
+				if STRICT_UNION_PATTERN.match(lower_field):
 					frappe.throw(_("Illegal SQL Query"))
 
 	def extract_tables(self):
@@ -455,10 +462,10 @@ class DatabaseQuery:
 		)
 
 	def check_read_permission(self, doctype):
-		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
-
 		if not self.flags.ignore_permissions and not frappe.has_permission(
-			doctype, ptype=ptype, parent_doctype=self.doctype
+			doctype,
+			ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+			parent_doctype=self.doctype,
 		):
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
@@ -568,21 +575,14 @@ class DatabaseQuery:
 		can_be_null = True
 
 		# prepare in condition
-		if f.operator.lower() in (
-			"ancestors of",
-			"descendants of",
-			"not ancestors of",
-			"not descendants of",
-		):
+		if f.operator.lower() in NestedSetHierarchy:
 			values = f.value or ""
 
 			# TODO: handle list and tuple
 			# if not isinstance(values, (list, tuple)):
 			# 	values = values.split(",")
-
 			field = meta.get_field(f.fieldname)
 			ref_doctype = field.options if field else f.doctype
-
 			lft, rgt = "", ""
 			if f.value:
 				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
@@ -642,7 +642,7 @@ class DatabaseQuery:
 				f.value = date_range
 				fallback = f"'{FallBackDateTimeStr}'"
 
-			if f.operator in (">", "<") and (f.fieldname in ("creation", "modified")):
+			if f.operator in (">", "<", ">=", "<=") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
 				fallback = f"'{FallBackDateTimeStr}'"
 
@@ -911,12 +911,16 @@ class DatabaseQuery:
 					if self.order_by:
 						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
-	def validate_order_by_and_group_by(self, parameters):
+	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
 		if not parameters:
 			return
 
+		blacklisted_sql_functions = {
+			"sleep",
+		}
 		_lower = parameters.lower()
+
 		if "select" in _lower and "from" in _lower:
 			frappe.throw(_("Cannot use sub-query in order by"))
 
@@ -924,12 +928,19 @@ class DatabaseQuery:
 			frappe.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
-			if "." in field and field.strip().startswith("`tab"):
-				tbl = field.strip().split(".")[0]
+			field = field.strip()
+			function = field.split("(", 1)[0].rstrip().lower()
+			full_field_name = "." in field and field.startswith("`tab")
+
+			if full_field_name:
+				tbl = field.split(".", 1)[0]
 				if tbl not in self.tables:
 					if tbl.startswith("`"):
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
+
+			if function in blacklisted_sql_functions:
+				frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
 	def add_limit(self):
 		if self.limit_page_length:

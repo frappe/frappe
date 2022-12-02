@@ -16,7 +16,6 @@
   "letter_head",
   "add_total_row",
   "disabled",
-  "disable_prepared_report",
   "prepared_report",
   "filters_section",
   "filters",
@@ -135,17 +134,9 @@
   },
   {
    "default": "0",
-   "fieldname": "disable_prepared_report",
-   "fieldtype": "Check",
-   "label": "Disable Prepared Report"
-  },
-  {
-   "default": "0",
    "fieldname": "prepared_report",
    "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Prepared Report",
-   "read_only": 1
+   "label": "Prepared Report"
   },
   {
    "depends_on": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& doc.is_standard===\"No\"",
@@ -191,7 +182,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-15 13:37:24.531848",
+ "modified": "2022-11-20 14:56:36.578412",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",

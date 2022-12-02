@@ -3,6 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
+import cloneDeepWith from "lodash/cloneDeepWith";
 
 frappe.provide("frappe.utils");
 
@@ -245,6 +246,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
+		if (!txt) return "";
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -817,6 +819,13 @@ Object.assign(frappe.utils, {
 		return /\.(gif|jpg|jpeg|tiff|png|svg)$/i.test(filename);
 	},
 
+	is_video_file: function (filename) {
+		if (!filename) return false;
+		// url can have query params
+		filename = filename.split("?")[0];
+		return /\.(mov|mp4|mkv|webm)$/i.test(filename);
+	},
+
 	play_sound: function (name) {
 		try {
 			if (frappe.boot.user.mute_sounds) {
@@ -998,6 +1007,10 @@ Object.assign(frappe.utils, {
 
 	deep_equal(a, b) {
 		return deep_equal(a, b);
+	},
+
+	deep_clone(obj, customizer) {
+		return cloneDeepWith(obj, customizer);
 	},
 
 	file_name_ellipsis(filename, length) {
@@ -1255,20 +1268,12 @@ Object.assign(frappe.utils, {
 				if (frappe.model.is_single(item.doctype)) {
 					route = doctype_slug;
 				} else {
-					if (!item.doc_view) {
-						if (frappe.model.is_tree(item.doctype)) {
-							item.doc_view = "Tree";
-						} else {
-							item.doc_view = "List";
-						}
-					}
-
 					switch (item.doc_view) {
 						case "List":
 							if (item.filters) {
 								frappe.route_options = item.filters;
 							}
-							route = doctype_slug;
+							route = `${doctype_slug}/view/list`;
 							break;
 						case "Tree":
 							route = `${doctype_slug}/view/tree`;
@@ -1285,12 +1290,11 @@ Object.assign(frappe.utils, {
 						case "Calendar":
 							route = `${doctype_slug}/view/calendar/default`;
 							break;
+						case "Kanban":
+							route = `${doctype_slug}/view/kanban`;
+							break;
 						default:
-							frappe.throw({
-								message: __("Not a valid view:") + item.doc_view,
-								title: __("Unknown View"),
-							});
-							route = "";
+							route = doctype_slug;
 					}
 				}
 			} else if (type === "report") {
@@ -1387,7 +1391,7 @@ Object.assign(frappe.utils, {
 			: "";
 
 		return $(`<div class="summary-item">
-			<span class="summary-label">${summary.label}</span>
+			<span class="summary-label">${__(summary.label)}</span>
 			<div class="summary-value ${color}">${value}</div>
 		</div>`);
 	},

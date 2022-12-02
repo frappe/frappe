@@ -51,12 +51,12 @@ class DbManager:
 	@staticmethod
 	def restore_database(target, source, user, password):
 		import os
-		from distutils.spawn import find_executable
+		from shutil import which
 
 		from frappe.utils import make_esc
 
 		esc = make_esc("$ ")
-		pv = find_executable("pv")
+		pv = which("pv")
 
 		if pv:
 			pipe = f"{pv} {source} |"

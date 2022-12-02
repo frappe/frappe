@@ -97,7 +97,7 @@ class TestImporter(FrappeTestCase):
 	def test_data_import_update(self):
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,
-			title=frappe.generate_hash(doctype_name, 8),
+			title=frappe.generate_hash(length=8),
 			table_field_1=[{"child_title": "child title to update"}],
 		)
 		existing_doc.save()

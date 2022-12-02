@@ -3,6 +3,7 @@ frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
+
 	init: function (port = 3000) {
 		if (frappe.boot.disable_async) {
 			return;
@@ -17,14 +18,12 @@ frappe.socketio = {
 			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {
 				secure: true,
 				withCredentials: true,
+				reconnectionAttempts: 3,
 			});
 		} else if (window.location.protocol == "http:") {
 			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {
 				withCredentials: true,
-			});
-		} else if (window.location.protocol == "file:") {
-			frappe.socketio.socket = io.connect(window.localStorage.server, {
-				withCredentials: true,
+				reconnectionAttempts: 3,
 			});
 		}
 
@@ -42,16 +41,13 @@ frappe.socketio = {
 				data.percent = (flt(data.progress[0]) / data.progress[1]) * 100;
 			}
 			if (data.percent) {
-				if (data.percent == 100) {
-					frappe.hide_progress();
-				} else {
-					frappe.show_progress(
-						data.title || __("Progress"),
-						data.percent,
-						100,
-						data.description
-					);
-				}
+				frappe.show_progress(
+					data.title || __("Progress"),
+					data.percent,
+					100,
+					data.description,
+					true
+				);
 			}
 		});
 
@@ -132,6 +128,9 @@ frappe.socketio = {
 	},
 	task_unsubscribe: function (task_id) {
 		frappe.socketio.socket.emit("task_unsubscribe", task_id);
+	},
+	list_subscribe: function (doctype) {
+		frappe.socketio.socket.emit("list_update", doctype);
 	},
 	doc_subscribe: function (doctype, docname) {
 		if (frappe.flags.doc_subscribe) {

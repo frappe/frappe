@@ -37,6 +37,7 @@ def export_data(
 	file_type="CSV",
 	template=False,
 	filters=None,
+	export_without_column_meta=False,
 ):
 	_doctype = doctype
 	if isinstance(_doctype, list):
@@ -48,6 +49,15 @@ def export_data(
 		filters=filters,
 		method=parent_doctype,
 	)
+
+	template_bool = template
+	if isinstance(template, str):
+		template_bool = template.lower() == "true"
+
+	export_without_column_meta_bool = export_without_column_meta
+	if isinstance(export_without_column_meta, str):
+		export_without_column_meta_bool = export_without_column_meta.lower() == "true"
+
 	exporter = DataExporter(
 		doctype=doctype,
 		parent_doctype=parent_doctype,
@@ -55,8 +65,9 @@ def export_data(
 		with_data=with_data,
 		select_columns=select_columns,
 		file_type=file_type,
-		template=template,
+		template=template_bool,
 		filters=filters,
+		export_without_column_meta=export_without_column_meta_bool,
 	)
 	exporter.build_response()
 
@@ -72,6 +83,7 @@ class DataExporter:
 		file_type="CSV",
 		template=False,
 		filters=None,
+		export_without_column_meta=False,
 	):
 		self.doctype = doctype
 		self.parent_doctype = parent_doctype
@@ -81,6 +93,7 @@ class DataExporter:
 		self.file_type = file_type
 		self.template = template
 		self.filters = filters
+		self.export_without_column_meta = export_without_column_meta
 		self.data_keys = get_data_keys()
 
 		self.prepare_args()
@@ -117,7 +130,10 @@ class DataExporter:
 		if self.template:
 			self.add_main_header()
 
-		self.writer.writerow([""])
+		# No need of empty row at the start
+		if not self.export_without_column_meta:
+			self.writer.writerow([""])
+
 		self.tablerow = [self.data_keys.doctype]
 		self.labelrow = [_("Column Labels:")]
 		self.fieldrow = [self.data_keys.columns]
@@ -310,12 +326,18 @@ class DataExporter:
 			return ""
 
 	def add_field_headings(self):
-		self.writer.writerow(self.tablerow)
+		if not self.export_without_column_meta:
+			self.writer.writerow(self.tablerow)
+
+		# Just include Labels in the first row
 		self.writer.writerow(self.labelrow)
-		self.writer.writerow(self.fieldrow)
-		self.writer.writerow(self.mandatoryrow)
-		self.writer.writerow(self.typerow)
-		self.writer.writerow(self.inforow)
+
+		if not self.export_without_column_meta:
+			self.writer.writerow(self.fieldrow)
+			self.writer.writerow(self.mandatoryrow)
+			self.writer.writerow(self.typerow)
+			self.writer.writerow(self.inforow)
+
 		if self.template:
 			self.writer.writerow([self.data_keys.data_separator])
 
@@ -410,23 +432,20 @@ class DataExporter:
 				row[_column_start_end.start + i + 1] = value
 
 	def build_response_as_excel(self):
-		filename = frappe.generate_hash("", 10)
+		from frappe.desk.utils import provide_binary_file
+		from frappe.utils.xlsxutils import make_xlsx
+
+		filename = frappe.generate_hash(length=10)
 		with open(filename, "wb") as f:
 			f.write(cstr(self.writer.getvalue()).encode("utf-8"))
 		f = open(filename)
 		reader = csv.reader(f)
-
-		from frappe.utils.xlsxutils import make_xlsx
-
 		xlsx_file = make_xlsx(reader, "Data Import Template" if self.template else "Data Export")
 
 		f.close()
 		os.remove(filename)
 
-		# write out response as a xlsx type
-		frappe.response["filename"] = self.doctype + ".xlsx"
-		frappe.response["filecontent"] = xlsx_file.getvalue()
-		frappe.response["type"] = "binary"
+		provide_binary_file(self.doctype, "xlsx", xlsx_file.getvalue())
 
 	def _append_name_column(self, dt=None):
 		self.append_field_column(

@@ -69,6 +69,10 @@ class MariaDBExceptionUtil:
 		return e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
+	def is_statement_timeout(e: pymysql.Error) -> bool:
+		return e.args[0] == 1969
+
+	@staticmethod
 	def is_data_too_long(e: pymysql.Error) -> bool:
 		return e.args[0] == ER.DATA_TOO_LONG
 
@@ -102,6 +106,9 @@ class MariaDBConnectionUtil:
 	def create_connection(self):
 		return pymysql.connect(**self.get_connection_settings())
 
+	def set_execution_timeout(self, seconds: int):
+		self.sql("set session max_statement_time = %s", int(seconds))
+
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
 			"host": self.host,
@@ -112,7 +119,7 @@ class MariaDBConnectionUtil:
 			"use_unicode": True,
 		}
 
-		if self.user != "root":
+		if self.user not in (frappe.flags.root_login, "root"):
 			conn_settings["database"] = self.user
 
 		if self.port:
@@ -301,6 +308,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				where table_name="{table_name}"
 					and column_name=columns.column_name
 					and NON_UNIQUE=1
+					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique'
@@ -318,6 +326,37 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				table_name=table_name, index_name=index_name
 			)
 		)
+
+	def get_column_index(
+		self, table_name: str, fieldname: str, unique: bool = False
+	) -> frappe._dict | None:
+		"""Check if column exists for a specific fields in specified order.
+
+		This differs from db.has_index because it doesn't rely on index name but columns inside an
+		index.
+		"""
+
+		indexes = self.sql(
+			f"""SHOW INDEX FROM `{table_name}`
+				WHERE Column_name = "{fieldname}"
+					AND Seq_in_index = 1
+					AND Non_unique={int(not unique)}
+				""",
+			as_dict=True,
+		)
+
+		# Same index can be part of clustered index which contains more fields
+		# We don't want those.
+		for index in indexes:
+			clustered_index = self.sql(
+				f"""SHOW INDEX FROM `{table_name}`
+					WHERE Key_name = "{index.Key_name}"
+						AND Seq_in_index = 2
+					""",
+				as_dict=True,
+			)
+			if not clustered_index:
+				return index
 
 	def add_index(self, doctype: str, fields: list, index_name: str = None):
 		"""Creates an index with given fields if not already created.

@@ -127,476 +127,479 @@
 	</div>
 </template>
 
-<script>
+<script setup>
+import { computed, ref, watch } from 'vue';
 import FilePreview from './FilePreview.vue';
 import FileBrowser from './FileBrowser.vue';
 import WebLink from './WebLink.vue';
 import GoogleDrivePicker from '../../integrations/google_drive_picker';
 import ImageCropper from './ImageCropper.vue';
 
-export default {
-	name: 'FileUploader',
-	props: {
-		show_upload_button: {
-			default: true
-		},
-		disable_file_browser: {
-			default: false
-		},
-		allow_multiple: {
-			default: true
-		},
-		as_dataurl: {
-			default: false
-		},
-		doctype: {
-			default: null
-		},
-		docname: {
-			default: null
-		},
-		fieldname: {
-			default: null
-		},
-		folder: {
-			default: 'Home'
-		},
-		method: {
-			default: null
-		},
-		on_success: {
-			default: null
-		},
-		make_attachments_public: {
-			default: null,
-		},
-		restrictions: {
-			default: () => ({
-				max_file_size: null, // 2048 -> 2KB
-				max_number_of_files: null,
-				allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
-				crop_image_aspect_ratio: null // 1, 16 / 9, 4 / 3, NaN (free)
-			})
-		},
-		attach_doc_image: {
-			default: false
-		},
-		upload_notes: {
-			default: null // "Images or video, upto 2MB"
-		}
+// props
+const props = defineProps({
+	show_upload_button: {
+		default: true
 	},
-	components: {
-		FilePreview,
-		FileBrowser,
-		WebLink,
-		ImageCropper
+	disable_file_browser: {
+		default: false
 	},
-	data() {
-		return {
-			files: [],
-			is_dragging: false,
-			currently_uploading: -1,
-			show_file_browser: false,
-			show_web_link: false,
-			show_image_cropper: false,
-			crop_image_with_index: -1,
-			trigger_upload: false,
-			close_dialog: false,
-			hide_dialog_footer: false,
-			allow_take_photo: false,
-			allow_web_link: true,
-			google_drive_settings: {
-				enabled: false
-			},
-			wrapper_ready: false
-		}
+	allow_multiple: {
+		default: true
 	},
-	created() {
-		this.allow_take_photo = window.navigator.mediaDevices;
-		if (frappe.user_id !== "Guest") {
-			frappe.call({
-				// method only available after login
-				method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
-				callback: (resp) => {
-					if (!resp.exc) {
-						this.google_drive_settings = resp.message;
-					}
-				}
-			});
-		}
-		if (this.restrictions.max_file_size == null) {
-			frappe.call('frappe.core.api.file.get_max_file_size')
-				.then(res => {
-					this.restrictions.max_file_size = Number(res.message);
-				});
-		}
-		if (this.restrictions.max_number_of_files == null && this.doctype) {
-			this.restrictions.max_number_of_files = frappe.get_meta(this.doctype)?.max_attachments;
-		}
+	as_dataurl: {
+		default: false
 	},
-	watch: {
-		files(newvalue, oldvalue) {
-			if (!this.allow_multiple && newvalue.length > 1) {
-				this.files = [newvalue[newvalue.length - 1]];
+	doctype: {
+		default: null
+	},
+	docname: {
+		default: null
+	},
+	fieldname: {
+		default: null
+	},
+	folder: {
+		default: 'Home'
+	},
+	method: {
+		default: null
+	},
+	on_success: {
+		default: null
+	},
+	make_attachments_public: {
+		default: null,
+	},
+	restrictions: {
+		default: () => ({
+			max_file_size: null, // 2048 -> 2KB
+			max_number_of_files: null,
+			allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
+			crop_image_aspect_ratio: null // 1, 16 / 9, 4 / 3, NaN (free)
+		})
+	},
+	attach_doc_image: {
+		default: false
+	},
+	upload_notes: {
+		default: null // "Images or video, upto 2MB"
+	}
+});
+
+// variables
+let files = ref([]);
+let file_input = ref(null);
+let file_browser = ref(null);
+let web_link = ref(null);
+let is_dragging = ref(false);
+let currently_uploading = ref(-1);
+let show_file_browser = ref(false);
+let show_web_link = ref(false);
+let show_image_cropper = ref(false);
+let crop_image_with_index = ref(-1);
+let trigger_upload = ref(false);
+let close_dialog = ref(false);
+let hide_dialog_footer = ref(false);
+let allow_take_photo = ref(false);
+let allow_web_link = ref(true);
+let google_drive_settings = ref({
+	enabled: false
+});
+let wrapper_ready = ref(false);
+
+// created
+allow_take_photo.value = window.navigator.mediaDevices;
+if (frappe.user_id !== "Guest") {
+	frappe.call({
+		// method only available after login
+		method: "frappe.integrations.doctype.google_settings.google_settings.get_file_picker_settings",
+		callback: (resp) => {
+			if (!resp.exc) {
+				google_drive_settings.value = resp.message;
 			}
 		}
-	},
-	computed: {
-		upload_complete() {
-			return this.files.length > 0
-				&& this.files.every(
-					file => file.total !== 0 && file.progress === file.total);
+	});
+}
+if (props.restrictions.max_file_size == null) {
+	frappe.call('frappe.core.api.file.get_max_file_size')
+		.then(res => {
+			props.restrictions.max_file_size = Number(res.message);
+		});
+}
+if (props.restrictions.max_number_of_files == null && props.doctype) {
+	props.restrictions.max_number_of_files = frappe.get_meta(props.doctype)?.max_attachments;
+}
+
+// methods
+function dragover() {
+	is_dragging.value = true;
+}
+function dragleave() {
+	is_dragging.value = false;
+}
+function dropfiles(e) {
+	is_dragging.value = false;
+	add_files(e.dataTransfer.files);
+}
+function browse_files() {
+	file_input.value.click();
+}
+function on_file_input(e) {
+	add_files(file_input.value.files);
+}
+function remove_file(file) {
+	files.value = files.value.filter(f => f !== file);
+}
+function toggle_image_cropper(index) {
+	crop_image_with_index.value = show_image_cropper.value ? -1 : index;
+	hide_dialog_footer.value = !show_image_cropper.value;
+	show_image_cropper.value = !show_image_cropper.value;
+}
+function toggle_all_private() {
+	let flag;
+	let private_values = files.value.filter(file => file.private);
+	if (private_values.length < files.value.length) {
+		// there are some private and some public
+		// set all to private
+		flag = true;
+	} else {
+		// all are private, set all to public
+		flag = false;
+	}
+	files.value = files.value.map(file => {
+		file.private = flag;
+		return file;
+	});
+}
+function show_max_files_number_warning(file) {
+	console.warn(
+		`File skipped because it exceeds the allowed specified limit of ${max_number_of_files} uploads`,
+		file,
+	);
+	if (props.doctype) {
+		MSG = __('File "{0}" was skipped because only {1} uploads are allowed for DocType "{2}"', [file.name, max_number_of_files, props.doctype])
+	} else {
+		MSG = __('File "{0}" was skipped because only {1} uploads are allowed', [file.name, max_number_of_files])
+	}
+	frappe.show_alert({
+		message: MSG,
+		indicator: "orange",
+	});
+}
+function add_files(file_array) {
+	let _files = Array.from(file_array)
+		.filter(check_restrictions)
+		.map(file => {
+			let is_image = file.type.startsWith('image');
+			let size_kb = file.size / 1024;
+			return {
+				file_obj: file,
+				cropper_file: file,
+				crop_box_data: null,
+				optimize: size_kb > 200 && is_image && !file.type.includes('svg'),
+				name: file.name,
+				doc: null,
+				progress: 0,
+				total: 0,
+				failed: false,
+				request_succeeded: false,
+				error_message: null,
+				uploading: false,
+				private: !props.make_attachments_public,
+			};
+		});
+
+	// pop extra files as per FileUploader.restrictions.max_number_of_files
+	max_number_of_files = props.restrictions.max_number_of_files;
+	if (max_number_of_files && _files.length > max_number_of_files) {
+		_files.slice(max_number_of_files).forEach(file => {
+			show_max_files_number_warning(file, props.doctype);
+		});
+
+		_files = _files.slice(0, max_number_of_files);
+	}
+
+	files.value = files.value.concat(_files);
+	// if only one file is allowed and crop_image_aspect_ratio is set, open cropper immediately
+	if (files.value.length === 1 && !props.allow_multiple && props.restrictions.crop_image_aspect_ratio != null) {
+		if (!files.value[0].file_obj.type.includes('svg')) {
+			toggle_image_cropper(0);
 		}
-	},
-	methods: {
-		dragover() {
-			this.is_dragging = true;
-		},
-		dragleave() {
-			this.is_dragging = false;
-		},
-		dropfiles(e) {
-			this.is_dragging = false;
-			this.add_files(e.dataTransfer.files);
-		},
-		browse_files() {
-			this.$refs.file_input.click();
-		},
-		on_file_input(e) {
-			this.add_files(this.$refs.file_input.files);
-		},
-		remove_file(file) {
-			this.files = this.files.filter(f => f !== file);
-		},
-		toggle_image_cropper(index) {
-			this.crop_image_with_index = this.show_image_cropper ? -1 : index;
-			this.hide_dialog_footer = !this.show_image_cropper;
-			this.show_image_cropper = !this.show_image_cropper;
-		},
-		toggle_all_private() {
-			let flag;
-			let private_values = this.files.filter(file => file.private);
-			if (private_values.length < this.files.length) {
-				// there are some private and some public
-				// set all to private
-				flag = true;
-			} else {
-				// all are private, set all to public
-				flag = false;
-			}
-			this.files = this.files.map(file => {
-				file.private = flag;
-				return file;
-			});
-		},
-		show_max_files_number_warning(file) {
-			console.warn(
-				`File skipped because it exceeds the allowed specified limit of ${max_number_of_files} uploads`,
-				file,
-			);
-			if (this.doctype) {
-				MSG = __('File "{0}" was skipped because only {1} uploads are allowed for DocType "{2}"', [file.name, max_number_of_files, this.doctype])
-			} else {
-				MSG = __('File "{0}" was skipped because only {1} uploads are allowed', [file.name, max_number_of_files])
-			}
-			frappe.show_alert({
-				message: MSG,
-				indicator: "orange",
-			});
-		},
-		add_files(file_array) {
-			let files = Array.from(file_array)
-				.filter(this.check_restrictions)
-				.map(file => {
-					let is_image = file.type.startsWith('image');
-					let size_kb = file.size / 1024;
-					return {
-						file_obj: file,
-						cropper_file: file,
-						crop_box_data: null,
-						optimize: size_kb > 200 && is_image && !file.type.includes('svg'),
-						name: file.name,
-						doc: null,
-						progress: 0,
-						total: 0,
-						failed: false,
-						request_succeeded: false,
-						error_message: null,
-						uploading: false,
-						private: !this.make_attachments_public,
-					};
-				});
-
-			// pop extra files as per FileUploader.restrictions.max_number_of_files
-			max_number_of_files = this.restrictions.max_number_of_files;
-			if (max_number_of_files && files.length > max_number_of_files) {
-				files.slice(max_number_of_files).forEach(file => {
-					this.show_max_files_number_warning(file, this.doctype);
-				});
-
-				files = files.slice(0, max_number_of_files);
-			}
-
-			this.files = this.files.concat(files);
-			// if only one file is allowed and crop_image_aspect_ratio is set, open cropper immediately
-			if (this.files.length === 1 && !this.allow_multiple && this.restrictions.crop_image_aspect_ratio != null) {
-				if (!this.files[0].file_obj.type.includes('svg')) {
-					this.toggle_image_cropper(0);
-				}
-			}
-		},
-		check_restrictions(file) {
-			let { max_file_size, allowed_file_types = [] } = this.restrictions;
-
-			let is_correct_type = true;
-			let valid_file_size = true;
-
-			if (allowed_file_types && allowed_file_types.length) {
-				is_correct_type = allowed_file_types.some((type) => {
-					// is this is a mime-type
-					if (type.includes('/')) {
-						if (!file.type) return false;
-						return file.type.match(type);
-					}
-
-					// otherwise this is likely an extension
-					if (type[0] === '.') {
-						return file.name.endsWith(type);
-					}
-					return false;
-				});
-			}
-
-			if (max_file_size && file.size != null) {
-				valid_file_size = file.size < max_file_size;
-			}
-
-			if (!is_correct_type) {
-				console.warn('File skipped because of invalid file type', file);
-				frappe.show_alert({
-					message: __('File "{0}" was skipped because of invalid file type', [file.name]),
-					indicator: 'orange'
-				});
-			}
-			if (!valid_file_size) {
-				console.warn('File skipped because of invalid file size', file.size, file);
-				frappe.show_alert({
-					message: __('File "{0}" was skipped because size exceeds {1} MB', [file.name, max_file_size / (1024 * 1024)]),
-					indicator: 'orange'
-				});
-			}
-
-			return is_correct_type && valid_file_size;
-		},
-		upload_files() {
-			if (this.show_file_browser) {
-				return this.upload_via_file_browser();
-			}
-			if (this.show_web_link) {
-				return this.upload_via_web_link();
-			}
-			if (this.as_dataurl) {
-				return this.return_as_dataurl();
-			}
-			return frappe.run_serially(
-				this.files.map(
-					(file, i) =>
-						() => this.upload_file(file, i)
-				)
-			);
-		},
-		upload_via_file_browser() {
-			let selected_file = this.$refs.file_browser.selected_node;
-			if (!selected_file.value) {
-				frappe.msgprint(__('Click on a file to select it.'));
-				this.close_dialog = true;
-				return Promise.reject();
-			}
-			this.close_dialog = true;
-			return this.upload_file({
-				file_url: selected_file.file_url
-			});
-		},
-		upload_via_web_link() {
-			let file_url = this.$refs.web_link.url;
-			if (!file_url) {
-				frappe.msgprint(__('Invalid URL'));
-				this.close_dialog = true;
-				return Promise.reject();
-			}
-			file_url = decodeURI(file_url)
-			this.close_dialog = true;
-			return this.upload_file({
-				file_url
-			});
-		},
-		return_as_dataurl() {
-			let promises = this.files.map(file =>
-				frappe.dom.file_to_base64(file.file_obj)
-					.then(dataurl => {
-						file.dataurl = dataurl;
-						this.on_success && this.on_success(file);
-					})
-			);
-			this.close_dialog = true;
-			return Promise.all(promises);
-		},
-		upload_file(file, i) {
-			this.currently_uploading = i;
-
-			return new Promise((resolve, reject) => {
-				let xhr = new XMLHttpRequest();
-				xhr.upload.addEventListener('loadstart', (e) => {
-					file.uploading = true;
-				})
-				xhr.upload.addEventListener('progress', (e) => {
-					if (e.lengthComputable) {
-						file.progress = e.loaded;
-						file.total = e.total;
-					}
-				})
-				xhr.upload.addEventListener('load', (e) => {
-					file.uploading = false;
-					resolve();
-				})
-				xhr.addEventListener('error', (e) => {
-					file.failed = true;
-					reject();
-				})
-				xhr.onreadystatechange = () => {
-					if (xhr.readyState == XMLHttpRequest.DONE) {
-						if (xhr.status === 200) {
-							file.request_succeeded = true;
-							let r = null;
-							let file_doc = null;
-							try {
-								r = JSON.parse(xhr.responseText);
-								if (r.message.doctype === 'File') {
-									file_doc = r.message;
-								}
-							} catch(e) {
-								r = xhr.responseText;
-							}
-
-							file.doc = file_doc;
-
-							if (this.on_success) {
-								this.on_success(file_doc, r);
-							}
-
-							if (i == this.files.length - 1 && this.files.every(file => file.request_succeeded)) {
-								this.close_dialog = true;
-							}
-
-						} else if (xhr.status === 403) {
-							file.failed = true;
-							let response = JSON.parse(xhr.responseText);
-							file.error_message = `Not permitted. ${response._error_message || ''}`;
-
-						} else if (xhr.status === 413) {
-							file.failed = true;
-							file.error_message = 'Size exceeds the maximum allowed file size.';
-
-						} else {
-							file.failed = true;
-							file.error_message = xhr.status === 0 ? 'XMLHttpRequest Error' : `${xhr.status} : ${xhr.statusText}`;
-
-							let error = null;
-							try {
-								error = JSON.parse(xhr.responseText);
-							} catch(e) {
-								// pass
-							}
-							frappe.request.cleanup({}, error);
-						}
-					}
-				}
-				xhr.open('POST', '/api/method/upload_file', true);
-				xhr.setRequestHeader('Accept', 'application/json');
-				xhr.setRequestHeader('X-Frappe-CSRF-Token', frappe.csrf_token);
-
-				let form_data = new FormData();
-				if (file.file_obj) {
-					form_data.append('file', file.file_obj, file.name);
-				}
-				form_data.append('is_private', +file.private);
-				form_data.append('folder', this.folder);
-
-				if (file.file_url) {
-					form_data.append('file_url', file.file_url);
-				}
-
-				if (file.file_name) {
-					form_data.append('file_name', file.file_name);
-				}
-
-				if (this.doctype && this.docname) {
-					form_data.append('doctype', this.doctype);
-					form_data.append('docname', this.docname);
-				}
-
-				if (this.fieldname) {
-					form_data.append('fieldname', this.fieldname);
-				}
-
-				if (this.method) {
-					form_data.append('method', this.method);
-				}
-
-				if (file.optimize) {
-					form_data.append('optimize', true);
-				}
-
-				if (this.attach_doc_image) {
-					form_data.append('max_width', 200);
-					form_data.append('max_height', 200);
-				}
-
-				xhr.send(form_data);
-			});
-		},
-		capture_image() {
-			const capture = new frappe.ui.Capture({
-				animate: false,
-				error: true
-			});
-			capture.show();
-			capture.submit(data_urls => {
-				data_urls.forEach(data_url => {
-					let filename = `capture_${frappe.datetime.now_datetime().replaceAll(/[: -]/g, '_')}.png`;
-					this.url_to_file(data_url, filename, 'image/png').then((file) =>
-						this.add_files([file])
-					);
-				});
-			});
-		},
-		show_google_drive_picker() {
-			this.close_dialog = true;
-			let google_drive = new GoogleDrivePicker({
-				pickerCallback: data => this.google_drive_callback(data),
-				...this.google_drive_settings
-			});
-			google_drive.loadPicker();
-		},
-		google_drive_callback(data) {
-			if (data.action == google.picker.Action.PICKED) {
-				this.upload_file({
-					file_url: data.docs[0].url,
-					file_name: data.docs[0].name
-				});
-			} else if (data.action == google.picker.Action.CANCEL) {
-				cur_frm.attachments.new_attachment()
-			}
-		},
-		url_to_file(url, filename, mime_type) {
-			return fetch(url)
-					.then(res => res.arrayBuffer())
-					.then(buffer => new File([buffer], filename, { type: mime_type }));
-		},
 	}
 }
+function check_restrictions(file) {
+	let { max_file_size, allowed_file_types = [] } = props.restrictions;
+
+	let is_correct_type = true;
+	let valid_file_size = true;
+
+	if (allowed_file_types && allowed_file_types.length) {
+		is_correct_type = allowed_file_types.some((type) => {
+			// is this is a mime-type
+			if (type.includes('/')) {
+				if (!file.type) return false;
+				return file.type.match(type);
+			}
+
+			// otherwise this is likely an extension
+			if (type[0] === '.') {
+				return file.name.endsWith(type);
+			}
+			return false;
+		});
+	}
+
+	if (max_file_size && file.size != null) {
+		valid_file_size = file.size < max_file_size;
+	}
+
+	if (!is_correct_type) {
+		console.warn('File skipped because of invalid file type', file);
+		frappe.show_alert({
+			message: __('File "{0}" was skipped because of invalid file type', [file.name]),
+			indicator: 'orange'
+		});
+	}
+	if (!valid_file_size) {
+		console.warn('File skipped because of invalid file size', file.size, file);
+		frappe.show_alert({
+			message: __('File "{0}" was skipped because size exceeds {1} MB', [file.name, max_file_size / (1024 * 1024)]),
+			indicator: 'orange'
+		});
+	}
+
+	return is_correct_type && valid_file_size;
+}
+function upload_files() {
+	if (show_file_browser.value) {
+		return upload_via_file_browser();
+	}
+	if (show_web_link.value) {
+		return upload_via_web_link();
+	}
+	if (props.as_dataurl) {
+		return return_as_dataurl();
+	}
+	return frappe.run_serially(
+		files.value.map(
+			(file, i) =>
+				() => upload_file(file, i)
+		)
+	);
+}
+function upload_via_file_browser() {
+	let selected_file = file_browser.value.selected_node;
+	if (!selected_file.value) {
+		frappe.msgprint(__('Click on a file to select it.'));
+		close_dialog.value = true;
+		return Promise.reject();
+	}
+	close_dialog.value = true;
+	return upload_file({
+		file_url: selected_file.file_url
+	});
+}
+function upload_via_web_link() {
+	let file_url = web_link.value.url;
+	if (!file_url) {
+		frappe.msgprint(__('Invalid URL'));
+		close_dialog.value = true;
+		return Promise.reject();
+	}
+	file_url = decodeURI(file_url)
+	close_dialog.value = true;
+	return upload_file({
+		file_url
+	});
+}
+function return_as_dataurl() {
+	let promises = files.value.map(file =>
+		frappe.dom.file_to_base64(file.file_obj)
+			.then(dataurl => {
+				file.dataurl = dataurl;
+				props.on_success && props.on_success(file);
+			})
+	);
+	close_dialog.value = true;
+	return Promise.all(promises);
+}
+function upload_file(file, i) {
+	currently_uploading.value = i;
+
+	return new Promise((resolve, reject) => {
+		let xhr = new XMLHttpRequest();
+		xhr.upload.addEventListener('loadstart', (e) => {
+			file.uploading = true;
+		})
+		xhr.upload.addEventListener('progress', (e) => {
+			if (e.lengthComputable) {
+				file.progress = e.loaded;
+				file.total = e.total;
+			}
+		})
+		xhr.upload.addEventListener('load', (e) => {
+			file.uploading = false;
+			resolve();
+		})
+		xhr.addEventListener('error', (e) => {
+			file.failed = true;
+			reject();
+		})
+		xhr.onreadystatechange = () => {
+			if (xhr.readyState == XMLHttpRequest.DONE) {
+				if (xhr.status === 200) {
+					file.request_succeeded = true;
+					let r = null;
+					let file_doc = null;
+					try {
+						r = JSON.parse(xhr.responseText);
+						if (r.message.doctype === 'File') {
+							file_doc = r.message;
+						}
+					} catch(e) {
+						r = xhr.responseText;
+					}
+
+					file.doc = file_doc;
+
+					if (props.on_success) {
+						props.on_success(file_doc, r);
+					}
+
+					if (i == files.value.length - 1 && files.value.every(file => file.request_succeeded)) {
+						close_dialog.value = true;
+					}
+
+				} else if (xhr.status === 403) {
+					file.failed = true;
+					let response = JSON.parse(xhr.responseText);
+					file.error_message = `Not permitted. ${response._error_message || ''}`;
+
+				} else if (xhr.status === 413) {
+					file.failed = true;
+					file.error_message = 'Size exceeds the maximum allowed file size.';
+
+				} else {
+					file.failed = true;
+					file.error_message = xhr.status === 0 ? 'XMLHttpRequest Error' : `${xhr.status} : ${xhr.statusText}`;
+
+					let error = null;
+					try {
+						error = JSON.parse(xhr.responseText);
+					} catch(e) {
+						// pass
+					}
+					frappe.request.cleanup({}, error);
+				}
+			}
+		}
+		xhr.open('POST', '/api/method/upload_file', true);
+		xhr.setRequestHeader('Accept', 'application/json');
+		xhr.setRequestHeader('X-Frappe-CSRF-Token', frappe.csrf_token);
+
+		let form_data = new FormData();
+		if (file.file_obj) {
+			form_data.append('file', file.file_obj, file.name);
+		}
+		form_data.append('is_private', +file.private);
+		form_data.append('folder', props.folder);
+
+		if (file.file_url) {
+			form_data.append('file_url', file.file_url);
+		}
+
+		if (file.file_name) {
+			form_data.append('file_name', file.file_name);
+		}
+
+		if (props.doctype && props.docname) {
+			form_data.append('doctype', props.doctype);
+			form_data.append('docname', props.docname);
+		}
+
+		if (props.fieldname) {
+			form_data.append('fieldname', props.fieldname);
+		}
+
+		if (props.method) {
+			form_data.append('method', props.method);
+		}
+
+		if (file.optimize) {
+			form_data.append('optimize', true);
+		}
+
+		if (props.attach_doc_image) {
+			form_data.append('max_width', 200);
+			form_data.append('max_height', 200);
+		}
+
+		xhr.send(form_data);
+	});
+}
+function capture_image() {
+	const capture = new frappe.ui.Capture({
+		animate: false,
+		error: true
+	});
+	capture.show();
+	capture.submit(data_urls => {
+		data_urls.forEach(data_url => {
+			let filename = `capture_${frappe.datetime.now_datetime().replaceAll(/[: -]/g, '_')}.png`;
+			url_to_file(data_url, filename, 'image/png').then((file) =>
+				add_files([file])
+			);
+		});
+	});
+}
+function show_google_drive_picker() {
+	close_dialog.value = true;
+	let google_drive = new GoogleDrivePicker({
+		pickerCallback: data => google_drive_callback(data),
+		...google_drive_settings.value
+	});
+	google_drive.loadPicker();
+}
+function google_drive_callback(data) {
+	if (data.action == google.picker.Action.PICKED) {
+		upload_file({
+			file_url: data.docs[0].url,
+			file_name: data.docs[0].name
+		});
+	} else if (data.action == google.picker.Action.CANCEL) {
+		cur_frm.attachments.new_attachment()
+	}
+}
+function url_to_file(url, filename, mime_type) {
+	return fetch(url)
+		.then(res => res.arrayBuffer())
+		.then(buffer => new File([buffer], filename, { type: mime_type }));
+}
+
+// computed
+let upload_complete = computed(() => {
+	return files.value.length > 0
+		&& files.value.every(
+			file => file.total !== 0 && file.progress === file.total);
+});
+
+// watcher
+watch(files, (newvalue, oldvalue) => {
+	if (!props.allow_multiple && newvalue.length > 1) {
+		files.value = [newvalue[newvalue.length - 1]];
+	}
+}, { deep: true });
+
+defineExpose({
+	files,
+	add_files,
+	upload_files,
+	toggle_all_private,
+	wrapper_ready
+});
 </script>
-<style>
+
+<style scoped>
 .file-upload-area {
 	min-height: 16rem;
 	display: flex;

@@ -12,16 +12,16 @@ from werkzeug.wrappers import Request, Response
 
 import frappe
 import frappe.api
-import frappe.auth
 import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe.middlewares import StaticDataMiddleware
-from frappe.utils import get_site_name, sanitize_html
+from frappe.utils import cint, get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
@@ -29,8 +29,6 @@ local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
-SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
-UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
 @local_manager.middleware
@@ -79,7 +77,7 @@ def application(request: Request):
 		rollback = after_request(rollback)
 
 	finally:
-		if request.method in ("POST", "PUT") and frappe.db and rollback:
+		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
 
 		frappe.rate_limiter.update()
@@ -88,7 +86,8 @@ def application(request: Request):
 
 		log_request(request, response)
 		process_response(response)
-		frappe.destroy()
+		if frappe.db:
+			frappe.db.close()
 
 	return response
 
@@ -113,12 +112,12 @@ def init_request(request):
 	else:
 		frappe.connect(set_admin_as_user=False)
 
-	request.max_content_length = frappe.local.conf.get("max_file_size") or 10 * 1024 * 1024
+	request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 10 * 1024 * 1024
 
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
-		frappe.local.http_request = frappe.auth.HTTPRequest()
+		frappe.local.http_request = HTTPRequest()
 
 
 def setup_read_only_mode():
@@ -321,12 +320,16 @@ def handle_exception(e):
 
 def after_request(rollback):
 	# if HTTP method would change server state, commit if necessary
-	if frappe.db and (
-		frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS
+	if (
+		frappe.db
+		and (frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS)
+		and frappe.db.transaction_writes
 	):
-		if frappe.db.transaction_writes:
-			frappe.db.commit()
-			rollback = False
+		frappe.db.commit()
+		rollback = False
+	elif frappe.db:
+		frappe.db.rollback()
+		rollback = False
 
 	# update session
 	if getattr(frappe.local, "session_obj", None):

@@ -70,9 +70,6 @@
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
   "prepared_report_section",
-  "enable_prepared_report_auto_deletion",
-  "prepared_report_expiry_period",
-  "column_break_64",
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
@@ -208,11 +205,11 @@
    "label": "Security"
   },
   {
-   "default": "06:00",
-   "description": "Session Expiry in Hours e.g. 06:00",
+   "default": "24:00",
+   "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
-   "label": "Session Expiry"
+   "label": "Session Expiry (idle timeout)"
   },
   {
    "default": "720:00",
@@ -427,25 +424,11 @@
    "label": "Send document Web View link in email"
   },
   {
-   "default": "30",
-   "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
-   "fieldname": "prepared_report_expiry_period",
-   "fieldtype": "Int",
-   "label": "Prepared Report Expiry Period (Days)"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_prepared_report_auto_deletion",
-   "fieldtype": "Check",
-   "label": "Enable Auto-deletion of Prepared Reports"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "prepared_report_section",
-   "fieldtype": "Section Break",
-   "label": "Reports"
-  },
+    "collapsible": 1,
+    "fieldname": "prepared_report_section",
+    "fieldtype": "Section Break",
+    "label": "Reports"
+   },
   {
    "default": "Frappe",
    "description": "The application name will be used in the Login page.",
@@ -499,10 +482,6 @@
    "label": "Allow Older Web View Links (Insecure)"
   },
   {
-   "fieldname": "column_break_64",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "20",
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
@@ -538,7 +517,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-09-06 03:16:59.090906",
+ "modified": "2022-11-20 17:57:05.099512",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

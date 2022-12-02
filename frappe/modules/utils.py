@@ -296,7 +296,7 @@ def make_boilerplate(
 		controller_body = indent(
 			dedent(
 				"""
-			def db_insert(self):
+			def db_insert(self, *args, **kwargs):
 				pass
 
 			def load_from_db(self):
@@ -305,13 +305,16 @@ def make_boilerplate(
 			def db_update(self):
 				pass
 
-			def get_list(self, args):
+			@staticmethod
+			def get_list(args):
 				pass
 
-			def get_count(self, args):
+			@staticmethod
+			def get_count(args):
 				pass
 
-			def get_stats(self, args):
+			@staticmethod
+			def get_stats(args):
 				pass
 			"""
 			),

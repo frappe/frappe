@@ -15,4 +15,4 @@ def execute():
 		if isinstance(data, list):
 			# double escape braces
 			jstr = f'{{"columns":{jstr}}}'
-			frappe.db.update("Report", record["name"], "json", jstr)
+			frappe.db.set_value("Report", record["name"], "json", jstr)

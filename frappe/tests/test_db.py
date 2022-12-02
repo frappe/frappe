@@ -11,13 +11,13 @@ import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import savepoint
-from frappe.database.database import Database
+from frappe.database.database import Database, get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, cint, now, random_string
+from frappe.utils import add_days, cint, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -35,6 +35,34 @@ class TestDB(FrappeTestCase):
 
 	def test_get_database_size(self):
 		self.assertIsInstance(frappe.db.get_database_size(), (float, int))
+
+	def test_db_statement_execution_timeout(self):
+		frappe.db.set_execution_timeout(2)
+		# Setting 0 means no timeout.
+		self.addCleanup(frappe.db.set_execution_timeout, 0)
+
+		try:
+			savepoint = "statement_timeout"
+			frappe.db.savepoint(savepoint)
+			frappe.db.multisql(
+				{
+					"mariadb": "select sleep(10)",
+					"postgres": "select pg_sleep(10)",
+				}
+			)
+		except Exception as e:
+			self.assertTrue(frappe.db.is_statement_timeout(e), f"exepcted {e} to be timeout error")
+			frappe.db.rollback(save_point=savepoint)
+		else:
+			frappe.db.rollback(save_point=savepoint)
+			self.fail("Long running queries not timing out")
+
+	@patch.dict(frappe.conf, {"http_timeout": 20, "enable_db_statement_timeout": 1})
+	def test_db_timeout_computation(self):
+		set_request(method="GET", path="/")
+		self.assertEqual(get_query_execution_timeout(), 30)
+		frappe.local.request = None
+		self.assertEqual(get_query_execution_timeout(), 0)
 
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
@@ -734,7 +762,7 @@ class TestDBSetValue(FrappeTestCase):
 			frappe.db.get_value("ToDo", todo.name, ["modified", "modified_by"]),
 		)
 
-	def test_for_update(self):
+	def test_set_value(self):
 		self.todo1.reload()
 
 		with patch.object(Database, "sql") as sql_called:
@@ -745,45 +773,23 @@ class TestDBSetValue(FrappeTestCase):
 				f"{self.todo1.description}-edit by `test_for_update`",
 			)
 			first_query = sql_called.call_args_list[0].args[0]
-			second_query = sql_called.call_args_list[1].args[0]
 
-			self.assertTrue(sql_called.call_count == 2)
-			self.assertTrue("FOR UPDATE" in first_query)
 			if frappe.conf.db_type == "postgres":
 				from frappe.database.postgres.database import modify_query
 
-				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in second_query)
+				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in first_query)
 			if frappe.conf.db_type == "mariadb":
-				self.assertTrue("UPDATE `tabToDo` SET" in second_query)
+				self.assertTrue("UPDATE `tabToDo` SET" in first_query)
 
 	def test_cleared_cache(self):
 		self.todo2.reload()
+		frappe.get_cached_doc(self.todo2.doctype, self.todo2.name)  # init cache
 
-		with patch.object(frappe, "clear_document_cache") as clear_cache:
-			frappe.db.set_value(
-				self.todo2.doctype,
-				self.todo2.name,
-				"description",
-				f"{self.todo2.description}-edit by `test_cleared_cache`",
-			)
-			clear_cache.assert_called()
+		description = f"{self.todo2.description}-edit by `test_cleared_cache`"
 
-	def test_update_alias(self):
-		args = (self.todo1.doctype, self.todo1.name, "description", "Updated by `test_update_alias`")
-		kwargs = {
-			"for_update": False,
-			"modified": None,
-			"modified_by": None,
-			"update_modified": True,
-			"debug": False,
-		}
-
-		self.assertTrue("return self.set_value(" in inspect.getsource(frappe.db.update))
-
-		with patch.object(Database, "set_value") as set_value:
-			frappe.db.update(*args, **kwargs)
-			set_value.assert_called_once()
-			set_value.assert_called_with(*args, **kwargs)
+		frappe.db.set_value(self.todo2.doctype, self.todo2.name, "description", description)
+		cached_doc = frappe.get_cached_doc(self.todo2.doctype, self.todo2.name)
+		self.assertEqual(cached_doc.description, description)
 
 	@classmethod
 	def tearDownClass(cls):

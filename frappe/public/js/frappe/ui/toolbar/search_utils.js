@@ -208,13 +208,10 @@ frappe.search.utils = {
 							},
 						});
 					}
-					if (in_list(frappe.boot.treeviews, item)) {
-						out.push(option("Tree", ["Tree", item], 0.05));
-					} else {
-						out.push(option("List", ["List", item], 0.05));
-						if (frappe.model.can_get_report(item)) {
-							out.push(option("Report", ["List", item, "Report"], 0.04));
-						}
+
+					out.push(option("List", ["List", item], 0.05));
+					if (frappe.model.can_get_report(item)) {
+						out.push(option("Report", ["List", item, "Report"], 0.04));
 					}
 				}
 			}

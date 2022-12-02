@@ -163,6 +163,12 @@ class TestDocument(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
 
+	def test_db_set_no_query_on_new_docs(self):
+		user = frappe.new_doc("User")
+		user.db_set("user_type", "Magical Wizard")
+		with self.assertQueryCount(0):
+			user.db_set("user_type", "Magical Wizard")
+
 	def test_update_after_submit(self):
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"
@@ -375,6 +381,12 @@ class TestDocument(FrappeTestCase):
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
 
+		# setting a string value should fail
+		self.assertRaises(TypeError, doc.set, "user_emails", "fail")
+		# but not when loading from db
+		doc.flags.ignore_children = True
+		doc.update({"user_emails": "ok"})
+
 	def test_doc_events(self):
 		"""validate that all present doc events are correct methods"""
 
@@ -398,6 +410,19 @@ class TestDocument(FrappeTestCase):
 		todo.description = "this won't trigger realtime update"
 		todo.save()
 		self.assertEqual(todo.notify_update.call_count, 1)
+
+	def test_error_on_saving_new_doc_with_name(self):
+		"""Trying to save a new doc with name should raise DoesNotExistError"""
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "this should raise frappe.DoesNotExistError",
+				"name": "lets-trick-doc-save",
+			}
+		)
+
+		self.assertRaises(frappe.DoesNotExistError, doc.save)
 
 
 class TestDocumentWebView(FrappeTestCase):
@@ -444,3 +469,21 @@ class TestDocumentWebView(FrappeTestCase):
 
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
+
+	def test_bulk_inserts(self):
+		from frappe.model.document import bulk_insert
+
+		doctype = "ToDo"
+		sent_todo = set()
+
+		def doc_generator():
+			for i in range(690):
+				doc = frappe.new_doc(doctype)
+				doc.name = doc.description = frappe.generate_hash()
+				sent_todo.add(doc.name)
+				yield doc
+
+		bulk_insert(doctype, doc_generator(), chunk_size=100)
+
+		all_todos = set(frappe.get_all("ToDo", pluck="name"))
+		self.assertEqual(sent_todo - all_todos, set(), "All docs should be inserted")

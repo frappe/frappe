@@ -100,12 +100,7 @@ class BaseDocument:
 		if d.get("doctype"):
 			self.doctype = d["doctype"]
 
-		self._table_fieldnames = (
-			d["_table_fieldnames"]  # from cache
-			if "_table_fieldnames" in d
-			else {df.fieldname for df in self._get_table_fields()}
-		)
-
+		self._table_fieldnames = {df.fieldname for df in self._get_table_fields()}
 		self.update(d)
 		self.dont_update_if_missing = []
 
@@ -152,8 +147,9 @@ class BaseDocument:
 		if "name" in d:
 			self.name = d["name"]
 
+		ignore_children = hasattr(self, "flags") and self.flags.ignore_children
 		for key, value in d.items():
-			self.set(key, value)
+			self.set(key, value, as_value=ignore_children)
 
 		return self
 
@@ -744,7 +740,7 @@ class BaseDocument:
 						# don't cache if fetching other values too
 						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
 
-				if frappe.get_meta(doctype).issingle:
+				if getattr(frappe.get_meta(doctype), "issingle", 0):
 					values.name = doctype
 
 				if frappe.get_meta(doctype).get("is_virtual"):
@@ -884,7 +880,7 @@ class BaseDocument:
 		if frappe.flags.in_install:
 			return
 
-		if self.meta.issingle:
+		if getattr(self.meta, "issingle", 0):
 			# single doctype value type is mediumtext
 			return
 
@@ -1174,7 +1170,10 @@ class BaseDocument:
 				# get values from old doc
 				if self.get("parent_doc"):
 					parent_doc = self.parent_doc.get_latest()
-					ref_doc = [d for d in parent_doc.get(self.parentfield) if d.name == self.name][0]
+					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
+					if not child_docs:
+						return
+					ref_doc = child_docs[0]
 				else:
 					ref_doc = self.get_latest()
 

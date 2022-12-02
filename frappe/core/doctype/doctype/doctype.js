@@ -55,6 +55,7 @@ frappe.ui.form.on("DocType", {
 
 		if (frm.is_new()) {
 			frm.events.set_default_permission(frm);
+			frm.set_value("default_view", "List");
 		} else {
 			frm.toggle_enable("engine", 0);
 		}
@@ -66,12 +67,14 @@ frappe.ui.form.on("DocType", {
 
 		frm.cscript.autoname(frm);
 		frm.cscript.set_naming_rule_description(frm);
+		frm.trigger("setup_default_views");
 	},
 
 	istable: (frm) => {
 		if (frm.doc.istable && frm.is_new()) {
 			frm.set_value("autoname", "autoincrement");
 			frm.set_value("allow_rename", 0);
+			frm.set_value("default_view", null);
 		} else if (!frm.doc.istable && !frm.is_new()) {
 			frm.events.set_default_permission(frm);
 		}
@@ -81,6 +84,18 @@ frappe.ui.form.on("DocType", {
 		if (!(frm.doc.permissions && frm.doc.permissions.length)) {
 			frm.add_child("permissions", { role: "System Manager" });
 		}
+	},
+
+	is_tree: (frm) => {
+		frm.trigger("setup_default_views");
+	},
+
+	is_calendar_and_gantt: (frm) => {
+		frm.trigger("setup_default_views");
+	},
+
+	setup_default_views: (frm) => {
+		frappe.model.set_default_views_for_doctype(frm.doc.name, frm);
 	},
 });
 
@@ -109,6 +124,7 @@ frappe.ui.form.on("DocField", {
 		let doctypes = frm.doc.fields
 			.filter((df) => df.fieldtype == "Link")
 			.filter((df) => df.options && df.fieldname != row.fieldname)
+			.sort((a, b) => a.options.localeCompare(b.options))
 			.map((df) => ({
 				label: `${df.options} (${df.fieldname})`,
 				value: df.fieldname,
@@ -136,6 +152,7 @@ frappe.ui.form.on("DocField", {
 					.get_docfields(link_doctype, null, {
 						fieldtype: ["not in", frappe.model.no_value_type],
 					})
+					.sort((a, b) => a.label.localeCompare(b.label))
 					.map((df) => ({
 						label: `${df.label} (${df.fieldtype})`,
 						value: df.fieldname,
@@ -170,6 +187,10 @@ frappe.ui.form.on("DocField", {
 
 	fieldtype: function (frm) {
 		frm.trigger("max_attachments");
+	},
+
+	fields_add: (frm) => {
+		frm.trigger("setup_default_views");
 	},
 });
 

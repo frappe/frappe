@@ -1,5 +1,5 @@
 <template>
-	<div class="field" :title="df.fieldname" @click="editing = true">
+	<div class="field" v-show="!df.remove" :title="df.fieldname" @click="editing = true">
 		<div class="field-controls">
 			<div>
 				<div
@@ -15,7 +15,7 @@
 				</div>
 				<input
 					v-else-if="editing && df.fieldtype != 'HTML'"
-					ref="label-input"
+					ref="label_input"
 					class="label-input"
 					type="text"
 					:placeholder="__('Label')"
@@ -47,7 +47,7 @@
 				</button>
 				<button
 					class="btn btn-xs btn-icon"
-					@click="$set(df, 'remove', true)"
+					@click="df['remove'] = true"
 				>
 					<svg class="icon icon-sm">
 						<use href="#icon-close"></use>
@@ -73,171 +73,151 @@
 		</div>
 	</div>
 </template>
-<script>
-import draggable from "vuedraggable";
-import ConfigureColumnsVue from "./ConfigureColumns.vue";
-import { storeMixin } from "./store";
 
-export default {
-	name: "Field",
-	mixins: [storeMixin],
-	props: ["df"],
-	components: {
-		draggable
-	},
-	data() {
-		return {
-			editing: false
-		};
-	},
-	watch: {
-		editing(value) {
-			if (value) {
-				this.$nextTick(() => this.$refs["label-input"].focus());
+<script setup>
+import ConfigureColumnsVue from "./ConfigureColumns.vue";
+import { createApp, ref, nextTick, watch } from "vue";
+
+// props
+let props = defineProps(["df"]);
+
+// variables
+let editing = ref(false);
+let label_input = ref(null);
+
+// methods
+function edit_html() {
+	let d = new frappe.ui.Dialog({
+		title: __("Edit HTML"),
+		fields: [
+			{
+				label: __("HTML"),
+				fieldname: "html",
+				fieldtype: "Code",
+				options: "HTML"
 			}
-		},
-		"df.table_columns": {
-			deep: true,
-			handler() {
-				this.validate_table_columns();
-			}
+		],
+		primary_action: ({ html }) => {
+			html = frappe.dom.remove_script_and_style(html);
+			props.df["html"] = html;
+			d.hide();
 		}
-	},
-	methods: {
-		edit_html() {
-			let d = new frappe.ui.Dialog({
-				title: __("Edit HTML"),
-				fields: [
-					{
-						label: __("HTML"),
-						fieldname: "html",
-						fieldtype: "Code",
-						options: "HTML"
-					}
-				],
-				primary_action: ({ html }) => {
-					html = frappe.dom.remove_script_and_style(html);
-					this.$set(this.df, "html", html);
-					d.hide();
-				}
-			});
-			d.set_value("html", this.df.html);
-			d.show();
-		},
-		configure_columns() {
-			let dialog = new frappe.ui.Dialog({
-				title: __("Configure columns for {0}", [this.df.label]),
-				fields: [
-					{
-						fieldtype: "HTML",
-						fieldname: "columns_area"
-					},
-					{
-						label: "",
-						fieldtype: "Autocomplete",
-						placeholder: __("Add Column"),
-						fieldname: "add_column",
-						options: this.get_all_columns(),
-						onchange: () => {
-							let fieldname = dialog.get_value("add_column");
-							if (fieldname) {
-								let column = this.get_column_to_add(fieldname);
-								if (column) {
-									this.df.table_columns.push(column);
-									this.$set(
-										this.df,
-										"table_columns",
-										this.df.table_columns
-									);
-									dialog.set_value("add_column", "");
-								}
-							}
+	});
+	d.set_value("html", props.df.html);
+	d.show();
+}
+function configure_columns() {
+	let dialog = new frappe.ui.Dialog({
+		title: __("Configure columns for {0}", [props.df.label]),
+		fields: [
+			{
+				fieldtype: "HTML",
+				fieldname: "columns_area"
+			},
+			{
+				label: "",
+				fieldtype: "Autocomplete",
+				placeholder: __("Add Column"),
+				fieldname: "add_column",
+				options: get_all_columns(),
+				onchange: () => {
+					let fieldname = dialog.get_value("add_column");
+					if (fieldname) {
+						let column = get_column_to_add(fieldname);
+						if (column) {
+							props.df.table_columns.push(column);
+							props.df["table_columns"] = props.df.table_columns;
+							dialog.set_value("add_column", "");
 						}
 					}
-				],
-				on_page_show: () => {
-					new Vue({
-						el: dialog.get_field("columns_area").$wrapper.get(0),
-						render: h =>
-							h(ConfigureColumnsVue, {
-								props: {
-									df: this.df
-								}
-							})
-					});
-				},
-				on_hide: () => {
-					this.$set(
-						this.df,
-						"table_columns",
-						this.df.table_columns.filter(col => !col.invalid_width)
-					);
 				}
-			});
-			dialog.show();
-		},
-		get_all_columns() {
-			let meta = frappe.get_meta(this.df.options);
-			let more_columns = [
-				{
-					label: __("Sr No."),
-					value: "idx"
-				}
-			];
-			return more_columns.concat(
-				meta.fields
-					.map(tf => {
-						if (frappe.model.no_value_type.includes(tf.fieldtype)) {
-							return;
-						}
-						return {
-							label: tf.label,
-							value: tf.fieldname
-						};
-					})
-					.filter(Boolean)
+			}
+		],
+		on_page_show: () => {
+			createApp(ConfigureColumnsVue, { df: props.df }).mount(
+				dialog.get_field("columns_area").$wrapper.get(0)
 			);
 		},
-		get_column_to_add(fieldname) {
-			let standard_columns = {
-				idx: {
-					label: __("Sr No."),
-					fieldtype: "Data",
-					fieldname: "idx",
-					width: 10
+		on_hide: () => {
+			props.df["table_columns"] = props.df.table_columns.filter(col => !col.invalid_width);
+		}
+	});
+	dialog.show();
+}
+function get_all_columns() {
+	let meta = frappe.get_meta(props.df.options);
+	let more_columns = [
+		{
+			label: __("Sr No."),
+			value: "idx"
+		}
+	];
+	return more_columns.concat(
+		meta.fields
+			.map(tf => {
+				if (frappe.model.no_value_type.includes(tf.fieldtype)) {
+					return;
 				}
-			};
+				return {
+					label: tf.label,
+					value: tf.fieldname
+				};
+			})
+			.filter(Boolean)
+	);
+}
+function get_column_to_add(fieldname) {
+	let standard_columns = {
+		idx: {
+			label: __("Sr No."),
+			fieldtype: "Data",
+			fieldname: "idx",
+			width: 10
+		}
+	};
 
-			if (fieldname in standard_columns) {
-				return standard_columns[fieldname];
-			}
+	if (fieldname in standard_columns) {
+		return standard_columns[fieldname];
+	}
 
-			return {
-				...frappe.meta.get_docfield(this.df.options, fieldname),
-				width: 10
-			};
-		},
-		validate_table_columns() {
-			if (this.df.fieldtype != "Table") return;
+	return {
+		...frappe.meta.get_docfield(props.df.options, fieldname),
+		width: 10
+	};
+}
+function validate_table_columns() {
+	if (props.df.fieldtype != "Table") return;
 
-			let columns = this.df.table_columns;
-			let total_width = 0;
-			for (let column of columns) {
-				if (!column.width) {
-					column.width = 10;
-				}
-				total_width += column.width;
-				if (total_width > 100) {
-					column.invalid_width = true;
-				} else {
-					column.invalid_width = false;
-				}
-			}
+	let columns = props.df.table_columns;
+	let total_width = 0;
+	for (let column of columns) {
+		if (!column.width) {
+			column.width = 10;
+		}
+		total_width += column.width;
+		if (total_width > 100) {
+			column.invalid_width = true;
+		} else {
+			column.invalid_width = false;
 		}
 	}
-};
+}
+
+// watch
+watch(editing, (value) => {
+	if (value) {
+		nextTick(() => label_input.value.focus());
+	}
+});
+watch(
+	() => props.df.table_columns,
+	() => validate_table_columns(),
+	{ deep: true }
+);
+
 </script>
-<style>
+
+<style scoped>
 .field {
 	text-align: left;
 	width: 100%;

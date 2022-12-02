@@ -2,12 +2,14 @@
 # License: MIT. See LICENSE
 
 
-def resolve_class(classes):
+def resolve_class(*classes):
+	if classes and len(classes) == 1:
+		classes = classes[0]
+
 	if classes is None:
 		return ""
-
-	if isinstance(classes, str):
-		return classes
+	if classes is False:
+		return ""
 
 	if isinstance(classes, (list, tuple)):
 		return " ".join(resolve_class(c) for c in classes).strip()
@@ -90,9 +92,7 @@ def web_blocks(blocks):
 def get_dom_id(seed=None):
 	from frappe import generate_hash
 
-	if not seed:
-		seed = "DOM"
-	return "id-" + generate_hash(seed, 12)
+	return "id-" + generate_hash(12)
 
 
 def include_script(path, preload=True):

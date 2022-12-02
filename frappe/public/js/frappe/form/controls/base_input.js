@@ -13,18 +13,19 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
 			this.$wrapper = $(
-				'<div class="frappe-control">\
-				<div class="form-group">\
-					<div class="clearfix">\
-						<label class="control-label" style="padding-right: 0px;"></label>\
-					</div>\
-					<div class="control-input-wrapper">\
-						<div class="control-input"></div>\
-						<div class="control-value like-disabled-input" style="display: none;"></div>\
-						<p class="help-box small text-muted"></p>\
-					</div>\
-				</div>\
-			</div>'
+				`<div class="frappe-control">
+				<div class="form-group">
+					<div class="clearfix">
+						<label class="control-label" style="padding-right: 0px;"></label>
+						<span class="ml-1 help"></span>
+					</div>
+					<div class="control-input-wrapper">
+						<div class="control-input"></div>
+						<div class="control-value like-disabled-input" style="display: none;"></div>
+						<p class="help-box small text-muted"></p>
+					</div>
+				</div>
+			</div>`
 			).appendTo(this.parent);
 		}
 	}
@@ -79,10 +80,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			if (me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
 			} else if (me.doc) {
-				me.value = me.doc[me.df.fieldname];
+				me.value = me.doc[me.df.fieldname] || "";
 			}
 
-			if (me.can_write()) {
+			let is_fetch_from_read_only = me.df.fetch_from && !me.df.fetch_if_empty;
+
+			if (me.can_write() && !is_fetch_from_read_only) {
 				me.disp_area && $(me.disp_area).toggle(false);
 				$(me.input_area).toggle(true);
 				me.$input && me.$input.prop("disabled", false);
@@ -100,10 +103,21 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					}
 				}
 				me.$input && me.$input.prop("disabled", true);
+
+				if (is_fetch_from_read_only) {
+					$(me.disp_area).attr(
+						"title",
+						__(
+							"This value is fetched from {0}'s {1} field",
+							me.df.fetch_from.split(".")
+						)
+					);
+				}
 			}
 
 			me.set_description();
 			me.set_label();
+			me.set_doc_url();
 			me.set_mandatory(me.value);
 			me.set_bold();
 			me.set_required();
@@ -141,6 +155,26 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			(icon ? '<i class="' + icon + '"></i> ' : "") + __(this.df.label) || "&nbsp;";
 		this._label = this.df.label;
 	}
+
+	set_doc_url() {
+		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
+			(x) => frappe.model.table_fields.indexOf(x) === -1
+		);
+
+		if (
+			!this.df.label ||
+			!this.df?.documentation_url ||
+			in_list(unsupported_fieldtypes, this.df.fieldtype)
+		)
+			return;
+
+		let $help = this.$wrapper.find("span.help");
+		$help.empty();
+		$(`<a href="${this.df.documentation_url}" target="_blank">
+			${frappe.utils.icon("help", "sm")}
+		</a>`).appendTo($help);
+	}
+
 	set_description(description) {
 		if (description !== undefined) {
 			this.df.description = description;

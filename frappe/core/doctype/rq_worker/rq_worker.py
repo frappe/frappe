@@ -1,6 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import datetime
+from contextlib import suppress
+
 from rq import Worker
 
 import frappe
@@ -13,8 +16,10 @@ class RQWorker(Document):
 	def load_from_db(self):
 
 		all_workers = get_workers()
-		worker = [w for w in all_workers if w.pid == cint(self.name)][0]
-		d = serialize_worker(worker)
+		workers = [w for w in all_workers if w.pid == cint(self.name)]
+		if not workers:
+			raise frappe.DoesNotExistError
+		d = serialize_worker(workers[0])
 
 		super(Document, self).__init__(d)
 
@@ -48,12 +53,15 @@ class RQWorker(Document):
 
 
 def serialize_worker(worker: Worker) -> frappe._dict:
-	queue = ", ".join(worker.queue_names())
+	queue_names = worker.queue_names()
+
+	queue = ", ".join(queue_names)
+	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
 
 	return frappe._dict(
 		name=worker.pid,
 		queue=queue,
-		queue_type=queue.rsplit(":", 1)[1],
+		queue_type=queue_types,
 		worker_name=worker.name,
 		status=worker.get_state(),
 		pid=worker.pid,
@@ -66,4 +74,11 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 		_comment_count=0,
 		modified=convert_utc_to_user_timezone(worker.last_heartbeat),
 		creation=convert_utc_to_user_timezone(worker.birth_date),
+		utilization_percent=compute_utilization(worker),
 	)
+
+
+def compute_utilization(worker: Worker) -> float:
+	with suppress(Exception):
+		total_time = (datetime.datetime.utcnow() - worker.birth_date).total_seconds()
+		return worker.total_working_time / total_time * 100

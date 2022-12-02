@@ -17,6 +17,8 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
 	"Route History": 90,
+	"Submission Queue": 30,
+	"Prepared Report": 30,
 }
 
 
@@ -68,6 +70,9 @@ class LogSettings(Document):
 		added_logtypes = set()
 		for logtype, retention in DEFAULT_LOGTYPES_RETENTION.items():
 			if logtype not in existing_logtypes and _supports_log_clearing(logtype):
+				if not frappe.db.exists("DocType", logtype):
+					continue
+
 				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(retention)})
 				added_logtypes.add(logtype)
 

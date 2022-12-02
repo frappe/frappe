@@ -14,6 +14,7 @@
   "istable",
   "issingle",
   "is_tree",
+  "is_calendar_and_gantt",
   "editable_grid",
   "quick_entry",
   "cb01",
@@ -23,12 +24,12 @@
   "custom",
   "beta",
   "is_virtual",
+  "queue_in_background",
   "fields_section_break",
   "fields",
   "sb1",
   "naming_rule",
   "autoname",
-  "name_case",
   "allow_rename",
   "column_break_15",
   "description",
@@ -53,6 +54,8 @@
   "default_print_format",
   "sort_field",
   "sort_order",
+  "default_view",
+  "force_re_route_to_default_view",
   "column_break_29",
   "document_type",
   "icon",
@@ -218,15 +221,6 @@
    "oldfieldtype": "Data"
   },
   {
-   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
-   "fieldname": "name_case",
-   "fieldtype": "Select",
-   "label": "Name Case",
-   "oldfieldname": "name_case",
-   "oldfieldtype": "Select",
-   "options": "\nTitle Case\nUPPER CASE"
-  },
-  {
    "fieldname": "column_break_15",
    "fieldtype": "Column Break"
   },
@@ -320,7 +314,8 @@
    "depends_on": "eval:!doc.istable",
    "fieldname": "title_field",
    "fieldtype": "Data",
-   "label": "Title Field"
+   "label": "Title Field",
+   "mandatory_depends_on": "eval:doc.show_title_field_in_link"
   },
   {
    "depends_on": "eval:!doc.istable",
@@ -605,6 +600,31 @@
    "fieldname": "make_attachments_public",
    "fieldtype": "Check",
    "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.is_submittable",
+   "fieldname": "queue_in_background",
+   "fieldtype": "Check",
+   "label": "Queue in Background"
+  },
+  {
+   "fieldname": "default_view",
+   "fieldtype": "Select",
+   "label": "Default View"
+  },
+  {
+   "default": "0",
+   "fieldname": "force_re_route_to_default_view",
+   "fieldtype": "Check",
+   "label": "Force Re-route to Default View"
+  },
+  {
+   "default": "0",
+   "description": "Enables Calendar and Gantt views.",
+   "fieldname": "is_calendar_and_gantt",
+   "fieldtype": "Check",
+   "label": "Is Calendar and Gantt"
   }
  ],
  "icon": "fa fa-bolt",
@@ -687,7 +707,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-08-24 06:42:27.779699",
+ "modified": "2022-10-12 14:13:27.315351",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

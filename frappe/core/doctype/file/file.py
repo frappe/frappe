@@ -14,6 +14,7 @@ from requests.exceptions import HTTPError, SSLError
 
 import frappe
 from frappe import _
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
@@ -78,20 +79,34 @@ class File(Document):
 		self.validate_duplicate_entry()
 
 	def validate(self):
+		if self.is_folder:
+			return
+
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
+
+		self.validate_attachment_references()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
 		# this case is handled inside handle_is_private_changed
 		if not self.is_new() and self.has_value_changed("is_private"):
 			self.handle_is_private_changed()
 
-		if not self.is_folder:
-			self.validate_file_path()
-			self.validate_file_url()
-			self.validate_file_on_disk()
+		self.validate_file_path()
+		self.validate_file_url()
+		self.validate_file_on_disk()
 
 		self.file_size = frappe.form_dict.file_size or self.file_size
+
+	def validate_attachment_references(self):
+		if not self.attached_to_doctype:
+			return
+
+		if not self.attached_to_name or not isinstance(self.attached_to_name, (str, int)):
+			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
+
+		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
+			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def after_rename(self, *args, **kwargs):
 		for successor in self.get_successors():
@@ -406,7 +421,10 @@ class File(Document):
 					continue
 
 				file_doc = frappe.new_doc("File")
-				file_doc.content = z.read(file.filename)
+				try:
+					file_doc.content = z.read(file.filename)
+				except zipfile.BadZipFile:
+					frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
 				file_doc.file_name = filename
 				file_doc.folder = self.folder
 				file_doc.is_private = self.is_private
@@ -422,7 +440,6 @@ class File(Document):
 		return os.path.exists(self.get_full_path())
 
 	def get_content(self) -> bytes:
-		"""Returns [`file_name`, `content`] for given file name `fname`"""
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 

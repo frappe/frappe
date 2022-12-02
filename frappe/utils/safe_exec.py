@@ -2,6 +2,9 @@ import copy
 import inspect
 import json
 import mimetypes
+import types
+from contextlib import contextmanager
+from functools import lru_cache
 
 import RestrictedPython.Guards
 from RestrictedPython import compile_restricted, safe_globals
@@ -64,12 +67,18 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
 
-	# execute script compiled by RestrictedPython
-	frappe.flags.in_safe_exec = True
-	exec(compile_restricted(script), exec_globals, _locals)  # pylint: disable=exec-used
-	frappe.flags.in_safe_exec = False
+	with safe_exec_flags(), patched_qb():
+		# execute script compiled by RestrictedPython
+		exec(compile_restricted(script), exec_globals, _locals)  # pylint: disable=exec-used
 
 	return exec_globals, _locals
+
+
+@contextmanager
+def safe_exec_flags():
+	frappe.flags.in_safe_exec = True
+	yield
+	frappe.flags.in_safe_exec = False
 
 
 def get_safe_globals():
@@ -97,7 +106,6 @@ def get_safe_globals():
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
-		_dict=frappe._dict,
 		args=form_dict,
 		frappe=NamespaceDict(
 			call=call_whitelisted_function,
@@ -108,6 +116,7 @@ def get_safe_globals():
 			time_format=time_format,
 			format_date=frappe.utils.data.global_date_format,
 			form_dict=form_dict,
+			as_dict=frappe._dict,
 			bold=frappe.bold,
 			copy_doc=frappe.copy_doc,
 			errprint=frappe.errprint,
@@ -258,6 +267,28 @@ def call_with_form_dict(function, kwargs):
 		frappe.local.form_dict = form_dict
 
 
+@contextmanager
+def patched_qb():
+	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
+	try:
+		if require_patching:
+			_terms = frappe.qb.terms
+			frappe.qb.terms = _flatten(frappe.qb.terms)
+		yield
+	finally:
+		if require_patching:
+			frappe.qb.terms = _terms
+
+
+@lru_cache
+def _flatten(module):
+	new_mod = NamespaceDict()
+	for name, obj in inspect.getmembers(module, lambda x: not inspect.ismodule(x)):
+		if not name.startswith("_"):
+			new_mod[name] = obj
+	return new_mod
+
+
 def get_python_builtins():
 	return {
 		"abs": abs,
@@ -350,6 +381,10 @@ def _getattr(object, name, default=None):
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
+
+	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
+		raise SyntaxError(f"Reading {object} attributes is not allowed")
+
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 

@@ -20,7 +20,8 @@
   "column_break_12",
   "birth_date",
   "last_heartbeat",
-  "total_working_time"
+  "total_working_time",
+  "utilization_percent"
  ],
  "fields": [
   {
@@ -59,7 +60,6 @@
   {
    "fieldname": "successful_job_count",
    "fieldtype": "Int",
-   "in_list_view": 1,
    "label": "Successful Job Count"
   },
   {
@@ -76,13 +76,13 @@
   {
    "fieldname": "queue",
    "fieldtype": "Data",
-   "label": "Queue"
+   "label": "Queue(s)"
   },
   {
    "fieldname": "queue_type",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Queue Type",
+   "label": "Queue Type(s)",
    "options": "default\nlong\nshort"
   },
   {
@@ -102,12 +102,18 @@
   {
    "fieldname": "column_break_12",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "utilization_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Utilization %"
   }
  ],
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2022-09-11 05:02:53.981705",
+ "modified": "2022-11-24 14:50:48.511706",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Worker",

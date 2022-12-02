@@ -237,7 +237,7 @@ class User(Document):
 		)
 
 	def share_with_self(self):
-		frappe.share.add(
+		frappe.share.add_docshare(
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
@@ -471,7 +471,7 @@ class User(Document):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
-		frappe.db.update("User", new_name, "email", new_name)
+		frappe.db.set_value("User", new_name, "email", new_name)
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
@@ -901,6 +901,7 @@ def reset_password(user):
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_filters_cond, get_match_cond
 
+	doctype = "User"
 	conditions = []
 
 	user_type_condition = "and user_type != 'Website User'"

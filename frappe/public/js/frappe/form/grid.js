@@ -52,9 +52,7 @@ export default class Grid {
 	}
 
 	allow_on_grid_editing() {
-		if (frappe.utils.is_xs()) {
-			return false;
-		} else if ((this.meta && this.meta.editable_grid) || !this.meta) {
+		if ((this.meta && this.meta.editable_grid) || !this.meta) {
 			return true;
 		} else {
 			return false;
@@ -63,54 +61,56 @@ export default class Grid {
 
 	make() {
 		let template = `
-			<label class="control-label">${__(this.df.label || "")}</label>
-			<p class="text-muted small grid-description"></p>
-			<div class="grid-custom-buttons grid-field"></div>
-			<div class="form-grid">
-				<div class="grid-heading-row"></div>
-				<div class="grid-body">
-					<div class="rows"></div>
-					<div class="grid-empty text-center">
-						<img
-							src="/assets/frappe/images/ui-states/grid-empty-state.svg"
-							alt="Grid Empty State"
-							class="grid-empty-illustration"
-						>
-						${__("No Data")}
+			<div class="grid-field">
+				<label class="control-label">${__(this.df.label || "")}</label>
+				<span class="ml-1 help"></span>
+				<p class="text-muted small grid-description"></p>
+				<div class="grid-custom-buttons"></div>
+				<div class="form-grid-container">
+					<div class="form-grid">
+						<div class="grid-heading-row"></div>
+						<div class="grid-body">
+							<div class="rows"></div>
+							<div class="grid-empty text-center">
+								<img
+									src="/assets/frappe/images/ui-states/grid-empty-state.svg"
+									alt="Grid Empty State"
+									class="grid-empty-illustration"
+								>
+								${__("No Data")}
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div class="small form-clickable-section grid-footer">
-				<div class="flex justify-between">
-					<div class="grid-buttons">
-						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
-							style="margin-right: 4px;"
-							data-action="delete_rows">
-							${__("Delete")}
-						</button>
-						<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
-							style="margin-right: 4px;"
-							data-action="delete_all_rows">
-							${__("Delete All")}
-						</button>
-						<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden"
-							style="margin-right: 4px;">
-							${__("Add Multiple")}</a>
-						</button>
-						<!-- hack to allow firefox include this in tabs -->
-						<button class="btn btn-xs btn-secondary grid-add-row">
-							${__("Add Row")}
-						</button>
-					</div>
-					<div class="grid-pagination">
-					</div>
-					<div class="text-right">
-						<a href="#" class="grid-download btn btn-xs btn-secondary hidden">
-							${__("Download")}
-						</a>
-						<a href="#" class="grid-upload btn btn-xs btn-secondary hidden">
-							${__("Upload")}
-						</a>
+				<div class="small form-clickable-section grid-footer">
+					<div class="flex justify-between">
+						<div class="grid-buttons">
+							<button class="btn btn-xs btn-danger grid-remove-rows hidden"
+								data-action="delete_rows">
+								${__("Delete")}
+							</button>
+							<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
+								data-action="delete_all_rows">
+								${__("Delete All")}
+							</button>
+							<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden">
+								${__("Add Multiple")}</a>
+							</button>
+							<!-- hack to allow firefox include this in tabs -->
+							<button class="btn btn-xs btn-secondary grid-add-row">
+								${__("Add Row")}
+							</button>
+						</div>
+						<div class="grid-pagination">
+						</div>
+						<div class="grid-bulk-actions text-right">
+							<button class="grid-download btn btn-xs btn-secondary hidden">
+								${__("Download")}
+							</button>
+							<button class="grid-upload btn btn-xs btn-secondary hidden">
+								${__("Upload")}
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -119,6 +119,7 @@ export default class Grid {
 		this.wrapper = $(template).appendTo(this.parent);
 		$(this.parent).addClass("form-group");
 		this.set_grid_description();
+		this.set_doc_url();
 
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
@@ -148,6 +149,26 @@ export default class Grid {
 			description_wrapper.hide();
 		}
 	}
+
+	set_doc_url() {
+		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
+			(x) => frappe.model.table_fields.indexOf(x) === -1
+		);
+
+		if (
+			!this.df.label ||
+			!this.df?.documentation_url ||
+			in_list(unsupported_fieldtypes, this.df.fieldtype)
+		)
+			return;
+
+		let $help = $(this.parent).find("span.help");
+		$help.empty();
+		$(`<a href="${this.df.documentation_url}" target="_blank">
+			${frappe.utils.icon("help", "sm")}
+		</a>`).appendTo($help);
+	}
+
 	setup_grid_pagination() {
 		this.grid_pagination = new GridPagination({
 			grid: this,
@@ -1011,6 +1032,7 @@ export default class Grid {
 				Int: (val) => cint(val),
 				Check: (val) => cint(val),
 				Float: (val) => flt(val),
+				Currency: (val) => flt(val),
 			};
 
 			// upload
@@ -1127,7 +1149,7 @@ export default class Grid {
 		const $wrapper = position === "top" ? this.grid_custom_buttons : this.grid_buttons;
 		let $btn = this.custom_buttons[label];
 		if (!$btn) {
-			$btn = $(`<button class="btn btn-default btn-xs btn-custom">${__(label)}</button>`)
+			$btn = $(`<button class="btn btn-secondary btn-xs btn-custom">${__(label)}</button>`)
 				.prependTo($wrapper)
 				.on("click", click);
 			this.custom_buttons[label] = $btn;

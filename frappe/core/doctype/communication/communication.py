@@ -19,6 +19,7 @@ from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
 from frappe.model.document import Document
 from frappe.utils import (
+	cstr,
 	parse_addr,
 	split_emails,
 	strip_html,
@@ -175,7 +176,7 @@ class Communication(Document, CommunicationEmailMixin):
 		if html_signature:
 			_signature = html_signature.renderContents()
 
-		if (_signature or signature) not in self.content:
+		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
 
 	def before_save(self):
@@ -232,8 +233,10 @@ class Communication(Document, CommunicationEmailMixin):
 
 	def notify_change(self, action):
 		frappe.publish_realtime(
-			f"update_docinfo_for_{self.reference_doctype}_{self.reference_name}",
+			"docinfo_update",
 			{"doc": self.as_dict(), "key": "communications", "action": action},
+			doctype=self.reference_doctype,
+			docname=self.reference_name,
 			after_commit=True,
 		)
 

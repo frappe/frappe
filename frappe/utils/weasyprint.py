@@ -4,11 +4,13 @@
 import click
 
 import frappe
+from frappe import _
 
 
 @frappe.whitelist()
 def download_pdf(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -21,6 +23,7 @@ def download_pdf(doctype, name, print_format, letterhead=None):
 
 def get_html(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	return generator.get_html_preview()
 
@@ -47,7 +50,11 @@ class PrintFormatGenerator:
 		self.base_url = frappe.utils.get_url()
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		self.doc = doc
+
+		if letterhead == _("No Letterhead"):
+			letterhead = None
 		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
+
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
