@@ -696,17 +696,16 @@ class Document(BaseDocument):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type="write"):
-		if not hasattr(self, "_has_access_to"):
-			self._has_access_to = {}
-
-		self._has_access_to[permission_type] = []
+		allowed_permlevels = []
 		roles = frappe.get_roles()
-		for perm in self.get_permissions():
-			if perm.role in roles and perm.get(permission_type):
-				if perm.permlevel not in self._has_access_to[permission_type]:
-					self._has_access_to[permission_type].append(perm.permlevel)
 
-		return self._has_access_to[permission_type]
+		for perm in self.get_permissions():
+			if (
+				perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels
+			):
+				allowed_permlevels.append(perm.permlevel)
+
+		return allowed_permlevels
 
 	def has_permlevel_access_to(self, fieldname, df=None, permission_type="read"):
 		if not df:
