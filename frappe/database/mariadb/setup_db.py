@@ -5,15 +5,7 @@ import os
 import frappe
 from frappe.database.db_manager import DbManager
 
-expected_settings_10_2_earlier = {
-	"innodb_file_format": "Barracuda",
-	"innodb_file_per_table": "ON",
-	"innodb_large_prefix": "ON",
-	"character_set_server": "utf8mb4",
-	"collation_server": "utf8mb4_unicode_ci",
-}
-
-expected_settings_10_3_later = {
+REQUIRED_MARIADB_CONFIG = {
 	"character_set_server": "utf8mb4",
 	"collation_server": "utf8mb4_unicode_ci",
 }
@@ -131,11 +123,6 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 def check_database_settings():
 	mariadb_variables = get_mariadb_variables()
-	versions = get_mariadb_version(mariadb_variables.get("version"))
-	if versions[0] <= "10.2":
-		expected_variables = expected_settings_10_2_earlier
-	else:
-		expected_variables = expected_settings_10_3_later
 
 <<<<<<< HEAD
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
@@ -143,7 +130,7 @@ def check_database_settings():
 >>>>>>> c6557e0ed6 (fix: don't print multiple print statements when database settings dont match with expected settings (#18492))
 	# Check each expected value vs. actuals:
 	result = True
-	for key, expected_value in expected_variables.items():
+	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
 		if mariadb_variables.get(key) != expected_value:
 			print(
 				"For key %s. Expected value %s, found value %s"
@@ -167,8 +154,7 @@ def check_database_settings():
 		print(
 			(
 				"{sep2}Creation of your site - {site} failed because MariaDB is not properly {sep}"
-				"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
-				"the Barracuda storage engine.{sep2}"
+				"configured.{sep2}"
 				"Please verify the above settings in MariaDB's my.cnf.  Restart MariaDB.{sep}"
 				"And then run `bench new-site {site}` again.{sep2}"
 			).format(site=frappe.local.site, sep2="\n\n", sep="\n")
