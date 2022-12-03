@@ -2081,18 +2081,22 @@ frappe.ui.form.Form = class FrappeForm {
 							col_width = 3;
 							failed_link = `<div class="col-md-3">
 								<a href='/app/submission-queue/${r.message.latest_failed_submission}'>${__(
-								"Previous Falied Submission"
+								"Previous Failed Submission"
 							)}</a>
 							</div>`;
 						} else {
-							submission_label = __("Previous Falied Submission");
+							if (r.message.latest_failed_submission_exc_info) {
+								submission_label = r.message.latest_failed_submission_exc_info;
+							} else {
+								submission_label = "Errored";
+							}
 						}
 					}
 
 					let html = `
 				<div class="row">
 					<div class="col-md-${col_width}">
-						<strong>${__("Submission Status:")}</strong>
+						<strong>${__(`Submission Status: ${r.message.latest_submission_status}`)}</strong>
 					</div>
 					<div class="col-md-${col_width}">
 						<a href='/app/submission-queue/${r.message.latest_submission}'>${submission_label}</a>

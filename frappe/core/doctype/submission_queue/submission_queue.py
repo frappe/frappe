@@ -182,14 +182,34 @@ def queue_submission(doc: Document, action: str, alert: bool = True):
 		)
 
 
+def format_tb(traceback: str):
+	traceback = traceback.strip().split("\n")[-1]
+	if len(traceback.split()) > 6:
+		return " ".join(traceback.split()[0:6]) + "..."
+	return traceback
+
+
 @frappe.whitelist()
 def get_latest_submissions(doctype, docname):
 	# NOTE: not used creation as orderby intentianlly as we have used update_modified=False everywhere
 	# hence assuming modified will be equal to creation for submission queue documents
 
 	dt = "Submission Queue"
+	out = {}
+
 	filters = {"ref_doctype": doctype, "ref_docname": docname}
-	return {
-		"latest_submission": frappe.db.get_value(dt, filters),
-		"latest_failed_submission": frappe.db.get_value(dt, filters | {"status": "Failed"}),
-	}
+	failed_submission = frappe.db.get_value(
+		dt, filters=filters | {"status": "Failed"}, fieldname=["name", "exception"]
+	)
+	latest_submission = frappe.db.get_value(dt, filters=filters, fieldname=["name", "status"])
+
+	if failed_submission:
+		out["latest_failed_submission"], out["latest_failed_submission_exc_info"] = (
+			failed_submission[0],
+			format_tb(failed_submission[1]),
+		)
+
+	if latest_submission:
+		out["latest_submission"], out["latest_submission_status"] = latest_submission
+
+	return out
