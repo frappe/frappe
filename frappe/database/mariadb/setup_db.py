@@ -1,5 +1,7 @@
 import os
 
+import click
+
 import frappe
 from frappe.database.db_manager import DbManager
 
@@ -118,6 +120,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 def check_database_settings():
 <<<<<<< HEAD
+<<<<<<< HEAD
 	versions = get_mariadb_versions()
 	if versions["major"] <= "10.2":
 		expected_variables = expected_settings_10_2_earlier
@@ -126,9 +129,14 @@ def check_database_settings():
 =======
 	mariadb_variables = get_mariadb_variables()
 >>>>>>> 11cdd21b88 (fix: drop mariadb 10.2 checks)
+=======
+
+	check_compatible_versions()
+>>>>>>> 9c104a8e5e (fix: Warn about incompatible mariadb versions)
 
 	mariadb_variables = frappe._dict(frappe.db.sql("show variables"))
 	# Check each expected value vs. actuals:
+	mariadb_variables = get_mariadb_variables()
 	result = True
 	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
 		if mariadb_variables.get(key) != expected_value:
@@ -160,6 +168,28 @@ def check_database_settings():
 		)
 
 	return result
+
+
+def check_compatible_versions():
+	try:
+		version = get_mariadb_version()
+		version_tuple = tuple(int(v) for v in version[0].split("."))
+
+		if version_tuple < (10, 3):
+			click.secho(
+				f"Warning: MariaDB version {version} is less than 10.3 which is not supported by Frappe",
+				fg="yellow",
+			)
+		elif version_tuple >= (10, 9):
+			click.secho(
+				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with Frappe Framework.",
+				fg="yellow",
+			)
+	except Exception:
+		click.secho(
+			"MariaDB version compatibility checks failed, make sure you're running a supported version.",
+			fg="yellow",
+		)
 
 
 def get_root_connection(root_login, root_password):
