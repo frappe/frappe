@@ -18,9 +18,7 @@ def process_bulk_transaction(data, from_doctype, to_doctype):
 		"source": from_doctype,
 		"target": to_doctype
 	}, [
-		"method",
-		"ignore_validation",
-		"submit_target",
+		"server_script",
 		"from_doctype_field",
 		"to_doctype_field",
 		"docname_field",
@@ -55,11 +53,12 @@ def _process_bulk_transaction(deserialized_data, mapper, method_args_to_pass):
 		try:
 			frappe.db.savepoint("before_creation_state")
 			method_args_to_pass[mapper.docname_field] = data.get("name")
-			doc = frappe.call(mapper.method, **method_args_to_pass)
-			doc.flags.ignore_validate = True if mapper.ignore_validation else False
-			doc.insert()
-			if mapper.submit_target:
-				doc.submit()
+			frappe.form_dict.bulk_transaction = method_args_to_pass
+			# doc = frappe.call(mapper.method, **method_args_to_pass)
+			frappe.get_doc("Server Script", mapper.server_script).execute_method()
+			doc = frappe.response['message']
+			if doc.__islocal:
+				doc.insert()
 			doc_list.append(doc.name)
 		except Exception as e:
 			frappe.db.rollback(save_point="before_creation_state")

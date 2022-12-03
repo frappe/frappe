@@ -10,9 +10,7 @@
   "source",
   "target",
   "column_break_3",
-  "method",
-  "ignore_validation",
-  "submit_target",
+  "server_script",
   "section_break_7",
   "from_doctype_field",
   "to_doctype_field",
@@ -21,28 +19,6 @@
   "batch_size"
  ],
  "fields": [
-  {
-   "columns": 4,
-   "fieldname": "method",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Method",
-   "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "ignore_validation",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Ignore Validation"
-  },
-  {
-   "default": "0",
-   "fieldname": "submit_target",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Submit Target"
-  },
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
@@ -91,14 +67,23 @@
    "default": "10",
    "fieldname": "batch_size",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Batch Size",
+   "reqd": 1
+  },
+  {
+   "fieldname": "server_script",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Server Script",
+   "options": "Server Script",
    "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-11-29 20:53:35.080622",
+ "modified": "2022-12-03 13:14:28.795726",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Bulk Transaction DocType Mapping",

@@ -6,26 +6,19 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "enabled",
-  "standard_doctype"
+  "doctype_mapping"
  ],
  "fields": [
   {
-   "default": "0",
-   "fieldname": "enabled",
-   "fieldtype": "Check",
-   "label": "Enabled"
-  },
-  {
-   "fieldname": "standard_doctype",
+   "fieldname": "doctype_mapping",
    "fieldtype": "Table",
-   "label": "Standard DocType",
+   "label": "Mapping",
    "options": "Bulk Transaction DocType Mapping"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-11-29 21:15:48.155003",
+ "modified": "2022-12-03 11:43:36.656588",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Bulk Transaction Settings",
