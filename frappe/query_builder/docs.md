@@ -24,10 +24,40 @@ The inherent terms or specefic classes of pypika builder are handled and declare
 
 Check out some examples [here](https://frappeframework.com/docs/v14/user/en/api/query-builder)
 
-### Query
+<H2 align="center">Query</H2>
 
-This is the module responsible for the all query generation.
+## Goal
+
+```sql
+select `name` from `tabUser`
+```
+
+## There are 3 major ways to reach this goal
+
+### 1. Direct SQL (Boring / Unsafe / inconsistent)
+
+```python
+frappe.db.sql("select `name` from `tabUser`")
+```
+
+### 2. SQL through direct Query Builder objects
+
+```python
+from frappe.query_builder import Field
+
+frappe.qb.from_("User").select(Field("name"))
+
+```
+
+### 3. Through the database API (Which performs the second method under the hood)
+
+```python
+frappe.db.get_values("User", fieldname="name", filters={})
+```
+
+This module is used to support the 3rd way of query generation in frappe.
 The database module is completely powered by this query module.
+This module is also where the query `Engine` resides which is the class responsible for the handling of various filter & field notations.
 
 - Interating with the existing Database API.
   - The old database API was running on raw sql generation in order to bridge the gap between the added new support and raw sql strings this intermediate module was added.
@@ -75,3 +105,13 @@ Supporting all the features with the previous filter notations and the field not
    ```
 
    and all the pypika filters and functions.
+
+## Things to be implemented in the `Engine`
+
+### 1. Support for Permissions
+
+As of now query builder has no concept of permissions and moving towards a singular database API this needs to be added in the `Engine`.
+
+### 2. Implementing the missing features which are present in `frappe.get_list` and `frappe.get_all` (do we even need so much magic?)
+
+Moving to a singular Database API (database.py + db_query.py) all the support present in `get_list` and `get_all` needs to be present in the new `Engine` as well however this creates alot of security cracks, so moving the a *new and more restrictive version* of the database API with backward compatibility perhaps would be the right way to go?
