@@ -10,6 +10,7 @@ from frappe.utils.jinja import validate_template
 
 class EmailTemplate(Document):
 	def validate(self):
+		validate_template(self.subject)
 		if self.use_html:
 			validate_template(self.response_html)
 		else:
