@@ -411,6 +411,7 @@ def get_roles(user=None, with_standard=True):
 		if user == "Administrator":
 			return [r[0] for r in frappe.db.sql("select name from `tabRole`")]  # return all available roles
 		else:
+<<<<<<< HEAD
 			return (
 				[
 					r[0]
@@ -421,6 +422,16 @@ def get_roles(user=None, with_standard=True):
 					)
 				]
 				+ ["All", "Guest"]
+=======
+			table = DocType("Has Role")
+			roles = (
+				frappe.qb.from_(table)
+				.where(
+					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(["All", "Guest"]))
+				)
+				.select(table.role)
+				.run(pluck=True)
+>>>>>>> 389e675764 (fix: ensure correct parenttype when retrieving roles)
 			)
 
 	roles = frappe.cache().hget("roles", user, get)
