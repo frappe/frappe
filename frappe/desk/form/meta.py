@@ -51,6 +51,7 @@ def get_meta(doctype, cached=True):
 class FormMeta(Meta):
 	def __init__(self, doctype):
 		super().__init__(doctype)
+		self._loaded_files = []
 		self.load_assets()
 
 	def load_assets(self):
@@ -117,6 +118,7 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_code_via_hook("doctype_calendar_js", "__calendar_js")
 		self.add_html_templates(path)
+		self._loaded_files.clear()
 
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
@@ -138,7 +140,9 @@ class FormMeta(Meta):
 
 	def add_code_via_hook(self, hook, fieldname):
 		for path in get_code_files_via_hooks(hook, self.name):
-			self._add_code(path, fieldname)
+			if path not in self._loaded_files:
+				self._loaded_files.append(path)
+				self._add_code(path, fieldname)
 
 	def add_custom_script(self):
 		"""embed all require files"""
