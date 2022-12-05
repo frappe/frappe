@@ -390,7 +390,7 @@ def get_context(context):
 			return False
 
 		if self.apply_document_permissions:
-			return frappe.get_doc(doctype, name).has_permission()
+			return frappe.get_doc(doctype, name).has_permission(permtype=ptype)
 
 		# owner matches
 		elif frappe.db.get_value(doctype, name, "owner") == frappe.session.user:
@@ -413,7 +413,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
-def accept(web_form, data, docname=None, for_payment=False):
+def accept(web_form, data, for_payment=False):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 	for_payment = frappe.parse_json(for_payment)
@@ -422,19 +422,20 @@ def accept(web_form, data, docname=None, for_payment=False):
 	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
+	doctype = web_form.doc_type
 
 	if data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
-	meta = frappe.get_meta(data.doctype)
+	meta = frappe.get_meta(doctype)
 
-	if docname:
+	if data.name:
 		# update
-		doc = frappe.get_doc(data.doctype, docname)
+		doc = frappe.get_doc(doctype, data.name)
 	else:
 		# insert
-		doc = frappe.new_doc(data.doctype)
+		doc = frappe.new_doc(doctype)
 
 	# set values
 	for field in web_form.web_form_fields:
@@ -459,7 +460,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 		doc.run_method("validate_payment")
 
 	if doc.name:
-		if web_form.has_web_form_permission(doc.doctype, doc.name, "write"):
+		if web_form.has_web_form_permission(doctype, doc.name, "write"):
 			doc.save(ignore_permissions=True)
 		else:
 			# only if permissions are present
@@ -481,7 +482,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 
 			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
-				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+				remove_file_by_url(doc.get(fieldname), doctype=doctype, name=doc.name)
 
 			# save new file
 			filename, dataurl = filedata.split(",", 1)
@@ -489,7 +490,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 				{
 					"doctype": "File",
 					"file_name": filename,
-					"attached_to_doctype": doc.doctype,
+					"attached_to_doctype": doctype,
 					"attached_to_name": doc.name,
 					"content": dataurl,
 					"decode": True,
@@ -505,7 +506,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 	if files_to_delete:
 		for f in files_to_delete:
 			if f:
-				remove_file_by_url(f, doctype=doc.doctype, name=doc.name)
+				remove_file_by_url(f, doctype=doctype, name=doc.name)
 
 	frappe.flags.web_form_doc = doc
 
