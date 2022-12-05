@@ -427,7 +427,9 @@ def get_roles(user=None, with_standard=True):
 			table = DocType("Has Role")
 			roles = (
 				frappe.qb.from_(table)
-				.where((table.parent == user) & (table.role.notin(["All", "Guest"])))
+				.where(
+					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(["All", "Guest"]))
+				)
 				.select(table.role)
 				.run(pluck=True)
 			)
