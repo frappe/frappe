@@ -365,7 +365,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
-def accept(web_form, data, docname=None):
+def accept(web_form, data):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 
@@ -375,15 +375,15 @@ def accept(web_form, data, docname=None):
 	web_form = frappe.get_doc("Web Form", web_form)
 	doctype = web_form.doc_type
 
-	if (data.name or docname) and not web_form.allow_edit:
+	if data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
 	meta = frappe.get_meta(doctype)
 
-	if docname:
+	if data.name:
 		# update
-		doc = frappe.get_doc(doctype, docname)
+		doc = frappe.get_doc(doctype, data.name)
 	else:
 		# insert
 		doc = frappe.new_doc(doctype)
