@@ -392,10 +392,10 @@ def handle_duration_fieldtype_values(result, columns):
 			for entry in range(0, len(result)):
 				row = result[entry]
 				if isinstance(row, dict):
-					val_in_seconds = row[col.fieldname]
+					val_in_seconds = row[col.get("fieldname")]
 					if val_in_seconds:
 						duration_val = format_duration(val_in_seconds)
-						row[col.fieldname] = duration_val
+						row[col.get("fieldname")] = duration_val
 				else:
 					val_in_seconds = row[i]
 					if val_in_seconds:
