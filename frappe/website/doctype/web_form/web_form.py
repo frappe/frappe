@@ -413,11 +413,7 @@ def get_web_form_module(doc):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
-<<<<<<< HEAD
-def accept(web_form, data, docname=None, for_payment=False):
-=======
-def accept(web_form, data):
->>>>>>> d7f4540132 (chore: consider docname via data)
+def accept(web_form, data, for_payment=False):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
 	for_payment = frappe.parse_json(for_payment)
