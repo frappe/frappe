@@ -586,8 +586,15 @@ $.extend(frappe.model, {
 					doctype: doctype,
 					name: docname
 				},
+<<<<<<< HEAD
 				callback: function(r, rt) {
 					if(!r.exc) {
+=======
+				freeze: true,
+				freeze_message: __("Deleting {0}...", [title]),
+				callback: function (r, rt) {
+					if (!r.exc) {
+>>>>>>> f6f2c5ff8a (fix(UX): freeze on delete (#19094))
 						frappe.utils.play_sound("delete");
 						frappe.model.clear_doc(doctype, docname);
 						if(callback) callback(r,rt);
