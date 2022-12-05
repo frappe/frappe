@@ -480,33 +480,20 @@ frappe.ui.form.Layout = class Layout {
 
 	setup_events() {
 		let last_scroll = 0;
-		let is_tabs = true;
-		let tabs_list;
+		let tabs_list = $(".form-tabs-list");
 		let tabs_content = this.tabs_content[0];
-		tabs_content.style.scrollMarginTop = "calc(var(--navbar-height) + 52px)";
+		if (!tabs_list.length) return;
 
 		window.addEventListener(
 			"scroll",
 			frappe.utils.throttle(() => {
 				let current_scroll = document.documentElement.scrollTop;
-				if (is_tabs && !tabs_list) {
-					if ($(".form-tabs-list").length) {
-						tabs_list = $(".form-tabs-list");
-					} else {
-						is_tabs = false;
-					}
-				}
 				if (current_scroll > 0 && last_scroll <= current_scroll) {
-					if (is_tabs) {
-						tabs_list.css("top", "calc(var(--navbar-height) - 1px)");
-					}
+					tabs_list.removeClass("form-tabs-sticky-down");
+					tabs_list.addClass("form-tabs-sticky-up");
 				} else {
-					if (is_tabs) {
-						tabs_list.css(
-							"top",
-							"calc(var(--navbar-height) + var(--page-head-height) - 1px)"
-						);
-					}
+					tabs_list.removeClass("form-tabs-sticky-up");
+					tabs_list.addClass("form-tabs-sticky-down");
 				}
 				last_scroll = current_scroll;
 			}),
@@ -521,7 +508,8 @@ frappe.ui.form.Layout = class Layout {
 				tabs_content.scrollIntoView();
 				setTimeout(() => {
 					$(".page-head").css("top", "-15px");
-					$(".form-tabs-list").css("top", "calc(var(--navbar-height) - 1px)");
+					$(".form-tabs-list").removeClass("form-tabs-sticky-down");
+					$(".form-tabs-list").addClass("form-tabs-sticky-up");
 				}, 3);
 			}
 		});

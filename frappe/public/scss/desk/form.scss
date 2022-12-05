@@ -343,6 +343,15 @@
 		}
 	}
 }
+.form-tab-content {
+	scroll-margin-top: calc(var(--navbar-height) + 52px);
+}
+.form-tabs-sticky-up {
+	top: calc(var(--navbar-height) - 1px);
+}
+.form-tabs-sticky-down {
+	top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+}
 
 .progress-area {
 	padding-top: var(--padding-md);
