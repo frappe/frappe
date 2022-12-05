@@ -68,6 +68,7 @@ from frappe.utils.identicon import Identicon
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
+from frappe.utils.synchronization import LockTimeoutError, filelock
 
 
 class Capturing(list):
@@ -878,6 +879,22 @@ class TestContainerUtils(FrappeTestCase):
 		remove_blanks(a)
 		self.assertEqual(len(a), 1)
 		self.assertEqual(a["c"], "d")
+
+
+class TestLocks(FrappeTestCase):
+	def test_locktimeout(self):
+		lock_name = "test_lock"
+		with filelock(lock_name):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1):
+					self.fail("Locks not working")
+
+	def test_global_lock(self):
+		lock_name = "test_global"
+		with filelock(lock_name, is_global=True):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1, is_global=True):
+					self.fail("Global locks not working")
 
 
 class TestMiscUtils(FrappeTestCase):
