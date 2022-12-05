@@ -29,6 +29,8 @@ def get_countries_and_currencies():
 	countries = []
 	currencies = []
 
+	added_currencies = set()
+
 	for name, country in data.items():
 		country = frappe._dict(country)
 		countries.append(
@@ -42,7 +44,9 @@ def get_countries_and_currencies():
 				time_zones="\n".join(country.timezones or []),
 			)
 		)
-		if country.currency:
+		if country.currency and country.currency not in added_currencies:
+			added_currencies.add(country.currency)
+
 			currencies.append(
 				frappe.get_doc(
 					doctype="Currency",
