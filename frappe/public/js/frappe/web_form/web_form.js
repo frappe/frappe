@@ -326,8 +326,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			args: {
 				data: this.doc,
 				web_form: this.name,
+<<<<<<< HEAD
 				docname: this.doc.name,
 				for_payment
+=======
+				for_payment,
+>>>>>>> d7f4540132 (chore: consider docname via data)
 			},
 			callback: response => {
 				// Check for any exception in response
