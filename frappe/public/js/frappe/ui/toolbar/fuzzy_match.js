@@ -14,7 +14,7 @@
 //	 J�rgen Tjern� - async helper
 //	 Anurag Awasthi - updated to 0.2.0
 
-const SEQUENTIAL_BONUS = 15; // bonus for adjacent matches
+const SEQUENTIAL_BONUS = 25; // bonus for adjacent matches
 const SEPARATOR_BONUS = 30; // bonus if match occurs after a separator
 const CAMEL_BONUS = 30; // bonus if match is uppercase and prev is lower
 const FIRST_LETTER_BONUS = 15; // bonus if the first letter is matched
