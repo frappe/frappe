@@ -20,11 +20,10 @@ class SystemSettings(Document):
 		elif not enable_password_policy:
 			self.minimum_password_score = ""
 
-		for key in ("session_expiry", "session_expiry_mobile"):
-			if self.get(key):
-				parts = self.get(key).split(":")
-				if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
-					frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
+		if self.session_expiry:
+			parts = self.session_expiry.split(":")
+			if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
+				frappe.throw(_("Session Expiry must be in format {0}").format("hh:mm"))
 
 		if self.enable_two_factor_auth:
 			if self.two_factor_method == "SMS":
