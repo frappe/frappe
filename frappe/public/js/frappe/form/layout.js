@@ -484,8 +484,7 @@ frappe.ui.form.Layout = class Layout {
 		let tabs_content = this.tabs_content[0];
 		if (!tabs_list.length) return;
 
-		window.addEventListener(
-			"scroll",
+		$(window).scroll(
 			frappe.utils.throttle(() => {
 				let current_scroll = document.documentElement.scrollTop;
 				if (current_scroll > 0 && last_scroll <= current_scroll) {
@@ -496,8 +495,7 @@ frappe.ui.form.Layout = class Layout {
 					tabs_list.addClass("form-tabs-sticky-down");
 				}
 				last_scroll = current_scroll;
-			}),
-			500
+			}, 500)
 		);
 
 		this.tab_link_container.off("click").on("click", ".nav-link", (e) => {
