@@ -173,6 +173,7 @@ def before_tests():
 	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
 		complete_setup_wizard()
 
+	frappe.db.set_value("Website Settings", "Website Settings", "disable_signup", 0)
 	frappe.db.commit()
 	frappe.clear_cache()
 
