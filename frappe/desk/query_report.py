@@ -376,7 +376,7 @@ def format_duration_fields(data: frappe._dict) -> None:
 			continue
 
 		for row in data.result:
-			index = col.fieldname if isinstance(row, dict) else i
+			index = col.get("fieldname") if isinstance(row, dict) else i
 			if row[index]:
 				row[index] = format_duration(row[index])
 
