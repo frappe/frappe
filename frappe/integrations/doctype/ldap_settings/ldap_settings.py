@@ -175,18 +175,6 @@ class LDAPSettings(Document):
 		if frappe.db.exists("User", user_data["email"]):
 			user = frappe.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
-<<<<<<< HEAD
-		else:
-			doc = user_data
-			doc.update(
-				{
-					"doctype": "User",
-					"send_welcome_email": 0,
-					"language": "",
-					"user_type": self.default_user_type,
-				}
-			)
-=======
 		elif not self.do_not_create_new_user:
 			doc = user_data | {
 				"doctype": "User",
@@ -194,7 +182,6 @@ class LDAPSettings(Document):
 				"language": "",
 				"user_type": self.default_user_type,
 			}
->>>>>>> 86dc33c1f1 (fix: LDAP - check each email in list before creating user)
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
 		else:
