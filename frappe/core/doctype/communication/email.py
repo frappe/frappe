@@ -99,7 +99,7 @@ def make(
 		send_me_a_copy=cint(send_me_a_copy),
 		cc=cc,
 		bcc=bcc,
-		read_receipt=read_receipt,
+		read_receipt=cint(read_receipt),
 		print_letterhead=print_letterhead,
 		email_template=email_template,
 		communication_type=communication_type,
