@@ -893,7 +893,7 @@ def sign_up(email, full_name, redirect_to, new_password, guest_id):
 			frappe.cache().hset("redirect_after_login", user.name, redirect_to)
 
 		if user.flags.email_sent:
-			return 'No App'
+			return
 		else:
 			return 2, _("Please ask your administrator to verify your sign-up")
 
