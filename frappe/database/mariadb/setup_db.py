@@ -1,17 +1,11 @@
 import os
 
+import click
+
 import frappe
 from frappe.database.db_manager import DbManager
 
-expected_settings_10_2_earlier = {
-	"innodb_file_format": "Barracuda",
-	"innodb_file_per_table": "ON",
-	"innodb_large_prefix": "ON",
-	"character_set_server": "utf8mb4",
-	"collation_server": "utf8mb4_unicode_ci",
-}
-
-expected_settings_10_3_later = {
+REQUIRED_MARIADB_CONFIG = {
 	"character_set_server": "utf8mb4",
 	"collation_server": "utf8mb4_unicode_ci",
 }
@@ -109,16 +103,13 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 
 def check_database_settings():
-	mariadb_variables = get_mariadb_variables()
-	versions = get_mariadb_version(mariadb_variables.get("version"))
-	if versions[0] <= "10.2":
-		expected_variables = expected_settings_10_2_earlier
-	else:
-		expected_variables = expected_settings_10_3_later
+
+	check_compatible_versions()
 
 	# Check each expected value vs. actuals:
+	mariadb_variables = get_mariadb_variables()
 	result = True
-	for key, expected_value in expected_variables.items():
+	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
 		if mariadb_variables.get(key) != expected_value:
 			print(
 				"For key %s. Expected value %s, found value %s"
@@ -130,14 +121,35 @@ def check_database_settings():
 		print(
 			(
 				"{sep2}Creation of your site - {site} failed because MariaDB is not properly {sep}"
-				"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
-				"the Barracuda storage engine.{sep2}"
+				"configured.{sep2}"
 				"Please verify the above settings in MariaDB's my.cnf.  Restart MariaDB.{sep}"
 				"And then run `bench new-site {site}` again.{sep2}"
 			).format(site=frappe.local.site, sep2="\n\n", sep="\n")
 		)
 
 	return result
+
+
+def check_compatible_versions():
+	try:
+		version = get_mariadb_version()
+		version_tuple = tuple(int(v) for v in version[0].split("."))
+
+		if version_tuple < (10, 6):
+			click.secho(
+				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by Frappe",
+				fg="yellow",
+			)
+		elif version_tuple >= (10, 9):
+			click.secho(
+				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with Frappe Framework.",
+				fg="yellow",
+			)
+	except Exception:
+		click.secho(
+			"MariaDB version compatibility checks failed, make sure you're running a supported version.",
+			fg="yellow",
+		)
 
 
 def get_root_connection(root_login, root_password):

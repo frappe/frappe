@@ -1765,7 +1765,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js +104,Not enough permissi
 apps/frappe/frappe/contacts/doctype/address/address.py +37,Address Title is mandatory.,地址標題是強制性的。
 DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",在&lt;head&gt;添加HTML網頁的部分，主要用於網站的驗證和搜索引擎優化
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,復發
-apps/frappe/frappe/utils/nestedset.py +183,Item cannot be added to its own descendents,項目不能被添加到自己的後代
+apps/frappe/frappe/utils/nestedset.py +183,Item cannot be added to its own descendants,項目不能被添加到自己的後代
 DocType: System Settings,Expiry time of QR Code Image Page,QR碼圖像頁面的到期時間
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Show Totals,顯示總計
 DocType: Error Snapshot,Relapses,復發
