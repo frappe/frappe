@@ -850,7 +850,7 @@ DocType: Workflow State,trash,koš
 apps/frappe/frappe/desk/page/activity/activity.js +153,Dec,Pro
 DocType: Event,Leave blank to repeat always,Nechte prázdné pro opakování vždy
 DocType: Event,Ends on,Končí
-apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Položka nemůže být přidána jako svůj vlastní podřízený potomek
+apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendants,Položka nemůže být přidána jako svůj vlastní podřízený potomek
 sites/assets/js/form.min.js +270,{0} created this {1},{0} vytvoření této {1}
 apps/frappe/frappe/desk/form/assign_to.py +120,"The task {0}, that you assigned to {1}, has been closed by {2}.","Úkol {0}, které jste přiřadili k {1}, bylo uzavřeno {2}."
 DocType: Blogger,Short Name,Zkrácené jméno

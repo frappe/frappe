@@ -156,6 +156,9 @@ class FormMeta(Meta):
 		list_script = ""
 		form_script = ""
 		for script in client_scripts:
+			if not script.script:
+				continue
+
 			if script.view == "List":
 				list_script += f"""
 // {script.name}
@@ -163,7 +166,7 @@ class FormMeta(Meta):
 
 """
 
-			if script.view == "Form":
+			elif script.view == "Form":
 				form_script += f"""
 // {script.name}
 {script.script}

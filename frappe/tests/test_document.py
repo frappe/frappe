@@ -424,6 +424,30 @@ class TestDocument(FrappeTestCase):
 
 		self.assertRaises(frappe.DoesNotExistError, doc.save)
 
+	def test_validate_from_to_dates(self):
+		doc = frappe.new_doc("Web Page")
+		doc.start_date = None
+		doc.end_date = None
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = "2020-01-01"
+		doc.end_date = None
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = None
+		doc.end_date = "2020-12-31"
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = "2020-01-01"
+		doc.end_date = "2020-12-31"
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.end_date = "2020-01-01"
+		doc.start_date = "2020-12-31"
+		self.assertRaises(
+			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
+		)
+
 
 class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):
