@@ -614,19 +614,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	translate_link_fields() {
 		let link_fields = this.meta.fields.filter(
-			field => field.fieldtype === "Link" && field.in_list_view === 1
+			(field) => field.fieldtype === "Link" && field.in_list_view === 1
 		);
 
 		if (link_fields.length > 0) {
 			let translated_doctypes = frappe.boot?.translated_doctypes || [];
 			let link_title_doctypes = frappe.boot?.link_title_doctypes || [];
 
-			link_fields.forEach(link_field => {
+			link_fields.forEach((link_field) => {
 				let doctype = link_field["options"];
 				let fieldname = link_field["fieldname"];
 
 				if (in_list(translated_doctypes, doctype)) {
-					this.data.map(doc => {
+					this.data.map((doc) => {
 						let key = in_list(link_title_doctypes, doctype)
 							? fieldname.concat("_title")
 							: fieldname;
