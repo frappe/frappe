@@ -885,9 +885,6 @@ def sign_up(email, full_name, redirect_to, new_password, guest_id):
 		if new_password:
 			update_password(new_password, user=user)
 
-		if guest_id:
-			from aetesis.whitelisted.cart import transfer_cart_from_guest
-			transfer_cart_from_guest(guest_id, user)
 
 		if redirect_to:
 			frappe.cache().hset("redirect_after_login", user.name, redirect_to)
