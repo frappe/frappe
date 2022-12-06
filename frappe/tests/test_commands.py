@@ -253,6 +253,7 @@ class TestCommands(BaseTestCommands):
 		database = fetch_latest_backups()["database"]
 		self.assertTrue(exists_in_backup(backup["excludes"]["excludes"], database))
 
+	@unittest.skip
 	def test_restore(self):
 		# step 0: create a site to run the test on
 		global_config = {
