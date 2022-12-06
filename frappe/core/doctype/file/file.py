@@ -421,7 +421,10 @@ class File(Document):
 					continue
 
 				file_doc = frappe.new_doc("File")
-				file_doc.content = z.read(file.filename)
+				try:
+					file_doc.content = z.read(file.filename)
+				except zipfile.BadZipFile:
+					frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
 				file_doc.file_name = filename
 				file_doc.folder = self.folder
 				file_doc.is_private = self.is_private
