@@ -63,7 +63,6 @@ context("Form Builder", () => {
 		cy.get(first_field).find(label).should("have.text", "Data 1");
 
 		let first_section = ".tab-content.active .form-section-container:first";
-		cy.get(".form-section-container:first").as("first-section");
 
 		// drag first section to second position
 		cy.get(first_section).click().wait(200);
@@ -97,8 +96,6 @@ context("Form Builder", () => {
 	});
 
 	it("Remove Tab/Section/Column", () => {
-		cy.get(".tab-content.active .form-section-container:first").as("first-section");
-
 		let first_section = ".tab-content.active .form-section-container:first";
 
 		// remove column
