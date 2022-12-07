@@ -1,4 +1,4 @@
-name: Server (MariaDB)
+name: Server
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
     branches: [ develop ]
 
 concurrency:
-  group: server-mariadb-develop-${{ github.event_name }}-${{ github.event.number }}
+  group: server-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
 
@@ -45,6 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+       db: ["mariadb", "postgres"]
        container: [1, 2]
 
     services:
@@ -55,6 +56,18 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
+      postgres:
+        image: postgres:12.4
+        env:
+          POSTGRES_PASSWORD: travis
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - name: Clone
@@ -111,7 +124,7 @@ jobs:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: server
-          DB: mariadb
+          DB: ${{ matrix.db }}
 
       - name: Run Tests
         run: cd ~/frappe-bench/sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
@@ -124,7 +137,7 @@ jobs:
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-${{ matrix.container }}
+          name: coverage-${{ matrix.db }}-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
 
   coverage:
@@ -142,7 +155,7 @@ jobs:
       - name: Upload coverage data
         uses: codecov/codecov-action@v3
         with:
-          name: MariaDB
+          name: Server
           fail_ci_if_error: true
           verbose: true
-          flags: server-mariadb
+          flags: server
