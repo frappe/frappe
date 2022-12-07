@@ -4808,3 +4808,13 @@ Preview Chart,Vorschau erzeugen,
 Please select X and Y fields,Bitte Felder für die X- und Y-Achse wählen,
 Notification sent to,Benachrichtigung gesendet an,
 Add to this activity by mailing to {0},"Senden Sie eine E-Mail an {0}, damit sie hier erscheint",
+<<<<<<< HEAD
+=======
+File Format,Dateiformat,
+CSV Delimiter,Trennzeichen,
+CSV Quoting,Anführungszeichen,
+CSV Preview,Vorschau,
+Non-numeric,Nicht-numerische,
+Minimal,Minimal,
+This value is fetched from {0}'s {1} field,Dieser Wert ergibt sich aus dem Feld {1} von {0},
+>>>>>>> dcae57475d (fix: unscrub and translate field names in tooltip explaining fetch from (#19143))

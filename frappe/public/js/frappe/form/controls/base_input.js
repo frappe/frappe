@@ -106,7 +106,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 						"title",
 						__(
 							"This value is fetched from {0}'s {1} field",
-							me.df.fetch_from.split(".")
+							me.df.fetch_from.split(".").map((value) => __(frappe.unscrub(value)))
 						)
 					);
 				}
