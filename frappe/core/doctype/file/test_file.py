@@ -162,44 +162,53 @@ class TestSameFileName(FrappeTestCase):
 class TestSameContent(FrappeTestCase):
 	def upload_duplicate_files(self, deduplicate=False):
 		with change_settings("System Settings", {"dont_deduplicate_files": int(not deduplicate)}):
-			self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
-			self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
-			self.test_content1 = test_content1
-			self.test_content2 = test_content1
-			self.orig_filename = frappe.generate_hash(length=10) + ".txt"
-			self.dup_filename = frappe.generate_hash(length=10) + ".txt"
-			_file1 = frappe.get_doc(
+			attached_to_doctype1, attached_to_docname1 = make_test_doc()
+			attached_to_doctype2, attached_to_docname2 = make_test_doc()
+
+			file1 = frappe.get_doc(
 				{
 					"doctype": "File",
-					"file_name": self.orig_filename,
-					"attached_to_doctype": self.attached_to_doctype1,
-					"attached_to_name": self.attached_to_docname1,
-					"content": self.test_content1,
+					"file_name": frappe.generate_hash(length=10) + ".txt",
+					"attached_to_doctype": attached_to_doctype1,
+					"attached_to_name": attached_to_docname1,
+					"content": test_content1,
 				}
 			)
-			_file1.save()
-			self.addCleanup(_file1.delete)
+			file1.save()
 
-			_file2 = frappe.get_doc(
+			file2 = frappe.get_doc(
 				{
 					"doctype": "File",
-					"file_name": self.dup_filename,
-					"attached_to_doctype": self.attached_to_doctype2,
-					"attached_to_name": self.attached_to_docname2,
-					"content": self.test_content2,
+					"file_name": frappe.generate_hash(length=10) + ".txt",
+					"attached_to_doctype": attached_to_doctype2,
+					"attached_to_name": attached_to_docname2,
+					"content": test_content1,
 				}
 			)
 
-			_file2.save()
-			self.addCleanup(_file2.delete)
+			file2.save()
+			return file1, file2
 
 	def test_saved_content_deduplicated(self):
-		self.upload_duplicate_files(deduplicate=1)
-		self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
+		file1, file2 = self.upload_duplicate_files(deduplicate=1)
+		self.assertFalse(os.path.exists(get_files_path(file2.file_name)))
+
+		file2.delete()
+		# deleteing duplicate file shouldn't delete original
+		self.assertTrue(os.path.exists(get_files_path(file1.file_name)))
+
+		file1.delete()
+		self.assertFalse(os.path.exists(get_files_path(file1.file_name)))
 
 	def test_saved_content_not_deduplicated(self):
-		self.upload_duplicate_files(deduplicate=0)
-		self.assertTrue(os.path.exists(get_files_path(self.dup_filename)))
+		file1, file2 = self.upload_duplicate_files(deduplicate=0)
+		self.assertTrue(os.path.exists(get_files_path(file2.file_name)))
+
+		file2.delete()
+		self.assertFalse(os.path.exists(get_files_path(file2.file_name)))
+
+		file1.delete()
+		self.assertFalse(os.path.exists(get_files_path(file1.file_name)))
 
 	def test_attachment_limit(self):
 		doctype, docname = make_test_doc()

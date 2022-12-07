@@ -361,10 +361,17 @@ class File(Document):
 
 	def _delete_file_on_disk(self):
 		"""If file not attached to any other record, delete it"""
-		on_disk_file_not_shared = self.content_hash and not frappe.get_all(
-			"File",
-			filters={"content_hash": self.content_hash, "name": ["!=", self.name]},
-			limit=1,
+		on_disk_file_not_shared = (
+			self.content_hash
+			and self.file_url
+			and not frappe.db.get_value(
+				"File",
+				filters={
+					"content_hash": self.content_hash,
+					"name": ["!=", self.name],
+					"file_url": self.file_url,
+				},
+			)
 		)
 		if on_disk_file_not_shared:
 			self.delete_file_data_content()
