@@ -302,31 +302,36 @@ class File(Document):
 			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_duplicate_entry(self):
-		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
-			if not self.content_hash:
-				self.generate_content_hash()
+		if self.flags.ignore_duplicate_entry_error or self.is_folder:
+			return
 
-			# check duplicate name
-			# check duplicate assignment
-			filters = {
-				"content_hash": self.content_hash,
-				"is_private": self.is_private,
-				"name": ("!=", self.name),
-			}
-			if self.attached_to_doctype and self.attached_to_name:
-				filters.update(
-					{
-						"attached_to_doctype": self.attached_to_doctype,
-						"attached_to_name": self.attached_to_name,
-					}
-				)
-			duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
+		if frappe.get_system_settings("dont_deduplicate_files"):
+			return
 
-			if duplicate_file:
-				duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
-				if duplicate_file_doc.exists_on_disk():
-					# just use the url, to avoid uploading a duplicate
-					self.file_url = duplicate_file.file_url
+		if not self.content_hash:
+			self.generate_content_hash()
+
+		# check duplicate name
+		# check duplicate assignment
+		filters = {
+			"content_hash": self.content_hash,
+			"is_private": self.is_private,
+			"name": ("!=", self.name),
+		}
+		if self.attached_to_doctype and self.attached_to_name:
+			filters.update(
+				{
+					"attached_to_doctype": self.attached_to_doctype,
+					"attached_to_name": self.attached_to_name,
+				}
+			)
+		duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
+
+		if duplicate_file:
+			duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
+			if duplicate_file_doc.exists_on_disk():
+				# just use the url, to avoid uploading a duplicate
+				self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
 		if not self.file_name and self.file_url:
@@ -542,7 +547,6 @@ class File(Document):
 			return
 
 		file_exists = False
-		duplicate_file = None
 
 		self.is_private = cint(self.is_private)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
@@ -559,7 +563,7 @@ class File(Document):
 		self.content_hash = get_content_hash(self._content)
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
-		if not ignore_existing_file_check:
+		if not ignore_existing_file_check and not frappe.get_system_settings("dont_deduplicate_files"):
 			duplicate_file = frappe.get_value(
 				"File",
 				{"content_hash": self.content_hash, "is_private": self.is_private},
@@ -567,11 +571,11 @@ class File(Document):
 				as_dict=True,
 			)
 
-		if duplicate_file:
-			file_doc: "File" = frappe.get_cached_doc("File", duplicate_file.name)
-			if file_doc.exists_on_disk():
-				self.file_url = duplicate_file.file_url
-				file_exists = True
+			if duplicate_file:
+				file_doc: "File" = frappe.get_cached_doc("File", duplicate_file.name)
+				if file_doc.exists_on_disk():
+					self.file_url = duplicate_file.file_url
+					file_exists = True
 
 		if not file_exists:
 			if not overwrite:

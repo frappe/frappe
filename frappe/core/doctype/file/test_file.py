@@ -18,7 +18,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.exceptions import ValidationError
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_files_path
 
 if TYPE_CHECKING:
@@ -160,38 +160,46 @@ class TestSameFileName(FrappeTestCase):
 
 
 class TestSameContent(FrappeTestCase):
-	def setUp(self):
-		self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
-		self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
-		self.test_content1 = test_content1
-		self.test_content2 = test_content1
-		self.orig_filename = "hello.txt"
-		self.dup_filename = "hello2.txt"
-		_file1 = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": self.orig_filename,
-				"attached_to_doctype": self.attached_to_doctype1,
-				"attached_to_name": self.attached_to_docname1,
-				"content": self.test_content1,
-			}
-		)
-		_file1.save()
+	def upload_duplicate_files(self, deduplicate=False):
+		with change_settings("System Settings", {"dont_deduplicate_files": int(not deduplicate)}):
+			self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
+			self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
+			self.test_content1 = test_content1
+			self.test_content2 = test_content1
+			self.orig_filename = frappe.generate_hash(length=10) + ".txt"
+			self.dup_filename = frappe.generate_hash(length=10) + ".txt"
+			_file1 = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": self.orig_filename,
+					"attached_to_doctype": self.attached_to_doctype1,
+					"attached_to_name": self.attached_to_docname1,
+					"content": self.test_content1,
+				}
+			)
+			_file1.save()
+			self.addCleanup(_file1.delete)
 
-		_file2 = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": self.dup_filename,
-				"attached_to_doctype": self.attached_to_doctype2,
-				"attached_to_name": self.attached_to_docname2,
-				"content": self.test_content2,
-			}
-		)
+			_file2 = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": self.dup_filename,
+					"attached_to_doctype": self.attached_to_doctype2,
+					"attached_to_name": self.attached_to_docname2,
+					"content": self.test_content2,
+				}
+			)
 
-		_file2.save()
+			_file2.save()
+			self.addCleanup(_file2.delete)
 
-	def test_saved_content(self):
+	def test_saved_content_deduplicated(self):
+		self.upload_duplicate_files(deduplicate=1)
 		self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
+
+	def test_saved_content_not_deduplicated(self):
+		self.upload_duplicate_files(deduplicate=0)
+		self.assertTrue(os.path.exists(get_files_path(self.dup_filename)))
 
 	def test_attachment_limit(self):
 		doctype, docname = make_test_doc()

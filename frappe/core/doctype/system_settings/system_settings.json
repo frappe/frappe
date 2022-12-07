@@ -30,7 +30,6 @@
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
-  "allow_guests_to_upload_files",
   "security",
   "session_expiry",
   "document_share_key_expiry",
@@ -72,7 +71,11 @@
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "files_section",
+  "dont_deduplicate_files",
+  "column_break_70",
+  "allow_guests_to_upload_files"
  ],
  "fields": [
   {
@@ -416,11 +419,11 @@
    "label": "Send document Web View link in email"
   },
   {
-    "collapsible": 1,
-    "fieldname": "prepared_report_section",
-    "fieldtype": "Section Break",
-    "label": "Reports"
-   },
+   "collapsible": 1,
+   "fieldname": "prepared_report_section",
+   "fieldtype": "Section Break",
+   "label": "Reports"
+  },
   {
    "default": "Frappe",
    "description": "The application name will be used in the Login page.",
@@ -504,12 +507,29 @@
    "fieldname": "disable_user_pass_login",
    "fieldtype": "Check",
    "label": "Disable Username/Password Login"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "files_section",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "default": "1",
+   "description": "When uploading a flie do not check or relink with duplicate file.",
+   "fieldname": "dont_deduplicate_files",
+   "fieldtype": "Check",
+   "label": "Do not deduplicate files"
+  },
+  {
+   "fieldname": "column_break_70",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-11-28 17:57:05.099512",
+ "modified": "2022-12-07 16:19:41.720729",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
