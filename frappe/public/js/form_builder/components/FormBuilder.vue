@@ -90,7 +90,7 @@ onMounted(() => store.fetch());
 						top: 31%;
 						position: absolute;
 						padding: 2px 10px;
-						color: var(--fg-color);
+						color: var(--text-dark);
 						background-color: var(--gray-500);
 						border-radius: var(--border-radius-full);
 						z-index: 1;

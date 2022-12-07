@@ -293,7 +293,7 @@ function remove_tab() {
 
 		.tab-content-container {
 			min-height: 4rem;
-			background-color: var(--gray-50);
+			background-color: var(--field-placeholder-color);
 			border-radius: var(--border-radius);
 
 			&:empty {

@@ -22,7 +22,7 @@ let props = defineProps(["df"]);
 
 	&::before {
 		content: "";
-		background-color: var(--gray-500);
+		background-color: var(--text-on-gray);
 		width: 70%;
 		height: 2px;
 		margin-top: 150px;

@@ -132,7 +132,7 @@ function move_sections_to_tab() {
 				<draggable
 					class="section-columns-container"
 					:style="{
-						backgroundColor: section.columns.length ? null : 'var(--gray-50)'
+						backgroundColor: section.columns.length ? null : 'var(--field-placeholder-color)'
 					}"
 					v-model="section.columns"
 					filter="[data-has-std-field='true']"
