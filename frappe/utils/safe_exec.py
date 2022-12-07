@@ -78,9 +78,8 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
-		exec(
-			compile_restricted(script, policy=FrappeTransformer), exec_globals, _locals
-		)  # pylint: disable=exec-used
+		# pylint: disable-next=exec-used
+		exec(compile_restricted(script, policy=FrappeTransformer), exec_globals, _locals)
 
 	return exec_globals, _locals
 
