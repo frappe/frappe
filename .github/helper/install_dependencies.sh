@@ -9,6 +9,5 @@ install_wkhtmltopdf() {
 }
 install_wkhtmltopdf &
 
-
 sudo apt update
-sudo apt install libcups2-dev redis-server mariadb-client-10.3
+sudo apt install libcups2-dev redis-server mariadb-client-10.6
