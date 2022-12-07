@@ -105,6 +105,7 @@ def get_safe_globals():
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
 		as_json=frappe.as_json,
 		dict=dict,
+		_dict=frappe._dict,  # this isn't usable with RestrictedPython, but kept for Jinja compatibility
 		log=frappe.log,
 		args=form_dict,
 		frappe=NamespaceDict(
