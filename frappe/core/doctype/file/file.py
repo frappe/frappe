@@ -74,9 +74,6 @@ class File(Document):
 	def after_insert(self):
 		if not self.is_folder:
 			self.create_attachment_record()
-		self.set_is_private()
-		self.set_file_name()
-		self.validate_duplicate_entry()
 
 	def validate(self):
 		if self.is_folder:
@@ -300,38 +297,6 @@ class File(Document):
 
 		if not os.path.exists(full_path):
 			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
-
-	def validate_duplicate_entry(self):
-		if self.flags.ignore_duplicate_entry_error or self.is_folder:
-			return
-
-		if frappe.get_system_settings("dont_deduplicate_files"):
-			return
-
-		if not self.content_hash:
-			self.generate_content_hash()
-
-		# check duplicate name
-		# check duplicate assignment
-		filters = {
-			"content_hash": self.content_hash,
-			"is_private": self.is_private,
-			"name": ("!=", self.name),
-		}
-		if self.attached_to_doctype and self.attached_to_name:
-			filters.update(
-				{
-					"attached_to_doctype": self.attached_to_doctype,
-					"attached_to_name": self.attached_to_name,
-				}
-			)
-		duplicate_file = frappe.db.get_value("File", filters, ["name", "file_url"], as_dict=1)
-
-		if duplicate_file:
-			duplicate_file_doc = frappe.get_cached_doc("File", duplicate_file.name)
-			if duplicate_file_doc.exists_on_disk():
-				# just use the url, to avoid uploading a duplicate
-				self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
 		if not self.file_name and self.file_url:
