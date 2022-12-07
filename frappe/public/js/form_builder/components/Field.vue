@@ -9,7 +9,7 @@ let store = useStore();
 
 let hovered = ref(false);
 let component = computed(() => {
-	return props.field.df.fieldtype.replace(' ', '') + 'Control';
+	return props.field.df.fieldtype.replace(" ", "") + "Control";
 });
 
 function remove_field() {
@@ -68,13 +68,10 @@ function move_fields_to_column() {
 						"
 						@click="move_fields_to_column"
 					>
-						<div
-							:style="{ strokeWidth: 0.6 }"
-							v-html="frappe.utils.icon('arrow-up-right', 'sm')"
-						></div>
+						<div v-html="frappe.utils.icon('move', 'sm')"></div>
 					</button>
 					<button class="btn btn-xs btn-icon" @click="remove_field">
-						<div v-html="frappe.utils.icon('close', 'sm')"></div>
+						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 					</button>
 				</div>
 			</template>

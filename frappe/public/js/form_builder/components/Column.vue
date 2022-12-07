@@ -81,7 +81,7 @@ function move_columns_to_section() {
 				:title="__('Move the current column & the following columns to a new section')"
 				@click="move_columns_to_section"
 			>
-				<div :style="{ strokeWidth: 0.6 }" v-html="frappe.utils.icon('arrow-up-right', 'sm')"></div>
+				<div v-html="frappe.utils.icon('move', 'sm')"></div>
 			</button>
 			<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
 				<div v-html="frappe.utils.icon('add', 'sm')"></div>
@@ -91,7 +91,7 @@ function move_columns_to_section() {
 				:title="__('Remove Column')"
 				@click="remove_column"
 			>
-				<div v-html="frappe.utils.icon('close', 'sm')"></div>
+				<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 			</button>
 		</div>
 		<draggable

@@ -110,7 +110,7 @@ function move_sections_to_tab() {
 						:title="__('Move the current section and the following sections to a new tab')"
 						@click="move_sections_to_tab"
 					>
-						<div :style="{ strokeWidth: 0.6 }" v-html="frappe.utils.icon('arrow-up-right', 'sm')"></div>
+						<div v-html="frappe.utils.icon('move', 'sm')"></div>
 					</button>
 					<button
 						class="btn btn-xs btn-section"
@@ -124,7 +124,7 @@ function move_sections_to_tab() {
 						:title="__('Remove section')"
 						@click="remove_section"
 					>
-						<div v-html="frappe.utils.icon('close', 'sm')"></div>
+						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 					</button>
 				</div>
 			</div>

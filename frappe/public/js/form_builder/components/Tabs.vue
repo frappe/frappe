@@ -152,7 +152,7 @@ function remove_tab() {
 				:title="__('Remove selected tab')"
 				@click="remove_tab"
 			>
-				<div v-html="frappe.utils.icon('close', 'sm')"></div>
+				<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 			</button>
 		</div>
 	</div>
