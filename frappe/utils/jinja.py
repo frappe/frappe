@@ -76,7 +76,7 @@ def render_template(template, context=None, is_path=None, safe_render=True):
 	if not template:
 		return ""
 
-	if not context:
+	if context is None:
 		context = {}
 
 	if is_path or guess_is_path(template):
