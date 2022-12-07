@@ -67,6 +67,14 @@ def remove(doctype, name, user, flags=None):
 
 @frappe.whitelist()
 def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
+<<<<<<< HEAD
+=======
+	"""Expose function without flags to the client-side"""
+	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
+
+
+def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
+>>>>>>> 19588b24f7 (fix: stabilize shared with dialog)
 	"""Set share permission."""
 	check_share_permission(doctype, name)
 
