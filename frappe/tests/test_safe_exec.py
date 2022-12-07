@@ -76,5 +76,9 @@ class TestSafeExec(FrappeTestCase):
 		unsafe_global = {"frappe": frappe}
 		self.assertRaises(SyntaxError, safe_exec, """frappe.msgprint("Hello")""", unsafe_global)
 
-	def test_frappe_dict_in_jinja(self):
+	def test_attrdict(self):
+		# jinja
 		frappe.render_template("{% set my_dict = _dict() %} {{- my_dict.works -}}")
+
+		# RestrictedPython
+		safe_exec("my_dict = _dict()")
