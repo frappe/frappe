@@ -282,6 +282,43 @@ class TestReportview(unittest.TestCase):
 			)
 			self.assertTrue("date_diff" in data[0])
 
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=["name", "issingle", "if (issingle=1, (select name from tabUser), count(name))"],
+				limit_start=0,
+				limit_page_length=1,
+			)
+
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=["name", "issingle", "if(issingle=1, (select name from tabUser), count(name))"],
+				limit_start=0,
+				limit_page_length=1,
+			)
+
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=[
+					"name",
+					"issingle",
+					"( select name from `tabUser` where `tabDocType`.owner = `tabUser`.name )",
+				],
+				limit_start=0,
+				limit_page_length=1,
+				ignore_permissions=True,
+			)
+
+		with self.assertRaises(frappe.DataError):
+			DatabaseQuery("DocType").execute(
+				fields=[
+					"name",
+					"issingle",
+					"(select name from `tabUser` where `tabDocType`.owner = `tabUser`.name )",
+				],
+				limit_start=0,
+				limit_page_length=1,
+			)
+
 	def test_nested_permission(self):
 		frappe.set_user("Administrator")
 		create_nested_doctype()
@@ -376,6 +413,46 @@ class TestReportview(unittest.TestCase):
 			order_by="creation",
 		)
 		self.assertTrue("DefaultValue" in [d["name"] for d in out])
+
+	def test_order_by_group_by_sanitizer(self):
+		# order by with blacklisted function
+		with self.assertRaises(frappe.ValidationError):
+			DatabaseQuery("DocType").execute(
+				fields=["name"],
+				order_by="sleep (1) asc",
+			)
+
+		# group by with blacklisted function
+		with self.assertRaises(frappe.ValidationError):
+			DatabaseQuery("DocType").execute(
+				fields=["name"],
+				group_by="SLEEP(0)",
+			)
+
+		# sub query in order by
+		with self.assertRaises(frappe.ValidationError):
+			DatabaseQuery("DocType").execute(
+				fields=["name"],
+				order_by="(select rank from tabRankedDocTypes where tabRankedDocTypes.name = tabDocType.name) asc",
+			)
+
+		# validate allowed usage
+		DatabaseQuery("DocType").execute(
+			fields=["name"],
+			order_by="name asc",
+		)
+		DatabaseQuery("DocType").execute(
+			fields=["name"],
+			order_by="name asc",
+			group_by="name",
+		)
+
+		# check mariadb specific syntax
+		if frappe.db.db_type == "mariadb":
+			DatabaseQuery("DocType").execute(
+				fields=["name"],
+				order_by="timestamp(modified)",
+			)
 
 	def test_of_not_of_descendant_ancestors(self):
 		frappe.set_user("Administrator")

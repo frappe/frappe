@@ -80,7 +80,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				me.value = me.doc[me.df.fieldname];
 			}
 
-			if (me.can_write()) {
+			let is_fetch_from_read_only = me.df.fetch_from && !me.df.fetch_if_empty;
+
+			if (me.can_write() && !is_fetch_from_read_only) {
 				me.disp_area && $(me.disp_area).toggle(false);
 				$(me.input_area).toggle(true);
 				me.$input && me.$input.prop("disabled", false);
@@ -98,6 +100,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					}
 				}
 				me.$input && me.$input.prop("disabled", true);
+
+				if (is_fetch_from_read_only) {
+					$(me.disp_area).attr(
+						"title",
+						__(
+							"This value is fetched from {0}'s {1} field",
+							me.df.fetch_from.split(".")
+						)
+					);
+				}
 			}
 
 			me.set_description();

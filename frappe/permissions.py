@@ -415,8 +415,13 @@ def get_roles(user=None, with_standard=True):
 				[
 					r[0]
 					for r in frappe.db.sql(
-						"""select role from `tabHas Role`
-				where parent=%s and role not in ('All', 'Guest')""",
+						"""
+						select role from `tabHas Role`
+						where
+							parenttype='User'
+							and parent=%s
+							and role not in ('All', 'Guest')
+						""",
 						(user,),
 					)
 				]

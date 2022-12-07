@@ -236,7 +236,7 @@
    "read_only": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "Disable Customer Signup link in Login page",
    "fieldname": "disable_signup",
    "fieldtype": "Check",
@@ -399,7 +399,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-05-27 12:33:29.019998",
+ "modified": "2022-12-05 04:17:56.478757",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

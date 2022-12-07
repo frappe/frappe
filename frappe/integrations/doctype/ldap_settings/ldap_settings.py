@@ -175,7 +175,7 @@ class LDAPSettings(Document):
 		if frappe.db.exists("User", user_data["email"]):
 			user = frappe.get_doc("User", user_data["email"])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
-		else:
+		elif not self.do_not_create_new_user:
 			doc = user_data
 			doc.update(
 				{
@@ -187,6 +187,12 @@ class LDAPSettings(Document):
 			)
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
+		else:
+			frappe.throw(
+				_(
+					"User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
+				).format(user_data["email"])
+			)
 
 		if self.default_user_type == "System User":
 			role = self.default_role
@@ -330,11 +336,21 @@ class LDAPSettings(Document):
 
 	def convert_ldap_entry_to_dict(self, user_entry: Entry):
 		# support multiple email values
-		email = user_entry[self.ldap_email_field]
+		email = user_entry[self.ldap_email_field].value
+
+		if isinstance(email, list):
+			# check if any of the email in the list already exist
+			for e in email:
+				if frappe.db.exists("User", e):
+					email = e
+					break
+			else:
+				# if none of the email exist, use the first email
+				email = email[0]
 
 		data = {
 			"username": user_entry[self.ldap_username_field].value,
-			"email": str(email.value[0] if isinstance(email.value, list) else email.value),
+			"email": email,
 			"first_name": user_entry[self.ldap_first_name_field].value,
 		}
 

@@ -89,7 +89,7 @@ body {
 		}
 
 		.grid-col-2 {
-			grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+			grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 			.full-width {
 				grid-column-start: 1;
 				grid-column-end: 2;
@@ -208,6 +208,9 @@ body {
 
 		.btn-xs {
 			box-shadow: none;
+			min-width: max-content;
+			font-size: 12px;
+			padding: 4px 6px;
 		}
 
 		.chart-actions {
@@ -228,13 +231,17 @@ body {
 
 		.widget-head {
 			padding: var(--padding-sm);
-			position: relative;
+			display: flex;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: 6px;
 		}
 
 		.widget-control {
-			position: absolute;
-			right: var(--margin-sm);
-			top: var(--padding-sm);
+			display: flex;
+			align-items: center;
+			flex: 1;
+			font-size: 10px;
 		}
 
 		.chart-loading-state {
