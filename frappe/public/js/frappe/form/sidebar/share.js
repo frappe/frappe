@@ -17,9 +17,12 @@ frappe.ui.form.Share = class Share {
 			this.parent.find(".share-doc-btn").hide();
 		}
 
-		this.parent.find(".share-doc-btn").on("click", () => {
-			this.frm.share_doc();
-		});
+		this.parent
+			.find(".share-doc-btn")
+			.off("click")
+			.on("click", () => {
+				this.frm.share_doc();
+			});
 
 		this.shares.empty();
 
@@ -41,6 +44,8 @@ frappe.ui.form.Share = class Share {
 		this.dialog = d;
 		this.dirty = false;
 
+		$(d.body).html('<p class="text-muted">' + __("Loading...") + "</p>");
+
 		frappe.call({
 			method: "frappe.share.get_users",
 			args: {
@@ -51,8 +56,6 @@ frappe.ui.form.Share = class Share {
 				me.render_shared(r.message || []);
 			},
 		});
-
-		$(d.body).html('<p class="text-muted">' + __("Loading...") + "</p>");
 
 		d.onhide = function () {
 			// reload comments
@@ -188,7 +191,6 @@ frappe.ui.form.Share = class Share {
 						}
 
 						me.dirty = true;
-						me.render_shared();
 						me.frm.shared.refresh();
 					},
 				});
