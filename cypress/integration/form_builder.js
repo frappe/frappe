@@ -20,19 +20,19 @@ context("Form Builder", () => {
 	it("Change Doctype using page title dialog", () => {
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
-		cy.visit(`/app/form-builder/${doctype_name}`);
+		cy.visit(`/app/form-builder/Web Form`);
 		cy.get(".form-builder-container").should("exist");
 
 		cy.get(".page-title").click();
 
 		cy.get(".frappe-control[data-fieldname='doctype'] input").click().as("input");
-		cy.get("@input").clear().type("ToDo", { delay: 200 });
+		cy.get("@input").type("{rightArrow} Field", { delay: 200 });
 		cy.wait("@search_link");
 		cy.get("@input").type("{enter}").blur();
 
 		cy.click_modal_primary_button("Change");
 
-		cy.get(".page-title .title-text").should("have.text", "Form Builder: ToDo");
+		cy.get(".page-title .title-text").should("have.text", "Form Builder: Web Form Field");
 	});
 
 	it("Save without change, check form dirty and reset changes", () => {
@@ -92,7 +92,7 @@ context("Form Builder", () => {
 		cy.get(".sidebar-container .frappe-control[data-fieldname='options'] input")
 			.click()
 			.as("input");
-		cy.get("@input").clear().type("Web Form Field", { delay: 200 });
+		cy.get("@input").clear({ force: true }).type("Web Form Field", { delay: 200 });
 		cy.wait("@search_link");
 		cy.get("@input").type("{enter}").blur();
 
@@ -254,13 +254,13 @@ context("Form Builder", () => {
 		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input")
 			.click()
 			.as("input");
-		cy.get("@input").clear().type("data3");
+		cy.get("@input").clear({ force: true }).type("data3");
 
 		cy.click_doc_primary_button("Save");
 		cy.get_open_dialog().find(".msgprint").should("contain", "appears multiple times");
 		cy.hide_dialog();
 		cy.get(first_field).click();
-		cy.get("@input").clear();
+		cy.get("@input").clear({ force: true });
 
 		// validate reqd + hidden without default
 		cy.get(".sidebar-container .field label .label-area").contains("Mandatory").click();
