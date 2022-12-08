@@ -20,9 +20,9 @@ TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
 
 
 def sql(*args, **kwargs):
-	start_time = time.time()
+	start_time = time.monotonic()
 	result = frappe.db._sql(*args, **kwargs)
-	end_time = time.time()
+	end_time = time.monotonic()
 
 	stack = list(get_current_stack_frames())
 	query = sqlparse.format(str(frappe.db.last_query).strip(), keyword_case="upper", reindent=True)

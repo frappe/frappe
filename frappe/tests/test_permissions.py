@@ -665,6 +665,16 @@ class TestPermissions(FrappeTestCase):
 		doc = user.append("defaults")
 		doc.check_permission()
 
+		# false due to missing parentfield
+		doc = user.append("roles")
+		doc.parentfield = None
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
+		# false due to invalid parentfield
+		doc = user.append("roles")
+		doc.parentfield = "first_name"
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
 		# false by permlevel
 		doc = user.append("roles")
 		self.assertRaises(frappe.PermissionError, doc.check_permission)
