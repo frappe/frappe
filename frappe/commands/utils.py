@@ -11,6 +11,7 @@ from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
+from frappe.utils.synchronization import filelock
 
 find_executable = which  # backwards compatibility
 DATA_IMPORT_DEPRECATION = (
@@ -60,27 +61,28 @@ def build(
 	if not apps and app:
 		apps = app
 
-	# dont try downloading assets if force used, app specified or running via CI
-	if not (force or apps or os.environ.get("CI")):
-		# skip building frappe if assets exist remotely
-		skip_frappe = download_frappe_assets(verbose=verbose)
-	else:
-		skip_frappe = False
+	with filelock("bench_build", is_global=True, timeout=10):
+		# dont try downloading assets if force used, app specified or running via CI
+		if not (force or apps or os.environ.get("CI")):
+			# skip building frappe if assets exist remotely
+			skip_frappe = download_frappe_assets(verbose=verbose)
+		else:
+			skip_frappe = False
 
-	# don't minify in developer_mode for faster builds
-	development = frappe.local.conf.developer_mode or frappe.local.dev_server
-	mode = "development" if development else "production"
-	if production:
-		mode = "production"
+		# don't minify in developer_mode for faster builds
+		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		mode = "development" if development else "production"
+		if production:
+			mode = "production"
 
-	if make_copy or restore:
-		hard_link = make_copy or restore
-		click.secho(
-			"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
-			fg="yellow",
-		)
+		if make_copy or restore:
+			hard_link = make_copy or restore
+			click.secho(
+				"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
+				fg="yellow",
+			)
 
-	bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+		bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
 
 
 @click.command("watch")
