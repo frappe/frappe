@@ -723,7 +723,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	selected_format() {
-		return this.print_sel.val() || this.frm.meta.default_print_format || "Standard";
+		return this.print_format_selector.val() || "Standard";
 	}
 
 	is_raw_printing(format) {
