@@ -59,13 +59,7 @@ frappe.ui.form.Share = Class.extend({
 			}
 		});
 
-<<<<<<< HEAD
-		$(d.body).html('<p class="text-muted">' + __("Loading...") + '</p>');
-
-		d.onhide = function() {
-=======
 		d.onhide = function () {
->>>>>>> 19588b24f7 (fix: stabilize shared with dialog)
 			// reload comments
 			if(me.dirty) me.frm.sidebar.reload_docinfo();
 		}
@@ -189,17 +183,9 @@ frappe.ui.form.Share = Class.extend({
 						me.shared.push(r.message);
 					}
 
-<<<<<<< HEAD
 					me.dirty = true;
-					me.render_shared();
 					me.frm.shared.refresh();
 				}
-=======
-						me.dirty = true;
-						me.frm.shared.refresh();
-					},
-				});
->>>>>>> 19588b24f7 (fix: stabilize shared with dialog)
 			});
 		});
 	},
