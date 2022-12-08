@@ -219,7 +219,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_onload_event() {
-		this.settings.onload && this.settings.onload(this)
+		this.settings.onload && this.settings.onload(this);
 	}
 
 	set_default_secondary_action() {
