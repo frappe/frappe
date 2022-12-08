@@ -22,8 +22,11 @@ function load_form_builder(wrapper) {
 		let doctype = route[1];
 		let is_customize_form = route[2] === "customize";
 
-		if (frappe.form_builder?.doctype == doctype) {
-			frappe.form_builder.store.is_customize_form = is_customize_form;
+		if (frappe.form_builder?.doctype) {
+			frappe.form_builder.doctype = frappe.form_builder.store.doctype = doctype;
+			frappe.form_builder.customize = frappe.form_builder.store.is_customize_form =
+				is_customize_form;
+			frappe.form_builder.init(true);
 			frappe.form_builder.store.fetch();
 			return;
 		}

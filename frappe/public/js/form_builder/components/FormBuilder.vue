@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar.vue";
 import Tabs from "./Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "../store";
-import { onClickOutside } from '@vueuse/core'
+import { onClickOutside } from "@vueuse/core";
 
 let store = useStore();
 
@@ -14,13 +14,46 @@ let should_render = computed(() => {
 let container = ref(null);
 onClickOutside(container, () => store.selected_field = null);
 
+function setup_change_doctype_dialog() {
+	store.page.$title_area.on("click", () => {
+		let dialog = new frappe.ui.Dialog({
+			title: __("Change DocType"),
+			fields: [
+				{
+					label: __("Select DocType"),
+					fieldname: "doctype",
+					fieldtype: "Link",
+					options: "DocType",
+					default: store.doctype || null
+				},
+				{
+					label: __("For Customize Form"),
+					fieldname: "for_customize_form",
+					fieldtype: "Check",
+					default: store.is_customize_form
+				}
+			],
+			primary_action_label: __("Change"),
+			primary_action({ doctype }) {
+				dialog.hide();
+				let customize = dialog.get_value("for_customize_form") ? "customize" : "";
+				frappe.set_route("form-builder", doctype, customize);
+			}
+		});
+		dialog.show();
+	});
+}
+
 watch(
 	() => store.layout,
 	() => (store.dirty = true),
 	{ deep: true }
 );
 
-onMounted(() => store.fetch());
+onMounted(() => {
+	store.fetch();
+	setup_change_doctype_dialog();
+});
 </script>
 
 <template>

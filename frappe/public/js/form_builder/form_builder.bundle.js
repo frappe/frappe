@@ -12,11 +12,15 @@ class FormBuilder {
 		this.customize = customize;
 		this.read_only = false;
 
+		this.init();
+	}
+
+	init(refresh) {
 		// set page title
 		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
 
 		this.setup_page_actions();
-		this.setup_app();
+		!refresh && this.setup_app();
 		this.watch_changes();
 	}
 
@@ -41,10 +45,10 @@ class FormBuilder {
 			this.store.read_only = this.store.preview;
 			this.read_only = true;
 		});
-		this.customize_form_btn = this.page.add_button(__("Switch to Customize Form"), () => {
+		this.customize_form_btn = this.page.add_button(__("For Customize Form"), () => {
 			frappe.set_route("form-builder", this.doctype, "customize");
 		});
-		this.doctype_form_btn = this.page.add_button(__("Switch to Doctype Form"), () => {
+		this.doctype_form_btn = this.page.add_button(__("For DocType Form"), () => {
 			frappe.set_route("form-builder", this.doctype);
 		});
 
@@ -75,6 +79,7 @@ class FormBuilder {
 		this.store = useStore();
 		this.store.doctype = this.doctype;
 		this.store.is_customize_form = this.customize;
+		this.store.page = this.page;
 
 		// register global components
 		registerGlobalComponents(app);
@@ -100,11 +105,25 @@ class FormBuilder {
 			// hide customize form & Go to customize form btn
 			if (
 				this.store.doc &&
-				(this.store.doc.custom || this.store.doc.issingle,
-				in_list(frappe.model.core_doctypes_list, this.doctype))
+				(this.store.doc.custom ||
+					this.store.doc.issingle ||
+					in_list(frappe.model.core_doctypes_list, this.doctype))
 			) {
 				this.customize_form_btn.hide();
-				this.go_to_customize_form_btn.hide();
+				if (this.doctype != "Customize Form") {
+					this.go_to_customize_form_btn.hide();
+				}
+			}
+
+			// show Go to {0} List or Go to {0} button
+			if (this.store.doc && !this.store.doc.istable) {
+				let label = this.store.doc.issingle
+					? __("Go to {0}", [__(this.doctype)])
+					: __("Go to {0} List", [__(this.doctype)]);
+
+				this.page.add_menu_item(label, () => {
+					window.open(`/app/${frappe.router.slug(this.doctype)}`);
+				});
 			}
 
 			// toggle preview btn text

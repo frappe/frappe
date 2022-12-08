@@ -66,7 +66,7 @@ function focus_on_label() {
 .input-text {
 	border: none;
 	min-width: 50px;
-	margin-left: -2px;
+	padding: 0px !important;
 
 	&:focus {
 		outline: none;
