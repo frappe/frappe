@@ -333,14 +333,26 @@ def has_user_permission(doc, user=None):
 				# restricted for this link field, and no matching values found
 				# make the right message and exit
 				if d.get("parentfield"):
-					# "Not allowed for Company = Restricted Company in Row 3. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1} in Row {2}. Restricted field: {3}").format(
-						_(field.options), d.get(field.fieldname), d.idx, field.fieldname
+					# "You are not allowed to access this Employee record because it is linked
+					# to Company 'Restricted Company' in row 3, field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						d.idx,
+						_(field.label) if field.label else field.fieldname,
 					)
 				else:
-					# "Not allowed for Company = Restricted Company. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1}. Restricted field: {2}").format(
-						_(field.options), d.get(field.fieldname), field.fieldname
+					# "You are not allowed to access Company 'Restricted Company' in field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						_(field.label) if field.label else field.fieldname,
 					)
 
 				push_perm_check_log(msg)
