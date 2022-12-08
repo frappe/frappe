@@ -98,8 +98,8 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 			share = add_docshare(doctype, name, user, everyone=everyone, **{permission_to: 1}, flags=flags)
 		else:
 			# no share found, nothing to remove
-			share = {}
-			pass
+			share = None
+
 	else:
 		share = frappe.get_doc("DocShare", share_name)
 		if flags:

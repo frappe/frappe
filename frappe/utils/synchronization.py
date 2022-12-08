@@ -43,7 +43,7 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 		frappe.log_error("Filelock: Failed to aquire {lock_path}")
 
 		raise LockTimeoutError(
-			_("Failed to aquire lock: {}").format(lock_name)
+			_("Failed to aquire lock: {}. Lock may be held by another process.").format(lock_name)
 			+ "<br>"
 			+ _("You can manually remove the lock if you think it's safe: {}").format(lock_path)
 		) from e
