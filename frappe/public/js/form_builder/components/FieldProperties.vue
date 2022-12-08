@@ -67,6 +67,8 @@ let docfield_df = computed(() => {
 					:df="df"
 					:value="store.selected_field[df.fieldname]"
 					v-model="store.selected_field[df.fieldname]"
+					:data-fieldname="df.fieldname"
+					:data-fieldtype="df.fieldtype"
 				/>
 			</div>
 		</div>

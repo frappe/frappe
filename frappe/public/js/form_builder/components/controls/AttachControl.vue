@@ -4,7 +4,7 @@ let props = defineProps(["df"]);
 </script>
 
 <template>
-	<div class="control editable" :data-fieldtype="df.fieldtype">
+	<div class="control editable">
 		<!-- label -->
 		<div class="field-controls">
 			<slot name="label" />

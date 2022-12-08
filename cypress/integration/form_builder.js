@@ -17,6 +17,114 @@ context("Form Builder", () => {
 		cy.get(".form-builder-container").should("exist");
 	});
 
+	it("Change Doctype using page title dialog", () => {
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+
+		cy.visit(`/app/form-builder/${doctype_name}`);
+		cy.get(".form-builder-container").should("exist");
+
+		cy.get(".page-title").click();
+
+		cy.get(".frappe-control[data-fieldname='doctype'] input").click().as("input");
+		cy.get("@input").clear().type("ToDo", { delay: 200 });
+		cy.wait("@search_link");
+		cy.get("@input").type("{enter}").blur();
+
+		cy.click_modal_primary_button("Change");
+
+		cy.get(".page-title .title-text").should("have.text", "Form Builder: ToDo");
+	});
+
+	it("Save without change, check form dirty and reset changes", () => {
+		cy.visit(`/app/form-builder/${doctype_name}`);
+
+		// Save without change
+		cy.click_doc_primary_button("Save");
+		cy.get(".desk-alert.orange .alert-message").should("have.text", "No changes to save");
+
+		// Check form dirty
+		cy.get(".tab-content.active .section-columns-container:first .column:first .field:first")
+			.find("div[title='Double click to edit label']")
+			.dblclick()
+			.type("Dirty");
+		cy.get(".title-area .indicator-pill.orange").should("have.text", "Not Saved");
+
+		// Reset changes
+		cy.get(".page-actions .custom-actions .btn").contains("Reset Changes").click();
+		cy.get(".title-area .indicator-pill.orange").should("not.exist");
+	});
+
+	it("Add empty section and save", () => {
+		cy.visit(`/app/form-builder/${doctype_name}`);
+
+		let first_section = ".tab-content.active .form-section-container:first";
+
+		// add new section
+		cy.get(first_section).click(15, 10);
+		cy.get(first_section).find(".section-actions button:first").click();
+
+		// save
+		cy.click_doc_primary_button("Save");
+		cy.get(".tab-content.active .form-section-container").should("have.length", 1);
+	});
+
+	it("Add Table field and check if columns are rendered", () => {
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
+
+		cy.visit(`/app/form-builder/${doctype_name}`);
+
+		let first_field =
+			".tab-content.active .section-columns-container:first .column:first .field:first";
+
+		cy.get(".fields-container .field[title='Table']").drag(first_field, {
+			target: { x: 100, y: 10 },
+		});
+
+		// save
+		cy.click_doc_primary_button("Save");
+
+		// Validate if options is not set
+		cy.get_open_dialog().find(".msgprint").should("contain", "Options is required");
+		cy.hide_dialog();
+
+		cy.get(first_field).click();
+
+		cy.get(".sidebar-container .frappe-control[data-fieldname='options'] input")
+			.click()
+			.as("input");
+		cy.get("@input").clear().type("Web Form Field", { delay: 200 });
+		cy.wait("@search_link");
+		cy.get("@input").type("{enter}").blur();
+
+		cy.get(first_field)
+			.find(".table-controls .table-column")
+			.contains("Field")
+			.should("exist");
+		cy.get(first_field)
+			.find(".table-controls .table-column")
+			.contains("Fieldtype")
+			.should("exist");
+
+		// validate In List View
+		cy.get(".sidebar-container .field label .label-area").contains("In List View").click();
+
+		// save
+		cy.click_doc_primary_button("Save");
+
+		cy.get_open_dialog().find(".msgprint").should("contain", "In List View");
+		cy.hide_dialog();
+
+		cy.get(first_field).click();
+		cy.get(".sidebar-container .field label .label-area").contains("In List View").click();
+
+		// validate In Global Search
+		cy.get(".sidebar-container .field label .label-area").contains("In Global Search").click();
+		// save
+		cy.click_doc_primary_button("Save");
+
+		cy.get_open_dialog().find(".msgprint").should("contain", "In Global Search");
+	});
+
 	it("Drag Field/Column/Section & Tab", () => {
 		cy.visit(`/app/form-builder/${doctype_name}`);
 
@@ -128,5 +236,41 @@ context("Form Builder", () => {
 
 		cy.visit("/app/form-builder-doctype/new");
 		cy.get("[data-fieldname='data3'] .clearfix label").should("have.text", "New Title");
+	});
+
+	it("Validate Duplicate Name & reqd + hidden without default logic", () => {
+		cy.visit(`/app/form-builder/${doctype_name}`);
+
+		let first_field =
+			".tab-content.active .section-columns-container:first .column:first .field:first";
+
+		cy.get(".fields-container .field[title='Check']").drag(first_field, {
+			target: { x: 100, y: 10 },
+		});
+
+		cy.get(first_field).click();
+
+		// validate duplicate name
+		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input")
+			.click()
+			.as("input");
+		cy.get("@input").clear().type("data3");
+
+		cy.click_doc_primary_button("Save");
+		cy.get_open_dialog().find(".msgprint").should("contain", "appears multiple times");
+		cy.hide_dialog();
+		cy.get(first_field).click();
+		cy.get("@input").clear();
+
+		// validate reqd + hidden without default
+		cy.get(".sidebar-container .field label .label-area").contains("Mandatory").click();
+		cy.get(".sidebar-container .field label .label-area").contains("Hidden").click();
+
+		// save
+		cy.click_doc_primary_button("Save");
+
+		cy.get_open_dialog()
+			.find(".msgprint")
+			.should("contain", "cannot be hidden and mandatory without any default value");
 	});
 });

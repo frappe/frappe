@@ -27,7 +27,6 @@ if (props.df.fieldtype === "Icon") {
 <template>
 	<div
 		class="control frappe-control"
-		:data-fieldtype="df.fieldtype"
 		:class="{ editable: slots.label }"
 	>
 		<!-- label -->

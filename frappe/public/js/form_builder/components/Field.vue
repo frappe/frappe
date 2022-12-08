@@ -41,7 +41,12 @@ function move_fields_to_column() {
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
-		<component :is="component" :df="field.df">
+		<component
+			:is="component"
+			:df="field.df"
+			:data-fieldname="field.df.fieldname"
+			:data-fieldtype="field.df.fieldtype"
+		>
 			<template #label>
 				<EditableInput
 					:class="{ reqd: field.df.reqd }"
