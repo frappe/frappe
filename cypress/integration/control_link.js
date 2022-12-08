@@ -60,7 +60,7 @@ context('Control Link', () => {
 		});
 	});
 
-	it('should unset invalid value', () => {
+	it.skip('should unset invalid value', () => {
 		get_dialog_with_link().as('dialog');
 
 		cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
@@ -72,7 +72,7 @@ context('Control Link', () => {
 		cy.get('.frappe-control[data-fieldname=link] input').should('have.value', '');
 	});
 
-	it("should be possible set empty value explicitly", () => {
+	it.skip("should be possible set empty value explicitly", () => {
 		get_dialog_with_link().as("dialog");
 
 		cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
@@ -89,7 +89,7 @@ context('Control Link', () => {
 			});
 	});
 
-	it('should route to form on arrow click', () => {
+	it.skip('should route to form on arrow click', () => {
 		get_dialog_with_link().as('dialog');
 
 		cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
@@ -109,7 +109,7 @@ context('Control Link', () => {
 		});
 	});
 
-	it('should update dependant fields (via fetch_from)', () => {
+	it.skip('should update dependant fields (via fetch_from)', () => {
 		cy.get('@todos').then(todos => {
 			cy.visit(`/app/todo/${todos[0]}`);
 			cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
@@ -155,7 +155,7 @@ context('Control Link', () => {
 		});
 	});
 
-	it("should set default values", () => {
+	it.skip("should set default values", () => {
 		cy.insert_doc("Property Setter", {
 			"doctype_or_field": "DocField",
 			"doc_type": "ToDo",
@@ -184,7 +184,7 @@ context('Control Link', () => {
 		);
 	});
 
-	it("show translated text for Gender link field with language de with input in de", () => {
+	it.skip("show translated text for Gender link field with language de with input in de", () => {
 		cy.call("frappe.tests.ui_test_helpers.insert_translations").then(() => {
 			cy.window()
 				.its("frappe")
@@ -216,7 +216,7 @@ context('Control Link', () => {
 		});
 	});
 
-	it("show text for Gender link field with language en", () => {
+	it.skip("show text for Gender link field with language en", () => {
 		cy.window()
 			.its("frappe")
 			.then((frappe) => {
