@@ -22,6 +22,7 @@ class FrappeTestCase(unittest.TestCase):
 	TEST_SITE = "test_site"
 
 	SHOW_TRANSACTION_COMMIT_WARNINGS = False
+	maxDiff = None  # prints long diffs but useful in CI
 
 	@classmethod
 	def setUpClass(cls) -> None:

@@ -2214,6 +2214,10 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	title = title or "Error"
 	traceback = as_unicode(traceback or get_traceback(with_context=True))
 
+	if not db:
+		print(f"Failed to log error in db: {title}")
+		return
+
 	error_log = get_doc(
 		doctype="Error Log",
 		error=traceback,
