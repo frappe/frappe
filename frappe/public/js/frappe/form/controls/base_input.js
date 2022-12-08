@@ -54,9 +54,11 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		return (
 			this.df.fetch_from &&
 			!this.df.fetch_if_empty &&
-			this.frm?.doc?.[this.df.fetch_from.split(".")[0]]
+			this.frm &&
+			this.frm.doc &&
+			this.frm.doc[this.df.fetch_from.split(".")[0]]
 		);
-	}
+	},
 
 	// update input value, label, description
 	// display (show/hide/read-only),
