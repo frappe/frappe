@@ -184,6 +184,7 @@ frappe.ui.form.Share = Class.extend({
 					}
 
 					me.dirty = true;
+					me.render_shared();
 					me.frm.shared.refresh();
 				}
 			});
