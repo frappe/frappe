@@ -183,17 +183,10 @@ frappe.ui.form.Share = Class.extend({
 						me.shared.push(r.message);
 					}
 
-<<<<<<< HEAD
 					me.dirty = true;
+					me.render_shared();
 					me.frm.shared.refresh();
 				}
-=======
-						me.dirty = true;
-						me.render_shared();
-						me.frm.shared.refresh();
-					},
-				});
->>>>>>> 0aa24cc5ef (fix: reload shared dialog upon checking any perm (#19196))
 			});
 		});
 	},
