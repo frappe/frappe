@@ -257,9 +257,14 @@ Object.assign(frappe.utils, {
 =======
 	html2text: function (html) {
 		const parser = new DOMParser();
+<<<<<<< HEAD
 		const dom = parser.parseFromString(html);
 		return dom.textContent;
 >>>>>>> f4ee9e307b (fix: escape html in timline/version)
+=======
+		const dom = parser.parseFromString(html, "text/html");
+		return dom.body.textContent;
+>>>>>>> 57cb71311f (refactor: use domparser for html2text)
 	},
 
 	is_url: function(txt) {
