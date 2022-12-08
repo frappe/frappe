@@ -365,8 +365,48 @@ def insert_event_to_calendar(account, event, recurrence=None):
 			recurrence=recurrence, start=event.get("start"), end=event.get("end")
 		)
 	)
+	insert_attendees_from_google_calendar(calendar_event, event)
 	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
 
+
+def insert_attendees_from_google_calendar(calendar_event, event):
+	if event.get("attendees") != []:
+		emails = list(map(lambda attendee: attendee.get("email", ""), event.get("attendees")))
+		add_attendees(calendar_event, emails)
+	else:
+		calendar_event
+
+def add_attendees(calendar_event, emails):
+	calendar_event = frappe.get_doc(calendar_event)
+	for email in emails:
+		contacts = frappe.get_all("Contact", {"email_id": email})
+		for contact in contacts:
+			contact_links = frappe.get_all(
+				"Dynamic Link",
+				filters={"parenttype": "Contact", "parent": contact},
+				fields=["link_doctype", "link_name"],
+			)
+			for link in contact_links:
+				calendar_event.add_participant(link.get("link_doctype"), link.get("link_name"))
+	return calendar_event
+
+def update_attendees_from_google_calendar(calendar_event, event):
+	calendar_attendees = list(map(lambda participant: participant.email, calendar_event.event_participants))
+	if calendar_attendees != []:
+		event_attendees = event.get("attendees", [])
+		event_attendees = list(map(lambda attendee: attendee.get("email", ""), event_attendees))
+		new_attendees = set(event_attendees) - set(calendar_attendees)
+		old_attendees = set(calendar_attendees) - set(event_attendees)
+		remove_attendees(calendar_event, old_attendees)
+		add_attendees(calendar_event, new_attendees)
+	else:
+		insert_attendees_from_google_calendar(calendar_event, event)
+
+def remove_attendees(calendar_event, emails):
+	for participant in calendar_event.event_participants:
+		if participant.email in emails:
+			frappe.db.delete("Event Participants", {"email": participant.email})
+	return calendar_event
 
 def update_event_in_calendar(account, event, recurrence=None):
 	"""
@@ -381,6 +421,7 @@ def update_event_in_calendar(account, event, recurrence=None):
 			recurrence=recurrence, start=event.get("start"), end=event.get("end")
 		)
 	)
+	update_attendees_from_google_calendar(calendar_event, event)
 	calendar_event.save(ignore_permissions=True)
 
 

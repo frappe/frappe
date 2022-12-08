@@ -186,6 +186,7 @@ scheduler_events = {
 		"0/15 * * * *": [
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
+			"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 			"frappe.twofactor.delete_all_barcodes_for_users",
 		]
 	},
@@ -203,7 +204,6 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
-		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
 	],
