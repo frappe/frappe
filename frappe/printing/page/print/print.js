@@ -294,11 +294,6 @@ frappe.ui.form.PrintView = class {
 	setup_customize_dialog() {
 		let print_format = this.get_print_format();
 		$(document).on("new-print-format", (e) => {
-			this.refresh_print_options();
-			if (e.print_format) {
-				this.print_sel.val(e.print_format);
-			}
-			// start a new print format
 			frappe.prompt(
 				[
 					{
