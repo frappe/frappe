@@ -238,7 +238,7 @@ def parse_args(args):
 	if isinstance(args, str):
 		args = json.loads(args)
 
-	args = frappe._dict(args)
+	args = frappe.attrdict(args)
 
 	# strip the whitespace
 	for key, value in args.items():
@@ -400,7 +400,7 @@ def enable_twofactor_all_roles():
 
 
 def make_records(records, debug=False):
-	from frappe import _dict
+	from frappe import attrdict
 	from frappe.modules import scrub
 
 	if debug:
@@ -431,7 +431,7 @@ def make_records(records, debug=False):
 			frappe.db.rollback(save_point=savepoint)
 			exception = record.get("__exception")
 			if exception:
-				config = _dict(exception)
+				config = attrdict(exception)
 				if isinstance(e, config.exception):
 					config.handler()
 				else:

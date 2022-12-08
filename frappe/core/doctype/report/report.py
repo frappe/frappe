@@ -145,11 +145,11 @@ class Report(Document):
 		# report in python module
 		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
 		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		return frappe.get_attr(method_name)(frappe._dict(filters))
+		return frappe.get_attr(method_name)(frappe.attrdict(filters))
 
 	def execute_script(self, filters):
 		# server script
-		loc = {"filters": frappe._dict(filters), "data": None, "result": None}
+		loc = {"filters": frappe.attrdict(filters), "data": None, "result": None}
 		safe_exec(self.report_script, None, loc)
 		if loc["data"]:
 			return loc["data"]
@@ -177,7 +177,7 @@ class Report(Document):
 
 		for d in data.get("columns"):
 			if isinstance(d, dict):
-				col = frappe._dict(d)
+				col = frappe.attrdict(d)
 				if not col.fieldname:
 					col.fieldname = col.label
 				columns.append(col)
@@ -191,7 +191,7 @@ class Report(Document):
 							fieldtype, options = fieldtype.split("/")
 
 				columns.append(
-					frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options)
+					frappe.attrdict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options)
 				)
 
 		result += data.get("result")
@@ -281,7 +281,7 @@ class Report(Document):
 
 		group_by = None
 		if params.get("group_by"):
-			group_by_args = frappe._dict(params["group_by"])
+			group_by_args = frappe.attrdict(params["group_by"])
 			group_by = group_by_args["group_by"]
 			order_by = "_aggregate_column desc"
 
@@ -301,7 +301,7 @@ class Report(Document):
 				else:
 					label = meta.get_label(fieldname)
 
-				field = frappe._dict(fieldname=fieldname, label=label)
+				field = frappe.attrdict(fieldname=fieldname, label=label)
 
 				# since name is the primary key for a document, it will always be a Link datatype
 				if fieldname == "name":
@@ -315,12 +315,12 @@ class Report(Document):
 		data = []
 		for row in result:
 			if isinstance(row, (list, tuple)):
-				_row = frappe._dict()
+				_row = frappe.attrdict()
 				for i, val in enumerate(row):
 					_row[columns[i].get("fieldname")] = val
 			elif isinstance(row, dict):
 				# no need to convert from dict to dict
-				_row = frappe._dict(row)
+				_row = frappe.attrdict(row)
 			data.append(_row)
 
 		return data

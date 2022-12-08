@@ -18,7 +18,7 @@ def execute():
 		if not settings:
 			continue
 
-		settings = frappe._dict(json.loads(settings))
+		settings = frappe.attrdict(json.loads(settings))
 
 		# columns -> fields
 		settings.fields = settings.columns or []

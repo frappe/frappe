@@ -468,7 +468,7 @@ def get_context(doc):
 	return {
 		"doc": doc,
 		"nowdate": nowdate,
-		"frappe": frappe._dict(utils=get_safe_globals().get("frappe").get("utils")),
+		"frappe": frappe.attrdict(utils=get_safe_globals().get("frappe").get("utils")),
 	}
 
 

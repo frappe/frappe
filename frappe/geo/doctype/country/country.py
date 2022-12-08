@@ -32,7 +32,7 @@ def get_countries_and_currencies():
 	added_currencies = set()
 
 	for name, country in data.items():
-		country = frappe._dict(country)
+		country = frappe.attrdict(country)
 		countries.append(
 			frappe.get_doc(
 				doctype="Country",

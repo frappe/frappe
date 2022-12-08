@@ -108,11 +108,12 @@ class DBTable:
 		self.setup_table_columns()
 
 		columns = [
-			frappe._dict({"fieldname": f, "fieldtype": "Data"}) for f in frappe.db.STANDARD_VARCHAR_COLUMNS
+			frappe.attrdict({"fieldname": f, "fieldtype": "Data"})
+			for f in frappe.db.STANDARD_VARCHAR_COLUMNS
 		]
 		if self.meta.get("istable"):
 			columns += [
-				frappe._dict({"fieldname": f, "fieldtype": "Data"}) for f in frappe.db.CHILD_TABLE_COLUMNS
+				frappe.attrdict({"fieldname": f, "fieldtype": "Data"}) for f in frappe.db.CHILD_TABLE_COLUMNS
 			]
 		columns += self.columns.values()
 

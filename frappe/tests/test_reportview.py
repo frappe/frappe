@@ -11,7 +11,7 @@ class TestReportview(FrappeTestCase):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
 
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			doctype="DocType",
 			file_format_type="CSV",
 			fields=("name", "module", "issingle"),

@@ -10,8 +10,8 @@ from frappe import _
 @frappe.whitelist()
 def update_event(args, field_map):
 	"""Updates Event (called via calendar) based on passed `field_map`"""
-	args = frappe._dict(json.loads(args))
-	field_map = frappe._dict(json.loads(field_map))
+	args = frappe.attrdict(json.loads(args))
+	field_map = frappe.attrdict(json.loads(field_map))
 	w = frappe.get_doc(args.doctype, args.name)
 	w.set(field_map.start, args[field_map.start])
 	w.set(field_map.end, args.get(field_map.end))
@@ -30,7 +30,7 @@ def get_event_conditions(doctype, filters=None):
 
 @frappe.whitelist()
 def get_events(doctype, start, end, field_map, filters=None, fields=None):
-	field_map = frappe._dict(json.loads(field_map))
+	field_map = frappe.attrdict(json.loads(field_map))
 	fields = frappe.parse_json(fields)
 
 	doc_meta = frappe.get_meta(doctype)

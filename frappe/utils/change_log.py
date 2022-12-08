@@ -17,7 +17,7 @@ def get_change_log(user=None):
 	if not user:
 		user = frappe.session.user
 
-	last_known_versions = frappe._dict(
+	last_known_versions = frappe.attrdict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
 	current_versions = get_versions()
@@ -165,7 +165,7 @@ def get_app_last_commit_ref(app):
 
 
 def check_for_update():
-	updates = frappe._dict(major=[], minor=[], patch=[])
+	updates = frappe.attrdict(major=[], minor=[], patch=[])
 	apps = get_versions()
 
 	for app in apps:
@@ -184,7 +184,7 @@ def check_for_update():
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
 				updates[update_type].append(
-					frappe._dict(
+					frappe.attrdict(
 						current_version=str(instance_version),
 						available_version=str(github_version),
 						org_name=org_name,
@@ -291,7 +291,7 @@ def show_update_popup():
 		for update_type in updates:
 			release_links = ""
 			for app in updates[update_type]:
-				app = frappe._dict(app)
+				app = frappe.attrdict(app)
 				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
 					available_version=app.available_version,
 					org_name=app.org_name,

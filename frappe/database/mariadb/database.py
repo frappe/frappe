@@ -329,7 +329,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	def get_column_index(
 		self, table_name: str, fieldname: str, unique: bool = False
-	) -> frappe._dict | None:
+	) -> frappe.attrdict | None:
 		"""Check if column exists for a specific fields in specified order.
 
 		This differs from db.has_index because it doesn't rely on index name but columns inside an

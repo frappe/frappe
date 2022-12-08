@@ -40,7 +40,7 @@ def create_module(module_name):
 
 def create_workspace(**args):
 	workspace = frappe.new_doc("Workspace")
-	args = frappe._dict(args)
+	args = frappe.attrdict(args)
 
 	workspace.name = args.name or "Test Workspace"
 	workspace.label = args.label or "Test Workspace"

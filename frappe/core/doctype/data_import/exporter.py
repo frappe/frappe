@@ -55,7 +55,7 @@ class Exporter:
 		]
 
 		meta = frappe.get_meta(self.doctype)
-		exportable_fields = frappe._dict({})
+		exportable_fields = frappe.attrdict({})
 
 		for key, fieldnames in self.export_fields.items():
 			if key == self.doctype:
@@ -93,7 +93,7 @@ class Exporter:
 			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
 
 		# add name field
-		name_field = frappe._dict(
+		name_field = frappe.attrdict(
 			{
 				"fieldtype": "Data",
 				"fieldname": "name",

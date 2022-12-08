@@ -7,7 +7,7 @@ class MetaTags:
 	def __init__(self, path, context):
 		self.path = path
 		self.context = context
-		self.tags = frappe._dict(self.context.get("metatags") or {})
+		self.tags = frappe.attrdict(self.context.get("metatags") or {})
 		self.init_metatags_from_context()
 		self.set_opengraph_tags()
 		self.set_twitter_tags()

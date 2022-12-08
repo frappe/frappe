@@ -42,7 +42,7 @@ class TestCachingUtils(FrappeTestCase):
 			range(10),
 			{"abc": "test-key"},
 			frappe.get_last_doc("DocType"),
-			frappe._dict(),
+			frappe.attrdict(),
 		]
 		same_output_received = lambda: all([x for x in set(retval) if x == retval[0]])
 

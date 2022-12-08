@@ -352,7 +352,7 @@ def get_formatted_html(
 	print_html=None,
 	email_account=None,
 	header=None,
-	unsubscribe_link: frappe._dict | None = None,
+	unsubscribe_link: frappe.attrdict | None = None,
 	sender=None,
 	with_container=False,
 ):

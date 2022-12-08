@@ -117,7 +117,7 @@ class RQJob(Document):
 		pass
 
 
-def serialize_job(job: Job) -> frappe._dict:
+def serialize_job(job: Job) -> frappe.attrdict:
 	modified = job.last_heartbeat or job.ended_at or job.started_at or job.created_at
 	job_name = job.kwargs.get("kwargs", {}).get("job_type") or str(job.kwargs.get("job_name"))
 
@@ -126,7 +126,7 @@ def serialize_job(job: Job) -> frappe._dict:
 	if matches := re.match(r"<function (?P<func_name>.*) at 0x.*>", job_name):
 		job_name = matches.group("func_name")
 
-	return frappe._dict(
+	return frappe.attrdict(
 		name=job.id,
 		job_id=job.id,
 		queue=job.origin.rsplit(":", 1)[1],

@@ -22,7 +22,7 @@ def get_context(context):
 @frappe.whitelist(allow_guest=True)
 def get_search_results(text, scope=None, start=0, as_html=False):
 	results = web_search(text, scope, start, limit=21)
-	out = frappe._dict()
+	out = frappe.attrdict()
 
 	if len(results) == 21:
 		out.has_more = 1

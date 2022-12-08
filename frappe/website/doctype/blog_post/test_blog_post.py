@@ -84,7 +84,7 @@ class TestBlogPost(FrappeTestCase):
 			blog = make_test_blog(category_title)
 			blogs.append(blog)
 
-		filters = frappe._dict({"blog_category": scrub(category_title)})
+		filters = frappe.attrdict({"blog_category": scrub(category_title)})
 		# Assert that get_blog_list returns results as expected
 
 		self.assertEqual(len(get_blog_list(None, None, filters, 0, 3)), 3)

@@ -117,7 +117,7 @@ class AutoEmailReport(Document):
 		)
 
 		# add serial numbers
-		columns.insert(0, frappe._dict(fieldname="idx", label="", width="30px"))
+		columns.insert(0, frappe.attrdict(fieldname="idx", label="", width="30px"))
 		for i in range(len(data)):
 			data[i]["idx"] = i + 1
 
@@ -130,7 +130,7 @@ class AutoEmailReport(Document):
 			return self.get_html_table(columns, data)
 
 		elif self.format == "XLSX":
-			report_data = frappe._dict()
+			report_data = frappe.attrdict()
 			report_data["columns"] = columns
 			report_data["result"] = data
 
@@ -139,7 +139,7 @@ class AutoEmailReport(Document):
 			return xlsx_file.getvalue()
 
 		elif self.format == "CSV":
-			report_data = frappe._dict()
+			report_data = frappe.attrdict()
 			report_data["columns"] = columns
 			report_data["result"] = data
 

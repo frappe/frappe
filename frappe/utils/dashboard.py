@@ -37,7 +37,7 @@ def cache_source(function):
 
 def generate_and_cache_results(args, function, cache_key, chart):
 	try:
-		args = frappe._dict(args)
+		args = frappe.attrdict(args)
 		results = function(
 			chart_name=args.chart_name,
 			filters=args.filters or None,

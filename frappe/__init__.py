@@ -61,7 +61,7 @@ if _dev_server:
 	warnings.simplefilter("always", PendingDeprecationWarning)
 
 
-class _dict(dict):
+class attrdict(dict):
 	"""dict like object that exposes keys as attributes"""
 
 	__slots__ = ()
@@ -80,7 +80,10 @@ class _dict(dict):
 		return self
 
 	def copy(self):
-		return _dict(self)
+		return attrdict(self)
+
+
+_dict = attrdict  # for backward compatibility
 
 
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
@@ -191,7 +194,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.message_log = []
 	local.debug_log = []
 	local.realtime_log = []
-	local.flags = _dict(
+	local.flags = attrdict(
 		{
 			"currently_saving": [],
 			"redirect_location": "",
@@ -218,10 +221,10 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.all_apps = None
 
 	local.request_ip = None
-	local.response = _dict({"docs": []})
+	local.response = attrdict({"docs": []})
 	local.task_id = None
 
-	local.conf = _dict(get_site_config())
+	local.conf = attrdict(get_site_config())
 	local.lang = local.conf.lang or "en"
 
 	local.module_app = None
@@ -239,9 +242,9 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jloader = None
 	local.cache = {}
 	local.document_cache = {}
-	local.form_dict = _dict()
+	local.form_dict = attrdict()
 	local.preload_assets = {"style": [], "script": []}
-	local.session = _dict()
+	local.session = attrdict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.engine = get_qb_engine()
@@ -319,7 +322,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		elif local.site and not local.flags.new_site:
 			raise IncorrectSitePath(f"{local.site} does not exist")
 
-	return _dict(config)
+	return attrdict(config)
 
 
 def get_conf(site: str | None = None) -> dict[str, Any]:
@@ -429,7 +432,7 @@ def msgprint(
 	from frappe.utils import strip_html_tags
 
 	msg = safe_decode(msg)
-	out = _dict(message=msg)
+	out = attrdict(message=msg)
 
 	@functools.lru_cache(maxsize=1024)
 	def _strip_html_tags(message):
@@ -550,9 +553,9 @@ def set_user(username: str):
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
-	local.form_dict = _dict()
+	local.form_dict = attrdict()
 	local.jenv = None
-	local.session.data = _dict()
+	local.session.data = attrdict()
 	local.role_permissions = {}
 	local.new_doc_templates = {}
 	local.user_perms = None
@@ -846,12 +849,12 @@ def get_domain_data(module):
 	try:
 		domain_data = get_hooks("domains")
 		if module in domain_data:
-			return _dict(get_attr(get_hooks("domains")[module][0] + ".data"))
+			return attrdict(get_attr(get_hooks("domains")[module][0] + ".data"))
 		else:
-			return _dict()
+			return attrdict()
 	except ImportError:
 		if local.flags.in_test:
-			return _dict()
+			return attrdict()
 		else:
 			raise
 
@@ -1150,7 +1153,7 @@ def get_cached_value(
 
 	values = [doc.get(f) for f in fieldname]
 	if as_dict:
-		return _dict(zip(fieldname, values))
+		return attrdict(zip(fieldname, values))
 	return values
 
 
@@ -1461,7 +1464,7 @@ def _load_app_hooks(app_name: str | None = None):
 
 def get_hooks(
 	hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None
-) -> _dict:
+) -> attrdict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1469,12 +1472,12 @@ def get_hooks(
 	:param app_name: Filter by app."""
 
 	if app_name:
-		hooks = _dict(_load_app_hooks(app_name))
+		hooks = attrdict(_load_app_hooks(app_name))
 	else:
 		if conf.developer_mode:
-			hooks = _dict(_load_app_hooks())
+			hooks = attrdict(_load_app_hooks())
 		else:
-			hooks = _dict(cache().get_value("app_hooks", _load_app_hooks))
+			hooks = attrdict(cache().get_value("app_hooks", _load_app_hooks))
 
 	if hook:
 		return hooks.get(hook, ([] if default == "_KEEP_DEFAULT_LIST" else default))
@@ -1630,7 +1633,7 @@ def make_property_setter(
 
 	If doctype is not specified, it will create a property setter for all fields with the
 	given fieldname"""
-	args = _dict(args)
+	args = attrdict(args)
 	if not args.doctype_or_field:
 		args.doctype_or_field = "DocField"
 		if not args.property_type:

@@ -172,7 +172,7 @@ def get_rendered_template(
 	if template == "standard":
 		template = jenv.get_template(standard_format)
 
-	letter_head = frappe._dict(get_letter_head(doc, no_letterhead, letterhead) or {})
+	letter_head = frappe.attrdict(get_letter_head(doc, no_letterhead, letterhead) or {})
 
 	if letter_head.content:
 		letter_head.content = frappe.utils.jinja.render_template(
@@ -420,7 +420,7 @@ def make_layout(doc, meta, format_data=None):
 	for df in format_data or meta.fields:
 		if format_data:
 			# embellish df with original properties
-			df = frappe._dict(df)
+			df = frappe.attrdict(df)
 			if df.fieldname:
 				original = meta.get_field(df.fieldname)
 				if original:

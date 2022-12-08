@@ -136,7 +136,7 @@ class Page(Document):
 				with open(os.path.join(path, fname)) as f:
 					template = f.read()
 					if "<!-- jinja -->" in template:
-						context = frappe._dict({})
+						context = frappe.attrdict({})
 						try:
 							out = frappe.get_attr(
 								"{app}.{module}.page.{page}.{page}.get_context".format(

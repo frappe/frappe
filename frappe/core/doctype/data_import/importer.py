@@ -112,7 +112,7 @@ class Importer:
 		# get successfully imported rows
 		imported_rows = []
 		for log in import_log:
-			log = frappe._dict(log)
+			log = frappe.attrdict(log)
 			if log.success or len(import_log) < self.data_import.payload_count:
 				imported_rows += json.loads(log.row_indexes)
 
@@ -395,7 +395,9 @@ class Importer:
 class ImportFile:
 	def __init__(self, doctype, file, template_options=None, import_type=None):
 		self.doctype = doctype
-		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
+		self.template_options = template_options or frappe.attrdict(
+			column_to_field_map=frappe.attrdict()
+		)
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
 		self.warnings = []
@@ -469,7 +471,7 @@ class ImportFile:
 	def get_data_for_import_preview(self):
 		"""Adds a serial number column as the first column"""
 
-		columns = [frappe._dict({"header_title": "Sr. No", "skip_import": True})]
+		columns = [frappe.attrdict({"header_title": "Sr. No", "skip_import": True})]
 		columns += [col.as_dict() for col in self.columns]
 		for col in columns:
 			# only pick useful fields in docfields to minimise the payload
@@ -489,7 +491,7 @@ class ImportFile:
 
 		warnings = self.get_warnings()
 
-		out = frappe._dict()
+		out = frappe.attrdict()
 		out.data = data
 		out.columns = columns
 		out.warnings = warnings
@@ -507,7 +509,7 @@ class ImportFile:
 		data = list(self.data)
 		while data:
 			doc, rows, data = self.parse_next_row_for_import(data)
-			payloads.append(frappe._dict(doc=doc, rows=rows))
+			payloads.append(frappe.attrdict(doc=doc, rows=rows))
 		return payloads
 
 	def parse_next_row_for_import(self, data):
@@ -640,7 +642,7 @@ class Row:
 		return doc
 
 	def _parse_doc(self, doctype, columns, values, parent_doc=None, table_df=None):
-		doc = frappe._dict()
+		doc = frappe.attrdict()
 		if self.import_type == INSERT:
 			# new_doc returns a dict with default values set
 			doc = frappe.new_doc(
@@ -804,7 +806,7 @@ class Header(Row):
 		self.row_number = index + 1
 		self.data = row
 		self.doctype = doctype
-		column_to_field_map = column_to_field_map or frappe._dict()
+		column_to_field_map = column_to_field_map or frappe.attrdict()
 
 		self.seen = []
 		self.columns = []
@@ -1044,7 +1046,7 @@ class Column:
 					)
 
 	def as_dict(self):
-		d = frappe._dict()
+		d = frappe.attrdict()
 		d.index = self.index
 		d.column_number = self.column_number
 		d.doctype = self.doctype
@@ -1091,7 +1093,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 		out = []
 		for df in standard_fields:
-			df = frappe._dict(df)
+			df = frappe.attrdict(df)
 			df.parent = doctype
 			out.append(df)
 		return out
@@ -1106,7 +1108,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 		translated_table_label = _(table_df.label) if table_df else None
 
 		# name field
-		name_df = frappe._dict(
+		name_df = frappe.attrdict(
 			{
 				"fieldtype": "Data",
 				"fieldname": "name",
@@ -1169,7 +1171,7 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 				# create a new df object to avoid mutation problems
 				if isinstance(df, dict):
-					new_df = frappe._dict(df.copy())
+					new_df = frappe.attrdict(df.copy())
 				else:
 					new_df = df.as_dict()
 
@@ -1220,7 +1222,7 @@ def get_id_field(doctype):
 	autoname_field = get_autoname_field(doctype)
 	if autoname_field:
 		return autoname_field
-	return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
+	return frappe.attrdict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
 
 
 def get_autoname_field(doctype):

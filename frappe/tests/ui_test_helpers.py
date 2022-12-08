@@ -29,7 +29,7 @@ def create_if_not_exists(doc):
 
 	names = []
 	for doc in docs:
-		doc = frappe._dict(doc)
+		doc = frappe.attrdict(doc)
 		filters = doc.copy()
 		filters.pop("doctype")
 		name = frappe.db.exists(doc.doctype, filters)

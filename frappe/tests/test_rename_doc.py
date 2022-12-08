@@ -65,7 +65,7 @@ class TestRenameDoc(FrappeTestCase):
 			self.available_documents.append(doc.name)
 
 		#  data generation: for controllers tests
-		self.doctype = frappe._dict(
+		self.doctype = frappe.attrdict(
 			{
 				"old": "Test Rename Document Old",
 				"new": "Test Rename Document New",

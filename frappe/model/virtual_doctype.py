@@ -17,7 +17,7 @@ class VirtualDoctype(Protocol):
 	# ============ class/static methods ============
 
 	@staticmethod
-	def get_list(args) -> list[frappe._dict]:
+	def get_list(args) -> list[frappe.attrdict]:
 		"""Similar to reportview.get_list"""
 		...
 

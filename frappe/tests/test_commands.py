@@ -36,7 +36,7 @@ from frappe.utils.jinja_globals import bundled_asset
 
 _result: Result | None = None
 TEST_SITE = "commands-site-O4PN2QKA.test"  # added random string tag to avoid collisions
-CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
+CLI_CONTEXT = frappe.attrdict(sites=[TEST_SITE])
 
 
 def clean(value) -> str:

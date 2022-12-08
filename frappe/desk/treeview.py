@@ -81,4 +81,4 @@ def make_tree_args(**kwarg):
 
 	kwarg.update({parent_field: kwarg.get("parent") or kwarg.get(parent_field)})
 
-	return frappe._dict(kwarg)
+	return frappe.attrdict(kwarg)

@@ -24,7 +24,7 @@ class PathResolver:
 
 	def resolve(self):
 		"""Returns endpoint and a renderer instance that can render the endpoint"""
-		request = frappe._dict()
+		request = frappe.attrdict()
 		if hasattr(frappe.local, "request"):
 			request = frappe.local.request or request
 

@@ -12,7 +12,7 @@ REQUIRED_MARIADB_CONFIG = {
 
 
 def get_mariadb_variables():
-	return frappe._dict(frappe.db.sql("show variables"))
+	return frappe.attrdict(frappe.db.sql("show variables"))
 
 
 def get_mariadb_version(version_string: str = ""):
@@ -24,7 +24,7 @@ def get_mariadb_version(version_string: str = ""):
 
 
 def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
-	frappe.local.session = frappe._dict({"user": "Administrator"})
+	frappe.local.session = frappe.attrdict({"user": "Administrator"})
 
 	db_name = frappe.local.conf.db_name
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)

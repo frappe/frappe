@@ -106,8 +106,8 @@ class Meta(Document):
 		"DocType State",
 	}
 	standard_set_once_fields = [
-		frappe._dict(fieldname="creation", fieldtype="Datetime"),
-		frappe._dict(fieldname="owner", fieldtype="Data"),
+		frappe.attrdict(fieldname="creation", fieldtype="Datetime"),
+		frappe.attrdict(fieldname="owner", fieldtype="Data"),
 	]
 
 	def __init__(self, doctype):
@@ -226,7 +226,7 @@ class Meta(Document):
 		"""Returns list of fields with `in_global_search` set and `name` if set"""
 		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
 		if getattr(self, "show_name_in_global_search", None):
-			fields.append(frappe._dict(fieldtype="Data", fieldname="name", label="Name"))
+			fields.append(frappe.attrdict(fieldtype="Data", fieldname="name", label="Name"))
 
 		return fields
 
@@ -521,7 +521,7 @@ class Meta(Document):
 		)
 
 		if self.name in user_permission_doctypes:
-			fields.append(frappe._dict({"label": "Name", "fieldname": "name", "options": self.name}))
+			fields.append(frappe.attrdict({"label": "Name", "fieldname": "name", "options": self.name}))
 
 		return fields
 
@@ -561,12 +561,12 @@ class Meta(Document):
 		file in the doctype's folder, along with any overrides or extensions
 		implemented in other Frappe applications via hooks.
 		"""
-		data = frappe._dict()
+		data = frappe.attrdict()
 		if not self.custom:
 			try:
 				module = load_doctype_module(self.name, suffix="_dashboard")
 				if hasattr(module, "get_data"):
-					data = frappe._dict(module.get_data())
+					data = frappe.attrdict(module.get_data())
 			except ImportError:
 				pass
 
@@ -574,7 +574,7 @@ class Meta(Document):
 
 		if not self.custom:
 			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-				data = frappe._dict(frappe.get_attr(hook)(data=data))
+				data = frappe.attrdict(frappe.get_attr(hook)(data=data))
 
 		return data
 
@@ -601,7 +601,7 @@ class Meta(Document):
 				continue
 
 			for group in data.transactions:
-				group = frappe._dict(group)
+				group = frappe.attrdict(group)
 
 				# For internal links parent doctype will be the key
 				doctype = link.parent_doctype or link.link_doctype
@@ -690,7 +690,7 @@ def get_field_currency(df, doc=None):
 		return None
 
 	if not getattr(frappe.local, "field_currency", None):
-		frappe.local.field_currency = frappe._dict()
+		frappe.local.field_currency = frappe.attrdict()
 
 	if not (
 		frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname)
@@ -717,9 +717,9 @@ def get_field_currency(df, doc=None):
 						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
 
 		if currency:
-			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict()).setdefault(
-				df.fieldname, currency
-			)
+			frappe.local.field_currency.setdefault(
+				(doc.doctype, ref_docname), frappe.attrdict()
+			).setdefault(df.fieldname, currency)
 
 	return frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname) or (
 		doc.get("parent")
@@ -748,12 +748,12 @@ def get_field_precision(df, doc=None, currency=None):
 def get_default_df(fieldname):
 	if fieldname in (default_fields + child_table_fields):
 		if fieldname in ("creation", "modified"):
-			return frappe._dict(fieldname=fieldname, fieldtype="Datetime")
+			return frappe.attrdict(fieldname=fieldname, fieldtype="Datetime")
 
 		elif fieldname in ("idx", "docstatus"):
-			return frappe._dict(fieldname=fieldname, fieldtype="Int")
+			return frappe.attrdict(fieldname=fieldname, fieldtype="Int")
 
-		return frappe._dict(fieldname=fieldname, fieldtype="Data")
+		return frappe.attrdict(fieldname=fieldname, fieldtype="Data")
 
 
 def trim_tables(doctype=None, dry_run=False, quiet=False):

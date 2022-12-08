@@ -27,7 +27,7 @@ def get_context(context):
 	try:
 		boot = frappe.sessions.get()
 	except Exception as e:
-		boot = frappe._dict(status="failed", error=str(e))
+		boot = frappe.attrdict(status="failed", error=str(e))
 		print(frappe.get_traceback())
 
 	# this needs commit

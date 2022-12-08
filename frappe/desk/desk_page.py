@@ -12,7 +12,7 @@ def get(name):
 	page = frappe.get_doc("Page", name)
 	if page.is_permitted():
 		page.load_assets()
-		docs = frappe._dict(page.as_dict())
+		docs = frappe.attrdict(page.as_dict())
 		if getattr(page, "_dynamic_page", None):
 			docs["_dynamic_page"] = 1
 

@@ -21,7 +21,7 @@ class TestBoilerPlate(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.default_hooks = frappe._dict(
+		cls.default_hooks = frappe.attrdict(
 			{
 				"app_name": "test_app",
 				"app_title": "Test App",
@@ -33,7 +33,7 @@ class TestBoilerPlate(FrappeTestCase):
 			}
 		)
 
-		cls.default_user_input = frappe._dict(
+		cls.default_user_input = frappe.attrdict(
 			{
 				"title": "Test App",
 				"description": "This app's description contains 'single quotes' and \"double quotes\".",
@@ -111,7 +111,7 @@ class TestBoilerPlate(FrappeTestCase):
 	def test_create_app(self):
 		app_name = "test_app"
 
-		hooks = frappe._dict(
+		hooks = frappe.attrdict(
 			{
 				"app_name": app_name,
 				"app_title": "Test App",
@@ -134,7 +134,7 @@ class TestBoilerPlate(FrappeTestCase):
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
 
-		hooks = frappe._dict(
+		hooks = frappe.attrdict(
 			{
 				"app_name": app_name,
 				"app_title": "Test App",

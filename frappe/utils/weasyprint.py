@@ -69,7 +69,7 @@ class PrintFormatGenerator:
 			if self.print_settings.print_style
 			else None
 		)
-		context = frappe._dict(
+		context = frappe.attrdict(
 			{
 				"doc": self.doc,
 				"print_format": self.print_format,

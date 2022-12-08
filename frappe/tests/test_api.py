@@ -142,13 +142,13 @@ class TestResourceAPI(FrappeAPITestCase):
 	def test_get_list_dict(self):
 		# test 4: fetch response as (not) dict
 		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "as_dict": True})
-		json = frappe._dict(response.json)
+		json = frappe.attrdict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], dict)
 
 		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "as_dict": False})
-		json = frappe._dict(response.json)
+		json = frappe.attrdict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], list)
@@ -167,7 +167,7 @@ class TestResourceAPI(FrappeAPITestCase):
 			f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "fields": '["description"]'}
 		)
 		self.assertEqual(response.status_code, 200)
-		json = frappe._dict(response.json)
+		json = frappe.attrdict(response.json)
 		self.assertIn("description", json.data[0])
 
 	def test_create_document(self):
@@ -241,7 +241,7 @@ class TestMethodAPI(FrappeAPITestCase):
 	def test_version(self):
 		# test 1: test for /api/method/version
 		response = self.get(f"{self.METHOD_PATH}/version")
-		json = frappe._dict(response.json)
+		json = frappe.attrdict(response.json)
 
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json, dict)

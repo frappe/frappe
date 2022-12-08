@@ -112,7 +112,7 @@ def get(
 	if chart_name:
 		chart = frappe.get_doc("Dashboard Chart", chart_name)
 	else:
-		chart = frappe._dict(frappe.parse_json(chart))
+		chart = frappe.attrdict(frappe.parse_json(chart))
 
 	heatmap_year = heatmap_year or chart.heatmap_year
 	timespan = timespan or chart.timespan

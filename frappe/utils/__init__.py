@@ -747,7 +747,7 @@ def get_site_info():
 		del u["name"]
 
 	system_settings = frappe.db.get_singles_dict("System Settings")
-	space_usage = frappe._dict((frappe.local.conf.limits or {}).get("space_usage", {}))
+	space_usage = frappe.attrdict((frappe.local.conf.limits or {}).get("space_usage", {}))
 
 	kwargs = {
 		"fields": ["user", "creation", "full_name"],
@@ -787,7 +787,7 @@ def parse_json(val):
 	if isinstance(val, str):
 		val = json.loads(val)
 	if isinstance(val, dict):
-		val = frappe._dict(val)
+		val = frappe.attrdict(val)
 	return val
 
 
@@ -1022,7 +1022,7 @@ def dictify(arg):
 		for i, a in enumerate(arg):
 			arg[i] = dictify(a)
 	elif isinstance(arg, MutableMapping):
-		arg = frappe._dict(arg)
+		arg = frappe.attrdict(arg)
 
 	return arg
 
@@ -1033,9 +1033,9 @@ def add_user_info(user, user_info):
 			frappe.db.get_value(
 				"User", user, ["full_name", "user_image", "name", "email", "time_zone"], as_dict=True
 			)
-			or frappe._dict()
+			or frappe.attrdict()
 		)
-		user_info[user] = frappe._dict(
+		user_info[user] = frappe.attrdict(
 			fullname=info.full_name or user,
 			image=info.user_image,
 			name=user,

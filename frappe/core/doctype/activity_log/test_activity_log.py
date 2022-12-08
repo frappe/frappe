@@ -11,7 +11,7 @@ class TestActivityLog(FrappeTestCase):
 	def test_activity_log(self):
 
 		# test user login log
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"cmd": "login",
 				"sid": "Guest",
@@ -38,7 +38,7 @@ class TestActivityLog(FrappeTestCase):
 		auth_log = self.get_auth_log()
 		self.assertEqual(auth_log.status, "Failed")
 
-		frappe.local.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe.attrdict()
 
 	def get_auth_log(self, operation="Login"):
 		names = frappe.get_all(
@@ -57,7 +57,7 @@ class TestActivityLog(FrappeTestCase):
 	def test_brute_security(self):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
 
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{"cmd": "login", "sid": "Guest", "pwd": "admin", "usr": "Administrator"}
 		)
 
@@ -85,7 +85,7 @@ class TestActivityLog(FrappeTestCase):
 		time.sleep(5)
 		self.assertRaises(frappe.AuthenticationError, LoginManager)
 
-		frappe.local.form_dict = frappe._dict()
+		frappe.local.form_dict = frappe.attrdict()
 
 
 def update_system_settings(args):

@@ -346,7 +346,7 @@ def get_redis_conn(username=None, password=None):
 
 	global redis_connection
 
-	cred = frappe._dict()
+	cred = frappe.attrdict()
 	if frappe.conf.get("use_rq_auth"):
 		if username:
 			cred["username"] = username

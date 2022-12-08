@@ -145,7 +145,7 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	page_name, extn = os.path.splitext(fname)
 
 	# add website route
-	page_info = frappe._dict()
+	page_info = frappe.attrdict()
 
 	page_info.basename = page_name if extn in ("html", "md") else fname
 	page_info.basepath = basepath

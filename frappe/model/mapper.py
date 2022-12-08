@@ -29,7 +29,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 		selected_children = json.loads(selected_children)
 
 	if args:
-		frappe.flags.args = frappe._dict(json.loads(args))
+		frappe.flags.args = frappe.attrdict(json.loads(args))
 
 	frappe.flags.selected_children = selected_children or None
 

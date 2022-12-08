@@ -270,7 +270,7 @@ def export_query():
 	"""export from query reports"""
 	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
-	form_params = frappe._dict(frappe.local.form_dict)
+	form_params = frappe.attrdict(frappe.local.form_dict)
 	csv_params = pop_csv_params(form_params)
 	clean_params(form_params)
 	parse_json(form_params)
@@ -290,7 +290,7 @@ def export_query():
 		visible_idx = json.loads(visible_idx)
 
 	data = run(report_name, form_params.filters, custom_columns=custom_columns)
-	data = frappe._dict(data)
+	data = frappe.attrdict(data)
 	if not data.columns:
 		frappe.respond_as_web_page(
 			_("No data to export"),
@@ -313,7 +313,7 @@ def export_query():
 	provide_binary_file(report_name, file_extension, content)
 
 
-def format_duration_fields(data: frappe._dict) -> None:
+def format_duration_fields(data: frappe.attrdict) -> None:
 	for i, col in enumerate(data.columns):
 		if col.get("fieldtype") != "Duration":
 			continue
@@ -445,7 +445,7 @@ def get_data_for_custom_field(doctype, field):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
+	value_map = frappe.attrdict(frappe.get_all(doctype, fields=["name", field], as_list=1))
 
 	return value_map
 
@@ -647,7 +647,7 @@ def get_columns_dict(columns):
 	The keys for the dict are both idx and fieldname,
 	so either index or fieldname can be used to search for a column's docfield properties
 	"""
-	columns_dict = frappe._dict()
+	columns_dict = frappe.attrdict()
 	for idx, col in enumerate(columns):
 		col_dict = get_column_as_dict(col)
 		columns_dict[idx] = col_dict
@@ -657,7 +657,7 @@ def get_columns_dict(columns):
 
 
 def get_column_as_dict(col):
-	col_dict = frappe._dict()
+	col_dict = frappe.attrdict()
 
 	# string
 	if isinstance(col, str):

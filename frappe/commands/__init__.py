@@ -26,7 +26,7 @@ def pass_context(f):
 			pr.enable()
 
 		try:
-			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+			ret = f(frappe.attrdict(ctx.obj), *args, **kwargs)
 		except frappe.exceptions.SiteNotSpecifiedError as e:
 			click.secho(str(e), fg="yellow")
 			sys.exit(1)

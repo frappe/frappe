@@ -226,7 +226,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 		return allow_everything()
 
 	if not frappe.local.role_permissions.get(cache_key):
-		perms = frappe._dict(if_owner={})
+		perms = frappe.attrdict(if_owner={})
 
 		roles = frappe.get_roles(user)
 

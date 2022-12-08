@@ -576,7 +576,7 @@ def get_userinfo(user):
 		else:
 			picture = frappe_server_url + "/" + user.user_image
 
-	userinfo = frappe._dict(
+	userinfo = frappe.attrdict(
 		{
 			"sub": frappe.db.get_value(
 				"User Social Login",
@@ -602,9 +602,9 @@ def get_url_delimiter(separator_character=" "):
 
 def generate_json_error_response(e):
 	if not e:
-		e = frappe._dict({})
+		e = frappe.attrdict({})
 
-	frappe.local.response = frappe._dict(
+	frappe.local.response = frappe.attrdict(
 		{
 			"description": getattr(e, "description", "Internal Server Error"),
 			"status_code": getattr(e, "status_code", 500),

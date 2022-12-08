@@ -9,7 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 import frappe.share
 import frappe.utils
-from frappe import _, _dict
+from frappe import _, attrdict
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
@@ -52,7 +52,7 @@ def getdoc(doctype, name, user=None):
 	doc.add_seen()
 	set_link_titles(doc)
 	if frappe.response.docs is None:
-		frappe.local.response = _dict({"docs": []})
+		frappe.local.response = attrdict({"docs": []})
 	frappe.response.docs.append(doc)
 
 
@@ -102,7 +102,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		msg for msg in all_communications if msg["communication_type"] != "Automated Message"
 	]
 
-	docinfo = frappe._dict(user_info={})
+	docinfo = frappe.attrdict(user_info={})
 
 	add_comments(doc, docinfo)
 
@@ -214,7 +214,7 @@ def get_communications(doctype, name, start=0, limit=20):
 
 def get_comments(
 	doctype: str, name: str, comment_type: str | list[str] = "Comment"
-) -> list[frappe._dict]:
+) -> list[frappe.attrdict]:
 	if isinstance(comment_type, list):
 		comment_types = comment_type
 
@@ -366,7 +366,7 @@ def get_badge_info(doctypes, filters):
 
 
 def run_onload(doc):
-	doc.set("__onload", frappe._dict())
+	doc.set("__onload", frappe.attrdict())
 	doc.run_method("onload")
 
 

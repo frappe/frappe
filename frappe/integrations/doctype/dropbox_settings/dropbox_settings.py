@@ -160,7 +160,7 @@ def upload_from_folder(
 	if is_fresh_upload():
 		response = get_uploaded_files_meta(dropbox_folder, dropbox_client)
 	else:
-		response = frappe._dict({"entries": []})
+		response = frappe.attrdict({"entries": []})
 
 	path = str(path)
 
@@ -266,7 +266,7 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 	except dropbox.exceptions.ApiError as e:
 		# folder not found
 		if isinstance(e.error, dropbox.files.ListFolderError):
-			return frappe._dict({"entries": []})
+			return frappe.attrdict({"entries": []})
 		else:
 			raise
 

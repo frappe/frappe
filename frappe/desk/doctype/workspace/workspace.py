@@ -58,7 +58,7 @@ class Workspace(Document):
 
 	def get_link_groups(self):
 		cards = []
-		current_card = frappe._dict(
+		current_card = frappe.attrdict(
 			{
 				"label": "Link",
 				"type": "Card Break",

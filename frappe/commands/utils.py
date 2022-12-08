@@ -990,9 +990,11 @@ def request(context, args=None, path=None):
 			frappe.connect()
 			if args:
 				if "?" in args:
-					frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
+					frappe.local.form_dict = frappe.attrdict(
+						[a.split("=") for a in args.split("?")[-1].split("&")]
+					)
 				else:
-					frappe.local.form_dict = frappe._dict()
+					frappe.local.form_dict = frappe.attrdict()
 
 				if args.startswith("/api/method"):
 					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
@@ -1000,7 +1002,7 @@ def request(context, args=None, path=None):
 				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
 
-				frappe.local.form_dict = frappe._dict(args)
+				frappe.local.form_dict = frappe.attrdict(args)
 
 			frappe.handler.execute_cmd(frappe.form_dict.cmd)
 
@@ -1085,7 +1087,7 @@ def get_version(output):
 		module = frappe.get_module(app)
 		app_hooks = frappe.get_module(app + ".hooks")
 
-		app_info = frappe._dict()
+		app_info = frappe.attrdict()
 
 		try:
 			app_info.commit = Repo(frappe.get_app_path(app, "..")).head.object.hexsha[:7]

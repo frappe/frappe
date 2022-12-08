@@ -91,7 +91,7 @@ def get_fetch_values(doctype, fieldname, value):
 	:param value: Value selected
 	"""
 
-	result = frappe._dict()
+	result = frappe.attrdict()
 	meta = frappe.get_meta(doctype)
 
 	# fieldname in target doctype: fieldname in source doctype

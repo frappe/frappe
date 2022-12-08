@@ -46,7 +46,7 @@ def get_list(
 	if frappe.is_table(doctype):
 		check_parent_permission(parent, doctype)
 
-	args = frappe._dict(
+	args = frappe.attrdict(
 		doctype=doctype,
 		parent_doctype=parent,
 		fields=fields,
@@ -417,7 +417,7 @@ def validate_link(doctype: str, docname: str, fields=None):
 			frappe.PermissionError,
 		)
 
-	values = frappe._dict()
+	values = frappe.attrdict()
 	values.name = frappe.db.get_value(doctype, docname, cache=True)
 
 	fields = frappe.parse_json(fields)
@@ -445,7 +445,7 @@ def insert_doc(doc) -> "Document":
 
 	:param doc: doc to insert (dict)"""
 
-	doc = frappe._dict(doc)
+	doc = frappe.attrdict(doc)
 	if frappe.is_table(doc.doctype):
 		if not (doc.parenttype and doc.parent and doc.parentfield):
 			frappe.throw(_("Parenttype, Parent and Parentfield are required to insert a child record"))

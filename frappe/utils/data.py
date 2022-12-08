@@ -1721,8 +1721,8 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	return False
 
 
-def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe._dict":
-	"""Returns a _dict like
+def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe.attrdict":
+	"""Returns a attrdict like
 
 	{
 	        "doctype":
@@ -1750,7 +1750,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 			frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f))
 		)
 
-	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
+	f = frappe.attrdict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
 	sanitize_column(f.fieldname)
 
@@ -1822,7 +1822,7 @@ def make_filter_dict(filters):
 	"""convert this [[doctype, key, operator, value], ..]
 	to this { key: (operator, value), .. }
 	"""
-	_filter = frappe._dict()
+	_filter = frappe.attrdict()
 	for f in filters:
 		_filter[f[1]] = (f[2], f[3])
 

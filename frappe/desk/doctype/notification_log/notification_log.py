@@ -63,7 +63,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 	if frappe.flags.in_install:
 		return
 
-	doc = frappe._dict(doc)
+	doc = frappe.attrdict(doc)
 
 	if isinstance(users, str):
 		users = [user.strip() for user in users.split(",") if user.strip()]
@@ -149,7 +149,7 @@ def get_notification_logs(limit=20):
 
 	users = [log.from_user for log in notification_logs]
 	users = [*set(users)]  # remove duplicates
-	user_info = frappe._dict()
+	user_info = frappe.attrdict()
 
 	for user in users:
 		frappe.utils.add_user_info(user, user_info)

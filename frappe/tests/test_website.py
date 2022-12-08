@@ -339,7 +339,7 @@ class TestWebsite(FrappeTestCase):
 	def test_resolve_class(self):
 		from frappe.utils.jinja_globals import resolve_class
 
-		context = frappe._dict(primary=True)
+		context = frappe.attrdict(primary=True)
 		self.assertEqual(resolve_class("test"), "test")
 		self.assertEqual(resolve_class("test", "test-2"), "test test-2")
 		self.assertEqual(resolve_class("test", {"test-2": False, "test-3": True}), "test test-3")

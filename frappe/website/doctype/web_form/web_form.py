@@ -17,7 +17,7 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
-	website = frappe._dict(no_cache=1)
+	website = frappe.attrdict(no_cache=1)
 
 	def onload(self):
 		super().onload()
@@ -367,7 +367,7 @@ def get_web_form_module(doc):
 @rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
 def accept(web_form, data):
 	"""Save the web form"""
-	data = frappe._dict(json.loads(data))
+	data = frappe.attrdict(json.loads(data))
 
 	files = []
 	files_to_delete = []
@@ -515,7 +515,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	if web_form.login_required and frappe.session.user == "Guest":
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	out = frappe._dict()
+	out = frappe.attrdict()
 	out.web_form = web_form
 
 	if frappe.session.user != "Guest" and not docname and not web_form.allow_multiple:

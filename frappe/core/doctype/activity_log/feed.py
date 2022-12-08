@@ -25,7 +25,7 @@ def update_feed(doc, method=None):
 			if isinstance(feed, str):
 				feed = {"subject": feed}
 
-			feed = frappe._dict(feed)
+			feed = frappe.attrdict(feed)
 			doctype = feed.doctype or doc.doctype
 			name = feed.name or doc.name
 

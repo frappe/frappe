@@ -29,7 +29,7 @@ def _get_user_inputs(app_name):
 	"""Prompt user for various inputs related to new app and return config."""
 	app_name = frappe.scrub(app_name)
 
-	hooks = frappe._dict()
+	hooks = frappe.attrdict()
 	hooks.app_name = app_name
 	app_title = hooks.app_name.replace("_", " ").title()
 

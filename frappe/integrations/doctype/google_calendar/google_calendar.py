@@ -250,7 +250,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 		return
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-	events = frappe._dict()
+	events = frappe.attrdict()
 	results = []
 	while True:
 		try:

@@ -210,7 +210,7 @@ class Session:
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
-		self.data = frappe._dict({"data": frappe._dict({})})
+		self.data = frappe.attrdict({"data": frappe.attrdict({})})
 		self.time_diff = None
 
 		# set local session
@@ -312,7 +312,7 @@ class Session:
 
 	def get_session_data(self):
 		if self.sid == "Guest":
-			return frappe._dict({"user": "Guest"})
+			return frappe.attrdict({"user": "Guest"})
 
 		data = self.get_session_data_from_cache()
 		if not data:
@@ -322,7 +322,7 @@ class Session:
 	def get_session_data_from_cache(self):
 		data = frappe.cache().hget("session", self.sid)
 		if data:
-			data = frappe._dict(data)
+			data = frappe.attrdict(data)
 			session_data = data.get("data", {})
 
 			# set user for correct timezone
@@ -350,7 +350,7 @@ class Session:
 		)
 
 		if rec:
-			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or "{}"))
+			data = frappe.attrdict(frappe.safe_eval(rec and rec[0][1] or "{}"))
 			data.user = rec[0][0]
 		else:
 			self._delete_session()
@@ -439,7 +439,7 @@ def get_geo_from_ip(ip_addr):
 			reader = f.reader()
 			data = reader.get(ip_addr)
 
-			return frappe._dict(data)
+			return frappe.attrdict(data)
 	except ImportError:
 		return
 	except ValueError:

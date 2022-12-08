@@ -5,9 +5,9 @@ from frappe.tests.utils import FrappeTestCase
 
 class TestFormatter(FrappeTestCase):
 	def test_currency_formatting(self):
-		df = frappe._dict({"fieldname": "amount", "fieldtype": "Currency", "options": "currency"})
+		df = frappe.attrdict({"fieldname": "amount", "fieldtype": "Currency", "options": "currency"})
 
-		doc = frappe._dict({"amount": 5})
+		doc = frappe.attrdict({"amount": 5})
 		frappe.db.set_default("currency", "INR")
 
 		# if currency field is not passed then default currency should be used.

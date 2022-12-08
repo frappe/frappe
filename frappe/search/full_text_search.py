@@ -75,7 +75,7 @@ class FullTextSearch:
 
 		Args:
 		        self (object): FullTextSearch Instance
-		        document (_dict): A dictionary with title, path and content
+		        document (attrdict): A dictionary with title, path and content
 		"""
 		ix = self.get_index()
 
@@ -116,7 +116,7 @@ class FullTextSearch:
 		        limit (int, optional): Limit number of search results. Defaults to 20.
 
 		Returns:
-		        [List(_dict)]: Search results
+		        [List(attrdict)]: Search results
 		"""
 		ix = self.get_index()
 

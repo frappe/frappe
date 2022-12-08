@@ -388,13 +388,13 @@ class Database:
 		):
 			raise ImplicitCommitError("This statement can cause implicit commit")
 
-	def fetch_as_dict(self) -> list[frappe._dict]:
+	def fetch_as_dict(self) -> list[frappe.attrdict]:
 		"""Internal. Converts results to dict."""
 		result = self.last_result
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
-		return [frappe._dict(zip(keys, row)) for row in result]
+		return [frappe.attrdict(zip(keys, row)) for row in result]
 
 	@staticmethod
 	def clear_db_table_cache(query):
@@ -633,7 +633,7 @@ class Database:
 				return r
 			if as_dict:
 				if r:
-					r = frappe._dict(r)
+					r = frappe.attrdict(r)
 					if update:
 						r.update(update)
 					return [r]
@@ -663,14 +663,14 @@ class Database:
 		).run(debug=debug)
 
 		if not cast:
-			return frappe._dict(queried_result)
+			return frappe.attrdict(queried_result)
 
 		try:
 			meta = frappe.get_meta(doctype)
 		except DoesNotExistError:
-			return frappe._dict(queried_result)
+			return frappe.attrdict(queried_result)
 
-		return_value = frappe._dict()
+		return_value = frappe.attrdict()
 
 		for fieldname, value in queried_result:
 			if df := meta.get_field(fieldname):

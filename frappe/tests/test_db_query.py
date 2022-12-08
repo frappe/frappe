@@ -743,10 +743,10 @@ class TestReportview(FrappeTestCase):
 
 		frappe.set_user(user.name)
 
-		frappe.local.request = frappe._dict()
+		frappe.local.request = frappe.attrdict()
 		frappe.local.request.method = "POST"
 
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"doctype": "Blog Post",
 				"fields": ["published", "title", "`tabTest Child`.`test_field`"],
@@ -756,7 +756,7 @@ class TestReportview(FrappeTestCase):
 		# even if * is passed, fields which are not accessible should be filtered out
 		response = execute_cmd("frappe.desk.reportview.get")
 		self.assertListEqual(response["keys"], ["title"])
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"doctype": "Blog Post",
 				"fields": ["*"],
@@ -773,7 +773,7 @@ class TestReportview(FrappeTestCase):
 		frappe.set_user("Administrator")
 
 		# Admin should be able to see access all fields
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"doctype": "Blog Post",
 				"fields": ["published", "title", "`tabTest Child`.`test_field`"],
@@ -789,7 +789,7 @@ class TestReportview(FrappeTestCase):
 
 	def test_reportview_get_aggregation(self):
 		# test aggregation based on child table field
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"doctype": "DocType",
 				"fields": """["`tabDocField`.`label` as field_label","`tabDocField`.`name` as field_name"]""",

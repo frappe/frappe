@@ -27,10 +27,10 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 	"""Format value based on given fieldtype, document reference, currency reference.
 	If docfield info (df) is not given, it will try and guess based on the datatype of the value"""
 	if isinstance(df, str):
-		df = frappe._dict(fieldtype=df)
+		df = frappe.attrdict(fieldtype=df)
 
 	if not df:
-		df = frappe._dict()
+		df = frappe.attrdict()
 		if isinstance(value, datetime.datetime):
 			df.fieldtype = "Datetime"
 		elif isinstance(value, datetime.date):
@@ -46,7 +46,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 	elif isinstance(df, dict):
 		# Convert dict to object if necessary
-		df = frappe._dict(df)
+		df = frappe.attrdict(df)
 
 	if value is None:
 		value = ""

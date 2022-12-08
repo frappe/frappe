@@ -28,7 +28,7 @@ from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabl
 def get_bootinfo():
 	"""build and return boot info"""
 	frappe.set_user_lang(frappe.session.user)
-	bootinfo = frappe._dict()
+	bootinfo = frappe.attrdict()
 	hooks = frappe.get_hooks()
 	doclist = []
 
@@ -255,7 +255,7 @@ def load_translations(bootinfo):
 
 def get_user_info():
 	# get info for current user
-	user_info = frappe._dict()
+	user_info = frappe.attrdict()
 	add_user_info(frappe.session.user, user_info)
 
 	if frappe.session.user == "Administrator" and user_info.Administrator.email:
@@ -352,7 +352,7 @@ def get_link_preview_doctypes():
 
 
 def get_additional_filters_from_hooks():
-	filter_config = frappe._dict()
+	filter_config = frappe.attrdict()
 	filter_hooks = frappe.get_hooks("filters_config")
 	for hook in filter_hooks:
 		filter_config.update(frappe.get_attr(hook)())

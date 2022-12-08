@@ -23,7 +23,7 @@ def execute():
 	for dt_path in doctype_jsons:
 		with open(dt_path) as f:
 			try:
-				file_schema = frappe._dict(json.load(f))
+				file_schema = frappe.attrdict(json.load(f))
 			except Exception:
 				continue
 

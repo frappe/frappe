@@ -62,7 +62,7 @@ def get_data(filters):
 def get_reference_addresses_and_contact(reference_doctype, reference_name):
 	data = []
 	filters = None
-	reference_details = frappe._dict()
+	reference_details = frappe.attrdict()
 
 	if not reference_doctype:
 		return []
@@ -75,7 +75,7 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 	]
 
 	for d in reference_list:
-		reference_details.setdefault(d, frappe._dict())
+		reference_details.setdefault(d, frappe.attrdict())
 	reference_details = get_reference_details(
 		reference_doctype, "Address", reference_list, reference_details
 	)

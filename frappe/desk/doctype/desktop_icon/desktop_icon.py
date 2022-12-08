@@ -171,7 +171,7 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 		)
 
 		if not module_icon:
-			module_icon = frappe._dict()
+			module_icon = frappe.attrdict()
 			opts = random.choice(palette)
 			module_icon.color = opts[0]
 			module_icon.reverse = 0 if (len(opts) > 1) else 1

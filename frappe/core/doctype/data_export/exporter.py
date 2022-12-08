@@ -16,7 +16,7 @@ reflags = {"I": re.I, "L": re.L, "M": re.M, "U": re.U, "S": re.S, "X": re.X, "D"
 
 
 def get_data_keys():
-	return frappe._dict(
+	return frappe.attrdict(
 		{
 			"data_separator": _("Start entering data below this line"),
 			"main_table": _("Table") + ":",
@@ -219,7 +219,7 @@ class DataExporter:
 
 		tablecolumns.sort(key=lambda a: int(a.idx))
 
-		_column_start_end = frappe._dict(start=0)
+		_column_start_end = frappe.attrdict(start=0)
 
 		if dt == self.doctype:
 			if (meta.get("autoname") and meta.get("autoname").lower() == "prompt") or (self.with_data):
@@ -228,7 +228,7 @@ class DataExporter:
 			# if importing only child table for new record, add parent field
 			if meta.get("istable") and not self.with_data:
 				self.append_field_column(
-					frappe._dict(
+					frappe.attrdict(
 						{
 							"fieldname": "parent",
 							"parent": "",
@@ -241,9 +241,9 @@ class DataExporter:
 					True,
 				)
 
-			_column_start_end = frappe._dict(start=0)
+			_column_start_end = frappe.attrdict(start=0)
 		else:
-			_column_start_end = frappe._dict(start=len(self.columns))
+			_column_start_end = frappe.attrdict(start=len(self.columns))
 
 			if self.with_data:
 				self._append_name_column(dt)
@@ -449,7 +449,7 @@ class DataExporter:
 
 	def _append_name_column(self, dt=None):
 		self.append_field_column(
-			frappe._dict(
+			frappe.attrdict(
 				{
 					"fieldname": "name" if dt else self.name_field,
 					"parent": dt or "",

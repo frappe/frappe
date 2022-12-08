@@ -228,7 +228,7 @@ def send_event_digest():
 
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[frappe._dict]:
+def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[frappe.attrdict]:
 	if not user:
 		user = frappe.session.user
 

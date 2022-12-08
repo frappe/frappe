@@ -41,7 +41,7 @@ class Monitor:
 
 	def __init__(self, transaction_type, method, kwargs):
 		try:
-			self.data = frappe._dict(
+			self.data = frappe.attrdict(
 				{
 					"site": frappe.local.site,
 					"timestamp": datetime.utcnow(),
@@ -58,7 +58,7 @@ class Monitor:
 			traceback.print_exc()
 
 	def collect_request_meta(self):
-		self.data.request = frappe._dict(
+		self.data.request = frappe.attrdict(
 			{
 				"ip": frappe.local.request_ip,
 				"method": frappe.request.method,
@@ -67,7 +67,7 @@ class Monitor:
 		)
 
 	def collect_job_meta(self, method, kwargs):
-		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
+		self.data.job = frappe.attrdict({"method": method, "scheduled": False, "wait": 0})
 		if "run_scheduled_job" in method:
 			self.data.job.method = kwargs["job_type"]
 			self.data.job.scheduled = True

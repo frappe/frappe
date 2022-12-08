@@ -130,7 +130,7 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 
 
 def get_provider_field_map():
-	return frappe._dict(
+	return frappe.attrdict(
 		{
 			"frappe": ["frappe_userid"],
 			"facebook": ["fb_userid", "fb_username"],

@@ -74,7 +74,7 @@ def rebuild_for_doctype(doctype):
 		return
 
 	def _get_filters():
-		filters = frappe._dict({"docstatus": ["!=", 2]})
+		filters = frappe.attrdict({"docstatus": ["!=", 2]})
 		if meta.has_field("enabled"):
 			filters.enabled = 1
 		if meta.has_field("disabled"):
@@ -186,8 +186,8 @@ def get_children_data(doctype, meta):
 	}
 
 	"""
-	all_children = frappe._dict()
-	child_search_fields = frappe._dict()
+	all_children = frappe.attrdict()
+	child_search_fields = frappe.attrdict()
 
 	for child in meta.get_table_fields():
 		child_meta = frappe.get_meta(child.options)
@@ -200,7 +200,7 @@ def get_children_data(doctype, meta):
 			)
 
 			for record in child_records:
-				all_children.setdefault(record.parent, frappe._dict()).setdefault(child.options, []).append(
+				all_children.setdefault(record.parent, frappe.attrdict()).setdefault(child.options, []).append(
 					record
 				)
 

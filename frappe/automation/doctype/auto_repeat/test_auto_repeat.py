@@ -234,7 +234,7 @@ class TestAutoRepeat(FrappeTestCase):
 
 
 def make_auto_repeat(**args):
-	args = frappe._dict(args)
+	args = frappe.attrdict(args)
 	doc = frappe.get_doc(
 		{
 			"doctype": "Auto Repeat",

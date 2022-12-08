@@ -35,10 +35,10 @@ def create_translations(translation_map, language):
 	from frappe.frappeclient import FrappeClient
 
 	translation_map = json.loads(translation_map)
-	translation_map_to_send = frappe._dict({})
+	translation_map_to_send = frappe.attrdict({})
 	# first create / update local user translations
 	for source_id, translation_dict in translation_map.items():
-		translation_dict = frappe._dict(translation_dict)
+		translation_dict = frappe.attrdict(translation_dict)
 		existing_doc_name = frappe.get_all(
 			"Translation",
 			{

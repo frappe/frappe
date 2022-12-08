@@ -71,7 +71,7 @@ class EmailServer:
 
 	def setup(self, args=None):
 		# overrride
-		self.settings = args or frappe._dict()
+		self.settings = args or frappe.attrdict()
 
 	def check_mails(self):
 		# overrride
@@ -677,7 +677,7 @@ class InboundMail(Email):
 		self._parent_communication = None
 		self._reference_document = None
 
-		self.flags = frappe._dict()
+		self.flags = frappe.attrdict()
 
 	def get_content(self):
 		if self.content_type == "text/html":
@@ -938,7 +938,7 @@ class InboundMail(Email):
 	@staticmethod
 	def get_email_fields(doctype):
 		"""Returns Email related fields of a doctype."""
-		fields = frappe._dict()
+		fields = frappe.attrdict()
 
 		email_fields = ["subject_field", "sender_field"]
 		meta = frappe.get_meta(doctype)

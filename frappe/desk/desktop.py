@@ -6,7 +6,7 @@ from functools import wraps
 from json import dumps, loads
 
 import frappe
-from frappe import DoesNotExistError, ValidationError, _, _dict
+from frappe import DoesNotExistError, ValidationError, _, attrdict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.cache_manager import (
 	build_domain_restriced_doctype_cache,
@@ -216,12 +216,12 @@ class Workspace:
 		new_data = []
 		for card in cards:
 			new_items = []
-			card = _dict(card)
+			card = attrdict(card)
 
 			links = card.get("links", [])
 
 			for item in links:
-				item = _dict(item)
+				item = attrdict(item)
 
 				# Condition: based on country
 				if item.country and item.country != default_country:
@@ -233,7 +233,7 @@ class Workspace:
 					new_items.append(prepared_item)
 
 			if new_items:
-				if isinstance(card, _dict):
+				if isinstance(card, attrdict):
 					new_card = card.copy()
 				else:
 					new_card = card.as_dict().copy()
@@ -414,8 +414,8 @@ def get_table_with_counts():
 
 def get_custom_reports_and_doctypes(module):
 	return [
-		_dict({"label": _("Custom Documents"), "links": get_custom_doctype_list(module)}),
-		_dict({"label": _("Custom Reports"), "links": get_custom_report_list(module)}),
+		attrdict({"label": _("Custom Documents"), "links": get_custom_doctype_list(module)}),
+		attrdict({"label": _("Custom Reports"), "links": get_custom_report_list(module)}),
 	]
 
 
@@ -464,7 +464,7 @@ def get_custom_report_list(module):
 
 def save_new_widget(doc, page, blocks, new_widgets):
 	if loads(new_widgets):
-		widgets = _dict(loads(new_widgets))
+		widgets = attrdict(loads(new_widgets))
 
 		if widgets.chart:
 			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))

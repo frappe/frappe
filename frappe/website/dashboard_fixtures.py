@@ -2,7 +2,7 @@ import frappe
 
 
 def get_data():
-	return frappe._dict(
+	return frappe.attrdict(
 		{
 			"dashboards": get_dashboards(),
 			"charts": get_charts(),

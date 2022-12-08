@@ -57,7 +57,7 @@ class WebsiteSearch(FullTextSearch):
 		        path (str): route of the page to be parsed
 
 		Returns:
-		        document (_dict): A dictionary with title, path and content
+		        document (attrdict): A dictionary with title, path and content
 		"""
 		frappe.set_user("Guest")
 		frappe.local.no_cache = True
@@ -70,7 +70,7 @@ class WebsiteSearch(FullTextSearch):
 			text_content = page_content.text if page_content else ""
 			title = soup.title.text.strip() if soup.title else route
 
-			return frappe._dict(title=title, content=text_content, path=route)
+			return frappe.attrdict(title=title, content=text_content, path=route)
 		except Exception:
 			pass
 		finally:
@@ -80,7 +80,7 @@ class WebsiteSearch(FullTextSearch):
 		title_highlights = result.highlights("title")
 		content_highlights = result.highlights("content")
 
-		return frappe._dict(
+		return frappe.attrdict(
 			title=result["title"],
 			path=result["path"],
 			title_highlights=title_highlights,
@@ -104,7 +104,7 @@ def slugs_with_web_view(_items_to_index):
 					content = frappe.utils.md_to_html(getattr(doc, doctype.website_search_field))
 					soup = BeautifulSoup(content, "html.parser")
 					text_content = soup.text if soup else ""
-					_items_to_index += [frappe._dict(title=doc.title, content=text_content, path=doc.route)]
+					_items_to_index += [frappe.attrdict(title=doc.title, content=text_content, path=doc.route)]
 			else:
 				docs = frappe.get_all(doctype.name, filters=filters, fields=fields)
 				all_routes += [route.route for route in docs]

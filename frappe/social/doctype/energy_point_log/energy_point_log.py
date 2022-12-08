@@ -128,7 +128,7 @@ def get_notification_message(doc):
 
 
 def get_alert_dict(doc):
-	alert_dict = frappe._dict()
+	alert_dict = frappe.attrdict()
 	owner_name = get_fullname(doc.owner)
 	if doc.reference_doctype:
 		doc_link = get_link_to_form(doc.reference_doctype, doc.reference_name)
@@ -171,7 +171,7 @@ def get_alert_dict(doc):
 
 
 def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
-	doc = frappe._dict(doc)
+	doc = frappe.attrdict(doc)
 
 	log_exists = check_if_log_exists(
 		ref_doctype, ref_name, doc.rule, None if apply_only_once else doc.user
@@ -190,7 +190,7 @@ def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
 
 def check_if_log_exists(ref_doctype, ref_name, rule, user=None):
 	"""'Checks if Energy Point Log already exists"""
-	filters = frappe._dict(
+	filters = frappe.attrdict(
 		{"rule": rule, "reference_doctype": ref_doctype, "reference_name": ref_name, "reverted": 0}
 	)
 
@@ -226,14 +226,14 @@ def get_energy_points(user):
 	# 	lambda: get_user_energy_and_review_points(user))
 	# TODO: cache properly
 	points = get_user_energy_and_review_points(user)
-	return frappe._dict(points.get(user, {}))
+	return frappe.attrdict(points.get(user, {}))
 
 
 @frappe.whitelist()
 def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	conditions = ""
 	given_points_condition = ""
-	values = frappe._dict()
+	values = frappe.attrdict()
 	if user:
 		conditions = "WHERE `user` = %(user)s"
 		values.user = user
@@ -268,7 +268,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	if not as_dict:
 		return points_list
 
-	dict_to_return = frappe._dict()
+	dict_to_return = frappe.attrdict()
 	for d in points_list:
 		dict_to_return[d.pop("user")] = d
 	return dict_to_return
@@ -277,7 +277,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type="Appreciation"):
 	current_review_points = get_energy_points(frappe.session.user).review_points
-	doc = doc.as_dict() if hasattr(doc, "as_dict") else frappe._dict(json.loads(doc))
+	doc = doc.as_dict() if hasattr(doc, "as_dict") else frappe.attrdict(json.loads(doc))
 	points = abs(cint(points))
 	if current_review_points < points:
 		frappe.msgprint(_("You do not have enough review points"))

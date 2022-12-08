@@ -68,7 +68,7 @@ class VirtualDoctypeTest(Document):
 	@staticmethod
 	def get_list(args):
 		data = VirtualDoctypeTest.get_current_data()
-		return [frappe._dict(doc) for name, doc in data.items()]
+		return [frappe.attrdict(doc) for name, doc in data.items()]
 
 	@staticmethod
 	def get_count(args):

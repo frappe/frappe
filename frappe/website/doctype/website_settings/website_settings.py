@@ -114,7 +114,7 @@ class WebsiteSettings(Document):
 
 def get_website_settings(context=None):
 	hooks = frappe.get_hooks()
-	context = frappe._dict(context or {})
+	context = frappe.attrdict(context or {})
 	settings: "WebsiteSettings" = frappe.get_cached_doc("Website Settings")
 
 	context = context.update(
@@ -185,12 +185,12 @@ def get_website_settings(context=None):
 			context[key] = context[key][-1]
 
 	if context.disable_website_theme:
-		context.theme = frappe._dict()
+		context.theme = frappe.attrdict()
 
 	else:
 		from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
-		context.theme = get_active_theme() or frappe._dict()
+		context.theme = get_active_theme() or frappe.attrdict()
 
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/frappe-favicon.svg"

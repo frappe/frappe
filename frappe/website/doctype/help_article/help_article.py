@@ -56,7 +56,7 @@ def get_list_context(context=None):
 	if category:
 		filters["category"] = category
 
-	list_context = frappe._dict(
+	list_context = frappe.attrdict(
 		title=category or _("Knowledge Base"),
 		get_level_class=get_level_class,
 		show_sidebar=True,

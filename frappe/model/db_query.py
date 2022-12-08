@@ -62,7 +62,7 @@ class DatabaseQuery:
 		self.fields = None
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
-		self.flags = frappe._dict()
+		self.flags = frappe.attrdict()
 		self.reference_doctype = None
 
 	def execute(
@@ -225,7 +225,7 @@ class DatabaseQuery:
 		self.set_optional_columns()
 		self.build_conditions()
 
-		args = frappe._dict()
+		args = frappe.attrdict()
 
 		if self.with_childnames:
 			for t in self.tables:
@@ -458,7 +458,7 @@ class DatabaseQuery:
 
 		self.check_read_permission(doctype)
 		self.link_tables.append(
-			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
+			frappe.attrdict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
 		)
 
 	def check_read_permission(self, doctype):
@@ -1100,10 +1100,10 @@ def get_between_date_filter(value, df=None):
 
 def get_additional_filter_field(additional_filters_config, f, value):
 	additional_filter = additional_filters_config[f.operator.lower()]
-	f = frappe._dict(frappe.get_attr(additional_filter["get_field"])())
+	f = frappe.attrdict(frappe.get_attr(additional_filter["get_field"])())
 	if f.query_value:
 		for option in f.options:
-			option = frappe._dict(option)
+			option = frappe.attrdict(option)
 			if option.value == value:
 				f.value = option.query_value
 	return f

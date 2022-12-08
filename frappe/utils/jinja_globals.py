@@ -39,7 +39,7 @@ def web_block(template, values=None, **kwargs):
 
 def web_blocks(blocks):
 	import frappe
-	from frappe import _, _dict, throw
+	from frappe import _, attrdict, throw
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
@@ -47,7 +47,7 @@ def web_blocks(blocks):
 		if not block.get("template"):
 			throw(_("Web Template is not specified"))
 
-		doc = _dict(
+		doc = attrdict(
 			{
 				"doctype": "Web Page Block",
 				"web_template": block["template"],

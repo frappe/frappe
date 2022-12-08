@@ -5,7 +5,7 @@ import frappe
 
 @frappe.whitelist()
 def get_leaderboard_config():
-	leaderboard_config = frappe._dict()
+	leaderboard_config = frappe.attrdict()
 	leaderboard_hooks = frappe.get_hooks("leaderboards")
 	for hook in leaderboard_hooks:
 		leaderboard_config.update(frappe.get_attr(hook)())

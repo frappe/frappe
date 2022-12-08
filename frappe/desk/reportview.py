@@ -66,7 +66,7 @@ def execute(doctype, *args, **kwargs):
 
 def get_form_params():
 	"""Stringify GET request parameters."""
-	data = frappe._dict(frappe.local.form_dict)
+	data = frappe.attrdict(frappe.local.form_dict)
 	clean_params(data)
 	validate_args(data)
 	return data

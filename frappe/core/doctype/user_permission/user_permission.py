@@ -89,7 +89,7 @@ def get_user_permissions(user=None):
 			out[perm.allow] = []
 
 		out[perm.allow].append(
-			frappe._dict(
+			frappe.attrdict(
 				{"doc": doc_name, "applicable_for": perm.get("applicable_for"), "is_default": is_default}
 			)
 		)
@@ -109,7 +109,7 @@ def get_user_permissions(user=None):
 				for doc in decendants:
 					add_doc_to_perm(perm, doc, False)
 
-		out = frappe._dict(out)
+		out = frappe.attrdict(out)
 		frappe.cache().hset("user_permissions", user, out)
 	except frappe.db.SQLError as e:
 		if frappe.db.is_table_missing(e):
@@ -224,7 +224,7 @@ def add_user_permissions(data):
 	frappe.only_for("System Manager")
 	if isinstance(data, str):
 		data = json.loads(data)
-	data = frappe._dict(data)
+	data = frappe.attrdict(data)
 
 	# get all doctypes on whom this permission is applied
 	perm_applied_docs = check_applicable_doc_perm(data.user, data.doctype, data.docname)

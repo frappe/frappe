@@ -317,7 +317,7 @@ def get_users_next_action_data(transitions, doc):
 		filtered_users = filter_allowed_users(users, doc, transition)
 		for user in filtered_users:
 			if not user_data_map.get(user):
-				user_data_map[user] = frappe._dict(
+				user_data_map[user] = frappe.attrdict(
 					{
 						"possible_actions": [],
 						"email": frappe.db.get_value("User", user, "email"),
@@ -325,7 +325,7 @@ def get_users_next_action_data(transitions, doc):
 				)
 
 			user_data_map[user].get("possible_actions").append(
-				frappe._dict(
+				frappe.attrdict(
 					{
 						"action_name": transition.action,
 						"action_link": get_workflow_action_url(transition.action, doc, user),

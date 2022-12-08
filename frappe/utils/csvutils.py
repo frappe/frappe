@@ -85,7 +85,7 @@ def send_csv_to_client(args):
 	if isinstance(args, str):
 		args = json.loads(args)
 
-	args = frappe._dict(args)
+	args = frappe.attrdict(args)
 
 	frappe.response["result"] = cstr(to_csv(args.data))
 	frappe.response["doctype"] = args.filename

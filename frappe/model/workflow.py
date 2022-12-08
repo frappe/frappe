@@ -76,10 +76,10 @@ def get_transitions(
 def get_workflow_safe_globals():
 	# access to frappe.db.get_value, frappe.db.get_list, and date time utils.
 	return dict(
-		frappe=frappe._dict(
-			db=frappe._dict(get_value=frappe.db.get_value, get_list=frappe.db.get_list),
+		frappe=frappe.attrdict(
+			db=frappe.attrdict(get_value=frappe.db.get_value, get_list=frappe.db.get_list),
 			session=frappe.session,
-			utils=frappe._dict(
+			utils=frappe.attrdict(
 				now_datetime=frappe.utils.now_datetime,
 				add_to_date=frappe.utils.add_to_date,
 				get_datetime=frappe.utils.get_datetime,

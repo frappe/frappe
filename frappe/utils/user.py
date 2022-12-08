@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 import frappe.share
-from frappe import _dict
+from frappe import attrdict
 from frappe.boot import get_allowed_reports
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
 from frappe.permissions import get_roles, get_valid_perms
@@ -271,11 +271,11 @@ def get_user_fullname(user: str) -> str:
 	)
 
 
-def get_fullname_and_avatar(user: str) -> _dict:
+def get_fullname_and_avatar(user: str) -> attrdict:
 	first_name, last_name, avatar, name = frappe.db.get_value(
 		"User", user, ["first_name", "last_name", "user_image", "name"], order_by=None
 	)
-	return _dict(
+	return attrdict(
 		{
 			"fullname": " ".join(list(filter(None, [first_name, last_name]))),
 			"avatar": avatar,

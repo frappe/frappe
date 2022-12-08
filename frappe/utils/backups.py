@@ -386,7 +386,7 @@ class BackupGenerator:
 		]
 
 		# escape reserved characters
-		args = frappe._dict(
+		args = frappe.attrdict(
 			[item[0], frappe.utils.esc(str(item[1]), "$ ")] for item in self.__dict__.copy().items()
 		)
 

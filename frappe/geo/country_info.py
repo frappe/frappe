@@ -12,7 +12,7 @@ from frappe.utils.momentjs import get_all_timezones
 
 def get_country_info(country=None):
 	data = get_all()
-	data = frappe._dict(data.get(country, {}))
+	data = frappe.attrdict(data.get(country, {}))
 	if "date_format" not in data:
 		data.date_format = "dd-mm-yyyy"
 	if "time_format" not in data:

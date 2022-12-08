@@ -100,7 +100,7 @@ def sync_contacts_from_google_contacts(g_contact):
 	contacts_updated = 0
 
 	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-	contacts = frappe._dict()
+	contacts = frappe.attrdict()
 
 	while True:
 		try:

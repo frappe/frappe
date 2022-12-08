@@ -780,7 +780,7 @@ def ask_pass_update():
 
 def _get_user_for_update_password(key, old_password):
 	# verify old password
-	result = frappe._dict()
+	result = frappe.attrdict()
 	if key:
 		user = frappe.db.get_value(
 			"User", {"reset_password_key": key}, ["name", "last_reset_password_key_generated_on"]

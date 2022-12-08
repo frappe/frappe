@@ -45,7 +45,7 @@ class WebPage(WebsiteGenerator):
 		context.title = self.title
 
 		if self.context_script:
-			_locals = dict(context=frappe._dict())
+			_locals = dict(context=frappe.attrdict())
 			safe_exec(self.context_script, None, _locals)
 			context.update(_locals["context"])
 
@@ -205,7 +205,7 @@ def check_publish_status():
 def get_web_blocks_html(blocks):
 	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
 
-	out = frappe._dict(html="", scripts={}, styles={})
+	out = frappe.attrdict(html="", scripts={}, styles={})
 	extracted_scripts = {}
 	extracted_styles = {}
 	for block in blocks:

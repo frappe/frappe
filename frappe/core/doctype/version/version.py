@@ -71,7 +71,7 @@ def get_diff(old, new, for_child=False):
 	data_import = new.flags.via_data_import
 	updater_reference = new.flags.updater_reference
 
-	out = frappe._dict(
+	out = frappe.attrdict(
 		changed=[],
 		added=[],
 		removed=[],

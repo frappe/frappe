@@ -13,7 +13,7 @@ class RedisQueue:
 		password = password or self.conn.acl_genpass()
 		user_settings = self.get_new_user_settings(username, password)
 		is_created = self.conn.acl_setuser(**user_settings)
-		return frappe._dict(user_settings) if is_created else {}
+		return frappe.attrdict(user_settings) if is_created else {}
 
 	@classmethod
 	def get_connection(cls, username=None, password=None):

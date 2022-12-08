@@ -9,10 +9,10 @@ def execute():
 		return
 
 	all_tables = frappe.db.get_tables()
-	final_deletion_map = frappe._dict()
+	final_deletion_map = frappe.attrdict()
 
 	for table in all_tables:
-		indexes_to_keep_map = frappe._dict()
+		indexes_to_keep_map = frappe.attrdict()
 		indexes_to_delete = []
 		index_info = frappe.db.sql(
 			"""

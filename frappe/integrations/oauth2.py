@@ -102,7 +102,7 @@ def authorize(**kwargs):
 				frappe.local.response["location"] = success_url
 			else:
 				# Show Allow/Deny screen.
-				response_html_params = frappe._dict(
+				response_html_params = frappe.attrdict(
 					{
 						"client_id": frappe.db.get_value("OAuth Client", kwargs["client_id"], "app_name"),
 						"success_url": success_url,
@@ -125,7 +125,7 @@ def get_token(*args, **kwargs):
 		headers, body, status = get_oauth_server().create_token_response(
 			r.url, r.method, r.form, r.headers, frappe.flags.oauth_credentials
 		)
-		body = frappe._dict(json.loads(body))
+		body = frappe.attrdict(json.loads(body))
 
 		if body.error:
 			frappe.local.response = body
@@ -153,7 +153,7 @@ def revoke_token(*args, **kwargs):
 		pass
 
 	# status_code must be 200
-	frappe.local.response = frappe._dict({})
+	frappe.local.response = frappe.attrdict({})
 	frappe.local.response["http_status_code"] = status or 200
 	return
 
@@ -167,7 +167,7 @@ def openid_profile(*args, **kwargs):
 			headers=r.headers,
 			body=r.form,
 		)
-		body = frappe._dict(json.loads(body))
+		body = frappe.attrdict(json.loads(body))
 		frappe.local.response = body
 		return
 
@@ -178,7 +178,7 @@ def openid_profile(*args, **kwargs):
 @frappe.whitelist(allow_guest=True)
 def openid_configuration():
 	frappe_server_url = get_server_url()
-	frappe.local.response = frappe._dict(
+	frappe.local.response = frappe.attrdict(
 		{
 			"issuer": frappe_server_url,
 			"authorization_endpoint": f"{frappe_server_url}/api/method/frappe.integrations.oauth2.authorize",
@@ -213,7 +213,7 @@ def introspect_token(token=None, token_type_hint=None):
 
 		client = frappe.get_doc("OAuth Client", bearer_token.client)
 
-		token_response = frappe._dict(
+		token_response = frappe.attrdict(
 			{
 				"client_id": client.client_id,
 				"trusted_client": client.skip_authorization,
@@ -239,4 +239,4 @@ def introspect_token(token=None, token_type_hint=None):
 		frappe.local.response = token_response
 
 	except Exception:
-		frappe.local.response = frappe._dict({"active": False})
+		frappe.local.response = frappe.attrdict({"active": False})

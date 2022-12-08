@@ -44,10 +44,10 @@ class TestClient(FrappeTestCase):
 
 		frappe.set_user("Administrator")
 
-		frappe.local.request = frappe._dict()
+		frappe.local.request = frappe.attrdict()
 		frappe.local.request.method = "POST"
 
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{"doc": dict(doctype="ToDo", description="Valid http method"), "cmd": "frappe.client.save"}
 		)
 		todo = execute_cmd("frappe.client.save")
@@ -61,10 +61,10 @@ class TestClient(FrappeTestCase):
 
 		frappe.set_user("Administrator")
 
-		frappe.local.request = frappe._dict()
+		frappe.local.request = frappe.attrdict()
 		frappe.local.request.method = "GET"
 
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{"doc": dict(doctype="ToDo", description="Invalid http method"), "cmd": "frappe.client.save"}
 		)
 
@@ -87,11 +87,11 @@ class TestClient(FrappeTestCase):
 		else:
 			report = frappe.get_doc("Report", "Test Run Doc Method")
 
-		frappe.local.request = frappe._dict()
+		frappe.local.request = frappe.attrdict()
 		frappe.local.request.method = "GET"
 
 		# Whitelisted, works as expected
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"dt": report.doctype,
 				"dn": report.name,
@@ -104,7 +104,7 @@ class TestClient(FrappeTestCase):
 		execute_cmd(frappe.local.form_dict.cmd)
 
 		# Not whitelisted, throws permission error
-		frappe.local.form_dict = frappe._dict(
+		frappe.local.form_dict = frappe.attrdict(
 			{
 				"dt": report.doctype,
 				"dn": report.name,

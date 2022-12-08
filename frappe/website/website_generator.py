@@ -9,7 +9,7 @@ from frappe.website.utils import cleanup_page_name, clear_cache
 
 
 class WebsiteGenerator(Document):
-	website = frappe._dict()
+	website = frappe.attrdict()
 
 	def __init__(self, *args, **kwargs):
 		self.route = None
@@ -112,7 +112,7 @@ class WebsiteGenerator(Document):
 		return condition_field
 
 	def get_page_info(self):
-		route = frappe._dict()
+		route = frappe.attrdict()
 		route.update(
 			{
 				"doc": self,

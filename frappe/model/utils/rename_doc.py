@@ -51,7 +51,7 @@ def get_fetch_fields(
 	product_list = product(master_list, linked_to_list)
 
 	for d in product_list:
-		linked_doctype_info = frappe._dict()
+		linked_doctype_info = frappe.attrdict()
 		if (
 			d[0]["parent"] == d[1]["parent"]
 			and (not ignore_doctypes or d[0]["parent"] not in ignore_doctypes)

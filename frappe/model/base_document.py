@@ -4,7 +4,7 @@ import datetime
 import json
 
 import frappe
-from frappe import _, _dict
+from frappe import _, attrdict
 from frappe.model import (
 	child_table_fields,
 	datetime_fields,
@@ -23,11 +23,11 @@ from frappe.utils.html_utils import unescape_html
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
 DOCTYPE_TABLE_FIELDS = [
-	_dict(fieldname="fields", options="DocField"),
-	_dict(fieldname="permissions", options="DocPerm"),
-	_dict(fieldname="actions", options="DocType Action"),
-	_dict(fieldname="links", options="DocType Link"),
-	_dict(fieldname="states", options="DocType State"),
+	attrdict(fieldname="fields", options="DocField"),
+	attrdict(fieldname="permissions", options="DocPerm"),
+	attrdict(fieldname="actions", options="DocType Action"),
+	attrdict(fieldname="links", options="DocType Link"),
+	attrdict(fieldname="states", options="DocType State"),
 ]
 
 TABLE_DOCTYPES_FOR_DOCTYPE = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}
@@ -294,7 +294,7 @@ class BaseDocument:
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> dict:
-		d = _dict()
+		d = attrdict()
 		for fieldname in self.meta.get_valid_columns():
 			# column is valid, we can use getattr
 			d[fieldname] = getattr(self, fieldname, None)
@@ -686,7 +686,7 @@ class BaseDocument:
 		if self.meta.istable:
 			for fieldname in ("parent", "parenttype"):
 				if not self.get(fieldname):
-					missing.append((fieldname, get_msg(_dict(label=fieldname))))
+					missing.append((fieldname, get_msg(attrdict(label=fieldname))))
 
 		return missing
 
@@ -733,7 +733,7 @@ class BaseDocument:
 				if not frappe.get_meta(doctype).get("is_virtual"):
 					if not fields_to_fetch:
 						# cache a single value type
-						values = _dict(name=frappe.db.get_value(doctype, docname, "name", cache=True))
+						values = attrdict(name=frappe.db.get_value(doctype, docname, "name", cache=True))
 					else:
 						values_to_fetch = ["name"] + [_df.fetch_from.split(".")[-1] for _df in fields_to_fetch]
 
@@ -1063,10 +1063,10 @@ class BaseDocument:
 		cache_key = parentfield or "main"
 
 		if not hasattr(self, "_precision"):
-			self._precision = _dict()
+			self._precision = attrdict()
 
 		if cache_key not in self._precision:
-			self._precision[cache_key] = _dict()
+			self._precision[cache_key] = attrdict()
 
 		if fieldname not in self._precision[cache_key]:
 			self._precision[cache_key][fieldname] = None

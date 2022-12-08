@@ -266,7 +266,9 @@ def get_app_publisher(module: str) -> str:
 
 
 def make_boilerplate(
-	template: str, doc: Union["Document", "frappe._dict"], opts: Union[dict, "frappe._dict"] = None
+	template: str,
+	doc: Union["Document", "frappe.attrdict"],
+	opts: Union[dict, "frappe.attrdict"] = None,
 ):
 	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
 	template_name = template.replace("controller", scrub(doc.name))
@@ -281,8 +283,8 @@ def make_boilerplate(
 		print(f"{target_file_path} already exists, skipping...")
 		return
 
-	doc = doc or frappe._dict()
-	opts = opts or frappe._dict()
+	doc = doc or frappe.attrdict()
+	opts = opts or frappe.attrdict()
 	app_publisher = get_app_publisher(doc.module)
 	base_class = "Document"
 	base_class_import = "from frappe.model.document import Document"

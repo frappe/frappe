@@ -6,7 +6,7 @@ import frappe
 if TYPE_CHECKING:
 	from frappe.model.document import Document
 
-settings = frappe._dict(
+settings = frappe.attrdict(
 	prob={
 		"default": {"make": 0.6, "qty": (1, 5)},
 	}

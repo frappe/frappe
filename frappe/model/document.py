@@ -91,7 +91,7 @@ class Document(BaseDocument):
 		"""
 		self.doctype = None
 		self.name = None
-		self.flags = frappe._dict()
+		self.flags = frappe.attrdict()
 
 		if args and args[0]:
 			if isinstance(args[0], str):
@@ -1444,12 +1444,12 @@ class Document(BaseDocument):
 
 	def set_onload(self, key, value):
 		if not self.get("__onload"):
-			self.set("__onload", frappe._dict())
+			self.set("__onload", frappe.attrdict())
 		self.get("__onload")[key] = value
 
 	def get_onload(self, key=None):
 		if not key:
-			return self.get("__onload", frappe._dict())
+			return self.get("__onload", frappe.attrdict())
 
 		return self.get("__onload")[key]
 

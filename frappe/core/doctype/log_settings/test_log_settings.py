@@ -25,7 +25,7 @@ class TestLogSettings(FrappeTestCase):
 
 	def setUp(self) -> None:
 		if self._testMethodName == "test_delete_logs":
-			self.datetime = frappe._dict()
+			self.datetime = frappe.attrdict()
 			self.datetime.current = now_datetime()
 			self.datetime.past = add_to_date(self.datetime.current, days=-4)
 			setup_test_logs(self.datetime.past)

@@ -188,7 +188,7 @@ class EmailAccount(Document):
 		if frappe.cache().get_value("workers:no-internet") == True:
 			return None
 
-		args = frappe._dict(
+		args = frappe.attrdict(
 			{
 				"email_account_name": self.email_account_name,
 				"email_account": self.name,
@@ -213,7 +213,7 @@ class EmailAccount(Document):
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))
 
-		email_server = EmailServer(frappe._dict(args))
+		email_server = EmailServer(frappe.attrdict(args))
 		self.check_email_server_connection(email_server, in_receive)
 
 		if not in_receive and self.use_imap:

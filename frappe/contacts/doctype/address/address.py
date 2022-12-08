@@ -216,7 +216,7 @@ def get_address_templates(address):
 
 
 def get_company_address(company):
-	ret = frappe._dict()
+	ret = frappe.attrdict()
 	ret.company_address = get_default_address("Company", company)
 	ret.company_address_display = get_address_display(ret.company_address)
 

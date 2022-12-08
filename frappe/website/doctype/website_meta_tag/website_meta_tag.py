@@ -14,6 +14,6 @@ class WebsiteMetaTag(Document):
 		return {self.key: self.get_content()}
 
 	def set_in_context(self, context):
-		context.setdefault("metatags", frappe._dict({}))
+		context.setdefault("metatags", frappe.attrdict({}))
 		context.metatags[self.key] = self.get_content()
 		return context

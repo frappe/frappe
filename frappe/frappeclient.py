@@ -133,7 +133,7 @@ class FrappeClient:
 			verify=self.verify,
 			headers=self.headers,
 		)
-		return frappe._dict(self.post_process(res))
+		return frappe.attrdict(self.post_process(res))
 
 	def insert_many(self, docs):
 		"""Insert multiple documents to the remote server
@@ -149,7 +149,7 @@ class FrappeClient:
 		res = self.session.put(
 			url, data={"data": frappe.as_json(doc)}, verify=self.verify, headers=self.headers
 		)
-		return frappe._dict(self.post_process(res))
+		return frappe.attrdict(self.post_process(res))
 
 	def bulk_update(self, docs):
 		"""Bulk update documents remotely
@@ -263,12 +263,12 @@ class FrappeClient:
 
 		# build - attach children to parents
 		if tables:
-			docs = [frappe._dict(doc) for doc in docs]
+			docs = [frappe.attrdict(doc) for doc in docs]
 			docs_map = {doc.name: doc for doc in docs}
 
 			for fieldname in tables:
 				for child in tables[fieldname]:
-					child = frappe._dict(child)
+					child = frappe.attrdict(child)
 					if child.parent in docs_map:
 						docs_map[child.parent].setdefault(fieldname, []).append(child)
 

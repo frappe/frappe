@@ -49,7 +49,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 
 	for doc in raw_result:
 		doc.doctype = doctype
-		new_context = frappe._dict(doc=doc, meta=meta, list_view_fields=list_view_fields)
+		new_context = frappe.attrdict(doc=doc, meta=meta, list_view_fields=list_view_fields)
 
 		if not list_context.get_list and not isinstance(new_context.doc, Document):
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
@@ -91,7 +91,7 @@ def get_list_data(
 	meta = frappe.get_meta(doctype)
 
 	filters = prepare_filters(doctype, controller, kwargs)
-	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
+	list_context = get_list_context(frappe.attrdict(), doctype, web_form_name)
 	list_context.title_field = getattr(controller, "website", {}).get(
 		"page_title_field", meta.title_field or "name"
 	)
@@ -140,7 +140,7 @@ def prepare_filters(doctype, controller, kwargs):
 			kwargs[key] = json.loads(kwargs[key])
 		except ValueError:
 			pass
-	filters = frappe._dict(kwargs)
+	filters = frappe.attrdict(kwargs)
 	meta = frappe.get_meta(doctype)
 
 	if hasattr(controller, "website") and controller.website.get("condition_field"):
@@ -165,14 +165,14 @@ def get_list_context(context, doctype, web_form_name=None):
 	from frappe.modules import load_doctype_module
 	from frappe.website.doctype.web_form.web_form import get_web_form_module
 
-	list_context = context or frappe._dict()
+	list_context = context or frappe.attrdict()
 	meta = frappe.get_meta(doctype)
 
 	def update_context_from_module(module, list_context):
 		# call the user defined method `get_list_context`
 		# from the python module
 		if hasattr(module, "get_list_context"):
-			out = frappe._dict(module.get_list_context(list_context) or {})
+			out = frappe.attrdict(module.get_list_context(list_context) or {})
 			if out:
 				list_context = out
 		return list_context
@@ -187,7 +187,7 @@ def get_list_context(context, doctype, web_form_name=None):
 	if meta.custom and web_form_name:
 		webform_list_contexts = frappe.get_hooks("webform_list_context")
 		if webform_list_contexts:
-			out = frappe._dict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
+			out = frappe.attrdict(frappe.get_attr(webform_list_contexts[0])(meta.module) or {})
 			if out:
 				list_context = out
 

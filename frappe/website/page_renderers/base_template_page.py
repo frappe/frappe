@@ -11,7 +11,7 @@ class BaseTemplatePage(BaseRenderer):
 		self.source = ""
 
 	def init_context(self):
-		self.context = frappe._dict()
+		self.context = frappe.attrdict()
 		self.context.update(get_website_settings())
 		self.context.update(frappe.local.conf.get("website_context") or {})
 

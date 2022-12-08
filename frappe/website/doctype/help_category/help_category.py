@@ -7,7 +7,7 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class HelpCategory(WebsiteGenerator):
-	website = frappe._dict(condition_field="published", page_title_field="category_name")
+	website = frappe.attrdict(condition_field="published", page_title_field="category_name")
 
 	def before_insert(self):
 		self.published = 1

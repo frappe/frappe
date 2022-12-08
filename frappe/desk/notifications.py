@@ -209,7 +209,7 @@ def get_notification_config():
 
 	def _get():
 		subscribed_documents = get_subscribed_documents()
-		config = frappe._dict()
+		config = frappe.attrdict()
 		hooks = frappe.get_hooks()
 		if hooks:
 			for notification_config in hooks.notification_config:
@@ -219,7 +219,7 @@ def get_notification_config():
 					if key == "for_doctype":
 						if len(subscribed_documents) > 0:
 							key_config = nc.get(key, {})
-							subscribed_docs_config = frappe._dict()
+							subscribed_docs_config = frappe.attrdict()
 							for document in subscribed_documents:
 								if key_config.get(document):
 									subscribed_docs_config[document] = key_config.get(document)

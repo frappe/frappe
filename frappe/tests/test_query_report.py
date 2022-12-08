@@ -13,7 +13,7 @@ class TestQueryReport(FrappeTestCase):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
 		# Create mock data
-		data = frappe._dict()
+		data = frappe.attrdict()
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
@@ -48,7 +48,7 @@ class TestQueryReport(FrappeTestCase):
 	def test_xlsx_export_with_composite_cell_value(self):
 		"""Test excel export using rows with composite cell value"""
 
-		data = frappe._dict()
+		data = frappe.attrdict()
 		data.columns = [
 			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
 			{"label": "Column B", "fieldname": "column_b", "width": 150, "fieldtype": "Data"},
@@ -89,7 +89,7 @@ class TestQueryReport(FrappeTestCase):
 
 		for delimiter in (",", ";", "\t", "|"):
 			for quoting in (QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC):
-				frappe.local.form_dict = frappe._dict(
+				frappe.local.form_dict = frappe.attrdict(
 					{
 						"report_name": REPORT_NAME,
 						"file_format_type": "CSV",

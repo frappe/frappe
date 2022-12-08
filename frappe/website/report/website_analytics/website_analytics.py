@@ -15,7 +15,7 @@ def execute(filters=None):
 
 class WebsiteAnalytics:
 	def __init__(self, filters=None):
-		self.filters = frappe._dict(filters or {})
+		self.filters = frappe.attrdict(filters or {})
 
 		if not self.filters.to_date:
 			self.filters.to_date = datetime.now()

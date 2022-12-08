@@ -32,7 +32,7 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
 
 
-class NamespaceDict(frappe._dict):
+class NamespaceDict(frappe.attrdict):
 	"""Raise AttributeError if function not found in namespace"""
 
 	def __getattr__(self, key):
@@ -95,7 +95,7 @@ def safe_exec_flags():
 
 
 def get_safe_globals():
-	datautils = frappe._dict()
+	datautils = frappe.attrdict()
 
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
@@ -106,7 +106,7 @@ def get_safe_globals():
 
 	add_data_utils(datautils)
 
-	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
+	form_dict = getattr(frappe.local, "form_dict", frappe.attrdict())
 
 	if "_" in form_dict:
 		del frappe.local.form_dict["_"]
@@ -119,13 +119,14 @@ def get_safe_globals():
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
-		_dict=frappe._dict,
+		_dict=frappe.attrdict,
 		args=form_dict,
 		frappe=NamespaceDict(
 			call=call_whitelisted_function,
-			flags=frappe._dict(),
+			flags=frappe.attrdict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
+			attrdict=frappe.attrdict,
 			date_format=date_format,
 			time_format=time_format,
 			format_date=frappe.utils.data.global_date_format,
@@ -160,7 +161,7 @@ def get_safe_globals():
 			if getattr(frappe.local, "session", None)
 			else "Guest",
 			request=getattr(frappe.local, "request", {}),
-			session=frappe._dict(
+			session=frappe.attrdict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
 				if getattr(frappe.local, "session", None)
@@ -193,7 +194,7 @@ def get_safe_globals():
 			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
-		style=frappe._dict(border_color="#d1d8dd"),
+		style=frappe.attrdict(border_color="#d1d8dd"),
 		get_toc=get_toc,
 		get_next_link=get_next_link,
 		_=frappe._,
@@ -270,7 +271,7 @@ def run_script(script, **kwargs):
 
 def call_with_form_dict(function, kwargs):
 	# temporarily update form_dict, to use inside below call
-	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
+	form_dict = getattr(frappe.local, "form_dict", frappe.attrdict())
 	if kwargs:
 		frappe.local.form_dict = form_dict.copy().update(kwargs)
 
