@@ -891,7 +891,7 @@ def reset_password(user):
 			title=_("Password Email Sent"),
 		)
 	except frappe.DoesNotExistError:
-		frappe.local.response["http_status_code"] = 400
+		frappe.local.response["http_status_code"] = 404
 		frappe.clear_messages()
 		return "not found"
 
