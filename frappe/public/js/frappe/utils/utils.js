@@ -281,8 +281,8 @@ Object.assign(frappe.utils, {
 
 	html2text: function (html) {
 		const parser = new DOMParser();
-		const dom = parser.parseFromString(html);
-		return dom.textContent;
+		const dom = parser.parseFromString(html, "text/html");
+		return dom.body.textContent;
 	},
 
 	is_url: function (txt) {
