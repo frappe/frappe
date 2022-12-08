@@ -249,10 +249,17 @@ Object.assign(frappe.utils, {
 		});
 	},
 
+<<<<<<< HEAD
 	html2text: function(html) {
 		let d = document.createElement('div');
 		d.innerHTML = html;
 		return d.textContent;
+=======
+	html2text: function (html) {
+		const parser = new DOMParser();
+		const dom = parser.parseFromString(html);
+		return dom.textContent;
+>>>>>>> f4ee9e307b (fix: escape html in timline/version)
 	},
 
 	is_url: function(txt) {
