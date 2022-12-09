@@ -541,7 +541,6 @@ def make_site_config(
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 
-@filelock("site_config")
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
 	from frappe.utils.synchronization import filelock
@@ -549,7 +548,16 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 	if not site_config_path:
 		site_config_path = get_site_config_path()
 
-	with open(site_config_path) as f:
+	# Sometimes global config file is passed directly to this function
+	_is_global_conf = "common_site_config" in site_config_path
+
+	with filelock("site_config", is_global=_is_global_conf):
+		_update_config_file(key=key, value=value, config_file=site_config_path)
+
+
+def _update_config_file(key: str, value, config_file: str):
+	"""Updates site or common config"""
+	with open(config_file) as f:
 		site_config = json.loads(f.read())
 
 	# In case of non-int value
@@ -569,7 +577,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 	else:
 		site_config[key] = value
 
-	with open(site_config_path, "w") as f:
+	with open(config_file, "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 	if hasattr(frappe.local, "conf"):
