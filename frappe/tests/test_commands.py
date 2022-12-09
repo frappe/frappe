@@ -444,6 +444,14 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
 
+	def test_set_global_conf(self):
+		key = "answer"
+		value = "42"
+		self.execute(f"bench set-config {key} {value} -g")
+		conf = frappe.get_site_config()
+
+		self.assertEqual(conf[key], value)
+
 
 class RemoveAppUnitTests(unittest.TestCase):
 	def test_delete_modules(self):
