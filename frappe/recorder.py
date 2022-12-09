@@ -4,11 +4,13 @@
 from __future__ import unicode_literals
 
 import datetime
+import functools
 import inspect
 import json
 import re
 import time
 from collections import Counter
+from typing import Callable
 
 import sqlparse
 
@@ -68,9 +70,9 @@ def get_current_stack_frames():
 		pass
 
 
-def record():
+def record(force=False):
 	if __debug__:
-		if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG):
+		if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder()
 
 
@@ -85,11 +87,19 @@ class Recorder:
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
 		self.calls = []
-		self.path = frappe.request.path
-		self.cmd = frappe.local.form_dict.cmd or ""
-		self.method = frappe.request.method
-		self.headers = dict(frappe.local.request.headers)
-		self.form_dict = frappe.local.form_dict
+		if frappe.request:
+			self.path = frappe.request.path
+			self.cmd = frappe.local.form_dict.cmd or ""
+			self.method = frappe.request.method
+			self.headers = dict(frappe.local.request.headers)
+			self.form_dict = frappe.local.form_dict
+		else:
+			self.path = None
+			self.cmd = None
+			self.method = None
+			self.headers = None
+			self.form_dict = None
+
 		_patch()
 
 	def register(self, data):
@@ -132,6 +142,10 @@ class Recorder:
 def _patch():
 	frappe.db._sql = frappe.db.sql
 	frappe.db.sql = sql
+
+
+def _unpatch():
+	frappe.db.sql = frappe.db._sql
 
 
 def do_not_record(function):
@@ -198,3 +212,19 @@ def export_data(*args, **kwargs):
 def delete(*args, **kwargs):
 	frappe.cache().delete_value(RECORDER_REQUEST_SPARSE_HASH)
 	frappe.cache().delete_value(RECORDER_REQUEST_HASH)
+
+
+def record_queries(func: Callable):
+	"""Decorator to profile a specific function using recorder."""
+
+	@functools.wraps(func)
+	def wrapped(*args, **kwargs):
+		record(force=True)
+		frappe.local._recorder.path = f"Function call: {func.__module__}.{func.__qualname__}"
+		ret = func(*args, **kwargs)
+		dump()
+		_unpatch()
+		print("Recorded queries, open recorder to view them.")
+		return ret
+
+	return wrapped
