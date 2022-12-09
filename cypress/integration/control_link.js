@@ -46,18 +46,11 @@ context('Control Link', () => {
 		cy.intercept('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
 		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
-		cy.wait('@search_link');
 		cy.get('@input').type('todo for link', { delay: 200 });
 		cy.wait('@search_link');
 		cy.get('.frappe-control[data-fieldname=link]').findByRole('listbox').should('be.visible');
-		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
-		cy.get('.frappe-control[data-fieldname=link] input').blur();
-		cy.get('@dialog').then(dialog => {
-			cy.get('@todos').then(todos => {
-				let value = dialog.get_value('link');
-				expect(value).to.eq(todos[0]);
-			});
-		});
+		cy.get('@input').type('{enter}', { delay: 100 }).blur();
+		cy.hide_dialog();
 	});
 
 	it.skip('should unset invalid value', () => {
@@ -65,7 +58,7 @@ context('Control Link', () => {
 
 		cy.intercept('POST', '/api/method/frappe.client.validate_link').as('validate_link');
 
-		cy.get('.frappe-control[data-fieldname=link] input')
+		cy.get('@input')
 			.type('invalid value', { delay: 100 })
 			.blur();
 		cy.wait('@validate_link');
