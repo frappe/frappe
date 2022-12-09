@@ -130,7 +130,7 @@ class TestRecorder(unittest.TestCase):
 		self.assertIn("Error", content)
 
 
-class TestRecorderDeco(FrappeTestCase):
+class TestRecorderDeco(unittest.TestCase):
 	def test_recorder_flag(self):
 		frappe.recorder.delete()
 
