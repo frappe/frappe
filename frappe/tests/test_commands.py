@@ -479,6 +479,14 @@ class TestCommands(BaseTestCommands):
 		self.assertIn(f"Installing {app_name}", self.stdout)
 		self.assertEqual(self.returncode, 0)
 
+	def test_set_global_conf(self):
+		key = "answer"
+		value = "42"
+		self.execute(f"bench set-config {key} {value} -g")
+		conf = frappe.get_site_config()
+
+		self.assertEqual(conf[key], value)
+
 
 class TestBackups(BaseTestCommands):
 	backup_map = {
