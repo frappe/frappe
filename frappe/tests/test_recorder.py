@@ -128,3 +128,15 @@ class TestRecorder(unittest.TestCase):
 	def test_error_page_rendering(self):
 		content = render_page("error")
 		self.assertIn("Error", content)
+
+
+class TestRecorderDeco(unittest.TestCase):
+	def test_recorder_flag(self):
+		frappe.recorder.delete()
+
+		@frappe.recorder.record_queries
+		def test():
+			frappe.get_all("User")
+
+		test()
+		self.assertTrue(frappe.recorder.get())
