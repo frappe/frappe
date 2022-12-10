@@ -19,12 +19,12 @@ html {
 	background: var(--scrollbar-track-color);
 }
 
-*::-webkit-scrollbar {
+*:not(#page-form-builder *)::-webkit-scrollbar {
 	width: 6px;
 	height: 6px;
 }
 
 body::-webkit-scrollbar {
-	width: 12px;
-	height: 12px;
+	width: 12px !important;
+	height: 12px !important;
 }

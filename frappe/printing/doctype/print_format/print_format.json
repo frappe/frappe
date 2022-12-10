@@ -257,9 +257,8 @@
  ],
  "icon": "fa fa-print",
  "idx": 1,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-10-12 17:52:41.167107",
+ "modified": "2022-11-09 15:29:46.709305",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -276,9 +275,14 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "role": "All",
+   "select": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

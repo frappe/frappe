@@ -35,9 +35,19 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	make_map() {
 		this.bind_leaflet_map();
-		this.bind_leaflet_draw_control();
-		this.bind_leaflet_locate_control();
-		this.bind_leaflet_refresh_button();
+		if (this.disabled) {
+			this.map.dragging.disable();
+			this.map.touchZoom.disable();
+			this.map.doubleClickZoom.disable();
+			this.map.scrollWheelZoom.disable();
+			this.map.boxZoom.disable();
+			this.map.keyboard.disable();
+			this.map.zoomControl.remove();
+		} else {
+			this.bind_leaflet_draw_control();
+			this.bind_leaflet_locate_control();
+			this.bind_leaflet_refresh_button();
+		}
 		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 	}
 

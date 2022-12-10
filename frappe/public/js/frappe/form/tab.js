@@ -101,18 +101,4 @@ export default class Tab {
 			this?.frm.set_active_tab?.(this);
 		});
 	}
-
-	setup_switch_on_hover() {
-		this.tab_link.on("dragenter", () => {
-			this.action = setTimeout(() => {
-				this.set_active();
-			}, 2000);
-		});
-		this.tab_link.on("dragout", () => {
-			if (this.action) {
-				clearTimeout(this.action);
-				this.action = null;
-			}
-		});
-	}
 }
