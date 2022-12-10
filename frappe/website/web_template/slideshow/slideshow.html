@@ -2,7 +2,7 @@
 {%- set slides = slideshow.slideshow_items -%}
 {%- set slideshow_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
 
-{{ slideshow.header or '' }}
+{{ _(slideshow.header) or '' }}
 
 <div id="{{ slideshow_id }}" class="carousel slide" data-ride="carousel">
 	{% if slides | len > 1 %}
@@ -25,8 +25,8 @@
 			</a>
 			{% if slide.heading or slide.description %}
 			<div class="carousel-caption d-none d-md-block">
-				{% if slide.heading %}<h4>{{ slide.heading }}</h4>{% endif %}
-				{% if slide.description %}<p>{{ slide.description }}</p>{% endif %}
+				{% if slide.heading %}<h4>{{ _(slide.heading) }}</h4>{% endif %}
+				{% if slide.description %}<p>{{ _(slide.description) }}</p>{% endif %}
 			</div>
 			{% endif %}
 		</div>
