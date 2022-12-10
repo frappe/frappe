@@ -299,7 +299,7 @@ class File(Document):
 			return True
 
 		if not os.path.exists(full_path):
-			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
+			frappe.throw(_("File {0} does not exist").format(full_path), IOError)
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
