@@ -21,6 +21,11 @@ frappe.ui.form.on("DocType", {
 			frm.toggle_enable("beta", 0);
 		}
 
+		!frm.is_new() &&
+			frm.add_custom_button(__("Try new form builder", [__(frm.doc.name)]), () => {
+				frappe.set_route("form-builder", frm.doc.name);
+			});
+
 		if (!frm.is_new() && !frm.doc.istable) {
 			if (frm.doc.issingle) {
 				frm.add_custom_button(__("Go to {0}", [__(frm.doc.name)]), () => {
