@@ -1724,27 +1724,6 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	return newdoc
 
 
-def compare(val1, condition, val2):
-	"""Compare two values using `frappe.utils.compare`
-
-	`condition` could be:
-	- "^"
-	- "in"
-	- "not in"
-	- "="
-	- "!="
-	- ">"
-	- "<"
-	- ">="
-	- "<="
-	- "not None"
-	- "None"
-	"""
-	import frappe.utils
-
-	return frappe.utils.compare(val1, condition, val2)
-
-
 def respond_as_web_page(
 	title,
 	html,
