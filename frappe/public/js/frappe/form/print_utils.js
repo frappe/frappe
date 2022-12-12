@@ -37,38 +37,15 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 			{
 				label: __("Pick Columns"),
 				fieldtype: "Check",
-				fieldname: "pick_columns",
-				onchange: function () {
-                    if (cur_dialog) {
-                        $(cur_dialog.body).find(':checkbox[data-fieldname="pick_all"]')
-                            .prop("checked", 1)
-                            .trigger('click');
-                    }
-
-                }
+				fieldname: "pick_columns"
 			},
-			{
-                label: __("Pick All Columns"),
-                fieldtype: "Check",
-                fieldname: "pick_all",
-                depends_on: "pick_columns",
-                onchange: function () {
-                    if (cur_dialog) {
-                        const checked = this.value == 1 ? false : true;
-                        $(cur_dialog.body).find('[data-fieldtype="MultiCheck"]').map((index, element) => {
-                            $(element).find(`:checkbox`)
-                                .prop("checked", this.value == 1 ? false : true)
-                                .trigger('click');
-                        });
-                    }
-                }
-            },
 			{
 				label: __("Select Columns"),
 				fieldtype: "MultiCheck",
 				fieldname: "columns",
 				depends_on: "pick_columns",
 				columns: 2,
+				select_all: true,
 				options: pick_columns.map((df) => ({
 					label: __(df.label),
 					value: df.fieldname,
