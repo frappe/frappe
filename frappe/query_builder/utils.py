@@ -104,9 +104,8 @@ def patch_query_execute():
 				# frame1: execute_query()
 				# frame2: frame that called `query.run()`
 				#
-				# if frame2 is server script it wont have a filename and hence
+				# if frame2 is server script <serverscript> is set as the filename
 				# it shouldn't be allowed.
-				# p.s. stack() returns `"<unknown>"` as filename if not a file.
 				pass
 			else:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")

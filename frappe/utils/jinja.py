@@ -60,7 +60,7 @@ def validate_template(html):
 		frappe.throw(frappe._("Syntax error in template"))
 
 
-def render_template(template, context, is_path=None, safe_render=True):
+def render_template(template, context=None, is_path=None, safe_render=True):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
@@ -75,6 +75,9 @@ def render_template(template, context, is_path=None, safe_render=True):
 
 	if not template:
 		return ""
+
+	if context is None:
+		context = {}
 
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)

@@ -17,7 +17,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
+from frappe.utils import cast_fieldtype, cint, compare, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
@@ -1227,7 +1227,7 @@ def _filter(data, filters, limit=None):
 
 	for d in data:
 		for f, fval in _filters.items():
-			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
+			if not compare(getattr(d, f, None), fval[0], fval[1]):
 				break
 		else:
 			out.append(d)

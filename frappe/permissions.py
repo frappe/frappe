@@ -333,14 +333,26 @@ def has_user_permission(doc, user=None):
 				# restricted for this link field, and no matching values found
 				# make the right message and exit
 				if d.get("parentfield"):
-					# "Not allowed for Company = Restricted Company in Row 3. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1} in Row {2}. Restricted field: {3}").format(
-						_(field.options), d.get(field.fieldname), d.idx, field.fieldname
+					# "You are not allowed to access this Employee record because it is linked
+					# to Company 'Restricted Company' in row 3, field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						d.idx,
+						_(field.label) if field.label else field.fieldname,
 					)
 				else:
-					# "Not allowed for Company = Restricted Company. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1}. Restricted field: {2}").format(
-						_(field.options), d.get(field.fieldname), field.fieldname
+					# "You are not allowed to access Company 'Restricted Company' in field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						_(field.label) if field.label else field.fieldname,
 					)
 
 				push_perm_check_log(msg)
@@ -707,8 +719,10 @@ def has_child_permission(
 
 	parent_meta = frappe.get_meta(parent_doctype)
 
-	if parent_meta.istable or all(
-		df.options != child_doctype for df in parent_meta.get_table_fields()
+	if parent_meta.istable or not (
+		valid_parentfields := [
+			df.fieldname for df in parent_meta.get_table_fields() if df.options == child_doctype
+		]
 	):
 		push_perm_check_log(
 			_("{0} is not a valid parent DocType for {1}").format(
@@ -717,15 +731,30 @@ def has_child_permission(
 		)
 		return False
 
-	if (
-		child_doc
-		and (permlevel := parent_meta.get_field(child_doc.parentfield).permlevel) > 0
-		and permlevel not in parent_meta.get_permlevel_access(ptype, user=user)
-	):
-		push_perm_check_log(
-			_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
-		)
-		return False
+	if child_doc:
+		parentfield = child_doc.parentfield
+		if not parentfield:
+			push_perm_check_log(
+				_("Parentfield not specified in {0}: {1}").format(
+					frappe.bold(child_doctype), frappe.bold(child_doc.name)
+				)
+			)
+			return False
+
+		if parentfield not in valid_parentfields:
+			push_perm_check_log(
+				_("{0} is not a valid parentfield for {1}").format(
+					frappe.bold(parentfield), frappe.bold(child_doctype)
+				)
+			)
+			return False
+
+		permlevel = parent_meta.get_field(parentfield).permlevel
+		if permlevel > 0 and permlevel not in parent_meta.get_permlevel_access(ptype, user=user):
+			push_perm_check_log(
+				_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
+			)
+			return False
 
 	return has_permission(
 		parent_doctype,

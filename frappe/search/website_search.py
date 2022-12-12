@@ -9,6 +9,7 @@ from whoosh.fields import ID, TEXT, Schema
 import frappe
 from frappe.search.full_text_search import FullTextSearch
 from frappe.utils import set_request, update_progress_bar
+from frappe.utils.synchronization import filelock
 from frappe.website.serve import get_response_content
 
 INDEX_NAME = "web_routes"
@@ -140,6 +141,7 @@ def remove_document_from_index(path):
 	return ws.remove_document_from_index(path)
 
 
+@filelock("building_website_search")
 def build_index_for_all_routes():
 	ws = WebsiteSearch(INDEX_NAME)
 	return ws.build()

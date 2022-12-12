@@ -134,6 +134,43 @@ def restore(
 	with_private_files=None,
 ):
 	"Restore site database from an sql file"
+
+	from frappe.utils.synchronization import filelock
+
+	site = get_site(context)
+	frappe.init(site=site)
+
+	with filelock("site_restore", timeout=1):
+		_restore(
+			site=site,
+			sql_file_path=sql_file_path,
+			encryption_key=encryption_key,
+			db_root_username=db_root_username,
+			db_root_password=db_root_password,
+			verbose=context.verbose or verbose,
+			install_app=install_app,
+			admin_password=admin_password,
+			force=context.force or force,
+			with_public_files=with_public_files,
+			with_private_files=with_private_files,
+		)
+
+
+def _restore(
+	*,
+	site=None,
+	sql_file_path=None,
+	encryption_key=None,
+	db_root_username=None,
+	db_root_password=None,
+	verbose=None,
+	install_app=None,
+	admin_password=None,
+	force=None,
+	with_public_files=None,
+	with_private_files=None,
+):
+
 	from frappe.installer import (
 		_new_site,
 		extract_files,
@@ -145,10 +182,6 @@ def restore(
 	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
-
-	site = get_site(context)
-	frappe.init(site=site)
-	force = context.force or force
 
 	try:
 		decompressed_file_name = extract_sql_from_archive(sql_file_path)
@@ -211,7 +244,7 @@ def restore(
 			db_root_username=db_root_username,
 			db_root_password=db_root_password,
 			admin_password=admin_password,
-			verbose=context.verbose,
+			verbose=verbose,
 			install_apps=install_app,
 			source_sql=decompressed_file_name,
 			force=True,
@@ -361,6 +394,7 @@ def _reinstall(
 	site, admin_password=None, db_root_username=None, db_root_password=None, yes=False, verbose=False
 ):
 	from frappe.installer import _new_site
+	from frappe.utils.synchronization import filelock
 
 	if not yes:
 		click.confirm("This will wipe your database. Are you sure you want to reinstall?", abort=True)
@@ -378,6 +412,7 @@ def _reinstall(
 		frappe.destroy()
 
 	frappe.init(site=site)
+
 	_new_site(
 		frappe.conf.db_name,
 		site,
@@ -398,6 +433,7 @@ def _reinstall(
 def install_app(context, apps, force=False):
 	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
+	from frappe.utils.synchronization import filelock
 
 	exit_code = 0
 
@@ -408,20 +444,21 @@ def install_app(context, apps, force=False):
 		frappe.init(site=site)
 		frappe.connect()
 
-		for app in apps:
-			try:
-				_install_app(app, verbose=context.verbose, force=force)
-			except frappe.IncompatibleApp as err:
-				err_msg = f":\n{err}" if str(err) else ""
-				print(f"App {app} is Incompatible with Site {site}{err_msg}")
-				exit_code = 1
-			except Exception as err:
-				err_msg = f": {str(err)}\n{frappe.get_traceback()}"
-				print(f"An error occurred while installing {app}{err_msg}")
-				exit_code = 1
+		with filelock("install_app", timeout=1):
+			for app in apps:
+				try:
+					_install_app(app, verbose=context.verbose, force=force)
+				except frappe.IncompatibleApp as err:
+					err_msg = f":\n{err}" if str(err) else ""
+					print(f"App {app} is Incompatible with Site {site}{err_msg}")
+					exit_code = 1
+				except Exception as err:
+					err_msg = f": {str(err)}\n{frappe.get_traceback()}"
+					print(f"An error occurred while installing {app}{err_msg}")
+					exit_code = 1
 
-		if not exit_code:
-			frappe.db.commit()
+			if not exit_code:
+				frappe.db.commit()
 
 		frappe.destroy()
 
@@ -791,12 +828,14 @@ def remove_from_installed_apps(context, app):
 def uninstall(context, app, dry_run, yes, no_backup, force):
 	"Remove app and linked modules from site"
 	from frappe.installer import remove_app
+	from frappe.utils.synchronization import filelock
 
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
+			with filelock("uninstall_app"):
+				remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
 	if not context.sites:

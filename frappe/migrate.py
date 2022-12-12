@@ -21,6 +21,7 @@ from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.fixtures import sync_fixtures
+from frappe.utils.synchronization import filelock
 from frappe.website.utils import clear_website_cache
 
 BENCH_START_MESSAGE = dedent(
@@ -169,11 +170,12 @@ class SiteMigration:
 		if not self.required_services_running():
 			raise SystemExit(1)
 
-		self.setUp()
-		try:
-			self.pre_schema_updates()
-			self.run_schema_updates()
-			self.post_schema_updates()
-		finally:
-			self.tearDown()
-			frappe.destroy()
+		with filelock("bench_migrate", timeout=1):
+			self.setUp()
+			try:
+				self.pre_schema_updates()
+				self.run_schema_updates()
+				self.post_schema_updates()
+			finally:
+				self.tearDown()
+				frappe.destroy()
