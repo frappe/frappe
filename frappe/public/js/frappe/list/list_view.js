@@ -599,7 +599,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// clear rows
 		this.$result.find(".list-row-container").remove();
 		if (this.data.length > 0) {
-			this.translate_link_fields();
 			// append rows
 			this.$result.append(
 				this.data
@@ -609,31 +608,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					})
 					.join("")
 			);
-		}
-	}
-
-	translate_link_fields() {
-		let link_fields = this.meta.fields.filter(
-			(field) => field.fieldtype === "Link" && field.in_list_view === 1
-		);
-
-		if (link_fields.length > 0) {
-			let translated_doctypes = frappe.boot?.translated_doctypes || [];
-			let link_title_doctypes = frappe.boot?.link_title_doctypes || [];
-
-			link_fields.forEach((link_field) => {
-				let doctype = link_field["options"];
-				let fieldname = link_field["fieldname"];
-
-				if (in_list(translated_doctypes, doctype)) {
-					this.data.map((doc) => {
-						let key = in_list(link_title_doctypes, doctype)
-							? fieldname.concat("_title")
-							: fieldname;
-						doc[key] = __(doc[key]);
-					});
-				}
-			});
 		}
 	}
 
@@ -757,9 +731,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const fieldname = df.fieldname;
 		const link_title_fieldname = this.link_field_title_fields[fieldname];
 		const value = doc[fieldname] || "";
-		const value_display = link_title_fieldname
+		let value_display = link_title_fieldname
 			? doc[fieldname + "_" + link_title_fieldname] || value
 			: value;
+
+		let translated_doctypes = frappe.boot?.translated_doctypes || [];
+		if (in_list(translated_doctypes, df.options)) {
+			value_display = __(value_display);
+		}
+
 		const format = () => {
 			if (df.fieldtype === "Code") {
 				return value;
