@@ -168,8 +168,13 @@ class Document(BaseDocument):
 			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
 			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
 			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
-				self.set(df.fieldname, [])
-				continue
+				# find controller of virtual table and fetch
+				# unlike the regular API, add the parent here. The controller has no other way to figure it 
+				# out, without risking a loop.				
+				controller = get_controller(df.options)
+				data = controller.get_list({'parent_doc': self})  				
+				self.set(df.fieldname, data)
+				continue		
 
 			children = (
 				frappe.db.get_values(
