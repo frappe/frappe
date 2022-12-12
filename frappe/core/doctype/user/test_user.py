@@ -282,7 +282,7 @@ class TestUser(unittest.TestCase):
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
-		self.assertEqual(res1.status_code, 400)
+		self.assertEqual(res1.status_code, 404)
 		self.assertEqual(res2.status_code, 417)
 
 	def test_user_rename(self):
