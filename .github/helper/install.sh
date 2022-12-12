@@ -50,11 +50,6 @@ if [ "$TYPE" == "server" ]; then sed -i 's/^redis_socketio:/# redis_socketio:/g'
 
 if [ "$TYPE" == "ui" ]; then bench setup requirements --node; fi
 
-# install node-sass which is required for website theme test
-cd ./apps/frappe || exit
-yarn add node-sass@4.13.1
-cd ../..
-
 bench start &
 
 CI=Yes bench build --app frappe &

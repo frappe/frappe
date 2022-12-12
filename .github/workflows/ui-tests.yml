@@ -116,6 +116,12 @@ jobs:
           DB: mariadb
           TYPE: ui
 
+      - name: Verify yarn.lock
+        if: ${{ steps.check-build.outputs.build == 'strawberry' }}
+        run: |
+          cd ~/frappe-bench/apps/frappe
+          git diff --exit-code yarn.lock
+
       - name: Site Setup
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: cd ~/frappe-bench/ && bench --site test_site execute frappe.utils.install.complete_setup_wizard
