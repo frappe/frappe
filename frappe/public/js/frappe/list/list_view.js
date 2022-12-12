@@ -702,6 +702,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const label = df.label;
 		const fieldname = df.fieldname;
 		const value = doc[fieldname] || "";
+<<<<<<< HEAD
+=======
+		let value_display = link_title_fieldname
+			? doc[fieldname + "_" + link_title_fieldname] || value
+			: value;
+
+		let translated_doctypes = frappe.boot?.translated_doctypes || [];
+		if (in_list(translated_doctypes, df.options)) {
+			value_display = __(value_display);
+		}
+>>>>>>> e4cb215ad2 (fix: untranslated link fields in list view (#19155))
 
 		const format = () => {
 			if (df.fieldtype === "Code") {
