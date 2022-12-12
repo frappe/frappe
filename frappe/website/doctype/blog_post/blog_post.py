@@ -33,9 +33,6 @@ class BlogPost(WebsiteGenerator):
 				+ self.scrub(self.title)
 			)
 
-	def get_feed(self):
-		return self.title
-
 	def validate(self):
 		super().validate()
 

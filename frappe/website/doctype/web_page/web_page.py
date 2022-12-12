@@ -30,9 +30,6 @@ class WebPage(WebsiteGenerator):
 		if not self.dynamic_route:
 			self.route = quoted(self.route)
 
-	def get_feed(self):
-		return self.title
-
 	def on_update(self):
 		super().on_update()
 

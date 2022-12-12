@@ -86,9 +86,6 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
-	def get_feed(self):
-		return self.name
-
 	def validate(self):
 		"""Validate DocType before saving.
 
