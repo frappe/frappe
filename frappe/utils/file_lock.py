@@ -3,14 +3,20 @@
 
 from __future__ import unicode_literals
 
-"""
-File based locking utility
+"""Utils for inter-process synchronization using file-locks.
+
+This file implements a "weak" form lock which is not suitable for synchroniztion. This is only used
+for document locking for queue_action.
+Use `frappe.utils.synchroniztion.filelock` for process synchroniztion.
 """
 
 import os
 from time import time
 
+from frappe import _
 from frappe.utils import get_site_path, touch_file
+
+LOCKS_DIR = "locks"
 
 
 class LockTimeoutError(Exception):
@@ -18,7 +24,13 @@ class LockTimeoutError(Exception):
 
 
 def create_lock(name):
-	"""Creates a file in the /locks folder by the given name"""
+	"""Creates a file in the /locks folder by the given name.
+
+	Note: This is a "weak lock" and is prone to race conditions. Do not use this lock for small
+	sections of code that execute immediately.
+
+	This is primarily use for locking documents for background submission.
+	"""
 	lock_path = get_lock_path(name)
 	if not check_lock(lock_path):
 		return touch_file(lock_path)
@@ -50,6 +62,5 @@ def delete_lock(name):
 
 def get_lock_path(name):
 	name = name.lower()
-	locks_dir = "locks"
-	lock_path = get_site_path(locks_dir, name + ".lock")
+	lock_path = get_site_path(LOCKS_DIR, name + ".lock")
 	return lock_path

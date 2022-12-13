@@ -50,7 +50,8 @@ frappe.ui.get_print_settings = function(
 				fieldname: "columns",
 				depends_on: "pick_columns",
 				columns: 2,
-				options: pick_columns.map(df => ({
+				select_all: true,
+				options: pick_columns.map((df) => ({
 					label: __(df.label),
 					value: df.fieldname
 				}))
