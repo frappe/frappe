@@ -8,7 +8,7 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 
-develop_version = "14.x.x-develop"
+develop_version = "15.x.x-develop"
 
 app_email = "developers@frappe.io"
 
