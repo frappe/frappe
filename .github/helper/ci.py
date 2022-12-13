@@ -24,6 +24,9 @@ STANDARD_EXCLUSIONS = [
 # tested via commands' test suite
 TESTED_VIA_CLI = [
 	"*/frappe/installer.py",
+	"*/frappe/utils/install.py",
+	"*/frappe/utils/scheduler.py",
+	"*/frappe/utils/doctor.py",
 	"*/frappe/build.py",
 	"*/frappe/database/__init__.py",
 	"*/frappe/database/db_manager.py",
@@ -35,10 +38,13 @@ FRAPPE_EXCLUSIONS = [
 	"*/commands/*",
 	"*/frappe/change_log/*",
 	"*/frappe/exceptions*",
+	"*/frappe/desk/page/setup_wizard/setup_wizard.py",
 	"*/frappe/coverage.py",
 	"*frappe/setup.py",
+	"*/frappe/hooks.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
+	"*/.github/helper/ci.py",
 ] + TESTED_VIA_CLI
 
 
