@@ -63,32 +63,18 @@ def extract_doctype_json(
 def extract_python(
 	fileobj: TextIO, keywords: list[str], comment_tags: list[str], options: dict[str, Any]
 ) -> Iterator[tuple[int, str, tuple[str | None, str], list[str]]]:
-	"""Extract messages from python files.
-
-	:param fileobj: the file-like object the messages should be extracted from
-	:param keywords: unused
-	:param comment_tags: unused
-	:param options: unused
-	:return: an iterator over `(None, "pgettext", (context, message), [])` tuples
-	:rtype: `iterator`
-	"""
+	"""Wrapper around babel's `extract_python`, handling our own implementation of `_()`"""
 	from babel.messages.extract import extract_python
 
-	# pretend to use `pgettext` as the function name. This way we can supply the doctype name as context
-	FUNCNAME = "pgettext"
-
-	for message in extract_python(
+	for lineno, funcname, messages, comments in extract_python(
 		fileobj,
-		keywords=["_"],
-		comment_tags=(),
-		options={},
+		keywords=keywords,
+		comment_tags=comment_tags,
+		options=options,
 	):
-		lineno, _func, args, _comments = message
+		# handle our own implementation of `_()`
+		if funcname == "_" and isinstance(messages, tuple) and len(messages) > 1:
+			funcname = "pgettext"
+			messages = (messages[-1], messages[0])  # (context, message)
 
-		if not args or not args[0]:
-			continue
-
-		source_text = args[0] if isinstance(args, tuple) else args
-		context = args[1] if len(args) == 2 else None
-
-		yield lineno, FUNCNAME, (context, source_text), _comments
+		yield lineno, funcname, messages, comments
