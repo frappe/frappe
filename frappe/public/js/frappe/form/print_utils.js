@@ -37,7 +37,7 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 			{
 				label: __("Pick Columns"),
 				fieldtype: "Check",
-				fieldname: "pick_columns"
+				fieldname: "pick_columns",
 			},
 			{
 				label: __("Select Columns"),
