@@ -701,7 +701,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const df = col.df || {};
 		const label = df.label;
 		const fieldname = df.fieldname;
-		const value = doc[fieldname] || "";
+		let value = doc[fieldname] || "";
+
+		let translated_doctypes = (frappe.boot && frappe.boot.translated_doctypes) || [];
+		if (in_list(translated_doctypes, df.options)) {
+			value = __(value);
+		}
 
 		const format = () => {
 			if (df.fieldtype === "Code") {
