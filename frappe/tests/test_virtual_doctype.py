@@ -7,6 +7,7 @@ import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
 from frappe.model.document import Document
+from frappe.model.virtual_doctype import validate_controller
 from frappe.tests.utils import FrappeTestCase
 
 TEST_DOCTYPE_NAME = "VirtualDoctypeTest"
@@ -151,3 +152,6 @@ class TestVirtualDoctypes(FrappeTestCase):
 
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
 		self.assertNotIn(doc.name, listed_docs)
+
+	def test_controller_validity(self):
+		validate_controller(TEST_DOCTYPE_NAME)
