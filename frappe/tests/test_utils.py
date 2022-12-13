@@ -44,6 +44,7 @@ from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
+from frappe.utils.synchronization import LockTimeoutError, filelock
 
 
 class TestFilters(FrappeTestCase):
@@ -678,3 +679,19 @@ class TestIntrospectionMagic(FrappeTestCase):
 
 		# No args
 		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
+
+
+class TestLocks(FrappeTestCase):
+	def test_locktimeout(self):
+		lock_name = "test_lock"
+		with filelock(lock_name):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1):
+					self.fail("Locks not working")
+
+	def test_global_lock(self):
+		lock_name = "test_global"
+		with filelock(lock_name, is_global=True):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1, is_global=True):
+					self.fail("Global locks not working")
