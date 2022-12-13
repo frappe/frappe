@@ -68,7 +68,7 @@ def get_reports_in_queued_state(report_name, filters):
 		"Prepared Report",
 		filters={
 			"report_name": report_name,
-			"filters": json.dumps(json.loads(filters)),
+			"filters": process_filters_for_prepared_report(filters),
 			"status": "Queued",
 		},
 	)
@@ -100,6 +100,17 @@ def delete_prepared_reports(reports):
 		frappe.delete_doc(
 			"Prepared Report", report["name"], ignore_permissions=True, delete_permanently=True
 		)
+
+
+def process_filters_for_prepared_report(filters):
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
+	# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
+	# We are also ensuring that order of keys is same so generated JSON string will be identical too.
+	# PS: frappe.as_json sorts keys
+	return frappe.as_json(filters, indent=None, separators=(",", ":"))
 
 
 def create_json_gz_file(data, dt, dn):
