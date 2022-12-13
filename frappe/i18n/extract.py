@@ -1,29 +1,17 @@
-from typing import Any, Iterator, TextIO
-
-
-def extract_doctype_json(
-	fileobj: TextIO, keywords: list[str], comment_tags: list[str], options: dict[str, Any]
-) -> Iterator[tuple[int, str, tuple[str | None, str], list[str]]]:
+def extract_doctype_json(fileobj, *args, **kwargs):
 	"""Extract messages from DocType JSON files.
 
 	:param fileobj: the file-like object the messages should be extracted from
-	:param keywords: unused
-	:param comment_tags: unused
-	:param options: unused
-	:return: an iterator over `(None, "pgettext", (context, message), [])` tuples
 	:rtype: `iterator`
 	"""
 	from json import load
-
-	# pretend to use `pgettext` as the function name. This way we can supply the doctype name as context
-	FUNCNAME = "pgettext"
 
 	data = load(fileobj)
 	if isinstance(data, list):
 		return
 
 	doctype = data.get("name")
-	yield None, FUNCNAME, (None, doctype), ["Name of a DocType"]
+	yield None, "_", doctype, ["Name of a DocType"]
 
 	messages = []
 	for field in data.get("fields", []):
@@ -53,28 +41,22 @@ def extract_doctype_json(
 		if link_doctype := link.get("link_doctype"):
 			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
 
-	yield from ((None, FUNCNAME, (doctype, message), [comment]) for message, comment in messages)
+	# By using "pgettext" as the function name we can supply the doctype as context
+	yield from ((None, "pgettext", (doctype, message), [comment]) for message, comment in messages)
 
-	# pass None as the context of a role name, because it gets used with multiple doctypes
+	# Role names do not get context because they are used with multiple doctypes
 	yield from (
-		(None, FUNCNAME, (None, perm["role"]), ["Name of a role"])
+		(None, "_", perm["role"], ["Name of a role"])
 		for perm in data.get("permissions", [])
 		if "role" in perm
 	)
 
 
-def extract_python(
-	fileobj: TextIO, keywords: list[str], comment_tags: list[str], options: dict[str, Any]
-) -> Iterator[tuple[int, str, tuple[str | None, str], list[str]]]:
+def extract_python(*args, **kwargs):
 	"""Wrapper around babel's `extract_python`, handling our own implementation of `_()`"""
 	from babel.messages.extract import extract_python
 
-	for lineno, funcname, messages, comments in extract_python(
-		fileobj,
-		keywords=keywords,
-		comment_tags=comment_tags,
-		options=options,
-	):
+	for lineno, funcname, messages, comments in extract_python(*args, **kwargs):
 		# handle our own implementation of `_()`
 		if funcname == "_" and isinstance(messages, tuple) and len(messages) > 1:
 			funcname = "pgettext"
