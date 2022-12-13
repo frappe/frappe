@@ -86,9 +86,6 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
-	def get_feed(self):
-		return self.name
-
 	def validate(self):
 		"""Validate DocType before saving.
 
@@ -122,6 +119,7 @@ class DocType(Document):
 		self.validate_nestedset()
 		self.validate_child_table()
 		self.validate_website()
+		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
 		validate_links_table_fieldnames(self)
 
@@ -301,6 +299,14 @@ class DocType(Document):
 
 			# clear website cache
 			clear_cache()
+
+	def validate_virtual_doctype_methods(self):
+		if not self.get("is_virtual") or self.is_new():
+			return
+
+		from frappe.model.virtual_doctype import validate_controller
+
+		validate_controller(self.name)
 
 	def ensure_minimum_max_attachment_limit(self):
 		"""Ensure that max_attachments is *at least* bigger than number of attach fields."""

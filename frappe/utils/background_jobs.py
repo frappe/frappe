@@ -219,7 +219,7 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: Literal["round_robin", "random"] | None = None,
-) -> NoReturn | None:
+) -> NoReturn | None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 

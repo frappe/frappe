@@ -10,7 +10,7 @@ dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.9.0",
-    "Click~=7.1.2",
+    "Click~=8.1.3",
     "filelock~=3.8.0",
     "GitPython~=3.1.14",
     "Jinja2~=3.1.2",
