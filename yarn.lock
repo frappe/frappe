@@ -30,10 +30,10 @@
   resolved "https://registry.yarnpkg.com/@codexteam/icons/-/icons-0.0.4.tgz#8b72dcd3f3a1b0d880bdceb2abebd74b46d3ae13"
   integrity sha512-V8N/TY2TGyas4wLrPIFq7bcow68b3gu8DfDt1+rrHPtXxcexadKauRJL6eQgfG7Z0LCrN4boLRawR4S9gjIh/Q==
 
-"@editorjs/editorjs@2.26.2":
-  version "2.26.2"
-  resolved "https://registry.yarnpkg.com/@editorjs/editorjs/-/editorjs-2.26.2.tgz#21e51d4c41f1943d580a34b82a78494a019b4d51"
-  integrity sha512-7oKPWG/Oc6RF0AN1VccuBZMoQ4g/YoAfJvmo2RGjmmMpPT3sPC8a6X4XYetfYbjHfSyJ5E3pARRn9DzJQ6SHcg==
+"@editorjs/editorjs@^2.26.3":
+  version "2.26.3"
+  resolved "https://registry.yarnpkg.com/@editorjs/editorjs/-/editorjs-2.26.3.tgz#91b1a44003a5635aa29919ff1439d797e68a60e2"
+  integrity sha512-ztR+fwXagfAnlc86A3p8K0bI/XQTvnGjmKY0P+c18aUB4OW3BjkX6OAPb4PH/Ym8G16fBKtJG//sITck6CD1lA==
   dependencies:
     "@codexteam/icons" "^0.0.4"
     codex-notifier "^1.1.2"
