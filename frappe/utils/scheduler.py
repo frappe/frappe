@@ -83,15 +83,11 @@ def enqueue_events_for_site(site: str) -> None:
 
 def enqueue_events(site: str) -> list[str] | None:
 	if schedule_jobs_based_on_activity():
-		queued_jobs = get_jobs(site=site, key="job_type").get(site) or []
-
 		enqueued_jobs = []
 		for job_type in frappe.get_all("Scheduled Job Type", ("name", "method"), {"stopped": 0}):
-			if not job_type.method in queued_jobs:
-				# don't add it to queue if still pending
-				job_type = frappe.get_cached_doc("Scheduled Job Type", job_type.name)
-				if job_type.enqueue():
-					enqueued_jobs.append(job_type.method)
+			job_type = frappe.get_cached_doc("Scheduled Job Type", job_type.name)
+			if _enqueued := job_type.enqueue():
+				enqueued_jobs.append(job_type.method)
 
 		return enqueued_jobs
 
