@@ -22,9 +22,13 @@
   "homepage": "https://frappeframework.com",
   "dependencies": {
 <<<<<<< HEAD
+<<<<<<< HEAD
     "@editorjs/editorjs": "2.20.0",
 =======
     "@editorjs/editorjs": "^2.26.2",
+=======
+    "@editorjs/editorjs": "^2.26.3",
+>>>>>>> 5363e6db15 (build(deps): Bump editorjs to 2.26.3)
     "@frappe/esbuild-plugin-postcss2": "^0.1.3",
     "@vue/component-compiler": "^4.2.4",
     "@vueuse/core": "^9.5.0",
