@@ -1962,7 +1962,6 @@ def get_print(
 	name=None,
 	print_format=None,
 	style=None,
-	html=None,
 	as_pdf=False,
 	doc=None,
 	output=None,
@@ -1994,13 +1993,8 @@ def get_print(
 	if password:
 		pdf_options["password"] = password
 
-	if not html:
-		html = get_response_content("printview")
-
-	if as_pdf:
-		return get_pdf(html, options=pdf_options, output=output)
-	else:
-		return html
+	html = get_response_content("printview")
+	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
 def attach_print(
@@ -2009,7 +2003,6 @@ def attach_print(
 	file_name=None,
 	print_format=None,
 	style=None,
-	html=None,
 	doc=None,
 	lang=None,
 	print_letterhead=True,
@@ -2035,7 +2028,6 @@ def attach_print(
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
-		html=html,
 		doc=doc,
 		no_letterhead=no_letterhead,
 		password=password,
