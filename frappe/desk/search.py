@@ -12,17 +12,20 @@ from six import string_types
 
 import frappe
 from frappe import _, is_whitelisted
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.permissions import has_permission
 from frappe.translate import get_translated_doctypes
 from frappe.utils import cint, cstr, unique
 
 
 def sanitize_searchfield(searchfield):
-	blacklisted_keywords = ["select", "delete", "drop", "update", "case", "and", "or", "like"]
+	if not searchfield:
+		return
 
-	def _raise_exception(searchfield):
+	if SPECIAL_CHAR_PATTERN.search(searchfield):
 		frappe.throw(_("Invalid Search Field {0}").format(searchfield), frappe.DataError)
 
+<<<<<<< HEAD
 	if len(searchfield) == 1:
 		# do not allow special characters to pass as searchfields
 		regex = re.compile(r'^.*[=;*,\'"$\-+%#@()_].*')
@@ -52,6 +55,8 @@ def sanitize_searchfield(searchfield):
 			if any(regex.match(f) for f in searchfield.split()):
 				_raise_exception(searchfield)
 
+=======
+>>>>>>> 4d9be26ada (fix: use stricter regex for `sanitize_searchfield`)
 
 # this is called by the Link Field
 @frappe.whitelist()
