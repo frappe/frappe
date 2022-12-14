@@ -34,18 +34,19 @@ class TestScheduler(TestCase):
 		if not frappe.get_all("Scheduled Job Type", limit=1):
 			sync_jobs()
 
+	def tearDown(self):
+		purge_pending_jobs()
+
 	def test_enqueue_jobs(self):
 		frappe.db.sql("update `tabScheduled Job Type` set last_execution = '2010-01-01 00:00:00'")
 
-		frappe.flags.execute_job = True
-		enqueue_events(site=frappe.local.site)
-		frappe.flags.execute_job = False
+		enqueued_jobs = enqueue_events(site=frappe.local.site)
 
-		self.assertTrue("frappe.email.queue.set_expiry_for_email_queue", frappe.flags.enqueued_jobs)
-		self.assertTrue("frappe.utils.change_log.check_for_update", frappe.flags.enqueued_jobs)
-		self.assertTrue(
+		self.assertIn("frappe.email.queue.set_expiry_for_email_queue", enqueued_jobs)
+		self.assertIn("frappe.utils.change_log.check_for_update", enqueued_jobs)
+		self.assertIn(
 			"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
-			frappe.flags.enqueued_jobs,
+			enqueued_jobs,
 		)
 
 	def test_queue_peeking(self):
