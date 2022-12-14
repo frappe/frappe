@@ -402,6 +402,10 @@
 	display: inline-flex;
 }
 
+.grid-custom-buttons:empty {
+	padding: 0;
+}
+
 .grid-footer, .grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
