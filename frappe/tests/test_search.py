@@ -186,28 +186,13 @@ class TestSearch(FrappeTestCase):
 		self.assertListEqual(frappe.response["results"], [])
 
 	def test_sanitize_searchfield(self):
-		# should raise error if searchfield is injectable
-		self.assertRaisesRegex(
-			frappe.DataError,
-			re.compile(r"^(Invalid Search Field .*)$"),
-			sanitize_searchfield,
-			"1=1",
-		)
-
-		# should raise error if searchfield is special character
-		self.assertRaisesRegex(
-			frappe.DataError,
-			re.compile(r"^(Invalid Search Field .*)$"),
-			sanitize_searchfield,
-			";",
-		)
-
-		self.assertRaisesRegex(
-			frappe.DataError,
-			re.compile(r"^(Invalid Search Field .*)$"),
-			sanitize_searchfield,
-			"name or (select * from tabSessions)",
-		)
+		for searchfield in ("1=1", "name or (select * from tabSessions)", ";", "`tabSessions`"):
+			self.assertRaisesRegex(
+				frappe.DataError,
+				re.compile(r"^(Invalid Search Field .*)$"),
+				sanitize_searchfield,
+				searchfield,
+			)
 
 		sanitize_searchfield("name")
 
