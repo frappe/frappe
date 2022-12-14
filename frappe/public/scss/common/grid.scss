@@ -369,7 +369,15 @@
 	display: inline-flex;
 }
 
+<<<<<<< HEAD
 .grid-footer {
+=======
+.grid-custom-buttons:empty {
+	padding: 0;
+}
+
+.grid-footer, .grid-custom-buttons {
+>>>>>>> 4b1f65206f (fix: if grid custom button is not set grid has some extra space on top)
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
 	.btn {
