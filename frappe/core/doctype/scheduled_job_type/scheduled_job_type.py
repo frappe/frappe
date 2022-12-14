@@ -22,7 +22,7 @@ class ScheduledJobType(Document):
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
-	def enqueue(self, force=False):
+	def enqueue(self, force=False) -> bool:
 		# enqueue event if last execution is done
 		if self.is_event_due() or force:
 			if not self.is_job_in_queue():
