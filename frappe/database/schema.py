@@ -17,18 +17,18 @@ class DBTable:
 		self.doctype = doctype
 		self.table_name = f"tab{doctype}"
 		self.meta = meta or frappe.get_meta(doctype, False)
-		self.columns = {}
+		self.columns: dict[str, DbColumn] = {}
 		self.current_columns = {}
 
 		# lists for change
-		self.add_column = []
-		self.change_type = []
-		self.change_name = []
-		self.add_unique = []
-		self.add_index = []
-		self.drop_unique = []
-		self.drop_index = []
-		self.set_default = []
+		self.add_column: list[DbColumn] = []
+		self.change_type: list[DbColumn] = []
+		self.change_name: list[DbColumn] = []
+		self.add_unique: list[DbColumn] = []
+		self.add_index: list[DbColumn] = []
+		self.drop_unique: list[DbColumn] = []
+		self.drop_index: list[DbColumn] = []
+		self.set_default: list[DbColumn] = []
 
 		# load
 		self.get_columns_from_docfields()
