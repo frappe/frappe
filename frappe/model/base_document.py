@@ -566,6 +566,21 @@ class BaseDocument(object):
 					_(df.label),
 				)
 
+<<<<<<< HEAD
+=======
+			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
+
+		def has_content(df):
+			value = cstr(self.get(df.fieldname))
+			has_text_content = strip_html(value).strip()
+			has_img_tag = "<img" in value
+			has_text_or_img_tag = has_text_content or has_img_tag
+
+			if df.fieldtype == "Text Editor" and has_text_or_img_tag:
+				return True
+			elif df.fieldtype == "Code" and df.options == "HTML" and has_text_or_img_tag:
+				return True
+>>>>>>> da7fd35e49 (fix: handle `HTML` code field's `has_content`)
 			else:
 				return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
 
