@@ -1,12 +1,28 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+<<<<<<< HEAD
 from __future__ import unicode_literals
 
 import unittest
 
 import frappe
 from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+=======
+import re
+
+import frappe
+from frappe.app import make_form_dict
+from frappe.desk.search import (
+	get_names_for_mentions,
+	sanitize_searchfield,
+	search_link,
+	search_widget,
+)
+from frappe.tests.utils import FrappeTestCase
+from frappe.utils import set_request
+from frappe.website.serve import get_response
+>>>>>>> 3e824a9ea5 (test: test case for `sanitize_searchfield`)
 
 
 class TestSearch(unittest.TestCase):
@@ -178,6 +194,32 @@ class TestSearch(unittest.TestCase):
 		# should not fail if query has @ symbol in it
 		search_link("User", "user@random", searchfield="name")
 		self.assertListEqual(frappe.response["results"], [])
+
+	def test_sanitize_searchfield(self):
+		# should raise error if searchfield is injectable
+		self.assertRaisesRegex(
+			frappe.DataError,
+			re.compile(r"^(Invalid Search Field .*)$"),
+			sanitize_searchfield,
+			"1=1",
+		)
+
+		# should raise error if searchfield is special character
+		self.assertRaisesRegex(
+			frappe.DataError,
+			re.compile(r"^(Invalid Search Field .*)$"),
+			sanitize_searchfield,
+			";",
+		)
+
+		self.assertRaisesRegex(
+			frappe.DataError,
+			re.compile(r"^(Invalid Search Field .*)$"),
+			sanitize_searchfield,
+			"name or (select * from tabSessions)",
+		)
+
+		sanitize_searchfield("name")
 
 
 @frappe.validate_and_sanitize_search_inputs
