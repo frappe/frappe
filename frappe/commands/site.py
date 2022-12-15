@@ -1177,12 +1177,9 @@ def clear_log_table(context, doctype, days, no_backup):
 	default=False,
 )
 @pass_context
-<<<<<<< HEAD
-def trim_database(context, dry_run, format, no_backup):
-=======
 def trim_database(context, dry_run, format, no_backup, yes=False):
 	"""Remove database tables for deleted DocTypes."""
->>>>>>> 06becac459 (fix(trim-database): Dont act on non-frappe tables (#19292))
+	
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
