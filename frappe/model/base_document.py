@@ -671,7 +671,11 @@ class BaseDocument:
 			value = cstr(self.get(df.fieldname))
 			has_text_content = strip_html(value).strip()
 			has_img_tag = "<img" in value
-			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+			has_text_or_img_tag = has_text_content or has_img_tag
+
+			if df.fieldtype == "Text Editor" and has_text_or_img_tag:
+				return True
+			elif df.fieldtype == "Code" and df.options == "HTML" and has_text_or_img_tag:
 				return True
 			else:
 				return has_text_content
