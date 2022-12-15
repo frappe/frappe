@@ -679,7 +679,7 @@ def get_perm_info(role):
 
 @frappe.whitelist(allow_guest=True)
 def update_password(
-	new_password: str, logout_all_sessions: int | bool = 0, key: str = None, old_password: str = None
+	new_password: str, logout_all_sessions: int = 0, key: str = None, old_password: str = None
 ):
 	"""Update password for the current user.
 

@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-from typing import Union
 
 import frappe
 import frappe.desk.query_report
@@ -327,7 +326,7 @@ class Report(Document):
 		return data
 
 	@frappe.whitelist()
-	def toggle_disable(self, disable: bool | str | int):
+	def toggle_disable(self, disable: bool):
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 

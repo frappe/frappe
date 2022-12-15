@@ -39,10 +39,7 @@ def get_attached_images(doctype: str, names: list[str]) -> frappe._dict:
 
 
 @frappe.whitelist()
-def get_files_in_folder(folder: str, start: int | str = 0, page_length: int | str = 20) -> dict:
-	start = cint(start)
-	page_length = cint(page_length)
-
+def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
 	attachment_folder = frappe.db.get_value(
 		"File",
 		"Home/Attachments",
