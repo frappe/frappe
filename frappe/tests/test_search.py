@@ -1,28 +1,18 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-<<<<<<< HEAD
 from __future__ import unicode_literals
 
+import re
 import unittest
 
 import frappe
-from frappe.desk.search import get_names_for_mentions, search_link, search_widget
-=======
-import re
-
-import frappe
-from frappe.app import make_form_dict
 from frappe.desk.search import (
 	get_names_for_mentions,
 	sanitize_searchfield,
 	search_link,
 	search_widget,
 )
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import set_request
-from frappe.website.serve import get_response
->>>>>>> 3e824a9ea5 (test: test case for `sanitize_searchfield`)
 
 
 class TestSearch(unittest.TestCase):
