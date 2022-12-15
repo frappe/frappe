@@ -119,6 +119,7 @@ class TestDBUpdate(FrappeTestCase):
 		self.check_unique_indexes(doctype.name, field)
 		doctype.fields[0].length = 142
 		doctype.save()
+		self.check_unique_indexes(doctype.name, field)
 
 		doctype.fields[0].unique = 0
 		doctype.save()
