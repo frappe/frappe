@@ -187,7 +187,7 @@ class DbColumn:
 		self.unique = unique
 		self.precision = precision
 
-	def get_definition(self, with_default=1):
+	def get_definition(self, for_modification=False):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
 
 		if not column_def:
@@ -209,7 +209,7 @@ class DbColumn:
 		):
 			column_def += f" default {frappe.db.escape(self.default)}"
 
-		if self.unique and (column_def not in ("text", "longtext")):
+		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
 			column_def += " unique"
 
 		return column_def

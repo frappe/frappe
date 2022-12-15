@@ -2,6 +2,8 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cstr
 
@@ -97,6 +99,7 @@ class TestDBUpdate(FrappeTestCase):
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):
@@ -106,17 +109,26 @@ class TestDBUpdate(FrappeTestCase):
 				with self.subTest(f"Checking index {doctype.name} - {field.fieldname}"):
 					self.check_unique_indexes(doctype.name, field.fieldname)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_unique_index_on_alter(self):
 		"""Only one unique index should be added"""
 
 		doctype = new_doctype(unique=1).insert()
 		field = "some_fieldname"
 
+		self.check_unique_indexes(doctype.name, field)
 		doctype.fields[0].length = 142
 		doctype.save()
 
-		doctype.delete()
+		doctype.fields[0].unique = 0
+		doctype.save()
+
+		doctype.fields[0].unique = 1
+		doctype.save()
 		self.check_unique_indexes(doctype.name, field)
+
+		doctype.delete()
+		frappe.db.commit()
 
 
 def get_fieldtype_from_def(field_def):
