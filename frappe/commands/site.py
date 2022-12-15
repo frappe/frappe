@@ -1213,8 +1213,15 @@ def clear_log_table(context, doctype, days, no_backup):
 	"--format", "-f", default="text", type=click.Choice(["json", "text"]), help="Output format"
 )
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the site")
+@click.option(
+	"--yes",
+	"-y",
+	help="To bypass confirmation prompt.",
+	is_flag=True,
+	default=False,
+)
 @pass_context
-def trim_database(context, dry_run, format, no_backup):
+def trim_database(context, dry_run, format, no_backup, yes=False):
 	"""Remove database tables for deleted DocTypes."""
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -1236,6 +1243,7 @@ def trim_database(context, dry_run, format, no_backup):
 			frappe.qb.from_(information_schema.tables)
 			.select(table_name)
 			.where(information_schema.tables.table_schema == frappe.conf.db_name)
+			.where(information_schema.tables.table_type == "BASE TABLE")
 			.run()
 		)
 
@@ -1243,6 +1251,8 @@ def trim_database(context, dry_run, format, no_backup):
 		doctype_tables = frappe.get_all("DocType", pluck="name")
 
 		for x in database_tables:
+			if not x.startswith("tab"):
+				continue
 			doctype = x.replace("tab", "", 1)
 			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
 				TABLES_TO_DROP.append(x)
@@ -1251,6 +1261,11 @@ def trim_database(context, dry_run, format, no_backup):
 			if format == "text":
 				click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
 		else:
+			if not yes:
+				print("Following tables will be dropped:")
+				print("\n".join(f"* {dt}" for dt in TABLES_TO_DROP))
+				click.confirm("Do you want to continue?", abort=True)
+
 			if not (no_backup or dry_run):
 				if format == "text":
 					print(f"Backing Up Tables: {', '.join(TABLES_TO_DROP)}")
