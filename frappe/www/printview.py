@@ -5,7 +5,7 @@ import copy
 import json
 import os
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import frappe
 from frappe import _, get_module_path
@@ -94,10 +94,10 @@ def get_print_format_doc(print_format_name, meta):
 
 def get_rendered_template(
 	doc: "Document",
-	print_format: str = None,
+	print_format: str | None = None,
 	meta=None,
-	no_letterhead: bool = None,
-	letterhead: str = None,
+	no_letterhead: bool | None = None,
+	letterhead: str | None = None,
 	trigger_print: bool = False,
 	settings=None,
 ):
@@ -273,13 +273,13 @@ def convert_markdown(doc: "Document"):
 @frappe.whitelist()
 def get_html_and_style(
 	doc: str,
-	name: str = None,
-	print_format: str = None,
-	no_letterhead: bool = None,
-	letterhead: str = None,
+	name: str | None = None,
+	print_format: str | None = None,
+	no_letterhead: bool | None = None,
+	letterhead: str | None = None,
 	trigger_print: bool = False,
-	style: str = None,
-	settings: str = None,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
@@ -311,7 +311,7 @@ def get_html_and_style(
 
 
 @frappe.whitelist()
-def get_rendered_raw_commands(doc: str, name: str = None, print_format: str = None):
+def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None):
 	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
 
 	if isinstance(name, str):
@@ -366,7 +366,7 @@ def validate_key(key, doc):
 	raise frappe.exceptions.InvalidKeyError
 
 
-def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str = None):
+def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None = None):
 	if no_letterhead:
 		return {}
 	if letterhead:
@@ -525,7 +525,7 @@ def has_value(df, doc):
 
 
 def get_print_style(
-	style: str = None, print_format: "PrintFormat" = None, for_legacy: bool = False
+	style: str | None = None, print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
 ):
 	print_settings = frappe.get_doc("Print Settings")
 
