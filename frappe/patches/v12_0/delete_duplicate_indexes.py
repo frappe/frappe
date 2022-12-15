@@ -1,5 +1,3 @@
-from pymysql import InternalError
-
 import frappe
 
 # This patch deletes all the duplicate indexes created for same column
@@ -32,21 +30,6 @@ def execute():
 		if indexes_to_delete:
 			final_deletion_map[table] = indexes_to_delete
 
-<<<<<<< HEAD
-	# build drop index query
-	for (table_name, index_list) in final_deletion_map.items():
-		query_list = []
-		alter_query = "ALTER TABLE `{}`".format(table_name)
-
-		for index in index_list:
-			query_list.append("{} DROP INDEX `{}`".format(alter_query, index))
-
-		for query in query_list:
-			try:
-				frappe.db.sql(query)
-			except InternalError:
-				pass
-=======
 	for table_name, index_list in final_deletion_map.items():
 		for index in index_list:
 			try:
@@ -70,4 +53,3 @@ def is_clustered_index(table, index_name):
 			as_dict=True,
 		)
 	)
->>>>>>> 56e1bf31d7 (fix: patch to delete duplicate uniq indexes)

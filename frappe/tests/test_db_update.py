@@ -4,12 +4,8 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.utils import find
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-<<<<<<< HEAD
-=======
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
->>>>>>> 8df845ca35 (fix: duplicate unique index when column is altered)
 from frappe.utils import cstr
 
 

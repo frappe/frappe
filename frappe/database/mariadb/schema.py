@@ -57,9 +57,6 @@ class MariaDBTable(DBTable):
 
 		columns_to_modify = set(self.change_type + self.set_default)
 		for col in columns_to_modify:
-<<<<<<< HEAD
-			modify_column_query.append("MODIFY `{}` {}".format(col.fieldname, col.get_definition()))
-=======
 			modify_column_query.append(
 				f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			)
@@ -68,7 +65,6 @@ class MariaDBTable(DBTable):
 			modify_column_query.append(
 				f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
 			)
->>>>>>> 8df845ca35 (fix: duplicate unique index when column is altered)
 
 		for col in self.add_index:
 			# if index key does not exists
