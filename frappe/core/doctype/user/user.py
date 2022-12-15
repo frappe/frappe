@@ -537,7 +537,7 @@ class User(Document):
 
 		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
-			result = test_password_strength(self.__new_password, user_data)
+			result = test_password_strength(self.__new_password, user_data=user_data)
 			feedback = result.get("feedback", None)
 
 			if feedback and not feedback.get("password_policy_validation_passed", False):
@@ -728,8 +728,16 @@ def update_password(
 
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password: str, user_data: tuple = None):
+def test_password_strength(
+	new_password: str, key=None, old_password=None, user_data: tuple | None = None
+):
+	from frappe.utils.deprecations import deprecation_warning
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
+
+	if key is not None or old_password is not None:
+		deprecation_warning(
+			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`."
+		)
 
 	enable_password_policy = frappe.get_system_settings("enable_password_policy") or 0
 
