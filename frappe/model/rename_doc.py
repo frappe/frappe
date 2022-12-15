@@ -390,11 +390,6 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	for fieldtype in fields_with_options:
 		update_options_for_fieldtype(fieldtype, old, new)
 
-	# change options where select options are hardcoded i.e. listed
-	select_fields = get_select_fields(old, new)
-	update_link_field_values(select_fields, old, new, doctype)
-	update_select_field_values(old, new)
-
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 

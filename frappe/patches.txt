@@ -99,7 +99,7 @@ frappe.patches.v12_0.delete_feedback_request_if_exists #1
 frappe.patches.v12_0.rename_events_repeat_on
 frappe.patches.v12_0.fix_public_private_files
 frappe.patches.v12_0.move_email_and_phone_to_child_table
-frappe.patches.v12_0.delete_duplicate_indexes
+frappe.patches.v12_0.delete_duplicate_indexes  # 2022-12-15
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 frappe.patches.v12_0.setup_tags
@@ -218,3 +218,4 @@ frappe.patches.v15_0.drop_modified_index
 frappe.patches.v14_0.add_manage_subscriptions_in_navbar_settings
 frappe.patches.v14_0.update_attachment_comment
 frappe.patches.v15_0.set_contact_full_name
+execute:frappe.delete_doc("Page", "activity", force=1)

@@ -42,7 +42,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "14.0.0-dev"
+__version__ = "15.0.0-dev"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -453,7 +453,10 @@ def msgprint(
 		out.as_list = 1
 
 	if sys.stdin and sys.stdin.isatty():
-		msg = _strip_html_tags(out.message)
+		if out.as_list:
+			msg = [_strip_html_tags(msg) for msg in out.message]
+		else:
+			msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:
 		print(f"Message: {_strip_html_tags(out.message)}")
@@ -1724,27 +1727,6 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	return newdoc
 
 
-def compare(val1, condition, val2):
-	"""Compare two values using `frappe.utils.compare`
-
-	`condition` could be:
-	- "^"
-	- "in"
-	- "not in"
-	- "="
-	- "!="
-	- ">"
-	- "<"
-	- ">="
-	- "<="
-	- "not None"
-	- "None"
-	"""
-	import frappe.utils
-
-	return frappe.utils.compare(val1, condition, val2)
-
-
 def respond_as_web_page(
 	title,
 	html,
@@ -1980,7 +1962,6 @@ def get_print(
 	name=None,
 	print_format=None,
 	style=None,
-	html=None,
 	as_pdf=False,
 	doc=None,
 	output=None,
@@ -2012,13 +1993,8 @@ def get_print(
 	if password:
 		pdf_options["password"] = password
 
-	if not html:
-		html = get_response_content("printview")
-
-	if as_pdf:
-		return get_pdf(html, options=pdf_options, output=output)
-	else:
-		return html
+	html = get_response_content("printview")
+	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
 def attach_print(
@@ -2027,7 +2003,6 @@ def attach_print(
 	file_name=None,
 	print_format=None,
 	style=None,
-	html=None,
 	doc=None,
 	lang=None,
 	print_letterhead=True,
@@ -2053,7 +2028,6 @@ def attach_print(
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
-		html=html,
 		doc=doc,
 		no_letterhead=no_letterhead,
 		password=password,

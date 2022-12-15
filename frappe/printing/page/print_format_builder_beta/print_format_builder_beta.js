@@ -58,7 +58,7 @@ function load_print_format_builder_beta(wrapper) {
 					default: frappe.route_options ? frappe.route_options.doctype : null,
 				},
 				{
-					label: __("Print Format Name"),
+					label: __("New Print Format Name"),
 					fieldname: "print_format_name",
 					fieldtype: "Data",
 					depends_on: (doc) => doc.action === "Create",

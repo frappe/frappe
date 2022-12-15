@@ -1,10 +1,16 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
 
 import frappe
 from frappe.app import make_form_dict
-from frappe.desk.search import get_names_for_mentions, search_link, search_widget
+from frappe.desk.search import (
+	get_names_for_mentions,
+	sanitize_searchfield,
+	search_link,
+	search_widget,
+)
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
@@ -178,6 +184,17 @@ class TestSearch(FrappeTestCase):
 		# should not fail if query has @ symbol in it
 		search_link("User", "user@random", searchfield="name")
 		self.assertListEqual(frappe.response["results"], [])
+
+	def test_sanitize_searchfield(self):
+		for searchfield in ("1=1", "name or (select * from tabSessions)", ";", "`tabSessions`"):
+			self.assertRaisesRegex(
+				frappe.DataError,
+				re.compile(r"^(Invalid Search Field .*)$"),
+				sanitize_searchfield,
+				searchfield,
+			)
+
+		sanitize_searchfield("name")
 
 
 @frappe.validate_and_sanitize_search_inputs
