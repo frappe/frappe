@@ -21,7 +21,6 @@ from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.fixtures import sync_fixtures
-from frappe.utils.synchronization import filelock
 from frappe.website.utils import clear_website_cache
 
 BENCH_START_MESSAGE = dedent(
@@ -163,6 +162,8 @@ class SiteMigration:
 		"""Run Migrate operation on site specified. This method initializes
 		and destroys connections to the site database.
 		"""
+		from frappe.utils.synchronization import filelock
+
 		if site:
 			frappe.init(site=site)
 			frappe.connect()
