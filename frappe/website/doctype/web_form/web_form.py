@@ -205,7 +205,7 @@ def get_context(context):
 		context.metatags = {
 			"name": self.meta_title or self.title,
 			"description": description,
-			"image": self.meta_image
+			"image": self.meta_image,
 		}
 
 	def load_translations(self, context):
