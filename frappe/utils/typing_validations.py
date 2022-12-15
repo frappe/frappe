@@ -1,11 +1,13 @@
 from functools import lru_cache
 from inspect import _empty, isclass, signature
 from types import EllipsisType
-from typing import Any, Callable, ForwardRef, Type, TypeVar, Union
+from typing import Any, Callable, ForwardRef, TypeVar, Union
 
 from pydantic.config import BaseConfig
 from pydantic.error_wrappers import ValidationError as PyValidationError
 from pydantic.tools import NameFactory, _generate_parsing_type_name
+
+from frappe.exceptions import FrappeTypeError
 
 SLACK_DICT = {
 	bool: (int, bool, float),
@@ -44,7 +46,7 @@ def raise_type_error(
 	and the actual type of the value passed.
 
 	"""
-	raise TypeError(
+	raise FrappeTypeError(
 		f"Argument '{arg_name}' should be of type '{qualified_name(arg_type)}' but got "
 		f"'{qualified_name(arg_value)}' instead."
 	) from current_exception
@@ -142,7 +144,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 			current_arg_value_after = parse_obj_as(
 				current_arg_type, current_arg_value, type_name=current_arg, config=FrappePydanticConfig
 			)
-		except PyValidationError as e:
+		except (TypeError, PyValidationError) as e:
 			raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
 
 		if isinstance(current_arg_value_after, EllipsisType):
