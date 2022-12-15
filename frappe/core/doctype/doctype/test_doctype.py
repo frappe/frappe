@@ -3,6 +3,8 @@
 # See license.txt
 from __future__ import unicode_literals
 
+import random
+import string
 import unittest
 
 import frappe
@@ -512,7 +514,11 @@ class TestDocType(unittest.TestCase):
 		self.assertFalse(frappe.db.table_exists("Test Virtual Doctype"))
 
 
-def new_doctype(name, unique=0, depends_on="", fields=None, **kwargs):
+def new_doctype(name=None, unique=0, depends_on="", fields=None, **kwargs):
+
+	if not name:
+		name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
+
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",
