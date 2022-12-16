@@ -4,6 +4,8 @@
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from .note import mark_as_seen
+
 test_records = frappe.get_test_records("Note")
 
 
@@ -75,3 +77,9 @@ class TestNote(FrappeTestCase):
 
 		# self.assertTrue(('title', 'test note', 'test note 1'), data['changed'])
 		# self.assertTrue(('content', 'test note content', '1'), data['changed'])
+
+	def test_mark_as_seen(self):
+		note = self.insert_note()
+		mark_as_seen(note.name)
+		note.reload()
+		self.assertTrue(frappe.session.user in [d.user for d in note.seen_by])
