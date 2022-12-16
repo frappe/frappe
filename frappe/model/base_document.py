@@ -84,8 +84,25 @@ def get_controller(doctype):
 	return site_controllers[doctype]
 
 
+<<<<<<< HEAD
 class BaseDocument(object):
 	ignore_in_setter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
+=======
+class BaseDocument:
+	_reserved_keywords = {
+		"doctype",
+		"meta",
+		"_meta",
+		"flags",
+		"parent_doc",
+		"_table_fields",
+		"_valid_columns",
+		"_doc_before_save",
+		"_table_fieldnames",
+		"_reserved_keywords",
+		"dont_update_if_missing",
+	}
+>>>>>>> c453ad2d97 (perf: reuse `_doc_before_save` in `doc.get_latest`)
 
 	def __init__(self, d):
 		if d.get("doctype"):
