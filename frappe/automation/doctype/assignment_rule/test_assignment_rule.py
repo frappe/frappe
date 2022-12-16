@@ -332,6 +332,4 @@ def make_note(values=None):
 	if values:
 		note.update(values)
 
-	note.insert()
-
-	return note
+	return note.insert(ignore_permissions=True)
