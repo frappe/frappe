@@ -3,16 +3,10 @@
 
 from __future__ import unicode_literals
 
-import re
 import unittest
 
 import frappe
-from frappe.desk.search import (
-	get_names_for_mentions,
-	sanitize_searchfield,
-	search_link,
-	search_widget,
-)
+from frappe.desk.search import get_names_for_mentions, search_link, search_widget
 
 
 class TestSearch(unittest.TestCase):
@@ -184,17 +178,6 @@ class TestSearch(unittest.TestCase):
 		# should not fail if query has @ symbol in it
 		search_link("User", "user@random", searchfield="name")
 		self.assertListEqual(frappe.response["results"], [])
-
-	def test_sanitize_searchfield(self):
-		for searchfield in ("1=1", "name or (select * from tabSessions)", ";", "`tabSessions`"):
-			self.assertRaisesRegex(
-				frappe.DataError,
-				re.compile(r"^(Invalid Search Field .*)$"),
-				sanitize_searchfield,
-				searchfield,
-			)
-
-		sanitize_searchfield("name")
 
 
 @frappe.validate_and_sanitize_search_inputs
