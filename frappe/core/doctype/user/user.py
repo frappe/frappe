@@ -9,7 +9,7 @@ import frappe
 import frappe.defaults
 import frappe.permissions
 import frappe.share
-from frappe import _, msgprint, throw
+from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
@@ -33,8 +33,11 @@ from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_disabled
 
+<<<<<<< HEAD
 STANDARD_USERS = ("Guest", "Administrator")
 
+=======
+>>>>>>> 1684996e9f (fix: dont share with self for standard users)
 
 class User(Document):
 	__new_password = None
@@ -125,7 +128,8 @@ class User(Document):
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact", user=self, ignore_mandatory=True, now=now
 		)
-		if self.name not in ("Administrator", "Guest") and not self.user_image:
+
+		if self.name not in STANDARD_USERS and not self.user_image:
 			frappe.enqueue("frappe.core.doctype.user.user.update_gravatar", name=self.name, now=now)
 
 		# Set user selected timezone
@@ -236,7 +240,14 @@ class User(Document):
 		)
 
 	def share_with_self(self):
+<<<<<<< HEAD
 		frappe.share.add(
+=======
+		if self.name in STANDARD_USERS:
+			return
+
+		frappe.share.add_docshare(
+>>>>>>> 1684996e9f (fix: dont share with self for standard users)
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
