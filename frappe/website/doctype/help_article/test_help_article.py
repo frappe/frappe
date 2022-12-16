@@ -9,17 +9,21 @@ from frappe.tests.utils import FrappeTestCase
 class TestHelpArticle(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
-		cls.help_category = frappe.get_doc({
-			"doctype": "Help Category",
-			"category_name": "_Test Help Category",
-		}).insert()
+		cls.help_category = frappe.get_doc(
+			{
+				"doctype": "Help Category",
+				"category_name": "_Test Help Category",
+			}
+		).insert()
 
-		cls.help_article = frappe.get_doc({
-			"doctype": "Help Article",
-			"title": "_Test Article",
-			"category": cls.help_category.name,
-			"content": "_Test Article",
-		}).insert()
+		cls.help_article = frappe.get_doc(
+			{
+				"doctype": "Help Article",
+				"title": "_Test Article",
+				"category": cls.help_category.name,
+				"content": "_Test Article",
+			}
+		).insert()
 
 	def test_article_is_helpful(self):
 		from frappe.website.doctype.help_article.help_article import add_feedback
