@@ -215,10 +215,14 @@ class Meta(Document):
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
-			if self.name != "DocType":
-				self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
-			else:
+			if self.istable:
+				self._table_fields = []
+
+			elif self.name == "DocType":
 				self._table_fields = DOCTYPE_TABLE_FIELDS
+
+			else:
+				self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
 		return self._table_fields
 
