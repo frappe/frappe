@@ -282,7 +282,7 @@ def clear_assignments():
 
 
 def get_assignment_rule(days, assign=None):
-	frappe.delete_doc_if_exists("Assignment Rule", "For Note 1")
+	frappe.db.delete("Assignment Rule", {"name": "For Note 1"})
 
 	if not assign:
 		assign = ["public == 1", "notify_on_login == 1"]
@@ -306,7 +306,7 @@ def get_assignment_rule(days, assign=None):
 		)
 	).insert()
 
-	frappe.delete_doc_if_exists("Assignment Rule", "For Note 2")
+	frappe.db.delete("Assignment Rule", {"name": "For Note 2"})
 
 	# 2nd rule
 	frappe.get_doc(
