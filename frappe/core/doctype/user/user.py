@@ -33,11 +33,6 @@ from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_disabled
 
-<<<<<<< HEAD
-STANDARD_USERS = ("Guest", "Administrator")
-
-=======
->>>>>>> 1684996e9f (fix: dont share with self for standard users)
 
 class User(Document):
 	__new_password = None
@@ -240,14 +235,10 @@ class User(Document):
 		)
 
 	def share_with_self(self):
-<<<<<<< HEAD
-		frappe.share.add(
-=======
 		if self.name in STANDARD_USERS:
 			return
 
-		frappe.share.add_docshare(
->>>>>>> 1684996e9f (fix: dont share with self for standard users)
+		frappe.share.add(
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
 
