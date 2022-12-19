@@ -16,14 +16,10 @@
   "content",
   "likes",
   "route",
-<<<<<<< HEAD
-  "owner"
-=======
   "section_break_cww5",
   "helpful",
   "cb_00",
   "not_helpful"
->>>>>>> 64ec4276fc (fix: restore missing `helpful` and `not_helpful` fields to help article doctype. (#19309))
  ],
  "fields": [
   {
@@ -88,13 +84,6 @@
    "label": "Route"
   },
   {
-<<<<<<< HEAD
-   "default": "user",
-   "fieldname": "owner",
-   "fieldtype": "Link",
-   "label": "Owner",
-   "options": "User"
-=======
    "default": "0",
    "fieldname": "helpful",
    "fieldtype": "Int",
@@ -117,7 +106,6 @@
   {
    "fieldname": "section_break_cww5",
    "fieldtype": "Section Break"
->>>>>>> 64ec4276fc (fix: restore missing `helpful` and `not_helpful` fields to help article doctype. (#19309))
   }
  ],
  "has_web_view": 1,
@@ -125,11 +113,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
-<<<<<<< HEAD
- "modified": "2020-07-21 16:25:18.577325",
-=======
  "modified": "2022-12-15 20:05:11.317400",
->>>>>>> 64ec4276fc (fix: restore missing `helpful` and `not_helpful` fields to help article doctype. (#19309))
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Help Article",

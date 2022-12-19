@@ -1,19 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
-
-import unittest
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
-# test_records = frappe.get_test_records('Help Article')
 
-
-<<<<<<< HEAD
-class TestHelpArticle(unittest.TestCase):
-	pass
-=======
 class TestHelpArticle(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
@@ -51,4 +43,3 @@ class TestHelpArticle(FrappeTestCase):
 	def tearDownClass(cls) -> None:
 		frappe.delete_doc(cls.help_article.doctype, cls.help_article.name)
 		frappe.delete_doc(cls.help_category.doctype, cls.help_category.name)
->>>>>>> 64ec4276fc (fix: restore missing `helpful` and `not_helpful` fields to help article doctype. (#19309))
