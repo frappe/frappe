@@ -128,6 +128,14 @@ class TestDBUpdate(FrappeTestCase):
 		doctype.save()
 		self.check_unique_indexes(doctype.name, field)
 
+		# New column with a unique index
+		# This works because index name is same as fieldname.
+		new_field = frappe.copy_doc(doctype.fields[0])
+		new_field.fieldname = "duplicate_field"
+		doctype.append("fields", new_field)
+		doctype.save()
+		self.check_unique_indexes(doctype.name, new_field.fieldname)
+
 		doctype.delete()
 		frappe.db.commit()
 
