@@ -342,6 +342,11 @@ app_license = "{app_license}"
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
+# Ignore Links on Document deletion
+# --------------------------------
+
+# ignore_links_on_delete = ["Communication", "ToDo"]
+
 
 # User Data Protection
 # --------------------
