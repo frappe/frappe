@@ -1,4 +1,0 @@
-# Any python files modifed but no test files modified
-add-test-cases:
-- any: ['frappe/**/*.py']
-  all: ['!frappe/**/test*.py']
