@@ -39,6 +39,7 @@ dependencies = [
     "ipython~=8.4.0",
     "ldap3~=2.9",
     "markdown2~=2.4.0",
+    "MarkupSafe>=2.1.0,<3",
     "maxminddb-geolite2==2018.703",
     "num2words~=0.5.10",
     "oauthlib~=3.2.1",
