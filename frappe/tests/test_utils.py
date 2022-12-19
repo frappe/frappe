@@ -919,3 +919,28 @@ class TestMiscUtils(FrappeTestCase):
 		self.assertEqual(safe_json_loads("{}"), {})
 		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
 		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
+
+
+class TestTypingValidations(FrappeTestCase):
+	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
+
+	def test_validate_whitelisted_api(self):
+		from inspect import signature
+
+		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
+		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			whitelisted_fn(*bad_params)
+
+	def test_validate_whitelisted_doc_method(self):
+		report = frappe.get_last_doc("Report")
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			report.toggle_disable(["disable"])
+
+		current_value = report.disabled
+		changed_value = not current_value
+
+		report.toggle_disable(changed_value)
+		report.toggle_disable(current_value)

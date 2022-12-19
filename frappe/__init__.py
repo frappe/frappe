@@ -735,14 +735,21 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		methods = ["GET", "POST", "PUT", "DELETE"]
 
 	def innerfn(fn):
+		from frappe.utils.typing_validations import validate_argument_types
+
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+
+		# validate argument types only if request is present
+		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
 		method = None
 		if hasattr(fn, "__func__"):
-			method = fn
+			method = validate_argument_types(fn, apply_condition=in_request_or_test)
 			fn = method.__func__
+		else:
+			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods

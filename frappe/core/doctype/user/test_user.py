@@ -383,9 +383,7 @@ class TestUser(FrappeTestCase):
 
 		# reset password
 		update_password(old_password, old_password=new_password)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1, ["like", "%"]
-		)
+		self.assertRaises(TypeError, update_password, "test", 1, ["like", "%"])
 
 		password_strength_response = {
 			"feedback": {"password_policy_validation_passed": False, "suggestions": ["Fix password"]}

@@ -52,6 +52,7 @@ dependencies = [
     "psycopg2-binary~=2.9.1",
     "pyOpenSSL~=22.1.0",
     "pycryptodome~=3.10.1",
+    "pydantic~=1.10.2",
     "pyotp~=2.6.0",
     "python-dateutil~=2.8.1",
     "pytz==2022.1",
