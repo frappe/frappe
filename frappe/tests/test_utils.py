@@ -930,13 +930,13 @@ class TestTypingValidations(FrappeTestCase):
 		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
 		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
 
-		with self.assertRaisesRegex(TypeError, self.ERR_REGEX):
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
 			whitelisted_fn(*bad_params)
 
 	def test_validate_whitelisted_doc_method(self):
 		report = frappe.get_last_doc("Report")
 
-		with self.assertRaisesRegex(TypeError, self.ERR_REGEX):
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
 			report.toggle_disable(["disable"])
 
 		current_value = report.disabled
