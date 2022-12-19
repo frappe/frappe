@@ -183,9 +183,10 @@ class Document(BaseDocument):
 		self.load_from_db()
 
 	def get_latest(self):
-		if not getattr(self, "latest", None):
-			self.latest = frappe.get_doc(self.doctype, self.name)
-		return self.latest
+		if not hasattr(self, "_doc_before_save"):
+			self.load_doc_before_save()
+
+		return self._doc_before_save
 
 	def check_permission(self, permtype="read", permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
