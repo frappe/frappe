@@ -342,7 +342,7 @@ app_license = "{app_license}"
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
-# Ignore Links on Document deletion
+# Ignore links to specified DocTypes when deleting documents
 # --------------------------------
 
 # ignore_links_on_delete = ["Communication", "ToDo"]
