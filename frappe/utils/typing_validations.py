@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
 from types import EllipsisType
 from typing import Any, Callable, ForwardRef, TypeVar, Union
@@ -17,6 +17,22 @@ T = TypeVar("T")
 
 class FrappePydanticConfig:
 	arbitrary_types_allowed = True
+
+
+def validate_argument_types(func: Callable, apply_condition: Callable = lambda: True):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		"""Validate argument types of whitelisted functions.
+
+		:param args: Function arguments.
+		:param kwargs: Function keyword arguments."""
+
+		if apply_condition():
+			args, kwargs = transform_parameter_types(func, args, kwargs)
+
+		return func(*args, **kwargs)
+
+	return wrapper
 
 
 def qualified_name(obj) -> str:
