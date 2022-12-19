@@ -1179,7 +1179,7 @@ def clear_log_table(context, doctype, days, no_backup):
 @pass_context
 def trim_database(context, dry_run, format, no_backup, yes=False):
 	"""Remove database tables for deleted DocTypes."""
-	
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
