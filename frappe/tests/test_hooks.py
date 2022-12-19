@@ -59,6 +59,55 @@ class TestHooks(FrappeTestCase):
 		address.flags.dont_touch_me = True
 		self.assertFalse(frappe.has_permission("Address", doc=address, user=username))
 
+	def test_ignore_links_on_delete(self):
+		customer = frappe.get_doc(
+			{
+				"doctype": "Customer",
+				"customer_name": "Test Customer",
+			}
+		)
+		customer.insert()
+
+		so = frappe.get_doc(
+			{
+				"doctype": "Sales Order",
+				"customer": customer.name,
+				"delivery_date": "2022-12-21",
+				"items": [
+					{
+						"item_code": frappe.get_last_doc("Item").name,
+						"qty": 1,
+						"rate": 100,
+					}
+				],
+			}
+		)
+		so.insert()
+
+		self.assertRaises(frappe.LinkExistsError, customer.delete)
+
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "Test Event",
+				"starts_on": "2022-12-21",
+				"event_type": "Public",
+			}
+		)
+		event.insert()
+
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Test ToDo",
+				"reference_type": "Event",
+				"reference_name": event.name,
+			}
+		)
+		todo.insert()
+
+		event.delete()
+
 
 def custom_has_permission(doc, ptype, user):
 	if doc.flags.dont_touch_me:
