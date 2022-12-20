@@ -374,3 +374,21 @@ override_whitelisted_methods = {
 	"frappe.core.doctype.file.file.move_file": "frappe.core.api.file.move_file",
 	"frappe.core.doctype.file.file.zip_files": "frappe.core.api.file.zip_files",
 }
+
+ignore_links_on_delete = [
+	"Communication",
+	"ToDo",
+	"DocShare",
+	"Email Unsubscribe",
+	"Activity Log",
+	"File",
+	"Version",
+	"Document Follow",
+	"Comment",
+	"View Log",
+	"Tag Link",
+	"Notification Log",
+	"Email Queue",
+	"Document Share Key",
+	"Integration Request",
+]
