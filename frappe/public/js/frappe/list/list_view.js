@@ -1256,8 +1256,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			// shift select checkboxes
 			if (e.shiftKey && this.$checkbox_cursor && !$target.is(this.$checkbox_cursor)) {
-				const name_1 = this.$checkbox_cursor.data().name;
-				const name_2 = $target.data().name;
+				const name_1 = decodeURIComponent(this.$checkbox_cursor.data().name);
+				const name_2 = decodeURIComponent($target.data().name);
 				const index_1 = this.data.findIndex((d) => d.name === name_1);
 				const index_2 = this.data.findIndex((d) => d.name === name_2);
 				let [min_index, max_index] = [index_1, index_2];
@@ -1268,7 +1268,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 				let docnames = this.data.slice(min_index + 1, max_index).map((d) => d.name);
 				const selector = docnames
-					.map((name) => `.list-row-checkbox[data-name="${name}"]`)
+					.map((name) => `.list-row-checkbox[data-name="${encodeURIComponent(name)}"]`)
 					.join(",");
 				this.$result.find(selector).prop("checked", true);
 			}
