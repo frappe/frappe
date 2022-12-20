@@ -755,8 +755,6 @@ class TestBenchBuild(BaseTestCommands):
 			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
 			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
 		)
-<<<<<<< HEAD
-=======
 
 
 class TestCommandUtils(FrappeTestCase):
@@ -773,4 +771,3 @@ class TestDBCli(BaseTestCommands):
 	def test_db_cli(self):
 		self.execute("bench --site {site} db-console", kwargs={"cmd_input": rb"\q"})
 		self.assertEqual(self.returncode, 0)
->>>>>>> db35431b8c (fix(postgres): psql with remote databases)
