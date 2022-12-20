@@ -43,6 +43,7 @@
   "allow_login_using_user_name",
   "disable_user_pass_login",
   "passwordless_login",
+  "passwordless_login_expiry",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -544,6 +545,7 @@
   {
    "default": "0",
 <<<<<<< HEAD
+<<<<<<< HEAD
    "fieldname": "apply_perm_level_on_api_calls",
    "fieldtype": "Check",
    "label": "Apply Perm Level on API calls (Recommended)"
@@ -562,6 +564,9 @@
    "label": "Disable Document Sharing"
 =======
    "description": "User will be able to login using the link sent on the email",
+=======
+   "description": "Allow users to log in without a password, using a login link sent to their email",
+>>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
    "fieldname": "passwordless_login",
    "fieldtype": "Check",
 <<<<<<< HEAD
@@ -569,12 +574,23 @@
 >>>>>>> 570442865b (feat: Login without password (through link sent on email))
 =======
    "label": "Passwordless Login"
+<<<<<<< HEAD
 >>>>>>> 83bf33c1fc (fix: renamed login without password to passwordless login)
+=======
+  },
+  {
+   "default": "10",
+   "depends_on": "passwordless_login",
+   "fieldname": "passwordless_login_expiry",
+   "fieldtype": "Int",
+   "label": "Passwordless Login Link Expiry (in minutes)"
+>>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
  "modified": "2023-03-14 11:30:56.465653",
@@ -584,6 +600,9 @@
 =======
  "modified": "2022-12-20 15:39:31.751704",
 >>>>>>> 83bf33c1fc (fix: renamed login without password to passwordless login)
+=======
+ "modified": "2022-12-20 18:17:31.759701",
+>>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

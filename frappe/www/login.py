@@ -8,9 +8,13 @@ from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.integrations.oauth2_logins import decoder_compat
 <<<<<<< HEAD
+<<<<<<< HEAD
 from frappe.utils import cint
 from frappe.utils.data import escape_html
 =======
+=======
+from frappe.rate_limiter import rate_limit
+>>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
 from frappe.utils import cint, get_url
 >>>>>>> 570442865b (feat: Login without password (through link sent on email))
 from frappe.utils.html_utils import get_icon_html
@@ -121,14 +125,15 @@ def login_via_token(login_token: str):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_login_link(email: str, subject: str | None = None):
+@rate_limit(limit=5, seconds=60 * 60)
+def send_login_link(email: str):
 	if not frappe.db.exists("User", email):
 		frappe.throw(
 			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
 		)
 
 	key = frappe.generate_hash("Login Link", 20)
-	minutes = 10
+	minutes = frappe.get_system_settings("passwordless_login_expiry") or 10
 	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=minutes * 60)
 
 	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
@@ -137,13 +142,14 @@ def send_login_link(email: str, subject: str | None = None):
 		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
 	)
 
-	subject = subject or _("Login To {0}").format(app_name)
+	subject = _("Login To {0}").format(app_name)
 
 	frappe.sendmail(
 		subject=subject,
 		recipients=email,
 		template="passwordless_login",
 		args={"link": link, "minutes": minutes, "app_name": app_name},
+		now=True,
 	)
 
 
@@ -155,8 +161,10 @@ def login_via_key(key: str):
 	if email:
 		frappe.cache().delete_value(cache_key)
 		frappe.local.login_manager.login_as(email)
-		frappe.response.type = "redirect"
-		frappe.response.location = "/app"
+
+		redirect_post_login(
+			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
+		)
 	else:
 		frappe.respond_as_web_page(
 			_("Not Permitted"),
