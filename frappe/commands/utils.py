@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 import sys
-from distutils.spawn import find_executable
+from shutil import which
 
 import click
 
@@ -525,11 +525,11 @@ def postgres(context):
 def _mariadb():
 	from frappe.database.mariadb.database import MariaDBDatabase
 
-	mysql = find_executable("mysql")
+	mysql = which("mysql")
 	command = [
 		mysql,
 		"--port",
-		frappe.conf.db_port or MariaDBDatabase.default_port,
+		str(frappe.conf.db_port or MariaDBDatabase.default_port),
 		"-u",
 		frappe.conf.db_name,
 		f"-p{frappe.conf.db_password}",
@@ -544,8 +544,14 @@ def _mariadb():
 
 
 def _psql():
-	psql = find_executable("psql")
-	subprocess.run([psql, "-d", frappe.conf.db_name])
+	psql = which("psql")
+
+	host = frappe.conf.db_host or "127.0.0.1"
+	port = frappe.conf.db_port or "5432"
+	env = os.environ.copy()
+	env["PGPASSWORD"] = frappe.conf.db_password
+	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
+	subprocess.run([psql, conn_string], check=True, env=env)
 
 
 @click.command("jupyter")
