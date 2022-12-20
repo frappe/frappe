@@ -40,6 +40,7 @@
   "allow_login_using_user_name",
   "disable_user_pass_login",
   "passwordless_login",
+  "passwordless_login_expiry",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -508,16 +509,23 @@
   },
   {
    "default": "0",
-   "description": "User will be able to login using the link sent on the email",
+   "description": "Allow users to log in without a password, using a login link sent to their email",
    "fieldname": "passwordless_login",
    "fieldtype": "Check",
    "label": "Passwordless Login"
+  },
+  {
+   "default": "10",
+   "depends_on": "passwordless_login",
+   "fieldname": "passwordless_login_expiry",
+   "fieldtype": "Int",
+   "label": "Passwordless Login Link Expiry (in minutes)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-12-20 15:39:31.751704",
+ "modified": "2022-12-20 18:17:31.759701",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
