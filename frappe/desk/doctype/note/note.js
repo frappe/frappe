@@ -5,7 +5,7 @@ frappe.ui.form.on("Note", {
 			frm.events.set_editable(frm, frm.is_note_editable);
 
 			// toggle edit
-			frm.add_custom_button("Edit", function () {
+			frm.add_custom_button(__("Editing mode"), function () {
 				frm.is_note_editable = !frm.is_note_editable;
 				frm.events.set_editable(frm, frm.is_note_editable);
 			});
