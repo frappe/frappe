@@ -84,13 +84,14 @@
    "fieldname": "seen_by",
    "fieldtype": "Table",
    "label": "Seen By Table",
-   "options": "Note Seen By"
+   "options": "Note Seen By",
+   "permlevel": 1
   }
  ],
  "icon": "fa fa-file-text",
  "idx": 1,
  "links": [],
- "modified": "2022-12-20 14:35:23.257985",
+ "modified": "2022-12-20 15:03:43.581298",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",
