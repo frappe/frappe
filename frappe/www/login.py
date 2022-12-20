@@ -121,7 +121,7 @@ def login_via_token(login_token: str):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_login_link(email, subject=None):
+def send_login_link(email: str, subject: str | None =None):
 	if not frappe.db.exists("User", email):
 		frappe.throw("No registered account with this email address")
 
@@ -146,7 +146,7 @@ def send_login_link(email, subject=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_key(key):
+def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
 	email = frappe.cache().get_value(cache_key)
 
