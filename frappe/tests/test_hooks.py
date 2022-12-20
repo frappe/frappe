@@ -59,6 +59,42 @@ class TestHooks(FrappeTestCase):
 		address.flags.dont_touch_me = True
 		self.assertFalse(frappe.has_permission("Address", doc=address, user=username))
 
+	def test_ignore_links_on_delete(self):
+		email_unsubscribe = frappe.get_doc(
+			{"doctype": "Email Unsubscribe", "email": "test@example.com", "global_unsubscribe": 1}
+		).insert()
+
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "Test Event",
+				"starts_on": "2022-12-21",
+				"event_type": "Public",
+				"event_participants": [
+					{
+						"reference_doctype": "Email Unsubscribe",
+						"reference_docname": email_unsubscribe.name,
+					}
+				],
+			}
+		).insert()
+		self.assertRaises(frappe.LinkExistsError, email_unsubscribe.delete)
+
+		event.event_participants = []
+		event.save()
+
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Test ToDo",
+				"reference_type": "Event",
+				"reference_name": event.name,
+			}
+		)
+		todo.insert()
+
+		event.delete()
+
 
 def custom_has_permission(doc, ptype, user):
 	if doc.flags.dont_touch_me:
