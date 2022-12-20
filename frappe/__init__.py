@@ -735,14 +735,21 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		methods = ["GET", "POST", "PUT", "DELETE"]
 
 	def innerfn(fn):
+		from frappe.utils.typing_validations import validate_argument_types
+
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+
+		# validate argument types only if request is present
+		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
 		method = None
 		if hasattr(fn, "__func__"):
-			method = fn
+			method = validate_argument_types(fn, apply_condition=in_request_or_test)
 			fn = method.__func__
+		else:
+			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
@@ -2003,12 +2010,14 @@ def attach_print(
 	file_name=None,
 	print_format=None,
 	style=None,
+	html=None,
 	doc=None,
 	lang=None,
 	print_letterhead=True,
 	password=None,
 ):
 	from frappe.utils import scrub_urls
+	from frappe.utils.pdf import get_pdf
 
 	if not file_name:
 		file_name = name
@@ -2037,10 +2046,14 @@ def attach_print(
 	if int(print_settings.send_print_as_pdf or 0):
 		ext = ".pdf"
 		kwargs["as_pdf"] = True
-		content = get_print(doctype, name, **kwargs)
+		content = (
+			get_pdf(html, options={"password": password} if password else None)
+			if html
+			else get_print(doctype, name, **kwargs)
+		)
 	else:
 		ext = ".html"
-		content = scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+		content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
 
 	out = {"fname": file_name + ext, "fcontent": content}
 
