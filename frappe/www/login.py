@@ -7,8 +7,12 @@ from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.integrations.oauth2_logins import decoder_compat
+<<<<<<< HEAD
 from frappe.utils import cint
 from frappe.utils.data import escape_html
+=======
+from frappe.utils import cint, get_url
+>>>>>>> 570442865b (feat: Login without password (through link sent on email))
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
 from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
@@ -96,6 +100,8 @@ def get_context(context):
 
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
+	context["login_without_password"] = frappe.get_system_settings("login_without_password")
+
 	return context
 
 
@@ -112,3 +118,48 @@ def login_via_token(login_token: str):
 	redirect_post_login(
 		desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
 	)
+
+
+@frappe.whitelist(allow_guest=True)
+def send_login_link(email, subject=None, message=None):
+	if not frappe.db.exists("User", email):
+		frappe.throw("No registered account with this email address")
+
+	key = frappe.generate_hash("Login Link", 20)
+	minutes = 10
+	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=minutes * 60)
+
+	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+
+	logo = frappe.get_website_settings("app_logo") or frappe.get_hooks("app_logo_url")[-1]
+	app_name = (
+		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
+	)
+
+	subject = subject or _("Login To {0}").format(app_name)
+
+	frappe.sendmail(
+		subject=subject,
+		recipients=email,
+		template="login_without_password",
+		args={"link": link, "minutes": minutes, "app_name": app_name, "logo": logo},
+	)
+
+
+@frappe.whitelist(allow_guest=True)
+def login_via_key(key):
+	cache_key = f"one_time_login_key:{key}"
+	email = frappe.cache().get_value(cache_key)
+
+	if email:
+		frappe.cache().delete_value(cache_key)
+		frappe.local.login_manager.login_as(email)
+		frappe.response.type = "redirect"
+		frappe.response.location = "/app"
+	else:
+		frappe.respond_as_web_page(
+			_("Not Permitted"),
+			_("The link you trying to login is invalid or expired."),
+			http_status_code=403,
+			indicator_color="red",
+		)

@@ -42,6 +42,7 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "disable_user_pass_login",
+  "login_without_password",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -430,6 +431,7 @@
    "label": "Send document Web View link in email"
   },
   {
+<<<<<<< HEAD
    "default": "30",
    "depends_on": "enable_prepared_report_auto_deletion",
    "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
@@ -444,6 +446,8 @@
    "label": "Enable Auto-deletion of Prepared Reports"
   },
   {
+=======
+>>>>>>> 570442865b (feat: Login without password (through link sent on email))
    "collapsible": 1,
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
@@ -539,6 +543,7 @@
   },
   {
    "default": "0",
+<<<<<<< HEAD
    "fieldname": "apply_perm_level_on_api_calls",
    "fieldtype": "Check",
    "label": "Apply Perm Level on API calls (Recommended)"
@@ -555,12 +560,22 @@
    "fieldname": "disable_document_sharing",
    "fieldtype": "Check",
    "label": "Disable Document Sharing"
+=======
+   "description": "User will be able to login using the link sent on the email",
+   "fieldname": "login_without_password",
+   "fieldtype": "Check",
+   "label": "Login Without Password"
+>>>>>>> 570442865b (feat: Login without password (through link sent on email))
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-03-14 11:30:56.465653",
+=======
+ "modified": "2022-12-20 11:20:40.735668",
+>>>>>>> 570442865b (feat: Login without password (through link sent on email))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
