@@ -102,7 +102,7 @@ frappe.patches.v12_0.delete_feedback_request_if_exists #1
 frappe.patches.v12_0.rename_events_repeat_on
 frappe.patches.v12_0.fix_public_private_files
 frappe.patches.v12_0.move_email_and_phone_to_child_table
-frappe.patches.v12_0.delete_duplicate_indexes
+frappe.patches.v12_0.delete_duplicate_indexes  # 2022-12-15
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 frappe.patches.v12_0.setup_tags
@@ -189,3 +189,4 @@ frappe.patches.v13_0.set_document_expiry_default
 frappe.patches.v13_0.reset_corrupt_defaults
 frappe.patches.v13_0.payment_gateways_deprecation_warning
 frappe.patches.v13_0.set_suspend_email_queue_default
+frappe.patches.v13_0.remove_share_for_std_users

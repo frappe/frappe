@@ -839,12 +839,12 @@ frappe.views.CommunicationComposer = class {
 
 	html2text(html) {
 		// convert HTML to text and try and preserve whitespace
-		const d = document.createElement( 'div' );
-		d.innerHTML = html.replace(/<\/div>/g, '<br></div>')  // replace end of blocks
-			.replace(/<\/p>/g, '<br></p>') // replace end of paragraphs
-			.replace(/<br>/g, '\n');
+		html = html
+			.replace(/<\/div>/g, "<br></div>") // replace end of blocks
+			.replace(/<\/p>/g, "<br></p>") // replace end of paragraphs
+			.replace(/<br>/g, "\n");
 
-		// replace multiple empty lines with just one
-		return d.textContent.replace(/\n{3,}/g, '\n\n');
+		const text = frappe.utils.html2text(html);
+		return text.replace(/\n{3,}/g, "\n\n");
 	}
 };

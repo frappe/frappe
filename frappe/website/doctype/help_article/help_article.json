@@ -16,7 +16,10 @@
   "content",
   "likes",
   "route",
-  "owner"
+  "section_break_cww5",
+  "helpful",
+  "cb_00",
+  "not_helpful"
  ],
  "fields": [
   {
@@ -81,11 +84,28 @@
    "label": "Route"
   },
   {
-   "default": "user",
-   "fieldname": "owner",
-   "fieldtype": "Link",
-   "label": "Owner",
-   "options": "User"
+   "default": "0",
+   "fieldname": "helpful",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Helpful",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "not_helpful",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Not Helpful",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_cww5",
+   "fieldtype": "Section Break"
   }
  ],
  "has_web_view": 1,
@@ -93,7 +113,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-07-21 16:25:18.577325",
+ "modified": "2022-12-15 20:05:11.317400",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Help Article",
@@ -124,6 +144,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "title",
  "track_changes": 1
 }

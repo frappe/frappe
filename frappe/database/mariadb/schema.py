@@ -52,13 +52,19 @@ class MariaDBTable(DBTable):
 		add_index_query = []
 		drop_index_query = []
 
-		columns_to_modify = set(self.change_type + self.add_unique + self.set_default)
-
 		for col in self.add_column:
 			add_column_query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
 
+		columns_to_modify = set(self.change_type + self.set_default)
 		for col in columns_to_modify:
-			modify_column_query.append("MODIFY `{}` {}".format(col.fieldname, col.get_definition()))
+			modify_column_query.append(
+				f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
+			)
+
+		for col in self.add_unique:
+			modify_column_query.append(
+				f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
+			)
 
 		for col in self.add_index:
 			# if index key does not exists

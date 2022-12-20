@@ -392,6 +392,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					window.location.href =
 						window.location.pathname + "?name=" + data.name;
 				}
+			},
+			on_hide: () => {
+				window.location.href = window.location.pathname;
 			}
 		});
 
