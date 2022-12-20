@@ -16,7 +16,6 @@ import frappe
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, is_git_url
 from frappe.utils.dashboard import sync_dashboards
-from frappe.utils.synchronization import filelock
 
 
 def _is_scheduler_enabled() -> bool:
@@ -543,6 +542,7 @@ def make_site_config(
 
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
+	from frappe.utils.synchronization import filelock
 
 	if not site_config_path:
 		site_config_path = get_site_config_path()

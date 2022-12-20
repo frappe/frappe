@@ -100,7 +100,7 @@ frappe.patches.v12_0.delete_feedback_request_if_exists #1
 frappe.patches.v12_0.rename_events_repeat_on
 frappe.patches.v12_0.fix_public_private_files
 frappe.patches.v12_0.move_email_and_phone_to_child_table
-frappe.patches.v12_0.delete_duplicate_indexes
+frappe.patches.v12_0.delete_duplicate_indexes  # 2022-12-15
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 frappe.patches.v12_0.setup_tags
@@ -184,6 +184,7 @@ frappe.patches.v13_0.update_notification_channel_if_empty
 frappe.patches.v13_0.set_first_day_of_the_week
 frappe.patches.v13_0.encrypt_2fa_secrets
 frappe.patches.v13_0.reset_corrupt_defaults
+frappe.patches.v13_0.remove_share_for_std_users
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021

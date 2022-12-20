@@ -191,9 +191,22 @@ def get_context(context):
 
 		self.add_custom_context_and_script(context)
 		self.load_translations(context)
+		self.add_metatags(context)
 
 		context.boot = get_boot_data()
 		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
+
+	def add_metatags(self, context):
+		description = self.meta_description
+
+		if not description and self.introduction_text:
+			description = self.introduction_text[:140]
+
+		context.metatags = {
+			"name": self.meta_title or self.title,
+			"description": description,
+			"image": self.meta_image,
+		}
 
 	def load_translations(self, context):
 		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)

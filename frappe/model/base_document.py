@@ -89,8 +89,10 @@ class BaseDocument:
 		"meta",
 		"_meta",
 		"flags",
+		"parent_doc",
 		"_table_fields",
 		"_valid_columns",
+		"_doc_before_save",
 		"_table_fieldnames",
 		"_reserved_keywords",
 		"dont_update_if_missing",
@@ -286,7 +288,7 @@ class BaseDocument:
 			return DOCTYPE_TABLE_FIELDS
 
 		# child tables don't have child tables
-		if self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+		if self.doctype in DOCTYPES_FOR_DOCTYPE:
 			return ()
 
 		return self.meta.get_table_fields()
@@ -671,7 +673,11 @@ class BaseDocument:
 			value = cstr(self.get(df.fieldname))
 			has_text_content = strip_html(value).strip()
 			has_img_tag = "<img" in value
-			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+			has_text_or_img_tag = has_text_content or has_img_tag
+
+			if df.fieldtype == "Text Editor" and has_text_or_img_tag:
+				return True
+			elif df.fieldtype == "Code" and df.options == "HTML" and has_text_or_img_tag:
 				return True
 			else:
 				return has_text_content
