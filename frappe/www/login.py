@@ -121,7 +121,7 @@ def login_via_token(login_token: str):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_login_link(email, subject=None, message=None):
+def send_login_link(email, subject=None):
 	if not frappe.db.exists("User", email):
 		frappe.throw("No registered account with this email address")
 
@@ -131,7 +131,6 @@ def send_login_link(email, subject=None, message=None):
 
 	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
 
-	logo = frappe.get_website_settings("app_logo") or frappe.get_hooks("app_logo_url")[-1]
 	app_name = (
 		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
 	)
@@ -142,7 +141,7 @@ def send_login_link(email, subject=None, message=None):
 		subject=subject,
 		recipients=email,
 		template="login_without_password",
-		args={"link": link, "minutes": minutes, "app_name": app_name, "logo": logo},
+		args={"link": link, "minutes": minutes, "app_name": app_name},
 	)
 
 
