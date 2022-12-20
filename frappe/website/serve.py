@@ -23,7 +23,6 @@ def get_response(path=None, http_status_code=200):
 	except frappe.PageDoesNotExistError:
 		response = NotFoundPage(endpoint, http_status_code).render()
 	except Exception as e:
-		frappe.log_error(f"{path} failed")
 		response = ErrorPage(exception=e).render()
 
 	return response
