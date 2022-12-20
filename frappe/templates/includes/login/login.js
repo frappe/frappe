@@ -56,18 +56,18 @@ login.bind_events = function () {
 		return false;
 	});
 
-	$(".form-login-without-password").on("submit", function (event) {
+	$(".form-passwordless-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "frappe.www.login.send_login_link";
-		args.email = ($("#login_without_password_email").val() || "").trim();
+		args.email = ($("#passwordless_login_email").val() || "").trim();
 		if (!args.email) {
 			login.set_status('{{ _("Valid Login id required.") }}', 'red');
 			return false;
 		}
 		login.call(args).then(() => {
 			login.set_status('{{ _("Login link sent to your email.") }}', 'blue');
-			$("#login_without_password_email").val("");
+			$("#passwordless_login_email").val("");
 		}).catch(() => {
 			login.set_status('{{ _("Send login link") }}', 'blue');
 		});
@@ -115,7 +115,7 @@ login.reset_sections = function (hide) {
 		$("section.for-login").toggle(false);
 		$("section.for-email-login").toggle(false);
 		$("section.for-forgot").toggle(false);
-		$("section.for-login-without-password").toggle(false);
+		$("section.for-passwordless-login").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
 	$('section:not(.signup-disabled) .indicator').each(function () {
@@ -150,13 +150,13 @@ login.forgot = function () {
 	$("#forgot_email").focus();
 }
 
-login.loginWithoutPassword = function () {
+login.passwordlessLogin = function () {
 	login.reset_sections();
 	if ($("#login_email").val()) {
-		$("#login_without_password_email").val($("#login_email").val());
+		$("#passwordless_login_email").val($("#login_email").val());
 	}
-	$(".for-login-without-password").toggle(true);
-	$("#login_without_password_email").focus();
+	$(".for-passwordless-login").toggle(true);
+	$("#passwordless_login_email").focus();
 }
 
 login.signup = function () {
@@ -304,7 +304,7 @@ frappe.ready(function () {
 		$(window).trigger("hashchange");
 	}
 
-	$(".form-signup, .form-forgot, .form-login-without-password").removeClass("hide");
+	$(".form-signup, .form-forgot, .form-passwordless-login").removeClass("hide");
 	$(document).trigger('login_rendered');
 });
 
