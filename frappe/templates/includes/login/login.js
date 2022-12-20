@@ -56,18 +56,18 @@ login.bind_events = function () {
 		return false;
 	});
 
-	$(".form-passwordless-login").on("submit", function (event) {
+	$(".form-login-with-email-link").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "frappe.www.login.send_login_link";
-		args.email = ($("#passwordless_login_email").val() || "").trim();
+		args.email = ($("#login_with_email_link_email").val() || "").trim();
 		if (!args.email) {
 			login.set_status('{{ _("Valid Login id required.") }}', 'red');
 			return false;
 		}
 		login.call(args).then(() => {
-			login.set_status('{{ _("Login link sent to your email.") }}', 'blue');
-			$("#passwordless_login_email").val("");
+			login.set_status('{{ _("Login link sent to your email") }}', 'blue');
+			$("#login_with_email_link_email").val("");
 		}).catch(() => {
 			login.set_status('{{ _("Send login link") }}', 'blue');
 		});
@@ -107,6 +107,7 @@ login.bind_events = function () {
 login.route = function () {
 	var route = window.location.hash.slice(1);
 	if (!route) route = "login";
+	route = route.replaceAll("-", "_");
 	login[route]();
 }
 
@@ -115,7 +116,7 @@ login.reset_sections = function (hide) {
 		$("section.for-login").toggle(false);
 		$("section.for-email-login").toggle(false);
 		$("section.for-forgot").toggle(false);
-		$("section.for-passwordless-login").toggle(false);
+		$("section.for-login-with-email-link").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
 	$('section:not(.signup-disabled) .indicator').each(function () {
@@ -150,13 +151,13 @@ login.forgot = function () {
 	$("#forgot_email").focus();
 }
 
-login.passwordlessLogin = function () {
+login.login_with_email_link = function () {
 	login.reset_sections();
 	if ($("#login_email").val()) {
-		$("#passwordless_login_email").val($("#login_email").val());
+		$("#login_with_email_link_email").val($("#login_email").val());
 	}
-	$(".for-passwordless-login").toggle(true);
-	$("#passwordless_login_email").focus();
+	$(".for-login-with-email-link").toggle(true);
+	$("#login_with_email_link_email").focus();
 }
 
 login.signup = function () {
@@ -304,7 +305,7 @@ frappe.ready(function () {
 		$(window).trigger("hashchange");
 	}
 
-	$(".form-signup, .form-forgot, .form-passwordless-login").removeClass("hide");
+	$(".form-signup, .form-forgot, .form-login-with-email-link").removeClass("hide");
 	$(document).trigger('login_rendered');
 });
 
