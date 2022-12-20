@@ -7,7 +7,7 @@ body {
 }
 
 .for-forgot,
-.for-passwordless-login,
+.for-login-with-email-link,
 .for-signup,
 .for-email-login {
 	display: none;
@@ -15,7 +15,7 @@ body {
 
 .for-login,
 .for-forgot,
-.for-passwordless-login,
+.for-login-with-email-link,
 .for-signup,
 .for-email-login {
 	padding: max(10vh, 60px) 0;

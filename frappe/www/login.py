@@ -103,7 +103,7 @@ def get_context(context):
 
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
-	context["passwordless_login"] = frappe.get_system_settings("passwordless_login")
+	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
 
 	return context
 
@@ -157,7 +157,7 @@ def send_login_link(email: str):
 		)
 
 	key = frappe.generate_hash("Login Link", 20)
-	minutes = frappe.get_system_settings("passwordless_login_expiry") or 10
+	minutes = frappe.get_system_settings("login_with_email_link_expiry") or 10
 	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=minutes * 60)
 
 	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
@@ -171,7 +171,7 @@ def send_login_link(email: str):
 	frappe.sendmail(
 		subject=subject,
 		recipients=email,
-		template="passwordless_login",
+		template="login_with_email_link",
 		args={"link": link, "minutes": minutes, "app_name": app_name},
 		now=True,
 	)
