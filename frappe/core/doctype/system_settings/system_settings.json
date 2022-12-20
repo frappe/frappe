@@ -39,7 +39,7 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "disable_user_pass_login",
-  "login_without_password",
+  "passwordless_login",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -509,15 +509,15 @@
   {
    "default": "0",
    "description": "User will be able to login using the link sent on the email",
-   "fieldname": "login_without_password",
+   "fieldname": "passwordless_login",
    "fieldtype": "Check",
-   "label": "Login Without Password"
+   "label": "Passwordless Login"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-12-20 11:20:40.735668",
+ "modified": "2022-12-20 15:39:31.751704",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

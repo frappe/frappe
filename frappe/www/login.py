@@ -102,7 +102,7 @@ def get_context(context):
 
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
-	context["login_without_password"] = frappe.get_system_settings("login_without_password")
+	context["passwordless_login"] = frappe.get_system_settings("passwordless_login")
 
 	return context
 
@@ -148,9 +148,11 @@ def login_via_token(login_token):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_login_link(email: str, subject: str | None =None):
+def send_login_link(email: str, subject: str | None = None):
 	if not frappe.db.exists("User", email):
-		frappe.throw("No registered account with this email address")
+		frappe.throw(
+			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
+		)
 
 	key = frappe.generate_hash("Login Link", 20)
 	minutes = 10
@@ -167,7 +169,7 @@ def send_login_link(email: str, subject: str | None =None):
 	frappe.sendmail(
 		subject=subject,
 		recipients=email,
-		template="login_without_password",
+		template="passwordless_login",
 		args={"link": link, "minutes": minutes, "app_name": app_name},
 	)
 
