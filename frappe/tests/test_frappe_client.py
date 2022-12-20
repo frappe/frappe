@@ -105,16 +105,16 @@ class TestFrappeClient(FrappeTestCase):
 		frappe.db.set_value("Website Settings", None, "title_prefix", "")
 
 	def test_update_doc(self):
-		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
-		frappe.db.delete("Note", {"title": ("in", ("Sing", "sing"))})
+		server = FrappeClient(get_url(), "Administrator", "3zF2-89X4-AYSm-JA9M", verify=False)
+		frappe.db.delete("Note", {"title": "Sing"})
 		frappe.db.commit()
 
-		server.insert({"doctype": "Note", "public": True, "title": "Sing"})
+		server.insert({"doctype": "Note", "title": "Sing"})
 		doc = server.get_doc("Note", "Sing")
-		changed_title = "sing"
-		doc["title"] = changed_title
+		new_content = "<h1>Hello, World!</h1>"
+		doc["content"] = new_content
 		doc = server.update(doc)
-		self.assertTrue(doc["title"] == changed_title)
+		self.assertTrue(doc["content"] == new_content)
 
 	def test_update_child_doc(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
