@@ -125,7 +125,7 @@ def login_via_token(login_token: str):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=5, seconds=60 * 60)
+@rate_limit(key="email", limit=5, seconds=60 * 60)
 def send_login_link(email: str):
 	if not frappe.db.exists("User", email):
 		frappe.throw(
@@ -137,6 +137,9 @@ def send_login_link(email: str):
 	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=minutes * 60)
 
 	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+
+	if frappe.flags.in_test:
+		return key
 
 	app_name = (
 		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
@@ -160,6 +163,10 @@ def login_via_key(key: str):
 
 	if email:
 		frappe.cache().delete_value(cache_key)
+
+		if frappe.flags.in_test:
+			return email
+
 		frappe.local.login_manager.login_as(email)
 
 		redirect_post_login(

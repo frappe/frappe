@@ -7,6 +7,7 @@ import frappe.utils
 from frappe.auth import LoginAttemptTracker
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.tests.utils import FrappeTestCase
+from frappe.www.login import login_via_key, send_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -42,6 +43,9 @@ class TestAuth(FrappeTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.delete_doc("User", cls.test_user_email, force=True)
+		frappe.local.request_ip = None
+		frappe.form_dict.email = None
+		frappe.local.response["http_status_code"] = None
 
 	def set_system_settings(self, k, v):
 		frappe.db.set_value("System Settings", "System Settings", k, v)
@@ -122,6 +126,18 @@ class TestAuth(FrappeTestCase):
 
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
+
+	def test_login_with_email_link(self):
+		frappe.form_dict.email = self.test_user_email
+		frappe.local.request_ip = "127.0.0.1"
+
+		# test with valid key
+		key = send_login_link()
+		self.assertEqual(login_via_key(key), self.test_user_email)
+
+		# test with invalid key
+		login_via_key("invalid_key")
+		self.assertEqual(frappe.local.response["http_status_code"], 403)
 
 
 class TestLoginAttemptTracker(FrappeTestCase):
