@@ -12,10 +12,10 @@ class ErrorSnapshot(Document):
 
 	def onload(self):
 		if not self.parent_error_snapshot:
-			self.db_set("seen", True, update_modified=False)
+			self.db_set("seen", 1, update_modified=False)
 
 			for relapsed in frappe.get_all("Error Snapshot", filters={"parent_error_snapshot": self.name}):
-				frappe.db.set_value("Error Snapshot", relapsed.name, "seen", True, update_modified=False)
+				frappe.db.set_value("Error Snapshot", relapsed.name, "seen", 1, update_modified=False)
 
 			frappe.local.flags.commit = True
 
@@ -32,7 +32,7 @@ class ErrorSnapshot(Document):
 			self.update({"parent_error_snapshot": parent["name"]})
 			frappe.db.set_value("Error Snapshot", parent["name"], "relapses", parent["relapses"] + 1)
 			if parent["seen"]:
-				frappe.db.set_value("Error Snapshot", parent["name"], "seen", False)
+				frappe.db.set_value("Error Snapshot", parent["name"], "seen", 0)
 
 	@staticmethod
 	def clear_old_logs(days=30):
