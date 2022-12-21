@@ -132,7 +132,8 @@ def return_unsubscribed_page(email, doctype, name):
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	from frappe.email.doctype.email_queue.email_queue import send_mail
-
+	from frappe.utils.background_jobs import get_jobs
+	import rq.exceptions
 	# To avoid running jobs inside unit tests
 	if frappe.are_emails_muted():
 		msgprint(_("Emails are muted"))
@@ -140,10 +141,22 @@ def flush(from_test=False):
 
 	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
+	try:
+	    queued_jobs = get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site]
+	except rq.exceptions.NoSuchJobError as e:
+		frappe.logger().warn(f"Skipping the flush of emails because I could not get the queued jobs: {e}")
+		return
+
+	def run_in_bg_if_not_queued(**kwargs):
+		job_name = "SendingEmail_" + kwargs["email_queue_name"]
+		if job_name not in queued_jobs:
+			return send_mail.enqueue(job_name=job_name, **kwargs)
+		else:
+			frappe.logger("pcg").debug(f"Not queueing job {job_name} because it is in queueue already")
 
 	for row in get_queue():
 		try:
-			func = send_mail if from_test else send_mail.enqueue
+			func = send_mail if from_test else run_in_bg_if_not_queued
 			is_background_task = not from_test
 			func(email_queue_name=row.name, is_background_task=is_background_task)
 		except Exception:
