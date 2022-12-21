@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 from subprocess import getoutput
-from tempfile import mkdtemp, NamedTemporaryFile
+from tempfile import NamedTemporaryFile, mkdtemp
 from urllib.parse import urlparse
 
 import click
