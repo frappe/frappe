@@ -451,17 +451,17 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
       - name: Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16
           check-latest: true
 
       - name: Cache pip
@@ -477,7 +477,7 @@ jobs:
         id: yarn-cache-dir-path
         run: 'echo "::set-output name=dir::$(yarn cache dir)"'
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: yarn-cache
         with:
           path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
