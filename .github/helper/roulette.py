@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
 	# this is a push build, run all builds
 	if not pr_number:
-		os.system('echo "build=strawberry" >> $GITHUB_OUTPUT'')
+		os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
 		sys.exit(0)
 
 	files_list = files_list or get_files_list(pr_number=pr_number, repo=repo)
