@@ -6,6 +6,18 @@ frappe.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(frappe.boot.user && frappe.boot.developer_mode===1 && this.$wrapper) {
 			this.$wrapper.attr("title", __(this.df.fieldname));
+		} else if (this.$wrapper) {
+			// show fieldname as tooltip when cmd/ctrl key is pressed
+			$(document).on("keydown", (e) => {
+				if (e.metaKey) {
+					this.$wrapper.attr("title", __(this.df.fieldname));
+				}
+			});
+			$(document).on("keyup", (e) => {
+				if (!e.metaKey) {
+					this.$wrapper.removeAttr("title");
+				}
+			});
 		}
 
 		if(this.render_input) {
