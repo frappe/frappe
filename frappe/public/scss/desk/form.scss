@@ -1,6 +1,29 @@
 @import "../common/form.scss";
 @import '~cropperjs/dist/cropper.min';
 
+.tooltip-content {
+	position: absolute;
+	bottom: 104%;
+	left: 0;
+	z-index: 9999;
+	padding: 2px 6px;
+	border-radius: var(--border-radius-sm);
+	background: var(--gray-dark);
+	color: var(--text-dark);
+	font-size: var(--text-xs);
+	opacity: 0;
+	cursor: default;
+	transition: opacity 0.3s, transform 3s;
+	pointer-events: none;
+}
+
+.show-tooltip .frappe-control:hover .tooltip-content {
+	opacity: 1;
+	transform: translate3d(0,0,0);
+	pointer-events: auto;
+}
+
+
 .std-form-layout > .form-layout > .form-page {
 	border-radius: var(--border-radius-md);
 	box-shadow: var(--card-shadow);

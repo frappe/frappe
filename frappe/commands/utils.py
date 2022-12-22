@@ -532,7 +532,7 @@ def _mariadb():
 	command = [
 		mysql,
 		"--port",
-		frappe.conf.db_port or MariaDBDatabase.default_port,
+		str(frappe.conf.db_port or MariaDBDatabase.default_port),
 		"-u",
 		frappe.conf.db_name,
 		f"-p{frappe.conf.db_password}",
@@ -548,7 +548,13 @@ def _mariadb():
 
 def _psql():
 	psql = which("psql")
-	subprocess.run([psql, "-d", frappe.conf.db_name])
+
+	host = frappe.conf.db_host or "127.0.0.1"
+	port = frappe.conf.db_port or "5432"
+	env = os.environ.copy()
+	env["PGPASSWORD"] = frappe.conf.db_password
+	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
+	subprocess.run([psql, conn_string], check=True, env=env)
 
 
 @click.command("jupyter")
