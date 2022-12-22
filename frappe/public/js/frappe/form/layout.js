@@ -370,7 +370,7 @@ frappe.ui.form.Layout = Class.extend({
 			}
 		});
 		$(document).on("keyup", (e) => {
-			if (!e.metaKey || e.ctrlKey) {
+			if (!e.metaKey || !e.ctrlKey) {
 				this.wrapper.removeClass("show-tooltip");
 			}
 		});
