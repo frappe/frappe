@@ -28,6 +28,16 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return 'Kanban';
 	}
 
+	init() {
+		return super.init().then(() => {
+			let menu_length = this.page.menu.find(".dropdown-item").length;
+			if (menu_length === 1) {
+				// Only 'Refresh' (hidden) is present (always), dropdown is visibly empty
+				this.page.hide_menu();
+			}
+		});
+	}
+
 	setup_defaults() {
 		return super.setup_defaults()
 			.then(() => {
