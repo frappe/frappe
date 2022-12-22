@@ -12,6 +12,7 @@ import frappe.sessions
 import frappe.utils
 from frappe import _, is_whitelisted
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.image import optimize_image
@@ -269,7 +270,7 @@ def ping():
 
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	"""run a whitelisted controller method"""
-	from inspect import getfullargspec
+	from inspect import signature
 
 	if not args and arg:
 		args = arg
@@ -298,7 +299,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	is_whitelisted(fn)
 	is_valid_http_method(fn)
 
-	fnargs = getfullargspec(method_obj).args
+	fnargs = list(signature(method_obj).parameters)
 
 	if not fnargs or (len(fnargs) == 1 and fnargs[0] == "self"):
 		response = doc.run_method(method)
@@ -319,6 +320,8 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 		return
 
 	frappe.response["message"] = response
+
+	add_data_to_monitor(methodname=method)
 
 
 # for backwards compatibility

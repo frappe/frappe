@@ -38,7 +38,6 @@ class TestRQJob(FrappeTestCase):
 				"name": job.id,
 				"queue": "short",
 				"job_name": self.BG_JOB,
-				"status": "queued",
 				"exc_info": None,
 			},
 			rq_job,

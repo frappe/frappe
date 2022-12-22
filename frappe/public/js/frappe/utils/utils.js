@@ -246,6 +246,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
+		if (!txt) return "";
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -279,9 +280,9 @@ Object.assign(frappe.utils, {
 	},
 
 	html2text: function (html) {
-		let d = document.createElement("div");
-		d.innerHTML = html;
-		return d.textContent;
+		const parser = new DOMParser();
+		const dom = parser.parseFromString(html, "text/html");
+		return dom.body.textContent;
 	},
 
 	is_url: function (txt) {
@@ -816,6 +817,13 @@ Object.assign(frappe.utils, {
 		// url can have query params
 		filename = filename.split("?")[0];
 		return /\.(gif|jpg|jpeg|tiff|png|svg)$/i.test(filename);
+	},
+
+	is_video_file: function (filename) {
+		if (!filename) return false;
+		// url can have query params
+		filename = filename.split("?")[0];
+		return /\.(mov|mp4|mkv|webm)$/i.test(filename);
 	},
 
 	play_sound: function (name) {

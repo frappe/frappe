@@ -303,7 +303,7 @@ function can_subscribe_list(args) {
 				}
 				return false;
 			} else if (res.status == 200) {
-				args?.callback(err, res);
+				args.callback && args.callback(err, res);
 				return true;
 			}
 			log("ERROR (can_subscribe_list): ", err, res);

@@ -17,9 +17,7 @@ export default class Column {
 			</div>
 		`).appendTo(this.section.body);
 
-		this.form = this.wrapper.find("form").on("submit", function () {
-			return false;
-		});
+		this.form = this.wrapper.find("form").on("submit", () => false);
 
 		if (this.df.label) {
 			$(`
@@ -45,11 +43,5 @@ export default class Column {
 
 	refresh() {
 		this.section.refresh();
-	}
-
-	make_sortable() {
-		this.sortable = new Sortable(this.form.get(0), {
-			group: this.section.layout.frm.doctype,
-		});
 	}
 }

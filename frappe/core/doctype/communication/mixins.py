@@ -59,10 +59,7 @@ class CommunicationEmailMixin:
 		* if email copy is requested by sender, then add sender to CC.
 		* If this doc is created through inbound mail, then add doc owner to cc list
 		* remove all the thread_notify disabled users.
-		* Make sure that all users enabled in the system
-		* Remove admin from email list
-
-		* FixMe: Removed adding TODO owners to cc list. Check if that is needed.
+		* Remove standard users from email list
 		"""
 		if hasattr(self, "_final_cc"):
 			return self._final_cc
@@ -80,13 +77,12 @@ class CommunicationEmailMixin:
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
-		cc = cc - set(self.filter_disabled_users(cc))
 
 		# # Incase of inbound mail, to and cc already received the mail, no need to send again.
 		if is_inbound_mail_communcation:
 			cc = cc - set(self.cc_list() + self.to_list())
 
-		self._final_cc = list(filter(lambda id: id != "Administrator", cc))
+		self._final_cc = [m for m in cc if m not in frappe.STANDARD_USERS]
 		return self._final_cc
 
 	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender=False):
@@ -99,8 +95,7 @@ class CommunicationEmailMixin:
 		"""
 		* Thread_notify check
 		* Email unsubscribe list
-		* User must be enabled in the system
-		* remove_administrator_from_email_list
+		* remove standard users.
 		"""
 		if hasattr(self, "_final_bcc"):
 			return self._final_bcc
@@ -110,13 +105,12 @@ class CommunicationEmailMixin:
 			bcc = bcc - {self.sender_mailid}
 		bcc = bcc - set(self.filter_thread_notification_disbled_users(bcc))
 		bcc = bcc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
-		bcc = bcc - set(self.filter_disabled_users(bcc))
 
 		# Incase of inbound mail, to and cc & bcc already received the mail, no need to send again.
 		if is_inbound_mail_communcation:
 			bcc = bcc - set(self.bcc_list() + self.to_list())
 
-		self._final_bcc = list(filter(lambda id: id != "Administrator", bcc))
+		self._final_bcc = [m for m in bcc if m not in frappe.STANDARD_USERS]
 		return self._final_bcc
 
 	def get_mail_bcc_with_displayname(self, is_inbound_mail_communcation=False):

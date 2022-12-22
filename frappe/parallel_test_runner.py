@@ -42,7 +42,7 @@ class ParallelTestRunner:
 		self.before_test_setup()
 
 	def before_test_setup(self):
-		start_time = time.time()
+		start_time = time.monotonic()
 		for fn in frappe.get_hooks("before_tests", app_name=self.app):
 			frappe.get_attr(fn)()
 
@@ -52,7 +52,7 @@ class ParallelTestRunner:
 			for doctype in test_module.global_test_dependencies:
 				make_test_records(doctype, commit=True)
 
-		elapsed = time.time() - start_time
+		elapsed = time.monotonic() - start_time
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red")
 		click.echo(f"Before Test {elapsed}")
 
@@ -162,7 +162,7 @@ def split_by_weight(work, weights, chunk_count):
 class ParallelTestResult(unittest.TextTestResult):
 	def startTest(self, test):
 		self.tb_locals = True
-		self._started_at = time.time()
+		self._started_at = time.monotonic()
 		super(unittest.TextTestResult, self).startTest(test)
 		test_class = unittest.util.strclass(test.__class__)
 		if not hasattr(self, "current_test_class") or self.current_test_class != test_class:
@@ -174,7 +174,7 @@ class ParallelTestResult(unittest.TextTestResult):
 
 	def addSuccess(self, test):
 		super(unittest.TextTestResult, self).addSuccess(test)
-		elapsed = time.time() - self._started_at
+		elapsed = time.monotonic() - self._started_at
 		threshold_passed = elapsed >= SLOW_TEST_THRESHOLD
 		elapsed = click.style(f" ({elapsed:.03}s)", fg="red") if threshold_passed else ""
 		click.echo(f"  {click.style(' ✔ ', fg='green')} {self.getTestMethodName(test)}{elapsed}")

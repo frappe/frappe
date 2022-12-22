@@ -19,7 +19,6 @@ login.bind_events = function () {
 		args.cmd = "login";
 		args.usr = frappe.utils.xss_sanitise(($("#login_email").val() || "").trim());
 		args.pwd = $("#login_password").val();
-		args.device = "desktop";
 		if (!args.usr || !args.pwd) {
 			frappe.msgprint('{{ _("Both login and password required") }}');
 			return false;
@@ -73,7 +72,6 @@ login.bind_events = function () {
 		args.cmd = "{{ ldap_settings.method }}";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
-		args.device = "desktop";
 		if (!args.usr || !args.pwd) {
 			login.set_status('{{ _("Both login and password required") }}', 'red');
 			return false;
@@ -255,7 +253,8 @@ login.login_handlers = (function () {
 			}
 		},
 		401: get_error_handler('{{ _("Invalid Login. Try again.") }}'),
-		417: get_error_handler('{{ _("Oops! Something went wrong") }}')
+		417: get_error_handler('{{ _("Oops! Something went wrong") }}'),
+		404: get_error_handler('{{ _("User does not exist.")}}')
 	};
 
 	return login_handlers;

@@ -288,7 +288,7 @@ class TestUser(FrappeTestCase):
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
-		self.assertEqual(res1.status_code, 400)
+		self.assertEqual(res1.status_code, 404)
 		self.assertEqual(res2.status_code, 417)
 
 	def test_user_rename(self):
@@ -383,9 +383,7 @@ class TestUser(FrappeTestCase):
 
 		# reset password
 		update_password(old_password, old_password=new_password)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1, ["like", "%"]
-		)
+		self.assertRaises(TypeError, update_password, "test", 1, ["like", "%"])
 
 		password_strength_response = {
 			"feedback": {"password_policy_validation_passed": False, "suggestions": ["Fix password"]}

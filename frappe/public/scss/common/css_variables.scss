@@ -147,6 +147,7 @@ $input-height: 28px !default;
 	// Type Colors
 	--text-muted: var(--gray-700);
 	--text-light: var(--gray-800);
+	--text-dark: var(--fg-color);
 	--text-color: var(--gray-900);
 	--heading-color: var(--gray-900);
 
@@ -235,6 +236,8 @@ $input-height: 28px !default;
 	--table-border-color: var(--gray-200);
 	--highlight-color: var(--gray-50);
 	--yellow-highlight-color: var(--yellow-50);
+
+	--field-placeholder-color: var(--gray-50);
 
 	--highlight-shadow: 1px 1px 10px var(--blue-50), 0px 0px 4px var(--blue-600);
 
