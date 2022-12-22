@@ -485,7 +485,7 @@ frappe.ui.form.Layout = class Layout {
 			}
 		});
 		$(document).on("keyup", (e) => {
-			if (!e.metaKey || e.ctrlKey) {
+			if (!e.metaKey || !e.ctrlKey) {
 				this.wrapper.removeClass("show-tooltip");
 			}
 		});
