@@ -476,6 +476,22 @@ frappe.ui.form.Layout = class Layout {
 		});
 	}
 
+<<<<<<< HEAD
+=======
+	setup_tooltip_events() {
+		$(document).on("keydown", (e) => {
+			if (e.metaKey || e.ctrlKey) {
+				this.wrapper.addClass("show-tooltip");
+			}
+		});
+		$(document).on("keyup", (e) => {
+			if (!e.metaKey || e.ctrlKey) {
+				this.wrapper.removeClass("show-tooltip");
+			}
+		});
+	}
+
+>>>>>>> 8c9c9b9f37 (fix: support ctrl key for linux/windows)
 	handle_tab(doctype, fieldname, shift) {
 		let grid_row = null,
 			prev = null,
