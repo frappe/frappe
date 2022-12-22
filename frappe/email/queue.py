@@ -160,7 +160,7 @@ def flush(from_test=False):
 					queue="short",
 				)
 			else:
-				frappe.logger().info(f"Not queueing job {job_name} because it is in queueue already")
+				frappe.logger().debug(f"Not queueing job {job_name} because it is in queue already")
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
 
