@@ -532,12 +532,12 @@ frappe.ui.form.Layout = class Layout {
 
 	setup_tooltip_events() {
 		$(document).on("keydown", (e) => {
-			if (e.metaKey) {
+			if (e.metaKey || e.ctrlKey) {
 				this.wrapper.addClass("show-tooltip");
 			}
 		});
 		$(document).on("keyup", (e) => {
-			if (!e.metaKey) {
+			if (!e.metaKey || e.ctrlKey) {
 				this.wrapper.removeClass("show-tooltip");
 			}
 		});
