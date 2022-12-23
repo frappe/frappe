@@ -129,7 +129,7 @@ class Meta(Document):
 
 	def process(self):
 		# don't process for special doctypes
-		# prevent's circular dependency
+		# prevents circular dependency
 		if self.name in self.special_doctypes:
 			self.init_field_caches()
 			return
