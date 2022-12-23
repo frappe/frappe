@@ -1107,8 +1107,6 @@ class Document(BaseDocument):
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
-		self.latest = None
-
 	def clear_cache(self):
 		frappe.clear_document_cache(self.doctype, self.name)
 
