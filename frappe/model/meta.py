@@ -111,12 +111,6 @@ class Meta(Document):
 	]
 
 	def __init__(self, doctype):
-		# from cache
-		if isinstance(doctype, dict):
-			super().__init__(doctype)
-			self.init_field_caches()
-			return
-
 		if isinstance(doctype, Document):
 			super().__init__(doctype.as_dict())
 		else:
