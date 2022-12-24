@@ -1128,6 +1128,14 @@ def start_ngrok(context, bind_tls):
 	site = get_site(context)
 	frappe.init(site=site)
 
+	ngrok_auth_token = frappe.conf.ngrok_auth_token
+	if not ngrok_auth_token:
+		frappe.errprint(
+			"'ngrok_auth_token' not found in site config. Please register for a free ngrok account at: https://dashboard.ngrok.com/signup and place the obtained authtoken in site_config.json file."
+		)
+		exit(0)
+	ngrok.set_auth_token(ngrok_auth_token)
+
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
 	print(f"Public URL: {tunnel.public_url}")
