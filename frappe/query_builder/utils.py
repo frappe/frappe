@@ -3,6 +3,7 @@ from importlib import import_module
 from typing import Any, Callable, get_type_hints
 
 from pypika import Query
+from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.queries import Column
 from pypika.terms import PseudoColumn
 
@@ -45,10 +46,10 @@ def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	return picks[db]
 
 
-def get_qb_engine():
+def get_query(*args, **kwargs) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
 	from frappe.database.query import Engine
 
-	return Engine()
+	return Engine().get_query(*args, **kwargs)
 
 
 def get_attr(method_string):

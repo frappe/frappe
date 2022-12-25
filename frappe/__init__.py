@@ -25,7 +25,7 @@ import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import (
-	get_qb_engine,
+	get_query,
 	get_query_builder,
 	patch_query_aggregation,
 	patch_query_execute,
@@ -247,7 +247,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
-	local.qb.engine = get_qb_engine()
+	local.qb.get_query = get_query
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):

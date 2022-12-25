@@ -3,7 +3,15 @@ import re
 from ast import literal_eval
 from functools import cached_property
 from types import BuiltinFunctionType
+<<<<<<< HEAD
 from typing import Any, Callable
+=======
+from typing import TYPE_CHECKING, Callable
+
+import sqlparse
+from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
+from pypika.queries import QueryBuilder
+>>>>>>> 726fcfdb79 (refactor: qb.engine)
 
 import frappe
 from frappe import _
@@ -156,6 +164,53 @@ def literal_eval_(literal):
 		return literal
 
 
+<<<<<<< HEAD
+=======
+def has_function(field):
+	_field = field.casefold() if (isinstance(field, str) and "`" not in field) else field
+	if not issubclass(type(_field), Criterion):
+		if any([f"{func}(" in _field for func in SQL_FUNCTIONS]) or "(" in _field:
+			return True
+
+
+def table_from_string(table: str) -> "DocType":
+	if frappe.db.db_type == "postgres":
+		table_name = table.split('"', maxsplit=1)[1].split(".")[0][3:].replace('"', "")
+	else:
+		table_name = table.split("`", maxsplit=1)[1].split(".")[0][3:].replace("`", "")
+	return frappe.qb.DocType(table_name=table_name)
+
+
+def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
+	table = frappe.qb.DocType(doctype)
+	try:
+		lft, rgt = frappe.qb.from_(table).select("lft", "rgt").where(table.name == name).run()[0]
+	except IndexError:
+		lft, rgt = None, None
+
+	if hierarchy in ("descendants of", "not descendants of"):
+		result = (
+			frappe.qb.from_(table)
+			.select(Field("name"))
+			.where(Field("lft") > lft)
+			.where(Field("rgt") < rgt)
+			.orderby(Field("lft"), order=Order.asc)
+			.run()
+		)
+	else:
+		# Get ancestor elements of a DocType with a tree structure
+		result = (
+			frappe.qb.from_(table)
+			.select(Field("name"))
+			.where(Field("lft") < lft)
+			.where(Field("rgt") > rgt)
+			.orderby(Field("lft"), order=Order.desc)
+			.run()
+		)
+	return result
+
+
+>>>>>>> 726fcfdb79 (refactor: qb.engine)
 # default operators
 OPERATOR_MAP: dict[str, Callable] = {
 	"+": operator.add,
@@ -187,37 +242,67 @@ class Engine:
 	def __init__(self):
 		self.tables: dict[str, str] = {}
 
-	@cached_property
-	def OPERATOR_MAP(self):
-		# default operators
-		all_operators = OPERATOR_MAP.copy()
+	def get_query(
+		self,
+		table: str,
+		fields: list | tuple | None = None,
+		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
+		pluck: str | None = None,
+		order_by: str | None = None,
+		group_by: str | None = None,
+		limit: int | None = None,
+		offset: int | None = None,
+		distinct: bool = False,
+		for_update: bool = False,
+		update: bool = False,
+		into: bool = False,
+	) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
+		# Clean up state before each query
+		self.is_mariadb = frappe.db.db_type == "mariadb"
+		self.is_postgres = frappe.db.db_type == "postgres"
+		self.tables = {}
+		self.implicit_joins = set()
 
-		# TODO: update with site-specific custom operators / removed previous buggy implementation
-		if frappe.get_hooks("filters_config"):
-			from frappe.utils.commands import warn
+		self.doctype = table
+		self.table = self.get_table(table)
 
-			warn(
-				"The 'filters_config' hook used to add custom operators is not yet implemented"
-				" in frappe.db.query engine. Use db_query (frappe.get_list) instead."
-			)
+		if update:
+			self.query = frappe.qb.update(self.table)
+		elif into:
+			self.query = frappe.qb.into(self.table)
+		else:
+			self.query = frappe.qb.from_(self.table)
 
-		return all_operators
+		self.fields = self.parse_fields(fields)
+		if not self.fields:
+			self.fields = [getattr(self.table, pluck or "name")]
 
-	def get_condition(self, table: str | Table, **kwargs) -> frappe.qb:
-		"""Get initial table object
+		for field in self.fields:
+			if isinstance(field, DynamicTableField):
+				self.query = field.apply(self.query)
+			else:
+				self.query = self.query.select(field)
 
-		Args:
-		        table (str): DocType
+		self.apply_filters(filters)
+		self.apply_implicit_joins()
+		self.apply_order_by(order_by)
 
-		Returns:
-		        frappe.qb: DocType with initial condition
-		"""
-		table_object = self.get_table(table)
-		if kwargs.get("update"):
-			return frappe.qb.update(table_object)
-		if kwargs.get("into"):
-			return frappe.qb.into(table_object)
-		return frappe.qb.from_(table_object)
+		if limit:
+			self.query = self.query.limit(limit)
+
+		if offset:
+			self.query = self.query.offset(offset)
+
+		if distinct:
+			self.query = self.query.distinct()
+
+		if for_update:
+			self.query = self.query.for_update()
+
+		if group_by:
+			self.query = self.query.groupby(group_by)
+
+		return self.query
 
 	def get_table(self, table_name: str | Table) -> Table:
 		if isinstance(table_name, Table):
@@ -227,6 +312,7 @@ class Engine:
 			self.tables[table_name] = frappe.qb.DocType(table_name)
 		return self.tables[table_name]
 
+<<<<<<< HEAD
 	def criterion_query(self, table: str, criterion: Criterion, **kwargs) -> frappe.qb:
 		"""Generate filters from Criterion objects
 
@@ -359,18 +445,101 @@ class Engine:
 		        frappe.qb: frappe.qb conditions object
 		"""
 		if isinstance(filters, int) or isinstance(filters, str):
+=======
+	def apply_filters(
+		self, filters: dict[str, str | int | list] | str | int | list[list] | None = None
+	):
+		if not filters:
+			return
+
+		if isinstance(filters, (str, int)):
+>>>>>>> 726fcfdb79 (refactor: qb.engine)
 			filters = {"name": str(filters)}
 
 		if isinstance(filters, Criterion):
-			criterion = self.criterion_query(table, filters, **kwargs)
+			self.query = self.query.where(filters)
+
+		elif isinstance(filters, dict):
+			self.apply_dict_filters(filters)
 
 		elif isinstance(filters, (list, tuple)):
-			criterion = self.misc_query(table, filters, **kwargs)
+			self.apply_list_filters(filters)
 
+	def apply_list_filters(self, filters: list[list]):
+		for filter in filters:
+			if len(filter) == 2:
+				field, value = filter
+				self._apply_filter(field, value)
+			elif len(filter) == 3:
+				field, operator, value = filter
+				self._apply_filter(field, value, operator)
+			elif len(filter) == 4:
+				doctype, field, operator, value = filter
+				self._apply_filter(field, value, operator, doctype)
+
+	def apply_dict_filters(self, filters: dict[str, str | int | list]):
+		for key in filters:
+			value = filters.get(key)
+			self._apply_filter(key, value)
+
+	def _apply_filter(
+		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
+	):
+		_field = field
+		_value = value
+		_operator = operator
+
+		if has_function(field):
+			_field = self.get_function_object(field)
+		elif not doctype or doctype == self.doctype:
+			_field = self.table[field]
+		elif doctype:
+			_field = self.get_table(doctype)[field]
+
+		# keep track of implicit join if child table is referenced
+		if doctype and doctype != self.doctype:
+			meta = frappe.get_meta(doctype)
+			if meta.istable:
+				self.implicit_joins.add((doctype, "child"))
+
+		if isinstance(_value, (str, int)):
+			_value = str(_value)
+		elif isinstance(_value, (list, tuple)):
+			_operator, _value = _value
+		elif isinstance(_value, bool):
+			_value = int(_value)
+
+		if isinstance(_value, str) and has_function(_value):
+			_value = self.get_function_object(_value)
+
+		# Nested set
+		if _operator in self.OPERATOR_MAP["nested_set"]:
+			hierarchy = _operator
+			docname = _value
+			result = get_nested_set_hierarchy_result(self.doctype, docname, hierarchy)
+			operator_fn = (
+				self.OPERATOR_MAP["not in"]
+				if hierarchy in ("not ancestors of", "not descendants of")
+				else self.OPERATOR_MAP["in"]
+			)
+			if result:
+				result = list(itertools.chain.from_iterable(result))
+				self.query = self.query.where(operator_fn(_field, result))
+			else:
+				self.query = self.query.where(operator_fn(_field, ("",)))
+			return
+
+		operator_fn = self.OPERATOR_MAP[_operator.casefold()]
+		if _value is None and isinstance(_field, Field):
+			self.query = self.query.where(_field.isnull())
 		else:
+<<<<<<< HEAD
 			criterion = self.dict_query(filters=filters, table=table, **kwargs)
 
 		return criterion
+=======
+			self.query = self.query.where(operator_fn(_field, _value))
+>>>>>>> 726fcfdb79 (refactor: qb.engine)
 
 	def get_function_object(self, field: str) -> "Function":
 		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
@@ -408,6 +577,7 @@ class Engine:
 			# Fall back for functions not present in `SqlFunctions``
 			return Function(func, *_args, alias=alias or None)
 
+<<<<<<< HEAD
 	def function_objects_from_string(self, fields):
 		fields = list(map(lambda str: str.strip(), COMMA_PATTERN.split(fields)))
 		return self.function_objects_from_list(fields=fields)
@@ -458,10 +628,49 @@ class Engine:
 		if is_list and len(fields) == 1:
 			fields = fields[0]
 			is_list = False
+=======
+	def sanitize_fields(self, fields: str | list | tuple):
+		def _sanitize_field(field: str):
+			if not isinstance(field, str):
+				return field
+			stripped_field = sqlparse.format(field, strip_comments=True, keyword_case="lower")
+			if self.is_mariadb:
+				return MARIADB_SPECIFIC_COMMENT.sub("", stripped_field)
+			return stripped_field
 
-		if is_list:
-			function_objects += self.function_objects_from_list(fields=fields)
+		if isinstance(fields, (list, tuple)):
+			return [_sanitize_field(field) for field in fields]
+		elif isinstance(fields, str):
+			return _sanitize_field(fields)
 
+		return fields
+
+	def parse_string_field(self, field: str):
+		if field == "*":
+			return self.table.star
+		alias = None
+		if " as " in field:
+			field, alias = field.split(" as ")
+		if "`" in field:
+			if alias:
+				return PseudoColumnMapper(f"{field} {alias}")
+			return PseudoColumnMapper(field)
+		if alias:
+			return self.table[field].as_(alias)
+		return self.table[field]
+
+	def parse_fields(self, fields: str | list | tuple | None) -> list:
+		if not fields:
+			return []
+		fields = self.sanitize_fields(fields)
+		if isinstance(fields, (list, tuple, set)) and None in fields and Field not in fields:
+			return []
+>>>>>>> 726fcfdb79 (refactor: qb.engine)
+
+		if not isinstance(fields, (list, tuple)):
+			fields = [fields]
+
+<<<<<<< HEAD
 		is_str = isinstance(fields, str)
 		if is_str:
 			fields = fields.casefold()
@@ -524,17 +733,66 @@ class Engine:
 				criterion = getattr(criterion, join)(table_object).on(
 					table_object.parent == primary_table.name
 				)
+=======
+		def parse_field(field: str):
+			if has_function(field):
+				return self.get_function_object(field)
+			elif parsed := DynamicTableField.parse(field, self.doctype):
+				return parsed
+			else:
+				return self.parse_string_field(field)
 
-		if isinstance(fields, (list, tuple)):
-			query = criterion.select(*fields)
+		_fields = []
+		for field in fields:
+			if isinstance(field, Criterion):
+				_fields.append(field)
+			elif isinstance(field, str):
+				if "," in field:
+					field = field.casefold() if "`" not in field else field
+					field_list = COMMA_PATTERN.split(field)
+					for field in field_list:
+						if _field := field.strip():
+							_fields.append(parse_field(_field))
+				else:
+					_fields.append(parse_field(field))
 
-		elif isinstance(fields, Criterion):
-			query = criterion.select(fields)
+		return _fields
 
-		else:
-			query = criterion.select(fields)
+	def apply_implicit_joins(self):
+		for d in self.implicit_joins:
+			doctype, join_type = d
+			table = self.get_table(doctype)
+			if join_type == "child":
+				self.query = self.query.left_join(table).on(
+					(table.parent == self.table.name) & (table.parenttype == self.doctype)
+				)
 
-		return query
+	def apply_order_by(self, order_by: str | None):
+		if not order_by or order_by == "KEEP_DEFAULT_ORDERING":
+			return
+		for declaration in order_by.split(","):
+			if _order_by := declaration.strip():
+				parts = _order_by.split(" ")
+				order_field, order_direction = parts[0], parts[1] if len(parts) > 1 else "asc"
+				order_direction = Order.asc if order_direction.lower() == "asc" else Order.desc
+				self.query = self.query.orderby(order_field, order=order_direction)
+
+	@cached_property
+	def OPERATOR_MAP(self):
+		# default operators
+		all_operators = OPERATOR_MAP.copy()
+
+		# TODO: update with site-specific custom operators / removed previous buggy implementation
+		if frappe.get_hooks("filters_config"):
+			from frappe.utils.commands import warn
+>>>>>>> 726fcfdb79 (refactor: qb.engine)
+
+			warn(
+				"The 'filters_config' hook used to add custom operators is not yet implemented"
+				" in frappe.db.query engine. Use db_query (frappe.get_list) instead."
+			)
+
+		return all_operators
 
 
 class Permission:
@@ -565,3 +823,80 @@ class Permission:
 	@staticmethod
 	def get_tables_from_query(query: str):
 		return [table for table in WORDS_PATTERN.findall(query) if table.startswith("tab")]
+
+
+class DynamicTableField:
+	def __init__(
+		self,
+		doctype: str,
+		fieldname: str,
+		parent_doctype: str,
+		alias: str | None = None,
+	) -> None:
+		self.doctype = doctype
+		self.fieldname = fieldname
+		self.alias = alias
+		self.parent_doctype = parent_doctype
+
+	def __str__(self) -> str:
+		table_name = f"`tab{self.doctype}`"
+		fieldname = f"`{self.fieldname}`"
+		if frappe.db.db_type == "postgres":
+			table_name = table_name.replace("`", '"')
+			fieldname = fieldname.replace("`", '"')
+		alias = f"AS {self.alias}" if self.alias else ""
+		return f"{table_name}.{fieldname} {alias}".strip()
+
+	@staticmethod
+	def parse(field: str, doctype: str):
+		if "." in field:
+			alias = None
+			if " as " in field:
+				field, alias = field.split(" as ")
+			if field.startswith("`tab") or field.startswith('"tab'):
+				_, child_doctype, child_field = re.search(r'([`"])tab(.+?)\1.\1(.+)\1', field).groups()
+				if child_doctype == doctype:
+					return
+				return ChildTableField(child_doctype, child_field, doctype, alias=alias)
+			else:
+				linked_fieldname, fieldname = field.split(".")
+				linked_field = frappe.get_meta(doctype).get_field(linked_fieldname)
+				linked_doctype = linked_field.options
+				if linked_field.fieldtype == "Link":
+					return LinkTableField(linked_doctype, fieldname, doctype, linked_fieldname, alias=alias)
+				elif linked_field.fieldtype in frappe.model.table_fields:
+					return ChildTableField(linked_doctype, fieldname, doctype, alias=alias)
+
+	def apply(self, query: QueryBuilder) -> QueryBuilder:
+		raise NotImplementedError
+
+
+class ChildTableField(DynamicTableField):
+	def apply(self, query: QueryBuilder) -> QueryBuilder:
+		table = frappe.qb.DocType(self.doctype)
+		main_table = frappe.qb.DocType(self.parent_doctype)
+		if not query.is_joined(table):
+			query = query.left_join(table).on(
+				(table.parent == main_table.name) & (table.parenttype == self.parent_doctype)
+			)
+		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+
+
+class LinkTableField(DynamicTableField):
+	def __init__(
+		self,
+		doctype: str,
+		fieldname: str,
+		parent_doctype: str,
+		link_fieldname: str,
+		alias: str | None = None,
+	) -> None:
+		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
+		self.link_fieldname = link_fieldname
+
+	def apply(self, query: QueryBuilder) -> QueryBuilder:
+		table = frappe.qb.DocType(self.doctype)
+		main_table = frappe.qb.DocType(self.parent_doctype)
+		if not query.is_joined(table):
+			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
+		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
