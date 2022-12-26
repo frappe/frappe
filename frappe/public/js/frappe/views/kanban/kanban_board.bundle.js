@@ -327,13 +327,7 @@ frappe.provide("frappe.views");
 				return state.empty_state;
 			}, show_empty_state);
 
-			if (frappe.model.can_write(store.state.doctype)) {
-				// Check for reference doctype access before trying to modify it's value
-				store.dispatch("update_order");
-			} else {
-				// Render columns without state change
-				make_columns();
-			}
+			store.dispatch("update_order");
 		}
 
 		function prepare() {
