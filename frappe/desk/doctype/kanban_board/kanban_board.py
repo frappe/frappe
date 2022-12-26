@@ -88,13 +88,15 @@ def update_order(board_name, order):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
+	updated_cards = []
 
-	frappe.has_permission(doctype, "write", throw=True)
+	if not frappe.has_permission(doctype, "write"):
+		# Return board data from db
+		return board, updated_cards
 
 	fieldname = board.field_name
 	order_dict = json.loads(order)
 
-	updated_cards = []
 	for col_name, cards in order_dict.items():
 		for card in cards:
 			column = frappe.get_value(doctype, {"name": card}, fieldname)
