@@ -32,6 +32,7 @@ DOCTYPE_TABLE_FIELDS = [
 
 TABLE_DOCTYPES_FOR_DOCTYPE = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}
 DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
+_DOC_DELETED_ATTR = object()
 
 
 def get_controller(doctype):
@@ -298,8 +299,14 @@ class BaseDocument:
 	) -> dict:
 		d = _dict()
 		for fieldname in self.meta.get_valid_columns():
+			field_value = getattr(self, fieldname, _DOC_DELETED_ATTR)
+
+			# don't set if field is deleted
+			if field_value is _DOC_DELETED_ATTR:
+				continue
+
 			# column is valid, we can use getattr
-			d[fieldname] = getattr(self, fieldname, None)
+			d[fieldname] = field_value
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
