@@ -35,6 +35,7 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		this.setup_tab_events();
+		this.setup_tooltip_events();
 		this.render();
 	}
 
@@ -525,6 +526,19 @@ frappe.ui.form.Layout = class Layout {
 				if (doctype) {
 					return this.handle_tab(doctype, fieldname, ev.shiftKey);
 				}
+			}
+		});
+	}
+
+	setup_tooltip_events() {
+		$(document).on("keydown", (e) => {
+			if (e.metaKey || e.ctrlKey) {
+				this.wrapper.addClass("show-tooltip");
+			}
+		});
+		$(document).on("keyup", (e) => {
+			if (!e.metaKey || !e.ctrlKey) {
+				this.wrapper.removeClass("show-tooltip");
 			}
 		});
 	}
