@@ -1,5 +1,5 @@
-{% macro table(content, td_align, tb_color, tb_width) %}
-<table cellpadding="0" cellspacing="0" width="100%">
+{% macro table(content, table_class) %}
+<table class="{{ table_class or '' }}" cellpadding="0" cellspacing="0" width="100%" align="center">
 	<tbody>
 		<tr>
 			<td align="center">
@@ -25,7 +25,7 @@
 			<td align="center">
 				<div class="btn btn-primary" style="margin-top: 30px;">
 					<a href="{{ link or '#'}}" style="color: #fff; text-decoration: none;">
-						{{ _('LOG IN TO {0}').format(app_name.upper()) }}
+						{{ _('Log In To {0}').format(app_name) }}
 					</a>
 				</div>
 			</td>
@@ -34,28 +34,8 @@
 </table>
 {% endmacro %}
 
-{% macro footer() %}
-<div class="email-footer">
-	<div>{{ _('Thanks!') }}</div>
-	<div style="font-size: 17px;"><strong>{{ app_name }}</strong></div>
-</div>
-{% endmacro %}
-
 <div class="body-table with-container">
 	<div class="body-content">
-		<table class="email-container" align="center" cellspacing="0" cellpadding="0">
-			<tbody>
-				<tr>
-					<td>
-						<div class="email-body">
-							{{ table(body()) }}
-						</div>
-						<div class="email-footer-container">
-							{{ table(footer()) }}
-						</div>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		{{ table(table(body(), 'email-body'), 'email-container') }}
 	</div>
 </div>
