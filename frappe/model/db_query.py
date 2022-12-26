@@ -261,16 +261,14 @@ class DatabaseQuery:
 		# TODO: Add support for wrapping fields with sql functions and distinct keyword
 		for field in self.fields:
 			stripped_field = field.strip().lower()
-			skip_wrapping = any(
-				[
-					stripped_field.startswith(("`", "*", '"', "'")),
-					"(" in stripped_field,
-					"distinct" in stripped_field,
-				]
-			)
-			if skip_wrapping:
+
+			if (
+				stripped_field[0] in {"`", "*", '"', "'"}
+				or "(" in stripped_field
+				or "distinct" in stripped_field
+			):
 				fields.append(field)
-			elif "as" in field.lower().split(" "):
+			elif "as" in stripped_field.split(" "):
 				col, _, new = field.split()
 				fields.append(f"`{col}` as {new}")
 			else:
