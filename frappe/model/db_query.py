@@ -55,6 +55,7 @@ ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 class DatabaseQuery:
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
+		self.doctype_meta = frappe.get_meta(doctype)
 		self.tables = []
 		self.link_tables = []
 		self.conditions = []
@@ -322,7 +323,7 @@ class DatabaseQuery:
 				if " as " in field:
 					field, alias = field.split(" as ")
 				linked_fieldname, fieldname = field.split(".")
-				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				linked_field = self.doctype_meta.get_field(linked_fieldname)
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
 					self.append_link_table(linked_doctype, linked_fieldname)
@@ -554,9 +555,7 @@ class DatabaseQuery:
 		if self.flags.ignore_permissions:
 			return
 
-		accessible_fields = {
-			x.fieldname for x in frappe.get_meta(self.doctype).get_permlevel_read_fields()
-		}
+		accessible_fields = {x.fieldname for x in self.doctype_meta.get_permlevel_read_fields()}
 
 		for i, field in enumerate(self.fields):
 			if field == "*":
@@ -758,12 +757,11 @@ class DatabaseQuery:
 		if not self.tables:
 			self.extract_tables()
 
-		meta = frappe.get_meta(self.doctype)
-		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
+		role_permissions = frappe.permissions.get_role_permissions(self.doctype_meta, user=self.user)
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if (
-			not meta.istable
+			not self.doctype_meta.istable
 			and not (role_permissions.get("select") or role_permissions.get("read"))
 			and not self.flags.ignore_permissions
 			and not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
@@ -813,9 +811,8 @@ class DatabaseQuery:
 		)
 
 	def add_user_permissions(self, user_permissions):
-		meta = frappe.get_meta(self.doctype)
 		doctype_link_fields = []
-		doctype_link_fields = meta.get_link_fields()
+		doctype_link_fields = self.doctype_meta.get_link_fields()
 
 		# append current doctype with fieldname as 'name' as first link field
 		doctype_link_fields.append(
@@ -890,8 +887,6 @@ class DatabaseQuery:
 		return " and ".join(conditions) if conditions else ""
 
 	def set_order_by(self, args):
-		meta = frappe.get_meta(self.doctype)
-
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
 			args.order_by = self.order_by
 		else:
@@ -910,7 +905,7 @@ class DatabaseQuery:
 
 			if not group_function_without_group_by:
 				sort_field = sort_order = None
-				if meta.sort_field and "," in meta.sort_field:
+				if self.doctype_meta.sort_field and "," in self.doctype_meta.sort_field:
 					# multiple sort given in doctype definition
 					# Example:
 					# `idx desc, modified desc`
@@ -918,16 +913,16 @@ class DatabaseQuery:
 					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 					args.order_by = ", ".join(
 						f"`tab{self.doctype}`.`{f.split()[0].strip()}` {f.split()[1].strip()}"
-						for f in meta.sort_field.split(",")
+						for f in self.doctype_meta.sort_field.split(",")
 					)
 				else:
-					sort_field = meta.sort_field or "modified"
-					sort_order = (meta.sort_field and meta.sort_order) or "desc"
+					sort_field = self.doctype_meta.sort_field or "modified"
+					sort_order = (self.doctype_meta.sort_field and self.doctype_meta.sort_order) or "desc"
 					if self.order_by:
 						args.order_by = f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
 
 				# draft docs always on top
-				if hasattr(meta, "is_submittable") and meta.is_submittable:
+				if hasattr(self.doctype_meta, "is_submittable") and self.doctype_meta.is_submittable:
 					if self.order_by:
 						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
