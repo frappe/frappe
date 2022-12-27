@@ -284,8 +284,72 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 		});
 });
 
+<<<<<<< HEAD
 Cypress.Commands.add('add_filter', () => {
 	cy.get('.filter-section .filter-button').click();
+=======
+Cypress.Commands.add("update_doc", (doctype, docname, args) => {
+	return cy
+		.window()
+		.its("frappe.csrf_token")
+		.then((csrf_token) => {
+			return cy
+				.request({
+					method: "PUT",
+					url: `/api/resource/${doctype}/${docname}`,
+					body: args,
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+						"X-Frappe-CSRF-Token": csrf_token,
+					},
+				})
+				.then((res) => {
+					expect(res.status).to.eq(200);
+					return res.body.data;
+				});
+		});
+});
+
+Cypress.Commands.add("add_role", (user, role) => {
+	cy.window()
+		.its("frappe")
+		.then((frappe) => {
+			const session_user = frappe.session.user;
+			add_remove_role("add", user, role, session_user);
+		});
+});
+
+Cypress.Commands.add("remove_role", (user, role) => {
+	cy.window()
+		.its("frappe")
+		.then((frappe) => {
+			const session_user = frappe.session.user;
+			add_remove_role("remove", user, role, session_user);
+		});
+});
+
+const add_remove_role = (action, user, role, session_user) => {
+	if (session_user !== "Administrator") {
+		cy.call("logout");
+		cy.login("Administrator");
+	}
+
+	cy.call("frappe.tests.ui_test_helpers.add_remove_role", {
+		action: action,
+		user: user,
+		role: role,
+	});
+
+	if (session_user !== "Administrator") {
+		cy.call("logout");
+		cy.login(session_user);
+	}
+};
+
+Cypress.Commands.add("open_list_filter", () => {
+	cy.get(".filter-section .filter-button").click();
+>>>>>>> d5c4af53d8 (chore: Cleaner Cypress commands)
 	cy.wait(300);
 	cy.get('.filter-popover').should('exist');
 });
