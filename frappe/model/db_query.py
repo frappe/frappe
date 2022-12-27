@@ -224,6 +224,7 @@ class DatabaseQuery:
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
+		self.apply_fieldlevel_read_permissions()
 
 		args = frappe._dict()
 
@@ -547,6 +548,27 @@ class DatabaseQuery:
 				conditions.append(f)
 			else:
 				conditions.append(self.prepare_filter_condition(f))
+
+	def apply_fieldlevel_read_permissions(self):
+		"""Apply fieldlevel read permissions to the query"""
+		if self.flags.ignore_permissions:
+			return
+
+		accessible_fields = {
+			x.fieldname for x in frappe.get_meta(self.doctype).get_permlevel_read_fields()
+		}
+
+		for i, field in enumerate(self.fields):
+			if field == "*":
+				self.fields.pop(i)
+				for f in accessible_fields:
+					self.fields.insert(i, f"`tab{self.doctype}`.`{f}`")
+
+			elif field[0] in {"'", '"', "_"} or "(" in field or "." in field or field in accessible_fields:
+				continue
+
+			else:
+				self.fields.remove(field)
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
