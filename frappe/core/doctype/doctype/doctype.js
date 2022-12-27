@@ -72,8 +72,6 @@ frappe.ui.form.on("DocType", {
 
 	istable: (frm) => {
 		if (frm.doc.istable && frm.is_new()) {
-			frm.set_value("autoname", "autoincrement");
-			frm.set_value("allow_rename", 0);
 			frm.set_value("default_view", null);
 		} else if (!frm.doc.istable && !frm.is_new()) {
 			frm.events.set_default_permission(frm);
