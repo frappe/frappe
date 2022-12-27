@@ -531,6 +531,18 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
+	def get_permlevel_read_fields(self, parenttype=None, *, user=None):
+		"""Build list of fields with read perm level and all the higher perm levels defined."""
+		if not hasattr(self, "permlevel_read_fields"):
+			self.permlevel_read_fields = []
+			permlevel_access = set(self.get_permlevel_access("read", parenttype, user=user))
+
+			for df in self.get_fieldnames_with_value(with_field_meta=True):
+				if df.permlevel in permlevel_access:
+					self.permlevel_read_fields.append(df)
+
+		return self.permlevel_read_fields
+
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
 		roles = frappe.get_roles(user)
