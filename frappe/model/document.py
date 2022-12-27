@@ -191,7 +191,7 @@ class Document(BaseDocument):
 			self.__setup__()
 
 	def get_latest(self):
-		if not hasattr(self, "_doc_before_save"):
+		if not getattr(self, "_doc_before_save", None):
 			self.load_doc_before_save()
 
 		return self._doc_before_save
