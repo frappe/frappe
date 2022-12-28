@@ -371,6 +371,11 @@ Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 		});
 });
 
+Cypress.Commands.add("switch_to_user", (user) => {
+	cy.call("logout");
+	cy.login(user);
+});
+
 Cypress.Commands.add("add_role", (user, role) => {
 	cy.window()
 		.its("frappe")
@@ -391,8 +396,7 @@ Cypress.Commands.add("remove_role", (user, role) => {
 
 const add_remove_role = (action, user, role, session_user) => {
 	if (session_user !== "Administrator") {
-		cy.call("logout");
-		cy.login("Administrator");
+		cy.switch_to_user("Administrator");
 	}
 
 	cy.call("frappe.tests.ui_test_helpers.add_remove_role", {
@@ -402,8 +406,7 @@ const add_remove_role = (action, user, role, session_user) => {
 	});
 
 	if (session_user !== "Administrator") {
-		cy.call("logout");
-		cy.login(session_user);
+		cy.switch_to_user(session_user);
 	}
 };
 
