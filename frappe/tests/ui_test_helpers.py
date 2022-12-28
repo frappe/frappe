@@ -360,3 +360,204 @@ def create_blog_post():
 	).insert(ignore_if_duplicate=True)
 
 	return doc
+<<<<<<< HEAD
+=======
+
+
+def create_test_user():
+	if frappe.db.exists("User", UI_TEST_USER):
+		return
+
+	user = frappe.new_doc("User")
+	user.email = UI_TEST_USER
+	user.first_name = "Frappe"
+	user.new_password = frappe.local.conf.admin_password
+	user.send_welcome_email = 0
+	user.time_zone = "Asia/Kolkata"
+	user.flags.ignore_password_policy = True
+	user.insert(ignore_if_duplicate=True)
+
+	user.reload()
+
+	blocked_roles = {"Administrator", "Guest", "All"}
+	all_roles = set(frappe.get_all("Role", pluck="name"))
+
+	for role in all_roles - blocked_roles:
+		user.append("roles", {"role": role})
+
+	user.save()
+
+
+@whitelist_for_tests
+def setup_tree_doctype():
+	frappe.delete_doc_if_exists("DocType", "Custom Tree", force=True)
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{"fieldname": "tree", "fieldtype": "Data", "label": "Tree"},
+			],
+			"permissions": [{"role": "System Manager", "read": 1}],
+			"name": "Custom Tree",
+			"is_tree": True,
+			"naming_rule": "By fieldname",
+			"autoname": "field:tree",
+		}
+	).insert()
+
+	if not frappe.db.exists("Custom Tree", "All Trees"):
+		frappe.get_doc({"doctype": "Custom Tree", "tree": "All Trees"}).insert()
+
+
+@whitelist_for_tests
+def setup_image_doctype():
+	frappe.delete_doc_if_exists("DocType", "Custom Image", force=True)
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"custom": 1,
+			"fields": [
+				{"fieldname": "image", "fieldtype": "Attach Image", "label": "Image"},
+			],
+			"permissions": [{"role": "System Manager", "read": 1}],
+			"name": "Custom Image",
+			"image_field": "image",
+		}
+	).insert()
+
+
+@whitelist_for_tests
+def setup_inbox():
+	frappe.db.sql("DELETE FROM `tabUser Email`")
+
+	user = frappe.get_doc("User", frappe.session.user)
+	user.append("user_emails", {"email_account": "Email Linking"})
+	user.save()
+
+
+@whitelist_for_tests
+def setup_default_view(view, force_reroute=None):
+	frappe.delete_doc_if_exists("Property Setter", "Event-main-default_view")
+	frappe.delete_doc_if_exists("Property Setter", "Event-main-force_re_route_to_default_view")
+
+	frappe.get_doc(
+		{
+			"is_system_generated": 0,
+			"doctype_or_field": "DocType",
+			"doc_type": "Event",
+			"property": "default_view",
+			"property_type": "Select",
+			"value": view,
+			"doctype": "Property Setter",
+		}
+	).insert()
+
+	if force_reroute:
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"doctype_or_field": "DocType",
+				"doc_type": "Event",
+				"property": "force_re_route_to_default_view",
+				"property_type": "Check",
+				"value": "1",
+				"doctype": "Property Setter",
+			}
+		).insert()
+
+
+@whitelist_for_tests
+def create_note():
+	if not frappe.db.exists("Note", "Routing Test"):
+		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
+
+
+@whitelist_for_tests
+def create_kanban():
+	if not frappe.db.exists("Custom Field", "Note-kanban"):
+		frappe.get_doc(
+			{
+				"is_system_generated": 0,
+				"dt": "Note",
+				"label": "Kanban",
+				"fieldname": "kanban",
+				"insert_after": "seen_by",
+				"fieldtype": "Select",
+				"options": "Open\nClosed",
+				"doctype": "Custom Field",
+			}
+		).insert()
+
+	if not frappe.db.exists("Kanban Board", "_Note _Kanban"):
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"name": "_Note _Kanban",
+				"kanban_board_name": "_Note _Kanban",
+				"reference_doctype": "Note",
+				"field_name": "kanban",
+				"private": 1,
+				"show_labels": 0,
+				"columns": [
+					{
+						"column_name": "Open",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Closed",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+				],
+			}
+		).insert()
+
+
+@whitelist_for_tests
+def create_todo(description):
+	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+
+
+@whitelist_for_tests
+def create_admin_kanban():
+	if not frappe.db.exists("Kanban Board", "Admin Kanban"):
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"name": "Admin Kanban",
+				"owner": "Administrator",
+				"kanban_board_name": "Admin Kanban",
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"private": 0,
+				"show_labels": 0,
+				"columns": [
+					{
+						"column_name": "Open",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Closed",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+				],
+			}
+		).insert()
+
+
+@whitelist_for_tests
+def add_remove_role(action, user, role):
+	user_doc = frappe.get_doc("User", user)
+	if action == "remove":
+		user_doc.remove_roles(role)
+	else:
+		user_doc.add_roles(role)
+>>>>>>> 49143922c5 (chore: Kanban and ToDo UI test helpers)
