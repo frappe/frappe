@@ -105,9 +105,7 @@ class ConnectedApp(Document):
 	def get_active_token(self, user=None):
 		user = user or frappe.session.user
 		token_cache = self.get_token_cache(user)
-		if token_cache and not token_cache.is_expired():
-			return token_cache
-		elif token_cache and token_cache.get_expires_in():
+		if token_cache and token_cache.is_expired():
 			oauth_session = self.get_oauth2_session(user)
 			token = oauth_session.refresh_token(
 				body=f"redirect_uri={self.redirect_uri}",
@@ -115,7 +113,8 @@ class ConnectedApp(Document):
 				refresh_token=token_cache.get_password("refresh_token"),
 			)
 			token_cache.update_data(token)
-			return token_cache
+
+		return token_cache
 
 
 @frappe.whitelist(allow_guest=True)
@@ -151,7 +150,7 @@ def callback(code=None, state=None):
 		code=code,
 		client_secret=connected_app.get_password("client_secret"),
 		include_client_id=True,
-		**query_params
+		**query_params,
 	)
 	token_cache.update_data(token)
 

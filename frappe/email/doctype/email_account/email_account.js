@@ -72,20 +72,20 @@ function oauth_access(frm) {
 		return frappe.call({
 			doc: connected_app,
 			method: "initiate_web_application_flow",
-			callback: function(r) {
+			callback: function (r) {
 				window.open(r.message, "_self");
-			}
+			},
 		});
-	})
+	});
 }
 
-function set_default_max_attachment_size(frm, field) {
-	if (frm.doc.__islocal && !frm.doc[field]) {
+function set_default_max_attachment_size(frm) {
+	if (frm.doc.__islocal && !frm.doc["attachment_limit"]) {
 		frappe.call({
 			method: "frappe.core.api.file.get_max_file_size",
 			callback: function (r) {
 				if (!r.exc) {
-					frm.set_value(field, Number(r.message) / (1024 * 1024));
+					frm.set_value("attachment_limit", Number(r.message) / (1024 * 1024));
 				}
 			},
 		});
@@ -102,7 +102,6 @@ frappe.ui.form.on("Email Account", {
 				frm.set_value(key, value);
 			});
 		}
-		frm.events.show_gmail_message_for_less_secure_apps(frm);
 	},
 
 	use_imap: function (frm) {
@@ -130,12 +129,6 @@ frappe.ui.form.on("Email Account", {
 	},
 
 	onload: function (frm) {
-		if (frappe.utils.get_query_params().successful_authorization === "1") {
-			frappe.show_alert(__("Successfully Authorized"));
-			// FIXME: find better alternative
-			window.history.replaceState(null, "", window.location.pathname);
-		}
-
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query(
 			"append_to",
@@ -150,22 +143,16 @@ frappe.ui.form.on("Email Account", {
 			frm.add_child("imap_folder", { folder_name: "INBOX" });
 			frm.refresh_field("imap_folder");
 		}
-		set_default_max_attachment_size(frm, "attachment_limit");
+		set_default_max_attachment_size(frm);
 	},
 
 	refresh: function (frm) {
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
-		frm.events.show_gmail_message_for_less_secure_apps(frm);
-		frm.events.show_oauth_authorization_message(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals["User"][frappe.route_flags.linked_user];
-		}
-
-		if (frm.doc.connected_app && !frm.doc.connected_user) {
-			frm.set_value("connected_user", frappe.session.user);
 		}
 	},
 
@@ -177,42 +164,9 @@ frappe.ui.form.on("Email Account", {
 					connected_app: frm.doc.connected_app,
 					connected_user: frm.doc.connected_user,
 				},
-				callback: r => {
+				callback: (r) => {
 					if (!r.message) {
 						oauth_access(frm);
-					}
-				},
-			});
-		}
-	},
-
-	show_gmail_message_for_less_secure_apps: function (frm) {
-		frm.dashboard.clear_headline();
-		let msg = __(
-			"GMail will only work if you enable 2-step authentication and use app-specific password OR use OAuth."
-		);
-		let cta = __("Read the step by step guide here.");
-		msg += ` <a target="_blank" href="https://docs.erpnext.com/docs/v13/user/manual/en/setting-up/email/email_account_setup_with_gmail">${cta}</a>`;
-		if (frm.doc.service === "GMail") {
-			frm.dashboard.set_headline_alert(msg);
-		}
-	},
-
-	show_oauth_authorization_message(frm) {
-		if (frm.doc.auth_method === "OAuth") {
-			frappe.call({
-				method: "frappe.integrations.doctype.connected_app.connected_app.check_active_token",
-				args: {
-					connected_app: frm.doc.connected_app,
-					connected_user: frm.doc.connected_user,
-				},
-				callback: r => {
-					if (!r.message) {
-						let msg = __(
-							'OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.'
-						);
-						frm.dashboard.clear_headline();
-						frm.dashboard.set_headline_alert(msg, "yellow");
 					}
 				},
 			});
