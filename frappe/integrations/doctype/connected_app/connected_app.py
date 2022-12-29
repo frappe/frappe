@@ -160,11 +160,5 @@ def callback(code=None, state=None):
 
 @frappe.whitelist()
 def check_active_token(connected_app, connected_user=None):
-	is_token_active = False
 	app = frappe.get_doc("Connected App", connected_app)
-	token = app.get_active_token(connected_user)
-
-	if token:
-		is_token_active = True
-
-	return is_token_active
+	return bool(app.get_active_token(connected_user))
