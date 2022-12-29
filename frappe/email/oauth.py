@@ -61,7 +61,7 @@ class Oauth:
 			# where the connect method is called from - hence just logging and raising.
 			raise
 
-	def _connect_pop(self) -> bytes:
+	def _connect_pop(self) -> None:
 		# poplib doesn't have AUTH command implementation
 		res = self._conn._shortcmd(
 			"AUTH {} {}".format(

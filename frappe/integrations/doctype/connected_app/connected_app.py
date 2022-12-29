@@ -117,7 +117,7 @@ class ConnectedApp(Document):
 		return token_cache
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(methods=["GET"], allow_guest=True)
 def callback(code=None, state=None):
 	"""Handle client's code.
 
@@ -125,8 +125,6 @@ def callback(code=None, state=None):
 	transmit a code that can be used by the local server to obtain an access
 	token.
 	"""
-	if frappe.request.method != "GET":
-		frappe.throw(_("Invalid request method: {}").format(frappe.request.method))
 
 	if frappe.session.user == "Guest":
 		frappe.local.response["type"] = "redirect"
