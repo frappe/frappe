@@ -1915,13 +1915,13 @@ def as_json(obj: dict | list, indent=1, separators=None) -> str:
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
+			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators, ensure_ascii=False
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
+		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators, ensure_ascii=False)
 
 
 def are_emails_muted():
