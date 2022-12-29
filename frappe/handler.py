@@ -32,6 +32,8 @@ ALLOWED_MIMETYPES = (
 	"application/vnd.oasis.opendocument.text",
 	"application/vnd.oasis.opendocument.spreadsheet",
 	"text/plain",
+	"video/quicktime",
+	"video/mp4",
 )
 
 
