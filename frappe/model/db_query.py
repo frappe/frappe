@@ -555,13 +555,32 @@ class DatabaseQuery:
 		if self.flags.ignore_permissions:
 			return
 
-		accessible_fields = {x.fieldname for x in self.doctype_meta.get_permlevel_read_fields()}
+		accessible_fields = [x.fieldname for x in self.doctype_meta.get_permlevel_read_fields()]
+		meta_fields = self.doctype_meta.default_fields.copy()
+		optional_meta_fields = list(optional_fields)
+
+		if not self.doctype_meta.track_seen:
+			optional_meta_fields.remove("_seen")
+
+		if not self.doctype_meta.is_submittable:
+			meta_fields.remove("docstatus")
+
+		if self.doctype_meta.istable:
+			meta_fields.append("parent")
+			meta_fields.append("parenttype")
+			meta_fields.append("parentfield")
+		else:
+			meta_fields.remove("idx")
+
+		available_fields = meta_fields + accessible_fields + optional_meta_fields
 
 		for i, field in enumerate(self.fields):
 			if field == "*":
 				self.fields.pop(i)
-				for f in accessible_fields:
-					self.fields.insert(i, f"`tab{self.doctype}`.`{f}`")
+				k = i
+				for f in available_fields:
+					self.fields.insert(k, f"`tab{self.doctype}`.`{f}`")
+					k += 1
 
 			elif field[0] in {"'", '"', "_"} or "(" in field or "." in field or field in accessible_fields:
 				continue
