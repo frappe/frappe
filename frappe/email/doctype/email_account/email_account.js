@@ -72,6 +72,9 @@ function oauth_access(frm) {
 		return frappe.call({
 			doc: connected_app,
 			method: "initiate_web_application_flow",
+			args: {
+				success_uri: window.location.pathname,
+			},
 			callback: function (r) {
 				window.open(r.message, "_self");
 			},
