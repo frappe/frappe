@@ -118,11 +118,7 @@ def can_subscribe_doc(doctype, docname):
 
 
 @frappe.whitelist(allow_guest=True)
-<<<<<<< HEAD
-def can_subscribe_list(doctype):
-=======
 def can_subscribe_doctype(doctype: str) -> bool:
->>>>>>> c960382667 (fix(socketio)!: Event list_update > doctype_subscribe)
 	from frappe.exceptions import PermissionError
 
 	if not frappe.has_permission(user=frappe.session.user, doctype=doctype, ptype="read"):
