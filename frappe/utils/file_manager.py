@@ -31,7 +31,9 @@ def safe_b64decode(binary: bytes) -> bytes:
 	        * https://en.wikipedia.org/wiki/Base64
 	        * https://stackoverflow.com/questions/2941995/python-ignore-incorrect-padding-error-when-base64-decoding
 	"""
-	return base64.b64decode(binary + b"===")
+	#Vincent Disable
+	# return base64.b64decode(binary + b"===")
+	return base64.b64decode(binary)
 
 
 def get_file_url(file_data_name):
