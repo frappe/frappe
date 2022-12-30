@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2022-12-30 12:59:05.102100",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "allow",
+  "for_value",
+  "apply_to_all_document_types",
+  "applicable_for",
+  "hide_descendants"
+ ],
+ "fields": [
+  {
+   "fieldname": "allow",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Allow",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "for_value",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "For Value",
+   "options": "allow",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_to_all_document_types",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Apply To All Document Types"
+  },
+  {
+   "fieldname": "applicable_for",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Applicable For",
+   "options": "DocType"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_descendants",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Hide Descendants"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-12-30 12:59:05.102100",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Permissions",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
