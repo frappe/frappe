@@ -201,15 +201,11 @@ def _restore(
 	except UnicodeDecodeError:
 		_backup.decryption_rollback()
 		if encryption_key:
-			click.secho(
-				"Encrypted backup file detected. Decrypting using provided key.", fg="yellow"
-			)
+			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			_backup.backup_decryption(encryption_key)
 
 		else:
-			click.secho(
-				"Encrypted backup file detected. Decrypting using site config.", fg="yellow"
-			)
+			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 			encryption_key = get_or_generate_backup_encryption_key()
 			_backup.backup_decryption(encryption_key)
 
@@ -340,15 +336,11 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	except UnicodeDecodeError:
 		_backup.decryption_rollback()
 		if encryption_key:
-			click.secho(
-				"Encrypted backup file detected. Decrypting using provided key.", fg="yellow"
-			)
+			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			key = encryption_key
 
 		else:
-			click.secho(
-				"Encrypted backup file detected. Decrypting using site config.", fg="yellow"
-			)
+			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 			key = get_or_generate_backup_encryption_key()
 
 		_backup.backup_decryption(key)
@@ -400,9 +392,7 @@ def reinstall(
 ):
 	"Reinstall site ie. wipe all data and start over"
 	site = get_site(context)
-	_reinstall(
-		site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose
-	)
+	_reinstall(site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose)
 
 
 def _reinstall(
@@ -417,9 +407,7 @@ def _reinstall(
 	from frappe.utils.synchronization import filelock
 
 	if not yes:
-		click.confirm(
-			"This will wipe your database. Are you sure you want to reinstall?", abort=True
-		)
+		click.confirm("This will wipe your database. Are you sure you want to reinstall?", abort=True)
 	try:
 		frappe.init(site=site)
 		frappe.connect()
@@ -509,9 +497,7 @@ def list_apps(context, format):
 		apps = frappe.get_single("Installed Applications").installed_applications
 
 		if apps:
-			name_len, ver_len = (
-				max(len(x.get(y)) for x in apps) for y in ["app_name", "app_version"]
-			)
+			name_len, ver_len = (max(len(x.get(y)) for x in apps) for y in ["app_name", "app_version"])
 			template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
 
 			installed_applications = [
@@ -552,9 +538,7 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 	for site in context.sites:
 		frappe.connect(site=site)
 		try:
-			frappe.utils.user.add_system_manager(
-				email, first_name, last_name, send_welcome_email, password
-			)
+			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email, password)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -580,9 +564,7 @@ def add_user_for_sites(
 	for site in context.sites:
 		frappe.connect(site=site)
 		try:
-			add_new_user(
-				email, first_name, last_name, user_type, send_welcome_email, password, add_role
-			)
+			add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -803,10 +785,7 @@ def backup(
 				print(frappe.get_traceback())
 			exit_code = 1
 			continue
-		if (
-			frappe.get_system_settings("encrypt_backup")
-			and frappe.get_site_config().encryption_key
-		):
+		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().encryption_key:
 			click.secho(
 				"Backup encryption is turned on. Please note the backup encryption key.",
 				fg="yellow",
@@ -870,9 +849,7 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 			frappe.init(site=site)
 			frappe.connect()
 			with filelock("uninstall_app"):
-				remove_app(
-					app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force
-				)
+				remove_app(app_name=app, dry_run=dry_run, yes=yes, no_backup=no_backup, force=force)
 		finally:
 			frappe.destroy()
 	if not context.sites:
@@ -1392,9 +1369,7 @@ def trim_tables(context, dry_run, format, no_backup):
 			trimmed_data = trim_tables(dry_run=dry_run, quiet=format == "json")
 
 			if format == "table" and not dry_run:
-				click.secho(
-					f"The following data have been removed from {frappe.local.site}", fg="green"
-				)
+				click.secho(f"The following data have been removed from {frappe.local.site}", fg="green")
 
 			handle_data(trimmed_data, format=format)
 		finally:
@@ -1409,9 +1384,7 @@ def handle_data(data: dict, format="json"):
 	else:
 		from frappe.utils.commands import render_table
 
-		data = [["DocType", "Fields"]] + [
-			[table, ", ".join(columns)] for table, columns in data.items()
-		]
+		data = [["DocType", "Fields"]] + [[table, ", ".join(columns)] for table, columns in data.items()]
 		render_table(data)
 
 
