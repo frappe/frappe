@@ -149,21 +149,11 @@ def login_via_token(login_token):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="email", limit=5, seconds=60 * 60)
+@rate_limit(limit=5, seconds=60 * 60)
 def send_login_link(email: str):
-	if not frappe.db.exists("User", email):
-		frappe.throw(
-			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
-		)
 
-	key = frappe.generate_hash("Login Link", 20)
-	minutes = frappe.get_system_settings("login_with_email_link_expiry") or 10
-	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=minutes * 60)
-
-	link = get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
-
-	if frappe.flags.in_test:
-		return key
+	expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
+	link = _generate_temporary_login_link(email, expiry)
 
 	app_name = (
 		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
@@ -175,21 +165,32 @@ def send_login_link(email: str):
 		subject=subject,
 		recipients=email,
 		template="login_with_email_link",
-		args={"link": link, "minutes": minutes, "app_name": app_name},
+		args={"link": link, "minutes": expiry, "app_name": app_name},
 		now=True,
 	)
 
 
-@frappe.whitelist(allow_guest=True)
+def _generate_temporary_login_link(email: str, expiry: int):
+	assert isinstance(email, str)
+
+	if not frappe.db.exists("User", email):
+		frappe.throw(
+			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
+		)
+	key = frappe.generate_hash()
+	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+
+	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=5, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
 	email = frappe.cache().get_value(cache_key)
 
 	if email:
 		frappe.cache().delete_value(cache_key)
-
-		if frappe.flags.in_test:
-			return email
 
 		frappe.local.login_manager.login_as(email)
 

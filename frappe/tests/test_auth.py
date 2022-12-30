@@ -2,12 +2,14 @@
 # License: MIT. See LICENSE
 import time
 
+import requests
+
 import frappe
 import frappe.utils
 from frappe.auth import LoginAttemptTracker
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.tests.utils import FrappeTestCase
-from frappe.www.login import login_via_key, send_login_link
+from frappe.www.login import _generate_temporary_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -128,16 +130,30 @@ class TestAuth(FrappeTestCase):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
 	def test_login_with_email_link(self):
-		frappe.form_dict.email = self.test_user_email
-		frappe.local.request_ip = "127.0.0.1"
 
-		# test with valid key
-		key = send_login_link()
-		self.assertEqual(login_via_key(key), self.test_user_email)
+		user = self.test_user_email
 
-		# test with invalid key
-		login_via_key("invalid_key")
-		self.assertEqual(frappe.local.response["http_status_code"], 403)
+		# Logs in
+		res = requests.get(_generate_temporary_login_link(user, 10))
+		self.assertEqual(res.status_code, 200)
+		self.assertTrue(res.cookies.get("sid"))
+		self.assertNotEqual(res.cookies.get("sid"), "Guest")
+
+		# Random incorrect URL
+		res = requests.get(_generate_temporary_login_link(user, 10) + "aa")
+		self.assertEqual(res.cookies.get("sid"), "Guest")
+
+		# POST doesn't work
+		res = requests.post(_generate_temporary_login_link(user, 10))
+		self.assertEqual(res.status_code, 403)
+
+		# Rate limiting
+		for _ in range(6):
+			res = requests.get(_generate_temporary_login_link(user, 10))
+			if res.status_code == 417:
+				break
+		else:
+			self.fail("Rate limting not working")
 
 
 class TestLoginAttemptTracker(FrappeTestCase):
