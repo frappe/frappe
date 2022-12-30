@@ -233,7 +233,7 @@ class LDAPSettings(Document):
 
 		if self.ldap_directory_server.lower() == "active directory":
 			ldap_object_class = "Group"
-			ldap_group_members_attribute = "member"
+			ldap_group_members_attribute = "memberOf"
 			user_search_str = user.entry_dn
 
 		elif self.ldap_directory_server.lower() == "openldap":
