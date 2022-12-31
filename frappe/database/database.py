@@ -1267,7 +1267,7 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = frappe.qb.get_query(table=doctype, filters=filters).delete()
+		query = frappe.qb.get_query(table=doctype, filters=filters, delete=True)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 		return query.run(**kwargs)

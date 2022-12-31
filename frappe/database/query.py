@@ -256,6 +256,7 @@ class Engine:
 		for_update: bool = False,
 		update: bool = False,
 		into: bool = False,
+		delete: bool = False,
 	) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
 		# Clean up state before each query
 		self.is_mariadb = frappe.db.db_type == "mariadb"
@@ -270,6 +271,8 @@ class Engine:
 			self.query = frappe.qb.update(self.table)
 		elif into:
 			self.query = frappe.qb.into(self.table)
+		elif delete:
+			self.query = frappe.qb.from_(self.table).delete()
 		else:
 			self.query = frappe.qb.from_(self.table)
 
