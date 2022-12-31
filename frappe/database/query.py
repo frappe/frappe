@@ -130,26 +130,6 @@ def func_timespan(key: Field, value: str) -> frappe.qb:
 	return func_between(key, get_timespan_date_range(value))
 
 
-def change_orderby(order: str):
-	"""Convert orderby to standart Order object
-
-	Args:
-	        order (str): Field, order
-
-	Returns:
-	        tuple: field, order
-	"""
-	order = order.split()
-
-	try:
-		if order[1].lower() == "asc":
-			return order[0], Order.asc
-	except IndexError:
-		pass
-
-	return order[0], Order.desc
-
-
 def literal_eval_(literal):
 	try:
 		return literal_eval(literal)
@@ -164,14 +144,6 @@ def has_function(field):
 			return True
 
 
-def table_from_string(table: str) -> "DocType":
-	if frappe.db.db_type == "postgres":
-		table_name = table.split('"', maxsplit=1)[1].split(".")[0][3:].replace('"', "")
-	else:
-		table_name = table.split("`", maxsplit=1)[1].split(".")[0][3:].replace("`", "")
-	return frappe.qb.DocType(table_name=table_name)
-
-
 def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
 	table = frappe.qb.DocType(doctype)
 	try:
@@ -182,20 +154,20 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
 	if hierarchy in ("descendants of", "not descendants of"):
 		result = (
 			frappe.qb.from_(table)
-			.select(Field("name"))
-			.where(Field("lft") > lft)
-			.where(Field("rgt") < rgt)
-			.orderby(Field("lft"), order=Order.asc)
+			.select(table.name)
+			.where(table.lft > lft)
+			.where(table.rgt < rgt)
+			.orderby(table.lft, order=Order.asc)
 			.run()
 		)
 	else:
 		# Get ancestor elements of a DocType with a tree structure
 		result = (
 			frappe.qb.from_(table)
-			.select(Field("name"))
-			.where(Field("lft") < lft)
-			.where(Field("rgt") > rgt)
-			.orderby(Field("lft"), order=Order.desc)
+			.select(table.name)
+			.where(table.lft < lft)
+			.where(table.rgt > rgt)
+			.orderby(table.lft, order=Order.desc)
 			.run()
 		)
 	return result
