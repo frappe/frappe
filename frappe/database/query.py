@@ -277,7 +277,7 @@ class Engine:
 
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
-				self.query = field.apply(self.query)
+				self.query = field.apply_select(self.query)
 			else:
 				self.query = self.query.select(field)
 
@@ -487,18 +487,25 @@ class Engine:
 		_value = value
 		_operator = operator
 
-		if has_function(field):
+		if dynamic_field := DynamicTableField.parse(field, self.doctype):
+			# apply implicit join if link field's field is referenced
+			self.query = dynamic_field.apply_join(self.query)
+			_field = dynamic_field.field
+		elif has_function(field):
 			_field = self.get_function_object(field)
 		elif not doctype or doctype == self.doctype:
 			_field = self.table[field]
 		elif doctype:
 			_field = self.get_table(doctype)[field]
 
-		# keep track of implicit join if child table is referenced
+		# apply implicit join if child table is referenced
 		if doctype and doctype != self.doctype:
 			meta = frappe.get_meta(doctype)
-			if meta.istable:
-				self.implicit_joins.add((doctype, "child"))
+			table = self.get_table(doctype)
+			if meta.istable and not self.query.is_joined(table):
+				self.query = self.query.left_join(table).on(
+					(table.parent == self.table.name) & (table.parenttype == self.doctype)
+				)
 
 		if isinstance(_value, (str, int)):
 			_value = str(_value)
@@ -865,19 +872,38 @@ class DynamicTableField:
 				elif linked_field.fieldtype in frappe.model.table_fields:
 					return ChildTableField(linked_doctype, fieldname, doctype, alias=alias)
 
-	def apply(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
 		raise NotImplementedError
 
 
 class ChildTableField(DynamicTableField):
-	def apply(self, query: QueryBuilder) -> QueryBuilder:
+	def __init__(
+		self,
+		doctype: str,
+		fieldname: str,
+		parent_doctype: str,
+		alias: str | None = None,
+	) -> None:
+		self.doctype = doctype
+		self.fieldname = fieldname
+		self.alias = alias
+		self.parent_doctype = parent_doctype
+		self.table = frappe.qb.DocType(self.doctype)
+		self.field = self.table[self.fieldname]
+
+	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
+		table = frappe.qb.DocType(self.doctype)
+		query = self.apply_join(query)
+		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+
+	def apply_join(self, query: QueryBuilder) -> QueryBuilder:
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
 			query = query.left_join(table).on(
 				(table.parent == main_table.name) & (table.parenttype == self.parent_doctype)
 			)
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+		return query
 
 
 class LinkTableField(DynamicTableField):
@@ -891,10 +917,17 @@ class LinkTableField(DynamicTableField):
 	) -> None:
 		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
 		self.link_fieldname = link_fieldname
+		self.table = frappe.qb.DocType(self.doctype)
+		self.field = self.table[self.fieldname]
 
-	def apply(self, query: QueryBuilder) -> QueryBuilder:
+	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
+		table = frappe.qb.DocType(self.doctype)
+		query = self.apply_join(query)
+		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+
+	def apply_join(self, query: QueryBuilder) -> QueryBuilder:
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
 			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+		return query

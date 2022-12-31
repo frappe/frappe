@@ -192,6 +192,39 @@ class TestQuery(FrappeTestCase):
 			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
 		)
 
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"module.app_name": "frappe"},
+			).get_sql(),
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name`='frappe'".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"module.app_name": ("like", "frap%")},
+			).get_sql(),
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module` WHERE `tabModule Def`.`app_name` LIKE 'frap%'".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"permissions.role": "System Manager"},
+			).get_sql(),
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabDocPerm` ON `tabDocPerm`.`parent`=`tabDocType`.`name` AND `tabDocPerm`.`parenttype`='DocType' WHERE `tabDocPerm`.`role`='System Manager'".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
 	def test_implicit_join_query(self):
 		self.maxDiff = None
 
@@ -224,6 +257,16 @@ class TestQuery(FrappeTestCase):
 				fields=["name", "seen_by.user as seen_by", "`tabNote Seen By`.`idx` as idx"],
 			).get_sql(),
 			"SELECT `tabNote`.`name`,`tabNote Seen By`.`user` `seen_by`,`tabNote Seen By`.`idx` `idx` FROM `tabNote` LEFT JOIN `tabNote Seen By` ON `tabNote Seen By`.`parent`=`tabNote`.`name` AND `tabNote Seen By`.`parenttype`='Note' WHERE `tabNote`.`name`='Test Note Title'".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				fields=["name", "module.app_name as app_name"],
+			).get_sql(),
+			"SELECT `tabDocType`.`name`,`tabModule Def`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` ON `tabModule Def`.`name`=`tabDocType`.`module`".replace(
 				"`", '"' if frappe.db.db_type == "postgres" else "`"
 			),
 		)
