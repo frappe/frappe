@@ -13,7 +13,14 @@ frappe.ui.form.Control = class BaseControl {
 			.attr("data-fieldname", this.df.fieldname);
 		this.wrapper = this.$wrapper.get(0);
 		this.wrapper.fieldobj = this; // reference for event handlers
-		this.$wrapper.append(`<span class="tooltip-content">${__(this.df.fieldname)}</span>`);
+
+		this.tooltip = $(`<span class="tooltip-content">${__(this.df.fieldname)}</span>`);
+		this.$wrapper.append(this.tooltip);
+
+		this.tooltip.on("click", (e) => {
+			let text = $(e.target).text();
+			frappe.utils.copy_to_clipboard(text);
+		});
 	}
 
 	make_wrapper() {

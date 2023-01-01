@@ -3,16 +3,16 @@
 
 .tooltip-content {
 	position: absolute;
-	bottom: 104%;
+	bottom: 100%;
 	left: 0;
 	z-index: 9999;
 	padding: 2px 6px;
 	border-radius: var(--border-radius-sm);
-	background: var(--gray-dark);
+	background-color: var(--bg-dark-gray);
 	color: var(--text-dark);
 	font-size: var(--text-xs);
 	opacity: 0;
-	cursor: default;
+	cursor: copy;
 	transition: opacity 0.3s, transform 3s;
 	pointer-events: none;
 }
