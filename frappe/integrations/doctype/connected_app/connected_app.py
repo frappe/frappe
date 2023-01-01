@@ -107,11 +107,17 @@ class ConnectedApp(Document):
 		token_cache = self.get_token_cache(user)
 		if token_cache and token_cache.is_expired():
 			oauth_session = self.get_oauth2_session(user)
-			token = oauth_session.refresh_token(
-				body=f"redirect_uri={self.redirect_uri}",
-				token_url=self.token_uri,
-				refresh_token=token_cache.get_password("refresh_token"),
-			)
+
+			try:
+				token = oauth_session.refresh_token(
+					body=f"redirect_uri={self.redirect_uri}",
+					token_url=self.token_uri,
+					refresh_token=token_cache.get_password("refresh_token"),
+				)
+			except Exception:
+				self.log_error("Token Refresh Error")
+				return None
+
 			token_cache.update_data(token)
 
 		return token_cache
