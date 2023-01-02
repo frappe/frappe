@@ -50,6 +50,7 @@ function remove_section() {
 
 	// remove section
 	sections.splice(index, 1);
+	store.selected_field = null;
 }
 
 function select_section() {
@@ -122,7 +123,7 @@ function move_sections_to_tab() {
 					<button
 						class="btn btn-xs btn-section"
 						:title="__('Remove section')"
-						@click="remove_section"
+						@click.stop="remove_section"
 					>
 						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 					</button>

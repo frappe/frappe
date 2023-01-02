@@ -56,6 +56,7 @@ function remove_column() {
 
 	// remove column
 	columns.splice(index, 1);
+	store.selected_field = null;
 }
 
 function move_columns_to_section() {
@@ -104,7 +105,7 @@ function move_columns_to_section() {
 				<button
 					class="btn btn-xs btn-icon"
 					:title="__('Remove Column')"
-					@click="remove_column"
+					@click.stop="remove_column"
 				>
 					<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 				</button>
