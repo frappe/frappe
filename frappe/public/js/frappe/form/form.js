@@ -2051,16 +2051,12 @@ frappe.ui.form.Form = class FrappeForm {
 				this.doc.docstatus === 0
 			)
 		) {
-			if (wrapper.length) {
-				wrapper.hide();
-				wrapper.html("");
-			}
-
+			wrapper.length && wrapper.remove();
 			return;
 		}
 
 		if (!wrapper.length) {
-			wrapper = $('<div class="submission-queue-banner form-message yellow">');
+			wrapper = $('<div class="submission-queue-banner form-message">');
 			this.layout.wrapper.prepend(wrapper);
 		}
 
@@ -2070,53 +2066,40 @@ frappe.ui.form.Form = class FrappeForm {
 				args: { doctype: this.doctype, docname: this.docname },
 			})
 			.then((r) => {
-				if (r.message.latest_submission) {
+				if (r.message?.latest_submission) {
 					// if we are here that means some submission(s) were queued and are in queued/failed state
-					let col_width = 4;
-					let failed_link = "";
 					let submission_label = __("Previous Submission");
+					let secondary = "";
+					let div_class = "col-md-12";
 
-					if (r.message.latest_failed_submission) {
-						if (r.message.latest_failed_submission !== r.message.latest_submission) {
-							col_width = 3;
-							failed_link = `<div class="col-md-3">
-								<a href='/app/submission-queue/${r.message.latest_failed_submission}'>${__(
-								"Previous Failed Submission"
-							)}</a>
-							</div>`;
-						} else {
-							if (r.message.latest_failed_submission_exc_info) {
-								submission_label = r.message.latest_failed_submission_exc_info;
-							} else {
-								submission_label = "Errored";
-							}
-						}
+					if (r.message.exc) {
+						secondary = `: <span>${r.message.exc}</span>`;
+					} else {
+						div_class = "col-md-6";
+						secondary = `
+						</div>
+						<div class="col-md-6">
+							<a href='/app/submission-queue?ref_doctype=${encodeURIComponent(
+								this.doctype
+							)}&ref_docname=${encodeURIComponent(this.docname)}'>${__(
+							"All Submissions"
+						)}</a>
+						`;
 					}
 
 					let html = `
-				<div class="row">
-					<div class="col-md-${col_width}">
-						<strong>${__(`Submission Status: ${r.message.latest_submission_status}`)}</strong>
+					<div class="row">
+						<div class="${div_class}">
+							<a href='/app/submission-queue/${r.message.latest_submission}'>${submission_label} (${r.message.status})</a>${secondary}
+						</div>
 					</div>
-					<div class="col-md-${col_width}">
-						<a href='/app/submission-queue/${r.message.latest_submission}'>${submission_label}</a>
-					</div>
-					${failed_link}
-					<div class="col-md-${col_width}">
-						<a href='/app/submission-queue?ref_doctype=${encodeURIComponent(
-							this.doctype
-						)}&ref_docname=${encodeURIComponent(this.docname)}'>${__(
-						"All Submissions"
-					)}</a>
-					</div>
-				</div>
-				`;
+					`;
 
-					wrapper.show();
+					wrapper.removeClass("red").removeClass("yellow");
+					wrapper.addClass(r.message.status == "Failed" ? "red" : "yellow");
 					wrapper.html(html);
 				} else {
-					wrapper.hide();
-					wrapper.html("");
+					wrapper.remove();
 				}
 			});
 	}

@@ -20,8 +20,9 @@
  "fields": [
   {
    "fieldname": "job_id",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Job Id",
+   "options": "RQ Job",
    "read_only": 1
   },
   {
@@ -87,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-11-12 16:48:37.797232",
+ "modified": "2023-01-02 23:53:55.010001",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
