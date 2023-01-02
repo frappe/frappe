@@ -372,11 +372,8 @@ class Meta(Document):
 		if not frappe.db.table_exists("Property Setter"):
 			return
 
-		property_setters = frappe.db.sql(
-			"""select * from `tabProperty Setter` where
-			doc_type=%s""",
-			(self.name,),
-			as_dict=1,
+		property_setters = frappe.db.get_values(
+			"Property Setter", fieldname="*", filters={"doc_type": self.name}, as_dict=1
 		)
 
 		if not property_setters:

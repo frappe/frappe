@@ -189,6 +189,7 @@ class CustomizeForm(Document):
 
 		# doctype
 		self.set_property_setters_for_doctype(meta)
+		self.set_property_setter_for_field_order(meta)
 
 		# docfield
 		for df in self.get("fields"):
@@ -199,6 +200,30 @@ class CustomizeForm(Document):
 
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
+
+	def set_property_setter_for_field_order(self, meta):
+		has_changed = False
+
+		if current_order := frappe.get_value(
+			"Property Setter",
+			fieldname="value",
+			filters={"doc_type": self.doctype, "property": "field_order"},
+		):
+			current_order = current_order.replace(" ", "").split(",")
+			has_changed = sum(a != b.fieldname for a, b in zip(current_order, self.get("fields")))
+
+		else:
+			has_changed = sum(
+				a.fieldname != b.fieldname for a, b in zip(self.get("fields"), meta.get("fields"))
+			)
+
+		if not has_changed:
+			return
+
+		field_order = ", ".join([a.fieldname for a in self.get("fields")])
+		frappe.make_property_setter(
+			args={"doctype": self.doctype, "property": "field_order", "value": field_order}
+		)
 
 	def set_property_setters_for_doctype(self, meta):
 		for prop, prop_type in doctype_properties.items():

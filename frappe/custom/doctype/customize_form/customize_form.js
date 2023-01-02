@@ -89,10 +89,6 @@ frappe.ui.form.on("Customize Form", {
 
 	setup_sortable: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (!f.is_custom_field) {
-				f._sortable = false;
-			}
-
 			if (f.fieldtype == "Table") {
 				frm.add_custom_button(
 					f.options,
