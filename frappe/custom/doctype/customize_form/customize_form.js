@@ -51,11 +51,11 @@ frappe.ui.form.on("Customize Form", {
 		});
 
 		$(frm.wrapper).on("grid-make-sortable", function (e, frm) {
-			frm.trigger("setup_sortable");
+			frm.trigger("customize_child_table");
 		});
 
 		$(frm.wrapper).on("grid-move-row", function (e, frm) {
-			frm.trigger("setup_sortable");
+			frm.trigger("customize_child_table");
 		});
 	},
 
@@ -71,7 +71,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.set_value("doc_type", "");
 						} else {
 							frm.refresh();
-							frm.trigger("setup_sortable");
+							frm.trigger("customize_child_table");
 							frm.trigger("setup_default_views");
 						}
 					}
@@ -87,7 +87,7 @@ frappe.ui.form.on("Customize Form", {
 		frm.trigger("setup_default_views");
 	},
 
-	setup_sortable: function (frm) {
+	customize_child_table: function (frm) {
 		frm.doc.fields.forEach(function (f) {
 			if (f.fieldtype == "Table") {
 				frm.add_custom_button(
@@ -99,7 +99,6 @@ frappe.ui.form.on("Customize Form", {
 				);
 			}
 		});
-		frm.fields_dict.fields.grid.refresh();
 	},
 
 	refresh: function (frm) {
