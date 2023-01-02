@@ -210,10 +210,10 @@ class CustomizeForm(Document):
 			filters={"doc_type": self.doctype, "property": "field_order"},
 		):
 			current_order = current_order.replace(" ", "").split(",")
-			has_changed = sum(a != b.fieldname for a, b in zip(current_order, self.get("fields")))
+			has_changed = any(a != b.fieldname for a, b in zip(current_order, self.get("fields")))
 
 		else:
-			has_changed = sum(
+			has_changed = any(
 				a.fieldname != b.fieldname for a, b in zip(self.get("fields"), meta.get("fields"))
 			)
 

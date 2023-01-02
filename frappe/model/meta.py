@@ -147,14 +147,16 @@ class Meta(Document):
 		self.add_custom_links_and_actions()
 
 	def sort_fields_from_property_setter(self):
-		sorted_fields = []
 		field_order = frappe.db.get_value(
 			"Property Setter",
 			fieldname="value",
-			filters={"doc_type": self.doctype, "property": "field_order"},
+			filters={"doc_type": self.name, "property": "field_order"},
 		)
 		if not field_order:
 			return
+
+		sorted_fields = []
+		field_order = field_order.replace(" ", "").split(",")
 
 		for idx, fieldname in enumerate(field_order, 1):
 			field = self._fields[fieldname]
