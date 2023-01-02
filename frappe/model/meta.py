@@ -137,6 +137,7 @@ class Meta(Document):
 		has_custom_fields = self.add_custom_fields()
 		self.apply_property_setters()
 		self.init_field_caches()
+		self.sort_fields_from_property_setter()
 
 		if has_custom_fields:
 			self.sort_fields()
@@ -144,6 +145,23 @@ class Meta(Document):
 		self.get_valid_columns()
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
+
+	def sort_fields_from_property_setter(self):
+		sorted_fields = []
+		field_order = frappe.db.get_value(
+			"Property Setter",
+			fieldname="value",
+			filters={"doc_type": self.doctype, "property": "field_order"},
+		)
+		if not field_order:
+			return
+
+		for idx, fieldname in enumerate(field_order, 1):
+			field = self._fields[fieldname]
+			field.idx = idx
+			sorted_fields.append(field)
+
+		self.fields = sorted_fields
 
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):

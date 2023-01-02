@@ -222,7 +222,13 @@ class CustomizeForm(Document):
 
 		field_order = ", ".join([a.fieldname for a in self.get("fields")])
 		frappe.make_property_setter(
-			args={"doctype": self.doctype, "property": "field_order", "value": field_order}
+			args={
+				"doctype": self.doc_type,
+				"property": "field_order",
+				"value": field_order,
+				"doctype_or_field": "DocType",
+			},
+			is_system_generated=False,
 		)
 
 	def set_property_setters_for_doctype(self, meta):
