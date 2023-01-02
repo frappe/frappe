@@ -279,7 +279,7 @@ export function scrub_field_names(fields) {
 		if (d.fieldtype) {
 			if (!d.fieldname) {
 				if (d.label) {
-					d.fieldname = d.label.trim().toLowerCase().replace(" ", "_");
+					d.fieldname = d.label.trim().toLowerCase().replaceAll(" ", "_");
 					if (d.fieldname.endsWith("?")) {
 						d.fieldname = d.fieldname.slice(0, -1);
 					}
@@ -295,7 +295,7 @@ export function scrub_field_names(fields) {
 					}
 				} else {
 					d.fieldname =
-						d.fieldtype.toLowerCase().replace(" ", "_") +
+						d.fieldtype.toLowerCase().replaceAll(" ", "_") +
 						"_" +
 						frappe.utils.get_random(4);
 				}
