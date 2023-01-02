@@ -1134,8 +1134,14 @@ def stop_recording(context):
 @click.option(
 	"--bind-tls", is_flag=True, default=False, help="Returns a reference to the https tunnel."
 )
+@click.option(
+	"--use-default-authtoken",
+	is_flag=True,
+	default=False,
+	help="Use the auth token present in ngrok's config.",
+)
 @pass_context
-def start_ngrok(context, bind_tls):
+def start_ngrok(context, bind_tls, use_default_authtoken):
 	"""Start a ngrok tunnel to your local development server."""
 	from pyngrok import ngrok
 
@@ -1143,13 +1149,15 @@ def start_ngrok(context, bind_tls):
 	frappe.init(site=site)
 
 	ngrok_authtoken = frappe.conf.ngrok_authtoken
-	if not ngrok_authtoken:
-		click.echo(
-			f"{click.style('ngrok_authtoken', bold=True)} not found in site config. Please register for a free ngrok account at: https://dashboard.ngrok.com/signup and place the obtained authtoken in site_config.json file.\n",
-			err=True,
-		)
-		sys.exit(1)
-	ngrok.set_auth_token(ngrok_authtoken)
+	if not use_default_authtoken:
+		if not ngrok_authtoken:
+			click.echo(
+				f"\n{click.style('ngrok_authtoken', fg='yellow')} not found in site config.\n"
+				"Please register for a free ngrok account at: https://dashboard.ngrok.com/signup and place the obtained authtoken in the site config.",
+			)
+			sys.exit(1)
+
+		ngrok.set_auth_token(ngrok_authtoken)
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
