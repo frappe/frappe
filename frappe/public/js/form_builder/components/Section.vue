@@ -128,6 +128,7 @@ function move_sections_to_tab() {
 					</button>
 				</div>
 			</div>
+			<div v-if="section.df.description" class="section-description">{{ section.df.description }}</div>
 			<div class="section-columns" :class="{ hidden: section.df.collapsible && collapsed }">
 				<draggable
 					class="section-columns-container"
@@ -226,6 +227,12 @@ function move_sections_to_tab() {
 					background-color: var(--bg-light-gray);
 				}
 			}
+		}
+
+		.section-description {
+			margin-bottom: 10px;
+			font-size: var(--text-xs);
+			color: var(--text-muted);
 		}
 
 		.section-columns-container {

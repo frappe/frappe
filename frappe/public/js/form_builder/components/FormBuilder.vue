@@ -210,6 +210,10 @@ onMounted(() => {
 				}
 			}
 
+			.section-description {
+				padding-left: 15px;
+			}
+
 			.section-columns {
 				margin-top: 8px;
 
