@@ -207,6 +207,7 @@ function move_sections_to_tab() {
 
 				:deep(span) {
 					font-weight: 600;
+					color: var(--heading-color);
 				}
 
 				.collapse-indicator {

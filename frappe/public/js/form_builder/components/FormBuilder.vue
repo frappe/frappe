@@ -223,6 +223,14 @@ onMounted(() => {
 						padding-right: 15px;
 						margin: 0;
 
+						.column-header {
+							padding-left: 0;
+						}
+
+						.column-description {
+							margin-left: 0;
+						}
+
 						.field {
 							margin: 0;
 							margin-bottom: 1rem;
