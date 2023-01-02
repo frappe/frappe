@@ -226,8 +226,13 @@ export const useStore = defineStore("form-builder-store", {
 					}
 
 					section.columns.forEach((column, k) => {
-						// do not consider first column
-						if (k > 0 || column.fields.length == 0) {
+						// do not consider first column if label is not set
+						if (
+							(k == 0 &&
+								this.is_df_updated(column.df, this.get_df("Column Break"))) ||
+							k > 0 ||
+							column.fields.length == 0
+						) {
 							idx++;
 							column.df.idx = idx;
 							fields.push(column.df);
