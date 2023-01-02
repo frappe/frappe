@@ -179,6 +179,7 @@ class Document(BaseDocument):
 				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
 				"*",
 				as_dict=True,
+				for_update=self.flags.for_update,
 				order_by="idx asc",
 			)
 			if children:
