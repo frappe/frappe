@@ -147,7 +147,7 @@ class Meta(Document):
 		self.add_custom_links_and_actions()
 
 	def sort_fields_from_property_setter(self):
-		if not self.field_order:
+		if not hasattr(self, "field_order") or not self.field_order:
 			return
 
 		sorted_fields = []
