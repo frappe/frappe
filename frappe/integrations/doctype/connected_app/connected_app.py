@@ -112,7 +112,6 @@ class ConnectedApp(Document):
 				token = oauth_session.refresh_token(
 					body=f"redirect_uri={self.redirect_uri}",
 					token_url=self.token_uri,
-					refresh_token=token_cache.get_password("refresh_token"),
 				)
 			except Exception:
 				self.log_error("Token Refresh Error")
