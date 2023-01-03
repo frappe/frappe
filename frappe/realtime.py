@@ -115,7 +115,7 @@ def can_subscribe_doc(doctype: str, docname: str) -> bool:
 
 
 @frappe.whitelist(allow_guest=True)
-def can_subscribe_list(doctype: str) -> bool:
+def can_subscribe_doctype(doctype: str) -> bool:
 	from frappe.exceptions import PermissionError
 
 	if not frappe.has_permission(user=frappe.session.user, doctype=doctype, ptype="read"):

@@ -25,6 +25,10 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		if (df.fieldname === "reqd" && store.selected_field.fieldtype === "Check") {
+			return false;
+		}
+
 		if (df.fieldname === "options") {
 			df.fieldtype = "Small Text";
 			df.options = "";

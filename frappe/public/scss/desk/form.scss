@@ -3,16 +3,16 @@
 
 .tooltip-content {
 	position: absolute;
-	bottom: 104%;
+	bottom: 100%;
 	left: 0;
 	z-index: 9999;
 	padding: 2px 6px;
 	border-radius: var(--border-radius-sm);
-	background: var(--gray-dark);
+	background-color: var(--bg-dark-gray);
 	color: var(--text-dark);
 	font-size: var(--text-xs);
 	opacity: 0;
-	cursor: default;
+	cursor: copy;
 	transition: opacity 0.3s, transform 3s;
 	pointer-events: none;
 }
@@ -67,6 +67,21 @@
 		&:first-child {
 			margin-top: var(--margin-sm);
 		}
+	}
+}
+
+.form-column {
+	.form-column-description {
+		margin-bottom: 10px;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		padding-left: 0;
+	}
+
+	.column-label {
+		font-weight: 600;
+		color: var(--heading-color);
+		cursor: pointer;
 	}
 }
 

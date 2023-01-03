@@ -178,6 +178,7 @@ class Document(BaseDocument):
 					"*",
 					as_dict=True,
 					order_by="idx asc",
+					for_update=self.flags.for_update,
 				)
 				or []
 			)
@@ -193,7 +194,7 @@ class Document(BaseDocument):
 		self.load_from_db()
 
 	def get_latest(self):
-		if not hasattr(self, "_doc_before_save"):
+		if not getattr(self, "_doc_before_save", None):
 			self.load_doc_before_save()
 
 		return self._doc_before_save
