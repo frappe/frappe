@@ -1,3 +1,5 @@
+//import { TempusDominus } from '/assets/frappe/js/lib/tempus-dominus/tempus-dominus.min.js';
+
 frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
 	make_input() {
@@ -13,7 +15,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (value === "Today") {
 			value = this.get_now_date();
 		}
-
+		console.log("datepicker-0" + value);
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
@@ -21,7 +23,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			this.datepicker.clear();
 			return;
 		}
-
+		console.log("datepicker-1" + this.datepicker.selectedDates[0]);
+		console.log("datepicker-2" + this.datepicker);
 		let should_refresh = this.last_value && this.last_value !== value;
 
 		if (!should_refresh) {
@@ -85,15 +88,63 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		return this.get_now_date();
 	}
 
-	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
+	set_datepicker(value) {
+		let sysdefaults = frappe.boot.sysdefaults;
 
-		// today button didn't work as expected,
-		// so explicitly bind the event
-		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(this.get_now_date());
+		let lang = "en";
+		frappe.boot.user && (lang = frappe.boot.user.language);
+		if (!$.fn.datepicker.language[lang]) {
+			lang = "en";
+		}
+
+		let date_format =
+			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
+
+
+		console.log(date_format);
+		//console.log(this.datepicker.selectedDates[0]);
+
+		frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.js").then(() => {
+			frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.css");
+			frappe.require("/assets/frappe/js/lib/tempus-dominus/popper.min.js");
+			}).then(() => {
+				new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+				display: {
+					components: {
+					decades: false,
+					year: true,
+					month: true,
+					date: true,
+					hours: false,
+					minutes: false,
+					seconds: false
+					},
+					icons: {
+						type: 'sprites',
+						time: '#icon-select',
+						date: '#icon-select',
+						up: '#icon-small-up',
+						down: '#icon-down',
+						previous: '#icon-left',
+						next: '#icon-right',
+						today: '#icon-today',
+						clear: '#icon-refresh',
+						close: '#icon-close-alt'
+					},
+					theme: 'dark',
+					buttons: {
+						today: true,
+						clear: true,
+						close: true
+					  }
+				},
+				localization: {
+					locale: lang,
+					format: date_format,
+				  }
+		  });
 		});
+		this.$input.attr("inputmode", "none");
 	}
 	update_datepicker_position() {
 		if (!this.frm) return;
@@ -146,6 +197,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			if (value == "Invalid date") {
 				return "";
 			}
+			console.log(value);
+			console.log(frappe.datetime.user_to_str(value, false, true) + "abcde");
 			return frappe.datetime.user_to_str(value, false, true);
 		}
 	}

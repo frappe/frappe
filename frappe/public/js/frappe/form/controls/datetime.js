@@ -1,5 +1,7 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
+		console.log("formatted-1" + value);
+		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if (!value) {
@@ -13,7 +15,17 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
 		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		console.log("formatted-2" + value);
+		console.log("formatted-3" + this.datepicker.selectDate(frappe.datetime.user_to_obj(value)));
 	}
+
+	// make_input() {
+	// 	super.make_input();
+	// }
+
+	// make_picker() {
+	// 	this.set_datepicker();
+	// }
 
 	get_start_date() {
 		this.value = this.value == null ? undefined : this.value;
@@ -36,11 +48,14 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.datetime.now_datetime(true);
 	}
 	parse(value) {
+		//console.trace();
+		console.log("parse" + value);
 		if (value) {
 			value = frappe.datetime.user_to_str(value, false);
-
+			console.log("parse-2" + value);
 			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);
+				console.log("parse-3" + value);
 			}
 
 			if (value == "Invalid date") {
@@ -73,14 +88,61 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
-		super.set_datepicker();
-		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
-			// No seconds in time format
-			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css("display", "none");
-			$tp.$secondsText.css("display", "none");
-			$tp.$secondsText.prev().css("display", "none");
+		let sysdefaults = frappe.boot.sysdefaults;
+
+		let lang = "en";
+		frappe.boot.user && (lang = frappe.boot.user.language);
+		if (!$.fn.datepicker.language[lang]) {
+			lang = "en";
 		}
+
+		let date_format =
+			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
+
+
+		console.log("date_format" + date_format);
+		//console.log(this.datepicker.selectedDates[0]);
+
+		frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.js").then(() => {
+			frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.css");
+			frappe.require("/assets/frappe/js/lib/tempus-dominus/popper.min.js");
+			}).then(() => {
+				new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+				display: {
+					components: {
+					decades: false,
+					year: true,
+					month: true,
+					date: true,
+					hours: true,
+					minutes: true,
+					seconds: false
+					},
+					icons: {
+						type: 'sprites',
+						time: '#icon-select',
+						date: '#icon-select',
+						up: '#icon-small-up',
+						down: '#icon-down',
+						previous: '#icon-left',
+						next: '#icon-right',
+						today: '#icon-today',
+						clear: '#icon-refresh',
+						close: '#icon-close-alt'
+					},
+					theme: 'dark',
+					buttons: {
+						today: true,
+						clear: true,
+						close: true
+					  }
+				},
+				localization: {
+					format: "dd.mm.yyyy, hh:mm",
+				  }
+		  });
+		});
+		this.$input.attr("inputmode", "none");
 	}
 
 	get_model_value() {

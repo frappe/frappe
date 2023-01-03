@@ -46,8 +46,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		super.set_input(value);
 		if (
 			value &&
-			((this.last_value && this.last_value !== this.value) ||
-				!this.datepicker.selectedDates.length)
+			((this.last_value && this.last_value !== this.value))
 		) {
 			let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
 			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
@@ -55,20 +54,37 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		}
 	}
 	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
-
-		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(frappe.datetime.now_time(true));
-			this.datepicker.hide();
+		frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.js").then(() => {
+			frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.css");
+			frappe.require("/assets/frappe/js/lib/tempus-dominus/popper.min.js");}).then(() => {
+				new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+				display: {
+					components: {
+					decades: false,
+					year: false,
+					month: false,
+					date: false,
+					hours: true,
+					minutes: true,
+					seconds: false
+					},
+					icons: {
+						type: 'sprites',
+						time: '#icon-select',
+						date: '#icon-select',
+						up: '#icon-small-up',
+						down: '#icon-down',
+						previous: '#icon-left',
+						next: '#icon-right',
+						today: '#icon-today',
+						clear: '#icon-refresh',
+						close: '#icon-close-alt'
+					},
+					theme: 'dark'
+				}
+		  });
 		});
-		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
-			// No seconds in time format
-			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css("display", "none");
-			$tp.$secondsText.css("display", "none");
-			$tp.$secondsText.prev().css("display", "none");
-		}
+		this.$input.attr("inputmode", "none");
 	}
 	set_description() {
 		const { description } = this.df;
@@ -83,12 +99,21 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		super.set_description();
 	}
 	parse(value) {
+		//console.trace();
+		console.log("parse" + value);
 		if (value) {
+			// value = frappe.datetime.user_to_str(value, false);
+			// console.log("parse-2" + value);
+			if (!frappe.datetime.is_system_time_zone()) {
+				value = frappe.datetime.convert_to_system_tz(value, true);
+				console.log("parse-3" + value);
+			}
+
 			if (value == "Invalid date") {
 				value = "";
 			}
-			return frappe.datetime.user_to_str(value, true);
 		}
+		return value;
 	}
 	format_for_input(value) {
 		if (value) {

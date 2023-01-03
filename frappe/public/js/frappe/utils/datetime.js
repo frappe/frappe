@@ -1,5 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+import parse from 'date-fns/parse';
+import { format } from 'date-fns';
 
 frappe.provide("frappe.datetime");
 
@@ -63,6 +65,12 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_obj: function (d) {
+		let new_def_t = frappe.defaultDatetimeFormat.replace("YYYY", "yyyy").replace("DD", "dd")
+		console.log("obj" + frappe.defaultDatetimeFormat);
+		var test_obj = parse(d, "yyyy-MM-dd", new Date());
+		console.log("0---" + d);
+		console.log("1---" + test_obj);
+		console.log("2---" + moment(d, frappe.defaultDatetimeFormat)._d);
 		return moment(d, frappe.defaultDatetimeFormat)._d;
 	},
 
@@ -167,23 +175,84 @@ $.extend(frappe.datetime, {
 	},
 
 	user_to_str: function (val, only_time = false) {
+		console.log("0." + val);
 		var user_time_fmt = frappe.datetime.get_user_time_fmt();
 		if (only_time) {
 			return moment(val, user_time_fmt).format(frappe.defaultTimeFormat);
 		}
 
-		var user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-		var system_fmt = "YYYY-MM-DD";
+		let user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+		let user_fmt2 = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
+		let system_fmt = "YYYY-MM-DD";
 
 		if (val.indexOf(" ") !== -1) {
 			user_fmt += " " + user_time_fmt;
+			user_fmt2 += ", " + user_time_fmt;
 			system_fmt += " HH:mm:ss";
 		}
 
+		console.log("5." + moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
+		.locale("en")
+		.format(system_fmt));
+
+		console.log(user_fmt2);
+		var date_new = parse(val, user_fmt2, new Date());
+		console.log("date" + date_new);
+
+		var year = date_new.toLocaleString("default", { year: "numeric" });
+		var month = date_new.toLocaleString("default", { month: "2-digit" });
+		var day = date_new.toLocaleString("default", { day: "2-digit" });
+		var hour = date_new.toLocaleString("default", { hour: "numeric" });
+		var minute = date_new.toLocaleString("default", { minute: "2-digit" });
+
+		// Generate yyyy-mm-dd date string
+		var formattedDate = year + "-" + month + "-" + day + " " + hour + ":" + minute;
+		let formattedDate2 = year + "-" + month + "-" + day;
+
+		//let date_formated = format(date_new, system_fmt);
+
+		//console.log(date_formated);
+		console.log("$%&" + formattedDate);  // Prints: 04-05-2022
+		console.log("$%&" + formattedDate2);  // Prints: 04-05-2022
+
+		//return formattedDate;
+		console.log(moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
+		.locale("en")
+		.format(system_fmt));
+
 		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
+		return moment(val, "DD.MM.YYYY, HH:mm")
+			.locale("en")
+			.format(system_fmt);
 		return moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
 			.locale("en")
 			.format(system_fmt);
+	},
+
+	parse_to_datepicker: function(val) {
+		console.log("date_parse" + val);
+		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
+		let user_fmt2 = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
+		let user_time_fmt = frappe.datetime.get_user_time_fmt();
+		let system_fmt = "YYYY-MM-DD";
+
+		console.log("user_time_fmt:" + user_time_fmt);
+		console.log("userfmt_before:" + user_fmt2);
+		console.log("val:" + val.indexOf(" "));
+		if (val.indexOf(":") !== -1) {
+			console.log("if-triggered" + user_fmt2);
+			user_fmt2 = user_time_fmt;
+			system_fmt += " HH:mm:ss";
+			console.log("userfmt_if" + user_fmt2);
+			if (val.indexOf(" ") !== -1) {
+				user_fmt2 = user_fmt + " " + user_time_fmt;
+				console.log("userfmt_if2" + user_fmt2);
+			}
+		}
+		console.log("userfmt_after" + user_fmt2);
+		let datepicker_out = parse(val, user_fmt2, new Date());
+		console.log("datepicker_out" + user_fmt2);
+		return datepicker_out;
 	},
 
 	user_to_obj: function (d) {
