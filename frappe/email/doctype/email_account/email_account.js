@@ -74,6 +74,7 @@ function oauth_access(frm) {
 			method: "initiate_web_application_flow",
 			args: {
 				success_uri: window.location.pathname,
+				user: frm.doc.connected_user,
 			},
 			callback: function (r) {
 				window.open(r.message, "_self");
@@ -147,6 +148,7 @@ frappe.ui.form.on("Email Account", {
 			frm.refresh_field("imap_folder");
 		}
 		set_default_max_attachment_size(frm);
+		frm.events.show_oauth_authorization_message(frm);
 	},
 
 	refresh: function (frm) {
@@ -178,6 +180,27 @@ frappe.ui.form.on("Email Account", {
 
 	authorize_api_access: function (frm) {
 		oauth_access(frm);
+	},
+
+	show_oauth_authorization_message(frm) {
+		if (frm.doc.auth_method === "OAuth") {
+			frappe.call({
+				method: "frappe.integrations.doctype.connected_app.connected_app.check_active_token",
+				args: {
+					connected_app: frm.doc.connected_app,
+					connected_user: frm.doc.connected_user,
+				},
+				callback: (r) => {
+					if (!r.message) {
+						let msg = __(
+							'OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.'
+						);
+						frm.dashboard.clear_headline();
+						frm.dashboard.set_headline_alert(msg, "yellow");
+					}
+				},
+			});
+		}
 	},
 
 	domain: frappe.utils.debounce((frm) => {

@@ -82,6 +82,7 @@ class EmailAccount(Document):
 			return
 
 		use_oauth = self.auth_method == "OAuth"
+		validate_oauth = use_oauth and not (self.is_new() and not self.get_oauth_token())
 		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
 
 		if use_oauth:
@@ -90,7 +91,7 @@ class EmailAccount(Document):
 			self.password = None
 
 		if not frappe.local.flags.in_install and not self.awaiting_password:
-			if use_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
+			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
