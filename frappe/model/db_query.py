@@ -231,8 +231,8 @@ class DatabaseQuery:
 
 		if self.with_childnames:
 			for t in self.tables:
-				if t != "`tab" + self.doctype + "`":
-					self.fields.append(t + ".name as '%s:name'" % t[4:-1])
+				if t != f"`tab{self.doctype}`":
+					self.fields.append(f"{t}.name as '{t[4:-1]}:name'")
 
 		# query dict
 		args.tables = self.tables[0]
@@ -536,7 +536,7 @@ class DatabaseQuery:
 			if match_conditions:
 				self.conditions.append(f"({match_conditions})")
 
-	def build_filter_conditions(self, filters, conditions, ignore_permissions=None):
+	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
 		if ignore_permissions is not None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -566,9 +566,7 @@ class DatabaseQuery:
 			meta_fields.remove("docstatus")
 
 		if self.doctype_meta.istable:
-			meta_fields.append("parent")
-			meta_fields.append("parenttype")
-			meta_fields.append("parentfield")
+			meta_fields.extend(["parent", "parenttype", "parentfield"])
 		else:
 			meta_fields.remove("idx")
 
@@ -576,11 +574,7 @@ class DatabaseQuery:
 
 		for i, field in enumerate(self.fields):
 			if field == "*":
-				self.fields.pop(i)
-				k = i
-				for f in available_fields:
-					self.fields.insert(k, f"`tab{self.doctype}`.`{f}`")
-					k += 1
+				self.fields[i : i + 1] = available_fields
 
 			elif field[0] in {"'", '"', "_"} or "(" in field or "." in field or field in accessible_fields:
 				continue
