@@ -165,9 +165,10 @@ def get_info_via_oauth(
 
 def login_oauth_user(
 	data: dict | str,
-	*,
 	provider: str | None = None,
-	state: dict | str,
+	state: dict | str | None = None,
+	email_id: str | None = None,
+	key: str | None = None,
 	generate_login_token: bool = False,
 ):
 	# json.loads data and state
