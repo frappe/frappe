@@ -582,6 +582,40 @@ def create_kanban():
 
 
 @whitelist_for_tests
+def create_todo(description):
+	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+
+
+@whitelist_for_tests
+def create_admin_kanban():
+	if not frappe.db.exists("Kanban Board", "Admin Kanban"):
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"name": "Admin Kanban",
+				"owner": "Administrator",
+				"kanban_board_name": "Admin Kanban",
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"private": 0,
+				"show_labels": 0,
+				"columns": [
+					{
+						"column_name": "Open",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Closed",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+				],
+			}
+		).insert()
+
+
+@whitelist_for_tests
 def add_remove_role(action, user, role):
 	user_doc = frappe.get_doc("User", user)
 	if action == "remove":
