@@ -178,6 +178,7 @@ class Document(BaseDocument):
 					"*",
 					as_dict=True,
 					order_by="idx asc",
+					for_update=self.flags.for_update,
 				)
 				or []
 			)
