@@ -49,14 +49,6 @@ frappe.ui.form.on("Customize Form", {
 				grid_row.row.addClass("highlight");
 			}
 		});
-
-		$(frm.wrapper).on("grid-make-sortable", function (e, frm) {
-			frm.trigger("customize_child_table");
-		});
-
-		$(frm.wrapper).on("grid-move-row", function (e, frm) {
-			frm.trigger("customize_child_table");
-		});
 	},
 
 	doc_type: function (frm) {
