@@ -19,6 +19,7 @@ function remove_field() {
 	}
 	let index = props.column.fields.indexOf(props.field);
 	props.column.fields.splice(index, 1);
+	store.selected_field = null;
 }
 
 function move_fields_to_column() {
@@ -75,7 +76,7 @@ function move_fields_to_column() {
 					>
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
 					</button>
-					<button class="btn btn-xs btn-icon" @click="remove_field">
+					<button class="btn btn-xs btn-icon" @click.stop="remove_field">
 						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 					</button>
 				</div>

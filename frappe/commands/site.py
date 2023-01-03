@@ -109,7 +109,8 @@ def new_site(
 	"--with-public-files", help="Restores the public files of the site, given path to its tar file"
 )
 @click.option(
-	"--with-private-files", help="Restores the private files of the site, given path to its tar file"
+	"--with-private-files",
+	help="Restores the private files of the site, given path to its tar file",
 )
 @click.option(
 	"--force",
@@ -191,7 +192,8 @@ def _restore(
 				fg="red",
 			)
 			click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.", fg="yellow"
+				"Use `bench partial-restore` to restore a partial backup to an existing site.",
+				fg="yellow",
 			)
 			_backup.decryption_rollback()
 			sys.exit(1)
@@ -222,7 +224,8 @@ def _restore(
 				fg="red",
 			)
 			click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.", fg="yellow"
+				"Use `bench partial-restore` to restore a partial backup to an existing site.",
+				fg="yellow",
 			)
 			_backup.decryption_rollback()
 			sys.exit(1)
@@ -324,7 +327,8 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 			# Check for full backup file
 			if "Partial Backup" not in header:
 				click.secho(
-					"Full backup file detected.Use `bench restore` to restore a Frappe Site.", fg="red"
+					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+					fg="red",
 				)
 				_backup.decryption_rollback()
 				sys.exit(1)
@@ -355,7 +359,8 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 			# Check for Full backup file.
 			if "Partial Backup" not in header:
 				click.secho(
-					"Full Backup file detected.Use `bench restore` to restore a Frappe Site.", fg="red"
+					"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
+					fg="red",
 				)
 				_backup.decryption_rollback()
 				sys.exit(1)
@@ -391,7 +396,12 @@ def reinstall(
 
 
 def _reinstall(
-	site, admin_password=None, db_root_username=None, db_root_password=None, yes=False, verbose=False
+	site,
+	admin_password=None,
+	db_root_username=None,
+	db_root_password=None,
+	yes=False,
+	verbose=False,
 ):
 	from frappe.installer import _new_site
 	from frappe.utils.synchronization import filelock
@@ -719,7 +729,10 @@ def use(site, sites_path="."):
 @click.option("--backup-path-private-files", default=None, help="Set path for saving private file")
 @click.option("--backup-path-conf", default=None, help="Set path for saving config file")
 @click.option(
-	"--ignore-backup-conf", default=False, is_flag=True, help="Ignore excludes/includes set in config"
+	"--ignore-backup-conf",
+	default=False,
+	is_flag=True,
+	help="Ignore excludes/includes set in config",
 )
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
@@ -774,7 +787,8 @@ def backup(
 			continue
 		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().encryption_key:
 			click.secho(
-				"Backup encryption is turned on. Please note the backup encryption key.", fg="yellow"
+				"Backup encryption is turned on. Please note the backup encryption key.",
+				fg="yellow",
 			)
 
 		odb.print_summary()
@@ -1120,13 +1134,30 @@ def stop_recording(context):
 @click.option(
 	"--bind-tls", is_flag=True, default=False, help="Returns a reference to the https tunnel."
 )
+@click.option(
+	"--use-default-authtoken",
+	is_flag=True,
+	default=False,
+	help="Use the auth token present in ngrok's config.",
+)
 @pass_context
-def start_ngrok(context, bind_tls):
+def start_ngrok(context, bind_tls, use_default_authtoken):
 	"""Start a ngrok tunnel to your local development server."""
 	from pyngrok import ngrok
 
 	site = get_site(context)
 	frappe.init(site=site)
+
+	ngrok_authtoken = frappe.conf.ngrok_authtoken
+	if not use_default_authtoken:
+		if not ngrok_authtoken:
+			click.echo(
+				f"\n{click.style('ngrok_authtoken', fg='yellow')} not found in site config.\n"
+				"Please register for a free ngrok account at: https://dashboard.ngrok.com/signup and place the obtained authtoken in the site config.",
+			)
+			sys.exit(1)
+
+		ngrok.set_auth_token(ngrok_authtoken)
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)

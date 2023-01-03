@@ -244,7 +244,7 @@ context("Form Builder", () => {
 		let first_field =
 			".tab-content.active .section-columns-container:first .column:first .field:first";
 
-		cy.get(".fields-container .field[title='Check']").drag(first_field, {
+		cy.get(".fields-container .field[title='Data']").drag(first_field, {
 			target: { x: 100, y: 10 },
 		});
 
