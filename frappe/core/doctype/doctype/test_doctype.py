@@ -719,6 +719,28 @@ class TestDocType(FrappeTestCase):
 		self.assertEqual(frappe.get_meta(doctype).get_field(field).default, "DELETETHIS")
 		frappe.delete_doc("DocType", doctype)
 
+	def test_not_in_list_view_for_not_allowed_mandatory_field(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "cover_image",
+					"fieldtype": "Attach Image",
+					"label": "Cover Image",
+					"reqd": 1,  # mandatory
+				},
+				{
+					"fieldname": "book_name",
+					"fieldtype": "Data",
+					"label": "Book Name",
+					"reqd": 1,  # mandatory
+				},
+			],
+		).insert()
+
+		self.assertFalse(doctype.fields[0].in_list_view)
+		self.assertTrue(doctype.fields[1].in_list_view)
+		frappe.delete_doc("DocType", doctype.name)
+
 
 def new_doctype(
 	name: str | None = None,
@@ -756,8 +778,7 @@ def new_doctype(
 		}
 	)
 
-	if fields:
-		for f in fields:
-			doc.append("fields", f)
+	if fields and len(fields) > 0:
+		doc.set("fields", fields)
 
 	return doc
