@@ -1,6 +1,7 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
+import EditableInput from "./EditableInput.vue";
 import { ref } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent } from "../utils";
@@ -55,6 +56,7 @@ function remove_column() {
 
 	// remove column
 	columns.splice(index, 1);
+	store.selected_field = null;
 }
 
 function move_columns_to_section() {
@@ -74,25 +76,43 @@ function move_columns_to_section() {
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
-		<div class="column-actions" :hidden="store.read_only">
-			<button
-				v-if="section.columns.indexOf(column)"
-				class="btn btn-xs btn-icon"
-				:title="__('Move the current column & the following columns to a new section')"
-				@click="move_columns_to_section"
-			>
-				<div v-html="frappe.utils.icon('move', 'sm')"></div>
-			</button>
-			<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
-				<div v-html="frappe.utils.icon('add', 'sm')"></div>
-			</button>
-			<button
-				class="btn btn-xs btn-icon"
-				:title="__('Remove Column')"
-				@click="remove_column"
-			>
-				<div v-html="frappe.utils.icon('remove', 'sm')"></div>
-			</button>
+		<div
+			:class="[
+				'column-header',
+				column.df.label ? 'has-label' : '',
+			]"
+			:hidden="!column.df.label && store.read_only"
+		>
+			<div class="column-label">
+				<EditableInput
+					:text="column.df.label"
+					:placeholder="__('Column Title')"
+					v-model="column.df.label"
+				/>
+			</div>
+			<div class="column-actions">
+				<button
+					v-if="section.columns.indexOf(column)"
+					class="btn btn-xs btn-icon"
+					:title="__('Move the current column & the following columns to a new section')"
+					@click="move_columns_to_section"
+				>
+					<div v-html="frappe.utils.icon('move', 'sm')"></div>
+				</button>
+				<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
+					<div v-html="frappe.utils.icon('add', 'sm')"></div>
+				</button>
+				<button
+					class="btn btn-xs btn-icon"
+					:title="__('Remove Column')"
+					@click.stop="remove_column"
+				>
+					<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+				</button>
+			</div>
+		</div>
+		<div v-if="column.df.description" class="column-description">
+			{{ column.df.description }}
 		</div>
 		<draggable
 			class="column-container"
@@ -140,13 +160,55 @@ function move_columns_to_section() {
 	}
 
 	&.selected {
-		.column-actions {
+		.column-header {
 			display: flex;
 		}
 
 		.column-container {
 			height: 80%;
 		}
+	}
+
+	.column-header {
+		display: none;
+		align-items: center;
+		justify-content: space-between;
+		padding-bottom: 0.5rem;
+		padding-left: 0.3rem;
+
+		&.has-label {
+			display: flex;
+		}
+
+		.column-label {
+			:deep(span) {
+				font-weight: 600;
+				color: var(--heading-color);
+			}
+		}
+
+		.column-actions {
+			display: flex;
+			justify-content: flex-end;
+
+			.btn.btn-icon {
+				padding: 2px;
+				box-shadow: none;
+				opacity: 0;
+
+				&:hover {
+					opacity: 1;
+					background-color: var(--fg-color);
+				}
+			}
+		}
+	}
+
+	.column-description {
+		margin-bottom: 10px;
+		margin-left: 0.3rem;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 
 	&:first-child {
@@ -161,23 +223,6 @@ function move_columns_to_section() {
 		flex: 1;
 		min-height: 2rem;
 		border-radius: var(--border-radius);
-	}
-
-	.column-actions {
-		display: none;
-		justify-content: flex-end;
-		padding-bottom: 0.5rem;
-
-		.btn.btn-icon {
-			padding: 2px;
-			box-shadow: none;
-			opacity: 0;
-
-			&:hover {
-				opacity: 1;
-				background-color: var(--fg-color);
-			}
-		}
 	}
 }
 </style>

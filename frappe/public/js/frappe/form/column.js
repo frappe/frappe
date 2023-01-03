@@ -19,12 +19,20 @@ export default class Column {
 
 		this.form = this.wrapper.find("form").on("submit", () => false);
 
+		if (this.df.description) {
+			$(`
+				<p class="col-sm-12 form-column-description">
+					${__(this.df.description)}
+				</p>
+			`).prependTo(this.wrapper);
+		}
+
 		if (this.df.label) {
 			$(`
-				<label class="control-label">
+				<label class="column-label">
 					${__(this.df.label)}
 				</label>
-			`).appendTo(this.wrapper);
+			`).prependTo(this.wrapper);
 		}
 	}
 
