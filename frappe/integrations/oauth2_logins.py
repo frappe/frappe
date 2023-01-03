@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
 import json
@@ -9,42 +9,42 @@ from frappe.utils.oauth import login_via_oauth2, login_via_oauth2_id_token
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_google(code, state):
+def login_via_google(code: str, state: str):
 	login_via_oauth2("google", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_github(code, state):
+def login_via_github(code: str, state: str):
 	login_via_oauth2("github", code, state)
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_facebook(code, state):
+def login_via_facebook(code: str, state: str):
 	login_via_oauth2("facebook", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_frappe(code, state):
+def login_via_frappe(code: str, state: str):
 	login_via_oauth2("frappe", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_office365(code, state):
+def login_via_office365(code: str, state: str):
 	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_salesforce(code, state):
+def login_via_salesforce(code: str, state: str):
 	login_via_oauth2("salesforce", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
-def login_via_fairlogin(code, state):
+def login_via_fairlogin(code: str, state: str):
 	login_via_oauth2("fairlogin", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
-def custom(code, state):
+def custom(code: str, state: str):
 	"""
 	Callback for processing code and state for user added providers
 
