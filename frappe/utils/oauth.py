@@ -310,7 +310,9 @@ def get_email(data: dict) -> str:
 	return data.get("email") or data.get("upn") or data.get("unique_name")
 
 
-def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provider: str = None):
+def redirect_post_login(
+	desk_user: bool, redirect_to: str | None = None, provider: str | None = None
+):
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:
