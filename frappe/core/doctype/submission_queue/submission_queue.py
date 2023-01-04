@@ -95,16 +95,16 @@ class SubmissionQueue(Document):
 		if submission_status == "Failed":
 			doctype = self.doctype
 			docname = self.name
-			message = _("Submission of {0} {1} with action {2} failed")
+			message = _("Action {0} failed on {1} {2}. View it {3}")
 		else:
 			doctype = self.ref_doctype
 			docname = self.ref_docname
-			message = _("Submission of {0} {1} with action {2} completed successfully")
+			message = _("Action {0} completed successfully on {1} {2}. View it {3}")
 
-		message = message.format(
+		message_replacements = (
+			frappe.bold(action),
 			frappe.bold(str(self.ref_doctype)),
 			frappe.bold(str(self.ref_docname)),
-			frappe.bold(action),
 		)
 
 		time_diff = time_diff_in_seconds(now(), self.created_at)
@@ -112,8 +112,10 @@ class SubmissionQueue(Document):
 			frappe.publish_realtime(
 				"msgprint",
 				{
-					"message": message
-					+ f". View it <a href='/app/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
+					"message": message.format(
+						*message_replacements,
+						f"<a href='/app/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
+					),
 					"alert": True,
 					"indicator": "red" if submission_status == "Failed" else "green",
 				},
@@ -124,7 +126,7 @@ class SubmissionQueue(Document):
 				"type": "Alert",
 				"document_type": doctype,
 				"document_name": docname,
-				"subject": message,
+				"subject": message.format(*message_replacements, "here"),
 			}
 
 			notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
