@@ -1907,7 +1907,7 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: dict | list, indent=1, separators=None) -> str:
+def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
 	from frappe.utils.response import json_handler
 
 	if separators is None:
@@ -1915,13 +1915,24 @@ def as_json(obj: dict | list, indent=1, separators=None) -> str:
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
+			obj,
+			indent=indent,
+			sort_keys=True,
+			default=json_handler,
+			separators=separators,
+			ensure_ascii=ensure_ascii,
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
+		return json.dumps(
+			sorted_obj,
+			indent=indent,
+			default=json_handler,
+			separators=separators,
+			ensure_ascii=ensure_ascii,
+		)
 
 
 def are_emails_muted():
