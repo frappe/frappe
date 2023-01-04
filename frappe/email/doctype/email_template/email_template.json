@@ -66,18 +66,16 @@
  ],
  "icon": "fa fa-comment",
  "links": [],
- "modified": "2020-11-30 14:12:50.321633",
+ "modified": "2023-01-02 03:56:48.437280",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
    "read": 1,
-   "role": "All",
-   "share": 1,
-   "write": 1
+   "role": "All"
   },
   {
    "create": 1,
@@ -94,5 +92,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -402,7 +402,7 @@ def return_unsubscribed_page(email, doctype, name):
 
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
-	# additional check
+	from frappe.utils.background_jobs import get_jobs
 
 	auto_commit = not from_test
 	if frappe.are_emails_muted():
@@ -411,12 +411,19 @@ def flush(from_test=False):
 
 	smtpserver_dict = frappe._dict()
 
+	try:
+		queued_jobs = set(get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site])
+	except Exception:
+		queued_jobs = set()
+
 	for email in get_queue():
 
 		if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 			break
 
 		if email.name:
+			job_name = f"email_queue_sendmail_{email.name}"
+
 			smtpserver = smtpserver_dict.get(email.sender)
 			if not smtpserver:
 				smtpserver = SMTPServer()
@@ -425,16 +432,18 @@ def flush(from_test=False):
 			if from_test:
 				send_one(email.name, smtpserver, auto_commit)
 			else:
+				if job_name in queued_jobs:
+					frappe.logger().debug(f"Not queueing job {job_name} because it is in queue already")
+					continue
+
 				send_one_args = {
 					"email": email.name,
 					"smtpserver": smtpserver,
 					"auto_commit": auto_commit,
 				}
-				enqueue(method="frappe.email.queue.send_one", queue="short", **send_one_args)
-
-		# NOTE: removing commit here because we pass auto_commit
-		# finally:
-		# 	frappe.db.commit()
+				enqueue(
+					method="frappe.email.queue.send_one", queue="short", job_name=job_name, **send_one_args
+				)
 
 
 def get_queue():
