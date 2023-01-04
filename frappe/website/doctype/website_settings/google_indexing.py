@@ -31,8 +31,7 @@ def authorize_access(reauthorize=False, code=None):
 		)
 
 	res = oauth_obj.authorize(oauth_code)
-	frappe.db.set_value(
-		"Website Settings",
+	frappe.db.set_single_value(
 		"Website Settings",
 		{"indexing_authorization_code": oauth_code, "indexing_refresh_token": res.get("refresh_token")},
 	)
