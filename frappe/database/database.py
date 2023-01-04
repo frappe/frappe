@@ -32,7 +32,7 @@ from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
-from frappe.utils.deprecations import deprecated
+from frappe.utils.deprecations import deprecated, deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -836,6 +836,11 @@ class Database:
 		"""
 		is_single_doctype = not (dn and dt != dn)
 		to_update = field if isinstance(field, dict) else {field: val}
+
+		if dn is None:
+			deprecation_warning(
+				"Calling db.set_value with no document name assumes a single doctype. This behaviour will be removed in version 15. Use db.set_single_value instead."
+			)
 
 		if update_modified:
 			modified = modified or now()
