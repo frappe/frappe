@@ -885,6 +885,11 @@ class Database:
 		is_single_doctype = not (dn and dt != dn)
 		to_update = field if isinstance(field, dict) else {field: val}
 
+		if dn is None:
+			deprecation_warning(
+				"Calling db.set_value with no document name assumes a single doctype. This behaviour will be removed in version 15. Use db.set_single_value instead."
+			)
+
 		if update_modified:
 			modified = modified or now()
 			modified_by = modified_by or frappe.session.user
