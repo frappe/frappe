@@ -1176,7 +1176,7 @@ def rename_language(old_name, new_name):
 
 	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
 	if language_in_system_settings == old_name:
-		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
+		frappe.db.set_single_value("System Settings", "language", new_name)
 
 	frappe.db.sql(
 		"""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
