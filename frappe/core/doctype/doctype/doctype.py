@@ -197,10 +197,12 @@ class DocType(Document):
 
 	def set_default_in_list_view(self):
 		"""Set default in-list-view for first 4 mandatory fields"""
+		not_allowed_in_list_view = get_fields_not_allowed_in_list_view(self.meta)
+
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
 			cnt = 0
 			for d in self.fields:
-				if d.reqd and not d.hidden and not d.fieldtype in table_fields:
+				if d.reqd and not d.hidden and not d.fieldtype in not_allowed_in_list_view:
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4:
@@ -1440,10 +1442,7 @@ def validate_fields(meta):
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
-	not_allowed_in_list_view = list(copy.copy(no_value_fields))
-	not_allowed_in_list_view.append("Attach Image")
-	if meta.istable:
-		not_allowed_in_list_view.remove("Button")
+	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 
 	for d in fields:
 		if not d.permlevel:
@@ -1482,6 +1481,14 @@ def validate_fields(meta):
 	check_website_search_field(meta)
 	check_sort_field(meta)
 	check_image_field(meta)
+
+
+def get_fields_not_allowed_in_list_view(meta) -> list[str]:
+	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
+	if meta.istable:
+		not_allowed_in_list_view.remove("Button")
+	return not_allowed_in_list_view
 
 
 def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
