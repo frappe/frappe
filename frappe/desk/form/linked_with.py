@@ -435,9 +435,6 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			continue
 		linkmeta = link_meta_bundle[0]
 
-		if not linkmeta.has_permission():
-			continue
-
 		if not linkmeta.get("issingle"):
 			fields = [
 				d.fieldname
