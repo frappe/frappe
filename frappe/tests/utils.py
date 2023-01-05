@@ -126,6 +126,16 @@ def change_settings(doctype, settings_dict):
 	        ...
 	"""
 
+	def update_settings(settings_doc, settings):
+		for key, value in settings.items():
+			if isinstance(value, list):
+				settings_doc.set(key, [])
+				for item in value:
+					settings_doc.append(key, item)
+			else:
+				setattr(settings_doc, key, value)
+		settings_doc.save()
+
 	try:
 		settings = frappe.get_doc(doctype)
 		# remember setting
@@ -134,9 +144,8 @@ def change_settings(doctype, settings_dict):
 			previous_settings[key] = getattr(settings, key)
 
 		# change setting
-		for key, value in settings_dict.items():
-			setattr(settings, key, value)
-		settings.save()
+		update_settings(settings, settings_dict)
+
 		# singles are cached by default, clear to avoid flake
 		frappe.db.value_cache[settings] = {}
 		yield  # yield control to calling function
@@ -144,9 +153,7 @@ def change_settings(doctype, settings_dict):
 	finally:
 		# restore settings
 		settings = frappe.get_doc(doctype)
-		for key, value in previous_settings.items():
-			setattr(settings, key, value)
-		settings.save()
+		update_settings(settings, previous_settings)
 
 
 def timeout(seconds=30, error_message="Test timed out."):
