@@ -12,9 +12,14 @@ from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.integrations.oauth2_logins import decoder_compat
 from frappe.utils.html_utils import get_icon_html
+<<<<<<< HEAD
 from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys
 from frappe.utils.oauth import login_oauth_user as _login_oauth_user
 from frappe.utils.oauth import login_via_oauth2, login_via_oauth2_id_token, redirect_post_login
+=======
+from frappe.utils.jinja import guess_is_path
+from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
+>>>>>>> c26b401140 (chore: Remove duplicated Oauth2 whitelisted APIs (#19465))
 from frappe.utils.password import get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -96,6 +101,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
+<<<<<<< HEAD
 def login_via_google(code, state):
 	login_via_oauth2("google", code, state, decoder=decoder_compat)
 
@@ -123,6 +129,10 @@ def login_via_office365(code, state):
 @frappe.whitelist(allow_guest=True)
 def login_via_token(login_token):
 	sid = frappe.cache().get_value("login_token:{0}".format(login_token), expires=True)
+=======
+def login_via_token(login_token: str):
+	sid = frappe.cache().get_value(f"login_token:{login_token}", expires=True)
+>>>>>>> c26b401140 (chore: Remove duplicated Oauth2 whitelisted APIs (#19465))
 	if not sid:
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
 		return
