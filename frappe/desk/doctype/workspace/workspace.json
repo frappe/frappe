@@ -218,7 +218,11 @@
    }
  ],
  "links": [],
+<<<<<<< HEAD
  "modified": "2021-01-21 12:09:36.156614",
+=======
+ "modified": "2023-01-05 16:22:42.593601",
+>>>>>>> 033c6b357e (fix: remove "All" permission for Workpace)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -235,15 +239,6 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "All",
-   "share": 1
   }
  ],
  "sort_field": "modified",

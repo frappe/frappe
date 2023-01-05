@@ -167,6 +167,7 @@ frappe.views.Workspace = class Workspace {
 				__("Saving")
 			);
 
+<<<<<<< HEAD
 			this.page.set_secondary_action(
 				__("Discard"),
 				() => {
@@ -176,6 +177,59 @@ frappe.views.Workspace = class Workspace {
 					this.page.clear_secondary_action();
 					this.setup_dropdown();
 				}
+=======
+		this.page.set_secondary_action(__("Discard"), async () => {
+			this.discard = true;
+			this.clear_page_actions();
+			await this.editor.readOnly.toggle();
+			this.is_read_only = true;
+			this.sidebar_pages = this.cached_pages;
+			this.reload();
+			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
+		});
+
+		if (page.name && frappe.perm.has_perm("Workspace", 0, "read")) {
+			this.page.add_inner_button(__("Settings"), () => {
+				frappe.set_route(`workspace/${page.name}`);
+			});
+		}
+	}
+
+	show_sidebar_actions() {
+		this.sidebar.find(".standard-sidebar-section").addClass("show-control");
+		this.make_sidebar_sortable();
+	}
+
+	add_sidebar_actions(item, sidebar_control, is_new) {
+		if (!item.is_editable) {
+			sidebar_control.parent().click(() => {
+				!this.is_read_only &&
+					frappe.show_alert(
+						{
+							message: __("Only Workspace Manager can sort or edit this page"),
+							indicator: "info",
+						},
+						5
+					);
+			});
+
+			frappe.utils.add_custom_button(
+				frappe.utils.icon("duplicate", "sm"),
+				() => this.duplicate_page(item),
+				"duplicate-page",
+				__("Duplicate Workspace"),
+				null,
+				sidebar_control
+			);
+		} else {
+			frappe.utils.add_custom_button(
+				frappe.utils.icon("drag", "xs"),
+				null,
+				"drag-handle",
+				__("Drag"),
+				null,
+				sidebar_control
+>>>>>>> 033c6b357e (fix: remove "All" permission for Workpace)
 			);
 		}
 	}
