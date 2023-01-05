@@ -140,20 +140,36 @@ def confirm_action(doctype, docname, user, action):
 	doc = frappe.get_doc(doctype, docname)
 	newdoc = apply_workflow(doc, action)
 	frappe.db.commit()
-	return_success_page(newdoc)
+
+	return_response_page(doc, not newdoc)
 
 	# reset session user
 	if logged_in_user == "Guest":
 		frappe.set_user(logged_in_user)
 
 
-def return_success_page(doc):
+def return_response_page(doc, is_background=False):
+	if is_background:
+		title = _("Pending")
+		message = (
+			_("{0}: {1} is added in queue to set to next state").format(
+				doc.get("doctype"), frappe.bold(doc.get("name"))
+			),
+		)
+		color = "orange"
+	else:
+		title = _("Success")
+		message = (
+			_("{0}: {1} is set to state {2}").format(
+				doc.get("doctype"), frappe.bold(doc.get("name")), frappe.bold(get_doc_workflow_state(doc))
+			),
+		)
+		color = "green"
+
 	frappe.respond_as_web_page(
-		_("Success"),
-		_("{0}: {1} is set to state {2}").format(
-			doc.get("doctype"), frappe.bold(doc.get("name")), frappe.bold(get_doc_workflow_state(doc))
-		),
-		indicator_color="green",
+		title,
+		message,
+		indicator_color=color,
 	)
 
 
