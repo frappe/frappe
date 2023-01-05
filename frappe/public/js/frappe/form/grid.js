@@ -330,7 +330,7 @@ export default class Grid {
 		this.toggle_checkboxes(this.display_status !== 'Read');
 
 		// sortable
-		if (this.frm && this.is_sortable() && !this.sortable_setup_done) {
+		if (this.is_sortable() && !this.sortable_setup_done) {
 			this.make_sortable($rows);
 			this.sortable_setup_done = true;
 		}
@@ -475,13 +475,18 @@ export default class Grid {
 				let idx = $(event.item).closest('.grid-row').attr('data-idx') - 1;
 				let doc = this.data[idx % this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
-				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);
+				this.frm &&
+					this.frm.script_manager.trigger(
+						this.df.fieldname + "_move",
+						this.df.options,
+						doc.name
+					);
 				this.refresh();
-				this.frm.dirty();
-			}
+				this.frm && this.frm.dirty();
+			},
 		});
 
-		$(this.frm.wrapper).trigger("grid-make-sortable", [this.frm]);
+		this.frm && $(this.frm.wrapper).trigger("grid-make-sortable", [this.frm]);
 	}
 
 	get_data() {
@@ -663,12 +668,13 @@ export default class Grid {
 
 		$rows.find(".grid-row").each((i, item) => {
 			let $item = $(item);
-			let index = (this.grid_pagination.page_index - 1) * this.grid_pagination.page_length + i;
-			let d = locals[this.doctype][$item.attr('data-name')];
+			let index =
+				(this.grid_pagination.page_index - 1) * this.grid_pagination.page_length + i;
+			let d = this.grid_rows_by_docname[$item.attr("data-name")].doc;
 			d.idx = index + 1;
 			$item.attr('data-idx', d.idx);
 
-			this.frm.doc[this.df.fieldname][index] = (d);
+			if (this.frm) this.frm.doc[this.df.fieldname][index] = d;
 			this.data[index] = d;
 			this.grid_rows[index] = (this.grid_rows_by_docname[d.name]);
 		});
