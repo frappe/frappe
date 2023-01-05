@@ -456,9 +456,6 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	setup_events() {
-<<<<<<< HEAD
-		this.tabs_list.off("click").on("click", ".nav-link", (e) => {
-=======
 		let last_scroll = 0;
 		let tabs_list = $(".form-tabs-list");
 		let tabs_content = this.tabs_content[0];
@@ -478,8 +475,7 @@ frappe.ui.form.Layout = class Layout {
 			}, 500)
 		);
 
-		this.tab_link_container.off("click").on("click", ".nav-link", (e) => {
->>>>>>> 03afa99e6c (feat(UI): Sticky Tabs Header (#18906))
+		this.tabs_list.off("click").on("click", ".nav-link", (e) => {
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			$(e.currentTarget).tab("show");
