@@ -553,11 +553,12 @@ export default class Grid {
 				let idx = $(event.item).closest(".grid-row").attr("data-idx") - 1;
 				let doc = this.data[idx % this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
-				this.frm && this.frm.script_manager.trigger(
-					this.df.fieldname + "_move",
-					this.df.options,
-					doc.name
-				);
+				this.frm &&
+					this.frm.script_manager.trigger(
+						this.df.fieldname + "_move",
+						this.df.options,
+						doc.name
+					);
 				this.refresh();
 				this.frm && this.frm.dirty();
 			},
@@ -829,7 +830,7 @@ export default class Grid {
 			d.idx = index + 1;
 			$item.attr("data-idx", d.idx);
 
-			if(this.frm) this.frm.doc[this.df.fieldname][index] = d;
+			if (this.frm) this.frm.doc[this.df.fieldname][index] = d;
 			this.data[index] = d;
 			this.grid_rows[index] = this.grid_rows_by_docname[d.name];
 		});
