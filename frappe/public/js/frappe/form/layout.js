@@ -456,10 +456,37 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	setup_events() {
+		let last_scroll = 0;
+		let tabs_list = $(".form-tabs-list");
+		let tabs_content = this.tabs_content[0];
+		if (!tabs_list.length) return;
+
+		$(window).scroll(
+			frappe.utils.throttle(() => {
+				let current_scroll = document.documentElement.scrollTop;
+				if (current_scroll > 0 && last_scroll <= current_scroll) {
+					tabs_list.removeClass("form-tabs-sticky-down");
+					tabs_list.addClass("form-tabs-sticky-up");
+				} else {
+					tabs_list.removeClass("form-tabs-sticky-up");
+					tabs_list.addClass("form-tabs-sticky-down");
+				}
+				last_scroll = current_scroll;
+			}, 500)
+		);
+
 		this.tabs_list.off("click").on("click", ".nav-link", (e) => {
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			$(e.currentTarget).tab("show");
+			if (tabs_content.getBoundingClientRect().top < 100) {
+				tabs_content.scrollIntoView();
+				setTimeout(() => {
+					$(".page-head").css("top", "-15px");
+					$(".form-tabs-list").removeClass("form-tabs-sticky-down");
+					$(".form-tabs-list").addClass("form-tabs-sticky-up");
+				}, 3);
+			}
 		});
 	}
 
