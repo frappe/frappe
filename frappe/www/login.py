@@ -10,13 +10,7 @@ from frappe.integrations.oauth2_logins import decoder_compat
 from frappe.utils import cint
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
-from frappe.utils.oauth import (
-	get_oauth2_authorize_url,
-	get_oauth_keys,
-	login_via_oauth2,
-	login_via_oauth2_id_token,
-	redirect_post_login,
-)
+from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
 from frappe.utils.password import get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -102,31 +96,6 @@ def get_context(context):
 	context["login_label"] = f" {_('or')} ".join(login_label)
 
 	return context
-
-
-@frappe.whitelist(allow_guest=True)
-def login_via_google(code: str, state: str):
-	login_via_oauth2("google", code, state, decoder=decoder_compat)
-
-
-@frappe.whitelist(allow_guest=True)
-def login_via_github(code: str, state: str):
-	login_via_oauth2("github", code, state)
-
-
-@frappe.whitelist(allow_guest=True)
-def login_via_facebook(code: str, state: str):
-	login_via_oauth2("facebook", code, state, decoder=decoder_compat)
-
-
-@frappe.whitelist(allow_guest=True)
-def login_via_frappe(code: str, state: str):
-	login_via_oauth2("frappe", code, state, decoder=decoder_compat)
-
-
-@frappe.whitelist(allow_guest=True)
-def login_via_office365(code: str, state: str):
-	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
 
 @frappe.whitelist(allow_guest=True)
