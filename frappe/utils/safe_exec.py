@@ -2,6 +2,7 @@ import copy
 import inspect
 import json
 import mimetypes
+import re
 import types
 from contextlib import contextmanager
 from functools import lru_cache
@@ -116,6 +117,7 @@ def get_safe_globals():
 	out = NamespaceDict(
 		# make available limited methods of frappe
 		json=NamespaceDict(loads=json.loads, dumps=json.dumps),
+		re=NamespaceDict(compile=re.compile, sub=re.sub),
 		as_json=frappe.as_json,
 		dict=dict,
 		log=frappe.log,
