@@ -237,7 +237,7 @@ def upload_system_backup_to_google_drive():
 		if not fileurl:
 			continue
 
-		file_metadata = {"name": fileurl, "parents": [account.backup_folder_id]}
+		file_metadata = {"name": os.path.basename(fileurl), "parents": [account.backup_folder_id]}
 
 		try:
 			media = MediaFileUpload(
