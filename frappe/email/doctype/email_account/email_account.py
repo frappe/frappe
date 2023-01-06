@@ -776,15 +776,24 @@ def pull(now=False):
 		else:
 			return
 
+	from frappe.integrations.doctype.connected_app.connected_app import has_token
+
 	doctype = frappe.qb.DocType("Email Account")
 	email_accounts = (
 		frappe.qb.from_(doctype)
-		.select(doctype.name)
+		.select(doctype.name, doctype.auth_method, doctype.connected_app, doctype.connected_user)
 		.where(doctype.enable_incoming == 1)
-		.where((doctype.awaiting_password == 0) | (doctype.auth_method == "OAuth"))
+		.where(doctype.awaiting_password == 0)
 		.run(as_dict=1)
 	)
+
 	for email_account in email_accounts:
+		if email_account.auth_method == "OAuth" and not has_token(
+			email_account.connected_app, email_account.connected_user
+		):
+			# don't try to pull from accounts which dont have access token (for Oauth)
+			continue
+
 		if now:
 			pull_from_email_account(email_account.name)
 

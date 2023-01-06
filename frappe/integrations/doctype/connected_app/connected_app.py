@@ -162,6 +162,7 @@ def callback(code=None, state=None):
 
 
 @frappe.whitelist()
-def check_active_token(connected_app, connected_user=None):
+def has_token(connected_app, connected_user=None):
 	app = frappe.get_doc("Connected App", connected_app)
-	return bool(app.get_active_token(connected_user))
+	token_cache = app.get_token_cache(connected_user or frappe.session.user)
+	return bool(token_cache.get_json()["access_token"])
