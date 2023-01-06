@@ -223,7 +223,7 @@ def get_pages_from_path(start, app, app_path):
 	if os.path.exists(start_path):
 		for basepath, folders, files in os.walk(start_path):
 			# add missing __init__.py
-			if not "__init__.py" in files:
+			if not "__init__.py" in files and frappe.conf.get("developer_mode"):
 				open(os.path.join(basepath, "__init__.py"), "a").close()
 
 			for fname in files:
