@@ -150,7 +150,6 @@ frappe.Application = Class.extend({
 	},
 
 	set_route() {
-		frappe.flags.setting_original_route = true;
 		if (frappe.boot && localStorage.getItem("session_last_route")) {
 			frappe.set_route(localStorage.getItem("session_last_route"));
 			localStorage.removeItem("session_last_route");
@@ -158,7 +157,6 @@ frappe.Application = Class.extend({
 			// route to home page
 			frappe.router.route();
 		}
-		frappe.after_ajax(() => frappe.flags.setting_original_route = false);
 		frappe.router.on('change', () => {
 			$(".tooltip").hide();
 		});
