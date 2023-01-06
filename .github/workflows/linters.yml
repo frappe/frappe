@@ -82,5 +82,5 @@ jobs:
           python-version: '3.10'
       - uses: actions/checkout@v3
       - run: |
-          pip install pip-audit
+          pip install pip-audit==2.4.8
           pip-audit ${GITHUB_WORKSPACE}
