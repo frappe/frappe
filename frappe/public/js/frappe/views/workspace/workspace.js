@@ -719,13 +719,16 @@ frappe.views.Workspace = class Workspace {
 				icon: frappe.utils.icon("duplicate", "sm"),
 				action: () => this.duplicate_page(item),
 			},
-			{
+		];
+
+		if (this.is_item_deletable(item)) {
+			this.dropdown_list.push({
 				label: __("Delete"),
 				title: __("Delete Workspace"),
 				icon: frappe.utils.icon("delete-active", "sm"),
 				action: () => this.delete_page(item),
-			},
-		];
+			});
+		}
 
 		let $button = $(`
 			<div class="btn btn-secondary btn-xs setting-btn dropdown-btn" title="${__("Setting")}">
@@ -765,6 +768,19 @@ frappe.views.Workspace = class Workspace {
 				.filter(".dropdown-list")
 				.append(dropdown_item(i.label, i.title, i.icon, i.action));
 		});
+	}
+
+	is_item_deletable(item) {
+		// if item is private
+		// if item is public but doesn't have module set
+		// if item is public and has module set but developer mode is on
+		// then item is deletable
+		if (
+			!item.public ||
+			(item.public && (!item.module || (item.module && frappe.boot.developer_mode)))
+		)
+			return true;
+		return false;
 	}
 
 	delete_page(page) {
