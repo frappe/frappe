@@ -448,7 +448,7 @@ frappe.views.Workspace = class Workspace {
 			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 		});
 
-		if (page.name && frappe.perm.has_perm("Workspace", 0, "read")) {
+		if (page.name && this.has_access) {
 			this.page.add_inner_button(__("Settings"), () => {
 				frappe.set_route(`workspace/${page.name}`);
 			});
