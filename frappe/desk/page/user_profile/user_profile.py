@@ -12,11 +12,11 @@ def get_energy_points_heatmap_data(user, date):
 		date = getdate()
 
 	if frappe.db.db_type == "mariadb":
-		timestamp_field = f"unix_timestamp(date(creation))"
+		timestamp_field = "unix_timestamp(date(creation))"
 		subdate_field_year = f"subdate('{date}', interval 1 year)"
 		subdate_field_minus_year = f"subdate('{date}', interval -1 year)"
 	else:
-		timestamp_field = f"extract(epoch from date(creation))"
+		timestamp_field = "extract(epoch from date(creation))"
 		subdate_field_year = f"date('{date}') - INTERVAL '1' YEAR"
 		subdate_field_minus_year = f"date('{date}') - INTERVAL '-1' YEAR"
 
@@ -33,7 +33,7 @@ def get_energy_points_heatmap_data(user, date):
 		order by creation asc""".format(
 				timestamp_field=timestamp_field,
 				subdate_field_year=subdate_field_year,
-				subdate_field_minus_year=subdate_field_minus_year
+				subdate_field_minus_year=subdate_field_minus_year,
 			),
 			user,
 		)
