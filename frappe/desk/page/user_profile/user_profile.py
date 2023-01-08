@@ -11,18 +11,29 @@ def get_energy_points_heatmap_data(user, date):
 	except Exception:
 		date = getdate()
 
+	if frappe.db.db_type == "mariadb":
+		timestamp_field = f"unix_timestamp(date(creation))"
+		subdate_field_year = f"subdate('{date}', interval 1 year)"
+		subdate_field_minus_year = f"subdate('{date}', interval -1 year)"
+	else:
+		timestamp_field = f"extract(epoch from date(creation))"
+		subdate_field_year = f"date('{date}') - INTERVAL '1' YEAR"
+		subdate_field_minus_year = f"date('{date}') - INTERVAL '-1' YEAR"
+
 	return dict(
 		frappe.db.sql(
-			"""select unix_timestamp(date(creation)), sum(points)
+			"""select {timestamp_field}, sum(points)
 		from `tabEnergy Point Log`
 		where
-			date(creation) > subdate('{date}', interval 1 year) and
-			date(creation) < subdate('{date}', interval -1 year) and
+			date(creation) > {subdate_field_year} and
+			date(creation) < {subdate_field_minus_year} and
 			user = %s and
 			type != 'Review'
 		group by date(creation)
 		order by creation asc""".format(
-				date=date
+				timestamp_field=timestamp_field,
+				subdate_field_year=subdate_field_year,
+				subdate_field_minus_year=subdate_field_minus_year
 			),
 			user,
 		)
@@ -51,7 +62,7 @@ def get_user_rank(user):
 	month_start = datetime.today().replace(day=1)
 	monthly_rank = frappe.get_all(
 		"Energy Point Log",
-		group_by="user",
+		group_by="`tabEnergy Point Log`.`user`",
 		filters={"creation": [">", month_start], "type": ["!=", "Review"]},
 		fields=["user", "sum(points)"],
 		order_by="sum(points) desc",
@@ -60,7 +71,7 @@ def get_user_rank(user):
 
 	all_time_rank = frappe.get_all(
 		"Energy Point Log",
-		group_by="user",
+		group_by="`tabEnergy Point Log`.`user`",
 		filters={"type": ["!=", "Review"]},
 		fields=["user", "sum(points)"],
 		order_by="sum(points) desc",
