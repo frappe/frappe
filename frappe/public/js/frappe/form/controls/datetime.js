@@ -1,6 +1,5 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
-		console.log("formatted-1" + value);
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
@@ -15,17 +14,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
 		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
-		console.log("formatted-2" + value);
-		console.log("formatted-3" + this.datepicker.selectDate(frappe.datetime.user_to_obj(value)));
 	}
-
-	// make_input() {
-	// 	super.make_input();
-	// }
-
-	// make_picker() {
-	// 	this.set_datepicker();
-	// }
 
 	get_start_date() {
 		this.value = this.value == null ? undefined : this.value;
@@ -48,14 +37,10 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.datetime.now_datetime(true);
 	}
 	parse(value) {
-		//console.trace();
-		console.log("parse" + value);
 		if (value) {
 			value = frappe.datetime.user_to_str(value, false);
-			console.log("parse-2" + value);
 			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);
-				console.log("parse-3" + value);
 			}
 
 			if (value == "Invalid date") {
@@ -89,6 +74,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	set_datepicker() {
 		let sysdefaults = frappe.boot.sysdefaults;
+		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
+		let user_time_fmt = frappe.datetime.get_user_time_fmt();
+		let datetime_fmt = user_fmt + " " + user_time_fmt
 
 		let lang = "en";
 		frappe.boot.user && (lang = frappe.boot.user.language);
@@ -96,17 +84,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			lang = "en";
 		}
 
-		let date_format =
-			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
-
-
-		console.log("date_format" + date_format);
-		//console.log(this.datepicker.selectedDates[0]);
-
-		frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.js").then(() => {
-			frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.css");
-			frappe.require("/assets/frappe/js/lib/tempus-dominus/popper.min.js");
-			}).then(() => {
+		this.load_lib().then(() => {
+			const customdate = require("./tempus-dominus/plugins/customDateFormat.js");
+			tempusDominus.extend(customdate);
 				new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
 				display: {
 					components: {
@@ -116,7 +96,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 					date: true,
 					hours: true,
 					minutes: true,
-					seconds: false
+					seconds: user_time_fmt.endsWith("ss")
 					},
 					icons: {
 						type: 'sprites',
@@ -138,7 +118,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 					  }
 				},
 				localization: {
-					format: "dd.mm.yyyy, hh:mm",
+					format: datetime_fmt,
 				  }
 		  });
 		});
@@ -150,6 +130,20 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!value && !this.doc) {
 			value = this.last_value;
 		}
-		return !value ? "" : frappe.datetime.get_datetime_as_string(value);
+		return !value ? "" : value;
+	}
+
+	load_lib() {
+		return new Promise((resolve) => {
+			var asset_dir = "/assets/frappe/js/lib/tempus-dominus/";
+			frappe.require(
+				[
+					asset_dir + "tempus-dominus.css",
+					asset_dir + "tempus-dominus.js",
+					asset_dir + "popper.min.js",
+				],
+				resolve
+			);
+		});
 	}
 };

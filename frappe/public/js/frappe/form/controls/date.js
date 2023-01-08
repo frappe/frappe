@@ -1,5 +1,3 @@
-//import { TempusDominus } from '/assets/frappe/js/lib/tempus-dominus/tempus-dominus.min.js';
-
 frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
 	make_input() {
@@ -88,8 +86,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		return this.get_now_date();
 	}
 
-	set_datepicker(value) {
+	set_datepicker() {
 		let sysdefaults = frappe.boot.sysdefaults;
+		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 
 		let lang = "en";
 		frappe.boot.user && (lang = frappe.boot.user.language);
@@ -97,55 +96,56 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			lang = "en";
 		}
 
-		let date_format =
-			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
+		// let date_format =
+		// 	sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
 
 
-		console.log(date_format);
+		console.log("DATE!!!" + user_fmt);
 		//console.log(this.datepicker.selectedDates[0]);
 
-		frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.js").then(() => {
-			frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.css");
-			frappe.require("/assets/frappe/js/lib/tempus-dominus/popper.min.js");
-			}).then(() => {
-				new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
-				display: {
-					components: {
-					decades: false,
-					year: true,
-					month: true,
-					date: true,
-					hours: false,
-					minutes: false,
-					seconds: false
-					},
-					icons: {
-						type: 'sprites',
-						time: '#icon-select',
-						date: '#icon-select',
-						up: '#icon-small-up',
-						down: '#icon-down',
-						previous: '#icon-left',
-						next: '#icon-right',
-						today: '#icon-today',
-						clear: '#icon-refresh',
-						close: '#icon-close-alt'
-					},
-					theme: 'dark',
-					buttons: {
-						today: true,
-						clear: true,
-						close: true
-					  }
+		
+
+		this.load_lib().then(() => {
+			const customdate = require("./tempus-dominus/plugins/customDateFormat.js");
+			tempusDominus.extend(customdate);
+			new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+			display: {
+				components: {
+				decades: false,
+				year: true,
+				month: true,
+				date: true,
+				hours: false,
+				minutes: false,
+				seconds: false
 				},
-				localization: {
-					locale: lang,
-					format: date_format,
+				icons: {
+					type: 'sprites',
+					time: '#icon-select',
+					date: '#icon-select',
+					up: '#icon-small-up',
+					down: '#icon-down',
+					previous: '#icon-left',
+					next: '#icon-right',
+					today: '#icon-today',
+					clear: '#icon-refresh',
+					close: '#icon-close-alt'
+				},
+				theme: 'dark',
+				buttons: {
+					today: true,
+					clear: true,
+					close: true
 				  }
-		  });
+			},
+			localization: {
+				format: user_fmt,
+			  }
+		});
 		});
 		this.$input.attr("inputmode", "none");
 	}
+
 	update_datepicker_position() {
 		if (!this.frm) return;
 		// show datepicker above or below the input
@@ -170,6 +170,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.datepicker.update("position", position);
 	}
 	get_now_date() {
+
+		return frappe.datetime.convert_to_system_tz(frappe.datetime.now_date(true), false);
+
 		return frappe.datetime
 			.convert_to_system_tz(frappe.datetime.now_date(true), false)
 			.toDate();
@@ -197,7 +200,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			if (value == "Invalid date") {
 				return "";
 			}
-			console.log(value);
+			console.log("date_parse" + value);
 			console.log(frappe.datetime.user_to_str(value, false, true) + "abcde");
 			return frappe.datetime.user_to_str(value, false, true);
 		}
@@ -209,13 +212,14 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		return "";
 	}
 	validate(value) {
-		if (value && !frappe.datetime.validate(value)) {
-			let sysdefaults = frappe.sys_defaults;
-			let date_format =
-				sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
-			frappe.msgprint(__("Date {0} must be in format: {1}", [value, date_format]));
-			return "";
-		}
+		
+		// if (value && !frappe.datetime.validate(value)) {
+		// 	let sysdefaults = frappe.sys_defaults;
+		// 	let date_format =
+		// 		sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
+		// 	frappe.msgprint(__("Date {0} must be in format: {1}", [value, date_format]));
+		// 	return "";
+		// }
 		return value;
 	}
 	get_df_options() {
@@ -234,4 +238,19 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 		return options;
 	}
+
+	load_lib() {
+		return new Promise((resolve) => {
+			var asset_dir = "/assets/frappe/js/lib/tempus-dominus/";
+			frappe.require(
+				[
+					asset_dir + "tempus-dominus.css",
+					asset_dir + "tempus-dominus.js",
+					asset_dir + "popper.min.js",
+				],
+				resolve
+			);
+		});
+	}
+
 };

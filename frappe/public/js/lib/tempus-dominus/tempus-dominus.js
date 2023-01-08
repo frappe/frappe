@@ -226,10 +226,6 @@
          * @param locale Can be a string or an array of strings. Uses browser defaults otherwise.
          */
         format(template, locale = this.locale) {
-            console.log("template:" + template);
-            console.log("locale" + locale);
-            console.log("this:" + this);
-            console.log("return" + new Intl.DateTimeFormat(locale, template).format(this))
             return new Intl.DateTimeFormat(locale, template).format(this);
         }
         /**
@@ -1684,7 +1680,6 @@
          * @param date
          */
         formatInput(date) {
-            console.log("format-date: " + date);
             const components = this.optionsStore.options.display.components;
             if (!date)
                 return '';
@@ -1704,15 +1699,8 @@
          */
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         parseInput(value) {
-            //console.log(this.df.fieldname);
-            //console.log(frappe.datetime.user_to_str(value, false, true) + "123456789");
-            //let new_value = frappe.datetime.get_datetime_as_string(value);
-            console.log("???" + value);
-            //let input_date = frappe.datetime.user_to_obj(value);
-            let input_date2 = frappe.datetime.parse_to_datepicker(value);
-            //console.log("1!!!" + input_date);
-            console.log("2!!!" + input_date2);
-            return OptionConverter.dateConversion(input_date2, 'input', this.optionsStore.options.localization);
+            let input_date = frappe.datetime.parse_to_datepicker(value);
+            return OptionConverter.dateConversion(input_date, 'input', this.optionsStore.options.localization);
         }
         /**
          * Tries to convert the provided value to a DateTime object.
@@ -1726,13 +1714,11 @@
                 this.setValue(undefined, index);
                 return;
             }
-            console.log("input" + value);
             const converted = this.parseInput(value);
             if (converted) {
                 converted.setLocale(this.optionsStore.options.localization.locale);
                 this.setValue(converted, index);
             }
-            console.log(converted);
         }
         /**
          * Adds a new DateTime to selected dates array
@@ -1794,7 +1780,6 @@
             return [startYear, endYear, focusValue];
         }
         updateInput(target) {
-            console.log("input: " + target);
             if (!this.optionsStore.input)
                 return;
             let newValue = this.formatInput(target);
@@ -2955,7 +2940,7 @@
                 createPopperFunction = window?.Popper?.createPopper;
             }
             else {
-                const { createPopper } = await import('@popperjs/core');
+                const { createPopper } = await import('./popper.min.js');
                 createPopperFunction = createPopper;
             }
             if (createPopperFunction) {
@@ -3602,7 +3587,6 @@
                         this.optionsStore.viewDate = this.dates.lastPicked.clone;
                 };
                 const value = this.optionsStore.input.value;
-                console.log("event" + value);
                 if (this.optionsStore.options.multipleDates) {
                     try {
                         const valueSplit = value.split(this.optionsStore.options.multipleDatesSeparator);
@@ -3920,38 +3904,29 @@
          * @private
          */
         _initializeInput() {
-            console.log("init!!!" + this.optionsStore.input);
             if (this.optionsStore.element.tagName == 'INPUT') {
-                console.log("init!!!-1");
                 this.optionsStore.input = this.optionsStore.element;
             }
             else {
-                console.log("init!!!-2");
                 const query = this.optionsStore.element.dataset.tdTargetInput;
                 if (query == undefined || query == 'nearest') {
-                    console.log("init!!!-3");
                     this.optionsStore.input =
                         this.optionsStore.element.querySelector('input');
                 }
                 else {
-                    console.log("init!!!-4");
                     this.optionsStore.input =
                         this.optionsStore.element.querySelector(query);
                 }
             }
-            console.log("init!!!" + this.optionsStore.input);
-            console.log("init-value!!!" + this.optionsStore.input.value);
             if (!this.optionsStore.input)
                 return;
             if (!this.optionsStore.input.value && this.optionsStore.options.defaultDate)
                 this.optionsStore.input.value = this.dates.formatInput(this.optionsStore.options.defaultDate);
             this.optionsStore.input.addEventListener('change', this._inputChangeEvent);
             if (this.optionsStore.options.allowInputToggle) {
-                console.log("init!!!-6");
                 this.optionsStore.input.addEventListener('click', this._toggleClickEvent);
             }
             if (this.optionsStore.input.value) {
-                console.log("init!!!-7" + this.optionsStore.input.value);
                 this._inputChangeEvent();
             }
         }

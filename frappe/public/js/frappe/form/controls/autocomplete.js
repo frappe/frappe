@@ -30,6 +30,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		if (this.$input) {
 			const label = this.$input.val();
 			const item = this._data?.find((i) => i.label == label);
+
 			return item ? item.value : label;
 		}
 	}

@@ -54,9 +54,11 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		}
 	}
 	set_datepicker() {
-		frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.js").then(() => {
-			frappe.require("/assets/frappe/js/lib/tempus-dominus/tempus-dominus.css");
-			frappe.require("/assets/frappe/js/lib/tempus-dominus/popper.min.js");}).then(() => {
+		let user_time_fmt = frappe.datetime.get_user_time_fmt();
+		console.log("DATE!!!" + user_time_fmt);
+		this.load_lib().then(() => {
+			const customdate = require("./tempus-dominus/plugins/customDateFormat.js");
+			tempusDominus.extend(customdate);
 				new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
 				display: {
 					components: {
@@ -66,7 +68,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 					date: false,
 					hours: true,
 					minutes: true,
-					seconds: false
+					seconds: user_time_fmt.endsWith("ss")
 					},
 					icons: {
 						type: 'sprites',
@@ -81,7 +83,10 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 						close: '#icon-close-alt'
 					},
 					theme: 'dark'
-				}
+				},
+				localization: {
+					format: user_time_fmt,
+				  }
 		  });
 		});
 		this.$input.attr("inputmode", "none");
@@ -99,21 +104,12 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		super.set_description();
 	}
 	parse(value) {
-		//console.trace();
-		console.log("parse" + value);
 		if (value) {
-			// value = frappe.datetime.user_to_str(value, false);
-			// console.log("parse-2" + value);
-			if (!frappe.datetime.is_system_time_zone()) {
-				value = frappe.datetime.convert_to_system_tz(value, true);
-				console.log("parse-3" + value);
-			}
-
 			if (value == "Invalid date") {
 				value = "";
 			}
+			return frappe.datetime.user_to_str(value, true);
 		}
-		return value;
 	}
 	format_for_input(value) {
 		if (value) {
@@ -130,5 +126,19 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			return "";
 		}
 		return value;
+	}
+
+	load_lib() {
+		return new Promise((resolve) => {
+			var asset_dir = "/assets/frappe/js/lib/tempus-dominus/";
+			frappe.require(
+				[
+					asset_dir + "tempus-dominus.css",
+					asset_dir + "tempus-dominus.js",
+					asset_dir + "popper.min.js",
+				],
+				resolve
+			);
+		});
 	}
 };

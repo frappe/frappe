@@ -137,6 +137,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_disp_area(value) {
+		console.log("$$$-0: " + value);
 		if (
 			in_list(["Currency", "Int", "Float"], this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
@@ -151,6 +152,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
+		console.log("$$$-1: " + display_value);
 		this.disp_area && $(this.disp_area).html(display_value);
 	}
 	set_label(label) {

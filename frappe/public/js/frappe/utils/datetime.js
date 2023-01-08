@@ -1,14 +1,18 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import parse from 'date-fns/parse';
-import { format } from 'date-fns';
+import { parse, format, isMatch, startOfMonth, startOfWeek, startOfQuarter, startOfYear, endOfDay, endOfWeek, endOfMonth, endOfQuarter, endOfYear } from 'date-fns'
+// import parse from 'date-fns/parse';
+// import format from 'date-fns/format';
+// import startOfMonth from 'date-fns/startOfMonth';
+// import { toDate } from 'date-fns-tz'
+// import { format as formattz } from 'date-fns-tz'
+import { utcToZonedTime, zonedTimeToUtc, formatInTimeZone } from 'date-fns-tz'
 
 frappe.provide("frappe.datetime");
 
-frappe.defaultDateFormat = "YYYY-MM-DD";
+frappe.defaultDateFormat = "yyyy-MM-dd";
 frappe.defaultTimeFormat = "HH:mm:ss";
 frappe.defaultDatetimeFormat = frappe.defaultDateFormat + " " + frappe.defaultTimeFormat;
-moment.defaultFormat = frappe.defaultDateFormat;
 
 frappe.provide("frappe.datetime");
 
@@ -17,17 +21,19 @@ $.extend(frappe.datetime, {
 		// format defaults to true
 		// Converts the datetime string to system time zone first since the database only stores datetime in
 		// system time zone and then convert the string to user time zone(from User doctype).
-		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
-			date_obj = moment
-				.tz(date, frappe.boot.time_zone.system)
-				.clone()
-				.tz(frappe.boot.time_zone.user);
-		} else {
-			date_obj = moment(date);
+
+		var sys_time = null
+		var usr_time = "";
+
+		if (typeof date === 'string' && date.includes("-") && date.includes(" ") && date.includes(":")) {
+			sys_time = zonedTimeToUtc(date, frappe.boot.time_zone.system);
+			usr_time = formatInTimeZone(sys_time, frappe.boot.time_zone.user, frappe.defaultDatetimeFormat);
 		}
 
-		return format === false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		let usr_time_obj = parse(usr_time, frappe.defaultDatetimeFormat, new Date());
+
+		return format === false ? usr_time_obj : usr_time;
+
 	},
 
 	convert_to_system_tz: function (date, format) {
@@ -36,24 +42,33 @@ $.extend(frappe.datetime, {
 		// in user time zone then convert the string to user time zone.
 		// This is done so that only one timezone is present in database and we do not end up storing local timezone since it changes
 		// as per the location of user.
-		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
-			date_obj = moment
-				.tz(date, frappe.boot.time_zone.user)
-				.clone()
-				.tz(frappe.boot.time_zone.system);
-		} else {
-			date_obj = moment(date);
+
+
+		var usr_time = null;
+		var sys_time = "";
+
+		if (typeof date === 'string' && (date.includes("-") || date.includes(":"))) {
+			usr_time = zonedTimeToUtc(date, frappe.boot.time_zone.user);
+			sys_time = formatInTimeZone(usr_time, frappe.boot.time_zone.system, frappe.defaultDatetimeFormat);
 		}
 
-		return format === false ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
+		let sys_time_obj = parse(sys_time, frappe.defaultDatetimeFormat, new Date());
+
+		return format === false ? sys_time_obj : sys_time;
+
 	},
 
 	is_system_time_zone: function () {
+		const getOffset = (timeZone = 'UTC', date = new Date()) => {
+			const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+			const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+			return (tzDate.getTime() - utcDate.getTime()) / 6e4;
+		  }
+
 		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
 			return (
-				moment().tz(frappe.boot.time_zone.system).utcOffset() ===
-				moment().tz(frappe.boot.time_zone.user).utcOffset()
+				getOffset(frappe.boot.time_zone.system) ===
+				getOffset(frappe.boot.time_zone.user)
 			);
 		}
 
@@ -65,73 +80,75 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_obj: function (d) {
-		let new_def_t = frappe.defaultDatetimeFormat.replace("YYYY", "yyyy").replace("DD", "dd")
-		console.log("obj" + frappe.defaultDatetimeFormat);
-		var test_obj = parse(d, "yyyy-MM-dd", new Date());
-		console.log("0---" + d);
-		console.log("1---" + test_obj);
-		console.log("2---" + moment(d, frappe.defaultDatetimeFormat)._d);
-		return moment(d, frappe.defaultDatetimeFormat)._d;
+		return parse(d, frappe.defaultDatetimeFormat, new Date());
 	},
 
 	obj_to_str: function (d) {
-		return moment(d).locale("en").format();
+		return d.toLocaleString("en-US")
 	},
 
 	obj_to_user: function (d) {
-		return moment(d).format(frappe.datetime.get_user_date_fmt().toUpperCase());
+		return format(d, frappe.datetime.get_user_date_fmt().replace("mm", "MM"))
 	},
 
 	get_diff: function (d1, d2) {
-		return moment(d1).diff(d2, "days");
+		const day1 = parse(d1, frappe.defaultDatetFormat, new Date());
+		const day2 = parse(d2, frappe.defaultDatetFormat, new Date());
+		return Math.ceil((day1 - day2) / 1000 / 60 / 60 / 24);
 	},
 
 	get_hour_diff: function (d1, d2) {
-		return moment(d1).diff(d2, "hours");
+		const day1 = parse(d1, frappe.defaultDatetFormat, new Date());
+		const day2 = parse(d2, frappe.defaultDatetFormat, new Date());
+		return Math.ceil((day1 - day2) / 1000 / 60 / 60);
 	},
 
 	get_day_diff: function (d1, d2) {
-		return moment(d1).diff(d2, "days");
+		const day1 = parse(d1, frappe.defaultDatetFormat, new Date());
+		const day2 = parse(d2, frappe.defaultDatetFormat, new Date());
+		return Math.ceil((day1 - day2) / 1000 / 60 / 60 / 24);
 	},
 
 	add_days: function (d, days) {
-		return moment(d).add(days, "days").format();
+		const date = parse(d, frappe.defaultDatetFormat, new Date());
+		return format(date.setDate(date.getDate() + days), frappe.defaultDateFormat);
 	},
 
 	add_months: function (d, months) {
-		return moment(d).add(months, "months").format();
+		const date = parse(d, frappe.defaultDatetFormat, new Date());
+		return format(date.setMonth(date.getMonth() + months), frappe.defaultDateFormat);
 	},
 
 	week_start: function () {
-		return moment().startOf("week").format();
+		return format(startOfWeek(new Date()), frappe.defaultDateFormat);
 	},
 
 	week_end: function () {
-		return moment().endOf("week").format();
+		return format(endOfWeek(new Date()), frappe.defaultDateFormat);
 	},
 
 	month_start: function () {
-		return moment().startOf("month").format();
+		return format(startOfMonth(new Date()), frappe.defaultDateFormat);
 	},
 
 	month_end: function () {
-		return moment().endOf("month").format();
+		return format(endOfMonth(new Date()), frappe.defaultDateFormat);
 	},
 
 	quarter_start: function () {
-		return moment().startOf("quarter").format();
+		return format(startOfQuarter(new Date()), frappe.defaultDateFormat);
 	},
 
 	quarter_end: function () {
-		return moment().endOf("quarter").format();
+		return format(endOfQuarter(new Date()), frappe.defaultDateFormat);
 	},
 
 	year_start: function () {
-		return moment().startOf("year").format();
+		return format(startOfYear(new Date()), frappe.defaultDateFormat);
 	},
 
 	year_end: function () {
-		return moment().endOf("year").format();
+		return format(endOfYear(new Date()), frappe.defaultDateFormat);
 	},
 
 	get_user_time_fmt: function () {
@@ -148,110 +165,90 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_user: function (val, only_time = false, only_date = false) {
+
 		if (!val) return "";
-		const user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+		const user_date_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		const user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let user_format = user_time_fmt;
+		let time_in = null;
 
-		if (only_time) {
-			let date_obj = moment(val, frappe.defaultTimeFormat);
-			return date_obj.format(user_format);
-		} else if (only_date) {
-			let date_obj = moment(val, frappe.defaultDateFormat);
-			return date_obj.format(user_date_fmt);
-		} else {
-			let date_obj = moment.tz(val, frappe.boot.time_zone.system);
-			if (typeof val !== "string" || val.indexOf(" ") === -1) {
+		try {
+			if (only_time) {
+				time_in = parse(val, frappe.defaultTimeFormat, new Date());
+			} else if (only_date) {
+
+				time_in = parse(val, frappe.defaultDateFormat, new Date());
 				user_format = user_date_fmt;
 			} else {
-				user_format = user_date_fmt + " " + user_time_fmt;
-			}
-			return date_obj.clone().tz(frappe.boot.time_zone.user).format(user_format);
-		}
-	},
+				if (typeof val !== "string" || val.indexOf(" ") === -1) {
+					time_in = parse(val, frappe.defaultDateFormat, new Date());
+					user_format = user_date_fmt;
+				} else {
+					time_in = parse(val, frappe.defaultDatetimeFormat, new Date());
+					user_format = user_date_fmt + " " + user_time_fmt;
+				}
 
-	get_datetime_as_string: function (d) {
-		return moment(d).format("YYYY-MM-DD HH:mm:ss");
+			}
+			return format(time_in, user_format);
+		}
+		catch(e) {
+			return "";
+		}
 	},
 
 	user_to_str: function (val, only_time = false) {
-		console.log("0." + val);
-		var user_time_fmt = frappe.datetime.get_user_time_fmt();
+		let user_time_fmt = frappe.datetime.get_user_time_fmt();
+		let time_out = null
+		let time_in = null
+
+		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
+		let system_fmt = "yyyy-MM-dd";
+
+
 		if (only_time) {
-			return moment(val, user_time_fmt).format(frappe.defaultTimeFormat);
+			try {
+				time_in = parse(val, frappe.defaultTimeFormat, new Date())
+				time_out = format(time_in, frappe.defaultTimeFormat);
+			}
+			catch(e) {
+				time_in = parse(val, user_time_fmt, new Date())
+				time_out = format(time_in, frappe.defaultTimeFormat);
+			}
+
+			return time_out;
 		}
-
-		let user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-		let user_fmt2 = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
-		let system_fmt = "YYYY-MM-DD";
-
+		
 		if (val.indexOf(" ") !== -1) {
 			user_fmt += " " + user_time_fmt;
-			user_fmt2 += ", " + user_time_fmt;
 			system_fmt += " HH:mm:ss";
 		}
 
-		console.log("5." + moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
-		.locale("en")
-		.format(system_fmt));
+		try {
+			time_in = parse(val, system_fmt, new Date())
+			time_out = format(time_in, system_fmt);
+		}
+		catch(e) {
+			time_in = parse(val, user_fmt, new Date())
+			time_out = format(time_in, system_fmt);
+		}
 
-		console.log(user_fmt2);
-		var date_new = parse(val, user_fmt2, new Date());
-		console.log("date" + date_new);
-
-		var year = date_new.toLocaleString("default", { year: "numeric" });
-		var month = date_new.toLocaleString("default", { month: "2-digit" });
-		var day = date_new.toLocaleString("default", { day: "2-digit" });
-		var hour = date_new.toLocaleString("default", { hour: "numeric" });
-		var minute = date_new.toLocaleString("default", { minute: "2-digit" });
-
-		// Generate yyyy-mm-dd date string
-		var formattedDate = year + "-" + month + "-" + day + " " + hour + ":" + minute;
-		let formattedDate2 = year + "-" + month + "-" + day;
-
-		//let date_formated = format(date_new, system_fmt);
-
-		//console.log(date_formated);
-		console.log("$%&" + formattedDate);  // Prints: 04-05-2022
-		console.log("$%&" + formattedDate2);  // Prints: 04-05-2022
-
-		//return formattedDate;
-		console.log(moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
-		.locale("en")
-		.format(system_fmt));
-
-		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
-		return moment(val, "DD.MM.YYYY, HH:mm")
-			.locale("en")
-			.format(system_fmt);
-		return moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
-			.locale("en")
-			.format(system_fmt);
+		return time_out;
 	},
 
 	parse_to_datepicker: function(val) {
-		console.log("date_parse" + val);
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		let user_fmt2 = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		let user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let system_fmt = "YYYY-MM-DD";
 
-		console.log("user_time_fmt:" + user_time_fmt);
-		console.log("userfmt_before:" + user_fmt2);
-		console.log("val:" + val.indexOf(" "));
 		if (val.indexOf(":") !== -1) {
-			console.log("if-triggered" + user_fmt2);
 			user_fmt2 = user_time_fmt;
 			system_fmt += " HH:mm:ss";
-			console.log("userfmt_if" + user_fmt2);
 			if (val.indexOf(" ") !== -1) {
 				user_fmt2 = user_fmt + " " + user_time_fmt;
-				console.log("userfmt_if2" + user_fmt2);
 			}
 		}
-		console.log("userfmt_after" + user_fmt2);
 		let datepicker_out = parse(val, user_fmt2, new Date());
-		console.log("datepicker_out" + user_fmt2);
 		return datepicker_out;
 	},
 
@@ -260,12 +257,18 @@ $.extend(frappe.datetime, {
 	},
 
 	global_date_format: function (d) {
-		var m = moment(d);
-		if (m._f && m._f.indexOf("HH") !== -1) {
-			return m.format("Do MMMM YYYY, hh:mm A");
-		} else {
-			return m.format("Do MMMM YYYY");
+		let time_in = null;
+		let time_out = null;
+
+		if (isMatch(d, frappe.defaultTimeFormat)) {
+			time_in = parse(d, frappe.defaultTimeFormat, new Date())
+			time_out = format(time_in, "do MMMM yyyy");
 		}
+		else {
+			time_in = parse(d, frappe.defaultdateTimeFormat, new Date())
+			time_out = format(time_in, "do MMMM yyyy, h:mm a");
+		}
+		return time_out;		
 	},
 
 	now_date: function (as_obj = false) {
@@ -295,22 +298,10 @@ $.extend(frappe.datetime, {
 		if (!system_time) {
 			time_zone = frappe.boot.time_zone?.user || time_zone;
 		}
-		let date = moment.tz(time_zone);
 
-		return as_obj ? frappe.datetime.moment_to_date_obj(date) : date.format(format);
-	},
+		usr_time = zonedTimeToUtc(new Date(), frappe.boot.time_zone.system);
+		return formatInTimeZone(usr_time, time_zone, format);
 
-	moment_to_date_obj: function (moment_obj) {
-		const date_obj = new Date();
-		const date_array = moment_obj.toArray();
-		date_obj.setFullYear(date_array[0]);
-		date_obj.setMonth(date_array[1]);
-		date_obj.setDate(date_array[2]);
-		date_obj.setHours(date_array[3]);
-		date_obj.setMinutes(date_array[4]);
-		date_obj.setSeconds(date_array[5]);
-		date_obj.setMilliseconds(date_array[6]);
-		return date_obj;
 	},
 
 	nowdate: function () {
@@ -323,20 +314,35 @@ $.extend(frappe.datetime, {
 
 	get_time: (timestamp) => {
 		// return time with AM/PM
-		return moment(timestamp).format("hh:mm A");
+		const time_in = parse(d, frappe.defaultDatetimeFormat, new Date())
+		return format(time_in, "h:mm a");
 	},
 
 	validate: function (d) {
-		return moment(
-			d,
-			[frappe.defaultDateFormat, frappe.defaultDatetimeFormat, frappe.defaultTimeFormat],
-			true
-		).isValid();
+		try {
+			parse(d, frappe.defaultDateFormat, new Date());
+			return true;
+
+		}
+		catch(e) {
+			try{
+				parse(d, frappe.defaultDatetimeFormat, new Date());
+				return true;
+			}
+			catch {
+				parse(d, frappe.frappe.defaultTimeFormat, new Date());
+				return true;
+			}
+		}
+		finally{
+			return false;
+		}
 	},
 
 	get_first_day_of_the_week_index() {
+		const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 		const first_day_of_the_week = frappe.sys_defaults.first_day_of_the_week || "Sunday";
-		return moment.weekdays().indexOf(first_day_of_the_week);
+		return weekdays.indexOf(first_day_of_the_week);
 	},
 });
 

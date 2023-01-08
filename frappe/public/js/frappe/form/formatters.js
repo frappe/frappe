@@ -182,11 +182,13 @@ frappe.form.formatters = {
 		}
 	},
 	Date: function (value) {
+		console.log("$$$date: " + value);
 		if (!frappe.datetime.str_to_user) {
 			return value;
 		}
 		if (value) {
 			value = frappe.datetime.str_to_user(value);
+			console.log("1$$$date: " + value);
 			// handle invalid date
 			if (value === "Invalid date") {
 				value = null;

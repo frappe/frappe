@@ -85,6 +85,7 @@ frappe.ui.form.Control = class BaseControl {
 			}
 
 			let value = this.value || this.get_model_value();
+
 			value = this.get_parsed_value(value);
 
 			if (
