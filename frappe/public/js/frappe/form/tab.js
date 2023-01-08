@@ -85,7 +85,7 @@ export default class Tab {
 	set_active() {
 		this.tab_link.find(".nav-link").tab("show");
 		this.wrapper.addClass("show");
-		this.frm.active_tab = this;
+		this.frm?.set_active_tab?.(this);
 	}
 
 	is_active() {

@@ -267,10 +267,10 @@ def add_all_roles_to(name):
 
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
-	frappe.db.set_value("System Settings", "System Settings", "setup_complete", 1)
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 	# Enable onboarding after install
-	frappe.db.set_value("System Settings", "System Settings", "enable_onboarding", 1)
+	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
