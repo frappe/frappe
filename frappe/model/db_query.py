@@ -56,7 +56,6 @@ ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 class DatabaseQuery:
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
-		self.doctype_meta = frappe.get_meta(doctype)
 		self.tables = []
 		self.link_tables = []
 		self.conditions = []
@@ -66,6 +65,12 @@ class DatabaseQuery:
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 		self.reference_doctype = None
+
+	@property
+	def doctype_meta(self):
+		if not hasattr(self, "_doctype_meta"):
+			self._doctype_meta = frappe.get_meta(self.doctype)
+		return self._doctype_meta
 
 	def execute(
 		self,
