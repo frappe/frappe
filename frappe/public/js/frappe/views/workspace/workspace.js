@@ -18,7 +18,6 @@ frappe.views.Workspace = class Workspace {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
 		this.prepare_container();
-		this.show_or_hide_sidebar();
 		this.setup_dropdown();
 		this.pages = {};
 		this.sidebar_items = {};
@@ -190,23 +189,6 @@ frappe.views.Workspace = class Workspace {
 		this.page.add_menu_item(__('Reset Customizations'), () => {
 			this.current_page.reset_customization();
 		}, 1);
-
-		this.page.add_menu_item(__('Toggle Sidebar'), () => {
-			this.toggle_side_bar();
-		}, 1);
-	}
-
-	toggle_side_bar() {
-		let show_workspace_sidebar = JSON.parse(localStorage.show_workspace_sidebar || "true");
-		show_workspace_sidebar = !show_workspace_sidebar;
-		localStorage.show_workspace_sidebar = show_workspace_sidebar;
-		this.show_or_hide_sidebar();
-		$(document.body).trigger("toggleDeskSidebar");
-	}
-
-	show_or_hide_sidebar() {
-		let show_workspace_sidebar = JSON.parse(localStorage.show_workspace_sidebar || "true");
-		$('#page-workspace .layout-side-section').toggleClass('hidden', !show_workspace_sidebar);
 	}
 };
 
