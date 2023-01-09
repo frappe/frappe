@@ -301,10 +301,6 @@ class BaseDocument:
 		for fieldname in self.meta.get_valid_columns():
 			field_value = getattr(self, fieldname, _DOC_DELETED_ATTR)
 
-			# don't set if field is deleted
-			if field_value is _DOC_DELETED_ATTR:
-				continue
-
 			# column is valid, we can use getattr
 			d[fieldname] = field_value
 
@@ -313,14 +309,15 @@ class BaseDocument:
 				continue
 
 			df = self.meta.get_field(fieldname)
+			is_virtual_field = getattr(df, "is_virtual", False)
 
 			if df:
-				if getattr(df, "is_virtual", False):
+				if is_virtual_field:
 					if ignore_virtual:
 						del d[fieldname]
 						continue
 
-					if d[fieldname] is None and (options := getattr(df, "options", None)):
+					if d[fieldname] in {None, _DOC_DELETED_ATTR} and (options := getattr(df, "options", None)):
 						from frappe.utils.safe_exec import get_safe_globals
 
 						d[fieldname] = frappe.safe_eval(
@@ -355,6 +352,8 @@ class BaseDocument:
 				d[fieldname] = str(d[fieldname])
 
 			if ignore_nulls and d[fieldname] is None:
+				del d[fieldname]
+			if not is_virtual_field and field_value is _DOC_DELETED_ATTR:
 				del d[fieldname]
 
 		return d
