@@ -379,7 +379,17 @@ def get_workspace_sidebar_items():
 
 	# pages sorted based on sequence id
 	order_by = "sequence_id asc"
-	fields = ["name", "title", "for_user", "parent_page", "content", "public", "module", "icon"]
+	fields = [
+		"name",
+		"title",
+		"for_user",
+		"parent_page",
+		"content",
+		"public",
+		"module",
+		"icon",
+		"is_hidden",
+	]
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
 	)
@@ -391,7 +401,7 @@ def get_workspace_sidebar_items():
 		try:
 			workspace = Workspace(page, True)
 			if has_access or workspace.is_permitted():
-				if page.public:
+				if page.public and (has_access or not page.is_hidden):
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)

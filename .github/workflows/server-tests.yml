@@ -12,6 +12,7 @@ concurrency:
 
 
 permissions:
+  # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
 
 jobs:
@@ -34,6 +35,7 @@ jobs:
           TYPE: "server"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     name: Unit Tests
