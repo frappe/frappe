@@ -555,30 +555,34 @@ class DatabaseQuery:
 		if self.flags.ignore_permissions:
 			return
 
-		accessible_fields = [x.fieldname for x in self.doctype_meta.get_permlevel_read_fields()]
-		meta_fields = self.doctype_meta.default_fields.copy()
-		optional_meta_fields = list(optional_fields)
-
-		if not self.doctype_meta.track_seen:
-			optional_meta_fields.remove("_seen")
-
-		if not self.doctype_meta.is_submittable:
-			meta_fields.remove("docstatus")
-
-		if self.doctype_meta.istable:
-			meta_fields.extend(["parent", "parenttype", "parentfield"])
-		else:
-			meta_fields.remove("idx")
-
-		available_fields = meta_fields + accessible_fields + optional_meta_fields
+		available_fields = get_available_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
 			if field == "*":
 				self.fields[i : i + 1] = available_fields
 
-			elif field[0] in {"'", '"', "_"} or "(" in field or "." in field or field in accessible_fields:
+			# labels / pseudo columns or frappe internals
+			elif field[0] in {"'", '"', "_"} or field in available_fields:
 				continue
 
+			# handle child / joined table fields
+			elif "." in field:
+				table, _column = field.split(".", 1)
+				column = _column.lower().split(" ", 1)[0].replace("`", "")
+
+				if table in self.tables:
+					ch_doctype = table.replace("`", "").replace("tab", "", 1)
+					available_child_table_fields = get_available_fields(doctype=ch_doctype)
+					if column in available_child_table_fields:
+						continue
+					else:
+						self.fields.remove(field)
+
+			# field inside function calls
+			elif "(" in field and any(x for x in available_fields if x in field):
+				continue
+
+			# remove if access not allowed
 			else:
 				self.fields.remove(field)
 
@@ -1176,3 +1180,23 @@ def requires_owner_constraint(role_permissions):
 	# not checking if either select or read if present in if_owner_perms
 	# because either of those is required to perform a query
 	return True
+
+
+def get_available_fields(doctype):
+	meta = frappe.get_meta(doctype)
+	accessible_fields = [x.fieldname for x in meta.get_permlevel_read_fields()]
+	meta_fields = meta.default_fields.copy()
+	optional_meta_fields = list(optional_fields)
+
+	if not meta.track_seen:
+		optional_meta_fields.remove("_seen")
+
+	if not meta.is_submittable:
+		meta_fields.remove("docstatus")
+
+	if meta.istable:
+		meta_fields.extend(["parent", "parenttype", "parentfield"])
+	else:
+		meta_fields.remove("idx")
+
+	return meta_fields + accessible_fields + optional_meta_fields
