@@ -247,7 +247,7 @@ def update_page(name, title, icon, parent, public):
 	return {"name": title, "public": public, "label": new_name}
 
 
-def hide_unhide_page(page_name: str, is_hidden: int):
+def hide_unhide_page(page_name: str, is_hidden: bool):
 	page = frappe.get_doc("Workspace", page_name)
 
 	if page.get("public") and not is_workspace_manager():
@@ -258,7 +258,7 @@ def hide_unhide_page(page_name: str, is_hidden: int):
 	if not page.get("public") and page.get("for_user") != frappe.session.user:
 		frappe.throw(_("Cannot update private workspace of other users"), frappe.PermissionError)
 
-	page.is_hidden = is_hidden
+	page.is_hidden = int(is_hidden)
 	page.save(ignore_permissions=True)
 	return True
 
