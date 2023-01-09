@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.desk.form.assign_to import add as assign_to
+from frappe.desk.page.user_profile.user_profile import get_energy_points_heatmap_data
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
@@ -233,6 +234,10 @@ class TestEnergyPointLog(FrappeTestCase):
 		self.assertEqual(test_user_after_points, test_user_before_points + rule.points)
 
 		self.assertEqual(test2_user_after_points, test2_user_before_points + rule.points)
+
+	def test_eps_heatmap_query(self):
+		# Just asserts that query works, not correctness.
+		self.assertIsInstance(get_energy_points_heatmap_data(user="test@example.com", date=None), dict)
 
 	def test_points_on_field_value_change(self):
 		rule = create_energy_point_rule_for_todo(
