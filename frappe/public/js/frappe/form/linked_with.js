@@ -26,8 +26,8 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		this.dialog.on_page_show = () => {
 			frappe
 				.xcall("frappe.desk.form.linked_with.get", {
-					doctype: cur_frm.doctype,
-					docname: cur_frm.docname,
+					doctype: this.frm.doctype,
+					docname: this.frm.docname,
 				})
 				.then((r) => {
 					this.frm.__linked_docs = r;

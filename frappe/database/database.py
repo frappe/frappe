@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import itertools
 import json
 import random
 import re
@@ -9,6 +10,7 @@ import string
 import traceback
 from contextlib import contextmanager, suppress
 from time import time
+from typing import Any, Iterable, Sequence
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue
@@ -30,7 +32,7 @@ from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
-from frappe.utils.deprecations import deprecated
+from frappe.utils.deprecations import deprecated, deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -687,13 +689,30 @@ class Database:
 	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
+	@staticmethod
+	def _get_update_dict(
+		fieldname: str | dict, value: Any, *, modified: str, modified_by: str, update_modified: bool
+	) -> dict[str, Any]:
+		"""Create update dict that represents column-values to be updated."""
+		update_dict = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+
+		if update_modified:
+			modified = modified or now()
+			modified_by = modified_by or frappe.session.user
+			update_dict.update({"modified": modified, "modified_by": modified_by})
+
+		return update_dict
+
 	def set_single_value(
 		self,
 		doctype: str,
 		fieldname: str | dict,
 		value: str | int | None = None,
-		*args,
-		**kwargs,
+		*,
+		modified=None,
+		modified_by=None,
+		update_modified=True,
+		debug=False,
 	):
 		"""Set field value of Single DocType.
 
@@ -706,7 +725,23 @@ class Database:
 		        # Update the `deny_multiple_sessions` field in System Settings DocType.
 		        company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
 		"""
-		return self.set_value(doctype, doctype, fieldname, value, *args, **kwargs)
+
+		to_update = self._get_update_dict(
+			fieldname, value, modified=modified, modified_by=modified_by, update_modified=update_modified
+		)
+
+		frappe.db.delete(
+			"Singles", filters={"field": ("in", tuple(to_update)), "doctype": doctype}, debug=debug
+		)
+
+		singles_data = ((doctype, key, sbool(value)) for key, value in to_update.items())
+		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(
+			debug=debug
+		)
+		frappe.clear_document_cache(doctype, doctype)
+
+		if doctype in self.value_cache:
+			del self.value_cache[doctype]
 
 	def get_single_value(self, doctype, fieldname, cache=True):
 		"""Get property of Single DocType. Cache locally by default
@@ -832,40 +867,40 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
-		is_single_doctype = not (dn and dt != dn)
-		to_update = field if isinstance(field, dict) else {field: val}
 
-		if update_modified:
-			modified = modified or now()
-			modified_by = modified_by or frappe.session.user
-			to_update.update({"modified": modified, "modified_by": modified_by})
-
-		if is_single_doctype:
-			frappe.db.delete(
-				"Singles", filters={"field": ("in", tuple(to_update)), "doctype": dt}, debug=debug
+		if _is_single_doctype := not (dn and dt != dn):
+			deprecation_warning(
+				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in version 15. Use db.set_single_value instead."
 			)
+			self.set_single_value(
+				doctype=dt,
+				fieldname=field,
+				value=val,
+				debug=debug,
+				update_modified=update_modified,
+				modified=modified,
+				modified_by=modified_by,
+			)
+			return
 
-			singles_data = ((dt, key, sbool(value)) for key, value in to_update.items())
-			query = (
-				frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data)
-			).run(debug=debug)
-			frappe.clear_document_cache(dt, dt)
+		to_update = self._get_update_dict(
+			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified
+		)
 
+    query = frappe.qb.get_query(table=dt, filters=dn, update=True)
+
+		if isinstance(dn, str):
+			frappe.clear_document_cache(dt, dn)
 		else:
-			query = frappe.qb.get_query(table=dt, filters=dn, update=True)
+			# TODO: Fix this; doesn't work rn - gavin@frappe.io
+			# frappe.cache().hdel_keys(dt, "document_cache")
+			# Workaround: clear all document caches
+			frappe.cache().delete_value("document_cache")
 
-			if isinstance(dn, str):
-				frappe.clear_document_cache(dt, dn)
-			else:
-				# TODO: Fix this; doesn't work rn - gavin@frappe.io
-				# frappe.cache().hdel_keys(dt, "document_cache")
-				# Workaround: clear all document caches
-				frappe.cache().delete_value("document_cache")
+		for column, value in to_update.items():
+			query = query.set(column, value)
 
-			for column, value in to_update.items():
-				query = query.set(column, value)
-
-			query.run(debug=debug)
+		query.run(debug=debug)
 
 		if dt in self.value_cache:
 			del self.value_cache[dt]
@@ -1204,28 +1239,36 @@ class Database:
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
-	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False, *, chunk_size=10_000):
+	def bulk_insert(
+		self,
+		doctype: str,
+		fields: list[str],
+		values: Iterable[Sequence[Any]],
+		ignore_duplicates=False,
+		*,
+		chunk_size=10_000,
+	):
 		"""
 		Insert multiple records at a time
 
 		:param doctype: Doctype name
 		:param fields: list of fields
-		:params values: list of list of values
+		:params values: iterable of values
 		"""
-		values = list(values)
 		table = frappe.qb.DocType(doctype)
 
-		for start_index in range(0, len(values), chunk_size):
-			query = frappe.qb.into(table)
-			if ignore_duplicates:
-				# Pypika does not have same api for ignoring duplicates
-				if self.db_type == "mariadb":
-					query = query.ignore()
-				elif self.db_type == "postgres":
-					query = query.on_conflict().do_nothing()
+		query = frappe.qb.into(table).columns(fields)
 
-			values_to_insert = values[start_index : start_index + chunk_size]
-			query.columns(fields).insert(*values_to_insert).run()
+		if ignore_duplicates:
+			# Pypika does not have same api for ignoring duplicates
+			if frappe.conf.db_type == "mariadb":
+				query = query.ignore()
+			elif frappe.conf.db_type == "postgres":
+				query = query.on_conflict().do_nothing()
+
+		value_iterator = iter(values)
+		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
+			query.insert(*value_chunk).run()
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence

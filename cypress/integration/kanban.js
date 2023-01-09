@@ -1,6 +1,6 @@
 context("Kanban Board", () => {
 	before(() => {
-		cy.login();
+		cy.login("frappe@example.com");
 		cy.visit("/app");
 	});
 
@@ -95,5 +95,37 @@ context("Kanban Board", () => {
 			.find(".kanban-card .kanban-card-doc")
 			.first()
 			.should("not.contain", "ID:");
+	});
+
+	it("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
+		// create admin kanban board
+		cy.call("frappe.tests.ui_test_helpers.create_todo", { description: "Frappe User ToDo" });
+
+		cy.switch_to_user("Administrator");
+		cy.call("frappe.tests.ui_test_helpers.create_admin_kanban");
+		// remove sys manager
+		cy.remove_role("frappe@example.com", "System Manager");
+
+		cy.switch_to_user("frappe@example.com");
+
+		cy.visit("/app/todo/view/kanban/Admin Kanban");
+
+		// Menu button should be hidden (dropdown for 'Save Filters' and 'Delete Kanban Board')
+		cy.get(".no-list-sidebar .menu-btn-group .btn-default[data-original-title='Menu']").should(
+			"have.length",
+			0
+		);
+		// Kanban Columns should be visible (read-only)
+		cy.get(".kanban .kanban-column").should("have.length", 2);
+		// User should be able to add card (has access to ToDo)
+		cy.get(".kanban .add-card").should("have.length", 2);
+		// Column actions should be hidden (dropdown for 'Archive' and indicators)
+		cy.get(".kanban .column-options").should("have.length", 0);
+
+		cy.add_role("frappe@example.com", "System Manager");
+	});
+
+	after(() => {
+		cy.call("logout");
 	});
 });

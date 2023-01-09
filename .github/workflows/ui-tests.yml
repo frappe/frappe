@@ -94,7 +94,7 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
         id: yarn-cache
@@ -123,7 +123,6 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ~/frappe-bench/apps/frappe
-          yarn install --immutable --immutable-cache --check-cache
           git diff --exit-code yarn.lock
 
       - name: Instrument Source Code

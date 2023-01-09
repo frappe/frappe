@@ -162,6 +162,8 @@ class SiteMigration:
 		"""Run Migrate operation on site specified. This method initializes
 		and destroys connections to the site database.
 		"""
+		from frappe.utils.synchronization import filelock
+
 		if site:
 			frappe.init(site=site)
 			frappe.connect()
@@ -169,11 +171,12 @@ class SiteMigration:
 		if not self.required_services_running():
 			raise SystemExit(1)
 
-		self.setUp()
-		try:
-			self.pre_schema_updates()
-			self.run_schema_updates()
-			self.post_schema_updates()
-		finally:
-			self.tearDown()
-			frappe.destroy()
+		with filelock("bench_migrate", timeout=1):
+			self.setUp()
+			try:
+				self.pre_schema_updates()
+				self.run_schema_updates()
+				self.post_schema_updates()
+			finally:
+				self.tearDown()
+				frappe.destroy()

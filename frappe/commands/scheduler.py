@@ -77,6 +77,7 @@ def disable_scheduler(context):
 @click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable"]))
 @pass_context
 def scheduler(context, state, site=None):
+	"""Control scheduler state."""
 	import frappe.utils.scheduler
 	from frappe.installer import update_site_config
 
@@ -110,6 +111,7 @@ def scheduler(context, state, site=None):
 @click.argument("state", type=click.Choice(["on", "off"]))
 @pass_context
 def set_maintenance_mode(context, state, site=None):
+	"""Put the site in maintenance mode for upgrades."""
 	from frappe.installer import update_site_config
 
 	if not site:
@@ -172,21 +174,42 @@ def purge_jobs(site=None, queue=None, event=None):
 
 @click.command("schedule")
 def start_scheduler():
+	"""Start scheduler process which is responsible for enqueueing the scheduled job types."""
 	from frappe.utils.scheduler import start_scheduler
 
 	start_scheduler()
 
 
 @click.command("worker")
-@click.option("--queue", type=str)
+@click.option(
+	"--queue",
+	type=str,
+	help="Queue to consume from. Multiple queues can be specified using comma-separated string. If not specified all queues are consumed.",
+)
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("-u", "--rq-username", default=None, help="Redis ACL user")
 @click.option("-p", "--rq-password", default=None, help="Redis ACL user password")
-def start_worker(queue, quiet=False, rq_username=None, rq_password=None):
-	"""Site is used to find redis credentals."""
+@click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
+@click.option(
+	"--strategy",
+	required=False,
+	type=click.Choice(["round_robin", "random"]),
+	help="Dequeuing strategy to use",
+)
+def start_worker(
+	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None
+):
+	"""Start a backgrond worker"""
 	from frappe.utils.background_jobs import start_worker
 
-	start_worker(queue, quiet=quiet, rq_username=rq_username, rq_password=rq_password)
+	start_worker(
+		queue,
+		quiet=quiet,
+		rq_username=rq_username,
+		rq_password=rq_password,
+		burst=burst,
+		strategy=strategy,
+	)
 
 
 @click.command("ready-for-migration")

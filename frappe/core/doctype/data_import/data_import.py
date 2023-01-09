@@ -260,7 +260,7 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 		path = os.path.join("..", path)
 
 	with open(path, "w") as outfile:
-		outfile.write(frappe.as_json(out))
+		outfile.write(frappe.as_json(out, ensure_ascii=False))
 
 
 def export_csv(doctype, path):

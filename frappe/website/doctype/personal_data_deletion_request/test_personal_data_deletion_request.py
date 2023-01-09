@@ -59,7 +59,7 @@ class TestPersonalDataDeletionRequest(FrappeTestCase):
 		self.assertFalse(frappe.db.exists("Personal Data Deletion Request", self.delete_request.name))
 
 	def test_process_auto_request(self):
-		frappe.db.set_value("Website Settings", None, "auto_account_deletion", "1")
+		frappe.db.set_single_value("Website Settings", "auto_account_deletion", "1")
 		date_time_obj = datetime.strptime(
 			self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f"
 		) + timedelta(hours=-2)

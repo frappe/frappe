@@ -111,12 +111,6 @@ class Meta(Document):
 	]
 
 	def __init__(self, doctype):
-		# from cache
-		if isinstance(doctype, dict):
-			super().__init__(doctype)
-			self.init_field_map()
-			return
-
 		if isinstance(doctype, Document):
 			super().__init__(doctype.as_dict())
 		else:
@@ -135,14 +129,14 @@ class Meta(Document):
 
 	def process(self):
 		# don't process for special doctypes
-		# prevent's circular dependency
+		# prevents circular dependency
 		if self.name in self.special_doctypes:
-			self.init_field_map()
+			self.init_field_caches()
 			return
 
 		has_custom_fields = self.add_custom_fields()
 		self.apply_property_setters()
-		self.init_field_map()
+		self.init_field_caches()
 
 		if has_custom_fields:
 			self.sort_fields()
@@ -214,12 +208,6 @@ class Meta(Document):
 		return self._set_only_once_fields
 
 	def get_table_fields(self):
-		if not hasattr(self, "_table_fields"):
-			if self.name != "DocType":
-				self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
-			else:
-				self._table_fields = DOCTYPE_TABLE_FIELDS
-
 		return self._table_fields
 
 	def get_global_search_fields(self):
@@ -230,7 +218,7 @@ class Meta(Document):
 
 		return fields
 
-	def get_valid_columns(self):
+	def get_valid_columns(self) -> list[str]:
 		if not hasattr(self, "_valid_columns"):
 			table_exists = frappe.db.table_exists(self.name)
 			if self.name in self.special_doctypes and table_exists:
@@ -259,14 +247,13 @@ class Meta(Document):
 
 	def get_label(self, fieldname):
 		"""Get label of the given fieldname"""
-
 		if df := self.get_field(fieldname):
 			return df.label
 
 		if fieldname in DEFAULT_FIELD_LABELS:
 			return DEFAULT_FIELD_LABELS[fieldname]()
 
-		return _("No Label")
+		return "No Label"
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
@@ -454,8 +441,15 @@ class Meta(Document):
 
 				self.set(fieldname, new_list)
 
-	def init_field_map(self):
+	def init_field_caches(self):
+		# field map
 		self._fields = {field.fieldname: field for field in self.fields}
+
+		# table fields
+		if self.name == "DocType":
+			self._table_fields = DOCTYPE_TABLE_FIELDS
+		else:
+			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
 	def sort_fields(self):
 		"""Sort custom fields on the basis of insert_after"""

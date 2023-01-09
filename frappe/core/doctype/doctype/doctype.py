@@ -33,7 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint
+from frappe.utils import cint, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -86,9 +86,6 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
-	def get_feed(self):
-		return self.name
-
 	def validate(self):
 		"""Validate DocType before saving.
 
@@ -122,6 +119,7 @@ class DocType(Document):
 		self.validate_nestedset()
 		self.validate_child_table()
 		self.validate_website()
+		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
 		validate_links_table_fieldnames(self)
 
@@ -197,10 +195,12 @@ class DocType(Document):
 
 	def set_default_in_list_view(self):
 		"""Set default in-list-view for first 4 mandatory fields"""
+		not_allowed_in_list_view = get_fields_not_allowed_in_list_view(self.meta)
+
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
 			cnt = 0
 			for d in self.fields:
-				if d.reqd and not d.hidden and not d.fieldtype in table_fields:
+				if d.reqd and not d.hidden and not d.fieldtype in not_allowed_in_list_view:
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4:
@@ -302,6 +302,14 @@ class DocType(Document):
 			# clear website cache
 			clear_cache()
 
+	def validate_virtual_doctype_methods(self):
+		if not self.get("is_virtual") or self.is_new():
+			return
+
+		from frappe.model.virtual_doctype import validate_controller
+
+		validate_controller(self.name)
+
 	def ensure_minimum_max_attachment_limit(self):
 		"""Ensure that max_attachments is *at least* bigger than number of attach fields."""
 		from frappe.model import attachment_fieldtypes
@@ -359,7 +367,7 @@ class DocType(Document):
 						elif d.fieldtype == "Tab Break":
 							d.fieldname = d.fieldname + "_tab"
 					else:
-						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(d.idx)
+						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(random_string(4))
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
@@ -1440,10 +1448,7 @@ def validate_fields(meta):
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
-	not_allowed_in_list_view = list(copy.copy(no_value_fields))
-	not_allowed_in_list_view.append("Attach Image")
-	if meta.istable:
-		not_allowed_in_list_view.remove("Button")
+	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 
 	for d in fields:
 		if not d.permlevel:
@@ -1482,6 +1487,14 @@ def validate_fields(meta):
 	check_website_search_field(meta)
 	check_sort_field(meta)
 	check_image_field(meta)
+
+
+def get_fields_not_allowed_in_list_view(meta) -> list[str]:
+	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
+	if meta.istable:
+		not_allowed_in_list_view.remove("Button")
+	return not_allowed_in_list_view
 
 
 def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
@@ -1739,24 +1752,3 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
-
-
-@frappe.whitelist()
-def set_field_order(doctype, field_order):
-	"""Update field order in doctype"""
-
-	frappe.only_for("System Manager")
-
-	field_order = json.loads(field_order)
-
-	idx = 1
-	for fieldname in field_order:
-		docfield = frappe.qb.DocType("DocField")
-		frappe.qb.update(docfield).set(docfield.idx, idx).where(
-			(docfield.fieldname == fieldname) & (docfield.parent == doctype)
-		).run()
-		idx += 1
-
-	# save to update
-	frappe.get_doc("DocType", doctype).save()
-	frappe.clear_cache(doctype=doctype)

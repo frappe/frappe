@@ -3,6 +3,7 @@
 import getpass
 
 import frappe
+from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils.password import update_password
 
 
@@ -22,13 +23,10 @@ def after_install():
 	install_basic_docs()
 
 	from frappe.core.doctype.file.utils import make_home_folder
-
-	make_home_folder()
-
-	import_country_and_currency()
-
 	from frappe.core.doctype.language.language import sync_languages
 
+	make_home_folder()
+	import_country_and_currency()
 	sync_languages()
 
 	# save default print setting
@@ -171,6 +169,7 @@ def before_tests():
 	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
 		complete_setup_wizard()
 
+	frappe.db.set_single_value("Website Settings", "disable_signup", 0)
 	frappe.db.commit()
 	frappe.clear_cache()
 
@@ -189,53 +188,6 @@ def complete_setup_wizard():
 			"currency": "USD",
 		}
 	)
-
-
-def import_country_and_currency():
-	from frappe.geo.country_info import get_all
-	from frappe.utils import update_progress_bar
-
-	data = get_all()
-
-	for i, name in enumerate(data):
-		update_progress_bar("Updating country info", i, len(data))
-		country = frappe._dict(data[name])
-		add_country_and_currency(name, country)
-
-	print("")
-
-	# enable frequently used currencies
-	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):
-		frappe.db.set_value("Currency", currency, "enabled", 1)
-
-
-def add_country_and_currency(name, country):
-	if not frappe.db.exists("Country", name):
-		frappe.get_doc(
-			{
-				"doctype": "Country",
-				"country_name": name,
-				"code": country.code,
-				"date_format": country.date_format or "dd-mm-yyyy",
-				"time_format": country.time_format or "HH:mm:ss",
-				"time_zones": "\n".join(country.timezones or []),
-				"docstatus": 0,
-			}
-		).db_insert()
-
-	if country.currency and not frappe.db.exists("Currency", country.currency):
-		frappe.get_doc(
-			{
-				"doctype": "Currency",
-				"currency_name": country.currency,
-				"fraction": country.currency_fraction,
-				"symbol": country.currency_symbol,
-				"fraction_units": country.currency_fraction_units,
-				"smallest_currency_fraction_value": country.smallest_currency_fraction_value,
-				"number_format": country.number_format,
-				"docstatus": 0,
-			}
-		).db_insert()
 
 
 def add_standard_navbar_items():

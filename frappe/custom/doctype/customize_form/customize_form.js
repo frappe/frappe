@@ -111,48 +111,59 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
-			frm.page.set_title(__("Customize Form - {0}", [frm.doc.doc_type]));
-			frappe.customize_form.set_primary_action(frm);
+			frappe.model.with_doctype(frm.doc.doc_type).then(() => {
+				frm.page.set_title(__("Customize Form - {0}", [frm.doc.doc_type]));
+				frappe.customize_form.set_primary_action(frm);
 
-			frm.add_custom_button(
-				__("Go to {0} List", [__(frm.doc.doc_type)]),
-				function () {
-					frappe.set_route("List", frm.doc.doc_type);
-				},
-				__("Actions")
-			);
+				if (!frm.is_new()) {
+					frm.add_custom_button(
+						__("Try new form builder", [__(frm.doc.doc_type)]),
+						() => {
+							frappe.set_route("form-builder", frm.doc.doc_type, "customize");
+						}
+					);
+				}
 
-			frm.add_custom_button(
-				__("Reload"),
-				function () {
-					frm.script_manager.trigger("doc_type");
-				},
-				__("Actions")
-			);
+				frm.add_custom_button(
+					__("Go to {0} List", [__(frm.doc.doc_type)]),
+					function () {
+						frappe.set_route("List", frm.doc.doc_type);
+					},
+					__("Actions")
+				);
 
-			frm.add_custom_button(
-				__("Reset to defaults"),
-				function () {
-					frappe.customize_form.confirm(__("Remove all customizations?"), frm);
-				},
-				__("Actions")
-			);
+				frm.add_custom_button(
+					__("Reload"),
+					function () {
+						frm.script_manager.trigger("doc_type");
+					},
+					__("Actions")
+				);
 
-			frm.add_custom_button(
-				__("Set Permissions"),
-				function () {
-					frappe.set_route("permission-manager", frm.doc.doc_type);
-				},
-				__("Actions")
-			);
+				frm.add_custom_button(
+					__("Reset to defaults"),
+					function () {
+						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
+					},
+					__("Actions")
+				);
 
-			const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
-			frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
-			frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
-			frm.toggle_display(
-				["queue_in_background"],
-				frappe.get_meta(frm.doc.doc_type).is_submittable || 0
-			);
+				frm.add_custom_button(
+					__("Set Permissions"),
+					function () {
+						frappe.set_route("permission-manager", frm.doc.doc_type);
+					},
+					__("Actions")
+				);
+
+				const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
+				frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
+				frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
+				frm.toggle_display(
+					["queue_in_background"],
+					frappe.get_meta(frm.doc.doc_type).is_submittable || 0
+				);
+			});
 		}
 
 		frm.events.setup_export(frm);

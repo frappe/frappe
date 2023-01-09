@@ -54,33 +54,35 @@ def build(
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
+	from frappe.utils.synchronization import filelock
 
 	frappe.init("")
 
 	if not apps and app:
 		apps = app
 
-	# dont try downloading assets if force used, app specified or running via CI
-	if not (force or apps or os.environ.get("CI")):
-		# skip building frappe if assets exist remotely
-		skip_frappe = download_frappe_assets(verbose=verbose)
-	else:
-		skip_frappe = False
+	with filelock("bench_build", is_global=True, timeout=10):
+		# dont try downloading assets if force used, app specified or running via CI
+		if not (force or apps or os.environ.get("CI")):
+			# skip building frappe if assets exist remotely
+			skip_frappe = download_frappe_assets(verbose=verbose)
+		else:
+			skip_frappe = False
 
-	# don't minify in developer_mode for faster builds
-	development = frappe.local.conf.developer_mode or frappe.local.dev_server
-	mode = "development" if development else "production"
-	if production:
-		mode = "production"
+		# don't minify in developer_mode for faster builds
+		development = frappe.local.conf.developer_mode or frappe.local.dev_server
+		mode = "development" if development else "production"
+		if production:
+			mode = "production"
 
-	if make_copy or restore:
-		hard_link = make_copy or restore
-		click.secho(
-			"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
-			fg="yellow",
-		)
+		if make_copy or restore:
+			hard_link = make_copy or restore
+			click.secho(
+				"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
+				fg="yellow",
+			)
 
-	bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+		bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
 
 
 @click.command("watch")
@@ -530,7 +532,7 @@ def _mariadb():
 	command = [
 		mysql,
 		"--port",
-		frappe.conf.db_port or MariaDBDatabase.default_port,
+		str(frappe.conf.db_port or MariaDBDatabase.default_port),
 		"-u",
 		frappe.conf.db_name,
 		f"-p{frappe.conf.db_password}",
@@ -546,12 +548,19 @@ def _mariadb():
 
 def _psql():
 	psql = which("psql")
-	subprocess.run([psql, "-d", frappe.conf.db_name])
+
+	host = frappe.conf.db_host or "127.0.0.1"
+	port = frappe.conf.db_port or "5432"
+	env = os.environ.copy()
+	env["PGPASSWORD"] = frappe.conf.db_password
+	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
+	subprocess.run([psql, conn_string], check=True, env=env)
 
 
 @click.command("jupyter")
 @pass_context
 def jupyter(context):
+	"""Start an interactive jupyter notebook"""
 	installed_packages = (
 		r.split("==")[0]
 		for r in subprocess.check_output([sys.executable, "-m", "pip", "freeze"], encoding="utf8")
@@ -770,6 +779,7 @@ def run_tests(
 	failfast=False,
 	case=None,
 ):
+	"""Run python unit-tests"""
 
 	with CodeCoverage(coverage, app):
 		import frappe

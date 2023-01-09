@@ -141,5 +141,8 @@ def remove_document_from_index(path):
 
 
 def build_index_for_all_routes():
-	ws = WebsiteSearch(INDEX_NAME)
-	return ws.build()
+	from frappe.utils.synchronization import filelock
+
+	with filelock("building_website_search"):
+		ws = WebsiteSearch(INDEX_NAME)
+		return ws.build()

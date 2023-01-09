@@ -12,6 +12,7 @@
   "first_name",
   "middle_name",
   "last_name",
+  "full_name",
   "email_id",
   "user",
   "address",
@@ -52,8 +53,7 @@
    "in_global_search": 1,
    "label": "First Name",
    "oldfieldname": "first_name",
-   "oldfieldtype": "Data",
-   "reqd": 1
+   "oldfieldtype": "Data"
   },
   {
    "bold": 1,
@@ -243,6 +243,13 @@
    "fieldname": "company_name",
    "fieldtype": "Data",
    "label": "Company Name"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Full Name",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
@@ -250,10 +257,12 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-27 14:12:09.906719",
+ "modified": "2022-10-27 10:40:50.097481",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
+ "name_case": "Title Case",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
@@ -379,6 +388,9 @@
    "role": "All"
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
- "sort_order": "ASC"
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "full_name"
 }

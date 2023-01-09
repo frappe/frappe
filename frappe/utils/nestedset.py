@@ -234,7 +234,7 @@ def validate_loop(doctype, name, lft, rgt):
 	if name in frappe.get_all(
 		doctype, filters={"lft": ["<=", lft], "rgt": [">=", rgt]}, pluck="name"
 	):
-		frappe.throw(_("Item cannot be added to its own descendents"), NestedSetRecursionError)
+		frappe.throw(_("Item cannot be added to its own descendants"), NestedSetRecursionError)
 
 
 def remove_subtree(doctype: str, name: str, throw=True):

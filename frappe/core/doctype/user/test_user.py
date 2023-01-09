@@ -27,9 +27,9 @@ test_records = frappe.get_test_records("User")
 class TestUser(FrappeTestCase):
 	def tearDown(self):
 		# disable password strength test
-		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
-		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", "")
-		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 3)
+		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
+		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
+		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
 
 	def test_user_type(self):
@@ -111,7 +111,7 @@ class TestUser(FrappeTestCase):
 
 		self.assertEqual(frappe.db.get_value("User", "xxxtest@example.com"), None)
 
-		frappe.db.set_value("Website Settings", "Website Settings", "_test", "_test_val")
+		frappe.db.set_single_value("Website Settings", "_test", "_test_val")
 		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
 		self.assertEqual(
 			frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val"
@@ -179,15 +179,15 @@ class TestUser(FrappeTestCase):
 
 	def test_password_strength(self):
 		# Test Password without Password Strength Policy
-		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
+		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
 
 		# password policy is disabled, test_password_strength should be ignored
 		result = test_password_strength("test_password")
 		self.assertFalse(result.get("feedback", None))
 
 		# Test Password with Password Strenth Policy Set
-		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 1)
-		frappe.db.set_value("System Settings", "System Settings", "minimum_password_score", 2)
+		frappe.db.set_single_value("System Settings", "enable_password_policy", 1)
+		frappe.db.set_single_value("System Settings", "minimum_password_score", 2)
 
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
@@ -275,7 +275,7 @@ class TestUser(FrappeTestCase):
 
 	def test_rate_limiting_for_reset_password(self):
 		# Allow only one reset request for a day
-		frappe.db.set_value("System Settings", "System Settings", "password_reset_limit", 1)
+		frappe.db.set_single_value("System Settings", "password_reset_limit", 1)
 		frappe.db.commit()
 
 		url = get_url()
@@ -288,7 +288,7 @@ class TestUser(FrappeTestCase):
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
-		self.assertEqual(res1.status_code, 400)
+		self.assertEqual(res1.status_code, 404)
 		self.assertEqual(res2.status_code, 417)
 
 	def test_user_rename(self):
@@ -383,9 +383,7 @@ class TestUser(FrappeTestCase):
 
 		# reset password
 		update_password(old_password, old_password=new_password)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1, ["like", "%"]
-		)
+		self.assertRaises(TypeError, update_password, "test", 1, ["like", "%"])
 
 		password_strength_response = {
 			"feedback": {"password_policy_validation_passed": False, "suggestions": ["Fix password"]}
@@ -445,9 +443,7 @@ class TestUser(FrappeTestCase):
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		# set the reset password expiry to 1 second
-		frappe.db.set_value(
-			"System Settings", "System Settings", "reset_password_link_expiry_duration", 1
-		)
+		frappe.db.set_single_value("System Settings", "reset_password_link_expiry_duration", 1)
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
 		test_user.reset_password()

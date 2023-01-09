@@ -42,7 +42,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "14.0.0-dev"
+__version__ = "15.0.0-dev"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -453,7 +453,10 @@ def msgprint(
 		out.as_list = 1
 
 	if sys.stdin and sys.stdin.isatty():
-		msg = _strip_html_tags(out.message)
+		if out.as_list:
+			msg = [_strip_html_tags(msg) for msg in out.message]
+		else:
+			msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:
 		print(f"Message: {_strip_html_tags(out.message)}")
@@ -732,14 +735,21 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		methods = ["GET", "POST", "PUT", "DELETE"]
 
 	def innerfn(fn):
+		from frappe.utils.typing_validations import validate_argument_types
+
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+
+		# validate argument types only if request is present
+		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
 		method = None
 		if hasattr(fn, "__func__"):
-			method = fn
+			method = validate_argument_types(fn, apply_condition=in_request_or_test)
 			fn = method.__func__
+		else:
+			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
@@ -1724,27 +1734,6 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	return newdoc
 
 
-def compare(val1, condition, val2):
-	"""Compare two values using `frappe.utils.compare`
-
-	`condition` could be:
-	- "^"
-	- "in"
-	- "not in"
-	- "="
-	- "!="
-	- ">"
-	- "<"
-	- ">="
-	- "<="
-	- "not None"
-	- "None"
-	"""
-	import frappe.utils
-
-	return frappe.utils.compare(val1, condition, val2)
-
-
 def respond_as_web_page(
 	title,
 	html,
@@ -1918,7 +1907,7 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: dict | list, indent=1, separators=None) -> str:
+def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
 	from frappe.utils.response import json_handler
 
 	if separators is None:
@@ -1926,13 +1915,24 @@ def as_json(obj: dict | list, indent=1, separators=None) -> str:
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
+			obj,
+			indent=indent,
+			sort_keys=True,
+			default=json_handler,
+			separators=separators,
+			ensure_ascii=ensure_ascii,
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
+		return json.dumps(
+			sorted_obj,
+			indent=indent,
+			default=json_handler,
+			separators=separators,
+			ensure_ascii=ensure_ascii,
+		)
 
 
 def are_emails_muted():
@@ -1980,13 +1980,13 @@ def get_print(
 	name=None,
 	print_format=None,
 	style=None,
-	html=None,
 	as_pdf=False,
 	doc=None,
 	output=None,
 	no_letterhead=0,
 	password=None,
 	pdf_options=None,
+	letterhead=None,
 ):
 	"""Get Print Format for given document.
 
@@ -2005,18 +2005,14 @@ def get_print(
 	local.form_dict.style = style
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
+	local.form_dict.letterhead = letterhead
 
 	pdf_options = pdf_options or {}
 	if password:
 		pdf_options["password"] = password
 
-	if not html:
-		html = get_response_content("printview")
-
-	if as_pdf:
-		return get_pdf(html, options=pdf_options, output=output)
-	else:
-		return html
+	html = get_response_content("printview")
+	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
 def attach_print(
@@ -2032,6 +2028,7 @@ def attach_print(
 	password=None,
 ):
 	from frappe.utils import scrub_urls
+	from frappe.utils.pdf import get_pdf
 
 	if not file_name:
 		file_name = name
@@ -2051,7 +2048,6 @@ def attach_print(
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
-		html=html,
 		doc=doc,
 		no_letterhead=no_letterhead,
 		password=password,
@@ -2061,10 +2057,14 @@ def attach_print(
 	if int(print_settings.send_print_as_pdf or 0):
 		ext = ".pdf"
 		kwargs["as_pdf"] = True
-		content = get_print(doctype, name, **kwargs)
+		content = (
+			get_pdf(html, options={"password": password} if password else None)
+			if html
+			else get_print(doctype, name, **kwargs)
+		)
 	else:
 		ext = ".html"
-		content = scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+		content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
 
 	out = {"fname": file_name + ext, "fcontent": content}
 
@@ -2211,6 +2211,10 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 
 	title = title or "Error"
 	traceback = as_unicode(traceback or get_traceback(with_context=True))
+
+	if not db:
+		print(f"Failed to log error in db: {title}")
+		return
 
 	error_log = get_doc(
 		doctype="Error Log",

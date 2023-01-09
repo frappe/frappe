@@ -85,7 +85,7 @@ export default class Tab {
 	set_active() {
 		this.tab_link.find(".nav-link").tab("show");
 		this.wrapper.addClass("show");
-		this.frm.active_tab = this;
+		this.frm?.set_active_tab?.(this);
 	}
 
 	is_active() {
@@ -99,20 +99,6 @@ export default class Tab {
 	setup_listeners() {
 		this.tab_link.find(".nav-link").on("shown.bs.tab", () => {
 			this?.frm.set_active_tab?.(this);
-		});
-	}
-
-	setup_switch_on_hover() {
-		this.tab_link.on("dragenter", () => {
-			this.action = setTimeout(() => {
-				this.set_active();
-			}, 2000);
-		});
-		this.tab_link.on("dragout", () => {
-			if (this.action) {
-				clearTimeout(this.action);
-				this.action = null;
-			}
 		});
 	}
 }

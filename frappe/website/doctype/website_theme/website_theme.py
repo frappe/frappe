@@ -62,10 +62,6 @@ class WebsiteTheme(Document):
 	def generate_bootstrap_theme(self):
 		from subprocess import PIPE, Popen
 
-		self.theme_scss = frappe.render_template(
-			"frappe/website/doctype/website_theme/website_theme_template.scss", self.as_dict()
-		)
-
 		# create theme file in site public files folder
 		folder_path = abspath(frappe.utils.get_files_path("website_theme", is_private=False))
 		# create folder if not exist

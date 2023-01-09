@@ -48,6 +48,11 @@
   "success_url",
   "column_break_4",
   "success_message",
+  "meta_section",
+  "meta_title",
+  "meta_description",
+  "column_break_khxs",
+  "meta_image",
   "section_break_6",
   "client_script",
   "custom_css"
@@ -328,13 +333,38 @@
    "fieldname": "section_break_6",
    "fieldtype": "Section Break",
    "label": "Scripting / Style"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "meta_section",
+   "fieldtype": "Section Break",
+   "label": "Meta"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Meta Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "column_break_khxs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Meta Image"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-08-17 18:58:49.451658",
+ "modified": "2023-01-02 10:19:15.680960",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

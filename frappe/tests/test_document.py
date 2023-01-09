@@ -424,6 +424,30 @@ class TestDocument(FrappeTestCase):
 
 		self.assertRaises(frappe.DoesNotExistError, doc.save)
 
+	def test_validate_from_to_dates(self):
+		doc = frappe.new_doc("Web Page")
+		doc.start_date = None
+		doc.end_date = None
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = "2020-01-01"
+		doc.end_date = None
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = None
+		doc.end_date = "2020-12-31"
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = "2020-01-01"
+		doc.end_date = "2020-12-31"
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.end_date = "2020-01-01"
+		doc.start_date = "2020-12-31"
+		self.assertRaises(
+			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
+		)
+
 
 class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):
@@ -469,3 +493,21 @@ class TestDocumentWebView(FrappeTestCase):
 
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
+
+	def test_bulk_inserts(self):
+		from frappe.model.document import bulk_insert
+
+		doctype = "ToDo"
+		sent_todo = set()
+
+		def doc_generator():
+			for i in range(690):
+				doc = frappe.new_doc(doctype)
+				doc.name = doc.description = frappe.generate_hash()
+				sent_todo.add(doc.name)
+				yield doc
+
+		bulk_insert(doctype, doc_generator(), chunk_size=100)
+
+		all_todos = set(frappe.get_all("ToDo", pluck="name"))
+		self.assertEqual(sent_todo - all_todos, set(), "All docs should be inserted")

@@ -26,11 +26,10 @@ repos:
       - id: pyupgrade
         args: ['--py310-plus']
 
-  - repo: https://github.com/adityahase/black
-    rev: 9cb0a69f4d0030cdf687eddf314468b39ed54119
+  - repo: https://github.com/frappe/black
+    rev: 951ccf4d5bb0d692b457a5ebc4215d755618eb68
     hooks:
       - id: black
-        additional_dependencies: ['click==8.0.4']
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1

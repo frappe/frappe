@@ -656,7 +656,7 @@ export default class GridRow {
 
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
-			let df = fields.find((field) => field.fieldname === col[0].fieldname);
+			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
 
 			this.set_dependant_property(df);
 
@@ -1360,7 +1360,7 @@ export default class GridRow {
 				: this.docfields;
 
 		let df = fields.find((col) => {
-			return col.fieldname === fieldname;
+			return col?.fieldname === fieldname;
 		});
 
 		// format values if no frm

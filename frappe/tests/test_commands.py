@@ -29,7 +29,7 @@ import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
@@ -479,6 +479,14 @@ class TestCommands(BaseTestCommands):
 		self.assertIn(f"Installing {app_name}", self.stdout)
 		self.assertEqual(self.returncode, 0)
 
+	def test_set_global_conf(self):
+		key = "answer"
+		value = "42"
+		self.execute(f"bench set-config {key} {value} -g")
+		conf = frappe.get_site_config()
+
+		self.assertEqual(conf[key], value)
+
 
 class TestBackups(BaseTestCommands):
 	backup_map = {
@@ -755,3 +763,10 @@ class TestCommandUtils(FrappeTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+
+class TestDBCli(BaseTestCommands):
+	@timeout(10)
+	def test_db_cli(self):
+		self.execute("bench --site {site} db-console", kwargs={"cmd_input": rb"\q"})
+		self.assertEqual(self.returncode, 0)

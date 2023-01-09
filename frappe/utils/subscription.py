@@ -9,7 +9,7 @@ import frappe
 def remote_login():
 	try:
 		login_url = frappe.conf.subscription["login_url"]
-		if frappe.conf.subscription["expiry"] and login_url:
+		if login_url:
 			resp = requests.post(login_url)
 
 			if resp.status_code != 200:

@@ -38,19 +38,27 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 				.appendTo(this.$input_wrapper);
 		}
 
+		if (this.disabled) {
+			this.editor.setReadOnly(true);
+			$(this.ace_editor_target).css("pointer-events", "none");
+		}
+
 		this.editor.setTheme("ace/theme/tomorrow");
 		this.editor.setOption("showPrintMargin", false);
 		this.editor.setOption("wrap", this.df.wrap);
 		this.set_language();
+		this.is_setting_content = false;
 
 		// events
-		this.editor.session.on(
-			"change",
-			frappe.utils.debounce(() => {
-				const input_value = this.get_input_value();
-				this.parse_validate_and_set_in_model(input_value);
-			}, 300)
-		);
+		this.editor.session.on("change", () => {
+			if (this.is_setting_content) return;
+			change_content();
+		});
+
+		let change_content = frappe.utils.debounce(() => {
+			const input_value = this.get_input_value();
+			this.parse_validate_and_set_in_model(input_value);
+		}, 300);
 
 		// setup autocompletion when it is set the first time
 		Object.defineProperty(this.df, "autocompletions", {
@@ -182,7 +190,9 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			if (!this.editor) return;
 			if (!value) value = "";
 			if (value === this.get_input_value()) return;
+			this.is_setting_content = true;
 			this.editor.session.setValue(value);
+			this.is_setting_content = false;
 		});
 	}
 

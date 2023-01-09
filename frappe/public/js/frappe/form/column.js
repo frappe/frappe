@@ -17,16 +17,22 @@ export default class Column {
 			</div>
 		`).appendTo(this.section.body);
 
-		this.form = this.wrapper.find("form").on("submit", function () {
-			return false;
-		});
+		this.form = this.wrapper.find("form").on("submit", () => false);
+
+		if (this.df.description) {
+			$(`
+				<p class="col-sm-12 form-column-description">
+					${__(this.df.description)}
+				</p>
+			`).prependTo(this.wrapper);
+		}
 
 		if (this.df.label) {
 			$(`
-				<label class="control-label">
+				<label class="column-label">
 					${__(this.df.label)}
 				</label>
-			`).appendTo(this.wrapper);
+			`).prependTo(this.wrapper);
 		}
 	}
 
@@ -45,11 +51,5 @@ export default class Column {
 
 	refresh() {
 		this.section.refresh();
-	}
-
-	make_sortable() {
-		this.sortable = new Sortable(this.form.get(0), {
-			group: this.section.layout.frm.doctype,
-		});
 	}
 }

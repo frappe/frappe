@@ -19,6 +19,10 @@
 				max-width: 800px;
 				margin: auto;
 
+				.tooltip-content {
+					display: none;
+				}
+
 				h1 {
 					font-size: 2.25rem;
 					margin-top: 0;
@@ -109,14 +113,26 @@
 						.form-column {
 							padding: 0 var(--padding-sm);
 
-							.frappe-control[data-fieldtype="Rating"] {
-								.like-disabled-input {
-									background-color: unset;
-									padding-left: 0px;
+							.frappe-control {
+								position: relative;
 
-									.rating {
-										cursor: default;
+								&[data-fieldtype="Rating"] {
+									.like-disabled-input {
+										background-color: unset;
+										padding-left: 0px;
+
+										.rating {
+											cursor: default;
+										}
 									}
+								}
+
+								.selected-phone {
+									top: calc(50% + 4px);
+								}
+
+								.selected-color {
+									top: 6px;
 								}
 							}
 

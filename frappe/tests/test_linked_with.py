@@ -6,18 +6,18 @@ from frappe.tests.utils import FrappeTestCase
 
 class TestLinkedWith(FrappeTestCase):
 	def setUp(self):
-		parent_doc = new_doctype("Parent Doc")
-		parent_doc.is_submittable = 1
-		parent_doc.insert()
+		parent_doctype = new_doctype("Parent DocType")
+		parent_doctype.is_submittable = 1
+		parent_doctype.insert()
 
-		child_doc1 = new_doctype(
-			"Child Doc1",
+		child_doctype1 = new_doctype(
+			"Child DocType1",
 			fields=[
 				{
-					"label": "Parent Doc",
-					"fieldname": "parent_doc",
+					"label": "Parent DocType",
+					"fieldname": "parent_doctype",
 					"fieldtype": "Link",
-					"options": "Parent Doc",
+					"options": "Parent DocType",
 				},
 				{
 					"label": "Reference field",
@@ -34,85 +34,99 @@ class TestLinkedWith(FrappeTestCase):
 			],
 			unique=0,
 		)
-		child_doc1.is_submittable = 1
-		child_doc1.insert()
+		child_doctype1.is_submittable = 1
+		child_doctype1.insert()
 
-		child_doc2 = new_doctype(
-			"Child Doc2",
+		child_doctype2 = new_doctype(
+			"Child DocType2",
 			fields=[
 				{
-					"label": "Parent Doc",
-					"fieldname": "parent_doc",
+					"label": "Parent DocType",
+					"fieldname": "parent_doctype",
 					"fieldtype": "Link",
-					"options": "Parent Doc",
+					"options": "Parent DocType",
 				},
 				{
-					"label": "Child Doc1",
-					"fieldname": "child_doc1",
+					"label": "Child DocType1",
+					"fieldname": "child_doctype1",
 					"fieldtype": "Link",
-					"options": "Child Doc1",
+					"options": "Child DocType1",
 				},
 			],
 			unique=0,
 		)
-		child_doc2.is_submittable = 1
-		child_doc2.insert()
+		child_doctype2.is_submittable = 1
+		child_doctype2.insert()
 
 	def tearDown(self):
-		for doctype in ["Parent Doc", "Child Doc1", "Child Doc2"]:
+		for doctype in ["Parent DocType", "Child DocType1", "Child DocType2"]:
 			frappe.delete_doc("DocType", doctype)
 
 	def test_get_doctype_references_by_link_field(self):
-		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Parent Doc"])
-		self.assertEqual(len(references["Parent Doc"]), 3)
-		self.assertIn({"doctype": "Child Doc1", "fieldname": "parent_doc"}, references["Parent Doc"])
-		self.assertIn({"doctype": "Child Doc2", "fieldname": "parent_doc"}, references["Parent Doc"])
-
-		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Child Doc1"])
-		self.assertEqual(len(references["Child Doc1"]), 2)
-		self.assertIn({"doctype": "Child Doc2", "fieldname": "child_doc1"}, references["Child Doc1"])
+		references = linked_with.get_references_across_doctypes_by_link_field(
+			to_doctypes=["Parent DocType"]
+		)
+		self.assertEqual(len(references["Parent DocType"]), 3)
+		self.assertIn(
+			{"doctype": "Child DocType1", "fieldname": "parent_doctype"}, references["Parent DocType"]
+		)
+		self.assertIn(
+			{"doctype": "Child DocType2", "fieldname": "parent_doctype"}, references["Parent DocType"]
+		)
 
 		references = linked_with.get_references_across_doctypes_by_link_field(
-			to_doctypes=["Child Doc1", "Parent Doc"], limit_link_doctypes=["Child Doc1"]
+			to_doctypes=["Child DocType1"]
 		)
-		self.assertEqual(len(references["Child Doc1"]), 1)
-		self.assertEqual(len(references["Parent Doc"]), 1)
-		self.assertIn({"doctype": "Child Doc1", "fieldname": "parent_doc"}, references["Parent Doc"])
+		self.assertEqual(len(references["Child DocType1"]), 2)
+		self.assertIn(
+			{"doctype": "Child DocType2", "fieldname": "child_doctype1"}, references["Child DocType1"]
+		)
+
+		references = linked_with.get_references_across_doctypes_by_link_field(
+			to_doctypes=["Child DocType1", "Parent DocType"], limit_link_doctypes=["Child DocType1"]
+		)
+		self.assertEqual(len(references["Child DocType1"]), 1)
+		self.assertEqual(len(references["Parent DocType"]), 1)
+		self.assertIn(
+			{"doctype": "Child DocType1", "fieldname": "parent_doctype"}, references["Parent DocType"]
+		)
 
 	def test_get_doctype_references_by_dlink_field(self):
 		references = linked_with.get_references_across_doctypes_by_dynamic_link_field(
-			to_doctypes=["Parent Doc"], limit_link_doctypes=["Parent Doc", "Child Doc1", "Child Doc2"]
+			to_doctypes=["Parent DocType"],
+			limit_link_doctypes=["Parent DocType", "Child DocType1", "Child DocType2"],
 		)
 		self.assertFalse(references)
 
-		parent_record = frappe.get_doc({"doctype": "Parent Doc"}).insert()
+		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
 		child_record = frappe.get_doc(
 			{
-				"doctype": "Child Doc1",
-				"reference_doctype": "Parent Doc",
+				"doctype": "Child DocType1",
+				"reference_doctype": "Parent DocType",
 				"reference_name": parent_record.name,
 			}
 		).insert()
 
 		references = linked_with.get_references_across_doctypes_by_dynamic_link_field(
-			to_doctypes=["Parent Doc"], limit_link_doctypes=["Parent Doc", "Child Doc1", "Child Doc2"]
+			to_doctypes=["Parent DocType"],
+			limit_link_doctypes=["Parent DocType", "Child DocType1", "Child DocType2"],
 		)
 
-		self.assertEqual(len(references["Parent Doc"]), 1)
-		self.assertEqual(references["Parent Doc"][0]["doctype"], "Child Doc1")
-		self.assertEqual(references["Parent Doc"][0]["doctype_fieldname"], "reference_doctype")
+		self.assertEqual(len(references["Parent DocType"]), 1)
+		self.assertEqual(references["Parent DocType"][0]["doctype"], "Child DocType1")
+		self.assertEqual(references["Parent DocType"][0]["doctype_fieldname"], "reference_doctype")
 
 		child_record.delete()
 		parent_record.delete()
 
 	def test_get_submitted_linked_docs(self):
-		parent_record = frappe.get_doc({"doctype": "Parent Doc"}).insert()
+		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()
 
 		child_record = frappe.get_doc(
 			{
-				"doctype": "Child Doc1",
-				"reference_doctype": "Parent Doc",
+				"doctype": "Child DocType1",
+				"reference_doctype": "Parent DocType",
 				"reference_name": parent_record.name,
 				"docstatus": 1,
 			}
