@@ -172,7 +172,7 @@ def literal_eval_(literal):
 def has_function(field):
 	_field = field.casefold() if (isinstance(field, str) and "`" not in field) else field
 	if not issubclass(type(_field), Criterion):
-		if any([f"{func}(" in _field for func in SQL_FUNCTIONS]) or "(" in _field:
+		if any([f"{func}(" in _field for func in SQL_FUNCTIONS]):
 			return True
 
 
