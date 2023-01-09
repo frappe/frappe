@@ -23,10 +23,15 @@ def fetch_pr_data(pr_number, repo, endpoint=""):
 
 def req(url):
 	"Simple resilient request call to handle rate limits."
+	headers = None
+	token = os.environ.get("GITHUB_TOKEN")
+	if token:
+		headers = {"authorization": f"Bearer {token}"}
+
 	retries = 0
 	while True:
 		try:
-			req = urllib.request.Request(url)
+			req = urllib.request.Request(url, headers=headers)
 			return urllib.request.urlopen(req)
 		except HTTPError as exc:
 			if exc.code == 403 and retries < 5:
