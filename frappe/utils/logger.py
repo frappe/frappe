@@ -2,6 +2,7 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
+from typing import Literal
 
 # imports - module imports
 import frappe
@@ -95,7 +96,7 @@ class SiteContextFilter(logging.Filter):
 			return True
 
 
-def set_log_level(level: int) -> None:
+def set_log_level(level: Literal["ERROR", "WARNING", "WARN", "INFO", "DEBUG"]) -> None:
 	"""Use this method to set log level to something other than the default DEBUG"""
 	frappe.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
 	frappe.loggers = {}
