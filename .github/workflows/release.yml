@@ -16,11 +16,7 @@ jobs:
       - name: Setup Node.js v14
         uses: actions/setup-node@v2
         with:
-<<<<<<< HEAD:.github/workflows/release.yml
-          node-version: 14
-=======
           node-version: 18
->>>>>>> ac5b86cab1 (ci: use node18 for releases (#19525)):.github/workflows/create-release.yml
       - name: Setup dependencies
         run: |
           npm install @semantic-release/git @semantic-release/exec --no-save
