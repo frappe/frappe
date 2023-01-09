@@ -780,7 +780,7 @@ class Engine:
 		for declaration in order_by.split(","):
 			if _order_by := declaration.strip():
 				parts = _order_by.split(" ")
-				order_field, order_direction = parts[0], parts[1] if len(parts) > 1 else "asc"
+				order_field, order_direction = parts[0], parts[1] if len(parts) > 1 else "desc"
 				order_direction = Order.asc if order_direction.lower() == "asc" else Order.desc
 				self.query = self.query.orderby(order_field, order=order_direction)
 
