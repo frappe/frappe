@@ -1027,7 +1027,19 @@ body {
 			}
 		}
 
-		.sidebar-item-container{
+		&[item-is-hidden="0"] {
+			.drop-icon {
+				display: none;
+			}
+
+			&:has(.sidebar-item-container[item-is-hidden="0"]) {
+				.drop-icon {
+					display: inline-block;
+				}
+			}
+		}
+
+		.sidebar-item-container {
 			margin-left: 10px;
 
 			.standard-sidebar-item {
@@ -1039,15 +1051,22 @@ body {
 	.desk-sidebar {
 		&.show-hidden-workspaces {
 
-			.unhide-page-btn {
+			.unhide-workspace-btn {
 				display: none;
 			}
 
 			.standard-sidebar-section {
 				display: block;
 
-				.sidebar-item-container[item-is-hidden="1"] {
-					display: block;
+				.sidebar-item-container {
+					&[item-is-hidden="1"] {
+						display: block;
+					}
+					&[item-is-hidden="0"] {
+						.drop-icon {
+							display: inline-block;
+						}
+					}
 				}
 			}
 		}
@@ -1055,7 +1074,7 @@ body {
 		.standard-sidebar-section {
 			display: none;
 
-			&:has(> [item-is-hidden="0"]) {
+			&:has([item-is-hidden="0"]) {
 				display: block;
 			}
 		}
