@@ -945,6 +945,8 @@ frappe.views.Workspace = class Workspace {
 		$(sidebar_control).empty();
 		this.add_sidebar_actions(page, $(sidebar_control));
 
+		this.add_drop_icon(page, $(sidebar_control), $(sidebar_item_container));
+
 		let cached_page = this.cached_pages.pages.findIndex((p) => p.name === page.name);
 		if (cached_page !== -1) {
 			this.cached_pages.pages[cached_page].is_hidden = hide;
