@@ -887,7 +887,7 @@ class Database:
 			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified
 		)
 
-    query = frappe.qb.get_query(table=dt, filters=dn, update=True)
+		query = frappe.qb.get_query(table=dt, filters=dn, update=True)
 
 		if isinstance(dn, str):
 			frappe.clear_document_cache(dt, dn)
