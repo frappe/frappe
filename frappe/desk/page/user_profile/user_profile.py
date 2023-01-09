@@ -1,6 +1,8 @@
 from datetime import datetime
 
 import frappe
+from frappe.query_builder import Interval, Order
+from frappe.query_builder.functions import Date, Sum, UnixTimestamp
 from frappe.utils import getdate
 
 
@@ -11,32 +13,18 @@ def get_energy_points_heatmap_data(user, date):
 	except Exception:
 		date = getdate()
 
-	if frappe.db.db_type == "mariadb":
-		timestamp_field = "unix_timestamp(date(creation))"
-		subdate_field_year = f"subdate('{date}', interval 1 year)"
-		subdate_field_minus_year = f"subdate('{date}', interval -1 year)"
-	else:
-		timestamp_field = "extract(epoch from date(creation))"
-		subdate_field_year = f"date('{date}') - INTERVAL '1' YEAR"
-		subdate_field_minus_year = f"date('{date}') - INTERVAL '-1' YEAR"
+	eps_log = frappe.qb.DocType("Energy Point Log")
 
 	return dict(
-		frappe.db.sql(
-			"""select {timestamp_field}, sum(points)
-		from `tabEnergy Point Log`
-		where
-			date(creation) > {subdate_field_year} and
-			date(creation) < {subdate_field_minus_year} and
-			user = %s and
-			type != 'Review'
-		group by date(creation)
-		order by creation asc""".format(
-				timestamp_field=timestamp_field,
-				subdate_field_year=subdate_field_year,
-				subdate_field_minus_year=subdate_field_minus_year,
-			),
-			user,
-		)
+		frappe.qb.from_(eps_log)
+		.select(UnixTimestamp(Date(eps_log.creation)), Sum(eps_log.points))
+		.where(eps_log.user == user)
+		.where(eps_log["type"] != "Review")
+		.where(Date(eps_log.creation) > Date(date) - Interval(years=1))
+		.where(Date(eps_log.creation) < Date(date) + Interval(years=1))
+		.groupby(Date(eps_log.creation))
+		.orderby(Date(eps_log.creation), order=Order.asc)
+		.run()
 	)
 
 
