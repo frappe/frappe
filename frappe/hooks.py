@@ -392,4 +392,5 @@ ignore_links_on_delete = [
 	"Email Queue",
 	"Document Share Key",
 	"Integration Request",
+	"Unhandled Email",
 ]
