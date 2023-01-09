@@ -928,6 +928,13 @@ class Database:
 			).run(debug=debug)
 			frappe.clear_document_cache(dt, dt)
 
+<<<<<<< HEAD
+=======
+		query = frappe.qb.get_query(table=dt, filters=dn, update=True)
+
+		if isinstance(dn, str):
+			frappe.clear_document_cache(dt, dn)
+>>>>>>> 35c2654f00 (chore: indentation fix)
 		else:
 			query = frappe.qb.get_query(table=dt, filters=dn, update=True)
 
