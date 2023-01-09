@@ -14,7 +14,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr
-from frappe.model import optional_fields
+from frappe.model import core_doctypes_list, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -596,14 +596,16 @@ class DatabaseQuery:
 
 				if table in self.tables:
 					ch_doctype = table.replace("`", "").replace("tab", "", 1)
-					available_child_table_fields = get_available_fields(doctype=ch_doctype)
+					available_child_table_fields = get_available_fields(
+						doctype=ch_doctype, parenttype=self.doctype
+					)
 					if column in available_child_table_fields:
 						continue
 					else:
 						self.fields.remove(field)
 
-			# field inside function calls
-			elif "(" in field and any(x for x in available_fields if x in field):
+			# field inside function calls / * handles things like count(*)
+			elif "(" in field and ("*" in field or any(x for x in available_fields if x in field)):
 				continue
 
 			# remove if access not allowed
@@ -1215,9 +1217,13 @@ def requires_owner_constraint(role_permissions):
 	return True
 
 
-def get_available_fields(doctype):
+def get_available_fields(doctype, parenttype=None):
 	meta = frappe.get_meta(doctype)
-	accessible_fields = [x.fieldname for x in meta.get_permlevel_read_fields()]
+
+	if doctype in core_doctypes_list:
+		return meta.get_valid_columns()
+
+	accessible_fields = [x.fieldname for x in meta.get_permlevel_read_fields(parenttype=parenttype)]
 	meta_fields = meta.default_fields.copy()
 	optional_meta_fields = list(optional_fields)
 
