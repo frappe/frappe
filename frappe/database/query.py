@@ -461,19 +461,22 @@ class Engine:
 			self.apply_dict_filters(filters)
 
 		elif isinstance(filters, (list, tuple)):
-			self.apply_list_filters(filters)
+			for filter in filters:
+				if isinstance(filter, (str, int, Criterion, dict)):
+					self.apply_filters(filter)
+				elif isinstance(filter, (list, tuple)):
+					self.apply_list_filters(filter)
 
-	def apply_list_filters(self, filters: list[list]):
-		for filter in filters:
-			if len(filter) == 2:
-				field, value = filter
-				self._apply_filter(field, value)
-			elif len(filter) == 3:
-				field, operator, value = filter
-				self._apply_filter(field, value, operator)
-			elif len(filter) == 4:
-				doctype, field, operator, value = filter
-				self._apply_filter(field, value, operator, doctype)
+	def apply_list_filters(self, filter: list):
+		if len(filter) == 2:
+			field, value = filter
+			self._apply_filter(field, value)
+		elif len(filter) == 3:
+			field, operator, value = filter
+			self._apply_filter(field, value, operator)
+		elif len(filter) == 4:
+			doctype, field, operator, value = filter
+			self._apply_filter(field, value, operator, doctype)
 
 	def apply_dict_filters(self, filters: dict[str, str | int | list]):
 		for key in filters:
