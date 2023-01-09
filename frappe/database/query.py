@@ -487,7 +487,9 @@ class Engine:
 		_value = value
 		_operator = operator
 
-		if dynamic_field := DynamicTableField.parse(field, self.doctype):
+		if isinstance(_field, Field):
+			pass
+		elif dynamic_field := DynamicTableField.parse(field, self.doctype):
 			# apply implicit join if link field's field is referenced
 			self.query = dynamic_field.apply_join(self.query)
 			_field = dynamic_field.field
