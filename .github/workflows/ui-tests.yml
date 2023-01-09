@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
 
 jobs:
@@ -59,6 +60,7 @@ jobs:
           TYPE: "ui"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v3
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
