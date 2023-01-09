@@ -270,16 +270,16 @@ class Engine:
 			self.query = frappe.qb.from_(self.table).delete()
 		else:
 			self.query = frappe.qb.from_(self.table)
+			# add fields
+			self.fields = self.parse_fields(fields)
+			if not self.fields:
+				self.fields = [getattr(self.table, pluck or "name")]
 
-		self.fields = self.parse_fields(fields)
-		if not self.fields:
-			self.fields = [getattr(self.table, pluck or "name")]
-
-		for field in self.fields:
-			if isinstance(field, DynamicTableField):
-				self.query = field.apply_select(self.query)
-			else:
-				self.query = self.query.select(field)
+			for field in self.fields:
+				if isinstance(field, DynamicTableField):
+					self.query = field.apply_select(self.query)
+				else:
+					self.query = self.query.select(field)
 
 		self.apply_filters(filters)
 		self.apply_implicit_joins()
