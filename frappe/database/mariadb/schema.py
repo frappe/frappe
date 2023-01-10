@@ -1,3 +1,5 @@
+from pymysql.constants.ER import DUP_ENTRY
+
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
@@ -116,17 +118,15 @@ class MariaDBTable(DBTable):
 					frappe.db.sql(query)
 
 		except Exception as e:
-			# sanitize
-			if e.args[0] == 1060:
-				frappe.throw(str(e))
-			elif e.args[0] == 1062:
+			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
+				print(f"Failed to alter schema using query: {query}")
+
+			if e.args[0] == DUP_ENTRY:
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
 					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
 						fieldname, self.table_name
 					)
 				)
-			elif e.args[0] == 1067:
-				frappe.throw(str(e.args[1]))
-			else:
-				raise e
+
+			raise
