@@ -2,9 +2,7 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, Callable, get_type_hints
 
-from pypika import Query
-from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
-from pypika.queries import Column
+from pypika.queries import Column, QueryBuilder
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -46,7 +44,7 @@ def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	return picks[db]
 
 
-def get_query(*args, **kwargs) -> MySQLQueryBuilder | PostgreSQLQueryBuilder:
+def get_query(*args, **kwargs) -> QueryBuilder:
 	from frappe.database.query import Engine
 
 	return Engine().get_query(*args, **kwargs)
