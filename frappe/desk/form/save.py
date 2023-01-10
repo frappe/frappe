@@ -23,10 +23,7 @@ def savedocs(doc, action):
 		"Cancel": DocStatus.cancelled(),
 	}[action]
 
-	if doc.docstatus.is_submitted():
-		doc.submit()
-	else:
-		doc.save()
+	doc.save()
 
 	# update recent documents
 	run_onload(doc)
