@@ -863,6 +863,7 @@ class Database:
 				fields=field,
 				filters=names,
 				order_by=order_by,
+<<<<<<< HEAD
 				pluck=pluck,
 				debug=debug,
 				as_list=not as_dict,
@@ -870,6 +871,11 @@ class Database:
 				distinct=distinct,
 				limit_page_length=limit,
 			)
+=======
+				distinct=distinct,
+				limit=limit,
+			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
+>>>>>>> a0f6a5ff46 (fix: move pluck to run)
 		return {}
 
 	@deprecated
