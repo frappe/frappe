@@ -580,7 +580,7 @@ class DatabaseQuery:
 		if self.flags.ignore_permissions:
 			return
 
-		available_fields = get_available_fields(doctype=self.doctype)
+		available_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
 			column = field.split(" ", 1)[0].replace("`", "")
@@ -599,7 +599,7 @@ class DatabaseQuery:
 
 				if table in self.tables:
 					ch_doctype = table.replace("`", "").replace("tab", "", 1)
-					available_child_table_fields = get_available_fields(
+					available_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)
 					if column in available_child_table_fields:
@@ -616,7 +616,9 @@ class DatabaseQuery:
 				elif _params := FN_PARAMS_PATTERN.findall(column):
 					params = (x for x in _params[0].split(","))
 					for param in params:
-						if param in available_fields or param.isnumeric() or "'" in param or '"' in param:
+						if (
+							not param or param in available_fields or param.isnumeric() or "'" in param or '"' in param
+						):
 							continue
 						else:
 							self.fields.remove(field)
@@ -1230,7 +1232,7 @@ def requires_owner_constraint(role_permissions):
 	return True
 
 
-def get_available_fields(doctype, parenttype=None):
+def get_permitted_fields(doctype, parenttype=None):
 	meta = frappe.get_meta(doctype)
 
 	if doctype in core_doctypes_list:
