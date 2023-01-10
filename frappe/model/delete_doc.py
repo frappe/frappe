@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.model.meta
 from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
+from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
@@ -263,7 +264,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					# don't check for communication and todo!
 					continue
 
-				if method != "Delete" and (method != "Cancel" or item.docstatus != 1):
+				if method != "Delete" and (method != "Cancel" or not DocStatus(item.docstatus).is_submitted()):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
@@ -300,13 +301,12 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				refdoc.get(df.options) == doc.doctype
 				and refdoc.get(df.fieldname) == doc.name
 				and (
-					(method == "Delete" and refdoc.docstatus < 2)
-					or (method == "Cancel" and refdoc.docstatus == 1)
+					# linked to an non-cancelled doc when deleting
+					(method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled())
+					# linked to a submitted doc when cancelling
+					or (method == "Cancel" and DocStatus(refdoc.docstatus).is_submitted())
 				)
 			):
-				# raise exception only if
-				# linked to an non-cancelled doc when deleting
-				# or linked to a submitted doc when cancelling
 				raise_link_exists_exception(doc, df.parent, df.parent)
 		else:
 			# dynamic link in table
@@ -319,14 +319,11 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				(doc.doctype, doc.name),
 				as_dict=True,
 			):
-
-				if (method == "Delete" and refdoc.docstatus < 2) or (
-					method == "Cancel" and refdoc.docstatus == 1
+				# linked to an non-cancelled doc when deleting
+				# or linked to a submitted doc when cancelling
+				if (method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled()) or (
+					method == "Cancel" and DocStatus(refdoc.docstatus).is_submitted()
 				):
-					# raise exception only if
-					# linked to an non-cancelled doc when deleting
-					# or linked to a submitted doc when cancelling
-
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
 					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
