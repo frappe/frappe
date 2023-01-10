@@ -78,9 +78,13 @@ frappe.views.Workspace = class Workspace {
 
 	sidebar_item_container(item) {
 		return $(`
-			<div class="sidebar-item-container ${item.is_editable ? "is-draggable" : ""}" item-parent="${
-			item.parent_page
-		}" item-name="${item.title}" item-public="${item.public || 0}">
+			<div
+				class="sidebar-item-container ${item.is_editable ? "is-draggable" : ""}"
+				item-parent="${item.parent_page}"
+				item-name="${item.title}"
+				item-public="${item.public || 0}"
+				item-is-hidden="${item.is_hidden || 0}"
+			>
 				<div class="desk-sidebar-item standard-sidebar-item ${item.selected ? "selected" : ""}">
 					<a
 						href="/app/${
@@ -393,6 +397,7 @@ frappe.views.Workspace = class Workspace {
 		this.page.set_secondary_action(__("Edit"), async () => {
 			if (!this.editor || !this.editor.readOnly) return;
 			this.is_read_only = false;
+			this.toggle_hidden_workspaces(true);
 			await this.editor.readOnly.toggle();
 			this.editor.isReady.then(() => {
 				this.initialize_editorjs_undo();
@@ -441,6 +446,7 @@ frappe.views.Workspace = class Workspace {
 		this.page.set_secondary_action(__("Discard"), async () => {
 			this.discard = true;
 			this.clear_page_actions();
+			this.toggle_hidden_workspaces(false);
 			await this.editor.readOnly.toggle();
 			this.is_read_only = true;
 			this.sidebar_pages = this.cached_pages;
@@ -453,6 +459,10 @@ frappe.views.Workspace = class Workspace {
 				frappe.set_route(`workspace/${page.name}`);
 			});
 		}
+	}
+
+	toggle_hidden_workspaces(show) {
+		$(".desk-sidebar").toggleClass("show-hidden-workspaces", show);
 	}
 
 	show_sidebar_actions() {
@@ -478,6 +488,15 @@ frappe.views.Workspace = class Workspace {
 				() => this.duplicate_page(item),
 				"duplicate-page",
 				__("Duplicate Workspace"),
+				null,
+				sidebar_control
+			);
+		} else if (item.is_hidden) {
+			frappe.utils.add_custom_button(
+				frappe.utils.icon("unhide", "sm"),
+				(e) => this.unhide_workspace(item, e),
+				"unhide-workspace-btn",
+				__("Unhide Workspace"),
 				null,
 				sidebar_control
 			);
@@ -720,6 +739,12 @@ frappe.views.Workspace = class Workspace {
 				icon: frappe.utils.icon("duplicate", "sm"),
 				action: () => this.duplicate_page(item),
 			},
+			{
+				label: __("Hide"),
+				title: __("Hide Workspace"),
+				icon: frappe.utils.icon("hide", "sm"),
+				action: (e) => this.hide_workspace(item, e),
+			},
 		];
 
 		if (this.is_item_deletable(item)) {
@@ -748,7 +773,7 @@ frappe.views.Workspace = class Workspace {
 
 			html.click((event) => {
 				event.stopPropagation();
-				action && action();
+				action && action(event);
 			});
 
 			return html;
@@ -908,6 +933,47 @@ frappe.views.Workspace = class Workspace {
 			},
 		});
 		d.show();
+	}
+
+	hide_unhide_workspace(page, event, hide) {
+		page.is_hidden = hide;
+
+		let sidebar_control = event.target.closest(".sidebar-item-control");
+		let sidebar_item_container = sidebar_control.closest(".sidebar-item-container");
+		$(sidebar_item_container).attr("item-is-hidden", hide);
+
+		$(sidebar_control).empty();
+		this.add_sidebar_actions(page, $(sidebar_control));
+
+		this.add_drop_icon(page, $(sidebar_control), $(sidebar_item_container));
+
+		let cached_page = this.cached_pages.pages.findIndex((p) => p.name === page.name);
+		if (cached_page !== -1) {
+			this.cached_pages.pages[cached_page].is_hidden = hide;
+		}
+
+		let method = hide ? "hide_page" : "unhide_page";
+		frappe.call({
+			method: "frappe.desk.doctype.workspace.workspace." + method,
+			args: {
+				page_name: page.name,
+			},
+			callback: (r) => {
+				if (!r.message) return;
+
+				let message = hide ? "{0} is hidden successfully" : "{0} is unhidden successfully";
+				message = __(message, [page.title.bold()]);
+				frappe.show_alert({ message: message, indicator: "green" });
+			},
+		});
+	}
+
+	hide_workspace(page, event) {
+		this.hide_unhide_workspace(page, event, 1);
+	}
+
+	unhide_workspace(page, event) {
+		this.hide_unhide_workspace(page, event, 0);
 	}
 
 	make_sidebar_sortable() {
