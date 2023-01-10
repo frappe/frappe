@@ -16,8 +16,12 @@ from typing import TYPE_CHECKING
 >>>>>>> fe13108eec (fix: refactor)
 
 import sqlparse
+<<<<<<< HEAD
 from pypika.queries import QueryBuilder
 >>>>>>> 726fcfdb79 (refactor: qb.engine)
+=======
+from pypika.queries import QueryBuilder, Table
+>>>>>>> 95d8a0f919 (fix: allow Table instance)
 
 import frappe
 from frappe import _
@@ -27,6 +31,7 @@ from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 =======
 from frappe.database.operator_map import OPERATOR_MAP
+from frappe.database.utils import get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 >>>>>>> fe13108eec (fix: refactor)
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -254,7 +259,7 @@ class Engine:
 >>>>>>> fe13108eec (fix: refactor)
 	def get_query(
 		self,
-		table: str,
+		table: str | Table,
 		fields: list | tuple | None = None,
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
 		order_by: str | None = None,
@@ -269,8 +274,13 @@ class Engine:
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
-		self.doctype = table
-		self.table = frappe.qb.DocType(table)
+
+		if isinstance(table, Table):
+			self.table = table
+			self.doctype = get_doctype_name(table.get_sql())
+		else:
+			self.doctype = table
+			self.table = frappe.qb.DocType(table)
 
 		if update:
 			self.query = frappe.qb.update(self.table)
