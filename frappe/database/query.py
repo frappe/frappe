@@ -476,11 +476,14 @@ class Engine:
 			self.apply_dict_filters(filters)
 
 		elif isinstance(filters, (list, tuple)):
-			for filter in filters:
-				if isinstance(filter, (str, int, Criterion, dict)):
-					self.apply_filters(filter)
-				elif isinstance(filter, (list, tuple)):
-					self.apply_list_filters(filter)
+			if all(isinstance(d, (str, int)) for d in filters):
+				self.apply_dict_filters({"name": ("in", filters)})
+			else:
+				for filter in filters:
+					if isinstance(filter, (str, int, Criterion, dict)):
+						self.apply_filters(filter)
+					elif isinstance(filter, (list, tuple)):
+						self.apply_list_filters(filter)
 
 	def apply_list_filters(self, filter: list):
 		if len(filter) == 2:
