@@ -364,6 +364,7 @@ global_search_doctypes = {
 }
 
 override_whitelisted_methods = {
+	# Legacy File APIs
 	"frappe.core.doctype.file.file.download_file": "download_file",
 	"frappe.core.doctype.file.file.unzip_file": "frappe.core.api.file.unzip_file",
 	"frappe.core.doctype.file.file.get_attached_images": "frappe.core.api.file.get_attached_images",
@@ -373,6 +374,14 @@ override_whitelisted_methods = {
 	"frappe.core.doctype.file.file.create_new_folder": "frappe.core.api.file.create_new_folder",
 	"frappe.core.doctype.file.file.move_file": "frappe.core.api.file.move_file",
 	"frappe.core.doctype.file.file.zip_files": "frappe.core.api.file.zip_files",
+	# Legacy (& Consistency) OAuth2 APIs
+	"frappe.www.login.login_via_google": "frappe.integrations.oauth2_logins.login_via_google",
+	"frappe.www.login.login_via_github": "frappe.integrations.oauth2_logins.login_via_github",
+	"frappe.www.login.login_via_facebook": "frappe.integrations.oauth2_logins.login_via_facebook",
+	"frappe.www.login.login_via_frappe": "frappe.integrations.oauth2_logins.login_via_frappe",
+	"frappe.www.login.login_via_office365": "frappe.integrations.oauth2_logins.login_via_office365",
+	"frappe.www.login.login_via_salesforce": "frappe.integrations.oauth2_logins.login_via_salesforce",
+	"frappe.www.login.login_via_fairlogin": "frappe.integrations.oauth2_logins.login_via_fairlogin",
 }
 
 ignore_links_on_delete = [
@@ -391,4 +400,5 @@ ignore_links_on_delete = [
 	"Email Queue",
 	"Document Share Key",
 	"Integration Request",
+	"Unhandled Email",
 ]

@@ -125,7 +125,7 @@ def is_scheduler_disabled():
 
 
 def toggle_scheduler(enable):
-	frappe.db.set_value("System Settings", None, "enable_scheduler", 1 if enable else 0)
+	frappe.db.set_single_value("System Settings", "enable_scheduler", int(enable))
 
 
 def enable_scheduler():

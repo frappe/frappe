@@ -819,6 +819,13 @@ Object.assign(frappe.utils, {
 		return /\.(gif|jpg|jpeg|tiff|png|svg)$/i.test(filename);
 	},
 
+	is_video_file: function (filename) {
+		if (!filename) return false;
+		// url can have query params
+		filename = filename.split("?")[0];
+		return /\.(mov|mp4|mkv|webm)$/i.test(filename);
+	},
+
 	play_sound: function (name) {
 		try {
 			if (frappe.boot.user.mute_sounds) {
