@@ -5,11 +5,12 @@ from types import BuiltinFunctionType
 from typing import TYPE_CHECKING
 
 import sqlparse
-from pypika.queries import QueryBuilder
+from pypika.queries import QueryBuilder, Table
 
 import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
+from frappe.database.utils import get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -28,7 +29,7 @@ COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 class Engine:
 	def get_query(
 		self,
-		table: str,
+		table: str | Table,
 		fields: list | tuple | None = None,
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
 		order_by: str | None = None,
@@ -43,8 +44,13 @@ class Engine:
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
-		self.doctype = table
-		self.table = frappe.qb.DocType(table)
+
+		if isinstance(table, Table):
+			self.table = table
+			self.doctype = get_doctype_name(table.get_sql())
+		else:
+			self.doctype = table
+			self.table = frappe.qb.DocType(table)
 
 		if update:
 			self.query = frappe.qb.update(self.table)
