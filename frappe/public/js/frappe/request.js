@@ -133,14 +133,12 @@ frappe.request.call = function(opts) {
 				frappe.app.handle_session_expired();
 			}
 		},
-		404: function(xhr) {
-			if (frappe.flags.setting_original_route) {
-				// original route is wrong, redirect to login
-				frappe.app.redirect_to_login();
-			} else {
-				frappe.msgprint({title: __("Not found"), indicator: 'red',
-					message: __('The resource you are looking for is not available')});
-			}
+		404: function (xhr) {
+			frappe.msgprint({
+				title: __("Not found"),
+				indicator: "red",
+				message: __("The resource you are looking for is not available"),
+			});
 		},
 		403: function(xhr) {
 			if (frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest") {
