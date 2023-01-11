@@ -209,16 +209,16 @@
    "options": "Workspace Link"
   },
   {
-    "default": "0",
-    "depends_on": "extends_another_page",
-    "description": "Sets the current page as default for all users",
-    "fieldname": "is_default",
-    "fieldtype": "Check",
-    "label": "Is Default"
-   }
+   "default": "0",
+   "depends_on": "extends_another_page",
+   "description": "Sets the current page as default for all users",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default"
+  }
  ],
  "links": [],
- "modified": "2021-01-21 12:09:36.156614",
+ "modified": "2023-01-08 18:46:00.751741",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -235,15 +235,6 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "All",
-   "share": 1
   }
  ],
  "sort_field": "modified",
