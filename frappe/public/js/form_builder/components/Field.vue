@@ -2,7 +2,7 @@
 import EditableInput from "./EditableInput.vue";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
-import { move_children_to_parent } from "../utils";
+import { move_children_to_parent, clone_field } from "../utils";
 
 let props = defineProps(["column", "field"]);
 let store = useStore();
@@ -27,6 +27,20 @@ function move_fields_to_column() {
 		section.columns.find(column => column == props.column)
 	);
 	move_children_to_parent(props, "column", "field", current_section);
+}
+
+function duplicate_field() {
+	let duplicate_field = clone_field(props.field);
+
+	if (duplicate_field.df.label) {
+		duplicate_field.df.label = duplicate_field.df.label + " Copy";
+	}
+	duplicate_field.df.fieldname = "";
+
+	// push duplicate_field after props.field in the same column
+	let index = props.column.fields.indexOf(props.field);
+	props.column.fields.splice(index + 1, 0, duplicate_field);
+	store.selected_field = duplicate_field.df;
 }
 </script>
 
@@ -78,6 +92,9 @@ function move_fields_to_column() {
 						@click="move_fields_to_column"
 					>
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
+					</button>
+					<button class="btn btn-xs btn-icon" @click.stop="duplicate_field">
+						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
 					</button>
 					<button class="btn btn-xs btn-icon" @click.stop="remove_field">
 						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
