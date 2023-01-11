@@ -1857,7 +1857,7 @@ def get_list(doctype, *args, **kwargs):
 	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
 
 	        # filter as a list of dicts
-	        frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
+	        frappe.get_list("ToDo", fields="*", filters = [{'name': 'The name'}, {"description": ("like", "%test%")}])
 	"""
 	import frappe.model.db_query
 
@@ -1884,7 +1884,7 @@ def get_all(doctype, *args, **kwargs):
 	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
 
 	        # filter as a list of dicts
-	        frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")})
+	        frappe.get_list("ToDo", fields="*", filters = [{'name': 'The name'}, {"description": ("like", "%test%")}])
 	"""
 	kwargs["ignore_permissions"] = True
 	if not "limit_page_length" in kwargs:
