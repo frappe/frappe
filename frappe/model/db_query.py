@@ -564,7 +564,11 @@ class DatabaseQuery:
 		available_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
-			column = field.split(" ", 1)[0].replace("`", "")
+			if "distinct" in field:
+				self.distinct = True
+				column = field.split(" ", 2)[1].replace("`", "")
+			else:
+				column = field.split(" ", 1)[0].replace("`", "")
 
 			if column == "*":
 				self.fields[i : i + 1] = available_fields
