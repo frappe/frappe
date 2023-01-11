@@ -41,6 +41,10 @@ frappe.ui.form.on("Workspace", {
 			}
 		}
 
+		if (frappe.boot.developer_mode) {
+			frm.set_df_property("module", "read_only", 0);
+		}
+
 		frm.layout.show_message(message);
 	},
 
