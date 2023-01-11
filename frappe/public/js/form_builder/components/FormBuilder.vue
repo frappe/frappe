@@ -169,10 +169,6 @@ onMounted(() => {
 				}
 			}
 
-			.reqd::after {
-				content: " *";
-				color: var(--red-400);
-			}
 			.description,
 			.time-zone {
 				font-size: var(--text-sm);

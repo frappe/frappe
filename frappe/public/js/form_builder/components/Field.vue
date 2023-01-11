@@ -49,13 +49,16 @@ function move_fields_to_column() {
 			:data-fieldtype="field.df.fieldtype"
 		>
 			<template #label>
-				<EditableInput
-					:class="{ reqd: field.df.reqd }"
-					:text="field.df.label"
-					:placeholder="__('Label')"
-					:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
-					v-model="field.df.label"
-				/>
+				<div class="field-label">
+					<EditableInput
+						:text="field.df.label"
+						:placeholder="__('Label')"
+						:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
+						v-model="field.df.label"
+					/>
+					<div class="reqd-asterisk" v-if="field.df.reqd">*</div>
+					<div class="help-icon" v-if="field.df.documentation_url" v-html="frappe.utils.icon('help', 'sm')"></div>
+				</div>
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
@@ -112,6 +115,20 @@ function move_fields_to_column() {
 		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.3rem;
+
+		.field-label {
+			display: flex;
+			align-items: center;
+			.reqd-asterisk {
+				margin-left: 3px;
+				color: var(--red-400);
+			}
+			.help-icon {
+				margin-left: 3px;
+				color: var(--text-muted);
+				cursor: pointer;
+			}
+		}
 
 		.field-actions {
 			flex: none;
