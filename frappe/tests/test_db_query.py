@@ -715,7 +715,12 @@ class TestReportview(FrappeTestCase):
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "MAX(`modified`)"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "MAX(`modified`)"],
+				limit=1,
+				order_by=None,
+				group_by="name",
 			)
 			self.assertEqual(len(data[0]), 2)
 
@@ -729,17 +734,27 @@ class TestReportview(FrappeTestCase):
 				"Blog Post", filters={"published": 1}, fields=["name", "'LABEL'"], limit=1
 			)
 			self.assertTrue("name" in data[0])
-			self.assertTrue("LABEL" in data[0])
+			self.assertTrue("LABEL" in data[0].values())
 			self.assertEqual(len(data[0]), 2)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "COUNT(*) as count"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "COUNT(*) as count"],
+				limit=1,
+				order_by=None,
+				group_by="name",
 			)
 			self.assertTrue("count" in data[0])
 			self.assertEqual(len(data[0]), 2)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "COUNT(*) count"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "COUNT(*) count"],
+				limit=1,
+				order_by=None,
+				group_by="name",
 			)
 			self.assertTrue("count" in data[0])
 			self.assertEqual(len(data[0]), 2)
