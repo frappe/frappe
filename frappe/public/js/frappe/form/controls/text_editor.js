@@ -309,7 +309,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			value = `<div class="ql-editor read-mode">${value}</div>`;
 		}
 		
-	    // quill keeps ol as a common container for both type of lists
+		// quill keeps ol as a common container for both type of lists
 		// and uses css for appearances, this is not semantic
 		// so we convert ol to ul if it is unordered
 		let $value = $(value);
