@@ -55,7 +55,7 @@ class Database:
 	STANDARD_VARCHAR_COLUMNS = ("name", "owner", "modified_by")
 	DEFAULT_COLUMNS = ["name", "creation", "modified", "modified_by", "owner", "docstatus", "idx"]
 	CHILD_TABLE_COLUMNS = ("parent", "parenttype", "parentfield")
-	MAX_WRITES_PER_TRANSACTION = 200_000
+	MAX_WRITES_PER_TRANSACTION = 20_000
 
 	# NOTE:
 	# FOR MARIADB - using no cache - as during backup, if the sequence was used in anyform,
