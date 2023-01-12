@@ -117,7 +117,7 @@ onMounted(() => {
 			font-size: var(--text-sm);
 			cursor: pointer;
 
-			&:has(.drop-it-here) {
+			&:not(.hovered) {
 				position: relative;
 				background-color: transparent;
 				height: 60px;
@@ -268,7 +268,7 @@ onMounted(() => {
 		}
 	}
 
-	.form-main:not(:has(.tab-header)) :deep(.tab-contents) {
+	.form-main > :deep(div:first-child:not(.tab-header)) {
 		max-height: calc(100vh - 160px);
 	}
 }
