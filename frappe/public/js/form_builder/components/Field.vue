@@ -127,6 +127,10 @@ function duplicate_field() {
 		}
 	}
 
+	:deep(.form-control:read-only:focus) {
+		box-shadow: none;
+	}
+
 	:deep(.field-controls) {
 		display: flex;
 		justify-content: space-between;

@@ -113,7 +113,7 @@ watch([() => doctype.value, () => fieldname.value], ([doctype_value, fieldname_v
 			:style="{ height: height, maxHeight: df.max_height ?? '' }"
 			class="form-control"
 			type="text"
-			disabled
+			readonly
 		/>
 		<textarea
 			v-else
