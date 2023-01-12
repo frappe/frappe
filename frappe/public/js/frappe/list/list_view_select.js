@@ -191,12 +191,16 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			);
 		});
 
-		this.page.add_custom_menu_item(
-			kanban_switcher,
-			__("Create New Kanban Board"),
-			() => frappe.views.KanbanView.show_kanban_dialog(this.doctype),
-			true
-		);
+		let perms = this.list_view.board_perms;
+		let can_create = perms ? perms.create : true;
+		if (can_create) {
+			this.page.add_custom_menu_item(
+				kanban_switcher,
+				__("Create New Kanban Board"),
+				() => frappe.views.KanbanView.show_kanban_dialog(this.doctype),
+				true
+			);
+		}
 	}
 
 	get_page_name() {
