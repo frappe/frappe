@@ -1518,9 +1518,15 @@ def get_url_to_report(name, report_type=None, doctype=None):
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
 	if report_type == "Report Builder":
+<<<<<<< HEAD
 		return get_url(uri="/app/{0}/view/report?{1}".format(quoted(doctype), filters))
 	else:
 		return get_url(uri="/app/query-report/{0}?{1}".format(quoted(name), filters))
+=======
+		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
+
+	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+>>>>>>> 27a2689678 (fix: slug doctype when building url to report with filters (#19581))
 
 
 operator_map = {
