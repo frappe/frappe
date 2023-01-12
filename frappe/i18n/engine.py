@@ -18,8 +18,7 @@ def f(msg: str, context: str = None, lang: str = "en"):
     from frappe.utils import is_html, strip_html_tags
 
     if not lang:
-        # TODO: change to en
-        lang = "sl"
+        lang = "en"
 
     msg = as_unicode(msg).strip()
 
