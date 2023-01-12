@@ -448,18 +448,16 @@ class Meta(Document):
 	def sort_fields(self):
 		"""Sort standard fields on the basis of property setter,
 		and custom fields on the basis of insert_after"""
-		if not hasattr(self, "field_order") or not self.field_order:
-			return
+		if hasattr(self, "field_order") and self.field_order:
+			sorted_fields = []
+			self.field_order = self.field_order.replace(" ", "").split(",")
 
-		sorted_fields = []
-		self.field_order = self.field_order.replace(" ", "").split(",")
+			for idx, fieldname in enumerate(self.field_order, 1):
+				field = self._fields[fieldname]
+				field.idx = idx
+				sorted_fields.append(field)
 
-		for idx, fieldname in enumerate(self.field_order, 1):
-			field = self._fields[fieldname]
-			field.idx = idx
-			sorted_fields.append(field)
-
-		self.fields = sorted_fields
+			self.fields = sorted_fields
 
 		field_order = []
 		insert_after_map = {}

@@ -118,6 +118,17 @@ class CustomField(Document):
 
 		frappe.clear_cache(doctype=self.dt)
 
+	def after_insert(self):
+		field_order_details = get_custom_field_order(self.dt)
+		if not field_order_details:
+			return
+
+		field_order, dn = field_order_details
+		field_order = field_order.split(", ")
+		field_order.insert(field_order.index(self.insert_after) + 1, self.fieldname)
+
+		frappe.db.set_value("Property Setter", dn, {"value": ", ".join(field_order)})
+
 	def validate_insert_after(self, meta):
 		if not meta.get_field(self.insert_after):
 			frappe.throw(
@@ -223,3 +234,11 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 	finally:
 		frappe.flags.in_create_custom_fields = False
+
+
+def get_custom_field_order(doctype: str):
+	return frappe.db.get_value(
+		"Property Setter",
+		filters={"doc_type": doctype, "property": "field_order"},
+		fieldname=["value", "name"],
+	)
