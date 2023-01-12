@@ -236,14 +236,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	    // quill keeps ol as a common container for both type of lists
 		// and uses css for appearances, this is not semantic
 		// so we convert ol to ul if it is unordered
-		value.find('ol li[data-list=bullet]:first-child').each((i, li) => {
+		let $value = $(value);
+		$value.find('ol li[data-list=bullet]:first-child').each((i, li) => {
 			let $li = $(li);
 			let $parent = $li.parent();
 			let $children = $parent.children();
 			let $ul = $('<ul>').append($children);
 			$parent.replaceWith($ul);
 		});
-		value = value.html();
+		value = $value.html();
 		return value;
 	},
 
