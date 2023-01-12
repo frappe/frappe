@@ -134,31 +134,14 @@ class Meta(Document):
 			self.init_field_caches()
 			return
 
-		has_custom_fields = self.add_custom_fields()
+		self.add_custom_fields()
 		self.apply_property_setters()
 		self.init_field_caches()
+		self.sort_fields()
 
-		if has_custom_fields:
-			self.sort_fields()
-
-		self.sort_fields_from_property_setter()
 		self.get_valid_columns()
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
-
-	def sort_fields_from_property_setter(self):
-		if not hasattr(self, "field_order") or not self.field_order:
-			return
-
-		sorted_fields = []
-		self.field_order = self.field_order.replace(" ", "").split(",")
-
-		for idx, fieldname in enumerate(self.field_order, 1):
-			field = self._fields[fieldname]
-			field.idx = idx
-			sorted_fields.append(field)
-
-		self.fields = sorted_fields
 
 	def as_dict(self, no_nulls=False):
 		def serialize(doc):
@@ -376,7 +359,6 @@ class Meta(Document):
 			return
 
 		self.extend("fields", custom_fields)
-		return True
 
 	def apply_property_setters(self):
 		"""
@@ -464,7 +446,20 @@ class Meta(Document):
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
 	def sort_fields(self):
-		"""Sort custom fields on the basis of insert_after"""
+		"""Sort standard fields on the basis of property setter,
+		and custom fields on the basis of insert_after"""
+		if not hasattr(self, "field_order") or not self.field_order:
+			return
+
+		sorted_fields = []
+		self.field_order = self.field_order.replace(" ", "").split(",")
+
+		for idx, fieldname in enumerate(self.field_order, 1):
+			field = self._fields[fieldname]
+			field.idx = idx
+			sorted_fields.append(field)
+
+		self.fields = sorted_fields
 
 		field_order = []
 		insert_after_map = {}
