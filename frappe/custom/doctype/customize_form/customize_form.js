@@ -63,7 +63,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.set_value("doc_type", "");
 						} else {
 							frm.refresh();
-							frm.trigger("customize_child_table");
+							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
 						}
 					}
@@ -79,7 +79,7 @@ frappe.ui.form.on("Customize Form", {
 		frm.trigger("setup_default_views");
 	},
 
-	customize_child_table: function (frm) {
+	add_customize_child_table_button: function (frm) {
 		frm.doc.fields.forEach(function (f) {
 			if (f.fieldtype == "Table") {
 				frm.add_custom_button(
