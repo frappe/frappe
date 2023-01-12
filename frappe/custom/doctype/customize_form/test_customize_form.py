@@ -403,3 +403,19 @@ class TestCustomizeForm(FrappeTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			d.run_method("save_customization")
+
+	def test_customized_field_order(self):
+		def shuffle_fields():
+			import random
+
+			customized_form = self.get_customize_form(doctype="Note")
+			random.shuffle(customized_form.fields)
+			customized_form.save_customization()
+
+		shuffle_fields()
+
+		property_setter_field_order = frappe.get_last_doc("Property Setter").value.split(", ")
+		set_field_order = self.get_customize_form(doctype="Note").fields
+
+		for idx, field in enumerate(set_field_order, 0):
+			self.assertEqual(field.fieldname, property_setter_field_order[idx])
