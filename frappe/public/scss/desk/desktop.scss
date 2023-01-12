@@ -1027,18 +1027,6 @@ body {
 			}
 		}
 
-		&[item-is-hidden="0"] {
-			.drop-icon {
-				display: none;
-			}
-
-			&:has(.sidebar-item-container[item-is-hidden="0"]) {
-				.drop-icon {
-					display: inline-block;
-				}
-			}
-		}
-
 		.sidebar-item-container {
 			margin-left: 10px;
 
@@ -1068,14 +1056,6 @@ body {
 						}
 					}
 				}
-			}
-		}
-
-		.standard-sidebar-section {
-			display: none;
-
-			&:has(> [item-is-hidden="0"]) {
-				display: block;
 			}
 		}
 
