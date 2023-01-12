@@ -362,7 +362,7 @@ class Database:
 		self.sql(query, debug=debug)
 
 	def check_transaction_status(self, query):
-		"""Raises exception if more than 20,000 `INSERT`, `UPDATE` queries are
+		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
 		self.check_implicit_commit(query)
