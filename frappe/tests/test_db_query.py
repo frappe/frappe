@@ -918,34 +918,37 @@ class TestReportview(FrappeTestCase):
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, run=0))
 
 	def test_ambiguous_linked_tables(self):
-		from frappe.desk.reportview import get_list
+		from frappe.desk.reportview import get
 
-		frappe.get_doc(
-			{
-				"doctype": "DocType",
-				"custom": 1,
-				"module": "Custom",
-				"name": "Related Todos",
-				"naming_rule": "Random",
-				"autoname": "hash",
-				"fields": [
-					{
-						"label": "Todo One",
-						"fieldname": "todo_one",
-						"fieldtype": "Link",
-						"options": "ToDo",
-						"reqd": 1,
-					},
-					{
-						"label": "Todo Two",
-						"fieldname": "todo_two",
-						"fieldtype": "Link",
-						"options": "ToDo",
-						"reqd": 1,
-					},
-				],
-			}
-		).insert()
+		if not frappe.db.exists("DocType", "Related Todos"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"custom": 1,
+					"module": "Custom",
+					"name": "Related Todos",
+					"naming_rule": "Random",
+					"autoname": "hash",
+					"fields": [
+						{
+							"label": "Todo One",
+							"fieldname": "todo_one",
+							"fieldtype": "Link",
+							"options": "ToDo",
+							"reqd": 1,
+						},
+						{
+							"label": "Todo Two",
+							"fieldname": "todo_two",
+							"fieldtype": "Link",
+							"options": "ToDo",
+							"reqd": 1,
+						},
+					],
+				}
+			).insert()
+		else:
+			frappe.db.delete("Related Todos")
 
 		todo_one = frappe.get_doc(
 			{
@@ -970,9 +973,18 @@ class TestReportview(FrappeTestCase):
 		).insert()
 
 		frappe.form_dict.doctype = "Related Todos"
-		data = get_list()
-		frappe.form_dict.doctype = ""
-		self.assertEqual(len(data), 1)
+		frappe.form_dict.fields = [
+			"`tabRelated Todos`.`name`",
+			"`tabRelated Todos`.`todo_one`",
+			"`tabRelated Todos`.`todo_two`",
+			# because ToDo.show_title_as_field_link = 1
+			"todo_one.description as todo_one_description",
+			"todo_two.description as todo_two_description",
+		]
+
+		# Shouldn't raise pymysql.err.OperationalError: (1066, "Not unique table/alias: 'tabToDo'")
+		data = get()
+		self.assertEqual(len(data["values"]), 1)
 
 
 def add_child_table_to_blog_post():
