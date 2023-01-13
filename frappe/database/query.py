@@ -538,6 +538,9 @@ class Engine:
 		if isinstance(_value, str) and has_function(_value):
 			_value = self.get_function_object(_value)
 
+		if isinstance(_value, (list, tuple)) and not _value:
+			_value = ("",)
+
 		# Nested set
 		if _operator in OPERATOR_MAP["nested_set"]:
 			hierarchy = _operator
