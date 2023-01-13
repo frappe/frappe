@@ -445,19 +445,41 @@ class Meta(Document):
 		else:
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
+	def sort_fields_based_on_field_order(self):
+		if not hasattr(self, "field_order") or not self.field_order:
+			return
+
+		sorted_fields = []
+		fields_to_remove = []
+
+		self.field_order = self.field_order.replace(" ", "").split(",")
+
+		# Remove fields not present in self.fields.
+		for field in self.field_order:
+			if field not in self._fields:
+				fields_to_remove.append(field)
+
+		for field in fields_to_remove:
+			self.field_order.remove(field)
+
+		# Add fields present in self.fields
+		for field in self.fields:
+			if field.fieldname not in self.field_order:
+				# Insert after logic handles rearranding of custom fields
+				self.field_order.append(field.fieldname)
+
+		for idx, fieldname in enumerate(self.field_order, 1):
+			field = self._fields[fieldname]
+			field.idx = idx
+			sorted_fields.append(field)
+
+		self.fields = sorted_fields
+
 	def sort_fields(self):
 		"""Sort standard fields on the basis of property setter,
 		and custom fields on the basis of insert_after"""
-		if hasattr(self, "field_order") and self.field_order:
-			sorted_fields = []
-			self.field_order = self.field_order.replace(" ", "").split(",")
 
-			for idx, fieldname in enumerate(self.field_order, 1):
-				field = self._fields[fieldname]
-				field.idx = idx
-				sorted_fields.append(field)
-
-			self.fields = sorted_fields
+		self.sort_fields_based_on_field_order()
 
 		field_order = []
 		insert_after_map = {}
