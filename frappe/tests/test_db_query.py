@@ -917,6 +917,63 @@ class TestReportview(FrappeTestCase):
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, run=0))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, run=0))
 
+	def test_ambiguous_linked_tables(self):
+		from frappe.desk.reportview import get_list
+
+		frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"custom": 1,
+				"module": "Custom",
+				"name": "Related Todos",
+				"naming_rule": "Random",
+				"autoname": "hash",
+				"fields": [
+					{
+						"label": "Todo One",
+						"fieldname": "todo_one",
+						"fieldtype": "Link",
+						"options": "ToDo",
+						"reqd": 1,
+					},
+					{
+						"label": "Todo Two",
+						"fieldname": "todo_two",
+						"fieldtype": "Link",
+						"options": "ToDo",
+						"reqd": 1,
+					},
+				],
+			}
+		).insert()
+
+		todo_one = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Todo One",
+			}
+		).insert()
+
+		todo_two = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Todo Two",
+			}
+		).insert()
+
+		frappe.get_doc(
+			{
+				"doctype": "Related Todos",
+				"todo_one": todo_one.name,
+				"todo_two": todo_two.name,
+			}
+		).insert()
+
+		frappe.form_dict.doctype = "Related Todos"
+		data = get_list()
+		frappe.form_dict.doctype = ""
+		self.assertEqual(len(data), 1)
+
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
