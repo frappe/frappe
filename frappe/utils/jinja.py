@@ -127,8 +127,14 @@ def get_jloader():
 =======
 		apps = frappe.get_hooks("template_apps")
 		if not apps:
+<<<<<<< HEAD
 			apps = list(reversed(frappe.local.flags.web_pages_apps or frappe.get_installed_apps()))
 >>>>>>> d8b7bc18d7 (refactor!: deprecate sorting based on `apps.txt` in `get_installed_apps`)
+=======
+			apps = list(
+				reversed(frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True))
+			)
+>>>>>>> 5e2bbf834f (refactor: filter out apps not installed on bench)
 
 		if "frappe" not in apps:
 			apps.append("frappe")
