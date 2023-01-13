@@ -530,9 +530,7 @@ class Engine:
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
 
-		if isinstance(_value, (str, int)):
-			_value = str(_value)
-		elif isinstance(_value, (list, tuple)):
+		if isinstance(_value, (list, tuple)):
 			_operator, _value = _value
 		elif isinstance(_value, bool):
 			_value = int(_value)
