@@ -201,8 +201,12 @@ def get_user_pages_or_reports(parent, cache=False):
 			& (hasRole.role.isin(roles))
 		)
 	)
+<<<<<<< HEAD
 	pages_with_custom_roles = run_with_permission_query(parent, pages_with_custom_roles)
 >>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
+=======
+	pages_with_custom_roles = _run_with_permission_query(pages_with_custom_roles, parent)
+>>>>>>> 0ba158979d (fix: Make `run_with_permission_query` private (not a general util))
 
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
@@ -249,7 +253,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	if parent == "Report":
 		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
 
-	pages_with_standard_roles = run_with_permission_query(parent, pages_with_standard_roles)
+	pages_with_standard_roles = _run_with_permission_query(pages_with_standard_roles, parent)
 
 >>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
 	for p in pages_with_standard_roles:
@@ -280,8 +284,12 @@ def get_user_pages_or_reports(parent, cache=False):
 			.select(parentTable.name, parentTable.modified, *columns)
 			.where(no_of_roles == 0)
 		)
+<<<<<<< HEAD
 		pages_with_no_roles = run_with_permission_query(parent, pages_with_no_roles)
 >>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
+=======
+		pages_with_no_roles = _run_with_permission_query(pages_with_no_roles, parent)
+>>>>>>> 0ba158979d (fix: Make `run_with_permission_query` private (not a general util))
 
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
@@ -303,6 +311,7 @@ def get_user_pages_or_reports(parent, cache=False):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def get_column(doctype):
 	column = "`tabPage`.title as title"
 	if doctype == "Report":
@@ -311,6 +320,9 @@ def get_column(doctype):
 	return column
 =======
 def run_with_permission_query(doctype: str, query: "MySQLQueryBuilder") -> list[dict]:
+=======
+def _run_with_permission_query(query: "MySQLQueryBuilder", doctype: str) -> list[dict]:
+>>>>>>> 0ba158979d (fix: Make `run_with_permission_query` private (not a general util))
 	"""
 	Adds Permission Query (Server Script) conditions and runs/executes modified query
 	Note: Works only if 'WHERE' is the last clause in the query
@@ -322,8 +334,12 @@ def run_with_permission_query(doctype: str, query: "MySQLQueryBuilder") -> list[
 	if permission_query:
 		query = query + " AND " + permission_query
 
+<<<<<<< HEAD
 	return frappe.db.sql(query, as_dict=True)
 >>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
+=======
+	return frappe.db.sql(query, as_dict=True)  # nosemgrep
+>>>>>>> 0ba158979d (fix: Make `run_with_permission_query` private (not a general util))
 
 
 def load_translations(bootinfo):
