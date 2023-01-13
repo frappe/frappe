@@ -116,18 +116,31 @@ class CustomField(Document):
 					layout_doc.save()
 					break
 
+		self.load_field_order()
+		if self.field_order:
+			self.field_order.remove(self.fieldname)
+			frappe.db.set_value(
+				"Property Setter", self.property_setter, {"value": ", ".join(self.field_order)}
+			)
+
 		frappe.clear_cache(doctype=self.dt)
 
+	def load_field_order(self):
+		self.field_order, self.property_setter = None, None
+		if field_order_details := frappe.db.get_value(
+			"Property Setter",
+			filters={"doc_type": self.dt, "property": "field_order"},
+			fieldname=["value", "name"],
+		):
+			self.field_order, self.property_setter = field_order_details
+			self.field_order = self.field_order.split(", ")
+
 	def after_insert(self):
-		field_order_details = get_custom_field_order(self.dt)
-		if not field_order_details:
+		self.load_field_order()
+		if not self.field_order:
 			return
 
-		field_order, dn = field_order_details
-		field_order = field_order.split(", ")
-		field_order.insert(field_order.index(self.insert_after) + 1, self.fieldname)
-
-		frappe.db.set_value("Property Setter", dn, {"value": ", ".join(field_order)})
+		self.field_order.insert(self.field_order.index(self.insert_after) + 1, self.fieldname)
 
 	def validate_insert_after(self, meta):
 		if not meta.get_field(self.insert_after):
@@ -234,11 +247,3 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 	finally:
 		frappe.flags.in_create_custom_fields = False
-
-
-def get_custom_field_order(doctype: str):
-	return frappe.db.get_value(
-		"Property Setter",
-		filters={"doc_type": doctype, "property": "field_order"},
-		fieldname=["value", "name"],
-	)
