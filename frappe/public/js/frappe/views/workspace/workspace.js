@@ -214,7 +214,11 @@ frappe.views.Workspace = class Workspace {
 			`<span class="drop-icon hidden">${frappe.utils.icon(drop_icon, "sm")}</span>`
 		).appendTo(sidebar_control);
 		let pages = item.public ? this.public_pages : this.private_pages;
-		if (pages.some((e) => e.parent_page == item.title && e.is_hidden == 0)) {
+		if (
+			pages.some(
+				(e) => e.parent_page == item.title && (e.is_hidden == 0 || !this.is_read_only)
+			)
+		) {
 			$drop_icon.removeClass("hidden");
 		}
 		$drop_icon.on("click", () => {
