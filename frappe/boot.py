@@ -8,6 +8,7 @@ from six import iteritems, text_type
 """
 bootstrap client session
 """
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.defaults
@@ -16,6 +17,13 @@ from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, ge
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
+<<<<<<< HEAD
+=======
+from frappe.model.db_query import DatabaseQuery
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Count
+from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
+>>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
@@ -25,6 +33,9 @@ from frappe.translate import get_lang_dict, get_messages_for_boot, get_translate
 from frappe.utils import cstr
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
+
+if TYPE_CHECKING:
+	from pypika.dialects import MySQLQueryBuilder
 
 
 def get_bootinfo():
@@ -155,6 +166,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	column = get_column(parent)
 
 	# get pages or reports set on custom role
+<<<<<<< HEAD
 	pages_with_custom_roles = frappe.db.sql(
 		"""
 		select
@@ -174,6 +186,23 @@ def get_user_pages_or_reports(parent, cache=False):
 		roles,
 		as_dict=1,
 	)
+=======
+	pages_with_custom_roles = (
+		frappe.qb.from_(customRole)
+		.from_(hasRole)
+		.from_(parentTable)
+		.select(
+			customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns
+		)
+		.where(
+			(hasRole.parent == customRole.name)
+			& (parentTable.name == customRole[parent.lower()])
+			& (customRole[parent.lower()].isnotnull())
+			& (hasRole.role.isin(roles))
+		)
+	)
+	pages_with_custom_roles = run_with_permission_query(parent, pages_with_custom_roles)
+>>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
 
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
@@ -203,6 +232,26 @@ def get_user_pages_or_reports(parent, cache=False):
 		as_dict=True,
 	)
 
+<<<<<<< HEAD
+=======
+	pages_with_standard_roles = (
+		frappe.qb.from_(hasRole)
+		.from_(parentTable)
+		.select(parentTable.name.as_("name"), parentTable.modified, *columns)
+		.where(
+			(hasRole.role.isin(roles))
+			& (hasRole.parent == parentTable.name)
+			& (parentTable.name.notin(subq))
+		)
+		.distinct()
+	)
+
+	if parent == "Report":
+		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
+
+	pages_with_standard_roles = run_with_permission_query(parent, pages_with_standard_roles)
+
+>>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
 	for p in pages_with_standard_roles:
 		if p.name not in has_role:
 			has_role[p.name] = {"modified": p.modified, "title": p.title}
@@ -211,6 +260,7 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	# pages with no role are allowed
 	if parent == "Page":
+<<<<<<< HEAD
 		pages_with_no_roles = frappe.db.sql(
 			"""
 			select
@@ -224,6 +274,14 @@ def get_user_pages_or_reports(parent, cache=False):
 			),
 			as_dict=1,
 		)
+=======
+		pages_with_no_roles = (
+			frappe.qb.from_(parentTable)
+			.select(parentTable.name, parentTable.modified, *columns)
+			.where(no_of_roles == 0)
+		)
+		pages_with_no_roles = run_with_permission_query(parent, pages_with_no_roles)
+>>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
 
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
@@ -244,12 +302,28 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
+<<<<<<< HEAD
 def get_column(doctype):
 	column = "`tabPage`.title as title"
 	if doctype == "Report":
 		column = "`tabReport`.`name` as title, `tabReport`.ref_doctype, `tabReport`.report_type"
 
 	return column
+=======
+def run_with_permission_query(doctype: str, query: "MySQLQueryBuilder") -> list[dict]:
+	"""
+	Adds Permission Query (Server Script) conditions and runs/executes modified query
+	Note: Works only if 'WHERE' is the last clause in the query
+	"""
+	db_query = DatabaseQuery(doctype, frappe.session.user)
+	permission_query = db_query.get_permission_query_conditions()
+
+	query = query.get_sql()
+	if permission_query:
+		query = query + " AND " + permission_query
+
+	return frappe.db.sql(query, as_dict=True)
+>>>>>>> c41b5e9511 (fix: Report sidebar must consider Permission Query)
 
 
 def load_translations(bootinfo):
