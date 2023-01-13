@@ -5,6 +5,7 @@
 import copy
 import json
 import re
+from collections import Counter
 from datetime import datetime
 
 import frappe
@@ -57,6 +58,7 @@ class DatabaseQuery:
 		self.doctype = doctype
 		self.tables = []
 		self.link_tables = []
+		self.linked_table_counter = Counter()
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -242,7 +244,7 @@ class DatabaseQuery:
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -326,8 +328,10 @@ class DatabaseQuery:
 				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
-					self.append_link_table(linked_doctype, linked_fieldname)
-				field = f"`tab{linked_doctype}`.`{fieldname}`"
+					linked_table = self.append_link_table(linked_doctype, linked_fieldname)
+					field = f"{linked_table.table_alias}.`{fieldname}`"
+				else:
+					field = f"`tab{linked_doctype}`.`{fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
 				self.fields[self.fields.index(original_field)] = field
@@ -437,6 +441,12 @@ class DatabaseQuery:
 
 				table_name = field.split(".")[0]
 
+				# Check if table_name is a linked_table alias
+				for linked_table in self.link_tables:
+					if linked_table.table_alias == table_name:
+						table_name = linked_table.table_name
+						break
+
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
@@ -452,14 +462,20 @@ class DatabaseQuery:
 		self.check_read_permission(doctype)
 
 	def append_link_table(self, doctype, fieldname):
-		for d in self.link_tables:
-			if d.doctype == doctype and d.fieldname == fieldname:
-				return
+		for linked_table in self.link_tables:
+			if linked_table.doctype == doctype and linked_table.fieldname == fieldname:
+				return linked_table
 
 		self.check_read_permission(doctype)
-		self.link_tables.append(
-			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
+		self.linked_table_counter.update((doctype,))
+		linked_table = frappe._dict(
+			doctype=doctype,
+			fieldname=fieldname,
+			table_name=f"`tab{doctype}`",
+			table_alias=f"`tab{doctype}_{self.linked_table_counter[doctype]}`",
 		)
+		self.link_tables.append(linked_table)
+		return linked_table
 
 	def check_read_permission(self, doctype):
 		if not self.flags.ignore_permissions and not frappe.has_permission(
