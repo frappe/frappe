@@ -53,11 +53,11 @@ function focus_on_label() {
 			@blur="editing = false"
 			@click.stop
 		/>
-		<span v-else-if="text">{{ text }}</span>
+		<span v-else-if="text" v-html="text" ></span>
 		<i v-else class="text-muted">
 			{{ empty_label }}
 		</i>
-		<span class="hidden-span" ref="hidden_text">{{ text }}</span>
+		<span class="hidden-span" ref="hidden_text" v-html="text"></span>
 		<span class="hidden-span" ref="hidden_placeholder">{{ placeholder }}</span>
 	</div>
 </template>

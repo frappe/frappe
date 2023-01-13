@@ -43,7 +43,7 @@ if (props.df.fieldtype === "Icon") {
 			type="text"
 			:style="{ height: df.fieldtype == 'Table MultiSelect' ? '42px' : '' }"
 			:placeholder="placeholder"
-			disabled
+			readonly
 		/>
 		<input
 			v-else
@@ -58,7 +58,7 @@ if (props.df.fieldtype === "Icon") {
 			class="mt-2 form-control"
 			type="text"
 			:style="{ height: '110px' }"
-			disabled
+			readonly
 		/>
 
 		<!-- description -->
