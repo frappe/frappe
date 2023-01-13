@@ -14,6 +14,8 @@ if any((os.getenv("CI"), frappe.conf.developer_mode, frappe.conf.allow_tests)):
 	# Disable mandatory TLS in developer mode and tests
 	os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
+
 
 class ConnectedApp(Document):
 	"""Connect to a remote oAuth Server. Retrieve and store user's access token
