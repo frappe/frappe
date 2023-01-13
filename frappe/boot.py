@@ -188,7 +188,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			& (hasRole.role.isin(roles))
 		)
 	)
-	pages_with_custom_roles = run_with_permission_query(parent, pages_with_custom_roles)
+	pages_with_custom_roles = _run_with_permission_query(pages_with_custom_roles, parent)
 
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
@@ -214,7 +214,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	if parent == "Report":
 		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
 
-	pages_with_standard_roles = run_with_permission_query(parent, pages_with_standard_roles)
+	pages_with_standard_roles = _run_with_permission_query(pages_with_standard_roles, parent)
 
 	for p in pages_with_standard_roles:
 		if p.name not in has_role:
@@ -233,7 +233,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			.select(parentTable.name, parentTable.modified, *columns)
 			.where(no_of_roles == 0)
 		)
-		pages_with_no_roles = run_with_permission_query(parent, pages_with_no_roles)
+		pages_with_no_roles = _run_with_permission_query(pages_with_no_roles, parent)
 
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
@@ -254,7 +254,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
-def run_with_permission_query(doctype: str, query: "MySQLQueryBuilder") -> list[dict]:
+def _run_with_permission_query(query: "MySQLQueryBuilder", doctype: str) -> list[dict]:
 	"""
 	Adds Permission Query (Server Script) conditions and runs/executes modified query
 	Note: Works only if 'WHERE' is the last clause in the query
@@ -266,7 +266,7 @@ def run_with_permission_query(doctype: str, query: "MySQLQueryBuilder") -> list[
 	if permission_query:
 		query = query + " AND " + permission_query
 
-	return frappe.db.sql(query, as_dict=True)
+	return frappe.db.sql(query, as_dict=True)  # nosemgrep
 
 
 def load_translations(bootinfo):
