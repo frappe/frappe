@@ -667,12 +667,9 @@ class EmailAccount(Document):
 				self.log_error("Unable to add to Sent folder")
 
 	def get_oauth_token(self):
-		token = None
 		if self.auth_method == "OAuth":
 			connected_app = frappe.get_doc("Connected App", self.connected_app)
-			token = connected_app.get_active_token(self.connected_user)
-
-		return token
+			return connected_app.get_active_token(self.connected_user)
 
 
 @frappe.whitelist()
@@ -769,14 +766,12 @@ def notify_unreplied():
 
 def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
+	from frappe.integrations.doctype.connected_app.connected_app import has_token
 
 	if frappe.cache().get_value("workers:no-internet") == True:
 		if test_internet():
 			frappe.cache().set_value("workers:no-internet", False)
-		else:
-			return
-
-	from frappe.integrations.doctype.connected_app.connected_app import has_token
+		return
 
 	doctype = frappe.qb.DocType("Email Account")
 	email_accounts = (

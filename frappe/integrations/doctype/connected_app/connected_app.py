@@ -167,4 +167,4 @@ def callback(code=None, state=None):
 def has_token(connected_app, connected_user=None):
 	app = frappe.get_doc("Connected App", connected_app)
 	token_cache = app.get_token_cache(connected_user or frappe.session.user)
-	return bool(token_cache.get_json()["access_token"])
+	return bool(token_cache.get_password("access_token", False))
