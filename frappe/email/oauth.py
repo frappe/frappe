@@ -36,7 +36,6 @@ class Oauth:
 		return f"user={self.email}\1auth=Bearer {self._access_token}\1\1"
 
 	def connect(self) -> None:
-		"""Connection method with retry on exception for connection errors"""
 		try:
 			if isinstance(self._conn, POP3):
 				self._connect_pop()
@@ -59,7 +58,7 @@ class Oauth:
 			raise
 
 	def _connect_pop(self) -> None:
-		# poplib doesn't have AUTH command implementation
+		# NOTE: poplib doesn't have AUTH command implementation
 		res = self._conn._shortcmd(
 			"AUTH {} {}".format(
 				self._mechanism, base64.b64encode(bytes(self._auth_string, "utf-8")).decode("utf-8")
