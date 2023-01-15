@@ -55,7 +55,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	set_datepicker() {
 		let user_time_fmt = frappe.datetime.get_user_time_fmt();
-		console.log("DATE!!!" + user_time_fmt);
 		this.load_lib().then(() => {
 			const customdate = require("./tempus-dominus/plugins/customDateFormat.js");
 			tempusDominus.extend(customdate);
@@ -82,10 +81,20 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 						clear: '#icon-refresh',
 						close: '#icon-close-alt'
 					},
-					theme: 'dark'
+					theme: 'dark',
+					buttons: {
+						today: true,
+						clear: true,
+						close: false
+					  }
 				},
 				localization: {
-					format: user_time_fmt,
+					locale: frappe.boot.user.language,
+					hourCycle: 'h23',
+					dateFormats: {
+						L: user_time_fmt,
+					  },
+					format: 'L',
 				  }
 		  });
 		});
@@ -118,7 +127,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		return "";
 	}
 	validate(value) {
-		console.trace("validate: " + value);
 		// if (value && !frappe.datetime.validate(value)) {
 		// 	let sysdefaults = frappe.sys_defaults;
 		// 	let time_format =

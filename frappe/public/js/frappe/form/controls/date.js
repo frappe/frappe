@@ -13,7 +13,6 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		if (value === "Today") {
 			value = this.get_now_date();
 		}
-		console.log("datepicker-0" + value);
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		// if (!this.datepicker) return;
@@ -85,23 +84,13 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 
 	set_datepicker() {
-		let sysdefaults = frappe.boot.sysdefaults;
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
-
+		let first_day = frappe.datetime.get_first_day_of_the_week_index();
 		let lang = "en";
 		frappe.boot.user && (lang = frappe.boot.user.language);
 		if (!$.fn.datepicker.language[lang]) {
 			lang = "en";
 		}
-
-		// let date_format =
-		// 	sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
-
-
-		console.log("DATE!!!" + user_fmt);
-		//console.log(this.datepicker.selectedDates[0]);
-
-		
 
 		this.load_lib().then(() => {
 			const customdate = require("./tempus-dominus/plugins/customDateFormat.js");
@@ -133,11 +122,16 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 				buttons: {
 					today: true,
 					clear: true,
-					close: true
+					close: false
 				  }
 			},
 			localization: {
-				format: user_fmt,
+				locale: lang,
+				startOfTheWeek: first_day,
+				dateFormats: {
+					L: user_fmt,
+				  },
+				format: 'L',
 			  }
 		});
 		});
@@ -198,8 +192,6 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			if (value == "Invalid date") {
 				return "";
 			}
-			console.log("date_parse" + value);
-			console.log(frappe.datetime.user_to_str(value, false, true) + "abcde");
 			return frappe.datetime.user_to_str(value, false, true);
 		}
 	}

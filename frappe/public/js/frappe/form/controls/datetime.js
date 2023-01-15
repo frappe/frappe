@@ -1,19 +1,17 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
-		console.log("set_formatted: " + value);
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
 		//if (!this.datepicker) return;
 		if (!value) {
-			this.datepicker.clear();
-			return;
+			// this.datepicker.clear();
+			// return;
 		} else if (value.toLowerCase() === "today") {
 			value = this.get_now_date();
 		} else if (value.toLowerCase() === "now") {
 			value = frappe.datetime.now_datetime();
 		}
 		value = this.format_for_input(value);
-		console.log("set_formatted-2: " + value);
 		this.$input && this.$input.val(value);
 		//this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
 	}
@@ -21,8 +19,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	get_start_date() {
 		this.value = this.value == null ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);
-		console.log("get_start_dat: " + value);
-		console.log("get_start_dat1: " + frappe.datetime.str_to_obj(value));
 		return frappe.datetime.str_to_obj(value);
 	}
 	set_date_options() {
@@ -42,12 +38,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	parse(value) {
 		if (value) {
-			console.log("parse_dt-1: " + value);
 			value = frappe.datetime.user_to_str(value, false);
-			console.log("parse_dt-2: " + value);
 			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);
-				console.log("parse_dt-3: " + value);
 			}
 
 			if (value == "Invalid date") {
@@ -57,7 +50,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return value;
 	}
 	format_for_input(value) {
-		console.log("format_for_input" + value);
 		let usr_tz = frappe.datetime.convert_to_user_tz(value);
 		if (!value) return "";
 		return frappe.datetime.str_to_user(usr_tz, false);
@@ -82,10 +74,11 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
-		let sysdefaults = frappe.boot.sysdefaults;
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		let user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let datetime_fmt = user_fmt + " " + user_time_fmt
+
+		let first_day = frappe.datetime.get_first_day_of_the_week_index();
 
 		let lang = "en";
 		frappe.boot.user && (lang = frappe.boot.user.language);
@@ -123,11 +116,17 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 					buttons: {
 						today: true,
 						clear: true,
-						close: true
+						close: false
 					  }
 				},
 				localization: {
-					format: datetime_fmt,
+					locale: lang,
+					startOfTheWeek: first_day,
+					hourCycle: 'h23',
+					dateFormats: {
+						L: datetime_fmt,
+					  },
+					format: 'L',
 				  }
 		  });
 		});

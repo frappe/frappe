@@ -18,7 +18,6 @@ frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function (date, format) {
-		console.trace(date);
 		// format defaults to true
 		// Converts the datetime string to system time zone first since the database only stores datetime in
 		// system time zone and then convert the string to user time zone(from User doctype).
@@ -32,9 +31,6 @@ $.extend(frappe.datetime, {
 		}
 
 		let usr_time_obj = parse(usr_time, frappe.defaultDatetimeFormat, new Date());
-		console.log("usr_time1: " + date);
-		console.log("usr_time2: " + usr_time);
-		console.log("usr_time3: " + usr_time_obj);
 		return format === false ? usr_time_obj : usr_time;
 
 	},
@@ -56,9 +52,7 @@ $.extend(frappe.datetime, {
 		}
 
 		let sys_time_obj = parse(sys_time, frappe.defaultDatetimeFormat, new Date());
-		console.log("sys_time1: " + date);
-		console.log("sys_time2: " + sys_time);
-		console.log("sys_time3: " + sys_time_obj);
+
 		return format === false ? sys_time_obj : sys_time;
 
 	},
@@ -85,18 +79,14 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_obj: function (d) {
-		console.log("obj-2: " + d);
-		console.log("obj-2,5: " + parse(d, frappe.defaultDatetimeFormat, new Date()));
 		return parse(d, frappe.defaultDatetimeFormat, new Date());
 	},
 
 	obj_to_str: function (d) {
-		console.log("obj-1: " + d);
 		return d.toLocaleString("en-US")
 	},
 
 	obj_to_user: function (d) {
-		console.log("obj-3: " + d);
 		return format(d, frappe.datetime.get_user_date_fmt().replace("mm", "MM"))
 	},
 
@@ -174,7 +164,6 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_user: function (val, only_time = false, only_date = false) {
-		console.trace("äää" + val);
 		if (!val) return "";
 		const user_date_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		const user_time_fmt = frappe.datetime.get_user_time_fmt();
@@ -198,9 +187,6 @@ $.extend(frappe.datetime, {
 				}
 
 			}
-			console.log("str_u1: " + val);
-			console.log("str_u2: " + time_in);
-			console.log("str_u3: " + format(time_in, user_format));
 
 			return format(time_in, user_format);
 		}
@@ -210,7 +196,6 @@ $.extend(frappe.datetime, {
 	},
 
 	user_to_str: function (val, only_time = false) {
-		console.trace("user_to_str" + val);
 		let user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let time_out = null
 		let time_in = null
@@ -245,9 +230,6 @@ $.extend(frappe.datetime, {
 			time_in = parse(val, user_fmt, new Date())
 			time_out = format(time_in, system_fmt);
 		}
-		console.log("str_time1: " + val);
-		console.log("str_time2: " + time_in);
-		console.log("str_time3: " + time_out);
 
 		return time_out;
 	},
@@ -266,12 +248,10 @@ $.extend(frappe.datetime, {
 			}
 		}
 		let datepicker_out = parse(val, user_fmt2, new Date());
-		console.log("datepicker: " + datepicker_out);
 		return datepicker_out;
 	},
 
 	user_to_obj: function (d) {
-		console.log("obj: " + d);
 		return frappe.datetime.str_to_obj(frappe.datetime.user_to_str(d));
 	},
 
@@ -287,8 +267,6 @@ $.extend(frappe.datetime, {
 			time_in = parse(d, frappe.defaultdateTimeFormat, new Date())
 			time_out = format(time_in, "do MMMM yyyy, h:mm a");
 		}
-		console.log("global: " + d);
-		console.log("global: " + time_out);
 		
 		return time_out;		
 	},
@@ -322,7 +300,6 @@ $.extend(frappe.datetime, {
 		}
 
 		usr_time = zonedTimeToUtc(new Date(), frappe.boot.time_zone.system);
-		console.log("_date: " + usr_time);
 		return formatInTimeZone(usr_time, time_zone, format);
 
 	},
@@ -342,7 +319,6 @@ $.extend(frappe.datetime, {
 	},
 
 	validate: function (d) {
-		console.log("validate: " + d);
 		try {
 			parse(d, frappe.defaultDateFormat, new Date());
 			return true;

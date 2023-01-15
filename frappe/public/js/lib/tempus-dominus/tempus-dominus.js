@@ -1125,7 +1125,7 @@
         useCurrent: true,
         defaultDate: undefined,
         localization: {
-            today: 'Go to today',
+            today: __('Go to today'),
             clear: 'Clear selection',
             close: 'Close the picker',
             selectMonth: 'Select Month',
