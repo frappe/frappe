@@ -74,7 +74,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				}
 			}
 		};
-		console.log("refresh_input: " + me.value);
+		
 		var update_input = function () {
 			if (me.doctype && me.docname) {
 				me.set_input(me.value);
@@ -87,10 +87,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			// refresh value
 			if (me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
-				console.log("me_value1: " + me.value);
 			} else if (me.doc) {
 				me.value = me.doc[me.df.fieldname] || "";
-				console.log("me_value2: " + me.value);
 			}
 
 			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();
@@ -139,7 +137,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 	}
 
 	set_disp_area(value) {
-		console.log("$$$-0: " + value);
 		if (
 			in_list(["Currency", "Int", "Float"], this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
@@ -154,7 +151,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
-		console.log("$$$-1: " + display_value);
 		this.disp_area && $(this.disp_area).html(display_value);
 	}
 	set_label(label) {

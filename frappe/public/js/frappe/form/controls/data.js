@@ -100,6 +100,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 
 		this.$input.bind("input", () => {
 			let inputValue = this.get_input_value();
+
 			if (inputValue && validate_url(inputValue)) {
 				this.$link.toggle(true);
 				this.$link_open.attr("href", this.get_input_value());
@@ -164,7 +165,6 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			if (this.change) this.change(e);
 			else {
 				let value = this.get_input_value();
-				console.log("data: " + value);
 				this.parse_validate_and_set_in_model(value, e);
 			}
 		};
@@ -238,14 +238,10 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		}
 	}
 	set_input(value) {
-		console.trace(value);
-		console.log("set_input: " + value);
 		this.last_value = this.value;
 		this.value = value;
 		this.set_formatted_input(value);
-		console.log("set_input-1: " + this.set_formatted_input(value));
 		this.set_disp_area(value);
-		console.log("set_input-2: " + this.set_disp_area(value));
 		this.set_mandatory && this.set_mandatory(value);
 	}
 	set_formatted_input(value) {

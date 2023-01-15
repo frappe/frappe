@@ -182,13 +182,11 @@ frappe.form.formatters = {
 		}
 	},
 	Date: function (value) {
-		console.log("$$$date: " + value);
 		if (!frappe.datetime.str_to_user) {
 			return value;
 		}
 		if (value) {
 			value = frappe.datetime.str_to_user(value);
-			console.log("1$$$date: " + value);
 			// handle invalid date
 			if (value === "Invalid date") {
 				value = null;
@@ -208,13 +206,7 @@ frappe.form.formatters = {
 		}
 	},
 	Datetime: function (value) {
-		console.trace("Datetime: " + value);
 		if (value) {
-			console.log("formatters: " + moment(frappe.datetime.convert_to_user_tz(value)).format(
-				frappe.boot.sysdefaults.date_format.toUpperCase() +
-					" " +
-					(frappe.boot.sysdefaults.time_format || "HH:mm:ss")
-			));
 			return moment(frappe.datetime.convert_to_user_tz(value)).format(
 				frappe.boot.sysdefaults.date_format.toUpperCase() +
 					" " +
@@ -380,7 +372,6 @@ frappe.form.get_formatter = function (fieldtype) {
 };
 
 frappe.format = function (value, df, options, doc) {
-	console.trace("frappe.format: " + value);
 	if (!df) df = { fieldtype: "Data" };
 	if (df.fieldname == "_user_tags") df.fieldtype = "Tag";
 	var fieldtype = df.fieldtype || "Data";
@@ -396,7 +387,7 @@ frappe.format = function (value, df, options, doc) {
 	var formatted = formatter(value, df, options, doc);
 
 	if (typeof formatted == "string") formatted = frappe.dom.remove_script_and_style(formatted);
-	console.log("formatted: " + formatted);
+	
 	return formatted;
 };
 
