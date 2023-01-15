@@ -245,7 +245,6 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.set_mandatory && this.set_mandatory(value);
 	}
 	set_formatted_input(value) {
-		console.trace("formatted_in:" + value)
 		this.$input && this.$input.val(this.format_for_input(value));
 	}
 	get_input_value() {
