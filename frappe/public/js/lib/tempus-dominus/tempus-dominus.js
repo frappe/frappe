@@ -1699,6 +1699,7 @@
          */
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         parseInput(value) {
+            console.log("parse: " + value);
             let input_date = frappe.datetime.parse_to_datepicker(value);
             return OptionConverter.dateConversion(input_date, 'input', this.optionsStore.options.localization);
         }
@@ -1710,11 +1711,14 @@
          */
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         setFromInput(value, index) {
+            console.trace("tempus:" + value);
+            console.log("input: " + value);
             if (!value) {
                 this.setValue(undefined, index);
                 return;
             }
             const converted = this.parseInput(value);
+            console.log("converted: " + value);
             if (converted) {
                 converted.setLocale(this.optionsStore.options.localization.locale);
                 this.setValue(converted, index);
@@ -3901,7 +3905,7 @@
         /**
          * Checks if an input field is being used, attempts to locate one and sets an
          * event listener if found.
-         * @private
+         * @privatethis.optionsStore.input.value
          */
         _initializeInput() {
             if (this.optionsStore.element.tagName == 'INPUT') {
@@ -3927,6 +3931,7 @@
                 this.optionsStore.input.addEventListener('click', this._toggleClickEvent);
             }
             if (this.optionsStore.input.value) {
+                console.log("_initializeInput" + this.optionsStore.input.value);
                 this._inputChangeEvent();
             }
         }

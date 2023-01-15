@@ -74,7 +74,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				}
 			}
 		};
-
+		console.log("refresh_input: " + me.value);
 		var update_input = function () {
 			if (me.doctype && me.docname) {
 				me.set_input(me.value);
@@ -87,8 +87,10 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			// refresh value
 			if (me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
+				console.log("me_value1: " + me.value);
 			} else if (me.doc) {
 				me.value = me.doc[me.df.fieldname] || "";
+				console.log("me_value2: " + me.value);
 			}
 
 			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();

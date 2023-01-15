@@ -85,8 +85,10 @@ frappe.ui.form.Control = class BaseControl {
 			}
 
 			let value = this.value || this.get_model_value();
-
+			
 			value = this.get_parsed_value(value);
+			console.log("base-3: " + value);
+
 
 			if (
 				status === "Read" &&
@@ -118,8 +120,9 @@ frappe.ui.form.Control = class BaseControl {
 		}
 
 		let value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
+		console.log("base-3,5: " + value);
 		value = this.get_parsed_value(value);
-
+		console.log("base-4: " + value);
 		// hide if no value
 		if (
 			this.doctype &&
@@ -198,20 +201,27 @@ frappe.ui.form.Control = class BaseControl {
 		}
 	}
 	get_parsed_value(value) {
+		console.log("base-1: " + value);
+		console.log("base-1,0: " + this.parse);
 		if (this.parse) {
 			value = this.parse(value);
 		}
+		console.log("base-1,5: " + value);
 		return value;
 	}
 
 	set_value(value, force_set_value = false) {
+		console.log("set_value: " + value);
 		return this.validate_and_set_in_model(value, null, force_set_value);
 	}
 	parse_validate_and_set_in_model(value, e) {
+		console.log("base-2: " + value);
 		value = this.get_parsed_value(value);
+		console.log("base-2,5: " + value);
 		return this.validate_and_set_in_model(value, e);
 	}
 	validate_and_set_in_model(value, e, force_set_value = false) {
+		console.log("validate_and_set_in_model: " + value);
 		const me = this;
 		const is_value_same = this.get_model_value() === value;
 
@@ -269,6 +279,7 @@ frappe.ui.form.Control = class BaseControl {
 		}
 	}
 	set_model_value(value) {
+		console.log("set_model_value: " + value);
 		if (this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(

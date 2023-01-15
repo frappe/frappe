@@ -1,8 +1,9 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
+		console.log("set_formatted: " + value);
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
-		if (!this.datepicker) return;
+		//if (!this.datepicker) return;
 		if (!value) {
 			this.datepicker.clear();
 			return;
@@ -12,13 +13,16 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			value = frappe.datetime.now_datetime();
 		}
 		value = this.format_for_input(value);
+		console.log("set_formatted-2: " + value);
 		this.$input && this.$input.val(value);
-		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		//this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
 	}
 
 	get_start_date() {
 		this.value = this.value == null ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);
+		console.log("get_start_dat: " + value);
+		console.log("get_start_dat1: " + frappe.datetime.str_to_obj(value));
 		return frappe.datetime.str_to_obj(value);
 	}
 	set_date_options() {
@@ -38,9 +42,12 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	parse(value) {
 		if (value) {
+			console.log("parse_dt-1: " + value);
 			value = frappe.datetime.user_to_str(value, false);
+			console.log("parse_dt-2: " + value);
 			if (!frappe.datetime.is_system_time_zone()) {
 				value = frappe.datetime.convert_to_system_tz(value, true);
+				console.log("parse_dt-3: " + value);
 			}
 
 			if (value == "Invalid date") {
@@ -50,8 +57,10 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return value;
 	}
 	format_for_input(value) {
+		console.log("format_for_input" + value);
+		let usr_tz = frappe.datetime.convert_to_user_tz(value);
 		if (!value) return "";
-		return frappe.datetime.str_to_user(value, false);
+		return frappe.datetime.str_to_user(usr_tz, false);
 	}
 	set_description() {
 		const description = this.df.description;

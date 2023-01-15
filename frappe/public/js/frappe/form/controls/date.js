@@ -5,7 +5,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.make_picker();
 	}
 	make_picker() {
-		this.set_date_options();
+		//this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
 	}
@@ -16,70 +16,68 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		console.log("datepicker-0" + value);
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
-		if (!this.datepicker) return;
-		if (!value) {
-			this.datepicker.clear();
-			return;
-		}
-		console.log("datepicker-1" + this.datepicker.selectedDates[0]);
-		console.log("datepicker-2" + this.datepicker);
-		let should_refresh = this.last_value && this.last_value !== value;
+		// if (!this.datepicker) return;
+		// if (!value) {
+		// 	this.datepicker.clear();
+		// 	return;
+		// }
+	// 	let should_refresh = this.last_value && this.last_value !== value;
 
-		if (!should_refresh) {
-			if (this.datepicker.selectedDates.length > 0) {
-				// if date is selected but different from value, refresh
-				const selected_date = moment(this.datepicker.selectedDates[0]).format(
-					this.date_format
-				);
+	// 	if (!should_refresh) {
+	// 		if (this.datepicker.selectedDates.length > 0) {
+	// 			// if date is selected but different from value, refresh
+	// 			const selected_date = moment(this.datepicker.selectedDates[0]).format(
+	// 				this.date_format
+	// 			);
 
-				should_refresh = selected_date !== value;
-			} else {
-				// if datepicker has no selected date, refresh
-				should_refresh = true;
-			}
-		}
+	// 			should_refresh = selected_date !== value;
+	// 		} else {
+	// 			// if datepicker has no selected date, refresh
+	// 			should_refresh = true;
+	// 		}
+	// 	}
 
-		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
-		}
-	}
-	set_date_options() {
-		// webformTODO:
-		let sysdefaults = frappe.boot.sysdefaults;
+	// 	if (should_refresh) {
+	// 		this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+	// 	}
+	// }
+	// set_date_options() {
+	// 	// webformTODO:
+	// 	let sysdefaults = frappe.boot.sysdefaults;
 
-		let lang = "en";
-		frappe.boot.user && (lang = frappe.boot.user.language);
-		if (!$.fn.datepicker.language[lang]) {
-			lang = "en";
-		}
+	// 	let lang = "en";
+	// 	frappe.boot.user && (lang = frappe.boot.user.language);
+	// 	if (!$.fn.datepicker.language[lang]) {
+	// 		lang = "en";
+	// 	}
 
-		let date_format =
-			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
+	// 	let date_format =
+	// 		sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
 
-		this.today_text = __("Today");
-		this.date_format = frappe.defaultDateFormat;
-		this.datepicker_options = {
-			language: lang,
-			autoClose: true,
-			todayButton: true,
-			dateFormat: date_format,
-			startDate: this.get_start_date(),
-			keyboardNav: false,
-			minDate: this.df.min_date,
-			maxDate: this.df.max_date,
-			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
-			onSelect: () => {
-				this.$input.trigger("change");
-			},
-			onShow: () => {
-				this.datepicker.$datepicker
-					.find(".datepicker--button:visible")
-					.text(this.today_text);
+	// 	this.today_text = __("Today");
+	// 	this.date_format = frappe.defaultDateFormat;
+	// 	this.datepicker_options = {
+	// 		language: lang,
+	// 		autoClose: true,
+	// 		todayButton: true,
+	// 		dateFormat: date_format,
+	// 		startDate: this.get_start_date(),
+	// 		keyboardNav: false,
+	// 		minDate: this.df.min_date,
+	// 		maxDate: this.df.max_date,
+	// 		firstDay: frappe.datetime.get_first_day_of_the_week_index(),
+	// 		onSelect: () => {
+	// 			this.$input.trigger("change");
+	// 		},
+	// 		onShow: () => {
+	// 			this.datepicker.$datepicker
+	// 				.find(".datepicker--button:visible")
+	// 				.text(this.today_text);
 
-				this.update_datepicker_position();
-			},
-			...this.get_df_options(),
-		};
+	// 			this.update_datepicker_position();
+	// 		},
+	// 		...this.get_df_options(),
+	// 	};
 	}
 
 	get_start_date() {
@@ -146,36 +144,36 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.$input.attr("inputmode", "none");
 	}
 
-	update_datepicker_position() {
-		if (!this.frm) return;
-		// show datepicker above or below the input
-		// based on scroll position
-		// We have to bodge around the timepicker getting its position
-		// wrong by 42px when opening upwards.
-		const $header = $(".page-head");
-		const header_bottom = $header.position().top + $header.outerHeight();
-		const picker_height = this.datepicker.$datepicker.outerHeight() + 12;
-		const picker_top = this.$input.offset().top - $(window).scrollTop() - picker_height;
+	// update_datepicker_position() {
+	// 	if (!this.frm) return;
+	// 	// show datepicker above or below the input
+	// 	// based on scroll position
+	// 	// We have to bodge around the timepicker getting its position
+	// 	// wrong by 42px when opening upwards.
+	// 	const $header = $(".page-head");
+	// 	const header_bottom = $header.position().top + $header.outerHeight();
+	// 	const picker_height = this.datepicker.$datepicker.outerHeight() + 12;
+	// 	const picker_top = this.$input.offset().top - $(window).scrollTop() - picker_height;
 
-		var position = "top left";
-		// 12 is the default datepicker.opts[offset]
-		if (picker_top <= header_bottom) {
-			position = "bottom left";
-			if (this.timepicker_only) this.datepicker.opts["offset"] = 12;
-		} else {
-			// To account for 42px incorrect positioning
-			if (this.timepicker_only) this.datepicker.opts["offset"] = -30;
-		}
+	// 	var position = "top left";
+	// 	// 12 is the default datepicker.opts[offset]
+	// 	if (picker_top <= header_bottom) {
+	// 		position = "bottom left";
+	// 		if (this.timepicker_only) this.datepicker.opts["offset"] = 12;
+	// 	} else {
+	// 		// To account for 42px incorrect positioning
+	// 		if (this.timepicker_only) this.datepicker.opts["offset"] = -30;
+	// 	}
 
-		this.datepicker.update("position", position);
-	}
+	// 	this.datepicker.update("position", position);
+	// }
 	get_now_date() {
 
 		return frappe.datetime.convert_to_system_tz(frappe.datetime.now_date(true), false);
 
-		return frappe.datetime
-			.convert_to_system_tz(frappe.datetime.now_date(true), false)
-			.toDate();
+		// return frappe.datetime
+		// 	.convert_to_system_tz(frappe.datetime.now_date(true), false)
+		// 	.toDate();
 	}
 	set_t_for_today() {
 		var me = this;
