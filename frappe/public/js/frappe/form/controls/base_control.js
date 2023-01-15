@@ -118,7 +118,7 @@ frappe.ui.form.Control = class BaseControl {
 
 		let value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
 		value = this.get_parsed_value(value);
-		
+
 		// hide if no value
 		if (
 			this.doctype &&
