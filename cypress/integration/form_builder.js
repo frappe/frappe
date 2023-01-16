@@ -87,7 +87,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "Options is required");
 		cy.hide_dialog();
 
-		cy.get(first_field).click();
+		cy.get(first_field).click({ force: true });
 
 		cy.get(".sidebar-container .frappe-control[data-fieldname='options'] input")
 			.click()
@@ -114,7 +114,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "In List View");
 		cy.hide_dialog();
 
-		cy.get(first_field).click();
+		cy.get(first_field).click({ force: true });
 		cy.get(".sidebar-container .field label .label-area").contains("In List View").click();
 
 		// validate In Global Search
