@@ -49,14 +49,25 @@ frappe.ui.Page = class Page {
 		let last_scroll = 0;
 		$(window).scroll(
 			frappe.utils.throttle(() => {
-				$(".page-head").toggleClass("drop-shadow", !!document.documentElement.scrollTop);
-				let current_scroll = document.documentElement.scrollTop;
-				if (current_scroll > 0 && last_scroll <= current_scroll) {
-					$(".page-head").css("top", "-15px");
+				if (cint(frappe.boot.sysdefaults.disable_page_head_scroll)) {
+					if (document.documentElement.scrollTop) {
+						$(".page-head").toggleClass("drop-shadow", true);
+					} else {
+						$(".page-head").removeClass("drop-shadow");
+					}
 				} else {
-					$(".page-head").css("top", "var(--navbar-height)");
+					$(".page-head").toggleClass(
+						"drop-shadow",
+						!!document.documentElement.scrollTop
+					);
+					let current_scroll = document.documentElement.scrollTop;
+					if (current_scroll > 0 && last_scroll <= current_scroll) {
+						$(".page-head").css("top", "-15px");
+					} else {
+						$(".page-head").css("top", "var(--navbar-height)");
+					}
+					last_scroll = current_scroll;
 				}
-				last_scroll = current_scroll;
 			}, 500)
 		);
 	}

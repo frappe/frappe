@@ -74,7 +74,9 @@
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "desk_section",
+  "disable_page_head_scroll"
  ],
  "fields": [
   {
@@ -520,12 +522,24 @@
    "fieldname": "login_with_email_link_expiry",
    "fieldtype": "Int",
    "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "desk_section",
+   "fieldtype": "Section Break",
+   "label": "Desk"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_page_head_scroll",
+   "fieldtype": "Check",
+   "label": "Disable Page Head Scroll"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-12-20 21:45:37.651668",
+ "modified": "2023-01-16 11:34:40.469450",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
