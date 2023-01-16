@@ -333,7 +333,7 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 	"""
 	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
 	if permission_query:
-		query = f"{query.get_sql()} AND {permission_query}"
+		query = f"{query} AND {permission_query}"
 
 <<<<<<< HEAD
 	return frappe.db.sql(query, as_dict=True)
