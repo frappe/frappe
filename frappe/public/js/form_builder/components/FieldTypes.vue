@@ -3,14 +3,10 @@ import SearchBox from "./SearchBox.vue";
 import draggable from "vuedraggable";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
+import { clone_field } from "../utils";
 
 let store = useStore();
 let search_text = ref("");
-
-function clone_field(field) {
-	field.df.name = frappe.utils.get_random(8);
-	return JSON.parse(JSON.stringify(field));
-}
 
 let fields = computed(() => {
 	let fields = frappe.model.all_fieldtypes

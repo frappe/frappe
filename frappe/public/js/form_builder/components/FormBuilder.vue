@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar.vue";
 import Tabs from "./Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "../store";
-import { onClickOutside } from "@vueuse/core";
+import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
 
 let store = useStore();
 
@@ -13,6 +13,14 @@ let should_render = computed(() => {
 
 let container = ref(null);
 onClickOutside(container, () => store.selected_field = null);
+
+// cmd/ctrl + s to save the form
+const { meta_s, ctrl_s } = useMagicKeys();
+whenever(() => meta_s.value || ctrl_s.value, () => {
+	if (store.dirty) {
+		store.save_changes();
+	}
+});
 
 function setup_change_doctype_dialog() {
 	store.page.$title_area.on("click", () => {
@@ -109,7 +117,7 @@ onMounted(() => {
 			font-size: var(--text-sm);
 			cursor: pointer;
 
-			&:has(.drop-it-here) {
+			&:not(.hovered) {
 				position: relative;
 				background-color: transparent;
 				height: 60px;
@@ -169,10 +177,6 @@ onMounted(() => {
 				}
 			}
 
-			.reqd::after {
-				content: " *";
-				color: var(--red-400);
-			}
 			.description,
 			.time-zone {
 				font-size: var(--text-sm);
@@ -264,7 +268,7 @@ onMounted(() => {
 		}
 	}
 
-	.form-main:not(:has(.tab-header)) :deep(.tab-contents) {
+	.form-main > :deep(div:first-child:not(.tab-header)) {
 		max-height: calc(100vh - 160px);
 	}
 }
