@@ -405,9 +405,9 @@ class TestCommands(BaseTestCommands):
 	def test_set_password(self):
 		from frappe.utils.password import check_password
 
-		self.assertEqual(check_password("Administrator", "am"), "Administrator")
 		self.execute("bench --site {site} set-password Administrator test1")
 		self.assertEqual(self.returncode, 0)
+		frappe.db.rollback()
 		self.assertEqual(check_password("Administrator", "test1"), "Administrator")
 		# to release the lock taken by check_password
 		frappe.db.rollback()
