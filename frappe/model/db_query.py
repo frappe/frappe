@@ -583,11 +583,6 @@ class DatabaseQuery:
 		permitted_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
-			# field: like 'name', 'published'
-			if is_plain_field(field) and field not in permitted_fields:
-				self.fields.remove(field)
-				continue
-
 			if "distinct" in field.lower():
 				# field: 'count(distinct `tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
@@ -601,9 +596,10 @@ class DatabaseQuery:
 
 			if column == "*" and not in_function("*", field):
 				self.fields[i : i + 1] = permitted_fields
+				continue
 
 			# handle pseudo columns
-			elif not column:
+			elif not column or column.isnumeric():
 				continue
 
 			# labels / pseudo columns or frappe internals
