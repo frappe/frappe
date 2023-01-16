@@ -266,6 +266,14 @@ class TestQuery(FrappeTestCase):
 			),
 		)
 
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				filters=[],
+			).get_sql(),
+			"SELECT `name` FROM `tabDocType`".replace("`", '"' if frappe.db.db_type == "postgres" else "`"),
+		)
+
 	def test_implicit_join_query(self):
 		self.maxDiff = None
 

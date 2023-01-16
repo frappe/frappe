@@ -476,7 +476,7 @@ class Engine:
 			self.apply_dict_filters(filters)
 
 		elif isinstance(filters, (list, tuple)):
-			if all(isinstance(d, (str, int)) for d in filters):
+			if all(isinstance(d, (str, int)) for d in filters) and len(filters) > 0:
 				self.apply_dict_filters({"name": ("in", filters)})
 			else:
 				for filter in filters:
