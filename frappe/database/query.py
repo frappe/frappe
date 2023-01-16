@@ -462,7 +462,7 @@ class Engine:
 		self,
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
 	):
-		if not filters:
+		if filters is None:
 			return
 
 		if isinstance(filters, (str, int)):
