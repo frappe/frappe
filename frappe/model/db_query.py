@@ -561,7 +561,7 @@ class DatabaseQuery:
 		if self.flags.ignore_permissions:
 			return
 
-		available_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field:
@@ -571,10 +571,10 @@ class DatabaseQuery:
 				column = field.split(" ", 1)[0].replace("`", "")
 
 			if column == "*":
-				self.fields[i : i + 1] = available_fields
+				self.fields[i : i + 1] = permitted_fields
 
 			# labels / pseudo columns or frappe internals
-			elif column[0] in {"'", '"', "_"} or column in available_fields:
+			elif column[0] in {"'", '"', "_"} or column in permitted_fields:
 				continue
 
 			# handle child / joined table fields
@@ -584,10 +584,10 @@ class DatabaseQuery:
 
 				if table in self.tables:
 					ch_doctype = table.replace("`", "").replace("tab", "", 1)
-					available_child_table_fields = get_permitted_fields(
+					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)
-					if column in available_child_table_fields:
+					if column in permitted_child_table_fields:
 						continue
 					else:
 						self.fields.remove(field)
@@ -596,13 +596,13 @@ class DatabaseQuery:
 			elif "(" in field:
 				if "*" in field:
 					continue
-				elif any(x for x in available_fields if x in field):
+				elif any(x for x in permitted_fields if x in field):
 					continue
 				elif _params := FN_PARAMS_PATTERN.findall(column):
 					params = (x for x in _params[0].split(","))
 					for param in params:
 						if (
-							not param or param in available_fields or param.isnumeric() or "'" in param or '"' in param
+							not param or param in permitted_fields or param.isnumeric() or "'" in param or '"' in param
 						):
 							continue
 						else:
