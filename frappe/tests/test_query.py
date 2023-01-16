@@ -225,6 +225,47 @@ class TestQuery(FrappeTestCase):
 			),
 		)
 
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				fields=["module"],
+				filters="",
+			).get_sql(),
+			"SELECT `module` FROM `tabDocType` WHERE `name`=''".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				filters=["ToDo", "Note"],
+			).get_sql(),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('ToDo','Note')".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				filters={"name": ("in", [])},
+			).get_sql(),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN ('')".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertEqual(
+			frappe.qb.get_query(
+				"DocType",
+				filters=[1, 2, 3],
+			).get_sql(),
+			"SELECT `name` FROM `tabDocType` WHERE `name` IN (1,2,3)".replace(
+				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
 	def test_implicit_join_query(self):
 		self.maxDiff = None
 
