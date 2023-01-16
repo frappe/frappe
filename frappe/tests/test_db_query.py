@@ -102,7 +102,6 @@ class TestReportview(FrappeTestCase):
 				"name": "Parent DocType 1",
 				"module": "Custom",
 				"custom": 1,
-				"autoname": "autoincrement",
 				"fields": [
 					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
 					{
@@ -122,7 +121,6 @@ class TestReportview(FrappeTestCase):
 				"name": "Parent DocType 2",
 				"module": "Custom",
 				"custom": 1,
-				"autoname": "autoincrement",
 				"fields": [
 					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
 					{
@@ -146,10 +144,14 @@ class TestReportview(FrappeTestCase):
 			doctype="Parent DocType 1",
 			title="test",
 			child=[{"title": "parent 1 child record 1"}, {"title": "parent 1 child record 2"}],
-		).insert()
+			__newname="test_parent",
+		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
-			doctype="Parent DocType 2", title="test", child=[{"title": "parent 2 child record 1"}]
-		).insert()
+			doctype="Parent DocType 2",
+			title="test",
+			child=[{"title": "parent 2 child record 1"}],
+			__newname="test_parent",
+		).insert(ignore_if_duplicate=True)
 
 		# test query
 		results1 = frappe.get_all("Parent DocType 1", fields=["name", "child.title as child_title"])
