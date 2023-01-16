@@ -2,6 +2,9 @@ context("Web Form", () => {
 	before(() => {
 		cy.login("Administrator");
 		cy.visit("/app/");
+		cy.set_value("System Settings", "System Settings", {
+			disable_page_head_scroll: 1,
+		});
 		return cy
 			.window()
 			.its("frappe")
