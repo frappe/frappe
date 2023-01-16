@@ -50,11 +50,14 @@ class SystemSettings(Document):
 
 		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
 		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
+		login_with_email_link_enabled = frappe.db.get_single_value(
+			"System Settings", "login_with_email_link"
+		)
 
-		if not (social_login_enabled or ldap_enabled):
+		if not (social_login_enabled or ldap_enabled or login_with_email_link_enabled):
 			frappe.throw(
 				_(
-					"Please enable atleast one Social Login Key or LDAP before disabling username/password based login."
+					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 				)
 			)
 
