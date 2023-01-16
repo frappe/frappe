@@ -844,6 +844,12 @@ class TestReportview(FrappeTestCase):
 			self.assertTrue("count" in data[0])
 			self.assertEqual(len(data[0]), 2)
 
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list(
+					"Blog Post",
+					fields=["blog_category.description"],
+				)
+
 	def test_reportview_get_permlevel_system_users(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
 			frappe.local.request = frappe._dict()
