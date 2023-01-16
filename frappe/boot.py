@@ -27,7 +27,7 @@ from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 if TYPE_CHECKING:
-	from pypika.dialects import MySQLQueryBuilder
+	from frappe.database.utils import Query
 
 
 def get_bootinfo():
@@ -254,17 +254,14 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
-def _run_with_permission_query(query: "MySQLQueryBuilder", doctype: str) -> list[dict]:
+def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 	"""
 	Adds Permission Query (Server Script) conditions and runs/executes modified query
 	Note: Works only if 'WHERE' is the last clause in the query
 	"""
-	db_query = DatabaseQuery(doctype, frappe.session.user)
-	permission_query = db_query.get_permission_query_conditions()
-
-	query = query.get_sql()
+	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
 	if permission_query:
-		query = query + " AND " + permission_query
+		query = f"{query.get_sql()} AND {permission_query}"
 
 	return frappe.db.sql(query, as_dict=True)  # nosemgrep
 
