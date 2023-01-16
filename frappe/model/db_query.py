@@ -564,25 +564,38 @@ class DatabaseQuery:
 		permitted_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
-			if "distinct" in field:
-				self.distinct = True
-				column = field.split(" ", 2)[1].replace("`", "")
-			else:
-				column = field.split(" ", 1)[0].replace("`", "")
+			# field: like 'name', 'published'
+			if is_plain_field(field) and field not in permitted_fields:
+				self.fields.remove(field)
+				continue
 
-			if column == "*":
+			if "distinct" in field.lower():
+				# field: 'count(distinct `tabPhoto`.name) as total_count'
+				# column: 'tabPhoto.name'
+				self.distinct = True
+				column = field.split(" ", 2)[1].replace("`", "").replace(")", "")
+			else:
+				# field: 'count(`tabPhoto`.name) as total_count'
+				# column: 'tabPhoto.name'
+				column = field.split("(")[-1].split(")", 1)[0]
+				column = strip_alias(column).replace("`", "")
+
+			if column == "*" and not in_function("*", field):
 				self.fields[i : i + 1] = permitted_fields
 
+			# handle pseudo columns
+			elif not column:
+				continue
+
 			# labels / pseudo columns or frappe internals
-			elif column[0] in {"'", '"', "_"} or column in permitted_fields:
+			elif column[0] in {"'", '"', "_"}:
 				continue
 
 			# handle child / joined table fields
 			elif "." in field:
-				table, _column = field.split(".", 1)
-				column = _column.lower().split(" ", 1)[0].replace("`", "")
+				table, column = column.split(".", 1)
 
-				if table in self.tables:
+				if wrap_grave_quotes(table) in self.tables:
 					ch_doctype = table.replace("`", "").replace("tab", "", 1)
 					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
@@ -591,6 +604,9 @@ class DatabaseQuery:
 						continue
 					else:
 						self.fields.remove(field)
+
+			elif column in permitted_fields:
+				continue
 
 			# field inside function calls / * handles things like count(*)
 			elif "(" in field:
@@ -605,8 +621,7 @@ class DatabaseQuery:
 							not param or param in permitted_fields or param.isnumeric() or "'" in param or '"' in param
 						):
 							continue
-						else:
-							self.fields.remove(field)
+				self.fields.remove(field)
 
 			# remove if access not allowed
 			else:
@@ -1230,3 +1245,30 @@ def get_permitted_fields(doctype, parenttype=None):
 		meta_fields.remove("idx")
 
 	return meta_fields + accessible_fields + optional_meta_fields
+
+
+def wrap_grave_quotes(table: str) -> str:
+	if table[0] != "`":
+		table = f"`{table}`"
+	return table
+
+
+def is_plain_field(field: str) -> bool:
+	for char in field:
+		if char in ("(", "`", ".", "'", '"', "*"):
+			return False
+	return True
+
+
+def in_function(substr: str, field: str) -> bool:
+	try:
+		return substr in field and field.index("(") < field.index(substr) < field.index(")")
+	except ValueError:
+		return False
+
+
+def strip_alias(field: str) -> str:
+	# Note: Currently only supports aliases that use the " AS " syntax
+	if " as " in field.lower():
+		return field.split(" as ", 1)[0]
+	return field
