@@ -613,6 +613,7 @@ class DatabaseQuery:
 			# handle child / joined table fields
 			elif "." in field:
 				table, column = column.split(".", 1)
+				ch_doctype = table.replace("`", "").replace("tab", "", 1)
 
 				if wrap_grave_quotes(table) in self.tables:
 					ch_doctype = table.replace("`", "").replace("tab", "", 1)
@@ -623,6 +624,8 @@ class DatabaseQuery:
 						continue
 					else:
 						self.fields.remove(field)
+				else:
+					raise frappe.PermissionError(ch_doctype)
 
 			elif column in permitted_fields:
 				continue
