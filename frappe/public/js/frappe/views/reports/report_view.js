@@ -218,7 +218,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	render_count() {
-		if (this.list_view_setting && this.list_view_settings.disable_count) {
+		if (this.list_view_settings && this.list_view_settings.disable_count) {
 			return;
 		}
 		let $list_count = this.$paging_area.find('.list-count');
