@@ -167,6 +167,7 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	# get pages or reports set on custom role
 <<<<<<< HEAD
+<<<<<<< HEAD
 	pages_with_custom_roles = frappe.db.sql(
 		"""
 		select
@@ -187,6 +188,9 @@ def get_user_pages_or_reports(parent, cache=False):
 		as_dict=1,
 	)
 =======
+=======
+	# must end in a WHERE clause for `_run_with_permission_query`
+>>>>>>> f6a68062d9 (chore: Add comments to avoid incompatible queries with `_run_with_permission_query`)
 	pages_with_custom_roles = (
 		frappe.qb.from_(customRole)
 		.from_(hasRole)
@@ -237,7 +241,11 @@ def get_user_pages_or_reports(parent, cache=False):
 	)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+	# must end in a WHERE clause for `_run_with_permission_query`
+>>>>>>> f6a68062d9 (chore: Add comments to avoid incompatible queries with `_run_with_permission_query`)
 	pages_with_standard_roles = (
 		frappe.qb.from_(hasRole)
 		.from_(parentTable)
@@ -265,6 +273,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	# pages with no role are allowed
 	if parent == "Page":
 <<<<<<< HEAD
+<<<<<<< HEAD
 		pages_with_no_roles = frappe.db.sql(
 			"""
 			select
@@ -279,6 +288,9 @@ def get_user_pages_or_reports(parent, cache=False):
 			as_dict=1,
 		)
 =======
+=======
+		# must end in a WHERE clause for `_run_with_permission_query`
+>>>>>>> f6a68062d9 (chore: Add comments to avoid incompatible queries with `_run_with_permission_query`)
 		pages_with_no_roles = (
 			frappe.qb.from_(parentTable)
 			.select(parentTable.name, parentTable.modified, *columns)
