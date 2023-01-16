@@ -451,8 +451,7 @@ class Meta(Document):
 
 		sorted_fields = []
 		fields_to_remove = []
-
-		self.field_order = self.field_order.replace(" ", "").split(",")
+		self.field_order = json.loads(self.field_order)
 
 		# Remove fields not present in self.fields.
 		for field in self.field_order:

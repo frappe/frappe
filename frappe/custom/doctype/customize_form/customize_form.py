@@ -220,13 +220,14 @@ class CustomizeForm(Document):
 		if not has_changed:
 			return
 
-		field_order = ", ".join([a.fieldname for a in self.get("fields")])
+		field_order = json.dumps([a.fieldname for a in self.get("fields")])
 		frappe.make_property_setter(
 			args={
 				"doctype": self.doc_type,
 				"property": "field_order",
 				"value": field_order,
 				"doctype_or_field": "DocType",
+				"property_type": "JSON",
 			},
 			is_system_generated=False,
 		)

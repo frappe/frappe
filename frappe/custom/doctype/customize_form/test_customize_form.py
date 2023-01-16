@@ -408,14 +408,14 @@ class TestCustomizeForm(FrappeTestCase):
 		def shuffle_fields():
 			import random
 
-			customized_form = self.get_customize_form(doctype="Note")
+			customized_form = self.get_customize_form(doctype="ToDo")
 			random.shuffle(customized_form.fields)
 			customized_form.save_customization()
 
 		shuffle_fields()
 
-		property_setter_field_order = frappe.get_last_doc("Property Setter").value.split(", ")
-		set_field_order = self.get_customize_form(doctype="Note").fields
+		property_setter_field_order = json.loads(frappe.get_last_doc("Property Setter").value)
+		set_field_order = self.get_customize_form(doctype="ToDo").fields
 
 		for idx, field in enumerate(set_field_order, 0):
 			self.assertEqual(field.fieldname, property_setter_field_order[idx])
