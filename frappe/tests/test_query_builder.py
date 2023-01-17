@@ -6,7 +6,15 @@ import frappe
 from frappe.query_builder import Case
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
-from frappe.query_builder.functions import Cast_, Coalesce, CombineDatetime, GroupConcat, Match
+from frappe.query_builder.functions import (
+	Cast_,
+	Coalesce,
+	CombineDatetime,
+	Date,
+	GroupConcat,
+	Match,
+	UnixTimestamp,
+)
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.utils import FrappeTestCase
 
@@ -72,6 +80,47 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 		)
 		self.assertIn(
 			"timestamp(`tabnote`.`posting_date`,`tabnote`.`posting_time`) `timestamp`",
+			str(select_query).lower(),
+		)
+
+	def test_unix_ts_mariadb(self):
+		# Simple Query
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"unix_timestamp(posting_date)",
+			UnixTimestamp(note.posting_date).get_sql(),
+		)
+
+		# Complex multi table query
+		todo = frappe.qb.DocType("ToDo")
+		select_query = (
+			frappe.qb.from_(note)
+			.join(todo)
+			.on(todo.refernce_name == note.name)
+			.select(UnixTimestamp(note.posting_date))
+		)
+		self.assertIn("select unix_timestamp(`tabnote`.`posting_date`)", str(select_query).lower())
+
+		# Order by
+		select_query = select_query.orderby(UnixTimestamp(note.posting_date))
+		self.assertIn(
+			"order by unix_timestamp(`tabnote`.`posting_date`)",
+			str(select_query).lower(),
+		)
+
+		# Function comparison
+		select_query = select_query.where(
+			UnixTimestamp(note.posting_date) >= UnixTimestamp("2021-01-01")
+		)
+		self.assertIn(
+			"unix_timestamp(`tabnote`.`posting_date`)>=unix_timestamp('2021-01-01')",
+			str(select_query).lower(),
+		)
+
+		# aliasing
+		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
+		self.assertIn(
+			"unix_timestamp(`tabnote`.`posting_date`) `unix_ts`",
 			str(select_query).lower(),
 		)
 
@@ -160,6 +209,47 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 		)
 		self.assertIn(
 			'"tabnote"."posting_date"+"tabnote"."posting_time" "timestamp"', str(select_query).lower()
+		)
+
+	def test_unix_ts_postgres(self):
+		# Simple Query
+		note = frappe.qb.DocType("Note")
+		self.assertEqual(
+			"extract(epoch from posting_date)",
+			UnixTimestamp(note.posting_date).get_sql().lower(),
+		)
+
+		# Complex multi table query
+		todo = frappe.qb.DocType("ToDo")
+		select_query = (
+			frappe.qb.from_(note)
+			.join(todo)
+			.on(todo.refernce_name == note.name)
+			.select(UnixTimestamp(note.posting_date))
+		)
+		self.assertIn('extract(epoch from "tabnote"."posting_date")', str(select_query).lower())
+
+		# Order by
+		select_query = select_query.orderby(UnixTimestamp(note.posting_date))
+		self.assertIn(
+			'order by extract(epoch from "tabnote"."posting_date")',
+			str(select_query).lower(),
+		)
+
+		# Function comparison
+		select_query = select_query.where(
+			UnixTimestamp(note.posting_date) >= UnixTimestamp(Date("2021-01-01"))
+		)
+		self.assertIn(
+			'extract(epoch from "tabnote"."posting_date")>=extract(epoch from date(\'2021-01-01\'))',
+			str(select_query).lower(),
+		)
+
+		# aliasing
+		select_query = select_query.select(UnixTimestamp(note.posting_date, alias="unix_ts"))
+		self.assertIn(
+			'extract(epoch from "tabnote"."posting_date") "unix_ts"',
+			str(select_query).lower(),
 		)
 
 	def test_time(self):

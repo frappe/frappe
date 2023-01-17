@@ -1170,20 +1170,6 @@ def deduplicate_messages(messages):
 	return ret
 
 
-def rename_language(old_name, new_name):
-	if not frappe.db.exists("Language", new_name):
-		return
-
-	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
-	if language_in_system_settings == old_name:
-		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
-
-	frappe.db.sql(
-		"""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
-		{"old_name": old_name, "new_name": new_name},
-	)
-
-
 @frappe.whitelist()
 def update_translations_for_source(source=None, translation_dict=None):
 	if not (source and translation_dict):

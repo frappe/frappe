@@ -34,6 +34,10 @@ onMounted(() => {
 :deep(.quill) {
 	.ql-toolbar {
 		pointer-events: none;
+
+		.ql-formats {
+			margin-right: 12px;
+		}
 	}
 	.ql-container p {
 		cursor: pointer;

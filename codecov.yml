@@ -9,7 +9,7 @@ coverage:
         target: auto
         threshold: 0.5%
         flags:
-          - server-mariadb
+          - server
     patch:
       default:
         target: 85%
@@ -17,7 +17,7 @@ coverage:
         only_pulls: true
         if_ci_failed: ignore
         flags:
-          - server-mariadb
+          - server
 
 comment:
   layout: "diff, flags"
@@ -25,11 +25,7 @@ comment:
   show_critical_paths: true
 
 flags:
-  server-mariadb:
-    paths:
-      - "**/*.py"
-    carryforward: true
-  server-postgres:
+  server:
     paths:
       - "**/*.py"
     carryforward: true

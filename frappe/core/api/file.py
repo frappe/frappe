@@ -13,7 +13,7 @@ def unzip_file(name: str):
 
 
 @frappe.whitelist()
-def get_attached_images(doctype: str, names: list[str]) -> frappe._dict:
+def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	"""get list of image urls attached in form
 	returns {name: ['image.jpg', 'image.png']}"""
 

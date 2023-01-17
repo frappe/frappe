@@ -70,6 +70,21 @@
 	}
 }
 
+.form-column {
+	.form-column-description {
+		margin-bottom: 10px;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		padding-left: 0;
+	}
+
+	.column-label {
+		font-weight: 600;
+		color: var(--heading-color);
+		cursor: pointer;
+	}
+}
+
 .empty-section {
 	display: none !important;
 	border: 0 !important;

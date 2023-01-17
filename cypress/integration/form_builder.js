@@ -87,7 +87,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "Options is required");
 		cy.hide_dialog();
 
-		cy.get(first_field).click();
+		cy.get(first_field).click({ force: true });
 
 		cy.get(".sidebar-container .frappe-control[data-fieldname='options'] input")
 			.click()
@@ -114,7 +114,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "In List View");
 		cy.hide_dialog();
 
-		cy.get(first_field).click();
+		cy.get(first_field).click({ force: true });
 		cy.get(".sidebar-container .field label .label-area").contains("In List View").click();
 
 		// validate In Global Search
@@ -244,7 +244,7 @@ context("Form Builder", () => {
 		let first_field =
 			".tab-content.active .section-columns-container:first .column:first .field:first";
 
-		cy.get(".fields-container .field[title='Check']").drag(first_field, {
+		cy.get(".fields-container .field[title='Data']").drag(first_field, {
 			target: { x: 100, y: 10 },
 		});
 

@@ -190,6 +190,48 @@ context("Workspace 2.0", () => {
 		cy.get('.standard-actions .btn-primary[data-label="Save"]').click();
 	});
 
+	it("Hide/Unhide Workspaces", () => {
+		// hide
+		cy.intercept({
+			method: "POST",
+			url: "api/method/frappe.desk.doctype.workspace.workspace.hide_page",
+		}).as("hide_page");
+
+		cy.get(".codex-editor__redactor .ce-block");
+		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
+			.find(".sidebar-item-control .setting-btn")
+			.click();
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
+			.find('.dropdown-item[title="Hide Workspace"]')
+			.click({ force: true });
+		cy.wait(300);
+		cy.get('.standard-actions .btn-secondary[data-label="Discard"]').click();
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').should("not.be.visible");
+
+		cy.wait("@hide_page");
+
+		// unhide
+		cy.intercept({
+			method: "POST",
+			url: "api/method/frappe.desk.doctype.workspace.workspace.unhide_page",
+		}).as("unhide_page");
+
+		cy.get(".codex-editor__redactor .ce-block");
+		cy.get(".standard-actions .btn-secondary[data-label=Edit]").click();
+
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]')
+			.find('[title="Unhide Workspace"]')
+			.click({ force: true });
+		cy.wait(300);
+
+		cy.get('.standard-actions .btn-secondary[data-label="Discard"]').click();
+		cy.get('.sidebar-item-container[item-name="Duplicate Page"]').should("be.visible");
+
+		cy.wait("@unhide_page");
+	});
+
 	it("Delete Duplicate Page", () => {
 		cy.intercept({
 			method: "POST",

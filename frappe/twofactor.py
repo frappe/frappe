@@ -446,7 +446,7 @@ def should_remove_barcode_image(barcode):
 
 
 def disable():
-	frappe.db.set_value("System Settings", None, "enable_two_factor_auth", 0)
+	frappe.db.set_single_value("System Settings", "enable_two_factor_auth", 0)
 
 
 @frappe.whitelist()

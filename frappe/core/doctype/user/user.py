@@ -305,12 +305,10 @@ class User(Document):
 			.from_(user_role_doctype)
 			.select(user_doctype.name)
 			.where(user_role_doctype.role == "System Manager")
-			.where(user_doctype.docstatus < 2)
 			.where(user_doctype.enabled == 1)
 			.where(user_role_doctype.parent == user_doctype.name)
 			.where(user_role_doctype.parent.notin(["Administrator", self.name]))
 			.limit(1)
-			.distinct()
 		).run()
 
 	def get_fullname(self):
@@ -582,7 +580,7 @@ class User(Document):
 		if len(email_accounts) != len(set(email_accounts)):
 			frappe.throw(_("Email Account added multiple times"))
 
-	def get_social_login_userid(self, provider):
+	def get_social_login_userid(self, provider: str):
 		try:
 			for p in self.social_logins:
 				if p.provider == provider:

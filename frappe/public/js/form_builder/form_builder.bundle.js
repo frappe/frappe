@@ -45,18 +45,26 @@ class FormBuilder {
 			this.store.read_only = this.store.preview;
 			this.read_only = true;
 		});
-		this.customize_form_btn = this.page.add_button(__("For Customize Form"), () => {
-			frappe.set_route("form-builder", this.doctype, "customize");
-		});
-		this.doctype_form_btn = this.page.add_button(__("For DocType Form"), () => {
-			frappe.set_route("form-builder", this.doctype);
-		});
 
 		this.reset_changes_btn = this.page.add_button(__("Reset Changes"), () => {
 			this.store.reset_changes();
 		});
 
-		this.go_to_doctype_btn = this.page.add_menu_item(__("Go to Doctype"), () =>
+		this.go_to_doctype_list_btn = this.page.add_button(
+			__("Go to {0} List", [__(this.doctype)]),
+			() => {
+				window.open(`/app/${frappe.router.slug(this.doctype)}`);
+			}
+		);
+
+		this.customize_form_btn = this.page.add_menu_item(__("Switch to Customize Form"), () => {
+			frappe.set_route("form-builder", this.doctype, "customize");
+		});
+		this.doctype_form_btn = this.page.add_menu_item(__("Switch to DocType Form"), () => {
+			frappe.set_route("form-builder", this.doctype);
+		});
+
+		this.go_to_doctype_btn = this.page.add_menu_item(__("Go to DocType"), () =>
 			frappe.set_route("Form", "DocType", this.doctype)
 		);
 		this.go_to_customize_form_btn = this.page.add_menu_item(__("Go to Customize Form"), () =>
@@ -121,9 +129,7 @@ class FormBuilder {
 					? __("Go to {0}", [__(this.doctype)])
 					: __("Go to {0} List", [__(this.doctype)]);
 
-				this.page.add_menu_item(label, () => {
-					window.open(`/app/${frappe.router.slug(this.doctype)}`);
-				});
+				this.go_to_doctype_list_btn.text(label);
 			}
 
 			// toggle preview btn text
