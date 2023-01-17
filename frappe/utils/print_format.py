@@ -120,14 +120,14 @@ def read_multi_pdf(output):
 
 @frappe.whitelist(allow_guest=True)
 def download_pdf(
-	doctype, name, format=None, doc=None, no_letterhead=0, language=None, letter_head=None
+	doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None
 ):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
 	with print_language(language):
 		pdf_file = frappe.get_print(
-			doctype, name, format, doc=doc, as_pdf=True, letterhead=letter_head, no_letterhead=no_letterhead
+			doctype, name, format, doc=doc, as_pdf=True, letterhead=letterhead, no_letterhead=no_letterhead
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(

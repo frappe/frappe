@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.desk.form.load import run_onload
+from frappe.model.docstatus import DocStatus
 from frappe.monitor import add_data_to_monitor
 
 
@@ -15,12 +16,14 @@ def savedocs(doc, action):
 	set_local_name(doc)
 
 	# action
-	doc.docstatus = {"Save": 0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
+	doc.docstatus = {
+		"Save": DocStatus.draft(),
+		"Submit": DocStatus.submitted(),
+		"Update": DocStatus.submitted(),
+		"Cancel": DocStatus.cancelled(),
+	}[action]
 
-	if doc.docstatus == 1:
-		doc.submit()
-	else:
-		doc.save()
+	doc.save()
 
 	# update recent documents
 	run_onload(doc)
