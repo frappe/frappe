@@ -62,7 +62,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 							action: () => this.set_route("report"),
 						};
 					}
-					this.setup_dropdown_in_sidebar("Report", reports, default_action);
+					this.setup_link_field_in_sidebar("Report", reports, default_action);
 				},
 			},
 			Dashboard: {
@@ -171,6 +171,49 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		}
 
 		$dropdown.html(html);
+
+		views_wrapper.removeClass("hide");
+	}
+
+	setup_link_field_in_sidebar(view, items, default_action) {
+		if (!this.sidebar) return;
+
+		const views_wrapper = this.sidebar.sidebar.find(".views-section");
+		views_wrapper.find(".sidebar-label").addClass("hide");
+
+		let list_link = views_wrapper.find(".list-link");
+		list_link.find(".list-sidebar-button").addClass("hide");
+
+		const routes_map = Object.assign({}, ...items.map((s) => ({ [s.name]: s.route })));
+
+		let field = frappe.ui.form.make_control({
+			df: {
+				fieldtype: "Link",
+				fieldname: "selected_report",
+				label: __(view),
+				options: view,
+				placeholder: __("Select a Report"),
+				get_query: () => {
+					return {
+						filters: { ref_doctype: this.doctype },
+					};
+				},
+				change: () => {
+					const selected_report = field.get_value();
+					if (selected_report) {
+						frappe.set_route(routes_map[selected_report]);
+					}
+				},
+				default: __("Select Report"),
+			},
+			parent: list_link,
+			render_input: 1,
+		});
+
+		if (default_action) {
+			views_wrapper.find(".sidebar-action a").html(default_action.label);
+			views_wrapper.find(".sidebar-action a").click(() => default_action.action());
+		}
 
 		views_wrapper.removeClass("hide");
 	}
