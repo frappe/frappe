@@ -213,7 +213,12 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 				df.read_only == 1 ||
 				df.is_virtual == 1;
 
-			if (is_read_only_field && df.fetch_from && df.fetch_from.indexOf(".") != -1) {
+			if (
+				is_read_only_field &&
+				df.fetch_from &&
+				(!df.fetch_if_empty || (df.fetch_if_empty && !me.frm.doc[df.fieldname])) &&
+				df.fetch_from.indexOf(".") != -1
+			) {
 				var parts = df.fetch_from.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname, df.parent);
 			}

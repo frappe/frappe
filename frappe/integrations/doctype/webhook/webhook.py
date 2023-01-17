@@ -115,6 +115,7 @@ def enqueue_webhook(doc, webhook) -> None:
 	webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 	headers = get_webhook_headers(doc, webhook)
 	data = get_webhook_data(doc, webhook)
+	r = None
 
 	for i in range(3):
 		try:

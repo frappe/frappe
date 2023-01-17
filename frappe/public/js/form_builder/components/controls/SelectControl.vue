@@ -94,7 +94,7 @@ watch(() => props.df.options, () => {
 
 		<!-- select input -->
 		<div class="select-input">
-			<input class="form-control" disabled />
+			<input class="form-control" readonly />
 			<div class="select-icon" v-html="frappe.utils.icon('select', 'sm')"></div>
 		</div>
 

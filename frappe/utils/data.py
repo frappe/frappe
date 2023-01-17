@@ -1672,9 +1672,9 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(doctype)}/view/report?{filters}")
-	else:
-		return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
+
+	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
 
 
 operator_map = {
@@ -1885,7 +1885,7 @@ def expand_relative_urls(html: str) -> str:
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
 
-		if not to_expand[2].startswith("mailto") and not to_expand[2].startswith("data:"):
+		if not to_expand[2].startswith(("mailto", "data:", "tel:")):
 			if not to_expand[2].startswith("/"):
 				to_expand[2] = "/" + to_expand[2]
 			to_expand.insert(2, url)
