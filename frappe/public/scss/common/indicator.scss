@@ -3,14 +3,14 @@
 	color: var(--text-on-#{$color});
 	&::before,
 	&::after {
-		background: var(--text-on-#{$color});
+		background: var(--bg-#{$color});
 	}
 }
 
 @mixin indicator-color($color) {
 	&::before,
 	&::after {
-		background: var(--text-on-#{$color});
+		background: var(--bg-#{$color});
 	}
 }
 
