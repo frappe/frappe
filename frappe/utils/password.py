@@ -123,7 +123,7 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	if delete_tracker_cache:
 		delete_login_failed_cache(user)
 
-	if not passlibctx.needs_update(result[0].password):
+	if passlibctx.needs_update(result[0].password):
 		update_password(user, pwd, doctype, fieldname)
 
 	return user

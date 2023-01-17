@@ -747,7 +747,12 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
-		throw(_("Not permitted"), PermissionError)
+		summary = _("You are not permitted to access this resource.")
+		detail = _("Function {0} is not whitelisted.").format(
+			bold(f"{method.__module__}.{method.__name__}")
+		)
+		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		throw(msg, PermissionError, title="Method Not Allowed")
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
