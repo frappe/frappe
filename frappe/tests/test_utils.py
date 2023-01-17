@@ -32,6 +32,13 @@ from frappe.utils import (
 from frappe.utils.data import (
 	add_to_date,
 	cast,
+<<<<<<< HEAD
+=======
+	cstr,
+	duration_to_seconds,
+	expand_relative_urls,
+	get_datetime,
+>>>>>>> e31db5d502 (fix: handle `tel:` links in emails (#19635))
 	get_first_day_of_week,
 	get_time,
 	get_timedelta,
@@ -695,3 +702,70 @@ class TestLocks(FrappeTestCase):
 			with self.assertRaises(LockTimeoutError):
 				with filelock(lock_name, timeout=1, is_global=True):
 					self.fail("Global locks not working")
+<<<<<<< HEAD
+=======
+
+
+class TestMiscUtils(FrappeTestCase):
+	def test_get_file_timestamp(self):
+		self.assertIsInstance(get_file_timestamp(__file__), str)
+
+	def test_execute_in_shell(self):
+		err, out = execute_in_shell("ls")
+		self.assertIn("apps", cstr(out))
+
+	def test_get_all_sites(self):
+		self.assertIn(frappe.local.site, get_sites())
+
+	def test_get_site_info(self):
+		info = get_site_info()
+
+		installed_apps = [app["app_name"] for app in info["installed_apps"]]
+		self.assertIn("frappe", installed_apps)
+		self.assertGreaterEqual(len(info["users"]), 1)
+
+	def test_safe_json_load(self):
+		self.assertEqual(safe_json_loads("{}"), {})
+		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
+		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
+
+	def test_url_expansion(self):
+		unchanged_links = [
+			"<a href='tel:12345432'>My Phone</a>)",
+			"<a href='mailto:hello@example.com'>My Email</a>)",
+			"<a href='data:hello@example.com'>Data</a>)",
+		]
+		for link in unchanged_links:
+			self.assertEqual(link, expand_relative_urls(link))
+
+		site = get_url()
+
+		transforms = [("<a href='/about'>About</a>)", f"<a href='{site}/about'>About</a>)")]
+		for input, output in transforms:
+			self.assertEqual(output, expand_relative_urls(input))
+
+
+class TestTypingValidations(FrappeTestCase):
+	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
+
+	def test_validate_whitelisted_api(self):
+		from inspect import signature
+
+		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
+		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			whitelisted_fn(*bad_params)
+
+	def test_validate_whitelisted_doc_method(self):
+		report = frappe.get_last_doc("Report")
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			report.toggle_disable(["disable"])
+
+		current_value = report.disabled
+		changed_value = not current_value
+
+		report.toggle_disable(changed_value)
+		report.toggle_disable(current_value)
+>>>>>>> e31db5d502 (fix: handle `tel:` links in emails (#19635))
