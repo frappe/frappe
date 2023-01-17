@@ -20,6 +20,7 @@ class TestAutoAssign(FrappeTestCase):
 		frappe.db.rollback()
 
 	def setUp(self):
+		frappe.set_user("Administrator")
 		make_test_records("User")
 		days = [
 			dict(day="Sunday"),
@@ -117,27 +118,16 @@ class TestAutoAssign(FrappeTestCase):
 		self.assignment_rule.field = "owner"
 		self.assignment_rule.save()
 
-		frappe.set_user("test1@example.com")
-		note = _make_test_record(public=1)
-		# check if auto assigned to doc owner, test1@example.com
-		self.assertEqual(
-			frappe.db.get_value(
-				"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), "owner"
-			),
-			"test1@example.com",
-		)
-
-		frappe.set_user("test2@example.com")
-		note = _make_test_record(public=1)
-		# check if auto assigned to doc owner, test2@example.com
-		self.assertEqual(
-			frappe.db.get_value(
-				"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), "owner"
-			),
-			"test2@example.com",
-		)
-
-		frappe.set_user("Administrator")
+		for test_user in ("test1@example.com", "test2@example.com"):
+			frappe.set_user(test_user)
+			note = _make_test_record(public=1)
+			# check if auto assigned to doc owner, test1@example.com
+			self.assertEqual(
+				frappe.db.get_value(
+					"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), "owner"
+				),
+				test_user,
+			)
 
 	def test_assign_condition(self):
 		# check condition
@@ -343,10 +333,9 @@ def _make_test_record(**kwargs):
 	return doc.insert()
 
 
-def create_test_doctype(doctype):
+def create_test_doctype(doctype: str):
 	"""Create custom doctype."""
-	if frappe.db.exists("DocType", doctype):
-		return
+	frappe.db.delete("DocType", doctype)
 
 	frappe.get_doc(
 		{
@@ -374,6 +363,20 @@ def create_test_doctype(doctype):
 					"fieldname": "content",
 					"label": "Content",
 					"fieldtype": "Text",
+				},
+			],
+			"permissions": [
+				{
+					"create": 1,
+					"delete": 1,
+					"email": 1,
+					"export": 1,
+					"print": 1,
+					"read": 1,
+					"report": 1,
+					"role": "All",
+					"share": 1,
+					"write": 1,
 				},
 			],
 		}
