@@ -105,7 +105,7 @@ class TestFrappeClient(FrappeTestCase):
 		frappe.db.set_value("Website Settings", None, "title_prefix", "")
 
 	def test_update_doc(self):
-		server = FrappeClient(get_url(), "Administrator", "3zF2-89X4-AYSm-JA9M", verify=False)
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		frappe.db.delete("Note", {"title": "Sing"})
 		frappe.db.commit()
 
