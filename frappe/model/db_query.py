@@ -710,7 +710,7 @@ class DatabaseQuery:
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
-			elif isinstance(value, str) and f.operator.lower() != "between":
+			elif isinstance(value, str):
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
