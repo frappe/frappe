@@ -32,8 +32,8 @@ def is_pypika_function_object(field: str) -> bool:
 
 
 def get_doctype_name(table_name: str) -> str:
-	if "tab" in table_name:
-		table_name = table_name.replace("tab", "")
+	if table_name.startswith(("tab", "`tab", '"tab')):
+		table_name = table_name.replace("tab", "", 1)
 	table_name = table_name.replace("`", "")
 	table_name = table_name.replace('"', "")
 	return table_name
