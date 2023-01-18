@@ -24,6 +24,9 @@ export default class Grid {
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
 
+		// Option to override the import of GridRow.
+		this.GridRow = opts.GridRow || GridRow;
+
 		if (this.doctype) {
 			this.meta = frappe.get_meta(this.doctype);
 		}
@@ -322,7 +325,7 @@ export default class Grid {
 		if (this.header_row) {
 			$(this.parent).find(".grid-heading-row .grid-row").remove();
 		}
-		this.header_row = new GridRow({
+		this.header_row = new this.GridRow({
 			parent: $(this.parent).find(".grid-heading-row"),
 			parent_df: this.df,
 			docfields: this.docfields,
@@ -331,7 +334,7 @@ export default class Grid {
 			configure_columns: true,
 		});
 
-		this.header_search = new GridRow({
+		this.header_search = new this.GridRow({
 			parent: $(this.parent).find(".grid-heading-row"),
 			parent_df: this.df,
 			docfields: this.docfields,
@@ -446,7 +449,7 @@ export default class Grid {
 				grid_row.doc = d;
 				grid_row.refresh();
 			} else {
-				var grid_row = new GridRow({
+				var grid_row = new this.GridRow({
 					parent: $rows,
 					parent_df: this.df,
 					docfields: this.docfields,
