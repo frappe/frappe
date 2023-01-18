@@ -3,7 +3,7 @@
 	color: var(--text-on-#{$color});
 	&::before,
 	&::after {
-		background: var(--text-on-#{$color});
+		background: #{$color};
 	}
 }
 
