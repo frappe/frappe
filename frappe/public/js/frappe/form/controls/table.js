@@ -10,6 +10,7 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			df: this.df,
 			parent: this.wrapper,
 			control: this,
+			GridRow: this.GridRow,
 		});
 
 		if (this.frm) {
