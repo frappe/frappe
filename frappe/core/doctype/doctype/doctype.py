@@ -37,7 +37,7 @@ from frappe.model.document import Document
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
-from frappe.utils import cint, now
+from frappe.utils import cint, now, random_string
 
 
 class InvalidFieldNameError(frappe.ValidationError):
@@ -332,7 +332,7 @@ class DocType(Document):
 						elif d.fieldtype == "Column Break":
 							d.fieldname = d.fieldname + "_column"
 					else:
-						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(d.idx)
+						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(random_string(5))
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
