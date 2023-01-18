@@ -38,6 +38,7 @@ frappe.ui.Filter = class {
 		this.conditions.push(...this.nested_set_conditions);
 
 		this.invalid_condition_map = {
+<<<<<<< HEAD
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
 			Data: ['Between', 'Timespan'],
@@ -46,6 +47,19 @@ frappe.ui.Filter = class {
 			Currency: ['Between', 'Timespan'],
 			Color: ['Between', 'Timespan'],
 			Check: this.conditions.map((c) => c[0]).filter((c) => c !== '='),
+=======
+			Date: ["like", "not like"],
+			Datetime: ["like", "not like", "in", "not in", "=", "!="],
+			Data: ["Between", "Timespan"],
+			Select: ["like", "not like", "Between", "Timespan"],
+			Link: ["Between", "Timespan", ">", "<", ">=", "<="],
+			Currency: ["Between", "Timespan"],
+			Color: ["Between", "Timespan"],
+			Check: this.conditions.map((c) => c[0]).filter((c) => c !== "="),
+			Code: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+>>>>>>> 96afc5ebd9 (fix: correct invalid filters)
 		};
 	}
 
@@ -487,6 +501,7 @@ frappe.ui.filter_utils = {
 			df.options = 'No\nYes';
 		} else if (
 			[
+<<<<<<< HEAD
 				'Text',
 				'Small Text',
 				'Text Editor',
@@ -499,6 +514,24 @@ frappe.ui.filter_utils = {
 				'Read Only',
 				'Assign',
 				'Color',
+=======
+				"Text",
+				"Small Text",
+				"Text Editor",
+				"Code",
+				"Attach",
+				"Attach Image",
+				"Markdown Editor",
+				"HTML Editor",
+				"Tag",
+				"Phone",
+				"Comments",
+				"Barcode",
+				"Dynamic Link",
+				"Read Only",
+				"Assign",
+				"Color",
+>>>>>>> 96afc5ebd9 (fix: correct invalid filters)
 			].indexOf(df.fieldtype) != -1
 		) {
 			df.fieldtype = 'Data';
