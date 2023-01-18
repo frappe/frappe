@@ -10,7 +10,7 @@ from frappe import _
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
-from frappe.utils import cstr
+from frappe.utils import cstr, random_string
 
 
 class CustomField(Document):
@@ -23,7 +23,7 @@ class CustomField(Document):
 			label = self.label
 			if not label:
 				if self.fieldtype in ["Section Break", "Column Break"]:
-					label = self.fieldtype + "_" + str(self.idx)
+					label = self.fieldtype + "_" + str(random_string(5))
 				else:
 					frappe.throw(_("Label is mandatory"))
 

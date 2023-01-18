@@ -16,11 +16,16 @@ import frappe
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
+	execute_in_shell,
 	floor,
 	format_timedelta,
+	get_file_timestamp,
+	get_site_info,
+	get_sites,
 	get_url,
 	money_in_words,
 	parse_timedelta,
+	safe_json_loads,
 	scrub_urls,
 	validate_email_address,
 	validate_url,
@@ -28,6 +33,8 @@ from frappe.utils import (
 from frappe.utils.data import (
 	add_to_date,
 	cast,
+	cstr,
+	expand_relative_urls,
 	get_first_day_of_week,
 	get_time,
 	get_timedelta,
@@ -500,3 +507,35 @@ class TestLocks(unittest.TestCase):
 			with self.assertRaises(LockTimeoutError):
 				with filelock(lock_name, timeout=1, is_global=True):
 					self.fail("Global locks not working")
+
+
+class TestMiscUtils(unittest.TestCase):
+	def test_get_file_timestamp(self):
+		self.assertIsInstance(get_file_timestamp(__file__), str)
+
+	def test_execute_in_shell(self):
+		err, out = execute_in_shell("ls")
+		self.assertIn("apps", cstr(out))
+
+	def test_get_all_sites(self):
+		self.assertIn(frappe.local.site, get_sites())
+
+	def test_safe_json_load(self):
+		self.assertEqual(safe_json_loads("{}"), {})
+		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
+		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
+
+	def test_url_expansion(self):
+		unchanged_links = [
+			"<a href='tel:12345432'>My Phone</a>)",
+			"<a href='mailto:hello@example.com'>My Email</a>)",
+			"<a href='data:hello@example.com'>Data</a>)",
+		]
+		for link in unchanged_links:
+			self.assertEqual(link, expand_relative_urls(link))
+
+		site = get_url()
+
+		transforms = [("<a href='/about'>About</a>)", f"<a href='{site}/about'>About</a>)")]
+		for input, output in transforms:
+			self.assertEqual(output, expand_relative_urls(input))
