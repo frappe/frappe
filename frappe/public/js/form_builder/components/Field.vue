@@ -32,6 +32,10 @@ function move_fields_to_column() {
 function duplicate_field() {
 	let duplicate_field = clone_field(props.field);
 
+	if (store.is_customize_form) {
+		duplicate_field.df.is_custom_field = 1;
+	}
+
 	if (duplicate_field.df.label) {
 		duplicate_field.df.label = duplicate_field.df.label + " Copy";
 	}
