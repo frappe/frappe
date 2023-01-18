@@ -182,8 +182,10 @@ export const useStore = defineStore("form-builder-store", {
 				} else {
 					this.doc.fields = this.get_updated_fields();
 					this.validate_fields(this.doc.fields, this.doc.istable);
-					await frappe.call("frappe.client.save", { doc: this.doc });
-					frappe.toast("Fields Table Updated");
+					await frappe.call({
+						method: "frappe.desk.form.save.savedocs",
+						args: { doc: this.doc, action: "Save" },
+					});
 				}
 				this.fetch();
 			} catch (e) {
