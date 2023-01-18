@@ -40,6 +40,13 @@ function duplicate_field() {
 		duplicate_field.df.label = duplicate_field.df.label + " Copy";
 	}
 	duplicate_field.df.fieldname = "";
+	duplicate_field.df.__islocal = 1;
+	duplicate_field.df.__unsaved = 1;
+	duplicate_field.df.owner = frappe.session.user;
+
+	delete duplicate_field.df.creation;
+	delete duplicate_field.df.modified;
+	delete duplicate_field.df.modified_by;
 
 	// push duplicate_field after props.field in the same column
 	let index = props.column.fields.indexOf(props.field);
