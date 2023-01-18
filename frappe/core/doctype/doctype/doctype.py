@@ -37,22 +37,7 @@ from frappe.model.document import Document
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
-<<<<<<< HEAD
-from frappe.utils import cint, now
-=======
-from frappe.query_builder.functions import Concat
-from frappe.utils import cint, random_string
-from frappe.website.utils import clear_cache
-
-if TYPE_CHECKING:
-	from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
-
-DEPENDS_ON_PATTERN = re.compile(r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+')
-ILLEGAL_FIELDNAME_PATTERN = re.compile("""['",./%@()<>{}]""")
-WHITESPACE_PADDING_PATTERN = re.compile(r"^[ \t\n\r]+|[ \t\n\r]+$", flags=re.ASCII)
-START_WITH_LETTERS_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.ASCII)
-FIELD_PATTERN = re.compile("{(.*?)}", flags=re.UNICODE)
->>>>>>> 4b352bdac3 (fix: always generate unique fieldnames instead of appending row number)
+from frappe.utils import cint, now, random_string
 
 
 class InvalidFieldNameError(frappe.ValidationError):
