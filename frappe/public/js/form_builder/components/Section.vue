@@ -130,7 +130,13 @@ function move_sections_to_tab() {
 				</div>
 			</div>
 			<div v-if="section.df.description" class="section-description">{{ section.df.description }}</div>
-			<div class="section-columns" :class="{ hidden: section.df.collapsible && collapsed }">
+			<div
+				class="section-columns"
+				:class="{
+					hidden: section.df.collapsible && collapsed,
+					'has-one-column': section.columns.length === 1
+				}"
+			>
 				<draggable
 					class="section-columns-container"
 					:style="{

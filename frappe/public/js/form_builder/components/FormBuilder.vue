@@ -109,6 +109,12 @@ onMounted(() => {
 		box-shadow: var(--card-shadow);
 		background-color: var(--card-bg);
 
+		:deep(.section-columns.has-one-column .field) {
+			input.form-control, .signature-field {
+				width: calc(50% - 19px);
+			}
+		}
+
 		:deep(.column-container .field.sortable-chosen) {
 			background-color: var(--bg-light-gray);
 			border-radius: var(--border-radius-sm);
@@ -220,6 +226,12 @@ onMounted(() => {
 
 			.section-columns {
 				margin-top: 8px;
+
+				&.has-one-column .field {
+					input.form-control, .signature-field {
+						width: calc(50% - 15px);
+					}
+				}
 
 				.section-columns-container {
 					.column {
