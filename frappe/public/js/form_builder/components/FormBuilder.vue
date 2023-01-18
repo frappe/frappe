@@ -197,6 +197,8 @@ onMounted(() => {
 	}
 
 	:deep(.preview) {
+		--field-placeholder-color: var(--fg-bg-color);
+
 		.tab, .column, .field, [data-is-custom="1"] {
 			background-color: var(--fg-color);
 		}
