@@ -100,6 +100,35 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 
 
 @frappe.whitelist()
+def get_shipping_address(doctype, name):
+	return get_address(doctype, name, "Shipping")
+
+
+@frappe.whitelist()
+def get_billing_address(doctype, name):
+	return get_address(doctype, name, "Billing")
+
+
+def get_address(doctype, name, address_type=""):
+	filters = [
+		["address_type", "=", address_type],
+		["disabled", "=", 0],
+		["Dynamic Link", "link_doctype", "=", doctype],
+		["Dynamic Link", "link_name", "=", name],
+	]
+
+	field = f"{address_type.lower()}_address"
+
+	return (
+		frappe.get_value(doctype, name, field)
+		if frappe.get_meta(doctype).has_field(field)
+		else None
+		or frappe.get_value("Address", filters)
+		or frappe.get_value("Address", filters[1:])
+	)
+
+
+@frappe.whitelist()
 def get_default_address(doctype, name, sort_key="is_primary_address"):
 	"""Returns default Address name for the given doctype, name"""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:

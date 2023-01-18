@@ -6,7 +6,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.contacts.doctype.contact.contact import get_default_contact
+from frappe.contacts.doctype.contact.contact import get_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 )
@@ -144,7 +144,7 @@ class Event(Document):
 				continue
 
 			if participant.reference_doctype != "Contact":
-				participant_contact = get_default_contact(
+				participant_contact = get_contact(
 					participant.reference_doctype, participant.reference_docname
 				)
 			else:

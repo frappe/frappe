@@ -130,29 +130,25 @@ class Contact(Document):
 		return get_full_name(self.first_name, self.middle_name, self.last_name, self.company_name)
 
 
-def get_default_contact(doctype, name):
-	"""Returns default contact for the given doctype, name"""
-	out = frappe.db.sql(
-		"""select parent,
-			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
-				as is_primary_contact
-		from
-			`tabDynamic Link` dl
-		where
-			dl.link_doctype=%s and
-			dl.link_name=%s and
-			dl.parenttype = 'Contact' """,
-		(doctype, name),
-		as_dict=True,
+def get_contact(doctype, name):
+	filters = [
+		["is_primary_contact", "=", 1],
+		["Dynamic Link", "link_doctype", "=", doctype],
+		["Dynamic Link", "link_name", "=", name],
+	]
+
+	return (
+		frappe.get_value("Contact", filters)
+		or frappe.get_value("Contact", filters[1:])
 	)
 
-	if out:
-		for contact in out:
-			if contact.is_primary_contact:
-				return contact.parent
-		return out[0].parent
-	else:
-		return None
+
+def get_shipping_contact(name):
+	return frappe.get_value("Customer", name, "shipping_contact") or get_contact("Customer", name)
+
+def get_billing_contact(name):
+	return frappe.get_value("Customer", name, "billing_contact") or get_contact("Customer", name)
+
 
 
 @frappe.whitelist()
@@ -175,6 +171,29 @@ def invite_user(contact):
 		).insert(ignore_permissions=True)
 
 		return user.name
+
+@frappe.whitelist()
+def get_contact_display(contact):
+	contact = frappe.get_doc("Contact", contact)
+
+	out = f"""<b>{" ".join(filter(None, [contact.get("salutation"), contact.get("first_name"), contact.get("last_name")]))}</b>"""
+
+	if contact.get("designation"):
+		out += f"\n{contact.get('designation')}"
+
+	if contact.get("phone") or contact.get("mobile_no") or contact.get("email_id"):
+		out += "\n"
+
+	if contact.get("phone"):
+		out += f"\n{_('Phone')}: {contact.get('phone')}"
+
+	if contact.get("mobile_no"):
+		out += f"\n{_('Mobile No')}: {contact.get('mobile_no')}"
+
+	if contact.get("email_id"):
+		out += f"\n{_('Email')}: {contact.get('email_id')}"
+
+	return out
 
 
 @frappe.whitelist()
