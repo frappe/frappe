@@ -18,6 +18,7 @@ $.extend(frappe.model, {
 		'Customize Form Field', 'Property Setter', 'Custom Field', 'Client Script'],
 
 	std_fields: [
+<<<<<<< HEAD
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
 		{fieldname:'owner', fieldtype:'Link', label:__('Created By'), options: 'User'},
 		{fieldname:'idx', fieldtype:'Int', label:__('Index')},
@@ -29,6 +30,24 @@ $.extend(frappe.model, {
 		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
 		{fieldname:'_assign', fieldtype:'Text', label:__('Assigned To')},
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
+=======
+		{ fieldname: "name", fieldtype: "Link", label: __("ID") },
+		{ fieldname: "owner", fieldtype: "Link", label: __("Created By"), options: "User" },
+		{ fieldname: "idx", fieldtype: "Int", label: __("Index") },
+		{ fieldname: "creation", fieldtype: "Datetime", label: __("Created On") },
+		{ fieldname: "modified", fieldtype: "Datetime", label: __("Last Updated On") },
+		{
+			fieldname: "modified_by",
+			fieldtype: "Link",
+			label: __("Last Updated By"),
+			options: "User",
+		},
+		{ fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") },
+		{ fieldname: "_liked_by", fieldtype: "Data", label: __("Liked By") },
+		{ fieldname: "_comments", fieldtype: "Text", label: __("Comments") },
+		{ fieldname: "_assign", fieldtype: "Text", label: __("Assigned To") },
+		{ fieldname: "docstatus", fieldtype: "Int", label: __("Document Status") },
+>>>>>>> 30134a2cc9 (fix: Correct standard docfield types)
 	],
 
 	numeric_fieldtypes: ["Int", "Float", "Currency", "Percent", "Duration"],
