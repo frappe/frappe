@@ -136,21 +136,10 @@ def executed(patchmodule):
 	return done
 
 
-def block_user(block, msg=None):
+def block_user(block):
 	"""stop/start execution till patch is run"""
 	frappe.local.flags.in_patch = block
-	frappe.db.begin()
-	if not msg:
-		msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.db.set_global("__session_status", block and "stop" or None)
-	frappe.db.set_global("__session_status_message", block and msg or None)
 	frappe.db.commit()
-
-
-def check_session_stopped():
-	if frappe.db.get_global("__session_status") == "stop":
-		frappe.msgprint(frappe.db.get_global("__session_status_message"))
-		raise frappe.SessionStopped("Session Stopped")
 
 
 def log(msg):
