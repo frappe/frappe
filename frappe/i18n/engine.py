@@ -5,14 +5,16 @@ from babel.messages.mofile import read_mo
 
 import frappe
 
-# Cache keys
-MERGED_TRANSLATION_KEY = "merged_translations"
 APP_TRANSLATION_KEY = "translations_from_apps"
+DEFAULT_LANG = "en"
+LOCALE_DIR = "locale"
+MERGED_TRANSLATION_KEY = "merged_translations"
+TRANSLATION_DOMAIN = "messages"
 USER_TRANSLATION_KEY = "lang_user_translations"
 
 
-def get_translator(lang: str, localedir: str | None = "locale", context: bool | None = False):
-	t = gettext.translation("messages", localedir=localedir, languages=(lang,), fallback=True)
+def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool | None = False):
+	t = gettext.translation(TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True)
 
 	if context:
 		return t.pgettext
@@ -20,12 +22,12 @@ def get_translator(lang: str, localedir: str | None = "locale", context: bool | 
 	return t.gettext
 
 
-def f(msg: str, context: str = None, lang: str = "en"):
+def f(msg: str, context: str = None, lang: str = DEFAULT_LANG):
 	from frappe import as_unicode
 	from frappe.utils import is_html, strip_html_tags
 
 	if not lang:
-		lang = "en"
+		lang = DEFAULT_LANG
 
 	msg = as_unicode(msg).strip()
 
@@ -36,7 +38,7 @@ def f(msg: str, context: str = None, lang: str = "en"):
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
-		locale_path = os.path.join(app_path, "locale")
+		locale_path = os.path.join(app_path, LOCALE_DIR)
 		has_context = context is not None
 
 		if has_context:
@@ -79,7 +81,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 
 
 def get_translations_from_apps(lang, apps=None):
-	if not lang or lang == "en":
+	if not lang or lang == DEFAULT_LANG:
 		return {}
 
 	def t():
@@ -87,8 +89,8 @@ def get_translations_from_apps(lang, apps=None):
 
 		for app in apps or frappe.get_all_apps(True):
 			app_path = frappe.get_pymodule_path(app)
-			localedir = os.path.join(app_path, "locale")
-			mo_files = gettext.find("messages", localedir, (lang,), True)
+			localedir = os.path.join(app_path, LOCALE_DIR)
+			mo_files = gettext.find(TRANSLATION_DOMAIN, localedir, (lang,), True)
 
 			for file in mo_files:
 				with open(file, "rb") as f:
