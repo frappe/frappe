@@ -10,12 +10,7 @@ from frappe import _
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
-<<<<<<< HEAD
-from frappe.utils import cstr
-=======
-from frappe.query_builder.functions import IfNull
 from frappe.utils import cstr, random_string
->>>>>>> 4b352bdac3 (fix: always generate unique fieldnames instead of appending row number)
 
 
 class CustomField(Document):
@@ -27,13 +22,8 @@ class CustomField(Document):
 		if not self.fieldname:
 			label = self.label
 			if not label:
-<<<<<<< HEAD
 				if self.fieldtype in ["Section Break", "Column Break"]:
-					label = self.fieldtype + "_" + str(self.idx)
-=======
-				if self.fieldtype in ["Section Break", "Column Break", "Tab Break"]:
 					label = self.fieldtype + "_" + str(random_string(5))
->>>>>>> 4b352bdac3 (fix: always generate unique fieldnames instead of appending row number)
 				else:
 					frappe.throw(_("Label is mandatory"))
 
