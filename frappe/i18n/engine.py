@@ -8,6 +8,7 @@ import frappe
 # Cache keys
 MERGED_TRANSLATION_KEY = "merged_translations"
 APP_TRANSLATION_KEY = "translations_from_apps"
+USER_TRANSLATION_KEY = "lang_user_translations"
 
 
 def get_translator(lang: str, localedir: str | None = "locale", context: bool | None = False):
@@ -59,6 +60,14 @@ def get_all_translations(lang: str) -> dict[str, str]:
 
 	def t():
 		all_translations = get_translations_from_apps(lang)
+
+		try:
+			# get user specific translation data
+			user_translations = get_user_translations(lang)
+			all_translations.update(user_translations)
+		except Exception:
+			pass
+
 		return all_translations
 
 	try:
@@ -90,6 +99,30 @@ def get_translations_from_apps(lang, apps=None):
 		return translations
 
 	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=t)
+
+
+def get_user_translations(lang):
+	if not frappe.db:
+		frappe.connect()
+
+	def f():
+		user_translations = {}
+		translations = frappe.get_all(
+			"Translation",
+			fields=["source_text", "translated_text", "context"],
+			filters={"language": lang},
+		)
+
+		for t in translations:
+			key = t.source_text
+			value = t.translated_text
+			if t.context:
+				key += ":" + t.context
+			user_translations[key] = value
+
+		return user_translations
+
+	return frappe.cache().hget(USER_TRANSLATION_KEY, lang, generator=f)
 
 
 def get_messages_for_boot():
