@@ -55,6 +55,18 @@ def update_installed_apps_order(new_order: list[str] | str):
 
 	frappe.db.set_global("installed_apps", json.dumps(new_order))
 
+	_create_version_log_for_change(existing_order, new_order)
+
+
+def _create_version_log_for_change(old, new):
+	version = frappe.new_doc("Version")
+	version.ref_doctype = "DefaultValue"
+	version.docname = "installed_apps"
+	version.data = frappe.as_json({"changed": [["current", json.dumps(old), json.dumps(new)]]})
+	version.flags.ignore_links = True  # This is a fake doctype
+	version.flags.ignore_permissions = True
+	version.insert()
+
 
 @frappe.whitelist()
 def get_installed_app_order() -> list[str]:
