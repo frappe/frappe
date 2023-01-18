@@ -8,6 +8,7 @@ import requests
 import frappe
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
+from frappe.model import default_fields
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import get_url
 
@@ -26,7 +27,8 @@ class TestFrappeClient(FrappeTestCase):
 				{"doctype": "Note", "title": "sixpence"},
 			]
 		)
-		records = frappe.get_all("Note", pluck="title")
+		records = server.get_list("Note", fields=["title"])
+		records = [r.get("title") for r in records]
 
 		self.assertIn("Sing", records)
 		self.assertIn("a", records)
@@ -36,9 +38,13 @@ class TestFrappeClient(FrappeTestCase):
 
 	def test_create_doc(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
-		server.insert({"doctype": "Note", "title": "test_create"})
+		response = server.insert({"doctype": "Note", "title": "test_create"})
 
-		self.assertTrue(frappe.db.get_value("Note", {"title": "test_create"}))
+		for field in default_fields:
+			self.assertIn(field, response)
+
+		self.assertEqual(response.get("doctype"), "Note")
+		self.assertEqual(response.get("title"), "test_create")
 
 	def test_list_docs(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
@@ -54,6 +60,9 @@ class TestFrappeClient(FrappeTestCase):
 
 		NAME = server.insert({"doctype": DOCTYPE, "title": TITLE}).get("name")
 		doc = server.get_doc(DOCTYPE, NAME)
+
+		for field in default_fields:
+			self.assertIn(field, doc)
 
 		self.assertEqual(doc.get("doctype"), DOCTYPE)
 		self.assertEqual(doc.get("name"), NAME)
