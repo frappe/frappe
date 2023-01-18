@@ -4,52 +4,36 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint
 from frappe.utils.jinja import validate_template
 
 
 class AddressTemplate(Document):
 	def validate(self):
+		validate_template(self.template)
+
 		if not self.template:
 			self.template = get_default_address_template()
 
-		self.defaults = frappe.db.get_values(
-			"Address Template", {"is_default": 1, "name": ("!=", self.name)}
-		)
-		if not self.is_default:
-			if not self.defaults:
-				self.is_default = 1
-				if cint(frappe.db.get_single_value("System Settings", "setup_complete")):
-					frappe.msgprint(_("Setting this Address Template as default as there is no other default"))
-
-		validate_template(self.template)
+		if not self.is_default and not self._get_previous_default():
+			self.is_default = 1
+			if frappe.db.get_single_value("System Settings", "setup_complete"):
+				frappe.msgprint(_("Setting this Address Template as default as there is no other default"))
 
 	def on_update(self):
-		if self.is_default and self.defaults:
-			for d in self.defaults:
-				frappe.db.set_value("Address Template", d[0], "is_default", 0)
+		if self.is_default and (previous_default := self._get_previous_default()):
+			frappe.db.set_value("Address Template", previous_default, "is_default", 0)
 
 	def on_trash(self):
 		if self.is_default:
 			frappe.throw(_("Default Address Template cannot be deleted"))
 
+	def _get_previous_default(self) -> str | None:
+		return frappe.db.get_value("Address Template", {"is_default": 1, "name": ("!=", self.name)})
+
 
 @frappe.whitelist()
-def get_default_address_template():
-	"""Get default address template (translated)"""
-	return (
-		"""{{ address_line1 }}<br>{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}\
-{{ city }}<br>
-{% if state %}{{ state }}<br>{% endif -%}
-{% if pincode %}{{ pincode }}<br>{% endif -%}
-{{ country }}<br>
-{% if phone %}"""
-		+ _("Phone")
-		+ """: {{ phone }}<br>{% endif -%}
-{% if fax %}"""
-		+ _("Fax")
-		+ """: {{ fax }}<br>{% endif -%}
-{% if email_id %}"""
-		+ _("Email")
-		+ """: {{ email_id }}<br>{% endif -%}"""
-	)
+def get_default_address_template() -> str:
+	"""Return the default address template."""
+	from pathlib import Path
+
+	return (Path(__file__).parent / "address_template.jinja").read_text()
