@@ -210,6 +210,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			render_input: 1,
 		});
 
+		const page_name = frappe.get_route().slice(-1)[0];
+		if (routes_map[page_name]) {
+			field.$input.val(page_name);
+		}
+
 		if (default_action) {
 			views_wrapper.find(".sidebar-action a").html(default_action.label);
 			views_wrapper.find(".sidebar-action a").click(() => default_action.action());
