@@ -164,7 +164,7 @@ def clear_controller_cache(doctype=None):
 		frappe.controllers = {}
 		return
 
-	for site_controllers in frappe.controllers.values():
+	if site_controllers := frappe.controllers.get(frappe.local.site):
 		site_controllers.pop(doctype, None)
 
 
