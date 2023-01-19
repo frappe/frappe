@@ -34,6 +34,14 @@ def is_pypika_function_object(field: str) -> bool:
 	return getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
 
 
+def get_doctype_name(table_name: str) -> str:
+	if table_name.startswith(("tab", "`tab", '"tab')):
+		table_name = table_name.replace("tab", "", 1)
+	table_name = table_name.replace("`", "")
+	table_name = table_name.replace('"', "")
+	return table_name
+
+
 class LazyString:
 	def _setup(self) -> None:
 		raise NotImplementedError

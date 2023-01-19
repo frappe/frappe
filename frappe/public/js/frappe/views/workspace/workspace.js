@@ -156,6 +156,10 @@ frappe.views.Workspace = class Workspace {
 		if (Object.keys(root_pages).length === 0) {
 			sidebar_section.addClass("hidden");
 		}
+
+		if (sidebar_section.find("> [item-is-hidden='0']").length == 0) {
+			sidebar_section.addClass("hidden show-in-edit-mode");
+		}
 	}
 
 	prepare_sidebar(items, child_container, item_container) {
@@ -193,6 +197,10 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		this.add_drop_icon(item, sidebar_control, $item_container);
+
+		if (child_items.length > 0) {
+			$item_container.find(".drop-icon").first().addClass("show-in-edit-mode");
+		}
 	}
 
 	add_drop_icon(item, sidebar_control, item_container) {
@@ -206,7 +214,11 @@ frappe.views.Workspace = class Workspace {
 			`<span class="drop-icon hidden">${frappe.utils.icon(drop_icon, "sm")}</span>`
 		).appendTo(sidebar_control);
 		let pages = item.public ? this.public_pages : this.private_pages;
-		if (pages.some((e) => e.parent_page == item.title)) {
+		if (
+			pages.some(
+				(e) => e.parent_page == item.title && (e.is_hidden == 0 || !this.is_read_only)
+			)
+		) {
 			$drop_icon.removeClass("hidden");
 		}
 		$drop_icon.on("click", () => {
@@ -251,7 +263,9 @@ frappe.views.Workspace = class Workspace {
 				if (sidebar_page) sidebar_page.selected = true;
 
 				// open child sidebar section if closed
-				$sidebar.parent().hasClass("hidden") && $sidebar.parent().removeClass("hidden");
+				$sidebar.parent().hasClass("sidebar-child-item") &&
+					$sidebar.parent().hasClass("hidden") &&
+					$sidebar.parent().removeClass("hidden");
 
 				this.current_page = { name: page.name, public: page.public };
 				localStorage.current_page = page.name;
