@@ -330,7 +330,9 @@ class File(Document):
 
 	def set_file_name(self):
 		if not self.file_name and not self.file_url:
-			frappe.throw(_("Fields `file_name` or `file_url` must be set for File"), exc=frappe.MandatoryError)
+			frappe.throw(
+				_("Fields `file_name` or `file_url` must be set for File"), exc=frappe.MandatoryError
+			)
 		elif not self.file_name and self.file_url:
 			self.file_name = self.file_url.split("/")[-1]
 		else:
