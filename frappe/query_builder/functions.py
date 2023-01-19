@@ -74,6 +74,22 @@ DateFormat = ImportMapper(
 )
 
 
+class _PostgresUnixTimestamp(Extract):
+	# Note: this is just a special case of "Extract" function with "epoch" hardcoded.
+	# Check super definition to see how it works.
+	def __init__(self, field, alias=None):
+		super().__init__("epoch", field=field, alias=alias)
+		self.field = field
+
+
+UnixTimestamp = ImportMapper(
+	{
+		db_type_is.MARIADB: CustomFunction("unix_timestamp", ["date"]),
+		db_type_is.POSTGRES: _PostgresUnixTimestamp,
+	}
+)
+
+
 class Cast_(Function):
 	def __init__(self, value, as_type, alias=None):
 		if frappe.db.db_type == "mariadb" and (
@@ -103,9 +119,9 @@ class Cast_(Function):
 
 def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
-		frappe.qb.engine.build_conditions(dt, filters)
-		.select(function(PseudoColumn(fieldname)))
-		.run(**kwargs)[0][0]
+		frappe.qb.get_query(dt, filters=filters, fields=[function(PseudoColumn(fieldname))]).run(
+			**kwargs
+		)[0][0]
 		or 0
 	)
 

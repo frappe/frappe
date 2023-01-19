@@ -15,18 +15,19 @@ def get_context(context):
 
 	host = get_request_site_address()
 
-	blog_list = frappe.db.sql(
-		"""\
-		select route as name, published_on, modified, title, content from `tabBlog Post`
-		where ifnull(published,0)=1
-		order by published_on desc limit 20""",
-		as_dict=1,
+	blog_list = frappe.get_all(
+		"Blog Post",
+		fields=["name", "published_on", "modified", "title", "content"],
+		filters={"published": 1},
+		order_by="published_on desc",
+		limit=20,
 	)
 
 	for blog in blog_list:
 		blog_page = cstr(quote(blog.name.encode("utf-8")))
 		blog.link = urljoin(host, blog_page)
 		blog.content = escape_html(blog.content or "")
+		blog.title = escape_html(blog.title or "")
 
 	if blog_list:
 		modified = max(blog["modified"] for blog in blog_list)

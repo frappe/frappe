@@ -24,6 +24,7 @@
   "ldap_email_field",
   "ldap_username_field",
   "ldap_first_name_field",
+  "do_not_create_new_user",
   "column_break_19",
   "ldap_middle_name_field",
   "ldap_last_name_field",
@@ -289,12 +290,19 @@
    "fieldname": "section_break_40",
    "fieldtype": "Section Break",
    "hide_border": 1
+  },
+  {
+   "default": "0",
+   "description": "Do not create new user if user with email does not exist in the system",
+   "fieldname": "do_not_create_new_user",
+   "fieldtype": "Check",
+   "label": "Do Not Create New User "
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-07-07 16:51:46.230793",
+ "modified": "2022-12-05 21:52:31.146035",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",

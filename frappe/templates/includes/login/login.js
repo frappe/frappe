@@ -19,7 +19,6 @@ login.bind_events = function () {
 		args.cmd = "login";
 		args.usr = frappe.utils.xss_sanitise(($("#login_email").val() || "").trim());
 		args.pwd = $("#login_password").val();
-		args.device = "desktop";
 		if (!args.usr || !args.pwd) {
 			frappe.msgprint('{{ _("Both login and password required") }}');
 			return false;
@@ -56,6 +55,25 @@ login.bind_events = function () {
 		return false;
 	});
 
+	$(".form-login-with-email-link").on("submit", function (event) {
+		event.preventDefault();
+		var args = {};
+		args.cmd = "frappe.www.login.send_login_link";
+		args.email = ($("#login_with_email_link_email").val() || "").trim();
+		if (!args.email) {
+			login.set_status('{{ _("Valid Login id required.") }}', 'red');
+			return false;
+		}
+		login.call(args).then(() => {
+			login.set_status('{{ _("Login link sent to your email") }}', 'blue');
+			$("#login_with_email_link_email").val("");
+		}).catch(() => {
+			login.set_status('{{ _("Send login link") }}', 'blue');
+		});
+
+		return false;
+	});
+
 	$(".toggle-password").click(function () {
 		var input = $($(this).attr("toggle"));
 		if (input.attr("type") == "password") {
@@ -73,7 +91,6 @@ login.bind_events = function () {
 		args.cmd = "{{ ldap_settings.method }}";
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
-		args.device = "desktop";
 		if (!args.usr || !args.pwd) {
 			login.set_status('{{ _("Both login and password required") }}', 'red');
 			return false;
@@ -88,6 +105,7 @@ login.bind_events = function () {
 login.route = function () {
 	var route = window.location.hash.slice(1);
 	if (!route) route = "login";
+	route = route.replaceAll("-", "_");
 	login[route]();
 }
 
@@ -96,6 +114,7 @@ login.reset_sections = function (hide) {
 		$("section.for-login").toggle(false);
 		$("section.for-email-login").toggle(false);
 		$("section.for-forgot").toggle(false);
+		$("section.for-login-with-email-link").toggle(false);
 		$("section.for-signup").toggle(false);
 	}
 	$('section:not(.signup-disabled) .indicator').each(function () {
@@ -123,8 +142,20 @@ login.steptwo = function () {
 
 login.forgot = function () {
 	login.reset_sections();
+	if ($("#login_email").val()) {
+		$("#forgot_email").val($("#login_email").val());
+	}
 	$(".for-forgot").toggle(true);
 	$("#forgot_email").focus();
+}
+
+login.login_with_email_link = function () {
+	login.reset_sections();
+	if ($("#login_email").val()) {
+		$("#login_with_email_link_email").val($("#login_email").val());
+	}
+	$(".for-login-with-email-link").toggle(true);
+	$("#login_with_email_link_email").focus();
 }
 
 login.signup = function () {
@@ -255,7 +286,8 @@ login.login_handlers = (function () {
 			}
 		},
 		401: get_error_handler('{{ _("Invalid Login. Try again.") }}'),
-		417: get_error_handler('{{ _("Oops! Something went wrong") }}')
+		417: get_error_handler('{{ _("Oops! Something went wrong") }}'),
+		404: get_error_handler('{{ _("User does not exist.")}}')
 	};
 
 	return login_handlers;
@@ -271,7 +303,7 @@ frappe.ready(function () {
 		$(window).trigger("hashchange");
 	}
 
-	$(".form-signup, .form-forgot").removeClass("hide");
+	$(".form-signup, .form-forgot, .form-login-with-email-link").removeClass("hide");
 	$(document).trigger('login_rendered');
 });
 

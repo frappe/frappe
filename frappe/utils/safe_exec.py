@@ -8,6 +8,7 @@ from functools import lru_cache
 
 import RestrictedPython.Guards
 from RestrictedPython import compile_restricted, safe_globals
+from RestrictedPython.transformer import RestrictingNodeTransformer
 
 import frappe
 import frappe.exceptions
@@ -45,6 +46,14 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
+class FrappeTransformer(RestrictingNodeTransformer):
+	def check_name(self, node, name, *args, **kwargs):
+		if name == "_dict":
+			return
+
+		return super().check_name(node, name, *args, **kwargs)
+
+
 def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
@@ -69,7 +78,11 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
-		exec(compile_restricted(script), exec_globals, _locals)  # pylint: disable=exec-used
+		exec(
+			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
+			exec_globals,
+			_locals,
+		)
 
 	return exec_globals, _locals
 

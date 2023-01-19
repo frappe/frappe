@@ -53,6 +53,14 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 
+	read_only_because_of_fetch_from() {
+		return (
+			this.df.fetch_from &&
+			!this.df.fetch_if_empty &&
+			this.frm?.doc?.[this.df.fetch_from.split(".")[0]]
+		);
+	}
+
 	// update input value, label, description
 	// display (show/hide/read-only),
 	// mandatory style on refresh
@@ -83,7 +91,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				me.value = me.doc[me.df.fieldname] || "";
 			}
 
-			if (me.can_write()) {
+			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();
+
+			if (me.can_write() && !is_fetch_from_read_only) {
 				me.disp_area && $(me.disp_area).toggle(false);
 				$(me.input_area).toggle(true);
 				me.$input && me.$input.prop("disabled", false);
@@ -101,6 +111,16 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					}
 				}
 				me.$input && me.$input.prop("disabled", true);
+
+				if (is_fetch_from_read_only) {
+					$(me.disp_area).attr(
+						"title",
+						__(
+							"This value is fetched from {0}'s {1} field",
+							me.df.fetch_from.split(".").map((value) => __(frappe.unscrub(value)))
+						)
+					);
+				}
 			}
 
 			me.set_description();

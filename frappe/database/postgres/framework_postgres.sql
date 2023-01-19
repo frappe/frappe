@@ -256,7 +256,6 @@ CREATE TABLE "tabSessions" (
   "sessiondata" text,
   "ipaddress" varchar(16) DEFAULT NULL,
   "lastupdate" timestamp(6) DEFAULT NULL,
-  "device" varchar(255) DEFAULT 'desktop',
   "status" varchar(20) DEFAULT NULL
 );
 

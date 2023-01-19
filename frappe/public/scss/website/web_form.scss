@@ -19,6 +19,10 @@
 				max-width: 800px;
 				margin: auto;
 
+				.tooltip-content {
+					display: none;
+				}
+
 				h1 {
 					font-size: 2.25rem;
 					margin-top: 0;

@@ -32,12 +32,11 @@ def clear():
 	frappe.response["message"] = _("Cache Cleared")
 
 
-def clear_sessions(user=None, keep_current=False, device=None, force=False):
+def clear_sessions(user=None, keep_current=False, force=False):
 	"""Clear other sessions of the current user. Called at login / logout
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
-	:param device: delete sessions of this device (default: desktop, mobile)
 	:param force: triggered by the user (default false)
 	"""
 
@@ -45,25 +44,18 @@ def clear_sessions(user=None, keep_current=False, device=None, force=False):
 	if force:
 		reason = "Force Logged out by the user"
 
-	for sid in get_sessions_to_clear(user, keep_current, device):
+	for sid in get_sessions_to_clear(user, keep_current):
 		delete_session(sid, reason=reason)
 
 
-def get_sessions_to_clear(user=None, keep_current=False, device=None):
+def get_sessions_to_clear(user=None, keep_current=False):
 	"""Returns sessions of the current user. Called at login / logout
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
-	:param device: delete sessions of this device (default: desktop, mobile)
 	"""
 	if not user:
 		user = frappe.session.user
-
-	if not device:
-		device = ("desktop", "mobile")
-
-	if not isinstance(device, (tuple, list)):
-		device = (device,)
 
 	offset = 0
 	if user == frappe.session.user:
@@ -71,9 +63,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		offset = simultaneous_sessions - 1
 
 	session = DocType("Sessions")
-	session_id = frappe.qb.from_(session).where(
-		(session.user == user) & (session.device.isin(device))
-	)
+	session_id = frappe.qb.from_(session).where(session.user == user)
 	if keep_current:
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
@@ -121,25 +111,18 @@ def clear_all_sessions(reason=None):
 
 def get_expired_sessions():
 	"""Returns list of expired sessions"""
+
 	sessions = DocType("Sessions")
 
-	expired = []
-	for device in ("desktop", "mobile"):
-		expired.extend(
-			frappe.db.get_values(
-				sessions,
-				filters=(
-					PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
-					> get_expiry_period_for_query(device)
-				)
-				& (sessions.device == device),
-				fieldname="sid",
-				order_by=None,
-				pluck=True,
-			)
-		)
-
-	return expired
+	return frappe.db.get_values(
+		sessions,
+		filters=(
+			PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})") > get_expiry_period_for_query()
+		),
+		fieldname="sid",
+		order_by=None,
+		pluck=True,
+	)
 
 
 def clear_expired_sessions():
@@ -218,14 +201,13 @@ def generate_csrf_token():
 
 
 class Session:
-	__slots__ = ("user", "device", "user_type", "full_name", "data", "time_diff", "sid")
+	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid")
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(
 			frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest"))
 		)
 		self.user = user
-		self.device = frappe.form_dict.get("device") or "desktop"
 		self.user_type = user_type
 		self.full_name = full_name
 		self.data = frappe._dict({"data": frappe._dict({})})
@@ -257,10 +239,9 @@ class Session:
 			self.data.data.update(
 				{
 					"last_updated": frappe.utils.now(),
-					"session_expiry": get_expiry_period(self.device),
+					"session_expiry": get_expiry_period(),
 					"full_name": self.full_name,
 					"user_type": self.user_type,
-					"device": self.device,
 					"session_country": get_geo_ip_country(frappe.local.request_ip)
 					if frappe.local.request_ip
 					else None,
@@ -289,9 +270,9 @@ class Session:
 	def insert_session_record(self):
 		frappe.db.sql(
 			"""insert into `tabSessions`
-			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`, `device`)
-			values (%s , %s, NOW(), %s, 'Active', %s)""",
-			(str(self.data["data"]), self.data["user"], self.data["sid"], self.device),
+			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`)
+			values (%s , %s, NOW(), %s, 'Active')""",
+			(str(self.data["data"]), self.data["user"], self.data["sid"]),
 		)
 
 		# also add to memcache
@@ -308,7 +289,6 @@ class Session:
 			self.data.update({"data": data, "user": data.user, "sid": self.sid})
 			self.user = data.user
 			validate_ip_address(self.user)
-			self.device = data.device
 		else:
 			self.start_as_guest()
 
@@ -359,22 +339,11 @@ class Session:
 
 	def get_session_data_from_db(self):
 		sessions = DocType("Sessions")
-
-		self.device = (
-			frappe.db.get_value(
-				sessions,
-				filters=sessions.sid == self.sid,
-				fieldname="device",
-				order_by=None,
-			)
-			or "desktop"
-		)
 		rec = frappe.db.get_values(
 			sessions,
 			filters=(sessions.sid == self.sid)
 			& (
-				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})")
-				< get_expiry_period_for_query(self.device)
+				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})") < get_expiry_period_for_query()
 			),
 			fieldname=["user", "sessiondata"],
 			order_by=None,
@@ -437,29 +406,23 @@ class Session:
 		return updated_in_db
 
 
-def get_expiry_period_for_query(device=None):
+def get_expiry_period_for_query():
 	if frappe.db.db_type == "postgres":
-		return get_expiry_period(device)
+		return get_expiry_period()
 	else:
-		return get_expiry_in_seconds(device=device)
+		return get_expiry_in_seconds()
 
 
-def get_expiry_in_seconds(expiry=None, device=None):
+def get_expiry_in_seconds(expiry=None):
 	if not expiry:
-		expiry = get_expiry_period(device)
+		expiry = get_expiry_period()
+
 	parts = expiry.split(":")
 	return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 
-def get_expiry_period(device="desktop"):
-	if device == "mobile":
-		key = "session_expiry_mobile"
-		default = "720:00:00"
-	else:
-		key = "session_expiry"
-		default = "06:00:00"
-
-	exp_sec = frappe.defaults.get_global_default(key) or default
+def get_expiry_period():
+	exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:

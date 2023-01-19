@@ -393,7 +393,7 @@ def dropbox_auth_finish(return_access_token=False):
 
 
 def set_dropbox_access_token(access_token):
-	frappe.db.set_value("Dropbox Settings", None, "dropbox_access_token", access_token)
+	frappe.db.set_single_value("Dropbox Settings", "dropbox_access_token", access_token)
 	frappe.db.commit()
 
 

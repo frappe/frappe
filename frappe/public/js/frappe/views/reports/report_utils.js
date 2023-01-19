@@ -158,4 +158,145 @@ frappe.report_utils = {
 		};
 		return get_result[fn](values);
 	},
+
+	get_export_dialog(report_name, extra_fields, callback) {
+		const fields = [
+			{
+				label: "File Format",
+				fieldname: "file_format",
+				fieldtype: "Select",
+				options: ["Excel", "CSV"],
+				default: "Excel",
+				reqd: 1,
+			},
+			{
+				fieldtype: "Section Break",
+				fieldname: "csv_settings",
+				label: "Settings",
+				collapsible: 1,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+			{
+				fieldtype: "Data",
+				label: "CSV Delimiter",
+				fieldname: "csv_delimiter",
+				default: ",",
+				length: 1,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+			{
+				fieldtype: "Select",
+				label: "CSV Quoting",
+				fieldname: "csv_quoting",
+				options: [
+					{ value: 0, label: "Minimal" },
+					{ value: 1, label: "All" },
+					{ value: 2, label: "Non-numeric" },
+					{ value: 3, label: "None" },
+				],
+				default: 2,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+			{
+				fieldtype: "Small Text",
+				label: "CSV Preview",
+				fieldname: "csv_preview",
+				read_only: 1,
+				depends_on: "eval:doc.file_format=='CSV'",
+			},
+		];
+
+		if (extra_fields) {
+			fields.push(
+				{
+					fieldtype: "Section Break",
+					fieldname: "extra_fields",
+					collapsible: 0,
+				},
+				...extra_fields
+			);
+		}
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Export Report: {0}", [report_name], "Export report"),
+			fields: fields,
+			primary_action_label: __("Download", null, "Export report"),
+			primary_action: callback,
+		});
+
+		function update_csv_preview(dialog) {
+			const is_query_report = frappe.get_route()[0] === "query-report";
+			const report = is_query_report ? frappe.query_report : cur_list;
+			const columns = report.columns.filter((col) => col.hidden !== 1);
+			PREVIEW_DATA = [
+				columns.map((col) => __(is_query_report ? col.label : col.name)),
+				...report.data
+					.slice(0, 3)
+					.map((row) =>
+						columns.map((col) => row[is_query_report ? col.fieldname : col.field])
+					),
+			];
+
+			dialog.set_value(
+				"csv_preview",
+				frappe.report_utils.get_csv_preview(
+					PREVIEW_DATA,
+					dialog.get_value("csv_quoting"),
+					dialog.get_value("csv_delimiter")
+				)
+			);
+		}
+
+		dialog.fields_dict["file_format"].df.onchange = () => update_csv_preview(dialog);
+		dialog.fields_dict["csv_quoting"].df.onchange = () => update_csv_preview(dialog);
+		dialog.fields_dict["csv_delimiter"].df.onchange = () => update_csv_preview(dialog);
+
+		return dialog;
+	},
+
+	get_csv_preview(data, quoting, delimiter) {
+		// data: array of arrays
+		// quoting: 0 - minimal, 1 - all, 2 - non-numeric, 3 - none
+		// delimiter: any single character
+		quoting = cint(quoting);
+		const QUOTING = {
+			Minimal: 0,
+			All: 1,
+			NonNumeric: 2,
+			None: 3,
+		};
+
+		if (delimiter.length > 1) {
+			frappe.throw(__("Delimiter must be a single character"));
+		}
+
+		if (0 > quoting || quoting > 3) {
+			frappe.throw(__("Quoting must be between 0 and 3"));
+		}
+
+		return data
+			.map((row) => {
+				return row
+					.map((col) => {
+						if (typeof col == "string" && col.includes('"')) {
+							col = col.replace(/"/g, '""');
+						}
+
+						switch (quoting) {
+							case QUOTING.Minimal:
+								return typeof col === "string" && col.includes(delimiter)
+									? `"${col}"`
+									: `${col}`;
+							case QUOTING.All:
+								return `"${col}"`;
+							case QUOTING.NonNumeric:
+								return isNaN(col) ? `"${col}"` : `${col}`;
+							case QUOTING.None:
+								return `${col}`;
+						}
+					})
+					.join(delimiter);
+			})
+			.join("\n");
+	},
 };

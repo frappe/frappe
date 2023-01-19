@@ -49,6 +49,7 @@ from frappe.utils.data import (
 	cast,
 	cstr,
 	duration_to_seconds,
+	expand_relative_urls,
 	get_datetime,
 	get_first_day_of_week,
 	get_time,
@@ -68,6 +69,7 @@ from frappe.utils.identicon import Identicon
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.make_random import can_make, get_random, how_many
 from frappe.utils.response import json_handler
+from frappe.utils.synchronization import LockTimeoutError, filelock
 
 
 class Capturing(list):
@@ -880,6 +882,22 @@ class TestContainerUtils(FrappeTestCase):
 		self.assertEqual(a["c"], "d")
 
 
+class TestLocks(FrappeTestCase):
+	def test_locktimeout(self):
+		lock_name = "test_lock"
+		with filelock(lock_name):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1):
+					self.fail("Locks not working")
+
+	def test_global_lock(self):
+		lock_name = "test_global"
+		with filelock(lock_name, is_global=True):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1, is_global=True):
+					self.fail("Global locks not working")
+
+
 class TestMiscUtils(FrappeTestCase):
 	def test_get_file_timestamp(self):
 		self.assertIsInstance(get_file_timestamp(__file__), str)
@@ -902,3 +920,43 @@ class TestMiscUtils(FrappeTestCase):
 		self.assertEqual(safe_json_loads("{}"), {})
 		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
 		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
+
+	def test_url_expansion(self):
+		unchanged_links = [
+			"<a href='tel:12345432'>My Phone</a>)",
+			"<a href='mailto:hello@example.com'>My Email</a>)",
+			"<a href='data:hello@example.com'>Data</a>)",
+		]
+		for link in unchanged_links:
+			self.assertEqual(link, expand_relative_urls(link))
+
+		site = get_url()
+
+		transforms = [("<a href='/about'>About</a>)", f"<a href='{site}/about'>About</a>)")]
+		for input, output in transforms:
+			self.assertEqual(output, expand_relative_urls(input))
+
+
+class TestTypingValidations(FrappeTestCase):
+	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
+
+	def test_validate_whitelisted_api(self):
+		from inspect import signature
+
+		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
+		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			whitelisted_fn(*bad_params)
+
+	def test_validate_whitelisted_doc_method(self):
+		report = frappe.get_last_doc("Report")
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			report.toggle_disable(["disable"])
+
+		current_value = report.disabled
+		changed_value = not current_value
+
+		report.toggle_disable(changed_value)
+		report.toggle_disable(current_value)

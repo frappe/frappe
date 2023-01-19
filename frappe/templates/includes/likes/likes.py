@@ -26,9 +26,10 @@ def like(reference_doctype, reference_name, like, route=""):
 		clear_cache(route)
 
 	if like and ref_doc.enable_email_notification:
-		subject = _("Like on {0}: {1}").format(reference_doctype, reference_name)
+		ref_doc_title = ref_doc.get_title()
+		subject = _("Like on {0}: {1}").format(reference_doctype, ref_doc_title)
 		content = _("You have received a ❤️ like on your blog post")
-		message = f"<p>{content} <b>{reference_name}</b></p>"
+		message = f"<p>{content} <b>{ref_doc_title}</b></p>"
 		message = message + "<p><a href='{}/{}#likes' style='font-size: 80%'>{}</a></p>".format(
 			frappe.utils.get_request_site_address(), ref_doc.route, _("View Blog Post")
 		)

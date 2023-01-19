@@ -2,6 +2,7 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 	static input_type = "password";
 	make() {
 		super.make();
+		this.enable_password_checks = true;
 	}
 	make_input() {
 		var me = this;
@@ -23,7 +24,15 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 			}, 500);
 		});
 	}
+
+	disable_password_checks() {
+		this.enable_password_checks = false;
+	}
+
 	get_password_strength(value) {
+		if (!this.enable_password_checks) {
+			return;
+		}
 		var me = this;
 		frappe.call({
 			type: "POST",
@@ -32,13 +41,9 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 				new_password: value || "",
 			},
 			callback: function (r) {
-				if (r.message && r.message.entropy) {
-					var score = r.message.score,
-						feedback = r.message.feedback;
-
-					feedback.crack_time_display = r.message.crack_time_display;
-
-					var indicators = ["grey", "red", "orange", "yellow", "green"];
+				if (r.message) {
+					let score = r.message.score;
+					var indicators = ["red", "red", "orange", "yellow", "green"];
 					me.set_strength_indicator(indicators[score]);
 				}
 			},
@@ -47,6 +52,6 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 	set_strength_indicator(color) {
 		var message = __("Include symbols, numbers and capital letters in the password");
 		this.indicator.removeClass().addClass("password-strength-indicator indicator " + color);
-		this.message.html(message).removeClass("hidden");
+		this.message.html(message).toggleClass("hidden", color == "green");
 	}
 };

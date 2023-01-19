@@ -57,17 +57,6 @@ class Report(Document):
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
-		self.delete_prepared_reports()
-
-	def delete_prepared_reports(self):
-		prepared_reports = frappe.get_all(
-			"Prepared Report", filters={"ref_report_doctype": self.name}, pluck="name"
-		)
-
-		for report in prepared_reports:
-			frappe.delete_doc(
-				"Prepared Report", report, ignore_missing=True, force=True, delete_permanently=True
-			)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
@@ -337,16 +326,15 @@ class Report(Document):
 		return data
 
 	@frappe.whitelist()
-	def toggle_disable(self, disable):
+	def toggle_disable(self, disable: bool):
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
 
 
-@frappe.whitelist()
-def is_prepared_report_disabled(report):
-	return frappe.db.get_value("Report", report, "disable_prepared_report") or 0
+def is_prepared_report_enabled(report):
+	return cint(frappe.db.get_value("Report", report, "prepared_report")) or 0
 
 
 def get_report_module_dotted_path(module, report_name):

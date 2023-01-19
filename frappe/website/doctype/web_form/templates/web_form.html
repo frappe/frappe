@@ -1,5 +1,9 @@
 {% extends "templates/web.html" %}
 
+{% block meta_block %}
+	{% include "templates/includes/meta_block.html" %}
+{% endblock %}
+
 {% block breadcrumbs %}{% endblock %}
 
 {% block header %}
@@ -16,7 +20,7 @@
 	{% endif %}
 
 	{% if allow_print and in_view_mode %}
-		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + print_format %}
+		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + (print_format or "standard") %}
 		<!-- print button -->
 		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>

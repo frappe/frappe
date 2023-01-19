@@ -241,4 +241,6 @@ def get_defaults_for(parent="__default"):
 
 
 def _clear_cache(parent):
+	if frappe.flags.in_install:
+		return
 	frappe.clear_cache(user=parent if parent not in common_default_keys else None)

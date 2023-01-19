@@ -21,6 +21,11 @@ frappe.ui.form.on("DocType", {
 			frm.toggle_enable("beta", 0);
 		}
 
+		!frm.is_new() &&
+			frm.add_custom_button(__("Try new form builder", [__(frm.doc.name)]), () => {
+				frappe.set_route("form-builder", frm.doc.name);
+			});
+
 		if (!frm.is_new() && !frm.doc.istable) {
 			if (frm.doc.issingle) {
 				frm.add_custom_button(__("Go to {0}", [__(frm.doc.name)]), () => {
@@ -72,8 +77,6 @@ frappe.ui.form.on("DocType", {
 
 	istable: (frm) => {
 		if (frm.doc.istable && frm.is_new()) {
-			frm.set_value("autoname", "autoincrement");
-			frm.set_value("allow_rename", 0);
 			frm.set_value("default_view", null);
 		} else if (!frm.doc.istable && !frm.is_new()) {
 			frm.events.set_default_permission(frm);
@@ -124,6 +127,7 @@ frappe.ui.form.on("DocField", {
 		let doctypes = frm.doc.fields
 			.filter((df) => df.fieldtype == "Link")
 			.filter((df) => df.options && df.fieldname != row.fieldname)
+			.sort((a, b) => a.options.localeCompare(b.options))
 			.map((df) => ({
 				label: `${df.options} (${df.fieldname})`,
 				value: df.fieldname,
@@ -151,6 +155,7 @@ frappe.ui.form.on("DocField", {
 					.get_docfields(link_doctype, null, {
 						fieldtype: ["not in", frappe.model.no_value_type],
 					})
+					.sort((a, b) => a.label.localeCompare(b.label))
 					.map((df) => ({
 						label: `${df.label} (${df.fieldtype})`,
 						value: df.fieldname,

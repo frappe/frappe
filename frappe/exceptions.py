@@ -15,6 +15,10 @@ class ValidationError(Exception):
 	http_status_code = 417
 
 
+class FrappeTypeError(TypeError):
+	http_status_code = 417
+
+
 class AuthenticationError(Exception):
 	http_status_code = 401
 

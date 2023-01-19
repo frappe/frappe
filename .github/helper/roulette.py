@@ -4,8 +4,10 @@ import re
 import shlex
 import subprocess
 import sys
+import time
 import urllib.request
 from functools import lru_cache
+from urllib.error import HTTPError
 
 
 @lru_cache(maxsize=None)
@@ -15,9 +17,28 @@ def fetch_pr_data(pr_number, repo, endpoint=""):
 	if endpoint:
 		api_url += f"/{endpoint}"
 
-	req = urllib.request.Request(api_url)
-	res = urllib.request.urlopen(req)
+	res = req(api_url)
 	return json.loads(res.read().decode("utf8"))
+
+
+def req(url):
+	"Simple resilient request call to handle rate limits."
+	headers = None
+	token = os.environ.get("GITHUB_TOKEN")
+	if token:
+		headers = {"authorization": f"Bearer {token}"}
+
+	retries = 0
+	while True:
+		try:
+			req = urllib.request.Request(url, headers=headers)
+			return urllib.request.urlopen(req)
+		except HTTPError as exc:
+			if exc.code == 403 and retries < 5:
+				retries += 1
+				time.sleep(retries)
+				continue
+			raise
 
 
 def get_files_list(pr_number, repo="frappe/frappe"):
@@ -79,7 +100,7 @@ if __name__ == "__main__":
 
 	# this is a push build, run all builds
 	if not pr_number:
-		os.system('echo "::set-output name=build::strawberry"')
+		os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
 		sys.exit(0)
 
 	files_list = files_list or get_files_list(pr_number=pr_number, repo=repo)
@@ -122,4 +143,4 @@ if __name__ == "__main__":
 		print("Only Python code was updated, stopping Cypress build process.")
 		sys.exit(0)
 
-	os.system('echo "::set-output name=build::strawberry"')
+	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')

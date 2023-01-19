@@ -109,8 +109,6 @@ class EmailServer:
 					self.settings.email_account,
 					self.settings.username,
 					self.settings.access_token,
-					self.settings.refresh_token,
-					self.settings.service,
 				).connect()
 
 			else:
@@ -142,8 +140,6 @@ class EmailServer:
 					self.settings.email_account,
 					self.settings.username,
 					self.settings.access_token,
-					self.settings.refresh_token,
-					self.settings.service,
 				).connect()
 
 			else:
@@ -987,10 +983,10 @@ class TimerMixin:
 			self.sock.settimeout(self.timeout / 5.0)
 
 	def _getline(self, *args, **kwargs):
-		start_time = time.time()
+		start_time = time.monotonic()
 		ret = self._super._getline(self, *args, **kwargs)
 
-		self.elapsed_time += time.time() - start_time
+		self.elapsed_time += time.monotonic() - start_time
 		if self.timeout and self.elapsed_time > self.timeout:
 			raise EmailTimeoutError
 
