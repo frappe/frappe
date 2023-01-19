@@ -360,8 +360,10 @@ class DocType(Document):
 							d.fieldname = d.fieldname + "_column"
 						elif d.fieldtype == "Tab Break":
 							d.fieldname = d.fieldname + "_tab"
-					else:
+					elif d.fieldtype in ("Section Break", "Column Break", "Tab Break"):
 						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(random_string(5))
+					else:
+						frappe.throw(_("Row #{}: Fieldname is required").format(d.idx), title="Missing Fieldname")
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
