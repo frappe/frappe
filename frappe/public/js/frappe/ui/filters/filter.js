@@ -39,13 +39,16 @@ frappe.ui.Filter = class {
 
 		this.invalid_condition_map = {
 			Date: ["like", "not like"],
-			Datetime: ["like", "not like"],
+			Datetime: ["like", "not like", "in", "not in", "=", "!="],
 			Data: ["Between", "Timespan"],
 			Select: ["like", "not like", "Between", "Timespan"],
 			Link: ["Between", "Timespan", ">", "<", ">=", "<="],
 			Currency: ["Between", "Timespan"],
 			Color: ["Between", "Timespan"],
 			Check: this.conditions.map((c) => c[0]).filter((c) => c !== "="),
+			Code: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
 		};
 	}
 
@@ -497,10 +500,14 @@ frappe.ui.filter_utils = {
 				"Small Text",
 				"Text Editor",
 				"Code",
+				"Attach",
+				"Attach Image",
 				"Markdown Editor",
 				"HTML Editor",
 				"Tag",
+				"Phone",
 				"Comments",
+				"Barcode",
 				"Dynamic Link",
 				"Read Only",
 				"Assign",
