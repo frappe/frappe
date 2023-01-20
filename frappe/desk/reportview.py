@@ -151,13 +151,9 @@ def setup_group_by(data):
 			frappe.throw(_("Invalid aggregate function"))
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
-			column = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
-			aggregate_function = data.aggregate_function
-
-			data.fields.append(f"{aggregate_function}({column}) AS _aggregate_column")
-			if data.aggregate_on_field:
-				data.fields.append(column)
-			data.group_by += f", {column}"
+			data.fields.append(
+				f"{data.aggregate_function}(`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`) AS _aggregate_column"
+			)
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
