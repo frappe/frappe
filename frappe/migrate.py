@@ -63,11 +63,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 		frappe.flags.in_migrate = True
 
 		clear_global_cache()
-
-		# run before_migrate hooks
-		for app in frappe.get_installed_apps():
-			for fn in frappe.get_hooks("before_migrate", app_name=app):
-				frappe.get_attr(fn)()
+		run_before_migrate_hooks()
 
 		# run patches
 		frappe.modules.patch_handler.run_all(skip_failing)
@@ -110,3 +106,15 @@ Otherwise, check the server logs and ensure that all the required services are r
 		with open(touched_tables_file, "w") as f:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
 		frappe.flags.touched_tables.clear()
+
+
+def run_before_migrate_hooks():
+	for app in frappe.get_installed_apps():
+		try:
+			for fn in frappe.get_hooks("before_migrate", app_name=app):
+				frappe.get_attr(fn)()
+		except Exception:
+			frappe.db.rollback()
+			raise
+		else:
+			frappe.db.commit()

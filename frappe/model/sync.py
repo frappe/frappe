@@ -11,18 +11,16 @@ import os
 
 import frappe
 from frappe.modules.import_file import import_file_by_path
-from frappe.modules.patch_handler import block_user
 from frappe.utils import update_progress_bar
 
 
 def sync_all(force=0, verbose=False, reset_permissions=False):
-	block_user(True)
+	frappe.local.flags.in_patch = True
 
 	for app in frappe.get_installed_apps():
 		sync_for(app, force, verbose=verbose, reset_permissions=reset_permissions)
 
-	block_user(False)
-
+	frappe.local.flags.in_patch = False
 	frappe.clear_cache()
 
 
