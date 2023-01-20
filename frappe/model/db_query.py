@@ -51,7 +51,7 @@ STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 DATE_PATTERN = re.compile(
-	r"'\b(\d{4}|\d{2})([-/.])(\d{2})\2(\d{4}|\d{2})\s(\d{2}):(\d{2}):(\d{2}).(\d{6})\b'"
+	r"'\b(\d{4}|\d{2})([-/.])(\d{2})\2(\d{4}|\d{2})(?:\s(\d{2}):(\d{2}):(\d{2}).(\d{6}))?\b'"
 )
 
 
