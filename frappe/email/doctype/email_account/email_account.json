@@ -20,8 +20,8 @@
   "awaiting_password",
   "ascii_encode_password",
   "column_break_10",
-  "refresh_token",
-  "access_token",
+  "connected_app",
+  "connected_user",
   "login_id_is_different",
   "login_id",
   "mailbox_settings",
@@ -203,7 +203,6 @@
    "label": "Use SSL"
   },
   {
-   "default": "1",
    "depends_on": "eval:!doc.domain && doc.enable_incoming",
    "description": "Ignore attachments over this size",
    "fetch_from": "domain.attachment_limit",
@@ -577,24 +576,10 @@
    "label": "IMAP Details"
   },
   {
-   "depends_on": "eval: doc.service === \"GMail\" && doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
    "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
-  },
-  {
-   "fieldname": "refresh_token",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Refresh Token",
-   "read_only": 1
-  },
-  {
-   "fieldname": "access_token",
-   "fieldtype": "Small Text",
-   "hidden": 1,
-   "label": "Access Token",
-   "read_only": 1
   },
   {
    "default": "Basic",
@@ -610,12 +595,28 @@
    "fieldname": "use_starttls",
    "fieldtype": "Check",
    "label": "Use STARTTLS"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "connected_app",
+   "fieldtype": "Link",
+   "label": "Connected App",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "options": "Connected App"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "connected_user",
+   "fieldtype": "Link",
+   "label": "Connected User",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "options": "User"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-23 00:31:05.305462",
+ "modified": "2022-12-28 14:56:18.754804",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

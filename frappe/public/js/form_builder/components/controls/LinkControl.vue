@@ -77,7 +77,7 @@ watch(
 		</div>
 
 		<!-- link input -->
-		<input class="form-control" type="text" disabled />
+		<input class="form-control" type="text" readonly />
 
 		<!-- description -->
 		<div v-if="df.description" class="mt-2 description" v-html="df.description" />

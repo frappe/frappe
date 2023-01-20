@@ -318,3 +318,34 @@ export function scrub_field_names(fields) {
 
 	return fields;
 }
+
+export function clone_field(field) {
+	let cloned_field = JSON.parse(JSON.stringify(field));
+	cloned_field.df.name = frappe.utils.get_random(8);
+	return cloned_field;
+}
+
+export function confirm_dialog(
+	title,
+	message,
+	primary_action,
+	primary_action_label,
+	secondary_action,
+	secondary_action_label
+) {
+	let d = new frappe.ui.Dialog({
+		title: title,
+		primary_action_label: primary_action_label || __("Yes"),
+		primary_action: () => {
+			primary_action && primary_action();
+			d.hide();
+		},
+		secondary_action_label: secondary_action_label || __("No"),
+		secondary_action: () => {
+			secondary_action && secondary_action();
+			d.hide();
+		},
+	});
+	d.show();
+	d.set_message(message);
+}
