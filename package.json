@@ -21,7 +21,7 @@
   },
   "homepage": "https://frappeframework.com",
   "dependencies": {
-    "@editorjs/editorjs": "2.20.0",
+    "@editorjs/editorjs": "^2.26.3",
     "ace-builds": "^1.4.8",
     "air-datepicker": "github:frappe/air-datepicker",
     "awesomplete": "^1.1.5",
