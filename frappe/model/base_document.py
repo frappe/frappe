@@ -72,18 +72,18 @@ def _get_controller(doctype):
 		module = load_doctype_module(doctype, module_name)
 		classname = doctype.replace(" ", "").replace("-", "")
 
-	_class = getattr(module, classname, None)
-	if _class is None:
+	class_ = getattr(module, classname, None)
+	if class_ is None:
 		raise ImportError(
 			doctype
 			if module_path is None
 			else f"{doctype}: {classname} does not exist in module {module_path}"
 		)
 
-	if not issubclass(_class, BaseDocument):
+	if not issubclass(class_, BaseDocument):
 		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
-	return _class
+	return class_
 
 
 class BaseDocument:
