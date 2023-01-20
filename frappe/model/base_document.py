@@ -54,12 +54,15 @@ def _get_controller(doctype):
 	from frappe.model.document import Document
 	from frappe.utils.nestedset import NestedSet
 
-	module_name, custom, is_tree = frappe.db.get_value(
-		"DocType", doctype, ("module", "custom", "is_tree"), cache=True
-	) or ("Core", False, False)
+	if doctype not in DOCTYPES_FOR_DOCTYPE:
+		meta = frappe.get_meta(doctype)
+		if meta.custom:
+			return NestedSet if meta.get("is_tree") else Document
 
-	if custom:
-		return NestedSet if is_tree else Document
+		module_name = meta.module
+
+	else:
+		module_name = "Core"
 
 	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
