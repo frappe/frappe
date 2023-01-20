@@ -1449,12 +1449,12 @@ def _load_app_hooks(app_name: str | None = None):
 	for app in apps:
 		try:
 			app_hooks = get_module(f"{app}.hooks")
-		except ImportError:
+		except ImportError as e:
 			if local.flags.in_install_app:
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(f'Could not find app "{app}"')
+			print(e)
 			if not request:
 				raise SystemExit
 			raise
