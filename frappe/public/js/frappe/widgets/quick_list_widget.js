@@ -161,7 +161,10 @@ export default class QuickListWidget extends Widget {
 			$quick_list_item
 		);
 
-		$quick_list_item.click(() => {
+		$quick_list_item.click((e) => {
+			if (e.ctrlKey || e.metaKey) {
+				frappe.open_in_new_tab = true;
+			}
 			frappe.set_route(`${frappe.utils.get_form_link(this.document_type, doc.name)}`);
 		});
 
@@ -243,7 +246,14 @@ export default class QuickListWidget extends Widget {
 		}
 		let route = frappe.utils.generate_route({ type: "doctype", name: this.document_type });
 		this.see_all_button = $(`
-			<a href="${route}"class="see-all btn btn-xs">${__("View List")}</a>
+			<div class="see-all btn btn-xs">${__("View List")}</div>
 		`).appendTo(this.footer);
+
+		this.see_all_button.click((e) => {
+			if (e.ctrlKey || e.metaKey) {
+				frappe.open_in_new_tab = true;
+			}
+			frappe.set_route(route);
+		});
 	}
 }
