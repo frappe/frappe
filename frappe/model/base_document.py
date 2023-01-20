@@ -75,7 +75,9 @@ def _get_controller(doctype):
 	_class = getattr(module, classname, None)
 	if _class is None:
 		raise ImportError(
-			doctype if not module_path else f"{doctype}: {classname} does not exist in module {module_path}"
+			doctype
+			if module_path is None
+			else f"{doctype}: {classname} does not exist in module {module_path}"
 		)
 
 	if not issubclass(_class, BaseDocument):
