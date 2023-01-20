@@ -867,10 +867,9 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 @pass_context
 def browse(context, site, user=None):
 	"""Opens the site on web browser"""
-	from frappe.auth import LoginManager
-	from frappe.auth import CookieManager
-
 	import webbrowser
+
+	from frappe.auth import CookieManager, LoginManager
 
 	site = context.sites[0] if context.sites else site
 
