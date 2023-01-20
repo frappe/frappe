@@ -1314,7 +1314,40 @@ def get_doc_hooks():
 	return local.doc_events_hooks
 
 
+<<<<<<< HEAD
 def get_hooks(hook=None, default=None, app_name=None):
+=======
+@request_cache
+def _load_app_hooks(app_name: str | None = None):
+	import types
+
+	hooks = {}
+	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
+
+	for app in apps:
+		try:
+			app_hooks = get_module(f"{app}.hooks")
+		except ImportError as e:
+			if local.flags.in_install_app:
+				# if app is not installed while restoring
+				# ignore it
+				pass
+			print(f'Could not find app "{app}": \n{e}')
+			raise
+
+		def _is_valid_hook(obj):
+			return not isinstance(obj, (types.ModuleType, types.FunctionType, type))
+
+		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
+			if not key.startswith("_"):
+				append_hook(hooks, key, value)
+	return hooks
+
+
+def get_hooks(
+	hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None
+) -> _dict:
+>>>>>>> 0449f851c7 (fix: correct exit code on missing app failure (#19676))
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
