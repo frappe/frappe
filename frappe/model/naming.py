@@ -59,8 +59,8 @@ class NamingSeries:
 		if not NAMING_SERIES_PATTERN.match(self.series):
 			frappe.throw(
 				_(
-					'Special Characters except "-", "#", ".", "/", "{" and "}" not allowed in naming series',
-				),
+					"Invalid naming series {}: special characters except '-', '#', '.', '/', '{{' and '}}' not allowed"
+				).format(frappe.bold(self.series)),
 				exc=InvalidNamingSeriesError,
 			)
 
