@@ -7,22 +7,29 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 	make_input() {
 		var me = this;
 		super.make_input();
-		this.$input
-			.parent()
-			.append($('<span class="password-strength-indicator indicator"></span>'));
-		this.$wrapper
-			.find(".control-input-wrapper")
-			.append($('<p class="password-strength-message text-muted small hidden"></p>'));
 
-		this.indicator = this.$wrapper.find(".password-strength-indicator");
+		this.indicator = $(
+			`<div class="password-strength-indicator hidden">
+				<div class="progress-text"></div>
+				<div class="progress">
+					<div class="progress-bar" role="progressbar"
+						aria-valuenow="0"
+						aria-valuemin="0" aria-valuemax="100">
+					</div>
+				</div>
+			</div>`
+		).insertAfter(this.$input);
+
+		this.progress_text = this.indicator.find(".progress-text");
+		this.progress_bar = this.indicator.find(".progress-bar");
 		this.message = this.$wrapper.find(".help-box");
 
-		this.$input.on("keyup", () => {
-			clearTimeout(this.check_password_timeout);
-			this.check_password_timeout = setTimeout(() => {
+		this.$input.on(
+			"keyup",
+			frappe.utils.debounce(() => {
 				me.get_password_strength(me.$input.val());
-			}, 500);
-		});
+			}, 500)
+		);
 	}
 
 	disable_password_checks() {
@@ -33,6 +40,13 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 		if (!this.enable_password_checks) {
 			return;
 		}
+
+		if (!value) {
+			this.indicator.addClass("hidden");
+			this.message.addClass("hidden");
+			return;
+		}
+
 		var me = this;
 		frappe.call({
 			type: "POST",
@@ -43,15 +57,34 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 			callback: function (r) {
 				if (r.message) {
 					let score = r.message.score;
-					var indicators = ["red", "red", "orange", "yellow", "green"];
+					var indicators = ["red", "red", "orange", "blue", "green"];
 					me.set_strength_indicator(indicators[score]);
 				}
 			},
 		});
 	}
 	set_strength_indicator(color) {
-		var message = __("Include symbols, numbers and capital letters in the password");
-		this.indicator.removeClass().addClass("password-strength-indicator indicator " + color);
+		let strength = {
+			red: [__("Weak"), "danger", 25],
+			orange: [__("Average"), "warning", 50],
+			blue: [__("Strong"), "info", 75],
+			green: [__("Excellent"), "success", 100],
+		};
+		let progress_text = strength[color][0];
+		let progress_percent = strength[color][2];
+		let progress_color = strength[color][1];
+
+		this.indicator.removeClass("hidden");
+
+		this.progress_text.html(progress_text).css("color", `var(--${color}-500)`);
+
+		this.progress_bar
+			.css("width", progress_percent + "%")
+			.attr("aria-valuenow", progress_percent)
+			.removeClass()
+			.addClass("progress-bar progress-bar-" + progress_color);
+
+		let message = __("Include symbols, numbers and capital letters in the password");
 		this.message.html(message).toggleClass("hidden", color == "green");
 	}
 };
