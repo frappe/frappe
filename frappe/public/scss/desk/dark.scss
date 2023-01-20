@@ -49,6 +49,9 @@
 	--bg-orange: var(--orange-500);
 	--bg-red: var(--red-500);
 	--bg-gray: var(--gray-600);
+	--bg-grey: var(--gray-600);
+	--bg-darkgrey: var(--gray-800);
+	--bg-dark-gray: var(--gray-800);
 	--bg-light-gray: var(--gray-700);
 	--bg-purple: var(--purple-600);
 
@@ -59,7 +62,10 @@
 	--text-on-yellow: var(--yellow-50);
 	--text-on-orange: var(--orange-100);
 	--text-on-red: var(--red-50);
-	--text-on-gray: var(--gray-300);
+	--text-on-gray: var(--gray-200);
+	--text-on-grey: var(--gray-200);
+	--text-on-darkgrey: var(--gray-200);
+	--text-on-dark-gray: var(--gray-200);
 	--text-on-light-gray: var(--gray-100);
 	--text-on-purple: var(--purple-100);
 
@@ -173,5 +179,12 @@
 	::selection {
 		color: var(--text-color);
 		background: var(--gray-500);
+	}
+
+	$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple, light-blue;
+	@each $color in $indicator-colors {
+		.indicator {
+			--indicator-dot-#{"" + $color}: var(--bg-#{$color});
+		}
 	}
 }

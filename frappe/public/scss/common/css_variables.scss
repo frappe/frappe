@@ -162,7 +162,13 @@
 	--bg-orange: var(--orange-50);
 	--bg-red: var(--red-50);
 	--bg-gray: var(--gray-200);
+	--bg-grey: var(--gray-200);
 	--bg-light-gray: var(--gray-100);
+<<<<<<< HEAD
+=======
+	--bg-dark-gray: var(--gray-400);
+	--bg-darkgrey: var(--gray-400);
+>>>>>>> dcbc9e54ca (fix: Indicator dot colors in dark mode)
 	--bg-purple: var(--purple-100);
 	--bg-pink: var(--pink-50);
 	--bg-cyan: var(--cyan-50);
@@ -176,6 +182,9 @@
 	--text-on-orange: var(--orange-500);
 	--text-on-red: var(--red-500);
 	--text-on-gray: var(--gray-600);
+	--text-on-grey: var(--gray-600);
+	--text-on-darkgrey: var(--gray-700);
+	--text-on-dark-gray: var(--gray-700);
 	--text-on-light-gray: var(--gray-800);
 	--text-on-purple: var(--purple-500);
 	--text-on-pink: var(--pink-500);

@@ -1,19 +1,3 @@
-@mixin indicator-pill-color($color) {
-	background: var(--bg-#{$color});
-	color: var(--text-on-#{$color});
-	&::before,
-	&::after {
-		background: var(--text-on-#{$color});
-	}
-}
-
-@mixin indicator-color($color) {
-	&::before,
-	&::after {
-		background: var(--text-on-#{$color});
-	}
-}
-
 .indicator,
 .indicator-pill,
 .indicator-pill-right,
@@ -67,10 +51,31 @@
 	margin: 0 0 0 4px;
 }
 
-.indicator.green {
-	@include indicator-color('green');
+$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple, light-blue;
+@each $color in $indicator-colors {
+	.indicator.#{"" + $color} {
+		&::before,
+		&::after {
+			background: var(--indicator-dot-#{$color});
+		}
+	}
+
+	.indicator-pill.#{"" + $color},
+	.indicator-pill-right.#{"" + $color},
+	.indicator-pill-round.#{"" + $color} {
+		background: var(--bg-#{$color});
+		color: var(--text-on-#{$color});
+		&::before,
+		&::after {
+			background: var(--text-on-#{$color});
+		}
+	}
+	.indicator {
+		--indicator-dot-#{"" + $color}: var(--text-on-#{$color});
+	}
 }
 
+<<<<<<< HEAD
 .indicator-pill.green,
 .indicator-pill-right.green,
 .indicator-pill-round.green {
@@ -168,6 +173,8 @@
 .indicator-pill-round.lightblue {
 	@include indicator-pill-color('light-blue');
 }
+=======
+>>>>>>> dcbc9e54ca (fix: Indicator dot colors in dark mode)
 
 .indicator.blink {
 	animation: blink 1s linear infinite;
