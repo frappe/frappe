@@ -210,10 +210,11 @@ frappe.views.ListViewSelect = class ListViewSelect {
 			render_input: 1,
 		});
 
-		const page_name = frappe.get_route().slice(-1)[0];
-		if (routes_map[page_name]) {
-			field.$input.val(page_name);
-		}
+		// TODO: check if get_page_name needs titlecase (breaks for hyphens)
+		let page_name = frappe.get_route().slice(-1)[0];
+		// Report name must be empty in the sidebar if page is report builder
+		page_name = page_name == "Report" ? null : page_name;
+		field.$input.val(page_name);
 
 		if (default_action) {
 			views_wrapper.find(".sidebar-action a").html(default_action.label);
