@@ -421,6 +421,7 @@ acceptable_attributes = [
 	"cols",
 	"colspan",
 	"compact",
+	"content",
 	"contenteditable",
 	"controls",
 	"coords",
