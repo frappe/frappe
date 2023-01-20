@@ -48,17 +48,6 @@ frappe.ui.form.Layout = class Layout {
 		this.setup_events();
 	}
 
-	show_empty_form_message() {
-		if (
-			!(
-				this.wrapper.find(".frappe-control:visible").length ||
-				this.wrapper.find(".section-head.collapsed").length
-			)
-		) {
-			this.show_message(__("This form does not have any input"));
-		}
-	}
-
 	get_doctype_fields() {
 		let fields = [this.get_new_name_field()];
 		if (this.doctype_layout) {
