@@ -110,7 +110,6 @@ Otherwise, check the server logs and ensure that all the required services are r
 
 def run_before_migrate_hooks():
 	for app in frappe.get_installed_apps():
-		frappe.db.begin()
 		try:
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
 				frappe.get_attr(fn)()
