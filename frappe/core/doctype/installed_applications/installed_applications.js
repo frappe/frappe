@@ -57,6 +57,10 @@ frappe.ui.form.on("Installed Applications", {
 				});
 
 				dialog.fields_dict.apps.grid.refresh();
+				// hack: change checkboxes to drag handles.
+				let grid = $(dialog.fields_dict.apps.grid.parent);
+				grid.find(".grid-row-check:first").remove() &&
+					grid.find(".grid-row-check").replaceWith(frappe.utils.icon("menu"));
 				dialog.show();
 			});
 	},
