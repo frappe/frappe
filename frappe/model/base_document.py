@@ -61,21 +61,25 @@ def _get_controller(doctype):
 	if custom:
 		return NestedSet if is_tree else Document
 
+	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
 	if class_overrides and class_overrides.get(doctype):
 		import_path = class_overrides[doctype][-1]
 		module_path, classname = import_path.rsplit(".", 1)
 		module = frappe.get_module(module_path)
-		if not hasattr(module, classname):
-			raise ImportError(f"{doctype}: {classname} does not exist in module {module_path}")
 
 	else:
 		module = load_doctype_module(doctype, module_name)
 		classname = doctype.replace(" ", "").replace("-", "")
 
 	_class = getattr(module, classname, None)
-	if _class is None or not issubclass(_class, BaseDocument):
-		raise ImportError(doctype)
+	if _class is None:
+		raise ImportError(
+			doctype if not module_path else f"{doctype}: {classname} does not exist in module {module_path}"
+		)
+
+	if not issubclass(_class, BaseDocument):
+		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
 	return _class
 
