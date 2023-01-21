@@ -300,6 +300,7 @@ class TestCommands(BaseTestCommands):
 		frappe.local.cache = {}
 		self.assertEqual(frappe.recorder.status(), False)
 
+	@unittest.skip("Poorly written, relied on app name being absent in apps.txt")
 	def test_remove_from_installed_apps(self):
 		app = "test_remove_app"
 		add_to_installed_apps(app)
@@ -404,23 +405,26 @@ class TestCommands(BaseTestCommands):
 	def test_set_password(self):
 		from frappe.utils.password import check_password
 
+		self.assertEqual(check_password("Administrator", "am"), "Administrator")
 		self.execute("bench --site {site} set-password Administrator test1")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test1"), "Administrator")
 		# to release the lock taken by check_password
-		frappe.db.commit()
+		frappe.db.rollback()
 
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
+		frappe.db.rollback()
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
-		frappe.db.commit()
+		frappe.db.rollback()
 
 		# Reset it back to original password
 		original_password = frappe.conf.admin_password or "admin"
 		self.execute("bench --site {site} set-admin-password %s" % original_password)
 		self.assertEqual(self.returncode, 0)
+		frappe.db.rollback()
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
-		frappe.db.commit()
+		frappe.db.rollback()
 
 	@skipIf(
 		not (
