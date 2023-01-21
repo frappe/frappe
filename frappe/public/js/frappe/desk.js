@@ -453,6 +453,7 @@ frappe.Application = class Application {
 					}
 				},
 			});
+			dialog.get_field("password").disable_password_checks();
 			dialog.set_primary_action(__("Login"), () => {
 				dialog.set_message(__("Authenticating..."));
 				frappe.call({
