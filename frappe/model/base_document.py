@@ -35,22 +35,24 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
-	"""Returns the **class** object of the given DocType.
+	"""
+	Returns the locally cached **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
-	:param doctype: DocType name as string."""
+	:param doctype: DocType name as string.
+	"""
 
 	if frappe.local.dev_server:
-		return _get_controller(doctype)
+		return import_controller(doctype)
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
-		site_controllers[doctype] = _get_controller(doctype)
+		site_controllers[doctype] = import_controller(doctype)
 
 	return site_controllers[doctype]
 
 
-def _get_controller(doctype):
+def import_controller(doctype):
 	from frappe.model.document import Document
 	from frappe.utils.nestedset import NestedSet
 
