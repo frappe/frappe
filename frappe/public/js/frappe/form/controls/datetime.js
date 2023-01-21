@@ -2,18 +2,18 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	set_formatted_input(value) {
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
-		// if (!this.datepicker) return;
-		// if (!value) {
-		// 	this.datepicker.clear();
-		// 	return;
-		// } else if (value.toLowerCase() === "today") {
-		// 	value = this.get_now_date();
-		// } else if (value.toLowerCase() === "now") {
-		// 	value = frappe.datetime.now_datetime();
-		// }
-		// value = this.format_for_input(value);
-		// this.$input && this.$input.val(value);
-		// this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+		if (!this.datepicker) return;
+		if (!value) {
+			this.datepicker.clear();
+			return;
+		} else if (value.toLowerCase() === "today") {
+			value = this.get_now_date();
+		} else if (value.toLowerCase() === "now") {
+			value = frappe.datetime.now_datetime();
+		}
+		value = this.format_for_input(value);
+		this.$input && this.$input.val(value);
+		this.datepicker.dates.parseInput(frappe.datetime.str_to_user(value));
 	}
 
 	get_start_date() {
@@ -75,6 +75,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	set_datepicker() {
 		let date_value = frappe.datetime.str_to_user(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
+		if(!date_value) {
+			date_value = undefined;
+		}
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		let user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let datetime_fmt = user_fmt + " " + user_time_fmt
@@ -83,14 +86,17 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 
 		let lang = "en";
 		frappe.boot.user && (lang = frappe.boot.user.language);
-		if (!$.fn.datepicker.language[lang]) {
-			lang = "en";
-		}
 
+		//Tempus-Dominus needs to have a unique query, therefore a unique ID is generated
+		let id = this.doctype + this.df.fieldname + this.df.fieldtype + Date.now();
+		this.$input.attr("inputmode", "none");
+		this.$input.attr("id", id);
+
+		let query_attr = document.getElementById(id);
 		const tempusDominus = require("@eonasdan/tempus-dominus/dist/js/tempus-dominus.min.js");
 		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
 		tempusDominus.extend(customdate);
-		new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+		new tempusDominus.TempusDominus(query_attr, {
 				display: {
 					components: {
 					decades: false,

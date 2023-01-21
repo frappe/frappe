@@ -1,8 +1,3 @@
-//import { TempusDominus, extend } from '@eonasdan/tempus-dominus';
-//import { TempusDominus, extend } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
-//import customdate from '@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js'
-//import moment_parse from '@eonasdan/tempus-dominus/dist/plugins/moment-parse.js'
-
 frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
 	make_input() {
@@ -10,15 +5,16 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.make_picker();
 	}
 	make_picker() {
-		this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
 	}
 	set_formatted_input(value) {
 		//Datepicker does not recognize 3 digit year values. If user mistypes, current year will be taken instead.
-		if(value.startsWith("0")) {
-			value = value.substring(4);
-			value = moment().year() + value;
+		if(value) {
+			if(value.startsWith("0")) {
+				value = value.substring(4);
+				value = moment().year() + value;
+			}
 		}
 
 		if (value === "Today") {
@@ -52,65 +48,33 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			this.datepicker.dates.parseInput(frappe.datetime.str_to_user(value));
 		}
 	}
-	set_date_options() {
-		// webformTODO:
-		let sysdefaults = frappe.boot.sysdefaults;
-
-		let lang = "en";
-		frappe.boot.user && (lang = frappe.boot.user.language);
-		if (!$.fn.datepicker.language[lang]) {
-			lang = "en";
-		}
-
-		let date_format =
-			sysdefaults && sysdefaults.date_format ? sysdefaults.date_format : "yyyy-mm-dd";
-
-		this.today_text = __("Today");
-		this.date_format = frappe.defaultDateFormat;
-		this.datepicker_options = {
-			language: lang,
-			autoClose: true,
-			todayButton: true,
-			dateFormat: date_format,
-			startDate: this.get_start_date(),
-			keyboardNav: false,
-			minDate: this.df.min_date,
-			maxDate: this.df.max_date,
-			firstDay: frappe.datetime.get_first_day_of_the_week_index(),
-			onSelect: () => {
-				this.$input.trigger("change");
-			},
-			onShow: () => {
-				this.datepicker.$datepicker
-					.find(".datepicker--button:visible")
-					.text(this.today_text);
-
-				this.update_datepicker_position();
-			},
-			...this.get_df_options(),
-		};
-	}
-
+	
 	get_start_date() {
 		return this.get_now_date();
 	}
 
 	set_datepicker() {
 		let date_value = frappe.datetime.str_to_user(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
+		if(!date_value) {
+			date_value = undefined;
+		}
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 
 		let first_day = frappe.datetime.get_first_day_of_the_week_index();
 
 		let lang = "en";
 		frappe.boot.user && (lang = frappe.boot.user.language);
-		if (!$.fn.datepicker.language[lang]) {
-			lang = "en";
-		}
+
+		//Tempus-Dominus needs to have a unique query, therefore a unique ID is generated
+		let id = this.doctype + this.df.fieldname + this.df.fieldtype + Date.now();
+		this.$input.attr("inputmode", "none");
+		this.$input.attr("id", id);
+		let query_attr = document.getElementById(id);
 
 		const tempusDominus = require("@eonasdan/tempus-dominus/dist/js/tempus-dominus.min.js");
 		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
 		tempusDominus.extend(customdate);
-		this.datepicker = new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+		this.datepicker = new tempusDominus.TempusDominus(query_attr, {
 				display: {
 					components: {
 					decades: false,
