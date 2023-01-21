@@ -69,10 +69,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 				localization: {
 					locale: lang,
 					hourCycle: 'h23',
-					dateFormats: {
-						L: user_time_fmt,
-					  },
-					format: 'L',
+					format: user_time_fmt,
 				  }
 		  });
 	}

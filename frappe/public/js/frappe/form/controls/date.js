@@ -109,14 +109,10 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 					locale: lang,
 					startOfTheWeek: first_day,
 					hourCycle: 'h23',
-					dateFormats: {
-						L: user_fmt,
-					  },
-					format: 'L',
+					format: user_fmt,
+
 				  }
 		  });
-
-		this.$input.attr("inputmode", "none");
 	}
 	update_datepicker_position() {
 		if (!this.frm) return;

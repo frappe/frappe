@@ -131,14 +131,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 					locale: lang,
 					startOfTheWeek: first_day,
 					hourCycle: 'h23',
-					dateFormats: {
-						L: datetime_fmt,
-					  },
-					format: 'L',
+					format: datetime_fmt,
 				  }
 		  });
-
-		this.$input.attr("inputmode", "none");
 	}
 
 	get_model_value() {
@@ -148,5 +143,4 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		}
 		return !value ? "" : frappe.datetime.get_datetime_as_string(value);
 	}
-
 };
