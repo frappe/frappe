@@ -1116,12 +1116,11 @@ def get_document_cache_key(doctype: str, name: str):
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
-	key = get_document_cache_key(doctype, name)
-	if key in local.document_cache:
-		del local.document_cache[key]
-	cache().hdel("document_cache", key)
+	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
+
 	if doctype == "Website Settings" and hasattr(local, "website_settings"):
 		delattr(local, "website_settings")
 
