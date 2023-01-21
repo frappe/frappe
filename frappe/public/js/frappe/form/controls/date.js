@@ -1,3 +1,8 @@
+//import { TempusDominus, extend } from '@eonasdan/tempus-dominus';
+//import { TempusDominus, extend } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
+//import customdate from '@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js'
+//import moment_parse from '@eonasdan/tempus-dominus/dist/plugins/moment-parse.js'
+
 frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlData {
 	static trigger_change_on_input_event = false;
 	make_input() {
@@ -10,6 +15,12 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.set_t_for_today();
 	}
 	set_formatted_input(value) {
+		//Datepicker does not recognize 3 digit year values. If user mistypes, current year will be taken instead.
+		if(value.startsWith("0")) {
+			value = value.substring(4);
+			value = moment().year() + value;
+		}
+
 		if (value === "Today") {
 			value = this.get_now_date();
 		}
@@ -23,23 +34,22 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		let should_refresh = this.last_value && this.last_value !== value;
-
 		if (!should_refresh) {
-			if (this.datepicker.selectedDates.length > 0) {
+			if (this.datepicker.dates.picked.length > 0) {
 				// if date is selected but different from value, refresh
-				const selected_date = moment(this.datepicker.selectedDates[0]).format(
+				const selected_date = moment(this.datepicker.dates.picked[0]).format(
 					this.date_format
 				);
 
 				should_refresh = selected_date !== value;
-			} else {
-				// if datepicker has no selected date, refresh
+			}  else {
+				//if datepicker has no selected date, refresh
 				should_refresh = true;
 			}
-		}
+		};
 
 		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			this.datepicker.dates.parseInput(frappe.datetime.str_to_user(value));
 		}
 	}
 	set_date_options() {
@@ -86,14 +96,63 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 
 	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
+		let date_value = frappe.datetime.str_to_user(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
+		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 
-		// today button didn't work as expected,
-		// so explicitly bind the event
-		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(this.get_now_date());
-		});
+		let first_day = frappe.datetime.get_first_day_of_the_week_index();
+
+		let lang = "en";
+		frappe.boot.user && (lang = frappe.boot.user.language);
+		if (!$.fn.datepicker.language[lang]) {
+			lang = "en";
+		}
+
+		const tempusDominus = require("@eonasdan/tempus-dominus/dist/js/tempus-dominus.min.js");
+		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
+		tempusDominus.extend(customdate);
+		this.datepicker = new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+				display: {
+					components: {
+					decades: false,
+					year: true,
+					month: true,
+					date: true,
+					hours: false,
+					minutes: false,
+					seconds: false
+					},
+					icons: {
+						type: 'icons',
+						time: 'fa fa-clock-o',
+						date: 'fa fa-calendar',
+						up: 'fa fa-angle-up',
+						down: 'fa fa-angle-down',
+						previous: 'fa fa-chevron-left',
+						next: 'fa fa-chevron-right',
+						today: 'fa fa-calendar-times-o',
+						clear: 'fa fa-trash',
+						close: 'fa fa-xmark'
+					},
+					theme: 'dark',
+					buttons: {
+						today: true,
+						clear: true,
+						close: false
+					  }
+				},
+				defaultDate: date_value,
+				localization: {
+					locale: lang,
+					startOfTheWeek: first_day,
+					hourCycle: 'h23',
+					dateFormats: {
+						L: user_fmt,
+					  },
+					format: 'L',
+				  }
+		  });
+
+		this.$input.attr("inputmode", "none");
 	}
 	update_datepicker_position() {
 		if (!this.frm) return;

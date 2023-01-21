@@ -41,6 +41,11 @@
     html-janitor "^2.0.4"
     nanoid "^3.1.22"
 
+"@eonasdan/tempus-dominus@^6.2.10":
+  version "6.2.10"
+  resolved "https://registry.yarnpkg.com/@eonasdan/tempus-dominus/-/tempus-dominus-6.2.10.tgz#c971b20594608a426421e5e163affb740d6e9166"
+  integrity sha512-JxbCRxfYRNQRt8P26X/UBuMfFrgz5ve4cnT4mx5cpuaWdBDkzwc8QhELXAspOsCPEZ84wkGBqhliKZr5BCnJlg==
+
 "@frappe/esbuild-plugin-postcss2@^0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@frappe/esbuild-plugin-postcss2/-/esbuild-plugin-postcss2-0.1.3.tgz#523a5cc32788f184bb78c7b946c9f132ef386508"
@@ -75,6 +80,11 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.4"
     fastq "^1.6.0"
+
+"@popperjs/core@^2.11.6":
+  version "2.11.6"
+  resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.6.tgz#cee20bd55e68a1720bdab363ecf0c821ded4cd45"
+  integrity sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==
 
 "@socket.io/component-emitter@~3.1.0":
   version "3.1.0"

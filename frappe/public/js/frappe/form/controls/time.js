@@ -44,31 +44,73 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	set_input(value) {
 		super.set_input(value);
-		if (
-			value &&
-			((this.last_value && this.last_value !== this.value) ||
-				!this.datepicker.selectedDates.length)
-		) {
-			let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
-			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
-			this.datepicker.selectDate(date_obj);
-		}
+		// if (
+		// 	value &&
+		// 	((this.last_value && this.last_value !== this.value) ||
+		// 		!this.datepicker.selectedDates.length)
+		// ) {
+		// 	let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
+		// 	var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
+		// 	this.datepicker.selectDate(date_obj);
+		// }
 	}
 	set_datepicker() {
-		this.$input.datepicker(this.datepicker_options);
-		this.datepicker = this.$input.data("datepicker");
+		let date_value = frappe.datetime.str_to_user(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
+		let user_time_fmt = frappe.datetime.get_user_time_fmt();
 
-		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
-			this.datepicker.selectDate(frappe.datetime.now_time(true));
-			this.datepicker.hide();
-		});
-		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
-			// No seconds in time format
-			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css("display", "none");
-			$tp.$secondsText.css("display", "none");
-			$tp.$secondsText.prev().css("display", "none");
+		let first_day = frappe.datetime.get_first_day_of_the_week_index();
+
+		let lang = "en";
+		frappe.boot.user && (lang = frappe.boot.user.language);
+		if (!$.fn.datepicker.language[lang]) {
+			lang = "en";
 		}
+
+		const tempusDominus = require("@eonasdan/tempus-dominus/dist/js/tempus-dominus.min.js");
+		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
+		tempusDominus.extend(customdate);
+		new tempusDominus.TempusDominus(document.querySelector(`[data-fieldname="${this.df.fieldname}"]`), {
+				display: {
+					components: {
+					decades: false,
+					year: false,
+					month: false,
+					date: false,
+					hours: true,
+					minutes: true,
+					seconds: user_time_fmt.endsWith("ss")
+					},
+					icons: {
+						type: 'icons',
+						time: 'fa fa-clock-o',
+						date: 'fa fa-calendar',
+						up: 'fa fa-angle-up',
+						down: 'fa fa-angle-down',
+						previous: 'fa fa-chevron-left',
+						next: 'fa fa-chevron-right',
+						today: 'fa fa-calendar-times-o',
+						clear: 'fa fa-trash',
+						close: 'fa fa-xmark'
+					},
+					theme: 'dark',
+					buttons: {
+						today: true,
+						clear: true,
+						close: false
+					  }
+				},
+				defaultDate: frappe.model.get_value(this.doctype, this.docname, this.df.fieldname),
+				localization: {
+					locale: lang,
+					hourCycle: 'h23',
+					dateFormats: {
+						L: user_time_fmt,
+					  },
+					format: 'L',
+				  }
+		  });
+
+		this.$input.attr("inputmode", "none");
 	}
 	set_description() {
 		const { description } = this.df;

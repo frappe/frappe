@@ -90,7 +90,6 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$input.on("focus", () => {
 			setTimeout(() => {
 				let inputValue = this.get_input_value();
-
 				if (inputValue && validate_url(inputValue)) {
 					this.$link.toggle(true);
 					this.$link_open.attr("href", this.get_input_value());
