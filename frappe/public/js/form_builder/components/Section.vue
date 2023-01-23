@@ -4,7 +4,7 @@ import Column from "./Column.vue";
 import EditableInput from "./EditableInput.vue";
 import { ref } from "vue";
 import { useStore } from "../store";
-import { section_boilerplate, move_children_to_parent } from "../utils";
+import { section_boilerplate, move_children_to_parent, confirm_dialog } from "../utils";
 
 let props = defineProps(["tab", "section"]);
 let store = useStore();
@@ -27,25 +27,42 @@ function remove_section() {
 	if (store.is_customize_form && props.section.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
+	} else if (store.has_standard_field(props.section)) {
+		delete_section();
+	} else if (is_section_empty()) {
+		delete_section(true);
+	} else {
+		confirm_dialog(
+			__("Delete Section", null, "Title of confirmation dialog"),
+			__("Are you sure you want to delete the section? All the columns along with fields in the section will be moved to the previous section.", null, "Confirmation dialog message"),
+			() => delete_section(),
+			__("Delete section", null, "Button text"),
+			() => delete_section(true),
+			__("Delete entire section with columns", null, "Button text")
+		);
 	}
+}
 
+function delete_section(with_children) {
 	let sections = props.tab.sections;
 	let index = sections.indexOf(props.section);
 
-	if (index > 0) {
-		let prev_section = sections[index - 1];
-		if (!is_section_empty()) {
-			// move all columns from current section to previous section
-			prev_section.columns = [...prev_section.columns, ...props.section.columns];
+	if (!with_children) {
+		if (index > 0) {
+			let prev_section = sections[index - 1];
+			if (!is_section_empty()) {
+				// move all columns from current section to previous section
+				prev_section.columns = [...prev_section.columns, ...props.section.columns];
+			}
+		} else if (index == 0 && !is_section_empty()) {
+			// create a new section and push columns to it
+			sections.unshift({
+				df: store.get_df("Section Break"),
+				columns: props.section.columns,
+				is_first: true,
+			});
+			index++;
 		}
-	} else if (index == 0 && !is_section_empty()) {
-		// create a new section and push columns to it
-		sections.unshift({
-			df: store.get_df("Section Break"),
-			columns: props.section.columns,
-			is_first: true,
-		});
-		index++;
 	}
 
 	// remove section
@@ -130,7 +147,13 @@ function move_sections_to_tab() {
 				</div>
 			</div>
 			<div v-if="section.df.description" class="section-description">{{ section.df.description }}</div>
-			<div class="section-columns" :class="{ hidden: section.df.collapsible && collapsed }">
+			<div
+				class="section-columns"
+				:class="{
+					hidden: section.df.collapsible && collapsed,
+					'has-one-column': section.columns.length === 1
+				}"
+			>
 				<draggable
 					class="section-columns-container"
 					:style="{
