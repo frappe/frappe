@@ -3,17 +3,16 @@
 
 from __future__ import unicode_literals
 
-import functools
-import re
-
 import frappe
 from frappe import _
 
 
-def load_address_and_contact(doc, key=None):
+def load_address_and_contact(doc, key=None) -> None:
 	"""Loads address list and contact list in `__onload`"""
-	from frappe.contacts.doctype.address.address import get_address_display, get_condensed_address
+	from frappe.contacts.doctype.address.address import get_address_display_list
+	from frappe.contacts.doctype.contact.contact import get_contact_display_list
 
+<<<<<<< HEAD
 	filters = [
 		["Dynamic Link", "link_doctype", "=", doc.doctype],
 		["Dynamic Link", "link_name", "=", doc.name],
@@ -73,6 +72,10 @@ def load_address_and_contact(doc, key=None):
 	)
 
 	doc.set_onload("contact_list", contact_list)
+=======
+	doc.set_onload("addr_list", get_address_display_list(doc.doctype, doc.name))
+	doc.set_onload("contact_list", get_contact_display_list(doc.doctype, doc.name))
+>>>>>>> 2a84b18d13 (feat: load address and contact display)
 
 
 def has_permission(doc, ptype, user):
