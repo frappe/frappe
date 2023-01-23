@@ -1,9 +1,13 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import contextlib
+import glob
+import json
 import os
 import pathlib
 import re
+import textwrap
 
 import click
 import git
@@ -166,6 +170,113 @@ def _create_github_workflow_files(dest, hooks):
 	ci_workflow = workflows_path / "ci.yml"
 	with open(ci_workflow, "w") as f:
 		f.write(github_workflow_template.format(**hooks))
+
+
+PATCH_TEMPLATE = textwrap.dedent(
+	'''
+	import frappe
+
+	def execute():
+		"""{docstring}"""
+
+		# Write your patch here.
+		pass
+'''
+)
+
+
+class PatchCreator:
+	def __init__(self):
+		self.all_apps = frappe.get_all_apps(sites_path=".", with_internal_apps=False)
+
+		self.app = None
+		self.app_dir = None
+		self.patch_dir = None
+		self.filename = None
+		self.docstring = None
+		self.patch_file = None
+
+	def fetch_user_inputs(self):
+		self._ask_app_name()
+		self._ask_doctype_name()
+		self._ask_patch_meta_info()
+
+	def _ask_app_name(self):
+		self.app = click.prompt("Select app for new patch", type=click.Choice(self.all_apps))
+		self.app_dir = pathlib.Path(frappe.get_app_path(self.app))
+
+	def _ask_doctype_name(self):
+		def _doctype_name(filename):
+			with contextlib.suppress(Exception):
+				with open(filename) as f:
+					return json.load(f).get("name")
+
+		doctype_files = list(glob.glob(f"{self.app_dir}/**/doctype/**/*.json"))
+		doctype_map = {_doctype_name(file): file for file in doctype_files}
+		doctype_map.pop(None, None)
+
+		doctype = click.prompt(
+			"Provide DocType name on which this patch will apply",
+			type=click.Choice(doctype_map.keys()),
+			show_choices=False,
+		)
+		self.patch_dir = pathlib.Path(doctype_map[doctype]).parents[0] / "patches"
+
+	def _ask_patch_meta_info(self):
+		self.docstring = click.prompt("Describe what this patch does", type=str)
+		default_filename = frappe.scrub(self.docstring) + ".py"
+
+		def _valid_filename(name):
+			if not name:
+				return
+
+			match name.partition("."):
+				case filename, ".", "py" if filename.isidentifier():
+					return True
+				case _:
+					click.echo(f"{name} is not a valid python file name")
+
+		while not _valid_filename(self.filename):
+			self.filename = click.prompt(
+				"Provide filename for this patch", type=str, default=default_filename
+			)
+
+	def create_patch_file(self):
+		self._create_parent_folder_if_not_exists()
+
+		self.patch_file = self.patch_dir / self.filename
+
+		if self.patch_file.exists():
+			raise Exception(f"Patch {self.patch_file} already exists")
+
+		*path, _filename = self.patch_file.relative_to(self.app_dir.parents[0]).parts
+		dotted_path = ".".join(path + [self.patch_file.stem])
+
+		patches_txt = self.app_dir / "patches.txt"
+		existing_patches = patches_txt.read_text()
+
+		if dotted_path in existing_patches:
+			raise Exception(f"Patch {dotted_path} is already present in patches.txt")
+
+		self.patch_file.write_text(PATCH_TEMPLATE.format(docstring=self.docstring))
+
+		with open(patches_txt, "a+") as f:
+			if not existing_patches.endswith("\n"):
+				f.write("\n")  # ensure EOF
+			f.write(dotted_path + "\n")
+		click.echo(f"Created {self.patch_file} and updated patches.txt")
+
+	def _create_parent_folder_if_not_exists(self):
+		if not self.patch_dir.exists():
+			click.confirm(
+				f"Patch folder '{self.patch_dir}' doesn't exist, create it?",
+				abort=True,
+				default=True,
+			)
+			self.patch_dir.mkdir()
+
+		init_py = self.patch_dir / "__init__.py"
+		init_py.touch()
 
 
 manifest_template = """include MANIFEST.in
