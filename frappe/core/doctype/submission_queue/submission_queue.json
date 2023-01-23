@@ -20,9 +20,8 @@
  "fields": [
   {
    "fieldname": "job_id",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Job Id",
-   "options": "RQ Job",
    "read_only": 1
   },
   {
@@ -81,14 +80,14 @@
   },
   {
    "fieldname": "exception",
-   "fieldtype": "Text",
+   "fieldtype": "Long Text",
    "label": "Exception",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-01-03 20:54:40.904584",
+ "modified": "2023-01-23 12:45:53.997708",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -103,11 +102,6 @@
    "report": 1,
    "role": "System Manager",
    "share": 1
-  },
-  {
-   "if_owner": 1,
-   "read": 1,
-   "role": "All"
   }
  ],
  "sort_field": "modified",
