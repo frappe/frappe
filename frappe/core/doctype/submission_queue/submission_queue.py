@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from typing import Callable
 from urllib.parse import quote
 
 from rq import get_current_job
@@ -36,11 +35,10 @@ class SubmissionQueue(Document):
 		table = frappe.qb.DocType("Submission Queue")
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
-	def insert(self, to_be_queued_doc: Document, action: str, **job_kwargs):
+	def insert(self, to_be_queued_doc: Document, action: str):
 		self.status = "Queued"
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
-		self.kwargs = job_kwargs
 		super().insert(ignore_permissions=True)
 
 	def lock(self):
@@ -59,15 +57,12 @@ class SubmissionQueue(Document):
 		frappe.db.commit()
 
 	def after_insert(self):
-		self.kwargs.pop("enqueue_after_commit", None)
-
 		self.queue_action(
 			"background_submission",
 			to_be_queued_doc=self.queued_doc,
 			action_for_queuing=self.action_for_queuing,
-			timeout=self.kwargs.pop("timeout", 600),
+			timeout=600,
 			enqueue_after_commit=True,
-			**self.kwargs,
 		)
 
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
@@ -104,7 +99,7 @@ class SubmissionQueue(Document):
 		else:
 			doctype = self.ref_doctype
 			docname = self.ref_docname
-			message = _("Action {0} completed on {1} {2}. View it {3}")
+			message = _("Action {0} completed successfully on {1} {2}. View it {3}")
 
 		message_replacements = (
 			frappe.bold(action),
@@ -150,11 +145,11 @@ class SubmissionQueue(Document):
 		frappe.msgprint(_("Document Unlocked"))
 
 
-def queue_submission(doc: Document, action: str, alert: bool = True, **job_kwargs):
+def queue_submission(doc: Document, action: str, alert: bool = True):
 	queue = frappe.new_doc("Submission Queue")
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
-	queue.insert(doc, action, **job_kwargs)
+	queue.insert(doc, action)
 
 	if alert:
 		frappe.msgprint(

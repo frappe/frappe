@@ -136,15 +136,7 @@ def apply_workflow(doc, action):
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus == DocStatus.submitted():
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
-			queue_submission(
-				doc,
-				action="submit",
-				on_success=lambda job, connection, result, *args, **kwargs: (
-					doc.add_comment("Workflow", _(next_state.state)),
-					frappe.db.commit(),
-				),
-			)
-			return
+			queue_submission(doc, action="submit")
 		else:
 			doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus == DocStatus.submitted():
@@ -265,11 +257,8 @@ def bulk_workflow_approval(docnames, doctype, action):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
-			d = apply_workflow(frappe.get_doc(doctype, docname), action)
+			apply_workflow(frappe.get_doc(doctype, docname), action)
 			frappe.db.commit()
-			if not d:
-				# for background submission
-				continue
 		except Exception as e:
 			if not frappe.message_log:
 				# Exception is	raised manually and not from msgprint or throw
