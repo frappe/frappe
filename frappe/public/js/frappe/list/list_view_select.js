@@ -195,6 +195,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				placeholder: __("Select a Report"),
 				get_query: () => {
 					return {
+						query: "frappe.desk.reportview.get_permitted_reports",
 						filters: { ref_doctype: this.doctype },
 					};
 				},

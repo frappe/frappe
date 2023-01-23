@@ -627,6 +627,28 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 	return stats
 
 
+@frappe.whitelist()
+def get_permitted_reports(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict
+):
+	"""Fetch permitted doctype specific reports for sidebar's report link field."""
+	_txt = txt.casefold()
+	ref_doctype = filters["ref_doctype"]
+	reports = frappe.cache().get_value(f"has_role:{doctype}", user=frappe.session.user).values()
+
+	allowed_reports = filter(
+		lambda report: report["ref_doctype"] == ref_doctype and _txt in report["title"].casefold(),
+		reports,
+	)
+
+	return [
+		[
+			report["title"],
+		]
+		for report in allowed_reports
+	]
+
+
 def scrub_user_tags(tagcount):
 	"""rebuild tag list for tags"""
 	rdict = {}
