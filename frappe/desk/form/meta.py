@@ -183,7 +183,6 @@ class FormMeta(Meta):
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""
-		# TODO: IF field is not found replace with useful message
 		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
 			if df.options:
 				try:
