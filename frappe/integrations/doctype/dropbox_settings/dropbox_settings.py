@@ -5,7 +5,17 @@ import json
 import os
 from urllib.parse import parse_qs, urlparse
 
-import dropbox
+from dropbox import Dropbox, DropboxOAuth2Flow
+from dropbox.exceptions import ApiError as DropboxApiError
+from dropbox.files import (
+	CommitInfo,
+	FileMetadata,
+	GetMetadataError,
+	ListFolderError,
+	UploadError,
+	UploadSessionCursor,
+	WriteMode,
+)
 from rq.timeouts import JobTimeoutException
 
 import frappe
@@ -119,9 +129,7 @@ def backup_to_dropbox(upload_db_backup=True):
 		dropbox_settings["access_token"] = access_token["oauth2_token"]
 		set_dropbox_access_token(access_token["oauth2_token"])
 
-	dropbox_client = dropbox.Dropbox(
-		oauth2_access_token=dropbox_settings["access_token"], timeout=None
-	)
+	dropbox_client = Dropbox(oauth2_access_token=dropbox_settings["access_token"], timeout=None)
 
 	if upload_db_backup:
 		if frappe.flags.create_new_backup:
@@ -145,7 +153,12 @@ def backup_to_dropbox(upload_db_backup=True):
 	if dropbox_settings["file_backup"]:
 		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
 		upload_from_folder(
-			get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log
+			get_files_path(is_private=1),
+			1,
+			"/private/files",
+			dropbox_client,
+			did_not_upload,
+			error_log,
 		)
 
 	return did_not_upload, list(set(error_log))
@@ -199,7 +212,7 @@ def upload_from_folder(
 				error_log.append(frappe.get_traceback())
 
 
-def upload_file_to_dropbox(filename, folder, dropbox_client):
+def upload_file_to_dropbox(filename: str, folder: str, dropbox_client: Dropbox):
 	"""upload files with chunk of 15 mb to reduce session append calls"""
 	if not os.path.exists(filename):
 		return
@@ -208,7 +221,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	file_size = os.path.getsize(encode(filename))
 	chunk_size = get_chunk_site(file_size)
 
-	mode = dropbox.files.WriteMode.overwrite
+	mode = WriteMode.overwrite
 
 	f = open(encode(filename), "rb")
 	path = f"{folder}/{os.path.basename(filename)}"
@@ -218,10 +231,8 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 			dropbox_client.files_upload(f.read(), path, mode)
 		else:
 			upload_session_start_result = dropbox_client.files_upload_session_start(f.read(chunk_size))
-			cursor = dropbox.files.UploadSessionCursor(
-				session_id=upload_session_start_result.session_id, offset=f.tell()
-			)
-			commit = dropbox.files.CommitInfo(path=path, mode=mode)
+			cursor = UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=f.tell())
+			commit = CommitInfo(path=path, mode=mode)
 
 			while f.tell() < file_size:
 				if (file_size - f.tell()) <= chunk_size:
@@ -231,8 +242,8 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 						f.read(chunk_size), cursor.session_id, cursor.offset
 					)
 					cursor.offset = f.tell()
-	except dropbox.exceptions.ApiError as e:
-		if isinstance(e.error, dropbox.files.UploadError):
+	except DropboxApiError as e:
+		if isinstance(e.error, UploadError):
 			error = f"File Path: {path}\n"
 			error += frappe.get_traceback()
 			frappe.log_error(error)
@@ -243,9 +254,9 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 def create_folder_if_not_exists(folder, dropbox_client):
 	try:
 		dropbox_client.files_get_metadata(folder)
-	except dropbox.exceptions.ApiError as e:
+	except DropboxApiError as e:
 		# folder not found
-		if isinstance(e.error, dropbox.files.GetMetadataError):
+		if isinstance(e.error, GetMetadataError):
 			dropbox_client.files_create_folder(folder)
 		else:
 			raise
@@ -263,9 +274,9 @@ def is_fresh_upload():
 def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 	try:
 		return dropbox_client.files_list_folder(dropbox_folder)
-	except dropbox.exceptions.ApiError as e:
+	except DropboxApiError as e:
 		# folder not found
-		if isinstance(e.error, dropbox.files.ListFolderError):
+		if isinstance(e.error, ListFolderError):
 			return frappe._dict({"entries": []})
 		else:
 			raise
@@ -310,7 +321,7 @@ def delete_older_backups(dropbox_client, folder_path, to_keep):
 	res = dropbox_client.files_list_folder(path=folder_path)
 	files = []
 	for f in res.entries:
-		if isinstance(f, dropbox.files.FileMetadata) and "sql" in f.name:
+		if isinstance(f, FileMetadata) and "sql" in f.name:
 			files.append(f)
 
 	if len(files) <= to_keep:
@@ -346,7 +357,7 @@ def get_redirect_url():
 @frappe.whitelist()
 def get_dropbox_authorize_url():
 	app_details = get_dropbox_settings(redirect_uri=True)
-	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
+	dropbox_oauth_flow = DropboxOAuth2Flow(
 		consumer_key=app_details["app_key"],
 		redirect_uri=app_details["redirect_uri"],
 		session={},
@@ -365,7 +376,7 @@ def dropbox_auth_finish(return_access_token=False):
 	callback = frappe.form_dict
 	close = '<p class="text-muted">' + _("Please close this window") + "</p>"
 
-	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
+	dropbox_oauth_flow = DropboxOAuth2Flow(
 		consumer_key=app_details["app_key"],
 		redirect_uri=app_details["redirect_uri"],
 		session={"dropbox-auth-csrf-token": callback.state},
