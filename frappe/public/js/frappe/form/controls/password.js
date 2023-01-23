@@ -27,9 +27,29 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 		this.$input.on(
 			"keyup",
 			frappe.utils.debounce(() => {
+				let hide_icon = me.$input.val() && !me.$input.val().includes("*");
+				me.toggle_password.toggleClass("hidden", !hide_icon);
 				me.get_password_strength(me.$input.val());
 			}, 500)
 		);
+
+		this.toggle_password = $(`
+			<div class="toggle-password hidden">
+				${frappe.utils.icon("unhide", "sm")}
+			</div>
+		`).insertAfter(this.$input);
+
+		this.toggle_password.on("click", () => {
+			if (this.$input.attr("type") === "password") {
+				this.$input.attr("type", "text");
+				this.toggle_password.html(frappe.utils.icon("hide", "sm"));
+			} else {
+				this.$input.attr("type", "password");
+				this.toggle_password.html(frappe.utils.icon("unhide", "sm"));
+			}
+		});
+
+		!this.value && this.toggle_password.removeClass("hidden");
 	}
 
 	disable_password_checks() {
@@ -71,8 +91,8 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 			green: [__("Excellent"), "success", 100],
 		};
 		let progress_text = strength[color][0];
-		let progress_percent = strength[color][2];
 		let progress_color = strength[color][1];
+		let progress_percent = strength[color][2];
 
 		this.indicator.removeClass("hidden");
 

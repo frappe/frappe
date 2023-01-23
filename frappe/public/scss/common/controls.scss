@@ -32,6 +32,15 @@
 				height: 5px;
 			}
 		}
+
+		.toggle-password {
+			position: absolute;
+			top: 4px;
+			right: 8px;
+			padding: 3px;
+			z-index: 3;
+			cursor: pointer;
+		}
 	}
 }
 
