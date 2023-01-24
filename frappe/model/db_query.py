@@ -1257,7 +1257,6 @@ def get_permitted_fields(doctype, parenttype=None):
 	if doctype in core_doctypes_list:
 		return meta.get_valid_columns()
 
-	accessible_fields = [x.fieldname for x in meta.get_permlevel_read_fields(parenttype=parenttype)]
 	meta_fields = meta.default_fields.copy()
 	optional_meta_fields = list(optional_fields)
 
@@ -1272,7 +1271,7 @@ def get_permitted_fields(doctype, parenttype=None):
 	else:
 		meta_fields.remove("idx")
 
-	return meta_fields + accessible_fields + optional_meta_fields
+	return meta_fields + meta.get_permitted_fieldnames(parenttype=parenttype) + optional_meta_fields
 
 
 def wrap_grave_quotes(table: str) -> str:
