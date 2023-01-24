@@ -20,12 +20,18 @@ expected_settings_10_3_later = {
 def get_mariadb_versions():
 	# MariaDB classifies their versions as Major (1st and 2nd number), and Minor (3rd number)
 	# Example: Version 10.3.13 is Major Version = 10.3, Minor Version = 13
+<<<<<<< HEAD
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
 	version_string = mariadb_variables.get("version").split("-")[0]
 	versions = {}
 	versions["major"] = version_string.split(".")[0] + "." + version_string.split(".")[1]
 	versions["minor"] = version_string.split(".")[2]
 	return versions
+=======
+	version_string = version_string or get_mariadb_variables().get("version")
+	version = version_string.split("-", 1)[0]
+	return version.rsplit(".", 1)
+>>>>>>> d357af1533 (refactor: Add a maxsplit limit to string splits)
 
 
 def setup_database(force, source_sql, verbose, no_mariadb_socket=False):

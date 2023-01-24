@@ -186,7 +186,7 @@ def extract_fieldname(field):
 	fieldname = field
 	for sep in (" as ", " AS "):
 		if sep in fieldname:
-			fieldname = fieldname.split(sep)[0]
+			fieldname = fieldname.split(sep, 1)[0]
 
 	# certain functions allowed, extract the fieldname from the function
 	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):
@@ -487,6 +487,22 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 	return data
 
 
+<<<<<<< HEAD
+=======
+def parse_field(field: str) -> tuple[str | None, str]:
+	"""Parse a field into parenttype and fieldname."""
+	key = field.split(" as ", 1)[0]
+
+	if key.startswith(("count(", "sum(", "avg(")):
+		raise ValueError
+
+	if "." in key:
+		return key.split(".", 1)[0][4:-1], key.split(".", 2)[1].strip("`")
+
+	return None, key.strip("`")
+
+
+>>>>>>> d357af1533 (refactor: Add a maxsplit limit to string splits)
 @frappe.whitelist()
 def delete_items():
 	"""delete selected items"""

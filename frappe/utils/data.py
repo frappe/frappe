@@ -1170,7 +1170,7 @@ def fmt_money(
 	if flt(amount) < 0:
 		minus = "-"
 
-	amount = cstr(abs(flt(amount))).split(".")[0]
+	amount = cstr(abs(flt(amount))).split(".", 1)[0]
 
 	if len(amount) > 3:
 		parts.append(amount[-3:])
@@ -1327,7 +1327,7 @@ def is_image(filepath: str) -> bool:
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = (filepath or "").split("?")[0]
+	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 

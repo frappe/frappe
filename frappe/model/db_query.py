@@ -435,7 +435,7 @@ class DatabaseQuery:
 				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
 					continue
 
-				table_name = field.split(".")[0]
+				table_name = field.split(".", 1)[0]
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
@@ -904,7 +904,7 @@ class DatabaseQuery:
 					# will covert to
 					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 					args.order_by = ", ".join(
-						f"`tab{self.doctype}`.`{f.split()[0].strip()}` {f.split()[1].strip()}"
+						f"`tab{self.doctype}`.`{f.split(maxsplit=1)[0].strip()}` {f.split(maxsplit=2)[1].strip()}"
 						for f in meta.sort_field.split(",")
 					)
 				else:
@@ -1036,7 +1036,7 @@ def get_order_by(doctype, meta):
 		# will covert to
 		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 		order_by = ", ".join(
-			f"`tab{doctype}`.`{f.split()[0].strip()}` {f.split()[1].strip()}"
+			f"`tab{doctype}`.`{f.split(maxsplit=1)[0].strip()}` {f.split(maxsplit=2)[1].strip()}"
 			for f in meta.sort_field.split(",")
 		)
 

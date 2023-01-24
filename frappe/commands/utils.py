@@ -558,7 +558,7 @@ def _psql():
 @pass_context
 def jupyter(context):
 	installed_packages = (
-		r.split("==")[0]
+		r.split("==", 1)[0]
 		for r in subprocess.check_output([sys.executable, "-m", "pip", "freeze"], encoding="utf8")
 	)
 
@@ -994,7 +994,7 @@ def request(context, args=None, path=None):
 					frappe.local.form_dict = frappe._dict()
 
 				if args.startswith("/api/method"):
-					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+					frappe.local.form_dict.cmd = args.split("?", 1)[0].split("/")[-1]
 			elif path:
 				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())

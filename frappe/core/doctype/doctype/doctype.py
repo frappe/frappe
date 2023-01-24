@@ -879,7 +879,7 @@ def validate_series(dt, autoname=None, name=None):
 	if not autoname and dt.get("fields", {"fieldname": "naming_series"}):
 		dt.autoname = "naming_series:"
 	elif dt.autoname and dt.autoname.startswith("naming_series:"):
-		fieldname = dt.autoname.split("naming_series:")[0] or "naming_series"
+		fieldname = dt.autoname.split("naming_series:", 1)[0] or "naming_series"
 		if not dt.get("fields", {"fieldname": fieldname}):
 			frappe.throw(
 				_("Fieldname called {0} must exist to enable autonaming").format(frappe.bold(fieldname)),
@@ -907,7 +907,7 @@ def validate_series(dt, autoname=None, name=None):
 		and (not autoname.startswith("format:"))
 	):
 
-		prefix = autoname.split(".")[0]
+		prefix = autoname.split(".", 1)[0]
 		doctype = frappe.qb.DocType("DocType")
 		used_in = (
 			frappe.qb.from_(doctype)
@@ -1342,7 +1342,7 @@ def validate_fields(meta):
 		if meta.sort_field:
 			sort_fields = [meta.sort_field]
 			if "," in meta.sort_field:
-				sort_fields = [d.split()[0] for d in meta.sort_field.split(",")]
+				sort_fields = [d.split(maxsplit=1)[0] for d in meta.sort_field.split(",")]
 
 			for fieldname in sort_fields:
 				if fieldname not in (fieldname_list + list(default_fields) + list(child_table_fields)):
