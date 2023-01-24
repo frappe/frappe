@@ -30,7 +30,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		if (!this.size){
 			var col_brk =0, cur_col_brk = 0;
 			/* if more than 2 column break presents between two 
-			   section breaks then make quick entry size as large */
+			   section breaks then make dialog size as large */
 			this.fields.forEach(field => {
 				if(field.fieldtype == 'Column Break'){
 					cur_col_brk += 1;
