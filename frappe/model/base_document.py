@@ -353,7 +353,7 @@ class BaseDocument:
 
 			if ignore_nulls and d[fieldname] is None:
 				del d[fieldname]
-			if not is_virtual_field and field_value is _DOC_DELETED_ATTR:
+			elif not is_virtual_field and field_value is _DOC_DELETED_ATTR:
 				del d[fieldname]
 
 		return d

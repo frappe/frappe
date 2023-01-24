@@ -14,7 +14,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import FallBackDateTimeStr, NestedSetHierarchy
-from frappe.model import core_doctypes_list, optional_fields
+from frappe.model import child_table_fields, core_doctypes_list, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
@@ -51,6 +51,7 @@ STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 FN_PARAMS_PATTERN = re.compile(r".*?\((.*)\).*")
+SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 
 class DatabaseQuery:
@@ -1238,7 +1239,7 @@ def get_permitted_fields(doctype, parenttype=None):
 		meta_fields.remove("docstatus")
 
 	if meta.istable:
-		meta_fields.extend(["parent", "parenttype", "parentfield"])
+		meta_fields.extend(child_table_fields)
 	else:
 		meta_fields.remove("idx")
 
@@ -1253,7 +1254,7 @@ def wrap_grave_quotes(table: str) -> str:
 
 def is_plain_field(field: str) -> bool:
 	for char in field:
-		if char in ("(", "`", ".", "'", '"', "*"):
+		if char in SPECIAL_FIELD_CHARS:
 			return False
 	return True
 
