@@ -50,6 +50,7 @@ class Notification(Document):
 		frappe.cache().hdel("notifications", self.document_type)
 
 	def on_update(self):
+		frappe.cache().hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path:
 			# js
