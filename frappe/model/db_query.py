@@ -632,8 +632,6 @@ class DatabaseQuery:
 			elif "(" in field:
 				if "*" in field:
 					continue
-				elif any(x for x in permitted_fields if x in field):
-					continue
 				elif _params := FN_PARAMS_PATTERN.findall(column):
 					params = (x for x in _params[0].split(","))
 					for param in params:
