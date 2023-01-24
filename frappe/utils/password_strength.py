@@ -12,6 +12,12 @@ from frappe import _
 
 def test_password_strength(password, user_inputs=None):
 	"""Wrapper around zxcvbn.password_strength"""
+	if len(password) > 128:
+		# zxcvbn takes forever when checking long, random passwords.
+		# repetion patterns or user inputs in the first 128 characters
+		# will still be checked.
+		password = password[:128]
+
 	result = zxcvbn(password, user_inputs)
 	result.update({"feedback": get_feedback(result.get("score"), result.get("sequence"))})
 	return result
