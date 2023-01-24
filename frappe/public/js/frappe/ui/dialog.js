@@ -42,7 +42,15 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 					cur_col_brk = 0;
 				}
 			});
-			this.size = col_brk>=2?'large':''
+			if (col_brk >= 5){
+				this.size = "extra-large";
+			}
+			else if (col_brk >= 2){
+				this.size = col_brk>=2?"large":"";
+			}
+			else {
+				this.size = "small";
+			}
 		}
 		
 		this.wrapper = this.$wrapper.find(".modal-dialog").get(0);
