@@ -6,6 +6,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.email.doctype.email_group.email_group import add_subscribers
+from frappe.rate_limiter import rate_limit
 from frappe.utils.safe_exec import is_job_queued
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.website.website_generator import WebsiteGenerator
@@ -227,7 +228,6 @@ class Newsletter(WebsiteGenerator):
 		)
 
 
-@frappe.whitelist(allow_guest=True)
 def confirmed_unsubscribe(email, group):
 	"""unsubscribe the email(user) from the mailing list(email_group)"""
 	frappe.flags.ignore_permissions = True
@@ -238,8 +238,12 @@ def confirmed_unsubscribe(email, group):
 
 
 @frappe.whitelist(allow_guest=True)
-def subscribe(email, email_group=_("Website")):  # noqa
+@rate_limit(limit=10, seconds=60 * 60)
+def subscribe(email, email_group=None):  # noqa
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
+
+	if email_group is None:
+		email_group = _("Website")
 
 	# build subscription confirmation URL
 	api_endpoint = frappe.utils.get_url(

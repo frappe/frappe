@@ -366,8 +366,10 @@ class DocType(Document):
 							d.fieldname = d.fieldname + "_column"
 						elif d.fieldtype == "Tab Break":
 							d.fieldname = d.fieldname + "_tab"
-					else:
+					elif d.fieldtype in ("Section Break", "Column Break", "Tab Break"):
 						d.fieldname = d.fieldtype.lower().replace(" ", "_") + "_" + str(random_string(4))
+					else:
+						frappe.throw(_("Row #{}: Fieldname is required").format(d.idx), title="Missing Fieldname")
 				else:
 					if d.fieldname in restricted:
 						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
@@ -1133,7 +1135,7 @@ def validate_fields(meta):
 					d.options = options
 
 	def check_hidden_and_mandatory(docname, d):
-		if d.hidden and d.reqd and not d.default:
+		if d.hidden and d.reqd and not d.default and not frappe.flags.in_migrate:
 			frappe.throw(
 				_("{0}: Field {1} in row {2} cannot be hidden and mandatory without default").format(
 					docname, d.label, d.idx

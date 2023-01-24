@@ -4,7 +4,7 @@ import Field from "./Field.vue";
 import EditableInput from "./EditableInput.vue";
 import { ref } from "vue";
 import { useStore } from "../store";
-import { move_children_to_parent } from "../utils";
+import { move_children_to_parent, confirm_dialog } from "../utils";
 
 let props = defineProps(["section", "column"]);
 let store = useStore();
@@ -24,32 +24,61 @@ function remove_column() {
 	if (store.is_customize_form && props.column.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
+	} else if (props.column.fields.length == 0 || store.has_standard_field(props.column)) {
+		delete_column();
+	} else {
+		confirm_dialog(
+			__("Delete Column", null, "Title of confirmation dialog"),
+			__("Are you sure you want to delete the column? All the fields in the column will be moved to the previous column.", null, "Confirmation dialog message"),
+			() => delete_column(),
+			__("Delete column", null, "Button text"),
+			() => delete_column(true),
+			__("Delete entire column with fields", null, "Button text")
+		);
 	}
+}
 
+function delete_column(with_children) {
 	// move all fields to previous column
 	let columns = props.section.columns;
 	let index = columns.indexOf(props.column);
 
-	if (index > 0) {
-		let prev_column = columns[index - 1];
-		prev_column.fields = [...prev_column.fields, ...props.column.fields];
-	} else {
-		if (props.column.fields.length != 0) {
-			// create a new column if current column has fields and push fields to it
-			columns.unshift({
-				df: store.get_df("Column Break"),
-				fields: props.column.fields,
-				is_first: true,
-			});
-			index++;
+	if (with_children && index == 0 && columns.length == 1) {
+		if (props.column.fields.length == 0) {
+			frappe.msgprint(__("Section must have at least one column"));
+			throw "section must have at least one column";
+		}
+
+		columns.unshift({
+			df: store.get_df("Column Break"),
+			fields: [],
+			is_first: true,
+		});
+		index++;
+	}
+
+	if (!with_children) {
+		if (index > 0) {
+			let prev_column = columns[index - 1];
+			prev_column.fields = [...prev_column.fields, ...props.column.fields];
 		} else {
-			// set next column as first column
-			let next_column = columns[index + 1];
-			if (next_column) {
-				next_column.is_first = true;
+			if (props.column.fields.length == 0) {
+				// set next column as first column
+				let next_column = columns[index + 1];
+				if (next_column) {
+					next_column.is_first = true;
+				} else {
+					frappe.msgprint(__("Section must have at least one column"));
+					throw "section must have at least one column";
+				}
 			} else {
-				frappe.msgprint(__("Section must have at least one column"));
-				throw "section must have at least one column";
+				// create a new column if current column has fields and push fields to it
+				columns.unshift({
+					df: store.get_df("Column Break"),
+					fields: props.column.fields,
+					is_first: true,
+				});
+				index++;
 			}
 		}
 	}

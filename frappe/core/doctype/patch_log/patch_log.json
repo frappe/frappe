@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "PATCHLOG.#####",
+ "autoname": "hash",
  "creation": "2013-01-17 11:36:45",
  "description": "List of patches executed",
  "doctype": "DocType",
@@ -20,11 +20,11 @@
  "icon": "fa fa-cog",
  "idx": 1,
  "links": [],
- "modified": "2022-06-13 05:34:37.845368",
+ "modified": "2023-01-17 15:35:11.688615",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Patch Log",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
