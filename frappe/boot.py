@@ -8,12 +8,15 @@ from six import iteritems, text_type
 """
 bootstrap client session
 """
-from typing import TYPE_CHECKING
-
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+<<<<<<< HEAD
+=======
+from frappe.database.utils import Query
+from frappe.desk.doctype.route_history.route_history import frequently_visited_links
+>>>>>>> 81d6b282a3 (chore: Remove errprint triggered by passing Query object to db.sql)
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
@@ -33,9 +36,6 @@ from frappe.translate import get_lang_dict, get_messages_for_boot, get_translate
 from frappe.utils import cstr
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
-
-if TYPE_CHECKING:
-	from frappe.database.utils import Query
 
 
 def get_bootinfo():
@@ -345,6 +345,7 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 	"""
 	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
 	if permission_query:
+<<<<<<< HEAD
 		query = f"{query} AND {permission_query}"
 
 <<<<<<< HEAD
@@ -353,6 +354,10 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 =======
 	return frappe.db.sql(query, as_dict=True)  # nosemgrep
 >>>>>>> 0ba158979d (fix: Make `run_with_permission_query` private (not a general util))
+=======
+		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)  # nosemgrep
+	return query.run(as_dict=True)
+>>>>>>> 81d6b282a3 (chore: Remove errprint triggered by passing Query object to db.sql)
 
 
 def load_translations(bootinfo):
