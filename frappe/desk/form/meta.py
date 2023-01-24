@@ -134,7 +134,7 @@ class FormMeta(Meta):
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), encoding="utf-8") as f:
-					templates[fname.split(".")[0]] = scrub_html_template(f.read())
+					templates[fname.split(".", 1)[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
 
@@ -249,7 +249,7 @@ class FormMeta(Meta):
 	def load_templates(self):
 		if not self.custom:
 			module = load_doctype_module(self.name)
-			app = module.__name__.split(".")[0]
+			app = module.__name__.split(".", 1)[0]
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
 				for key, path in module.form_grid_templates.items():

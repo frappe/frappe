@@ -18,7 +18,7 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 	user_agent = request_dict.get("environ", {}).get("HTTP_USER_AGENT")
 
 	if referrer:
-		referrer = referrer.split("?")[0]
+		referrer = referrer.split("?", 1)[0]
 
 	is_unique = True
 	if referrer.startswith(url):

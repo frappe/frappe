@@ -152,7 +152,7 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 		return True
 
 
-def execute_patch(patchmodule, method=None, methodargs=None):
+def execute_patch(patchmodule: str, method=None, methodargs=None):
 	"""execute the patch"""
 	_patch_mode(True)
 
@@ -162,7 +162,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		docstring = ""
 	else:
 		has_patch_file = True
-		patch = f"{patchmodule.split()[0]}.execute"
+		patch = f"{patchmodule.split(maxsplit=1)[0]}.execute"
 		_patch = frappe.get_attr(patch)
 		docstring = _patch.__doc__ or ""
 

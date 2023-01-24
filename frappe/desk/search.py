@@ -76,7 +76,7 @@ def search_widget(
 
 	standard_queries = frappe.get_hooks().standard_queries or {}
 
-	if query and query.split()[0].lower() != "select":
+	if query and query.split(maxsplit=1)[0].lower() != "select":
 		# by method
 		try:
 			is_whitelisted(frappe.get_attr(query))
