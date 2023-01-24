@@ -14,10 +14,12 @@ import json
 import operator
 import os
 import re
+import gettext
 from contextlib import contextmanager
 from csv import reader
 
 from babel.messages.extract import extract_python
+from babel.messages.mofile import read_mo
 from babel.messages.jslexer import Token, tokenize, unquote_string
 from pypika.terms import PseudoColumn
 
@@ -54,11 +56,12 @@ REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
 
-# Cache keys
-MERGED_TRANSLATION_KEY = "merged_translations"
 APP_TRANSLATION_KEY = "translations_from_apps"
+DEFAULT_LANG = "en"
+LOCALE_DIR = "locale"
+MERGED_TRANSLATION_KEY = "merged_translations"
+TRANSLATION_DOMAIN = "messages"
 USER_TRANSLATION_KEY = "lang_user_translations"
-
 
 def get_language(lang_list: list = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
@@ -163,7 +166,8 @@ def get_lang_dict():
 
 
 def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns translation dict for a type of object.
+	"""
+	Returns translation dict for a type of object.
 
 	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
 	:param name: name of the document for which assets are to be returned.
@@ -220,10 +224,54 @@ def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	return translation_map
 
 
+def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool | None = False):
+	t = gettext.translation(TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True)
+
+	if context:
+		return t.pgettext
+
+	return t.gettext
+
+
+def f(msg: str, context: str = None, lang: str = DEFAULT_LANG):
+	from frappe import as_unicode
+	from frappe.utils import is_html, strip_html_tags
+
+	if not lang:
+		lang = DEFAULT_LANG
+
+	msg = as_unicode(msg).strip()
+
+	if is_html(msg):
+		msg = strip_html_tags(msg)
+
+	apps = frappe.get_all_apps()
+
+	for app in apps:
+		app_path = frappe.get_pymodule_path(app)
+		locale_path = os.path.join(app_path, LOCALE_DIR)
+		has_context = context is not None
+
+		if has_context:
+			t = get_translator(lang, localedir=locale_path, context=has_context)
+			r = t(context, msg)
+			if r != msg:
+				return r
+
+		t = get_translator(lang, localedir=locale_path, context=False)
+		r = t(msg)
+
+		if r != msg:
+			return r
+
+	return msg
+
 def get_messages_for_boot():
-	"""Return all message translations that are required on boot."""
+	"""
+	Return all message translations that are required on boot
+	"""
 	messages = get_all_translations(frappe.local.lang)
-	messages.update(get_dict_from_hooks("boot", None))
+	# TODO: get dict from hooks
 
 	return messages
 
@@ -274,15 +322,19 @@ def get_lang_js(fortype: str, name: str) -> str:
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
-	"""Load and return the entire translations dictionary for a language from apps + user translations.
+	"""
+	Load and return the entire translations dictionary for a language from apps
+	+ user translations.
 
 	:param lang: Language Code, e.g. `hi`
+	:return: dictionary of key and value
 	"""
 	if not lang:
 		return {}
 
-	def _merge_translations():
-		all_translations = get_translations_from_apps(lang).copy()
+	def t():
+		all_translations = get_translations_from_apps(lang)
+
 		try:
 			# get user specific translation data
 			user_translations = get_user_translations(lang)
@@ -293,35 +345,39 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return all_translations
 
 	try:
-		return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
-	except Exception:
-		# People mistakenly call translation function on global variables
-		# where locals are not initalized, translations dont make much sense there
+		return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=t)
+	except:
+		# People mistakenly call translation function on global variables where
+		# locals are not initialized, translations don't make much sense there
 		return {}
 
 
 def get_translations_from_apps(lang, apps=None):
-	"""Combine all translations from `.csv` files in all `apps`.
-	For derivative languages (es-GT), take translations from the
-	base language (es) and then update translations from the child (es-GT)"""
-
-	if lang == "en":
+	"""
+	Combine all translations from `.csv` files in all `apps`. For derivative
+	languages (es-GT), take translations from the base language (es) and then
+	update translations from the child (es-GT)
+	"""
+	if not lang or lang == DEFAULT_LANG:
 		return {}
 
-	def _get_from_disk():
+	def t():
 		translations = {}
+
 		for app in apps or frappe.get_all_apps(True):
-			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-			translations.update(get_translation_dict_from_file(path, lang, app) or {})
-		if "-" in lang:
-			parent = lang.split("-")[0]
-			parent_translations = get_translations_from_apps(parent)
-			parent_translations.update(translations)
-			return parent_translations
+			app_path = frappe.get_pymodule_path(app)
+			localedir = os.path.join(app_path, LOCALE_DIR)
+			mo_files = gettext.find(TRANSLATION_DOMAIN, localedir, (lang,), True)
+
+			for file in mo_files:
+				with open(file, "rb") as f:
+					po = read_mo(f)
+					for m in po:
+						translations[m.id] = m.string
 
 		return translations
 
-	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=_get_from_disk)
+	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=t)
 
 
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
@@ -347,14 +403,22 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 	return translation_map
 
 
-def get_user_translations(lang):
+def get_user_translations(lang: str) -> dict[str, str]:
+	"""
+	Get translations from db, created by user
+
+	:param lang: language to fetch
+	:return: translation key/value
+	"""
 	if not frappe.db:
 		frappe.connect()
 
-	def _read_from_db():
+	def f():
 		user_translations = {}
 		translations = frappe.get_all(
-			"Translation", fields=["source_text", "translated_text", "context"], filters={"language": lang}
+			"Translation",
+			fields=["source_text", "translated_text", "context"],
+			filters={"language": lang},
 		)
 
 		for t in translations:
@@ -363,9 +427,10 @@ def get_user_translations(lang):
 			if t.context:
 				key += ":" + t.context
 			user_translations[key] = value
+
 		return user_translations
 
-	return frappe.cache().hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
+	return frappe.cache().hget(USER_TRANSLATION_KEY, lang, generator=f)
 
 
 def clear_cache():
