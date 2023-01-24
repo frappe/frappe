@@ -27,7 +27,24 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			});
 			this.get_close_btn().hide();
 		}
-
+		if (!this.size){
+			var col_brk =0, cur_col_brk = 0;
+			/* if more than 2 column break presents between two 
+			   section breaks then make quick entry size as large */
+			this.fields.forEach(field => {
+				if(field.fieldtype == 'Column Break'){
+					cur_col_brk += 1;
+				}
+				if(field.fieldtype == 'Section Break'){
+					if(cur_col_brk > col_brk){
+						col_brk = cur_col_brk;
+					}
+					cur_col_brk = 0;
+				}
+			});
+			this.size = col_brk>=2?'large':''
+		}
+		
 		this.wrapper = this.$wrapper.find(".modal-dialog").get(0);
 		if (this.size == "small") $(this.wrapper).addClass("modal-sm");
 		else if (this.size == "large") $(this.wrapper).addClass("modal-lg");

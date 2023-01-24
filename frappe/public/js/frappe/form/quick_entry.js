@@ -122,26 +122,11 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	}
 
 	render_dialog() {
-		var me = this, col_brk =0, cur_col_brk = 0;
-        /* if more than 2 column break presents between two 
-		   section breaks then make quick entry size as large */
-        this.mandatory.forEach(field => {
-			if(field.fieldtype == 'Column Break'){
-                cur_col_brk += 1;
-			}
-            if(field.fieldtype == 'Section Break'){
-				if(cur_col_brk > col_brk){
-                    col_brk = cur_col_brk;
-				}
-                cur_col_brk = 0;
-			}
-        });
-
+		var me = this;
 		this.dialog = new frappe.ui.Dialog({
 			title: __("New {0}", [__(this.doctype)]),
 			fields: this.mandatory,
 			doc: this.doc,
-			size:col_brk>=2?'large':'',
 		});
 
 		this.register_primary_action();
