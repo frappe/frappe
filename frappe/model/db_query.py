@@ -562,6 +562,7 @@ class DatabaseQuery:
 		if self.flags.ignore_permissions:
 			return
 
+		asterisk_fields = []
 		permitted_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
@@ -577,7 +578,7 @@ class DatabaseQuery:
 				column = strip_alias(column).replace("`", "")
 
 			if column == "*" and not in_function("*", field):
-				self.fields[i : i + 1] = permitted_fields
+				asterisk_fields.append(i)
 				continue
 
 			# handle pseudo columns
@@ -625,6 +626,12 @@ class DatabaseQuery:
 			# remove if access not allowed
 			else:
 				self.fields.remove(field)
+
+		# handle * fields
+		j = 0
+		for i in asterisk_fields:
+			self.fields[i + j : i + j + 1] = permitted_fields
+			j = j + len(permitted_fields) - 1
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
