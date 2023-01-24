@@ -19,7 +19,7 @@ def test_password_strength(password, user_inputs=None):
 		password = password[:128]
 
 	result = zxcvbn(password, user_inputs)
-	result.update({"feedback": get_feedback(result.get("score"), result.get("sequence"))})
+	result["feedback"] = get_feedback(result.get("score"), result.get("sequence"))
 	return result
 
 
