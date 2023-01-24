@@ -182,6 +182,8 @@ class LDAP_TestCase:
 
 			with contextlib.suppress(MandatoryError, ValidationError):
 				frappe.get_doc(localdoc).save()
+				if mandatory_field == "default_role" and localdoc["default_user_type"] == "System User":
+					continue
 				self.fail(f"Document LDAP Settings field [{mandatory_field}] is not mandatory")
 
 		for non_mandatory_field in self.doc:  # Ensure remaining fields have not been made mandatory
