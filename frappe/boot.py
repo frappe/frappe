@@ -4,12 +4,11 @@
 from __future__ import unicode_literals
 
 from six import iteritems, text_type
+from typing import Union
 
 """
 bootstrap client session
 """
-from typing import TYPE_CHECKING
-
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
@@ -31,8 +30,7 @@ from frappe.utils import cstr
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
-if TYPE_CHECKING:
-	from frappe.database.utils import Query
+from frappe.query_builder.builder import MariaDB, Postgres
 
 
 def get_bootinfo():
@@ -257,16 +255,15 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
-def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
+def _run_with_permission_query(query: Union[str, Postgres, MariaDB], doctype: str) -> list[dict]:
 	"""
 	Adds Permission Query (Server Script) conditions and runs/executes modified query
 	Note: Works only if 'WHERE' is the last clause in the query
 	"""
 	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
 	if permission_query:
-		query = f"{query} AND {permission_query}"
-
-	return frappe.db.sql(query, as_dict=True)  # nosemgrep
+		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)  # nosemgrep
+	return query.run(as_dict=True)
 
 
 def load_translations(bootinfo):
