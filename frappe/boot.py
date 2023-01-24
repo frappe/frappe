@@ -3,12 +3,11 @@
 """
 bootstrap client session
 """
-from typing import TYPE_CHECKING
-
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
+from frappe.database.utils import Query
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
@@ -25,9 +24,6 @@ from frappe.translate import get_lang_dict, get_messages_for_boot, get_translate
 from frappe.utils import add_user_info, cstr, get_time_zone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
-
-if TYPE_CHECKING:
-	from frappe.database.utils import Query
 
 
 def get_bootinfo():
@@ -264,9 +260,8 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 	"""
 	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
 	if permission_query:
-		query = f"{query} AND {permission_query}"
-
-	return frappe.db.sql(query, as_dict=True)  # nosemgrep
+		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)  # nosemgrep
+	return query.run(as_dict=True)
 
 
 def load_translations(bootinfo):
