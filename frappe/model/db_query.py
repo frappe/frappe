@@ -897,8 +897,9 @@ class DatabaseQuery:
 					# will covert to
 					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 					args.order_by = ", ".join(
-						f"`tab{self.doctype}`.`{f.split(maxsplit=1)[0].strip()}` {f.split(maxsplit=2)[1].strip()}"
+						f"`tab{self.doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 						for f in meta.sort_field.split(",")
+						if (f_split := f.split(maxsplit=2))
 					)
 				else:
 					sort_field = meta.sort_field or "modified"
@@ -1029,8 +1030,9 @@ def get_order_by(doctype, meta):
 		# will covert to
 		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 		order_by = ", ".join(
-			f"`tab{doctype}`.`{f.split(maxsplit=1)[0].strip()}` {f.split(maxsplit=2)[1].strip()}"
+			f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 			for f in meta.sort_field.split(",")
+			if (f_split := f.split(maxsplit=2))
 		)
 
 	else:

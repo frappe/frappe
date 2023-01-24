@@ -462,7 +462,8 @@ def parse_field(field: str) -> tuple[str | None, str]:
 		raise ValueError
 
 	if "." in key:
-		return key.split(".", 1)[0][4:-1], key.split(".", 2)[1].strip("`")
+		table, column = key.split(".", 2)[:2]
+		return table[4:-1], column.strip("`")
 
 	return None, key.strip("`")
 
