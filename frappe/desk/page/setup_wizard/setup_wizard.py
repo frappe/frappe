@@ -5,8 +5,7 @@ import json
 
 import frappe
 from frappe.geo.country_info import get_country_info
-from frappe.i18n.engine import get_messages_for_boot
-from frappe.translate import send_translations, set_default_language
+from frappe.translate import get_messages_for_boot, send_translations, set_default_language
 from frappe.utils import cint, strip
 from frappe.utils.password import update_password
 
