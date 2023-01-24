@@ -357,13 +357,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 
 			if e.repeat_on == "Monthly":
 				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
-				date = (
-					start.split("-", maxsplit=1)[0]
-					+ "-"
-					+ start.split("-", maxsplit=2)[1]
-					+ "-"
-					+ event_start.split("-", maxsplit=3)[2]
-				)
+				year, month = start.split("-", maxsplit=2)[:2]
+				date = f"{year}-{month}-" + event_start.split("-", maxsplit=3)[2]
 
 				# last day of month issue, start from prev month!
 				try:
