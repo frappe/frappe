@@ -604,7 +604,7 @@ class DatabaseQuery:
 				continue
 
 			# labels / pseudo columns or frappe internals
-			elif column[0] in {"'", '"', "_"}:
+			elif column[0] in {"'", '"'} or column in optional_fields:
 				continue
 
 			# handle child / joined table fields
