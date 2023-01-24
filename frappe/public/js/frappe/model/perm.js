@@ -172,7 +172,9 @@ $.extend(frappe.perm, {
 		}
 
 		if (!perm) {
-			return (df && (cint(df.hidden) || cint(df.hidden_due_to_dependency))) ? "None" : "Write";
+			let is_hidden = df && (cint(df.hidden) || cint(df.hidden_due_to_dependency));
+			let is_read_only = df && cint(df.read_only);
+			return is_hidden ? "None" : is_read_only ? "Read" : "Write";
 		}
 
 		if (!df.permlevel) df.permlevel = 0;
