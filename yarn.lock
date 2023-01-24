@@ -55,6 +55,67 @@
     stylus "^0.x"
     tmp "^0.2.1"
 
+"@interactjs/actions@^1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/actions/-/actions-1.10.17.tgz#e09ebe0b38296728587d2d20a8161f82a5b5cd43"
+  integrity sha512-wyB1ZqpaZy5gmz6VDqK9KWh98xKnFgL7VyLvxHODFi9V0IYX4HJAAOBlhtfze0D1R1f1cY+gqPDK+dLaHMlE+w==
+  optionalDependencies:
+    "@interactjs/interact" "1.10.17"
+
+"@interactjs/auto-start@^1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/auto-start/-/auto-start-1.10.17.tgz#9cc15ebb271159c09193a235b0323701f47f45d8"
+  integrity sha512-qYVxhAbYnwxjD/NLEegUoAST7WASJ4VmWNjsyWRx/js5Op+I4E2zteARIeZGgrutcGIXMCcQzhCMgE3PjOpbpw==
+  optionalDependencies:
+    "@interactjs/interact" "1.10.17"
+
+"@interactjs/core@1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/core/-/core-1.10.17.tgz#f222f8409ca883ccb406cc5fea929f22c81a5d08"
+  integrity sha512-rL9w+83HDRuXub8Ezqs+97CYLl/ne7bLT/sAeduUWaxYhsW9iOqBoob9JnkkCZOaOsYizWI1EWy0+fNc5ibtLQ==
+
+"@interactjs/interact@1.10.17", "@interactjs/interact@^1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/interact/-/interact-1.10.17.tgz#6b7f5048737e9bc273517edd562baa4f0544d192"
+  integrity sha512-NyKsf8EFudvdahBjPz1Gt5QnynVwa/2LUfBc2/w8QOnOBiyzUm0HLloJSaB8a50QbQkSWN243/Lgpd8GTMQvuQ==
+  dependencies:
+    "@interactjs/core" "1.10.17"
+    "@interactjs/types" "1.10.17"
+    "@interactjs/utils" "1.10.17"
+
+"@interactjs/modifiers@^1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/modifiers/-/modifiers-1.10.17.tgz#709cef244bf6675f74605ac67921495989c920c2"
+  integrity sha512-Dxw8kv9VBIxnhNvQncR6CKAGMzKXczLvuAUIdSPFYtyerX/XiDulJUqhR+jVKNp/WjF1DvdBxWo0kGGLbM84LQ==
+  dependencies:
+    "@interactjs/snappers" "1.10.17"
+  optionalDependencies:
+    "@interactjs/interact" "1.10.17"
+
+"@interactjs/reflow@^1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/reflow/-/reflow-1.10.17.tgz#71abcb00399970377262b1fe32746f55dc77d493"
+  integrity sha512-ncpWP5k93FRQptEhjzPZsbuRRajd4rkW17lDavCrEjrDi/LHnYekWGqZTaFzfJ80n1x8xUm9ujDjxCTylNqEIA==
+  optionalDependencies:
+    "@interactjs/interact" "1.10.17"
+
+"@interactjs/snappers@1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/snappers/-/snappers-1.10.17.tgz#98678d05782bf9614572e7a39b85e88116933645"
+  integrity sha512-m753DGsNOts797e3zDT6wqELoc+BlpIC1w+TyMyISRxU6n1RlS8Q6LHBGgwAgV79LHLaahv/a5haFF9H1VG0FQ==
+  optionalDependencies:
+    "@interactjs/interact" "1.10.17"
+
+"@interactjs/types@1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/types/-/types-1.10.17.tgz#1649de06d9ead790c81ecece76736b852bdfc77e"
+  integrity sha512-X2JpoM7xUw0p9Me0tMaI0HNfcF/Hd07ZZlzpnpEMpGerUZOLoyeThrV9P+CrBHxZrluWJrigJbcdqXliFd0YMA==
+
+"@interactjs/utils@1.10.17":
+  version "1.10.17"
+  resolved "https://registry.yarnpkg.com/@interactjs/utils/-/utils-1.10.17.tgz#4e50edfd0935843ad914ddf478fc060359af0760"
+  integrity sha512-sZAW08CkqgvqRjUIaLRjScjObcCzN9D75yekLA21EClYAZIhi4A+GEt2z/WqOCOksTaEPLYmQyhkpXcboc0LhQ==
+
 "@nodelib/fs.scandir@2.1.4":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.4.tgz#d4b3549a5db5de2683e0c1071ab4f140904bbf69"
@@ -229,10 +290,15 @@
     sass "^1.18.0"
     stylus "^0.54.5"
 
-"@vue/devtools-api@^6.0.0-beta.11", "@vue/devtools-api@^6.1.4", "@vue/devtools-api@^6.4.4":
+"@vue/devtools-api@^6.0.0-beta.11", "@vue/devtools-api@^6.1.4":
   version "6.4.4"
   resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.4.4.tgz#0b024fc8ca91bb4b6035abaf53c5aecc17119b3b"
   integrity sha512-Ku31WzpOV/8cruFaXaEZKF81WkNnvCSlBY4eOGtz5WMSdJvX1v1WWlSMGZeqUwPtQ27ZZz7B62erEMq8JDjcXw==
+
+"@vue/devtools-api@^6.4.5":
+  version "6.4.5"
+  resolved "https://registry.yarnpkg.com/@vue/devtools-api/-/devtools-api-6.4.5.tgz#d54e844c1adbb1e677c81c665ecef1a2b4bb8380"
+  integrity sha512-JD5fcdIuFxU4fQyXUu3w2KpAJHzTVdN+p4iOX2lMWSHMOoQdMAcpFLZzm9Z/2nmsoZ1a96QEhZ26e50xLBsgOQ==
 
 "@vue/reactivity-transform@3.2.39":
   version "3.2.39"
@@ -2394,12 +2460,12 @@ pify@^4.0.1:
   resolved "https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz#4b2cd25c50d598735c50292224fd8c6df41e3231"
   integrity sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==
 
-pinia@^2.0.23:
-  version "2.0.23"
-  resolved "https://registry.yarnpkg.com/pinia/-/pinia-2.0.23.tgz#570f5f82160b656b412602789683faa95502d227"
-  integrity sha512-N15hFf4o5STrxpNrib1IEb1GOArvPYf1zPvQVRGOO1G1d74Ak0J0lVyalX/SmrzdT4Q0nlEFjbURsmBmIGUR5Q==
+pinia@^2.0.24:
+  version "2.0.24"
+  resolved "https://registry.yarnpkg.com/pinia/-/pinia-2.0.24.tgz#babf12207931f85b31d7451b55c0d76785b91b51"
+  integrity sha512-DDLd4Iphyc+6PYYYbx7jkb6WP9gecgu9bz9huyB5rb7CdJI3DhzYiZI+/Ih8MLewRrP9DSpslF/BgSNrJtZU7A==
   dependencies:
-    "@vue/devtools-api" "^6.4.4"
+    "@vue/devtools-api" "^6.4.5"
     vue-demi "*"
 
 plyr@^3.7.2:

@@ -1,0 +1,24 @@
+{
+ "content": null,
+ "creation": "2022-09-06 16:10:56.806466",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-rocket",
+ "idx": 0,
+ "modified": "2022-11-18 08:46:33.880240",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "print-designer",
+ "owner": "Administrator",
+ "page_name": "print-designer",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 1,
+ "title": "Print Designer"
+}
