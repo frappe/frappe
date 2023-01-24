@@ -173,7 +173,6 @@ class LDAP_TestCase:
 			"ldap_username_field",
 			"ldap_first_name_field",
 			"require_trusted_certificate",
-			"default_role",
 		]  # fields that are required to have ldap functioning need to be mandatory
 
 		for mandatory_field in mandatory_fields:
