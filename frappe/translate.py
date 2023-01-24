@@ -234,7 +234,15 @@ def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool 
 	return t.gettext
 
 
-def f(msg: str, context: str = None, lang: str = DEFAULT_LANG):
+def f(msg: str, context: str = None, lang: str = DEFAULT_LANG) -> str:
+	"""
+	Method to translate a string
+
+	:param msg: Key to translate
+	:param context: Translation context
+	:param lang: Language to fetch
+	:return: Translated string. Could be original string
+	"""
 	from frappe import as_unicode
 	from frappe.utils import is_html, strip_html_tags
 
