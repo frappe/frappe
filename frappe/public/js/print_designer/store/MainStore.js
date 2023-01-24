@@ -39,8 +39,6 @@ export const useMainStore = defineStore("useMainStore", {
 		printCssVariableID: null,
 		printCssVariables: null,
 		isMarqueeActive: false,
-		isRetina: false,
-		browserZoomLevel: 1,
 		modal: null,
 		modalLocation: {
 			isDragged: false,

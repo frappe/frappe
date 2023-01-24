@@ -1,5 +1,4 @@
-import frappe, json;
-from pypika import Criterion
+import frappe;
 @frappe.whitelist(allow_guest=False)
 def image_docfields():
 	docfield = frappe.qb.DocType('DocField')

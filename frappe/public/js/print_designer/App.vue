@@ -39,42 +39,6 @@ const toolbarClasses = computed(() => {
 });
 
 useAttachKeyBindings();
-
-window.addEventListener("resize", (e) => {
-	if (!window.matchMedia("(min--moz-device-pixel-ratio: 0)").matches) {
-		MainStore.browserZoomLevel = window.devicePixelRatio;
-		MainStore.isRetina && (MainStore.browserZoomLevel /= 2);
-		if (window.devicePixelRatio == 2 && MainStore.isRetina) {
-			if (
-				MainStore.browserZoomLevel !=
-				parseFloat((window.outerWidth / window.innerWidth).toFixed(2))
-			) {
-				MainStore.browserZoomLevel = parseFloat(
-					(window.outerWidth / window.innerWidth).toFixed(2)
-				);
-			}
-		}
-	}
-});
-window.visualViewport.addEventListener("resize", () => {
-	if (!window.matchMedia("(min--moz-device-pixel-ratio: 0)").matches) {
-		MainStore.browserZoomLevel = window.devicePixelRatio;
-		MainStore.isRetina && (MainStore.browserZoomLevel /= 2);
-		if (window.devicePixelRatio == 2 && MainStore.isRetina) {
-			if (
-				MainStore.browserZoomLevel !=
-				parseFloat((window.outerWidth / window.innerWidth).toFixed(2))
-			) {
-				MainStore.browserZoomLevel = parseFloat(
-					(window.outerWidth / window.innerWidth).toFixed(2)
-				);
-			}
-		}
-		MainStore.browserZoomLevel += window.visualViewport.scale - 1;
-	} else {
-		MainStore.browserZoomLevel = window.visualViewport.scale;
-	}
-});
 onMounted(() => {
 	MainStore.print_design_name = props.print_format_name;
 	fetchMeta();
