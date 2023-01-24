@@ -172,13 +172,9 @@ $.extend(frappe.perm, {
 		}
 
 		if (!perm) {
-<<<<<<< HEAD
-			return (df && (cint(df.hidden) || cint(df.hidden_due_to_dependency))) ? "None" : "Write";
-=======
 			let is_hidden = df && (cint(df.hidden) || cint(df.hidden_due_to_dependency));
 			let is_read_only = df && cint(df.read_only);
 			return is_hidden ? "None" : is_read_only ? "Read" : "Write";
->>>>>>> 3d280a2d3f (fix: child table readonly field in dialog is not readonly)
 		}
 
 		if (!df.permlevel) df.permlevel = 0;
