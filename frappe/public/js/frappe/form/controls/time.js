@@ -36,42 +36,42 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
 		tempusDominus.extend(customdate);
 		this.datepicker = new tempusDominus.TempusDominus(query_attr, {
-				display: {
-					components: {
+			display: {
+				components: {
 					decades: false,
 					year: false,
 					month: false,
 					date: false,
 					hours: true,
 					minutes: true,
-					seconds: user_time_fmt.endsWith("ss")
-					},
-					icons: {
-						type: 'icons',
-						time: 'fa fa-clock-o',
-						date: 'fa fa-calendar',
-						up: 'fa fa-angle-up',
-						down: 'fa fa-angle-down',
-						previous: 'fa fa-chevron-left',
-						next: 'fa fa-chevron-right',
-						today: 'fa fa-calendar-times-o',
-						clear: 'fa fa-trash',
-						close: 'fa fa-xmark'
-					},
-					theme: 'dark',
-					buttons: {
-						today: true,
-						clear: true,
-						close: false
-					  }
+					seconds: user_time_fmt.endsWith("ss"),
 				},
-				defaultDate: frappe.model.get_value(this.doctype, this.docname, this.df.fieldname),
-				localization: {
-					locale: lang,
-					hourCycle: 'h23',
-					format: user_time_fmt,
-				  }
-		  });
+				icons: {
+					type: "icons",
+					time: "fa fa-clock-o",
+					date: "fa fa-calendar",
+					up: "fa fa-angle-up",
+					down: "fa fa-angle-down",
+					previous: "fa fa-chevron-left",
+					next: "fa fa-chevron-right",
+					today: "fa fa-calendar-times-o",
+					clear: "fa fa-trash",
+					close: "fa fa-xmark",
+				},
+				theme: "dark",
+				buttons: {
+					today: true,
+					clear: true,
+					close: false,
+				},
+			},
+			defaultDate: frappe.model.get_value(this.doctype, this.docname, this.df.fieldname),
+			localization: {
+				locale: lang,
+				hourCycle: "h23",
+				format: user_time_fmt,
+			},
+		});
 	}
 	set_description() {
 		const { description } = this.df;

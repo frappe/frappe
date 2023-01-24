@@ -10,8 +10,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 	set_formatted_input(value) {
 		//Datepicker does not recognize 3 digit year values. If user mistypes, current year will be taken instead.
-		if(value) {
-			if(value.startsWith("0")) {
+		if (value) {
+			if (value.startsWith("0")) {
 				value = value.substring(4);
 				value = moment().year() + value;
 			}
@@ -38,24 +38,26 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 				);
 
 				should_refresh = selected_date !== value;
-			}  else {
+			} else {
 				//if datepicker has no selected date, refresh
 				should_refresh = true;
 			}
-		};
+		}
 
 		if (should_refresh) {
 			this.datepicker.dates.parseInput(frappe.datetime.str_to_user(value));
 		}
 	}
-	
+
 	get_start_date() {
 		return this.get_now_date();
 	}
 
 	set_datepicker() {
-		let date_value = frappe.datetime.str_to_user(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
-		if(!date_value) {
+		let date_value = frappe.datetime.str_to_user(
+			frappe.model.get_value(this.doctype, this.docname, this.df.fieldname)
+		);
+		if (!date_value) {
 			date_value = undefined;
 		}
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
@@ -75,44 +77,43 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
 		tempusDominus.extend(customdate);
 		this.datepicker = new tempusDominus.TempusDominus(query_attr, {
-				display: {
-					components: {
+			display: {
+				components: {
 					decades: false,
 					year: true,
 					month: true,
 					date: true,
 					hours: false,
 					minutes: false,
-					seconds: false
-					},
-					icons: {
-						type: 'icons',
-						time: 'fa fa-clock-o',
-						date: 'fa fa-calendar',
-						up: 'fa fa-angle-up',
-						down: 'fa fa-angle-down',
-						previous: 'fa fa-chevron-left',
-						next: 'fa fa-chevron-right',
-						today: 'fa fa-calendar-times-o',
-						clear: 'fa fa-trash',
-						close: 'fa fa-xmark'
-					},
-					theme: 'dark',
-					buttons: {
-						today: true,
-						clear: true,
-						close: false
-					  }
+					seconds: false,
 				},
-				defaultDate: date_value,
-				localization: {
-					locale: lang,
-					startOfTheWeek: first_day,
-					hourCycle: 'h23',
-					format: user_fmt,
-
-				  }
-		  });
+				icons: {
+					type: "icons",
+					time: "fa fa-clock-o",
+					date: "fa fa-calendar",
+					up: "fa fa-angle-up",
+					down: "fa fa-angle-down",
+					previous: "fa fa-chevron-left",
+					next: "fa fa-chevron-right",
+					today: "fa fa-calendar-times-o",
+					clear: "fa fa-trash",
+					close: "fa fa-xmark",
+				},
+				theme: "dark",
+				buttons: {
+					today: true,
+					clear: true,
+					close: false,
+				},
+			},
+			defaultDate: date_value,
+			localization: {
+				locale: lang,
+				startOfTheWeek: first_day,
+				hourCycle: "h23",
+				format: user_fmt,
+			},
+		});
 	}
 	update_datepicker_position() {
 		if (!this.frm) return;

@@ -74,13 +74,15 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
-		let date_value = frappe.datetime.str_to_user(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname));
-		if(!date_value) {
+		let date_value = frappe.datetime.str_to_user(
+			frappe.model.get_value(this.doctype, this.docname, this.df.fieldname)
+		);
+		if (!date_value) {
 			date_value = undefined;
 		}
 		let user_fmt = frappe.datetime.get_user_date_fmt().replace("mm", "MM");
 		let user_time_fmt = frappe.datetime.get_user_time_fmt();
-		let datetime_fmt = user_fmt + " " + user_time_fmt
+		let datetime_fmt = user_fmt + " " + user_time_fmt;
 
 		let first_day = frappe.datetime.get_first_day_of_the_week_index();
 
@@ -97,43 +99,43 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		const customdate = require("@eonasdan/tempus-dominus/dist/plugins/customDateFormat.js");
 		tempusDominus.extend(customdate);
 		new tempusDominus.TempusDominus(query_attr, {
-				display: {
-					components: {
+			display: {
+				components: {
 					decades: false,
 					year: true,
 					month: true,
 					date: true,
 					hours: true,
 					minutes: true,
-					seconds: user_time_fmt.endsWith("ss")
-					},
-					icons: {
-						type: 'icons',
-						time: 'fa fa-clock-o',
-						date: 'fa fa-calendar',
-						up: 'fa fa-angle-up',
-						down: 'fa fa-angle-down',
-						previous: 'fa fa-chevron-left',
-						next: 'fa fa-chevron-right',
-						today: 'fa fa-calendar-times-o',
-						clear: 'fa fa-trash',
-						close: 'fa fa-xmark'
-					},
-					theme: 'dark',
-					buttons: {
-						today: true,
-						clear: true,
-						close: false
-					  }
+					seconds: user_time_fmt.endsWith("ss"),
 				},
-				defaultDate: date_value,
-				localization: {
-					locale: lang,
-					startOfTheWeek: first_day,
-					hourCycle: 'h23',
-					format: datetime_fmt,
-				  }
-		  });
+				icons: {
+					type: "icons",
+					time: "fa fa-clock-o",
+					date: "fa fa-calendar",
+					up: "fa fa-angle-up",
+					down: "fa fa-angle-down",
+					previous: "fa fa-chevron-left",
+					next: "fa fa-chevron-right",
+					today: "fa fa-calendar-times-o",
+					clear: "fa fa-trash",
+					close: "fa fa-xmark",
+				},
+				theme: "dark",
+				buttons: {
+					today: true,
+					clear: true,
+					close: false,
+				},
+			},
+			defaultDate: date_value,
+			localization: {
+				locale: lang,
+				startOfTheWeek: first_day,
+				hourCycle: "h23",
+				format: datetime_fmt,
+			},
+		});
 	}
 
 	get_model_value() {
