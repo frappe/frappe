@@ -8,19 +8,19 @@
 """
 
 import functools
+import gettext
 import io
 import itertools
 import json
 import operator
 import os
 import re
-import gettext
 from contextlib import contextmanager
 from csv import reader
 
 from babel.messages.extract import extract_python
-from babel.messages.mofile import read_mo
 from babel.messages.jslexer import Token, tokenize, unquote_string
+from babel.messages.mofile import read_mo
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -62,6 +62,7 @@ LOCALE_DIR = "locale"
 MERGED_TRANSLATION_KEY = "merged_translations"
 TRANSLATION_DOMAIN = "messages"
 USER_TRANSLATION_KEY = "lang_user_translations"
+
 
 def get_language(lang_list: list = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
@@ -265,6 +266,7 @@ def f(msg: str, context: str = None, lang: str = DEFAULT_LANG):
 			return r
 
 	return msg
+
 
 def get_messages_for_boot():
 	"""
@@ -1320,7 +1322,8 @@ def get_contribution_status(message_id):
 	doc = frappe.get_doc("Translation", message_id)
 	translator = FrappeClient(get_translator_url())
 	contributed_translation = translator.get_api(
-		"translator.api.get_contribution_status", params={"translation_id": doc.contribution_docname}
+		"translator.api.get_contribution_status",
+		params={"translation_id": doc.contribution_docname},
 	)
 	return contributed_translation
 
