@@ -75,7 +75,7 @@ class WidgetDialog {
 
 		this.filters = [];
 
-		this.generate_filter_from_json();
+		this.generate_filter_from_json && this.generate_filter_from_json();
 
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
