@@ -31,7 +31,7 @@ class InstalledApplications(Document):
 
 
 @frappe.whitelist()
-def update_installed_apps_order(new_order: list[str] | str):
+def update_installed_apps_order(new_order):
 	"""Change the ordering of `installed_apps` global
 
 	This list is used to resolve hooks and by default it's order of installation on site.

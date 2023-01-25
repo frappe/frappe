@@ -1273,12 +1273,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 	return apps
 
 
-<<<<<<< HEAD
-def get_installed_apps(sort=False, frappe_last=False):
-=======
-@request_cache
 def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False):
->>>>>>> 5e2bbf834f (refactor: filter out apps not installed on bench)
 	"""
 	Get list of installed apps in current site.
 
@@ -1286,7 +1281,6 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
 	:param ensure_on_bench: Only return apps that are present on bench.
 	"""
-	from frappe.utils.deprecations import deprecation_warning
 
 	if getattr(flags, "in_install_db", True):
 		return []
@@ -1300,7 +1294,6 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 		if not local.all_apps:
 			local.all_apps = cache().get_value("all_apps", get_all_apps)
 
-		deprecation_warning("`sort` argument is deprecated and will be removed in v15.")
 		installed = [app for app in local.all_apps if app in installed]
 
 	if _ensure_on_bench:
@@ -1308,7 +1301,6 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 		installed = [app for app in installed if app in all_apps]
 
 	if frappe_last:
-		deprecation_warning("`frappe_last` argument is deprecated and will be removed in v15.")
 		if "frappe" in installed:
 			installed.remove("frappe")
 		installed.append("frappe")
@@ -1333,42 +1325,7 @@ def get_doc_hooks():
 	return local.doc_events_hooks
 
 
-<<<<<<< HEAD
 def get_hooks(hook=None, default=None, app_name=None):
-=======
-@request_cache
-def _load_app_hooks(app_name: str | None = None):
-	import types
-
-	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
-
-	for app in apps:
-		try:
-			app_hooks = get_module(f"{app}.hooks")
-		except ImportError:
-			if local.flags.in_install_app:
-				# if app is not installed while restoring
-				# ignore it
-				pass
-			print(f'Could not find app "{app}"')
-			if not request:
-				raise SystemExit
-			raise
-
-		def _is_valid_hook(obj):
-			return not isinstance(obj, (types.ModuleType, types.FunctionType, type))
-
-		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
-			if not key.startswith("_"):
-				append_hook(hooks, key, value)
-	return hooks
-
-
-def get_hooks(
-	hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None
-) -> _dict:
->>>>>>> d8b7bc18d7 (refactor!: deprecate sorting based on `apps.txt` in `get_installed_apps`)
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1377,7 +1334,7 @@ def get_hooks(
 
 	def load_app_hooks(app_name=None):
 		hooks = {}
-		for app in [app_name] if app_name else get_installed_apps(sort=True):
+		for app in [app_name] if app_name else get_installed_apps(_ensure_on_bench=True):
 			app = "frappe" if app == "webnotes" else app
 			try:
 				app_hooks = get_module(app + ".hooks")
