@@ -117,6 +117,21 @@ def generate_pot(context, app: str):
 	generate_pot(app)
 
 
+@click.command("compile-translation", help="Compile PO files to MO files")
+@click.option("--app", help="App name. eg: frappe")
+@pass_context
+def compile_translation(context, app: str):
+	import frappe
+	from frappe.translate import compile
+
+	if not app:
+		if not context["sites"]:
+			raise Exception("--site is required")
+		frappe.connect(site=context["sites"][0])
+
+	compile(app)
+
+
 @click.command("migrate-translation", help="Migrate CSV translation files to PO")
 @click.option("--app", help="App name. eg: frappe")
 @pass_context
@@ -134,6 +149,7 @@ def migrate_translation(context, app: str):
 
 commands = [
 	build_message_files,
+	compile_translation,
 	generate_pot,
 	get_untranslated,
 	import_translations,

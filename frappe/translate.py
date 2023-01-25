@@ -10,6 +10,7 @@
 import csv
 import functools
 import gettext
+import glob
 import io
 import itertools
 import json
@@ -23,8 +24,8 @@ from datetime import datetime
 from babel.messages.catalog import Catalog
 from babel.messages.extract import extract_from_dir, extract_python
 from babel.messages.jslexer import Token, tokenize, unquote_string
-from babel.messages.mofile import read_mo
-from babel.messages.pofile import write_po
+from babel.messages.mofile import read_mo, write_mo
+from babel.messages.pofile import read_po, write_po
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -283,6 +284,26 @@ def generate_pot(target_app: str | None = None):
 			print(f"POT file created at {pot_path}")
 
 
+def compile(target_app: str | None = None):
+	apps = [target_app] if target_app else frappe.get_all_apps(True)
+
+	for app in apps:
+		app_path = frappe.get_app_path(app)
+		loc_path = os.path.join(app_path, "locale")
+		po_files = glob.glob("**/*.po", root_dir=loc_path, recursive=True)
+
+		for file in po_files:
+			po_path = os.path.join(loc_path, file)
+			po_dir, _ = os.path.split(po_path)
+			mo_path = os.path.join(po_dir, "messages.mo")
+
+			with open(po_path) as po_file:
+				c = read_po(po_file)
+				with open(mo_path, "wb") as mo_file:
+					write_mo(mo_file, c)
+					print(f"MO file created at {mo_path}")
+
+
 def f(msg: str, context: str = None, lang: str = DEFAULT_LANG) -> str:
 	"""
 	Method to translate a string
@@ -398,7 +419,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 			# get user specific translation data
 			user_translations = get_user_translations(lang)
 			all_translations.update(user_translations)
-		except Exception:
+		except:
 			pass
 
 		return all_translations
@@ -413,7 +434,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 
 def get_translations_from_apps(lang, apps=None):
 	"""
-	Combine all translations from `.csv` files in all `apps`. For derivative
+	Combine all translations from `.mo` files in all `apps`. For derivative
 	languages (es-GT), take translations from the base language (es) and then
 	update translations from the child (es-GT)
 	"""
