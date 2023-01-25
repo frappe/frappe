@@ -509,7 +509,7 @@ def decode_dict(d, encoding="utf-8"):
 
 @functools.lru_cache
 def get_site_name(hostname):
-	return hostname.split(":")[0]
+	return hostname.split(":", 1)[0]
 
 
 def get_disk_usage():
