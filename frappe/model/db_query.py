@@ -14,7 +14,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr
-from frappe.model import child_table_fields, core_doctypes_list, optional_fields
+from frappe.model import get_permitted_fields, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -1254,29 +1254,6 @@ def requires_owner_constraint(role_permissions):
 	# not checking if either select or read if present in if_owner_perms
 	# because either of those is required to perform a query
 	return True
-
-
-def get_permitted_fields(doctype, parenttype=None):
-	meta = frappe.get_meta(doctype)
-
-	if doctype in core_doctypes_list:
-		return meta.get_valid_columns()
-
-	meta_fields = meta.default_fields.copy()
-	optional_meta_fields = list(optional_fields)
-
-	if not meta.track_seen:
-		optional_meta_fields.remove("_seen")
-
-	if not meta.is_submittable:
-		meta_fields.remove("docstatus")
-
-	if meta.istable:
-		meta_fields.extend(child_table_fields)
-	else:
-		meta_fields.remove("idx")
-
-	return meta_fields + meta.get_permitted_fieldnames(parenttype=parenttype) + optional_meta_fields
 
 
 def wrap_grave_quotes(table: str) -> str:
