@@ -307,7 +307,7 @@ def get_routes_to_index():
 					filepath = os.path.join(dirpath, f)
 
 					route = os.path.relpath(filepath, base)
-					route = route.split(".")[0]
+					route = route.split(".", 1)[0]
 
 					if route.endswith("index"):
 						route = route.rsplit("index", 1)[0]

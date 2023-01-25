@@ -225,7 +225,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 	def _save_file(match):
 		data = match.group(1).split("data:")[1]
 		headers, content = data.split(",")
-		mtype = headers.split(";")[0]
+		mtype = headers.split(";", 1)[0]
 
 		if isinstance(content, str):
 			content = content.encode("utf-8")
@@ -237,7 +237,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
-			filename = safe_decode(filename).split(";")[0]
+			filename = safe_decode(filename).split(";", 1)[0]
 
 		else:
 			filename = get_random_filename(content_type=mtype)

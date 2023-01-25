@@ -496,7 +496,7 @@ def parse_email(communication, email_strings):
 	for email_string in email_strings:
 		if email_string:
 			for email in email_string.split(","):
-				email_username = email.split("@")[0]
+				email_username = email.split("@", 1)[0]
 				email_local_parts = email_username.split("+")
 				docname = doctype = None
 				if len(email_local_parts) == 3:
@@ -525,7 +525,7 @@ def get_email_without_link(email):
 
 	try:
 		_email = email.split("@")
-		email_id = _email[0].split("+")[0]
+		email_id = _email[0].split("+", 1)[0]
 		email_host = _email[1]
 	except IndexError:
 		return email
