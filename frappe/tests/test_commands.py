@@ -330,7 +330,7 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
-		list_apps = {_x.split()[0] for _x in self.stdout.split("\n")}
+		list_apps = {_x.split(maxsplit=1)[0] for _x in self.stdout.split("\n")}
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
 			installed_apps = {x.app_name for x in doctype}

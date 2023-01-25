@@ -186,7 +186,7 @@ def extract_fieldname(field):
 	fieldname = field
 	for sep in (" as ", " AS "):
 		if sep in fieldname:
-			fieldname = fieldname.split(sep)[0]
+			fieldname = fieldname.split(sep, 1)[0]
 
 	# certain functions allowed, extract the fieldname from the function
 	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):

@@ -53,7 +53,9 @@ class HTTPRequest:
 
 	def set_request_ip(self):
 		if frappe.get_request_header("X-Forwarded-For"):
-			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",")[0]).strip()
+			frappe.local.request_ip = (
+				frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]
+			).strip()
 
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
