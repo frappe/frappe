@@ -36,52 +36,58 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
-	"""Returns the **class** object of the given DocType.
+	"""
+	Returns the locally cached **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
-	:param doctype: DocType name as string."""
-
-	def _get_controller():
-		from frappe.model.document import Document
-		from frappe.utils.nestedset import NestedSet
-
-		module_name, custom = frappe.db.get_value(
-			"DocType", doctype, ("module", "custom"), cache=True
-		) or ("Core", False)
-
-		if custom:
-			is_tree = frappe.db.get_value("DocType", doctype, "is_tree", ignore=True, cache=True)
-			_class = NestedSet if is_tree else Document
-		else:
-			class_overrides = frappe.get_hooks("override_doctype_class")
-			if class_overrides and class_overrides.get(doctype):
-				import_path = class_overrides[doctype][-1]
-				module_path, classname = import_path.rsplit(".", 1)
-				module = frappe.get_module(module_path)
-				if not hasattr(module, classname):
-					raise ImportError(f"{doctype}: {classname} does not exist in module {module_path}")
-			else:
-				module = load_doctype_module(doctype, module_name)
-				classname = doctype.replace(" ", "").replace("-", "")
-
-			if hasattr(module, classname):
-				_class = getattr(module, classname)
-				if issubclass(_class, BaseDocument):
-					_class = getattr(module, classname)
-				else:
-					raise ImportError(doctype)
-			else:
-				raise ImportError(doctype)
-		return _class
+	:param doctype: DocType name as string.
+	"""
 
 	if frappe.local.dev_server:
-		return _get_controller()
+		return import_controller(doctype)
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
-		site_controllers[doctype] = _get_controller()
+		site_controllers[doctype] = import_controller(doctype)
 
 	return site_controllers[doctype]
+
+
+def import_controller(doctype):
+	from frappe.model.document import Document
+	from frappe.utils.nestedset import NestedSet
+
+	module_name = "Core"
+	if doctype not in DOCTYPES_FOR_DOCTYPE:
+		meta = frappe.get_meta(doctype)
+		if meta.custom:
+			return NestedSet if meta.get("is_tree") else Document
+
+		module_name = meta.module
+
+	module_path = None
+	class_overrides = frappe.get_hooks("override_doctype_class")
+	if class_overrides and class_overrides.get(doctype):
+		import_path = class_overrides[doctype][-1]
+		module_path, classname = import_path.rsplit(".", 1)
+		module = frappe.get_module(module_path)
+
+	else:
+		module = load_doctype_module(doctype, module_name)
+		classname = doctype.replace(" ", "").replace("-", "")
+
+	class_ = getattr(module, classname, None)
+	if class_ is None:
+		raise ImportError(
+			doctype
+			if module_path is None
+			else f"{doctype}: {classname} does not exist in module {module_path}"
+		)
+
+	if not issubclass(class_, BaseDocument):
+		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
+
+	return class_
 
 
 class BaseDocument:

@@ -562,7 +562,7 @@ def _psql():
 def jupyter(context):
 	"""Start an interactive jupyter notebook"""
 	installed_packages = (
-		r.split("==")[0]
+		r.split("==", 1)[0]
 		for r in subprocess.check_output([sys.executable, "-m", "pip", "freeze"], encoding="utf8")
 	)
 
@@ -1001,7 +1001,7 @@ def request(context, args=None, path=None):
 					frappe.local.form_dict = frappe._dict()
 
 				if args.startswith("/api/method"):
-					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+					frappe.local.form_dict.cmd = args.split("?", 1)[0].split("/")[-1]
 			elif path:
 				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
@@ -1028,6 +1028,16 @@ def make_app(destination, app_name, no_git=False):
 	from frappe.utils.boilerplate import make_boilerplate
 
 	make_boilerplate(destination, app_name, no_git=no_git)
+
+
+@click.command("create-patch")
+def create_patch():
+	"Creates a new patch interactively"
+	from frappe.utils.boilerplate import PatchCreator
+
+	pc = PatchCreator()
+	pc.fetch_user_inputs()
+	pc.create_patch_file()
 
 
 @click.command("set-config")
@@ -1176,6 +1186,7 @@ commands = [
 	data_import,
 	import_doc,
 	make_app,
+	create_patch,
 	mariadb,
 	postgres,
 	request,

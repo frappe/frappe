@@ -181,7 +181,7 @@ def extract_fieldname(field):
 	fieldname = field
 	for sep in (" as ", " AS "):
 		if sep in fieldname:
-			fieldname = fieldname.split(sep)[0]
+			fieldname = fieldname.split(sep, 1)[0]
 
 	# certain functions allowed, extract the fieldname from the function
 	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):
@@ -452,13 +452,14 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 
 def parse_field(field: str) -> tuple[str | None, str]:
 	"""Parse a field into parenttype and fieldname."""
-	key = field.split(" as ")[0]
+	key = field.split(" as ", 1)[0]
 
 	if key.startswith(("count(", "sum(", "avg(")):
 		raise ValueError
 
 	if "." in key:
-		return key.split(".")[0][4:-1], key.split(".")[1].strip("`")
+		table, column = key.split(".", 2)[:2]
+		return table[4:-1], column.strip("`")
 
 	return None, key.strip("`")
 
