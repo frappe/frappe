@@ -45,7 +45,7 @@ class RedisWrapper(redis.Redis):
 
 		return f"{frappe.conf.db_name}|{key}".encode()
 
-	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False, cache_locally=True):
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -55,7 +55,7 @@ class RedisWrapper(redis.Redis):
 		"""
 		key = self.make_key(key, user, shared)
 
-		if not expires_in_sec and cache_locally:
+		if not expires_in_sec:
 			frappe.local.cache[key] = val
 
 		try:
@@ -169,7 +169,6 @@ class RedisWrapper(redis.Redis):
 		key: str,
 		value,
 		shared: bool = False,
-		cache_locally: bool = True,
 		*args,
 		**kwargs,
 	):
@@ -179,8 +178,7 @@ class RedisWrapper(redis.Redis):
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
-		if cache_locally:
-			frappe.local.cache.setdefault(_name, {})[key] = value
+		frappe.local.cache.setdefault(_name, {})[key] = value
 
 		# set in redis
 		try:
