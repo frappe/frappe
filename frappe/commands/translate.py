@@ -102,8 +102,24 @@ def import_translations(context, lang, path):
 		frappe.destroy()
 
 
+@click.command("generate_pot", help="Generate gettext POT file")
+@click.option("--app", help="App name. eg: frappe")
+@pass_context
+def generate_pot(context, app: str):
+	import frappe
+	from frappe.translate import generate_pot
+
+	if not app:
+		if not context["sites"]:
+			raise Exception("--site is required")
+		frappe.connect(site=context["sites"][0])
+
+	generate_pot(app)
+
+
 commands = [
 	build_message_files,
+	generate_pot,
 	get_untranslated,
 	import_translations,
 	new_language,

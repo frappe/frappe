@@ -17,10 +17,13 @@ import os
 import re
 from contextlib import contextmanager
 from csv import reader
+from datetime import datetime
 
-from babel.messages.extract import extract_python
+from babel.messages.catalog import Catalog
+from babel.messages.extract import extract_from_dir, extract_python
 from babel.messages.jslexer import Token, tokenize, unquote_string
 from babel.messages.mofile import read_mo
+from babel.messages.pofile import write_po
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -232,6 +235,50 @@ def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool 
 		return t.pgettext
 
 	return t.gettext
+
+
+def generate_pot(target_app: str | None = None):
+	"""
+	Generate a POT (PO template) file. This file will contain only messages IDs.
+	https://en.wikipedia.org/wiki/Gettext
+
+	:param target_app: If specified, limit to `app`
+	"""
+	apps = [target_app] if target_app else frappe.get_all_apps(True)
+
+	for app in apps:
+		app_path = frappe.get_pymodule_path(app)
+		loc_path = os.path.join(app_path, "locale")
+		pot_path = os.path.join(loc_path, "main.pot")
+		os.makedirs(loc_path, exist_ok=True)
+
+		c = Catalog(
+			domain="messages",
+			msgid_bugs_address="contact@frappe.io",
+			language_team="contact@frappe.io",
+			copyright_holder="Frappe Technologies Pvt. Ltd.",
+			last_translator="contact@frappe.io",
+			project="Frappe Translation",
+			creation_date=datetime.now(),
+			revision_date=datetime.now(),
+			fuzzy=False,
+		)
+
+		for i in extract_from_dir(app_path):
+			_file, _lineno, msgid, *rest = i
+
+			# TODO: what exactly is a tuple here?
+			if isinstance(msgid, tuple):
+				continue
+
+			if not msgid:
+				continue
+
+			c.add(msgid)
+
+		with open(pot_path, "wb") as f:
+			write_po(f, c)
+			print(f"POT file created at {pot_path}")
 
 
 def f(msg: str, context: str = None, lang: str = DEFAULT_LANG) -> str:
