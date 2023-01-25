@@ -1040,6 +1040,15 @@ def create_patch():
 	pc.create_patch_file()
 
 
+@click.command("check-for-release")
+@click.option("--app", help="App To Check", required=True)
+def check_for_release(app=None):
+	"Check app for common mistakes before release."
+	from frappe.tests.sanity_checks import run_sanity_checks
+
+	run_sanity_checks(app)
+
+
 @click.command("set-config")
 @click.argument("key")
 @click.argument("value")
@@ -1187,6 +1196,7 @@ commands = [
 	import_doc,
 	make_app,
 	create_patch,
+	check_for_release,
 	mariadb,
 	postgres,
 	request,

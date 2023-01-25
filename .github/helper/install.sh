@@ -14,6 +14,8 @@ then
   bench -v setup requirements --node;
 fi
 
+bench check-for-release --app frappe
+
 echo "Setting Up Sites & Database..."
 
 mkdir ~/frappe-bench/sites/test_site
