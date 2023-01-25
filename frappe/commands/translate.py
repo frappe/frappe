@@ -147,6 +147,21 @@ def migrate_translation(context, app: str):
 	migrate(app)
 
 
+@click.command("update-po", help="Sync PO files with main POT file")
+@click.option("--app", help="App name. eg: frappe")
+@pass_context
+def update_po(context, app: str):
+	import frappe
+	from frappe.translate import update_po
+
+	if not app:
+		if not context["sites"]:
+			raise Exception("--site is required")
+		frappe.connect(site=context["sites"][0])
+
+	update_po(app)
+
+
 commands = [
 	build_message_files,
 	compile_translation,
@@ -155,5 +170,6 @@ commands = [
 	import_translations,
 	migrate_translation,
 	new_language,
+	update_po,
 	update_translations,
 ]

@@ -65,6 +65,7 @@ APP_TRANSLATION_KEY = "translations_from_apps"
 DEFAULT_LANG = "en"
 LOCALE_DIR = "locale"
 MERGED_TRANSLATION_KEY = "merged_translations"
+POT_FILE = "main.pot"
 TRANSLATION_DOMAIN = "messages"
 USER_TRANSLATION_KEY = "lang_user_translations"
 
@@ -302,6 +303,39 @@ def compile(target_app: str | None = None):
 				with open(mo_path, "wb") as mo_file:
 					write_mo(mo_file, c)
 					print(f"MO file created at {mo_path}")
+
+
+def update_po(target_app: str | None = None):
+	"""
+	Add keys to available PO files, from POT file. This could be used to keep
+	track of available keys, and missing translations
+
+	:param target_app: Limit operation to `app`, if specified
+	"""
+	apps = [target_app] if target_app else frappe.get_all_apps(True)
+
+	for app in apps:
+		app_path = frappe.get_app_path(app)
+		loc_path = os.path.join(app_path, LOCALE_DIR)
+		pot_path = os.path.join(loc_path, POT_FILE)
+		po_files = glob.glob("**/*.po", root_dir=loc_path, recursive=True)
+
+		pot_file = open(pot_path)
+		pot_catalog = read_po(pot_file)
+		pot_file.close()
+
+		for f in po_files:
+			po_path = os.path.join(loc_path, f)
+
+			with open(po_path, "r+b") as po_file:
+				po_catalog = read_po(po_file)
+
+				for i in pot_catalog:
+					if not po_catalog.get(i.id, context=i.context):
+						po_catalog.add(i.id, context=i.context)
+
+				write_po(po_file, po_catalog)
+				print(f"PO file modified at {po_path}")
 
 
 def f(msg: str, context: str = None, lang: str = DEFAULT_LANG) -> str:
