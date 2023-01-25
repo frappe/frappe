@@ -632,13 +632,15 @@ class DatabaseQuery:
 			elif "(" in field:
 				if "*" in field:
 					continue
-				elif _params := FN_PARAMS_PATTERN.findall(column):
-					params = (x for x in _params[0].split(","))
+				elif _params := FN_PARAMS_PATTERN.findall(field):
+					params = (x.strip() for x in _params[0].split(","))
 					for param in params:
-						if (
+						if not (
 							not param or param in permitted_fields or param.isnumeric() or "'" in param or '"' in param
 						):
-							continue
+							self.fields.remove(field)
+							break
+					continue
 				self.fields.remove(field)
 
 			# remove if access not allowed
