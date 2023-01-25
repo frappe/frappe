@@ -72,7 +72,7 @@ dependencies = [
     "traceback-with-variables~=2.0.4",
     "urllib3~=1.26.4",
     "xlrd~=2.0.1",
-    "zxcvbn-python~=4.4.24",
+    "zxcvbn~=4.4.28",
     "markdownify~=0.11.2",
 
     # integration dependencies
