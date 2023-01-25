@@ -246,6 +246,7 @@ def generate_pot(target_app: str | None = None):
 	:param target_app: If specified, limit to `app`
 	"""
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
+	method_map = [("**.py", "frappe.translate.babel_extract_python")]
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
@@ -265,7 +266,7 @@ def generate_pot(target_app: str | None = None):
 			fuzzy=False,
 		)
 
-		for i in extract_from_dir(app_path):
+		for i in extract_from_dir(app_path, method_map):
 			_file, _lineno, msgid, *rest = i
 
 			# TODO: what exactly is a tuple here?
@@ -1411,6 +1412,18 @@ def get_messages(language, start=0, page_length=100, search_text=""):
 	)
 
 	return translated_dict
+
+
+def babel_extract_python(*args, **kwargs):
+	"""
+	Wrapper around babel's `extract_python`, handling our own implementation of `_()`
+	"""
+	for lineno, funcname, messages, comments in extract_python(*args, **kwargs):
+		if funcname == "_" and isinstance(messages, tuple) and len(messages) > 1:
+			funcname = "pgettext"
+			messages = (messages[-1], messages[0])  # (context, message)
+
+		yield lineno, funcname, messages, comments
 
 
 @frappe.whitelist()
