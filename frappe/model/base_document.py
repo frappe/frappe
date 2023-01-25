@@ -11,6 +11,7 @@ from frappe.model import (
 	default_fields,
 	display_fieldtypes,
 	float_like_fields,
+	get_permitted_fields,
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
@@ -32,7 +33,6 @@ DOCTYPE_TABLE_FIELDS = [
 
 TABLE_DOCTYPES_FOR_DOCTYPE = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}
 DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
-_DOC_DELETED_ATTR = object()
 
 
 def get_controller(doctype):
@@ -298,8 +298,10 @@ class BaseDocument:
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> dict:
 		d = _dict()
+		permitted_fields = get_permitted_fields(doctype=self.doctype)
+
 		for fieldname in self.meta.get_valid_columns():
-			field_value = getattr(self, fieldname, _DOC_DELETED_ATTR)
+			field_value = getattr(self, fieldname, None)
 
 			# column is valid, we can use getattr
 			d[fieldname] = field_value
@@ -313,11 +315,11 @@ class BaseDocument:
 
 			if df:
 				if is_virtual_field:
-					if ignore_virtual:
+					if ignore_virtual or fieldname not in permitted_fields:
 						del d[fieldname]
 						continue
 
-					if d[fieldname] in {None, _DOC_DELETED_ATTR} and (options := getattr(df, "options", None)):
+					if d[fieldname] is None and (options := getattr(df, "options", None)):
 						from frappe.utils.safe_exec import get_safe_globals
 
 						d[fieldname] = frappe.safe_eval(
@@ -351,9 +353,7 @@ class BaseDocument:
 			):
 				d[fieldname] = str(d[fieldname])
 
-			if ignore_nulls and d[fieldname] is None:
-				del d[fieldname]
-			elif not is_virtual_field and field_value is _DOC_DELETED_ATTR:
+			if ignore_nulls and not is_virtual_field and d[fieldname] is None:
 				del d[fieldname]
 
 		return d
