@@ -1468,9 +1468,7 @@ def _load_app_hooks(app_name: str | None = None):
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(e)
-			if not request:
-				raise SystemExit
+			print(f'Could not find app "{app}": \n{e}')
 			raise
 
 		def _is_valid_hook(obj):
