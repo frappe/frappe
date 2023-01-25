@@ -367,7 +367,12 @@ frappe.ui.form.PrintView = class {
 				});
 
 				this.letterhead_selector_df.set_data(letterhead_options);
-				let selected_letterhead = doc_letterhead || default_letterhead;
+				let selected_letterhead = default_letterhead;
+
+				// set letterhead picked from doc only if the letterhead is enabled
+				if (doc_letterhead && letterhead_options.includes(doc_letterhead)) {
+					selected_letterhead = doc_letterhead;
+				}
 				if (selected_letterhead) this.letterhead_selector.val(selected_letterhead);
 			});
 	}
