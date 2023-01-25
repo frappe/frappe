@@ -863,10 +863,13 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 
 @click.command("browse")
 @click.argument("site", required=False)
+@click.option("--user", required=False, help="Login as user")
 @pass_context
-def browse(context, site):
+def browse(context, site, user=None):
 	"""Opens the site on web browser"""
 	import webbrowser
+
+	from frappe.auth import CookieManager, LoginManager
 
 	site = context.sites[0] if context.sites else site
 
@@ -879,7 +882,24 @@ def browse(context, site):
 	site = site.lower()
 
 	if site in frappe.utils.get_sites():
-		webbrowser.open(frappe.utils.get_site_url(site), new=2)
+		frappe.init(site=site)
+		frappe.connect()
+
+		sid = ""
+		if user:
+			if frappe.conf.developer_mode or user == "Administrator":
+				frappe.utils.set_request(path="/")
+				frappe.local.cookie_manager = CookieManager()
+				frappe.local.login_manager = LoginManager()
+				frappe.local.login_manager.login_as(user)
+				sid = f"/app?sid={frappe.session.sid}"
+			else:
+				print("Please enable developer mode to login as a user")
+
+		url = f"{frappe.utils.get_site_url(site)}{sid}"
+		if user == "Administrator":
+			print(f"Login URL: {url}")
+		webbrowser.open(url, new=2)
 	else:
 		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 

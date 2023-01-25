@@ -164,7 +164,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	frappe.clear_cache()
 
 	if name not in frappe.get_all_apps():
-		raise Exception("App not in apps.txt")
+		raise Exception(f"App {name} not in apps.txt")
 
 	if name in installed_apps:
 		frappe.msgprint(frappe._("App {0} already installed").format(name))

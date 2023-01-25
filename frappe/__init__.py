@@ -1327,12 +1327,12 @@ def get_hooks(hook=None, default=None, app_name=None):
 			app = "frappe" if app == "webnotes" else app
 			try:
 				app_hooks = get_module(app + ".hooks")
-			except ImportError:
+			except ImportError as e:
 				if local.flags.in_install_app:
 					# if app is not installed while restoring
 					# ignore it
 					pass
-				print('Could not find app "{0}"'.format(app_name))
+				print('Could not find app "{0}"\n{1}'.format(app_name, str(e)))
 				if not request:
 					sys.exit(1)
 				raise
