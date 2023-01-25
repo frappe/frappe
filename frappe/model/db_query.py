@@ -50,9 +50,6 @@ FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*,")
 STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
-DATE_PATTERN = re.compile(
-	r"'\b(\d{4}|\d{2})([-/.])(\d{2})\2(\d{4}|\d{2})(?:\s(\d{2}):(\d{2}):(\d{2}).(\d{6}))?\b'"
-)
 
 
 class DatabaseQuery:
@@ -562,6 +559,7 @@ class DatabaseQuery:
 
 		from frappe.boot import get_additional_filters_from_hooks
 
+		escape = True
 		additional_filters_config = get_additional_filters_from_hooks()
 		f = get_filter(self.doctype, f, additional_filters_config)
 
@@ -653,7 +651,7 @@ class DatabaseQuery:
 				f.fieldname in ("creation", "modified")
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
-
+				escape = False
 				value = get_between_date_filter(f.value, df)
 				fallback = f"'{FallBackDateTimeStr}'"
 
@@ -713,7 +711,7 @@ class DatabaseQuery:
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
-			elif isinstance(value, str) and not DATE_PATTERN.match(value):
+			elif escape and isinstance(value, str):
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
