@@ -52,7 +52,7 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super().__init__(doctype)
+		self.__dict__.update(frappe.get_meta(doctype).__dict__)
 		self.load_assets()
 
 	def load_assets(self):
