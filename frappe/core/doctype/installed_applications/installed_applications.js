@@ -1,12 +1,6 @@
 // Copyright (c) 2020, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-<<<<<<< HEAD
-frappe.ui.form.on('Installed Applications', {
-	// refresh: function(frm) {
-
-	// }
-=======
 frappe.ui.form.on("Installed Applications", {
 	refresh: function (frm) {
 		frm.add_custom_button(__("Update Hooks Resolution Order"), () => {
@@ -66,5 +60,4 @@ frappe.ui.form.on("Installed Applications", {
 				dialog.show();
 			});
 	},
->>>>>>> 1796cae6bf (feat: let users modify hook resolution order)
 });
