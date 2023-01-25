@@ -810,7 +810,8 @@ class Database:
 			distinct=distinct,
 			limit=limit,
 		)
-		if fields == "*":
+
+		if str(fields) == "*":
 			as_dict = True
 
 		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
