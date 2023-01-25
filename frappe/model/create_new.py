@@ -115,7 +115,7 @@ def get_static_default_value(df, doctype_user_permissions, allowed_records):
 				return df.default
 
 	elif df.fieldtype == "Select" and df.options and df.options not in ("[Select]", "Loading..."):
-		return df.options.split("\n")[0]
+		return df.options.split("\n", 1)[0]
 
 
 def validate_value_via_user_permissions(

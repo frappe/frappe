@@ -26,7 +26,7 @@ class PackageImport(Document):
 		attachment = attachment[0]
 
 		# get package_name from file (package_name-0.0.0.tar.gz)
-		package_name = attachment.file_name.split(".")[0].rsplit("-", 1)[0]
+		package_name = attachment.file_name.split(".", 1)[0].rsplit("-", 1)[0]
 		if not os.path.exists(frappe.get_site_path("packages")):
 			os.makedirs(frappe.get_site_path("packages"))
 
