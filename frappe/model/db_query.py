@@ -269,6 +269,10 @@ class DatabaseQuery:
 		# Wrapping fields with grave quotes to allow support for sql keywords
 		# TODO: Add support for wrapping fields with sql functions and distinct keyword
 		for field in self.fields:
+			if field is None:
+				fields.append("NULL")
+				continue
+
 			stripped_field = field.strip().lower()
 
 			if (
@@ -487,12 +491,13 @@ class DatabaseQuery:
 
 		if len(self.tables) > 1 or len(self.link_tables) > 0:
 			for idx, field in enumerate(self.fields):
-				if "." not in field and not _in_standard_sql_methods(field):
+				if field is not None and "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
 
 	def cast_name_fields(self):
 		for i, field in enumerate(self.fields):
-			self.fields[i] = cast_name(field)
+			if field is not None:
+				self.fields[i] = cast_name(field)
 
 	def get_table_columns(self):
 		try:
@@ -557,6 +562,12 @@ class DatabaseQuery:
 			else:
 				conditions.append(self.prepare_filter_condition(f))
 
+	def remove_field(self, idx: int):
+		if self.as_list:
+			self.fields[idx] = None
+		else:
+			self.fields.pop(idx)
+
 	def apply_fieldlevel_read_permissions(self):
 		"""Apply fieldlevel read permissions to the query"""
 		if self.flags.ignore_permissions:
@@ -601,7 +612,7 @@ class DatabaseQuery:
 					if column in permitted_child_table_fields:
 						continue
 					else:
-						self.fields.remove(field)
+						self.remove_field(i)
 				else:
 					raise frappe.PermissionError(ch_doctype)
 
@@ -618,14 +629,14 @@ class DatabaseQuery:
 						if not (
 							not param or param in permitted_fields or param.isnumeric() or "'" in param or '"' in param
 						):
-							self.fields.remove(field)
+							self.remove_field(i)
 							break
 					continue
-				self.fields.remove(field)
+				self.remove_field(i)
 
 			# remove if access not allowed
 			else:
-				self.fields.remove(field)
+				self.remove_field(i)
 
 		# handle * fields
 		j = 0
