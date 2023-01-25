@@ -487,23 +487,6 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 	return data
 
 
-<<<<<<< HEAD
-=======
-def parse_field(field: str) -> tuple[str | None, str]:
-	"""Parse a field into parenttype and fieldname."""
-	key = field.split(" as ", 1)[0]
-
-	if key.startswith(("count(", "sum(", "avg(")):
-		raise ValueError
-
-	if "." in key:
-		table, column = key.split(".", 2)[:2]
-		return table[4:-1], column.strip("`")
-
-	return None, key.strip("`")
-
-
->>>>>>> d357af1533 (refactor: Add a maxsplit limit to string splits)
 @frappe.whitelist()
 def delete_items():
 	"""delete selected items"""
