@@ -88,8 +88,7 @@
    "fieldtype": "Link",
    "label": "Default User Role",
    "mandatory_depends_on": "eval: doc.default_user_type == \"System User\"",
-   "options": "Role",
-   "reqd": 1
+   "options": "Role"
   },
   {
    "description": "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
@@ -302,7 +301,7 @@
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-12-05 21:52:31.146035",
+ "modified": "2023-01-24 11:20:06.049708",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",

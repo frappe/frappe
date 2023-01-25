@@ -8,6 +8,7 @@ frappe.ui.form.ControlCheck = class ControlCheck extends frappe.ui.form.ControlD
 					<span class="input-area"></span>
 					<span class="disp-area"></span>
 					<span class="label-area"></span>
+					<span class="ml-1 help"></span>
 				</label>
 				<p class="help-box small text-muted"></p>
 			</div>

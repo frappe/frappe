@@ -1023,6 +1023,16 @@ def make_app(destination, app_name, no_git=False):
 	make_boilerplate(destination, app_name, no_git=no_git)
 
 
+@click.command("create-patch")
+def create_patch():
+	"Creates a new patch interactively"
+	from frappe.utils.boilerplate import PatchCreator
+
+	pc = PatchCreator()
+	pc.fetch_user_inputs()
+	pc.create_patch_file()
+
+
 @click.command("set-config")
 @click.argument("key")
 @click.argument("value")
@@ -1169,6 +1179,7 @@ commands = [
 	data_import,
 	import_doc,
 	make_app,
+	create_patch,
 	mariadb,
 	postgres,
 	request,
