@@ -102,7 +102,7 @@ def import_translations(context, lang, path):
 		frappe.destroy()
 
 
-@click.command("generate_pot", help="Generate gettext POT file")
+@click.command("generate-pot", help="Generate gettext POT file")
 @click.option("--app", help="App name. eg: frappe")
 @pass_context
 def generate_pot(context, app: str):
