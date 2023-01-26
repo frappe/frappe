@@ -126,7 +126,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	set_modal_size() {
-		if (!this.fields.length) {
+		if (!this.fields) {
 			this.size = "";
 			return;
 		}
