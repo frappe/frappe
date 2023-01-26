@@ -756,6 +756,7 @@ export default class GridRow {
 	}
 
 	show_search_row() {
+		this.show_search = this.show_search && this.grid.data.length >= 20;
 		return this.show_search;
 	}
 
