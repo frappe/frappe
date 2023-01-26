@@ -7,11 +7,12 @@
  "field_order": [
   "blog_title",
   "blog_introduction",
+  "preview_image",
   "column_break",
   "enable_social_sharing",
-  "show_cta_in_blog",
   "allow_guest_to_comment",
   "browse_by_category",
+  "show_cta_in_blog",
   "cta_section",
   "title",
   "subtitle",
@@ -19,7 +20,7 @@
   "cta_label",
   "cta_url",
   "section_break_12",
-  "feedback_limit",
+  "like_limit",
   "column_break_14",
   "comment_limit"
  ],
@@ -49,13 +50,13 @@
    "default": "0",
    "fieldname": "show_cta_in_blog",
    "fieldtype": "Check",
-   "label": "Show CTA in Blog"
+   "label": "Show \"Call to Action\" in Blog"
   },
   {
    "depends_on": "eval:doc.show_cta_in_blog",
    "fieldname": "cta_section",
    "fieldtype": "Section Break",
-   "label": "CTA"
+   "label": "Call to Action"
   },
   {
    "fieldname": "title",
@@ -87,14 +88,8 @@
   },
   {
    "fieldname": "section_break_12",
-   "fieldtype": "Section Break"
-  },
-  {
-   "default": "5",
-   "description": "Feedback limit per hour",
-   "fieldname": "feedback_limit",
-   "fieldtype": "Int",
-   "label": "Feedback limit"
+   "fieldtype": "Section Break",
+   "label": "Rate Limits"
   },
   {
    "default": "5",
@@ -118,13 +113,25 @@
    "fieldname": "browse_by_category",
    "fieldtype": "Check",
    "label": "Browse by category"
+  },
+  {
+   "default": "5",
+   "description": "Like limit per hour",
+   "fieldname": "like_limit",
+   "fieldtype": "Int",
+   "label": "Like limit"
+  },
+  {
+   "fieldname": "preview_image",
+   "fieldtype": "Attach Image",
+   "label": "Preview Image"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-12-20 13:40:32.312459",
+ "modified": "2022-10-18 15:01:36.202010",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

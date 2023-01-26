@@ -1,0 +1,55 @@
+$check-icon: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+
+input[type="checkbox"] {
+	position: relative;
+	width: var(--checkbox-size) !important;
+	height: var(--checkbox-size);
+	margin-right: var(--checkbox-right-margin) !important;
+	background-repeat: no-repeat;
+	background-position: center;
+	border: 1px solid var(--gray-400);
+	box-sizing: border-box;
+	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+	border-radius: 4px;
+
+	// Reset browser behavior
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+
+	-webkit-print-color-adjust: exact;
+	color-adjust: exact;
+
+	.grid-static-col & {
+		margin-right: 0 !important;
+	}
+
+	&:checked {
+		background-color: var(--primary);
+		background-image: $check-icon, var(--checkbox-gradient);
+		background-size: 57%, 100%;
+		box-shadow: none;
+		border: none;
+	}
+
+	&:focus {
+		outline: none; // Prevent browser behavior
+		box-shadow: var(--checkbox-focus-shadow);
+	}
+
+	&.disabled-deselected, &:disabled {
+		background-color: var(--disabled-control-bg);
+		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
+		border: 0.5px solid var(--gray-300);
+		pointer-events: none;
+	}
+
+	&.disabled-selected, &:disabled:checked {
+		background-color: var(--gray-500);
+		background-image: $check-icon;
+		background-size: 57%;
+		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+		border: none;
+		pointer-events: none;
+	}
+}

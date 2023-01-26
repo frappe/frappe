@@ -1,4 +1,4 @@
-import get_dialog_constructor from './widget_dialog.js';
+import get_dialog_constructor from "./widget_dialog.js";
 
 export default class Widget {
 	constructor(opts) {
@@ -11,12 +11,13 @@ export default class Widget {
 		this.set_actions();
 		this.set_body();
 		this.setup_events();
+		this.set_footer();
 	}
 
 	get_config() {
 		return {
 			name: this.name,
-			label: this.label
+			label: this.label,
 		};
 	}
 
@@ -26,10 +27,10 @@ export default class Widget {
 
 		options.allow_sorting &&
 			frappe.utils.add_custom_button(
-				frappe.utils.icon('drag', 'xs'),
+				frappe.utils.icon("drag", "xs"),
 				null,
 				"drag-handle",
-				`${__('Drag')}`,
+				__("Drag"),
 				null,
 				this.action_area
 			);
@@ -41,8 +42,8 @@ export default class Widget {
 				this.title_field.css("opacity", 0.5);
 				this.footer.css("opacity", 0.5);
 			}
-			const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
-			const title = this.hidden ? `${__('Show')}` : `${__('Hide')}`;
+			const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
+			const title = this.hidden ? __("Show") : __("Hide");
 			frappe.utils.add_custom_button(
 				`<i class="${classname}" aria-hidden="true"></i>`,
 				() => this.hide_or_show(),
@@ -52,9 +53,7 @@ export default class Widget {
 				this.action_area
 			);
 
-			this.show_or_hide_button = this.action_area.find(
-				".show-or-hide-button"
-			);
+			this.show_or_hide_button = this.action_area.find(".show-or-hide-button");
 		}
 
 		options.allow_edit &&
@@ -62,7 +61,7 @@ export default class Widget {
 				frappe.utils.icon("edit", "xs"),
 				() => this.edit(),
 				"edit-button",
-				`${__('Edit')}`,
+				__("Edit"),
 				null,
 				this.action_area
 			);
@@ -74,7 +73,7 @@ export default class Widget {
 	}
 
 	make_widget() {
-		this.widget = $(`<div class="widget" data-widget-name="${this.name ? this.name : ''}">
+		this.widget = $(`<div class="widget" data-widget-name="${this.name ? this.name : ""}">
 			<div class="widget-head">
 				<div class="widget-label">
 					<div class="widget-title"></div>
@@ -105,13 +104,13 @@ export default class Widget {
 		} else {
 			this.title_field[0].innerHTML = `<span class="ellipsis" title="${title}">${title}</span>`;
 			if (max_chars) {
-				this.title_field[0].setAttribute('title', this.title || this.label);
+				this.title_field[0].setAttribute("title", this.title || this.label);
 			}
 		}
 		this.subtitle && this.subtitle_field.html(this.subtitle);
 	}
 
-	delete(animate=true, dismissed=false) {
+	delete(animate = true, dismissed = false) {
 		let remove_widget = (setup_new) => {
 			this.widget.remove();
 			!dismissed && this.options.on_delete && this.options.on_delete(this.name, setup_new);
@@ -142,25 +141,25 @@ export default class Widget {
 				this.refresh();
 				this.options.on_edit && this.options.on_edit(data);
 			},
-			primary_action_label: __("Save")
+			primary_action_label: __("Save"),
 		});
 
 		this.edit_dialog.make();
 	}
 
 	toggle_width() {
-		if (this.width == 'Full') {
+		if (this.width == "Full") {
 			this.widget.removeClass("full-width");
 			this.width = null;
 			this.refresh();
 		} else {
 			this.widget.addClass("full-width");
-			this.width = 'Full';
+			this.width = "Full";
 			this.refresh();
 		}
 
-		const title = this.width == 'Full' ? `${__('Collapse')}` : `${__('Expand')}`;
-		this.resize_button.attr('title', title);
+		const title = this.width == "Full" ? __("Collapse") : __("Expand");
+		this.resize_button.attr("title", title);
 	}
 
 	hide_or_show() {
@@ -177,8 +176,8 @@ export default class Widget {
 		}
 		this.show_or_hide_button.empty();
 
-		const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
-		const title = this.hidden ? `${__('Show')}` : `${__('Hide')}`;
+		const classname = this.hidden ? "fa fa-eye" : "fa fa-eye-slash";
+		const title = this.hidden ? __("Show") : __("Hide");
 
 		$(`<i class="${classname}" aria-hidden="true" title="${title}"></i>`).appendTo(
 			this.show_or_hide_button
@@ -194,6 +193,10 @@ export default class Widget {
 	}
 
 	set_body() {
+		//
+	}
+
+	set_footer() {
 		//
 	}
 }

@@ -11,9 +11,18 @@
 				</div>
 				<div class="filter-edit-area"></div>
 				<div class="sort-selector">
-					<div class="dropdown"><a class="text-muted dropdown-toggle small" data-toggle="dropdown"><span class="dropdown-text">{{ columns.filter(c => c.slug == query.sort)[0].label }}</span></a>
+					<div class="dropdown">
+						<a class="text-muted dropdown-toggle small" data-toggle="dropdown">
+							<span class="dropdown-text">
+								{{ columns.filter(c => c.slug == query.sort)[0].label }}
+							</span>
+						</a>
 						<ul class="dropdown-menu">
-							<li v-for="(column, index) in columns.filter(c => c.sortable)" :key="index" @click="query.sort = column.slug"><a class="option">{{ column.label }}</a></li>
+							<li v-for="(column, index) in columns.filter(c => c.sortable)" :key="index" @click="query.sort = column.slug">
+								<a class="option">
+									{{ column.label }}
+								</a>
+							</li>
 						</ul>
 					</div>
 					<button class="btn btn-default btn-xs btn-order">
@@ -71,7 +80,11 @@
 			</div>
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
 				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
-					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="start()">{{ __("Start Recording") }}</button></p>
+					<p>
+						<button class="btn btn-primary btn-sm btn-new-doc" @click="start()">
+							{{ __("Start Recording") }}
+						</button>
+					</p>
 					<p>{{ __("Recorder is Inactive.") }}</p>
 					<p>{{ __("Start recording or drag & drop a previously exported data file to view it.") }}</p>
 				</div>
@@ -102,181 +115,192 @@
 	</div>
 </template>
 
-<script>
-export default {
-	name: "RecorderDetail",
-	data() {
-		return {
-			requests: [],
-			columns: [
-				{label: __("Path"), slug: "path"},
-				{label: __("Duration (ms)"), slug: "duration", sortable: true, number: true},
-				{label: __("Time in Queries (ms)"), slug: "time_queries", sortable: true, number: true},
-				{label: __("Queries"), slug: "queries", sortable: true, number: true},
-				{label: __("Method"), slug: "method"},
-				{label: __("Time"), slug: "time", sortable: true},
-			],
-			query: {
-				sort: "duration",
-				order: "desc",
-				filters: {},
-				pagination: {
-					limit: 20,
-					page: 1,
-					total: 0,
-				}
-			},
-			status: {
-				color: "grey",
-				status: "Unknown",
-			},
-		};
-	},
-	created() {
-		let route = frappe.get_route();
-		if (route[2]) {
-			this.$router.push({name: 'request-detail', params: {id: route[2]}});
-		}
-	},
-	mounted() {
-		this.fetch_status();
-		this.refresh();
-		this.$root.page.set_secondary_action(__("Clear"), () => {
-			frappe.set_route("recorder");
-			this.clear();
-		});
-		this.$root.page.add_menu_item("Export data", () => this.export_data());
-	},
-	computed: {
-		pages: function() {
-			const current_page = this.query.pagination.page;
-			const total_pages = this.query.pagination.total;
-			return [{
-				label: __("First"),
-				number: 1,
-				status: (current_page == 1) ? "disabled" : "",
-			},{
-				label: __("Previous"),
-				number: Math.max(current_page - 1, 1),
-				status: (current_page == 1) ? "disabled" : "",
-			}, {
-				label: current_page,
-				number: current_page,
-				status: "btn-info",
-			}, {
-				label: __("Next"),
-				number: Math.min(current_page + 1, total_pages),
-				status: (current_page == total_pages) ? "disabled" : "",
-			}, {
-				label: __("Last"),
-				number: total_pages,
-				status: (current_page == total_pages) ? "disabled" : "",
-			}];
-		}
-	},
-	methods: {
-		filtered: function(requests) {
-			requests = requests.slice();
-			const filters = Object.entries(this.query.filters);
-			requests = requests.filter(
-				(r) => filters.map((f) => (r[f[0]] || "").match(f[1])).every(Boolean)
-			);
-			this.query.pagination.total = Math.ceil(requests.length / this.query.pagination.limit);
-			return requests;
-		},
-		paginated: function(requests) {
-			requests = requests.slice();
-			const begin = (this.query.pagination.page - 1) * (this.query.pagination.limit);
-			const end = begin + this.query.pagination.limit;
-			return requests.slice(begin, end);
-		},
-		sorted: function(requests) {
-			requests = requests.slice();
-			const order = (this.query.order == "asc") ? 1 : -1;
-			const sort = this.query.sort;
-			return requests.sort((a,b) => (a[sort] > b[sort]) ? order : -order);
-		},
-		refresh: function() {
-			frappe.call("frappe.recorder.get").then( r => this.requests = r.message);
-		},
-		update: function(message) {
-			this.requests.push(JSON.parse(message));
-		},
-		clear: function() {
-			frappe.call("frappe.recorder.delete").then(r => this.refresh());
-		},
-		start: function() {
-			frappe.call("frappe.recorder.start").then(r => this.fetch_status());
-		},
-		stop: function() {
-			frappe.call("frappe.recorder.stop").then(r => this.fetch_status());
-		},
-		fetch_status: function() {
-			frappe.call("frappe.recorder.status").then(r => this.update_status(r.message));
-		},
-		update_status: function(result) {
-			if(result) {
-				this.status = {status: "Active", color: "green"}
-			} else {
-				this.status = {status: "Inactive", color: "red"}
-			}
-			this.$root.page.set_indicator(this.status.status, this.status.color);
-			if(this.status.status == "Active") {
-				frappe.realtime.on("recorder-dump-event", this.update);
-			} else {
-				frappe.realtime.off("recorder-dump-event", this.update);
-			}
+<script setup>
+import { ref, computed, onMounted } from "vue"
+import { useRouter } from "vue-router"
 
-			this.update_buttons();
-		},
-		update_buttons: function() {
-			if(this.status.status == "Active") {
-				this.$root.page.set_primary_action(__("Stop"), () => {
-					this.stop();
-				});
-			} else {
-				this.$root.page.set_primary_action(__("Start"), () => {
-					this.start();
-				});
-			}
-		},
-		route_to_request_detail(request) {
-			this.$router.push({name: 'request-detail', params: {request, id: request.uuid}});
-		},
-		export_data: function() {
-			if (!this.requests) {
-				return;
-			}
-			frappe.call("frappe.recorder.export_data")
-				.then((r) => {
-					const data = r.message;
-					const filename = `${data[0]['uuid']}..${data[data.length -1]['uuid']}.json`
+// variables
+let router = ref(useRouter());
+let requests = ref([]);
+let page = frappe.pages["recorder"].page;
 
-					const el = document.createElement('a');
-					el.setAttribute('href', 'data:application/json,' + encodeURIComponent(JSON.stringify(data)));
-					el.setAttribute('download', filename);
-					el.click();
-				});
-		},
-		import_data: function(e) {
-			if (this.requests.length > 0) {
-				// don't replace existing capture
-				return;
-			}
-			const request_file = e.dataTransfer.files[0];
+let columns = [
+	{label: __("Path"), slug: "path"},
+	{label: __("Duration (ms)"), slug: "duration", sortable: true, number: true},
+	{label: __("Time in Queries (ms)"), slug: "time_queries", sortable: true, number: true},
+	{label: __("Queries"), slug: "queries", sortable: true, number: true},
+	{label: __("Method"), slug: "method"},
+	{label: __("Time"), slug: "time", sortable: true},
+];
 
-			const file_reader = new FileReader();
-			file_reader.readAsText(request_file, 'UTF-8');
-			file_reader.onload = ({target: {result}}) => {
-				 this.requests = JSON.parse(result);
-			}
-		}
+let query = ref({
+	sort: "duration",
+	order: "desc",
+	filters: {},
+	pagination: {
+		limit: 20,
+		page: 1,
+		total: 0,
 	}
-};
-</script>
-<style>
-.list-row .level-left {
-	flex: 8;
-	width: 100%;
+});
+
+let status = ref({
+	color: "grey",
+	status: "Unknown",
+});
+
+// Started
+frappe.recorder.router = router.value;
+let route = frappe.get_route();
+if (route[2]) {
+	router.value.push({name: "RequestDetail", params: {id: route[2]}});
 }
+
+// Methods
+function filtered(reqs) {
+	reqs = reqs.slice();
+	const filters = Object.entries(query.value.filters);
+	reqs = reqs.filter(
+		(r) => filters.map((f) => (r[f[0]] || "").match(f[1])).every(Boolean)
+	);
+	query.value.pagination.total = Math.ceil(reqs.length / query.value.pagination.limit);
+	return reqs;
+}
+function paginated(reqs) {
+	reqs = reqs.slice();
+	const begin = (query.value.pagination.page - 1) * (query.value.pagination.limit);
+	const end = begin + query.value.pagination.limit;
+	return reqs.slice(begin, end);
+}
+function sorted(reqs) {
+	reqs = reqs.slice();
+	const order = (query.value.order == "asc") ? 1 : -1;
+	const sort = query.value.sort;
+	return reqs.sort((a,b) => (a[sort] > b[sort]) ? order : -order);
+}
+function refresh() {
+	frappe.call("frappe.recorder.get").then( r => requests.value = r.message);
+}
+function update(message) {
+	requests.value.push(JSON.parse(message));
+}
+function clear() {
+	frappe.call("frappe.recorder.delete").then(r => refresh());
+}
+function start() {
+	frappe.call("frappe.recorder.start").then(r => fetch_status());
+}
+function stop() {
+	frappe.call("frappe.recorder.stop").then(r => fetch_status());
+}
+function fetch_status() {
+	frappe.call("frappe.recorder.status").then(r => update_status(r.message));
+}
+function update_status(result) {
+	if(result) {
+		status.value = {status: "Active", color: "green"}
+	} else {
+		status.value = {status: "Inactive", color: "red"}
+	}
+	page.set_indicator(status.value.status, status.value.color);
+	if(status.value.status == "Active") {
+		frappe.realtime.on("recorder-dump-event", update);
+	} else {
+		frappe.realtime.off("recorder-dump-event", update);
+	}
+
+	update_buttons();
+}
+function update_buttons() {
+	if(status.value.status == "Active") {
+		page.set_primary_action(__("Stop"), () => {
+			stop();
+		});
+	} else {
+		page.set_primary_action(__("Start"), () => {
+			start();
+		});
+	}
+}
+function route_to_request_detail(request) {
+	router.value.beforeEach(async to => {
+		if (to.meta.shouldFetch) {
+			to.meta.request = await request
+		}
+	});
+	router.value.push({name: "RequestDetail", params: {id: request.uuid}});
+}
+function export_data() {
+	if (!requests.value) {
+		return;
+	}
+	frappe.call("frappe.recorder.export_data")
+		.then((r) => {
+			const data = r.message;
+			const filename = `${data[0]["uuid"]}..${data[data.length -1]["uuid"]}.json`
+
+			const el = document.createElement("a");
+			el.setAttribute("href", "data:application/json," + encodeURIComponent(JSON.stringify(data)));
+			el.setAttribute("download", filename);
+			el.click();
+		});
+}
+function import_data(e) {
+	if (requests.value.length > 0) {
+		// don't replace existing capture
+		return;
+	}
+	const request_file = e.dataTransfer.files[0];
+
+	const file_reader = new FileReader();
+	file_reader.readAsText(request_file, "UTF-8");
+	file_reader.onload = ({target: {result}}) => {
+		requests.value = JSON.parse(result);
+	}
+}
+
+// Mounted
+onMounted(() => {
+	fetch_status();
+	refresh();
+	page.set_secondary_action(__("Clear"), () => {
+		frappe.set_route("recorder");
+		clear();
+	});
+	page.add_menu_item("Export data", () => export_data());
+});
+
+// Computed
+let pages = computed(() => {
+	const current_page = query.value.pagination.page;
+	const total_pages = query.value.pagination.total;
+	return [{
+		label: __("First"),
+		number: 1,
+		status: (current_page == 1) ? "disabled" : "",
+	},{
+		label: __("Previous"),
+		number: Math.max(current_page - 1, 1),
+		status: (current_page == 1) ? "disabled" : "",
+	}, {
+		label: current_page,
+		number: current_page,
+		status: "btn-info",
+	}, {
+		label: __("Next"),
+		number: Math.min(current_page + 1, total_pages),
+		status: (current_page == total_pages) ? "disabled" : "",
+	}, {
+		label: __("Last"),
+		number: total_pages,
+		status: (current_page == total_pages) ? "disabled" : "",
+	}];
+});
+</script>
+
+<style scoped>
+	.list-row .level-left {
+		flex: 8;
+		width: 100%;
+	}
 </style>

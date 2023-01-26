@@ -11,9 +11,16 @@ from frappe.utils import get_datetime, now, quoted, strip_html
 from frappe.utils.jinja import render_template
 from frappe.utils.safe_exec import safe_exec
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.utils import (extract_title, find_first_image,
-	get_comment_list, get_html_content_based_on_type)
+from frappe.website.utils import (
+	extract_title,
+	find_first_image,
+	get_comment_list,
+	get_html_content_based_on_type,
+	get_sidebar_items,
+)
 from frappe.website.website_generator import WebsiteGenerator
+
+H_TAG_PATTERN = re.compile("<h.>")
 
 
 class WebPage(WebsiteGenerator):
@@ -23,24 +30,21 @@ class WebPage(WebsiteGenerator):
 		if not self.dynamic_route:
 			self.route = quoted(self.route)
 
-	def get_feed(self):
-		return self.title
-
 	def on_update(self):
-		super(WebPage, self).on_update()
+		super().on_update()
 
 	def on_trash(self):
-		super(WebPage, self).on_trash()
+		super().on_trash()
 
 	def get_context(self, context):
-		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
+		context.main_section = get_html_content_based_on_type(self, "main_section", self.content_type)
 		context.source_content_type = self.content_type
 		context.title = self.title
 
 		if self.context_script:
-			_locals = dict(context = frappe._dict())
+			_locals = dict(context=frappe._dict())
 			safe_exec(self.context_script, None, _locals)
-			context.update(_locals['context'])
+			context.update(_locals["context"])
 
 		self.render_dynamic(context)
 
@@ -52,15 +56,20 @@ class WebPage(WebsiteGenerator):
 			context.comment_list = get_comment_list(self.doctype, self.name)
 			context.guest_allowed = True
 
-		context.update({
-			"style": self.css or "",
-			"script": self.javascript or "",
-			"header": self.header,
-			"text_align": self.text_align,
-		})
+		context.update(
+			{
+				"style": self.css or "",
+				"script": self.javascript or "",
+				"header": self.header,
+				"text_align": self.text_align,
+			}
+		)
 
 		if not self.show_title:
 			context["no_header"] = 1
+
+		if self.show_sidebar:
+			context.sidebar_items = get_sidebar_items(self.website_sidebar)
 
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
@@ -71,20 +80,28 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		is_jinja = context.dynamic_template or "<!-- jinja -->" in context.main_section
-		if is_jinja or ("{{" in context.main_section):
+		is_jinja = (
+			context.dynamic_template
+			or "<!-- jinja -->" in context.main_section
+			or ("{{" in context.main_section)
+		)
+		if is_jinja:
+			frappe.flags.web_block_scripts = {}
+			frappe.flags.web_block_styles = {}
 			try:
 				context["main_section"] = render_template(context.main_section, context)
 				if not "<!-- static -->" in context.main_section:
 					context["no_cache"] = 1
 			except TemplateSyntaxError:
-				if is_jinja:
-					raise
+				raise
+			finally:
+				frappe.flags.web_block_scripts = {}
+				frappe.flags.web_block_styles = {}
 
 	def set_breadcrumbs(self, context):
-		"""Build breadcrumbs template """
+		"""Build breadcrumbs template"""
 		if self.breadcrumbs:
-			context.parents = frappe.safe_eval(self.breadcrumbs, { "_": _ })
+			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
 		if not "no_breadcrumbs" in context:
 			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
@@ -108,7 +125,7 @@ class WebPage(WebsiteGenerator):
 				context.header = context.title
 
 			# add h1 tag to header
-			if context.get("header") and not re.findall("<h.>", context.header):
+			if context.get("header") and not H_TAG_PATTERN.findall(context.header):
 				context.header = "<h1>" + context.header + "</h1>"
 
 		# if title not set, set title from header
@@ -116,7 +133,7 @@ class WebPage(WebsiteGenerator):
 			context.title = strip_html(context.header)
 
 	def set_page_blocks(self, context):
-		if self.content_type != 'Page Builder':
+		if self.content_type != "Page Builder":
 			return
 		out = get_web_blocks_html(self.page_blocks)
 		context.page_builder_html = out.html
@@ -135,8 +152,9 @@ class WebPage(WebsiteGenerator):
 
 	def check_for_redirect(self, context):
 		if "<!-- redirect:" in context.main_section:
-			frappe.local.flags.redirect_location = \
-				context.main_section.split("<!-- redirect:")[1].split("-->")[0].strip()
+			frappe.local.flags.redirect_location = (
+				context.main_section.split("<!-- redirect:", 2)[1].split("-->", 1)[0].strip()
+			)
 			raise frappe.Redirect
 
 	def set_metatags(self, context):
@@ -145,7 +163,7 @@ class WebPage(WebsiteGenerator):
 				"name": self.meta_title or self.title,
 				"description": self.meta_description,
 				"image": self.meta_image or find_first_image(context.main_section or ""),
-				"og:type": "website"
+				"og:type": "website",
 			}
 
 	def validate_dates(self):
@@ -182,40 +200,49 @@ def check_publish_status():
 
 
 def get_web_blocks_html(blocks):
-	'''Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication'''
+	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
 
-	out = frappe._dict(html='', scripts=[], styles=[])
-	extracted_scripts = []
-	extracted_styles = []
+	out = frappe._dict(html="", scripts={}, styles={})
+	extracted_scripts = {}
+	extracted_styles = {}
 	for block in blocks:
-		web_template = frappe.get_cached_doc('Web Template', block.web_template)
-		rendered_html = frappe.render_template('templates/includes/web_block.html', context={
-			'web_block': block,
-			'web_template_html': web_template.render(block.web_template_values),
-			'web_template_type': web_template.type
-		})
+		web_template = frappe.get_cached_doc("Web Template", block.web_template)
+		rendered_html = frappe.render_template(
+			"templates/includes/web_block.html",
+			context={
+				"web_block": block,
+				"web_template_html": web_template.render(block.web_template_values),
+				"web_template_type": web_template.type,
+			},
+		)
 		html, scripts, styles = extract_script_and_style_tags(rendered_html)
 		out.html += html
 		if block.web_template not in extracted_scripts:
-			out.scripts += scripts
-			extracted_scripts.append(block.web_template)
+			extracted_scripts.setdefault(block.web_template, [])
+			extracted_scripts[block.web_template] += scripts
+
 		if block.web_template not in extracted_styles:
-			out.styles += styles
-			extracted_styles.append(block.web_template)
+			extracted_styles.setdefault(block.web_template, [])
+			extracted_styles[block.web_template] += styles
+
+	out.scripts = extracted_scripts
+	out.styles = extracted_styles
 
 	return out
 
+
 def extract_script_and_style_tags(html):
 	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, "html.parser")
 	scripts = []
 	styles = []
 
-	for script in soup.find_all('script'):
+	for script in soup.find_all("script"):
 		scripts.append(script.string)
 		script.extract()
 
-	for style in soup.find_all('style'):
+	for style in soup.find_all("style"):
 		styles.append(style.string)
 		style.extract()
 

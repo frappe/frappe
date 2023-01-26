@@ -4,29 +4,24 @@ pull_request_rules:
       - and:
         - and:
           - author!=surajshetty3416
-          - author!=gavindsouza
           - author!=deepeshgarg007
+          - author!=ankush
+          - author!=frappe-pr-bot
+          - author!=mergify[bot]
         - or:
+          - base=version-15
+          - base=version-14
           - base=version-13
           - base=version-12
     actions:
       close:
       comment:
           message: |
-            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch. 
+            @{{author}}, thanks for the contribution, but we do not accept pull requests on a stable branch. Please raise PR on an appropriate hotfix branch.
             https://github.com/frappe/erpnext/wiki/Pull-Request-Checklist#which-branch
 
   - name: Automatic merge on CI success and review
     conditions:
-      - status-success=Sider
-      - status-success=Semantic Pull Request
-      - status-success=Python Unit Tests (MariaDB) (1)
-      - status-success=Python Unit Tests (MariaDB) (2)
-      - status-success=Python Unit Tests (Postgres) (1)
-      - status-success=Python Unit Tests (Postgres) (2)
-      - status-success=UI Tests (Cypress) (1)
-      - status-success=UI Tests (Cypress) (2)
-      - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label!=squash
       - "#approved-reviews-by>=1"
@@ -35,14 +30,6 @@ pull_request_rules:
         method: merge
   - name: Automatic squash on CI success and review
     conditions:
-      - status-success=Sider
-      - status-success=Python Unit Tests (MariaDB) (1)
-      - status-success=Python Unit Tests (MariaDB) (2)
-      - status-success=Python Unit Tests (Postgres) (1)
-      - status-success=Python Unit Tests (Postgres) (2)
-      - status-success=UI Tests (Cypress) (1)
-      - status-success=UI Tests (Cypress) (2)
-      - status-success=security/snyk (frappe)
       - label!=dont-merge
       - label=squash
       - "#approved-reviews-by>=1"
@@ -53,3 +40,54 @@ pull_request_rules:
             {{ title }} (#{{ number }})
 
             {{ body }}
+
+  - name: backport to develop
+    conditions:
+      - label="backport develop"
+    actions:
+      backport:
+        branches:
+          - develop
+        assignees:
+          - "{{ author }}"
+
+  - name: backport to version-13-hotfix
+    conditions:
+      - label="backport version-13-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-13-hotfix
+        assignees:
+          - "{{ author }}"
+
+  - name: backport to version-14-hotfix
+    conditions:
+      - label="backport version-14-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-14-hotfix
+        assignees:
+          - "{{ author }}"
+
+
+  - name: backport to version-13-pre-release
+    conditions:
+      - label="backport version-13-pre-release"
+    actions:
+      backport:
+        branches:
+          - version-13-pre-release
+        assignees:
+          - "{{ author }}"
+
+  - name: backport to version-12-hotfix
+    conditions:
+      - label="backport version-12-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-12-hotfix
+        assignees:
+          - "{{ author }}"

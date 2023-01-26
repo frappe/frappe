@@ -2,8 +2,8 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.model.document import Document
 from frappe import _
+from frappe.model.document import Document
 
 
 class PrintFormatFieldTemplate(Document):
@@ -27,7 +27,7 @@ class PrintFormatFieldTemplate(Document):
 		filters = {"document_type": self.document_type, "field": self.field}
 		if not self.is_new():
 			filters.update({"name": ("!=", self.name)})
-		result = frappe.db.get_all("Print Format Field Template", filters=filters, limit=1)
+		result = frappe.get_all("Print Format Field Template", filters=filters, limit=1)
 		if result:
 			frappe.throw(
 				_("A template already exists for field {0} of {1}").format(

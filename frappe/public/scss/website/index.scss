@@ -1,6 +1,7 @@
 @import '../common/quill';
 @import 'variables';
 @import '~bootstrap/scss/bootstrap';
+@import '~cropperjs/dist/cropper.min';
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
@@ -114,8 +115,8 @@
 
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.page-content-wrapper .container {
-		padding-left: 1rem;
-		padding-right: 1rem;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
 	}
 }
 
@@ -123,6 +124,10 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+}
+
+.page_content {
+	min-height: 50vh;
 }
 
 .breadcrumb-container {
@@ -191,6 +196,7 @@ a.card {
 
 h4.modal-title {
 	font-size: 1em;
+	margin: 0px !important;
 }
 
 h5.modal-title {

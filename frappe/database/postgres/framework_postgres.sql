@@ -188,7 +188,6 @@ CREATE TABLE "tabDocType" (
   "app" varchar(255) DEFAULT NULL,
   "autoname" varchar(255) DEFAULT NULL,
   "naming_rule" varchar(40) DEFAULT NULL,
-  "name_case" varchar(255) DEFAULT NULL,
   "title_field" varchar(255) DEFAULT NULL,
   "image_field" varchar(255) DEFAULT NULL,
   "timeline_field" varchar(255) DEFAULT NULL,
@@ -231,6 +230,7 @@ CREATE TABLE "tabDocType" (
   "sender_field" varchar(255) DEFAULT NULL,
   "show_title_field_in_link" smallint NOT NULL DEFAULT 0,
   "migration_hash" varchar(255) DEFAULT NULL,
+  "translated_doctype" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
 
@@ -240,7 +240,7 @@ CREATE TABLE "tabDocType" (
 
 DROP TABLE IF EXISTS "tabSeries";
 CREATE TABLE "tabSeries" (
-  "name" varchar(100) DEFAULT NULL,
+  "name" varchar(100),
   "current" bigint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
@@ -256,7 +256,6 @@ CREATE TABLE "tabSessions" (
   "sessiondata" text,
   "ipaddress" varchar(16) DEFAULT NULL,
   "lastupdate" timestamp(6) DEFAULT NULL,
-  "device" varchar(255) DEFAULT 'desktop',
   "status" varchar(20) DEFAULT NULL
 );
 

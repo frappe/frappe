@@ -2,39 +2,36 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.translate import send_translations
+
 
 @frappe.whitelist()
 def get(name):
 	"""
-	   Return the :term:`doclist` of the `Page` specified by `name`
+	Return the :term:`doclist` of the `Page` specified by `name`
 	"""
-	page = frappe.get_doc('Page', name)
+	page = frappe.get_doc("Page", name)
 	if page.is_permitted():
 		page.load_assets()
 		docs = frappe._dict(page.as_dict())
-		if getattr(page, '_dynamic_page', None):
-			docs['_dynamic_page'] = 1
+		if getattr(page, "_dynamic_page", None):
+			docs["_dynamic_page"] = 1
 
 		return docs
 	else:
-		frappe.response['403'] = 1
-		raise frappe.PermissionError('No read permission for Page %s' %(page.title or name))
+		frappe.response["403"] = 1
+		raise frappe.PermissionError("No read permission for Page %s" % (page.title or name))
 
 
 @frappe.whitelist(allow_guest=True)
 def getpage():
 	"""
-	   Load the page from `frappe.form` and send it via `frappe.response`
+	Load the page from `frappe.form` and send it via `frappe.response`
 	"""
-	page = frappe.form_dict.get('name')
+	page = frappe.form_dict.get("name")
 	doc = get(page)
 
-	# load translations
-	if frappe.lang != "en":
-		send_translations(frappe.get_lang_dict("page", page))
-
 	frappe.response.docs.append(doc)
+
 
 def has_permission(page):
 	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():

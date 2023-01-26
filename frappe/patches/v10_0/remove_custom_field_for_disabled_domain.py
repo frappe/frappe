@@ -1,5 +1,5 @@
-
 import frappe
+
 
 def execute():
 	frappe.reload_doc("core", "doctype", "domain")

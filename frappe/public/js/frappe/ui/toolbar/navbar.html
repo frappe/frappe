@@ -6,6 +6,11 @@
 		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 		<div class="collapse navbar-collapse justify-content-end">
 			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
+				{% if (frappe.boot.read_only) { %}
+					<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is getting upgraded.") %}">
+						{%= __("Read Only Mode") %}
+					</span>
+				{% } %}
 				<div class="input-group search-bar text-muted hidden">
 					<input
 						id="navbar-search"
@@ -15,7 +20,7 @@
 						aria-haspopup="true"
 					>
 					<span class="search-icon">
-						<svg class="icon icon-sm"><use xlink:href="#icon-search"></use></svg>
+						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 					</span>
 				</div>
 			</form>

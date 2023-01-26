@@ -3,7 +3,7 @@
 
 frappe.views.ReportFactory = class ReportFactory extends frappe.views.Factory {
 	make(route) {
-		const _route = ['List', route[1], 'Report'];
+		const _route = ["List", route[1], "Report"];
 
 		if (route[2]) {
 			// custom report
@@ -12,4 +12,4 @@ frappe.views.ReportFactory = class ReportFactory extends frappe.views.Factory {
 
 		frappe.set_route(_route);
 	}
-}
+};

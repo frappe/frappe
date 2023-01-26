@@ -13,6 +13,7 @@ from frappe.cache_manager import clear_global_cache
 from frappe.core.doctype.language.language import sync_languages
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.database.schema import add_column
+from frappe.deferred_insert import save_to_db as flush_deferred_inserts
 from frappe.desk.notifications import clear_notifications
 from frappe.modules.patch_handler import PatchType
 from frappe.modules.utils import sync_customizations
@@ -66,8 +67,7 @@ class SiteMigration:
 		self.skip_search_index = skip_search_index
 
 	def setUp(self):
-		"""Complete setup required for site migration
-		"""
+		"""Complete setup required for site migration"""
 		frappe.flags.touched_tables = set()
 		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
 		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
@@ -90,8 +90,8 @@ class SiteMigration:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
 
 		if not self.skip_search_index:
-			print(f"Building search index for {frappe.local.site}")
-			build_index_for_all_routes()
+			print(f"Queued rebuilding of search index for {frappe.local.site}")
+			frappe.enqueue(build_index_for_all_routes, queue="long")
 
 		frappe.publish_realtime("version-update")
 		frappe.flags.touched_tables.clear()
@@ -99,19 +99,21 @@ class SiteMigration:
 
 	@atomic
 	def pre_schema_updates(self):
-		"""Executes `before_migrate` hooks
-		"""
+		"""Executes `before_migrate` hooks"""
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
 				frappe.get_attr(fn)()
 
 	@atomic
 	def run_schema_updates(self):
-		"""Run patches as defined in patches.txt, sync schema changes as defined in the {doctype}.json files
-		"""
-		frappe.modules.patch_handler.run_all(skip_failing=self.skip_failing, patch_type=PatchType.pre_model_sync)
+		"""Run patches as defined in patches.txt, sync schema changes as defined in the {doctype}.json files"""
+		frappe.modules.patch_handler.run_all(
+			skip_failing=self.skip_failing, patch_type=PatchType.pre_model_sync
+		)
 		frappe.model.sync.sync_all()
-		frappe.modules.patch_handler.run_all(skip_failing=self.skip_failing, patch_type=PatchType.post_model_sync)
+		frappe.modules.patch_handler.run_all(
+			skip_failing=self.skip_failing, patch_type=PatchType.post_model_sync
+		)
 
 	@atomic
 	def post_schema_updates(self):
@@ -122,6 +124,7 @@ class SiteMigration:
 		* Sync in-Desk Module Dashboards
 		* Sync customizations: Custom Fields, Property Setters, Custom Permissions
 		* Sync Frappe's internal language master
+		* Flush deferred inserts made during maintenance mode.
 		* Sync Portal Menu Items
 		* Sync Installed Applications Version History
 		* Execute `after_migrate` hooks
@@ -131,6 +134,7 @@ class SiteMigration:
 		sync_dashboards()
 		sync_customizations()
 		sync_languages()
+		flush_deferred_inserts()
 
 		frappe.get_single("Portal Settings").sync_menu()
 		frappe.get_single("Installed Applications").update_versions()
@@ -158,18 +162,21 @@ class SiteMigration:
 		"""Run Migrate operation on site specified. This method initializes
 		and destroys connections to the site database.
 		"""
-		if not self.required_services_running():
-			raise SystemExit(1)
+		from frappe.utils.synchronization import filelock
 
 		if site:
 			frappe.init(site=site)
 			frappe.connect()
 
-		self.setUp()
-		try:
-			self.pre_schema_updates()
-			self.run_schema_updates()
-		finally:
-			self.post_schema_updates()
-			self.tearDown()
-			frappe.destroy()
+		if not self.required_services_running():
+			raise SystemExit(1)
+
+		with filelock("bench_migrate", timeout=1):
+			self.setUp()
+			try:
+				self.pre_schema_updates()
+				self.run_schema_updates()
+				self.post_schema_updates()
+			finally:
+				self.tearDown()
+				frappe.destroy()

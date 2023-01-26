@@ -9,21 +9,22 @@ from datetime import datetime
 from glob import glob
 from shutil import which
 
-
 # imports - third party imports
 import click
+from cryptography.fernet import Fernet
 
 # imports - module imports
 import frappe
 from frappe import conf
-from frappe.utils import get_file_size, get_url, now, now_datetime, cint
-from frappe.utils.password import get_encryption_key
+from frappe.utils import cint, get_file_size, get_url, now, now_datetime
 
 # backup variable for backwards compatibility
 verbose = False
 compress = False
 _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
+
+BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
 
 
 class BackupGenerator:
@@ -74,11 +75,7 @@ class BackupGenerator:
 		if not self.db_type:
 			self.db_type = "mariadb"
 
-		if not self.db_port:
-			if self.db_type == "mariadb":
-				self.db_port = 3306
-			if self.db_type == "postgres":
-				self.db_port = 5432
+		self.db_port = self.db_port or frappe.db.default_port
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -104,14 +101,12 @@ class BackupGenerator:
 			if self.backup_path:
 				os.makedirs(self.backup_path, exist_ok=True)
 
-			for file_path in set(
-				[
-					self.backup_path_files,
-					self.backup_path_db,
-					self.backup_path_private_files,
-					self.backup_path_conf,
-				]
-			):
+			for file_path in {
+				self.backup_path_files,
+				self.backup_path_db,
+				self.backup_path_private_files,
+				self.backup_path_conf,
+			}:
 				if file_path:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
@@ -234,12 +229,10 @@ class BackupGenerator:
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
-				cmd_string = (
-					"gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
-				)
+				cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
 				try:
 					command = cmd_string.format(
-						passphrase=get_encryption_key(),
+						passphrase=get_or_generate_backup_encryption_key(),
 						filelocation=path,
 					)
 
@@ -248,21 +241,23 @@ class BackupGenerator:
 
 				except Exception as err:
 					print(err)
-					click.secho("Error occurred during encryption. Files are stored without encryption.", fg="red")
+					click.secho(
+						"Error occurred during encryption. Files are stored without encryption.", fg="red"
+					)
 
 	def get_recent_backup(self, older_than, partial=False):
 		backup_path = get_backup_path()
 
 		if not frappe.get_system_settings("encrypt_backup"):
 			file_type_slugs = {
-				"database": "*-{{}}-{}database.sql.gz".format('*' if partial else ''),
+				"database": "*-{{}}-{}database.sql.gz".format("*" if partial else ""),
 				"public": "*-{}-files.tar",
 				"private": "*-{}-private-files.tar",
 				"config": "*-{}-site_config_backup.json",
 			}
 		else:
 			file_type_slugs = {
-				"database": "*-{{}}-{}database.enc.sql.gz".format('*' if partial else ''),
+				"database": "*-{{}}-{}database.enc.sql.gz".format("*" if partial else ""),
 				"public": "*-{}-files.enc.tar",
 				"private": "*-{}-private-files.enc.tar",
 				"config": "*-{}-site_config_backup.json",
@@ -270,7 +265,7 @@ class BackupGenerator:
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
-			file_timestamp = file_name.split("-")[0]
+			file_timestamp = file_name.split("-", 1)[0]
 			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
 
 		def get_latest(file_pattern):
@@ -303,8 +298,7 @@ class BackupGenerator:
 	def zip_files(self):
 		# For backwards compatibility - pre v13
 		click.secho(
-			"BackupGenerator.zip_files has been deprecated in favour of"
-			" BackupGenerator.backup_files",
+			"BackupGenerator.zip_files has been deprecated in favour of" " BackupGenerator.backup_files",
 			fg="yellow",
 		)
 		return self.backup_files()
@@ -321,9 +315,7 @@ class BackupGenerator:
 			},
 		}
 
-		if os.path.exists(self.backup_path_files) and os.path.exists(
-			self.backup_path_private_files
-		):
+		if os.path.exists(self.backup_path_files) and os.path.exists(self.backup_path_private_files):
 			summary.update(
 				{
 					"public": {
@@ -341,21 +333,19 @@ class BackupGenerator:
 
 	def print_summary(self):
 		backup_summary = self.get_summary()
-		print("Backup Summary for {0} at {1}".format(frappe.local.site, now()))
+		print(f"Backup Summary for {frappe.local.site} at {now()}")
 
 		title = max(len(x) for x in backup_summary)
 		path = max(len(x["path"]) for x in backup_summary.values())
 
 		for _type, info in backup_summary.items():
-			template = "{{0:{0}}}: {{1:{1}}} {{2}}".format(title, path)
+			template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
 			print(template.format(_type.title(), info["path"], info["size"]))
 
 	def backup_files(self):
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
-			backup_path = (
-				self.backup_path_files if folder == "public" else self.backup_path_private_files
-			)
+			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
 			if self.compress_files:
 				cmd_string = "tar cf - {1} | gzip > {0}"
@@ -363,9 +353,7 @@ class BackupGenerator:
 				cmd_string = "tar -cf {0} {1}"
 
 			frappe.utils.execute_in_shell(
-				cmd_string.format(backup_path, files_path),
-				verbose=self.verbose,
-				low_priority=True
+				cmd_string.format(backup_path, files_path), verbose=self.verbose, low_priority=True
 			)
 
 	def copy_site_config(self):
@@ -388,8 +376,7 @@ class BackupGenerator:
 		if not (gzip_exc and db_exc[1]):
 			_exc = "gzip" if not gzip_exc else db_exc[0]
 			frappe.throw(
-				f"{_exc} not found in PATH! This is required to take a backup.",
-				exc=frappe.ExecutableNotFound
+				f"{_exc} not found in PATH! This is required to take a backup.", exc=frappe.ExecutableNotFound
 			)
 		db_exc = db_exc[0]
 
@@ -400,8 +387,7 @@ class BackupGenerator:
 
 		# escape reserved characters
 		args = frappe._dict(
-			[item[0], frappe.utils.esc(str(item[1]), "$ ")]
-			for item in self.__dict__.copy().items()
+			[item[0], frappe.utils.esc(str(item[1]), "$ ")] for item in self.__dict__.copy().items()
 		)
 
 		if self.backup_includes:
@@ -411,12 +397,14 @@ class BackupGenerator:
 
 		if self.partial:
 			if self.verbose:
-				print(''.join(backup_info), "\n")
-			database_header_content.extend([
-				f"Partial Backup of Frappe Site {frappe.local.site}",
-				("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],
-				"",
-			])
+				print("".join(backup_info), "\n")
+			database_header_content.extend(
+				[
+					f"Partial Backup of Frappe Site {frappe.local.site}",
+					("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],
+					"",
+				]
+			)
 
 		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
 
@@ -425,33 +413,31 @@ class BackupGenerator:
 
 		if self.db_type == "postgres":
 			if self.backup_includes:
-				args["include"] = " ".join(
-					["--table='public.\"{0}\"'".format(table) for table in self.backup_includes]
-				)
+				args["include"] = " ".join([f"--table='public.\"{table}\"'" for table in self.backup_includes])
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					["--exclude-table-data='public.\"{0}\"'".format(table) for table in self.backup_excludes]
+					[f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes]
 				)
 
 			cmd_string = (
-				"{db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
-				" {include} {exclude} | {gzip} >> {backup_path_db}"
+				"self=$$; "
+				"( {db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
+				" {include} {exclude} || kill $self ) | {gzip} >> {backup_path_db}"
 			)
 
 		else:
 			if self.backup_includes:
-				args["include"] = " ".join(["'{0}'".format(x) for x in self.backup_includes])
+				args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					[
-						"--ignore-table='{0}.{1}'".format(frappe.conf.db_name, table)
-						for table in self.backup_excludes
-					]
+					[f"--ignore-table='{frappe.conf.db_name}.{table}'" for table in self.backup_excludes]
 				)
 
 			cmd_string = (
-				"{db_exc} --single-transaction --quick --lock-tables=false -u {user}"
-				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude}"
+				# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
+				"self=$$; "
+				" ( {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
+				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude} || kill $self ) "
 				" | {gzip} >> {backup_path_db}"
 			)
 
@@ -469,9 +455,9 @@ class BackupGenerator:
 		)
 
 		if self.verbose:
-			print(command + "\n")
+			print(command.replace(args.password, "*" * 10) + "\n")
 
-		frappe.utils.execute_in_shell(command, low_priority=True)
+		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
 
 	def send_email(self):
 		"""
@@ -480,30 +466,24 @@ class BackupGenerator:
 		from frappe.email import get_system_managers
 
 		recipient_list = get_system_managers()
-		db_backup_url = get_url(
-			os.path.join("backups", os.path.basename(self.backup_path_db))
-		)
-		files_backup_url = get_url(
-			os.path.join("backups", os.path.basename(self.backup_path_files))
-		)
+		db_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_db)))
+		files_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_files)))
 
 		msg = """Hello,
 
 Your backups are ready to be downloaded.
 
-1. [Click here to download the database backup](%(db_backup_url)s)
-2. [Click here to download the files backup](%(files_backup_url)s)
+1. [Click here to download the database backup]({db_backup_url})
+2. [Click here to download the files backup]({files_backup_url})
 
 This link will be valid for 24 hours. A new backup will be available for
-download only after 24 hours.""" % {
-			"db_backup_url": db_backup_url,
-			"files_backup_url": files_backup_url,
-		}
+download only after 24 hours.""".format(
+			db_backup_url=db_backup_url,
+			files_backup_url=files_backup_url,
+		)
 
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
-		subject = (
-			datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
-		)
+		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
 		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
@@ -515,7 +495,7 @@ def fetch_latest_backups(partial=False):
 	Only for: System Managers
 
 	Returns:
-		dict: relative Backup Paths
+	        dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(
@@ -649,16 +629,31 @@ def get_backup_path():
 	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 	return backup_path
 
+
 @frappe.whitelist()
 def get_backup_encryption_key():
 	frappe.only_for("System Manager")
-	return frappe.conf.encryption_key
+	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+
+
+def get_or_generate_backup_encryption_key():
+	from frappe.installer import update_site_config
+
+	key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	if key:
+		return key
+
+	key = Fernet.generate_key().decode()
+	update_site_config(BACKUP_ENCRYPTION_CONFIG_KEY, key)
+
+	return key
+
 
 class Backup:
 	def __init__(self, file_path):
 		self.file_path = file_path
 
-	def backup_decryption(self,passphrase):
+	def backup_decryption(self, passphrase):
 		"""
 		Decrypts backup at the given path using the passphrase.
 		"""
@@ -666,27 +661,24 @@ class Backup:
 			print("Invalid path", self.file_path)
 			return
 		else:
-			os.rename(self.file_path, self.file_path + ".gpg")
-			file_path = self.file_path + ".gpg"
+			file_path_with_ext = self.file_path + ".gpg"
+			os.rename(self.file_path, file_path_with_ext)
 
-			cmd_string = (
-					"gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
-			)
+			cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
 			command = cmd_string.format(
 				passphrase=passphrase,
-				file_location=file_path,
-				decrypted_file=file_path.rstrip(".gpg"),
+				file_location=file_path_with_ext,
+				decrypted_file=self.file_path,
 			)
 		frappe.utils.execute_in_shell(command)
-
 
 	def decryption_rollback(self):
 		"""
 		Checks if the decrypted file exists at the given path.
 		if exists
-			Renames the orginal encrypted file.
+		        Renames the orginal encrypted file.
 		else
-			Removes the decrypted file and rename the original file.
+		        Removes the decrypted file and rename the original file.
 		"""
 		if os.path.exists(self.file_path + ".gpg"):
 			if os.path.exists(self.file_path):
@@ -718,68 +710,3 @@ def backup(
 		"backup_path_files": odb.backup_path_files,
 		"backup_path_private_files": odb.backup_path_private_files,
 	}
-
-
-if __name__ == "__main__":
-	import sys
-
-	cmd = sys.argv[1]
-
-	db_type = "mariadb"
-	try:
-		db_type = sys.argv[6]
-	except IndexError:
-		pass
-
-	db_port = 3306
-	try:
-		db_port = int(sys.argv[7])
-	except IndexError:
-		pass
-
-	if cmd == "is_file_old":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		is_file_old(odb.db_file_name)
-
-	if cmd == "get_backup":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		odb.get_backup()
-
-	if cmd == "take_dump":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		odb.take_dump()
-
-	if cmd == "send_email":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		odb.send_email()
-
-	if cmd == "delete_temp_backups":
-		delete_temp_backups()

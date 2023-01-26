@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2017, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import base64
-import datetime
 import hashlib
 import hmac
 import json
 from time import sleep
+from urllib.parse import urlparse
 
 import requests
-from urllib.parse import urlparse
 
 import frappe
 from frappe import _
@@ -28,14 +26,19 @@ class Webhook(Document):
 		self.validate_request_url()
 		self.validate_request_body()
 		self.validate_repeating_fields()
+		self.preview_document = None
 
 	def on_update(self):
-		frappe.cache().delete_value('webhooks')
+		frappe.cache().delete_value("webhooks")
 
 	def validate_docevent(self):
 		if self.webhook_doctype:
 			is_submittable = frappe.get_value("DocType", self.webhook_doctype, "is_submittable")
-			if not is_submittable and self.webhook_docevent in ["on_submit", "on_cancel", "on_update_after_submit"]:
+			if not is_submittable and self.webhook_docevent in [
+				"on_submit",
+				"on_cancel",
+				"on_update_after_submit",
+			]:
 				frappe.throw(_("DocType must be Submittable for the selected Doc Event"))
 
 	def validate_condition(self):
@@ -44,7 +47,7 @@ class Webhook(Document):
 			try:
 				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
-				frappe.throw(_(e))
+				frappe.throw(_("Invalid Condition: {}").format(e))
 
 	def validate_request_url(self):
 		try:
@@ -71,23 +74,67 @@ class Webhook(Document):
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
+	@frappe.whitelist()
+	def generate_preview(self):
+		# This function doesn't need to do anything specific as virtual fields
+		# get evaluated automatically.
+		pass
+
+	@property
+	def meets_condition(self):
+		if not self.condition:
+			return _("Yes")
+
+		if not (self.preview_document and self.webhook_doctype):
+			return _("Select a document to check if it meets conditions.")
+
+		try:
+			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
+			met_condition = frappe.safe_eval(self.condition, eval_locals=get_context(doc))
+		except Exception as e:
+			return _("Failed to evaluate conditions: {}").format(e)
+		return _("Yes") if met_condition else _("No")
+
+	@property
+	def preview_request_body(self):
+		if not (self.preview_document and self.webhook_doctype):
+			return _("Select a document to preview request data")
+
+		try:
+			doc = frappe.get_cached_doc(self.webhook_doctype, self.preview_document)
+			return frappe.as_json(get_webhook_data(doc, self))
+		except Exception as e:
+			return _("Failed to compute request body: {}").format(e)
+
 
 def get_context(doc):
-	return {'doc': doc, 'utils': get_safe_globals().get('frappe').get('utils')}
+	return {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
 
-def enqueue_webhook(doc, webhook):
-	webhook = frappe.get_doc("Webhook", webhook.get("name"))
+
+def enqueue_webhook(doc, webhook) -> None:
+	webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 	headers = get_webhook_headers(doc, webhook)
 	data = get_webhook_data(doc, webhook)
+	r = None
 
 	for i in range(3):
 		try:
-			r = requests.request(method=webhook.request_method, url=webhook.request_url,
-				data=json.dumps(data, default=str), headers=headers, timeout=5)
+			r = requests.request(
+				method=webhook.request_method,
+				url=webhook.request_url,
+				data=json.dumps(data, default=str),
+				headers=headers,
+				timeout=5,
+			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
 			log_request(webhook.request_url, headers, data, r)
 			break
+
+		except requests.exceptions.ReadTimeout as e:
+			frappe.logger().debug({"webhook_error": e, "try": i + 1})
+			log_request(webhook.request_url, headers, data)
+
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
 			log_request(webhook.request_url, headers, data, r)
@@ -95,19 +142,23 @@ def enqueue_webhook(doc, webhook):
 			if i != 2:
 				continue
 			else:
-				raise e
+				webhook.log_error("Webhook failed")
 
-def log_request(url, headers, data, res):
-	request_log = frappe.get_doc({
-		"doctype": "Webhook Request Log",
-		"user": frappe.session.user if frappe.session.user else None,
-		"url": url,
-		"headers": json.dumps(headers, indent=4) if headers else None,
-		"data": json.dumps(data, indent=4) if isinstance(data, dict) else data,
-		"response": json.dumps(res.json(), indent=4) if res else None
-	})
+
+def log_request(url: str, headers: dict, data: dict, res: requests.Response | None = None):
+	request_log = frappe.get_doc(
+		{
+			"doctype": "Webhook Request Log",
+			"user": frappe.session.user if frappe.session.user else None,
+			"url": url,
+			"headers": frappe.as_json(headers) if headers else None,
+			"data": frappe.as_json(data) if data else None,
+			"response": frappe.as_json(res.json()) if res else None,
+		}
+	)
 
 	request_log.save(ignore_permissions=True)
+
 
 def get_webhook_headers(doc, webhook):
 	headers = {}
@@ -118,7 +169,7 @@ def get_webhook_headers(doc, webhook):
 			hmac.new(
 				webhook.get_password("webhook_secret").encode("utf8"),
 				json.dumps(data).encode("utf8"),
-				hashlib.sha256
+				hashlib.sha256,
 			).digest()
 		)
 		headers[WEBHOOK_SECRET_HEADER] = signature

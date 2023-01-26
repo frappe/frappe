@@ -1,9 +1,7 @@
 import sys
-import unittest
 from contextlib import contextmanager
 from random import choice
 from threading import Thread
-from typing import Dict, Optional, Tuple
 from unittest.mock import patch
 
 import requests
@@ -11,6 +9,8 @@ from semantic_version import Version
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.installer import update_site_config
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url, get_test_client
 
 try:
@@ -19,6 +19,7 @@ except Exception:
 	_site = None
 
 authorization_token = None
+
 
 @contextmanager
 def suppress_stdout():
@@ -31,8 +32,13 @@ def suppress_stdout():
 		sys.stdout = sys.__stdout__
 
 
-def make_request(target: str, args: Optional[Tuple] = None, kwargs: Optional[Dict] = None) -> TestResponse:
-	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs)
+def make_request(
+	target: str,
+	args: tuple | None = None,
+	kwargs: dict | None = None,
+	site: str = None,
+) -> TestResponse:
+	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
 	t.join()
 	return t._return
@@ -44,13 +50,14 @@ def patch_request_header(key, *args, **kwargs):
 
 
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, site=None):
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
+		self.site = site or _site
 
 	def run(self):
 		if self._target is not None:
-			with patch("frappe.app.get_site_name", return_value=_site):
+			with patch("frappe.app.get_site_name", return_value=self.site):
 				header_patch = patch("frappe.get_request_header", new=patch_request_header)
 				if authorization_token:
 					header_patch.start()
@@ -63,7 +70,7 @@ class ThreadWithReturnValue(Thread):
 		return self._return
 
 
-class FrappeAPITestCase(unittest.TestCase):
+class FrappeAPITestCase(FrappeTestCase):
 	SITE = frappe.local.site
 	SITE_URL = get_site_url(SITE)
 	RESOURCE_URL = f"{SITE_URL}/api/resource"
@@ -78,22 +85,22 @@ class FrappeAPITestCase(unittest.TestCase):
 			set_request(path="/")
 			frappe.local.cookie_manager = CookieManager()
 			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as('Administrator')
+			frappe.local.login_manager.login_as("Administrator")
 			self._sid = frappe.session.sid
 
 		return self._sid
 
-	def get(self, path: str, params: Optional[Dict] = None) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.get, args=(path, ), kwargs={"data": params})
+	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
 
-	def post(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.post, args=(path, ), kwargs={"data": data})
+	def post(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data, **kwargs})
 
-	def put(self, path, data) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.put, args=(path, ), kwargs={"data": data})
+	def put(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.put, args=(path,), kwargs={"data": data, **kwargs})
 
-	def delete(self, path) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.delete, args=(path, ))
+	def delete(self, path, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
 
 
 class TestResourceAPI(FrappeAPITestCase):
@@ -102,10 +109,9 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		for _ in range(10):
-			doc = frappe.get_doc(
-				{"doctype": "ToDo", "description": frappe.mock("paragraph")}
-			).insert()
+			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
 			cls.GENERATED_DOCUMENTS.append(doc.name)
 		frappe.db.commit()
 
@@ -157,7 +163,9 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "fields": '["description"]'})
+		response = self.get(
+			f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "fields": '["description"]'}
+		)
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
@@ -205,10 +213,14 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIn(response.status_code, (403, 200))
 
 		if response.status_code == 403:
-			self.assertTrue(set(response.json.keys()) == {'exc_type', 'exception', 'exc', '_server_messages'})
-			self.assertEqual(response.json.get('exc_type'), 'PermissionError')
-			self.assertEqual(response.json.get('exception'), 'frappe.exceptions.PermissionError: Not permitted')
-			self.assertIsInstance(response.json.get('exc'), str)
+			self.assertTrue(
+				set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"}
+			)
+			self.assertEqual(response.json.get("exc_type"), "PermissionError")
+			self.assertEqual(
+				response.json.get("exception"), "frappe.exceptions.PermissionError: Not permitted"
+			)
+			self.assertIsInstance(response.json.get("exc"), str)
 
 		elif response.status_code == 200:
 			data = response.json.get("data")
@@ -222,6 +234,7 @@ class TestMethodAPI(FrappeAPITestCase):
 	def setUp(self):
 		if self._testMethodName == "test_auth_cycle":
 			from frappe.core.doctype.user.user import generate_keys
+
 			generate_keys("Administrator")
 			frappe.db.commit()
 
@@ -261,3 +274,35 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], "Administrator")
 
 		authorization_token = None
+
+	def test_404s(self):
+		response = self.get("/api/rest", {"sid": self.sid})
+		self.assertEqual(response.status_code, 404)
+		response = self.get("/api/resource/User/NonExistent@s.com", {"sid": self.sid})
+		self.assertEqual(response.status_code, 404)
+
+
+class TestReadOnlyMode(FrappeAPITestCase):
+	"""During migration if read only mode can be enabled.
+	Test if reads work well and writes are blocked"""
+
+	REQ_PATH = "/api/resource/ToDo"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		update_site_config("allow_reads_during_maintenance", 1)
+		cls.addClassCleanup(update_site_config, "maintenance_mode", 0)
+		# XXX: this has potential to crumble rest of the test suite.
+		update_site_config("maintenance_mode", 1)
+
+	def test_reads(self):
+		response = self.get(self.REQ_PATH, {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		self.assertIsInstance(response.json, dict)
+		self.assertIsInstance(response.json["data"], list)
+
+	def test_blocked_writes(self):
+		response = self.post(self.REQ_PATH, {"description": frappe.mock("paragraph"), "sid": self.sid})
+		self.assertEqual(response.status_code, 503)
+		self.assertEqual(response.json["exc_type"], "InReadOnlyMode")

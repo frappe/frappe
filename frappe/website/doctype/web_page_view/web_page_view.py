@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
 import frappe
 from frappe.model.document import Document
+
 
 class WebPageView(Document):
 	pass
@@ -15,16 +15,16 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 		return
 
 	request_dict = frappe.request.__dict__
-	user_agent = request_dict.get('environ', {}).get('HTTP_USER_AGENT')
+	user_agent = request_dict.get("environ", {}).get("HTTP_USER_AGENT")
 
 	if referrer:
-		referrer = referrer.split('?')[0]
+		referrer = referrer.split("?", 1)[0]
 
 	is_unique = True
 	if referrer.startswith(url):
 		is_unique = False
 
-	if path != "/" and path.startswith('/'):
+	if path != "/" and path.startswith("/"):
 		path = path[1:]
 
 	view = frappe.new_doc("Web Page View")
@@ -37,14 +37,19 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 	view.is_unique = is_unique
 
 	try:
-		view.insert(ignore_permissions=True)
+		if frappe.flags.read_only:
+			view.deferred_insert()
+		else:
+			view.insert(ignore_permissions=True)
 	except Exception:
 		if frappe.message_log:
 			frappe.message_log.pop()
 
+
 @frappe.whitelist()
 def get_page_view_count(path):
-	return frappe.db.count("Web Page View", filters={'path': path})
+	return frappe.db.count("Web Page View", filters={"path": path})
+
 
 def is_tracking_enabled():
-	return frappe.db.get_value("Website Settings", "Website Settings", "enable_view_tracking")
+	return frappe.db.get_single_value("Website Settings", "enable_view_tracking")

@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from datetime import datetime
 import json
-import traceback
-import frappe
 import os
+import traceback
 import uuid
+from datetime import datetime
+
 import rq
 
+import frappe
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
@@ -25,11 +25,20 @@ def stop(response=None):
 		frappe.local.monitor.dump(response)
 
 
+def add_data_to_monitor(**kwargs) -> None:
+	"""Add additional custom key-value pairs along with monitor log.
+	Note: Key-value pairs should be simple JSON exportable types."""
+	if hasattr(frappe.local, "monitor"):
+		frappe.local.monitor.add_custom_data(**kwargs)
+
+
 def log_file():
 	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
 
 
 class Monitor:
+	__slots__ = ("data",)
+
 	def __init__(self, transaction_type, method, kwargs):
 		try:
 			self.data = frappe._dict(
@@ -69,6 +78,10 @@ class Monitor:
 			waitdiff = self.data.timestamp - job.enqueued_at
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
 
+	def add_custom_data(self, **kwargs):
+		if self.data:
+			self.data.update(kwargs)
+
 	def dump(self, response=None):
 		try:
 			timediff = datetime.utcnow() - self.data.timestamp
@@ -92,7 +105,7 @@ class Monitor:
 	def store(self):
 		if frappe.cache().llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
 			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
-		serialized = json.dumps(self.data, sort_keys=True, default=str)
+		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
 		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
 
 

@@ -1,7 +1,7 @@
 export function create_default_layout(meta, print_format) {
 	let layout = {
 		header: get_default_header(meta),
-		sections: []
+		sections: [],
 	};
 
 	let section = null,
@@ -27,7 +27,7 @@ export function create_default_layout(meta, print_format) {
 		}
 		return {
 			label: df.label || "",
-			columns: []
+			columns: [],
 		};
 	}
 
@@ -37,7 +37,7 @@ export function create_default_layout(meta, print_format) {
 		}
 		return {
 			label: df.label || "",
-			fields: []
+			fields: [],
 		};
 	}
 
@@ -61,13 +61,10 @@ export function create_default_layout(meta, print_format) {
 					label: df.label,
 					fieldname: df.fieldname,
 					fieldtype: df.fieldtype,
-					options: df.options
+					options: df.options,
 				};
 
-				let field_template = get_field_template(
-					print_format,
-					df.fieldname
-				);
+				let field_template = get_field_template(print_format, df.fieldname);
 				if (field_template) {
 					field.label = `${__(df.label)} (${__("Field Template")})`;
 					field.fieldtype = "Field Template";
@@ -86,7 +83,7 @@ export function create_default_layout(meta, print_format) {
 	}
 
 	// remove empty sections
-	layout.sections = layout.sections.filter(section => section.has_fields);
+	layout.sections = layout.sections.filter((section) => section.has_fields);
 
 	return layout;
 }
@@ -103,17 +100,13 @@ export function get_table_columns(df) {
 			total_width < 100
 		) {
 			let width =
-				typeof tf.width == "number" && tf.width < 100
-					? tf.width
-					: tf.width
-						? 20
-						: 10;
+				typeof tf.width == "number" && tf.width < 100 ? tf.width : tf.width ? 20 : 10;
 			table_columns.push({
 				label: tf.label,
 				fieldname: tf.fieldname,
 				fieldtype: tf.fieldtype,
 				options: tf.options,
-				width
+				width,
 			});
 			total_width += width;
 		}
@@ -149,9 +142,9 @@ export function pluck(object, keys) {
 }
 
 export function get_image_dimensions(src) {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		let img = new Image();
-		img.onload = function() {
+		img.onload = function () {
 			resolve({ width: this.width, height: this.height });
 		};
 		img.src = src;

@@ -5,13 +5,11 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 	}
 	make_input() {
 		var me = this;
-		const btn_type = this.df.primary ? 'btn-primary': 'btn-default';
-		const btn_size = this.df.btn_size
-			? `btn-${this.df.btn_size}`
-			: "btn-xs";
+		const btn_type = this.df.primary ? "btn-primary" : "btn-default";
+		const btn_size = this.df.btn_size ? `btn-${this.df.btn_size}` : "btn-xs";
 		this.$input = $(`<button class="btn ${btn_size} ${btn_type}">`)
 			.prependTo(me.input_area)
-			.on("click", function() {
+			.on("click", function () {
 				me.onclick();
 			});
 		this.input = this.$input.get(0);
@@ -35,16 +33,16 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 	run_server_script() {
 		// DEPRECATE
 		var me = this;
-		if(this.frm && this.frm.docname) {
+		if (this.frm && this.frm.docname) {
 			frappe.call({
 				method: "run_doc_method",
-				args: {'docs': this.frm.doc, 'method': this.df.options },
+				args: { docs: this.frm.doc, method: this.df.options },
 				btn: this.$input,
-				callback: function(r) {
-					if(!r.exc) {
+				callback: function (r) {
+					if (!r.exc) {
 						me.frm.refresh_fields();
 					}
-				}
+				},
 			});
 		}
 	}

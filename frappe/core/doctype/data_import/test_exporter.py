@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
 import frappe
 from frappe.core.doctype.data_import.exporter import Exporter
-from frappe.core.doctype.data_import.test_importer import (
-	create_doctype_if_not_exists,
-)
+from frappe.core.doctype.data_import.test_importer import create_doctype_if_not_exists
+from frappe.tests.utils import FrappeTestCase
 
-doctype_name = 'DocType for Export'
+doctype_name = "DocType for Export"
 
-class TestExporter(unittest.TestCase):
+
+class TestExporter(FrappeTestCase):
 	def setUp(self):
 		create_doctype_if_not_exists(doctype_name)
 
@@ -93,10 +91,10 @@ class TestExporter(unittest.TestCase):
 			doctype_name,
 			export_fields={doctype_name: ["title", "description"]},
 			export_data=True,
-			file_type="CSV"
+			file_type="CSV",
 		)
 		e.build_response()
 
-		self.assertTrue(frappe.response['result'])
-		self.assertEqual(frappe.response['doctype'], doctype_name)
-		self.assertEqual(frappe.response['type'], "csv")
+		self.assertTrue(frappe.response["result"])
+		self.assertEqual(frappe.response["doctype"], doctype_name)
+		self.assertEqual(frappe.response["type"], "csv")

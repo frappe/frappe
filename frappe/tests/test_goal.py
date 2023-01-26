@@ -3,9 +3,9 @@
 
 import frappe
 from frappe.test_runner import make_test_objects
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import format_date, today
 from frappe.utils.goal import get_monthly_goal_graph_data, get_monthly_results
-from frappe.tests.utils import FrappeTestCase
 
 
 class TestGoal(FrappeTestCase):
@@ -29,9 +29,7 @@ class TestGoal(FrappeTestCase):
 
 	def test_get_monthly_goal_graph_data(self):
 		"""Test for accurate values in graph data (based on test_get_monthly_results)"""
-		docname = frappe.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[
-			0
-		]["name"]
+		docname = frappe.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[0]["name"]
 		frappe.db.set_value("Event", docname, "description", 1)
 		data = get_monthly_goal_graph_data(
 			"Test",

@@ -1,7 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from typing import Dict, Optional
+from contextlib import suppress
 
 import frappe
 from frappe import _
@@ -9,25 +9,28 @@ from frappe.query_builder.functions import DateFormat, Function
 from frappe.query_builder.utils import DocType
 from frappe.utils.data import add_to_date, cstr, flt, now_datetime
 from frappe.utils.formatters import format_value
-from contextlib import suppress
+
 
 def get_monthly_results(
 	goal_doctype: str,
 	goal_field: str,
 	date_col: str,
-	filters: Dict,
+	filters: dict,
 	aggregation: str = "sum",
-) -> Dict:
+) -> dict:
 	"""Get monthly aggregation values for given field of doctype"""
 
 	Table = DocType(goal_doctype)
 	date_format = "%m-%Y" if frappe.db.db_type != "postgres" else "MM-YYYY"
 
 	return dict(
-		frappe.db.query.build_conditions(table=goal_doctype, filters=filters)
-		.select(
-			DateFormat(Table[date_col], date_format).as_("month_year"),
-			Function(aggregation, goal_field),
+		frappe.qb.get_query(
+			table=goal_doctype,
+			fields=[
+				DateFormat(Table[date_col], date_format).as_("month_year"),
+				Function(aggregation, goal_field),
+			],
+			filters=filters,
 		)
 		.groupby("month_year")
 		.run()
@@ -48,8 +51,8 @@ def get_monthly_goal_graph_data(
 	date_field: str,
 	filter_str: str = None,
 	aggregation: str = "sum",
-	filters: Optional[Dict] = None,
-) -> Dict:
+	filters: dict | None = None,
+) -> dict:
 	"""
 	Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
 
@@ -69,7 +72,9 @@ def get_monthly_goal_graph_data(
 	:return: dict of graph data
 	"""
 	if isinstance(filter_str, str):
-		frappe.throw("String filters have been deprecated. Pass Dict filters instead.", exc=DeprecationWarning) # nosemgrep
+		frappe.throw(
+			"String filters have been deprecated. Pass Dict filters instead.", exc=DeprecationWarning
+		)  # nosemgrep
 
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission()
@@ -80,9 +85,7 @@ def get_monthly_goal_graph_data(
 
 	current_month_value = doc.get(goal_total_field)
 	current_month_year = today_date.strftime("%m-%Y")  # eg: "02-2022"
-	formatted_value = format_value(
-		current_month_value, meta.get_field(goal_total_field), doc
-	)
+	formatted_value = format_value(current_month_value, meta.get_field(goal_total_field), doc)
 	history = doc.get(goal_history_field)
 
 	month_to_value_dict = None
@@ -90,7 +93,7 @@ def get_monthly_goal_graph_data(
 		with suppress(ValueError):
 			month_to_value_dict = frappe.parse_json(history)
 
-	if month_to_value_dict is None: # nosemgrep
+	if month_to_value_dict is None:  # nosemgrep
 		doc_filter = {}
 		with suppress(ValueError):
 			doc_filter = frappe.parse_json(filters or "{}")
@@ -122,9 +125,7 @@ def get_monthly_goal_graph_data(
 				"value": f"{int(round(flt(current_month_value) / flt(goal) * 100))}%",
 			},
 		]
-		y_markers = {
-			"yMarkers": [{"label": _("Goal"), "lineType": "dashed", "value": flt(goal)}]
-		}
+		y_markers = {"yMarkers": [{"label": _("Goal"), "lineType": "dashed", "value": flt(goal)}]}
 
 	for i in range(12):
 		date_value = add_to_date(today_date, months=-i, as_datetime=True)
@@ -134,9 +135,7 @@ def get_monthly_goal_graph_data(
 		month_value = date_value.strftime("%m-%Y")  # eg: "02-2022"
 		val = month_to_value_dict.get(month_value, 0)
 		dataset_values.insert(0, val)
-		values_formatted.insert(
-			0, format_value(val, meta.get_field(goal_total_field), doc)
-		)
+		values_formatted.insert(0, format_value(val, meta.get_field(goal_total_field), doc))
 
 	return {
 		"title": title,

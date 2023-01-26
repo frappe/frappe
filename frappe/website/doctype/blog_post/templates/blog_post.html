@@ -22,7 +22,7 @@
 				<time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
 				{%- if read_time -%}
 				&nbsp;&middot;
-				<span>{{ read_time }} min read</span>
+				<span>{{ read_time }} {{ _('min read') }} </span>
 				{%- endif -%}
 			</div>
 		</div>
@@ -44,8 +44,8 @@
 	{%- endif -%}
 	<div class="blog-footer">
 		<div class="blog-feedback">
-			{% if not disable_feedback %}
-				{% include 'templates/includes/feedback/feedback.html' %}
+			{% if not disable_likes %}
+				{% include 'templates/includes/likes/likes.html' %}
 			{% endif %}
 		</div>
 		{% if social_links %}
@@ -66,13 +66,26 @@
 	{% endif %}
 
 	{% if not disable_comments %}
-		<div class="my-5 blog-comments">
+		<div class="blog-comments">
 			{% include 'templates/includes/comments/comments.html' %}
 		</div>
 	{% endif %}
 
 </div>
 <script>
-	frappe.ready(() => frappe.set_search_path("/blog"))
+	frappe.ready(() => {
+		frappe.set_search_path("/blog");
+
+		// scroll to comment or like section if url contain hash
+		if (window.location.hash) {
+			var hash = window.location.hash;
+
+			if ($(hash).length) {
+				$('html, body').animate({
+					scrollTop: $(hash).offset().top - 100
+				}, 900, 'swing');
+			}
+		}
+	})
 </script>
 {% endblock %}

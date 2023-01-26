@@ -2,4 +2,5 @@
 # License: MIT. See LICENSE
 
 import frappe
-test_records = frappe.get_test_records('Blogger')
+
+test_records = frappe.get_test_records("Blogger")

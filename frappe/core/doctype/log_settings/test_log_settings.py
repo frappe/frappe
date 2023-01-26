@@ -4,9 +4,9 @@
 from datetime import datetime
 
 import frappe
-from frappe.utils import now_datetime, add_to_date
-from frappe.core.doctype.log_settings.log_settings import run_log_clean_up
+from frappe.core.doctype.log_settings.log_settings import _supports_log_clearing, run_log_clean_up
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import add_to_date, now_datetime
 
 
 class TestLogSettings(FrappeTestCase):
@@ -36,15 +36,9 @@ class TestLogSettings(FrappeTestCase):
 
 	def test_delete_logs(self):
 		# make sure test data is present
-		activity_log_count = frappe.db.count(
-			"Activity Log", {"creation": ("<=", self.datetime.past)}
-		)
-		error_log_count = frappe.db.count(
-			"Error Log", {"creation": ("<=", self.datetime.past)}
-		)
-		email_queue_count = frappe.db.count(
-			"Email Queue", {"creation": ("<=", self.datetime.past)}
-		)
+		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<=", self.datetime.past)})
+		error_log_count = frappe.db.count("Error Log", {"creation": ("<=", self.datetime.past)})
+		email_queue_count = frappe.db.count("Email Queue", {"creation": ("<=", self.datetime.past)})
 
 		self.assertNotEqual(activity_log_count, 0)
 		self.assertNotEqual(error_log_count, 0)
@@ -54,19 +48,30 @@ class TestLogSettings(FrappeTestCase):
 		run_log_clean_up()
 
 		# test if logs are deleted
-		activity_log_count = frappe.db.count(
-			"Activity Log", {"creation": ("<", self.datetime.past)}
-		)
-		error_log_count = frappe.db.count(
-			"Error Log", {"creation": ("<", self.datetime.past)}
-		)
-		email_queue_count = frappe.db.count(
-			"Email Queue", {"creation": ("<", self.datetime.past)}
-		)
+		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<", self.datetime.past)})
+		error_log_count = frappe.db.count("Error Log", {"creation": ("<", self.datetime.past)})
+		email_queue_count = frappe.db.count("Email Queue", {"creation": ("<", self.datetime.past)})
 
 		self.assertEqual(activity_log_count, 0)
 		self.assertEqual(error_log_count, 0)
 		self.assertEqual(email_queue_count, 0)
+
+	def test_logtype_identification(self):
+		supported_types = [
+			"Error Log",
+			"Activity Log",
+			"Email Queue",
+			"Route History",
+			"Error Snapshot",
+			"Scheduled Job Log",
+		]
+
+		for lt in supported_types:
+			self.assertTrue(_supports_log_clearing(lt), f"{lt} should be recognized as log type")
+
+		unsupported_types = ["DocType", "User", "Non Existing dt"]
+		for dt in unsupported_types:
+			self.assertFalse(_supports_log_clearing(dt), f"{dt} shouldn't be recognized as log type")
 
 
 def setup_test_logs(past: datetime) -> None:

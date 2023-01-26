@@ -1,7 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
-class TestBlogCategory(unittest.TestCase):
+
+class TestBlogCategory(FrappeTestCase):
 	pass

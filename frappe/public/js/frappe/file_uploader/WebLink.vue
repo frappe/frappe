@@ -1,7 +1,7 @@
 <template>
 	<div class="file-web-link margin-bottom">
 		<a href class="text-muted text-medium"
-			@click.prevent="$emit('hide-web-link')"
+			@click.prevent="emit('hide-web-link')"
 		>
 			{{ __('← Back to upload files') }}
 		</a>
@@ -15,18 +15,19 @@
 		</div>
 	</div>
 </template>
-<script>
-export default {
-	name: 'WebLink',
-	data() {
-		return {
-			url: '',
-		}
-	}
-}
+
+<script setup>
+import { ref } from "vue";
+
+// emits
+let emit = defineEmits(["hide-web-link"]);
+
+let url = ref("");
+
+defineExpose({ url });
 </script>
 
-<style>
+<style scoped>
 .file-web-link .input-group {
 	margin-top: 10px;
 }

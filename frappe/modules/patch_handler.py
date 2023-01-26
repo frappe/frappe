@@ -38,7 +38,6 @@ import configparser
 import time
 from enum import Enum
 from textwrap import dedent, indent
-from typing import List, Optional
 
 import frappe
 
@@ -52,7 +51,7 @@ class PatchType(Enum):
 	post_model_sync = "post_model_sync"
 
 
-def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) -> None:
+def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
 	executed = set(frappe.get_all("Patch Log", fields="patch", pluck="patch"))
 
@@ -60,14 +59,14 @@ def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) 
 
 	def run_patch(patch):
 		try:
-			if not run_single(patchmodule = patch):
-				print(patch + ': failed: STOPPED')
+			if not run_single(patchmodule=patch):
+				print(patch + ": failed: STOPPED")
 				raise PatchError(patch)
 		except Exception:
 			if not skip_failing:
 				raise
 			else:
-				print('Failed to execute patch')
+				print("Failed to execute patch")
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -77,10 +76,11 @@ def run_all(skip_failing: bool = False, patch_type: Optional[PatchType] = None) 
 
 	# patches to be run in the end
 	for patch in frappe.flags.final_patches:
-		patch = patch.replace('finally:', '')
+		patch = patch.replace("finally:", "")
 		run_patch(patch)
 
-def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
+
+def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
 
 	if patch_type and not isinstance(patch_type, PatchType):
 		frappe.throw(f"Unsupported patch type specified: {patch_type}")
@@ -91,12 +91,13 @@ def get_all_patches(patch_type: Optional[PatchType] = None) -> List[str]:
 
 	return patches
 
-def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> List[str]:
-	""" Get patches from an app's patches.txt
 
-		patches.txt can be:
-			1. ini like file with section for different patch_type
-			2. plain text file with each line representing a patch.
+def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[str]:
+	"""Get patches from an app's patches.txt
+
+	patches.txt can be:
+	        1. ini like file with section for different patch_type
+	        2. plain text file with each line representing a patch.
 	"""
 
 	patches_txt = frappe.get_pymodule_path(app, "patches.txt")
@@ -115,8 +116,9 @@ def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> Li
 			return []
 
 		if not patch_type:
-			return [patch for patch in parser[PatchType.pre_model_sync.value]] + \
-					[patch for patch in parser[PatchType.post_model_sync.value]]
+			return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
+				patch for patch in parser[PatchType.post_model_sync.value]
+			]
 
 		if patch_type.value in parser.sections():
 			return [patch for patch in parser[patch_type.value]]
@@ -131,9 +133,12 @@ def get_patches_from_app(app: str, patch_type: Optional[PatchType] = None) -> Li
 
 	return []
 
+
 def reload_doc(args):
 	import frappe.modules
-	run_single(method = frappe.modules.reload_doc, methodargs = args)
+
+	run_single(method=frappe.modules.reload_doc, methodargs=args)
+
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	from frappe import conf
@@ -146,9 +151,10 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	else:
 		return True
 
-def execute_patch(patchmodule, method=None, methodargs=None):
+
+def execute_patch(patchmodule: str, method=None, methodargs=None):
 	"""execute the patch"""
-	block_user(True)
+	_patch_mode(True)
 
 	if patchmodule.startswith("execute:"):
 		has_patch_file = False
@@ -156,17 +162,20 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		docstring = ""
 	else:
 		has_patch_file = True
-		patch = f"{patchmodule.split()[0]}.execute"
+		patch = f"{patchmodule.split(maxsplit=1)[0]}.execute"
 		_patch = frappe.get_attr(patch)
 		docstring = _patch.__doc__ or ""
 
 		if docstring:
 			docstring = "\n" + indent(dedent(docstring), "\t")
 
-	print(f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}")
+	print(
+		f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}"
+	)
 
-	start_time = time.time()
+	start_time = time.monotonic()
 	frappe.db.begin()
+	frappe.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:
 			if patchmodule.startswith("finally:"):
@@ -188,34 +197,27 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 	else:
 		frappe.db.commit()
-		end_time = time.time()
-		block_user(False)
+		end_time = time.monotonic()
+		_patch_mode(False)
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
+
 
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
 	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert(ignore_permissions=True)
 
+
 def executed(patchmodule):
 	"""return True if is executed"""
-	if patchmodule.startswith('finally:'):
+	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
-		patchmodule = patchmodule.replace('finally:', '')
+		patchmodule = patchmodule.replace("finally:", "")
 	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
 
-def block_user(block, msg=None):
-	"""stop/start execution till patch is run"""
-	frappe.local.flags.in_patch = block
-	frappe.db.begin()
-	if not msg:
-		msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.db.set_global('__session_status', block and 'stop' or None)
-	frappe.db.set_global('__session_status_message', block and msg or None)
-	frappe.db.commit()
 
-def check_session_stopped():
-	if frappe.db.get_global("__session_status")=='stop':
-		frappe.msgprint(frappe.db.get_global("__session_status_message"))
-		raise frappe.SessionStopped('Session Stopped')
+def _patch_mode(enable):
+	"""stop/start execution till patch is run"""
+	frappe.local.flags.in_patch = enable
+	frappe.db.commit()

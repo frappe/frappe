@@ -2,8 +2,6 @@ html {
 	background-color: var(--bg-color);
 }
 
-
-
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -76,6 +74,10 @@ a.badge-hover {
 
 .underline {
 	text-decoration: underline;
+}
+
+.pointer {
+	cursor: pointer;
 }
 
 .inline-block {
@@ -581,22 +583,18 @@ details > summary:focus {
 	color: var(--text-color);
 }
 
-
-.diffview .insert {
-	background-color: var(--green-100);
+.diffview .insert,
+.diff-add {
+	background-color: var(--diff-added);
 }
 
-.diffview .delete {
-	background-color: var(--red-100);
+.diffview .delete,
+.diff-remove {
+	background-color: var(--diff-removed);
 }
 
-[data-theme="dark"] {
-	.diffview .insert {
-		background-color: var(--green-800);
-	}
-	.diffview .delete {
-		background-color: var(--red-800);
-	}
+.chart-wrapper {
+	padding: 1em;
 }
 
 // REDESIGN TODO: Handling of broken images?

@@ -1,61 +1,72 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import frappe, json
+import json
+
+import frappe
+from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.desk.form.load import run_onload
+from frappe.model.docstatus import DocStatus
+from frappe.monitor import add_data_to_monitor
+from frappe.utils.scheduler import is_scheduler_inactive
+
 
 @frappe.whitelist()
 def savedocs(doc, action):
 	"""save / submit / update doclist"""
-	try:
-		doc = frappe.get_doc(json.loads(doc))
-		set_local_name(doc)
+	doc = frappe.get_doc(json.loads(doc))
+	set_local_name(doc)
 
-		# action
-		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
+	# action
+	doc.docstatus = {
+		"Save": DocStatus.draft(),
+		"Submit": DocStatus.submitted(),
+		"Update": DocStatus.submitted(),
+		"Cancel": DocStatus.cancelled(),
+	}[action]
 
-		if doc.docstatus==1:
-			doc.submit()
-		else:
-			doc.save()
+	if doc.docstatus.is_submitted():
+		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, action)
+			return
+		doc.submit()
+	else:
+		doc.save()
 
-		# update recent documents
-		run_onload(doc)
-		send_updated_docs(doc)
+	# update recent documents
+	run_onload(doc)
+	send_updated_docs(doc)
 
-		frappe.msgprint(frappe._("Saved"), indicator='green', alert=True)
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
+	add_data_to_monitor(doctype=doc.doctype, action=action)
+	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
+
 
 @frappe.whitelist()
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
-	try:
-		doc = frappe.get_doc(doctype, name)
-		if workflow_state_fieldname and workflow_state:
-			doc.set(workflow_state_fieldname, workflow_state)
-		doc.cancel()
-		send_updated_docs(doc)
-		frappe.msgprint(frappe._("Cancelled"), indicator='red', alert=True)
+	doc = frappe.get_doc(doctype, name)
+	if workflow_state_fieldname and workflow_state:
+		doc.set(workflow_state_fieldname, workflow_state)
+	doc.cancel()
+	send_updated_docs(doc)
+	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
 
-	except Exception:
-		frappe.errprint(frappe.utils.get_traceback())
-		raise
 
 def send_updated_docs(doc):
 	from .load import get_docinfo
+
 	get_docinfo(doc)
 
 	d = doc.as_dict()
-	if hasattr(doc, 'localname'):
+	if hasattr(doc, "localname"):
 		d["localname"] = doc.localname
 
 	frappe.response.docs.append(d)
 
+
 def set_local_name(doc):
 	def _set_local_name(d):
-		if doc.get('__islocal') or d.get('__islocal'):
+		if doc.get("__islocal") or d.get("__islocal"):
 			d.localname = d.name
 			d.name = None
 

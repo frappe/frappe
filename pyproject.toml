@@ -1,0 +1,104 @@
+[project]
+name = "frappe"
+authors = [
+    { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
+]
+description = "Metadata driven, full-stack low code web framework"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # core dependencies
+    "Babel~=2.9.0",
+    "Click~=8.1.3",
+    "filelock~=3.8.0",
+    "GitPython~=3.1.30",
+    "Jinja2~=3.1.2",
+    "Pillow~=9.3.0",
+    "PyJWT~=2.4.0",
+    "PyMySQL~=1.0.2",
+    "PyPDF2~=2.1.0",
+    "PyPika~=0.48.9",
+    "PyQRCode~=1.2.1",
+    "PyYAML~=6.0",
+    "RestrictedPython~=6.0",
+    "WeasyPrint==52.5",
+    "Werkzeug~=2.2.2",
+    "Whoosh~=2.7.4",
+    "beautifulsoup4~=4.9.3",
+    "bleach-allowlist~=1.0.3",
+    "bleach~=3.3.0",
+    "cairocffi==1.2.0",
+    "chardet~=4.0.0",
+    "croniter~=1.3.5",
+    "cryptography~=38.0.3",
+    "email-reply-parser~=0.5.12",
+    "git-url-parse~=1.2.2",
+    "gunicorn~=20.1.0",
+    "html5lib~=1.1",
+    "ipython~=8.4.0",
+    "ldap3~=2.9",
+    "markdown2~=2.4.0",
+    "MarkupSafe>=2.1.0,<3",
+    "maxminddb-geolite2==2018.703",
+    "num2words~=0.5.10",
+    "oauthlib~=3.2.1",
+    "openpyxl~=3.0.7",
+    "passlib~=1.7.4",
+    "pdfkit~=1.0.0",
+    "phonenumbers==8.12.40",
+    "premailer~=3.8.0",
+    "psutil~=5.9.1",
+    "psycopg2-binary~=2.9.1",
+    "pyOpenSSL~=22.1.0",
+    "pycryptodome~=3.10.1",
+    "pydantic~=1.10.2",
+    "pyotp~=2.6.0",
+    "python-dateutil~=2.8.1",
+    "pytz==2022.1",
+    "rauth~=0.7.3",
+    "redis~=4.3.4",
+    "hiredis~=2.0.0",
+    "requests-oauthlib~=1.3.0",
+    "requests~=2.27.1",
+    "rq~=1.11.1",
+    "rsa>=4.1",
+    "semantic-version~=2.10.0",
+    "sqlparse~=0.4.1",
+    "tenacity~=8.0.1",
+    "terminaltables~=3.1.0",
+    "traceback-with-variables~=2.0.4",
+    "xlrd~=2.0.1",
+    "zxcvbn~=4.4.28",
+    "markdownify~=0.11.2",
+
+    # integration dependencies
+    "boto3~=1.18.49",
+    "dropbox~=11.7.0",
+    "google-api-python-client~=2.2.0",
+    "google-auth-oauthlib~=0.4.4",
+    "google-auth~=1.29.0",
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.black]
+line-length = 99
+
+[tool.isort]
+line_length = 99
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+indent = "\t"
+
+[tool.bench.dev-dependencies]
+coverage = "~=6.5.0"
+Faker = "~=13.12.1"
+pyngrok = "~=5.0.5"
+unittest-xml-reporting = "~=3.0.4"
+watchdog = "~=2.1.9"

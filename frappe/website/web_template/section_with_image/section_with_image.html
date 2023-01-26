@@ -1,7 +1,7 @@
 <div class="section-with-image {{ 'align-center' if align == 'Center' else '' }}">
-	<h2 class="section-title">{{ title }}</h2>
+	<h2 class="section-title">{{ _(title) }}</h2>
 	{%- if subtitle -%}
-	<p class="section-description">{{ subtitle }}</p>
+	<p class="section-description">{{ _(subtitle) }}</p>
 	{%- endif -%}
 
 	{%- if image -%}

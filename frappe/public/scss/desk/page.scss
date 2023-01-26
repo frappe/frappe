@@ -51,11 +51,6 @@
 	}
 }
 
-.custom-actions {
-	display: flex;
-	align-items: center;
-}
-
 .page-actions {
 	align-items: center;
 	.btn {
@@ -72,6 +67,11 @@
 	.custom-btn-group {
 		display: inline-flex;
 	}
+
+	.custom-actions {
+		display: flex;
+		align-items: center;
+	}
 }
 
 .layout-main-section-wrapper {
@@ -84,7 +84,7 @@
 }
 
 .page-head {
-	z-index: 4;
+	z-index: 6;
 	position: sticky;
 	top: var(--navbar-height);
 	background: var(--bg-color);

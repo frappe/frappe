@@ -1,15 +1,13 @@
 export default class GridRowForm {
 	constructor(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="form-in-grid"></div>')
-			.appendTo(this.row.wrapper);
-
+		this.wrapper = $('<div class="form-in-grid"></div>').appendTo(this.row.wrapper);
 	}
 	render() {
 		var me = this;
 		this.make_form();
 		this.form_area.empty();
-		frappe.utils.scroll_to(0, false, 0, this.wrapper.find('.grid-form-body'));
+		frappe.utils.scroll_to(0, false, 0, this.wrapper.find(".grid-form-body"));
 
 		this.layout = new frappe.ui.form.Layout({
 			fields: this.row.docfields,
@@ -28,7 +26,7 @@ export default class GridRowForm {
 		this.layout.refresh(this.row.doc);
 
 		// copy get_query to fields
-		for(var fieldname in (this.row.grid.fieldinfo || {})) {
+		for (var fieldname in this.row.grid.fieldinfo || {}) {
 			var fi = this.row.grid.fieldinfo[fieldname];
 			$.extend(me.fields_dict[fieldname], fi);
 		}
@@ -40,27 +38,27 @@ export default class GridRowForm {
 		this.set_focus();
 	}
 	make_form() {
-		if(!this.form_area) {
+		if (!this.form_area) {
 			let template = `<div class="grid-form-heading">
 				<div class="toolbar grid-header-toolbar">
 					<span class="panel-title">
-						${ __("Editing Row") } #<span class="grid-form-row-index"></span></span>
+						${__("Editing Row")} #<span class="grid-form-row-index"></span></span>
 					<span class="row-actions">
 						<button class="btn btn-secondary btn-sm pull-right grid-collapse-row">
-							${frappe.utils.icon('down')}
+							${frappe.utils.icon("down")}
 						</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs">
-							${ __("Move") }</button>
+							${__("Move")}</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs">
-							${frappe.utils.icon('duplicate')}
-							${ __("Duplicate") }
+							${frappe.utils.icon("duplicate")}
+							${__("Duplicate")}
 						</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs">
-							${ __("Insert Above") }</button>
+							${__("Insert Above")}</button>
 						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
-							${ __("Insert Below") }</button>
+							${__("Insert Below")}</button>
 						<button class="btn btn-danger btn-sm pull-right grid-delete-row">
-							${frappe.utils.icon('delete')}
+							${frappe.utils.icon("delete")}
 						</button>
 					</span>
 				</div>
@@ -70,11 +68,11 @@ export default class GridRowForm {
 				<div class="grid-footer-toolbar hidden-xs flex justify-between">
 					<div class="grid-shortcuts">
 						<span> ${frappe.utils.icon("keyboard", "md")} </span>
-						<span class="text-medium"> ${ __("Shortcuts") }: </span>
-						<kbd>${ __("Ctrl + Up") }</kbd> . <kbd>${ __("Ctrl + Down") }</kbd> . <kbd>${ __("ESC") }</kbd>
+						<span class="text-medium"> ${__("Shortcuts")}: </span>
+						<kbd>${__("Ctrl + Up")}</kbd> . <kbd>${__("Ctrl + Down")}</kbd> . <kbd>${__("ESC")}</kbd>
 					</div>
 					<button class="btn btn-secondary btn-sm pull-right grid-append-row">
-						${ __("Insert Below") }
+						${__("Insert Below")}
 					</button>
 				</div>
 			</div>`;
@@ -87,40 +85,38 @@ export default class GridRowForm {
 	}
 	set_form_events() {
 		var me = this;
-		this.wrapper.find(".grid-delete-row")
-			.on('click', function() {
-				me.row.remove(); return false;
-			});
-		this.wrapper.find(".grid-insert-row")
-			.on('click', function() {
-				me.row.insert(true); return false;
-			});
-		this.wrapper.find(".grid-insert-row-below")
-			.on('click', function() {
-				me.row.insert(true, true); return false;
-			});
-		this.wrapper.find(".grid-duplicate-row")
-			.on('click', function() {
-				me.row.insert(true, true, true); return false;
-			});
-		this.wrapper.find(".grid-move-row")
-			.on('click', function() {
-				me.row.move(); return false;
-			});
-		this.wrapper.find(".grid-append-row")
-			.on('click', function() {
-				me.row.toggle_view(false);
-				me.row.grid.add_new_row(me.row.doc.idx+1, null, true);
-				return false;
-			});
-		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function() {
+		this.wrapper.find(".grid-delete-row").on("click", function () {
+			me.row.remove();
+			return false;
+		});
+		this.wrapper.find(".grid-insert-row").on("click", function () {
+			me.row.insert(true);
+			return false;
+		});
+		this.wrapper.find(".grid-insert-row-below").on("click", function () {
+			me.row.insert(true, true);
+			return false;
+		});
+		this.wrapper.find(".grid-duplicate-row").on("click", function () {
+			me.row.insert(true, true, true);
+			return false;
+		});
+		this.wrapper.find(".grid-move-row").on("click", function () {
+			me.row.move();
+			return false;
+		});
+		this.wrapper.find(".grid-append-row").on("click", function () {
+			me.row.toggle_view(false);
+			me.row.grid.add_new_row(me.row.doc.idx + 1, null, true);
+			return false;
+		});
+		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function () {
 			me.row.toggle_view();
 			return false;
 		});
 	}
 	toggle_add_delete_button_display($parent) {
-		$parent.find(".row-actions, .grid-append-row")
-			.toggle(this.row.grid.is_editable());
+		$parent.find(".row-actions, .grid-append-row").toggle(this.row.grid.is_editable());
 	}
 	refresh_field(fieldname) {
 		const field = this.fields_dict[fieldname];
@@ -133,13 +129,16 @@ export default class GridRowForm {
 	set_focus() {
 		// wait for animation and then focus on the first row
 		var me = this;
-		setTimeout(function() {
-			if(me.row.frm && me.row.frm.doc.docstatus===0 || !me.row.frm) {
+		setTimeout(function () {
+			if ((me.row.frm && me.row.frm.doc.docstatus === 0) || !me.row.frm) {
 				var first = me.form_area.find("input:first");
-				if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
+				if (
+					first.length &&
+					!in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))
+				) {
 					try {
 						first.get(0).focus();
-					} catch(e) {
+					} catch (e) {
 						//
 					}
 				}

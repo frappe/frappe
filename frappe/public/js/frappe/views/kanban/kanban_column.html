@@ -7,7 +7,7 @@
 		<div class="column-options dropdown pull-right">
 			<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				<svg class="icon icon-sm">
-					<use xlink:href="#icon-dot-horizontal"></use>
+					<use href="#icon-dot-horizontal"></use>
 				</svg>
 			</a>
 			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
@@ -17,7 +17,7 @@
 	</div>
 	<div class="add-card">
 		<div class="ellipsis">
-			+ {{ __("Add " + doctype) }}
+			+ {{ __("Add {0}", [__(doctype)]) }}
 		</div>
 	</div>
 	<div class="kanban-card new-card-area">

@@ -47,6 +47,13 @@
  },
  {
   "doctype": "User",
+  "email": "test'5@example.com",
+  "first_name": "_Test'5",
+  "new_password": "Eastern_43A1W",
+  "enabled": 1
+ },
+ {
+  "doctype": "User",
   "email": "testperm@example.com",
   "first_name": "_Test Perm",
   "new_password": "Eastern_43A1W",

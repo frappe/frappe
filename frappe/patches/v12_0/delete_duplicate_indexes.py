@@ -1,11 +1,11 @@
 import frappe
-from pymysql import InternalError
 
 # This patch deletes all the duplicate indexes created for same column
 # The patch only checks for indexes with UNIQUE constraints
 
+
 def execute():
-	if frappe.db.db_type != 'mariadb':
+	if frappe.db.db_type != "mariadb":
 		return
 
 	all_tables = frappe.db.get_tables()
@@ -14,36 +14,42 @@ def execute():
 	for table in all_tables:
 		indexes_to_keep_map = frappe._dict()
 		indexes_to_delete = []
-		index_info = frappe.db.sql("""
-			SELECT
-				column_name,
-				index_name,
-				non_unique
-			FROM information_schema.STATISTICS
-			WHERE table_name=%s
-			AND column_name!='name'
-			AND non_unique=0
-			ORDER BY index_name;
-		""", table, as_dict=1)
+		index_info = frappe.db.sql(
+			f"""SHOW INDEX FROM `{table}`
+				WHERE Seq_in_index = 1
+				AND Non_unique=0""",
+			as_dict=1,
+		)
 
 		for index in index_info:
-			if not indexes_to_keep_map.get(index.column_name):
-				indexes_to_keep_map[index.column_name] = index
+			if not indexes_to_keep_map.get(index.Column_name):
+				indexes_to_keep_map[index.Column_name] = index
 			else:
-				indexes_to_delete.append(index.index_name)
+				indexes_to_delete.append(index.Key_name)
+
 		if indexes_to_delete:
 			final_deletion_map[table] = indexes_to_delete
 
-	# build drop index query
-	for (table_name, index_list) in final_deletion_map.items():
-		query_list = []
-		alter_query = "ALTER TABLE `{}`".format(table_name)
-
+	for table_name, index_list in final_deletion_map.items():
 		for index in index_list:
-			query_list.append("{} DROP INDEX `{}`".format(alter_query, index))
-
-		for query in query_list:
 			try:
-				frappe.db.sql(query)
-			except InternalError:
-				pass
+				if is_clustered_index(table_name, index):
+					continue
+				frappe.db.sql_ddl(f"ALTER TABLE `{table_name}` DROP INDEX `{index}`")
+			except Exception as e:
+				frappe.log_error("Failed to drop index")
+				print(f"x Failed to drop index {index} from {table_name}\n {str(e)}")
+			else:
+				print(f"✓ dropped {index} index from {table}")
+
+
+def is_clustered_index(table, index_name):
+	return bool(
+		frappe.db.sql(
+			f"""SHOW INDEX FROM `{table}`
+			WHERE Key_name = "{index_name}"
+				AND Seq_in_index = 2
+			""",
+			as_dict=True,
+		)
+	)

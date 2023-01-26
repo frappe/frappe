@@ -2,6 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "creation": "2013-01-29 10:47:14",
+ "default_view": "Inbox",
  "description": "Keeps track of all communications",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -198,7 +199,6 @@
    "label": "More Information"
   },
   {
-   "bold": 0,
    "default": "Now",
    "fieldname": "communication_date",
    "fieldtype": "Datetime",
@@ -395,7 +395,7 @@
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2022-03-30 11:24:25.728637",
+ "modified": "2022-05-09 00:13:45.310564",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
@@ -454,6 +454,7 @@
  "sender_field": "sender",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "subject_field": "subject",
  "title_field": "subject",
  "track_changes": 1,

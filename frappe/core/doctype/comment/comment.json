@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2019-02-07 10:10:46.845678",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -17,7 +18,8 @@
   "link_name",
   "reference_owner",
   "section_break_10",
-  "content"
+  "content",
+  "ip_address"
  ],
  "fields": [
   {
@@ -102,9 +104,16 @@
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Content"
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "IP Address"
   }
  ],
- "modified": "2019-09-02 21:00:10.784787",
+ "links": [],
+ "modified": "2022-07-12 17:35:31.774137",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
@@ -138,6 +147,7 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "comment_type",
  "track_changes": 1
 }

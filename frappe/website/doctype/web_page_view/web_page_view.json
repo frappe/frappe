@@ -25,14 +25,12 @@
    "fieldname": "referrer",
    "fieldtype": "Data",
    "label": "Referrer",
-   "search_index": 1,
    "set_only_once": 1
   },
   {
    "fieldname": "browser",
    "fieldtype": "Data",
    "label": "Browser",
-   "search_index": 1,
    "set_only_once": 1
   },
   {
@@ -59,7 +57,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2021-10-25 14:11:24.718770",
+ "modified": "2022-09-13 15:38:25.401797",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",
@@ -82,5 +80,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "path"
 }

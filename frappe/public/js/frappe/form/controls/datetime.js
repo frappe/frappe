@@ -5,8 +5,10 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!value) {
 			this.datepicker.clear();
 			return;
-		} else if (value === "Today") {
+		} else if (value.toLowerCase() === "today") {
 			value = this.get_now_date();
+		} else if (value.toLowerCase() === "now") {
+			value = frappe.datetime.now_datetime();
 		}
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
@@ -14,6 +16,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 
 	get_start_date() {
+		this.value = this.value == null ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);
 		return frappe.datetime.str_to_obj(value);
 	}
@@ -22,11 +25,11 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		this.today_text = __("Now");
 		let sysdefaults = frappe.boot.sysdefaults;
 		this.date_format = frappe.defaultDatetimeFormat;
-		let time_format = sysdefaults && sysdefaults.time_format
-			? sysdefaults.time_format : 'HH:mm:ss';
+		let time_format =
+			sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
 		$.extend(this.datepicker_options, {
 			timepicker: true,
-			timeFormat: time_format.toLowerCase().replace("mm", "ii")
+			timeFormat: time_format.toLowerCase().replace("mm", "ii"),
 		});
 	}
 	get_now_date() {
@@ -40,13 +43,14 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 				value = frappe.datetime.convert_to_system_tz(value, true);
 			}
 
-			return value;
+			if (value == "Invalid date") {
+				value = "";
+			}
 		}
+		return value;
 	}
 	format_for_input(value) {
 		if (!value) return "";
-
-
 		return frappe.datetime.str_to_user(value, false);
 	}
 	set_description() {
@@ -60,7 +64,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 			if (!description) {
 				this.df.description = time_zone;
 			} else if (!description.includes(time_zone)) {
-				this.df.description += '<br>' + time_zone;
+				this.df.description += "<br>" + time_zone;
 			}
 		}
 		super.set_description();
@@ -70,12 +74,12 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 	set_datepicker() {
 		super.set_datepicker();
-		if (this.datepicker.opts.timeFormat.indexOf('s') == -1) {
+		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
 			// No seconds in time format
 			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css('display', 'none');
-			$tp.$secondsText.css('display', 'none');
-			$tp.$secondsText.prev().css('display', 'none');
+			$tp.$seconds.parent().css("display", "none");
+			$tp.$secondsText.css("display", "none");
+			$tp.$secondsText.prev().css("display", "none");
 		}
 	}
 
@@ -84,6 +88,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		if (!value && !this.doc) {
 			value = this.last_value;
 		}
-		return frappe.datetime.get_datetime_as_string(value);
+		return !value ? "" : frappe.datetime.get_datetime_as_string(value);
 	}
 };

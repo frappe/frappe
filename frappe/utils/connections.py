@@ -1,9 +1,9 @@
 import socket
-
 from urllib.parse import urlparse
+
 from frappe import get_conf
 
-REDIS_KEYS = ('redis_cache', 'redis_queue', 'redis_socketio')
+REDIS_KEYS = ("redis_cache", "redis_queue", "redis_socketio")
 
 
 def is_open(ip, port, timeout=10):
@@ -13,7 +13,7 @@ def is_open(ip, port, timeout=10):
 		s.connect((ip, int(port)))
 		s.shutdown(socket.SHUT_RDWR)
 		return True
-	except socket.error:
+	except OSError:
 		return False
 	finally:
 		s.close()

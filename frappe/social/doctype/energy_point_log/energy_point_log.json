@@ -36,8 +36,7 @@
    "in_standard_filter": 1,
    "label": "Type",
    "options": "Auto\nAppreciation\nCriticism\nReview\nRevert",
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "rule",
@@ -54,8 +53,7 @@
    "in_standard_filter": 1,
    "label": "Reference Document Type",
    "options": "DocType",
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "reference_name",
@@ -112,7 +110,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-10-25 17:25:40.477044",
+ "modified": "2022-09-13 16:10:37.747013",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",
@@ -131,5 +129,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "user"
 }

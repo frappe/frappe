@@ -2,33 +2,32 @@
 	background-color: var(--bg-color);
 }
 
-
-
 .page-card {
-    max-width: 360px;
-    padding: 15px;
-    margin: 70px auto;
-    border-radius: 4px;
-    background-color: var(--fg-color);
-    /* box-shadow: var(--shadow-base); */
+	max-width: 360px;
+	padding: 15px;
+	margin: 70px auto;
+	border-radius: 4px;
+	background-color: var(--fg-color);
+	box-shadow: var(--shadow-base);
 }
 
 .for-reset-password {
-    margin: 80px 0;
+	margin: 80px 0;
 }
 
 .for-reset-password .page-card {
-    border: 0;
-    max-width: 450px;
-    margin: auto;
-    border-radius: 10px;
+	border: 0;
+	max-width: 450px;
+	margin: auto;
+	border-radius: var(--border-radius-md);
+	padding: 40px 60px;
 }
 
-@media (min-width: 567px) {
+@media (max-width: 425px) {
 	.for-reset-password .page-card {
-		box-shadow: var(--shadow-base);
-		padding: 40px 60px;
-
+		box-shadow: none;
+		background: none;
+		padding: 0px;
 	}
 }
 

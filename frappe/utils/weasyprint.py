@@ -4,10 +4,13 @@
 import click
 
 import frappe
+from frappe import _
+
 
 @frappe.whitelist()
 def download_pdf(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
@@ -20,6 +23,7 @@ def download_pdf(doctype, name, print_format, letterhead=None):
 
 def get_html(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	return generator.get_html_preview()
 
@@ -37,16 +41,20 @@ class PrintFormatGenerator:
 		Parameters
 		----------
 		print_format: str
-			Name of the Print Format
+		        Name of the Print Format
 		doc: str
-			Document to print
+		        Document to print
 		letterhead: str
-			Letter Head to apply (optional)
+		        Letter Head to apply (optional)
 		"""
 		self.base_url = frappe.utils.get_url()
 		self.print_format = frappe.get_doc("Print Format", print_format)
 		self.doc = doc
+
+		if letterhead == _("No Letterhead"):
+			letterhead = None
 		self.letterhead = frappe.get_doc("Letter Head", letterhead) if letterhead else None
+
 		self.build_context()
 		self.layout = self.get_layout(self.print_format)
 		self.context.layout = self.layout
@@ -55,9 +63,7 @@ class PrintFormatGenerator:
 		self.print_settings = frappe.get_doc("Print Settings")
 		page_width_map = {"A4": 210, "Letter": 216}
 		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
-		body_width = (
-			page_width - self.print_format.margin_left - self.print_format.margin_right
-		)
+		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		print_style = (
 			frappe.get_doc("Print Style", self.print_settings.print_style)
 			if self.print_settings.print_style
@@ -86,20 +92,14 @@ class PrintFormatGenerator:
 		self.context.css = frappe.render_template(
 			"templates/print_format/print_format.css", self.context
 		)
-		return frappe.render_template(
-			"templates/print_format/print_format.html", self.context
-		)
+		return frappe.render_template("templates/print_format/print_format.html", self.context)
 
 	def get_header_footer_html(self):
 		header_html = footer_html = None
 		if self.letterhead:
-			header_html = frappe.render_template(
-				"templates/print_format/print_header.html", self.context
-			)
+			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
 		if self.letterhead:
-			footer_html = frappe.render_template(
-				"templates/print_format/print_footer.html", self.context
-			)
+			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 
 	def render_pdf(self):
@@ -107,15 +107,13 @@ class PrintFormatGenerator:
 		Returns
 		-------
 		pdf: a bytes sequence
-			The rendered PDF.
+		        The rendered PDF.
 		"""
 		HTML, CSS = import_weasyprint()
 
 		self._make_header_footer()
 
-		self.context.update(
-			{"header_height": self.header_height, "footer_height": self.footer_height}
-		)
+		self.context.update({"header_height": self.header_height, "footer_height": self.footer_height})
 		main_html = self.get_main_html()
 
 		html = HTML(string=main_html, base_url=self.base_url)
@@ -132,29 +130,26 @@ class PrintFormatGenerator:
 		Parameters
 		----------
 		element: str
-			Either 'header' or 'footer'
+		        Either 'header' or 'footer'
 
 		Returns
 		-------
 		element_body: BlockBox
-			A Weasyprint pre-rendered representation of an html element
+		        A Weasyprint pre-rendered representation of an html element
 		element_height: float
-			The height of this element, which will be then translated in a html height
+		        The height of this element, which will be then translated in a html height
 		"""
 		HTML, CSS = import_weasyprint()
 
-		html = HTML(string=getattr(self, f"{element}_html"), base_url=self.base_url,)
-		element_doc = html.render(
-			stylesheets=[CSS(string="@page {size: A4 portrait; margin: 0;}")]
+		html = HTML(
+			string=getattr(self, f"{element}_html"),
+			base_url=self.base_url,
 		)
+		element_doc = html.render(stylesheets=[CSS(string="@page {size: A4 portrait; margin: 0;}")])
 		element_page = element_doc.pages[0]
-		element_body = PrintFormatGenerator.get_element(
-			element_page._page_box.all_children(), "body"
-		)
+		element_body = PrintFormatGenerator.get_element(element_page._page_box.all_children(), "body")
 		element_body = element_body.copy_with_children(element_body.all_children())
-		element_html = PrintFormatGenerator.get_element(
-			element_page._page_box.all_children(), element
-		)
+		element_html = PrintFormatGenerator.get_element(element_page._page_box.all_children(), element)
 
 		if element == "header":
 			element_height = element_html.height
@@ -170,11 +165,11 @@ class PrintFormatGenerator:
 		Parameters
 		----------
 		main_doc: Document
-			The top level representation for a PDF page in Weasyprint.
+		        The top level representation for a PDF page in Weasyprint.
 		header_body: BlockBox
-			A representation for an html element in Weasyprint.
+		        A representation for an html element in Weasyprint.
 		footer_body: BlockBox
-			A representation for an html element in Weasyprint.
+		        A representation for an html element in Weasyprint.
 		"""
 		for page in main_doc.pages:
 			page_body = PrintFormatGenerator.get_element(page._page_box.all_children(), "body")
@@ -250,16 +245,16 @@ class PrintFormatGenerator:
 
 def import_weasyprint():
 	try:
-		from weasyprint import HTML, CSS
+		from weasyprint import CSS, HTML
+
 		return HTML, CSS
 	except OSError:
-		message = "\n".join([
-			"WeasyPrint depdends on additional system dependencies.",
-			"Follow instructions specific to your operating system:",
-			"https://doc.courtbouillon.org/weasyprint/stable/first_steps.html"
-		])
-		click.secho(
-			message,
-			fg="yellow"
+		message = "\n".join(
+			[
+				"WeasyPrint depdends on additional system dependencies.",
+				"Follow instructions specific to your operating system:",
+				"https://doc.courtbouillon.org/weasyprint/stable/first_steps.html",
+			]
 		)
+		click.secho(message, fg="yellow")
 		frappe.throw(message)
