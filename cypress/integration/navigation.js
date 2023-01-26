@@ -18,6 +18,7 @@ context("Navigation", () => {
 	it.only("Navigate to previous page after login", () => {
 		cy.visit("/app/todo");
 		cy.get(".page-head").findByTitle("To Do").should("be.visible");
+		cy.clear_filters();
 		cy.request("/api/method/logout");
 		cy.reload().as("reload");
 		cy.get("@reload").get(".page-card .btn-primary").contains("Login").click();
