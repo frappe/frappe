@@ -54,12 +54,14 @@ class FrappeTestCase(unittest.TestCase):
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
 
-	def _compare_field(self, expected, actual, doc, field):
+	def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
 		msg = f"{field} should be same."
 
 		if isinstance(expected, float):
 			precision = doc.precision(field)
-			self.assertAlmostEqual(expected, actual, f"{field} should be same to {precision} digits")
+			self.assertAlmostEqual(
+				expected, actual, places=precision, msg=f"{field} should be same to {precision} digits"
+			)
 		elif isinstance(expected, (bool, int)):
 			self.assertEqual(expected, cint(actual), msg=msg)
 		elif isinstance(expected, datetime_like_types):
