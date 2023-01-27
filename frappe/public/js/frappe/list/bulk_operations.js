@@ -130,6 +130,10 @@ export default class BulkOperations {
 			.call({
 				method: 'frappe.desk.reportview.delete_items',
 				freeze: true,
+				freeze_message:
+					docnames.length <= 10
+						? __("Deleting {0} records...", [docnames.length])
+						: null,
 				args: {
 					items: docnames,
 					doctype: this.doctype
