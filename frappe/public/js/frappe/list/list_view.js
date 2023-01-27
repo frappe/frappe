@@ -584,7 +584,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</div>
 		`);
 		this.setup_new_doc_event();
-		this.list_sidebar && this.list_sidebar.reload_stats();
+		if (this.list_view_settings && !this.list_view_settings.disable_sidebar_stats) {
+			this.list_sidebar && this.list_sidebar.reload_stats();
+		}
 		this.toggle_paging && this.$paging_area.toggle(true);
 	}
 
@@ -896,7 +898,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const comment_count = `<span class="comment-count">
 				${frappe.utils.icon("small-message")}
-				${doc._comment_count > 99 ? "99+" : doc._comment_count}
+				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
 			</span>`;
 
 		html += `

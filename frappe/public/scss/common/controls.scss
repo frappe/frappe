@@ -5,20 +5,43 @@
 @import "phone_picker";
 
 // password
-.form-control[data-fieldtype="Password"] {
-	position: inherit;
-}
+.frappe-control[data-fieldtype="Password"] {
+	.control-input-wrapper {
+		position: relative;
 
-.password-strength-indicator {
-	// TODO: Review
-	float: right;
-	padding: 15px;
-	margin-top: -41px;
-	margin-right: -7px;
-}
+		.form-control[data-fieldtype="Password"] {
+			position: inherit;
+		}
 
-.password-strength-message {
-	margin-top: -10px;
+		.password-strength-indicator {
+			display: flex;
+			align-items: center;
+			position: absolute;
+			gap: 5px;
+			top: -20px;
+			right: 0px;
+
+			.progress-text {
+				font-size: var(--text-xs);
+				font-weight: 600;
+			}
+
+			.progress {
+				background-color: var(--bg-light-gray);
+				width: 100px;
+				height: 5px;
+			}
+		}
+
+		.toggle-password {
+			position: absolute;
+			top: 4px;
+			right: 8px;
+			padding: 3px;
+			z-index: 3;
+			cursor: pointer;
+		}
+	}
 }
 
 // select
@@ -230,6 +253,10 @@ a.progress-small {
 
 .progress-bar-danger {
 	background-color: var(--red-500);
+}
+
+.progress-bar-info {
+	background-color: var(--blue-500);
 }
 
 .progress-bar-warning {

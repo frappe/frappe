@@ -306,8 +306,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 	)
 
 	# process recurring events
-	start = start.split(" ")[0]
-	end = end.split(" ")[0]
+	start = start.split(" ", 1)[0]
+	end = end.split(" ", 1)[0]
 	add_events = []
 	remove_events = []
 
@@ -315,7 +315,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 		new_event = e.copy()
 
 		enddate = (
-			add_days(date, int(date_diff(e.ends_on.split(" ")[0], e.starts_on.split(" ")[0])))
+			add_days(date, int(date_diff(e.ends_on.split(" ", 1)[0], e.starts_on.split(" ", 1)[0])))
 			if (e.starts_on and e.ends_on)
 			else date
 		)
@@ -337,8 +337,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 			repeat = "3000-01-01" if cstr(e.repeat_till) == "" else e.repeat_till
 
 			if e.repeat_on == "Yearly":
-				start_year = cint(start.split("-")[0])
-				end_year = cint(end.split("-")[0])
+				start_year = cint(start.split("-", 1)[0])
+				end_year = cint(end.split("-", 1)[0])
 
 				# creates a string with date (27) and month (07) eg: 07-27
 				event_start = "-".join(event_start.split("-")[1:])
@@ -357,7 +357,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 
 			if e.repeat_on == "Monthly":
 				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
-				date = start.split("-")[0] + "-" + start.split("-")[1] + "-" + event_start.split("-")[2]
+				year, month = start.split("-", maxsplit=2)[:2]
+				date = f"{year}-{month}-" + event_start.split("-", maxsplit=3)[2]
 
 				# last day of month issue, start from prev month!
 				try:
