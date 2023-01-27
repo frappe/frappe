@@ -616,9 +616,10 @@ class DatabaseQuery:
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
 			if f.operator.lower() == "in":
-				can_be_null = (False if not len(f.value) else True) and (
-					not f.value or any(v is None or v == "" for v in f.value)
-				)
+				can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+
+				if hasattr(f.value, "__iter__") and not isinstance(f.value, str):
+					can_be_null = False if not len(f.value) else can_be_null
 
 			values = f.value or ""
 			if isinstance(values, str):
