@@ -71,7 +71,7 @@ class MariaDBTable(DBTable):
 			if not frappe.db.has_index(self.table_name, col.fieldname + "_index"):
 				add_index_query.append("ADD INDEX `{}_index`(`{}`)".format(col.fieldname, col.fieldname))
 
-		for col in self.drop_index + self.drop_unique:
+		for col in {*self.drop_index, *self.drop_unique}:
 			if col.fieldname != "name":  # primary key
 				current_column = self.current_columns.get(col.fieldname.lower())
 				unique_constraint_changed = current_column.unique != col.unique
