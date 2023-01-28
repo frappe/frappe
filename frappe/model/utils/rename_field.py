@@ -27,7 +27,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		frappe.db.sql(
 			"""update `tab%s` set parentfield=%s
 			where parentfield=%s"""
-			% (new_field.options.split("\n")[0], "%s", "%s"),
+			% (new_field.options.split("\n", 1)[0], "%s", "%s"),
 			(new_fieldname, old_fieldname),
 		)
 

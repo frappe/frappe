@@ -1191,7 +1191,7 @@ def fmt_money(
 	if flt(amount) < 0:
 		minus = "-"
 
-	amount = cstr(abs(flt(amount))).split(".")[0]
+	amount = cstr(abs(flt(amount))).split(".", 1)[0]
 
 	if len(amount) > 3:
 		parts.append(amount[-3:])
@@ -1348,7 +1348,7 @@ def is_image(filepath: str) -> bool:
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = (filepath or "").split("?")[0]
+	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
@@ -1885,7 +1885,7 @@ def expand_relative_urls(html: str) -> str:
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
 
-		if not to_expand[2].startswith("mailto") and not to_expand[2].startswith("data:"):
+		if not to_expand[2].startswith(("mailto", "data:", "tel:")):
 			if not to_expand[2].startswith("/"):
 				to_expand[2] = "/" + to_expand[2]
 			to_expand.insert(2, url)

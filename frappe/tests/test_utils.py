@@ -49,6 +49,7 @@ from frappe.utils.data import (
 	cast,
 	cstr,
 	duration_to_seconds,
+	expand_relative_urls,
 	get_datetime,
 	get_first_day_of_week,
 	get_time,
@@ -920,6 +921,21 @@ class TestMiscUtils(FrappeTestCase):
 		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
 		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
 
+	def test_url_expansion(self):
+		unchanged_links = [
+			"<a href='tel:12345432'>My Phone</a>)",
+			"<a href='mailto:hello@example.com'>My Email</a>)",
+			"<a href='data:hello@example.com'>Data</a>)",
+		]
+		for link in unchanged_links:
+			self.assertEqual(link, expand_relative_urls(link))
+
+		site = get_url()
+
+		transforms = [("<a href='/about'>About</a>)", f"<a href='{site}/about'>About</a>)")]
+		for input, output in transforms:
+			self.assertEqual(output, expand_relative_urls(input))
+
 
 class TestTypingValidations(FrappeTestCase):
 	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
@@ -944,3 +960,16 @@ class TestTypingValidations(FrappeTestCase):
 
 		report.toggle_disable(changed_value)
 		report.toggle_disable(current_value)
+
+
+class TestTBSanitization(FrappeTestCase):
+	def test_traceback_sanitzation(self):
+		try:
+			password = "42"
+			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
+			raise Exception
+		except Exception:
+			traceback = frappe.get_traceback(with_context=True)
+			self.assertNotIn("42", traceback)
+			self.assertIn("********", traceback)
+			self.assertIn("safe_value", traceback)

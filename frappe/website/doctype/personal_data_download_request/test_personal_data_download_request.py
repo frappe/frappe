@@ -61,7 +61,7 @@ def create_user_if_not_exists(email, first_name=None):
 			"user_type": "Website User",
 			"email": email,
 			"send_welcome_email": 0,
-			"first_name": first_name or email.split("@")[0],
+			"first_name": first_name or email.split("@", 1)[0],
 			"birth_date": frappe.utils.now_datetime(),
 		}
 	).insert(ignore_permissions=True)

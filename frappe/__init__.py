@@ -23,7 +23,7 @@ import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import (
-	get_qb_engine,
+	get_query,
 	get_query_builder,
 	patch_query_aggregation,
 	patch_query_execute,
@@ -238,13 +238,12 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jenv = None
 	local.jloader = None
 	local.cache = {}
-	local.document_cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
-	local.qb.engine = get_qb_engine()
+	local.qb.get_query = get_query
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -770,7 +769,12 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
-		throw(_("Not permitted"), PermissionError)
+		summary = _("You are not permitted to access this resource.")
+		detail = _("Function {0} is not whitelisted.").format(
+			bold(f"{method.__module__}.{method.__name__}")
+		)
+		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		throw(msg, PermissionError, title="Method Not Allowed")
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
@@ -1070,25 +1074,10 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	def _respond(doc, from_redis=False):
-		if isinstance(doc, dict):
-			local.document_cache[key] = doc = get_doc(doc)
-
-		elif from_redis:
-			local.document_cache[key] = doc
-
+	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
 		return doc
 
-	if key := can_cache_doc(args):
-		# local cache - has "ready" `Document` objects
-		if doc := local.document_cache.get(key):
-			return _respond(doc)
-
-		# redis cache
-		if doc := cache().hget("document_cache", key):
-			return _respond(doc, True)
-
-	# Not found in local/redis, fetch from DB
+	# Not found in cache, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
 	# Store in cache
@@ -1101,14 +1090,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	local.document_cache[key] = doc
-
-	# Avoid setting in local.cache since we're already using local.document_cache above
-	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
-	try:
-		cache().hset("document_cache", key, doc, cache_locally=False)
-	except Exception:
-		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+	cache().hset("document_cache", key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1134,12 +1116,11 @@ def get_document_cache_key(doctype: str, name: str):
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
-	key = get_document_cache_key(doctype, name)
-	if key in local.document_cache:
-		del local.document_cache[key]
-	cache().hdel("document_cache", key)
+	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
+
 	if doctype == "Website Settings" and hasattr(local, "website_settings"):
 		delattr(local, "website_settings")
 
@@ -1399,23 +1380,37 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(sort=False, frappe_last=False):
-	"""Get list of installed apps in current site."""
+def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False):
+	"""
+	Get list of installed apps in current site.
+
+	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
+	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
+	:param ensure_on_bench: Only return apps that are present on bench.
+	"""
+	from frappe.utils.deprecations import deprecation_warning
+
 	if getattr(flags, "in_install_db", True):
 		return []
 
 	if not db:
 		connect()
 
-	if not local.all_apps:
-		local.all_apps = cache().get_value("all_apps", get_all_apps)
-
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
+		if not local.all_apps:
+			local.all_apps = cache().get_value("all_apps", get_all_apps)
+
+		deprecation_warning("`sort` argument is deprecated and will be removed in v15.")
 		installed = [app for app in local.all_apps if app in installed]
 
+	if _ensure_on_bench:
+		all_apps = cache().get_value("all_apps", get_all_apps)
+		installed = [app for app in installed if app in all_apps]
+
 	if frappe_last:
+		deprecation_warning("`frappe_last` argument is deprecated and will be removed in v15.")
 		if "frappe" in installed:
 			installed.remove("frappe")
 		installed.append("frappe")
@@ -1445,19 +1440,17 @@ def _load_app_hooks(app_name: str | None = None):
 	import types
 
 	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(sort=True)
+	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
 
 	for app in apps:
 		try:
 			app_hooks = get_module(f"{app}.hooks")
-		except ImportError:
+		except ImportError as e:
 			if local.flags.in_install_app:
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(f'Could not find app "{app}"')
-			if not request:
-				raise SystemExit
+			print(f'Could not find app "{app}": \n{e}')
 			raise
 
 		def _is_valid_hook(obj):
@@ -1573,7 +1566,7 @@ def read_file(path, raise_not_found=False):
 
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
-	app_name = method_string.split(".")[0]
+	app_name = method_string.split(".", 1)[0]
 	if (
 		not local.flags.in_uninstall
 		and not local.flags.in_install

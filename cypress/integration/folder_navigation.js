@@ -10,7 +10,7 @@ context("Folder Navigation", () => {
 		cy.get(".filter-selector > .btn").findByText("1 filter").click();
 		cy.findByRole("button", { name: "Clear Filters" }).click();
 		cy.get(".filter-action-buttons > .text-muted").findByText("+ Add a Filter").click();
-		cy.get(".fieldname-select-area > .awesomplete > .form-control").type("Fol{enter}");
+		cy.get(".fieldname-select-area > .awesomplete > .form-control:last").type("Fol{enter}");
 		cy.get(
 			".filter-field > .form-group > .link-field > .awesomplete > .input-with-feedback"
 		).type("Home{enter}");
