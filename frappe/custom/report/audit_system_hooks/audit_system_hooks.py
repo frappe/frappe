@@ -51,7 +51,8 @@ def get_data():
 			for k, v in values.items():
 				row = {"hook_name": hook, "hook_key": fmt_hook_values(k), "hook_values": fmt_hook_values(v)}
 				for app in installed_apps:
-					if app_hooks := delist(frappe.get_hooks(hook, app_name=app)):
+					app_hooks = delist(frappe.get_hooks(hook, app_name=app))
+					if app_hooks:
 						row[app] = fmt_hook_values(app_hooks.get(k))
 				data.append(row)
 		else:
