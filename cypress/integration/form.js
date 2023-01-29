@@ -26,6 +26,11 @@ context("Form", () => {
 			});
 	});
 
+	beforeEach(() => {
+		cy.login();
+		cy.visit("/app/website");
+	});
+
 	it("create a new form", () => {
 		cy.visit("/app/todo/new");
 		cy.get_field("description", "Text Editor")
@@ -171,5 +176,58 @@ context("Form", () => {
 			email: "admin@example.com",
 			send_welcome_email: 0,
 		});
+	});
+
+	it("update docfield property using set_df_property in child table", () => {
+		cy.visit("/app/contact/Test Form Contact 1");
+		cy.window()
+			.its("cur_frm")
+			.then((frm) => {
+				cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+
+				// set property before form_render event of child table
+				cy.get("@table")
+					.find('[data-idx="1"]')
+					.invoke("attr", "data-name")
+					.then((cdn) => {
+						frm.set_df_property(
+							"phone_nos",
+							"hidden",
+							1,
+							"Contact Phone",
+							"is_primary_phone",
+							cdn
+						);
+					});
+
+				cy.get("@table").find('[data-idx="1"] .edit-grid-row').click();
+				cy.get(".grid-row-open").as("table-form");
+				cy.get("@table-form")
+					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.should("be.hidden");
+				cy.get("@table-form").find(".grid-footer-toolbar").click();
+
+				// set property on form_render event of child table
+				cy.get("@table").find('[data-idx="1"] .edit-grid-row').click();
+				cy.get("@table")
+					.find('[data-idx="1"]')
+					.invoke("attr", "data-name")
+					.then((cdn) => {
+						frm.set_df_property(
+							"phone_nos",
+							"hidden",
+							0,
+							"Contact Phone",
+							"is_primary_phone",
+							cdn
+						);
+					});
+
+				cy.get(".grid-row-open").as("table-form");
+				cy.get("@table-form")
+					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.should("be.visible");
+				cy.get("@table-form").find(".grid-footer-toolbar").click();
+			});
 	});
 });

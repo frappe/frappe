@@ -604,6 +604,7 @@
   {
    "default": "0",
    "depends_on": "eval: doc.is_submittable",
+   "description": "Enabling this will submit documents in background",
    "fieldname": "queue_in_background",
    "fieldtype": "Check",
    "label": "Queue in Background"
@@ -707,7 +708,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-12-14 09:47:27.315351",
+ "modified": "2023-01-04 17:23:09.206018",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
