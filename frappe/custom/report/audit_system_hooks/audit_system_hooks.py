@@ -5,8 +5,6 @@ import frappe
 
 
 def execute(filters=None):
-	frappe.only_for("System Manager")
-
 	return get_columns(), get_data()
 
 
@@ -14,8 +12,8 @@ def get_columns():
 	values_field_type = "Data"  # TODO: better text wrapping in reportview
 	columns = [
 		{"label": "Hook name", "fieldname": "hook_name", "fieldtype": "Data", "width": 200},
-		{"label": "Hook key (optional)", "fieldname": "key", "fieldtype": "Data", "width": 200},
-		{"label": "Hook Values", "fieldname": "hook_values", "fieldtype": values_field_type},
+		{"label": "Hook key (optional)", "fieldname": "hook_key", "fieldtype": "Data", "width": 200},
+		{"label": "Hook Values (resolved)", "fieldname": "hook_values", "fieldtype": values_field_type},
 	]
 
 	# Each app is shown in order as a column
@@ -37,8 +35,7 @@ def get_data():
 		if not v:
 			return ""
 
-		if isinstance(v, list) and len(v) == 1:
-			return str(v[0])
+		v = delist(v)
 
 		if isinstance(v, (dict, list)):
 			try:
@@ -50,11 +47,24 @@ def get_data():
 
 	data = []
 	for hook, values in hooks.items():
-		row = {"hook_name": hook, "hook_values": fmt_hook_values(values)}
+		if isinstance(values, dict):
+			for k, v in values.items():
+				row = {"hook_name": hook, "hook_key": fmt_hook_values(k), "hook_values": fmt_hook_values(v)}
+				for app in installed_apps:
+					if app_hooks := delist(frappe.get_hooks(hook, app_name=app)):
+						row[app] = fmt_hook_values(app_hooks.get(k))
+				data.append(row)
+		else:
+			row = {"hook_name": hook, "hook_values": fmt_hook_values(values)}
+			for app in installed_apps:
+				row[app] = fmt_hook_values(frappe.get_hooks(hook, app_name=app))
 
-		for app in installed_apps:
-			row[app] = fmt_hook_values(frappe.get_hooks(hook, app_name=app))
-
-		data.append(row)
+			data.append(row)
 
 	return data
+
+
+def delist(val):
+	if isinstance(val, list) and len(val) == 1:
+		return val[0]
+	return val
