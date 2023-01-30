@@ -288,7 +288,11 @@ class FrappeClient:
 
 			if doctype != "User" and not frappe.db.exists("User", doc.get("owner")):
 				frappe.get_doc(
-					{"doctype": "User", "email": doc.get("owner"), "first_name": doc.get("owner").split("@")[0]}
+					{
+						"doctype": "User",
+						"email": doc.get("owner"),
+						"first_name": doc.get("owner").split("@", 1)[0],
+					}
 				).insert()
 
 			if update:
