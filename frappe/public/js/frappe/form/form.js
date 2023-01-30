@@ -1516,7 +1516,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
 					this.fields_dict[fieldname].grid.grid_rows_by_docname[
 						table_row_name
-					].refresh_field(fieldname);
+					].refresh_field(table_field);
 				}
 			} else {
 				this.refresh_field(fieldname);
