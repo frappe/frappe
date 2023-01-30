@@ -1246,53 +1246,6 @@ def write_csv_file(path, app_messages, lang_dict):
 				w.writerow([message, translated_string, context])
 
 
-def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
-	"""Returns all untranslated strings for a language and writes in a file
-
-	:param lang: Language code.
-	:param untranslated_file: Output file path.
-	:param get_all: Return all strings, translated or not."""
-	clear_cache()
-	apps = frappe.get_all_apps(True)
-	if app != "_ALL_APPS":
-		if app not in apps:
-			print(f"Application {app} not found!")
-			return
-		apps = [app]
-
-	messages = []
-	untranslated = []
-	for app_name in apps:
-		messages.extend(get_messages_for_app(app_name))
-
-	messages = deduplicate_messages(messages)
-
-	def escape_newlines(s):
-		return s.replace("\\\n", "|||||").replace("\\n", "||||").replace("\n", "|||")
-
-	if get_all:
-		print(str(len(messages)) + " messages")
-		with open(untranslated_file, "wb") as f:
-			for m in messages:
-				# replace \n with ||| so that internal linebreaks don't get split
-				f.write((escape_newlines(m[1]) + os.linesep).encode("utf-8"))
-	else:
-		full_dict = get_all_translations(lang)
-
-		for m in messages:
-			if not full_dict.get(m[1]):
-				untranslated.append(m[1])
-
-		if untranslated:
-			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
-			with open(untranslated_file, "wb") as f:
-				for m in untranslated:
-					# replace \n with ||| so that internal linebreaks don't get split
-					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
-		else:
-			print("all translated!")
-
-
 def import_translations(lang, path):
 	"""Import translations from file in standard format"""
 	clear_cache()

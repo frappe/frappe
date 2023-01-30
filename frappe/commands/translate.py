@@ -3,25 +3,6 @@ import click
 from frappe.commands import get_site, pass_context
 
 
-@click.command("get-untranslated")
-@click.option("--app", default="_ALL_APPS")
-@click.argument("lang")
-@click.argument("untranslated_file")
-@click.option("--all", default=False, is_flag=True, help="Get all message strings")
-@pass_context
-def get_untranslated(context, lang, untranslated_file, app="_ALL_APPS", all=None):
-	"Get untranslated strings for language"
-	import frappe.translate
-
-	site = get_site(context)
-	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.get_untranslated(lang, untranslated_file, get_all=all, app=app)
-	finally:
-		frappe.destroy()
-
-
 @click.command("import-translations")
 @click.argument("lang")
 @click.argument("path")
