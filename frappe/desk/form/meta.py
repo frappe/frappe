@@ -18,6 +18,7 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.translate import extract_messages_from_code, make_dict_from_messages
 from frappe.utils import get_html_format
+from frappe.utils.data import get_link_to_form
 
 ASSET_KEYS = (
 	"__js",
@@ -207,13 +208,18 @@ class FormMeta(Meta):
 		# customizations are removed or some custom app is removed but hasn't cleaned
 		# up after itself.
 		frappe.clear_last_message()
-		customize_form_link = f'<a href="/app/customize-form/?doc_type={self.name}">Customize Form</a>'
-		frappe.throw(
-			_(
-				"Field {0} is referring to non-existing doctype {1}, please remove the field from {2} or add the required doctype."
-			).format(frappe.bold(df.fieldname), frappe.bold(df.options), customize_form_link),
-			title=_("Missing DocType"),
+
+		msg = _("Field {0} is referring to non-existing doctype {1}.").format(
+			frappe.bold(df.fieldname), frappe.bold(df.options)
 		)
+
+		if df.get("is_custom_field"):
+			custom_field_link = get_link_to_form("Custom Field", df.name)
+			msg += " " + _("Please delete the field from {2} or add the required doctype.").format(
+				custom_field_link
+			)
+
+		frappe.throw(msg, title=_("Missing DocType"))
 
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):

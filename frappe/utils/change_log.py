@@ -111,7 +111,7 @@ def get_versions():
 	                }
 	        }"""
 	versions = {}
-	for app in frappe.get_installed_apps(sort=True):
+	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		app_hooks = frappe.get_hooks(app_name=app)
 		versions[app] = {
 			"title": app_hooks.get("app_title")[0],

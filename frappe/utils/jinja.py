@@ -121,8 +121,11 @@ def get_jloader():
 		else:
 			apps = frappe.get_hooks("template_apps")
 			if not apps:
-				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
-				apps.reverse()
+				apps = list(
+					reversed(
+						frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True)
+					)
+				)
 
 		if "frappe" not in apps:
 			apps.append("frappe")

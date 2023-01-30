@@ -420,26 +420,19 @@ kbd {
 	background-color: var(--bg-color);
 
 	.freeze-message-container {
+		inset: 0;
+		padding: 3rem;
+		background-color: var(--bg-light-gray);
+		color: var(--text-on-light-gray);
+		font-size: larger;
 		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		right: 0;
 		display: grid;
 		place-content: center;
 	}
-
-	.freeze-message {
-		color: var(--text-color) !important;
-	}
-}
-
-#freeze.dark {
-	background-color: var(--gray-900);
 }
 
 #freeze.in {
-	opacity: 0.5;
+	opacity: 0.8;
 }
 
 .msg-box {
