@@ -271,12 +271,13 @@ def generate_pot(target_app: str | None = None):
 		for i in extract_from_dir(app_path, method_map):
 			_file, _lineno, msgid, *rest = i
 
-			# TODO: what exactly is a tuple here?
-			if isinstance(msgid, tuple):
-				continue
-
 			if not msgid:
 				continue
+
+			messages = msgid if isinstance(msgid, tuple) else [msgid]
+
+			for m in messages:
+				c.add(m)
 
 			c.add(msgid)
 
