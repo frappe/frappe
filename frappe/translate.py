@@ -54,7 +54,6 @@ TRANSLATE_PATTERN = re.compile(
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
-
 APP_TRANSLATION_KEY = "translations_from_apps"
 DEFAULT_LANG = "en"
 LOCALE_DIR = "locale"
@@ -78,7 +77,9 @@ def get_language(lang_list: list = None) -> str:
 
 	# fetch language from form_dict
 	if frappe.form_dict._lang:
-		language = get_lang_code(frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang))
+		language = get_lang_code(
+			frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang)
+		)
 		if language:
 			return language
 
@@ -162,12 +163,16 @@ def set_default_language(lang):
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
 	return dict(
-		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
+		frappe.get_all(
+			"Language", fields=["language_name", "name"], order_by="modified", as_list=True
+		)
 	)
 
 
 def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool | None = False):
-	t = gettext.translation(TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True)
+	t = gettext.translation(
+		TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True
+	)
 
 	if context:
 		return t.pgettext
@@ -183,7 +188,10 @@ def generate_pot(target_app: str | None = None):
 	:param target_app: If specified, limit to `app`
 	"""
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
-	method_map = [("**.py", "frappe.translate.babel_extract_python")]
+	method_map = [
+		("**.py", "frappe.translate.babel_extract_python"),
+		("**/doctype/*/*.json", "frappe.translate.babel_extract_doctype_json"),
+	]
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
@@ -690,6 +698,73 @@ def babel_extract_python(*args, **kwargs):
 			messages = (messages[-1], messages[0])  # (context, message)
 
 		yield lineno, funcname, messages, comments
+
+
+def babel_extract_doctype_json(fileobj, *args, **kwargs):
+	"""
+    Extract messages from DocType JSON files. To be used to babel extractor
+
+    :param fileobj: the file-like object the messages should be extracted from
+    :rtype: `iterator`
+	"""
+	data = json.load(fileobj)
+
+	if isinstance(data, list):
+		return
+
+	doctype = data.get("name")
+
+	yield None, "_", doctype, ["Name of a DocType"]
+
+	messages = []
+	fields = data.get("fields", [])
+	links = data.get("links", [])
+
+	for field in fields:
+		fieldtype = field.get("fieldtype")
+
+		if label := field.get("label"):
+			messages.append((label, f"Label of a {fieldtype} field in DocType '{doctype}'"))
+
+		if description := field.get("description"):
+			messages.append(
+				(description, f"Description of a {fieldtype} field in DocType '{doctype}'")
+			)
+
+		if message := field.get("options"):
+			if fieldtype == "Select":
+				select_options = [
+					option for option in message.split("\n") if option and not option.isdigit()
+				]
+
+				if select_options and "icon" in select_options[0]:
+					continue
+
+				messages.extend(
+					(option, f"Option for a {fieldtype} field in DocType '{doctype}'")
+					for option in select_options
+				)
+			elif fieldtype == "HTML":
+				messages.append(
+					(message, f"Content of an {fieldtype} field in DocType '{doctype}'")
+				)
+
+	for link in links:
+		if group := link.get("group"):
+			messages.append((group, f"Group in {doctype}'s connections"))
+
+		if link_doctype := link.get("link_doctype"):
+			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
+
+	# By using "pgettext" as the function name we can supply the doctype as context
+	yield from ((None, "pgettext", (doctype, message), [comment]) for message, comment in messages)
+
+	# Role names do not get context because they are used with multiple doctypes
+	yield from (
+		(None, "_", perm["role"], ["Name of a role"])
+		for perm in data.get("permissions", [])
+		if "role" in perm
+	)
 
 
 @frappe.whitelist()
