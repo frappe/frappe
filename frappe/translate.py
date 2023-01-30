@@ -425,15 +425,29 @@ def get_messages_for_boot():
 	Return all message translations that are required on boot
 	"""
 	messages = get_all_translations(frappe.local.lang)
-	# TODO: get dict from hooks
+	messages.update(get_dict_from_hooks("boot", None))
 
 	return messages
 
 
-def get_dict_from_hooks(fortype, name):
-	translated_dict = {}
+def get_dict_from_hooks(fortype: str, name: str) -> dict[str, str]:
+	"""
+	Get and run a custom translator method from hooks for item.
 
+	Hook example:
+	```
+	get_translated_dict = {
+		("doctype", "Global Defaults"): "frappe.geo.country_info.get_translated_dict",
+	}
+	```
+
+	:param fortype: Item type. eg: doctype
+	:param name: Item name. eg: User
+	:return: Dictionary with translated messages
+	"""
+	translated_dict = {}
 	hooks = frappe.get_hooks("get_translated_dict")
+
 	for (hook_fortype, fortype_name) in hooks:
 		if hook_fortype == fortype and fortype_name == name:
 			for method in hooks[(hook_fortype, fortype_name)]:
