@@ -46,7 +46,12 @@ def getdoc(doctype, name, user=None):
 			)
 			raise frappe.PermissionError(("read", doctype, name))
 
+<<<<<<< HEAD
 		doc.apply_fieldlevel_read_permissions()
+=======
+	run_onload(doc)
+	doc.apply_fieldlevel_read_permissions()
+>>>>>>> e82046ef00 (ci: bump isort to 5.12.0 (#19836))
 
 		# add file list
 		doc.add_viewed()
