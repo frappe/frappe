@@ -83,14 +83,9 @@ def new_po(context, lang_code: str, app: str):
 
 
 commands = [
-	build_message_files,
 	compile_translation,
 	generate_pot,
-	get_untranslated,
-	import_translations,
 	migrate_translation,
-	new_language,
 	new_po,
 	update_po,
-	update_translations,
 ]
