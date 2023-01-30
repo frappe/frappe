@@ -95,7 +95,7 @@ class MariaDBTable(DBTable):
 			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
 				add_index_query.append(f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)")
 
-		for col in self.drop_index + self.drop_unique:
+		for col in {*self.drop_index, *self.drop_unique}:
 			if col.fieldname == "name":
 				continue
 

@@ -68,7 +68,7 @@ def get_snapshot(exception, context=10):
 
 	s = {
 		"pyver": "Python {version:s}: {executable:s} (prefix: {prefix:s})".format(
-			version=sys.version.split()[0], executable=sys.executable, prefix=sys.prefix
+			version=sys.version.split(maxsplit=1)[0], executable=sys.executable, prefix=sys.prefix
 		),
 		"timestamp": cstr(datetime.datetime.now()),
 		"traceback": traceback.format_exc(),

@@ -1468,9 +1468,7 @@ def _load_app_hooks(app_name: str | None = None):
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(e)
-			if not request:
-				raise SystemExit
+			print(f'Could not find app "{app}": \n{e}')
 			raise
 
 		def _is_valid_hook(obj):
@@ -1586,7 +1584,7 @@ def read_file(path, raise_not_found=False):
 
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
-	app_name = method_string.split(".")[0]
+	app_name = method_string.split(".", 1)[0]
 	if (
 		not local.flags.in_uninstall
 		and not local.flags.in_install

@@ -314,7 +314,7 @@ def get_translations_from_apps(lang, apps=None):
 			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 			translations.update(get_translation_dict_from_file(path, lang, app) or {})
 		if "-" in lang:
-			parent = lang.split("-")[0]
+			parent = lang.split("-", 1)[0]
 			parent_translations = get_translations_from_apps(parent)
 			parent_translations.update(translations)
 			return parent_translations
