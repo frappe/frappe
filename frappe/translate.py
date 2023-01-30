@@ -1344,13 +1344,6 @@ def import_translations(lang, path):
 		write_translations_file(app, lang, full_dict)
 
 
-def rebuild_all_translation_files():
-	"""Rebuild all translation files: `[app]/translations/[lang].csv`."""
-	for lang in get_all_languages():
-		for app in frappe.get_all_apps():
-			write_translations_file(app, lang)
-
-
 def write_translations_file(app, lang, full_dict=None, app_messages=None):
 	"""Write a translation file for a given language.
 

@@ -1,25 +1,6 @@
 import click
 
 from frappe.commands import get_site, pass_context
-from frappe.exceptions import SiteNotSpecifiedError
-
-
-# translation
-@click.command("build-message-files")
-@pass_context
-def build_message_files(context):
-	"Build message files for translation"
-	import frappe.translate
-
-	for site in context.sites:
-		try:
-			frappe.init(site=site)
-			frappe.connect()
-			frappe.translate.rebuild_all_translation_files()
-		finally:
-			frappe.destroy()
-	if not context.sites:
-		raise SiteNotSpecifiedError
 
 
 @click.command("new-language")  # , help="Create lang-code.csv for given app")
