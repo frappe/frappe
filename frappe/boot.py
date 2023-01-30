@@ -344,6 +344,7 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 	Note: Works only if 'WHERE' is the last clause in the query
 	"""
 	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
+<<<<<<< HEAD
 	if permission_query:
 <<<<<<< HEAD
 		query = f"{query} AND {permission_query}"
@@ -356,6 +357,10 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 >>>>>>> 0ba158979d (fix: Make `run_with_permission_query` private (not a general util))
 =======
 		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)  # nosemgrep
+=======
+	if permission_query and frappe.session.user != "Administrator":
+		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)
+>>>>>>> 13162d8fbd (fix: Only apply perm query to non-admin users)
 	return query.run(as_dict=True)
 >>>>>>> 81d6b282a3 (chore: Remove errprint triggered by passing Query object to db.sql)
 

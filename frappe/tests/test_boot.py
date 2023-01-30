@@ -70,6 +70,3 @@ class TestBootData(FrappeTestCase):
 		# Test user must not see admin user's report
 		self.assertNotIn("Test Admin Report", allowed_reports)
 		self.assertIn("Test User Report", allowed_reports)
-
-		self.addCleanup(frappe.db.rollback)
-		self.addCleanup(frappe.set_user, "Administrator")
