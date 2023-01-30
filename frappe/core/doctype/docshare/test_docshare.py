@@ -125,3 +125,17 @@ class TestDocShare(FrappeTestCase):
 		)
 
 		frappe.share.remove(doctype, submittable_doc.name, self.user)
+
+	def test_share_int_pk(self):
+		test_doc = frappe.new_doc("Console Log")
+
+		test_doc.insert()
+		frappe.share.add("Console Log", test_doc.name, self.user)
+
+		frappe.set_user(self.user)
+		self.assertIn(
+			str(test_doc.name), [str(name) for name in frappe.get_list("Console Log", pluck="name")]
+		)
+
+		test_doc.reload()
+		self.assertTrue(test_doc.has_permission("read"))
