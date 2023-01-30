@@ -259,8 +259,8 @@ def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
 	Note: Works only if 'WHERE' is the last clause in the query
 	"""
 	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
-	if permission_query:
-		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)  # nosemgrep
+	if permission_query and frappe.session.user != "Administrator":
+		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)
 	return query.run(as_dict=True)
 
 
