@@ -162,6 +162,25 @@ def update_po(context, app: str):
 	update_po(app)
 
 
+@click.command("new-po", help="Create PO file for lang code")
+@click.argument("lang_code")
+@click.option("--app", help="App name eg. frappe")
+@pass_context
+def new_po(context, lang_code: str, app: str):
+	"""
+	Create PO file for lang code
+	"""
+	import frappe
+	from frappe.translate import new_po
+
+	if not app:
+		if not context["sites"]:
+			raise Exception("--site is required")
+		frappe.connect(site=context["sites"][0])
+
+	new_po(lang_code, app)
+
+
 commands = [
 	build_message_files,
 	compile_translation,
@@ -170,6 +189,7 @@ commands = [
 	import_translations,
 	migrate_translation,
 	new_language,
+	new_po,
 	update_po,
 	update_translations,
 ]

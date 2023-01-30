@@ -285,6 +285,46 @@ def generate_pot(target_app: str | None = None):
 			print(f"POT file created at {pot_path}")
 
 
+def new_po(lang_code, target_app: str | None = None):
+	apps = [target_app] if target_app else frappe.get_all_apps(True)
+
+	for target_app in apps:
+		app_path = frappe.get_app_path(target_app)
+		loc_path = os.path.join(app_path, "locale")
+		pot_path = os.path.join(loc_path, POT_FILE)
+		po_path = os.path.join(loc_path, lang_code, "LC_MESSAGES", "messages.po")
+
+		if os.path.exists(po_path):
+			print(f"{po_path} exists. Skipping")
+			continue
+
+		pot_file = open(pot_path)
+		pot_catalog = read_po(pot_file)
+		pot_file.close()
+
+		po_catalog = Catalog(
+			domain="messages",
+			msgid_bugs_address="contact@frappe.io",
+			language_team="contact@frappe.io",
+			copyright_holder="Frappe Technologies Pvt. Ltd.",
+			last_translator="contact@frappe.io",
+			project="Frappe Translation",
+			creation_date=datetime.now(),
+			revision_date=datetime.now(),
+			fuzzy=False,
+		)
+
+		for m in pot_catalog:
+			po_catalog.add(m.id, context=m.context)
+
+		with open(po_path, "wb") as po_file:
+			write_po(po_file, po_catalog)
+			print(f"PO file created_at {po_path}")
+			print(
+				"You will need to add the language in frappe/geo/languages.json, if you haven't done it already."
+			)
+
+
 def compile(target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
