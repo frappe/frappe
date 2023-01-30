@@ -1,6 +1,7 @@
 # imports - standard imports
 import logging
 import os
+from copy import deepcopy
 from logging.handlers import RotatingFileHandler
 from typing import Literal
 
@@ -91,7 +92,7 @@ class SiteContextFilter(logging.Filter):
 	def filter(self, record) -> bool:
 		if "Form Dict" not in str(record.msg):
 			site = getattr(frappe.local, "site", None)
-			form_dict = getattr(frappe.local, "form_dict", None)
+			form_dict = sanitized_dict(getattr(frappe.local, "form_dict", None))
 			record.msg = str(record.msg) + f"\nSite: {site}\nForm Dict: {form_dict}"
 			return True
 
@@ -100,3 +101,25 @@ def set_log_level(level: Literal["ERROR", "WARNING", "WARN", "INFO", "DEBUG"]) -
 	"""Use this method to set log level to something other than the default DEBUG"""
 	frappe.log_level = getattr(logging, (level or "").upper(), None) or default_log_level
 	frappe.loggers = {}
+
+
+def sanitized_dict(form_dict):
+	if not isinstance(form_dict, dict):
+		return form_dict
+
+	sanitized_dict = deepcopy(form_dict)
+
+	blocklist = [
+		"password",
+		"passwd",
+		"secret",
+		"token",
+		"key",
+		"pwd",
+	]
+
+	for k in sanitized_dict:
+		for secret_kw in blocklist:
+			if secret_kw in k:
+				sanitized_dict[k] = "********"
+	return sanitized_dict
