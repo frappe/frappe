@@ -302,7 +302,7 @@ def get_traceback(with_context=False) -> str:
 		return ""
 
 	if with_context:
-		trace_list = iter_exc_lines(fmt=_get_sanitizer())
+		trace_list = iter_exc_lines(fmt=_get_traceback_sanitizer())
 		tb = "\n".join(trace_list)
 	else:
 		trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
@@ -313,7 +313,7 @@ def get_traceback(with_context=False) -> str:
 
 
 @functools.lru_cache(maxsize=1)
-def _get_sanitizer():
+def _get_traceback_sanitizer():
 	from traceback_with_variables import Format
 
 	blocklist = [
