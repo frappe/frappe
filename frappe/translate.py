@@ -1293,47 +1293,6 @@ def get_untranslated(lang, untranslated_file, get_all=False, app="_ALL_APPS"):
 			print("all translated!")
 
 
-def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS"):
-	"""Update translations from a source and target file for a given language.
-
-	:param lang: Language code (e.g. `en`).
-	:param untranslated_file: File path with the messages in English.
-	:param translated_file: File path with messages in language to be updated."""
-	clear_cache()
-	full_dict = get_all_translations(lang)
-
-	def restore_newlines(s):
-		return (
-			s.replace("|||||", "\\\n")
-			.replace("| | | | |", "\\\n")
-			.replace("||||", "\\n")
-			.replace("| | | |", "\\n")
-			.replace("|||", "\n")
-			.replace("| | |", "\n")
-		)
-
-	translation_dict = {}
-	for key, value in zip(
-		frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
-		frappe.get_file_items(translated_file, ignore_empty_lines=False),
-	):
-
-		# undo hack in get_untranslated
-		translation_dict[restore_newlines(key)] = restore_newlines(value)
-
-	full_dict.update(translation_dict)
-	apps = frappe.get_all_apps(True)
-
-	if app != "_ALL_APPS":
-		if app not in apps:
-			print(f"Application {app} not found!")
-			return
-		apps = [app]
-
-	for app_name in apps:
-		write_translations_file(app_name, lang, full_dict)
-
-
 def import_translations(lang, path):
 	"""Import translations from file in standard format"""
 	clear_cache()

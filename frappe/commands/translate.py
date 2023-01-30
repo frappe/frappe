@@ -22,25 +22,6 @@ def get_untranslated(context, lang, untranslated_file, app="_ALL_APPS", all=None
 		frappe.destroy()
 
 
-@click.command("update-translations")
-@click.option("--app", default="_ALL_APPS")
-@click.argument("lang")
-@click.argument("untranslated_file")
-@click.argument("translated-file")
-@pass_context
-def update_translations(context, lang, untranslated_file, translated_file, app="_ALL_APPS"):
-	"Update translated strings"
-	import frappe.translate
-
-	site = get_site(context)
-	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.update_translations(lang, untranslated_file, translated_file, app=app)
-	finally:
-		frappe.destroy()
-
-
 @click.command("import-translations")
 @click.argument("lang")
 @click.argument("path")
