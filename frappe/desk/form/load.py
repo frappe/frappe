@@ -39,7 +39,6 @@ def getdoc(doctype, name, user=None):
 		)
 		raise frappe.PermissionError(("read", doctype, name))
 
-	
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
 
