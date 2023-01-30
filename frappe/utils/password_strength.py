@@ -3,10 +3,8 @@
 
 from __future__ import unicode_literals
 
-try:
-	from zxcvbn import zxcvbn
-except Exception:
-	import zxcvbn
+from zxcvbn import zxcvbn
+from zxcvbn.scoring import ALL_UPPER, START_UPPER
 
 import frappe
 from frappe import _
@@ -14,8 +12,14 @@ from frappe import _
 
 def test_password_strength(password, user_inputs=None):
 	"""Wrapper around zxcvbn.password_strength"""
+	if len(password) > 128:
+		# zxcvbn takes forever when checking long, random passwords.
+		# repetion patterns or user inputs in the first 128 characters
+		# will still be checked.
+		password = password[:128]
+
 	result = zxcvbn(password, user_inputs)
-	result.update({"feedback": get_feedback(result.get("score"), result.get("sequence"))})
+	result["feedback"] = get_feedback(result.get("score"), result.get("sequence"))
 	return result
 
 
@@ -23,13 +27,7 @@ def test_password_strength(password, user_inputs=None):
 # -------------------------------------------
 # feedback functionality code from https://github.com/sans-serif/python-zxcvbn/blob/master/zxcvbn/feedback.py
 # see license for feedback code at https://github.com/sans-serif/python-zxcvbn/blob/master/LICENSE.txt
-
-# Used for regex matching capitalization
-import re
-
-# Used to get the regex patterns for capitalization
-# (Used the same way in the original zxcvbn)
-from zxcvbn import scoring
+# -------------------------------------------
 
 # Default feedback value
 default_feedback = {
@@ -179,9 +177,9 @@ def get_dictionary_match_feedback(match, is_sole_match):
 
 	word = match.get("token")
 	# Variations of the match like UPPERCASES
-	if re.match(scoring.START_UPPER, word):
+	if START_UPPER.match(word):
 		suggestions.append(_("Capitalization doesn't help very much."))
-	elif re.match(scoring.ALL_UPPER, word):
+	elif ALL_UPPER.match(word):
 		suggestions.append(_("All-uppercase is almost as easy to guess as all-lowercase."))
 
 	# Match contains l33t speak substitutions
