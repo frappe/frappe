@@ -1246,16 +1246,6 @@ def write_csv_file(path, app_messages, lang_dict):
 				w.writerow([message, translated_string, context])
 
 
-def import_translations(lang, path):
-	"""Import translations from file in standard format"""
-	clear_cache()
-	full_dict = get_all_translations(lang)
-	full_dict.update(get_translation_dict_from_file(path, lang, "import"))
-
-	for app in frappe.get_all_apps(True):
-		write_translations_file(app, lang, full_dict)
-
-
 def write_translations_file(app, lang, full_dict=None, app_messages=None):
 	"""Write a translation file for a given language.
 

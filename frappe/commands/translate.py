@@ -1,23 +1,6 @@
 import click
 
-from frappe.commands import get_site, pass_context
-
-
-@click.command("import-translations")
-@click.argument("lang")
-@click.argument("path")
-@pass_context
-def import_translations(context, lang, path):
-	"Update translated strings"
-	import frappe.translate
-
-	site = get_site(context)
-	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.import_translations(lang, path)
-	finally:
-		frappe.destroy()
+from frappe.commands import pass_context
 
 
 @click.command("generate-pot", help="Generate gettext POT file")
