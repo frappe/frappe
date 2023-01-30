@@ -14,8 +14,12 @@ import pydoc
 import sys
 import traceback
 
+<<<<<<< HEAD
 import six
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult
+=======
+from ldap3.core.exceptions import LDAPException
+>>>>>>> 8be98718f7 (fix: ldap with 2fa (#19753))
 
 import frappe
 from frappe.utils import cstr, encode
@@ -24,7 +28,7 @@ EXCLUDE_EXCEPTIONS = (
 	frappe.AuthenticationError,
 	frappe.CSRFTokenError,  # CSRF covers OAuth too
 	frappe.SecurityException,
-	LDAPInvalidCredentialsResult,
+	LDAPException,
 )
 
 
