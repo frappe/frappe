@@ -582,6 +582,8 @@ export default class Grid {
 	get_filtered_data() {
 		let all_data = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
 
+		if (!all_data) return;
+
 		for (const field in this.filter) {
 			all_data = all_data.filter((data) => {
 				let { df, value } = this.filter[field];
