@@ -3,31 +3,6 @@ import click
 from frappe.commands import get_site, pass_context
 
 
-@click.command("new-language")  # , help="Create lang-code.csv for given app")
-@pass_context
-@click.argument("lang_code")  # , help="Language code eg. en")
-@click.argument("app")  # , help="App name eg. frappe")
-def new_language(context, lang_code, app):
-	"""Create lang-code.csv for given app"""
-	import frappe.translate
-
-	if not context["sites"]:
-		raise Exception("--site is required")
-
-	# init site
-	frappe.connect(site=context["sites"][0])
-	frappe.translate.write_translations_file(app, lang_code)
-
-	print(
-		"File created at ./apps/{app}/{app}/translations/{lang_code}.csv".format(
-			app=app, lang_code=lang_code
-		)
-	)
-	print(
-		"You will need to add the language in frappe/geo/languages.json, if you haven't done it already."
-	)
-
-
 @click.command("get-untranslated")
 @click.option("--app", default="_ALL_APPS")
 @click.argument("lang")
