@@ -208,7 +208,7 @@ frappe.socketio = {
 					}
 				});
 
-				if (cur_frm && cur_frm.doc) {
+				if (cur_frm && cur_frm.doc && !cur_frm.is_new()) {
 					frappe.socketio.doc_open(cur_frm.doc.doctype, cur_frm.doc.name);
 				}
 			}, 5000);
