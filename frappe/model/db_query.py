@@ -321,8 +321,8 @@ class DatabaseQuery:
 				original_field = field
 				alias = None
 				if " as " in field:
-					field, alias = field.split(" as ")
-				linked_fieldname, fieldname = field.split(".")
+					field, alias = field.split(" as ", 1)
+				linked_fieldname, fieldname = field.split(".", 1)
 				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
 				# this is not a link field
 				if not linked_field:
