@@ -169,7 +169,15 @@ class DatabaseQuery:
 
 			controller = get_controller(self.doctype)
 			self.parse_args()
-			return controller.get_list(self.__dict__)
+			kwargs = {
+				"as_list": as_list,
+				"with_comment_count": with_comment_count,
+				"save_user_settings": save_user_settings,
+				"save_user_settings_fields": save_user_settings_fields,
+				"pluck": pluck,
+				"parent_doctype": parent_doctype,
+			} | self.__dict__
+			return controller.get_list(kwargs)
 
 		self.columns = self.get_table_columns()
 
