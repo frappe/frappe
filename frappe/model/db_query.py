@@ -782,7 +782,7 @@ class DatabaseQuery:
 
 			# share is an OR condition, if there is a role permission
 			if not only_if_shared and self.shared and conditions:
-				conditions = f"({conditions}) or ({self.get_share_condition()})"
+				conditions = f"(({conditions}) or ({self.get_share_condition()}))"
 
 			return conditions
 

@@ -772,7 +772,9 @@ class Database:
 
 		if not df:
 			frappe.throw(
-				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
+				_("Field {0} does not exist on {1}").format(
+					frappe.bold(fieldname), frappe.bold(doctype), self.InvalidColumnName
+				)
 			)
 
 		val = cast_fieldtype(df.fieldtype, val)

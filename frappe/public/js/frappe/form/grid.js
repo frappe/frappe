@@ -580,9 +580,9 @@ export default class Grid {
 	}
 
 	get_filtered_data() {
-		if (!this.frm) return;
+		let all_data = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
 
-		let all_data = this.frm.doc[this.df.fieldname];
+		if (!all_data) return;
 
 		for (const field in this.filter) {
 			all_data = all_data.filter((data) => {
