@@ -272,7 +272,7 @@ class DatabaseQuery:
 				fields.append(field)
 			elif "as" in field.lower().split(" "):
 				col, _, new = field.split()
-				fields.append(f"`{col}` as {new}")
+				fields.append(f"`{col}` as `{new}`")
 			else:
 				fields.append(f"`{field}`")
 
