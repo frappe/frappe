@@ -328,13 +328,16 @@ class DatabaseQuery:
 
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
 		for field in self.fields:
-			if "." in field and "tab" not in field:
+			if "." in field:
 				original_field = field
 				alias = None
 				if " as " in field:
-					field, alias = field.split(" as ")
-				linked_fieldname, fieldname = field.split(".")
-				linked_field = self.doctype_meta.get_field(linked_fieldname)
+					field, alias = field.split(" as ", 1)
+				linked_fieldname, fieldname = field.split(".", 1)
+				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				# this is not a link field
+				if not linked_field:
+					continue
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
 					self.append_link_table(linked_doctype, linked_fieldname)
@@ -872,7 +875,7 @@ class DatabaseQuery:
 
 			# share is an OR condition, if there is a role permission
 			if not only_if_shared and self.shared and conditions:
-				conditions = f"({conditions}) or ({self.get_share_condition()})"
+				conditions = f"(({conditions}) or ({self.get_share_condition()}))"
 
 			return conditions
 

@@ -238,7 +238,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jenv = None
 	local.jloader = None
 	local.cache = {}
-	local.document_cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
@@ -1075,25 +1074,10 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	def _respond(doc, from_redis=False):
-		if isinstance(doc, dict):
-			local.document_cache[key] = doc = get_doc(doc)
-
-		elif from_redis:
-			local.document_cache[key] = doc
-
+	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
 		return doc
 
-	if key := can_cache_doc(args):
-		# local cache - has "ready" `Document` objects
-		if doc := local.document_cache.get(key):
-			return _respond(doc)
-
-		# redis cache
-		if doc := cache().hget("document_cache", key):
-			return _respond(doc, True)
-
-	# Not found in local/redis, fetch from DB
+	# Not found in cache, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
 	# Store in cache
@@ -1106,14 +1090,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	local.document_cache[key] = doc
-
-	# Avoid setting in local.cache since we're already using local.document_cache above
-	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
-	try:
-		cache().hset("document_cache", key, doc, cache_locally=False)
-	except Exception:
-		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+	cache().hset("document_cache", key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1139,12 +1116,11 @@ def get_document_cache_key(doctype: str, name: str):
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
-	key = get_document_cache_key(doctype, name)
-	if key in local.document_cache:
-		del local.document_cache[key]
-	cache().hdel("document_cache", key)
+	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
+
 	if doctype == "Website Settings" and hasattr(local, "website_settings"):
 		delattr(local, "website_settings")
 
