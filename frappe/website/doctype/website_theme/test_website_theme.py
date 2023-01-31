@@ -20,7 +20,8 @@ def website_theme_fixture(**theme):
 	theme = frappe.get_doc(doctype="Website Theme", theme=test_theme, **theme)
 	theme.insert()
 	yield theme
-	theme.delete(force=True)
+	frappe.db.set_single_value("Website Settings", "website_theme", "Standard")
+	theme.delete()
 
 
 class TestWebsiteTheme(FrappeTestCase):
