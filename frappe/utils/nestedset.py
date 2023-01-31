@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder import DocType
 
 
 class NestedSetRecursionError(frappe.ValidationError):
@@ -364,12 +365,8 @@ def get_root_of(doctype):
 	t1 = Table.as_("t1")
 	t2 = Table.as_("t2")
 
-	subq = frappe.qb.from_(t2).select(Count("*")).where(
-		(t2.lft < t1.lft) & (t2.rgt > t1.rgt)
-	)
-	result = frappe.qb.from_(t1).select(t1.name).where(
-		(subqry(subq) == 0) & (t1.rgt > t1.lft)
-	).run()
+	subq = frappe.qb.from_(t2).select(Count("*")).where((t2.lft < t1.lft) & (t2.rgt > t1.rgt))
+	result = frappe.qb.from_(t1).select(t1.name).where((subqry(subq) == 0) & (t1.rgt > t1.lft)).run()
 
 	return result[0][0] if result else None
 

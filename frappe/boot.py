@@ -3,8 +3,9 @@
 
 from __future__ import unicode_literals
 
-from six import iteritems, text_type
-from typing import Union
+from typing import List, Union
+
+from six import text_type
 
 """
 bootstrap client session
@@ -18,8 +19,8 @@ from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.query_builder import DocType
+from frappe.query_builder.builder import MariaDB, Postgres
 from frappe.query_builder.functions import Count
-from frappe.query_builder.terms import SubQuery
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
@@ -29,8 +30,6 @@ from frappe.translate import get_lang_dict, get_messages_for_boot, get_translate
 from frappe.utils import cstr
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
-
-from frappe.query_builder.builder import MariaDB, Postgres
 
 
 def get_bootinfo():
@@ -149,6 +148,8 @@ def get_allowed_report_names(cache=False):
 
 
 def get_user_pages_or_reports(parent, cache=False):
+	from frappe.query_builder.terms import subqry
+
 	_cache = frappe.cache()
 
 	if cache:
@@ -222,7 +223,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			if parent == "Report":
 				has_role[p.name].update({"ref_doctype": p.ref_doctype})
 
-	no_of_roles = SubQuery(
+	no_of_roles = subqry(
 		frappe.qb.from_(hasRole).select(Count("*")).where(hasRole.parent == parentTable.name)
 	)
 
@@ -255,7 +256,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	return has_role
 
 
-def _run_with_permission_query(query: Union[str, Postgres, MariaDB], doctype: str) -> list[dict]:
+def _run_with_permission_query(query: Union[str, Postgres, MariaDB], doctype: str) -> List[dict]:
 	"""
 	Adds Permission Query (Server Script) conditions and runs/executes modified query
 	Note: Works only if 'WHERE' is the last clause in the query

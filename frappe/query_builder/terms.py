@@ -99,8 +99,13 @@ class ParameterizedFunction(Function):
 
 		return function_sql
 
+
 class subqry(Criterion):
-	def __init__(self, subq: QueryBuilder, alias: Optional[str] = None,) -> None:
+	def __init__(
+		self,
+		subq: QueryBuilder,
+		alias: Optional[str] = None,
+	) -> None:
 		super().__init__(alias)
 		self.subq = subq
 
