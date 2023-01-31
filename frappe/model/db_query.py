@@ -16,6 +16,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.database.utils import FallBackDateTimeStr, NestedSetHierarchy
 from frappe.model import optional_fields
 from frappe.model.meta import get_table_columns
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.utils import (
@@ -162,6 +163,13 @@ class DatabaseQuery:
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
+
+		if is_virtual_doctype(self.doctype):
+			from frappe.model.virtual_doctype import get_controller
+
+			controller = get_controller(self.doctype)
+			self.parse_args()
+			return controller.get_list(self.__dict__)
 
 		self.columns = self.get_table_columns()
 
