@@ -264,17 +264,12 @@ class TestEmail(FrappeTestCase):
 		from frappe.email.queue import unsubscribe
 
 		unsubscribe(doctype="User", name="Administrator", email="test@example.com")
-
 		self.assertTrue(
 			frappe.db.get_value(
 				"Email Unsubscribe",
 				{"reference_doctype": "User", "reference_name": "Administrator", "email": "test@example.com"},
 			)
 		)
-
-		before = frappe.db.sql("""select count(name) from `tabEmail Queue` where status='Not Sent'""")[
-			0
-		][0]
 
 		builder = QueueBuilder(
 			recipients=["test@example.com", "test1@example.com"],
@@ -285,13 +280,11 @@ class TestEmail(FrappeTestCase):
 			message="This is mail is queued!",
 			unsubscribe_message="Unsubscribe",
 		)
-		builder.process()
-		# this is sent async (?)
 
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1
-		)
-		self.assertEqual(len(email_queue), before + 1)
+		# don't send right now
+		builder.process()
+
+		email_queue = frappe.db.get_value("Email Queue", {"status": "Not Sent"})
 		queue_recipients = [
 			r.recipient
 			for r in frappe.db.sql(
@@ -303,6 +296,8 @@ class TestEmail(FrappeTestCase):
 		self.assertFalse("test@example.com" in queue_recipients)
 		self.assertTrue("test1@example.com" in queue_recipients)
 		self.assertEqual(len(queue_recipients), 1)
+
+		frappe.get_doc("Email Queue", email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
 	def test_image_parsing(self):
