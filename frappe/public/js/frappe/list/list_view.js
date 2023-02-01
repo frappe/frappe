@@ -1296,11 +1296,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		frappe.socketio.doctype_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => {
+<<<<<<< HEAD
 			if (data && data.doctype && data.name) {
 				let doc = frappe.get_doc(data.doctype, data.name);
 				if (doc && doc.__unsaved) {
 					frappe.model.remove_from_locals(data.doctype, data.name);
 				}
+=======
+			if (data?.doctype !== this.doctype) {
+				return;
+			}
+
+			if (!frappe.get_doc(data?.doctype, data?.name)?.__unsaved) {
+				frappe.model.remove_from_locals(data.doctype, data.name);
+>>>>>>> ccb7c8cd80 (fix(desk): Filter out other doctypes on list_update event)
 			}
 
 			if (this.filter_area.is_being_edited()) {
@@ -1314,9 +1323,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	process_document_refreshes() {
 		if (!this.pending_document_refreshes.length) return;
 
-		const names = this.pending_document_refreshes
-			.filter((d) => d.doctype === this.doctype)
-			.map((d) => d.name);
+		const names = this.pending_document_refreshes.map((d) => d.name);
 		this.pending_document_refreshes = this.pending_document_refreshes.filter(
 			(d) => names.indexOf(d.name) === -1
 		);
