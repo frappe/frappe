@@ -759,17 +759,11 @@ body {
 
 [data-page-route="Workspaces"] {
 	@media (min-width: map-get($grid-breakpoints, "lg")) {
-		.page-actions {
-			scrollbar-gutter: stable;
-			overflow: auto;
-			height: calc(var(--btn-height) + 2px);
-		}
 		.layout-main {
 			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
 			.layout-side-section, .layout-main-section-wrapper {
 				height: 100%;
 				overflow-y: auto;
-				scrollbar-gutter: stable;
 				scrollbar-color: var(--gray-200) transparent;
 				[data-theme="dark"] & {
 					scrollbar-color: var(--gray-800) transparent;
