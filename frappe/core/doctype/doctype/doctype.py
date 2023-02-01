@@ -1415,7 +1415,7 @@ def validate_fields(meta):
 				)
 				df_options_str = "<ul><li>" + "</li><li>".join(_(x) for x in data_field_options) + "</ul>"
 
-				frappe.msgprint(text_str + df_options_str, title="Invalid Data Field", raise_exception=True)
+				frappe.msgprint(text_str + df_options_str, title="Invalid Data Field", alert=True)
 
 	def check_child_table_option(docfield):
 		if frappe.flags.in_fixtures:
