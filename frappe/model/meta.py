@@ -495,9 +495,11 @@ class Meta(Document):
 			if custom_perms:
 				self.permissions = [Document(d) for d in custom_perms]
 
-	def get_fieldnames_with_value(self, with_field_meta=False):
+	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
 		def is_value_field(docfield):
-			return not (docfield.get("is_virtual") or docfield.fieldtype in no_value_fields)
+			return not (
+				not with_virtual_fields and docfield.get("is_virtual") or docfield.fieldtype in no_value_fields
+			)
 
 		if with_field_meta:
 			return [df for df in self.fields if is_value_field(df)]
@@ -529,6 +531,18 @@ class Meta(Document):
 					self.high_permlevel_fields.append(df)
 
 		return self.high_permlevel_fields
+
+	def get_permitted_fieldnames(self, parenttype=None, *, user=None):
+		"""Build list of `fieldname` with read perm level and all the higher perm levels defined."""
+		if not hasattr(self, "permitted_fieldnames"):
+			self.permitted_fieldnames = []
+			permlevel_access = set(self.get_permlevel_access("read", parenttype, user=user))
+
+			for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
+				if df.permlevel in permlevel_access:
+					self.permitted_fieldnames.append(df.fieldname)
+
+		return self.permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
