@@ -4,8 +4,6 @@
 from urllib.parse import quote
 
 from rq import get_current_job
-from rq.exceptions import NoSuchJobError
-from rq.job import Job
 
 import frappe
 from frappe import _
@@ -13,7 +11,6 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import now, time_diff_in_seconds
-from frappe.utils.background_jobs import get_redis_conn
 from frappe.utils.data import cint
 
 
@@ -39,6 +36,7 @@ class SubmissionQueue(Document):
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 	def insert(self, to_be_queued_doc: Document, action: str):
+		self.status = "Queued"
 		self.to_be_queued_doc = to_be_queued_doc
 		self.action_for_queuing = action
 		super().insert(ignore_permissions=True)
@@ -70,6 +68,7 @@ class SubmissionQueue(Document):
 	def background_submission(self, to_be_queued_doc: Document, action_for_queuing: str):
 		# Set the job id for that submission doctype
 		self.update_job_id(get_current_job().id)
+
 		_action = action_for_queuing.lower()
 		if _action == "update":
 			_action = "submit"
@@ -85,7 +84,7 @@ class SubmissionQueue(Document):
 			)
 			values = {"status": "Finished"}
 		except Exception:
-			values = {"status": "Failed", "exception": frappe.get_traceback()}
+			values = {"status": "Failed", "exception": frappe.get_traceback(with_context=True)}
 			frappe.db.rollback()
 
 		values["ended_at"] = now()
@@ -96,22 +95,27 @@ class SubmissionQueue(Document):
 		if submission_status == "Failed":
 			doctype = self.doctype
 			docname = self.name
-			message = _("Submission of {0} {1} with action {2} failed")
+			message = _("Action {0} failed on {1} {2}. View it {3}")
 		else:
 			doctype = self.ref_doctype
 			docname = self.ref_docname
-			message = _("Submission of {0} {1} with action {2} completed successfully")
+			message = _("Action {0} completed successfully on {1} {2}. View it {3}")
 
-		message = message.format(
-			frappe.bold(str(self.ref_doctype)), frappe.bold(self.ref_docname), frappe.bold(action)
+		message_replacements = (
+			frappe.bold(action),
+			frappe.bold(str(self.ref_doctype)),
+			frappe.bold(str(self.ref_docname)),
 		)
+
 		time_diff = time_diff_in_seconds(now(), self.created_at)
 		if cint(time_diff) <= 60:
 			frappe.publish_realtime(
 				"msgprint",
 				{
-					"message": message
-					+ f". View it <a href='/app/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
+					"message": message.format(
+						*message_replacements,
+						f"<a href='/app/{quote(doctype.lower().replace(' ', '-'))}/{quote(docname)}'><b>here</b></a>",
+					),
 					"alert": True,
 					"indicator": "red" if submission_status == "Failed" else "green",
 				},
@@ -122,34 +126,11 @@ class SubmissionQueue(Document):
 				"type": "Alert",
 				"document_type": doctype,
 				"document_name": docname,
-				"subject": message,
+				"subject": message.format(*message_replacements, "here"),
 			}
 
 			notify_to = frappe.db.get_value("User", self.enqueued_by, fieldname="email")
 			enqueue_create_notification([notify_to], notification_doc)
-
-	def _unlock_reference_doc(self):
-		"""
-		Only execute if self.job_id is defined.
-		"""
-		try:
-			job = Job.fetch(self.job_id, connection=get_redis_conn())
-			status = job.get_status(refresh=True)
-			exc = job.exc_info
-		except NoSuchJobError:
-			exc = None
-			status = "failed"
-
-		if status in ("queued", "started"):
-			frappe.msgprint(_("Document in queue for execution!"))
-			return
-
-		self.queued_doc.unlock()
-		values = (
-			{"status": "Finished"} if status == "finished" else {"status": "Failed", "exception": exc}
-		)
-		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
-		frappe.msgprint(_("Document Unlocked"))
 
 	@frappe.whitelist()
 	def unlock_doc(self):
@@ -157,15 +138,15 @@ class SubmissionQueue(Document):
 		# for example: hitting unlock on a submission could lead to unlocking of another submission
 		# of the same reference document.
 
-		if self.status != "Queued" and not self.job_id:
+		if self.status != "Queued":
 			return
 
-		self._unlock_reference_doc()
+		self.queued_doc.unlock()
+		frappe.msgprint(_("Document Unlocked"))
 
 
 def queue_submission(doc: Document, action: str, alert: bool = True):
 	queue = frappe.new_doc("Submission Queue")
-	queue.state = "Queued"
 	queue.ref_doctype = doc.doctype
 	queue.ref_docname = doc.name
 	queue.insert(doc, action)
@@ -185,9 +166,25 @@ def get_latest_submissions(doctype, docname):
 	# NOTE: not used creation as orderby intentianlly as we have used update_modified=False everywhere
 	# hence assuming modified will be equal to creation for submission queue documents
 
-	dt = "Submission Queue"
-	filters = {"ref_doctype": doctype, "ref_docname": docname}
-	return {
-		"latest_submission": frappe.db.get_value(dt, filters),
-		"latest_failed_submission": frappe.db.get_value(dt, filters | {"status": "Failed"}),
-	}
+	latest_submission = frappe.db.get_value(
+		"Submission Queue",
+		filters={"ref_doctype": doctype, "ref_docname": docname},
+		fieldname=["name", "exception", "status"],
+	)
+
+	out = None
+	if latest_submission:
+		out = {
+			"latest_submission": latest_submission[0],
+			"exc": format_tb(latest_submission[1]),
+			"status": latest_submission[2],
+		}
+
+	return out
+
+
+def format_tb(traceback: str | None = None):
+	if not traceback:
+		return
+
+	return traceback.strip().split("\n")[-1]
