@@ -1321,9 +1321,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_realtime_updates() {
 		this.pending_document_refreshes = [];
-		setInterval(() => {
-			this.process_document_refreshes();
-		}, 1000);
 
 		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
 			return;
@@ -1343,6 +1340,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.pending_document_refreshes.push(data);
+			frappe.utils.debounce(this.process_document_refreshes.bind(this), 1000)();
 		});
 	}
 
