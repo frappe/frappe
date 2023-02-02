@@ -374,6 +374,7 @@ def login():
 
 	frappe.local.login_manager.user = user.name
 	if should_run_2fa(user.name):
+		frappe.form_dict["otp_LDAP"] = True
 		authenticate_for_2factor(user.name)
 		if not confirm_otp_token(frappe.local.login_manager):
 			return False
