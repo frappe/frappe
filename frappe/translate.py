@@ -741,7 +741,7 @@ def babel_extract_doctype_json(fileobj, *args, **kwargs):
 					continue
 
 				messages.extend(
-					(option, f"Option for a {fieldtype} field in DocType '{doctype}'")
+					(option, f"Option for a Select field in DocType '{doctype}'")
 					for option in select_options
 				)
 			elif fieldtype == "HTML":
