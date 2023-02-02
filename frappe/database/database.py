@@ -222,7 +222,7 @@ class Database:
 			self._cursor.execute(query, values)
 		except Exception as e:
 			if self.is_syntax_error(e):
-				frappe.errprint(f"Syntax error in query:\n{query} {values}")
+				frappe.errprint(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
 				raise frappe.QueryDeadlockError(e) from e
@@ -773,7 +773,9 @@ class Database:
 
 		if not df:
 			frappe.throw(
-				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
+				_("Field {0} does not exist on {1}").format(
+					frappe.bold(fieldname), frappe.bold(doctype), self.InvalidColumnName
+				)
 			)
 
 		val = cast_fieldtype(df.fieldtype, val)

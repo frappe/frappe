@@ -17,6 +17,7 @@ DATA_IMPORT_DEPRECATION = (
 	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
 	"Use `data-import` command instead to import data via 'Data Import'."
 )
+EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 
 
 @click.command("build")
@@ -485,9 +486,10 @@ def bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 
-@click.command("db-console")
+@click.command("db-console", context_settings=EXTRA_ARGS_CTX)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def database(context):
+def database(context, extra_args):
 	"""
 	Enter into the Database console for given site.
 	"""
@@ -496,14 +498,18 @@ def database(context):
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
 	if not frappe.conf.db_type or frappe.conf.db_type == "mariadb":
-		_mariadb()
+		_mariadb(extra_args=extra_args)
 	elif frappe.conf.db_type == "postgres":
-		_psql()
+		_psql(extra_args=extra_args)
 
 
-@click.command("mariadb")
+@click.command(
+	"mariadb",
+	context_settings=EXTRA_ARGS_CTX,
+)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def mariadb(context):
+def mariadb(context, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
@@ -511,21 +517,22 @@ def mariadb(context):
 	if not site:
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	_mariadb()
+	_mariadb(extra_args=extra_args)
 
 
-@click.command("postgres")
+@click.command("postgres", context_settings=EXTRA_ARGS_CTX)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def postgres(context):
+def postgres(context, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
 	site = get_site(context)
 	frappe.init(site=site)
-	_psql()
+	_psql(extra_args=extra_args)
 
 
-def _mariadb():
+def _mariadb(extra_args=None):
 	from frappe.database.mariadb.database import MariaDBDatabase
 
 	mysql = which("mysql")
@@ -543,10 +550,12 @@ def _mariadb():
 		"--safe-updates",
 		"-A",
 	]
+	if extra_args:
+		command += list(extra_args)
 	os.execv(mysql, command)
 
 
-def _psql():
+def _psql(extra_args=None):
 	psql = which("psql")
 
 	host = frappe.conf.db_host or "127.0.0.1"
@@ -554,7 +563,10 @@ def _psql():
 	env = os.environ.copy()
 	env["PGPASSWORD"] = frappe.conf.db_password
 	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
-	subprocess.run([psql, conn_string], check=True, env=env)
+	psql_cmd = [psql, conn_string]
+	if extra_args:
+		psql_cmd = psql_cmd + list(extra_args)
+	subprocess.run(psql_cmd, check=True, env=env)
 
 
 @click.command("jupyter")
