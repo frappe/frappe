@@ -454,7 +454,10 @@ def msgprint(
 		out.as_list = 1
 
 	if sys.stdin and sys.stdin.isatty():
-		msg = _strip_html_tags(out.message)
+		if out.as_list:
+			msg = [_strip_html_tags(msg) for msg in out.message]
+		else:
+			msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:
 		print(f"Message: {_strip_html_tags(out.message)}")
@@ -761,7 +764,12 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
-		throw(_("Not permitted"), PermissionError)
+		summary = _("You are not permitted to access this resource.")
+		detail = _("Function {0} is not whitelisted.").format(
+			bold(f"{method.__module__}.{method.__name__}")
+		)
+		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		throw(msg, PermissionError, title="Method Not Allowed")
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
@@ -1390,23 +1398,37 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(sort=False, frappe_last=False):
-	"""Get list of installed apps in current site."""
+def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False):
+	"""
+	Get list of installed apps in current site.
+
+	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
+	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
+	:param ensure_on_bench: Only return apps that are present on bench.
+	"""
+	from frappe.utils.deprecations import deprecation_warning
+
 	if getattr(flags, "in_install_db", True):
 		return []
 
 	if not db:
 		connect()
 
-	if not local.all_apps:
-		local.all_apps = cache().get_value("all_apps", get_all_apps)
-
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
+		if not local.all_apps:
+			local.all_apps = cache().get_value("all_apps", get_all_apps)
+
+		deprecation_warning("`sort` argument is deprecated and will be removed in v15.")
 		installed = [app for app in local.all_apps if app in installed]
 
+	if _ensure_on_bench:
+		all_apps = cache().get_value("all_apps", get_all_apps)
+		installed = [app for app in installed if app in all_apps]
+
 	if frappe_last:
+		deprecation_warning("`frappe_last` argument is deprecated and will be removed in v15.")
 		if "frappe" in installed:
 			installed.remove("frappe")
 		installed.append("frappe")
@@ -1436,19 +1458,17 @@ def _load_app_hooks(app_name: str | None = None):
 	import types
 
 	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(sort=True)
+	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
 
 	for app in apps:
 		try:
 			app_hooks = get_module(f"{app}.hooks")
-		except ImportError:
+		except ImportError as e:
 			if local.flags.in_install_app:
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(f'Could not find app "{app}"')
-			if not request:
-				raise SystemExit
+			print(f'Could not find app "{app}": \n{e}')
 			raise
 
 		def _is_valid_hook(obj):
@@ -1564,7 +1584,7 @@ def read_file(path, raise_not_found=False):
 
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
-	app_name = method_string.split(".")[0]
+	app_name = method_string.split(".", 1)[0]
 	if (
 		not local.flags.in_uninstall
 		and not local.flags.in_install

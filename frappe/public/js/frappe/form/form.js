@@ -201,7 +201,7 @@ frappe.ui.form.Form = class FrappeForm {
 			},
 			{
 				shortcut: "shift+alt+down",
-				description: __("To duplcate current row"),
+				description: __("Duplicate current row"),
 			},
 		];
 
@@ -619,10 +619,6 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.$wrapper.trigger("render_complete");
-
-		if (!this.hidden) {
-			this.layout.show_empty_form_message();
-		}
 
 		frappe.after_ajax(() => {
 			$(document).ready(() => {
@@ -1935,7 +1931,9 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		frappe.socketio.doc_subscribe(doctype, docname);
+		if (this.doc && !this.is_new()) {
+			frappe.socketio.doc_subscribe(doctype, docname);
+		}
 		frappe.realtime.off("docinfo_update");
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
 			if (

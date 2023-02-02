@@ -89,8 +89,10 @@ class BaseDocument:
 		"meta",
 		"_meta",
 		"flags",
+		"parent_doc",
 		"_table_fields",
 		"_valid_columns",
+		"_doc_before_save",
 		"_table_fieldnames",
 		"_reserved_keywords",
 		"dont_update_if_missing",
@@ -286,7 +288,7 @@ class BaseDocument:
 			return DOCTYPE_TABLE_FIELDS
 
 		# child tables don't have child tables
-		if self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+		if self.doctype in DOCTYPES_FOR_DOCTYPE:
 			return ()
 
 		return self.meta.get_table_fields()
@@ -671,7 +673,11 @@ class BaseDocument:
 			value = cstr(self.get(df.fieldname))
 			has_text_content = strip_html(value).strip()
 			has_img_tag = "<img" in value
-			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+			has_text_or_img_tag = has_text_content or has_img_tag
+
+			if df.fieldtype == "Text Editor" and has_text_or_img_tag:
+				return True
+			elif df.fieldtype == "Code" and df.options == "HTML" and has_text_or_img_tag:
 				return True
 			else:
 				return has_text_content
@@ -969,8 +975,14 @@ class BaseDocument:
 					)
 				if self_value != db_value:
 					frappe.throw(
-						_("Not allowed to change {0} after submission").format(df.label),
+						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
+							f"Row #{self.idx}:" if self.get("parent") else "",
+							frappe.bold(_(df.label)),
+							frappe.bold(db_value),
+							frappe.bold(self_value),
+						),
 						frappe.UpdateAfterSubmitError,
+						title=_("Cannot Update After Submit"),
 					)
 
 	def _sanitize_content(self):
@@ -1050,7 +1062,7 @@ class BaseDocument:
 	def is_dummy_password(self, pwd):
 		return "".join(set(pwd)) == "*"
 
-	def precision(self, fieldname, parentfield=None):
+	def precision(self, fieldname, parentfield=None) -> int | None:
 		"""Returns float precision for a particular field (or get global default).
 
 		:param fieldname: Fieldname for which precision is required.
@@ -1091,7 +1103,8 @@ class BaseDocument:
 			df = get_default_df(fieldname)
 
 		if (
-			df.fieldtype == "Currency"
+			df
+			and df.fieldtype == "Currency"
 			and not currency
 			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))

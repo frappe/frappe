@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
 
 import frappe
 from frappe.app import make_form_dict
@@ -26,71 +27,24 @@ class TestSearch(FrappeTestCase):
 		self.assertTrue("User" in result["value"])
 
 		# raise exception on injection
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="1=1",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="select * from tabSessions) --",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="name or (select * from tabSessions)",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="*",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield=";",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield=";",
-		)
+		for searchfield in (
+			"1=1",
+			"select * from tabSessions) --",
+			"name or (select * from tabSessions)",
+			"*",
+			";",
+			"select`sid`from`tabSessions`",
+		):
+			self.assertRaises(
+				frappe.DataError,
+				search_link,
+				"DocType",
+				"User",
+				query=None,
+				filters=None,
+				page_length=20,
+				searchfield=searchfield,
+			)
 
 	def test_only_enabled_in_mention(self):
 		email = "test_disabled_user_in_mentions@example.com"
@@ -100,7 +54,7 @@ class TestSearch(FrappeTestCase):
 			user.update(
 				{
 					"email": email,
-					"first_name": email.split("@")[0],
+					"first_name": email.split("@", 1)[0],
 					"enabled": False,
 					"allowed_in_mentions": True,
 				}

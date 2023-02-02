@@ -82,7 +82,7 @@ def remove(doctype, name, user, flags=None):
 @frappe.whitelist()
 def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 	"""Expose function without flags to the client-side"""
-	set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
+	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
 
 
 def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
@@ -98,8 +98,8 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 			share = add_docshare(doctype, name, user, everyone=everyone, **{permission_to: 1}, flags=flags)
 		else:
 			# no share found, nothing to remove
-			share = {}
-			pass
+			share = None
+
 	else:
 		share = frappe.get_doc("DocShare", share_name)
 		if flags:

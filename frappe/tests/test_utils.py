@@ -19,12 +19,17 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
+	execute_in_shell,
 	floor,
 	format_timedelta,
 	get_bench_path,
+	get_file_timestamp,
+	get_site_info,
+	get_sites,
 	get_url,
 	money_in_words,
 	parse_timedelta,
+	safe_json_loads,
 	scrub_urls,
 	validate_email_address,
 	validate_url,
@@ -32,6 +37,8 @@ from frappe.utils import (
 from frappe.utils.data import (
 	add_to_date,
 	cast,
+	cstr,
+	expand_relative_urls,
 	get_first_day_of_week,
 	get_time,
 	get_timedelta,
@@ -44,6 +51,7 @@ from frappe.utils.dateutils import get_dates_from_timegrain
 from frappe.utils.diff import _get_value_from_version, get_version_diff, version_query
 from frappe.utils.image import optimize_image, strip_exif_data
 from frappe.utils.response import json_handler
+from frappe.utils.synchronization import LockTimeoutError, filelock
 
 
 class TestFilters(FrappeTestCase):
@@ -678,3 +686,64 @@ class TestIntrospectionMagic(FrappeTestCase):
 
 		# No args
 		self.assertEqual(frappe.get_newargs(lambda: None, args), {})
+
+
+class TestLocks(FrappeTestCase):
+	def test_locktimeout(self):
+		lock_name = "test_lock"
+		with filelock(lock_name):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1):
+					self.fail("Locks not working")
+
+	def test_global_lock(self):
+		lock_name = "test_global"
+		with filelock(lock_name, is_global=True):
+			with self.assertRaises(LockTimeoutError):
+				with filelock(lock_name, timeout=1, is_global=True):
+					self.fail("Global locks not working")
+
+
+class TestMiscUtils(FrappeTestCase):
+	def test_get_file_timestamp(self):
+		self.assertIsInstance(get_file_timestamp(__file__), str)
+
+	def test_execute_in_shell(self):
+		err, out = execute_in_shell("ls")
+		self.assertIn("apps", cstr(out))
+
+	def test_get_all_sites(self):
+		self.assertIn(frappe.local.site, get_sites())
+
+	def test_safe_json_load(self):
+		self.assertEqual(safe_json_loads("{}"), {})
+		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
+		self.assertEqual(safe_json_loads("12"), 12)  # this is a quirk
+
+	def test_url_expansion(self):
+		unchanged_links = [
+			"<a href='tel:12345432'>My Phone</a>)",
+			"<a href='mailto:hello@example.com'>My Email</a>)",
+			"<a href='data:hello@example.com'>Data</a>)",
+		]
+		for link in unchanged_links:
+			self.assertEqual(link, expand_relative_urls(link))
+
+		site = get_url()
+
+		transforms = [("<a href='/about'>About</a>)", f"<a href='{site}/about'>About</a>)")]
+		for input, output in transforms:
+			self.assertEqual(output, expand_relative_urls(input))
+
+
+class TestTBSanitization(FrappeTestCase):
+	def test_traceback_sanitzation(self):
+		try:
+			password = "42"
+			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
+			raise Exception
+		except Exception:
+			traceback = frappe.get_traceback(with_context=True)
+			self.assertNotIn("42", traceback)
+			self.assertIn("********", traceback)
+			self.assertIn("safe_value", traceback)

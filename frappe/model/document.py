@@ -168,6 +168,7 @@ class Document(BaseDocument):
 					"*",
 					as_dict=True,
 					order_by="idx asc",
+					for_update=self.flags.for_update,
 				)
 				or []
 			)
@@ -183,9 +184,10 @@ class Document(BaseDocument):
 		self.load_from_db()
 
 	def get_latest(self):
-		if not getattr(self, "latest", None):
-			self.latest = frappe.get_doc(self.doctype, self.name)
-		return self.latest
+		if not getattr(self, "_doc_before_save", None):
+			self.load_doc_before_save()
+
+		return self._doc_before_save
 
 	def check_permission(self, permtype="read", permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
@@ -696,17 +698,16 @@ class Document(BaseDocument):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type="write"):
-		if not hasattr(self, "_has_access_to"):
-			self._has_access_to = {}
-
-		self._has_access_to[permission_type] = []
+		allowed_permlevels = []
 		roles = frappe.get_roles()
-		for perm in self.get_permissions():
-			if perm.role in roles and perm.get(permission_type):
-				if perm.permlevel not in self._has_access_to[permission_type]:
-					self._has_access_to[permission_type].append(perm.permlevel)
 
-		return self._has_access_to[permission_type]
+		for perm in self.get_permissions():
+			if (
+				perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels
+			):
+				allowed_permlevels.append(perm.permlevel)
+
+		return allowed_permlevels
 
 	def has_permlevel_access_to(self, fieldname, df=None, permission_type="read"):
 		if not df:
@@ -1096,8 +1097,6 @@ class Document(BaseDocument):
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
-
-		self.latest = None
 
 	def clear_cache(self):
 		frappe.clear_document_cache(self.doctype, self.name)

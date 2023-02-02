@@ -379,9 +379,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			args: {
 				data: this.doc,
 				web_form: this.name,
-				docname: this.doc.name,
 				for_payment,
 			},
+			btn: $("btn-primary"),
+			freeze: true,
 			callback: (response) => {
 				// Check for any exception in response
 				if (!response.exc) {

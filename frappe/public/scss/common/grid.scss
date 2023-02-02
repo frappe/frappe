@@ -43,15 +43,17 @@
 	}
 }
 
-// hide row index in 6 column child tables
-.form-column.col-sm-6 .form-grid {
-	.row-index {
-		display: none;
-	}
-
-	.btn-open-row {
-		.edit-grid-row {
+// hide row index in 6/4 column child tables
+.form-column.col-sm-6, .form-column.col-sm-4 {
+	.form-grid {
+		.row-index {
 			display: none;
+		}
+
+		.btn-open-row {
+			.edit-grid-row {
+				display: none;
+			}
 		}
 	}
 }
@@ -400,6 +402,10 @@
 
 .grid-buttons, .grid-bulk-actions {
 	display: inline-flex;
+}
+
+.grid-custom-buttons:empty {
+	padding: 0;
 }
 
 .grid-footer, .grid-custom-buttons {

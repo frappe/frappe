@@ -11,7 +11,8 @@ dependencies = [
     # core dependencies
     "Babel~=2.9.0",
     "Click~=7.1.2",
-    "GitPython~=3.1.14",
+    "filelock~=3.8.0",
+    "GitPython~=3.1.30",
     "Jinja2~=3.1.2",
     "Pillow~=9.3.0",
     "PyJWT~=2.4.0",
@@ -19,7 +20,7 @@ dependencies = [
     "PyPDF2~=2.1.0",
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
-    "PyYAML~=5.4.1",
+    "PyYAML~=6.0",
     "RestrictedPython~=6.0",
     "WeasyPrint==52.5",
     "Werkzeug~=2.2.2",
@@ -39,6 +40,7 @@ dependencies = [
     "ipython~=8.4.0",
     "ldap3~=2.9",
     "markdown2~=2.4.0",
+    "MarkupSafe>=2.1.0,<3",
     "maxminddb-geolite2==2018.703",
     "num2words~=0.5.10",
     "oauthlib~=3.2.1",
@@ -63,7 +65,6 @@ dependencies = [
     "requests~=2.27.1",
     "rq~=1.11.1",
     "rsa>=4.1",
-    "schedule~=1.1.0",
     "semantic-version~=2.10.0",
     "sqlparse~=0.4.1",
     "tenacity~=8.0.1",
@@ -71,7 +72,7 @@ dependencies = [
     "traceback-with-variables~=2.0.4",
     "urllib3~=1.26.4",
     "xlrd~=2.0.1",
-    "zxcvbn-python~=4.4.24",
+    "zxcvbn~=4.4.28",
     "markdownify~=0.11.2",
 
     # integration dependencies

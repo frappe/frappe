@@ -54,9 +54,12 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		pass
 	else:
 		# notify creator
+		creator_email = frappe.db.get_value("User", doc.owner, "email") or doc.owner
+		subject = _("New Comment on {0}: {1}").format(doc.doctype, doc.get_title())
+
 		frappe.sendmail(
-			recipients=frappe.db.get_value("User", doc.owner, "email") or doc.owner,
-			subject=_("New Comment on {0}: {1}").format(doc.doctype, doc.name),
+			recipients=creator_email,
+			subject=subject,
 			message=content,
 			reference_doctype=doc.doctype,
 			reference_name=doc.name,

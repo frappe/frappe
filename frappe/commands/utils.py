@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 import sys
-from distutils.spawn import find_executable
+from shutil import which
 
 import click
 
@@ -525,11 +525,11 @@ def postgres(context):
 def _mariadb():
 	from frappe.database.mariadb.database import MariaDBDatabase
 
-	mysql = find_executable("mysql")
+	mysql = which("mysql")
 	command = [
 		mysql,
 		"--port",
-		frappe.conf.db_port or MariaDBDatabase.default_port,
+		str(frappe.conf.db_port or MariaDBDatabase.default_port),
 		"-u",
 		frappe.conf.db_name,
 		f"-p{frappe.conf.db_password}",
@@ -544,15 +544,21 @@ def _mariadb():
 
 
 def _psql():
-	psql = find_executable("psql")
-	subprocess.run([psql, "-d", frappe.conf.db_name])
+	psql = which("psql")
+
+	host = frappe.conf.db_host or "127.0.0.1"
+	port = frappe.conf.db_port or "5432"
+	env = os.environ.copy()
+	env["PGPASSWORD"] = frappe.conf.db_password
+	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
+	subprocess.run([psql, conn_string], check=True, env=env)
 
 
 @click.command("jupyter")
 @pass_context
 def jupyter(context):
 	installed_packages = (
-		r.split("==")[0]
+		r.split("==", 1)[0]
 		for r in subprocess.check_output([sys.executable, "-m", "pip", "freeze"], encoding="utf8")
 	)
 
@@ -988,7 +994,7 @@ def request(context, args=None, path=None):
 					frappe.local.form_dict = frappe._dict()
 
 				if args.startswith("/api/method"):
-					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+					frappe.local.form_dict.cmd = args.split("?", 1)[0].split("/")[-1]
 			elif path:
 				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
@@ -1015,6 +1021,16 @@ def make_app(destination, app_name, no_git=False):
 	from frappe.utils.boilerplate import make_boilerplate
 
 	make_boilerplate(destination, app_name, no_git=no_git)
+
+
+@click.command("create-patch")
+def create_patch():
+	"Creates a new patch interactively"
+	from frappe.utils.boilerplate import PatchCreator
+
+	pc = PatchCreator()
+	pc.fetch_user_inputs()
+	pc.create_patch_file()
 
 
 @click.command("set-config")
@@ -1163,6 +1179,7 @@ commands = [
 	data_import,
 	import_doc,
 	make_app,
+	create_patch,
 	mariadb,
 	postgres,
 	request,

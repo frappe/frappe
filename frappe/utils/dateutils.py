@@ -51,7 +51,7 @@ def parse_date(date):
 
 	if " " in date:
 		# as date-timestamp, remove the time part
-		date = date.split(" ")[0]
+		date = date.split(" ", 1)[0]
 
 	# why the sorting? checking should be done in a predictable order
 	check_formats = [None] + sorted(

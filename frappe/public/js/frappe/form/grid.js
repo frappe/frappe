@@ -63,6 +63,7 @@ export default class Grid {
 		let template = `
 			<div class="grid-field">
 				<label class="control-label">${__(this.df.label || "")}</label>
+				<span class="ml-1 help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
 				<div class="form-grid-container">
@@ -118,6 +119,7 @@ export default class Grid {
 		this.wrapper = $(template).appendTo(this.parent);
 		$(this.parent).addClass("form-group");
 		this.set_grid_description();
+		this.set_doc_url();
 
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
@@ -147,6 +149,26 @@ export default class Grid {
 			description_wrapper.hide();
 		}
 	}
+
+	set_doc_url() {
+		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
+			(x) => frappe.model.table_fields.indexOf(x) === -1
+		);
+
+		if (
+			!this.df.label ||
+			!this.df?.documentation_url ||
+			in_list(unsupported_fieldtypes, this.df.fieldtype)
+		)
+			return;
+
+		let $help = $(this.parent).find("span.help");
+		$help.empty();
+		$(`<a href="${this.df.documentation_url}" target="_blank">
+			${frappe.utils.icon("help", "sm")}
+		</a>`).appendTo($help);
+	}
+
 	setup_grid_pagination() {
 		this.grid_pagination = new GridPagination({
 			grid: this,
@@ -385,7 +407,7 @@ export default class Grid {
 		this.toggle_checkboxes(this.display_status !== "Read");
 
 		// sortable
-		if (this.frm && this.is_sortable() && !this.sortable_setup_done) {
+		if (this.is_sortable() && !this.sortable_setup_done) {
 			this.make_sortable($rows);
 			this.sortable_setup_done = true;
 		}
@@ -531,17 +553,18 @@ export default class Grid {
 				let idx = $(event.item).closest(".grid-row").attr("data-idx") - 1;
 				let doc = this.data[idx % this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
-				this.frm.script_manager.trigger(
-					this.df.fieldname + "_move",
-					this.df.options,
-					doc.name
-				);
+				this.frm &&
+					this.frm.script_manager.trigger(
+						this.df.fieldname + "_move",
+						this.df.options,
+						doc.name
+					);
 				this.refresh();
-				this.frm.dirty();
+				this.frm && this.frm.dirty();
 			},
 		});
 
-		$(this.frm.wrapper).trigger("grid-make-sortable", [this.frm]);
+		this.frm && $(this.frm.wrapper).trigger("grid-make-sortable", [this.frm]);
 	}
 
 	get_data(filter_field) {
@@ -557,9 +580,9 @@ export default class Grid {
 	}
 
 	get_filtered_data() {
-		if (!this.frm) return;
+		let all_data = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
 
-		let all_data = this.frm.doc[this.df.fieldname];
+		if (!all_data) return;
 
 		for (const field in this.filter) {
 			all_data = all_data.filter((data) => {
@@ -803,11 +826,11 @@ export default class Grid {
 			let $item = $(item);
 			let index =
 				(this.grid_pagination.page_index - 1) * this.grid_pagination.page_length + i;
-			let d = locals[this.doctype][$item.attr("data-name")];
+			let d = this.grid_rows_by_docname[$item.attr("data-name")].doc;
 			d.idx = index + 1;
 			$item.attr("data-idx", d.idx);
 
-			this.frm.doc[this.df.fieldname][index] = d;
+			if (this.frm) this.frm.doc[this.df.fieldname][index] = d;
 			this.data[index] = d;
 			this.grid_rows[index] = this.grid_rows_by_docname[d.name];
 		});

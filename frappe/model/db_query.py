@@ -317,13 +317,16 @@ class DatabaseQuery:
 
 		# convert child_table.fieldname to `tabChild DocType`.`fieldname`
 		for field in self.fields:
-			if "." in field and "tab" not in field:
+			if "." in field:
 				original_field = field
 				alias = None
 				if " as " in field:
-					field, alias = field.split(" as ")
-				linked_fieldname, fieldname = field.split(".")
+					field, alias = field.split(" as ", 1)
+				linked_fieldname, fieldname = field.split(".", 1)
 				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+				# this is not a link field
+				if not linked_field:
+					continue
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
 					self.append_link_table(linked_doctype, linked_fieldname)
@@ -384,14 +387,21 @@ class DatabaseQuery:
 				_raise_exception()
 
 		for field in self.fields:
+			lower_field = field.lower().strip()
+
 			if SUB_QUERY_PATTERN.match(field):
-				if any(f"({keyword}" in field.lower() for keyword in blacklisted_keywords):
-					_raise_exception()
+				if lower_field[0] == "(":
+					subquery_token = lower_field[1:].lstrip().split(" ", 1)[0]
+					if subquery_token in blacklisted_keywords:
+						_raise_exception()
 
-				if any(f"{keyword}(" in field.lower() for keyword in blacklisted_functions):
-					_raise_exception()
+				function = lower_field.split("(", 1)[0].rstrip()
+				if function in blacklisted_functions:
+					frappe.throw(
+						_("Use of function {0} in field is restricted").format(function), exc=frappe.DataError
+					)
 
-				if "@" in field.lower():
+				if "@" in lower_field:
 					# prevent access to global variables
 					_raise_exception()
 
@@ -407,7 +417,7 @@ class DatabaseQuery:
 				if STRICT_FIELD_PATTERN.match(field):
 					frappe.throw(_("Illegal SQL Query"))
 
-				if STRICT_UNION_PATTERN.match(field.lower()):
+				if STRICT_UNION_PATTERN.match(lower_field):
 					frappe.throw(_("Illegal SQL Query"))
 
 	def extract_tables(self):
@@ -428,7 +438,7 @@ class DatabaseQuery:
 				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
 					continue
 
-				table_name = field.split(".")[0]
+				table_name = field.split(".", 1)[0]
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
@@ -897,8 +907,9 @@ class DatabaseQuery:
 					# will covert to
 					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 					args.order_by = ", ".join(
-						f"`tab{self.doctype}`.`{f.split()[0].strip()}` {f.split()[1].strip()}"
+						f"`tab{self.doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 						for f in meta.sort_field.split(",")
+						if (f_split := f.split(maxsplit=2))
 					)
 				else:
 					sort_field = meta.sort_field or "modified"
@@ -911,12 +922,16 @@ class DatabaseQuery:
 					if self.order_by:
 						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
-	def validate_order_by_and_group_by(self, parameters):
+	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
 		if not parameters:
 			return
 
+		blacklisted_sql_functions = {
+			"sleep",
+		}
 		_lower = parameters.lower()
+
 		if "select" in _lower and "from" in _lower:
 			frappe.throw(_("Cannot use sub-query in order by"))
 
@@ -924,12 +939,19 @@ class DatabaseQuery:
 			frappe.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
-			if "." in field and field.strip().startswith("`tab"):
-				tbl = field.strip().split(".")[0]
+			field = field.strip()
+			function = field.split("(", 1)[0].rstrip().lower()
+			full_field_name = "." in field and field.startswith("`tab")
+
+			if full_field_name:
+				tbl = field.split(".", 1)[0]
 				if tbl not in self.tables:
 					if tbl.startswith("`"):
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
+
+			if function in blacklisted_sql_functions:
+				frappe.throw(_("Cannot use {0} in order/group by").format(field))
 
 	def add_limit(self):
 		if self.limit_page_length:
@@ -1018,8 +1040,9 @@ def get_order_by(doctype, meta):
 		# will covert to
 		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
 		order_by = ", ".join(
-			f"`tab{doctype}`.`{f.split()[0].strip()}` {f.split()[1].strip()}"
+			f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 			for f in meta.sort_field.split(",")
+			if (f_split := f.split(maxsplit=2))
 		)
 
 	else:

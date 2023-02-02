@@ -6,7 +6,7 @@ import frappe
 import frappe.defaults
 import frappe.permissions
 import frappe.share
-from frappe import _, msgprint, throw
+from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
@@ -31,8 +31,6 @@ from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_disabled
-
-STANDARD_USERS = frappe.STANDARD_USERS
 
 
 class User(Document):
@@ -125,7 +123,8 @@ class User(Document):
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact", user=self, ignore_mandatory=True, now=now
 		)
-		if self.name not in ("Administrator", "Guest") and not self.user_image:
+
+		if self.name not in STANDARD_USERS and not self.user_image:
 			frappe.enqueue("frappe.core.doctype.user.user.update_gravatar", name=self.name, now=now)
 
 		# Set user selected timezone
@@ -237,6 +236,9 @@ class User(Document):
 		)
 
 	def share_with_self(self):
+		if self.name in STANDARD_USERS:
+			return
+
 		frappe.share.add_docshare(
 			self.doctype, self.name, self.name, write=1, share=1, flags={"ignore_share_permission": True}
 		)
@@ -579,7 +581,7 @@ class User(Document):
 		if len(email_accounts) != len(set(email_accounts)):
 			frappe.throw(_("Email Account added multiple times"))
 
-	def get_social_login_userid(self, provider):
+	def get_social_login_userid(self, provider: str):
 		try:
 			for p in self.social_logins:
 				if p.provider == provider:
@@ -891,7 +893,7 @@ def reset_password(user):
 			title=_("Password Email Sent"),
 		)
 	except frappe.DoesNotExistError:
-		frappe.local.response["http_status_code"] = 400
+		frappe.local.response["http_status_code"] = 404
 		frappe.clear_messages()
 		return "not found"
 

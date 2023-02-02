@@ -14,6 +14,7 @@ import json
 import operator
 import os
 import re
+from contextlib import contextmanager
 from csv import reader
 
 from babel.messages.extract import extract_python
@@ -313,7 +314,7 @@ def get_translations_from_apps(lang, apps=None):
 			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 			translations.update(get_translation_dict_from_file(path, lang, app) or {})
 		if "-" in lang:
-			parent = lang.split("-")[0]
+			parent = lang.split("-", 1)[0]
 			parent_translations = get_translations_from_apps(parent)
 			parent_translations.update(translations)
 			return parent_translations
@@ -1175,7 +1176,7 @@ def rename_language(old_name, new_name):
 
 	language_in_system_settings = frappe.db.get_single_value("System Settings", "language")
 	if language_in_system_settings == old_name:
-		frappe.db.set_value("System Settings", "System Settings", "language", new_name)
+		frappe.db.set_single_value("System Settings", "language", new_name)
 
 	frappe.db.sql(
 		"""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
@@ -1311,6 +1312,37 @@ def get_translated_doctypes():
 		"Property Setter", {"property": "translated_doctype", "value": "1"}, pluck="doc_type"
 	)
 	return unique(dts + custom_dts)
+
+
+@contextmanager
+def print_language(language: str):
+	"""Ensure correct globals for printing in a specific language.
+
+	Usage:
+
+	```
+	with print_language("de"):
+	    html = frappe.get_print( ... )
+	```
+	"""
+	if not language or language == frappe.local.lang:
+		# do nothing
+		yield
+		return
+
+	# remember original values
+	_lang = frappe.local.lang
+	_jenv = frappe.local.jenv
+
+	# set language, empty any existing lang_full_dict and jenv
+	frappe.local.lang = language
+	frappe.local.jenv = None
+
+	yield
+
+	# restore original values
+	frappe.local.lang = _lang
+	frappe.local.jenv = _jenv
 
 
 # Backward compatibility

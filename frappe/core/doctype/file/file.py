@@ -14,6 +14,7 @@ from requests.exceptions import HTTPError, SSLError
 
 import frappe
 from frappe import _
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
@@ -104,10 +105,7 @@ class File(Document):
 		if not self.attached_to_name or not isinstance(self.attached_to_name, (str, int)):
 			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
 
-		if not self.attached_to_field:
-			return
-
-		if not frappe.get_meta(self.attached_to_doctype).has_field(self.attached_to_field):
+		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
 			frappe.throw(_("The fieldname you've specified in Attached To Field is invalid"))
 
 	def after_rename(self, *args, **kwargs):
@@ -331,7 +329,11 @@ class File(Document):
 					self.file_url = duplicate_file.file_url
 
 	def set_file_name(self):
-		if not self.file_name and self.file_url:
+		if not self.file_name and not self.file_url:
+			frappe.throw(
+				_("Fields `file_name` or `file_url` must be set for File"), exc=frappe.MandatoryError
+			)
+		elif not self.file_name and self.file_url:
 			self.file_name = self.file_url.split("/")[-1]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
@@ -423,7 +425,10 @@ class File(Document):
 					continue
 
 				file_doc = frappe.new_doc("File")
-				file_doc.content = z.read(file.filename)
+				try:
+					file_doc.content = z.read(file.filename)
+				except zipfile.BadZipFile:
+					frappe.throw(_("{0} is a not a valid zip file").format(self.file_name))
 				file_doc.file_name = filename
 				file_doc.folder = self.folder
 				file_doc.is_private = self.is_private

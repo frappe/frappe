@@ -24,6 +24,7 @@
   "ldap_email_field",
   "ldap_username_field",
   "ldap_first_name_field",
+  "do_not_create_new_user",
   "column_break_19",
   "ldap_middle_name_field",
   "ldap_last_name_field",
@@ -87,8 +88,7 @@
    "fieldtype": "Link",
    "label": "Default User Role",
    "mandatory_depends_on": "eval: doc.default_user_type == \"System User\"",
-   "options": "Role",
-   "reqd": 1
+   "options": "Role"
   },
   {
    "description": "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
@@ -289,12 +289,19 @@
    "fieldname": "section_break_40",
    "fieldtype": "Section Break",
    "hide_border": 1
+  },
+  {
+   "default": "0",
+   "description": "Do not create new user if user with email does not exist in the system",
+   "fieldname": "do_not_create_new_user",
+   "fieldtype": "Check",
+   "label": "Do Not Create New User "
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-07-07 16:51:46.230793",
+ "modified": "2023-01-24 11:20:06.049708",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",

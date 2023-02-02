@@ -29,7 +29,7 @@ import frappe.recorder
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import add_to_date, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.jinja_globals import bundled_asset
@@ -143,6 +143,9 @@ class BaseTestCommands(FrappeTestCase):
 
 	@classmethod
 	def execute(self, command, kwargs=None):
+		# tests might have written to DB which wont be visible to commands until we end current transaction
+		frappe.db.commit()
+
 		site = {"site": frappe.local.site}
 		cmd_input = None
 		if kwargs:
@@ -164,6 +167,9 @@ class BaseTestCommands(FrappeTestCase):
 		self.stdout = clean(self._proc.stdout)
 		self.stderr = clean(self._proc.stderr)
 		self.returncode = clean(self._proc.returncode)
+
+		# Commands might have written to DB which wont be visible until we end current transaction
+		frappe.db.rollback()
 
 	@classmethod
 	def setup_test_site(cls):
@@ -300,6 +306,7 @@ class TestCommands(BaseTestCommands):
 		frappe.local.cache = {}
 		self.assertEqual(frappe.recorder.status(), False)
 
+	@unittest.skip("Poorly written, relied on app name being absent in apps.txt")
 	def test_remove_from_installed_apps(self):
 		app = "test_remove_app"
 		add_to_installed_apps(app)
@@ -323,7 +330,7 @@ class TestCommands(BaseTestCommands):
 		# test 2: bare functionality for single site
 		self.execute("bench --site {site} list-apps")
 		self.assertEqual(self.returncode, 0)
-		list_apps = {_x.split()[0] for _x in self.stdout.split("\n")}
+		list_apps = {_x.split(maxsplit=1)[0] for _x in self.stdout.split("\n")}
 		doctype = frappe.get_single("Installed Applications").installed_applications
 		if doctype:
 			installed_apps = {x.app_name for x in doctype}
@@ -407,20 +414,16 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench --site {site} set-password Administrator test1")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test1"), "Administrator")
-		# to release the lock taken by check_password
-		frappe.db.commit()
 
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
-		frappe.db.commit()
 
 		# Reset it back to original password
 		original_password = frappe.conf.admin_password or "admin"
 		self.execute("bench --site {site} set-admin-password %s" % original_password)
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
-		frappe.db.commit()
 
 	@skipIf(
 		not (
@@ -478,6 +481,14 @@ class TestCommands(BaseTestCommands):
 		self.execute(f"bench --site {TEST_SITE} install-app {app_name} --force")
 		self.assertIn(f"Installing {app_name}", self.stdout)
 		self.assertEqual(self.returncode, 0)
+
+	def test_set_global_conf(self):
+		key = "answer"
+		value = "42"
+		self.execute(f"bench set-config {key} {value} -g")
+		conf = frappe.get_site_config()
+
+		self.assertEqual(conf[key], value)
 
 
 class TestBackups(BaseTestCommands):
@@ -747,3 +758,19 @@ class TestBenchBuild(BaseTestCommands):
 			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
 			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
 		)
+
+
+class TestCommandUtils(FrappeTestCase):
+	def test_bench_helper(self):
+		from frappe.utils.bench_helper import get_app_groups
+
+		app_groups = get_app_groups()
+		self.assertIn("frappe", app_groups)
+		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+
+class TestDBCli(BaseTestCommands):
+	@timeout(10)
+	def test_db_cli(self):
+		self.execute("bench --site {site} db-console", kwargs={"cmd_input": rb"\q"})
+		self.assertEqual(self.returncode, 0)

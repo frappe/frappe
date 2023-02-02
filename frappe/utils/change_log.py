@@ -108,7 +108,7 @@ def get_versions():
 	                }
 	        }"""
 	versions = {}
-	for app in frappe.get_installed_apps(sort=True):
+	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		app_hooks = frappe.get_hooks(app_name=app)
 		versions[app] = {
 			"title": app_hooks.get("app_title")[0],
@@ -177,7 +177,7 @@ def check_for_update():
 		# Get local instance's current version or the app
 
 		branch_version = (
-			apps[app]["branch_version"].split(" ")[0] if apps[app].get("branch_version", "") else ""
+			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
 		instance_version = Version(branch_version or apps[app].get("version"))
 		# Compare and popup update message

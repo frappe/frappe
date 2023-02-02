@@ -885,13 +885,15 @@ class Database:
 		is_single_doctype = not (dn and dt != dn)
 		to_update = field if isinstance(field, dict) else {field: val}
 
+		if is_single_doctype:
+			deprecation_warning(
+				"Calling db.set_value to set single doctype values is deprecated. This behaviour will be removed in version 15. Use db.set_single_value instead."
+			)
+
 		if update_modified:
 			modified = modified or now()
 			modified_by = modified_by or frappe.session.user
 			to_update.update({"modified": modified, "modified_by": modified_by})
-
-		if for_update:
-			deprecation_warning("for_update parameter is deprecated and will be removed in v15.")
 
 		if is_single_doctype:
 			frappe.db.delete(

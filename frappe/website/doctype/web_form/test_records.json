@@ -14,6 +14,9 @@
  "published": 1,
  "success_url": "/manage-events",
  "title": "Manage Events",
+ "meta_title": "Test Meta Form Title",
+ "meta_description": "Test Meta Form Description",
+ "meta_image": "https://frappe.io/files/frappe.png",
  "web_form_fields": [
   {
    "doctype": "Web Form Field",
