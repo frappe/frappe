@@ -13,7 +13,7 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import FallBackDateTimeStr
+from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr
 from frappe.model import optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
@@ -73,7 +73,7 @@ class DatabaseQuery:
 		or_filters=None,
 		docstatus=None,
 		group_by=None,
-		order_by="KEEP_DEFAULT_ORDERING",
+		order_by=DefaultOrderBy,
 		limit_start=False,
 		limit_page_length=None,
 		as_list=False,
@@ -898,7 +898,7 @@ class DatabaseQuery:
 	def set_order_by(self, args):
 		meta = frappe.get_meta(self.doctype)
 
-		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
+		if self.order_by and self.order_by != DefaultOrderBy:
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
