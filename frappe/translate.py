@@ -746,7 +746,7 @@ def babel_extract_doctype_json(fileobj, *args, **kwargs):
 				)
 			elif fieldtype == "HTML":
 				messages.append(
-					(message, f"Content of an {fieldtype} field in DocType '{doctype}'")
+					(message, f"Content of an HTML field in DocType '{doctype}'")
 				)
 
 	for link in links:
