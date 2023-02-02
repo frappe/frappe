@@ -233,7 +233,8 @@ class LoginManager:
 			self.fail(_("Incomplete login details"), user=user)
 
 		_raw_user_name = user
-		user = User.find_by_credentials(user, pwd)
+		validate = not frappe.form_dict.get("tmp_id", False)
+		user = User.find_by_credentials(user, pwd, validate_password=validate)
 
 		if not user:
 			self.fail("Invalid login credentials", user=_raw_user_name)
