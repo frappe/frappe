@@ -1279,34 +1279,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_realtime_updates() {
-<<<<<<< HEAD
-		if (
-			this.list_view_settings &&
-			this.list_view_settings.disable_auto_refresh
-		) {
-=======
 		this.pending_document_refreshes = [];
 
 		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
->>>>>>> 636c4701cf (perf: Batched List Updates)
 			return;
 		}
+
 		frappe.socketio.doctype_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => {
-<<<<<<< HEAD
-			if (data && data.doctype && data.name) {
+			if (!data || (data.doctype !== this.doctype)) {
+				return;
+			}
+			if (data.doctype && data.name) {
 				let doc = frappe.get_doc(data.doctype, data.name);
 				if (doc && doc.__unsaved) {
 					frappe.model.remove_from_locals(data.doctype, data.name);
 				}
-=======
-			if (data?.doctype !== this.doctype) {
-				return;
-			}
-
-			if (!frappe.get_doc(data?.doctype, data?.name)?.__unsaved) {
-				frappe.model.remove_from_locals(data.doctype, data.name);
->>>>>>> ccb7c8cd80 (fix(desk): Filter out other doctypes on list_update event)
 			}
 
 			if (this.filter_area.is_being_edited()) {
