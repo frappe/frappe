@@ -742,6 +742,33 @@ class TestDBQuery(FrappeTestCase):
 
 		self.assertTrue(dashboard_settings)
 
+	def test_virtual_doctype(self):
+		"""Test that virtual doctypes can be queried using get_all"""
+
+		virtual_doctype = new_doctype("Virtual DocType")
+		virtual_doctype.is_virtual = 1
+		virtual_doctype.insert(ignore_if_duplicate=True)
+
+		class VirtualDocType:
+			@staticmethod
+			def get_list(args):
+				...
+
+		with patch("frappe.controllers", new={frappe.local.site: {"Virtual DocType": VirtualDocType}}):
+			VirtualDocType.get_list = MagicMock()
+
+			frappe.get_all("Virtual DocType", filters={"name": "test"}, fields=["name"], limit=1)
+
+			call_args = VirtualDocType.get_list.call_args[0][0]
+			VirtualDocType.get_list.assert_called_once()
+			self.assertIsInstance(call_args, dict)
+			self.assertEqual(call_args["doctype"], "Virtual DocType")
+			self.assertEqual(call_args["filters"], [["Virtual DocType", "name", "=", "test"]])
+			self.assertEqual(call_args["fields"], ["name"])
+			self.assertEqual(call_args["limit_page_length"], 1)
+			self.assertEqual(call_args["limit_start"], 0)
+			self.assertEqual(call_args["order_by"], DefaultOrderBy)
+
 	def test_coalesce_with_in_ops(self):
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, run=0))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
