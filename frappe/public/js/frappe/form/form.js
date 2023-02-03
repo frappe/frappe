@@ -1516,7 +1516,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
 					this.fields_dict[fieldname].grid.grid_rows_by_docname[
 						table_row_name
-					].refresh_field(fieldname);
+					].refresh_field(table_field);
 				}
 			} else {
 				this.refresh_field(fieldname);
@@ -1934,7 +1934,9 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		frappe.socketio.doc_subscribe(doctype, docname);
+		if (this.doc && !this.is_new()) {
+			frappe.socketio.doc_subscribe(doctype, docname);
+		}
 		frappe.realtime.off("docinfo_update");
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
 			if (

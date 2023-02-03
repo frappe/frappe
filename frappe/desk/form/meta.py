@@ -11,6 +11,7 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.translate import extract_messages_from_code, make_dict_from_messages
 from frappe.utils import get_html_format
+from frappe.utils.data import get_link_to_form
 
 ASSET_KEYS = (
 	"__js",
@@ -51,7 +52,7 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super().__init__(doctype)
+		self.__dict__.update(frappe.get_meta(doctype).__dict__)
 		self.load_assets()
 
 	def load_assets(self):
@@ -133,7 +134,7 @@ class FormMeta(Meta):
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), encoding="utf-8") as f:
-					templates[fname.split(".")[0]] = scrub_html_template(f.read())
+					templates[fname.split(".", 1)[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
 
@@ -199,13 +200,18 @@ class FormMeta(Meta):
 		# customizations are removed or some custom app is removed but hasn't cleaned
 		# up after itself.
 		frappe.clear_last_message()
-		customize_form_link = f'<a href="/app/customize-form/?doc_type={self.name}">Customize Form</a>'
-		frappe.throw(
-			_(
-				"Field {0} is referring to non-existing doctype {1}, please remove the field from {2} or add the required doctype."
-			).format(frappe.bold(df.fieldname), frappe.bold(df.options), customize_form_link),
-			title=_("Missing DocType"),
+
+		msg = _("Field {0} is referring to non-existing doctype {1}.").format(
+			frappe.bold(df.fieldname), frappe.bold(df.options)
 		)
+
+		if df.get("is_custom_field"):
+			custom_field_link = get_link_to_form("Custom Field", df.name)
+			msg += " " + _("Please delete the field from {2} or add the required doctype.").format(
+				custom_field_link
+			)
+
+		frappe.throw(msg, title=_("Missing DocType"))
 
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):
@@ -243,7 +249,7 @@ class FormMeta(Meta):
 	def load_templates(self):
 		if not self.custom:
 			module = load_doctype_module(self.name)
-			app = module.__name__.split(".")[0]
+			app = module.__name__.split(".", 1)[0]
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
 				for key, path in module.form_grid_templates.items():

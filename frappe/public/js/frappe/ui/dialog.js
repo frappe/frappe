@@ -28,6 +28,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			this.get_close_btn().hide();
 		}
 
+		if (!this.size) this.set_modal_size();
+
 		this.wrapper = this.$wrapper.find(".modal-dialog").get(0);
 		if (this.size == "small") $(this.wrapper).addClass("modal-sm");
 		else if (this.size == "large") $(this.wrapper).addClass("modal-lg");
@@ -121,6 +123,31 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 					$input.blur();
 				}
 			});
+	}
+
+	set_modal_size() {
+		if (!this.fields) {
+			this.size = "";
+			return;
+		}
+
+		let col_brk = 0;
+		let cur_col_brk = 0;
+
+		// if fields have more than 2 Column Breaks before encountering Section Break, make it large
+		this.fields.forEach((field) => {
+			if (field.fieldtype == "Column Break") {
+				cur_col_brk++;
+
+				if (cur_col_brk > col_brk) {
+					col_brk = cur_col_brk;
+				}
+			} else if (field.fieldtype == "Section Break") {
+				cur_col_brk = 0;
+			}
+		});
+
+		this.size = col_brk >= 4 ? "extra-large" : col_brk >= 2 ? "large" : "";
 	}
 
 	get_primary_btn() {
