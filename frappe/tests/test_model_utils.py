@@ -1,4 +1,8 @@
+from contextlib import contextmanager
+from random import choice
+
 import frappe
+from frappe.model import core_doctypes_list, get_permitted_fields
 from frappe.model.utils import get_fetch_values
 from frappe.tests.utils import FrappeTestCase
 
@@ -25,3 +29,30 @@ class TestModelUtils(FrappeTestCase):
 		self.assertEqual(
 			get_fetch_values(doctype, "assigned_by", user), {"assigned_by_full_name": full_name}
 		)
+
+	def test_get_permitted_fields(self):
+		# Administrator should have access to all fields in ToDo
+		todo_all_fields = get_permitted_fields("ToDo", user="Administrator")
+		todo_all_columns = frappe.get_meta("ToDo").get_valid_columns()
+		self.assertListEqual(todo_all_fields, todo_all_columns)
+
+		# Guest should have access to only default fields in ToDo
+		with set_user("Guest"):
+			guest_permitted_fields = get_permitted_fields("ToDo")
+			self.assertSequenceSubset(todo_all_fields, guest_permitted_fields)
+			self.assertNotEqual(len(todo_all_fields), len(guest_permitted_fields))
+
+		# everyone should have access to all fields of core doctypes
+		with set_user("Guest"):
+			picked_doctype = choice(core_doctypes_list)
+			core_permitted_fields = get_permitted_fields(picked_doctype)
+			picked_doctype_all_columns = frappe.get_meta(picked_doctype).get_valid_columns()
+			self.assertSequenceEqual(core_permitted_fields, picked_doctype_all_columns)
+
+
+@contextmanager
+def set_user(user: str):
+	past_user = frappe.session.user or "Administrator"
+	frappe.set_user(user)
+	yield
+	frappe.set_user(past_user)
