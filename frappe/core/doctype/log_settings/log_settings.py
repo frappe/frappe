@@ -116,6 +116,23 @@ def run_log_clean_up():
 	doc.clear_logs()
 
 
+def optimize_log_tables():
+	if frappe.db.db_type != "mariadb":
+		return
+
+	doc = frappe.get_doc("Log Settings")
+	if not doc.get("optimize_tables"):
+		return
+
+	for entry in doc.logs_to_clear:
+		if not frappe.db.table_exists(entry.ref_doctype):
+			continue
+
+		table = f"`tab{entry.ref_doctype}`"
+		frappe.db.sql(f"ANALYZE TABLE {table}")
+		frappe.db.sql(f"OPTIMIZE TABLE {table}")
+
+
 @frappe.whitelist()
 def has_unseen_error_log():
 	if frappe.get_all("Error Log", filters={"seen": 0}, limit=1):

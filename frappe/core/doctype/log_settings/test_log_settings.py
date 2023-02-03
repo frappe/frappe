@@ -4,7 +4,11 @@
 from datetime import datetime
 
 import frappe
-from frappe.core.doctype.log_settings.log_settings import _supports_log_clearing, run_log_clean_up
+from frappe.core.doctype.log_settings.log_settings import (
+	_supports_log_clearing,
+	optimize_log_tables,
+	run_log_clean_up,
+)
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now_datetime
 
@@ -72,6 +76,13 @@ class TestLogSettings(FrappeTestCase):
 		unsupported_types = ["DocType", "User", "Non Existing dt"]
 		for dt in unsupported_types:
 			self.assertFalse(_supports_log_clearing(dt), f"{dt} shouldn't be recognized as log type")
+
+	def test_optimize(self):
+		log_settings = frappe.get_doc("Log Settings")
+		log_settings.optimize_tables = True
+		log_settings.save()
+
+		optimize_log_tables()  # nothing to assert
 
 
 def setup_test_logs(past: datetime) -> None:

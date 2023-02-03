@@ -5,7 +5,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "logs_to_clear"
+  "logs_to_clear",
+  "miscellaneous_section",
+  "optimize_tables"
  ],
  "fields": [
   {
@@ -13,12 +15,24 @@
    "fieldtype": "Table",
    "label": "Logs to Clear",
    "options": "Logs To Clear"
+  },
+  {
+   "fieldname": "miscellaneous_section",
+   "fieldtype": "Section Break",
+   "label": "Miscellaneous"
+  },
+  {
+   "default": "0",
+   "description": "Databases usually do not reclaim space immediately after rows are deleted. Checking this will explicitly attempt to optimize tables every few days.",
+   "fieldname": "optimize_tables",
+   "fieldtype": "Check",
+   "label": "Optimize Tables After Clearing"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-06-11 02:17:30.803721",
+ "modified": "2023-02-03 22:37:05.536427",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Log Settings",
