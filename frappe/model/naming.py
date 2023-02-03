@@ -100,7 +100,11 @@ def set_naming_from_document_naming_rule(doc):
 	"""
 	Evaluate rules based on "Document Naming Series" doctype
 	"""
-	if doc.doctype in log_types:
+	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+
+	IGNORED_DOCTYPES = {*log_types, *DOCTYPES_FOR_DOCTYPE, "DefaultValue", "Patch Log"}
+
+	if doc.doctype in IGNORED_DOCTYPES:
 		return
 
 	# ignore_ddl if naming is not yet bootstrapped
