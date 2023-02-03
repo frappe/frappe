@@ -3,6 +3,7 @@ import datetime
 import signal
 import unittest
 from contextlib import contextmanager
+from typing import Sequence
 
 import frappe
 from frappe.model.base_document import BaseDocument
@@ -37,6 +38,10 @@ class FrappeTestCase(unittest.TestCase):
 		cls.addClassCleanup(_rollback_db)
 
 		return super().setUpClass()
+
+	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
+		"""Assert that `expected` is a subset of `actual`."""
+		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
 
 	# --- Frappe Framework specific assertions
 	def assertDocumentEqual(self, expected, actual):
