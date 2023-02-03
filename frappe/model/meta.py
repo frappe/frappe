@@ -535,15 +535,14 @@ class Meta(Document):
 
 	def get_permitted_fieldnames(self, parenttype=None, *, user=None):
 		"""Build list of `fieldname` with read perm level and all the higher perm levels defined."""
-		if not hasattr(self, "permitted_fieldnames"):
-			self.permitted_fieldnames = []
-			permlevel_access = set(self.get_permlevel_access("read", parenttype, user=user))
+		permitted_fieldnames = []
+		permlevel_access = set(self.get_permlevel_access("read", parenttype, user=user))
 
-			for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
-				if df.permlevel in permlevel_access:
-					self.permitted_fieldnames.append(df.fieldname)
+		for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
+			if df.permlevel in permlevel_access:
+				permitted_fieldnames.append(df.fieldname)
 
-		return self.permitted_fieldnames
+		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
