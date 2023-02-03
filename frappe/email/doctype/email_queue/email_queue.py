@@ -15,7 +15,7 @@ class EmailQueue(Document):
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
-			self.append("recipients", {"recipient": r, "status": "Not Sent"})
+			self.append("recipients", {"recipient": r.strip(), "status": "Not Sent"})
 
 	def on_trash(self):
 		self.prevent_email_queue_delete()
