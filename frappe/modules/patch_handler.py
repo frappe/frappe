@@ -86,7 +86,7 @@ def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
 		frappe.throw(f"Unsupported patch type specified: {patch_type}")
 
 	patches = []
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		patches.extend(get_patches_from_app(app, patch_type=patch_type))
 
 	return patches

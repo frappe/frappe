@@ -12,7 +12,7 @@ def sync_fixtures(app=None):
 	if app:
 		apps = [app]
 	else:
-		apps = frappe.get_installed_apps()
+		apps = frappe.get_installed_apps(_ensure_on_bench=True)
 
 	frappe.flags.in_fixtures = True
 

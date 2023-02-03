@@ -1386,7 +1386,7 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 
 	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
 	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
-	:param ensure_on_bench: Only return apps that are present on bench.
+	:param _ensure_on_bench: Only return apps that are present on bench.
 	"""
 	from frappe.utils.deprecations import deprecation_warning
 

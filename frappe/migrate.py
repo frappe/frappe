@@ -100,7 +100,7 @@ class SiteMigration:
 	@atomic
 	def pre_schema_updates(self):
 		"""Executes `before_migrate` hooks"""
-		for app in frappe.get_installed_apps():
+		for app in frappe.get_installed_apps(_ensure_on_bench=True):
 			for fn in frappe.get_hooks("before_migrate", app_name=app):
 				frappe.get_attr(fn)()
 
@@ -139,7 +139,7 @@ class SiteMigration:
 		frappe.get_single("Portal Settings").sync_menu()
 		frappe.get_single("Installed Applications").update_versions()
 
-		for app in frappe.get_installed_apps():
+		for app in frappe.get_installed_apps(_ensure_on_bench=True):
 			for fn in frappe.get_hooks("after_migrate", app_name=app):
 				frappe.get_attr(fn)()
 
