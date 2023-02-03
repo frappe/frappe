@@ -583,8 +583,12 @@ class DatabaseQuery:
 			if "distinct" in field.lower():
 				# field: 'count(distinct `tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
-				self.distinct = True
-				column = field.split(" ", 2)[1].replace("`", "").replace(")", "")
+				if _fn := FN_PARAMS_PATTERN.findall(field):
+					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
+				# field: 'distinct name'
+				# column: 'name'
+				else:
+					column = field.split(" ", 2)[1].replace("`", "")
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
