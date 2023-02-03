@@ -365,7 +365,11 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
+<<<<<<< HEAD
 	return "{0}+{1}+{2}@{3}".format(email[0], quote(doctype), quote(name), email[1])
+=======
+	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
+>>>>>>> 47edc63170 (fix: support for different delimiter for timeline email linking (#19751))
 
 
 def get_automatic_email_link():
