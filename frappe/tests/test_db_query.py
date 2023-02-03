@@ -166,6 +166,11 @@ class TestReportview(FrappeTestCase):
 		self.assertIn("parent 1 child record 2", parent1_children)
 		self.assertEqual(results2[0].child_title, "parent 2 child record 1")
 
+	def test_allow_select_const(self):
+		hide_name = frappe.get_all("DocType", fields=["name", "'name' as `name`"])
+		self.assertEqual(hide_name[0].name, "name")
+		self.assertSetEqual({x.name for x in hide_name}, {"name"})
+
 	def test_link_field_syntax(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"

@@ -488,14 +488,18 @@ class DatabaseQuery:
 		"""If there are more than one table, the fieldname must not be ambiguous.
 		If the fieldname is not explicitly mentioned, set the default table"""
 
-		def _in_standard_sql_methods(field):
+		def _in_standard_sql_methods(field: str) -> bool:
 			methods = ("count(", "avg(", "sum(", "extract(", "dayofyear(")
 			return field.lower().startswith(methods)
 
 		if len(self.tables) > 1 or len(self.link_tables) > 0:
 			for idx, field in enumerate(self.fields):
-				if field is not None and "." not in field and not _in_standard_sql_methods(field):
-					self.fields[idx] = f"{self.tables[0]}.{field}"
+				if field is not None:
+					# don't add table name if str literal
+					if field[0] in {"'", '"'}:
+						continue
+					if "." not in field and not _in_standard_sql_methods(field):
+						self.fields[idx] = f"{self.tables[0]}.{field}"
 
 	def cast_name_fields(self):
 		for i, field in enumerate(self.fields):
