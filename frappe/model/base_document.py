@@ -43,7 +43,7 @@ def get_controller(doctype):
 	:param doctype: DocType name as string.
 	"""
 
-	if frappe.local.dev_server:
+	if frappe.local.dev_server or frappe.flags.in_migrate:
 		return import_controller(doctype)
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
@@ -59,7 +59,7 @@ def import_controller(doctype):
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		meta = frappe.get_meta(doctype)
+		meta = frappe.get_meta(doctype, cached=not frappe.flags.in_migrate)
 		if meta.custom:
 			return NestedSet if meta.get("is_tree") else Document
 
