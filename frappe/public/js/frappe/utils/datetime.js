@@ -166,24 +166,8 @@ $.extend(frappe.datetime, {
 		return moment(d).format("YYYY-MM-DD HH:mm:ss");
 	},
 
-	user_to_str: function (val, only_time = false) {
-		var user_time_fmt = frappe.datetime.get_user_time_fmt();
-		if (only_time) {
-			return moment(val, user_time_fmt).format(frappe.defaultTimeFormat);
-		}
-
-		var user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-		var system_fmt = "YYYY-MM-DD";
-
-		if (val.indexOf(" ") !== -1) {
-			user_fmt += " " + user_time_fmt;
-			system_fmt += " HH:mm:ss";
-		}
-
-		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
-		return moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
-			.locale("en")
-			.format(system_fmt);
+	user_to_str: function (val) {
+		return val.replace("T", " ");
 	},
 
 	user_to_obj: function (d) {

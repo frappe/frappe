@@ -1,18 +1,8 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
 	set_formatted_input(value) {
-		if (this.timepicker_only) return;
-		if (!this.datepicker) return;
-		if (!value) {
-			this.datepicker.clear();
-			return;
-		} else if (value.toLowerCase() === "today") {
-			value = this.get_now_date();
-		} else if (value.toLowerCase() === "now") {
-			value = frappe.datetime.now_datetime();
-		}
+		super.set_formatted_input(value);
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
-		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
 	}
 
 	get_start_date() {
@@ -73,13 +63,9 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
-		super.set_datepicker();
-		if (this.datepicker.opts.timeFormat.indexOf("s") == -1) {
-			// No seconds in time format
-			const $tp = this.datepicker.timepicker;
-			$tp.$seconds.parent().css("display", "none");
-			$tp.$secondsText.css("display", "none");
-			$tp.$secondsText.prev().css("display", "none");
+		this.$input.attr("type", "datetime-local");
+		if(frappe.datetime.get_user_time_fmt()== "HH:mm:ss") {
+			this.$input.attr("step", "1");
 		}
 	}
 
