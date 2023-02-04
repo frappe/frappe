@@ -14,7 +14,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	set_datepicker() {
 		this.$input.attr("type", "time");
-		if(frappe.datetime.get_user_time_fmt()== "HH:mm:ss") {
+		if (frappe.datetime.get_user_time_fmt() == "HH:mm:ss") {
 			this.$input.attr("step", "1");
 		}
 	}
