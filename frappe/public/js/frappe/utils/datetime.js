@@ -141,7 +141,7 @@ $.extend(frappe.datetime, {
 
 	str_to_user: function (val, only_time = false, only_date = false) {
 		if (!val) return "";
-		const user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+		const user_date_fmt = "YYYY-MM-DD";
 		const user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let user_format = user_time_fmt;
 
@@ -149,14 +149,13 @@ $.extend(frappe.datetime, {
 			let date_obj = moment(val, frappe.defaultTimeFormat);
 			return date_obj.format(user_format);
 		} else if (only_date) {
-			let date_obj = moment(val, frappe.defaultDateFormat);
-			return date_obj.format(user_date_fmt);
+			return val;
 		} else {
 			let date_obj = moment.tz(val, frappe.boot.time_zone.system);
 			if (typeof val !== "string" || val.indexOf(" ") === -1) {
 				user_format = user_date_fmt;
 			} else {
-				user_format = user_date_fmt + " " + user_time_fmt;
+				user_format = user_date_fmt + "T" + user_time_fmt;
 			}
 			return date_obj.clone().tz(frappe.boot.time_zone.user).format(user_format);
 		}

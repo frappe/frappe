@@ -14,7 +14,6 @@
   "enable_onboarding",
   "setup_complete",
   "date_and_number_format",
-  "date_format",
   "time_format",
   "number_format",
   "column_break_7",
@@ -119,13 +118,6 @@
    "fieldname": "date_and_number_format",
    "fieldtype": "Section Break",
    "label": "Date and Number Format"
-  },
-  {
-   "fieldname": "date_format",
-   "fieldtype": "Select",
-   "label": "Date Format",
-   "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy",
-   "reqd": 1
   },
   {
    "default": "HH:mm:ss",

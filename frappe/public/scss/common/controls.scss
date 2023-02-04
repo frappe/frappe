@@ -44,8 +44,8 @@
 }
 
 // datetime picker in child table
-.col > * .form-control[data-fieldtype="Datetime"] {
-    padding: 4px;
+.grid-row > * .form-control[data-fieldtype="Datetime"] {
+    padding: 3px;
 }
 
 // select
