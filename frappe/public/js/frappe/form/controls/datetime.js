@@ -10,18 +10,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		let value = frappe.datetime.convert_to_user_tz(this.value);
 		return frappe.datetime.str_to_obj(value);
 	}
-	set_date_options() {
-		super.set_date_options();
-		this.today_text = __("Now");
-		let sysdefaults = frappe.boot.sysdefaults;
-		this.date_format = frappe.defaultDatetimeFormat;
-		let time_format =
-			sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
-		$.extend(this.datepicker_options, {
-			timepicker: true,
-			timeFormat: time_format.toLowerCase().replace("mm", "ii"),
-		});
-	}
 	get_now_date() {
 		return frappe.datetime.now_datetime(true);
 	}
@@ -42,25 +30,6 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	format_for_input(value) {
 		if (!value) return "";
 		return frappe.datetime.str_to_user(value, false);
-	}
-	set_description() {
-		const description = this.df.description;
-		const time_zone = this.get_user_time_zone();
-
-		if (!this.df.hide_timezone) {
-			// Always show the timezone when rendering the Datetime field since the datetime value will
-			// always be in system_time_zone rather then local time.
-
-			if (!description) {
-				this.df.description = time_zone;
-			} else if (!description.includes(time_zone)) {
-				this.df.description += "<br>" + time_zone;
-			}
-		}
-		super.set_description();
-	}
-	get_user_time_zone() {
-		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 	set_datepicker() {
 		this.$input.attr("type", "datetime-local");

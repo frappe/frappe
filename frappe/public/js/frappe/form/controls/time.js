@@ -3,7 +3,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		super.set_formatted_input(value);
 	}
 	make_input() {
-		//this.timepicker_only = true;
 		super.make_input();
 	}
 	make_picker() {
@@ -17,18 +16,6 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		if (frappe.datetime.get_user_time_fmt() == "HH:mm:ss") {
 			this.$input.attr("step", "1");
 		}
-	}
-	set_description() {
-		const { description } = this.df;
-		const { time_zone } = frappe.sys_defaults;
-		if (!frappe.datetime.is_system_time_zone()) {
-			if (!description) {
-				this.df.description = time_zone;
-			} else if (!description.includes(time_zone)) {
-				this.df.description += "<br>" + time_zone;
-			}
-		}
-		super.set_description();
 	}
 	parse(value) {
 		if (value) {

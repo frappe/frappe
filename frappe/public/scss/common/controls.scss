@@ -47,6 +47,17 @@
 .grid-row > * .form-control[data-fieldtype="Datetime"] {
     padding: 3px;
 }
+input.form-control[data-fieldtype="Datetime"]::-webkit-date-and-time-value {
+	text-align: left;
+}
+input.form-control[data-fieldtype="Date"]::-webkit-date-and-time-value {
+text-align: left;
+}
+input.form-control[data-fieldtype="Time"]::-webkit-date-and-time-value {
+text-align: left;
+}
+
+
 
 // select
 select.form-control {

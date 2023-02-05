@@ -182,18 +182,13 @@ frappe.form.formatters = {
 		}
 	},
 	Date: function (value) {
-		if (!frappe.datetime.str_to_user) {
-			return value;
-		}
 		if (value) {
-			value = frappe.datetime.str_to_user(value);
-			// handle invalid date
-			if (value === "Invalid date") {
-				value = null;
-			}
+			return moment(frappe.datetime.convert_to_user_tz(value)).format(
+				frappe.datetime.get_user_date_fmt().toUpperCase() 
+			);
+		} else {
+			return "";
 		}
-
-		return value || "";
 	},
 	DateRange: function (value) {
 		if (Array.isArray(value)) {
@@ -208,7 +203,7 @@ frappe.form.formatters = {
 	Datetime: function (value) {
 		if (value) {
 			return moment(frappe.datetime.convert_to_user_tz(value)).format(
-				frappe.boot.sysdefaults.date_format.toUpperCase() +
+				frappe.datetime.get_user_date_fmt().toUpperCase() +
 					" " +
 					(frappe.boot.sysdefaults.time_format || "HH:mm:ss")
 			);
@@ -383,9 +378,9 @@ frappe.format = function (value, df, options, doc) {
 	}
 
 	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
-
+	console.log(value);
 	var formatted = formatter(value, df, options, doc);
-
+	console.log(formatted);
 	if (typeof formatted == "string") formatted = frappe.dom.remove_script_and_style(formatted);
 
 	return formatted;

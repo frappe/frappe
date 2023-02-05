@@ -130,8 +130,22 @@ $.extend(frappe.datetime, {
 		return (frappe.sys_defaults && frappe.sys_defaults.time_format) || "HH:mm:ss";
 	},
 
-	get_user_date_fmt: function () {
-		return (frappe.sys_defaults && frappe.sys_defaults.date_format) || "yyyy-mm-dd";
+	get_user_date_fmt: function (lang = 'default') {
+		const formatObj = new Intl.DateTimeFormat(lang).formatToParts(new Date());
+		return formatObj
+		  .map(obj => {
+			switch (obj.type) {
+			  case "day":
+				return "DD";
+			  case "month":
+				return "MM";
+			  case "year":
+				return "YYYY";
+			  default:
+				return obj.value;
+			}
+		  })
+		  .join("");
 	},
 
 	get_user_fmt: function () {

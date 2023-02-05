@@ -57,20 +57,23 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 		return "";
 	}
-	get_df_options() {
-		let df_options = this.df.options;
-		if (!df_options) return {};
+	set_description() {
+		const description = this.df.description;
+		const time_zone = this.get_user_time_zone();
 
-		let options = {};
-		if (typeof df_options === "string") {
-			try {
-				options = JSON.parse(df_options);
-			} catch (error) {
-				console.warn(`Invalid JSON in options of "${this.df.fieldname}"`);
+		if (!this.df.hide_timezone) {
+			// Always show the timezone when rendering the Datetime field since the datetime value will
+			// always be in system_time_zone rather then local time.
+
+			if (!description) {
+				this.df.description = time_zone;
+			} else if (!description.includes(time_zone)) {
+				this.df.description += "<br>" + time_zone;
 			}
-		} else if (typeof df_options === "object") {
-			options = df_options;
 		}
-		return options;
+		super.set_description();
+	}
+	get_user_time_zone() {
+		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
 	}
 };
