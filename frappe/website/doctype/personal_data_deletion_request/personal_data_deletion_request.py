@@ -9,6 +9,7 @@ from frappe import _
 from frappe.core.utils import find
 from frappe.model.document import Document
 from frappe.utils import get_datetime, get_fullname, time_diff_in_hours
+from frappe.utils.data import add_days, now_datetime
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -352,11 +353,12 @@ def process_data_deletion_request():
 
 
 def remove_unverified_record():
-	frappe.db.sql(
-		"""
-		DELETE FROM `tabPersonal Data Deletion Request`
-		WHERE `status` = 'Pending Verification'
-		AND `creation` < (NOW() - INTERVAL '7' DAY)"""
+	frappe.db.delete(
+		"Personal Data Deletion Request",
+		{
+			"status": "Pending Verification",
+			"creation": ("<", add_days(now_datetime(), -7)),
+		},
 	)
 
 
