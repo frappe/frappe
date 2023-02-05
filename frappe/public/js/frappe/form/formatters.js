@@ -378,9 +378,7 @@ frappe.format = function (value, df, options, doc) {
 	}
 
 	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
-	console.log(value);
 	var formatted = formatter(value, df, options, doc);
-	console.log(formatted);
 	if (typeof formatted == "string") formatted = frappe.dom.remove_script_and_style(formatted);
 
 	return formatted;
