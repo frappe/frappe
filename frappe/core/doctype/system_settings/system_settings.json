@@ -100,11 +100,12 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Etc/UTC",
    "fieldname": "time_zone",
    "fieldtype": "Select",
    "label": "Time Zone",
-   "read_only": 1,
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "default": "0",
@@ -525,7 +526,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-12-20 21:45:37.651668",
+ "modified": "2023-02-05 19:40:35.044872",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

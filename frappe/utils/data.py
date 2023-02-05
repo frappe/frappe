@@ -318,7 +318,7 @@ def get_eta(from_time, percent_complete):
 
 
 def _get_time_zone():
-	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"  # Default to India ?!
+	return frappe.db.get_system_setting("time_zone") or "Etc/UTC"
 
 
 def get_time_zone():

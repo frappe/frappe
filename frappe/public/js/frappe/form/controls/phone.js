@@ -15,8 +15,7 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		if (data) {
 			this.country_codes = data;
 		} else {
-			const data = await frappe.xcall("frappe.geo.country_info.get_country_timezone_info");
-			this.country_codes = data?.country_info;
+			this.country_codes = await frappe.xcall("frappe.geo.country_info.get_all");
 			localforage.setItem(key, this.country_codes);
 		}
 	}

@@ -370,14 +370,6 @@ frappe.setup.slides_settings = [
 				fieldtype: "Section Break",
 			},
 			{
-				fieldname: "timezone",
-				label: __("Time Zone"),
-				placeholder: __("Select Time Zone"),
-				fieldtype: "Select",
-				reqd: 1,
-			},
-			{ fieldtype: "Column Break" },
-			{
 				fieldname: "currency",
 				label: __("Currency"),
 				placeholder: __("Select Currency"),
@@ -481,7 +473,7 @@ frappe.setup.slides_settings = [
 frappe.setup.utils = {
 	load_regional_data: function (slide, callback) {
 		frappe.call({
-			method: "frappe.geo.country_info.get_country_timezone_info",
+			method: "frappe.geo.country_info.get_all",
 			callback: function (data) {
 				frappe.setup.data.regional_data = data.message;
 				callback(slide);
@@ -509,13 +501,13 @@ frappe.setup.utils = {
 
 	setup_region_fields: function (slide) {
 		/*
-			Set a slide's country, timezone and currency fields
+			Set a slide's country and currency fields
 		*/
 		let data = frappe.setup.data.regional_data;
 		let country_field = slide.get_field("country");
 		let translated_countries = [];
 
-		Object.keys(data.country_info)
+		Object.keys(data)
 			.sort()
 			.forEach((country) => {
 				translated_countries.push({
@@ -529,11 +521,7 @@ frappe.setup.utils = {
 		slide
 			.get_input("currency")
 			.empty()
-			.add_options(
-				frappe.utils.unique($.map(data.country_info, (opts) => opts.currency).sort())
-			);
-
-		slide.get_input("timezone").empty().add_options(data.all_timezones);
+			.add_options(frappe.utils.unique($.map(data, (opts) => opts.currency).sort()));
 
 		// set values if present
 		if (frappe.wizard.values.country) {
@@ -543,7 +531,6 @@ frappe.setup.utils = {
 		}
 
 		slide.get_field("currency").set_input(frappe.wizard.values.currency);
-		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
 	},
 
 	bind_language_events: function (slide) {
@@ -576,29 +563,18 @@ frappe.setup.utils = {
 
 	bind_region_events: function (slide) {
 		/*
-			Bind a slide's country, timezone and currency fields
+			Bind a slide's country and currency fields
 		*/
 		slide.get_input("country").on("change", function () {
 			let country = slide.get_input("country").val();
-			let $timezone = slide.get_input("timezone");
-			let data = frappe.setup.data.regional_data;
-
-			$timezone.empty();
-
 			if (!country) return;
-			// add country specific timezones first
-			const timezone_list = data.country_info[country].timezones || [];
-			$timezone.add_options(timezone_list.sort());
-			slide.get_field("currency").set_input(data.country_info[country].currency);
+
+			const data = frappe.setup.data.regional_data;
+			slide.get_field("currency").set_input(data[country].currency);
 			slide.get_field("currency").$input.trigger("change");
 
-			// add all timezones at the end, so that user has the option to change it to any timezone
-			$timezone.add_options(data.all_timezones);
-			slide.get_field("timezone").set_input($timezone.val());
-
 			// temporarily set date format
-			frappe.boot.sysdefaults.date_format =
-				data.country_info[country].date_format || "dd-mm-yyyy";
+			frappe.boot.sysdefaults.date_format = data[country].date_format || "dd-mm-yyyy";
 		});
 
 		slide.get_input("currency").on("change", function () {

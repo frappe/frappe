@@ -8,7 +8,6 @@ from frappe.model.document import Document
 from frappe.translate import set_default_language
 from frappe.twofactor import toggle_two_factor_auth
 from frappe.utils import cint, today
-from frappe.utils.momentjs import get_all_timezones
 
 
 class SystemSettings(Document):
@@ -92,14 +91,11 @@ def update_last_reset_password_date():
 
 @frappe.whitelist()
 def load():
-	if not "System Manager" in frappe.get_roles():
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	frappe.only_for("System Manager")
 
 	all_defaults = frappe.db.get_defaults()
-	defaults = {}
-
-	for df in frappe.get_meta("System Settings").get("fields"):
-		if df.fieldtype in ("Select", "Data"):
-			defaults[df.fieldname] = all_defaults.get(df.fieldname)
-
-	return {"timezones": get_all_timezones(), "defaults": defaults}
+	return {
+		df.fieldname: all_defaults.get(df.fieldname)
+		for df in frappe.get_meta("System Settings").get("fields")
+		if df.fieldtype in ("Select", "Data")
+	}

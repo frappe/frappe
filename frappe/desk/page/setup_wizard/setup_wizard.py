@@ -163,7 +163,6 @@ def update_system_settings(args):
 		{
 			"country": args.get("country"),
 			"language": get_language_code(args.get("language")) or "en",
-			"time_zone": args.get("timezone"),
 			"float_precision": 3,
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
