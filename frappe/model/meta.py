@@ -539,6 +539,9 @@ class Meta(Document):
 		"""
 		permitted_fieldnames = []
 
+		if self.istable and not parenttype:
+			return permitted_fieldnames
+
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
 
