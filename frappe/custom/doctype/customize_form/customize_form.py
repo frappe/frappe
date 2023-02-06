@@ -431,7 +431,7 @@ class CustomizeForm(Document):
 		# check and update `insert_after` property
 		if i != 0:
 			insert_after = self.fields[i - 1].fieldname
-			if custom_field.insert_after != insert_after:
+			if not custom_field.is_system_generated and custom_field.insert_after != insert_after:
 				custom_field.insert_after = insert_after
 				custom_field.idx = i
 				changed = True
