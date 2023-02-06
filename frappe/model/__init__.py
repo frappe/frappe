@@ -95,6 +95,7 @@ optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 table_fields = ("Table", "Table MultiSelect")
 
 core_doctypes_list = (
+	"DefaultValue",
 	"DocType",
 	"DocField",
 	"DocPerm",

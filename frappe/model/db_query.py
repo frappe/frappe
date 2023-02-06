@@ -589,7 +589,18 @@ class DatabaseQuery:
 			self.fields.pop(idx)
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Apply fieldlevel read permissions to the query"""
+		"""Apply fieldlevel read permissions to the query
+
+		Note: Does not apply to `frappe.model.core_doctype_list`
+
+		Remove fields that user is not allowed to read. If `fields=["*"]` is passed, only permitted fields will
+		be returned.
+
+		Example:
+		        - User has read permission only on `title` for DocType `Note`
+		        - Query: fields=["*"]
+		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
+		"""
 		if self.flags.ignore_permissions:
 			return
 
