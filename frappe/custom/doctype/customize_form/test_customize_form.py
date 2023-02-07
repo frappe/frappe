@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.custom.doctype.customize_form.customize_form import reset_customization
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.tests.utils import FrappeTestCase
 
@@ -419,3 +420,32 @@ class TestCustomizeForm(FrappeTestCase):
 
 		for idx, field in enumerate(set_field_order, 0):
 			self.assertEqual(field.fieldname, property_setter_field_order[idx])
+
+	def test_customized_field_order_greater_than_insert_after(self):
+		reset_customization(doctype="ToDo")
+		frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"label": "Test ToDo Type",
+				"description": "A Custom Field for Testing",
+				"fieldtype": "Select",
+				"in_list_view": 1,
+				"options": "\nCustom 1\nCustom 2\nCustom 3",
+				"default": "Custom 3",
+				"insert_after": "description_section",
+				"is_system_generated": 1,
+			}
+		).insert()
+
+		customize_form = self.get_customize_form(doctype="ToDo")
+		test_position = [f.fieldname for f in customize_form.fields].index("test_todo_type")
+		self.assertEqual(customize_form.fields[test_position - 1].fieldname, "description_section")
+
+		# Modify position of system generated field then test it is in its correct position.
+		customize_form.fields.insert(1, customize_form.fields.pop(test_position))
+		customize_form.save_customization()
+		frappe.clear_cache(doctype="ToDo")
+
+		customize_form = self.get_customize_form(doctype="ToDo")
+		self.assertEqual(customize_form.fields[1].fieldname, "test_todo_type")
