@@ -492,7 +492,7 @@ class Meta(Document):
 		insert_after_map = {}
 
 		for field in self.fields:
-			if not getattr(field, "is_custom_field", False) or getattr(field, "is_system_generated", False):
+			if not getattr(field, "is_custom_field", False):
 				field_order.append(field.fieldname)
 
 			elif insert_after := getattr(field, "insert_after", None):
