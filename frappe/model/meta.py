@@ -462,18 +462,10 @@ class Meta(Document):
 			self.field_order.remove(field)
 
 		# Add fields present in self.fields
-		for idx, field in enumerate(self.fields):
+		for field in self.fields:
 			if field.fieldname not in self.field_order:
-				# Insert after logic handles rearranging of custom fields
-				# If field.fieldname doesn't exist in field_order attempt to
-				# lookup it's previous field order fieldname, then insert
-				# after that fieldname. If the fieldname doesn't exist.
-				# Insert at end of list.
-				try:
-					position = self.field_order.index(self.fields[idx - 1].fieldname) + 1
-					self.field_order.insert(position, field.fieldname)
-				except (ValueError, IndexError):
-					self.field_order.append(field.fieldname)
+				# Insert after logic handles rearranding of custom fields
+				self.field_order.append(field.fieldname)
 
 		for idx, fieldname in enumerate(self.field_order, 1):
 			field = self._fields[fieldname]
