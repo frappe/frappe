@@ -485,14 +485,12 @@ class Meta(Document):
 		insert_after_map = {}
 
 		for field in self.fields:
-			if field.fieldname in self.field_order:
+			if not getattr(field, "is_custom_field", False) or field.fieldname in self.field_order:
 				field_order.append(field.fieldname)
 
 			elif (
-				getattr(field, "is_custom_field", None)
-				and (insert_after := getattr(field, "insert_after", None))
-				and field.fieldname not in self.field_order
-			):
+				insert_after := getattr(field, "insert_after", None)
+			) and field.fieldname not in self.field_order:
 				# If is_custom_field and has insert_after, and fieldname does not have an existing
 				# field order. Then fallback to insert_after.
 				insert_after_map.setdefault(insert_after, []).append(field.fieldname)
