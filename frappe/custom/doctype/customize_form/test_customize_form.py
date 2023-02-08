@@ -423,6 +423,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 	def test_customized_field_order_greater_than_insert_after(self):
 		reset_customization(doctype="ToDo")
+		frappe.delete_doc_if_exists("Custom Field", "ToDo-test_todo_type", force=True)
 		frappe.get_doc(
 			{
 				"doctype": "Custom Field",
