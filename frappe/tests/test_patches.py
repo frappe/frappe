@@ -59,7 +59,7 @@ class TestPatches(FrappeTestCase):
 			else:
 				if patchmodule.startswith("finally:"):
 					patchmodule = patchmodule.split("finally:")[-1]
-				self.assertTrue(frappe.get_attr(patchmodule.split()[0] + ".execute"))
+				self.assertTrue(frappe.get_attr(patchmodule.split(maxsplit=1)[0] + ".execute"))
 
 		frappe.flags.in_install = False
 
@@ -149,7 +149,7 @@ def check_patch_files(app):
 
 	patch_dir = Path(frappe.get_app_path(app)) / "patches"
 
-	app_patches = [p.split()[0] for p in patch_handler.get_patches_from_app(app)]
+	app_patches = [p.split(maxsplit=1)[0] for p in patch_handler.get_patches_from_app(app)]
 
 	missing_patches = []
 

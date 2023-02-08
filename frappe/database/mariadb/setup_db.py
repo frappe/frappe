@@ -19,7 +19,7 @@ def get_mariadb_version(version_string: str = ""):
 	# MariaDB classifies their versions as Major (1st and 2nd number), and Minor (3rd number)
 	# Example: Version 10.3.13 is Major Version = 10.3, Minor Version = 13
 	version_string = version_string or get_mariadb_variables().get("version")
-	version = version_string.split("-")[0]
+	version = version_string.split("-", 1)[0]
 	return version.rsplit(".", 1)
 
 

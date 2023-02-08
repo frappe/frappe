@@ -413,7 +413,7 @@ def get_roles(user=None, with_standard=True):
 	if not user:
 		user = frappe.session.user
 
-	if user == "Guest":
+	if user == "Guest" or not user:
 		return ["Guest"]
 
 	def get():
@@ -637,7 +637,7 @@ def get_linked_doctypes(dt: str) -> list:
 def get_doc_name(doc):
 	if not doc:
 		return None
-	return doc if isinstance(doc, str) else doc.name
+	return doc if isinstance(doc, str) else str(doc.name)
 
 
 def allow_everything():

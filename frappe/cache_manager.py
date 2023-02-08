@@ -127,8 +127,6 @@ def clear_doctype_cache(doctype=None):
 	for key in ("is_table", "doctype_modules", "document_cache"):
 		cache.delete_value(key)
 
-	frappe.local.document_cache = {}
-
 	def clear_single(dt):
 		for name in doctype_cache_keys:
 			cache.hdel(name, dt)
@@ -160,11 +158,10 @@ def clear_doctype_cache(doctype=None):
 
 def clear_controller_cache(doctype=None):
 	if not doctype:
-		del frappe.controllers
-		frappe.controllers = {}
+		frappe.controllers.pop(frappe.local.site, None)
 		return
 
-	for site_controllers in frappe.controllers.values():
+	if site_controllers := frappe.controllers.get(frappe.local.site):
 		site_controllers.pop(doctype, None)
 
 

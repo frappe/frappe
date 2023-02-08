@@ -23,7 +23,7 @@ import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import (
-	get_qb_engine,
+	get_query,
 	get_query_builder,
 	patch_query_aggregation,
 	patch_query_execute,
@@ -238,13 +238,12 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jenv = None
 	local.jloader = None
 	local.cache = {}
-	local.document_cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
-	local.qb.engine = get_qb_engine()
+	local.qb.get_query = get_query
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -571,7 +570,7 @@ def get_user():
 
 def get_roles(username=None) -> list[str]:
 	"""Returns roles of current user."""
-	if not local.session:
+	if not local.session or not local.session.user:
 		return ["Guest"]
 	import frappe.permissions
 
@@ -1075,25 +1074,10 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	def _respond(doc, from_redis=False):
-		if isinstance(doc, dict):
-			local.document_cache[key] = doc = get_doc(doc)
-
-		elif from_redis:
-			local.document_cache[key] = doc
-
+	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
 		return doc
 
-	if key := can_cache_doc(args):
-		# local cache - has "ready" `Document` objects
-		if doc := local.document_cache.get(key):
-			return _respond(doc)
-
-		# redis cache
-		if doc := cache().hget("document_cache", key):
-			return _respond(doc, True)
-
-	# Not found in local/redis, fetch from DB
+	# Not found in cache, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
 	# Store in cache
@@ -1106,14 +1090,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	local.document_cache[key] = doc
-
-	# Avoid setting in local.cache since we're already using local.document_cache above
-	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
-	try:
-		cache().hset("document_cache", key, doc, cache_locally=False)
-	except Exception:
-		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+	cache().hset("document_cache", key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1139,12 +1116,11 @@ def get_document_cache_key(doctype: str, name: str):
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
-	key = get_document_cache_key(doctype, name)
-	if key in local.document_cache:
-		del local.document_cache[key]
-	cache().hdel("document_cache", key)
+	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
+
 	if doctype == "Website Settings" and hasattr(local, "website_settings"):
 		delattr(local, "website_settings")
 
@@ -1469,14 +1445,12 @@ def _load_app_hooks(app_name: str | None = None):
 	for app in apps:
 		try:
 			app_hooks = get_module(f"{app}.hooks")
-		except ImportError:
+		except ImportError as e:
 			if local.flags.in_install_app:
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(f'Could not find app "{app}"')
-			if not request:
-				raise SystemExit
+			print(f'Could not find app "{app}": \n{e}')
 			raise
 
 		def _is_valid_hook(obj):
@@ -1592,7 +1566,7 @@ def read_file(path, raise_not_found=False):
 
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
-	app_name = method_string.split(".")[0]
+	app_name = method_string.split(".", 1)[0]
 	if (
 		not local.flags.in_uninstall
 		and not local.flags.in_install

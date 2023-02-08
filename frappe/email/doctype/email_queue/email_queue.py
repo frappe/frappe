@@ -39,7 +39,7 @@ class EmailQueue(Document):
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
-			self.append("recipients", {"recipient": r, "status": "Not Sent"})
+			self.append("recipients", {"recipient": r.strip(), "status": "Not Sent"})
 
 	def on_trash(self):
 		self.prevent_email_queue_delete()
@@ -711,7 +711,7 @@ class QueueBuilder:
 			"attachments": json.dumps(self.get_attachments()),
 			"message_id": get_string_between("<", mail.msg_root["Message-Id"], ">"),
 			"message": mail_to_string,
-			"sender": self.sender,
+			"sender": mail.sender,
 			"reference_doctype": self.reference_doctype,
 			"reference_name": self.reference_name,
 			"add_unsubscribe_link": self._add_unsubscribe_link,
