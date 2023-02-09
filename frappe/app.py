@@ -119,6 +119,9 @@ def init_request(request):
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
 
+	for before_request_task in frappe.get_hooks("before_request"):
+		frappe.call(before_request_task)
+
 
 def setup_read_only_mode():
 	"""During maintenance_mode reads to DB can still be performed to reduce downtime. This
@@ -318,7 +321,10 @@ def handle_exception(e):
 	return response
 
 
-def after_request(rollback):
+def after_request(rollback: bool) -> bool:
+	for after_request_task in frappe.get_hooks("after_request"):
+		frappe.call(after_request_task)
+
 	# if HTTP method would change server state, commit if necessary
 	if (
 		frappe.db
