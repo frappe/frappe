@@ -3,8 +3,10 @@ import unittest
 from random import choice, sample
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.exceptions import DoesNotExistError
 from frappe.model.base_document import get_controller
+from frappe.model.rename_doc import rename_doc
 from frappe.modules.utils import get_doc_path
 from frappe.utils import add_to_date, now
 
@@ -158,3 +160,29 @@ class TestRenameDoc(unittest.TestCase):
 		# this is done to bypass inconsistencies in the db
 		frappe.delete_doc_if_exists("DocType", "Renamed Doc")
 		frappe.db.sql_ddl("drop table if exists `tabRenamed Doc`")
+
+	def test_parenttype(self):
+		child = new_doctype(istable=1).insert()
+		table_field = {
+			"label": "Test Table",
+			"fieldname": "test_table",
+			"fieldtype": "Table",
+			"options": child.name,
+		}
+
+		parent_a = new_doctype(fields=[table_field], allow_rename=1, autoname="Prompt").insert()
+		parent_b = new_doctype(fields=[table_field], allow_rename=1, autoname="Prompt").insert()
+
+		parent_a_instance = frappe.get_doc(
+			doctype=parent_a.name, test_table=[{"some_fieldname": "x"}], name="XYZ"
+		).insert()
+
+		parent_b_instance = frappe.get_doc(
+			doctype=parent_b.name, test_table=[{"some_fieldname": "x"}], name="XYZ"
+		).insert()
+
+		rename_doc(parent_b_instance.doctype, parent_b_instance.name, "ABC")
+		parent_a_instance.reload()
+
+		self.assertEqual(len(parent_a_instance.test_table), 1)
+		self.assertEqual(len(parent_b_instance.test_table), 1)
