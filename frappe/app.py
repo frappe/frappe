@@ -127,7 +127,32 @@ def init_request(request):
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
+<<<<<<< HEAD
 		frappe.local.http_request = frappe.auth.HTTPRequest()
+=======
+		frappe.local.http_request = HTTPRequest()
+
+	for before_request_task in frappe.get_hooks("before_request"):
+		frappe.call(before_request_task)
+
+
+def setup_read_only_mode():
+	"""During maintenance_mode reads to DB can still be performed to reduce downtime. This
+	function sets up read only mode
+
+	- Setting global flag so other pages, desk and database can know that we are in read only mode.
+	- Setup read only database access either by:
+	    - Connecting to read replica if one exists
+	    - Or setting up read only SQL transactions.
+	"""
+	frappe.flags.read_only = True
+
+	# If replica is available then just connect replica, else setup read only transaction.
+	if frappe.conf.read_from_replica:
+		frappe.connect_replica()
+	else:
+		frappe.db.begin(read_only=True)
+>>>>>>> d6a41cd272 (feat: Before/After Request Hooks)
 
 
 def log_request(request, response):
@@ -296,11 +321,29 @@ def handle_exception(e):
 	return response
 
 
+<<<<<<< HEAD
 def after_request(rollback):
 	if (frappe.local.request.method in ("POST", "PUT") or frappe.local.flags.commit) and frappe.db:
 		if frappe.db.transaction_writes:
 			frappe.db.commit()
 			rollback = False
+=======
+def after_request(rollback: bool) -> bool:
+	for after_request_task in frappe.get_hooks("after_request"):
+		frappe.call(after_request_task)
+
+	# if HTTP method would change server state, commit if necessary
+	if (
+		frappe.db
+		and (frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS)
+		and frappe.db.transaction_writes
+	):
+		frappe.db.commit()
+		rollback = False
+	elif frappe.db:
+		frappe.db.rollback()
+		rollback = False
+>>>>>>> d6a41cd272 (feat: Before/After Request Hooks)
 
 	# update session
 	if getattr(frappe.local, "session_obj", None):
