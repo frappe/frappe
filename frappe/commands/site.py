@@ -592,6 +592,8 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
+	from traceback_with_variables import activate_by_import
+
 	from frappe.migrate import SiteMigration
 
 	for site in context.sites:

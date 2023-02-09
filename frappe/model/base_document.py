@@ -43,7 +43,7 @@ def get_controller(doctype):
 	:param doctype: DocType name as string.
 	"""
 
-	if frappe.local.dev_server:
+	if frappe.local.dev_server or frappe.flags.in_migrate:
 		return import_controller(doctype)
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
@@ -59,11 +59,11 @@ def import_controller(doctype):
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		meta = frappe.get_meta(doctype)
-		if meta.custom:
-			return NestedSet if meta.get("is_tree") else Document
-
-		module_name = meta.module
+		doctype_info = frappe.db.get_value("DocType", doctype, fieldname="*")
+		if doctype_info:
+			if doctype_info.custom:
+				return NestedSet if doctype_info.is_tree else Document
+			module_name = doctype_info.module
 
 	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
