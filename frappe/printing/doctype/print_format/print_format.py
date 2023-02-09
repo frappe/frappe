@@ -109,13 +109,12 @@ def make_default(name):
 
 	print_format = frappe.get_doc("Print Format", name)
 
-	if (frappe.conf.get("developer_mode") or 0) == 1:
-		# developer mode, set it default in doctype
-		doctype = frappe.get_doc("DocType", print_format.doc_type)
+	doctype = frappe.get_doc("DocType", print_format.doc_type)
+	if doctype.custom:
 		doctype.default_print_format = name
 		doctype.save()
 	else:
-		# customization
+		# "Customize form"
 		frappe.make_property_setter(
 			{
 				"doctype_or_field": "DocType",

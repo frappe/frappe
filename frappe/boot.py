@@ -3,16 +3,15 @@
 """
 bootstrap client session
 """
+
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
-from frappe.database.utils import Query
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
-from frappe.model.db_query import DatabaseQuery
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
@@ -170,7 +169,6 @@ def get_user_pages_or_reports(parent, cache=False):
 	parentTable = DocType(parent)
 
 	# get pages or reports set on custom role
-	# must end in a WHERE clause for `_run_with_permission_query`
 	pages_with_custom_roles = (
 		frappe.qb.from_(customRole)
 		.from_(hasRole)
@@ -184,8 +182,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			& (customRole[parent.lower()].isnotnull())
 			& (hasRole.role.isin(roles))
 		)
-	)
-	pages_with_custom_roles = _run_with_permission_query(pages_with_custom_roles, parent)
+	).run(as_dict=True)
 
 	for p in pages_with_custom_roles:
 		has_role[p.name] = {"modified": p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
@@ -196,7 +193,6 @@ def get_user_pages_or_reports(parent, cache=False):
 		.where(customRole[parent.lower()].isnotnull())
 	)
 
-	# must end in a WHERE clause for `_run_with_permission_query`
 	pages_with_standard_roles = (
 		frappe.qb.from_(hasRole)
 		.from_(parentTable)
@@ -212,7 +208,7 @@ def get_user_pages_or_reports(parent, cache=False):
 	if parent == "Report":
 		pages_with_standard_roles = pages_with_standard_roles.where(report.disabled == 0)
 
-	pages_with_standard_roles = _run_with_permission_query(pages_with_standard_roles, parent)
+	pages_with_standard_roles = pages_with_standard_roles.run(as_dict=True)
 
 	for p in pages_with_standard_roles:
 		if p.name not in has_role:
@@ -226,13 +222,12 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	# pages with no role are allowed
 	if parent == "Page":
-		# must end in a WHERE clause for `_run_with_permission_query`
+
 		pages_with_no_roles = (
 			frappe.qb.from_(parentTable)
 			.select(parentTable.name, parentTable.modified, *columns)
 			.where(no_of_roles == 0)
-		)
-		pages_with_no_roles = _run_with_permission_query(pages_with_no_roles, parent)
+		).run(as_dict=True)
 
 		for p in pages_with_no_roles:
 			if p.name not in has_role:
@@ -251,17 +246,6 @@ def get_user_pages_or_reports(parent, cache=False):
 	# Expire every six hours
 	_cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
 	return has_role
-
-
-def _run_with_permission_query(query: "Query", doctype: str) -> list[dict]:
-	"""
-	Adds Permission Query (Server Script) conditions and runs/executes modified query
-	Note: Works only if 'WHERE' is the last clause in the query
-	"""
-	permission_query = DatabaseQuery(doctype, frappe.session.user).get_permission_query_conditions()
-	if permission_query and frappe.session.user != "Administrator":
-		return frappe.db.sql(f"{query} AND {permission_query}", as_dict=True)
-	return query.run(as_dict=True)
 
 
 def load_translations(bootinfo):
