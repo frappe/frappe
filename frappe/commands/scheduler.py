@@ -74,35 +74,34 @@ def disable_scheduler(context):
 
 @click.command("scheduler")
 @click.option("--site", help="site name")
-@click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable"]))
+@click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable", "status"]))
 @pass_context
+<<<<<<< HEAD
 def scheduler(context, state, site=None):
+=======
+def scheduler(context, state: str, site: str | None = None):
+	"""Control scheduler state."""
+	import frappe
+>>>>>>> 6b84c9ccf5 (feat: Check scheduler status via CLI)
 	import frappe.utils.scheduler
 	from frappe.installer import update_site_config
 
-	if not site:
-		site = get_site(context)
+	site = site or get_site(context)
 
-	try:
-		frappe.init(site=site)
-
-		if state == "pause":
-			update_site_config("pause_scheduler", 1)
-		elif state == "resume":
-			update_site_config("pause_scheduler", 0)
-		elif state == "disable":
-			frappe.connect()
-			frappe.utils.scheduler.disable_scheduler()
-			frappe.db.commit()
-		elif state == "enable":
-			frappe.connect()
-			frappe.utils.scheduler.enable_scheduler()
-			frappe.db.commit()
+	with frappe.init_site(site=site):
+		match state:
+			case "status":
+				frappe.connect()
+				status = "disabled" if frappe.utils.scheduler.is_scheduler_inactive(verbose=verbose) else "enabled"
+				return print(output[format].format(status=status, site=site))
+			case "pause" | "resume":
+				update_site_config("pause_scheduler", state == "pause")
+			case "enable" | "disable":
+				frappe.connect()
+				frappe.utils.scheduler.toggle_scheduler(state == "enable")
+				frappe.db.commit()
 
 		print(f"Scheduler {state}d for site {site}")
-
-	finally:
-		frappe.destroy()
 
 
 @click.command("set-maintenance-mode")

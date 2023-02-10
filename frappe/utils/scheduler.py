@@ -111,16 +111,22 @@ def is_scheduler_inactive():
 	return False
 
 
+<<<<<<< HEAD
 def is_scheduler_disabled():
+=======
+def is_scheduler_disabled(verbose=True) -> bool:
+>>>>>>> 6b84c9ccf5 (feat: Check scheduler status via CLI)
 	if frappe.conf.disable_scheduler:
-		cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
+		if verbose:
+			cprint(f"{frappe.local.site}: frappe.conf.disable_scheduler is SET")
 		return True
 
 	scheduler_disabled = not frappe.utils.cint(
 		frappe.db.get_single_value("System Settings", "enable_scheduler")
 	)
 	if scheduler_disabled:
-		cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")
+		if verbose:
+			cprint(f"{frappe.local.site}: SystemSettings.enable_scheduler is UNSET")
 	return scheduler_disabled
 
 
