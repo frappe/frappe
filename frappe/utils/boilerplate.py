@@ -304,6 +304,23 @@ app_license = "{app_license}"
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
+<<<<<<< HEAD
+=======
+# Ignore links to specified DocTypes when deleting documents
+# -----------------------------------------------------------
+
+# ignore_links_on_delete = ["Communication", "ToDo"]
+
+# Request Events
+# ----------------
+# before_request = ["{app_name}.utils.before_request"]
+# after_request = ["{app_name}.utils.after_request"]
+
+# Job Events
+# ----------
+# before_job = ["{app_name}.utils.before_job"]
+# after_job = ["{app_name}.utils.after_job"]
+>>>>>>> ea62156a6d (fix: Add request, job events in hooks boilerplate)
 
 # User Data Protection
 # --------------------
