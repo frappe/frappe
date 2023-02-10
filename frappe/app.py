@@ -388,6 +388,7 @@ def serve(
 		"0.0.0.0",
 		int(port),
 		application,
+		exclude_patterns=["test_*"],
 		use_reloader=False if in_test_env else not no_reload,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
