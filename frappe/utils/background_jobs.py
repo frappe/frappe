@@ -199,7 +199,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	finally:
 		for after_job_task in frappe.get_hooks("after_job"):
-			frappe.call(after_job_task, method=method_name, kwargs=kwargs)
+			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
 
 		# background job hygiene: release file locks if unreleased
 		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
