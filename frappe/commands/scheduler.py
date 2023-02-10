@@ -5,7 +5,6 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import cint
 
 
 @click.command("trigger-scheduler-event", help="Trigger a scheduler event")
@@ -83,8 +82,7 @@ def disable_scheduler(context):
 def scheduler(context, state: str, format: str, verbose: bool = False, site: str | None = None):
 	"""Control scheduler state."""
 	import frappe
-	import frappe.utils.scheduler
-	from frappe.installer import update_site_config
+	from frappe.utils.scheduler import is_scheduler_inactive, toggle_scheduler
 
 	site = site or get_site(context)
 
@@ -97,15 +95,15 @@ def scheduler(context, state: str, format: str, verbose: bool = False, site: str
 		match state:
 			case "status":
 				frappe.connect()
-				status = (
-					"disabled" if frappe.utils.scheduler.is_scheduler_inactive(verbose=verbose) else "enabled"
-				)
+				status = "disabled" if is_scheduler_inactive(verbose=verbose) else "enabled"
 				return print(output[format].format(status=status, site=site))
 			case "pause" | "resume":
+				from frappe.installer import update_site_config
+
 				update_site_config("pause_scheduler", state == "pause")
 			case "enable" | "disable":
 				frappe.connect()
-				frappe.utils.scheduler.toggle_scheduler(state == "enable")
+				toggle_scheduler(state == "enable")
 				frappe.db.commit()
 
 		print(output[format].format(status=f"{state}d", site=site))
