@@ -50,8 +50,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
+<<<<<<< HEAD
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: "gabrielfalcao/pyenv-action@v10"
+=======
+        uses: "gabrielfalcao/pyenv-action@v13"
+>>>>>>> c525268084 (chore(deps): bump gabrielfalcao/pyenv-action from 10 to 13 (#19940))
         with:
           versions: 3.10:latest, 3.7:latest
 
