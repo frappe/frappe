@@ -75,11 +75,19 @@ def disable_scheduler(context):
 @click.command("scheduler")
 @click.option("--site", help="site name")
 @click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable", "status"]))
+@click.option(
+	"--format", "-f", default="text", type=click.Choice(["json", "text"]), help="Output format"
+)
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @pass_context
+<<<<<<< HEAD
 <<<<<<< HEAD
 def scheduler(context, state, site=None):
 =======
 def scheduler(context, state: str, site: str | None = None):
+=======
+def scheduler(context, state: str, format: str, verbose: bool = False, site: str | None = None):
+>>>>>>> 4738a1422d (fix: Add format, verbose options to scheduler)
 	"""Control scheduler state."""
 	import frappe
 >>>>>>> 6b84c9ccf5 (feat: Check scheduler status via CLI)
@@ -88,11 +96,18 @@ def scheduler(context, state: str, site: str | None = None):
 
 	site = site or get_site(context)
 
+	output = {
+		"text": "Scheduler is {status} for site {site}",
+		"json": '{{"status": "{status}", "site": "{site}"}}',
+	}
+
 	with frappe.init_site(site=site):
 		match state:
 			case "status":
 				frappe.connect()
-				status = "disabled" if frappe.utils.scheduler.is_scheduler_inactive(verbose=verbose) else "enabled"
+				status = (
+					"disabled" if frappe.utils.scheduler.is_scheduler_inactive(verbose=verbose) else "enabled"
+				)
 				return print(output[format].format(status=status, site=site))
 			case "pause" | "resume":
 				update_site_config("pause_scheduler", state == "pause")
@@ -101,7 +116,7 @@ def scheduler(context, state: str, site: str | None = None):
 				frappe.utils.scheduler.toggle_scheduler(state == "enable")
 				frappe.db.commit()
 
-		print(f"Scheduler {state}d for site {site}")
+		print(output[format].format(status=f"{state}d", site=site))
 
 
 @click.command("set-maintenance-mode")

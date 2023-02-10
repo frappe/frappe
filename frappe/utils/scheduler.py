@@ -96,16 +96,22 @@ def enqueue_events(site):
 				frappe.get_doc("Scheduled Job Type", job_type.name).enqueue()
 
 
+<<<<<<< HEAD
 def is_scheduler_inactive():
+=======
+def is_scheduler_inactive(verbose=True) -> bool:
+>>>>>>> 4738a1422d (fix: Add format, verbose options to scheduler)
 	if frappe.local.conf.maintenance_mode:
-		cprint(f"{frappe.local.site}: Maintenance mode is ON")
+		if verbose:
+			cprint(f"{frappe.local.site}: Maintenance mode is ON")
 		return True
 
 	if frappe.local.conf.pause_scheduler:
-		cprint(f"{frappe.local.site}: frappe.conf.pause_scheduler is SET")
+		if verbose:
+			cprint(f"{frappe.local.site}: frappe.conf.pause_scheduler is SET")
 		return True
 
-	if is_scheduler_disabled():
+	if is_scheduler_disabled(verbose=verbose):
 		return True
 
 	return False
