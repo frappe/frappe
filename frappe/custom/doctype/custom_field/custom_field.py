@@ -13,6 +13,10 @@ from frappe.utils import cstr, random_string
 
 
 class CustomField(Document):
+	def before_import(self):
+		if frappe.flags.in_fixtures:
+			self.is_system_generated = 1
+
 	def autoname(self):
 		self.set_fieldname()
 		self.name = self.dt + "-" + self.fieldname

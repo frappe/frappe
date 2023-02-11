@@ -9,6 +9,10 @@ not_allowed_fieldtype_change = ["naming_series"]
 
 
 class PropertySetter(Document):
+	def before_import(self):
+		if frappe.flags.in_fixtures:
+			self.is_system_generated = 1
+
 	def autoname(self):
 		self.name = "{doctype}-{field}-{property}".format(
 			doctype=self.doc_type, field=self.field_name or self.row_name or "main", property=self.property
