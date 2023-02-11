@@ -20,6 +20,7 @@ import frappe.defaults
 import frappe.model.meta
 from frappe import _
 from frappe.database.utils import (
+	DefaultOrderBy,
 	EmptyQueryValues,
 	FallBackDateTimeStr,
 	LazyMogrify,
@@ -221,7 +222,7 @@ class Database:
 			self._cursor.execute(query, values)
 		except Exception as e:
 			if self.is_syntax_error(e):
-				frappe.errprint(f"Syntax error in query:\n{query} {values}")
+				frappe.errprint(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
 				raise frappe.QueryDeadlockError(e) from e
@@ -422,7 +423,7 @@ class Database:
 		ignore=None,
 		as_dict=False,
 		debug=False,
-		order_by="KEEP_DEFAULT_ORDERING",
+		order_by=DefaultOrderBy,
 		cache=False,
 		for_update=False,
 		*,
@@ -492,7 +493,7 @@ class Database:
 		ignore=None,
 		as_dict=False,
 		debug=False,
-		order_by="KEEP_DEFAULT_ORDERING",
+		order_by=DefaultOrderBy,
 		update=None,
 		cache=False,
 		for_update=False,
@@ -551,7 +552,7 @@ class Database:
 			if (filters is not None) and (filters != doctype or doctype == "DocType"):
 				try:
 					if order_by:
-						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
+						order_by = "modified" if order_by == DefaultOrderBy else order_by
 					out = self._get_values_from_table(
 						fields=fields,
 						filters=filters,
@@ -772,7 +773,9 @@ class Database:
 
 		if not df:
 			frappe.throw(
-				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
+				_("Field {0} does not exist on {1}").format(
+					frappe.bold(fieldname), frappe.bold(doctype), self.InvalidColumnName
+				)
 			)
 
 		val = cast_fieldtype(df.fieldtype, val)

@@ -265,7 +265,7 @@ class BackupGenerator:
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
-			file_timestamp = file_name.split("-")[0]
+			file_timestamp = file_name.split("-", 1)[0]
 			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
 
 		def get_latest(file_pattern):

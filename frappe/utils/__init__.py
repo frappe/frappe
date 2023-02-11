@@ -24,7 +24,6 @@ from typing import Any, Literal
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
-from traceback_with_variables import iter_exc_lines
 from werkzeug.test import Client
 
 import frappe
@@ -298,13 +297,15 @@ def get_traceback(with_context=False) -> str:
 	"""
 	Returns the traceback of the Exception
 	"""
+	from traceback_with_variables import iter_exc_lines
+
 	exc_type, exc_value, exc_tb = sys.exc_info()
 
 	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
 	if with_context:
-		trace_list = iter_exc_lines()
+		trace_list = iter_exc_lines(fmt=_get_traceback_sanitizer())
 		tb = "\n".join(trace_list)
 	else:
 		trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
@@ -312,6 +313,44 @@ def get_traceback(with_context=False) -> str:
 
 	bench_path = get_bench_path() + "/"
 	return tb.replace(bench_path, "")
+
+
+@functools.lru_cache(maxsize=1)
+def _get_traceback_sanitizer():
+	from traceback_with_variables import Format
+
+	blocklist = [
+		"password",
+		"passwd",
+		"secret",
+		"token",
+		"key",
+		"pwd",
+	]
+
+	placeholder = "********"
+
+	def dict_printer(v: dict) -> str:
+		from copy import deepcopy
+
+		v = deepcopy(v)
+		for key in blocklist:
+			if key in v:
+				v[key] = placeholder
+
+		return str(v)
+
+	# Adapted from https://github.com/andy-landy/traceback_with_variables/blob/master/examples/format_customized.py
+	# Reused under MIT license: https://github.com/andy-landy/traceback_with_variables/blob/master/LICENSE
+
+	return Format(
+		custom_var_printers=[
+			# redact variables
+			*[(variable_name, lambda: placeholder) for variable_name in blocklist],
+			# redact dictionary keys
+			(["_secret", dict, lambda *a, **kw: False], dict_printer),
+		],
+	)
 
 
 def log(event, details):
@@ -509,7 +548,7 @@ def decode_dict(d, encoding="utf-8"):
 
 @functools.lru_cache
 def get_site_name(hostname):
-	return hostname.split(":")[0]
+	return hostname.split(":", 1)[0]
 
 
 def get_disk_usage():

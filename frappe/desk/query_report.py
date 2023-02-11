@@ -428,7 +428,7 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 	if isinstance(columns[0], str):
 		first_col = columns[0].split(":")
 		if len(first_col) > 1:
-			first_col_fieldtype = first_col[1].split("/")[0]
+			first_col_fieldtype = first_col[1].split("/", 1)[0]
 	else:
 		first_col_fieldtype = columns[0].get("fieldtype")
 

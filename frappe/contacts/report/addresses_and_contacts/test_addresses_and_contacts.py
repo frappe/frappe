@@ -112,6 +112,3 @@ class TestAddressesAndContacts(FrappeTestCase):
 				1,
 			]
 			self.assertListEqual(test_item, report_data[idx])
-
-	def tearDown(self):
-		frappe.db.rollback()
