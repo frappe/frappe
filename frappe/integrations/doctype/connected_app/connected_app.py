@@ -90,13 +90,8 @@ class ConnectedApp(Document):
 		return redirect
 
 	def get_token_cache(self, user):
-		token_cache = None
-		token_cache_name = self.name + "-" + user
-
-		if frappe.db.exists("Token Cache", token_cache_name):
-			token_cache = frappe.get_doc("Token Cache", token_cache_name)
-
-		return token_cache
+		if cache_name := frappe.db.get_value("Token Cache", {"connected_app": self.name, "user": user}):
+			return frappe.get_doc("Token Cache", cache_name)
 
 	def get_scopes(self):
 		return [row.scope for row in self.scopes]
@@ -143,7 +138,10 @@ def callback(code=None, state=None):
 		frappe.throw(_("Invalid Parameters."))
 
 	connected_app = frappe.get_doc("Connected App", path[3])
-	token_cache = frappe.get_doc("Token Cache", connected_app.name + "-" + frappe.session.user)
+	cache_name = frappe.db.get_value(
+		"Token Cache", {"connected_app": connected_app.name, "user": frappe.session.user}
+	)
+	token_cache = frappe.get_doc("Token Cache", cache_name)
 
 	if state != token_cache.state:
 		frappe.throw(_("Invalid state."))

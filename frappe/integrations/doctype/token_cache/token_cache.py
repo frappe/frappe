@@ -67,3 +67,7 @@ class TokenCache(Document):
 			"expires_in": self.get_expires_in(),
 			"token_type": self.token_type,
 		}
+
+
+def on_doctype_update():
+	frappe.db.add_unique("Token Cache", ["connected_app", "user"])

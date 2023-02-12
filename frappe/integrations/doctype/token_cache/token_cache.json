@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:{connected_app}-{user}",
+ "autoname": "hash",
  "beta": 1,
  "creation": "2019-01-24 16:56:55.631096",
  "doctype": "DocType",
@@ -86,11 +86,11 @@
   }
  ],
  "links": [],
- "modified": "2023-01-01 21:01:24.405729",
+ "modified": "2023-02-13 13:26:55.746007",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
- "naming_rule": "Expression",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
