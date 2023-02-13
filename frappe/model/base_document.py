@@ -45,7 +45,7 @@ def get_controller(doctype):
 		from frappe.utils.nestedset import NestedSet
 
 		module_name, custom = frappe.db.get_value(
-			"DocType", doctype, ("module", "custom"), cache=True
+			"DocType", doctype, ("module", "custom"), cache=not frappe.flags.in_migrate
 		) or ("Core", False)
 
 		if custom:
@@ -73,7 +73,7 @@ def get_controller(doctype):
 				raise ImportError(doctype)
 		return _class
 
-	if frappe.local.dev_server:
+	if frappe.local.dev_server or frappe.flags.in_migrate:
 		return _get_controller()
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
@@ -1103,7 +1103,8 @@ class BaseDocument:
 			df = get_default_df(fieldname)
 
 		if (
-			df.fieldtype == "Currency"
+			df
+			and df.fieldtype == "Currency"
 			and not currency
 			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))

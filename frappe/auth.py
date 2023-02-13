@@ -309,7 +309,7 @@ class LoginManager:
 
 		current_hour = int(now_datetime().strftime("%H"))
 
-		if login_before and current_hour > login_before:
+		if login_before and current_hour >= login_before:
 			frappe.throw(_("Login not allowed at this time"), frappe.AuthenticationError)
 
 		if login_after and current_hour < login_after:

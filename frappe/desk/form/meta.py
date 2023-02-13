@@ -208,7 +208,7 @@ class FormMeta(Meta):
 
 		if df.get("is_custom_field"):
 			custom_field_link = get_link_to_form("Custom Field", df.name)
-			msg += " " + _("Please delete the field from {2} or add the required doctype.").format(
+			msg += " " + _("Please delete the field from {0} or add the required doctype.").format(
 				custom_field_link
 			)
 

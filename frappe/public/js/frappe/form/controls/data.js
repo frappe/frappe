@@ -220,6 +220,10 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 				this.df.fieldtype
 			)
 		) {
+			if (this.frm?.meta?.issingle) {
+				// singles dont have any "real" length requirements
+				return;
+			}
 			this.$input.attr("maxlength", this.df.length || 140);
 		}
 

@@ -819,7 +819,7 @@ class Database:
 		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
 			as_dict = True
 
-		return self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
+		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
 
 	def _get_value_for_many_names(
 		self,
@@ -1101,7 +1101,7 @@ class Database:
 		query = frappe.qb.engine.get_query(
 			table=dt, filters=filters, fields=Count("*"), distinct=distinct
 		)
-		count = self.sql(query, debug=debug)[0][0]
+		count = query.run(debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
