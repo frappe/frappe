@@ -230,7 +230,7 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		reports = frappe.get_all(
+		reports = frappe.get_list(
 			"Report",
 			fields=["name", "report_type"],
 			filters={"name": ("in", has_role.keys())},
@@ -238,6 +238,10 @@ def get_user_pages_or_reports(parent, cache=False):
 		)
 		for report in reports:
 			has_role[report.name]["report_type"] = report.report_type
+
+		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+		for r in non_permitted_reports:
+			has_role.pop(r, None)
 
 	# Expire every six hours
 	_cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
