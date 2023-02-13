@@ -452,13 +452,21 @@ class TestCustomizeForm(FrappeTestCase):
 		self.assertEqual(customize_form.fields[1].fieldname, "test_todo_type")
 
 	def test_migrated_standard_field_order(self):
-		"""
-		This test case covers when a form has a customized field_order.
-		When new standard fields are added. We need to intelligently
-		computed the new field_order.
-		"""
 		frappe.db.delete("Custom Field", filters={"dt": "ToDo"})
 		frappe.db.delete("Property Setter", filters={"doc_type": "ToDo"})
+
+		# Revert new standard field test_new_standard_field if re-run.
+		doctype = frappe.get_doc("DocType", "ToDo")
+		doctype.fields.sort(key=lambda f: f.idx)
+		if "test_new_standard_field" in [f.fieldname for f in doctype.fields]:
+			position = [f.fieldname for f in doctype.fields].index("test_new_standard_field")
+			for field in doctype.fields[position:]:
+				if field.fieldname == "test_new_standard_field":
+					frappe.db.delete("DocField", filters={"name": field.name})
+				else:
+					field.idx = field.idx - 1
+					field.db_update()
+
 		frappe.clear_cache(doctype="ToDo")
 
 		# Move description field to top of form.
@@ -470,17 +478,28 @@ class TestCustomizeForm(FrappeTestCase):
 
 		# Create a new standard field under "Description"
 		doctype = frappe.get_doc("DocType", "ToDo")
-		idx = [f.fieldname for f in doctype.fields].index("description")
-		for field in doctype.fields[idx:]:
-			field.idx += 2
-		field = doctype.append(
+
+		# Shift standard field indexes after description up.
+		doctype.fields.sort(key=lambda f: f.idx)
+		position_description = [f.fieldname for f in doctype.fields].index("description")
+		for field in doctype.fields[position_description + 1 :]:
+			field.idx = field.idx + 1
+			field.db_update()
+
+		# Insert the new standard field after description.
+		new_standard_field = doctype.append(
 			"fields",
-			{"fieldtype": "Data", "fieldname": "my_test_field", "label": "My Test Field", "idx": idx + 2},
+			{
+				"fieldname": "test_new_standard_field",
+				"label": "Test new standared field",
+				"fieldtype": "Data",
+				"idx": position_description + 2,
+			},
 		)
-		field.db_insert()
+		new_standard_field.db_insert()
 
 		# Test that my_test_field is ordered after description
 		frappe.clear_cache(doctype="ToDo")
 		customize_form = self.get_customize_form("ToDo")
 		fields = [f.fieldname for f in customize_form.fields]
-		self.assertEqual(fields[fields.index("description") + 1], "my_test_field")
+		self.assertEqual(fields[fields.index("description") + 1], "test_new_standard_field")
