@@ -492,9 +492,6 @@ class Meta(Document):
 		"""Sort standard fields on the basis of property setter,
 		and custom fields on the basis of insert_after"""
 
-		if self.name == "ToDo":
-			print("debug")
-
 		self.sort_fields_based_on_field_order()
 
 		field_order = []
