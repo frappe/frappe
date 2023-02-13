@@ -759,7 +759,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	delete the db field.
 	"""
 	UPDATED_TABLES = {}
-	filters = {"issingle": 0}
+	filters = {"issingle": 0, "is_virtual": 0}
 	if doctype:
 		filters["name"] = doctype
 
