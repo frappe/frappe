@@ -452,22 +452,24 @@ class TestCustomizeForm(FrappeTestCase):
 		self.assertEqual(customize_form.fields[1].fieldname, "test_todo_type")
 
 	def test_migrated_standard_field_order(self):
+		def revert_standard_field_creation():
+			# Revert new standard field test_new_standard_field if re-run.
+			doctype = frappe.get_doc("DocType", "ToDo")
+			doctype.fields.sort(key=lambda f: f.idx)
+			if "test_new_standard_field" in [f.fieldname for f in doctype.fields]:
+				position = [f.fieldname for f in doctype.fields].index("test_new_standard_field")
+				for field in doctype.fields[position:]:
+					if field.fieldname == "test_new_standard_field":
+						frappe.db.delete("DocField", filters={"name": field.name})
+					else:
+						field.idx = field.idx - 1
+						field.db_update()
+				frappe.clear_cache(doctype="ToDo")
+
 		frappe.db.delete("Custom Field", filters={"dt": "ToDo"})
 		frappe.db.delete("Property Setter", filters={"doc_type": "ToDo"})
 
-		# Revert new standard field test_new_standard_field if re-run.
-		doctype = frappe.get_doc("DocType", "ToDo")
-		doctype.fields.sort(key=lambda f: f.idx)
-		if "test_new_standard_field" in [f.fieldname for f in doctype.fields]:
-			position = [f.fieldname for f in doctype.fields].index("test_new_standard_field")
-			for field in doctype.fields[position:]:
-				if field.fieldname == "test_new_standard_field":
-					frappe.db.delete("DocField", filters={"name": field.name})
-				else:
-					field.idx = field.idx - 1
-					field.db_update()
-
-		frappe.clear_cache(doctype="ToDo")
+		revert_standard_field_creation()
 
 		# Move description field to top of form.
 		customize_form = self.get_customize_form("ToDo")
@@ -503,3 +505,4 @@ class TestCustomizeForm(FrappeTestCase):
 		customize_form = self.get_customize_form("ToDo")
 		fields = [f.fieldname for f in customize_form.fields]
 		self.assertEqual(fields[fields.index("description") + 1], "test_new_standard_field")
+		revert_standard_field_creation()
