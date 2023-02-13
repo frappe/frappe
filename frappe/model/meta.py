@@ -476,7 +476,7 @@ class Meta(Document):
 						position = self.field_order.index(self.fields[idx - 1].fieldname) + 1
 					else:
 						# This is a new system generated custom field. Use insert_after.
-						position = self.field_order.index(field.insert_after)
+						position = self.field_order.index(field.insert_after) + 1
 					self.field_order.insert(position, field.fieldname)
 				except (ValueError, IndexError):
 					self.field_order.append(field.fieldname)
@@ -491,6 +491,9 @@ class Meta(Document):
 	def sort_fields(self):
 		"""Sort standard fields on the basis of property setter,
 		and custom fields on the basis of insert_after"""
+
+		if self.name == "ToDo":
+			print("debug")
 
 		self.sort_fields_based_on_field_order()
 
