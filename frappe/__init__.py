@@ -557,7 +557,7 @@ def get_user():
 
 def get_roles(username=None):
 	"""Returns roles of current user."""
-	if not local.session:
+	if not local.session or not local.session.user:
 		return ["Guest"]
 	import frappe.permissions
 

@@ -316,7 +316,8 @@ def update_child_docs(old, new, meta):
 	# update "parent"
 	for df in meta.get_table_fields():
 		frappe.db.sql(
-			"update `tab%s` set parent=%s where parent=%s" % (df.options, "%s", "%s"), (new, old)
+			f"update `tab{df.options}` set parent=%s where parent=%s and parenttype=%s",
+			(new, old, meta.name),
 		)
 
 

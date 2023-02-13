@@ -15,7 +15,7 @@ import sys
 import traceback
 
 import six
-from ldap3.core.exceptions import LDAPInvalidCredentialsResult
+from ldap3.core.exceptions import LDAPException
 
 import frappe
 from frappe.utils import cstr, encode
@@ -24,7 +24,7 @@ EXCLUDE_EXCEPTIONS = (
 	frappe.AuthenticationError,
 	frappe.CSRFTokenError,  # CSRF covers OAuth too
 	frappe.SecurityException,
-	LDAPInvalidCredentialsResult,
+	LDAPException,
 )
 
 
