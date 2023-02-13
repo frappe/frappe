@@ -590,5 +590,4 @@ class TestCustomizeForm(FrappeTestCase):
 
 		# Test the new system generated field uses insert_after as it doesn't have an
 		# existing position.
-		print(fields)
 		self.assertEqual(fields[fields.index("test_todo_type") + 1], "test_todo_sub_type")
