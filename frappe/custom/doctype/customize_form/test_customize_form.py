@@ -506,3 +506,89 @@ class TestCustomizeForm(FrappeTestCase):
 		fields = [f.fieldname for f in customize_form.fields]
 		self.assertEqual(fields[fields.index("description") + 1], "test_new_standard_field")
 		revert_standard_field_creation()
+
+	def test_system_generated_custom_field(self):
+		"""
+		Using a system generated field, move the field position.
+		   Then migrate a new system generated field.
+		   Ensure the existing system generated field:
+		        a) field_order is retainiend.
+		        b) field properties is retainited.
+		   Ensure the new system generated field is inserted
+		   using insert_after as it doesn't exist in field_order.
+		"""
+		from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+
+		# Reset all customizations including system generated.
+		reset_customization(doctype="ToDo")
+		frappe.db.delete("Custom Field", filters={"dt": "ToDo"})
+		frappe.db.delete("Property Setter", filters={"doc_type": "ToDo"})
+
+		create_custom_field(
+			doctype="ToDo",
+			df=frappe._dict(
+				{
+					"fieldname": "test_todo_type",
+					"fieldtype": "Data",
+					"label": "Test ToDo Type",
+					"insert_after": "description",
+					"read_only": 0,
+					"default": "",
+				}
+			),
+			is_system_generated=True,
+		)
+
+		# A new system generated field is created without field_order.
+		# It should be placed after description.
+		frappe.clear_cache(doctype="ToDo")
+		customize_form = self.get_customize_form(doctype="ToDo")
+		fields = [f.fieldname for f in customize_form.fields]
+		self.assertEqual(fields[fields.index("description") + 1], "test_todo_type")
+
+		# Move the description field to the beginning of the form.
+		# This will create a property setter field_order.
+		# The existing system generated field should no longer
+		# be placed after description.
+		description = customize_form.fields.pop(fields.index("description"))
+		customize_form.fields.insert(2, description)
+		customize_form.save_customization()
+		fields = [f.fieldname for f in customize_form.fields]
+		self.assertNotEqual(fields[fields.index("description") + 1], "test_todo_type")
+
+		# Set a default setting to test_todo_type and make it read_only.
+		customize_form.fields[fields.index("test_todo_type")].default = "Test ToDo"
+		customize_form.fields[fields.index("test_todo_type")].read_only = 1
+		customize_form.save_customization()
+
+		# Create a new system generated field, ensure the previous system generated
+		# field didn't get overriden.
+		create_custom_field(
+			doctype="ToDo",
+			df=frappe._dict(
+				{
+					"fieldname": "test_todo_sub_type",
+					"fieldtype": "Data",
+					"label": "Test ToDo Sub Type",
+					"insert_after": "test_todo_type",
+				}
+			),
+			is_system_generated=True,
+		)
+		frappe.clear_cache(doctype="ToDo")
+
+		customize_form = self.get_customize_form(doctype="ToDo")
+		fields = [f.fieldname for f in customize_form.fields]
+
+		# Test that the original system generated field didn't get re-migrated to it's
+		# original position.
+		self.assertNotEqual(fields[fields.index("description") + 1], "test_todo_type")
+
+		# Test the original system field kept custom property setters. E.g: default, read_only.
+		self.assertEqual(customize_form.fields[fields.index("test_todo_type")].read_only, 1)
+		self.assertEqual(customize_form.fields[fields.index("test_todo_type")].default, "Test ToDo")
+
+		# Test the new system generated field uses insert_after as it doesn't have an
+		# existing position.
+		print(fields)
+		self.assertEqual(fields[fields.index("test_todo_type") + 1], "test_todo_sub_type")
