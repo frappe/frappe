@@ -471,7 +471,12 @@ class Meta(Document):
 				# after that fieldname. If the fieldname doesn't exist.
 				# Insert at end of list.
 				try:
-					position = self.field_order.index(self.fields[idx - 1].fieldname) + 1
+					if not getattr(field, "is_custom_field", False):
+						# This is a new standard field.
+						position = self.field_order.index(self.fields[idx - 1].fieldname) + 1
+					else:
+						# This is a new system generated custom field. Use insert_after.
+						position = self.field_order.index(field.insert_after)
 					self.field_order.insert(position, field.fieldname)
 				except (ValueError, IndexError):
 					self.field_order.append(field.fieldname)
