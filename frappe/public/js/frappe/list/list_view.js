@@ -1364,11 +1364,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}
 				return return_value;
 			});
+			this.toggle_result_area();
+			this.render_list();
 			if (this.$checks && this.$checks.length) {
 				this.set_rows_as_checked();
 			}
-			this.toggle_result_area();
-			this.render_list();
 		});
 	}
 
