@@ -30,7 +30,7 @@ def mark_as_seen(note):
 	note = frappe.get_doc("Note", note)
 	if frappe.session.user not in [d.user for d in note.seen_by]:
 		note.append("seen_by", {"user": frappe.session.user})
-		note.save(ignore_version=True)
+		note.save(ignore_version=True, ignore_permissions=True)
 
 
 def get_permission_query_conditions(user):
