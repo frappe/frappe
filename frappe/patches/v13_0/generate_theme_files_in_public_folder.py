@@ -14,7 +14,6 @@ def execute():
 	for theme in themes:
 		doc = frappe.get_doc("Website Theme", theme.name)
 		try:
-			doc.generate_bootstrap_theme()
 			doc.save()
 		except Exception:
 			print("Ignoring....")
