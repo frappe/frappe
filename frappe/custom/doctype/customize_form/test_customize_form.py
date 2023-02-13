@@ -450,3 +450,37 @@ class TestCustomizeForm(FrappeTestCase):
 
 		customize_form = self.get_customize_form(doctype="ToDo")
 		self.assertEqual(customize_form.fields[1].fieldname, "test_todo_type")
+
+	def test_migrated_standard_field_order(self):
+		"""
+		This test case covers when a form has a customized field_order.
+		When new standard fields are added. We need to intelligently
+		computed the new field_order.
+		"""
+		frappe.db.delete("Custom Field", filters={"dt": "ToDo"})
+		frappe.db.delete("Property Setter", filters={"doc_type": "ToDo"})
+		frappe.clear_cache(doctype="ToDo")
+
+		# Move description field to top of form.
+		customize_form = self.get_customize_form("ToDo")
+		fields = [f.fieldname for f in customize_form.fields]
+		description = customize_form.fields.pop(fields.index("description"))
+		customize_form.fields.insert(1, description)
+		customize_form.save_customization()
+
+		# Create a new standard field under "Description"
+		doctype = frappe.get_doc("DocType", "ToDo")
+		idx = [f.fieldname for f in doctype.fields].index("description")
+		for field in doctype.fields[idx:]:
+			field.idx += 2
+		field = doctype.append(
+			"fields",
+			{"fieldtype": "Data", "fieldname": "my_test_field", "label": "My Test Field", "idx": idx + 2},
+		)
+		field.db_insert()
+
+		# Test that my_test_field is ordered after description
+		frappe.clear_cache(doctype="ToDo")
+		customize_form = self.get_customize_form("ToDo")
+		fields = [f.fieldname for f in customize_form.fields]
+		self.assertEqual(fields[fields.index("description") + 1], "my_test_field")
