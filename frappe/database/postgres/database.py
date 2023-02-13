@@ -361,7 +361,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.sql(
 				"""ALTER TABLE `tab%s`
 					ADD CONSTRAINT %s UNIQUE (%s)"""
-				% (doctype, constraint_name, ", ".join(fields))
+				% (doctype, constraint_name, ", ".join(f'"{f}"' for f in fields))
 			)
 
 	def get_table_columns_description(self, table_name):
