@@ -333,7 +333,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				# last day of month issue, start from prev month!
 				try:
 					getdate(date)
-				except ValueError:
+				except Exception:
 					date = date.split("-")
 					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
 
