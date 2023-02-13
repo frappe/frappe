@@ -774,3 +774,9 @@ class TestDBCli(BaseTestCommands):
 	def test_db_cli(self):
 		self.execute("bench --site {site} db-console", kwargs={"cmd_input": rb"\q"})
 		self.assertEqual(self.returncode, 0)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_db_cli_with_sql(self):
+		self.execute("bench --site {site} db-console -e 'select 1'")
+		self.assertEqual(self.returncode, 0)
+		self.assertIn("1", self.stdout)
