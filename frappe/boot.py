@@ -101,7 +101,7 @@ def get_bootinfo():
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
-	bootinfo.subscription_expiry = add_subscription_expiry()
+	bootinfo.subscription_conf = add_subscription_conf()
 
 	return bootinfo
 
@@ -435,8 +435,8 @@ def load_currency_docs(bootinfo):
 	bootinfo.docs += currency_docs
 
 
-def add_subscription_expiry():
+def add_subscription_conf():
 	try:
-		return frappe.conf.subscription["expiry"]
+		return frappe.conf.subscription
 	except Exception:
 		return ""
