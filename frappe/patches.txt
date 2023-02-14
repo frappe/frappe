@@ -214,5 +214,4 @@ frappe.patches.v14_0.set_suspend_email_queue_default
 frappe.patches.v14_0.different_encryption_key
 frappe.patches.v14_0.update_multistep_webforms
 frappe.patches.v14_0.drop_unused_indexes
-frappe.patches.v14_0.add_manage_subscriptions_in_navbar_settings
 frappe.patches.v14_0.disable_email_accounts_with_oauth
