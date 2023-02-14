@@ -17,10 +17,10 @@
 				</div>
 				<div class="checkbox">
 					<label>
-						<input type="checkbox"
-							data-fieldname="{{ f.fieldname }}"
-							{{ selected ? "checked" : "" }}>
-							{{ __(f.label) }}
+						<span class="input-area">
+							<input type="checkbox" data-fieldname="{{ f.fieldname }}" {{ selected ? "checked" : "" }}>
+						</span>
+						<span class="label-area">{{ __(f.label) }}</span>
 					</label>
 				</div>
 			</div>
