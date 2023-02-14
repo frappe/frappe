@@ -164,6 +164,7 @@ class DatabaseQuery:
 		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
+		self.parent_doctype = parent_doctype
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -588,19 +589,34 @@ class DatabaseQuery:
 			self.fields.pop(idx)
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Apply fieldlevel read permissions to the query"""
+		"""Apply fieldlevel read permissions to the query
+
+		Note: Does not apply to `frappe.model.core_doctype_list`
+
+		Remove fields that user is not allowed to read. If `fields=["*"]` is passed, only permitted fields will
+		be returned.
+
+		Example:
+		        - User has read permission only on `title` for DocType `Note`
+		        - Query: fields=["*"]
+		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
+		"""
 		if self.flags.ignore_permissions:
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=self.parent_doctype)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():
 				# field: 'count(distinct `tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
-				self.distinct = True
-				column = field.split(" ", 2)[1].replace("`", "").replace(")", "")
+				if _fn := FN_PARAMS_PATTERN.findall(field):
+					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
+				# field: 'distinct name'
+				# column: 'name'
+				else:
+					column = field.split(" ", 2)[1].replace("`", "")
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
