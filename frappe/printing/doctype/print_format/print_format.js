@@ -41,7 +41,7 @@ frappe.ui.form.on("Print Format", {
 			}
 			if (frappe.model.can_write("Customize Form")) {
 				frappe.model.with_doctype(frm.doc.doc_type, function () {
-					let current_format = frappe.get_meta(frm.doc.DocType).default_print_format;
+					let current_format = frappe.get_meta(frm.doc.doc_type).default_print_format;
 					if (current_format == frm.doc.name) {
 						return;
 					}

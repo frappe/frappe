@@ -274,21 +274,18 @@ $.extend(frappe.model, {
 
 	init_doctype: function (doctype) {
 		var meta = locals.DocType[doctype];
-		if (meta.__list_js) {
-			eval(meta.__list_js);
+		for (const asset_key of [
+			"__list_js",
+			"__custom_list_js",
+			"__calendar_js",
+			"__map_js",
+			"__tree_js",
+		]) {
+			if (meta[asset_key]) {
+				new Function(meta[asset_key])();
+			}
 		}
-		if (meta.__custom_list_js) {
-			eval(meta.__custom_list_js);
-		}
-		if (meta.__calendar_js) {
-			eval(meta.__calendar_js);
-		}
-		if (meta.__map_js) {
-			eval(meta.__map_js);
-		}
-		if (meta.__tree_js) {
-			eval(meta.__tree_js);
-		}
+
 		if (meta.__templates) {
 			$.extend(frappe.templates, meta.__templates);
 		}
