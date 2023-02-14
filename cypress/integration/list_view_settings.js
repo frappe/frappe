@@ -21,7 +21,7 @@ context("List View Settings", () => {
 		cy.get(".modal-dialog").should("contain", "DocType Settings");
 
 		cy.findByLabelText("Disable Count").check({ force: true });
-		cy.findByLabelText("Disable Comment Count").check({force: true});
+		cy.findByLabelText("Disable Comment Count").check({ force: true });
 		cy.findByLabelText("Disable Sidebar Stats").check({ force: true });
 		cy.findByRole("button", { name: "Save" }).click();
 
