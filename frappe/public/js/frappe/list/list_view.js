@@ -904,8 +904,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
 			$(comment_count).append(`
 				${frappe.utils.icon("small-message")}
-				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}`
-			);
+				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}`);
 		}
 
 		html += `
