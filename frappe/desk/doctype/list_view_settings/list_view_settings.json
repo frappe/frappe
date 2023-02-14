@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "disable_count",
-  "disable_column_count",
+  "disable_comment_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
   "total_fields",
@@ -53,13 +53,13 @@
   },
   {
    "default": "0",
-   "fieldname": "disable_column_count",
+   "fieldname": "disable_comment_count",
    "fieldtype": "Check",
-   "label": "Disable Column Count"
+   "label": "Disable Comment Count"
   }
  ],
  "links": [],
- "modified": "2023-02-14 13:32:59.096139",
+ "modified": "2023-02-14 14:46:43.764229",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
