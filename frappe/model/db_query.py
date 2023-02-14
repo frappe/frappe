@@ -640,7 +640,7 @@ class DatabaseQuery:
 					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)
-					if column in permitted_child_table_fields:
+					if column in permitted_child_table_fields or column in optional_fields:
 						continue
 					else:
 						self.remove_field(i)
