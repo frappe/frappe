@@ -533,16 +533,25 @@ class Meta(Document):
 		return self.high_permlevel_fields
 
 	def get_permitted_fieldnames(self, parenttype=None, *, user=None):
-		"""Build list of `fieldname` with read perm level and all the higher perm levels defined."""
-		if not hasattr(self, "permitted_fieldnames"):
-			self.permitted_fieldnames = []
-			permlevel_access = set(self.get_permlevel_access("read", parenttype, user=user))
+		"""Build list of `fieldname` with read perm level and all the higher perm levels defined.
 
-			for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
-				if df.permlevel in permlevel_access:
-					self.permitted_fieldnames.append(df.fieldname)
+		Note: If permissions are not defined for DocType, return all the fields with value.
+		"""
+		permitted_fieldnames = []
 
-		return self.permitted_fieldnames
+		if self.istable and not parenttype:
+			return permitted_fieldnames
+
+		if not self.get_permissions(parenttype=parenttype):
+			return self.get_fieldnames_with_value()
+
+		permlevel_access = set(self.get_permlevel_access("read", parenttype, user=user))
+
+		for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
+			if df.permlevel in permlevel_access:
+				permitted_fieldnames.append(df.fieldname)
+
+		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
@@ -772,7 +781,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	delete the db field.
 	"""
 	UPDATED_TABLES = {}
-	filters = {"issingle": 0}
+	filters = {"issingle": 0, "is_virtual": 0}
 	if doctype:
 		filters["name"] = doctype
 
