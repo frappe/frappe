@@ -14,15 +14,17 @@ class LetterHead(Document):
 
 	def validate(self):
 		self.set_image()
-		self.validate_disabled_and_default()
-
-	def validate_disabled_and_default(self):
+		self.use_as_default()
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
 
-		if not self.is_default and not self.disabled:
-			if not frappe.db.exists("Letter Head", dict(is_default=1)):
-				self.is_default = 1
+	def use_as_default(self):
+		if (
+			not self.is_default
+			and not self.disabled
+			and not frappe.db.exists("Letter Head", dict(is_default=1))
+		):
+			self.is_default = 1
 
 	def set_image(self):
 		if self.source == "Image":
