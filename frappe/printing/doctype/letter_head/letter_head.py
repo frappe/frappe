@@ -78,12 +78,15 @@ class LetterHead(Document):
 		frappe.msgprint(success_msg, alert=True)
 
 	def on_update(self):
-		self.set_as_default()
+		self.update_system_defaults()
 
-		# clear the cache so that the new letter head is uploaded
-		frappe.clear_cache()
+	def on_trash(self):
+		if self.is_default:
+			frappe.throw(_("Default Letter Head cannot be deleted"))
 
-	def set_as_default(self):
+		self.update_system_defaults()
+
+	def update_system_defaults(self):
 		from frappe.utils import set_default
 
 		if self.is_default:
