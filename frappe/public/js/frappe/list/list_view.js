@@ -504,7 +504,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_args() {
 		const args = super.get_args();
 
-		if (this.list_view_settings && !this.list_view_settings.disable_column_count) {
+		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
 			args.with_comment_count = 1;
 		} else {
 			args.with_comment_count = 0;
