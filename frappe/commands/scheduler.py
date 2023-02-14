@@ -79,23 +79,11 @@ def disable_scheduler(context):
 )
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @pass_context
-<<<<<<< HEAD
-<<<<<<< HEAD
-def scheduler(context, state, site=None):
-=======
-def scheduler(context, state: str, site: str | None = None):
-=======
 def scheduler(context, state: str, format: str, verbose: bool = False, site: str | None = None):
->>>>>>> 4738a1422d (fix: Add format, verbose options to scheduler)
 	"""Control scheduler state."""
 	import frappe
-<<<<<<< HEAD
->>>>>>> 6b84c9ccf5 (feat: Check scheduler status via CLI)
 	import frappe.utils.scheduler
-	from frappe.installer import update_site_config
-=======
 	from frappe.utils.scheduler import is_scheduler_inactive, toggle_scheduler
->>>>>>> 32cf13cb29 (chore: Cleanup imports)
 
 	site = site or get_site(context)
 
