@@ -196,7 +196,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if with_comment_count and not as_list and self.doctype:
+		if with_comment_count and with_comment_count != "0" and not as_list and self.doctype:
 			self.add_comment_count(result)
 
 		if save_user_settings:
