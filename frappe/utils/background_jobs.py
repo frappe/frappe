@@ -158,10 +158,8 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
-	frappe.monitor.start("job", method_name, kwargs)
-
 	for before_job_task in frappe.get_hooks("before_job"):
-		frappe.call(before_job_task, method=method_name, kwargs=kwargs)
+		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
 
 	try:
 		retval = method(**kwargs)
@@ -201,12 +199,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
 
-		# background job hygiene: release file locks if unreleased
-		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
-		for doc in frappe.local.locked_documents:
-			doc.unlock()
-
-		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
 
