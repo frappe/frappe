@@ -90,11 +90,14 @@ def application(request):
 		response = handle_exception(e)
 
 	else:
-		rollback = after_request(rollback)
+		rollback = sync_database(rollback)
 
 	finally:
 		if request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
+
+		for after_request_task in frappe.get_hooks("after_request"):
+			frappe.call(after_request_task)
 
 		frappe.rate_limiter.update()
 		frappe.monitor.stop(response)
@@ -322,6 +325,7 @@ def handle_exception(e):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def after_request(rollback):
 	if (frappe.local.request.method in ("POST", "PUT") or frappe.local.flags.commit) and frappe.db:
 		if frappe.db.transaction_writes:
@@ -332,6 +336,9 @@ def after_request(rollback: bool) -> bool:
 	for after_request_task in frappe.get_hooks("after_request"):
 		frappe.call(after_request_task)
 
+=======
+def sync_database(rollback: bool) -> bool:
+>>>>>>> 6d70b5e934 (fix(app): Move after_request hook inside finally block)
 	# if HTTP method would change server state, commit if necessary
 	if (
 		frappe.db
@@ -346,9 +353,8 @@ def after_request(rollback: bool) -> bool:
 >>>>>>> d6a41cd272 (feat: Before/After Request Hooks)
 
 	# update session
-	if getattr(frappe.local, "session_obj", None):
-		updated_in_db = frappe.local.session_obj.update()
-		if updated_in_db:
+	if session := getattr(frappe.local, "session_obj", None):
+		if session.update():
 			frappe.db.commit()
 			rollback = False
 
