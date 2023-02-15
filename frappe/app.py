@@ -87,11 +87,14 @@ def application(request: Request):
 		response = handle_exception(e)
 
 	else:
-		rollback = after_request(rollback)
+		rollback = sync_database(rollback)
 
 	finally:
 		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
+
+		for after_request_task in frappe.get_hooks("after_request"):
+			frappe.call(after_request_task)
 
 		frappe.rate_limiter.update()
 		frappe.monitor.stop(response)
@@ -333,10 +336,7 @@ def handle_exception(e):
 	return response
 
 
-def after_request(rollback: bool) -> bool:
-	for after_request_task in frappe.get_hooks("after_request"):
-		frappe.call(after_request_task)
-
+def sync_database(rollback: bool) -> bool:
 	# if HTTP method would change server state, commit if necessary
 	if (
 		frappe.db
@@ -350,9 +350,8 @@ def after_request(rollback: bool) -> bool:
 		rollback = False
 
 	# update session
-	if getattr(frappe.local, "session_obj", None):
-		updated_in_db = frappe.local.session_obj.update()
-		if updated_in_db:
+	if session := getattr(frappe.local, "session_obj", None):
+		if session.update():
 			frappe.db.commit()
 			rollback = False
 
