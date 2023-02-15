@@ -900,8 +900,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>`;
 		}
 
-		const comment_count = $(`<span class="comment-count"></span>`);
+		let comment_count = null;
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
+			comment_count = $(`<span class="comment-count"></span>`);
 			$(comment_count).append(`
 				${frappe.utils.icon("small-message")}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}`);
@@ -913,7 +914,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${settings_button || assigned_to}
 				</div>
 				${modified}
-				${$(comment_count).prop("outerHTML")}
+				${comment_count ? $(comment_count).prop("outerHTML") : ''}
 			</div>
 			<div class="level-item visible-xs text-right">
 				${this.get_indicator_dot(doc)}
