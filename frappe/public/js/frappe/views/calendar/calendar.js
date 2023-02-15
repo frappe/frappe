@@ -114,6 +114,22 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
+<<<<<<< HEAD
+=======
+		this.field_map = this.field_map || {
+			id: "name",
+			start: "start",
+			end: "end",
+			allDay: "all_day",
+			convertToUserTz: "convert_to_user_tz",
+		};
+		this.color_map = {
+			danger: "red",
+			success: "green",
+			warning: "orange",
+			default: "blue",
+		};
+>>>>>>> 39761d3d7e (feat(Calendar): Add a new option `convertToUserTz` to address timezone inconsistencies)
 		this.get_default_options();
 	},
 	get_default_options: function() {
@@ -357,12 +373,19 @@ frappe.views.Calendar = Class.extend({
 				d[target] = d[source];
 			});
 
+<<<<<<< HEAD
 			if(!me.field_map.allDay)
 				d.allDay = 1;
+=======
+			if (!me.field_map.allDay) d.allDay = 1;
+			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
+>>>>>>> 39761d3d7e (feat(Calendar): Add a new option `convertToUserTz` to address timezone inconsistencies)
 
 			// convert to user tz
-			d.start = frappe.datetime.convert_to_user_tz(d.start);
-			d.end = frappe.datetime.convert_to_user_tz(d.end);
+			if (d.convertToUserTz) {
+				d.start = frappe.datetime.convert_to_user_tz(d.start);
+				d.end = frappe.datetime.convert_to_user_tz(d.end);
+			}
 
 			// show event on single day if start or end date is invalid
 			if (!frappe.datetime.validate(d.start) && d.end) {
