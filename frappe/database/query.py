@@ -183,7 +183,8 @@ OPERATOR_MAP: dict[str, Callable] = {
 
 
 class Engine:
-	tables: dict[str, str] = {}
+	def __init__(self):
+		self.tables: dict[str, str] = {}
 
 	@cached_property
 	def OPERATOR_MAP(self):
