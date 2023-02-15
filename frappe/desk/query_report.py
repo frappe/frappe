@@ -15,7 +15,15 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions
-from frappe.utils import cint, cstr, flt, format_duration, get_html_format
+from frappe.utils import (
+	cint,
+	cstr,
+	flt,
+	format_date,
+	format_duration,
+	get_html_format,
+	get_user_date_format,
+)
 
 
 def get_report_doc(report_name):
@@ -298,7 +306,7 @@ def export_query():
 		)
 		return
 
-	format_duration_fields(data)
+	format_date_duration_fields(data)
 	xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
 
 	if file_format_type == "CSV":
@@ -313,15 +321,21 @@ def export_query():
 	provide_binary_file(report_name, file_extension, content)
 
 
-def format_duration_fields(data: frappe._dict) -> None:
+def format_date_duration_fields(data: frappe._dict) -> None:
 	for i, col in enumerate(data.columns):
-		if col.get("fieldtype") != "Duration":
+		if col.get("fieldtype") not in ("Duration", "Date"):
 			continue
 
 		for row in data.result:
 			index = col.get("fieldname") if isinstance(row, dict) else i
 			if row[index]:
-				row[index] = format_duration(row[index])
+				if col.get("fieldtype") == "Duration":
+					row[index] = format_duration(row[index])
+				elif col.get("fieldtype") == "Date":
+					date_format = get_user_date_format()
+					row[index] = format_date(
+						row[index], format_string=date_format, parse_day_first=date_format.startswith("dd")
+					)
 
 
 def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
