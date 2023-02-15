@@ -19,6 +19,7 @@ from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
+from frappe.utils.data import sbool
 from frappe.utils import (
 	add_to_date,
 	cint,
