@@ -343,7 +343,7 @@ def _get_traceback_sanitizer():
 	return Format(
 		custom_var_printers=[
 			# redact variables
-			*[(variable_name, lambda: placeholder) for variable_name in blocklist],
+			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
 		],
