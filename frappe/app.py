@@ -48,15 +48,13 @@ class RequestContext(object):
 @Request.application
 def application(request):
 	response = None
+	e = None
 
 	try:
 		rollback = True
 
 		init_request(request)
 
-		frappe.recorder.record()
-		frappe.monitor.start()
-		frappe.rate_limiter.apply()
 		frappe.api.validate_auth()
 
 		if request.method == "OPTIONS":
@@ -97,11 +95,7 @@ def application(request):
 			frappe.db.rollback()
 
 		for after_request_task in frappe.get_hooks("after_request"):
-			frappe.call(after_request_task)
-
-		frappe.rate_limiter.update()
-		frappe.monitor.stop(response)
-		frappe.recorder.dump()
+			frappe.call(after_request_task, response=response, request=request, exception=e)
 
 		log_request(request, response)
 		process_response(response)
