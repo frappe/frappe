@@ -914,7 +914,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${settings_button || assigned_to}
 				</div>
 				${modified}
-				${comment_count ? $(comment_count).prop("outerHTML") : ''}
+				${comment_count ? $(comment_count).prop("outerHTML") : ""}
 			</div>
 			<div class="level-item visible-xs text-right">
 				${this.get_indicator_dot(doc)}
