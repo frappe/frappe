@@ -334,7 +334,13 @@ frappe.customize_form.validate_fieldnames = async function (frm) {
 
 	function pause_to_confirm(message) {
 		return new Promise((resolve) => {
-			frappe.confirm(message, () => resolve());
+			frappe.confirm(
+				message,
+				() => resolve(),
+				() => {
+					frm.page.btn_primary.prop("disabled", false);
+				}
+			);
 		});
 	}
 };
