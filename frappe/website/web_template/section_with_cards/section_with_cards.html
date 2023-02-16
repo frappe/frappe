@@ -18,8 +18,8 @@
 		}) }}
 		{%- endif -%}
 		<div class="card-body">
-			<h3 class="card-title mt-0">{{ title or '' }}</h3>
-			<p class="card-text">{{ content or '' }}</p>
+			<h3 class="card-title mt-0">{{ _(title) or '' }}</h3>
+			<p class="card-text">{{ _(content) or '' }}</p>
 		</div>
 		<a href="{{ url or '#' }}" class="stretched-link"></a>
 	</div>
@@ -28,10 +28,10 @@
 
 <div class="section-with-cards">
 	{%- if title -%}
-	<h2 class="section-title">{{ title }}</h2>
+	<h2 class="section-title">{{ _(title) }}</h2>
 	{%- endif -%}
 	{%- if subtitle -%}
-	<p class="section-description">{{ subtitle }}</p>
+	<p class="section-description">{{ _(subtitle) }}</p>
 	{%- endif -%}
 	{%- set card_size = card_size or 'Small' -%}
 	<div class="{{ resolve_class({'mt-6': title}) }}">
@@ -42,7 +42,7 @@
 			{%- set url = values['card_' + index + '_url'] -%}
 			{%- set image = values['card_' + index + '_image'] -%}
 			{%- if title -%}
-			{{ card(title, content, url, image) }}
+			{{ card(_(title), _(content), url, image) }}
 			{%- endif -%}
 			{%- endfor -%}
 		</div>

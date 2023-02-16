@@ -2,10 +2,10 @@
 
 <div class="section-with-features">
 	{%- if title -%}
-	<h2 class="section-title">{{ title }}</h2>
+	<h2 class="section-title">{{ _(title) }}</h2>
 	{%- endif -%}
 	{%- if subtitle -%}
-	<p class="section-description">{{ subtitle }}</p>
+	<p class="section-description">{{ _(subtitle) }}</p>
 	{%- endif -%}
 
 	<div class="section-features" data-columns="{{ columns or 3 }}">
@@ -13,15 +13,15 @@
 		<div class="section-feature">
 			<div>
 				{%- if testimonial.content -%}
-				<p class="feature-content">{{ testimonial.content }}</p>
+				<p class="feature-content">{{ _(testimonial.content) }}</p>
 				{%- endif -%}
 			</div>
 			<div class="testimonial-author">
 				{{  avatar(full_name=testimonial.full_name, image=testimonial.image, size='avatar-medium') }}
 				<p>
-					{{ testimonial.full_name }}
+					{{ _(testimonial.full_name) }}
 					{%- if testimonial.designation -%}
-					<br>{{ testimonial.designation }}
+					<br>{{ _(testimonial.designation) }}
 					{%- endif -%}
 				</p>
 			</div>
