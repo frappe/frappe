@@ -179,29 +179,19 @@ frappe.ui.Page = Class.extend({
 	},
 
 	setup_overlay_sidebar() {
-<<<<<<< HEAD
-		let overlay_sidebar = this.sidebar.find('.overlay-sidebar')
-			.addClass('opened');
-=======
 		this.sidebar.find(".close-sidebar").remove();
 		let overlay_sidebar = this.sidebar.find(".overlay-sidebar").addClass("opened");
->>>>>>> ce6e86b484 (fix: unable to upload image in responsive mode (#19963))
 		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
-		let scroll_container = $('html')
-			.css("overflow-y", "hidden");
+		let scroll_container = $('html').css("overflow-y", "hidden");
 
-<<<<<<< HEAD
-		this.sidebar.find(".close-sidebar").on('click', (e) => close_sidebar(e));
-		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => close_sidebar(e));
-=======
 		this.sidebar.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
 		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
->>>>>>> ce6e86b484 (fix: unable to upload image in responsive mode (#19963))
 
 		this.close_sidebar = () => {
 			scroll_container.css("overflow-y", "");
 			this.sidebar.find("div.close-sidebar").fadeOut(() => {
-				overlay_sidebar.removeClass('opened')
+				overlay_sidebar
+					.removeClass('opened')
 					.find('.dropdown-toggle')
 					.removeClass('text-muted');
 			});
