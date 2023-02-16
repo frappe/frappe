@@ -112,6 +112,9 @@ select.form-control {
 		content: ' *';
 		color: var(--red-400);
 	}
+	.help:empty {
+		display: none;
+	}
 	.ql-editor:not(.read-mode) {
 		background-color: var(--control-bg);
 	}
