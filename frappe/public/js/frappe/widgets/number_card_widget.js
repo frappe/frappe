@@ -11,6 +11,7 @@ export default class NumberCardWidget extends Widget {
 	get_config() {
 		return {
 			name: this.name,
+			number_card_name: this.number_card_name || this.name,
 			label: this.label,
 			color: this.color,
 			hidden: this.hidden,
@@ -31,7 +32,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	make_card() {
-		frappe.model.with_doc("Number Card", this.name).then((card) => {
+		frappe.model.with_doc("Number Card", this.number_card_name || this.name).then((card) => {
 			if (!card) {
 				if (this.document_type) {
 					frappe.run_serially([
@@ -144,7 +145,6 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_card() {
-		this.prepare_actions();
 		this.set_title();
 		this.set_loading_state();
 

@@ -387,6 +387,7 @@ frappe.views.Workspace = class Workspace {
 			this.editor.isReady.then(() => {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
 				this.editor.configuration.tools.shortcut.config.page_data = this.page_data;
+				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
@@ -1334,9 +1335,16 @@ frappe.views.Workspace = class Workspace {
 					page_data: this.page_data || [],
 				},
 			},
+			number_card: {
+				class: this.blocks["number_card"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
 			spacer: this.blocks["spacer"],
 			HeaderSize: frappe.workspace_block.tunes["header_size"],
 		};
+
 		this.editor = new EditorJS({
 			data: {
 				blocks: blocks || [],

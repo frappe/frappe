@@ -643,7 +643,7 @@ class NumberCardDialog extends WidgetDialog {
 		}
 		data.stats_filter = this.filter_group && JSON.stringify(this.filter_group.get_filters());
 		data.document_type = this.document_type;
-
+		data.label = data.label ? data.label : data.card;
 		return data;
 	}
 }

@@ -157,14 +157,11 @@ class Workspace:
 		return False
 
 	def build_workspace(self):
+		self.number_cards = {"items": self.get_number_cards()}
 		self.cards = {"items": self.get_links()}
-
 		self.charts = {"items": self.get_charts()}
-
 		self.shortcuts = {"items": self.get_shortcuts()}
-
 		self.onboardings = {"items": self.get_onboardings()}
-
 		self.quick_lists = {"items": self.get_quick_lists()}
 
 	def _doctype_contains_a_record(self, name):
@@ -203,6 +200,22 @@ class Workspace:
 		item["label"] = _(item.label) if item.label else _(item.name)
 
 		return item
+
+	@handle_not_exist
+	def get_number_cards(self):
+		all_number_cards = []
+		if frappe.has_permission("Number Card", throw=False):
+			number_cards = self.doc.number_cards
+			for number_card in number_cards:
+				if frappe.has_permission("Number Card", doc=number_card.number_card_name):
+					# Translate label
+					number_card.label = (
+						_(number_card.label) if number_card.label else _(number_card.number_card_name)
+					)
+
+					all_number_cards.append(number_card)
+
+		return all_number_cards
 
 	@handle_not_exist
 	def get_links(self):
@@ -349,6 +362,7 @@ def get_desktop_page(page):
 		workspace = Workspace(loads(page))
 		workspace.build_workspace()
 		return {
+			"number_cards": workspace.number_cards,
 			"charts": workspace.charts,
 			"shortcuts": workspace.shortcuts,
 			"cards": workspace.cards,
@@ -476,6 +490,10 @@ def save_new_widget(doc, page, blocks, new_widgets):
 	if loads(new_widgets):
 		widgets = _dict(loads(new_widgets))
 
+		if widgets.number_card:
+			doc.number_cards.extend(
+				new_widget(widgets.number_card, "Workspace Number Card", "number_cards")
+			)
 		if widgets.chart:
 			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
 		if widgets.shortcut:
@@ -511,7 +529,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 def clean_up(original_page, blocks):
 	page_widgets = {}
 
-	for wid in ["shortcut", "card", "chart", "quick_list"]:
+	for wid in ["number_card", "shortcut", "card", "chart", "quick_list"]:
 		# get list of widget's name from blocks
 		page_widgets[wid] = [x["data"][wid + "_name"] for x in loads(blocks) if x["type"] == wid]
 
