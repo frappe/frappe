@@ -263,6 +263,10 @@ frappe.ui.form.on("Customize Form Field", {
 		f.is_custom_field = true;
 		frm.trigger("setup_default_views");
 	},
+
+	form_render(frm, doctype, docname) {
+		frm.trigger("setup_fetch_from_fields", doctype, docname);
+	},
 });
 
 // can't delete standard links

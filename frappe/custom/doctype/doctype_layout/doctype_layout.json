@@ -43,7 +43,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-01 03:22:33.973058",
+ "modified": "2023-02-14 17:53:24.486171",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "DocType Layout",
@@ -64,7 +64,7 @@
   },
   {
    "read": 1,
-   "role": "Guest"
+   "role": "All"
   }
  ],
  "route": "doctype-layout",
