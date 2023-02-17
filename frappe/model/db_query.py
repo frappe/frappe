@@ -59,7 +59,6 @@ class DatabaseQuery:
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
 		self.tables = []
-		self.link_tables = []
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -266,10 +265,6 @@ class DatabaseQuery:
 			parent_name = cast_name(f"{self.tables[0]}.name")
 			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
-		# left join link tables
-		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
-
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
 
@@ -357,7 +352,7 @@ class DatabaseQuery:
 					continue
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
-					self.append_link_table(linked_doctype, linked_fieldname)
+					self.append_table(f"`tab{linked_doctype}`")
 				field = f"`tab{linked_doctype}`.`{fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
@@ -472,25 +467,13 @@ class DatabaseQuery:
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.tables and table_name not in (
-					d.table_name for d in self.link_tables
-				):
+				if table_name not in self.tables:
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
 		self.check_read_permission(doctype)
-
-	def append_link_table(self, doctype, fieldname):
-		for d in self.link_tables:
-			if d.doctype == doctype and d.fieldname == fieldname:
-				return
-
-		self.check_read_permission(doctype)
-		self.link_tables.append(
-			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
-		)
 
 	def check_read_permission(self, doctype):
 		if not self.flags.ignore_permissions and not frappe.has_permission(
@@ -509,7 +492,7 @@ class DatabaseQuery:
 			methods = ("count(", "avg(", "sum(", "extract(", "dayofyear(")
 			return field.lower().startswith(methods)
 
-		if len(self.tables) > 1 or len(self.link_tables) > 0:
+		if len(self.tables) > 1:
 			for idx, field in enumerate(self.fields):
 				if field is not None and "." not in field and not _in_standard_sql_methods(field):
 					self.fields[idx] = f"{self.tables[0]}.{field}"
