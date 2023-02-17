@@ -35,7 +35,6 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 @Request.application
 def application(request: Request):
 	response = None
-	e = None
 
 	try:
 		rollback = True
@@ -79,7 +78,7 @@ def application(request: Request):
 			frappe.db.rollback()
 
 		for after_request_task in frappe.get_hooks("after_request"):
-			frappe.call(after_request_task, response=response, request=request, exception=e)
+			frappe.call(after_request_task, response=response, request=request)
 
 		log_request(request, response)
 		process_response(response)
