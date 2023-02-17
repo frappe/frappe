@@ -127,10 +127,6 @@ def check_database_settings():
 
 	check_compatible_versions()
 
-<<<<<<< HEAD
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-=======
->>>>>>> c6557e0ed6 (fix: don't print multiple print statements when database settings dont match with expected settings (#18492))
 	# Check each expected value vs. actuals:
 	mariadb_variables = get_mariadb_variables()
 	result = True
@@ -143,18 +139,6 @@ def check_database_settings():
 			result = False
 
 	if not result:
-<<<<<<< HEAD
-		site = frappe.local.site
-		msg = (
-			"Creation of your site - {x} failed because MariaDB is not properly {sep}"
-			"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
-			"the Barracuda storage engine. {sep}{sep}"
-			"Please verify the settings above in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
-			"then run `bench new-site {x}` again.{sep2}"
-			""
-		).format(x=site, sep2="\n" * 2, sep="\n")
-		print_db_config(msg)
-=======
 		print(
 			(
 				"{sep2}Creation of your site - {site} failed because MariaDB is not properly {sep}"
@@ -164,7 +148,6 @@ def check_database_settings():
 			).format(site=frappe.local.site, sep2="\n\n", sep="\n")
 		)
 
->>>>>>> c6557e0ed6 (fix: don't print multiple print statements when database settings dont match with expected settings (#18492))
 	return result
 
 
