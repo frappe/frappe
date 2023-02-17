@@ -216,11 +216,7 @@
  "is_published_field": "published",
  "links": [],
  "make_attachments_public": 1,
-<<<<<<< HEAD
- "modified": "2022-08-24 07:10:08.620136",
-=======
  "modified": "2023-02-17 11:31:32.223524",
->>>>>>> 24d7637538 (fix: hide published checkbox)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
