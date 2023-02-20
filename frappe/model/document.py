@@ -675,8 +675,7 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access("read")
 
 		for df in self.meta.fields:
-			# not using hasattr since it also contains attributes of super class
-			if df.permlevel and df.fieldname in self.__dict__ and df.permlevel not in has_access_to:
+			if df.permlevel and hasattr(self, df.fieldname) and df.permlevel not in has_access_to:
 				delattr(self, df.fieldname)
 
 		for table_field in self.meta.get_table_fields():
