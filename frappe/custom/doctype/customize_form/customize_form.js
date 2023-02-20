@@ -350,7 +350,7 @@ frappe.customize_form.save_customization = function (frm) {
 		return frm.call({
 			doc: frm.doc,
 			freeze: true,
-			freeze_message: __("Updating Customization..."),
+			freeze_message: __("Saving Customization..."),
 			btn: frm.page.btn_primary,
 			method: "save_customization",
 			callback: function (r) {
