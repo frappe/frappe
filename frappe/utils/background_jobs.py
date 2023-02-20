@@ -178,21 +178,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		return retval
 
 	finally:
-<<<<<<< HEAD
-=======
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
 
-<<<<<<< HEAD
-		# background job hygiene: release file locks if unreleased
-		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
-		for doc in frappe.local.locked_documents:
-			doc.unlock()
-
->>>>>>> 34731d1e9e (feat: Befor/After Job Hooks)
-		frappe.monitor.stop()
-=======
->>>>>>> fe26c542b7 (refactor: Move before/after tasks as hooks)
 		if is_async:
 			frappe.destroy()
 

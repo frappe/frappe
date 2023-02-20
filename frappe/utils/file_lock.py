@@ -68,5 +68,5 @@ def get_lock_path(name):
 
 def release_document_locks():
 	"""Unlocks all documents that were locked by the current context."""
-	for doc in frappe.local.locked_documents:
+	for doc in getattr(frappe.local, "locked_documents", []):
 		doc.unlock()
