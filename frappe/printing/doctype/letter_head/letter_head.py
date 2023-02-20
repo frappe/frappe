@@ -8,10 +8,6 @@ from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
-	def before_insert(self):
-		# for better UX, let user set from attachment
-		self.source = "Image"
-
 	def validate(self):
 		self.set_image()
 		self.use_as_default()

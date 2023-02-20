@@ -40,6 +40,7 @@
    "unique": 1
   },
   {
+   "default": "Image",
    "depends_on": "letter_head_name",
    "fieldname": "source",
    "fieldtype": "Select",
@@ -168,7 +169,7 @@
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2022-06-16 23:10:46.852116",
+ "modified": "2023-02-20 12:31:57.744569",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
