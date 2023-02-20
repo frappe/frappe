@@ -464,6 +464,15 @@ app_license = "{app_license}"
 
 # ignore_links_on_delete = ["Communication", "ToDo"]
 
+# Request Events
+# ----------------
+# before_request = ["{app_name}.utils.before_request"]
+# after_request = ["{app_name}.utils.after_request"]
+
+# Job Events
+# ----------
+# before_job = ["{app_name}.utils.before_job"]
+# after_job = ["{app_name}.utils.after_job"]
 
 # User Data Protection
 # --------------------
