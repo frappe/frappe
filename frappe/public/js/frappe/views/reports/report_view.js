@@ -1581,7 +1581,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		// user permissions
-		if (this.report_name && frappe.model.can_set_user_permissions("Report")) {
+		if (this.report_name && frappe.user.has_role("System Manager")) {
 			items.push({
 				label: __("User Permissions"),
 				action: () => {

@@ -1604,11 +1604,6 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			d.set("import", 0)
 			d.set("export", 0)
 
-		for ptype, label in [["set_user_permissions", _("Set User Permissions")]]:
-			if d.get(ptype):
-				d.set(ptype, 0)
-				frappe.msgprint(_("{0} cannot be set for Single types").format(label))
-
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:
 			frappe.throw(_("{0}: Cannot set Assign Submit if not Submittable").format(get_txt(d)))
