@@ -63,8 +63,6 @@ class TestBackgroundJobs(FrappeTestCase):
 
 			mock_enqueue_call.assert_called_once_with(
 				execute_job,
-				on_success=None,
-				on_failure=None,
 				timeout=300,
 				kwargs={
 					"site": frappe.local.site,
