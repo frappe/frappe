@@ -27,7 +27,6 @@
   "report",
   "export",
   "import",
-  "set_user_permissions",
   "column_break_19",
   "share",
   "print",
@@ -180,13 +179,6 @@
    "label": "Import"
   },
   {
-   "default": "0",
-   "description": "This role update User Permissions for a user",
-   "fieldname": "set_user_permissions",
-   "fieldtype": "Check",
-   "label": "Set User Permissions"
-  },
-  {
    "fieldname": "column_break_19",
    "fieldtype": "Column Break"
   },
@@ -223,7 +215,7 @@
   }
  ],
  "links": [],
- "modified": "2020-12-03 15:20:48.296730",
+ "modified": "2023-02-20 13:19:04.889081",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Custom DocPerm",
