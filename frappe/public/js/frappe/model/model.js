@@ -449,14 +449,6 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_share.indexOf(doctype) !== -1;
 	},
 
-	can_set_user_permissions: function (doctype, frm) {
-		// system manager can always set user permissions
-		if (frappe.user_roles.includes("System Manager")) return true;
-
-		if (frm) return frm.perm[0].set_user_permissions === 1;
-		return frappe.boot.user.can_set_user_permissions.indexOf(doctype) !== -1;
-	},
-
 	has_value: function (dt, dn, fn) {
 		// return true if property has value
 		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];
