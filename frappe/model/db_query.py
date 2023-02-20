@@ -5,6 +5,7 @@
 import copy
 import json
 import re
+from collections import defaultdict
 from datetime import datetime
 
 import frappe
@@ -260,10 +261,26 @@ class DatabaseQuery:
 		# query dict
 		args.tables = self.tables[0]
 
+		link_fields = defaultdict(list)
+		for x in self.doctype_meta.get_link_fields():
+			link_fields[x.options].append(x.fieldname)
+
 		# left join parent, child tables
-		for child in self.tables[1:]:
+		for secondary_table in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			secondary_table_meta = frappe.get_meta(secondary_table[4:-1])
+
+			if secondary_table_meta.istable:
+				args.tables += (
+					f" {self.join} {secondary_table} on "
+					f"({secondary_table}.`parenttype` = {frappe.db.escape(self.doctype)} and {secondary_table}.parent = {parent_name})"
+				)
+			else:
+				table_joins = " or ".join(
+					f"{secondary_table}.`name` = {self.tables[0]}.`{link_field}`"
+					for link_field in link_fields[secondary_table_meta.name]
+				)
+				args.tables += f" {self.join} {secondary_table} on ({table_joins})"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
