@@ -4,14 +4,18 @@
  "creation": "2021-05-24 21:35:59.104776",
  "doctype": "DocType",
  "editable_grid": 1,
- "engine": "InnoDB",
+ "document_type": "System",
+ "engine": "MyISAM",
  "field_order": [
   "user",
+  "reference_document_type",
+  "reference_document",
   "headers",
   "data",
   "column_break_4",
   "url",
-  "response"
+  "response",
+  "error"
  ],
  "fields": [
   {
@@ -51,12 +55,33 @@
    "label": "User",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "reference_document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_document",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Document",
+   "options": "reference_document_type"
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Text",
+   "label": "Error",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-05-03 09:33:49.240777",
+ "modified": "2023-02-20 13:45:16.662079",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
