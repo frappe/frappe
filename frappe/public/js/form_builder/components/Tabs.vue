@@ -9,9 +9,8 @@ import { ref, computed, nextTick } from "vue";
 let store = useStore();
 
 let dragged = ref(false);
-let layout = computed(() => store.layout);
-let has_tabs = computed(() => layout.value.tabs.length > 1);
-store.active_tab = layout.value.tabs[0].df.name;
+let has_tabs = computed(() => store.layout.tabs.length > 1);
+store.active_tab = store.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
 	store.active_tab = tab.df.name;
@@ -35,11 +34,11 @@ function drag_over(tab) {
 
 function add_new_tab() {
 	let tab = {
-		df: store.get_df("Tab Break", "", "Tab " + (layout.value.tabs.length + 1)),
+		df: store.get_df("Tab Break", "", "Tab " + (store.layout.tabs.length + 1)),
 		sections: [section_boilerplate()],
 	};
 
-	layout.value.tabs.push(tab);
+	store.layout.tabs.push(tab);
 	activate_tab(tab);
 }
 
@@ -77,7 +76,7 @@ function remove_tab() {
 }
 
 function delete_tab(with_children) {
-	let tabs = layout.value.tabs;
+	let tabs = store.layout.tabs;
 	let index = tabs.indexOf(store.current_tab);
 
 	if (!with_children) {
@@ -109,11 +108,11 @@ function delete_tab(with_children) {
 </script>
 
 <template>
-	<div class="tab-header" v-if="!(layout.tabs.length == 1 && store.read_only)">
+	<div class="tab-header" v-if="!(store.layout.tabs.length == 1 && store.read_only)">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
-			v-model="layout.tabs"
+			v-model="store.layout.tabs"
 			group="tabs"
 			filter="[data-has-std-field='true']"
 			:prevent-on-filter="false"
@@ -167,7 +166,7 @@ function delete_tab(with_children) {
 	<div class="tab-contents">
 		<div
 			class="tab-content"
-			v-for="(tab, i) in layout.tabs"
+			v-for="(tab, i) in store.layout.tabs"
 			:key="i"
 			:class="[store.active_tab == tab.df.name ? 'active' : '']"
 		>
