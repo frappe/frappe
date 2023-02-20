@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
-import { create_layout, scrub_field_names } from "./utils";
-import { computed, nextTick, ref } from "vue";
+import { create_layout, scrub_field_names, get_field_by_name } from "./utils";
+import { computed, nextTick, ref, watch } from "vue";
+import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
 	let doctype = ref("");
@@ -16,6 +17,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = ref("cubic-bezier(0.34, 1.56, 0.64, 1)");
+	let ref_history = ref(null);
 
 	// Getters
 	let get_docfields = computed(() => {
@@ -94,6 +96,47 @@ export const useStore = defineStore("form-builder-store", () => {
 			read_only.value =
 				!is_customize_form.value && !frappe.boot.developer_mode && !doc.value.custom;
 			preview.value = false;
+		});
+
+		setup_undo_redo();
+	}
+
+	let data = ref({ active_tab, layout, selected_field });
+
+	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
+		if (e.ctrlKey || e.metaKey) {
+			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
+				ref_history.value.undo();
+			} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
+				ref_history.value.redo();
+			}
+		}
+	});
+
+	function setup_undo_redo() {
+		data.value = {
+			active_tab: active_tab,
+			layout: layout,
+			selected_field: selected_field,
+		};
+
+		ref_history.value = useDebouncedRefHistory(data, { deep: true, debounce: 100 });
+
+		undo_redo_keyboard_event;
+
+		watch(data, (d) => {
+			layout.value = d.layout;
+			active_tab.value = d.active_tab;
+			selected_field.value = d.selected_field;
+
+			if (d.selected_field?.name) {
+				let field = get_field_by_name(
+					layout.value.tabs,
+					"sections",
+					d.selected_field?.name
+				);
+				selected_field.value = field ? field.df : null;
+			}
 		});
 	}
 
