@@ -16,6 +16,13 @@ from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, ge
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
+<<<<<<< HEAD
+=======
+from frappe.permissions import has_permission
+from frappe.query_builder import DocType
+from frappe.query_builder.functions import Count
+from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
+>>>>>>> 0219eab820 (fix: Dont fetch report if not permitted)
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
@@ -230,6 +237,9 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
+		if not has_permission("Report", raise_exception=False):
+			return {}
+
 		reports = frappe.get_list(
 			"Report",
 			fields=["name", "report_type"],
