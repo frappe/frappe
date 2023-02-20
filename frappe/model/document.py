@@ -663,8 +663,17 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access("read")
 
 		for df in self.meta.fields:
+<<<<<<< HEAD
 			if df.permlevel and not df.permlevel in has_access_to:
 				self.set(df.fieldname, None)
+=======
+			if df.permlevel and hasattr(self, df.fieldname) and df.permlevel not in has_access_to:
+				try:
+					delattr(self, df.fieldname)
+				except AttributeError:
+					# hasattr might return True for class attribute which can't be delattr-ed.
+					continue
+>>>>>>> 89d63ea82b (fix: false positive attr check while applying permlevel (#20069))
 
 		for table_field in self.meta.get_table_fields():
 			for df in frappe.get_meta(table_field.options).fields or []:
