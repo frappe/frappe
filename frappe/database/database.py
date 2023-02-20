@@ -1046,7 +1046,7 @@ class Database:
 			dt = dt.copy()  # don't modify the original dict
 			dt, dn = dt.pop("doctype"), dt
 
-		return self.get_value(dt, dn, ignore=True, cache=cache)
+		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None)
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
