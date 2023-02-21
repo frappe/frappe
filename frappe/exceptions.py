@@ -240,6 +240,10 @@ class InReadOnlyMode(ValidationError):
 	http_status_code = 503  # temporarily not available
 
 
+class SessionBootFailed(ValidationError):
+	http_status_code = 500
+
+
 class TooManyWritesError(Exception):
 	pass
 

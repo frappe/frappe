@@ -3,10 +3,11 @@ import re
 from ast import literal_eval
 from functools import cached_property
 from types import BuiltinFunctionType
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 import frappe
 from frappe import _
+from frappe.database.utils import DefaultOrderBy
 from frappe.model.db_query import get_timespan_date_range
 from frappe.query_builder import Criterion, Field, Order, Table, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -248,7 +249,7 @@ class Engine:
 		Returns:
 		        conditions (frappe.qb): frappe.qb object
 		"""
-		if kwargs.get("orderby") and kwargs.get("orderby") != "KEEP_DEFAULT_ORDERING":
+		if kwargs.get("orderby") and kwargs.get("orderby") != DefaultOrderBy:
 			orderby = kwargs.get("orderby")
 			if isinstance(orderby, str) and len(orderby.split()) > 1:
 				for ordby in orderby.split(","):

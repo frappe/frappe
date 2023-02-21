@@ -750,7 +750,7 @@ class BaseDocument:
 					values.name = doctype
 
 				if frappe.get_meta(doctype).get("is_virtual"):
-					values = frappe.get_doc(doctype, docname)
+					values = frappe.get_doc(doctype, docname).as_dict()
 
 				if values:
 					setattr(self, df.fieldname, values.name)

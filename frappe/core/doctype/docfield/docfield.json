@@ -304,6 +304,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!in_list(['Section Break', 'Column Break', 'Tab Break'], doc.fieldtype)",
    "fieldname": "permlevel",
    "fieldtype": "Int",
    "label": "Perm Level",
@@ -554,7 +555,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-11-17 14:14:39.404696",
+ "modified": "2023-02-20 12:07:29.552523",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

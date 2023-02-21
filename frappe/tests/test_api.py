@@ -2,6 +2,7 @@ import sys
 from contextlib import contextmanager
 from random import choice
 from threading import Thread
+from time import time
 from unittest.mock import patch
 
 import requests
@@ -296,3 +297,36 @@ class TestReadOnlyMode(FrappeAPITestCase):
 		response = self.post(self.REQ_PATH, {"description": frappe.mock("paragraph"), "sid": self.sid})
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json["exc_type"], "InReadOnlyMode")
+
+
+class TestWSGIApp(FrappeAPITestCase):
+	def test_request_hooks(self):
+		self.addCleanup(lambda: _test_REQ_HOOK.clear())
+		get_hooks = frappe.get_hooks
+
+		def patch_request_hooks(event: str, *args, **kwargs):
+			patched_hooks = {
+				"before_request": ["frappe.tests.test_api.before_request"],
+				"after_request": ["frappe.tests.test_api.after_request"],
+			}
+			if event not in patched_hooks:
+				return get_hooks(event, *args, **kwargs)
+			return patched_hooks[event]
+
+		with patch("frappe.get_hooks", patch_request_hooks):
+			self.assertIsNone(_test_REQ_HOOK.get("before_request"))
+			self.assertIsNone(_test_REQ_HOOK.get("after_request"))
+			res = self.get("/api/method/ping")
+			self.assertEqual(res.json, {"message": "pong"})
+			self.assertLess(_test_REQ_HOOK.get("before_request"), _test_REQ_HOOK.get("after_request"))
+
+
+_test_REQ_HOOK = {}
+
+
+def before_request(*args, **kwargs):
+	_test_REQ_HOOK["before_request"] = time()
+
+
+def after_request(*args, **kwargs):
+	_test_REQ_HOOK["after_request"] = time()

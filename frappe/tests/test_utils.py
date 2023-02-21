@@ -746,4 +746,5 @@ class TestTBSanitization(FrappeTestCase):
 			traceback = frappe.get_traceback(with_context=True)
 			self.assertNotIn("42", traceback)
 			self.assertIn("********", traceback)
+			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)

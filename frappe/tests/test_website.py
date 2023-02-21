@@ -67,24 +67,41 @@ class TestWebsite(FrappeTestCase):
 		self.assertEqual(get_home_page(), "login")
 		frappe.set_user("Administrator")
 
+		from frappe import get_hooks
+
+		def patched_get_hooks(hook, value):
+			def wrapper(*args, **kwargs):
+				return_value = get_hooks(*args, **kwargs)
+				if args[0] == hook:
+					return_value = value
+				return return_value
+
+			return wrapper
+
 		# test homepage via hooks
 		clear_website_cache()
-		set_home_page_hook(
-			"get_website_user_home_page", "frappe.www._test._test_home_page.get_website_user_home_page"
-		)
-		self.assertEqual(get_home_page(), "_test/_test_folder")
+		with patch.object(
+			frappe,
+			"get_hooks",
+			patched_get_hooks(
+				"get_website_user_home_page", ["frappe.www._test._test_home_page.get_website_user_home_page"]
+			),
+		):
+			self.assertEqual(get_home_page(), "_test/_test_folder")
 
 		clear_website_cache()
-		set_home_page_hook("website_user_home_page", "login")
-		self.assertEqual(get_home_page(), "login")
+		with patch.object(frappe, "get_hooks", patched_get_hooks("website_user_home_page", ["login"])):
+			self.assertEqual(get_home_page(), "login")
 
 		clear_website_cache()
-		set_home_page_hook("home_page", "about")
-		self.assertEqual(get_home_page(), "about")
+		with patch.object(frappe, "get_hooks", patched_get_hooks("home_page", ["about"])):
+			self.assertEqual(get_home_page(), "about")
 
 		clear_website_cache()
-		set_home_page_hook("role_home_page", {"home-page-test": "home-page-test"})
-		self.assertEqual(get_home_page(), "home-page-test")
+		with patch.object(
+			frappe, "get_hooks", patched_get_hooks("role_home_page", {"home-page-test": ["home-page-test"]})
+		):
+			self.assertEqual(get_home_page(), "home-page-test")
 
 	def test_page_load(self):
 		set_request(method="POST", path="login")
@@ -196,24 +213,26 @@ class TestWebsite(FrappeTestCase):
 		frappe.cache().delete_key("app_hooks")
 
 	def test_custom_page_renderer(self):
-		import frappe.hooks
+		from frappe import get_hooks
 
-		frappe.hooks.page_renderer = ["frappe.tests.test_website.CustomPageRenderer"]
-		frappe.cache().delete_key("app_hooks")
-		set_request(method="GET", path="/custom")
-		response = get_response()
-		self.assertEqual(response.status_code, 3984)
+		def patched_get_hooks(*args, **kwargs):
+			return_value = get_hooks(*args, **kwargs)
+			if args and args[0] == "page_renderer":
+				return_value = ["frappe.tests.test_website.CustomPageRenderer"]
+			return return_value
 
-		set_request(method="GET", path="/new")
-		content = get_response_content()
-		self.assertIn("<div>Custom Page Response</div>", content)
+		with patch.object(frappe, "get_hooks", patched_get_hooks):
+			set_request(method="GET", path="/custom")
+			response = get_response()
+			self.assertEqual(response.status_code, 3984)
 
-		set_request(method="GET", path="/random")
-		response = get_response()
-		self.assertEqual(response.status_code, 404)
+			set_request(method="GET", path="/new")
+			content = get_response_content()
+			self.assertIn("<div>Custom Page Response</div>", content)
 
-		delattr(frappe.hooks, "page_renderer")
-		frappe.cache().delete_key("app_hooks")
+			set_request(method="GET", path="/random")
+			response = get_response()
+			self.assertEqual(response.status_code, 404)
 
 	def test_printview_page(self):
 		frappe.db.value_cache[("DocType", "Language", "name")] = (("Language",),)
@@ -333,22 +352,35 @@ class TestWebsite(FrappeTestCase):
 			frappe.render_template(content, context), '<a class="btn btn-default btn-primary">Test</a>'
 		)
 
+	def test_app_include(self):
+		from frappe import get_hooks
 
-def set_home_page_hook(key, value):
-	from frappe import hooks
+		def patched_get_hooks(*args, **kwargs):
+			return_value = get_hooks(*args, **kwargs)
+			if isinstance(return_value, dict) and "app_include_js" in return_value:
+				return_value.app_include_js.append("test_app_include.js")
+				return_value.app_include_css.append("test_app_include.css")
+			return return_value
 
-	# reset home_page hooks
-	for hook in (
-		"get_website_user_home_page",
-		"website_user_home_page",
-		"role_home_page",
-		"home_page",
-	):
-		if hasattr(hooks, hook):
-			delattr(hooks, hook)
+		with patch.object(frappe, "get_hooks", patched_get_hooks):
+			frappe.set_user("Administrator")
+			frappe.hooks.app_include_js.append("test_app_include.js")
+			frappe.hooks.app_include_css.append("test_app_include.css")
+			frappe.conf.update({"app_include_js": ["test_app_include_via_site_config.js"]})
+			frappe.conf.update({"app_include_css": ["test_app_include_via_site_config.css"]})
 
-	setattr(hooks, key, value)
-	frappe.cache().delete_key("app_hooks")
+			set_request(method="GET", path="/app")
+			content = get_response_content("/app")
+			self.assertIn('<script type="text/javascript" src="/test_app_include.js"></script>', content)
+			self.assertIn(
+				'<script type="text/javascript" src="/test_app_include_via_site_config.js"></script>', content
+			)
+			self.assertIn('<link type="text/css" rel="stylesheet" href="/test_app_include.css">', content)
+			self.assertIn(
+				'<link type="text/css" rel="stylesheet" href="/test_app_include_via_site_config.css">', content
+			)
+			delattr(frappe.local, "request")
+			frappe.set_user("Guest")
 
 
 class CustomPageRenderer:
