@@ -4,7 +4,7 @@ on: [pull_request, workflow_dispatch]
 
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     name: Patch Test
 
