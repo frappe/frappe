@@ -72,7 +72,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			await frappe.model.with_doc("Customize Form");
 			let _doc = frappe.get_doc("Customize Form");
 			_doc.doc_type = doctype.value;
-			let r = await frappe.call({ method: "fetch_to_customize", _doc });
+			let r = await frappe.call({ method: "fetch_to_customize", doc: _doc });
 			doc.value = r.docs[0];
 		} else {
 			doc.value = await frappe.db.get_doc("DocType", doctype.value);
@@ -200,7 +200,7 @@ export const useStore = defineStore("form-builder-store", () => {
 				_doc.doc_type = doctype.value;
 				_doc.fields = get_updated_fields();
 				validate_fields(_doc.fields, _doc.istable);
-				await frappe.call({ method: "save_customization", _doc });
+				await frappe.call({ method: "save_customization", doc: _doc });
 			} else {
 				doc.value.fields = get_updated_fields();
 				validate_fields(doc.value.fields, doc.value.istable);
