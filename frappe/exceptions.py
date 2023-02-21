@@ -248,6 +248,10 @@ class QueryDeadlockError(Exception):
 	pass
 
 
+class SessionBootFailed(ValidationError):
+	http_status_code = 500
+
+
 class TooManyWritesError(Exception):
 	pass
 

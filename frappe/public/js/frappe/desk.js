@@ -33,15 +33,6 @@ frappe.Application = Class.extend({
 		frappe.socketio.init();
 		frappe.model.init();
 
-		if(frappe.boot.status==='failed') {
-			frappe.msgprint({
-				message: frappe.boot.error,
-				title: __('Session Start Failed'),
-				indicator: 'red',
-			});
-			throw 'boot failed';
-		}
-
 		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
