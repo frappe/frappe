@@ -42,7 +42,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "14.25.4"
+__version__ = "14.26.0"
 __title__ = "Frappe Framework"
 
 controllers = {}
