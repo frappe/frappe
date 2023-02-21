@@ -216,7 +216,11 @@ class CommunicationEmailMixin:
 			"reference_name": self.reference_name,
 			"reference_type": self.reference_doctype,
 		}
-		return ToDo.get_owners(filters)
+		
+		if self.reference_doctype == "ToDo" and self.reference_name != None:
+			return ToDo.get_owners(filters)
+		else:
+			return []
 
 	@staticmethod
 	def filter_thread_notification_disbled_users(emails):
