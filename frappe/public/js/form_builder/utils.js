@@ -349,20 +349,3 @@ export function confirm_dialog(
 	d.show();
 	d.set_message(message);
 }
-
-export function get_field_by_name(parent, child, name) {
-	let field = null;
-	parent.every((f) => {
-		if (f.df.name == name) {
-			field = f;
-			return false;
-		}
-		if (child) {
-			let new_child = child == "sections" ? "columns" : child == "columns" ? "fields" : "";
-			field = get_field_by_name(f[child], new_child, name);
-			if (field) return false;
-		}
-		return true;
-	});
-	return field;
-}

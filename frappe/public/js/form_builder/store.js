@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import { create_layout, scrub_field_names, get_field_by_name } from "./utils";
-import { computed, nextTick, ref, watch } from "vue";
+import { create_layout, scrub_field_names } from "./utils";
+import { computed, nextTick, ref } from "vue";
 import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
@@ -8,15 +8,17 @@ export const useStore = defineStore("form-builder-store", () => {
 	let doc = ref(null);
 	let docfields = ref([]);
 	let custom_docfields = ref([]);
-	let layout = ref({});
-	let active_tab = ref("");
-	let selected_field = ref(null);
+	let form = ref({
+		layout: {},
+		active_tab: null,
+		selected_field: null,
+	});
 	let dirty = ref(false);
 	let read_only = ref(false);
 	let is_customize_form = ref(false);
 	let preview = ref(false);
 	let drag = ref(false);
-	let get_animation = ref("cubic-bezier(0.34, 1.56, 0.64, 1)");
+	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 	let ref_history = ref(null);
 
 	// Getters
@@ -25,12 +27,12 @@ export const useStore = defineStore("form-builder-store", () => {
 	});
 
 	let current_tab = computed(() => {
-		return layout.value.tabs.find((tab) => tab.df.name == active_tab.value);
+		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
 	});
 
 	// Actions
 	function selected(name) {
-		return selected_field.value?.name == name;
+		return form.value.selected_field?.name == name;
 	}
 
 	function get_df(fieldtype, fieldname = "", label = "") {
@@ -87,9 +89,9 @@ export const useStore = defineStore("form-builder-store", () => {
 			}
 		}
 
-		layout.value = get_layout();
-		active_tab.value = layout.value.tabs[0].df.name;
-		selected_field.value = null;
+		form.value.layout = get_layout();
+		form.value.active_tab = form.value.layout.tabs[0].df.name;
+		form.value.selected_field = null;
 
 		nextTick(() => {
 			dirty.value = false;
@@ -100,8 +102,6 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		setup_undo_redo();
 	}
-
-	let data = ref({ active_tab, layout, selected_field });
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
 		if (e.ctrlKey || e.metaKey) {
@@ -114,30 +114,9 @@ export const useStore = defineStore("form-builder-store", () => {
 	});
 
 	function setup_undo_redo() {
-		data.value = {
-			active_tab: active_tab,
-			layout: layout,
-			selected_field: selected_field,
-		};
-
-		ref_history.value = useDebouncedRefHistory(data, { deep: true, debounce: 100 });
+		ref_history.value = useDebouncedRefHistory(form, { deep: true, debounce: 100 });
 
 		undo_redo_keyboard_event;
-
-		watch(data, (d) => {
-			layout.value = d.layout;
-			active_tab.value = d.active_tab;
-			selected_field.value = d.selected_field;
-
-			if (d.selected_field?.name) {
-				let field = get_field_by_name(
-					layout.value.tabs,
-					"sections",
-					d.selected_field?.name
-				);
-				selected_field.value = field ? field.df : null;
-			}
-		});
 	}
 
 	function reset_changes() {
@@ -240,7 +219,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		let fields = [];
 		let idx = 0;
 
-		let layout_fields = JSON.parse(JSON.stringify(layout.value.tabs));
+		let layout_fields = JSON.parse(JSON.stringify(form.value.layout.tabs));
 
 		layout_fields.forEach((tab, i) => {
 			if (
@@ -309,20 +288,18 @@ export const useStore = defineStore("form-builder-store", () => {
 	return {
 		doctype,
 		doc,
-		layout,
-		active_tab,
-		selected_field,
+		form,
 		dirty,
 		read_only,
 		is_customize_form,
 		preview,
 		drag,
 		get_animation,
-		selected,
 		get_docfields,
+		current_tab,
+		selected,
 		get_df,
 		has_standard_field,
-		current_tab,
 		fetch,
 		reset_changes,
 		validate_fields,
