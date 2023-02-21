@@ -70,7 +70,7 @@ class CommunicationEmailMixin:
 		if include_sender:
 			cc.append(self.sender_mailid)
 		if is_inbound_mail_communcation:
-			if (doc_owner := self.get_owner()) not in frappe.STANDARD_USERS:
+			if (doc_owner := self.get_owner()) and (doc_owner not in frappe.STANDARD_USERS):
 				cc.append(doc_owner)
 			cc = set(cc) - {self.sender_mailid}
 			cc.update(self.get_assignees())
