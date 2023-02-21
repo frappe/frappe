@@ -76,6 +76,11 @@
     "@nodelib/fs.scandir" "2.1.4"
     fastq "^1.6.0"
 
+"@snyk/protect@^1.1107.0":
+  version "1.1107.0"
+  resolved "https://registry.yarnpkg.com/@snyk/protect/-/protect-1.1107.0.tgz#09834fd87f537d7e8da3c33751925cddd372487d"
+  integrity sha512-ul5OYXKpIUfjhau7+fhi4vftypmsNhQGw4FvMZNxnsUuYU9gzzpW+r+Sqfs5GgT7nGzvM+Qxgfwryj4Mk9lNdQ==
+
 "@socket.io/component-emitter@~3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
