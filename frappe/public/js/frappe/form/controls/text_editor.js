@@ -97,7 +97,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 	bind_events() {
 		this.quill.on('text-change', frappe.utils.debounce((delta, oldDelta, source) => {
-			if (!this.is_quill_dirty(source)) return;
+			if (source === 'api') return;
 
 			const input_value = this.get_input_value();
 			this.parse_validate_and_set_in_model(input_value);
@@ -154,12 +154,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			$font_size_label.attr('data-value', '---');
 			$default_font_size.attr('data-value', '---');
 		}
-	},
-
-	is_quill_dirty(source) {
-		if (source === 'api') return false;
-		let input_value = this.get_input_value();
-		return this.value !== input_value;
 	},
 
 	get_quill_options() {
@@ -244,7 +238,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			let $ul = $('<ul>').append($children);
 			$parent.replaceWith($ul);
 		});
-		value = $value.html();
+		value = $value.prop("outerHTML");
 		return value;
 	},
 

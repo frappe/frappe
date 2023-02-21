@@ -25,8 +25,7 @@ def get_context(context):
 	try:
 		boot = frappe.sessions.get()
 	except Exception as e:
-		boot = frappe._dict(status="failed", error=str(e))
-		print(frappe.get_traceback())
+		raise frappe.SessionBootFailed from e
 
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()

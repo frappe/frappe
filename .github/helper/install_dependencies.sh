@@ -16,4 +16,4 @@ sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
 sudo chmod o+x /usr/local/bin/wkhtmltopdf
 
 # install cups
-sudo apt update && sudo apt install libcups2-dev redis-server
+sudo apt update && sudo apt install libcups2-dev redis-server mariadb-client-10.3
