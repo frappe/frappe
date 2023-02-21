@@ -276,37 +276,6 @@ frappe.ui.form.on("DocType Action", {
 	}
 });
 
-<<<<<<< HEAD
-frappe.customize_form.set_primary_action = function(frm) {
-	frm.page.set_primary_action(__("Update"), function() {
-		if (frm.doc.doc_type) {
-			return frm.call({
-				doc: frm.doc,
-				freeze: true,
-				btn: frm.page.btn_primary,
-				method: "save_customization",
-				callback: function(r) {
-					if (!r.exc) {
-						frappe.customize_form.clear_locals_and_refresh(frm);
-						frm.script_manager.trigger("doc_type");
-					}
-				}
-			});
-=======
-// can't delete standard states
-frappe.ui.form.on("DocType State", {
-	before_states_remove: function (frm, doctype, name) {
-		let row = frappe.get_doc(doctype, name);
-		if (!(row.custom || row.__islocal)) {
-			frappe.msgprint(__("Cannot delete standard document state."));
-			throw "cannot delete standard document state";
-		}
-	},
-	states_add: function (frm, cdt, cdn) {
-		let f = frappe.model.get_doc(cdt, cdn);
-		f.custom = 1;
-	},
-});
 
 frappe.customize_form.validate_fieldnames = async function (frm) {
 	for (let i = 0; i < frm.doc.fields.length; i++) {
@@ -323,7 +292,6 @@ frappe.customize_form.validate_fieldnames = async function (frm) {
 				[field.label, field.idx, fieldname]
 			);
 			await pause_to_confirm(message);
->>>>>>> 80a4932983 (fix: ask before changing restricted fieldnames)
 		}
 	}
 
