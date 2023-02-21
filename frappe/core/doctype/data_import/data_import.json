@@ -100,6 +100,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
+   "no_copy": 1,
    "options": "Pending\nSuccess\nPartial Success\nError",
    "read_only": 1
   },
@@ -169,7 +170,7 @@
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2021-04-11 01:50:42.074623",
+ "modified": "2023-02-14 10:08:37.624914",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",
