@@ -50,15 +50,19 @@ $.extend(frappe.model, {
 			frappe.views.ListView.trigger_list_update(data);
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
 
-			if(doc) {
+			if (doc) {
 				// current document is dirty, show message if its not me
-				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
-					if(!frappe.ui.form.is_saving && data.modified!=cur_frm.doc.modified) {
-						doc.__needs_refresh = true;
-						cur_frm.check_doctype_conflict();
+				if (frappe.get_route()[0] === "Form" && cur_frm.doc.doctype === doc.doctype && cur_frm.doc.name === doc.name) {
+					if (data.modified != cur_frm.doc.modified) {
+						if (!doc.__unsaved) {
+							cur_frm.reload_doc();
+						} else if (!frappe.ui.form.is_saving) {
+							doc.__needs_refresh = true;
+							cur_frm.check_doctype_conflict();
+						}
 					}
 				} else {
-					if(!doc.__unsaved) {
+					if (!doc.__unsaved) {
 						// no local changes, remove from locals
 						frappe.model.remove_from_locals(doc.doctype, doc.name);
 					} else {
