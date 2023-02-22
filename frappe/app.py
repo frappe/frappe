@@ -54,9 +54,6 @@ def application(request):
 
 		init_request(request)
 
-		frappe.recorder.record()
-		frappe.monitor.start()
-		frappe.rate_limiter.apply()
 		frappe.api.validate_auth()
 
 		if request.method == "OPTIONS":
@@ -96,9 +93,8 @@ def application(request):
 		if request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
 
-		frappe.rate_limiter.update()
-		frappe.monitor.stop(response)
-		frappe.recorder.dump()
+		for after_request_task in frappe.get_hooks("after_request"):
+			frappe.call(after_request_task, response=response, request=request)
 
 		log_request(request, response)
 		process_response(response)
@@ -128,6 +124,9 @@ def init_request(request):
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = frappe.auth.HTTPRequest()
+
+	for before_request_task in frappe.get_hooks("before_request"):
+		frappe.call(before_request_task)
 
 
 def log_request(request, response):

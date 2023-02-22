@@ -304,6 +304,15 @@ app_license = "{app_license}"
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
+# Request Events
+# ----------------
+# before_request = ["{app_name}.utils.before_request"]
+# after_request = ["{app_name}.utils.after_request"]
+
+# Job Events
+# ----------
+# before_job = ["{app_name}.utils.before_job"]
+# after_job = ["{app_name}.utils.after_job"]
 
 # User Data Protection
 # --------------------
