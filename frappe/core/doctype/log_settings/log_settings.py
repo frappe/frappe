@@ -20,6 +20,7 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Submission Queue": 30,
 	"Prepared Report": 30,
 	"Webhook Request Log": 30,
+	"DocReminder": 30,
 }
 
 

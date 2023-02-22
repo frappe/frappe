@@ -194,6 +194,7 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
+		"frappe.automation.doctype.docreminder.docreminder.send_reminders",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
