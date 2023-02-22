@@ -915,8 +915,8 @@ export default class GridRow {
 				start_y = event.touches[0].clientY;
 
 				inital_position_x = frappe.utils.is_rtl() 
-					? parseFloat(grid.style.left || 0) + start_x : 
-					-parseFloat(grid.style.left || 0) + start_x;
+					? parseFloat(grid.style.left || 0) + start_x 
+					: -parseFloat(grid.style.left || 0) + start_x;
 			})
 			// calculate X and Y movement based on touch events.
 			.on("touchmove", function (event) {
