@@ -38,6 +38,7 @@ frappe.ui.Filter = class {
 		this.conditions.push(...this.nested_set_conditions);
 
 		this.invalid_condition_map = {
+<<<<<<< HEAD
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like', 'in', 'not in', '=', '!='],
 			Data: ['Between', 'Timespan'],
@@ -49,6 +50,21 @@ frappe.ui.Filter = class {
 			Code: ['Between', 'Timespan', '>', '<', '>=', '<=', 'in', 'not in'],
 			Password: ['Between', 'Timespan', '>', '<', '>=', '<=', 'in', 'not in'],
 			Rating: ['like', 'not like', 'Between', 'in', 'not in', 'Timespan'],
+=======
+			Date: ["like", "not like"],
+			Datetime: ["like", "not like", "in", "not in", "=", "!="],
+			Data: ["Between", "Timespan"],
+			Select: ["like", "not like", "Between", "Timespan"],
+			Link: ["Between", "Timespan", ">", "<", ">=", "<="],
+			Currency: ["Between", "Timespan"],
+			Color: ["Between", "Timespan"],
+			Check: this.conditions.map((c) => c[0]).filter((c) => c !== "="),
+			Code: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			"HTML Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+>>>>>>> 458989dbf4 (fix: hide invalid filters for 'HTML Editor' and 'Markdown Editor' (#20119))
 		};
 	}
 
