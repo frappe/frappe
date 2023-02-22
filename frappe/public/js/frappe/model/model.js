@@ -144,6 +144,7 @@ $.extend(frappe.model, {
 
 			if (doc) {
 				// current document is dirty, show message if its not me
+<<<<<<< HEAD
 				if (
 					frappe.get_route()[0] === "Form" &&
 					cur_frm.doc.doctype === doc.doctype &&
@@ -152,6 +153,16 @@ $.extend(frappe.model, {
 					if (!frappe.ui.form.is_saving && data.modified != cur_frm.doc.modified) {
 						doc.__needs_refresh = true;
 						cur_frm.show_conflict_message();
+=======
+				if (frappe.get_route()[0] === "Form" && cur_frm.doc.doctype === doc.doctype && cur_frm.doc.name === doc.name) {
+					if (data.modified != cur_frm.doc.modified) {
+						if (!doc.__unsaved) {
+							cur_frm.reload_doc();
+						} else if (!frappe.ui.form.is_saving) {
+							doc.__needs_refresh = true;
+							cur_frm.check_doctype_conflict();
+						}
+>>>>>>> df4d3a26be (fix: Reload frm doc doc_update trigger to avoid timestamp conflict)
 					}
 				} else {
 					if (!doc.__unsaved) {
