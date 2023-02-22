@@ -847,11 +847,14 @@ class TestReportview(FrappeTestCase):
 			self.assertTrue("count" in data[0])
 			self.assertEqual(len(data[0]), 2)
 
-			with self.assertRaises(frappe.PermissionError):
-				frappe.get_list(
-					"Blog Post",
-					fields=["blog_category.description"],
-				)
+			data = frappe.get_list(
+				"Blog Post",
+				fields=["name", "blogger.full_name as blogger_full_name", "blog_category.description"],
+				limit=1,
+			)
+			self.assertTrue("name" in data[0])
+			self.assertTrue("blogger_full_name" in data[0])
+			self.assertTrue("description" in data[0])
 
 	def test_reportview_get_permlevel_system_users(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
