@@ -1,270 +1,311 @@
 import { defineStore } from "pinia";
 import { create_layout, scrub_field_names } from "./utils";
-import { nextTick } from "vue";
+import { computed, nextTick, ref } from "vue";
+import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
-export const useStore = defineStore("form-builder-store", {
-	state: () => ({
-		doctype: "",
-		doc: null,
-		docfields: [],
-		custom_docfields: [],
+export const useStore = defineStore("form-builder-store", () => {
+	let doctype = ref("");
+	let doc = ref(null);
+	let docfields = ref([]);
+	let custom_docfields = ref([]);
+	let form = ref({
 		layout: {},
-		active_tab: "",
+		active_tab: null,
 		selected_field: null,
-		dirty: false,
-		read_only: false,
-		is_customize_form: false,
-		preview: false,
-		drag: false,
-	}),
-	getters: {
-		get_animation: () => {
-			return "cubic-bezier(0.34, 1.56, 0.64, 1)";
-		},
-		selected: (state) => {
-			return (name) => state.selected_field?.name == name;
-		},
-		get_docfields: (state) => {
-			return state.is_customize_form ? state.custom_docfields : state.docfields;
-		},
-		get_df: (state) => {
-			return (fieldtype, fieldname = "", label = "") => {
-				let docfield = state.is_customize_form ? "Customize Form Field" : "DocField";
-				let df = frappe.model.get_new_doc(docfield);
-				df.name = frappe.utils.get_random(8);
-				df.fieldtype = fieldtype;
-				df.fieldname = fieldname;
-				df.label = label;
-				state.is_customize_form && (df.is_custom_field = 1);
-				return df;
-			};
-		},
-		has_standard_field: (state) => {
-			return (field) => {
-				if (!state.is_customize_form) return;
-				if (!field.df.is_custom_field) return true;
+	});
+	let dirty = ref(false);
+	let read_only = ref(false);
+	let is_customize_form = ref(false);
+	let preview = ref(false);
+	let drag = ref(false);
+	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+	let ref_history = ref(null);
 
-				let children = {
-					"Tab Break": "sections",
-					"Section Break": "columns",
-					"Column Break": "fields",
-				}[field.df.fieldtype];
+	// Getters
+	let get_docfields = computed(() => {
+		return is_customize_form.value ? custom_docfields.value : docfields.value;
+	});
 
-				if (!children) return false;
+	let current_tab = computed(() => {
+		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
+	});
 
-				return field[children].some((child) => {
-					if (!child.df.is_custom_field) return true;
-					return state.has_standard_field(child);
-				});
-			};
-		},
-		current_tab: (state) => {
-			return state.layout.tabs.find((tab) => tab.df.name == state.active_tab);
-		},
-	},
-	actions: {
-		async fetch() {
-			await frappe.model.clear_doc("DocType", this.doctype);
-			await frappe.model.with_doctype(this.doctype);
+	// Actions
+	function selected(name) {
+		return form.value.selected_field?.name == name;
+	}
 
-			if (this.is_customize_form) {
-				await frappe.model.with_doc("Customize Form");
-				let doc = frappe.get_doc("Customize Form");
-				doc.doc_type = this.doctype;
-				let r = await frappe.call({ method: "fetch_to_customize", doc });
-				this.doc = r.docs[0];
+	function get_df(fieldtype, fieldname = "", label = "") {
+		let docfield = is_customize_form.value ? "Customize Form Field" : "DocField";
+		let df = frappe.model.get_new_doc(docfield);
+		df.name = frappe.utils.get_random(8);
+		df.fieldtype = fieldtype;
+		df.fieldname = fieldname;
+		df.label = label;
+		is_customize_form.value && (df.is_custom_field = 1);
+		return df;
+	}
+
+	function has_standard_field(field) {
+		if (!is_customize_form.value) return;
+		if (!field.df.is_custom_field) return true;
+
+		let children = {
+			"Tab Break": "sections",
+			"Section Break": "columns",
+			"Column Break": "fields",
+		}[field.df.fieldtype];
+
+		if (!children) return false;
+
+		return field[children].some((child) => {
+			if (!child.df.is_custom_field) return true;
+			return has_standard_field(child);
+		});
+	}
+
+	async function fetch() {
+		await frappe.model.clear_doc("DocType", doctype.value);
+		await frappe.model.with_doctype(doctype.value);
+
+		if (is_customize_form.value) {
+			await frappe.model.with_doc("Customize Form");
+			let _doc = frappe.get_doc("Customize Form");
+			_doc.doc_type = doctype.value;
+			let r = await frappe.call({ method: "fetch_to_customize", doc: _doc });
+			doc.value = r.docs[0];
+		} else {
+			doc.value = await frappe.db.get_doc("DocType", doctype.value);
+		}
+
+		if (!get_docfields.value.length) {
+			let docfield = is_customize_form.value ? "Customize Form Field" : "DocField";
+			await frappe.model.with_doctype(docfield);
+			let df = frappe.get_meta(docfield).fields;
+			if (is_customize_form.value) {
+				custom_docfields.value = df;
 			} else {
-				this.doc = await frappe.db.get_doc("DocType", this.doctype);
+				docfields.value = df;
+			}
+		}
+
+		form.value.layout = get_layout();
+		form.value.active_tab = form.value.layout.tabs[0].df.name;
+		form.value.selected_field = null;
+
+		nextTick(() => {
+			dirty.value = false;
+			read_only.value =
+				!is_customize_form.value && !frappe.boot.developer_mode && !doc.value.custom;
+			preview.value = false;
+		});
+
+		setup_undo_redo();
+	}
+
+	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
+		if (e.ctrlKey || e.metaKey) {
+			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
+				ref_history.value.undo();
+			} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
+				ref_history.value.redo();
+			}
+		}
+	});
+
+	function setup_undo_redo() {
+		ref_history.value = useDebouncedRefHistory(form, { deep: true, debounce: 100 });
+
+		undo_redo_keyboard_event;
+	}
+
+	function reset_changes() {
+		fetch();
+	}
+
+	function validate_fields(fields, is_table) {
+		fields = scrub_field_names(fields);
+
+		let not_allowed_in_list_view = ["Attach Image", ...frappe.model.no_value_type];
+		if (is_table) {
+			not_allowed_in_list_view = not_allowed_in_list_view.filter((f) => f != "Button");
+		}
+
+		function get_field_data(df) {
+			let fieldname = `<b>${df.label} (${df.fieldname})</b>`;
+			if (!df.label) {
+				fieldname = `<b>${df.fieldname}</b>`;
+			}
+			let fieldtype = `<b>${df.fieldtype}</b>`;
+			return [fieldname, fieldtype];
+		}
+
+		fields.forEach((df) => {
+			// check if fieldname already exist
+			let duplicate = fields.filter((f) => f.fieldname == df.fieldname);
+			if (duplicate.length > 1) {
+				frappe.throw(__("Fieldname {0} appears multiple times", get_field_data(df)));
 			}
 
-			if (!this.get_docfields.length) {
-				let docfield = this.is_customize_form ? "Customize Form Field" : "DocField";
-				await frappe.model.with_doctype(docfield);
-				let df = frappe.get_meta(docfield).fields;
-				if (this.is_customize_form) {
-					this.custom_docfields = df;
-				} else {
-					this.docfields = df;
-				}
+			// Link & Table fields should always have options set
+			if (in_list(["Link", ...frappe.model.table_fields], df.fieldtype) && !df.options) {
+				frappe.throw(
+					__("Options is required for field {0} of type {1}", get_field_data(df))
+				);
 			}
 
-			this.layout = this.get_layout();
-			this.active_tab = this.layout.tabs[0].df.name;
-			this.selected_field = null;
-
-			nextTick(() => {
-				this.dirty = false;
-				this.read_only =
-					!this.is_customize_form && !frappe.boot.developer_mode && !this.doc.custom;
-				this.preview = false;
-			});
-		},
-		reset_changes() {
-			this.fetch();
-		},
-		validate_fields(fields, is_table) {
-			fields = scrub_field_names(fields);
-
-			let not_allowed_in_list_view = ["Attach Image", ...frappe.model.no_value_type];
-			if (is_table) {
-				not_allowed_in_list_view = not_allowed_in_list_view.filter((f) => f != "Button");
+			// Do not allow if field is hidden & required but doesn't have default value
+			if (df.hidden && df.reqd && !df.default) {
+				frappe.throw(
+					__(
+						"{0} cannot be hidden and mandatory without any default value",
+						get_field_data(df)
+					)
+				);
 			}
 
-			function get_field_data(df) {
-				let fieldname = `<b>${df.label} (${df.fieldname})</b>`;
-				if (!df.label) {
-					fieldname = `<b>${df.fieldname}</b>`;
-				}
-				let fieldtype = `<b>${df.fieldtype}</b>`;
-				return [fieldname, fieldtype];
+			// In List View is not allowed for some fieldtypes
+			if (df.in_list_view && in_list(not_allowed_in_list_view, df.fieldtype)) {
+				frappe.throw(
+					__(
+						"'In List View' is not allowed for field {0} of type {1}",
+						get_field_data(df)
+					)
+				);
 			}
 
-			fields.forEach((df) => {
-				// check if fieldname already exist
-				let duplicate = fields.filter((f) => f.fieldname == df.fieldname);
-				if (duplicate.length > 1) {
-					frappe.throw(__("Fieldname {0} appears multiple times", get_field_data(df)));
-				}
+			// In Global Search is not allowed for no_value_type fields
+			if (df.in_global_search && in_list(frappe.model.no_value_type, df.fieldtype)) {
+				frappe.throw(
+					__(
+						"'In Global Search' is not allowed for field {0} of type {1}",
+						get_field_data(df)
+					)
+				);
+			}
+		});
+	}
 
-				// Link & Table fields should always have options set
-				if (in_list(["Link", ...frappe.model.table_fields], df.fieldtype) && !df.options) {
-					frappe.throw(
-						__("Options is required for field {0} of type {1}", get_field_data(df))
-					);
-				}
+	async function save_changes() {
+		if (!dirty.value) {
+			frappe.show_alert({ message: __("No changes to save"), indicator: "orange" });
+			return;
+		}
 
-				// Do not allow if field is hidden & required but doesn't have default value
-				if (df.hidden && df.reqd && !df.default) {
-					frappe.throw(
-						__(
-							"{0} cannot be hidden and mandatory without any default value",
-							get_field_data(df)
-						)
-					);
-				}
+		frappe.dom.freeze(__("Saving..."));
 
-				// In List View is not allowed for some fieldtypes
-				if (df.in_list_view && in_list(not_allowed_in_list_view, df.fieldtype)) {
-					frappe.throw(
-						__(
-							"'In List View' is not allowed for field {0} of type {1}",
-							get_field_data(df)
-						)
-					);
-				}
+		try {
+			if (is_customize_form.value) {
+				let _doc = frappe.get_doc("Customize Form");
+				_doc.doc_type = doctype.value;
+				_doc.fields = get_updated_fields();
+				validate_fields(_doc.fields, _doc.istable);
+				await frappe.call({ method: "save_customization", doc: _doc });
+			} else {
+				doc.value.fields = get_updated_fields();
+				validate_fields(doc.value.fields, doc.value.istable);
+				await frappe.call("frappe.client.save", { doc: doc.value });
+				frappe.toast("Fields Table Updated");
+			}
+			fetch();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			frappe.dom.unfreeze();
+		}
+	}
 
-				// In Global Search is not allowed for no_value_type fields
-				if (df.in_global_search && in_list(frappe.model.no_value_type, df.fieldtype)) {
-					frappe.throw(
-						__(
-							"'In Global Search' is not allowed for field {0} of type {1}",
-							get_field_data(df)
-						)
-					);
-				}
-			});
-		},
-		async save_changes() {
-			if (!this.dirty) {
-				frappe.show_alert({ message: __("No changes to save"), indicator: "orange" });
-				return;
+	function get_updated_fields() {
+		let fields = [];
+		let idx = 0;
+
+		let layout_fields = JSON.parse(JSON.stringify(form.value.layout.tabs));
+
+		layout_fields.forEach((tab, i) => {
+			if (
+				(i == 0 && is_df_updated(tab.df, get_df("Tab Break", "", __("Details")))) ||
+				i > 0
+			) {
+				idx++;
+				tab.df.idx = idx;
+				fields.push(tab.df);
 			}
 
-			frappe.dom.freeze(__("Saving..."));
+			tab.sections.forEach((section, j) => {
+				// data before section is added
+				let fields_copy = JSON.parse(JSON.stringify(fields));
+				let old_idx = idx;
+				section.has_fields = false;
 
-			try {
-				if (this.is_customize_form) {
-					let doc = frappe.get_doc("Customize Form");
-					doc.doc_type = this.doctype;
-					doc.fields = this.get_updated_fields();
-					this.validate_fields(doc.fields, doc.istable);
-					await frappe.call({ method: "save_customization", doc });
-				} else {
-					this.doc.fields = this.get_updated_fields();
-					this.validate_fields(this.doc.fields, this.doc.istable);
-					await frappe.call({
-						method: "frappe.desk.form.save.savedocs",
-						args: { doc: this.doc, action: "Save" },
-					});
-				}
-				this.fetch();
-			} catch (e) {
-				console.error(e);
-			} finally {
-				frappe.dom.unfreeze();
-			}
-		},
-		get_updated_fields() {
-			let fields = [];
-			let idx = 0;
-
-			let layout_fields = JSON.parse(JSON.stringify(this.layout.tabs));
-
-			layout_fields.forEach((tab, i) => {
-				if (
-					(i == 0 &&
-						this.is_df_updated(tab.df, this.get_df("Tab Break", "", __("Details")))) ||
-					i > 0
-				) {
+				// do not consider first section if label is not set
+				if ((j == 0 && is_df_updated(section.df, get_df("Section Break"))) || j > 0) {
 					idx++;
-					tab.df.idx = idx;
-					fields.push(tab.df);
+					section.df.idx = idx;
+					fields.push(section.df);
 				}
 
-				tab.sections.forEach((section, j) => {
-					// data before section is added
-					let fields_copy = JSON.parse(JSON.stringify(fields));
-					let old_idx = idx;
-					section.has_fields = false;
-
-					// do not consider first section if label is not set
+				section.columns.forEach((column, k) => {
+					// do not consider first column if label is not set
 					if (
-						(j == 0 && this.is_df_updated(section.df, this.get_df("Section Break"))) ||
-						j > 0
+						(k == 0 && is_df_updated(column.df, get_df("Column Break"))) ||
+						k > 0 ||
+						column.fields.length == 0
 					) {
 						idx++;
-						section.df.idx = idx;
-						fields.push(section.df);
+						column.df.idx = idx;
+						fields.push(column.df);
 					}
 
-					section.columns.forEach((column, k) => {
-						// do not consider first column if label is not set
-						if (
-							(k == 0 &&
-								this.is_df_updated(column.df, this.get_df("Column Break"))) ||
-							k > 0 ||
-							column.fields.length == 0
-						) {
-							idx++;
-							column.df.idx = idx;
-							fields.push(column.df);
-						}
-
-						column.fields.forEach((field) => {
-							idx++;
-							field.df.idx = idx;
-							fields.push(field.df);
-							section.has_fields = true;
-						});
+					column.fields.forEach((field) => {
+						idx++;
+						field.df.idx = idx;
+						fields.push(field.df);
+						section.has_fields = true;
 					});
-
-					// restore data back to data before section is added.
-					if (!section.has_fields) {
-						fields = fields_copy || [];
-						idx = old_idx;
-					}
 				});
-			});
 
-			return fields;
-		},
-		is_df_updated(df, new_df) {
-			delete df.name;
-			delete new_df.name;
-			return JSON.stringify(df) != JSON.stringify(new_df);
-		},
-		get_layout() {
-			return create_layout(this.doc.fields);
-		},
-	},
+				// restore data back to data before section is added.
+				if (!section.has_fields) {
+					fields = fields_copy || [];
+					idx = old_idx;
+				}
+			});
+		});
+
+		return fields;
+	}
+
+	function is_df_updated(df, new_df) {
+		delete df.name;
+		delete new_df.name;
+		return JSON.stringify(df) != JSON.stringify(new_df);
+	}
+
+	function get_layout() {
+		return create_layout(doc.value.fields);
+	}
+
+	return {
+		doctype,
+		doc,
+		form,
+		dirty,
+		read_only,
+		is_customize_form,
+		preview,
+		drag,
+		get_animation,
+		get_docfields,
+		current_tab,
+		selected,
+		get_df,
+		has_standard_field,
+		fetch,
+		reset_changes,
+		validate_fields,
+		save_changes,
+		get_updated_fields,
+		is_df_updated,
+		get_layout,
+	};
 });

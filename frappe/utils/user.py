@@ -40,7 +40,6 @@ class UserPermissions:
 		self.can_export = []
 		self.can_print = []
 		self.can_email = []
-		self.can_set_user_permissions = []
 		self.allow_modules = []
 		self.in_create = []
 		self.setup_user()
@@ -152,7 +151,7 @@ class UserPermissions:
 			if p.get("read") or p.get("write") or p.get("create"):
 				if p.get("report"):
 					self.can_get_report.append(dt)
-				for key in ("import", "export", "print", "email", "set_user_permissions"):
+				for key in ("import", "export", "print", "email"):
 					if p.get(key):
 						getattr(self, "can_" + key).append(dt)
 
@@ -248,7 +247,6 @@ class UserPermissions:
 			"can_import",
 			"can_print",
 			"can_email",
-			"can_set_user_permissions",
 		):
 			d[key] = list(set(getattr(self, key)))
 

@@ -17,7 +17,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				<div class="form-group">
 					<div class="clearfix">
 						<label class="control-label" style="padding-right: 0px;"></label>
-						<span class="ml-1 help"></span>
+						<span class="help"></span>
 					</div>
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
