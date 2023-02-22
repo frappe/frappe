@@ -162,7 +162,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 						() => frappe.show_alert(__("Added {0} ({1})", [value, data.qty]))
 					]);
 				}
-			}, __("Set Quantity"), __("Set"));
+			}, __("Set Quantity"), __("Set Quantity"));
 		} else if (me.dynamic_link_field) {
 			var d = me.target.add_new_row();
 			frappe.model.set_value(d.doctype, d.name, me.dynamic_link_field, me.dynamic_link_reference);
