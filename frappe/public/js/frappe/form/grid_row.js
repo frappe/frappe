@@ -914,7 +914,7 @@ export default class GridRow {
 				start_x = event.touches[0].clientX;
 				start_y = event.touches[0].clientY;
 
-				inital_position_x = (frappe.utils.is_rtl()) ? parseFloat(grid.style.left || 0) + start_x : -parseFloat(grid.style.left || 0) + start_x;
+				inital_position_x = frappe.utils.is_rtl() ? parseFloat(grid.style.left || 0) + start_x : -parseFloat(grid.style.left || 0) + start_x;
 			})
 			// calculate X and Y movement based on touch events.
 			.on("touchmove", function (event) {
@@ -944,7 +944,7 @@ export default class GridRow {
 					} else if (grid_start > grid_end) {
 						grid_start = grid_end;
 					}
-					grid.style.left = `${(frappe.utils.is_rtl()) ? '' : '-'}${grid_start}px`;
+					grid.style.left = `${frappe.utils.is_rtl() ? '' : '-'}${grid_start}px`;
 				}
 			})
 			.on("touchend", function () {
