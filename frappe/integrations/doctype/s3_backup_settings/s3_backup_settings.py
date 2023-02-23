@@ -144,6 +144,9 @@ def backup_to_s3():
 		endpoint_url=doc.endpoint_url or "https://s3.amazonaws.com",
 	)
 
+	# Delete all objects in the S3 bucket except the one with the number entered in the UI field
+	doc.delete_objects_from_s3()
+
 	if frappe.flags.create_new_backup:
 		backup = new_backup(
 			ignore_files=False,
