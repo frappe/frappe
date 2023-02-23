@@ -939,6 +939,15 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	>>> flt("a")
 	0.0
 	"""
+
+	#Get current decimal string and convert it to usual one.
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
+	if isinstance(s, str) and decimal_str == "," and comma_str == ".":
+		s = s.replace(",", "*") #Saving as temp
+		s = s.replace(".", ",")
+		s = s.replace("*", ".")
+
 	if isinstance(s, str):
 		s = s.replace(",", "")
 
