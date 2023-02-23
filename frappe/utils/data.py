@@ -2166,3 +2166,16 @@ def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
 	if doc_name:
 		job_name += f"_{doc_name}"
 	return job_name
+
+
+def get_imaginary_pixel_response():
+	return {
+		"type": "binary",
+		"filename": "imaginary_pixel.png",
+		"filecontent": (
+			b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+			b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+			b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+			b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+		),
+	}

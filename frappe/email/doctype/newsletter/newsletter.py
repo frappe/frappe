@@ -186,6 +186,7 @@ class Newsletter(WebsiteGenerator):
 			queue_separately=True,
 			send_priority=0,
 			args=args,
+			email_read_tracker_method=get_newsletter_read_tracker_method(self.name),
 		)
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
@@ -347,3 +348,39 @@ def send_scheduled_email():
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()
+
+
+@frappe.whitelist(allow_guest=True)
+def newsletter_email_read(recipient_email, newsletter_name):
+	verify_request()
+	try:
+		doc = frappe.get_doc("Newsletter", newsletter_name)
+		if doc.add_viewed(recipient_email, force=True, unique_views=True):
+			doc.db_set("total_views", doc.total_views + 1)
+
+	except Exception:
+		frappe.log_error(
+			f"Unable to mark as viewed for {recipient_email}", None, "Newsletter", newsletter_name
+		)
+
+	finally:
+		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+
+
+def get_newsletter_read_tracker_method(newsletter_name):
+	"""Returns the read url for the newsletter."""
+
+	def tracker_method(recipient_email):
+		from frappe.utils import get_url
+		from frappe.utils.verified_command import get_signed_params
+
+		params = {
+			"recipient_email": recipient_email,
+			"newsletter_name": newsletter_name,
+		}
+		unsubscribe_method = (
+			"/api/method/frappe.email.doctype.newsletter.newsletter.newsletter_email_read"
+		)
+		return get_url(f"{unsubscribe_method}?{get_signed_params(params)}")
+
+	return tracker_method
