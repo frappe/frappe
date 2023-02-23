@@ -52,9 +52,13 @@ $.extend(frappe.model, {
 
 			if (doc) {
 				// current document is dirty, show message if its not me
-				if (frappe.get_route()[0] === "Form" && cur_frm.doc.doctype === doc.doctype && cur_frm.doc.name === doc.name) {
-					if (data.modified != cur_frm.doc.modified) {
-						if (!doc.__unsaved) {
+				if (
+					frappe.get_route()[0] === "Form" &&
+					cur_frm.doc.doctype === doc.doctype &&
+					cur_frm.doc.name === doc.name
+				) {
+					if (data.modified !== cur_frm.doc.modified) {
+						if (!cur_frm.is_dirty()) {
 							cur_frm.reload_doc();
 						} else if (!frappe.ui.form.is_saving) {
 							doc.__needs_refresh = true;
