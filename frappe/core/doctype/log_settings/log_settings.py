@@ -17,6 +17,12 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
 	"Route History": 90,
+<<<<<<< HEAD
+=======
+	"Submission Queue": 30,
+	"Prepared Report": 30,
+	"Webhook Request Log": 30,
+>>>>>>> 22f5a60ebb (feat: make webhook requests log clearable)
 }
 
 
