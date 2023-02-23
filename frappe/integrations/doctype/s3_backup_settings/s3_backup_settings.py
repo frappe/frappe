@@ -50,7 +50,28 @@ class S3BackupSettings(Document):
 				msg = e.args[0]
 
 			frappe.throw(msg)
+			
+	def delete_objects_from_s3(self):
+		conn = boto3.resource(
+			"s3",
+			aws_access_key_id=self.access_key_id,
+			aws_secret_access_key=self.get_password("secret_access_key"),
+			endpoint_url=self.endpoint_url,
+		)
 
+		objects_to_delete = []
+
+		# List all objects in the S3 bucket
+		bucket = conn.Bucket(self.bucket)
+		for obj in bucket.objects.all():
+			# Check if object key matches the number entered in the UI field
+			if obj.key == self.backup_number:
+				continue
+			objects_to_delete.append({"Key": obj.key})
+
+		# Delete all objects except the one with the number entered in the UI field
+		if objects_to_delete:
+			bucket.delete_objects(Delete={"Objects": objects_to_delete})
 
 @frappe.whitelist()
 def take_backup():
@@ -61,6 +82,7 @@ def take_backup():
 		timeout=1500,
 	)
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+
 
 
 def take_backups_daily():
