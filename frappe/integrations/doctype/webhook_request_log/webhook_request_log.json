@@ -4,8 +4,7 @@
  "creation": "2021-05-24 21:35:59.104776",
  "doctype": "DocType",
  "editable_grid": 1,
- "document_type": "System",
- "engine": "MyISAM",
+ "engine": "InnoDB",
  "field_order": [
   "user",
   "reference_document_type",
