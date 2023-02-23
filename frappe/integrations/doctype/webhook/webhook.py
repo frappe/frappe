@@ -137,12 +137,10 @@ def enqueue_webhook(doc, webhook) -> None:
 
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(doc.doctype, doc.name, webhook.request_url, headers, data, r, e)
+			log_request(doc.doctype, doc.name, webhook.request_url, headers, data, r)
 			sleep(3 * i + 1)
 			if i != 2:
 				continue
-			else:
-				webhook.log_error("Webhook failed")
 
 
 def log_request(
@@ -152,7 +150,6 @@ def log_request(
 	headers: dict,
 	data: dict,
 	res: requests.Response | None = None,
-	error: str | None = None,
 ):
 	request_log = frappe.get_doc(
 		{
@@ -164,7 +161,7 @@ def log_request(
 			"headers": frappe.as_json(headers) if headers else None,
 			"data": frappe.as_json(data) if data else None,
 			"response": frappe.as_json(res.json()) if res else None,
-			"error": error,
+			"error": frappe.get_traceback(),
 		}
 	)
 
