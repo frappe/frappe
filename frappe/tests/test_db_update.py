@@ -139,6 +139,30 @@ class TestDBUpdate(FrappeTestCase):
 		doctype.delete()
 		frappe.db.commit()
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_fieldtype_conversion(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"label": "Some Field",
+					"fieldname": "some_fieldname",
+					"fieldtype": "Small Text",
+				}
+			]
+		).insert()
+		self.addCleanup(doctype.delete)
+
+		breaking_doc = frappe.new_doc(doctype.name)
+		# This will get truncated if varchar(140) is used.
+		breaking_doc.set(doctype.fields[0].fieldname, "xxx" * 140)
+		breaking_doc.insert()
+
+		doctype.fields[0].fieldtype = "Data"
+		try:
+			doctype.save()
+		except Exception:
+			self.fail("Failed to auto adjust varchar")
+
 
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))

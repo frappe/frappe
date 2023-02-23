@@ -1,4 +1,6 @@
 import re
+from contextlib import suppress
+from typing import Literal
 
 import frappe
 from frappe import _
@@ -175,7 +177,16 @@ class DBTable:
 
 class DbColumn:
 	def __init__(
-		self, table, fieldname, fieldtype, length, default, set_index, options, unique, precision
+		self,
+		table: DBTable,
+		fieldname: str,
+		fieldtype: str,
+		length: int | None,
+		default: str,
+		set_index: Literal[0, 1],
+		options: str,
+		unique: Literal[0, 1],
+		precision: int | None,
 	):
 		self.table = table
 		self.fieldname = fieldname
@@ -187,11 +198,31 @@ class DbColumn:
 		self.unique = unique
 		self.precision = precision
 
+	def guess_varchar_length(self):
+		"""When modifying or converting to varchar field, to avoid truncating data we try to guess
+		current max length and increase it if requrired."""
+		from frappe.query_builder.functions import Length, Max
+
+		MAX_VARCHAR_LENGTH = 500
+
+		with suppress(Exception):
+			table = frappe.qb.DocType(self.table.doctype)
+			current = frappe.qb.from_(table).select(Max(Length(table[self.fieldname]))).run()[0][0]
+			default_length = frappe.db.type_map.get(self.fieldtype)[1]
+
+			if current <= MAX_VARCHAR_LENGTH:
+				return max(current, default_length, cint(self.length))
+
 	def get_definition(self, for_modification=False):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
 
 		if not column_def:
 			return column_def
+
+		if "varchar" in column_def and for_modification:
+			existing_length = self.guess_varchar_length()
+			if existing_length:
+				column_def = get_definition(self.fieldtype, precision=self.precision, length=existing_length)
 
 		if self.fieldtype in ("Check", "Int"):
 			default_value = cint(self.default) or 0
