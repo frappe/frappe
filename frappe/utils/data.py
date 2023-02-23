@@ -12,7 +12,7 @@ import typing
 from code import compile_command
 from enum import Enum
 from typing import Any, Literal, Optional, TypeVar, Union
-from urllib.parse import quote, urljoin
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 from click import secho
 
@@ -2179,3 +2179,30 @@ def get_imaginary_pixel_response():
 			b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
 		),
 	}
+
+
+def is_internal_link(link: str) -> bool:
+	if link.startswith("/"):
+		return True
+	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
+
+
+def add_utm_to_url(url: str, source: str, medium: str, campaign: str) -> str:
+	"""Add utm parameters to url.
+
+	Args:
+	        url (str): URL to add utm parameters to.
+	        utm (dict[str, str]): Dictionary of utm parameters.
+
+	Returns:
+	        str: URL with utm parameters added.
+	"""
+	url_parts = list(urlparse(url))
+	query = dict(parse_qsl(url_parts[4])) | {
+		"utm_source": source,
+		"utm_medium": medium,
+		"utm_campaign": campaign,
+	}
+
+	url_parts[4] = urlencode(query)
+	return urlunparse(url_parts)

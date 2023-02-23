@@ -10,7 +10,19 @@ class WebPageView(Document):
 
 
 @frappe.whitelist(allow_guest=True)
-def make_view_log(path, referrer=None, browser=None, version=None, url=None, user_tz=None):
+def make_view_log(
+	path,
+	referrer=None,
+	browser=None,
+	version=None,
+	url=None,
+	user_tz=None,
+	utm_source=None,
+	utm_medium=None,
+	utm_campaign=None,
+	utm_term=None,
+	utm_content=None,
+):
 	if not is_tracking_enabled():
 		return
 
@@ -35,6 +47,11 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 	view.time_zone = user_tz
 	view.user_agent = user_agent
 	view.is_unique = is_unique
+	view.utm_source = utm_source
+	view.utm_medium = utm_medium
+	view.utm_campaign = utm_campaign
+	view.utm_term = utm_term
+	view.utm_content = utm_content
 
 	try:
 		if frappe.flags.read_only:

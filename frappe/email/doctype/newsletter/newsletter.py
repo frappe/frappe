@@ -198,7 +198,28 @@ class Newsletter(WebsiteGenerator):
 		if self.content_type == "HTML":
 			message = self.message_html
 
-		return frappe.render_template(message, {"doc": self.as_dict()})
+		html = frappe.render_template(message, {"doc": self.as_dict()})
+
+		return self.add_utm(html)
+
+	def add_utm(self, html: str) -> str:
+		"""Add UTM parameters to internal links in the newsletter."""
+		from bs4 import BeautifulSoup
+
+		soup = BeautifulSoup(html, "html.parser")
+
+		links = soup.find_all("a")
+		for link in links:
+			href = link.get("href")
+			if href and not href.startswith("#"):
+				if not frappe.utils.is_internal_link(href):
+					continue
+				new_href = frappe.utils.add_utm_to_url(
+					href, source="Newsletter", medium="Email", campaign=self.name
+				)
+				link["href"] = new_href
+
+		return str(soup)
 
 	def get_recipients(self) -> list[str]:
 		"""Get recipients from Email Group"""
