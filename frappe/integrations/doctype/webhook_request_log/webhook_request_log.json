@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "user",
-  "reference_document_type",
+  "webhook",
   "reference_document",
   "headers",
   "data",
@@ -56,31 +56,30 @@
    "read_only": 1
   },
   {
-   "fieldname": "reference_document_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Reference Document Type",
-   "options": "DocType"
-  },
-  {
    "fieldname": "reference_document",
-   "fieldtype": "Dynamic Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Reference Document",
-   "options": "reference_document_type"
+   "read_only": 1
   },
   {
    "fieldname": "error",
    "fieldtype": "Text",
    "label": "Error",
    "read_only": 1
+  },
+  {
+   "fieldname": "webhook",
+   "fieldtype": "Link",
+   "label": "Webhook",
+   "options": "Webhook"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-02-20 13:45:16.662079",
+ "modified": "2023-02-24 14:59:24.743552",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
