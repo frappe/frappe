@@ -17,9 +17,13 @@ export class ReminderManager {
 						{ label: __("1 hour"), value: "1_hour" },
 						{ label: __("4 hours"), value: "4_hours" },
 						{ label: __("1 Day"), value: "1_day" },
+						{ label: __("Custom"), value: "custom" },
 					],
 					onchange: () => {
 						me.convert_period_to_absolute_time();
+						me.dialog.fields_dict.remind_at.df.read_only =
+							me.dialog.get_value("remind_me_in") != "custom";
+						me.dialog.fields_dict.remind_at.refresh();
 					},
 				},
 				{
@@ -31,6 +35,7 @@ export class ReminderManager {
 					label: __("Remind At"),
 					fieldname: "remind_at",
 					reqd: 1,
+					read_only: 1,
 					onchange: () => {
 						// TODO: reset remind_me_in only if user modified time.
 						// me.dialog.set_value("remind_me_in", "");
@@ -67,7 +72,7 @@ export class ReminderManager {
 
 	convert_period_to_absolute_time() {
 		const period = this.dialog.get_value("remind_me_in");
-		if (!period) return;
+		if (!period || period == "custom") return;
 
 		const now_time = frappe.datetime.str_to_obj(frappe.datetime.now_datetime());
 		let [magnitude, unit] = period.split("_");
