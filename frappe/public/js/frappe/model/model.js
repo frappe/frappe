@@ -53,6 +53,19 @@ $.extend(frappe.model, {
 		"Client Script",
 	],
 
+	restricted_fields: [
+		"name",
+		"parent",
+		"creation",
+		"modified",
+		"modified_by",
+		"parentfield",
+		"parenttype",
+		"file_list",
+		"flags",
+		"docstatus",
+	],
+
 	std_fields: [
 		{ fieldname: "name", fieldtype: "Link", label: __("ID") },
 		{ fieldname: "owner", fieldtype: "Link", label: __("Created By"), options: "User" },
