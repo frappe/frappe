@@ -488,28 +488,32 @@ def parse_email(communication, email_strings):
 	"""
 	Parse email to add timeline links.
 	When automatic email linking is enabled, an email from email_strings can contain
-	a doctype and docname ie in the format `admin+doctype+docname@example.com`,
+	a doctype and docname ie in the format `admin+doctype+docname@example.com` or `admin+doctype=docname@example.com`,
 	the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
-	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
+	if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
 		return
-
-	delimiter = "+"
 
 	for email_string in email_strings:
 		if email_string:
 			for email in email_string.split(","):
-				if delimiter in email:
-					email = email.split("@")[0]
-					email_local_parts = email.split(delimiter)
-					if not len(email_local_parts) == 3:
-						continue
-
+				email_username = email.split("@", 1)[0]
+				email_local_parts = email_username.split("+")
+				docname = doctype = None
+				if len(email_local_parts) == 3:
 					doctype = unquote(email_local_parts[1])
 					docname = unquote(email_local_parts[2])
 
-					if doctype and docname and frappe.db.exists(doctype, docname):
-						communication.add_link(doctype, docname)
+				elif len(email_local_parts) == 2:
+					document_parts = email_local_parts[1].split("=", 1)
+					if len(document_parts) != 2:
+						continue
+
+					doctype = unquote(document_parts[0])
+					docname = unquote(document_parts[1])
+
+				if doctype and docname and frappe.db.get_value(doctype, docname, ignore=True):
+					communication.add_link(doctype, docname)
 
 
 def get_email_without_link(email):
