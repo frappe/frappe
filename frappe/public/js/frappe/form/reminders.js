@@ -19,11 +19,9 @@ export class ReminderManager {
 						{ label: __("1 Day"), value: "1_day" },
 						{ label: __("Custom"), value: "custom" },
 					],
+					default: "1_hour",
 					onchange: () => {
-						me.convert_period_to_absolute_time();
-						me.dialog.fields_dict.remind_at.df.read_only =
-							me.dialog.get_value("remind_me_in") != "custom";
-						me.dialog.fields_dict.remind_at.refresh();
+						me._update_datetime_selector();
 					},
 				},
 				{
@@ -36,10 +34,6 @@ export class ReminderManager {
 					fieldname: "remind_at",
 					reqd: 1,
 					read_only: 1,
-					onchange: () => {
-						// TODO: reset remind_me_in only if user modified time.
-						// me.dialog.set_value("remind_me_in", "");
-					},
 				},
 				{
 					fieldtype: "Section Break",
@@ -62,15 +56,21 @@ export class ReminderManager {
 				this.dialog.hide();
 			},
 		});
-
-		this.dialog.fields_dict.remind_at.datepicker?.update({
-			minDate: frappe.datetime.str_to_obj(frappe.datetime.now_datetime()),
-		});
-
+		this._update_datetime_selector();
 		this.dialog.show();
 	}
 
-	convert_period_to_absolute_time() {
+	_update_datetime_selector() {
+		this._convert_period_to_absolute_time();
+		this.dialog.fields_dict.remind_at.df.read_only =
+			this.dialog.get_value("remind_me_in") != "custom";
+		this.dialog.fields_dict.remind_at.refresh();
+		this.dialog.fields_dict.remind_at.datepicker?.update({
+			minDate: frappe.datetime.str_to_obj(frappe.datetime.now_datetime()),
+		});
+	}
+
+	_convert_period_to_absolute_time() {
 		const period = this.dialog.get_value("remind_me_in");
 		if (!period || period == "custom") return;
 
