@@ -34,3 +34,9 @@
 		margin: auto;
 	}
 }
+
+.overflow-wrap-anywhere {
+	* {
+		overflow-wrap: anywhere;
+	}
+}
