@@ -176,12 +176,12 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		}
 
 		if (client_script) {
-			eval(client_script);
+			new Function(client_script)();
 		}
 
 		if (!this.frm.doctype_layout && doctype.__custom_js) {
 			try {
-				eval(doctype.__custom_js);
+				new Function(doctype.__custom_js)();
 			} catch (e) {
 				frappe.msgprint({
 					title: __("Error in Client Script"),

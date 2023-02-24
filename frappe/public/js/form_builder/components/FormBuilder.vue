@@ -8,11 +8,11 @@ import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
 let store = useStore();
 
 let should_render = computed(() => {
-	return Object.keys(store.layout).length !== 0;
+	return Object.keys(store.form.layout).length !== 0;
 });
 
 let container = ref(null);
-onClickOutside(container, () => store.selected_field = null);
+onClickOutside(container, () => store.form.selected_field = null);
 
 // cmd/ctrl + s to save the form
 const { meta_s, ctrl_s } = useMagicKeys();
@@ -53,7 +53,7 @@ function setup_change_doctype_dialog() {
 }
 
 watch(
-	() => store.layout,
+	() => store.form.layout,
 	() => (store.dirty = true),
 	{ deep: true }
 );
@@ -69,7 +69,7 @@ onMounted(() => {
 		v-if="should_render"
 		ref="container"
 		class="form-builder-container"
-		@click="store.selected_field = null"
+		@click="store.form.selected_field = null"
 	>
 		<div class="form-controls" @click.stop>
 			<div class="form-sidebar">

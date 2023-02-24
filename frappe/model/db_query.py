@@ -13,9 +13,10 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.database.utils import FallBackDateTimeStr, NestedSetHierarchy
+from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
 from frappe.model import get_permitted_fields, optional_fields
 from frappe.model.meta import get_table_columns
+from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.utils import (
@@ -28,6 +29,7 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
+from frappe.utils.data import sbool
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(
@@ -73,6 +75,10 @@ class DatabaseQuery:
 			self._doctype_meta = frappe.get_meta(self.doctype)
 		return self._doctype_meta
 
+	@property
+	def query_tables(self):
+		return self.tables + [d.table_name for d in self.link_tables]
+
 	def execute(
 		self,
 		fields=None,
@@ -80,7 +86,7 @@ class DatabaseQuery:
 		or_filters=None,
 		docstatus=None,
 		group_by=None,
-		order_by="KEEP_DEFAULT_ORDERING",
+		order_by=DefaultOrderBy,
 		limit_start=False,
 		limit_page_length=None,
 		as_list=False,
@@ -163,6 +169,7 @@ class DatabaseQuery:
 		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
+		self.parent_doctype = parent_doctype
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -170,6 +177,21 @@ class DatabaseQuery:
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
+
+		if is_virtual_doctype(self.doctype):
+			from frappe.model.base_document import get_controller
+
+			controller = get_controller(self.doctype)
+			self.parse_args()
+			kwargs = {
+				"as_list": as_list,
+				"with_comment_count": with_comment_count,
+				"save_user_settings": save_user_settings,
+				"save_user_settings_fields": save_user_settings_fields,
+				"pluck": pluck,
+				"parent_doctype": parent_doctype,
+			} | self.__dict__
+			return controller.get_list(kwargs)
 
 		self.columns = self.get_table_columns()
 
@@ -179,7 +201,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if with_comment_count and not as_list and self.doctype:
+		if sbool(with_comment_count) and not as_list and self.doctype:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -455,9 +477,7 @@ class DatabaseQuery:
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.tables and table_name not in (
-					d.table_name for d in self.link_tables
-				):
+				if table_name not in self.query_tables:
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -572,19 +592,34 @@ class DatabaseQuery:
 			self.fields.pop(idx)
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Apply fieldlevel read permissions to the query"""
+		"""Apply fieldlevel read permissions to the query
+
+		Note: Does not apply to `frappe.model.core_doctype_list`
+
+		Remove fields that user is not allowed to read. If `fields=["*"]` is passed, only permitted fields will
+		be returned.
+
+		Example:
+		        - User has read permission only on `title` for DocType `Note`
+		        - Query: fields=["*"]
+		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
+		"""
 		if self.flags.ignore_permissions:
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=self.parent_doctype)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():
 				# field: 'count(distinct `tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
-				self.distinct = True
-				column = field.split(" ", 2)[1].replace("`", "").replace(")", "")
+				if _fn := FN_PARAMS_PATTERN.findall(field):
+					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
+				# field: 'distinct name'
+				# column: 'name'
+				else:
+					column = field.split(" ", 2)[1].replace("`", "")
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
@@ -608,11 +643,11 @@ class DatabaseQuery:
 				table, column = column.split(".", 1)
 				ch_doctype = table.replace("`", "").replace("tab", "", 1)
 
-				if wrap_grave_quotes(table) in self.tables:
+				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)
-					if column in permitted_child_table_fields:
+					if column in permitted_child_table_fields or column in optional_fields:
 						continue
 					else:
 						self.remove_field(i)

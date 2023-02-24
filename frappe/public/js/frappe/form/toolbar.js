@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 import "./linked_with";
 import "./form_viewers";
+import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
@@ -435,6 +436,19 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+
+		this.page.add_menu_item(
+			__("Remind Me"),
+			() => {
+				let reminder_maanger = new ReminderManager({ frm: this.frm });
+				reminder_maanger.show();
+			},
+			true,
+			{
+				shortcut: "Shift+R",
+				condition: () => !this.frm.is_new(),
+			}
+		);
 
 		this.make_customize_buttons();
 
