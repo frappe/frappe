@@ -16,11 +16,13 @@ class LetterHead(Document):
 
 	def use_as_default(self):
 		if (
-			not self.is_default
-			and not self.disabled
-			and not frappe.db.exists("Letter Head", dict(is_default=1))
+			self.is_default
+			or self.disabled
+			or frappe.db.exists("Letter Head", {"is_default": 1, "name": ("!=", self.name)})
 		):
-			self.is_default = 1
+			return
+
+		self.is_default = 1
 
 	def set_image(self):
 		if self.source == "Image":
