@@ -229,7 +229,7 @@ class TestCommunication(unittest.TestCase):
 			notes[i] = frappe.get_doc(
 				{
 					"doctype": "Note",
-					"title": f"test document link in email {i}",
+					"title": "test document link in email {0}".format(i),
 				}
 			).insert(ignore_permissions=True)
 
@@ -239,18 +239,9 @@ class TestCommunication(unittest.TestCase):
 				"communication_medium": "Email",
 				"subject": "Document Link in Email",
 				"sender": "comm_sender@example.com",
-<<<<<<< HEAD
-				"recipients": "comm_recipient+{0}+{1}@example.com".format(quote("Note"), quote(note.name)),
-			}
-		).insert(ignore_permissions=True)
-
-		doc_links = []
-		for timeline_link in comm.timeline_links:
-			doc_links.append((timeline_link.link_doctype, timeline_link.link_name))
-
-		self.assertIn(("Note", note.name), doc_links)
-=======
-				"recipients": f'comm_recipient+{quote("Note")}+{quote(notes[0].name)}@example.com,comm_recipient+{quote("Note")}={quote(notes[1].name)}@example.com',
+				"recipients": "comm_recipient+{0}+{1}@example.com,comm_recipient+{0}={2}@example.com".format(
+					quote("Note"), quote(notes[0].name), quote(notes[1].name)
+				),
 			}
 		).insert(ignore_permissions=True)
 
@@ -259,7 +250,6 @@ class TestCommunication(unittest.TestCase):
 		]
 		self.assertIn(("Note", notes[0].name), doc_links)
 		self.assertIn(("Note", notes[1].name), doc_links)
->>>>>>> 47edc63170 (fix: support for different delimiter for timeline email linking (#19751))
 
 	def test_parse_emails(self):
 		emails = get_emails(

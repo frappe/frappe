@@ -497,19 +497,10 @@ def parse_email(communication, email_strings):
 	for email_string in email_strings:
 		if email_string:
 			for email in email_string.split(","):
-<<<<<<< HEAD
-				if delimiter in email:
-					email = email.split("@")[0]
-					email_local_parts = email.split(delimiter)
-					if not len(email_local_parts) == 3:
-						continue
-
-=======
 				email_username = email.split("@", 1)[0]
 				email_local_parts = email_username.split("+")
 				docname = doctype = None
 				if len(email_local_parts) == 3:
->>>>>>> 47edc63170 (fix: support for different delimiter for timeline email linking (#19751))
 					doctype = unquote(email_local_parts[1])
 					docname = unquote(email_local_parts[2])
 
