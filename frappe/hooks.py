@@ -400,6 +400,7 @@ ignore_links_on_delete = [
 	"Document Share Key",
 	"Integration Request",
 	"Unhandled Email",
+	"Webhook Request Log",
 ]
 
 # Request Hooks
