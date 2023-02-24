@@ -85,7 +85,7 @@ export class ReminderManager {
 
 	create_reminder() {
 		frappe
-			.xcall("frappe.automation.doctype.docreminder.docreminder.create_new_reminder", {
+			.xcall("frappe.automation.doctype.reminder.reminder.create_new_reminder", {
 				remind_at: this.dialog.get_value("remind_at"),
 				description: this.dialog.get_value("description"),
 				reminder_doctype: this.frm?.doc.doctype,

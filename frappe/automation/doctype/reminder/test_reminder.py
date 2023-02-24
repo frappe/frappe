@@ -2,13 +2,13 @@
 # See license.txt
 
 import frappe
-from frappe.automation.doctype.docreminder.docreminder import create_new_reminder, send_reminders
+from frappe.automation.doctype.reminder.reminder import create_new_reminder, send_reminders
 from frappe.desk.doctype.notification_log.notification_log import get_notification_logs
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now_datetime
 
 
-class TestDocReminder(FrappeTestCase):
+class TestReminder(FrappeTestCase):
 	def test_reminder(self):
 
 		description = "TEST_REMINDER"

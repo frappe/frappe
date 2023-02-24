@@ -8,13 +8,13 @@ from frappe.utils import cint
 from frappe.utils.data import add_to_date, get_datetime, now_datetime
 
 
-class DocReminder(Document):
+class Reminder(Document):
 	@staticmethod
 	def clear_old_logs(days=30):
 		from frappe.query_builder import Interval
 		from frappe.query_builder.functions import Now
 
-		table = frappe.qb.DocType("DocReminder")
+		table = frappe.qb.DocType("Reminder")
 		frappe.db.delete(table, filters=(table.remind_at < (Now() - Interval(days=days))))
 
 	def validate(self):
@@ -47,7 +47,7 @@ def create_new_reminder(
 	reminder_doctype: str | None = None,
 	reminder_docname: str | None = None,
 ):
-	reminder = frappe.new_doc("DocReminder")
+	reminder = frappe.new_doc("Reminder")
 
 	reminder.description = description
 	reminder.remind_at = remind_at
@@ -65,7 +65,7 @@ def send_reminders():
 	lower_threshold = add_to_date(now_datetime(), hours=-8, as_string=True, as_datetime=True)
 
 	pending_reminders = frappe.get_all(
-		"DocReminder",
+		"Reminder",
 		filters=[
 			("remind_at", "<=", upper_threshold),
 			("remind_at", ">=", lower_threshold),  # dont send too old reminders if failed to send
@@ -75,4 +75,4 @@ def send_reminders():
 	)
 
 	for reminder in pending_reminders:
-		frappe.get_doc("DocReminder", reminder).send_reminder()
+		frappe.get_doc("Reminder", reminder).send_reminder()
