@@ -237,18 +237,18 @@ class NotificationsView extends BaseNotificationsView {
 		this.change_activity_status();
 	}
 
-	get_dropdown_item_html(field) {
-		let doc_link = this.get_item_link(field);
+	get_dropdown_item_html(notification_log) {
+		let doc_link = this.get_item_link(notification_log);
 
-		let read_class = field.read ? "" : "unread";
-		let message = field.subject;
+		let read_class = notification_log.read ? "" : "unread";
+		let message = notification_log.subject;
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title
 			? message.replace(title[1], frappe.ellipsis(strip_html(title[1]), 100))
 			: message;
 
-		let timestamp = frappe.datetime.comment_when(field.creation);
+		let timestamp = frappe.datetime.comment_when(notification_log.creation);
 		let message_html = `<div class="message">
 			<div>${message}</div>
 			<div class="notification-timestamp text-muted">
@@ -256,12 +256,12 @@ class NotificationsView extends BaseNotificationsView {
 			</div>
 		</div>`;
 
-		let user = field.from_user;
+		let user = notification_log.from_user;
 		let user_avatar = frappe.avatar(user, "avatar-medium user-avatar");
 
 		let item_html = $(`<a class="recent-item notification-item ${read_class}"
 				href="${doc_link}"
-				data-name="${field.name}"
+				data-name="${notification_log.name}"
 			>
 				<div class="notification-body">
 					${user_avatar}
@@ -271,18 +271,18 @@ class NotificationsView extends BaseNotificationsView {
 				</div>
 			</a>`);
 
-		if (!field.read) {
+		if (!notification_log.read) {
 			let mark_btn = item_html.find(".mark-as-read");
 			mark_btn.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 			mark_btn.on("click", (e) => {
 				e.preventDefault();
 				e.stopImmediatePropagation();
-				this.mark_as_read(field.name, item_html);
+				this.mark_as_read(notification_log.name, item_html);
 			});
 		}
 
 		item_html.on("click", () => {
-			!field.read && this.mark_as_read(field.name, item_html);
+			!notification_log.read && this.mark_as_read(notification_log.name, item_html);
 			this.notifications_icon.trigger("click");
 		});
 
@@ -298,8 +298,8 @@ class NotificationsView extends BaseNotificationsView {
 		} else {
 			if (this.dropdown_items.length) {
 				this.container.empty();
-				this.dropdown_items.forEach((field) => {
-					this.container.append(this.get_dropdown_item_html(field));
+				this.dropdown_items.forEach((notification_log) => {
+					this.container.append(this.get_dropdown_item_html(notification_log));
 				});
 				this.container.append(`<a class="list-footer"
 					href="/app/List/Notification Log">

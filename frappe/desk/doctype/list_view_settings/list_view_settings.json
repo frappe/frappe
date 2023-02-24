@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "disable_count",
+  "disable_comment_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
   "total_fields",
@@ -49,13 +50,20 @@
    "hidden": 1,
    "label": "Fields",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_comment_count",
+   "fieldtype": "Check",
+   "label": "Disable Comment Count"
   }
  ],
  "links": [],
- "modified": "2020-05-12 18:27:15.568199",
+ "modified": "2023-02-14 14:46:43.764229",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -72,5 +80,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

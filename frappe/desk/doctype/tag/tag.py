@@ -59,7 +59,7 @@ def get_tags(doctype, txt):
 	tag = frappe.get_list("Tag", filters=[["name", "like", f"%{txt}%"]])
 	tags = [t.name for t in tag]
 
-	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
+	return sorted(filter(lambda t: t and txt.casefold() in t.casefold(), list(set(tags))))
 
 
 class DocTags:

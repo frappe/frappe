@@ -12,6 +12,7 @@ from frappe.desk.doctype.route_history.route_history import frequently_visited_l
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
+from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
@@ -234,6 +235,9 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
+		if not has_permission("Report", raise_exception=False):
+			return {}
+
 		reports = frappe.get_list(
 			"Report",
 			fields=["name", "report_type"],
