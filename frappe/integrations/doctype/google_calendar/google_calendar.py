@@ -422,7 +422,10 @@ def insert_event_in_google_calendar(doc, method=None):
 		event = (
 			google_calendar.events()
 			.insert(
-				calendarId=doc.google_calendar_id, body=event, conferenceDataVersion=conference_data_version
+				calendarId=doc.google_calendar_id,
+				body=event,
+				conferenceDataVersion=conference_data_version,
+				sendUpdates="all",
 			)
 			.execute()
 		)
@@ -504,6 +507,7 @@ def update_event_in_google_calendar(doc, method=None):
 				eventId=doc.google_calendar_event_id,
 				body=event,
 				conferenceDataVersion=conference_data_version,
+				sendUpdates="all",
 			)
 			.execute()
 		)

@@ -657,8 +657,6 @@ class EmailAccount(Document):
 		if not email_server:
 			return
 
-		email_server.connect()
-
 		if email_server.imap:
 			try:
 				message = safe_encode(message)
