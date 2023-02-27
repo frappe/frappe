@@ -198,31 +198,15 @@ class DbColumn:
 		self.unique = unique
 		self.precision = precision
 
-	def guess_varchar_length(self):
-		"""When modifying or converting to varchar field, to avoid truncating data we try to guess
-		current max length and increase it if requrired."""
-		from frappe.query_builder.functions import Length, Max
-
-		MAX_VARCHAR_LENGTH = 500
-
-		with suppress(Exception):
-			table = frappe.qb.DocType(self.table.doctype)
-			current = frappe.qb.from_(table).select(Max(Length(table[self.fieldname]))).run()[0][0]
-			default_length = frappe.db.type_map.get(self.fieldtype)[1]
-
-			if current <= MAX_VARCHAR_LENGTH:
-				return max(current, default_length, cint(self.length))
-
 	def get_definition(self, for_modification=False):
+
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
 
 		if not column_def:
 			return column_def
 
 		if "varchar" in column_def and for_modification:
-			existing_length = self.guess_varchar_length()
-			if existing_length:
-				column_def = get_definition(self.fieldtype, precision=self.precision, length=existing_length)
+			column_def = self._change_varchar_dynamically(column_def)
 
 		if self.fieldtype in ("Check", "Int"):
 			default_value = cint(self.default) or 0
@@ -335,6 +319,39 @@ class DbColumn:
 				return float(current_def["default"]) != float(self.default)
 		except TypeError:
 			return True
+
+	def _change_varchar_dynamically(self, column_def):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		if existing_length := self._guess_varchar_length():
+			new_def = get_definition(self.fieldtype, precision=self.precision, length=existing_length)
+			if column_def != new_def:
+				column_def = new_def
+				make_property_setter(
+					self.table.doctype,
+					self.fieldname,
+					"length",
+					str(existing_length),
+					"Int",
+				)
+				frappe.db.commit()
+
+		return column_def
+
+	def _guess_varchar_length(self):
+		"""When modifying or converting to varchar field, to avoid truncating data we try to guess
+		current max length and increase it if requrired."""
+		from frappe.query_builder.functions import Length, Max
+
+		MAX_VARCHAR_LENGTH = 500
+
+		with suppress(Exception):
+			default_length = frappe.db.type_map.get(self.fieldtype)[1]
+			table = frappe.qb.DocType(self.table.doctype)
+			current = frappe.qb.from_(table).select(Max(Length(table[self.fieldname]))).run()[0][0]
+
+			if current <= MAX_VARCHAR_LENGTH:
+				return max(current, default_length, cint(self.length))
 
 
 def validate_column_name(n):
