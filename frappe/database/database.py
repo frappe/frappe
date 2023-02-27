@@ -233,7 +233,7 @@ class Database:
 			elif self.is_read_only_mode_error(e):
 				frappe.throw(
 					_(
-						"Site is running in read only mode, this action can not be performed right now. Please try again later."
+						"Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 					),
 					title=_("In Read Only Mode"),
 					exc=frappe.InReadOnlyMode,
