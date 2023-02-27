@@ -193,8 +193,9 @@ class CustomizeForm(Document):
 		# docfield
 		for df in self.get("fields"):
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
-			if not meta_df or meta_df[0].get("is_custom_field"):
+			if not meta_df or not is_standard_or_system_generated_field(meta_df[0]):
 				continue
+
 			self.set_property_setters_for_docfield(meta, df, meta_df)
 
 		# action and links
@@ -350,12 +351,14 @@ class CustomizeForm(Document):
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
-			if df.get("is_custom_field"):
-				if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
-					self.add_custom_field(df, i)
-					self.flags.update_db = True
-				else:
-					self.update_in_custom_field(df, i)
+			if is_standard_or_system_generated_field(df):
+				continue
+
+			if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
+				self.add_custom_field(df, i)
+				self.flags.update_db = True
+			else:
+				self.update_in_custom_field(df, i)
 
 		self.delete_custom_fields()
 
@@ -380,7 +383,7 @@ class CustomizeForm(Document):
 	def update_in_custom_field(self, df, i):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
-		if not (meta_df and meta_df[0].get("is_custom_field")):
+		if not meta_df or is_standard_or_system_generated_field(meta_df[0]):
 			# not a custom field
 			return
 
@@ -416,7 +419,7 @@ class CustomizeForm(Document):
 		}
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
-			if df.get("is_custom_field"):
+			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(
@@ -559,6 +562,10 @@ def reset_customization(doctype):
 		frappe.delete_doc("Custom Field", field)
 
 	frappe.clear_cache(doctype=doctype)
+
+
+def is_standard_or_system_generated_field(df):
+	return not df.get("is_custom_field") or df.get("is_system_generated")
 
 
 doctype_properties = {
