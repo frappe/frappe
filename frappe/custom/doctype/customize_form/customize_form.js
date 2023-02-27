@@ -89,7 +89,7 @@ frappe.ui.form.on("Customize Form", {
 
 	setup_sortable: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (!f.is_custom_field) {
+			if (!f.is_custom_field || f.is_system_generated) {
 				f._sortable = false;
 			}
 
