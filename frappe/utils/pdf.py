@@ -38,7 +38,7 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
 
 		# create in-memory binary streams from filedata and create a PdfReader object
-		reader = PdfReader(io.BytesIO(filedata))
+		reader = PdfReader(io.BytesIO(filedata), overwriteWarnings=False)
 	except OSError as e:
 		if any([error in str(e) for error in PDF_CONTENT_ERRORS]):
 			if not filedata:
