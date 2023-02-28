@@ -212,7 +212,7 @@ class Newsletter(WebsiteGenerator):
 		for link in links:
 			href = link.get("href")
 			if href and not href.startswith("#"):
-				if not frappe.utils.is_internal_link(href):
+				if not frappe.utils.is_site_link(href):
 					continue
 				new_href = frappe.utils.add_utm_to_url(
 					href, source="Newsletter", medium="Email", campaign=self.name
