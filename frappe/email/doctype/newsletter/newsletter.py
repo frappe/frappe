@@ -379,7 +379,7 @@ def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	try:
 		doc = frappe.get_doc(reference_doctype, reference_name)
 		if doc.add_viewed(recipient_email, force=True, unique_views=True):
-			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1)
+			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1, update_modified=False)
 
 	except Exception:
 		frappe.log_error(
