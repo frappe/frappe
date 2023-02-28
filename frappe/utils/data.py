@@ -1694,6 +1694,7 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	ret = False
 	if fieldtype:
+		val1 = cast(fieldtype, val1)
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
