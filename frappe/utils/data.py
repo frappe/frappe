@@ -2181,7 +2181,7 @@ def get_imaginary_pixel_response():
 	}
 
 
-def is_internal_link(link: str) -> bool:
+def is_site_link(link: str) -> bool:
 	if link.startswith("/"):
 		return True
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc

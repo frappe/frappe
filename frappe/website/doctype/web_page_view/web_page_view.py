@@ -1,7 +1,10 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from urllib.parse import urlparse
+
 import frappe
+import frappe.utils
 from frappe.model.document import Document
 
 
@@ -11,20 +14,27 @@ class WebPageView(Document):
 
 @frappe.whitelist(allow_guest=True)
 def make_view_log(
-	path,
 	referrer=None,
 	browser=None,
 	version=None,
-	url=None,
 	user_tz=None,
 	utm_source=None,
 	utm_medium=None,
 	utm_campaign=None,
 	utm_term=None,
 	utm_content=None,
+	visitor_id=None,
 ):
 	if not is_tracking_enabled():
 		return
+
+	# real path
+	path = frappe.request.headers.get("Referer")
+
+	if not frappe.utils.is_site_link(path):
+		return
+
+	path = urlparse(path).path
 
 	request_dict = frappe.request.__dict__
 	user_agent = request_dict.get("environ", {}).get("HTTP_USER_AGENT")
@@ -32,12 +42,12 @@ def make_view_log(
 	if referrer:
 		referrer = referrer.split("?", 1)[0]
 
-	is_unique = True
-	if referrer.startswith(url):
-		is_unique = False
-
 	if path != "/" and path.startswith("/"):
 		path = path[1:]
+
+	is_unique = visitor_id and not bool(
+		frappe.db.exists("Web Page View", {"visitor_id": visitor_id, "path": path})
+	)
 
 	view = frappe.new_doc("Web Page View")
 	view.path = path
@@ -52,6 +62,7 @@ def make_view_log(
 	view.utm_campaign = utm_campaign
 	view.utm_term = utm_term
 	view.utm_content = utm_content
+	view.visitor_id = visitor_id
 
 	try:
 		if frappe.flags.read_only:

@@ -21,18 +21,24 @@ ga('send', 'pageview');
 		frappe.ready(() => {
 			let browser = frappe.utils.get_browser();
 			let query_params = frappe.utils.get_query_params();
-			frappe.call("frappe.website.doctype.web_page_view.web_page_view.make_view_log", {
-				path: location.pathname,
-				referrer: document.referrer,
-				browser: browser.name,
-				version: browser.version,
-				url: location.origin,
-				user_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-				utm_source: query_params.utm_source,
-				utm_medium: query_params.utm_medium,
-				utm_campaign: query_params.utm_campaign,
-				utm_term: query_params.utm_term,
-				utm_content: query_params.utm_content,
+
+			// Get visitor ID based on browser uniqueness
+			import('https://openfpcdn.io/fingerprintjs/v3')
+				.then(fingerprint_js => fingerprint_js.load())
+				.then(fp => fp.get())
+				.then(result => {
+					frappe.call("frappe.website.doctype.web_page_view.web_page_view.make_view_log", {
+						referrer: document.referrer,
+						browser: browser.name,
+						version: browser.version,
+						user_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+						utm_source: query_params.utm_source,
+						utm_medium: query_params.utm_medium,
+						utm_campaign: query_params.utm_campaign,
+						utm_term: query_params.utm_term,
+						utm_content: query_params.utm_content,
+						visitor_id: result.visitorId
+					})
 			})
 		})
 	}

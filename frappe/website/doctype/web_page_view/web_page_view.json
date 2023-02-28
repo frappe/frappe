@@ -13,6 +13,7 @@
   "is_unique",
   "time_zone",
   "user_agent",
+  "visitor_id",
   "utm_trackers_section",
   "utm_source",
   "utm_medium",
@@ -94,11 +95,17 @@
    "fieldtype": "Data",
    "label": "Term",
    "read_only": 1
+  },
+  {
+   "fieldname": "visitor_id",
+   "fieldtype": "Data",
+   "label": "Visitor ID",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-02-23 15:10:14.134789",
+ "modified": "2023-02-28 01:11:34.538503",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",
