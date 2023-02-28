@@ -133,6 +133,7 @@ def sync_customizations_for_doctype(data: dict, folder: str):
 				if data.get(doctype_fieldname) == doc_type:
 					data["doctype"] = custom_doctype
 					doc = frappe.get_doc(data)
+					doc.is_system_generated = 1
 					doc.db_insert()
 
 			if custom_doctype != "Custom Field":
@@ -150,6 +151,7 @@ def sync_customizations_for_doctype(data: dict, folder: str):
 					else:
 						custom_field = frappe.get_doc("Custom Field", field)
 						custom_field.flags.ignore_validate = True
+						custom_field.is_system_generated = 1
 						custom_field.update(d)
 						custom_field.db_update()
 
