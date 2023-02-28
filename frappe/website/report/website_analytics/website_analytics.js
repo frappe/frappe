@@ -28,5 +28,16 @@ frappe.query_reports["Website Analytics"] = {
 			default: "Daily",
 			reqd: 1,
 		},
+		{
+			fieldname: "group_by",
+			label: __("Group By"),
+			fieldtype: "Select",
+			options: [
+				{ value: "path", label: __("Path") },
+				{ value: "browser", label: __("Browser") },
+				{ value: "referrer", label: __("Referrer") },
+			],
+			default: "path",
+		},
 	],
 };
