@@ -532,8 +532,8 @@ def clean_up(original_page, blocks):
 		# get list of widget's name from blocks
 		page_widgets[wid] = [x["data"][wid + "_name"] for x in loads(blocks) if x["type"] == wid]
 
-	# shortcut, chart & quick_list cleanup
-	for wid in ["shortcut", "chart", "quick_list"]:
+	# shortcut, chart, quick_list & number_card cleanup
+	for wid in ["shortcut", "chart", "quick_list", "number_card"]:
 		updated_widgets = []
 		original_page.get(wid + "s").reverse()
 
