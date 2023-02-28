@@ -11,7 +11,7 @@ export default class NumberCardWidget extends Widget {
 	get_config() {
 		return {
 			name: this.name,
-			number_card_name: this.number_card_name || this.name,
+			number_card_name: this.number_card_name,
 			label: this.label,
 			color: this.color,
 			hidden: this.hidden,

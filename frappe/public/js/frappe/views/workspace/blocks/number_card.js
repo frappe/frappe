@@ -23,6 +23,7 @@ export default class NumberCard extends Block {
 			allow_hiding: false,
 			allow_edit: true,
 			allow_resize: true,
+			for_workspace: true,
 		};
 	}
 
