@@ -260,7 +260,6 @@
    "read": 1,
    "report": 1,
    "role": "Newsletter Manager",
-   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   }
@@ -270,6 +269,5 @@
  "sort_order": "ASC",
  "states": [],
  "title_field": "subject",
- "track_changes": 1,
- "track_seen": 1
+ "track_changes": 1
 }
