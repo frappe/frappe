@@ -42,7 +42,13 @@ class WebsiteAnalytics:
 		meta = frappe.get_meta("Web Page View")
 		group_by = meta.get_field(self.group_by)
 		return [
-			{"fieldname": group_by.fieldname, "label": group_by.label, "fieldtype": "Data", "width": 300},
+			{
+				"fieldname": group_by.fieldname,
+				"label": group_by.label,
+				"fieldtype": "Data",
+				"width": 500,
+				"align": "left",
+			},
 			{"fieldname": "count", "label": "Page Views", "fieldtype": "Int", "width": 150},
 			{"fieldname": "unique_count", "label": "Unique Visitors", "fieldtype": "Int", "width": 150},
 		]
