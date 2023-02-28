@@ -3,7 +3,7 @@ export default class NumberCard extends Block {
 	static get toolbox() {
 		return {
 			title: "Number Card",
-			icon: frappe.utils.icon("income", "sm"),
+			icon: frappe.utils.icon("number-card", "sm"),
 		};
 	}
 

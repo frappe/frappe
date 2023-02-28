@@ -829,6 +829,13 @@
 		<path d="M16.814 13.3304L17.9274 12.6875" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
+	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-number-card">
+		<rect width="15" height="11" x="2.5" y="4.5" stroke="var(--icon-stroke)" rx="2.5"/>
+		<path stroke="var(--icon-stroke)" stroke-linecap="round" d="m9 13.2717 2.1349-2.0457 1.3641 1.3642L14.9999 10"/>
+		<path stroke="var(--icon-stroke)" stroke-linecap="round" d="M13.1812 10H15v1.8188"/>
+		<path stroke="#000" stroke-linecap="round" stroke-width=".7" d="M5.53911 7.55204h2.60407M5.25 8.83237h2.60407M6.49749 6.67866l-.82364 3.07385M7.79075 6.67866l-.82364 3.07385"/>
+	</symbol>
+
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-dashboard-list">
 		<path d="M7.5 2.5H4.5C3.94772 2.5 3.5 2.94772 3.5 3.5V9.5C3.5 10.0523 3.94772 10.5 4.5 10.5H7.5C8.05228 10.5 8.5 10.0523 8.5 9.5V3.5C8.5 2.94772 8.05228 2.5 7.5 2.5Z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M7.5 13.5H4.5C3.94772 13.5 3.5 13.9477 3.5 14.5V16.5C3.5 17.0523 3.94772 17.5 4.5 17.5H7.5C8.05228 17.5 8.5 17.0523 8.5 16.5V14.5C8.5 13.9477 8.05228 13.5 7.5 13.5Z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
