@@ -100,12 +100,13 @@
    "fieldname": "visitor_id",
    "fieldtype": "Data",
    "label": "Visitor ID",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-02-28 01:11:34.538503",
+ "modified": "2023-02-28 10:12:28.960509",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",

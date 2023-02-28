@@ -45,9 +45,7 @@ def make_view_log(
 	if path != "/" and path.startswith("/"):
 		path = path[1:]
 
-	is_unique = visitor_id and not bool(
-		frappe.db.exists("Web Page View", {"visitor_id": visitor_id, "path": path})
-	)
+	is_unique = visitor_id and not bool(frappe.db.exists("Web Page View", {"visitor_id": visitor_id}))
 
 	view = frappe.new_doc("Web Page View")
 	view.path = path
