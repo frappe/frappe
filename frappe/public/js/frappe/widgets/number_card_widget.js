@@ -141,6 +141,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_card() {
+		this.prepare_actions();
 		this.set_title();
 		this.set_loading_state();
 
@@ -289,6 +290,8 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	prepare_actions() {
+		if (this.in_customize_mode) return;
+
 		let actions = [
 			{
 				label: __("Refresh"),
@@ -301,7 +304,8 @@ export default class NumberCardWidget extends Widget {
 				label: __("Edit"),
 				action: "action-edit",
 				handler: () => {
-					frappe.set_route("Form", "Number Card", this.name);
+					let number_card = this.number_card_name || this.name;
+					frappe.set_route("Form", "Number Card", number_card);
 				},
 			},
 		];
