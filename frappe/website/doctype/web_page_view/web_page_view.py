@@ -18,11 +18,7 @@ def make_view_log(
 	browser=None,
 	version=None,
 	user_tz=None,
-	utm_source=None,
-	utm_medium=None,
-	utm_campaign=None,
-	utm_term=None,
-	utm_content=None,
+	source=None,
 	visitor_id=None,
 ):
 	if not is_tracking_enabled():
@@ -45,6 +41,9 @@ def make_view_log(
 	if path != "/" and path.startswith("/"):
 		path = path[1:]
 
+	if path.startswith(("api/", "app/", "assets/", "private/files/")):
+		return
+
 	is_unique = visitor_id and not bool(frappe.db.exists("Web Page View", {"visitor_id": visitor_id}))
 
 	view = frappe.new_doc("Web Page View")
@@ -55,11 +54,7 @@ def make_view_log(
 	view.time_zone = user_tz
 	view.user_agent = user_agent
 	view.is_unique = is_unique
-	view.utm_source = utm_source
-	view.utm_medium = utm_medium
-	view.utm_campaign = utm_campaign
-	view.utm_term = utm_term
-	view.utm_content = utm_content
+	view.source = source
 	view.visitor_id = visitor_id
 
 	try:

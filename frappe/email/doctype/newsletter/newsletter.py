@@ -202,10 +202,10 @@ class Newsletter(WebsiteGenerator):
 
 		html = frappe.render_template(message, {"doc": self.as_dict()})
 
-		return self.add_utm(html)
+		return self.add_source(html)
 
-	def add_utm(self, html: str) -> str:
-		"""Add UTM parameters to internal links in the newsletter."""
+	def add_source(self, html: str) -> str:
+		"""Add source to the site links in the newsletter content."""
 		from bs4 import BeautifulSoup
 
 		soup = BeautifulSoup(html, "html.parser")
@@ -216,8 +216,8 @@ class Newsletter(WebsiteGenerator):
 			if href and not href.startswith("#"):
 				if not frappe.utils.is_site_link(href):
 					continue
-				new_href = frappe.utils.add_utm_to_url(
-					href, source="Newsletter", medium="Email", campaign=self.name
+				new_href = frappe.utils.add_source_to_url(
+					href, reference_doctype=self.doctype, reference_docname=self.name
 				)
 				link["href"] = new_href
 

@@ -32,11 +32,7 @@ ga('send', 'pageview');
 						browser: browser.name,
 						version: browser.version,
 						user_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-						utm_source: query_params.utm_source,
-						utm_medium: query_params.utm_medium,
-						utm_campaign: query_params.utm_campaign,
-						utm_term: query_params.utm_term,
-						utm_content: query_params.utm_content,
+						source: query_params.source,
 						visitor_id: result.visitorId
 					})
 			})

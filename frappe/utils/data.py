@@ -2187,21 +2187,10 @@ def is_site_link(link: str) -> bool:
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
-def add_utm_to_url(url: str, source: str, medium: str, campaign: str) -> str:
-	"""Add utm parameters to url.
-
-	Args:
-	        url (str): URL to add utm parameters to.
-	        utm (dict[str, str]): Dictionary of utm parameters.
-
-	Returns:
-	        str: URL with utm parameters added.
-	"""
+def add_source_to_url(url: str, reference_doctype: str, reference_docname: str) -> str:
 	url_parts = list(urlparse(url))
 	query = dict(parse_qsl(url_parts[4])) | {
-		"utm_source": source,
-		"utm_medium": medium,
-		"utm_campaign": campaign,
+		"source": f"{reference_doctype} > {reference_docname}",
 	}
 
 	url_parts[4] = urlencode(query)
