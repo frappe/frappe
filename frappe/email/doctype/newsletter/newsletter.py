@@ -54,7 +54,7 @@ class Newsletter(WebsiteGenerator):
 	@frappe.whitelist()
 	def send_test_email(self, email):
 		test_emails = frappe.utils.validate_email_address(email, throw=True)
-		self.send_newsletter(emails=test_emails)
+		self.send_newsletter(emails=test_emails, test_email=True)
 		frappe.msgprint(_("Test email sent to {0}").format(email), alert=True)
 
 	@frappe.whitelist()
@@ -162,7 +162,7 @@ class Newsletter(WebsiteGenerator):
 		"""Get list of attachments on current Newsletter"""
 		return [{"file_url": row.attachment} for row in self.attachments]
 
-	def send_newsletter(self, emails: list[str]):
+	def send_newsletter(self, emails: list[str], test_email: bool = False):
 		"""Trigger email generation for `emails` and add it in Email Queue."""
 		attachments = self.get_newsletter_attachments()
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
@@ -186,7 +186,9 @@ class Newsletter(WebsiteGenerator):
 			queue_separately=True,
 			send_priority=0,
 			args=args,
-			email_read_tracker_method=get_newsletter_read_tracker_method(self.name),
+			email_read_tracker_url=None
+			if test_email
+			else "/api/method/frappe.email.doctype.newsletter.newsletter.newsletter_email_read",
 		)
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
@@ -372,36 +374,17 @@ def send_scheduled_email():
 
 
 @frappe.whitelist(allow_guest=True)
-def newsletter_email_read(recipient_email, newsletter_name):
+def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	verify_request()
 	try:
-		doc = frappe.get_doc("Newsletter", newsletter_name)
+		doc = frappe.get_doc(reference_doctype, reference_name)
 		if doc.add_viewed(recipient_email, force=True, unique_views=True):
-			doc.db_set("total_views", doc.total_views + 1)
+			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1)
 
 	except Exception:
 		frappe.log_error(
-			f"Unable to mark as viewed for {recipient_email}", None, "Newsletter", newsletter_name
+			f"Unable to mark as viewed for {recipient_email}", None, reference_doctype, reference_name
 		)
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
-
-
-def get_newsletter_read_tracker_method(newsletter_name):
-	"""Returns the read url for the newsletter."""
-
-	def tracker_method(recipient_email):
-		from frappe.utils import get_url
-		from frappe.utils.verified_command import get_signed_params
-
-		params = {
-			"recipient_email": recipient_email,
-			"newsletter_name": newsletter_name,
-		}
-		unsubscribe_method = (
-			"/api/method/frappe.email.doctype.newsletter.newsletter.newsletter_email_read"
-		)
-		return get_url(f"{unsubscribe_method}?{get_signed_params(params)}")
-
-	return tracker_method
