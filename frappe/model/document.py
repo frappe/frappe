@@ -676,7 +676,11 @@ class Document(BaseDocument):
 
 		for df in self.meta.fields:
 			if df.permlevel and hasattr(self, df.fieldname) and df.permlevel not in has_access_to:
-				delattr(self, df.fieldname)
+				try:
+					delattr(self, df.fieldname)
+				except AttributeError:
+					# hasattr might return True for class attribute which can't be delattr-ed.
+					continue
 
 		for table_field in self.meta.get_table_fields():
 			for df in frappe.get_meta(table_field.options).fields or []:

@@ -149,9 +149,13 @@ $.extend(frappe.model, {
 					cur_frm.doc.doctype === doc.doctype &&
 					cur_frm.doc.name === doc.name
 				) {
-					if (!frappe.ui.form.is_saving && data.modified != cur_frm.doc.modified) {
-						doc.__needs_refresh = true;
-						cur_frm.show_conflict_message();
+					if (data.modified !== cur_frm.doc.modified) {
+						if (!cur_frm.is_dirty()) {
+							cur_frm.reload_doc();
+						} else if (!frappe.ui.form.is_saving) {
+							doc.__needs_refresh = true;
+							cur_frm.show_conflict_message();
+						}
 					}
 				} else {
 					if (!doc.__unsaved) {
@@ -447,14 +451,6 @@ $.extend(frappe.model, {
 			return frm.perm[0].share === 1;
 		}
 		return frappe.boot.user.can_share.indexOf(doctype) !== -1;
-	},
-
-	can_set_user_permissions: function (doctype, frm) {
-		// system manager can always set user permissions
-		if (frappe.user_roles.includes("System Manager")) return true;
-
-		if (frm) return frm.perm[0].set_user_permissions === 1;
-		return frappe.boot.user.can_set_user_permissions.indexOf(doctype) !== -1;
 	},
 
 	has_value: function (dt, dn, fn) {

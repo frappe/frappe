@@ -29,6 +29,7 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
+from frappe.utils.data import sbool
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(
@@ -73,6 +74,10 @@ class DatabaseQuery:
 		if not hasattr(self, "_doctype_meta"):
 			self._doctype_meta = frappe.get_meta(self.doctype)
 		return self._doctype_meta
+
+	@property
+	def query_tables(self):
+		return self.tables + [d.table_name for d in self.link_tables]
 
 	def execute(
 		self,
@@ -196,7 +201,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if with_comment_count and not as_list and self.doctype:
+		if sbool(with_comment_count) and not as_list and self.doctype:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -472,9 +477,7 @@ class DatabaseQuery:
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.tables and table_name not in (
-					d.table_name for d in self.link_tables
-				):
+				if table_name not in self.query_tables:
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -640,7 +643,7 @@ class DatabaseQuery:
 				table, column = column.split(".", 1)
 				ch_doctype = table.replace("`", "").replace("tab", "", 1)
 
-				if wrap_grave_quotes(table) in self.tables:
+				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)

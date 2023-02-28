@@ -67,21 +67,21 @@ function delete_section(with_children) {
 
 	// remove section
 	sections.splice(index, 1);
-	store.selected_field = null;
+	store.form.selected_field = null;
 }
 
 function select_section() {
 	if (props.section.df.collapsible) {
 		collapsed.value = !collapsed.value;
 	}
-	store.selected_field = props.section.df;
+	store.form.selected_field = props.section.df;
 }
 
 function move_sections_to_tab() {
-	let new_tab = move_children_to_parent(props, "tab", "section", store.layout);
+	let new_tab = move_children_to_parent(props, "tab", "section", store.form.layout);
 
 	// activate tab
-	store.active_tab = new_tab;
+	store.form.active_tab = new_tab;
 }
 </script>
 

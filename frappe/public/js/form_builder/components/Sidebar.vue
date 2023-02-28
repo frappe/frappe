@@ -34,7 +34,7 @@ function resize(e) {
 }
 
 watch(
-	() => store.selected_field,
+	() => store.form.selected_field,
 	value => {
 		active_tab.value = value ? tab_titles[1] : tab_titles[0];
 	},
