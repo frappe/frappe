@@ -1,6 +1,7 @@
 import unittest
 from random import choice
 from threading import Thread
+from time import time
 from unittest.mock import patch
 
 import requests
@@ -195,7 +196,7 @@ class FrappeAPITestCase(FrappeTestCase):
 
 		return self._sid
 
-	def get(self, path, params, **kwargs):
+	def get(self, path, params=None, **kwargs):
 		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
 
 	def post(self, path, data, **kwargs):
@@ -239,3 +240,35 @@ class ThreadWithReturnValue(Thread):
 def patch_request_header(key, *args, **kwargs):
 	if key == "Authorization":
 		return f"token {authorization_token}"
+
+
+class TestWSGIApp(FrappeAPITestCase):
+	def test_request_hooks(self):
+		self.addCleanup(lambda: _test_REQ_HOOK.clear())
+		get_hooks = frappe.get_hooks
+
+		def patch_request_hooks(event: str, *args, **kwargs):
+			patched_hooks = {
+				"before_request": ["frappe.tests.test_api.before_request"],
+				"after_request": ["frappe.tests.test_api.after_request"],
+			}
+			if event not in patched_hooks:
+				return get_hooks(event, *args, **kwargs)
+			return patched_hooks[event]
+
+		with patch("frappe.get_hooks", patch_request_hooks):
+			self.assertIsNone(_test_REQ_HOOK.get("before_request"))
+			self.assertIsNone(_test_REQ_HOOK.get("after_request"))
+			res = self.get("/api/method/ping")
+			self.assertLess(_test_REQ_HOOK.get("before_request"), _test_REQ_HOOK.get("after_request"))
+
+
+_test_REQ_HOOK = {}
+
+
+def before_request(*args, **kwargs):
+	_test_REQ_HOOK["before_request"] = time()
+
+
+def after_request(*args, **kwargs):
+	_test_REQ_HOOK["after_request"] = time()

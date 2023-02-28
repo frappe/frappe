@@ -39,13 +39,18 @@ frappe.ui.Filter = class {
 
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
-			Datetime: ['like', 'not like'],
+			Datetime: ['like', 'not like', 'in', 'not in', '=', '!='],
 			Data: ['Between', 'Timespan'],
 			Select: ['like', 'not like', 'Between', 'Timespan'],
 			Link: ['Between', 'Timespan', '>', '<', '>=', '<='],
 			Currency: ['Between', 'Timespan'],
 			Color: ['Between', 'Timespan'],
 			Check: this.conditions.map((c) => c[0]).filter((c) => c !== '='),
+			Code: ['Between', 'Timespan', '>', '<', '>=', '<=', 'in', 'not in'],
+			'HTML Editor': ['Between', 'Timespan', '>', '<', '>=', '<=', 'in', 'not in'],
+			'Markdown Editor': ['Between', 'Timespan', '>', '<', '>=', '<=', 'in', 'not in'],
+			Password: ['Between', 'Timespan', '>', '<', '>=', '<=', 'in', 'not in'],
+			Rating: ['like', 'not like', 'Between', 'in', 'not in', 'Timespan'],
 		};
 	}
 
@@ -484,17 +489,23 @@ frappe.ui.filter_utils = {
 			];
 		} else if (df.fieldtype == 'Check') {
 			df.fieldtype = 'Select';
-			df.options = 'No\nYes';
+			df.options = [
+				{ label: __('Yes', null, 'Checkbox is checked'), value: 'Yes' },
+				{ label: __('No', null, 'Checkbox is not checked'), value: 'No' },
+			];
 		} else if (
 			[
 				'Text',
 				'Small Text',
 				'Text Editor',
 				'Code',
+				'Attach',
+				'Attach Image',
 				'Markdown Editor',
 				'HTML Editor',
 				'Tag',
 				'Comments',
+				'Barcode',
 				'Dynamic Link',
 				'Read Only',
 				'Assign',

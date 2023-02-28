@@ -221,17 +221,17 @@ class TestCommunication(unittest.TestCase):
 		self.assertIn(comm_note_2.name, data)
 
 	def test_link_in_email(self):
-		frappe.delete_doc_if_exists("Note", "test document link in email")
-
 		create_email_account()
 
-		note = frappe.get_doc(
-			{
-				"doctype": "Note",
-				"title": "test document link in email",
-				"content": "test document link in email",
-			}
-		).insert(ignore_permissions=True)
+		notes = {}
+		for i in range(2):
+			frappe.delete_doc_if_exists("Note", f"test document link in email {i}")
+			notes[i] = frappe.get_doc(
+				{
+					"doctype": "Note",
+					"title": "test document link in email {0}".format(i),
+				}
+			).insert(ignore_permissions=True)
 
 		comm = frappe.get_doc(
 			{
@@ -239,15 +239,17 @@ class TestCommunication(unittest.TestCase):
 				"communication_medium": "Email",
 				"subject": "Document Link in Email",
 				"sender": "comm_sender@example.com",
-				"recipients": "comm_recipient+{0}+{1}@example.com".format(quote("Note"), quote(note.name)),
+				"recipients": "comm_recipient+{0}+{1}@example.com,comm_recipient+{0}={2}@example.com".format(
+					quote("Note"), quote(notes[0].name), quote(notes[1].name)
+				),
 			}
 		).insert(ignore_permissions=True)
 
-		doc_links = []
-		for timeline_link in comm.timeline_links:
-			doc_links.append((timeline_link.link_doctype, timeline_link.link_name))
-
-		self.assertIn(("Note", note.name), doc_links)
+		doc_links = [
+			(timeline_link.link_doctype, timeline_link.link_name) for timeline_link in comm.timeline_links
+		]
+		self.assertIn(("Note", notes[0].name), doc_links)
+		self.assertIn(("Note", notes[1].name), doc_links)
 
 	def test_parse_emails(self):
 		emails = get_emails(
