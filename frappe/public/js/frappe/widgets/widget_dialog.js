@@ -652,10 +652,10 @@ export default function get_dialog_constructor(type) {
 	const widget_map = {
 		chart: ChartDialog,
 		shortcut: ShortcutDialog,
-		number_card: NumberCardDialog,
 		links: CardDialog,
 		onboarding: OnboardingDialog,
 		quick_list: QuickListDialog,
+		number_card: NumberCardDialog,
 	};
 
 	return widget_map[type] || WidgetDialog;
