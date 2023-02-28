@@ -27,10 +27,6 @@ export default class NumberCardWidget extends Widget {
 		this.make_card();
 	}
 
-	set_title() {
-		$(this.title_field).html(`<div class="number-label">${this.card_doc.label}</div>`);
-	}
-
 	make_card() {
 		frappe.model.with_doc("Number Card", this.number_card_name || this.name).then((card) => {
 			if (!card) {
