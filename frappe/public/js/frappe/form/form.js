@@ -905,13 +905,13 @@ frappe.ui.form.Form = class FrappeForm {
 					.filter((link) => link.doctype == doctype)
 					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
 					.join(", ");
-				links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+				links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
 			}
 		}
 		links_text = `<ul>${links_text}</ul>`;
 
 		let confirm_message = __("{0} {1} is linked with the following submitted documents: {2}", [
-			me.doc.doctype.bold(),
+			__(me.doc.doctype).bold(),
 			me.doc.name,
 			links_text,
 		]);
@@ -939,7 +939,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// if user can cancel all linked docs, add action to the dialog
 		if (can_cancel) {
-			d.set_primary_action("Cancel All", () => {
+			d.set_primary_action(__("Cancel All"), () => {
 				d.hide();
 				frappe.call({
 					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
