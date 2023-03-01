@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-02-15 01:16:26.216201",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "number_card_name",
+  "label"
+ ],
+ "fields": [
+  {
+   "fieldname": "number_card_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Number Card Name",
+   "options": "Number Card",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-02-15 01:16:26.216201",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Number Card",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
