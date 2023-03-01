@@ -34,6 +34,7 @@ frappe.dom = {
 	},
 	remove_script_and_style: function(txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
+<<<<<<< HEAD
 		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'), 's');
 		if (!regex.test(txt)) {
 			// no evil tags found, skip the DOM method entirely!
@@ -63,6 +64,30 @@ frappe.dom = {
 		}
 		if(found) {
 			return div.innerHTML;
+=======
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(txt, "text/html");
+		const body = doc.body;
+		let found = !!doc.head.innerHTML;
+
+		for (const tag of evil_tags) {
+			for (const element of body.getElementsByTagName(tag)) {
+				found = true;
+				element.parentNode.removeChild(element);
+			}
+		}
+
+		for (const element of body.getElementsByTagName("link")) {
+			const relation = element.getAttribute("rel");
+			if (relation && relation.toLowerCase().trim() === "stylesheet") {
+				found = true;
+				element.parentNode.removeChild(element);
+			}
+		}
+
+		if (found) {
+			return body.innerHTML;
+>>>>>>> 0446cda2c4 (fix: use `DOMParser` instead of `createElement` to remove script and style (#20196))
 		} else {
 			// don't disturb
 			return txt;
