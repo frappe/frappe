@@ -1425,15 +1425,15 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	create_page_skeleton() {
-		if ($(".layout-main-section").find(".workspace-skeleton").length) return;
+		if (this.body.find(".workspace-skeleton").length) return;
 
-		$(".layout-main-section").prepend(frappe.render_template("workspace_loading_skeleton"));
-		$(".layout-main-section").find(".codex-editor").addClass("hidden");
+		this.body.prepend(frappe.render_template("workspace_loading_skeleton"));
+		this.body.find(".codex-editor").addClass("hidden");
 	}
 
 	remove_page_skeleton() {
-		$(".layout-main-section").find(".codex-editor").removeClass("hidden");
-		$(".layout-main-section").find(".workspace-skeleton").remove();
+		this.body.find(".codex-editor").removeClass("hidden");
+		this.body.find(".workspace-skeleton").remove();
 	}
 
 	create_sidebar_skeleton() {
