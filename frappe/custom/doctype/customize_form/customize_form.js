@@ -236,7 +236,7 @@ frappe.ui.form.on("Customize Form", {
 // can't delete standard fields
 frappe.ui.form.on("Customize Form Field", {
 	before_fields_remove: function (frm, doctype, name) {
-		let row = frappe.get_doc(doctype, name);
+		const row = frappe.get_doc(doctype, name);
 
 		if (row.is_system_generated) {
 			frappe.throw(
