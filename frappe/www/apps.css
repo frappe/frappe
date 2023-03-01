@@ -1,0 +1,37 @@
+.apps-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    gap: 4rem;
+}
+
+.app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.app-logo {
+    width: 7.5rem;
+    height: 7.5rem;
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+
+.app-icon:hover {
+    text-decoration: none;
+}
+
+.app-icon:hover .app-logo {
+    transform: scale(1.05);
+}
+
+.app-title {
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--gray-900);
+}
