@@ -12,6 +12,7 @@ from frappe.utils import (
 	cint,
 	get_datetime,
 	get_formatted_email,
+	get_imaginary_pixel_response,
 	get_string_between,
 	list_to_str,
 	split_emails,
@@ -249,18 +250,7 @@ def mark_email_as_seen(name: str = None):
 		frappe.log_error("Unable to mark as seen", None, "Communication", name)
 
 	finally:
-		frappe.response.update(
-			{
-				"type": "binary",
-				"filename": "imaginary_pixel.png",
-				"filecontent": (
-					b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
-					b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
-					b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
-					b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
-				),
-			}
-		)
+		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
 
 
 def update_communication_as_read(name):

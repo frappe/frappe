@@ -112,10 +112,12 @@ frappe.ui.form.States = class FormStates {
 								})
 								.then((doc) => {
 									frappe.model.sync(doc);
-									frappe.dom.unfreeze();
 									me.frm.refresh();
 									me.frm.selected_workflow_action = null;
 									me.frm.script_manager.trigger("after_workflow_action");
+								})
+								.finally(() => {
+									frappe.dom.unfreeze();
 								});
 						});
 					});
