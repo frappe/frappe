@@ -141,6 +141,8 @@ def serialize_job(job: Job) -> frappe._dict:
 		creation=convert_utc_to_user_timezone(job.created_at),
 		modified=convert_utc_to_user_timezone(modified),
 		_comment_count=0,
+		owner=job.kwargs.get("user"),
+		modified_by=job.kwargs.get("user"),
 	)
 
 
