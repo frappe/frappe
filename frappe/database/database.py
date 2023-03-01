@@ -813,7 +813,10 @@ class Database:
 			distinct=distinct,
 			limit=limit,
 		)
-		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
+
+		# checking for Criterion first
+		# because equality with any Criterion returns a new BasicCriterion object
+		if not isinstance(fields, Criterion) and fields == "*":
 			as_dict = True
 
 		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
