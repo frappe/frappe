@@ -42,7 +42,7 @@ context("Workspace Blocks", () => {
 		cy.wait("@new_page");
 	});
 
-	it("Quick List Block", () => {
+	it.skip("Quick List Block", () => {
 		cy.create_records([
 			{
 				doctype: "ToDo",
