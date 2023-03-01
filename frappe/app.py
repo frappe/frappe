@@ -90,8 +90,9 @@ def application(request: Request):
 		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
 
-		for after_request_task in frappe.get_hooks("after_request"):
-			frappe.call(after_request_task, response=response, request=request)
+		if getattr(frappe.local, "initialised", False):
+			for after_request_task in frappe.get_hooks("after_request"):
+				frappe.call(after_request_task, response=response, request=request)
 
 		log_request(request, response)
 		process_response(response)
