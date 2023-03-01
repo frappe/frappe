@@ -11,6 +11,7 @@ export default class NumberCardWidget extends Widget {
 	get_config() {
 		return {
 			name: this.name,
+			number_card_name: this.number_card_name,
 			label: this.label,
 			color: this.color,
 			hidden: this.hidden,
@@ -26,12 +27,8 @@ export default class NumberCardWidget extends Widget {
 		this.make_card();
 	}
 
-	set_title() {
-		$(this.title_field).html(`<div class="number-label">${this.card_doc.label}</div>`);
-	}
-
 	make_card() {
-		frappe.model.with_doc("Number Card", this.name).then((card) => {
+		frappe.model.with_doc("Number Card", this.number_card_name || this.name).then((card) => {
 			if (!card) {
 				if (this.document_type) {
 					frappe.run_serially([
@@ -293,6 +290,8 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	prepare_actions() {
+		if (this.in_customize_mode) return;
+
 		let actions = [
 			{
 				label: __("Refresh"),
@@ -305,7 +304,8 @@ export default class NumberCardWidget extends Widget {
 				label: __("Edit"),
 				action: "action-edit",
 				handler: () => {
-					frappe.set_route("Form", "Number Card", this.name);
+					let number_card = this.number_card_name || this.name;
+					frappe.set_route("Form", "Number Card", number_card);
 				},
 			},
 		];
