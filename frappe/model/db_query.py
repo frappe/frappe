@@ -1175,20 +1175,6 @@ def get_order_by(doctype, meta):
 	return order_by
 
 
-def is_parent_only_filter(doctype, filters):
-	# check if filters contains only parent doctype
-	only_parent_doctype = True
-
-	if isinstance(filters, list):
-		for filter in filters:
-			if doctype not in filter:
-				only_parent_doctype = False
-			if "Between" in filter:
-				filter[3] = get_between_date_filter(flt[3])
-
-	return only_parent_doctype
-
-
 def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 	user_permissions = frappe.permissions.get_user_permissions(user=user)
 	doctype_user_permissions = user_permissions.get(doctype, [])
