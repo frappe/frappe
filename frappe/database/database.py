@@ -813,8 +813,7 @@ class Database:
 			distinct=distinct,
 			limit=limit,
 		)
-
-		if fields == "*":
+		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
 			as_dict = True
 
 		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
