@@ -160,7 +160,7 @@ def log_request(
 			"url": url,
 			"headers": frappe.as_json(headers) if headers else None,
 			"data": frappe.as_json(data) if data else None,
-			"response": frappe.as_json(res.json()) if res else None,
+			"response": res and res.text,
 			"error": frappe.get_traceback(),
 		}
 	)
