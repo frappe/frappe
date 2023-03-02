@@ -18,6 +18,11 @@
 	.print-hide {
 		display: none !important;
 	}
+	.overflow-wrap-anywhere {
+		* {
+			word-break: break-all;
+		}
+	}
 }
 
 .action-banner {
