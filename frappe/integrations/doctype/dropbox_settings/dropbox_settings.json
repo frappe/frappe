@@ -16,8 +16,6 @@
   "app_access_key",
   "app_secret_key",
   "allow_dropbox_access",
-  "dropbox_access_key",
-  "dropbox_access_secret",
   "dropbox_refresh_token"
  ],
  "fields": [
@@ -84,20 +82,6 @@
    "label": "Allow Dropbox Access"
   },
   {
-   "fieldname": "dropbox_access_key",
-   "fieldtype": "Password",
-   "hidden": 1,
-   "label": "Dropbox Access Key",
-   "read_only": 1
-  },
-  {
-   "fieldname": "dropbox_access_secret",
-   "fieldtype": "Password",
-   "hidden": 1,
-   "label": "Dropbox Access Secret",
-   "read_only": 1
-  },
-  {
    "fieldname": "dropbox_refresh_token",
    "fieldtype": "Password",
    "hidden": 1,
@@ -109,7 +93,7 @@
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-01-26 20:43:14.458823",
+ "modified": "2023-03-02 11:36:35.459730",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Dropbox Settings",
