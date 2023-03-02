@@ -656,6 +656,7 @@ class DatabaseQuery:
 				value = "('')"
 
 		else:
+			escape = True
 			df = meta.get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
@@ -677,6 +678,7 @@ class DatabaseQuery:
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
 
+				escape = False
 				value = get_between_date_filter(f.value, df)
 				fallback = f"'{FallBackDateTimeStr}'"
 
@@ -736,7 +738,7 @@ class DatabaseQuery:
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
-			elif isinstance(value, str) and f.operator.lower() != "between":
+			elif escape and isinstance(value, str):
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
