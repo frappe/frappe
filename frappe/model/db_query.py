@@ -583,7 +583,12 @@ class DatabaseQuery(object):
 			else:
 				value = "('')"
 		else:
+<<<<<<< HEAD
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
+=======
+			escape = True
+			df = meta.get("fields", {"fieldname": f.fieldname})
+>>>>>>> 70ede18942 (fix: improved implementation of `between` filter (#20190))
 			df = df[0] if df else None
 
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
@@ -604,6 +609,7 @@ class DatabaseQuery(object):
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
 
+				escape = False
 				value = get_between_date_filter(f.value, df)
 				fallback = "'0001-01-01 00:00:00'"
 
@@ -658,8 +664,13 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# escape value
+<<<<<<< HEAD
 			if isinstance(value, string_types) and not f.operator.lower() == "between":
 				value = "{0}".format(frappe.db.escape(value, percent=False))
+=======
+			elif escape and isinstance(value, str):
+				value = f"{frappe.db.escape(value, percent=False)}"
+>>>>>>> 70ede18942 (fix: improved implementation of `between` filter (#20190))
 
 		if (
 			self.ignore_ifnull

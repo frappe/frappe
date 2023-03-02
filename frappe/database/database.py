@@ -1047,6 +1047,7 @@ class Database(object):
 		if not datetime:
 			return "0001-01-01 00:00:00.000000"
 
+<<<<<<< HEAD
 		if isinstance(datetime, frappe.string_types):
 			if ":" not in datetime:
 				datetime = datetime + " 00:00:00.000000"
@@ -1054,6 +1055,9 @@ class Database(object):
 			datetime = datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
 
 		return datetime
+=======
+		return get_datetime(datetime).strftime("%Y-%m-%d %H:%M:%S.%f")
+>>>>>>> 70ede18942 (fix: improved implementation of `between` filter (#20190))
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
