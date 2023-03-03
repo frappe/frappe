@@ -12,6 +12,7 @@
   "column_break_3",
   "total_recipients",
   "column_break_12",
+  "total_views",
   "email_sent",
   "from_section",
   "sender_name",
@@ -228,6 +229,14 @@
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_views",
+   "fieldtype": "Int",
+   "label": "Total Views",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "has_web_view": 1,
@@ -236,7 +245,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-09 01:48:16.741603",
+ "modified": "2023-02-23 12:53:18.478018",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",
@@ -258,6 +267,7 @@
  "route": "newsletters",
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "title_field": "subject",
  "track_changes": 1
 }
