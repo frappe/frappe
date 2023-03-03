@@ -488,7 +488,9 @@ class DatabaseQuery:
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.query_tables and table_name not in self.linked_table_aliases.values():
+				if (
+					table_name not in self.query_tables and table_name not in self.linked_table_aliases.values()
+				):
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
