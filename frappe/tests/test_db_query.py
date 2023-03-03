@@ -46,6 +46,13 @@ def setup_patched_blog_post():
 	yield
 
 
+@contextmanager
+def enable_permlevel_restrictions():
+	frappe.db.set_single_value("System Settings", "apply_perm_level_on_api_calls", 1)
+	yield
+	frappe.db.set_single_value("System Settings", "apply_perm_level_on_api_calls", 0)
+
+
 class TestReportview(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -761,7 +768,7 @@ class TestReportview(FrappeTestCase):
 		self.assertNotEqual(users_edited[0].modified, users_edited[0].creation)
 
 	def test_permlevel_fields(self):
-		with setup_patched_blog_post(), setup_test_user(set_user=True):
+		with enable_permlevel_restrictions(), setup_patched_blog_post(), setup_test_user(set_user=True):
 			data = frappe.get_list(
 				"Blog Post", filters={"published": 1}, fields=["name", "published"], limit=1
 			)

@@ -603,7 +603,9 @@ class DatabaseQuery:
 		        - Query: fields=["*"]
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
-		if self.flags.ignore_permissions:
+		if self.flags.ignore_permissions or not frappe.get_system_settings(
+			"apply_perm_level_on_api_calls"
+		):
 			return
 
 		asterisk_fields = []
