@@ -62,6 +62,7 @@ class DatabaseQuery:
 		self.doctype = doctype
 		self.tables = []
 		self.link_tables = []
+		self.linked_table_aliases = {}
 		self.linked_table_counter = Counter()
 		self.conditions = []
 		self.or_conditions = []
@@ -79,7 +80,7 @@ class DatabaseQuery:
 
 	@property
 	def query_tables(self):
-		return self.tables + [d.table_name for d in self.link_tables]
+		return self.tables + [d.table_alias for d in self.link_tables]
 
 	def execute(
 		self,
@@ -508,6 +509,7 @@ class DatabaseQuery:
 			table_name=f"`tab{doctype}`",
 			table_alias=f"`tab{doctype}_{self.linked_table_counter[doctype]}`",
 		)
+		self.linked_table_aliases[linked_table.table_alias.replace("`", "")] = linked_table.table_name
 		self.link_tables.append(linked_table)
 		return linked_table
 
@@ -657,7 +659,12 @@ class DatabaseQuery:
 			# handle child / joined table fields
 			elif "." in field:
 				table, column = column.split(".", 1)
-				ch_doctype = table.replace("`", "").replace("tab", "", 1)
+				ch_doctype = table
+
+				if ch_doctype in self.linked_table_aliases:
+					ch_doctype = self.linked_table_aliases[ch_doctype]
+
+				ch_doctype = ch_doctype.replace("`", "").replace("tab", "", 1)
 
 				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
