@@ -1745,17 +1745,10 @@ frappe-charts@^2.0.0-rc13:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc13.tgz#fdb251d7ae311c41e38f90a3ae108070ec6b9072"
   integrity sha512-Bv7IfllIrjRbKWHn5b769dOSenqdBixAr6m5kurf8ZUOJSLOgK4HOXItJ7BA8n9PvviH9/k5DaloisjLM2Bm1w==
 
-<<<<<<< HEAD
-frappe-datatable@^1.16.4:
-  version "1.16.4"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.16.4.tgz#cb26f197c3cd404a5b13f016ef81c394e06f56fe"
-  integrity sha512-VoiTLnkuObMa3FxITrvP32UYN9v4WQ0j4qlCiDuqdXha9/BVSxwDt2BTK+cvaRloGcds5G2Hm9IRbltRRGGhxA==
-=======
 frappe-datatable@^1.17.2:
   version "1.17.2"
   resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.17.2.tgz#8c717bd40541b8ad0db871e129dc02cff4290df0"
   integrity sha512-Jk8/3860Zya7Si2cZYEjVj0Gfy7CqhPx/rVZCg2fZ1+NlaOvBsey/zFEIe2yWak8PiJ1Fw9VgOevKOoZ/ckmsw==
->>>>>>> 551861be63 (build(deps): Bump frappe-datatable to 1.17.2)
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
