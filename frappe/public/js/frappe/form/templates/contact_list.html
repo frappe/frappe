@@ -14,36 +14,38 @@
 				{%= __("Edit") %}
 			</a>
 		</p>
-		{% if (contact.phones || contact.email_ids) { %}
+		{% if (contact.phone || contact.mobile_no || contact.phone_nos.length > 0) { %}
 		<p>
 			{% if(contact.phone) { %}
-				{%= __("Phone") %}: <a href="tel:{%= contact.phone %}">{%= contact.phone %}</a><span class="text-muted"> ({%= __("Primary") %})</span><br>
+				<a href="tel:{%= contact.phone %}">{%= contact.phone %}</a> &#183; <span class="text-muted">{%= __("Primary Phone") %}</span><br>
 			{% endif %}
 			{% if(contact.mobile_no) { %}
-				{%= __("Mobile No") %}: <a href="tel:{%= contact.mobile_no %}">{%= contact.mobile_no %}</a><span class="text-muted"> ({%= __("Primary") %})</span><br>
+				<a href="tel:{%= contact.mobile_no %}">{%= contact.mobile_no %}</a> &#183; <span class="text-muted">{%= __("Primary Mobile") %}</span><br>
 			{% endif %}
 			{% if(contact.phone_nos) { %}
 				{% for(const phone_no of contact.phone_nos) { %}
-					{%= __("Phone") %}: <a href="tel:{%= phone_no.phone %}">{%= phone_no.phone %}</a><br>
+					<a href="tel:{%= phone_no.phone %}">{%= phone_no.phone %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
+		{% endif %}
+		{% if (contact.email_id || contact.email_ids.length > 0) { %}
 		<p>
 			{% if(contact.email_id) { %}
-				{%= __("Email") %}: <a href="mailto:{%= contact.email_id %}">{%= contact.email_id %}</a><span class="text-muted"> ({%= __("Primary") %})</span><br>
+				<a href="mailto:{%= contact.email_id %}">{%= contact.email_id %}</a> &#183; <span class="text-muted">{%= __("Primary Email") %}</span><br>
 			{% endif %}
 			{% if(contact.email_ids) { %}
 				{% for(const email_id of contact.email_ids) { %}
-					{%= __("Email") %}: <a href="mailto:{%= email_id.email_id %}">{%= email_id.email_id %}</a><br>
+					<a href="mailto:{%= email_id.email_id %}">{%= email_id.email_id %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
 		{% endif %}
-		<p>
 		{% if (contact.address) { %}
-			{%= __("Address") %}: {%= contact.address %}<br>
-		{% endif %}
+		<p>
+			{%= contact.address %}
 		</p>
+		{% endif %}
 	</div>
 {% } %}
 {% if(!contact_list.length) { %}
