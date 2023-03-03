@@ -861,7 +861,7 @@ class TestReportview(FrappeTestCase):
 			)
 			self.assertTrue("name" in data[0])
 			self.assertTrue("blogger_full_name" in data[0])
-			self.assertTrue("description" in data[0])
+			self.assertTrue("description" not in data[0])  # field does not exist
 
 	def test_reportview_get_permlevel_system_users(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):

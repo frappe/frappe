@@ -610,7 +610,7 @@ class DatabaseQuery:
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=self.parent_doctype)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():
@@ -628,11 +628,16 @@ class DatabaseQuery:
 				column = field.split("(")[-1].split(")", 1)[0]
 				column = strip_alias(column).replace("`", "")
 
-			if column == "*":
-				self.fields[i : i + 1] = permitted_fields
+			if column == "*" and not in_function("*", field):
+				asterisk_fields.append(i)
+				continue
+
+			# handle pseudo columns
+			elif not column or column.isnumeric():
+				continue
 
 			# labels / pseudo columns or frappe internals
-			elif column[0] in {"'", '"', "_"} or column in permitted_fields:
+			elif column[0] in {"'", '"'} or column in optional_fields:
 				continue
 
 			# handle child / joined table fields
@@ -658,12 +663,10 @@ class DatabaseQuery:
 			elif "(" in field:
 				if "*" in field:
 					continue
-				elif any(x for x in permitted_fields if x in field):
-					continue
-				elif _params := FN_PARAMS_PATTERN.findall(column):
-					params = (x for x in _params[0].split(","))
+				elif _params := FN_PARAMS_PATTERN.findall(field):
+					params = (x.strip() for x in _params[0].split(","))
 					for param in params:
-						if (
+						if not (
 							not param or param in permitted_fields or param.isnumeric() or "'" in param or '"' in param
 						):
 							self.remove_field(i)
