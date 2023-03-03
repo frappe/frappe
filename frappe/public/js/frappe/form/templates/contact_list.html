@@ -17,24 +17,24 @@
 		{% if (contact.phones || contact.email_ids) { %}
 		<p>
 			{% if(contact.phone) { %}
-				{%= __("Phone") %}: {%= contact.phone %}<span class="text-muted"> ({%= __("Primary") %})</span><br>
+				{%= __("Phone") %}: <a href="tel:{%= contact.phone %}">{%= contact.phone %}</a><span class="text-muted"> ({%= __("Primary") %})</span><br>
 			{% endif %}
 			{% if(contact.mobile_no) { %}
-				{%= __("Mobile No") %}: {%= contact.mobile_no %}<span class="text-muted"> ({%= __("Primary") %})</span><br>
+				{%= __("Mobile No") %}: <a href="tel:{%= contact.mobile_no %}">{%= contact.mobile_no %}</a><span class="text-muted"> ({%= __("Primary") %})</span><br>
 			{% endif %}
 			{% if(contact.phone_nos) { %}
 				{% for(const phone_no of contact.phone_nos) { %}
-					{%= __("Phone") %}: {%= phone_no.phone %}<br>
+					{%= __("Phone") %}: <a href="tel:{%= phone_no.phone %}">{%= phone_no.phone %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
 		<p>
 			{% if(contact.email_id) { %}
-				{%= __("Email") %}: {%= contact.email_id %}<span class="text-muted"> ({%= __("Primary") %})</span><br>
+				{%= __("Email") %}: <a href="mailto:{%= contact.email_id %}">{%= contact.email_id %}</a><span class="text-muted"> ({%= __("Primary") %})</span><br>
 			{% endif %}
 			{% if(contact.email_ids) { %}
 				{% for(const email_id of contact.email_ids) { %}
-					{%= __("Email") %}: {%= email_id.email_id %}<br>
+					{%= __("Email") %}: <a href="mailto:{%= email_id.email_id %}">{%= email_id.email_id %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
