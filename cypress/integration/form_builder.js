@@ -87,7 +87,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "Options is required");
 		cy.hide_dialog();
 
-		cy.get(first_field).click();
+		cy.get(first_field).click({ force: true });
 
 		cy.get(".sidebar-container .frappe-control[data-fieldname='options'] input")
 			.click()
@@ -114,7 +114,7 @@ context("Form Builder", () => {
 		cy.get_open_dialog().find(".msgprint").should("contain", "In List View");
 		cy.hide_dialog();
 
-		cy.get(first_field).click();
+		cy.get(first_field).click({ force: true });
 		cy.get(".sidebar-container .field label .label-area").contains("In List View").click();
 
 		// validate In Global Search
@@ -272,5 +272,30 @@ context("Form Builder", () => {
 		cy.get_open_dialog()
 			.find(".msgprint")
 			.should("contain", "cannot be hidden and mandatory without any default value");
+	});
+
+	it("Undo/Redo", () => {
+		cy.visit(`/app/form-builder/${doctype_name}`);
+
+		// click on second tab
+		cy.get(".tabs .tab:last").click();
+
+		let first_column = ".tab-content.active .section-columns-container:first .column:first";
+		let first_field = first_column + " .field:first";
+		let label = "div[title='Double click to edit label'] span:first";
+
+		// drag the first field to second position
+		cy.get(first_field).drag(first_column + " .field:nth-child(2)", {
+			target: { x: 100, y: 10 },
+		});
+		cy.get(first_field).find(label).should("have.text", "Check");
+
+		// undo
+		cy.get("body").type("{ctrl}z");
+		cy.get(first_field).find(label).should("have.text", "Data");
+
+		// redo
+		cy.get("body").type("{ctrl}{shift}z");
+		cy.get(first_field).find(label).should("have.text", "Check");
 	});
 });

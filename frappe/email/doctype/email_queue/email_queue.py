@@ -31,6 +31,7 @@ from frappe.utils import (
 	sbool,
 	split_emails,
 )
+from frappe.utils.verified_command import get_signed_params
 
 
 class EmailQueue(Document):
@@ -39,7 +40,7 @@ class EmailQueue(Document):
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
-			self.append("recipients", {"recipient": r, "status": "Not Sent"})
+			self.append("recipients", {"recipient": r.strip(), "status": "Not Sent"})
 
 	def on_trash(self):
 		self.prevent_email_queue_delete()
@@ -283,7 +284,9 @@ class SendMailContext:
 		if not message:
 			return ""
 
-		message = message.replace(self.message_placeholder("tracker"), self.get_tracker_str())
+		message = message.replace(
+			self.message_placeholder("tracker"), self.get_tracker_str(recipient_email)
+		)
 		message = message.replace(
 			self.message_placeholder("unsubscribe_url"), self.get_unsubscribe_str(recipient_email)
 		)
@@ -294,10 +297,24 @@ class SendMailContext:
 		message = self.include_attachments(message)
 		return message
 
-	def get_tracker_str(self) -> str:
-		if frappe.conf.use_ssl and self.email_account_doc.track_email_status:
-			tracker_url_html = f'<img src="{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"/>'
+	def get_tracker_str(self, recipient_email) -> str:
+		tracker_url = ""
+		if self.queue_doc.get("email_read_tracker_url"):
+			email_read_tracker_url = self.queue_doc.email_read_tracker_url
+			params = {
+				"recipient_email": recipient_email,
+				"reference_name": self.queue_doc.reference_name,
+				"reference_doctype": self.queue_doc.reference_doctype,
+			}
+			tracker_url = get_url(f"{email_read_tracker_url}?{get_signed_params(params)}")
+
+		elif frappe.conf.use_ssl and self.email_account_doc.track_email_status:
+			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
+
+		if tracker_url:
+			tracker_url_html = f'<img src="{tracker_url}"/>'
 			return quopri.encodestring(tracker_url_html.encode()).decode()
+
 		return ""
 
 	def get_unsubscribe_str(self, recipient_email: str) -> str:
@@ -428,6 +445,7 @@ class QueueBuilder:
 		header=None,
 		print_letterhead=False,
 		with_container=False,
+		email_read_tracker_url=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -452,6 +470,7 @@ class QueueBuilder:
 		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 		:param header: Append header in email (boolean)
 		:param with_container: Wraps email inside styled container
+		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -486,6 +505,7 @@ class QueueBuilder:
 		self.is_notification = is_notification
 		self.inline_images = inline_images
 		self.print_letterhead = print_letterhead
+		self.email_read_tracker_url = email_read_tracker_url
 
 	@property
 	def unsubscribe_method(self):
@@ -711,7 +731,7 @@ class QueueBuilder:
 			"attachments": json.dumps(self.get_attachments()),
 			"message_id": get_string_between("<", mail.msg_root["Message-Id"], ">"),
 			"message": mail_to_string,
-			"sender": self.sender,
+			"sender": mail.sender,
 			"reference_doctype": self.reference_doctype,
 			"reference_name": self.reference_name,
 			"add_unsubscribe_link": self._add_unsubscribe_link,
@@ -723,6 +743,7 @@ class QueueBuilder:
 			"show_as_cc": ",".join(self.final_cc()),
 			"show_as_bcc": ",".join(self.bcc),
 			"email_account": email_account_name or None,
+			"email_read_tracker_url": self.email_read_tracker_url,
 		}
 
 		if include_recipients:

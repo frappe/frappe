@@ -28,6 +28,7 @@ class WebsiteAnalytics:
 
 		self.filters.to_date = frappe.utils.add_days(self.filters.to_date, 1)
 		self.query_filters = {"creation": ["between", [self.filters.from_date, self.filters.to_date]]}
+		self.group_by = self.filters.group_by
 
 	def run(self):
 		columns = self.get_columns()
@@ -38,8 +39,16 @@ class WebsiteAnalytics:
 		return columns, data[:250], None, chart, summary
 
 	def get_columns(self):
+		meta = frappe.get_meta("Web Page View")
+		group_by = meta.get_field(self.group_by)
 		return [
-			{"fieldname": "path", "label": "Page", "fieldtype": "Data", "width": 300},
+			{
+				"fieldname": group_by.fieldname,
+				"label": group_by.label,
+				"fieldtype": "Data",
+				"width": 500,
+				"align": "left",
+			},
 			{"fieldname": "count", "label": "Page Views", "fieldtype": "Int", "width": 150},
 			{"fieldname": "unique_count", "label": "Unique Visitors", "fieldtype": "Int", "width": 150},
 		]
@@ -52,12 +61,12 @@ class WebsiteAnalytics:
 
 		return (
 			frappe.qb.from_(WebPageView)
-			.select("path", count_all, count_is_unique)
+			.select(self.group_by, count_all, count_is_unique)
 			.where(
 				Coalesce(WebPageView.creation, "0001-01-01")[self.filters.from_date : self.filters.to_date]
 			)
-			.groupby(WebPageView.path)
-			.orderby("count", Order=frappe.qb.desc)
+			.groupby(self.group_by)
+			.orderby("count", order=frappe.qb.desc)
 		).run()
 
 	def _get_query_for_mariadb(self):

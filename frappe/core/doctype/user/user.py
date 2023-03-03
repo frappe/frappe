@@ -122,11 +122,20 @@ class User(Document):
 		now = frappe.flags.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
 		frappe.enqueue(
-			"frappe.core.doctype.user.user.create_contact", user=self, ignore_mandatory=True, now=now
+			"frappe.core.doctype.user.user.create_contact",
+			user=self,
+			ignore_mandatory=True,
+			now=now,
+			enqueue_after_commit=True,
 		)
 
 		if self.name not in STANDARD_USERS and not self.user_image:
-			frappe.enqueue("frappe.core.doctype.user.user.update_gravatar", name=self.name, now=now)
+			frappe.enqueue(
+				"frappe.core.doctype.user.user.update_gravatar",
+				name=self.name,
+				now=now,
+				enqueue_after_commit=True,
+			)
 
 		# Set user selected timezone
 		if self.time_zone:
@@ -305,12 +314,10 @@ class User(Document):
 			.from_(user_role_doctype)
 			.select(user_doctype.name)
 			.where(user_role_doctype.role == "System Manager")
-			.where(user_doctype.docstatus < 2)
 			.where(user_doctype.enabled == 1)
 			.where(user_role_doctype.parent == user_doctype.name)
 			.where(user_role_doctype.parent.notin(["Administrator", self.name]))
 			.limit(1)
-			.distinct()
 		).run()
 
 	def get_fullname(self):

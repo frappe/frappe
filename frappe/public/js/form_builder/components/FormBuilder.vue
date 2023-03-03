@@ -8,11 +8,11 @@ import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
 let store = useStore();
 
 let should_render = computed(() => {
-	return Object.keys(store.layout).length !== 0;
+	return Object.keys(store.form.layout).length !== 0;
 });
 
 let container = ref(null);
-onClickOutside(container, () => store.selected_field = null);
+onClickOutside(container, () => store.form.selected_field = null);
 
 // cmd/ctrl + s to save the form
 const { meta_s, ctrl_s } = useMagicKeys();
@@ -53,7 +53,7 @@ function setup_change_doctype_dialog() {
 }
 
 watch(
-	() => store.layout,
+	() => store.form.layout,
 	() => (store.dirty = true),
 	{ deep: true }
 );
@@ -69,7 +69,7 @@ onMounted(() => {
 		v-if="should_render"
 		ref="container"
 		class="form-builder-container"
-		@click="store.selected_field = null"
+		@click="store.form.selected_field = null"
 	>
 		<div class="form-controls" @click.stop>
 			<div class="form-sidebar">
@@ -108,6 +108,12 @@ onMounted(() => {
 		border-radius: var(--border-radius);
 		box-shadow: var(--card-shadow);
 		background-color: var(--card-bg);
+
+		:deep(.section-columns.has-one-column .field) {
+			input.form-control, .signature-field {
+				width: calc(50% - 19px);
+			}
+		}
 
 		:deep(.column-container .field.sortable-chosen) {
 			background-color: var(--bg-light-gray);
@@ -191,6 +197,8 @@ onMounted(() => {
 	}
 
 	:deep(.preview) {
+		--field-placeholder-color: var(--fg-bg-color);
+
 		.tab, .column, .field, [data-is-custom="1"] {
 			background-color: var(--fg-color);
 		}
@@ -220,6 +228,12 @@ onMounted(() => {
 
 			.section-columns {
 				margin-top: 8px;
+
+				&.has-one-column .field {
+					input.form-control, .signature-field {
+						width: calc(50% - 15px);
+					}
+				}
 
 				.section-columns-container {
 					.column {

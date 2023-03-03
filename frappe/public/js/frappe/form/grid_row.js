@@ -12,7 +12,8 @@ export default class GridRow {
 		this.make();
 	}
 	make() {
-		var me = this;
+		let me = this;
+		let render_row = true;
 
 		this.wrapper = $('<div class="grid-row"></div>');
 		this.row = $('<div class="data-row row"></div>')
@@ -36,8 +37,10 @@ export default class GridRow {
 		if (this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
 		} else {
-			this.render_row();
+			render_row = this.render_row();
 		}
+
+		if (!this.render_row) return;
 
 		this.set_data();
 		this.wrapper.appendTo(this.parent);
@@ -312,6 +315,8 @@ export default class GridRow {
 		if (this.frm && this.doc) {
 			$(this.frm.wrapper).trigger("grid-row-render", [this]);
 		}
+
+		return true;
 	}
 
 	make_editable() {
@@ -757,11 +762,7 @@ export default class GridRow {
 
 	show_search_row() {
 		// show or remove search columns based on grid rows
-		this.show_search =
-			this.frm &&
-			this.frm.doc &&
-			this.frm.doc[this.grid.df.fieldname] &&
-			this.frm.doc[this.grid.df.fieldname].length >= 20;
+		this.show_search = this.show_search && this.grid?.data?.length >= 20;
 		!this.show_search && this.wrapper.remove();
 		return this.show_search;
 	}
@@ -938,12 +939,17 @@ export default class GridRow {
 					let grid_start = inital_position_x - event.touches[0].clientX;
 					let grid_end = grid.clientWidth - grid_container.clientWidth + 2;
 
+					if (frappe.utils.is_rtl()) {
+						grid_start = -grid_start;
+					}
+
 					if (grid_start < 0) {
 						grid_start = 0;
 					} else if (grid_start > grid_end) {
 						grid_start = grid_end;
 					}
-					grid.style.left = `-${grid_start}px`;
+
+					grid.style.left = `${frappe.utils.is_rtl() ? "" : "-"}${grid_start}px`;
 				}
 			})
 			.on("touchend", function () {

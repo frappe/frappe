@@ -6,6 +6,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.email.doctype.email_group.email_group import add_subscribers
+from frappe.rate_limiter import rate_limit
 from frappe.utils.safe_exec import is_job_queued
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.website.website_generator import WebsiteGenerator
@@ -53,7 +54,7 @@ class Newsletter(WebsiteGenerator):
 	@frappe.whitelist()
 	def send_test_email(self, email):
 		test_emails = frappe.utils.validate_email_address(email, throw=True)
-		self.send_newsletter(emails=test_emails)
+		self.send_newsletter(emails=test_emails, test_email=True)
 		frappe.msgprint(_("Test email sent to {0}").format(email), alert=True)
 
 	@frappe.whitelist()
@@ -161,7 +162,7 @@ class Newsletter(WebsiteGenerator):
 		"""Get list of attachments on current Newsletter"""
 		return [{"file_url": row.attachment} for row in self.attachments]
 
-	def send_newsletter(self, emails: list[str]):
+	def send_newsletter(self, emails: list[str], test_email: bool = False):
 		"""Trigger email generation for `emails` and add it in Email Queue."""
 		attachments = self.get_newsletter_attachments()
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
@@ -185,6 +186,9 @@ class Newsletter(WebsiteGenerator):
 			queue_separately=True,
 			send_priority=0,
 			args=args,
+			email_read_tracker_url=None
+			if test_email
+			else "/api/method/frappe.email.doctype.newsletter.newsletter.newsletter_email_read",
 		)
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
@@ -196,7 +200,28 @@ class Newsletter(WebsiteGenerator):
 		if self.content_type == "HTML":
 			message = self.message_html
 
-		return frappe.render_template(message, {"doc": self.as_dict()})
+		html = frappe.render_template(message, {"doc": self.as_dict()})
+
+		return self.add_source(html)
+
+	def add_source(self, html: str) -> str:
+		"""Add source to the site links in the newsletter content."""
+		from bs4 import BeautifulSoup
+
+		soup = BeautifulSoup(html, "html.parser")
+
+		links = soup.find_all("a")
+		for link in links:
+			href = link.get("href")
+			if href and not href.startswith("#"):
+				if not frappe.utils.is_site_link(href):
+					continue
+				new_href = frappe.utils.add_source_to_url(
+					href, reference_doctype=self.doctype, reference_docname=self.name
+				)
+				link["href"] = new_href
+
+		return str(soup)
 
 	def get_recipients(self) -> list[str]:
 		"""Get recipients from Email Group"""
@@ -227,7 +252,6 @@ class Newsletter(WebsiteGenerator):
 		)
 
 
-@frappe.whitelist(allow_guest=True)
 def confirmed_unsubscribe(email, group):
 	"""unsubscribe the email(user) from the mailing list(email_group)"""
 	frappe.flags.ignore_permissions = True
@@ -238,8 +262,12 @@ def confirmed_unsubscribe(email, group):
 
 
 @frappe.whitelist(allow_guest=True)
-def subscribe(email, email_group=_("Website")):  # noqa
+@rate_limit(limit=10, seconds=60 * 60)
+def subscribe(email, email_group=None):  # noqa
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
+
+	if email_group is None:
+		email_group = _("Website")
 
 	# build subscription confirmation URL
 	api_endpoint = frappe.utils.get_url(
@@ -343,3 +371,20 @@ def send_scheduled_email():
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()
+
+
+@frappe.whitelist(allow_guest=True)
+def newsletter_email_read(recipient_email, reference_doctype, reference_name):
+	verify_request()
+	try:
+		doc = frappe.get_doc(reference_doctype, reference_name)
+		if doc.add_viewed(recipient_email, force=True, unique_views=True):
+			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1, update_modified=False)
+
+	except Exception:
+		frappe.log_error(
+			f"Unable to mark as viewed for {recipient_email}", None, reference_doctype, reference_name
+		)
+
+	finally:
+		frappe.response.update(frappe.utils.get_imaginary_pixel_response())

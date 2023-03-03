@@ -19,7 +19,7 @@ function remove_field() {
 	}
 	let index = props.column.fields.indexOf(props.field);
 	props.column.fields.splice(index, 1);
-	store.selected_field = null;
+	store.form.selected_field = null;
 }
 
 function move_fields_to_column() {
@@ -32,15 +32,26 @@ function move_fields_to_column() {
 function duplicate_field() {
 	let duplicate_field = clone_field(props.field);
 
+	if (store.is_customize_form) {
+		duplicate_field.df.is_custom_field = 1;
+	}
+
 	if (duplicate_field.df.label) {
 		duplicate_field.df.label = duplicate_field.df.label + " Copy";
 	}
 	duplicate_field.df.fieldname = "";
+	duplicate_field.df.__islocal = 1;
+	duplicate_field.df.__unsaved = 1;
+	duplicate_field.df.owner = frappe.session.user;
+
+	delete duplicate_field.df.creation;
+	delete duplicate_field.df.modified;
+	delete duplicate_field.df.modified_by;
 
 	// push duplicate_field after props.field in the same column
 	let index = props.column.fields.indexOf(props.field);
 	props.column.fields.splice(index + 1, 0, duplicate_field);
-	store.selected_field = duplicate_field.df;
+	store.form.selected_field = duplicate_field.df;
 }
 </script>
 
@@ -52,7 +63,7 @@ function duplicate_field() {
 			store.selected(field.df.name) ? 'selected' : ''
 		]"
 		:title="field.df.fieldname"
-		@click.stop="store.selected_field = field.df"
+		@click.stop="store.form.selected_field = field.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>

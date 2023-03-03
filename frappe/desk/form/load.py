@@ -28,14 +28,10 @@ def getdoc(doctype, name, user=None):
 	if not (doctype and name):
 		raise Exception("doctype and name required!")
 
-	if not name:
-		name = doctype
-
 	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
 		return []
 
 	doc = frappe.get_doc(doctype, name)
-	run_onload(doc)
 
 	if not doc.has_permission("read"):
 		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
@@ -43,6 +39,7 @@ def getdoc(doctype, name, user=None):
 		)
 		raise frappe.PermissionError(("read", doctype, name))
 
+	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
 
 	# add file list
@@ -406,7 +403,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote(doctype)}+{quote(cstr(name))}@{email[1]}"
+	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
 
 
 def get_automatic_email_link():

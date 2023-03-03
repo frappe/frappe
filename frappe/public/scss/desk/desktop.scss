@@ -1057,6 +1057,14 @@ body {
 					}
 				}
 			}
+
+			.show-in-edit-mode {
+				display: block !important;
+
+				&.drop-icon {
+					display: inline-block !important;
+				}
+			}
 		}
 
 		.standard-sidebar-section.show-control {
@@ -1083,6 +1091,12 @@ body {
 				}
 			}
 		}
+	}
+
+
+	// widgets
+	.widget.number-widget-box {
+		box-shadow: var(--shadow-sm);
 	}
 
 

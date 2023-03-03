@@ -3,19 +3,18 @@ import Section from "./Section.vue";
 import EditableInput from "./EditableInput.vue";
 import draggable from "vuedraggable";
 import { useStore } from "../store";
-import { section_boilerplate } from "../utils";
+import { section_boilerplate, confirm_dialog } from "../utils";
 import { ref, computed, nextTick } from "vue";
 
 let store = useStore();
 
 let dragged = ref(false);
-let layout = computed(() => store.layout);
-let has_tabs = computed(() => layout.value.tabs.length > 1);
-store.active_tab = layout.value.tabs[0].df.name;
+let has_tabs = computed(() => store.form.layout.tabs.length > 1);
+store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
-	store.active_tab = tab.df.name;
-	store.selected_field = tab.df;
+	store.form.active_tab = tab.df.name;
+	store.form.selected_field = tab.df;
 
 	// scroll to active tab
 	nextTick(() => {
@@ -29,66 +28,73 @@ function activate_tab(tab) {
 function drag_over(tab) {
 	!dragged.value &&
 		setTimeout(() => {
-			store.active_tab = tab.df.name;
+			store.form.active_tab = tab.df.name;
 		}, 500);
 }
 
 function add_new_tab() {
 	let tab = {
-		df: store.get_df("Tab Break", "", "Tab " + (layout.value.tabs.length + 1)),
+		df: store.get_df("Tab Break", "", "Tab " + (store.form.layout.tabs.length + 1)),
 		sections: [section_boilerplate()],
 	};
 
-	layout.value.tabs.push(tab);
+	store.form.layout.tabs.push(tab);
 	activate_tab(tab);
 }
 
 function add_new_section() {
 	let section = section_boilerplate();
 	store.current_tab.sections.push(section);
-	store.selected_field = section.df;
+	store.form.selected_field = section.df;
 }
 
 function is_current_tab_empty() {
 	// check if sections have columns and it contains fields
-	return !store.current_tab.sections.some(section => {
-		// if section doesnt have fields remove the section
-		let has_fields = section.columns.some(column => column.fields.length);
-
-		if (!has_fields) {
-			// remove section if empty
-			let index = store.current_tab.sections.indexOf(section);
-			store.current_tab.sections.splice(index, 1);
-			has_fields = true;
-		}
-
-		return has_fields;
-	});
+	return !store.current_tab.sections.some(
+		section => section.columns.some(column => column.fields.length)
+	);
 }
 
 function remove_tab() {
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
+	} else if (store.has_standard_field(store.current_tab)) {
+		delete_tab();
+	} else if (is_current_tab_empty()) {
+		delete_tab(true);
+	} else {
+		confirm_dialog(
+			__("Delete Tab", null, "Title of confirmation dialog"),
+			__("Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.", null, "Confirmation dialog message"),
+			() => delete_tab(),
+			__("Delete tab", null, "Button text"),
+			() => delete_tab(true),
+			__("Delete entire tab with sections", null, "Button text")
+		);
 	}
+}
 
-	let tabs = layout.value.tabs;
+function delete_tab(with_children) {
+	let tabs = store.form.layout.tabs;
 	let index = tabs.indexOf(store.current_tab);
 
-	if (index > 0) {
-		let prev_tab = tabs[index - 1];
-		if (!is_current_tab_empty()) {
-			// move all sections from current tab to previous tab
-			prev_tab.sections = [...prev_tab.sections, ...store.current_tab.sections];
+	if (!with_children) {
+		if (index > 0) {
+			let prev_tab = tabs[index - 1];
+			if (!is_current_tab_empty()) {
+				// move all sections from current tab to previous tab
+				prev_tab.sections = [...prev_tab.sections, ...store.current_tab.sections];
+			}
+		} else {
+			// create a new tab and push sections to it
+			tabs.unshift({
+				df: store.get_df("Tab Break", "", __("Details")),
+				sections: store.current_tab.sections,
+				is_first: true,
+			});
+			index++;
 		}
-	} else {
-		// create a new tab and push sections to it
-		tabs.unshift({
-			df: store.get_df("Tab Break", "", __("Details")),
-			sections: store.current_tab.sections,
-			is_first: true,
-		});
-		index++;
 	}
 
 	// remove tab
@@ -96,17 +102,17 @@ function remove_tab() {
 
 	// activate previous tab
 	let prev_tab_index = index == 0 ? 0 : index - 1;
-	store.active_tab = tabs[prev_tab_index].df.name;
-	store.selected_field = null;
+	store.form.active_tab = tabs[prev_tab_index].df.name;
+	store.form.selected_field = null;
 }
 </script>
 
 <template>
-	<div class="tab-header" v-if="!(layout.tabs.length == 1 && store.read_only)">
+	<div class="tab-header" v-if="!(store.form.layout.tabs.length == 1 && store.read_only)">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
-			v-model="layout.tabs"
+			v-model="store.form.layout.tabs"
 			group="tabs"
 			filter="[data-has-std-field='true']"
 			:prevent-on-filter="false"
@@ -117,7 +123,7 @@ function remove_tab() {
 		>
 			<template #item="{ element }">
 				<div
-					:class="['tab', store.active_tab == element.df.name ? 'active' : '']"
+					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
 					:data-is-custom="element.df.is_custom_field"
 					:data-has-std-field="store.has_standard_field(element)"
@@ -160,9 +166,9 @@ function remove_tab() {
 	<div class="tab-contents">
 		<div
 			class="tab-content"
-			v-for="(tab, i) in layout.tabs"
+			v-for="(tab, i) in store.form.layout.tabs"
 			:key="i"
-			:class="[store.active_tab == tab.df.name ? 'active' : '']"
+			:class="[store.form.active_tab == tab.df.name ? 'active' : '']"
 		>
 			<draggable
 				class="tab-content-container"
@@ -185,7 +191,7 @@ function remove_tab() {
 				</template>
 			</draggable>
 			<div class="empty-tab" :hidden="store.read_only">
-				<div>{{ __("Drag & Drop a section here") }}</div>
+				<div>{{ __("Drag & Drop a section here from another tab") }}</div>
 				<div>{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">
 					{{ __("Add a new section") }}

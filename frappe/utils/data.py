@@ -12,7 +12,7 @@ import typing
 from code import compile_command
 from enum import Enum
 from typing import Any, Literal, Optional, TypeVar, Union
-from urllib.parse import quote, urljoin
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 from click import secho
 
@@ -1191,7 +1191,7 @@ def fmt_money(
 	if flt(amount) < 0:
 		minus = "-"
 
-	amount = cstr(abs(flt(amount))).split(".")[0]
+	amount = cstr(abs(flt(amount))).split(".", 1)[0]
 
 	if len(amount) > 3:
 		parts.append(amount[-3:])
@@ -1348,7 +1348,7 @@ def is_image(filepath: str) -> bool:
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = (filepath or "").split("?")[0]
+	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
@@ -1714,6 +1714,7 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
+		val1 = cast(fieldtype, val1)
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
@@ -1885,7 +1886,7 @@ def expand_relative_urls(html: str) -> str:
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
 
-		if not to_expand[2].startswith("mailto") and not to_expand[2].startswith("data:"):
+		if not to_expand[2].startswith(("mailto", "data:", "tel:")):
 			if not to_expand[2].startswith("/"):
 				to_expand[2] = "/" + to_expand[2]
 			to_expand.insert(2, url)
@@ -2166,3 +2167,32 @@ def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
 	if doc_name:
 		job_name += f"_{doc_name}"
 	return job_name
+
+
+def get_imaginary_pixel_response():
+	return {
+		"type": "binary",
+		"filename": "imaginary_pixel.png",
+		"filecontent": (
+			b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+			b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+			b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+			b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+		),
+	}
+
+
+def is_site_link(link: str) -> bool:
+	if link.startswith("/"):
+		return True
+	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
+
+
+def add_source_to_url(url: str, reference_doctype: str, reference_docname: str) -> str:
+	url_parts = list(urlparse(url))
+	query = dict(parse_qsl(url_parts[4])) | {
+		"source": f"{reference_doctype} > {reference_docname}",
+	}
+
+	url_parts[4] = urlencode(query)
+	return urlunparse(url_parts)

@@ -124,10 +124,10 @@ def get_result(doc, filters, to_date=None):
 			)
 		]
 
-	filters = frappe.parse_json(filters)
-
 	if not filters:
 		filters = []
+	elif isinstance(filters, str):
+		filters = frappe.parse_json(filters)
 
 	if to_date:
 		filters.append([doc.document_type, "creation", "<", to_date])
@@ -200,7 +200,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	if txt:
 		search_conditions = [numberCard[field].like(f"%{txt}%") for field in searchfields]
 
-	condition_query = frappe.qb.engine.build_conditions(doctype, filters)
+	condition_query = frappe.qb.get_query(doctype, filters=filters)
 
 	return (
 		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)
