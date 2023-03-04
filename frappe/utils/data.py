@@ -18,6 +18,7 @@ from click import secho
 
 import frappe
 from frappe.desk.utils import slug
+from frappe.utils.deprecations import deprecation_warning
 
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]
@@ -304,7 +305,7 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 
 
 def now_datetime():
-	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_system_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
 
 
@@ -343,9 +344,16 @@ def get_datetime_in_timezone(time_zone):
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
-def convert_utc_to_user_timezone(utc_timestamp):
+def convert_utc_to_system_timezone(utc_timestamp):
 	time_zone = get_time_zone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
+
+
+def convert_utc_to_user_timezone(utc_timestamp):
+	deprecation_warning(
+		"`convert_utc_to_user_timezone` is deprecated and will be removed in version 16. Use `convert_utc_to_system_timezone` instead."
+	)
+	return convert_utc_to_system_timezone(utc_timestamp)
 
 
 def now() -> str:
