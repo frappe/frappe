@@ -318,15 +318,22 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 
-def _get_time_zone():
+def _get_system_timezone():
 	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
-def get_time_zone():
+def get_system_timezone():
 	if frappe.local.flags.in_test:
-		return _get_time_zone()
+		return _get_system_timezone()
 
-	return frappe.cache().get_value("time_zone", _get_time_zone)
+	return frappe.cache().get_value("time_zone", _get_system_timezone)
+
+
+def get_time_zone():
+	deprecation_warning(
+		"`get_time_zone` is deprecated and will be removed in version 16. Use `get_system_timezone` instead."
+	)
+	return get_system_timezone()
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
@@ -345,7 +352,7 @@ def get_datetime_in_timezone(time_zone):
 
 
 def convert_utc_to_system_timezone(utc_timestamp):
-	time_zone = get_time_zone()
+	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
