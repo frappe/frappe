@@ -12,6 +12,7 @@ from frappe.desk.doctype.route_history.route_history import frequently_visited_l
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
+from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
@@ -101,7 +102,7 @@ def get_bootinfo():
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
-	bootinfo.subscription_expiry = add_subscription_expiry()
+	bootinfo.subscription_conf = add_subscription_conf()
 
 	return bootinfo
 
@@ -234,7 +235,10 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		reports = frappe.get_all(
+		if not has_permission("Report", raise_exception=False):
+			return {}
+
+		reports = frappe.get_list(
 			"Report",
 			fields=["name", "report_type"],
 			filters={"name": ("in", has_role.keys())},
@@ -242,6 +246,10 @@ def get_user_pages_or_reports(parent, cache=False):
 		)
 		for report in reports:
 			has_role[report.name]["report_type"] = report.report_type
+
+		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+		for r in non_permitted_reports:
+			has_role.pop(r, None)
 
 	# Expire every six hours
 	_cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
@@ -431,8 +439,8 @@ def load_currency_docs(bootinfo):
 	bootinfo.docs += currency_docs
 
 
-def add_subscription_expiry():
+def add_subscription_conf():
 	try:
-		return frappe.conf.subscription["expiry"]
+		return frappe.conf.subscription
 	except Exception:
 		return ""
