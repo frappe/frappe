@@ -191,7 +191,8 @@
   {
    "fieldname": "time_zone",
    "fieldtype": "Select",
-   "label": "Time Zone"
+   "label": "Time Zone",
+   "read_only": 1
   },
   {
    "description": "Get your globally recognized avatar from Gravatar.com",

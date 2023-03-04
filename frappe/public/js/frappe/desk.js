@@ -52,7 +52,7 @@ frappe.Application = class Application {
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
 		this.setup_copy_doc_listener();
-
+		this.set_tz();
 		frappe.ui.keys.setup();
 
 		frappe.ui.keys.add_shortcut({
@@ -164,6 +164,13 @@ frappe.Application = class Application {
 					});
 				}, 600000); // check every 10 minutes
 			}
+		}
+	}
+
+	set_tz() {
+		let timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+		if (frappe.boot.time_zone.user != timezone) {
+			frappe.db.set_value('User', frappe.session.user, 'time_zone', timezone)
 		}
 	}
 
@@ -318,10 +325,11 @@ frappe.Application = class Application {
 		frappe.user_roles = frappe.boot.user.roles;
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 
-		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format
-			.replace("dd", "%d")
-			.replace("mm", "%m")
-			.replace("yyyy", "%Y");
+		// frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format
+		// 	.replace("dd", "%d")
+		// 	.replace("mm", "%m")
+		// 	.replace("yyyy", "%Y");
+		frappe.ui.py_date_format = frappe.datetime.get_user_date_fmt
 		frappe.boot.user.last_selected_values = {};
 
 		// Proxy for user globals
