@@ -331,7 +331,7 @@ def get_system_timezone():
 
 def get_time_zone():
 	deprecation_warning(
-		"`get_time_zone` is deprecated and will be removed in version 16. Use `get_system_timezone` instead."
+		"`get_time_zone` is deprecated and will be removed in version 15. Use `get_system_timezone` instead."
 	)
 	return get_system_timezone()
 
@@ -358,7 +358,7 @@ def convert_utc_to_system_timezone(utc_timestamp):
 
 def convert_utc_to_user_timezone(utc_timestamp):
 	deprecation_warning(
-		"`convert_utc_to_user_timezone` is deprecated and will be removed in version 16. Use `convert_utc_to_system_timezone` instead."
+		"`convert_utc_to_user_timezone` is deprecated and will be removed in version 15. Use `convert_utc_to_system_timezone` instead."
 	)
 	return convert_utc_to_system_timezone(utc_timestamp)
 
