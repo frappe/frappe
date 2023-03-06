@@ -12,11 +12,7 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-<<<<<<< HEAD
-from frappe.utils import cint, get_time_zone, md_to_html
-=======
-from frappe.utils import cint, get_assets_json, get_system_timezone, md_to_html
->>>>>>> b2e36634d6 (refactor: rename `get_time_zone` to `get_system_timezone`)
+from frappe.utils import cint, get_system_timezone, md_to_html
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
