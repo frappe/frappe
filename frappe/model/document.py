@@ -1015,6 +1015,8 @@ class Document(BaseDocument):
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
+		if frappe.flags.in_patch: return
+
 		frappe.publish_realtime("doc_update", {"modified": self.modified, "doctype": self.doctype, "name": self.name},
 			doctype=self.doctype, docname=self.name, after_commit=True)
 
