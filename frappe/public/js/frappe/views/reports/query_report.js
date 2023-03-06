@@ -1204,7 +1204,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
-				format: (value, row, column, data) => {
+				format: (value, row, column, data, for_filter = false) => {
+					if (for_filter && column?.fieldtype === "Link") {
+						return value || "";
+					}
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(
 							value,
@@ -1681,7 +1684,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						doctype: "Report",
 						name: this.report_name,
 					}),
-				condition: () => frappe.model.can_set_user_permissions("Report"),
+				condition: () => frappe.user.has_role("System Manager"),
 				standard: true,
 			},
 		];

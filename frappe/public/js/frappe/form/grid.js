@@ -63,7 +63,7 @@ export default class Grid {
 		let template = `
 			<div class="grid-field">
 				<label class="control-label">${__(this.df.label || "")}</label>
-				<span class="ml-1 help"></span>
+				<span class="help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
 				<div class="form-grid-container">
@@ -477,11 +477,16 @@ export default class Grid {
 					this.wrapper.find(".grid-add-multiple-rows").removeClass("hidden");
 				}
 			}
-		} else if (this.grid_rows.length < this.grid_pagination.page_length) {
+		} else if (
+			this.grid_rows.length < this.grid_pagination.page_length &&
+			!this.df.allow_bulk_edit
+		) {
 			this.wrapper.find(".grid-footer").toggle(false);
 		}
 
-		this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").toggle(this.is_editable());
+		this.wrapper
+			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
+			.toggle(this.is_editable());
 	}
 
 	truncate_rows() {

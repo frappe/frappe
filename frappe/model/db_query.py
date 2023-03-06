@@ -29,6 +29,7 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
+from frappe.utils.data import sbool
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(
@@ -73,6 +74,10 @@ class DatabaseQuery:
 		if not hasattr(self, "_doctype_meta"):
 			self._doctype_meta = frappe.get_meta(self.doctype)
 		return self._doctype_meta
+
+	@property
+	def query_tables(self):
+		return self.tables + [d.table_name for d in self.link_tables]
 
 	def execute(
 		self,
@@ -164,6 +169,7 @@ class DatabaseQuery:
 		self.run = run
 		self.strict = strict
 		self.ignore_ddl = ignore_ddl
+		self.parent_doctype = parent_doctype
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -195,7 +201,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if with_comment_count and not as_list and self.doctype:
+		if sbool(with_comment_count) and not as_list and self.doctype:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -471,9 +477,7 @@ class DatabaseQuery:
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.tables and table_name not in (
-					d.table_name for d in self.link_tables
-				):
+				if table_name not in self.query_tables:
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -588,19 +592,34 @@ class DatabaseQuery:
 			self.fields.pop(idx)
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Apply fieldlevel read permissions to the query"""
+		"""Apply fieldlevel read permissions to the query
+
+		Note: Does not apply to `frappe.model.core_doctype_list`
+
+		Remove fields that user is not allowed to read. If `fields=["*"]` is passed, only permitted fields will
+		be returned.
+
+		Example:
+		        - User has read permission only on `title` for DocType `Note`
+		        - Query: fields=["*"]
+		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
+		"""
 		if self.flags.ignore_permissions:
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=self.parent_doctype)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():
 				# field: 'count(distinct `tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
-				self.distinct = True
-				column = field.split(" ", 2)[1].replace("`", "").replace(")", "")
+				if _fn := FN_PARAMS_PATTERN.findall(field):
+					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
+				# field: 'distinct name'
+				# column: 'name'
+				else:
+					column = field.split(" ", 2)[1].replace("`", "")
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
@@ -624,11 +643,11 @@ class DatabaseQuery:
 				table, column = column.split(".", 1)
 				ch_doctype = table.replace("`", "").replace("tab", "", 1)
 
-				if wrap_grave_quotes(table) in self.tables:
+				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)
-					if column in permitted_child_table_fields:
+					if column in permitted_child_table_fields or column in optional_fields:
 						continue
 					else:
 						self.remove_field(i)
@@ -743,6 +762,7 @@ class DatabaseQuery:
 				value = "('')"
 
 		else:
+			escape = True
 			df = meta.get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
@@ -764,6 +784,7 @@ class DatabaseQuery:
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
 
+				escape = False
 				value = get_between_date_filter(f.value, df)
 				fallback = f"'{FallBackDateTimeStr}'"
 
@@ -823,7 +844,7 @@ class DatabaseQuery:
 				value = f"{tname}.{quote}{f.value.name}{quote}"
 
 			# escape value
-			elif isinstance(value, str) and f.operator.lower() != "between":
+			elif escape and isinstance(value, str):
 				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
@@ -1154,20 +1175,6 @@ def get_order_by(doctype, meta):
 		order_by = f"`tab{doctype}`.docstatus asc, {order_by}"
 
 	return order_by
-
-
-def is_parent_only_filter(doctype, filters):
-	# check if filters contains only parent doctype
-	only_parent_doctype = True
-
-	if isinstance(filters, list):
-		for filter in filters:
-			if doctype not in filter:
-				only_parent_doctype = False
-			if "Between" in filter:
-				filter[3] = get_between_date_filter(flt[3])
-
-	return only_parent_doctype
 
 
 def has_any_user_permission_for_doctype(doctype, user, applicable_for):

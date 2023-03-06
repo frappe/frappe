@@ -24,7 +24,7 @@ let doctype_df = computed(() => {
 	doctypes.value = store
 		.get_updated_fields()
 		.filter(df => df.fieldtype == "Link")
-		.filter(df => df.options && df.fieldname != store.selected_field.fieldname)
+		.filter(df => df.options && df.fieldname != store.form.selected_field.fieldname)
 		.sort((a, b) => a.options.localeCompare(b.options))
 		.map(df => ({
 			label: `${df.options} (${df.fieldname})`,
