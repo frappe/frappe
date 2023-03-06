@@ -51,7 +51,7 @@ def get_monthly_goal_graph_data(
 	date_field: str,
 	filter_str: str = None,
 	aggregation: str = "sum",
-	filters: dict | None = None,
+	filters: str | dict | None = None,
 ) -> dict:
 	"""
 	Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
