@@ -329,13 +329,6 @@ def get_system_timezone():
 	return frappe.cache().get_value("time_zone", _get_system_timezone)
 
 
-def get_time_zone():
-	deprecation_warning(
-		"`get_time_zone` is deprecated and will be removed in version 15. Use `get_system_timezone` instead."
-	)
-	return get_system_timezone()
-
-
 def convert_utc_to_timezone(utc_timestamp, time_zone):
 	from pytz import UnknownTimeZoneError, timezone
 
@@ -354,13 +347,6 @@ def get_datetime_in_timezone(time_zone):
 def convert_utc_to_system_timezone(utc_timestamp):
 	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
-
-
-def convert_utc_to_user_timezone(utc_timestamp):
-	deprecation_warning(
-		"`convert_utc_to_user_timezone` is deprecated and will be removed in version 15. Use `convert_utc_to_system_timezone` instead."
-	)
-	return convert_utc_to_system_timezone(utc_timestamp)
 
 
 def now() -> str:
