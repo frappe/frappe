@@ -782,7 +782,7 @@ class TestTBSanitization(FrappeTestCase):
 
 
 class TestRounding(FrappeTestCase):
-	@change_settings("System Settings", {"rounding_method": "Rounding half away from zero"})
+	@change_settings("System Settings", {"rounding_method": "Rounding Half Away From Zero"})
 	def test_normal_rounding(self):
 		self.assertEqual(flt("what"), 0)
 
@@ -815,7 +815,40 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-1.25, 1), -1.3)
 		self.assertEqual(flt(-0.15, 1), -0.2)
 
-	@change_settings("System Settings", {"rounding_method": "Rounding half away from zero"})
+	def test_normal_rounding_as_argument(self):
+		rounding_method = "Rounding Half Away From Zero"
+
+		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 1)
+		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
+
+		self.assertEqual(flt("1.5", 0, rounding_method=rounding_method), 2)
+
+		# positive rounding to integers
+		self.assertEqual(flt(0.4, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt(0.5, 0, rounding_method=rounding_method), 1)
+		self.assertEqual(flt(1.455, 0, rounding_method=rounding_method), 1)
+		self.assertEqual(flt(1.5, 0, rounding_method=rounding_method), 2)
+
+		# negative rounding to integers
+		self.assertEqual(flt(-0.5, 0, rounding_method=rounding_method), -1)
+		self.assertEqual(flt(-1.5, 0, rounding_method=rounding_method), -2)
+
+		# negative precision i.e. round to nearest 10th
+		self.assertEqual(flt(123, -1, rounding_method=rounding_method), 120)
+		self.assertEqual(flt(125, -1, rounding_method=rounding_method), 130)
+		self.assertEqual(flt(134.45, -1, rounding_method=rounding_method), 130)
+		self.assertEqual(flt(135, -1, rounding_method=rounding_method), 140)
+
+		# # positive multiple digit rounding
+		self.assertEqual(flt(1.25, 1, rounding_method=rounding_method), 1.3)
+		self.assertEqual(flt(0.15, 1, rounding_method=rounding_method), 0.2)
+		self.assertEqual(flt(2.675, 2, rounding_method=rounding_method), 2.68)
+
+		# # negative multiple digit rounding
+		self.assertEqual(flt(-1.25, 1, rounding_method=rounding_method), -1.3)
+		self.assertEqual(flt(-0.15, 1, rounding_method=rounding_method), -0.2)
+
+	@change_settings("System Settings", {"rounding_method": "Rounding Half Away From Zero"})
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_normal_rounding_property(self, number, precision):
 		with localcontext() as ctx:

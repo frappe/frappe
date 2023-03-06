@@ -543,11 +543,11 @@
    "label": "Apply Perm Level on API calls (Recommended)"
   },
   {
-   "default": "Bankers Rounding",
+   "default": "Round Half Even",
    "fieldname": "rounding_method",
    "fieldtype": "Select",
    "label": "Rounding Method",
-   "options": "Bankers Rounding\nRounding half away from zero"
+   "options": "Round Half Even\nRounding Half Away From Zero"
   }
  ],
  "icon": "fa fa-cog",
