@@ -6,12 +6,15 @@ from __future__ import unicode_literals
 import io
 import os
 import re
+from importlib.machinery import all_suffixes
 
 from werkzeug.routing import Map, NotFound, Rule
 
 import frappe
 from frappe.model.document import get_controller
 from frappe.website.utils import can_cache, delete_page_cache, extract_comment_tag, extract_title
+
+PY_SUFFIXES = tuple(all_suffixes())
 
 
 def resolve_route(path):
@@ -63,8 +66,12 @@ def make_page_context(path):
 	return context
 
 
-def get_page_info_from_template(path):
+def get_page_info_from_template(path: str):
 	"""Return page_info from path"""
+	# skip rendering of python files in www folder
+	if path.endswith(PY_SUFFIXES):
+		raise frappe.DoesNotExistError
+
 	for app in frappe.get_installed_apps(frappe_last=True):
 		app_path = frappe.get_app_path(app)
 
