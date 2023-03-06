@@ -920,7 +920,9 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(s: NumericType | str, precision: int | None = None) -> float:
+def flt(
+	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
+) -> float:
 	"""Convert to float (ignoring commas in string)
 
 	:param s: Number in string or other numeric format.
@@ -946,8 +948,10 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	try:
 		num = float(s)
 		if precision is not None:
-			num = rounded(num, precision)
-	except Exception:
+			num = rounded(num, precision, rounding_method)
+	except Exception as e:
+		if isinstance(e, frappe.InvalidRoundingMethod):
+			raise
 		num = 0.0
 
 	return num
@@ -1046,13 +1050,15 @@ def sbool(x: str) -> bool | Any:
 		return x
 
 
-def rounded(num, precision=0):
+def rounded(num, precision=0, rounding_method=None):
 	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
 
-	rounding_method = frappe.get_system_settings("rounding_method") or "Bankers Rounding"
+	rounding_method = (
+		rounding_method or frappe.get_system_settings("rounding_method") or "Round Half Even"
+	)
 
-	if rounding_method == "Bankers Rounding":
+	if rounding_method == "Round Half Even":
 		# avoid rounding errors
 		multiplier = 10**precision
 		num = round(num * multiplier if precision else num, 8)
@@ -1070,13 +1076,34 @@ def rounded(num, precision=0):
 
 		return (num / multiplier) if precision else num
 
-	elif rounding_method == "Rounding half away from zero":
+	elif rounding_method == "Rounding Half Away From Zero":
 		if num == 0:
 			return 0.0
 		# Epsilon is small correctional value added to correctly round numbers which can't be
 		# represented in IEEE 754 representation.
+
+		# In simplified terms, the representation optimizes for absolute errors in representation
+		# so if a number is not representable it might be represented by a value ever so slighly
+		# smaller than the value itself. This becomes a problem when breaking ties for numbers
+		# ending with 5 when it's represented by a smaller number. By adding a very small value
+		# close to what's "least count" or smallest representable difference in the scale we force
+		# the number to be bigger than actual value, this increases representation error but
+		# removes rounding error.
+
+		# References:
+		# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+		# - https://docs.python.org/3/tutorial/floatingpoint.html#representation-error
+		# - https://docs.python.org/3/library/functions.html#round
+		# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
+
 		epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+
 		return round(num + math.copysign(epsilon, num), precision)
+	else:
+		frappe.throw(
+			frappe._("Unknown Rounding Method: {}").format(rounding_method),
+			exc=frappe.InvalidRoundingMethod,
+		)
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
