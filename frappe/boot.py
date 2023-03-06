@@ -21,7 +21,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.translate import get_lang_dict, get_messages_for_boot, get_translated_doctypes
-from frappe.utils import add_user_info, cstr, get_time_zone
+from frappe.utils import add_user_info, cstr, get_system_timezone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -402,9 +402,9 @@ def get_link_title_doctypes():
 
 def set_time_zone(bootinfo):
 	bootinfo.time_zone = {
-		"system": get_time_zone(),
+		"system": get_system_timezone(),
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
-		or get_time_zone(),
+		or get_system_timezone(),
 	}
 
 
