@@ -17,10 +17,11 @@
   "date_format",
   "time_format",
   "number_format",
+  "first_day_of_the_week",
   "column_break_7",
   "float_precision",
   "currency_precision",
-  "first_day_of_the_week",
+  "rounding_method",
   "sec_backup_limit",
   "backup_limit",
   "encrypt_backup",
@@ -533,12 +534,40 @@
    "fieldname": "disable_user_pass_login",
    "fieldtype": "Check",
    "label": "Disable Username/Password Login"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "default": "0",
+   "description": "Allow users to log in without a password, using a login link sent to their email",
+   "fieldname": "login_with_email_link",
+   "fieldtype": "Check",
+   "label": "Login with email link"
+  },
+  {
+   "default": "10",
+   "depends_on": "login_with_email_link",
+   "fieldname": "login_with_email_link_expiry",
+   "fieldtype": "Int",
+   "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "default": "Bankers Rounding",
+   "fieldname": "rounding_method",
+   "fieldtype": "Select",
+   "label": "Rounding Method",
+   "options": "Bankers Rounding\nRounding half away from zero"
+>>>>>>> 48f63f53ab (feat: configurable rounding methods)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-10-30 12:02:46.639170",
+=======
+ "modified": "2023-03-06 11:31:19.144956",
+>>>>>>> 48f63f53ab (feat: configurable rounding methods)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

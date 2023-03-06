@@ -5,22 +5,30 @@ import io
 import json
 import os
 from datetime import date, datetime, time, timedelta
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from mimetypes import guess_type
 from unittest.mock import patch
 
 import pytz
+from hypothesis import given
+from hypothesis import strategies as st
 from PIL import Image
 
 import frappe
 from frappe.installer import parse_app_name
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.model.document import Document
+from frappe.tests.utils import FrappeTestCase, change_settings
+>>>>>>> 48f63f53ab (feat: configurable rounding methods)
 from frappe.utils import (
 	ceil,
 	evaluate_filters,
 	execute_in_shell,
 	floor,
+	flt,
 	format_timedelta,
 	get_bench_path,
 	get_file_timestamp,
@@ -775,3 +783,45 @@ class TestTBSanitization(FrappeTestCase):
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)
+
+
+class TestRounding(FrappeTestCase):
+	@change_settings("System Settings", {"rounding_method": "Rounding half away from zero"})
+	def test_normal_rounding(self):
+		self.assertEqual(flt("what"), 0)
+
+		self.assertEqual(flt("0.5", 0), 1)
+		self.assertEqual(flt("0.3"), 0.3)
+
+		self.assertEqual(flt("1.5", 0), 2)
+
+		# positive rounding to integers
+		self.assertEqual(flt(0.4, 0), 0)
+		self.assertEqual(flt(0.5, 0), 1)
+		self.assertEqual(flt(1.455, 0), 1)
+		self.assertEqual(flt(1.5, 0), 2)
+
+		# negative rounding to integers
+		self.assertEqual(flt(-0.5, 0), -1)
+		self.assertEqual(flt(-1.5, 0), -2)
+
+		# negative precision i.e. round to nearest 10th
+		self.assertEqual(flt(123, -1), 120)
+		self.assertEqual(flt(125, -1), 130)
+		self.assertEqual(flt(134.45, -1), 130)
+		self.assertEqual(flt(135, -1), 140)
+
+		# # positive multiple digit rounding
+		self.assertEqual(flt(1.25, 1), 1.3)
+		self.assertEqual(flt(0.15, 1), 0.2)
+
+		# # negative multiple digit rounding
+		self.assertEqual(flt(-1.25, 1), -1.3)
+		self.assertEqual(flt(-0.15, 1), -0.2)
+
+	@change_settings("System Settings", {"rounding_method": "Rounding half away from zero"})
+	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
+	def test_normal_rounding_property(self, number, precision):
+		with localcontext() as ctx:
+			ctx.rounding = ROUND_HALF_UP
+			self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
