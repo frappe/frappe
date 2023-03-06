@@ -552,12 +552,16 @@
    "label": "Login with email link expiry (in minutes)"
   },
   {
-   "default": "Bankers Rounding",
+   "default": "Round Half Even",
    "fieldname": "rounding_method",
    "fieldtype": "Select",
    "label": "Rounding Method",
+<<<<<<< HEAD
    "options": "Bankers Rounding\nRounding half away from zero"
 >>>>>>> 48f63f53ab (feat: configurable rounding methods)
+=======
+   "options": "Round Half Even\nRounding Half Away From Zero"
+>>>>>>> 86b9ff4266 (feat: Allow specifying rounding method in `flt`)
   }
  ],
  "icon": "fa fa-cog",
