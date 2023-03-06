@@ -11,7 +11,7 @@ let placeholder = ref("");
 
 if (props.df.fieldtype === "Datetime") {
 	let time_zone_text = frappe.boot.time_zone
-		? frappe.boot.time_zone.user
+		? frappe.defaultUserTZ
 		: frappe.sys_defaults.time_zone;
 	time_zone.value = time_zone_text;
 }

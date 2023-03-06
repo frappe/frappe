@@ -328,7 +328,7 @@ frappe.ui.form.on("User", {
 		});
 	},
 	on_update: function (frm) {
-		if (frappe.boot.time_zone && frappe.boot.time_zone.user !== frm.doc.time_zone) {
+		if (frappe.boot.time_zone && frappe.defaultUserTZ !== frm.doc.time_zone) {
 			// Clear cache after saving to refresh the values of boot.
 			frappe.ui.toolbar.clear_cache();
 		}

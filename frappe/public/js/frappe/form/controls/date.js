@@ -74,6 +74,6 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		super.set_description();
 	}
 	get_user_time_zone() {
-		return frappe.boot.time_zone ? frappe.boot.time_zone.user : frappe.sys_defaults.time_zone;
+		return frappe.boot.time_zone ? frappe.defaultUserTZ : frappe.sys_defaults.time_zone;
 	}
 };
