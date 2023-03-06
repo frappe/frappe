@@ -7,6 +7,7 @@ frappe.defaultDateFormat = "YYYY-MM-DD";
 frappe.defaultTimeFormat = "HH:mm:ss";
 frappe.defaultDatetimeFormat = frappe.defaultDateFormat + " " + frappe.defaultTimeFormat;
 moment.defaultFormat = frappe.defaultDateFormat;
+frappe.defaultUserTZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 frappe.provide("frappe.datetime");
 
@@ -16,11 +17,11 @@ $.extend(frappe.datetime, {
 		// Converts the datetime string to system time zone first since the database only stores datetime in
 		// system time zone and then convert the string to user time zone(from User doctype).
 		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.defaultUserTZ) {
 			date_obj = moment
 				.tz(date, frappe.boot.time_zone.system)
 				.clone()
-				.tz(frappe.boot.time_zone.user);
+				.tz(frappe.defaultUserTZ);
 		} else {
 			date_obj = moment(date);
 		}
@@ -35,9 +36,9 @@ $.extend(frappe.datetime, {
 		// This is done so that only one timezone is present in database and we do not end up storing local timezone since it changes
 		// as per the location of user.
 		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.defaultUserTZ) {
 			date_obj = moment
-				.tz(date, frappe.boot.time_zone.user)
+				.tz(date, frappe.defaultUserTZ)
 				.clone()
 				.tz(frappe.boot.time_zone.system);
 		} else {
@@ -48,10 +49,10 @@ $.extend(frappe.datetime, {
 	},
 
 	is_system_time_zone: function () {
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.boot.time_zone.user) {
+		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.defaultUserTZ) {
 			return (
 				moment().tz(frappe.boot.time_zone.system).utcOffset() ===
-				moment().tz(frappe.boot.time_zone.user).utcOffset()
+				moment().tz(frappe.defaultUserTZ).utcOffset()
 			);
 		}
 
@@ -171,7 +172,7 @@ $.extend(frappe.datetime, {
 			} else {
 				user_format = user_date_fmt + "T" + user_time_fmt;
 			}
-			return date_obj.clone().tz(frappe.boot.time_zone.user).format(user_format);
+			return date_obj.clone().tz(frappe.defaultUserTZ).format(user_format);
 		}
 	},
 

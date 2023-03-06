@@ -309,10 +309,7 @@ frappe.Application = class Application {
 		frappe.user_roles = frappe.boot.user.roles;
 		frappe.sys_defaults = frappe.boot.sysdefaults;
 
-		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format
-			.replace("dd", "%d")
-			.replace("mm", "%m")
-			.replace("yyyy", "%Y");
+		frappe.ui.py_date_format = frappe.datetime.get_user_date_fmt
 		frappe.boot.user.last_selected_values = {};
 
 		// Proxy for user globals
