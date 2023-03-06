@@ -1040,25 +1040,36 @@ def sbool(x: str) -> bool | Any:
 
 
 def rounded(num, precision=0):
-	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
+	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
-	multiplier = 10**precision
 
-	# avoid rounding errors
-	num = round(num * multiplier if precision else num, 8)
+	rounding_method = frappe.get_system_settings("rounding_method") or "Bankers Rounding"
 
-	floor_num = math.floor(num)
-	decimal_part = num - floor_num
+	if rounding_method == "Bankers Rounding":
+		# avoid rounding errors
+		multiplier = 10**precision
+		num = round(num * multiplier if precision else num, 8)
 
-	if not precision and decimal_part == 0.5:
-		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
-	else:
-		if decimal_part == 0.5:
-			num = floor_num + 1
+		floor_num = math.floor(num)
+		decimal_part = num - floor_num
+
+		if not precision and decimal_part == 0.5:
+			num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 		else:
-			num = round(num)
+			if decimal_part == 0.5:
+				num = floor_num + 1
+			else:
+				num = round(num)
 
-	return (num / multiplier) if precision else num
+		return (num / multiplier) if precision else num
+
+	elif rounding_method == "Rounding half away from zero":
+		if num == 0:
+			return 0.0
+		# Epsilon is small correctional value added to correctly round numbers which can't be
+		# represented in IEEE 754 representation.
+		epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+		return round(num + math.copysign(epsilon, num), precision)
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
