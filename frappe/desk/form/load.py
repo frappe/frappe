@@ -43,8 +43,8 @@ def getdoc(doctype, name, user=None):
 		)
 		raise frappe.PermissionError(("read", doctype, name))
 
-	if frappe.get_system_settings("apply_perm_level_on_api_calls"):
-		doc.apply_fieldlevel_read_permissions()
+	# ignores system setting (apply_perm_level_on_api_calls) unconditionally to maintain backward compatibility
+	doc.apply_fieldlevel_read_permissions()
 
 	# add file list
 	doc.add_viewed()
