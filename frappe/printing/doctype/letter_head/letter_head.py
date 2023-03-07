@@ -3,8 +3,9 @@
 
 import frappe
 from frappe import _
+from frappe.defaults import clear_default
 from frappe.model.document import Document
-from frappe.utils import flt, is_image
+from frappe.utils import flt, is_image, set_default
 
 
 class LetterHead(Document):
@@ -13,6 +14,19 @@ class LetterHead(Document):
 		self.use_as_default()
 		if self.disabled and self.is_default:
 			frappe.throw(_("Letter Head cannot be both disabled and default"))
+
+	def on_update(self):
+		if self.is_default:
+			self.unset_other_defaults()
+			set_default("letter_head", self.name)
+
+		clear_default("letter_head", self.name)
+
+	def on_trash(self):
+		if self.is_default:
+			frappe.throw(_("Default Letter Head cannot be deleted"))
+
+		clear_default("letter_head", self.name)
 
 	def use_as_default(self):
 		if (
@@ -23,6 +37,10 @@ class LetterHead(Document):
 			return
 
 		self.is_default = 1
+
+	def unset_other_defaults(self):
+		table = frappe.qb.DocType("Letter Head")
+		frappe.qb.update(table).set(table.is_default, 0).where(table.name != self.name).run()
 
 	def set_image(self):
 		if self.source == "Image":
@@ -76,21 +94,3 @@ class LetterHead(Document):
 		)
 
 		frappe.msgprint(success_msg, alert=True)
-
-	def on_update(self):
-		self.update_system_defaults()
-
-	def on_trash(self):
-		if self.is_default:
-			frappe.throw(_("Default Letter Head cannot be deleted"))
-
-		self.update_system_defaults()
-
-	def update_system_defaults(self):
-		from frappe.utils import set_default
-
-		if self.is_default:
-			frappe.db.sql("update `tabLetter Head` set is_default=0 where name != %s", self.name)
-			set_default("letter_head", self.name)
-		else:
-			frappe.defaults.clear_default("letter_head", self.name)
