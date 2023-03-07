@@ -46,7 +46,7 @@ class TestPdf(unittest.TestCase):
 	def test_pdf_encryption(self):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
-		reader = PdfFileReader(io.BytesIO(pdf))
+		reader = PdfFileReader(io.BytesIO(pdf), overwriteWarnings=False)
 		self.assertTrue(reader.isEncrypted)
 		if six.PY2:
 			password = frappe.safe_encode(password)

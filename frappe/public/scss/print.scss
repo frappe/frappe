@@ -17,6 +17,11 @@
 	.print-hide {
 		display: none !important;
 	}
+	.overflow-wrap-anywhere {
+		* {
+			word-break: break-all;
+		}
+	}
 }
 
 .action-banner {
@@ -32,5 +37,11 @@
 	height: 100vh;
 	img {
 		margin: auto;
+	}
+}
+
+.overflow-wrap-anywhere {
+	* {
+		overflow-wrap: anywhere;
 	}
 }

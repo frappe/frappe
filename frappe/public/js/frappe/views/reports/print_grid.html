@@ -36,10 +36,9 @@
 			</td>
 			{% for col in columns %}
 				{% if col.name && col._id !== "_check" %}
-
-					{% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
-
-					<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
+					{% var value = col.fieldname ? row[col.fieldname] : row[col.id] %}
+					{% var longest_word = cstr(value).split(" ").reduce((longest, word) => word.length > longest.length ? word : longest, ""); %}
+					<td {% if row.bold == 1 %} style="font-weight: bold" {% endif %} {% if longest_word.length > 45 %} class="overflow-wrap-anywhere" {% endif %}>
 						<span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
 							{% format_data = row.is_total_row && ["Currency", "Float"].includes(col.fieldtype) ? data[0] : row %}
 							{% if (row.is_total_row && col._index == 0) { %}

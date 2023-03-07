@@ -56,7 +56,7 @@ def create_gps_markers(coords):
 	for i in coords:
 		node = {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": None}}
 		node["properties"]["name"] = i.name
-		node["geometry"]["coordinates"] = [i.latitude, i.longitude]
+		node["geometry"]["coordinates"] = [i.longitude, i.latitude]  # geojson needs it reverse!
 		geojson_dict.append(node.copy())
 
 	return geojson_dict
