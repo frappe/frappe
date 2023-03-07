@@ -91,11 +91,6 @@ class LetterHead(Document):
 
 		if self.is_default:
 			frappe.db.sql("update `tabLetter Head` set is_default=0 where name != %s", self.name)
-
 			set_default("letter_head", self.name)
-
-			# update control panel - so it loads new letter directly
-			frappe.db.set_default("default_letter_head_content", self.content)
 		else:
 			frappe.defaults.clear_default("letter_head", self.name)
-			frappe.defaults.clear_default("default_letter_head_content", self.content)
