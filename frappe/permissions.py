@@ -275,7 +275,6 @@ def has_user_permission(doc, user=None):
 	# check user permissions on self
 	if doctype in user_permissions:
 		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
-
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
@@ -341,6 +340,7 @@ def has_user_permission(doc, user=None):
 				push_perm_check_log(msg)
 
 				return False
+			return True
 
 		return True
 
