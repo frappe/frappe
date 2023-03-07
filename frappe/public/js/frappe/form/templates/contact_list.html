@@ -17,14 +17,14 @@
 		{% if (contact.phone || contact.mobile_no || contact.phone_nos.length > 0) { %}
 		<p>
 			{% if(contact.phone) { %}
-				<a href="tel:{%= contact.phone %}">{%= contact.phone %}</a> &#183; <span class="text-muted">{%= __("Primary Phone") %}</span><br>
+				<a href="tel:{%= frappe.utils.escape_html(contact.phone) %}">{%= frappe.utils.escape_html(contact.phone) %}</a> &#183; <span class="text-muted">{%= __("Primary Phone") %}</span><br>
 			{% endif %}
 			{% if(contact.mobile_no) { %}
-				<a href="tel:{%= contact.mobile_no %}">{%= contact.mobile_no %}</a> &#183; <span class="text-muted">{%= __("Primary Mobile") %}</span><br>
+				<a href="tel:{%= frappe.utils.escape_html(contact.mobile_no) %}">{%= frappe.utils.escape_html(contact.mobile_no) %}</a> &#183; <span class="text-muted">{%= __("Primary Mobile") %}</span><br>
 			{% endif %}
 			{% if(contact.phone_nos) { %}
 				{% for(const phone_no of contact.phone_nos) { %}
-					<a href="tel:{%= phone_no.phone %}">{%= phone_no.phone %}</a><br>
+					<a href="tel:{%= frappe.utils.escape_html(phone_no.phone) %}">{%= frappe.utils.escape_html(phone_no.phone) %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
@@ -32,11 +32,11 @@
 		{% if (contact.email_id || contact.email_ids.length > 0) { %}
 		<p>
 			{% if(contact.email_id) { %}
-				<a href="mailto:{%= contact.email_id %}">{%= contact.email_id %}</a> &#183; <span class="text-muted">{%= __("Primary Email") %}</span><br>
+				<a href="mailto:{%= frappe.utils.escape_html(contact.email_id) %}">{%= frappe.utils.escape_html(contact.email_id) %}</a> &#183; <span class="text-muted">{%= __("Primary Email") %}</span><br>
 			{% endif %}
 			{% if(contact.email_ids) { %}
 				{% for(const email_id of contact.email_ids) { %}
-					<a href="mailto:{%= email_id.email_id %}">{%= email_id.email_id %}</a><br>
+					<a href="mailto:{%= frappe.utils.escape_html(email_id.email_id) %}">{%= frappe.utils.escape_html(email_id.email_id) %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
