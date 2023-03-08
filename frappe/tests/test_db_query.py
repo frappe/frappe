@@ -901,30 +901,6 @@ class TestReportview(FrappeTestCase):
 			response = execute_cmd("frappe.desk.reportview.get")
 			self.assertListEqual(response["keys"], ["published", "title", "test_field"])
 
-	def test_reportview_get_aggregation(self):
-		# test aggregation based on child table field
-		frappe.local.request = frappe._dict()
-		frappe.local.request.method = "POST"
-		frappe.local.form_dict = frappe._dict(
-			{
-				"doctype": "DocType",
-				"fields": """["`tabDocField`.`label` as field_label","`tabDocField`.`name` as field_name"]""",
-				"filters": "[]",
-				"order_by": "_aggregate_column desc",
-				"start": 0,
-				"page_length": 20,
-				"view": "Report",
-				"with_comment_count": 0,
-				"group_by": "field_label, field_name",
-				"aggregate_on_field": "columns",
-				"aggregate_on_doctype": "DocField",
-				"aggregate_function": "sum",
-			}
-		)
-
-		response = execute_cmd("frappe.desk.reportview.get")
-		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
-
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
@@ -1161,6 +1137,7 @@ class TestReportView(FrappeTestCase):
 
 	def test_reportview_get_aggregation(self):
 		# test aggregation based on child table field
+		frappe.local.request = frappe._dict()
 		frappe.local.form_dict = frappe._dict(
 			{
 				"doctype": "DocType",
