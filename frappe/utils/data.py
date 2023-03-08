@@ -1052,51 +1052,59 @@ def rounded(num, precision=0, rounding_method=None):
 	)
 
 	if rounding_method == "Round Half Even":
-		# avoid rounding errors
-		multiplier = 10**precision
-		num = round(num * multiplier if precision else num, 8)
-
-		floor_num = math.floor(num)
-		decimal_part = num - floor_num
-
-		if not precision and decimal_part == 0.5:
-			num = floor_num if (floor_num % 2 == 0) else floor_num + 1
-		else:
-			if decimal_part == 0.5:
-				num = floor_num + 1
-			else:
-				num = round(num)
-
-		return (num / multiplier) if precision else num
-
+		return _round_half_even(num, precision)
 	elif rounding_method == "Rounding Half Away From Zero":
-		if num == 0:
-			return 0.0
-		# Epsilon is small correctional value added to correctly round numbers which can't be
-		# represented in IEEE 754 representation.
-
-		# In simplified terms, the representation optimizes for absolute errors in representation
-		# so if a number is not representable it might be represented by a value ever so slighly
-		# smaller than the value itself. This becomes a problem when breaking ties for numbers
-		# ending with 5 when it's represented by a smaller number. By adding a very small value
-		# close to what's "least count" or smallest representable difference in the scale we force
-		# the number to be bigger than actual value, this increases representation error but
-		# removes rounding error.
-
-		# References:
-		# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
-		# - https://docs.python.org/3/tutorial/floatingpoint.html#representation-error
-		# - https://docs.python.org/3/library/functions.html#round
-		# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
-
-		epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
-
-		return round(num + math.copysign(epsilon, num), precision)
+		return _round_away_from_zero(num, precision)
 	else:
 		frappe.throw(
 			frappe._("Unknown Rounding Method: {}").format(rounding_method),
 			exc=frappe.InvalidRoundingMethod,
 		)
+
+
+def _round_half_even(num, precision):
+	# avoid rounding errors
+	multiplier = 10**precision
+	num = round(num * multiplier if precision else num, 8)
+
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
+
+	if not precision and decimal_part == 0.5:
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+	else:
+		if decimal_part == 0.5:
+			num = floor_num + 1
+		else:
+			num = round(num)
+
+	return (num / multiplier) if precision else num
+
+
+def _round_away_from_zero(num, precision):
+	if num == 0:
+		return 0.0
+
+	# Epsilon is small correctional value added to correctly round numbers which can't be
+	# represented in IEEE 754 representation.
+
+	# In simplified terms, the representation optimizes for absolute errors in representation
+	# so if a number is not representable it might be represented by a value ever so slighly
+	# smaller than the value itself. This becomes a problem when breaking ties for numbers
+	# ending with 5 when it's represented by a smaller number. By adding a very small value
+	# close to what's "least count" or smallest representable difference in the scale we force
+	# the number to be bigger than actual value, this increases representation error but
+	# removes rounding error.
+
+	# References:
+	# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+	# - https://docs.python.org/3/tutorial/floatingpoint.html#representation-error
+	# - https://docs.python.org/3/library/functions.html#round
+	# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+
+	return round(num + math.copysign(epsilon, num), precision)
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
