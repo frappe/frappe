@@ -27,9 +27,14 @@ test_records = frappe.get_test_records("User")
 class TestUser(FrappeTestCase):
 	def tearDown(self):
 		# disable password strength test
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
-		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
-		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
+		settings = frappe.get_single("System Settings")
+		settings.enable_password_policy = False
+		settings.minimum_password_score = 2
+		settings.password_reset_limit = 3
+		settings.save(ignore_permissions=True)
+		# frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
+		# frappe.db.set_single_value("System Settings", "minimum_password_score", "")
+		# frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
 
 	def test_user_type(self):
@@ -179,15 +184,18 @@ class TestUser(FrappeTestCase):
 
 	def test_password_strength(self):
 		# Test Password without Password Strength Policy
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)
+		settings = frappe.get_single("System Settings")
+		settings.enable_password_policy = False
+		settings.save(ignore_permissions=True)
 
 		# password policy is disabled, test_password_strength should be ignored
 		result = test_password_strength("test_password")
 		self.assertFalse(result.get("feedback", None))
 
-		# Test Password with Password Strenth Policy Set
-		frappe.db.set_single_value("System Settings", "enable_password_policy", 1)
-		frappe.db.set_single_value("System Settings", "minimum_password_score", 2)
+		# Test Password with Password Strength Policy Set
+		settings.enable_password_policy = True
+		settings.minimum_password_score = 2
+		settings.save(ignore_permissions=True)
 
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
@@ -202,6 +210,18 @@ class TestUser(FrappeTestCase):
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], True)
+
+		# Test password without uppercase letters (should fail)
+		settings.require_uppercase_letters = True
+		settings.save(ignore_permissions=True)
+		result = test_password_strength("eastern_43a1w")
+		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
+		)
+		self.assertRaises(
+			frappe.exceptions.ValidationError, handle_password_test_fail, result
+		)  # test backwards compatibility
 
 		# test password strength while saving user with new password
 		user = frappe.get_doc("User", "test@example.com")
