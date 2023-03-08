@@ -75,15 +75,21 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 				new_password: value || "",
 			},
 			callback: function (r) {
-				if (r.message) {
+				if (r.message && !jQuery.isEmptyObject(r.message)) {
 					let score = r.message.score;
 					var indicators = ["red", "red", "orange", "blue", "green"];
-					me.set_strength_indicator(indicators[score]);
+					let message = r.message.feedback
+						? r.message.feedback.suggestions.join(", ")
+						: "";
+					me.set_strength_indicator(indicators[score], message);
+				} else {
+					me.indicator.toggleClass("hidden", true);
+					me.message.toggleClass("hidden", true);
 				}
 			},
 		});
 	}
-	set_strength_indicator(color) {
+	set_strength_indicator(color, message) {
 		let strength = {
 			red: [__("Weak"), "danger", 25],
 			orange: [__("Average"), "warning", 50],
@@ -104,7 +110,6 @@ frappe.ui.form.ControlPassword = class ControlPassword extends frappe.ui.form.Co
 			.removeClass()
 			.addClass("progress-bar progress-bar-" + progress_color);
 
-		let message = __("Include symbols, numbers and capital letters in the password");
 		this.message.html(message).toggleClass("hidden", color == "green");
 	}
 };

@@ -9,6 +9,39 @@ from frappe import _
 
 
 def test_password_strength(password, user_inputs=None):
+	settings = frappe.get_single("System Settings")
+	if settings.enable_password_policy:
+		suggestions = []
+
+		upper = 0
+		lower = 0
+		digit = 0
+		special = 0
+		for c in password:
+			if c.isupper():
+				upper += 1
+			elif c.islower():
+				lower += 1
+			elif c.isdigit():
+				digit += 1
+			else:
+				special += 1
+		if settings.minimum_password_length and settings.minimum_password_length > len(password):
+			suggestions.append(_("Minimum password length is {0}").format(settings.minimum_password_length))
+		if settings.require_uppercase_letters and not upper:
+			suggestions.append(_("Require Uppercase Letters"))
+		if settings.require_lowercase_letters and not lower:
+			suggestions.append(_("Require Lowercase Letters"))
+		if settings.require_special_characters and not special:
+			suggestions.append(_("Require Special Characters"))
+		if settings.require_numbers and not digit:
+			suggestions.append(_("Require Numbers"))
+		if suggestions:
+			return {
+				"score": 0,
+				"feedback": {"suggestions": suggestions, "password_policy_validation_passed": False},
+			}
+
 	"""Wrapper around zxcvbn.password_strength"""
 	if len(password) > 128:
 		# zxcvbn takes forever when checking long, random passwords.

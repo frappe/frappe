@@ -52,6 +52,11 @@
   "column_break_31",
   "enable_password_policy",
   "minimum_password_score",
+  "minimum_password_length",
+  "require_uppercase_letters",
+  "require_lowercase_letters",
+  "require_numbers",
+  "require_special_characters",
   "brute_force_security",
   "allow_consecutive_login_attempts",
   "column_break_34",
@@ -520,12 +525,48 @@
    "fieldname": "login_with_email_link_expiry",
    "fieldtype": "Int",
    "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "default": "8",
+   "depends_on": "enable_password_policy",
+   "fieldname": "minimum_password_length",
+   "fieldtype": "Int",
+   "label": "Minimum Password Length",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_password_policy",
+   "fieldname": "require_numbers",
+   "fieldtype": "Check",
+   "label": "Require Numbers"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_password_policy",
+   "fieldname": "require_special_characters",
+   "fieldtype": "Check",
+   "label": "Require Special Characters"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_password_policy",
+   "fieldname": "require_uppercase_letters",
+   "fieldtype": "Check",
+   "label": "Require Uppercase Letters"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_password_policy",
+   "fieldname": "require_lowercase_letters",
+   "fieldtype": "Check",
+   "label": "Require Lowercase Letters"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-12-20 21:45:37.651668",
+ "modified": "2023-03-08 14:33:24.562477",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
