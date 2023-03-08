@@ -131,6 +131,7 @@ export default class Widget {
 		const dialog_class = get_dialog_constructor(this.widget_type);
 
 		this.edit_dialog = new dialog_class({
+			for_workspace: this.options?.for_workspace,
 			label: this.label,
 			type: this.widget_type,
 			values: this.get_config(),

@@ -22,7 +22,7 @@ from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
 	cint,
-	convert_utc_to_user_timezone,
+	convert_utc_to_system_timezone,
 	cstr,
 	extract_email_id,
 	get_datetime,
@@ -460,7 +460,7 @@ class Email:
 			try:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 				utc_dt = datetime.datetime.utcfromtimestamp(utc)
-				self.date = convert_utc_to_user_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
+				self.date = convert_utc_to_system_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
 			except Exception:
 				self.date = now()
 		else:
