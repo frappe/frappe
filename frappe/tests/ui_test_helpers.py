@@ -77,9 +77,11 @@ def create_todo_records():
 
 
 @whitelist_for_tests
-def clear_notes():
+def prepare_webform_test():
 	for note in frappe.get_all("Note", pluck="name"):
 		frappe.delete_doc("Note", note, force=True)
+
+	frappe.delete_doc_if_exists("Web Form", "note")
 
 
 @whitelist_for_tests
