@@ -23,7 +23,7 @@ from frappe.utils import (
 	flt,
 	format_datetime,
 	get_formatted_email,
-	get_time_zone,
+	get_system_timezone,
 	has_gravatar,
 	now_datetime,
 	today,
@@ -647,7 +647,7 @@ class User(Document):
 
 	def set_time_zone(self):
 		if not self.time_zone:
-			self.time_zone = get_time_zone()
+			self.time_zone = get_system_timezone()
 
 
 @frappe.whitelist()
