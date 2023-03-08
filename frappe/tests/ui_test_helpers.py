@@ -536,12 +536,6 @@ def setup_default_view(view, force_reroute=None):
 
 
 @whitelist_for_tests
-def create_note():
-	if not frappe.db.exists("Note", "Routing Test"):
-		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
-
-
-@whitelist_for_tests
 def create_kanban():
 	if not frappe.db.exists("Custom Field", "Note-kanban"):
 		frappe.get_doc(
