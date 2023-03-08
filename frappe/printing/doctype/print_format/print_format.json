@@ -138,12 +138,6 @@
    "label": "Show Line Breaks after Sections"
   },
   {
-   "default": "0",
-   "fieldname": "absolute_value",
-   "fieldtype": "Check",
-   "label": "Show Absolute Values"
-  },
-  {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
   },
@@ -213,7 +207,7 @@
  ],
  "icon": "fa fa-print",
  "idx": 1,
- "modified": "2020-12-14 11:38:49.132061",
+ "modified": "2023-03-07 11:38:49.132061",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
