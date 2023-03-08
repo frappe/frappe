@@ -46,4 +46,21 @@ frappe.ui.form.on("System Settings", {
 	first_day_of_the_week(frm) {
 		frm.re_setup_moment = true;
 	},
+
+	rounding_method: function (frm) {
+		if (frm.doc.rounding_method == frappe.boot.sysdefaults.rounding_method) return;
+		let msg = __(
+			"Changing rounding method on site with data can result in unexpected behaviour."
+		);
+		msg += "<br>";
+		msg += __("Do you still want to proceed?");
+
+		frappe.confirm(
+			msg,
+			() => {},
+			() => {
+				frm.set_value("rounding_method", frappe.boot.sysdefaults.rounding_method);
+			}
+		);
+	},
 });
