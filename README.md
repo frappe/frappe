@@ -23,8 +23,8 @@
 	<a href="https://frappeframework.com/docs">
 		<img src="https://img.shields.io/badge/docs-%F0%9F%93%96-success.svg"/>
 	</a>
-	<a href="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml">
-		<img src="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml/badge.svg">
+	<a href="https://github.com/frappe/frappe/actions/workflows/server-tests.yml">
+		<img src="https://github.com/frappe/frappe/actions/workflows/server-tests.yml/badge.svg">
 	</a>
 	<a href="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml">
 		<img src="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml/badge.svg?branch=develop">
