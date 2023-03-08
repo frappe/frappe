@@ -56,6 +56,7 @@ def enable_permlevel_restrictions():
 class TestReportview(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
+		return super().setUp()
 
 	def test_basic(self):
 		self.assertTrue({"name": "DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
@@ -222,8 +223,6 @@ class TestReportview(FrappeTestCase):
 
 		self.assertEqual(build_match_conditions(as_condition=True), assertion_string)
 
-		frappe.set_user("Administrator")
-
 	def test_fields(self):
 		self.assertTrue(
 			{"name": "DocType", "issingle": 0}
@@ -332,7 +331,6 @@ class TestReportview(FrappeTestCase):
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, get_filters_cond, "DocType", dict(istable=1), [])
 		self.assertTrue(get_filters_cond("DocType", dict(istable=1), [], ignore_permissions=True))
-		frappe.set_user("Administrator")
 
 	def test_query_fields_sanitizer(self):
 		self.assertRaises(
@@ -495,7 +493,6 @@ class TestReportview(FrappeTestCase):
 			)
 
 	def test_nested_permission(self):
-		frappe.set_user("Administrator")
 		create_nested_doctype()
 		create_nested_doctype_records()
 		clear_user_permissions_for_doctype("Nested DocType")
@@ -519,7 +516,6 @@ class TestReportview(FrappeTestCase):
 		self.assertFalse({"name": "Level 1 B"} in data)
 		self.assertFalse({"name": "Level 2 B"} in data)
 		update("Nested DocType", "All", 0, "if_owner", 1)
-		frappe.set_user("Administrator")
 
 	def test_filter_sanitizer(self):
 		self.assertRaises(
@@ -630,7 +626,6 @@ class TestReportview(FrappeTestCase):
 			)
 
 	def test_of_not_of_descendant_ancestors(self):
-		frappe.set_user("Administrator")
 		clear_user_permissions_for_doctype("Nested DocType")
 
 		# in descendants filter
@@ -1036,6 +1031,10 @@ class TestReportview(FrappeTestCase):
 
 
 class TestReportView(FrappeTestCase):
+	def setUp(self) -> None:
+		frappe.set_user("Administrator")
+		return super().setUp()
+
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
@@ -1116,9 +1115,6 @@ class TestReportView(FrappeTestCase):
 
 		frappe.set_user("Administrator")
 		user.add_roles("Website Manager")
-		frappe.set_user(user.name)
-
-		frappe.set_user("Administrator")
 
 		# Admin should be able to see access all fields
 		frappe.local.form_dict = frappe._dict(
@@ -1137,7 +1133,7 @@ class TestReportView(FrappeTestCase):
 
 	def test_reportview_get_aggregation(self):
 		# test aggregation based on child table field
-		frappe.local.request = frappe._dict()
+		frappe.local.request = frappe._dict(method="GET")
 		frappe.local.form_dict = frappe._dict(
 			{
 				"doctype": "DocType",
@@ -1156,9 +1152,7 @@ class TestReportView(FrappeTestCase):
 		)
 
 		response = execute_cmd("frappe.desk.reportview.get")
-		self.assertListEqual(
-			response["keys"], ["field_label", "field_name", "_aggregate_column", "columns"]
-		)
+		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
 
 
 def add_child_table_to_blog_post():
