@@ -827,7 +827,21 @@ class TestDatabaseQuery(unittest.TestCase):
 
 @contextmanager
 def setup_test_user(set_user=False):
-	test_user = frappe.get_doc("User", "test@example.com")
+	DB_QUERY_TEST_USER = "test_db_query@example.com"
+	if not frappe.db.exists("User", DB_QUERY_TEST_USER):
+		test_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": DB_QUERY_TEST_USER,
+				"first_name": "Test",
+				"last_name": "User",
+				"enabled": 1,
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+	else:
+		test_user = frappe.get_doc("User", DB_QUERY_TEST_USER)
+
 	user_roles = frappe.get_roles()
 	test_user.remove_roles(*user_roles)
 	test_user.add_roles("Blogger")
