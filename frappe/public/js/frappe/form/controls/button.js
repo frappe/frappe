@@ -36,7 +36,7 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 		if (this.frm && this.frm.docname) {
 			frappe.call({
 				method: "run_doc_method",
-				args: { docs: this.frm.doc, method: this.df.options },
+				args: { docs: this.frm.doc, doc_method: this.df.options },
 				btn: this.$input,
 				callback: function (r) {
 					if (!r.exc) {

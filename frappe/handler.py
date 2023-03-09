@@ -15,6 +15,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
+from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
 
@@ -270,12 +271,22 @@ def ping():
 	return "pong"
 
 
-def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
+def run_doc_method(method=None, docs=None, dt=None, dn=None, arg=None, args=None, doc_method=None):
 	"""run a whitelisted controller method"""
 	from inspect import signature
 
 	if not args and arg:
 		args = arg
+
+	if not doc_method and method:
+		deprecation_warning(
+			"`method` parameter will be deprecated in v15. Please use doc_method parameter in future."
+		)
+		_method = method
+	elif doc_method and not method:
+		_method = doc_method
+	else:
+		raise ValueError("Either method or doc_method should be provided")
 
 	if dt:  # not called from a doctype (from a page)
 		if not dn:
@@ -296,7 +307,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	except ValueError:
 		pass
 
-	method_obj = getattr(doc, method)
+	method_obj = getattr(doc, _method)
 	fn = getattr(method_obj, "__func__", method_obj)
 	is_whitelisted(fn)
 	is_valid_http_method(fn)
@@ -304,13 +315,13 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	fnargs = list(signature(method_obj).parameters)
 
 	if not fnargs or (len(fnargs) == 1 and fnargs[0] == "self"):
-		response = doc.run_method(method)
+		response = doc.run_method(_method)
 
 	elif "args" in fnargs or not isinstance(args, dict):
-		response = doc.run_method(method, args)
+		response = doc.run_method(_method, args)
 
 	else:
-		response = doc.run_method(method, **args)
+		response = doc.run_method(_method, **args)
 
 	frappe.response.docs.append(doc)
 	if response is None:
@@ -323,7 +334,7 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	frappe.response["message"] = response
 
-	add_data_to_monitor(methodname=method)
+	add_data_to_monitor(methodname=_method)
 
 
 # for backwards compatibility

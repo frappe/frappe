@@ -95,7 +95,7 @@ class TestClient(FrappeTestCase):
 			{
 				"dt": report.doctype,
 				"dn": report.name,
-				"method": "toggle_disable",
+				"doc_method": "toggle_disable",
 				"cmd": "run_doc_method",
 				"args": 0,
 			}
@@ -108,7 +108,7 @@ class TestClient(FrappeTestCase):
 			{
 				"dt": report.doctype,
 				"dn": report.name,
-				"method": "create_report_py",
+				"doc_method": "create_report_py",
 				"cmd": "run_doc_method",
 				"args": 0,
 			}

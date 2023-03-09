@@ -65,7 +65,7 @@ frappe.call = function (opts) {
 		$.extend(args, {
 			cmd: "run_doc_method",
 			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
-			method: opts.method,
+			doc_method: opts.method,
 			args: opts.args,
 		});
 	} else if (opts.method) {
