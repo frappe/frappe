@@ -1,4 +1,5 @@
 frappe.ui.form.ControlInt = class ControlInt extends frappe.ui.form.ControlData {
+	static input_type = "number";
 	static trigger_change_on_input_event = false;
 	make() {
 		super.make();
