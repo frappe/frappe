@@ -515,7 +515,8 @@ class DatabaseQuery(object):
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
 		if self.flags.ignore_permissions or not frappe.get_system_settings(
-			"apply_perm_level_on_api_calls"
+			"apply_perm_level_on_api_calls",
+			ignore_if_not_exists=True,
 		):
 			return
 
