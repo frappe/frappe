@@ -4744,3 +4744,4 @@ Setup Series for transactions,Paramétrage des masques de numérotation
 Set Naming Series options on your transactions.,Définir les masques de numerotation pour vos documents
 Update Series Counter,Mettre à jour le compteur d'un masque de numérotation
 Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created.,Mettre à jour le compteur d'un masque de numérotation<br>\n\nAttention: Mettre à jour de maniére inconsistance le compteur peux empêcher la création d'un document
+No Results found,Aucun résultat trouvé
