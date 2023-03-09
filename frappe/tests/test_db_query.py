@@ -788,15 +788,6 @@ class TestDatabaseQuery(unittest.TestCase):
 			self.assertTrue("count" in data[0])
 			self.assertEqual(len(data[0]), 2)
 
-			data = frappe.get_list(
-				"Blog Post",
-				fields=["name", "blogger.full_name as blogger_full_name", "blog_category.description"],
-				limit=1,
-			)
-			self.assertTrue("name" in data[0])
-			self.assertTrue("blogger_full_name" in data[0])
-			self.assertTrue("description" not in data[0])  # field does not exist
-
 	def test_reportview_get_permlevel_system_users(self):
 		with enable_permlevel_restrictions(), setup_patched_blog_post(), setup_test_user(set_user=True):
 			frappe.local.request = frappe._dict(method="POST")

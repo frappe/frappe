@@ -514,14 +514,18 @@ class DatabaseQuery(object):
 		        - Query: fields=["*"]
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
-		if self.flags.ignore_permissions or not frappe.get_system_settings(
-			"apply_perm_level_on_api_calls",
-			ignore_if_not_exists=True,
+		if (
+			self.flags.ignore_permissions
+			or not frappe.get_system_settings(
+				"apply_perm_level_on_api_calls",
+				ignore_if_not_exists=True,
+			)
+			or frappe.get_meta(self.doctype).istable
 		):
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=self.parent_doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():
@@ -557,7 +561,7 @@ class DatabaseQuery(object):
 				table, column = column.split(".", 1)
 				ch_doctype = table.replace("`", "").replace("tab", "", 1)
 
-				if wrap_grave_quotes(table) in self.query_tables:
+				if wrap_grave_quotes(table) in self.tables:
 					permitted_child_table_fields = get_permitted_fields(
 						doctype=ch_doctype, parenttype=self.doctype
 					)
