@@ -867,8 +867,12 @@ def setup_patched_blog_post():
 
 @contextmanager
 def enable_permlevel_restrictions():
+	frappe.local.system_settings = {}
 	frappe.db.set_single_value("System Settings", "apply_perm_level_on_api_calls", 1)
+
 	yield
+
+	frappe.local.system_settings = {}
 	frappe.db.set_single_value("System Settings", "apply_perm_level_on_api_calls", 0)
 
 
