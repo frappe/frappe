@@ -108,6 +108,7 @@ def enqueue(
 		"event": event,
 		"job_name": job_name or cstr(method),
 		"is_async": is_async,
+		"from_safe_exec": frappe.flags.in_safe_exec,
 		"kwargs": kwargs,
 	}
 	if enqueue_after_commit:
@@ -151,7 +152,9 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
+def execute_job(
+	site, method, event, job_name, kwargs, user=None, is_async=True, retry=0, from_safe_exec=None
+):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
 	retval = None
 	if is_async:
@@ -161,6 +164,8 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 		if user:
 			frappe.set_user(user)
+
+	frappe.flags.in_safe_exec = from_safe_exec
 
 	if isinstance(method, str):
 		method_name = method

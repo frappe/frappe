@@ -73,6 +73,7 @@ class TestBackgroundJobs(FrappeTestCase):
 					"event": None,
 					"job_name": "frappe.handler.ping",
 					"is_async": True,
+					"from_safe_exec": None,
 					"kwargs": {"kwargs": {"site": frappe.local.site}},
 				},
 				at_front=False,
