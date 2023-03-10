@@ -168,7 +168,7 @@
   {
    "collapsible": 1,
    "fieldname": "sec_backup_limit",
-   "fieldtype": "Section Break",system_settings.json
+   "fieldtype": "Section Break",
    "label": "Backups"
   },
   {
@@ -195,7 +195,7 @@
   {
    "collapsible": 1,
    "fieldname": "permissions",
-   "fieldtype": "Section Break",system_settings.json
+   "fieldtype": "Section Break",
    "label": "Permissions"
   },
   {
@@ -223,7 +223,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",system_settings.json
+   "default": "0",
    "description": "Note: Multiple sessions will be allowed in case of mobile device",
    "fieldname": "deny_multiple_sessions",
    "fieldtype": "Check",
