@@ -188,6 +188,25 @@ function _round(num, precision, rounding_method) {
 		var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
 		r = d ? r / m : r;
 		return is_negative ? -r : r;
+	} else if (rounding_method == "Banker's Rounding") {
+		precision = cint(precision);
+
+		let multiplier = Math.pow(10, precision);
+		num = Math.abs(num) * multiplier;
+
+		let floor_num = Math.floor(num);
+		let decimal_part = num - floor_num;
+
+		// For explanation of this method read python flt implementation notes.
+		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
+
+		if (Math.abs(decimal_part - 0.5) < epsilon) {
+			num = floor_num % 2 == 0 ? floor_num : floor_num + 1;
+		} else {
+			num = Math.round(num);
+		}
+		num = num / multiplier;
+		return is_negative ? -num : num;
 	} else if (rounding_method == "Commercial Rounding") {
 		if (num == 0) return 0.0;
 
