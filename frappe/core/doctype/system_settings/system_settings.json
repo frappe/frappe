@@ -547,7 +547,7 @@
    "fieldname": "rounding_method",
    "fieldtype": "Select",
    "label": "Rounding Method",
-   "options": "Banker's Rounding (legacy)\nCommercial Rounding"
+   "options": "Banker's Rounding (legacy)\nBanker's Rounding\nCommercial Rounding"
   }
  ],
  "icon": "fa fa-cog",

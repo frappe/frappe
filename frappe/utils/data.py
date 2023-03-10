@@ -1052,7 +1052,9 @@ def rounded(num, precision=0, rounding_method=None):
 	)
 
 	if rounding_method == "Banker's Rounding (legacy)":
-		return _round_half_even(num, precision)
+		return _bankers_rounding_legacy(num, precision)
+	elif rounding_method == "Banker's Rounding":
+		return _bankers_rounding(num, precision)
 	elif rounding_method == "Commercial Rounding":
 		return _round_away_from_zero(num, precision)
 	else:
@@ -1062,7 +1064,7 @@ def rounded(num, precision=0, rounding_method=None):
 		)
 
 
-def _round_half_even(num, precision):
+def _bankers_rounding_legacy(num, precision):
 	# avoid rounding errors
 	multiplier = 10**precision
 	num = round(num * multiplier if precision else num, 8)
@@ -1105,6 +1107,22 @@ def _round_away_from_zero(num, precision):
 	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
 
 	return round(num + math.copysign(epsilon, num), precision)
+
+
+def _bankers_rounding(num, precision):
+	multiplier = 10**precision
+	num = round(num * multiplier, 12)
+
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	if abs(decimal_part - 0.5) < epsilon:
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+	else:
+		num = round(num)
+
+	return num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
