@@ -1007,7 +1007,7 @@ class TestTBSanitization(FrappeTestCase):
 
 
 class TestRounding(FrappeTestCase):
-	@change_settings("System Settings", {"rounding_method": "Rounding Half Away From Zero"})
+	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	def test_normal_rounding(self):
 		self.assertEqual(flt("what"), 0)
 
@@ -1041,7 +1041,7 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-0.15, 1), -0.2)
 
 	def test_normal_rounding_as_argument(self):
-		rounding_method = "Rounding Half Away From Zero"
+		rounding_method = "Commercial Rounding"
 
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 1)
 		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
@@ -1073,7 +1073,7 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-1.25, 1, rounding_method=rounding_method), -1.3)
 		self.assertEqual(flt(-0.15, 1, rounding_method=rounding_method), -0.2)
 
-	@change_settings("System Settings", {"rounding_method": "Rounding Half Away From Zero"})
+	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_normal_rounding_property(self, number, precision):
 		with localcontext() as ctx:
