@@ -528,11 +528,11 @@
    "label": "Login with email link expiry (in minutes)"
   },
   {
-   "default": "Round Half Even",
+   "default": "Banker's Rounding (legacy)",
    "fieldname": "rounding_method",
    "fieldtype": "Select",
    "label": "Rounding Method",
-   "options": "Round Half Even\nRounding Half Away From Zero"
+   "options": "Banker's Rounding (legacy)\nCommercial Rounding"
   },
   {
    "default": "8",
@@ -574,7 +574,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-03-08 14:33:24.562477",
+ "modified": "2023-03-10 12:23:45.248126",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
