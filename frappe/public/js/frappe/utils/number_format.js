@@ -175,11 +175,11 @@ function get_number_format_info(format) {
 
 function _round(num, precision, rounding_method) {
 	rounding_method =
-		rounding_method || frappe.boot.sysdefaults.rounding_method || "Round Half Even";
+		rounding_method || frappe.boot.sysdefaults.rounding_method || "Banker's Rounding (legacy)";
 
 	let is_negative = num < 0 ? true : false;
 
-	if (rounding_method == "Round Half Even") {
+	if (rounding_method == "Banker's Rounding (legacy)") {
 		var d = cint(precision);
 		var m = Math.pow(10, d);
 		var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8); // Avoid rounding errors
@@ -188,7 +188,7 @@ function _round(num, precision, rounding_method) {
 		var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
 		r = d ? r / m : r;
 		return is_negative ? -r : r;
-	} else if (rounding_method == "Rounding Half Away From Zero") {
+	} else if (rounding_method == "Commerical Rounding") {
 		if (num == 0) return 0.0;
 
 		let digits = cint(precision);

@@ -1055,12 +1055,12 @@ def rounded(num, precision=0, rounding_method=None):
 	precision = cint(precision)
 
 	rounding_method = (
-		rounding_method or frappe.get_system_settings("rounding_method") or "Round Half Even"
+		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
 	)
 
-	if rounding_method == "Round Half Even":
+	if rounding_method == "Banker's Rounding (legacy)":
 		return _round_half_even(num, precision)
-	elif rounding_method == "Rounding Half Away From Zero":
+	elif rounding_method == "Commercial Rounding":
 		return _round_away_from_zero(num, precision)
 	else:
 		frappe.throw(
