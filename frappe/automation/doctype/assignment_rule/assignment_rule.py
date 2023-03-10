@@ -130,9 +130,26 @@ class AssignmentRule(Document):
 			return val
 
 	def safe_eval(self, fieldname, doc):
+		def get_safe_globals():
+			return dict(
+                   frappe=frappe._dict(
+                       db=frappe._dict(get_value=frappe.db.get_value, get_list=frappe.db.get_list),
+                       session=frappe.session,
+                       utils=frappe._dict(
+                           now_datetime=frappe.utils.now_datetime,
+                           add_to_date=frappe.utils.add_to_date,
+                           get_datetime=frappe.utils.get_datetime,
+                           now=frappe.utils.now,
+                           today=frappe.utils.today,
+                           add_days=frappe.utils.add_days,
+                           getdate=frappe.utils.getdate
+                           ),
+                       )
+                  )
+
 		try:
 			if self.get(fieldname):
-				return frappe.safe_eval(self.get(fieldname), None, doc)
+				return frappe.safe_eval(self.get(fieldname), get_safe_globals(), doc)
 		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
