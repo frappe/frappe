@@ -18,7 +18,7 @@ frappe.ui.form.on("User", {
 	},
 
 	time_zone: function (frm) {
-		if (frm.doc.time_zone && frm.doc.time_zone.startsWith("Etc")) {
+		if (frappe.defaultUserTZ && frappe.defaultUserTZ.startsWith("Etc")) {
 			frm.set_df_property(
 				"time_zone",
 				"description",
@@ -99,10 +99,6 @@ frappe.ui.form.on("User", {
 	},
 	refresh: function (frm) {
 		let doc = frm.doc;
-
-		if (frm.is_new()) {
-			frm.set_value("time_zone", frappe.sys_defaults.time_zone);
-		}
 
 		if (
 			in_list(["System User", "Website User"], frm.doc.user_type) &&
@@ -270,6 +266,9 @@ frappe.ui.form.on("User", {
 			frm.dirty();
 		}
 		frm.trigger("time_zone");
+		let field = document.querySelector('[data-fieldname="time_zone"] > * .control-value')
+		let tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+		field.innerText = tz
 	},
 	validate: function (frm) {
 		if (frm.roles_editor) {
@@ -326,12 +325,6 @@ frappe.ui.form.on("User", {
 				}
 			},
 		});
-	},
-	on_update: function (frm) {
-		if (frappe.defaultUserTZ !== frm.doc.time_zone) {
-			// Clear cache after saving to refresh the values of boot.
-			frappe.ui.toolbar.clear_cache();
-		}
 	},
 });
 

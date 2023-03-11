@@ -87,7 +87,6 @@ class User(Document):
 		self.validate_roles()
 		self.validate_allowed_modules()
 		self.validate_user_image()
-		self.set_time_zone()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -136,10 +135,6 @@ class User(Document):
 				now=now,
 				enqueue_after_commit=True,
 			)
-
-		# Set user selected timezone
-		if self.time_zone:
-			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
 		if self.has_value_changed("enabled"):
 			frappe.cache().delete_key("users_for_mentions")
@@ -644,11 +639,6 @@ class User(Document):
 				user["is_authenticated"] = False
 
 		return user
-
-	def set_time_zone(self):
-		if not self.time_zone:
-			self.time_zone = get_system_timezone()
-
 
 @frappe.whitelist()
 def get_timezones():

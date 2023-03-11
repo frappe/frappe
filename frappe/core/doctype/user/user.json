@@ -190,8 +190,9 @@
   },
   {
    "fieldname": "time_zone",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "label": "Time Zone",
+   "default": "0",
    "read_only": 1
   },
   {
