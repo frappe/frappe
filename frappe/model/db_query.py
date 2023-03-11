@@ -583,12 +583,8 @@ class DatabaseQuery(object):
 			else:
 				value = "('')"
 		else:
-<<<<<<< HEAD
-			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
-=======
 			escape = True
-			df = meta.get("fields", {"fieldname": f.fieldname})
->>>>>>> 70ede18942 (fix: improved implementation of `between` filter (#20190))
+			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
@@ -664,13 +660,8 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# escape value
-<<<<<<< HEAD
-			if isinstance(value, string_types) and not f.operator.lower() == "between":
-				value = "{0}".format(frappe.db.escape(value, percent=False))
-=======
-			elif escape and isinstance(value, str):
+			if escape and isinstance(value, string_types):
 				value = f"{frappe.db.escape(value, percent=False)}"
->>>>>>> 70ede18942 (fix: improved implementation of `between` filter (#20190))
 
 		if (
 			self.ignore_ifnull
