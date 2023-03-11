@@ -36,7 +36,7 @@ $.extend(frappe.datetime, {
 		// This is done so that only one timezone is present in database and we do not end up storing local timezone since it changes
 		// as per the location of user.
 		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.defaultUserTZ) {
+		if (frappe.boot.time_zone?.system && frappe.defaultUserTZ) {
 			date_obj = moment
 				.tz(date, frappe.defaultUserTZ)
 				.clone()
