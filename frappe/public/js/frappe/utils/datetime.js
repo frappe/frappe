@@ -49,7 +49,7 @@ $.extend(frappe.datetime, {
 	},
 
 	is_system_time_zone: function () {
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.defaultUserTZ) {
+		if (frappe.boot.time_zone?.system && frappe.defaultUserTZ) {
 			return (
 				moment().tz(frappe.boot.time_zone.system).utcOffset() ===
 				moment().tz(frappe.defaultUserTZ).utcOffset()
