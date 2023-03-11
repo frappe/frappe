@@ -17,7 +17,7 @@ $.extend(frappe.datetime, {
 		// Converts the datetime string to system time zone first since the database only stores datetime in
 		// system time zone and then convert the string to user time zone(from User doctype).
 		let date_obj = null;
-		if (frappe.boot.time_zone && frappe.boot.time_zone.system && frappe.defaultUserTZ) {
+		if (frappe.boot.time_zone?.system && frappe.defaultUserTZ) {
 			date_obj = moment
 				.tz(date, frappe.boot.time_zone.system)
 				.clone()
