@@ -19,7 +19,7 @@ frappe.ui.form.on("Dropbox Settings", {
 
 	allow_dropbox_access: function (frm) {
 		if (!frm.events.are_keys_present(frm)) {
-			frappe.msgprint(__("No App Access Key and Secret Key are present."));
+			frappe.msgprint(__("App Access Key and/or Secret Key are not present."));
 			return;
 		}
 
@@ -35,7 +35,7 @@ frappe.ui.form.on("Dropbox Settings", {
 	},
 
 	take_backup: function (frm) {
-		if (frm.doc.enabled && frm.doc.dropbox_refresh_token) {
+		if (frm.doc.enabled && (frm.doc.dropbox_refresh_token || frm.doc.dropbox_access_token)) {
 			frm.add_custom_button(__("Take Backup Now"), function () {
 				frappe.call({
 					method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup",

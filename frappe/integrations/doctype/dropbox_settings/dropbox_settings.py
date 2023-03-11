@@ -92,18 +92,9 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 
 
 def backup_to_dropbox(upload_db_backup=True):
-	if not frappe.db:
-		frappe.connect()
-
 	# upload database
 	dropbox_settings = get_dropbox_settings()
-	dropbox_client = dropbox.Dropbox(
-		oauth2_refresh_token=dropbox_settings["refresh_token"],
-		app_key=dropbox_settings["app_key"],
-		app_secret=dropbox_settings["app_secret"],
-		timeout=None,
-	)
-	dropbox_client.refresh_access_token()
+	dropbox_client = get_dropbox_client(dropbox_settings)
 
 	if upload_db_backup:
 		if frappe.flags.create_new_backup:
@@ -252,7 +243,25 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 		raise
 
 
+def get_dropbox_client(dropbox_settings):
+	dropbox_client = dropbox.Dropbox(
+		oauth2_access_token=dropbox_settings["access_token"],
+		oauth2_refresh_token=dropbox_settings["refresh_token"],
+		app_key=dropbox_settings["app_key"],
+		app_secret=dropbox_settings["app_secret"],
+		timeout=None,
+	)
+
+	# checking if the access token has expired
+	dropbox_client.files_list_folder("")
+	if dropbox_settings["access_token"] != dropbox_client._oauth2_access_token:
+		set_dropbox_token(dropbox_client._oauth2_access_token)
+
+	return dropbox_client
+
+
 def get_dropbox_settings(redirect_uri=False):
+	# NOTE: access token is kept for legacy dropbox apps
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {
 		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
@@ -260,6 +269,7 @@ def get_dropbox_settings(redirect_uri=False):
 		if settings.app_secret_key
 		else frappe.conf.dropbox_secret_key,
 		"refresh_token": settings.get_password("dropbox_refresh_token", raise_exception=False),
+		"access_token": settings.get_password("dropbox_access_token", raise_exception=False),
 		"file_backup": settings.file_backup,
 		"no_of_backups": settings.no_of_backups if settings.limit_no_of_backups else None,
 	}
@@ -334,16 +344,19 @@ def dropbox_auth_finish():
 	)
 
 	token = dropbox_oauth_flow.finish({"state": callback.state, "code": callback.code})
-	set_dropbox_token(token.refresh_token)
+	set_dropbox_token(token.access_token, token.refresh_token)
 
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = "/app/dropbox-settings"
 
 
-def set_dropbox_token(refresh_token):
+def set_dropbox_token(access_token, refresh_token=None):
 	# NOTE: used doc object instead of db.set_value so that password field is set properly
 	dropbox_settings = frappe.get_single("Dropbox Settings")
-	dropbox_settings.dropbox_refresh_token = refresh_token
+	dropbox_settings.dropbox_access_token = access_token
+	if refresh_token:
+		dropbox_settings.dropbox_refresh_token = refresh_token
+
 	dropbox_settings.save()
 
 	frappe.db.commit()
