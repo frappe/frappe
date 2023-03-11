@@ -34,37 +34,6 @@ frappe.dom = {
 	},
 	remove_script_and_style: function(txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-<<<<<<< HEAD
-		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'), 's');
-		if (!regex.test(txt)) {
-			// no evil tags found, skip the DOM method entirely!
-			return txt;
-		}
-
-		var div = document.createElement('div');
-		div.innerHTML = txt;
-		var found = false;
-		evil_tags.forEach(function(e) {
-			var elements = div.getElementsByTagName(e);
-			i = elements.length;
-			while (i--) {
-				found = true;
-				elements[i].parentNode.removeChild(elements[i]);
-			}
-		});
-
-		// remove links with rel="stylesheet"
-		var elements = div.getElementsByTagName('link');
-		var i = elements.length;
-		while (i--) {
-			if (elements[i].getAttribute("rel")=="stylesheet"){
-				found = true;
-				elements[i].parentNode.removeChild(elements[i]);
-			}
-		}
-		if(found) {
-			return div.innerHTML;
-=======
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(txt, "text/html");
 		const body = doc.body;
@@ -87,7 +56,6 @@ frappe.dom = {
 
 		if (found) {
 			return body.innerHTML;
->>>>>>> 0446cda2c4 (fix: use `DOMParser` instead of `createElement` to remove script and style (#20196))
 		} else {
 			// don't disturb
 			return txt;
