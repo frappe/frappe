@@ -43,6 +43,7 @@
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
+  "apply_perm_level_on_api_calls",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -533,12 +534,18 @@
    "fieldname": "disable_user_pass_login",
    "fieldtype": "Check",
    "label": "Disable Username/Password Login"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_perm_level_on_api_calls",
+   "fieldtype": "Check",
+   "label": "Apply Perm Level on API calls (Recommended)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-10-30 12:02:46.639170",
+ "modified": "2023-03-03 11:47:24.867356",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
