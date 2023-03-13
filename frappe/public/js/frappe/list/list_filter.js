@@ -18,6 +18,9 @@ export default class ListFilter {
 				<a class="saved-filters-preview">${__("Show Saved")}</a>
 			</li>
 			<div class="saved-filters"></div>
+			<li class="list-link">
+				<a class="clear-filters">${__("Clear active filters")}</a>
+			</li>
 		`);
 
 		this.$input_area = this.wrapper.find(".input-area");
@@ -52,6 +55,7 @@ export default class ListFilter {
 		this.bind_toggle_saved_filters();
 		this.bind_click_filter();
 		this.bind_remove_filter();
+		this.bind_clear_button();
 	}
 
 	refresh() {
@@ -145,6 +149,13 @@ export default class ListFilter {
 				}
 			}, 300)
 		);
+	}
+
+	bind_clear_button() {
+		this.wrapper.on("click", ".clear-filters", () => {
+			this.list_view.filter_area.clear();
+			this.list_view.filter_area.filter_list.update_filter_button();
+		});
 	}
 
 	save_filter(filter_name) {
