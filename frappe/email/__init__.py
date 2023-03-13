@@ -20,10 +20,10 @@ def get_contact_list(txt, page_length=20) -> list[dict]:
 	match_conditions = f"and {reportview_conditions}" if reportview_conditions else ""
 
 	out = frappe.db.sql(
-		f"""select email_id as value,
+		f"""select name as value, email_id as label,
 		concat(first_name, ifnull(concat(' ',last_name), '' )) as description
 		from tabContact
-		where name like %(txt)s or email_id like %(txt)s
+		where (name like %(txt)s or email_id like %(txt)s) and email_id != ''
 		{match_conditions}
 		limit %(page_length)s""",
 		{"txt": f"%{txt}%", "page_length": page_length},
