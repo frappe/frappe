@@ -190,3 +190,4 @@ frappe.patches.v13_0.reset_corrupt_defaults
 frappe.patches.v13_0.payment_gateways_deprecation_warning
 frappe.patches.v13_0.set_suspend_email_queue_default
 frappe.patches.v13_0.remove_share_for_std_users
+frappe.patches.v13_0.clear_large_email_queues
