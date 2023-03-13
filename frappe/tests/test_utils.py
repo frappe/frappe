@@ -925,3 +925,6 @@ class TestRounding(FrappeTestCase):
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_bankers_rounding_property(self, number, precision):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
+
+	def test_default_rounding(self):
+		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
