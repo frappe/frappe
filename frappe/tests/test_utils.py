@@ -63,6 +63,7 @@ from frappe.utils.data import (
 	now_datetime,
 	nowtime,
 	pretty_date,
+	rounded,
 	to_timedelta,
 	validate_python_code,
 )
@@ -1094,6 +1095,7 @@ class TestRounding(FrappeTestCase):
 	def test_bankers_rounding(self):
 		rounding_method = "Banker's Rounding"
 
+		self.assertEqual(rounded(0, 0, rounding_method=rounding_method), 0)
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 0)
 		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
 
