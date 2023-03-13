@@ -5,11 +5,17 @@ frappe.ui.form.Share = class Share {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.shares = this.parent.find(".shares");
+		this.sharing_disabled = cint(frappe.sys_defaults.disable_sharing);
 	}
 	refresh() {
 		this.render_sidebar();
 	}
 	render_sidebar() {
+		if (this.sharing_disabled) {
+			this.parent.hide();
+			return;
+		}
+
 		const shared = this.shared || this.frm.get_docinfo().shared;
 		const shared_users = shared.filter(Boolean).map((s) => s.user);
 
@@ -85,7 +91,7 @@ frappe.ui.form.Share = class Share {
 			})
 		).appendTo(d.body);
 
-		if (frappe.model.can_share(null, this.frm)) {
+		if (frappe.model.can_share(null, this.frm) && !this.sharing_disabled) {
 			this.make_user_input();
 			this.add_share_button();
 			this.set_edit_share_events();

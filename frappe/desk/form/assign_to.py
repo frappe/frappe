@@ -93,8 +93,9 @@ def add(args=None):
 
 			doc = frappe.get_doc(args["doctype"], args["name"])
 
-			# if assignee does not have permissions, share
-			if not frappe.has_permission(doc=doc, user=assign_to):
+			# if sharing is not disabled & assignee does not have permissions, share
+			sharing_disabled = frappe.get_system_settings("disable_sharing")
+			if not sharing_disabled and not frappe.has_permission(doc=doc, user=assign_to):
 				frappe.share.add(doc.doctype, doc.name, assign_to)
 				shared_with_users.append(assign_to)
 

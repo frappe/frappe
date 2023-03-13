@@ -246,7 +246,8 @@ class User(Document):
 		)
 
 	def share_with_self(self):
-		if self.name in STANDARD_USERS:
+		sharing_disabled = frappe.get_system_settings("disable_sharing")
+		if sharing_disabled or (self.name in STANDARD_USERS):
 			return
 
 		frappe.share.add_docshare(

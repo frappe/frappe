@@ -32,6 +32,9 @@ def add_docshare(
 	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
 ):
 	"""Share the given document with a user."""
+	if frappe.get_system_settings("disable_sharing"):
+		return None
+
 	if not user:
 		user = frappe.session.user
 
@@ -87,6 +90,9 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 
 def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
 	"""Set share permission."""
+	if frappe.get_system_settings("disable_sharing"):
+		return None
+
 	if not (flags or {}).get("ignore_share_permission"):
 		check_share_permission(doctype, name)
 
