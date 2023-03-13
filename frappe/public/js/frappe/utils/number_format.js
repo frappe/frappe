@@ -188,7 +188,7 @@ function _round(num, precision, rounding_method) {
 		var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
 		r = d ? r / m : r;
 		return is_negative ? -r : r;
-	} else if (rounding_method == "Commerical Rounding") {
+	} else if (rounding_method == "Commercial Rounding") {
 		if (num == 0) return 0.0;
 
 		let digits = cint(precision);
