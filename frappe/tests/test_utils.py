@@ -17,7 +17,6 @@ from PIL import Image
 
 import frappe
 from frappe.installer import parse_app_name
-from frappe.model.document import Document
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import (
 	ceil,
@@ -49,6 +48,7 @@ from frappe.utils.data import (
 	getdate,
 	now_datetime,
 	nowtime,
+	rounded,
 	validate_python_code,
 )
 from frappe.utils.dateutils import get_dates_from_timegrain
@@ -869,6 +869,7 @@ class TestRounding(FrappeTestCase):
 	def test_bankers_rounding(self):
 		rounding_method = "Banker's Rounding"
 
+		self.assertEqual(rounded(0, 0, rounding_method=rounding_method), 0)
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 0)
 		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
 

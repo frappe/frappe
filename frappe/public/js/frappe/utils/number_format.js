@@ -189,6 +189,7 @@ function _round(num, precision, rounding_method) {
 		r = d ? r / m : r;
 		return is_negative ? -r : r;
 	} else if (rounding_method == "Banker's Rounding") {
+		if (num == 0) return 0.0;
 		precision = cint(precision);
 
 		let multiplier = Math.pow(10, precision);
