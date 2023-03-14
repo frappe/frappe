@@ -86,11 +86,17 @@ def enqueue(
 			)
 		)
 
-	call_directly = now or frappe.flags.in_migrate or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.flags.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
-	q = get_queue(queue, is_async=is_async)
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except ConnectionError:
+		# If redis is not available for queueing execute the job directly
+		print(f"Redis queue is unreachable: Executing {method} synchronously")
+		return frappe.call(method, **kwargs)
+
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
