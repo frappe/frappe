@@ -298,7 +298,7 @@ def get_context(context):
 
 			# For sending emails to specified role
 			if recipient.receiver_by_role:
-				emails = get_info_based_on_role(recipient.receiver_by_role, "email")
+				emails = get_info_based_on_role(recipient.receiver_by_role, "email", ignore_permissions=True)
 
 				for email in emails:
 					recipients = recipients + email.split("\n")
