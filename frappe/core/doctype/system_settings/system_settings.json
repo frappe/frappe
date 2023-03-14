@@ -17,10 +17,11 @@
   "date_format",
   "time_format",
   "number_format",
+  "first_day_of_the_week",
   "column_break_7",
   "float_precision",
   "currency_precision",
-  "first_day_of_the_week",
+  "rounding_method",
   "sec_backup_limit",
   "backup_limit",
   "encrypt_backup",
@@ -540,12 +541,19 @@
    "fieldname": "apply_perm_level_on_api_calls",
    "fieldtype": "Check",
    "label": "Apply Perm Level on API calls (Recommended)"
+  },
+  {
+   "default": "Banker's Rounding (legacy)",
+   "fieldname": "rounding_method",
+   "fieldtype": "Select",
+   "label": "Rounding Method",
+   "options": "Banker's Rounding (legacy)\nBanker's Rounding\nCommercial Rounding"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-03-03 11:47:24.867356",
+ "modified": "2023-03-10 12:23:45.248125",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

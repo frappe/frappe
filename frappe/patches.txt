@@ -216,3 +216,4 @@ frappe.patches.v14_0.update_multistep_webforms
 frappe.patches.v14_0.drop_unused_indexes
 frappe.patches.v14_0.disable_email_accounts_with_oauth
 frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
+frappe.core.doctype.system_settings.patches.set_default_rounding_method
