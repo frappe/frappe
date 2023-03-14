@@ -116,8 +116,8 @@ def enqueue(
 		timeout=timeout,
 		kwargs=queue_args,
 		at_front=at_front,
-		failure_ttl=RQ_JOB_FAILURE_TTL,
-		result_ttl=RQ_RESULTS_TTL,
+		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 	)
 
 
