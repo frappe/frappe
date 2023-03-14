@@ -153,6 +153,7 @@ frappe.ui.FilterGroup = class {
 				this.clear_filters();
 			}
 			this.on_change();
+			this.hide_popover();
 		});
 
 <<<<<<< HEAD
