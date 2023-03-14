@@ -17,6 +17,10 @@ frappe.ui.FilterGroup = class {
 		this.set_popover_events();
 	}
 
+	hide_popover() {
+		this.filter_button.popover("hide");
+	}
+
 	init_filter_popover() {
 		this.filter_button.popover({
 			content: this.get_filter_area_template(),
@@ -54,7 +58,7 @@ frappe.ui.FilterGroup = class {
 					!$(e.target).is(this.filter_button) &&
 					!in_datepicker
 				) {
-					this.wrapper && this.filter_button.popover("hide");
+					this.wrapper && this.hide_popover();
 				}
 			}
 		});
@@ -85,7 +89,7 @@ frappe.ui.FilterGroup = class {
 		// REDESIGN-TODO: (Temporary) Review and find best solution for this
 		frappe.router.on("change", () => {
 			if (this.wrapper && this.wrapper.is(":visible")) {
-				this.filter_button.popover("hide");
+				this.hide_popover();
 			}
 		});
 	}
@@ -139,9 +143,7 @@ frappe.ui.FilterGroup = class {
 			this.on_change();
 		});
 
-		this.wrapper.find(".apply-filters").on("click", () => {
-			this.filter_button.popover("hide");
-		});
+		this.wrapper.find(".apply-filters").on("click", () => this.hide_popover());
 	}
 
 	add_filters(filters) {
