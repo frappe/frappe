@@ -377,15 +377,10 @@ frappe.ui.form.PrintView = class {
 	set_default_print_language() {
 		let print_format = this.get_print_format();
 		this.lang_code =
-<<<<<<< HEAD
-			print_format.default_print_language ||
 			this.frm.doc.language ||
+			print_format.default_print_language ||
 			frappe.boot.lang;
 		this.language_sel.val(this.lang_code);
-=======
-			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
-		this.language_selector.val(this.lang_code);
->>>>>>> e429101370 (fix(print): Language set in document should have higher precedence)
 	}
 
 	toggle_raw_printing() {
