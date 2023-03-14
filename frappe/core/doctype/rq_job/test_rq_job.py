@@ -44,6 +44,12 @@ class TestRQJob(FrappeTestCase):
 		)
 		self.check_status(job, "finished")
 
+	def test_configurable_ttl(self):
+		frappe.conf.rq_job_failure_ttl = 600
+		job = frappe.enqueue(method=self.BG_JOB, queue="short")
+
+		self.assertEqual(job.failure_ttl, 600)
+
 	def test_func_obj_serialization(self):
 		job = frappe.enqueue(method=test_func, queue="short")
 		rq_job = frappe.get_doc("RQ Job", job.id)
