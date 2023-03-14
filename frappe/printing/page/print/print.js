@@ -384,7 +384,7 @@ frappe.ui.form.PrintView = class {
 		let print_format = this.get_print_format();
 		this.lang_code =
 			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
-		this.language_selector.val(this.lang_code);
+		this.language_sel.val(this.lang_code);
 	}
 
 	toggle_raw_printing() {
