@@ -15,29 +15,6 @@ permissions:
   contents: read
 
 jobs:
-<<<<<<< HEAD
-=======
-  checkrun:
-    name: Build Check
-    runs-on: ubuntu-latest
-
-    outputs:
-      build: ${{ steps.check-build.outputs.build }}
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v3
-
-      - name: Check if build should be run
-        id: check-build
-        run: |
-          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
-        env:
-          TYPE: "ui"
-          PR_NUMBER: ${{ github.event.number }}
-          REPO_NAME: ${{ github.repository }}
-
->>>>>>> fbee80f734 (perf: rebuild website search index in background (#17974))
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 60

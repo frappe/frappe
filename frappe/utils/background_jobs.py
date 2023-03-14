@@ -3,11 +3,7 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-<<<<<<< HEAD
 from typing import TYPE_CHECKING, Any, Literal, NoReturn, Union
-=======
-from typing import TYPE_CHECKING, Any
->>>>>>> fbee80f734 (perf: rebuild website search index in background (#17974))
 from uuid import uuid4
 
 import redis
@@ -67,11 +63,7 @@ def enqueue(
 	*,
 	at_front=False,
 	**kwargs,
-<<<<<<< HEAD
 ) -> Union["Job", Any]:
-=======
-) -> "Job" | Any:
->>>>>>> fbee80f734 (perf: rebuild website search index in background (#17974))
 	"""
 	Enqueue method to be executed using a background worker
 
