@@ -141,6 +141,7 @@ frappe.ui.FilterGroup = class {
 				this.clear_filters();
 			}
 			this.on_change();
+			this.hide_popover();
 		});
 
 		this.wrapper.find(".apply-filters").on("click", () => this.hide_popover());
