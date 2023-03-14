@@ -663,14 +663,19 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access("read")
 
 		for df in self.meta.fields:
-			if df.permlevel and not df.permlevel in has_access_to:
-				self.set(df.fieldname, None)
+			if df.permlevel and hasattr(self, df.fieldname) and df.permlevel not in has_access_to:
+				try:
+					delattr(self, df.fieldname)
+				except AttributeError:
+					# hasattr might return True for class attribute which can't be delattr-ed.
+					continue
 
 		for table_field in self.meta.get_table_fields():
 			for df in frappe.get_meta(table_field.options).fields or []:
-				if df.permlevel and not df.permlevel in has_access_to:
+				if df.permlevel and df.permlevel not in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
-						child.set(df.fieldname, None)
+						if hasattr(child, df.fieldname):
+							delattr(child, df.fieldname)
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""

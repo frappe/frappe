@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from contextlib import contextmanager
+
 import frappe
 from frappe.defaults import *
 from frappe.tests.utils import FrappeTestCase
@@ -52,22 +54,29 @@ class TestDefaults(FrappeTestCase):
 		self.assertEqual(get_user_default("language"), "en")
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
 
-		old_user = frappe.session.user
-		user = "test@example.com"
-		frappe.set_user(user)
+		with as_restricted_user():
+			self.assertEqual(get_global_default("language"), None)
+			self.assertEqual(get_user_default("language"), None)
+			self.assertEqual(get_user_default_as_list("language"), [])
 
-		perm_doc = frappe.get_doc(
-			dict(
-				doctype="User Permission",
-				user=frappe.session.user,
-				allow="Language",
-				for_value="en-GB",
-			)
-		).insert(ignore_permissions=True)
 
-		self.assertEqual(get_global_default("language"), None)
-		self.assertEqual(get_user_default("language"), None)
-		self.assertEqual(get_user_default_as_list("language"), [])
+@contextmanager
+def as_restricted_user():
+	old_user = frappe.session.user
+	user = "test@example.com"
 
-		frappe.delete_doc("User Permission", perm_doc.name)
-		frappe.set_user(old_user)
+	perm_doc = frappe.get_doc(
+		{
+			"doctype": "User Permission",
+			"user": user,
+			"allow": "Language",
+			"for_value": "en-GB",
+		}
+	).insert(ignore_permissions=True)
+
+	frappe.set_user(user)
+
+	yield
+
+	perm_doc.delete(ignore_permissions=True)
+	frappe.set_user(old_user)
