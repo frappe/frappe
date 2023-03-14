@@ -249,6 +249,13 @@ function on_file_input(e) {
 }
 function remove_file(file) {
 	files.value = files.value.filter(f => f !== file);
+	let input_files = Array.from(this.$refs.file_input.files).filter(f => f !== file);
+	let dataTransfer = new DataTransfer();
+	input_files.forEach(function(file) {
+		let blob = new Blob([file], { type: 'text/plain' });
+		dataTransfer.items.add(new File([blob], file));
+	});
+	this.$refs.file_input.files = dataTransfer.files
 }
 function toggle_image_cropper(index) {
 	crop_image_with_index.value = show_image_cropper.value ? -1 : index;
