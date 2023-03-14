@@ -1,8 +1,7 @@
 // Copyright (c) 2022, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Permission Log", {
-// 	refresh(frm) {
-
-// 	},
-// });
+frappe.ui.form.on("Permission Log", {
+	// refresh: function(frm) {
+	// }
+});

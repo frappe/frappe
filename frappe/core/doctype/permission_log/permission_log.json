@@ -7,7 +7,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "changed_by"
+  "changed_by",
+  "changed_at"
  ],
  "fields": [
   {
@@ -16,24 +17,28 @@
    "is_virtual": 1,
    "label": "Changed By",
    "read_only": 1
+  },
+  {
+   "fieldname": "changed_at",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "Changed At",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-11-23 14:14:05.520912",
+ "modified": "2023-03-15 00:22:49.528711",
  "modified_by": "Administrator",
- "module": "Integrations",
+ "module": "Core",
  "name": "Permission Log",
+ "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
-   "share": 1
+   "role": "System Manager"
   }
  ],
  "sort_field": "modified",

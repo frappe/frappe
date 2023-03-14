@@ -5,4 +5,9 @@ from frappe.model.document import Document
 
 
 class DocPerm(Document):
-	pass
+	def before_save(self):
+		if self.is_new():
+			pass
+
+	def on_trash(self):
+		pass

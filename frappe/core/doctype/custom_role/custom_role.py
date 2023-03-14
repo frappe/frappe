@@ -10,6 +10,13 @@ class CustomRole(Document):
 		if self.report and not self.ref_doctype:
 			self.ref_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 
+	def before_save(self):
+		if self.is_new():
+			pass
+
+	def on_trash(self):
+		pass
+
 
 def get_custom_allowed_roles(field, name):
 	allowed_roles = []
