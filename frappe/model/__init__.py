@@ -4,6 +4,8 @@
 # model __init__.py
 from __future__ import unicode_literals
 
+from typing import List, Optional
+
 import frappe
 
 data_fieldtypes = (
@@ -79,6 +81,8 @@ default_fields = (
 	"idx",
 	"docstatus",
 )
+
+child_table_fields = ("parent", "parentfield", "parenttype")
 
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 
@@ -176,3 +180,26 @@ def delete_fields(args_dict, delete=0):
 		if frappe.db.db_type == "postgres":
 			# commit the results to db
 			frappe.db.commit()
+
+
+def get_permitted_fields(
+	doctype: str, parenttype: Optional[str] = None, user: Optional[str] = None
+) -> List[str]:
+	meta = frappe.get_meta(doctype)
+	valid_columns = meta.get_valid_columns()
+
+	if doctype in core_doctypes_list:
+		return valid_columns
+
+	permitted_fields = meta.get_permitted_fieldnames(parenttype=parenttype, user=user)
+
+	if permitted_fields:
+		meta_fields = meta.default_fields.copy()
+		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
+
+		if meta.istable:
+			meta_fields.extend(child_table_fields)
+
+		return meta_fields + permitted_fields + optional_meta_fields
+
+	return []

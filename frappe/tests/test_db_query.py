@@ -2,7 +2,9 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import datetime
 import unittest
+from contextlib import contextmanager
 
 import frappe
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
@@ -693,6 +695,185 @@ class TestReportview(unittest.TestCase):
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", ["a"])}, return_query=1))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, return_query=1))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, return_query=1))
+
+
+class TestDatabaseQuery(unittest.TestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_permlevel_fields(self):
+		with enable_permlevel_restrictions(), setup_patched_blog_post(), setup_test_user(set_user=True):
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "published"], limit=1
+			)
+			self.assertFalse("published" in data[0])
+			self.assertTrue("name" in data[0])
+			self.assertEqual(len(data[0]), 1)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "`published`"], limit=1
+			)
+			self.assertFalse("published" in data[0])
+			self.assertTrue("name" in data[0])
+			self.assertEqual(len(data[0]), 1)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "`tabBlog Post`.`published`"], limit=1
+			)
+			self.assertFalse("published" in data[0])
+			self.assertTrue("name" in data[0])
+			self.assertEqual(len(data[0]), 1)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "`tabTest Child`.`test_field`"], limit=1
+			)
+			self.assertFalse("test_field" in data[0])
+			self.assertTrue("name" in data[0])
+			self.assertEqual(len(data[0]), 1)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "MAX(`published`)"], limit=1
+			)
+			self.assertTrue("name" in data[0])
+			self.assertEqual(len(data[0]), 1)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "LAST(published)"], limit=1
+			)
+			self.assertTrue("name" in data[0])
+			self.assertEqual(len(data[0]), 1)
+
+			data = frappe.get_list(
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "MAX(`modified`)"],
+				limit=1,
+				order_by=None,
+				group_by="name",
+			)
+			self.assertEqual(len(data[0]), 2)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "now() abhi"], limit=1
+			)
+			self.assertIsInstance(data[0]["abhi"], datetime.datetime)
+			self.assertEqual(len(data[0]), 2)
+
+			data = frappe.get_list(
+				"Blog Post", filters={"published": 1}, fields=["name", "'LABEL'"], limit=1
+			)
+			self.assertTrue("name" in data[0])
+			self.assertTrue("LABEL" in data[0].values())
+			self.assertEqual(len(data[0]), 2)
+
+			data = frappe.get_list(
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "COUNT(*) as count"],
+				limit=1,
+				order_by=None,
+				group_by="name",
+			)
+			self.assertTrue("count" in data[0])
+			self.assertEqual(len(data[0]), 2)
+
+			data = frappe.get_list(
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "COUNT(*) count"],
+				limit=1,
+				order_by=None,
+				group_by="name",
+			)
+			self.assertTrue("count" in data[0])
+			self.assertEqual(len(data[0]), 2)
+
+	def test_reportview_get_permlevel_system_users(self):
+		with enable_permlevel_restrictions(), setup_patched_blog_post(), setup_test_user(set_user=True):
+			frappe.local.request = frappe._dict(method="POST")
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": "Blog Post",
+					"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+				}
+			)
+
+			# even if * is passed, fields which are not accessible should be filtered out
+			response = execute_cmd("frappe.desk.reportview.get")
+			self.assertListEqual(response["keys"], ["title"])
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": "Blog Post",
+					"fields": ["*"],
+				}
+			)
+
+			response = execute_cmd("frappe.desk.reportview.get")
+			self.assertNotIn("published", response["keys"])
+
+	def test_reportview_get_admin(self):
+		# Admin should be able to see access all fields
+		with enable_permlevel_restrictions(), setup_patched_blog_post():
+			frappe.local.request = frappe._dict(method="GET")
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": "Blog Post",
+					"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+				}
+			)
+			response = execute_cmd("frappe.desk.reportview.get")
+			self.assertListEqual(response["keys"], ["published", "title", "test_field"])
+
+
+@contextmanager
+def setup_test_user(set_user=False):
+	DB_QUERY_TEST_USER = "test_db_query@example.com"
+	if not frappe.db.exists("User", DB_QUERY_TEST_USER):
+		test_user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": DB_QUERY_TEST_USER,
+				"first_name": "Test",
+				"last_name": "User",
+				"enabled": 1,
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+	else:
+		test_user = frappe.get_doc("User", DB_QUERY_TEST_USER)
+
+	user_roles = frappe.get_roles()
+	test_user.remove_roles(*user_roles)
+	test_user.add_roles("Blogger")
+
+	if set_user:
+		frappe.set_user(test_user.name)
+
+	yield test_user
+
+	test_user.remove_roles("Blogger")
+	test_user.add_roles(*user_roles)
+
+
+@contextmanager
+def setup_patched_blog_post():
+	add_child_table_to_blog_post()
+	make_property_setter("Blog Post", "published", "permlevel", 1, "Int")
+	reset("Blog Post")
+	add("Blog Post", "Website Manager", 1)
+	update("Blog Post", "Website Manager", 1, "write", 1)
+	yield
+
+
+@contextmanager
+def enable_permlevel_restrictions():
+	frappe.local.system_settings = {}
+	frappe.db.set_single_value("System Settings", "apply_perm_level_on_api_calls", 1)
+
+	yield
+
+	frappe.local.system_settings = {}
+	frappe.db.set_single_value("System Settings", "apply_perm_level_on_api_calls", 0)
 
 
 def add_child_table_to_blog_post():

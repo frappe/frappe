@@ -19,7 +19,7 @@ import frappe.permissions
 import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.model import optional_fields
+from frappe.model import get_permitted_fields, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import (
@@ -33,6 +33,8 @@ from frappe.utils import (
 	make_filter_tuple,
 )
 
+SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
+
 SUB_QUERY_PATTERN = re.compile("^.*[,();@].*")
 IS_QUERY_PATTERN = re.compile(r"^(select|delete|update|drop|create)\s")
 IS_QUERY_PREDICATE_PATTERN = re.compile(
@@ -43,6 +45,7 @@ FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*,")
 STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
+FN_PARAMS_PATTERN = re.compile(r".*?\((.*)\).*")
 
 
 class DatabaseQuery(object):
@@ -221,6 +224,7 @@ class DatabaseQuery(object):
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
+		self.apply_fieldlevel_read_permissions()
 
 		args = frappe._dict()
 
@@ -494,6 +498,109 @@ class DatabaseQuery(object):
 			else:
 				conditions.append(self.prepare_filter_condition(f))
 
+	def remove_field(self, idx: int):
+		if self.as_list:
+			self.fields[idx] = None
+		else:
+			self.fields.pop(idx)
+
+	def apply_fieldlevel_read_permissions(self):
+		"""Apply fieldlevel read permissions to the query
+		Note: Does not apply to `frappe.model.core_doctype_list`
+		Remove fields that user is not allowed to read. If `fields=["*"]` is passed, only permitted fields will
+		be returned.
+		Example:
+		        - User has read permission only on `title` for DocType `Note`
+		        - Query: fields=["*"]
+		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
+		"""
+		if (
+			self.flags.ignore_permissions
+			or not frappe.get_system_settings(
+				"apply_perm_level_on_api_calls",
+				ignore_if_not_exists=True,
+			)
+			or frappe.get_meta(self.doctype).istable
+		):
+			return
+
+		asterisk_fields = []
+		permitted_fields = get_permitted_fields(doctype=self.doctype)
+
+		for i, field in enumerate(self.fields):
+			if "distinct" in field.lower():
+				# field: 'count(distinct `tabPhoto`.name) as total_count'
+				# column: 'tabPhoto.name'
+				_fn = FN_PARAMS_PATTERN.findall(field)
+				if _fn:
+					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
+				# field: 'distinct name'
+				# column: 'name'
+				else:
+					column = field.split(" ", 2)[1].replace("`", "")
+			else:
+				# field: 'count(`tabPhoto`.name) as total_count'
+				# column: 'tabPhoto.name'
+				column = field.split("(")[-1].split(")", 1)[0]
+				column = strip_alias(column).replace("`", "")
+
+			if column == "*" and not in_function("*", field):
+				asterisk_fields.append(i)
+				continue
+
+			# handle pseudo columns
+			elif not column or column.isnumeric():
+				continue
+
+			# labels / pseudo columns or frappe internals
+			elif column[0] in {"'", '"'} or column in optional_fields:
+				continue
+
+			# handle child / joined table fields
+			elif "." in field:
+				table, column = column.split(".", 1)
+				ch_doctype = table.replace("`", "").replace("tab", "", 1)
+
+				if wrap_grave_quotes(table) in self.tables:
+					permitted_child_table_fields = get_permitted_fields(
+						doctype=ch_doctype, parenttype=self.doctype
+					)
+					if column in permitted_child_table_fields or column in optional_fields:
+						continue
+					else:
+						self.remove_field(i)
+				else:
+					raise frappe.PermissionError(ch_doctype)
+
+			elif column in permitted_fields:
+				continue
+
+			# field inside function calls / * handles things like count(*)
+			elif "(" in field:
+				if "*" in field:
+					continue
+				_params = FN_PARAMS_PATTERN.findall(field)
+				if _params:
+					params = (x.strip() for x in _params[0].split(","))
+					for param in params:
+						if not (
+							not param or param in permitted_fields or param.isnumeric() or "'" in param or '"' in param
+						):
+							self.remove_field(i)
+							break
+					continue
+				self.remove_field(i)
+
+			# remove if access not allowed
+			else:
+				self.remove_field(i)
+
+		# handle * fields
+		j = 0
+		for i in asterisk_fields:
+			self.fields[i + j : i + j + 1] = permitted_fields
+			j = j + len(permitted_fields) - 1
+
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
@@ -583,6 +690,7 @@ class DatabaseQuery(object):
 			else:
 				value = "('')"
 		else:
+			escape = True
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
@@ -604,6 +712,7 @@ class DatabaseQuery(object):
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
 
+				escape = False
 				value = get_between_date_filter(f.value, df)
 				fallback = "'0001-01-01 00:00:00'"
 
@@ -658,8 +767,8 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# escape value
-			if isinstance(value, string_types) and not f.operator.lower() == "between":
-				value = "{0}".format(frappe.db.escape(value, percent=False))
+			if escape and isinstance(value, string_types):
+				value = f"{frappe.db.escape(value, percent=False)}"
 
 		if (
 			self.ignore_ifnull
@@ -1075,3 +1184,30 @@ def requires_owner_constraint(role_permissions):
 	# not checking if either select or read if present in if_owner_perms
 	# because either of those is required to perform a query
 	return True
+
+
+def wrap_grave_quotes(table: str) -> str:
+	if table[0] != "`":
+		table = f"`{table}`"
+	return table
+
+
+def is_plain_field(field: str) -> bool:
+	for char in field:
+		if char in SPECIAL_FIELD_CHARS:
+			return False
+	return True
+
+
+def in_function(substr: str, field: str) -> bool:
+	try:
+		return substr in field and field.index("(") < field.index(substr) < field.index(")")
+	except ValueError:
+		return False
+
+
+def strip_alias(field: str) -> str:
+	# Note: Currently only supports aliases that use the " AS " syntax
+	if " as " in field.lower():
+		return field.split(" as ", 1)[0]
+	return field

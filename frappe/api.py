@@ -78,6 +78,8 @@ def handle():
 					doc = frappe.get_doc(doctype, name)
 					if not doc.has_permission("read"):
 						raise frappe.PermissionError
+					if frappe.get_system_settings("apply_perm_level_on_api_calls"):
+						doc.apply_fieldlevel_read_permissions()
 					frappe.local.response.update({"data": doc})
 
 				if frappe.local.request.method == "PUT":
@@ -90,8 +92,10 @@ def handle():
 
 					# Not checking permissions here because it's checked in doc.save
 					doc.update(data)
-
-					frappe.local.response.update({"data": doc.save().as_dict()})
+					doc.save()
+					if frappe.get_system_settings("apply_perm_level_on_api_calls"):
+						doc.apply_fieldlevel_read_permissions()
+					frappe.local.response.update({"data": doc})
 
 					if doc.parenttype and doc.parent:
 						frappe.get_doc(doc.parenttype, doc.parent).save()
