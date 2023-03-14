@@ -130,7 +130,14 @@ frappe.ui.FilterGroup = class {
 
 		this.wrapper.find('.clear-filters').on('click', () => {
 			this.toggle_empty_filters(true);
-			this.clear_filters();
+			if (typeof this.base_list !== "undefined") {
+				// It's a list view. Clear all the filters, also the ones in the
+				// FilterArea outside this FilterGroup
+				this.base_list.filter_area.clear();
+			} else {
+				// Not a list view, just clear the filters in this FilterGroup
+				this.clear_filters();
+			}
 			this.on_change();
 		});
 
