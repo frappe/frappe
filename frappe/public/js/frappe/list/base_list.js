@@ -773,6 +773,7 @@ class FilterArea {
 							"HTML Editor",
 							"Data",
 							"Code",
+							"Phone",
 							"Read Only",
 						].includes(fieldtype)
 					) {
