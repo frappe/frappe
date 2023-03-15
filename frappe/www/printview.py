@@ -35,6 +35,8 @@ def get_context(context):
 	else:
 		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
+	set_link_titles(doc)
+
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
 	letterhead = frappe.form_dict.letterhead or None
