@@ -801,6 +801,21 @@ class DatabaseQuery:
 				if "ifnull" not in column_name.lower():
 					column_name = f"ifnull({column_name}, {fallback})"
 
+			elif f.operator.lower() in ("like", "not like") or (
+				isinstance(f.value, str)
+				and (
+					not df
+					or df.fieldtype
+					not in ["Float", "Int", "Currency", "Percent", "Check", "Date", "Datetime", "Time"]
+				)
+			):
+				value = "" if f.value is None else f.value
+				fallback = "''"
+
+				if f.operator.lower() in ("like", "not like") and isinstance(value, str):
+					# because "like" uses backslash (\) for escaping
+					value = value.replace("\\", "\\\\").replace("%", "%%")
+
 			elif df and df.fieldtype == "Date":
 				value = frappe.db.format_date(f.value)
 				fallback = "'0001-01-01'"
@@ -812,17 +827,6 @@ class DatabaseQuery:
 			elif df and df.fieldtype == "Time":
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
-
-			elif f.operator.lower() in ("like", "not like") or (
-				isinstance(f.value, str)
-				and (not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])
-			):
-				value = "" if f.value is None else f.value
-				fallback = "''"
-
-				if f.operator.lower() in ("like", "not like") and isinstance(value, str):
-					# because "like" uses backslash (\) for escaping
-					value = value.replace("\\", "\\\\").replace("%", "%%")
 
 			elif (
 				f.operator == "=" and df and df.fieldtype in ["Link", "Data"]
