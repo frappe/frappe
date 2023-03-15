@@ -1445,15 +1445,15 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	create_sidebar_skeleton() {
-		if (this.sidebar.find(".workspace-sidebar-skeleton").length) return;
+		if ($(".workspace-sidebar-skeleton").length) return;
 
-		this.sidebar.prepend(frappe.render_template("workspace_sidebar_loading_skeleton"));
-		this.sidebar.find(".standard-sidebar-section").addClass("hidden");
+		$(frappe.render_template("workspace_sidebar_loading_skeleton")).insertBefore(this.sidebar);
+		this.sidebar.addClass("hidden");
 	}
 
 	remove_sidebar_skeleton() {
-		this.sidebar.find(".standard-sidebar-section").removeClass("hidden");
-		this.sidebar.find(".workspace-sidebar-skeleton").remove();
+		this.sidebar.removeClass("hidden");
+		$(".workspace-sidebar-skeleton").remove();
 	}
 
 	register_awesomebar_shortcut() {
