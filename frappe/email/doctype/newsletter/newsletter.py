@@ -378,13 +378,13 @@ def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	verify_request()
 	try:
 		doc = frappe.get_cached_doc("Newsletter", reference_name)
-		if doc.add_viewed(recipient_email, force=True, unique_views=True):
-			newsletter = frappe.qb.DocType("Newsletter")
-			(
-				frappe.qb.update(newsletter)
-				.set(newsletter.total_views, newsletter.total_views + 1)
-				.where(newsletter.name == doc.name)
-			).run()
+		doc.add_viewed(recipient_email, force=True, unique_views=True)
+		newsletter = frappe.qb.DocType("Newsletter")
+		(
+			frappe.qb.update(newsletter)
+			.set(newsletter.total_views, newsletter.total_views + 1)
+			.where(newsletter.name == doc.name)
+		).run()
 
 	except Exception:
 		doc.log_error(f"Unable to mark as viewed for {recipient_email}")

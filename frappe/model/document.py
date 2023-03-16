@@ -1397,21 +1397,14 @@ class Document(BaseDocument):
 			return
 
 		if (hasattr(self.meta, "track_views") and self.meta.track_views) or force:
-			view_log = frappe.get_doc(
+			frappe.get_doc(
 				{
 					"doctype": "View Log",
 					"viewed_by": user,
 					"reference_doctype": self.doctype,
 					"reference_name": self.name,
 				}
-			)
-			if frappe.flags.read_only:
-				view_log.deferred_insert()
-			else:
-				view_log.insert(ignore_permissions=True)
-				frappe.local.flags.commit = True
-
-			return view_log
+			).deferred_insert()
 
 	def log_error(self, title=None, message=None):
 		"""Helper function to create an Error Log"""
