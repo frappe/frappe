@@ -377,14 +377,17 @@ def send_scheduled_email():
 def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	verify_request()
 	try:
-		doc = frappe.get_doc(reference_doctype, reference_name)
+		doc = frappe.get_cached_doc("Newsletter", reference_name)
 		if doc.add_viewed(recipient_email, force=True, unique_views=True):
-			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1, update_modified=False)
+			newsletter = frappe.qb.DocType("Newsletter")
+			(
+				frappe.qb.update(newsletter)
+				.set(newsletter.total_views, newsletter.total_views + 1)
+				.where(newsletter.name == doc.name)
+			).run()
 
 	except Exception:
-		frappe.log_error(
-			f"Unable to mark as viewed for {recipient_email}", None, reference_doctype, reference_name
-		)
+		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
