@@ -434,14 +434,9 @@ def revert_series_if_last(key, name, doc=None):
 
 
 def get_default_naming_series(doctype: str) -> str | None:
-	"""get default value for `naming_series` property"""
-	naming_series_options = frappe.get_meta(doctype).get_naming_series_options()
-
-	# Return first truthy options
-	# Empty strings are used to avoid populating forms by default
-	for option in naming_series_options:
-		if option:
-			return option
+	"""get default value for `naming_series` property from default set in docfield"""
+	if df := frappe.get_meta(doctype).get_field("naming_series"):
+		return df.default
 
 
 def validate_name(doctype: str, name: int | str):
