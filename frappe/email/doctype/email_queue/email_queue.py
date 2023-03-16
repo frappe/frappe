@@ -391,6 +391,8 @@ def on_doctype_update():
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
 
+	frappe.db.add_index("Email Queue", ["message_id(140)"])
+
 
 def get_email_retry_limit():
 	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
