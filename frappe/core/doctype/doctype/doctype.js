@@ -48,6 +48,7 @@ frappe.ui.form.on("DocType", {
 				true
 			);
 		} else if (frappe.boot.developer_mode) {
+			frm.dashboard.clear_comment();
 			let msg = __(
 				"This site is running in developer mode. Any change made here will be updated in code."
 			);
