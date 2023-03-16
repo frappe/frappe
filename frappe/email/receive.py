@@ -795,17 +795,15 @@ class InboundMail(Email):
 		if not self.is_reply():
 			return ""
 
-		communication = None
-		communication = Communication.find_one_by_filters(
-			message_id=self.in_reply_to, creation=[">=", self.get_relative_dt(-30)]
-		)
-		if not communication and self.parent_email_queue() and self.parent_email_queue().communication:
-			communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
-		else:
-			reference = self.in_reply_to
-			if "@" in self.in_reply_to:
-				reference, _ = self.in_reply_to.split("@", 1)
-			communication = Communication.find(reference, ignore_error=True)
+		communication = Communication.find_one_by_filters(message_id=self.in_reply_to)
+		if not communication:
+			if self.parent_email_queue() and self.parent_email_queue().communication:
+				communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
+			else:
+				reference = self.in_reply_to
+				if "@" in self.in_reply_to:
+					reference, _ = self.in_reply_to.split("@", 1)
+				communication = Communication.find(reference, ignore_error=True)
 
 		self._parent_communication = communication or ""
 		return self._parent_communication
