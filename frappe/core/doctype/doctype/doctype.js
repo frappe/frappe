@@ -42,6 +42,7 @@ frappe.ui.form.on("DocType", {
 		if (!frappe.boot.developer_mode && !frm.doc.custom) {
 			// make the document read-only
 			frm.set_read_only();
+			frm.dashboard.clear_comment();
 			frm.dashboard.add_comment(
 				__("DocTypes can not be modified, please use {0} instead", [customize_form_link]),
 				"blue",
