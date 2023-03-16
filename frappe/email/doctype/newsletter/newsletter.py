@@ -27,14 +27,6 @@ class Newsletter(WebsiteGenerator):
 			self._recipients = self.get_recipients()
 		return self._recipients
 
-	@property
-	def total_views(self) -> list[str]:
-		if getattr(self, "_total_viewed", None) is None:
-			self._total_viewed = frappe.db.count(
-				"View Log", {"reference_doctype": self.doctype, "reference_name": self.name}
-			)
-		return self._total_viewed
-
 	@frappe.whitelist()
 	def get_sending_status(self):
 		count_by_status = frappe.get_all(
@@ -384,13 +376,15 @@ def send_scheduled_email():
 @frappe.whitelist(allow_guest=True)
 def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	verify_request()
-	frappe.enqueue(_track_newsletter_view, recipient_email=recipient_email, newsletter=reference_name)
-	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
-
-
-def _track_newsletter_view(recipient_email, newsletter):
 	try:
-		doc = frappe.get_cached_doc("Newsletter", newsletter)
-		doc.add_viewed(recipient_email, force=True, unique_views=True)
+		doc = frappe.get_doc(reference_doctype, reference_name)
+		if doc.add_viewed(recipient_email, force=True, unique_views=True):
+			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1, update_modified=False)
+
 	except Exception:
-		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
+		frappe.log_error(
+			f"Unable to mark as viewed for {recipient_email}", None, reference_doctype, reference_name
+		)
+
+	finally:
+		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
