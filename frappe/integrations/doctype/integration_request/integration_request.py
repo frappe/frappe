@@ -13,6 +13,13 @@ class IntegrationRequest(Document):
 		if self.flags._name:
 			self.name = self.flags._name
 
+	def clear_old_logs(days=30):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Integration Request")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+
 	def update_status(self, params, status):
 		data = json.loads(self.data)
 		data.update(params)
