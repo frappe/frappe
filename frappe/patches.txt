@@ -185,6 +185,7 @@ frappe.patches.v13_0.encrypt_2fa_secrets
 frappe.patches.v13_0.reset_corrupt_defaults
 frappe.patches.v13_0.remove_share_for_std_users
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
+frappe.email.doctype.email_queue.patches.drop_search_index_on_message_id
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.transform_todo_schema
