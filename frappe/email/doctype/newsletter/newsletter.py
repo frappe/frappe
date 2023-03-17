@@ -5,6 +5,7 @@
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.core.doctype.view_log.view_log import make_view_log
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.rate_limiter import rate_limit
 from frappe.utils.safe_exec import is_job_queued
@@ -377,17 +378,13 @@ def send_scheduled_email():
 def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	verify_request()
 	try:
-		doc = frappe.get_cached_doc("Newsletter", reference_name)
-		doc.add_viewed(recipient_email, force=True, unique_views=True)
+		make_view_log("Newsletter", reference_name, recipient_email, unique_views=True)
 		newsletter = frappe.qb.DocType("Newsletter")
 		(
 			frappe.qb.update(newsletter)
 			.set(newsletter.total_views, newsletter.total_views + 1)
-			.where(newsletter.name == doc.name)
+			.where(newsletter.name == reference_name)
 		).run()
-
-	except Exception:
-		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())

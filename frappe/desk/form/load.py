@@ -10,6 +10,7 @@ import frappe.desk.form.meta
 import frappe.share
 import frappe.utils
 from frappe import _, _dict
+from frappe.core.doctype.view_log.view_log import make_view_log
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
@@ -42,8 +43,10 @@ def getdoc(doctype, name, user=None):
 	run_onload(doc)
 	doc.apply_fieldlevel_read_permissions()
 
-	# add file list
-	doc.add_viewed()
+	if hasattr(doc.meta, "track_views") and doc.meta.track_views:
+		# add log to communication when a user views a document
+		make_view_log(doc.doctype, doc.name)
+
 	get_docinfo(doc)
 
 	doc.add_seen()
