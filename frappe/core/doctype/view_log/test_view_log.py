@@ -1,6 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.deferred_insert import save_to_db
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -24,6 +25,10 @@ class TestViewLog(FrappeTestCase):
 
 		# load the form
 		getdoc("Event", ev.name)
+
+		# flush defered insert docs
+		save_to_db()
+
 		a = frappe.get_value(
 			doctype="View Log",
 			filters={"reference_doctype": "Event", "reference_name": ev.name},

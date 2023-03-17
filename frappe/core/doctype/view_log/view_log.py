@@ -25,4 +25,4 @@ def make_view_log(doctype, docname, user=None, unique_views=False):
 			"reference_doctype": doctype,
 			"reference_name": docname,
 		}
-	).deferred_insert()
+	).deferred_insert(ignore_permissions=True)

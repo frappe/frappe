@@ -1533,7 +1533,7 @@ class Document(BaseDocument):
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
-	def deferred_insert(self) -> None:
+	def deferred_insert(self, ignore_permissions=False) -> None:
 		"""Push the document to redis temporarily and insert later.
 
 		WARN: This doesn't guarantee insertion as redis can be restarted
@@ -1545,6 +1545,7 @@ class Document(BaseDocument):
 		self.set_user_and_timestamp()
 
 		doc = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
+		doc["ignore_permissions"] = ignore_permissions
 		deferred_insert(doctype=self.doctype, records=doc)
 
 	def __repr__(self):
