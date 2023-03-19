@@ -1,0 +1,53 @@
+# Translations template for frappe translation.
+# Copyright (C) 2023 Frappe Technologies Pvt. Ltd.
+# This file is distributed under the same license as the frappe translation
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: frappe translation 0.1\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgctxt "'Virksomhedshistorie'"
+msgid "DocType: About Us Settings"
+msgstr "\"Company History\""
+
+msgctxt "1 Valuta = [?] Fraktion For eksempel 1 USD = 100 Cent"
+msgid "DocType: Currency"
+msgstr ""
+"1 Currency = [?] Fraction\n"
+"For e.g. 1 USD = 100 Cent"
+
+msgctxt "zoom-in"
+msgid "DocType: Workflow State"
+msgstr "zoom-in"
+
+msgctxt "zoom-out"
+msgid "DocType: Workflow State"
+msgstr "zoom-out"
+
+msgctxt "af rolle"
+msgid "apps/frappe/frappe/public/js/frappe/form/workflow.js +34"
+msgstr " by Role "
+
+msgctxt "Half Day"
+msgid "apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +145"
+msgstr "Half Day"
+
+msgctxt "Ukendt fil kodning. Prøvede utf-8, vinduer-1250, vinduer-1252."
+msgid "apps/frappe/frappe/utils/csvutils.py +53"
+msgstr "Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
+
+msgctxt "{0} {1} kan ikke være en blad node, da den har undernoder"
+msgid "apps/frappe/frappe/utils/nestedset.py +252"
+msgstr "{0} {1} cannot be a leaf node as it has children"
+

@@ -1,0 +1,11231 @@
+# Translations template for Frappe Translation.
+# Copyright (C) 2023 Frappe Technologies Pvt. Ltd.
+# This file is distributed under the same license as the Frappe Translation
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Frappe Translation VERSION\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgid "Message"
+msgstr ""
+
+msgid "You are not permitted to access this resource."
+msgstr ""
+
+msgid "Function {0} is not whitelisted."
+msgstr ""
+
+msgid "This action is only allowed for {}"
+msgstr ""
+
+msgid "Not Permitted"
+msgstr ""
+
+msgid "No permission for {0}"
+msgstr ""
+
+msgid "App {0} is not installed"
+msgstr ""
+
+msgid "{0} has no versions tracked."
+msgstr ""
+
+msgid "Not permitted"
+msgstr ""
+
+msgid "Failed to decode token, please provide a valid base64-encoded token."
+msgstr ""
+
+msgid "Invalid request arguments"
+msgstr ""
+
+msgid "Session Expired"
+msgstr ""
+
+msgid "Your session has expired, please login again to continue."
+msgstr ""
+
+msgid "You do not have enough permissions to complete the action"
+msgstr ""
+
+msgid "Not Found"
+msgstr ""
+
+msgid "The resource you are looking for is not available"
+msgstr ""
+
+msgid "Invalid Request"
+msgstr ""
+
+msgid "Login with username and password is not allowed."
+msgstr ""
+
+msgid "Incomplete login details"
+msgstr ""
+
+msgid "Unknown User"
+msgstr ""
+
+msgid "Login not allowed at this time"
+msgstr ""
+
+msgid "Access not allowed from this IP Address"
+msgstr ""
+
+msgid "Your account has been locked and will resume after {0} seconds"
+msgstr ""
+
+msgid "Cannot edit standard fields"
+msgstr ""
+
+msgid "Only 200 inserts allowed in one request"
+msgstr ""
+
+msgid "Invalid file path: {0}"
+msgstr ""
+
+msgid "DocType must be a string"
+msgstr ""
+
+msgid "Document Name must be a string"
+msgstr ""
+
+msgid "You do not have Read or Select Permissions for {}"
+msgstr ""
+
+msgid "You need {0} permission to fetch values from {1} {2}"
+msgstr ""
+
+msgid "Read"
+msgstr ""
+
+msgid "Cannot Fetch Values"
+msgstr ""
+
+msgid "Parenttype, Parent and Parentfield are required to insert a child record"
+msgstr ""
+
+msgid "Failed to get method for command {0} with {1}"
+msgstr ""
+
+msgid "Logged Out"
+msgstr ""
+
+msgid "You have been successfully logged out"
+msgstr ""
+
+msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
+msgstr ""
+
+msgid "User {0} does not have access to this document"
+msgstr ""
+
+msgid "Document Type is not submittable"
+msgstr ""
+
+msgid "Document Type is not importable"
+msgstr ""
+
+msgid "User {0} does not have doctype access via role permission for document {1}"
+msgstr ""
+
+msgid "Not allowed for {0}: {1}"
+msgstr ""
+
+msgid ""
+"You are not allowed to access this {0} record because it is linked to {1}"
+" '{2}' in row {3}, field {4}"
+msgstr ""
+
+msgid "empty"
+msgstr ""
+
+msgid ""
+"You are not allowed to access this {0} record because it is linked to {1}"
+" '{2}' in field {3}"
+msgstr ""
+
+msgid "{0} {1} not found"
+msgstr ""
+
+msgid "You are not allowed to export {} doctype"
+msgstr ""
+
+msgid "Please specify a valid parent DocType for {0}"
+msgstr ""
+
+msgid "{0} is not a valid parent DocType for {1}"
+msgstr ""
+
+msgid "Parentfield not specified in {0}: {1}"
+msgstr ""
+
+msgid "{0} is not a valid parentfield for {1}"
+msgstr ""
+
+msgid "Insufficient Permission Level for {0}"
+msgstr ""
+
+msgid "Too Many Requests"
+msgstr ""
+
+msgid "Either key or IP flag is required."
+msgstr ""
+
+msgid ""
+"You hit the rate limit because of too many requests. Please try after "
+"sometime."
+msgstr ""
+
+msgid "Only Administrator is allowed to use Recorder"
+msgstr ""
+
+msgid "Cache Cleared"
+msgstr ""
+
+msgid ""
+"Redis cache server not running. Please contact Administrator / Tech "
+"support"
+msgstr ""
+
+msgid "No permission to {0} {1} {2}"
+msgstr ""
+
+msgid "{0} shared a document {1} {2} with you"
+msgstr ""
+
+msgid "Login session expired, refresh page to retry"
+msgstr ""
+
+msgid "Incorrect Verification code"
+msgstr ""
+
+msgid ""
+"Please check your registered email address for instructions on how to "
+"proceed. Do not close this window as you will have to return to it."
+msgstr ""
+
+msgid "Verification code has been sent to your registered email address."
+msgstr ""
+
+msgid "Login Verification Code from {}"
+msgstr ""
+
+msgid "One Time Password (OTP) Registration Code from {}"
+msgstr ""
+
+msgid ""
+"Please click on the following link and follow the instructions on the "
+"page. {0}"
+msgstr ""
+
+msgid "Verfication Code"
+msgstr ""
+
+msgid "OTP Secret Reset - {0}"
+msgstr ""
+
+msgid ""
+"<p>Your OTP secret on {0} has been reset. If you did not perform this "
+"reset and did not request it, please contact your System Administrator "
+"immediately.</p>"
+msgstr ""
+
+msgid "OTP Secret has been reset. Re-registration will be required on next login."
+msgstr ""
+
+msgid "Assignment Rule"
+msgstr ""
+
+msgid "Document Type"
+msgstr ""
+
+msgid "Priority"
+msgstr ""
+
+msgid "Higher priority rule will be applied first"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Example: {{ subject }}"
+msgstr ""
+
+msgid "Assignment Rules"
+msgstr ""
+
+msgid "Assign Condition"
+msgstr ""
+
+msgid "Simple Python Expression, Example: status == 'Open' and type == 'Bug'"
+msgstr ""
+
+msgid "Unassign Condition"
+msgstr ""
+
+msgid "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")"
+msgstr ""
+
+msgid "Assign To Users"
+msgstr ""
+
+msgid "Rule"
+msgstr ""
+
+msgid "Round Robin"
+msgstr ""
+
+msgid "Load Balancing"
+msgstr ""
+
+msgid "Based on Field"
+msgstr ""
+
+msgid "Users"
+msgstr ""
+
+msgid "Last User"
+msgstr ""
+
+msgid "Close Condition"
+msgstr ""
+
+msgid "Simple Python Expression, Example: Status in (\"Invalid\")"
+msgstr ""
+
+msgid "Assignment Days"
+msgstr ""
+
+msgid "Due Date Based On"
+msgstr ""
+
+msgid "Value from this field will be set as the due date in the ToDo"
+msgstr ""
+
+msgid "Field"
+msgstr ""
+
+msgid "System Manager"
+msgstr ""
+
+msgid "Assignment Rule is not allowed on {0} document type"
+msgstr ""
+
+msgid "Assignment Day{0} {1} has been repeated."
+msgstr ""
+
+msgid "Auto assignment failed: {0}"
+msgstr ""
+
+msgid "via Assignment Rule"
+msgstr ""
+
+msgid "Assignment Rule Day"
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid "Assignment Rule User"
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Auto Repeat"
+msgstr ""
+
+msgid "Reference Document Type"
+msgstr ""
+
+msgid "Reference Document"
+msgstr ""
+
+msgid "Start Date"
+msgstr ""
+
+msgid "End Date"
+msgstr ""
+
+msgid "Frequency"
+msgstr ""
+
+msgid "Daily"
+msgstr ""
+
+msgid "Weekly"
+msgstr ""
+
+msgid "Monthly"
+msgstr ""
+
+msgid "Quarterly"
+msgstr ""
+
+msgid "Half-yearly"
+msgstr ""
+
+msgid "Yearly"
+msgstr ""
+
+msgid "Repeat on Day"
+msgstr ""
+
+msgid "Next Schedule Date"
+msgstr ""
+
+msgid "Notification"
+msgstr ""
+
+msgid "Notify by Email"
+msgstr ""
+
+msgid "Recipients"
+msgstr ""
+
+msgid "Get Contacts"
+msgstr ""
+
+msgid "Template"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid ""
+"To add dynamic subject, use jinja tags like\n"
+"\n"
+"<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>"
+msgstr ""
+
+msgid "Preview Message"
+msgstr ""
+
+msgid "Print Format"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "Completed"
+msgstr ""
+
+msgid "Repeat on Last Day of the Month"
+msgstr ""
+
+msgid "Repeat on Days"
+msgstr ""
+
+msgid "Submit on Creation"
+msgstr ""
+
+msgid "Accounts Manager"
+msgstr ""
+
+msgid "Accounts User"
+msgstr ""
+
+msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
+msgstr ""
+
+msgid "Cannot enable {0} for a non-submittable doctype"
+msgstr ""
+
+msgid "{0} should not be same as {1}"
+msgstr ""
+
+msgid "{0} is an invalid email address in 'Recipients'"
+msgstr ""
+
+msgid "'Recipients' not specified"
+msgstr ""
+
+msgid "Auto Repeat Day{0} {1} has been repeated."
+msgstr ""
+
+msgid "The {0} is already on auto repeat {1}"
+msgstr ""
+
+msgid "New {0}: {1}"
+msgstr ""
+
+msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
+msgstr ""
+
+msgid ""
+"{0}: Failed to attach new recurring document. To enable attaching "
+"document in the auto repeat notification email, enable {1} in Print "
+"Settings"
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "Allow Print for Draft"
+msgstr ""
+
+msgid "Please find attached {0}: {1}"
+msgstr ""
+
+msgid "No contacts linked to document"
+msgstr ""
+
+msgid "Auto Repeat Document Creation Failed"
+msgstr ""
+
+msgid "Auto Repeat failed for {0}"
+msgstr ""
+
+msgid "Check the Error Log for more information: {0}"
+msgstr ""
+
+msgid "Please add a subject to your email"
+msgstr ""
+
+msgid "Auto Repeat Day"
+msgstr ""
+
+msgid "Milestone"
+msgstr ""
+
+msgid "Document"
+msgstr ""
+
+msgid "Track Field"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+
+msgid "Milestone Tracker"
+msgstr ""
+
+msgid "Document Type to Track"
+msgstr ""
+
+msgid "Field to Track"
+msgstr ""
+
+msgid "Reminder"
+msgstr ""
+
+msgid "Document Name"
+msgstr ""
+
+msgid "Remind At"
+msgstr ""
+
+msgid "notified"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Reminder cannot be created in past."
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Address Title"
+msgstr ""
+
+msgid "Address Type"
+msgstr ""
+
+msgid "Billing"
+msgstr ""
+
+msgid "Shipping"
+msgstr ""
+
+msgid "Office"
+msgstr ""
+
+msgid "Personal"
+msgstr ""
+
+msgid "Plant"
+msgstr ""
+
+msgid "Postal"
+msgstr ""
+
+msgid "Shop"
+msgstr ""
+
+msgid "Subsidiary"
+msgstr ""
+
+msgid "Warehouse"
+msgstr ""
+
+msgid "Current"
+msgstr ""
+
+msgid "Permanent"
+msgstr ""
+
+msgid "Other"
+msgstr ""
+
+msgid "Address Line 1"
+msgstr ""
+
+msgid "Address Line 2"
+msgstr ""
+
+msgid "City/Town"
+msgstr ""
+
+msgid "County"
+msgstr ""
+
+msgid "State/Province"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "Postal Code"
+msgstr ""
+
+msgid "Email Address"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Fax"
+msgstr ""
+
+msgid "Preferred Billing Address"
+msgstr ""
+
+msgid "Preferred Shipping Address"
+msgstr ""
+
+msgid "Reference"
+msgstr ""
+
+msgid "Links"
+msgstr ""
+
+msgid "Sales User"
+msgstr ""
+
+msgid "Purchase User"
+msgstr ""
+
+msgid "Maintenance User"
+msgstr ""
+
+msgid "Address Title is mandatory."
+msgstr ""
+
+msgid "There is an error in your Address Template {0}"
+msgstr ""
+
+msgid "Addresses"
+msgstr ""
+
+msgid ""
+"No default Address Template found. Please create a new one from Setup > "
+"Printing and Branding > Address Template."
+msgstr ""
+
+msgid "Address Template"
+msgstr ""
+
+msgid "Is Default"
+msgstr ""
+
+msgid "This format is used if country specific format is not found"
+msgstr ""
+
+#, python-format
+msgid ""
+"<h4>Default Template</h4>\n"
+"<p>Uses <a href=\"http://jinja.pocoo.org/docs/templates/\">Jinja "
+"Templating</a> and all the fields of Address (including Custom Fields if "
+"any) will be available</p>\n"
+"<pre><code>{{ address_line1 }}&lt;br&gt;\n"
+"{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n"
+"{{ city }}&lt;br&gt;\n"
+"{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n"
+"{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}\n"
+"{{ country }}&lt;br&gt;\n"
+"{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}\n"
+"{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n"
+"{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n"
+"</code></pre>"
+msgstr ""
+
+msgid "Setting this Address Template as default as there is no other default"
+msgstr ""
+
+msgid "Default Address Template cannot be deleted"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "First Name"
+msgstr ""
+
+msgid "Last Name"
+msgstr ""
+
+msgid "User Id"
+msgstr ""
+
+msgid "Passive"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Replied"
+msgstr ""
+
+msgid "Salutation"
+msgstr ""
+
+msgid "Gender"
+msgstr ""
+
+msgid "Image"
+msgstr ""
+
+msgid "Is Primary Contact"
+msgstr ""
+
+msgid "More Information"
+msgstr ""
+
+msgid "Department"
+msgstr ""
+
+msgid "Designation"
+msgstr ""
+
+msgid "Unsubscribed"
+msgstr ""
+
+msgid "Middle Name"
+msgstr ""
+
+msgid "Google Contacts"
+msgstr ""
+
+msgid "Email IDs"
+msgstr ""
+
+msgid "Contact Numbers"
+msgstr ""
+
+msgid "Mobile No"
+msgstr ""
+
+msgid "Pulled from Google Contacts"
+msgstr ""
+
+msgid "Sync with Google Contacts"
+msgstr ""
+
+msgid "Contact Details"
+msgstr ""
+
+msgid "Google Contacts Id"
+msgstr ""
+
+msgid "Company Name"
+msgstr ""
+
+msgid "Full Name"
+msgstr ""
+
+msgid "Sales Master Manager"
+msgstr ""
+
+msgid "Purchase Master Manager"
+msgstr ""
+
+msgid "Sales Manager"
+msgstr ""
+
+msgid "Purchase Manager"
+msgstr ""
+
+msgid "Maintenance Manager"
+msgstr ""
+
+msgid "Select Google Contacts to which contact should be synced."
+msgstr ""
+
+msgid "Only one {0} can be set as primary."
+msgstr ""
+
+msgid "Please set Email Address"
+msgstr ""
+
+msgid "Contact Email"
+msgstr ""
+
+msgid "Email ID"
+msgstr ""
+
+msgid "Is Primary"
+msgstr ""
+
+msgid "Contact Phone"
+msgstr ""
+
+msgid "Number"
+msgstr ""
+
+msgid "Is Primary Phone"
+msgstr ""
+
+msgid "Is Primary Mobile"
+msgstr ""
+
+msgid "Administrator"
+msgstr ""
+
+msgid "No records present in {0}"
+msgstr ""
+
+msgid "Access Log"
+msgstr ""
+
+msgid "Export From"
+msgstr ""
+
+msgid "User "
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "File Type"
+msgstr ""
+
+msgid "Report Name"
+msgstr ""
+
+msgid "HTML Page"
+msgstr ""
+
+msgid "Log Data"
+msgstr ""
+
+msgid "File Information"
+msgstr ""
+
+msgid "Report Information"
+msgstr ""
+
+msgid "RAW Information Log"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "Show Report"
+msgstr ""
+
+msgid "Show Document"
+msgstr ""
+
+msgid "Filters"
+msgstr ""
+
+msgid "Columns / Fields"
+msgstr ""
+
+msgid "Activity Log"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Operation"
+msgstr ""
+
+msgid "Login"
+msgstr ""
+
+msgid "Logout"
+msgstr ""
+
+msgid "Success"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Linked"
+msgstr ""
+
+msgid "Closed"
+msgstr ""
+
+msgid "Reference Name"
+msgstr ""
+
+msgid "Reference Owner"
+msgstr ""
+
+msgid "Timeline DocType"
+msgstr ""
+
+msgid "Timeline Name"
+msgstr ""
+
+msgid "Link DocType"
+msgstr ""
+
+msgid "Link Name"
+msgstr ""
+
+msgid "{0} logged in"
+msgstr ""
+
+msgid "{0} logged out: {1}"
+msgstr ""
+
+msgid "Block Module"
+msgstr ""
+
+msgid "Module"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Comment Type"
+msgstr ""
+
+msgid "Like"
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "Label"
+msgstr ""
+
+msgid "Workflow"
+msgstr ""
+
+msgid "Created"
+msgstr ""
+
+msgid "Submitted"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Updated"
+msgstr ""
+
+msgid "Deleted"
+msgstr ""
+
+msgid "Assigned"
+msgstr ""
+
+msgid "Assignment Completed"
+msgstr ""
+
+msgid "Attachment"
+msgstr ""
+
+msgid "Attachment Removed"
+msgstr ""
+
+msgid "Shared"
+msgstr ""
+
+msgid "Unshared"
+msgstr ""
+
+msgid "Bot"
+msgstr ""
+
+msgid "Relinked"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Comment Email"
+msgstr ""
+
+msgid "Comment By"
+msgstr ""
+
+msgid "Published"
+msgstr ""
+
+msgid "Seen"
+msgstr ""
+
+msgid "Content"
+msgstr ""
+
+msgid "IP Address"
+msgstr ""
+
+msgid "Website Manager"
+msgstr ""
+
+msgid "Communication"
+msgstr ""
+
+msgid "To and CC"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Chat"
+msgstr ""
+
+msgid "SMS"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Meeting"
+msgstr ""
+
+msgid "Visit"
+msgstr ""
+
+msgid "From"
+msgstr ""
+
+msgid "To"
+msgstr ""
+
+msgid "CC"
+msgstr ""
+
+msgid "BCC"
+msgstr ""
+
+msgid "Phone No."
+msgstr ""
+
+msgid "Delivery Status"
+msgstr ""
+
+msgid "Integrations can use this field to set email delivery status"
+msgstr ""
+
+msgid "Sent"
+msgstr ""
+
+msgid "Bounced"
+msgstr ""
+
+msgid "Opened"
+msgstr ""
+
+msgid "Marked As Spam"
+msgstr ""
+
+msgid "Rejected"
+msgstr ""
+
+msgid "Delayed"
+msgstr ""
+
+msgid "Soft-Bounced"
+msgstr ""
+
+msgid "Clicked"
+msgstr ""
+
+msgid "Recipient Unsubscribed"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Expired"
+msgstr ""
+
+msgid "Sending"
+msgstr ""
+
+msgid "Text Content"
+msgstr ""
+
+msgid "Communication Type"
+msgstr ""
+
+msgid "Feedback"
+msgstr ""
+
+msgid "Automated Message"
+msgstr ""
+
+msgid "Sent or Received"
+msgstr ""
+
+msgid "Received"
+msgstr ""
+
+msgid "Sent Read Receipt"
+msgstr ""
+
+msgid "From Full Name"
+msgstr ""
+
+msgid "Read by Recipient"
+msgstr ""
+
+msgid "Read by Recipient On"
+msgstr ""
+
+msgid "Email Account"
+msgstr ""
+
+msgid "In Reply To"
+msgstr ""
+
+msgid "Unread Notification Sent"
+msgstr ""
+
+msgid "User Tags"
+msgstr ""
+
+msgid "Email Inbox"
+msgstr ""
+
+msgid "Message ID"
+msgstr ""
+
+msgid "UID"
+msgstr ""
+
+msgid "Email Status"
+msgstr ""
+
+msgid "Spam"
+msgstr ""
+
+msgid "Trash"
+msgstr ""
+
+msgid "Has  Attachment"
+msgstr ""
+
+msgid "Rating"
+msgstr ""
+
+msgid "Feedback Request"
+msgstr ""
+
+msgid "Email Template"
+msgstr ""
+
+msgid "Timeline Links"
+msgstr ""
+
+msgid "IMAP Folder"
+msgstr ""
+
+msgid "Inbox User"
+msgstr ""
+
+msgid "Cannot create a {0} against a child document: {1}"
+msgstr ""
+
+msgid ""
+"Please make sure the Reference Communication Docs are not circularly "
+"linked."
+msgstr ""
+
+msgid ""
+"Unable to send mail because of a missing email account. Please setup "
+"default Email Account from Setup > Email > Email Account"
+msgstr ""
+
+msgid "Leave this conversation"
+msgstr ""
+
+msgid "Communication Link"
+msgstr ""
+
+msgid "Link Title"
+msgstr ""
+
+msgid "Custom DocPerm"
+msgstr ""
+
+msgid "Role and Level"
+msgstr ""
+
+msgid "Role"
+msgstr ""
+
+msgid "If user is the owner"
+msgstr ""
+
+msgid "Apply this rule if the User is the Owner"
+msgstr ""
+
+msgid "Level"
+msgstr ""
+
+msgid "Permissions"
+msgstr ""
+
+msgid "Write"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Amend"
+msgstr ""
+
+msgid "Additional Permissions"
+msgstr ""
+
+msgid "Report"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Share"
+msgstr ""
+
+msgid "Print"
+msgstr ""
+
+msgid "Select"
+msgstr ""
+
+msgid "Custom Role"
+msgstr ""
+
+msgid "Page"
+msgstr ""
+
+msgid "Permission Rules"
+msgstr ""
+
+msgid "response"
+msgstr ""
+
+msgid "Data Export"
+msgstr ""
+
+msgid "Select Doctype"
+msgstr ""
+
+msgid "Excel"
+msgstr ""
+
+msgid "CSV"
+msgstr ""
+
+msgid "Filter List"
+msgstr ""
+
+msgid "Fields Multicheck"
+msgstr ""
+
+msgid "Export without main header"
+msgstr ""
+
+msgid "Export the data without any header notes and column descriptions"
+msgstr ""
+
+msgid "Start entering data below this line"
+msgstr ""
+
+msgid "Table"
+msgstr ""
+
+msgid "Parent Table"
+msgstr ""
+
+msgid "Column Name"
+msgstr ""
+
+msgid "DocType"
+msgstr ""
+
+msgid "Column Labels:"
+msgstr ""
+
+msgid "Mandatory:"
+msgstr ""
+
+msgid "Type:"
+msgstr ""
+
+msgid "Info:"
+msgstr ""
+
+msgid "No Data"
+msgstr ""
+
+msgid "There is no data to be exported"
+msgstr ""
+
+msgid "Data Import Template"
+msgstr ""
+
+msgid "Notes:"
+msgstr ""
+
+msgid "Please do not change the template headings."
+msgstr ""
+
+msgid "First data column must be blank."
+msgstr ""
+
+msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
+msgstr ""
+
+msgid ""
+"If you are uploading new records, \"Naming Series\" becomes mandatory, if"
+" present."
+msgstr ""
+
+msgid ""
+"Only mandatory fields are necessary for new records. You can delete non-"
+"mandatory columns if you wish."
+msgstr ""
+
+msgid "For updating, you can update only selective columns."
+msgstr ""
+
+msgid ""
+"You can only upload upto 5000 records in one go. (may be less in some "
+"cases)"
+msgstr ""
+
+msgid "\"Parent\" signifies the parent table in which this row must be added"
+msgstr ""
+
+msgid ""
+"If you are updating, please select \"Overwrite\" else existing rows will "
+"not be deleted."
+msgstr ""
+
+msgid "Parent is the name of the document to which the data will get added to."
+msgstr ""
+
+msgid "One of"
+msgstr ""
+
+msgid "Data Import"
+msgstr ""
+
+msgid "Import Type"
+msgstr ""
+
+msgid "Insert New Records"
+msgstr ""
+
+msgid "Update Existing Records"
+msgstr ""
+
+msgid "Import File"
+msgstr ""
+
+msgid "Import Preview"
+msgstr ""
+
+msgid "Preview"
+msgstr ""
+
+msgid "Template Options"
+msgstr ""
+
+msgid "Import Log"
+msgstr ""
+
+msgid "Import Log Preview"
+msgstr ""
+
+msgid "Pending"
+msgstr ""
+
+msgid "Partial Success"
+msgstr ""
+
+msgid "Template Warnings"
+msgstr ""
+
+msgid "Submit After Import"
+msgstr ""
+
+msgid "Import File Errors and Warnings"
+msgstr ""
+
+msgid "Import Warnings"
+msgstr ""
+
+msgid "Download Template"
+msgstr ""
+
+msgid "Don't Send Emails"
+msgstr ""
+
+msgid "Show Failed Logs"
+msgstr ""
+
+msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
+msgstr ""
+
+msgid "Import from Google Sheets"
+msgstr ""
+
+msgid "Must be a publicly accessible Google Sheets URL"
+msgstr ""
+
+msgid "Refresh Google Sheet"
+msgstr ""
+
+msgid "Payload Count"
+msgstr ""
+
+msgid "Scheduler is inactive. Cannot import data."
+msgstr ""
+
+msgid "Scheduler Inactive"
+msgstr ""
+
+msgid "via Data Import"
+msgstr ""
+
+msgid "No changes to update"
+msgstr ""
+
+msgid "Invalid template file for import"
+msgstr ""
+
+msgid "Invalid or corrupted content for import"
+msgstr ""
+
+msgid "Import template should contain a Header and atleast one row."
+msgstr ""
+
+msgid "Template Error"
+msgstr ""
+
+msgid "Import template should be of type .csv, .xlsx or .xls"
+msgstr ""
+
+msgid "Value must be one of {0}"
+msgstr ""
+
+msgid "Value {0} missing for {1}"
+msgstr ""
+
+msgid "Value {0} must in {1} format"
+msgstr ""
+
+msgid "Value {0} must be in the valid duration format: d h m s"
+msgstr ""
+
+msgid "Mapping column {0} to field {1}"
+msgstr ""
+
+msgid "Could not map column {0} to field {1}"
+msgstr ""
+
+msgid "Skipping Duplicate Column {0}"
+msgstr ""
+
+msgid "Skipping column {0}"
+msgstr ""
+
+msgid "Cannot match column {0} with any field"
+msgstr ""
+
+msgid "Skipping Untitled Column"
+msgstr ""
+
+msgid ""
+"The column {0} has {1} different date formats. Automatically setting {2} "
+"as the default format as it is the most common. Please change other "
+"values in this column to this format."
+msgstr ""
+
+msgid "The following values do not exist for {0}: {1}"
+msgstr ""
+
+msgid ""
+"{0} format could not be determined from the values in this column. "
+"Defaulting to {1}."
+msgstr ""
+
+msgid "The following values are invalid: {0}. Values must be one of {1}"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Data Import Log"
+msgstr ""
+
+msgid "Exception"
+msgstr ""
+
+msgid "Row Indexes"
+msgstr ""
+
+msgid "Log Index"
+msgstr ""
+
+msgid "Messages"
+msgstr ""
+
+msgid "DefaultValue"
+msgstr ""
+
+msgid "Key"
+msgstr ""
+
+msgid "Deleted Document"
+msgstr ""
+
+msgid "Deleted Name"
+msgstr ""
+
+msgid "Deleted DocType"
+msgstr ""
+
+msgid "Restored"
+msgstr ""
+
+msgid "New Name"
+msgstr ""
+
+msgid "Data"
+msgstr ""
+
+msgid "Document {0} Already Restored"
+msgstr ""
+
+msgid "Cancelled Document restored as Draft"
+msgstr ""
+
+msgid "restored {0} as {1}"
+msgstr ""
+
+msgid "Document Restored"
+msgstr ""
+
+msgid "Restoring Deleted Document"
+msgstr ""
+
+msgid "DocField"
+msgstr ""
+
+msgid "Autocomplete"
+msgstr ""
+
+msgid "Attach"
+msgstr ""
+
+msgid "Attach Image"
+msgstr ""
+
+msgid "Barcode"
+msgstr ""
+
+msgid "Button"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Color"
+msgstr ""
+
+msgid "Column Break"
+msgstr ""
+
+msgid "Currency"
+msgstr ""
+
+msgid "Datetime"
+msgstr ""
+
+msgid "Duration"
+msgstr ""
+
+msgid "Dynamic Link"
+msgstr ""
+
+msgid "Float"
+msgstr ""
+
+msgid "Fold"
+msgstr ""
+
+msgid "Geolocation"
+msgstr ""
+
+msgid "Heading"
+msgstr ""
+
+msgid "HTML"
+msgstr ""
+
+msgid "HTML Editor"
+msgstr ""
+
+msgid "Icon"
+msgstr ""
+
+msgid "Int"
+msgstr ""
+
+msgid "JSON"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
+msgid "Long Text"
+msgstr ""
+
+msgid "Markdown Editor"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Percent"
+msgstr ""
+
+msgid "Read Only"
+msgstr ""
+
+msgid "Section Break"
+msgstr ""
+
+msgid "Signature"
+msgstr ""
+
+msgid "Small Text"
+msgstr ""
+
+msgid "Tab Break"
+msgstr ""
+
+msgid "Table MultiSelect"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "Text Editor"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Mandatory"
+msgstr ""
+
+msgid "Precision"
+msgstr ""
+
+msgid "Set non-standard precision for a Float or Currency field"
+msgstr ""
+
+msgid "Length"
+msgstr ""
+
+msgid "Index"
+msgstr ""
+
+msgid "In List View"
+msgstr ""
+
+msgid "In List Filter"
+msgstr ""
+
+msgid "In Global Search"
+msgstr ""
+
+msgid "In Preview"
+msgstr ""
+
+msgid "Allow in Quick Entry"
+msgstr ""
+
+msgid "Bold"
+msgstr ""
+
+msgid "Translatable"
+msgstr ""
+
+msgid "Collapsible"
+msgstr ""
+
+msgid "Collapsible Depends On (JS)"
+msgstr ""
+
+msgid "Options"
+msgstr ""
+
+msgid ""
+"For Links, enter the DocType as range.\n"
+"For Select, enter list of Options, each on a new line."
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Fetch From"
+msgstr ""
+
+msgid "Fetch only if value is not set"
+msgstr ""
+
+msgid "Display Depends On (JS)"
+msgstr ""
+
+msgid "Hidden"
+msgstr ""
+
+msgid "Unique"
+msgstr ""
+
+msgid "Set only once"
+msgstr ""
+
+msgid "Allow Bulk Edit"
+msgstr ""
+
+msgid "Perm Level"
+msgstr ""
+
+msgid "Ignore User Permissions"
+msgstr ""
+
+msgid "Allow on Submit"
+msgstr ""
+
+msgid "Report Hide"
+msgstr ""
+
+msgid "Remember Last Selected Value"
+msgstr ""
+
+msgid "Ignore XSS Filter"
+msgstr ""
+
+msgid ""
+"Don't encode HTML tags like &lt;script&gt; or just characters like &lt; "
+"or &gt;, as they could be intentionally used in this field"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "In Filter"
+msgstr ""
+
+msgid "No Copy"
+msgstr ""
+
+msgid "Print Hide"
+msgstr ""
+
+msgid "Print Hide If No Value"
+msgstr ""
+
+msgid "Print Width"
+msgstr ""
+
+msgid "Width"
+msgstr ""
+
+msgid "Columns"
+msgstr ""
+
+msgid ""
+"Number of columns for a field in a List View or a Grid (Total Columns "
+"should be less than 11)"
+msgstr ""
+
+msgid "Mandatory Depends On (JS)"
+msgstr ""
+
+msgid "Read Only Depends On (JS)"
+msgstr ""
+
+msgid "Hide Days"
+msgstr ""
+
+msgid "Hide Seconds"
+msgstr ""
+
+msgid "Hide Border"
+msgstr ""
+
+msgid "Non Negative"
+msgstr ""
+
+msgid "Defaults"
+msgstr ""
+
+msgid "Visibility"
+msgstr ""
+
+msgid "Constraints"
+msgstr ""
+
+msgid "Max Height"
+msgstr ""
+
+msgid "List / Search Settings"
+msgstr ""
+
+msgid "Show Dashboard"
+msgstr ""
+
+msgid "Virtual"
+msgstr ""
+
+msgid "Documentation URL"
+msgstr ""
+
+msgid "DocPerm"
+msgstr ""
+
+msgid "DocShare"
+msgstr ""
+
+msgid "Everyone"
+msgstr ""
+
+msgid "Notify by email"
+msgstr ""
+
+msgid "User is mandatory for Share"
+msgstr ""
+
+msgid "You need to have \"Share\" permission"
+msgstr ""
+
+msgid ""
+"Cannot share {0} with submit permission as the doctype {1} is not "
+"submittable"
+msgstr ""
+
+msgid "{0} shared this document with everyone"
+msgstr ""
+
+msgid "{0} shared this document with {1}"
+msgstr ""
+
+msgid "{0} un-shared this document with {1}"
+msgstr ""
+
+msgid "Is Submittable"
+msgstr ""
+
+msgid ""
+"Once submitted, submittable documents cannot be changed. They can only be"
+" Cancelled and Amended."
+msgstr ""
+
+msgid "Is Child Table"
+msgstr ""
+
+msgid "Child Tables are shown as a Grid in other DocTypes"
+msgstr ""
+
+msgid "Is Single"
+msgstr ""
+
+msgid ""
+"Single Types have only one record no tables associated. Values are stored"
+" in tabSingles"
+msgstr ""
+
+msgid "Editable Grid"
+msgstr ""
+
+msgid "Quick Entry"
+msgstr ""
+
+msgid "Open a dialog with mandatory fields to create a new record quickly"
+msgstr ""
+
+msgid "Track Changes"
+msgstr ""
+
+msgid "If enabled, changes to the document are tracked and shown in timeline"
+msgstr ""
+
+msgid "Track Seen"
+msgstr ""
+
+msgid "If enabled, the document is marked as seen, the first time a user opens it"
+msgstr ""
+
+msgid "Track Views"
+msgstr ""
+
+msgid "If enabled, document views are tracked, this can happen multiple times"
+msgstr ""
+
+msgid "Custom?"
+msgstr ""
+
+msgid "Beta"
+msgstr ""
+
+msgid "Fields"
+msgstr ""
+
+msgid "Naming"
+msgstr ""
+
+msgid "Auto Name"
+msgstr ""
+
+msgid ""
+"Naming Options:\n"
+"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>autoincrement</b> "
+"- Uses Databases' Auto Increment feature</li><li><b>naming_series:</b> - "
+"By Naming Series (field called naming_series must be "
+"present)</li><li><b>Prompt</b> - Prompt user for a "
+"name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for"
+" example PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> "
+"- Replace all braced words (fieldnames, date words (DD, MM, YY), series) "
+"with their value. Outside braces, any characters can be used.</li></ol>"
+msgstr ""
+
+msgid "Form Settings"
+msgstr ""
+
+msgid "Image Field"
+msgstr ""
+
+msgid "Must be of type \"Attach Image\""
+msgstr ""
+
+msgid "Timeline Field"
+msgstr ""
+
+msgid "Comments and Communications will be associated with this linked document"
+msgstr ""
+
+msgid "Max Attachments"
+msgstr ""
+
+msgid "Hide Sidebar, Menu, and Comments"
+msgstr ""
+
+msgid "Hide Copy"
+msgstr ""
+
+msgid "Allow Rename"
+msgstr ""
+
+msgid "Allow Import (via Data Import Tool)"
+msgstr ""
+
+msgid "Allow events in timeline"
+msgstr ""
+
+msgid "Allow Auto Repeat"
+msgstr ""
+
+msgid "View Settings"
+msgstr ""
+
+msgid "Title Field"
+msgstr ""
+
+msgid "Search Fields"
+msgstr ""
+
+msgid "Default Print Format"
+msgstr ""
+
+msgid "Default Sort Field"
+msgstr ""
+
+msgid "Default Sort Order"
+msgstr ""
+
+msgid "ASC"
+msgstr ""
+
+msgid "DESC"
+msgstr ""
+
+msgid "Show in Module Section"
+msgstr ""
+
+msgid "Setup"
+msgstr ""
+
+msgid "System"
+msgstr ""
+
+msgid "Show Preview Popup"
+msgstr ""
+
+msgid "Make \"name\" searchable in Global Search"
+msgstr ""
+
+msgid "Restrict To Domain"
+msgstr ""
+
+msgid "User Cannot Search"
+msgstr ""
+
+msgid "User Cannot Create"
+msgstr ""
+
+msgid "Web View"
+msgstr ""
+
+msgid "Has Web View"
+msgstr ""
+
+msgid "Allow Guest to View"
+msgstr ""
+
+msgid "Route"
+msgstr ""
+
+msgid "Is Published Field"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Database Engine"
+msgstr ""
+
+msgid "InnoDB"
+msgstr ""
+
+msgid "MyISAM"
+msgstr ""
+
+msgid "Is Tree"
+msgstr ""
+
+msgid "Tree structures are implemented using Nested Set"
+msgstr ""
+
+msgid "Parent Field (Tree)"
+msgstr ""
+
+msgid "Documentation Link"
+msgstr ""
+
+msgid "URL for documentation or help"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Linked Documents"
+msgstr ""
+
+msgid "Subject Field"
+msgstr ""
+
+msgid "Sender Field"
+msgstr ""
+
+msgid "Allow document creation via Email"
+msgstr ""
+
+msgid "Email Settings"
+msgstr ""
+
+msgid "Index Web Pages for Search"
+msgstr ""
+
+msgid "Is Virtual"
+msgstr ""
+
+msgid "Default Email Template"
+msgstr ""
+
+msgid "Website Search Field"
+msgstr ""
+
+msgid "Naming Rule"
+msgstr ""
+
+msgid "Set by user"
+msgstr ""
+
+msgid "Autoincrement"
+msgstr ""
+
+msgid "By fieldname"
+msgstr ""
+
+msgid "By \"Naming Series\" field"
+msgstr ""
+
+msgid "Expression"
+msgstr ""
+
+msgid "Expression (old style)"
+msgstr ""
+
+msgid "Random"
+msgstr ""
+
+msgid "By script"
+msgstr ""
+
+msgid "States"
+msgstr ""
+
+msgid "Document States"
+msgstr ""
+
+msgid "Show Title in Link Fields"
+msgstr ""
+
+msgid "Translate Link Fields"
+msgstr ""
+
+msgid "Make Attachments Public by Default"
+msgstr ""
+
+msgid "Queue in Background"
+msgstr ""
+
+msgid "Enabling this will submit documents in background"
+msgstr ""
+
+msgid "Default View"
+msgstr ""
+
+msgid "Force Re-route to Default View"
+msgstr ""
+
+msgid "Is Calendar and Gantt"
+msgstr ""
+
+msgid "Enables Calendar and Gantt views."
+msgstr ""
+
+msgid "Views"
+msgstr ""
+
+msgid "Customization"
+msgstr ""
+
+msgid "Custom Field"
+msgstr ""
+
+msgid "Client Script"
+msgstr ""
+
+msgid "Server Script"
+msgstr ""
+
+msgid "Webhook"
+msgstr ""
+
+msgid "Web Form"
+msgstr ""
+
+msgid "Calendar View"
+msgstr ""
+
+msgid "Kanban Board"
+msgstr ""
+
+msgid "Onboarding Step"
+msgstr ""
+
+msgid "Rules"
+msgstr ""
+
+msgid "Energy Point Rule"
+msgstr ""
+
+msgid "Standard DocType cannot have default print format, use Customize Form"
+msgstr ""
+
+msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
+msgstr ""
+
+msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
+msgstr ""
+
+msgid "Not allowed to create custom Virtual DocType."
+msgstr ""
+
+msgid "Field \"route\" is mandatory for Web Views"
+msgstr ""
+
+msgid "Number of attachment fields are more than {}, limit updated to {}."
+msgstr ""
+
+msgid "Insufficient attachment limit"
+msgstr ""
+
+msgid "Row #{}: Fieldname is required"
+msgstr ""
+
+msgid "Fieldname {0} is restricted"
+msgstr ""
+
+msgid "DocType can only be renamed by Administrator"
+msgstr ""
+
+msgid "DocType can not be merged"
+msgstr ""
+
+msgid "Renamed files and replaced code in controllers, please check!"
+msgstr ""
+
+msgid "{0} is a mandatory field"
+msgstr ""
+
+msgid "Parent Field must be a valid fieldname"
+msgstr ""
+
+msgid "Doctype name is limited to {0} characters ({1})"
+msgstr ""
+
+msgid "DocType's name should not start or end with whitespace"
+msgstr ""
+
+msgid ""
+"A DocType's name should start with a letter and can only consist of "
+"letters, numbers, spaces, underscores and hyphens"
+msgstr ""
+
+msgid "Fieldname called {0} must exist to enable autonaming"
+msgstr ""
+
+msgid "Field Missing"
+msgstr ""
+
+msgid "Invalid fieldname '{0}' in autoname"
+msgstr ""
+
+msgid "Series {0} already used in {1}"
+msgstr ""
+
+msgid "Cannot change to/from autoincrement autoname in Customize Form"
+msgstr ""
+
+msgid ""
+"Can only change to/from Autoincrement naming rule when there is no data "
+"in the doctype"
+msgstr ""
+
+msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
+msgstr ""
+
+msgid "Parent Missing"
+msgstr ""
+
+msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
+msgstr ""
+
+msgid "Table Fieldname Missing"
+msgstr ""
+
+msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
+msgstr ""
+
+msgid "Invalid Table Fieldname"
+msgstr ""
+
+msgid "Document Links Row #{0}: Invalid doctype or fieldname."
+msgstr ""
+
+msgid "{0}: fieldname cannot be set to reserved keyword {1}"
+msgstr ""
+
+msgid "Invalid Fieldname"
+msgstr ""
+
+msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
+msgstr ""
+
+msgid "{0}: Field {1} of type {2} cannot be mandatory"
+msgstr ""
+
+msgid "{0}: Options required for Link or Table type field {1} in row {2}"
+msgstr ""
+
+msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
+msgstr ""
+
+msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
+msgstr ""
+
+msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
+msgstr ""
+
+msgid "Max width for type Currency is 100px in row {0}"
+msgstr ""
+
+msgid "'{0}' not allowed for type {1} in row {2}"
+msgstr ""
+
+msgid "'In Global Search' not allowed for type {0} in row {1}"
+msgstr ""
+
+msgid ""
+"Options 'Dynamic Link' type of field must point to another Link Field "
+"with options as 'DocType'"
+msgstr ""
+
+msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
+msgstr ""
+
+msgid "Options for {0} must be set before setting the default value."
+msgstr ""
+
+msgid "Default value for {0} must be in the list of options."
+msgstr ""
+
+msgid "Precision should be between 1 and 6"
+msgstr ""
+
+msgid "{0}: Fieldtype {1} for {2} cannot be unique"
+msgstr ""
+
+msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
+msgstr ""
+
+msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
+msgstr ""
+
+msgid "There can be only one Fold in a form"
+msgstr ""
+
+msgid "Fold must come before a Section Break"
+msgstr ""
+
+msgid "Fold can not be at the end of the form"
+msgstr ""
+
+msgid "Search field {0} is not valid"
+msgstr ""
+
+msgid "Title field must be a valid fieldname"
+msgstr ""
+
+msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
+msgstr ""
+
+msgid "Image field must be a valid fieldname"
+msgstr ""
+
+msgid "Image field must be of type Attach Image"
+msgstr ""
+
+msgid "Is Published Field must be a valid fieldname"
+msgstr ""
+
+msgid "Website Search Field must be a valid fieldname"
+msgstr ""
+
+msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
+msgstr ""
+
+msgid "Missing Field"
+msgstr ""
+
+msgid "Timeline field must be a valid fieldname"
+msgstr ""
+
+msgid "Timeline field must be a Link or Dynamic Link"
+msgstr ""
+
+msgid "Sort field {0} must be a valid fieldname"
+msgstr ""
+
+msgid "Invalid {0} condition"
+msgstr ""
+
+msgid ""
+"DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast "
+"one Link field"
+msgstr ""
+
+msgid "{0} is an invalid Data field."
+msgstr ""
+
+msgid "Only Options allowed for Data field are:"
+msgstr ""
+
+msgid "Option {0} for field {1} is not a child table"
+msgstr ""
+
+msgid "Invalid Option"
+msgstr ""
+
+msgid "Options for Rating field can range from 3 to 10"
+msgstr ""
+
+msgid "No Permissions Specified"
+msgstr ""
+
+msgid "For {0} at level {1} in {2} in row {3}"
+msgstr ""
+
+msgid "{0}: No basic permissions set"
+msgstr ""
+
+msgid "If Owner"
+msgstr ""
+
+msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
+msgstr ""
+
+msgid "{0}: Permission at level 0 must be set before higher levels are set"
+msgstr ""
+
+msgid "{0}: Cannot set Cancel without Submit"
+msgstr ""
+
+msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
+msgstr ""
+
+msgid "{0}: Cannot set Amend without Cancel"
+msgstr ""
+
+msgid "{0}: Cannot set Import without Create"
+msgstr ""
+
+msgid "Report cannot be set for Single types"
+msgstr ""
+
+msgid "{0}: Cannot set Assign Submit if not Submittable"
+msgstr ""
+
+msgid "{0}: Cannot set Assign Amend if not Submittable"
+msgstr ""
+
+msgid "{0}: Cannot set import as {1} is not importable"
+msgstr ""
+
+msgid ""
+"Row # {0}: Non administrator user can not set the role {1} to the custom "
+"doctype"
+msgstr ""
+
+msgid "Permissions Error"
+msgstr ""
+
+msgid "Fieldname {0} conflicting with meta object"
+msgstr ""
+
+msgid "Select a valid Subject field for creating documents from Email"
+msgstr ""
+
+msgid ""
+"Subject Field type should be Data, Text, Long Text, Small Text, Text "
+"Editor"
+msgstr ""
+
+msgid "Select a valid Sender Field for creating documents from Email"
+msgstr ""
+
+msgid "Sender Field should have Email in options"
+msgstr ""
+
+msgid "DocType Action"
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
+msgid "Action Type"
+msgstr ""
+
+msgid "Server Action"
+msgstr ""
+
+msgid "Action / Route"
+msgstr ""
+
+msgid "Custom"
+msgstr ""
+
+msgid "DocType Link"
+msgstr ""
+
+msgid "Link Fieldname"
+msgstr ""
+
+msgid "Parent DocType"
+msgstr ""
+
+msgid "Table Fieldname"
+msgstr ""
+
+msgid "DocType State"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Blue"
+msgstr ""
+
+msgid "Cyan"
+msgstr ""
+
+msgid "Gray"
+msgstr ""
+
+msgid "Green"
+msgstr ""
+
+msgid "Light Blue"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Red"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid "Document Naming Rule"
+msgstr ""
+
+msgid "Prefix"
+msgstr ""
+
+msgid "Counter"
+msgstr ""
+
+msgid "Digits"
+msgstr ""
+
+msgid "Example: 00001"
+msgstr ""
+
+msgid "Rule Conditions"
+msgstr ""
+
+msgid "Conditions"
+msgstr ""
+
+msgid "Rules with higher priority number will be applied first."
+msgstr ""
+
+msgid "{0} is not a field of doctype {1}"
+msgstr ""
+
+msgid "Document Naming Rule Condition"
+msgstr ""
+
+msgid "Condition"
+msgstr ""
+
+msgid "="
+msgstr ""
+
+msgid "!="
+msgstr ""
+
+msgid ">"
+msgstr ""
+
+msgid "<"
+msgstr ""
+
+msgid ">="
+msgstr ""
+
+msgid "<="
+msgstr ""
+
+msgid "Document Naming Settings"
+msgstr ""
+
+msgid "Setup Series for transactions"
+msgstr ""
+
+msgid "Set Naming Series options on your transactions."
+msgstr ""
+
+msgid "Help HTML"
+msgstr ""
+
+msgid ""
+"<div class=\"well\">\n"
+"    Edit list of Series in the box. Rules:\n"
+"    <ul>\n"
+"        <li>Each Series Prefix on a new line.</li>\n"
+"        <li>Allowed special characters are \"/\" and \"-\"</li>\n"
+"        <li>\n"
+"            Optionally, set the number of digits in the series using dot "
+"(.)\n"
+"            followed by hashes (#). For example, \".####\" means that the"
+" series\n"
+"            will have four digits. Default is five digits.\n"
+"        </li>\n"
+"        <li>\n"
+"            You can also use variables in the series name by putting them"
+"\n"
+"            between (.) dots\n"
+"            <br>\n"
+"            Supported Variables:\n"
+"            <ul>\n"
+"                <li><code>.YYYY.</code> - Year in 4 digits</li>\n"
+"                <li><code>.YY.</code> - Year in 2 digits</li>\n"
+"                <li><code>.MM.</code> - Month</li>\n"
+"                <li><code>.DD.</code> - Day of month</li>\n"
+"                <li><code>.WW.</code> - Week of the year</li>\n"
+"                <li><code>.FY.</code> - Fiscal Year</li>\n"
+"                <li>\n"
+"                    <code>.{fieldname}.</code> - fieldname on the "
+"document e.g.\n"
+"                    <code>branch</code>\n"
+"                </li>\n"
+"            </ul>\n"
+"        </li>\n"
+"    </ul>\n"
+"    Examples:\n"
+"    <ul>\n"
+"        <li>INV-</li>\n"
+"        <li>INV-10-</li>\n"
+"        <li>INVK-</li>\n"
+"        <li>INV-.YYYY.-.{branch}.-.MM.-.####</li>\n"
+"    </ul>\n"
+"</div>\n"
+"<br>\n"
+msgstr ""
+
+msgid "User must always select"
+msgstr ""
+
+msgid ""
+"Check this if you want to force the user to select a series before "
+"saving. There will be no default if you check this."
+msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "Update Series Counter"
+msgstr ""
+
+msgid ""
+"Change the starting / current sequence number of an existing series. <br>"
+"\n"
+"\n"
+"Warning: Incorrectly updating counters can prevent documents from getting"
+" created. "
+msgstr ""
+
+msgid "Current Value"
+msgstr ""
+
+msgid "This is the number of the last created transaction with this prefix"
+msgstr ""
+
+msgid "Update Series Number"
+msgstr ""
+
+msgid "Series List for this Transaction"
+msgstr ""
+
+msgid "Try a Naming Series"
+msgstr ""
+
+msgid "Get a preview of generated names with a series."
+msgstr ""
+
+msgid "Select Transaction"
+msgstr ""
+
+msgid "Naming Series"
+msgstr ""
+
+msgid "Preview of generated names"
+msgstr ""
+
+msgid "Unable to find DocType {0}"
+msgstr ""
+
+msgid "Series Updated for {}"
+msgstr ""
+
+msgid "Please set the series to be used."
+msgstr ""
+
+msgid "Please select prefix first"
+msgstr ""
+
+msgid "Series counter for {} updated to {} successfully"
+msgstr ""
+
+msgid "Failed to generate names from the series"
+msgstr ""
+
+msgid "Document Share Key"
+msgstr ""
+
+msgid "Reference Document Name"
+msgstr ""
+
+msgid "Expires On"
+msgstr ""
+
+msgid "Domain"
+msgstr ""
+
+msgid "Domain Settings"
+msgstr ""
+
+msgid "Active Domains"
+msgstr ""
+
+msgid "Domains HTML"
+msgstr ""
+
+msgid "Link Document Type"
+msgstr ""
+
+msgid "Error Log"
+msgstr ""
+
+msgid "Reference DocType"
+msgstr ""
+
+msgid "Error Snapshot"
+msgstr ""
+
+msgid "Snapshot View"
+msgstr ""
+
+msgid "Friendly Title"
+msgstr ""
+
+msgid "Relapses"
+msgstr ""
+
+msgid "Exception Type"
+msgstr ""
+
+msgid "Traceback"
+msgstr ""
+
+msgid "Parent Error Snapshot"
+msgstr ""
+
+msgid "Pyver"
+msgstr ""
+
+msgid "Locals"
+msgstr ""
+
+msgid "Frames"
+msgstr ""
+
+msgid "File"
+msgstr ""
+
+msgid "File Name"
+msgstr ""
+
+msgid "Is Private"
+msgstr ""
+
+msgid "Preview HTML"
+msgstr ""
+
+msgid "Is Home Folder"
+msgstr ""
+
+msgid "Is Attachments Folder"
+msgstr ""
+
+msgid "File Size"
+msgstr ""
+
+msgid "File URL"
+msgstr ""
+
+msgid "Thumbnail URL"
+msgstr ""
+
+msgid "Folder"
+msgstr ""
+
+msgid "Is Folder"
+msgstr ""
+
+msgid "Attached To DocType"
+msgstr ""
+
+msgid "Attached To Name"
+msgstr ""
+
+msgid "Attached To Field"
+msgstr ""
+
+msgid "old_parent"
+msgstr ""
+
+msgid "Content Hash"
+msgstr ""
+
+msgid "Uploaded To Dropbox"
+msgstr ""
+
+msgid "Uploaded To Google Drive"
+msgstr ""
+
+msgid "Attached To Name must be a string or an integer"
+msgstr ""
+
+msgid "The fieldname you've specified in Attached To Field is invalid"
+msgstr ""
+
+msgid "Cannot delete Home and Attachments folders"
+msgstr ""
+
+msgid "Removed {0}"
+msgstr ""
+
+msgid "The File URL you've entered is incorrect"
+msgstr ""
+
+msgid "Invalid File URL"
+msgstr ""
+
+msgid "URL must start with http:// or https://"
+msgstr ""
+
+msgid "Invalid URL"
+msgstr ""
+
+msgid "Cannot find file {} on disk"
+msgstr ""
+
+msgid "A file with same name {} already exists"
+msgstr ""
+
+msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
+msgstr ""
+
+msgid "Attachment Limit Reached"
+msgstr ""
+
+msgid "File {0} does not exist"
+msgstr ""
+
+msgid "Fields `file_name` or `file_url` must be set for File"
+msgstr ""
+
+msgid "Unable to write file format for {0}"
+msgstr ""
+
+msgid "Folder {0} is not empty"
+msgstr ""
+
+msgid "{0} is not a zip file"
+msgstr ""
+
+msgid "{0} is a not a valid zip file"
+msgstr ""
+
+msgid "Cannot get file contents of a Folder"
+msgstr ""
+
+msgid "There is some problem with the file url: {0}"
+msgstr ""
+
+msgid "Cannot access file path {0}"
+msgstr ""
+
+msgid "File name cannot have {0}"
+msgstr ""
+
+msgid "File size exceeded the maximum allowed size of {0} MB"
+msgstr ""
+
+msgid "Added {0}"
+msgstr ""
+
+msgid ""
+"Cannot delete file as it belongs to {0} {1} for which you do not have "
+"permissions"
+msgstr ""
+
+msgid "Home/Test Folder 1"
+msgstr ""
+
+msgid "Home/Test Folder 2"
+msgstr ""
+
+msgid "Home/Test Folder 1/Test Folder 3"
+msgstr ""
+
+msgid "Test_Folder"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Attachments"
+msgstr ""
+
+msgid "Unable to read file format for {0}"
+msgstr ""
+
+msgid "File '{0}' not found"
+msgstr ""
+
+msgid "Image link '{0}' is not valid"
+msgstr ""
+
+msgid "It is risky to delete this file: {0}. Please contact your System Manager."
+msgstr ""
+
+msgid "Has Domain"
+msgstr ""
+
+msgid "Has Role"
+msgstr ""
+
+msgid "User '{0}' already has the role '{1}'"
+msgstr ""
+
+msgid "Installed Application"
+msgstr ""
+
+msgid "Git Branch"
+msgstr ""
+
+msgid "Application Name"
+msgstr ""
+
+msgid "Application Version"
+msgstr ""
+
+msgid "Installed Applications"
+msgstr ""
+
+msgid "You are only allowed to update order, do not remove or add apps."
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "Language Code"
+msgstr ""
+
+msgid "Language Name"
+msgstr ""
+
+msgid "Flag"
+msgstr ""
+
+msgid "Based On"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Guest"
+msgstr ""
+
+msgid ""
+"{0} must begin and end with a letter and can only contain letters,\n"
+"\t\t\t\thyphen or underscore."
+msgstr ""
+
+msgid "Log Setting User"
+msgstr ""
+
+msgid "Log Settings"
+msgstr ""
+
+msgid "Logs to Clear"
+msgstr ""
+
+msgid "{} does not support automated log clearing."
+msgstr ""
+
+msgid "Implement `clear_old_logs` method to enable auto error clearing."
+msgstr ""
+
+msgid "DocType not supported by Log Settings."
+msgstr ""
+
+msgid "Added default log doctypes: {}"
+msgstr ""
+
+msgid "You have unseen {0}"
+msgstr ""
+
+msgid "Logs To Clear"
+msgstr ""
+
+msgid "Log DocType"
+msgstr ""
+
+msgid "Clear Logs After (days)"
+msgstr ""
+
+msgid "Module Def"
+msgstr ""
+
+msgid "Module Name"
+msgstr ""
+
+msgid "App Name"
+msgstr ""
+
+msgid "Package"
+msgstr ""
+
+msgid "Connections"
+msgstr ""
+
+msgid "Website"
+msgstr ""
+
+msgid "Web Page"
+msgstr ""
+
+msgid "Web Template"
+msgstr ""
+
+msgid "Website Theme"
+msgstr ""
+
+msgid "Workspace"
+msgstr ""
+
+msgid "Property Setter"
+msgstr ""
+
+msgid "Module Profile"
+msgstr ""
+
+msgid "Module Profile Name"
+msgstr ""
+
+msgid "Module HTML"
+msgstr ""
+
+msgid "Block Modules"
+msgstr ""
+
+msgid "Navbar Item"
+msgstr ""
+
+msgid "Item Label"
+msgstr ""
+
+msgid "Item Type"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Separator"
+msgstr ""
+
+msgid "Is Standard"
+msgstr ""
+
+msgid "Navbar Settings"
+msgstr ""
+
+msgid "Application Logo"
+msgstr ""
+
+msgid "Settings Dropdown"
+msgstr ""
+
+msgid "Help Dropdown"
+msgstr ""
+
+msgid "Dropdowns"
+msgstr ""
+
+msgid "Logo Width"
+msgstr ""
+
+msgid "Please hide the standard navbar items instead of deleting them"
+msgstr ""
+
+msgid "Readme"
+msgstr ""
+
+msgid "Package Name"
+msgstr ""
+
+msgid "License Type"
+msgstr ""
+
+msgid "MIT License"
+msgstr ""
+
+msgid "GNU General Public License"
+msgstr ""
+
+msgid "GNU Affero General Public License"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "Modules"
+msgstr ""
+
+msgid "Release"
+msgstr ""
+
+msgid "Package Release"
+msgstr ""
+
+msgid "Package Import"
+msgstr ""
+
+msgid "Attach Package"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Log"
+msgstr ""
+
+msgid "Force"
+msgstr ""
+
+msgid "Please attach the package"
+msgstr ""
+
+msgid "Major"
+msgstr ""
+
+msgid "Minor"
+msgstr ""
+
+msgid "Patch"
+msgstr ""
+
+msgid "Path"
+msgstr ""
+
+msgid "Release Notes"
+msgstr ""
+
+msgid "Publish"
+msgstr ""
+
+msgid "System Page"
+msgstr ""
+
+msgid "Page HTML"
+msgstr ""
+
+msgid "Page Name"
+msgstr ""
+
+msgid "icon"
+msgstr ""
+
+msgid "Standard"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Roles"
+msgstr ""
+
+msgid "Not in Developer Mode"
+msgstr ""
+
+msgid "Only Administrator can edit"
+msgstr ""
+
+msgid "Patch Log"
+msgstr ""
+
+msgid "Prepared Report"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Finished At"
+msgstr ""
+
+msgid "Error Message"
+msgstr ""
+
+msgid "Filter Values"
+msgstr ""
+
+msgid "Job ID"
+msgstr ""
+
+msgid "Queued By"
+msgstr ""
+
+msgid "Queued At"
+msgstr ""
+
+msgid "Prepared Report User"
+msgstr ""
+
+msgid "Cannot Download Report due to insufficient permissions"
+msgstr ""
+
+msgid "Ref DocType"
+msgstr ""
+
+msgid "Reference Report"
+msgstr ""
+
+msgid "Add Total Row"
+msgstr ""
+
+msgid "Report Type"
+msgstr ""
+
+msgid "Report Builder"
+msgstr ""
+
+msgid "Query Report"
+msgstr ""
+
+msgid "Script Report"
+msgstr ""
+
+msgid "Custom Report"
+msgstr ""
+
+msgid "Letter Head"
+msgstr ""
+
+msgid "Query / Script"
+msgstr ""
+
+msgid "Query"
+msgstr ""
+
+msgid "Javascript"
+msgstr ""
+
+msgid "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
+msgstr ""
+
+msgid "Script"
+msgstr ""
+
+msgid ""
+"Filters will be accessible via <code>filters</code>. <br><br>Send output "
+"as <code>result = [result]</code>, or for old style <code>data = "
+"[columns], [result]</code>"
+msgstr ""
+
+msgid "Client Code"
+msgstr ""
+
+msgid "Report Manager"
+msgstr ""
+
+msgid "Cannot edit a standard report. Please duplicate and create a new report"
+msgstr ""
+
+msgid "Only Administrator can save a standard report. Please rename and save."
+msgstr ""
+
+msgid "You are not allowed to delete Standard Report"
+msgstr ""
+
+msgid "Must specify a Query to run"
+msgstr ""
+
+msgid "Report Document Error"
+msgstr ""
+
+msgid "You are not allowed to edit the report."
+msgstr ""
+
+msgid "{function} of {fieldlabel}"
+msgstr ""
+
+msgid "User Activity Report"
+msgstr ""
+
+msgid "User Activity Report Without Sort"
+msgstr ""
+
+msgid "Report Column"
+msgstr ""
+
+msgid "Fieldname"
+msgstr ""
+
+msgid "Fieldtype"
+msgstr ""
+
+msgid "Report Filter"
+msgstr ""
+
+msgid "Wildcard Filter"
+msgstr ""
+
+msgid "Will add \"%\" before and after the query"
+msgstr ""
+
+msgid "Role Name"
+msgstr ""
+
+msgid "If disabled, this role will be removed from all users."
+msgstr ""
+
+msgid "Desk Access"
+msgstr ""
+
+msgid "Two Factor Authentication"
+msgstr ""
+
+msgid "Home Page"
+msgstr ""
+
+msgid "Route: Example \"/desk\""
+msgstr ""
+
+msgid "Navigation Settings"
+msgstr ""
+
+msgid "Search Bar"
+msgstr ""
+
+msgid "List Settings"
+msgstr ""
+
+msgid "Sidebar"
+msgstr ""
+
+msgid "Bulk Actions"
+msgstr ""
+
+msgid "Timeline"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "View Switcher"
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Is Custom"
+msgstr ""
+
+msgid "Standard roles cannot be renamed"
+msgstr ""
+
+msgid "Standard roles cannot be disabled"
+msgstr ""
+
+msgid "Role Permission for Page and Report"
+msgstr ""
+
+msgid "Set Role For"
+msgstr ""
+
+msgid "Allow Roles"
+msgstr ""
+
+msgid "Roles Html"
+msgstr ""
+
+msgid "Enable Prepared Report"
+msgstr ""
+
+msgid "Role Profile"
+msgstr ""
+
+msgid "Roles HTML"
+msgstr ""
+
+msgid "Roles Assigned"
+msgstr ""
+
+msgid "RQ Job"
+msgstr ""
+
+msgid "Queue"
+msgstr ""
+
+msgid "default"
+msgstr ""
+
+msgid "short"
+msgstr ""
+
+msgid "long"
+msgstr ""
+
+msgid "queued"
+msgstr ""
+
+msgid "started"
+msgstr ""
+
+msgid "finished"
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid "deferred"
+msgstr ""
+
+msgid "scheduled"
+msgstr ""
+
+msgid "canceled"
+msgstr ""
+
+msgid "Job Name"
+msgstr ""
+
+msgid "Arguments"
+msgstr ""
+
+msgid "Timeout"
+msgstr ""
+
+msgid "Time Taken"
+msgstr ""
+
+msgid "Started At"
+msgstr ""
+
+msgid "Ended At"
+msgstr ""
+
+msgid "Job Info"
+msgstr ""
+
+msgid "Job Status"
+msgstr ""
+
+msgid "Job is not running."
+msgstr ""
+
+msgid "Invalid Operation"
+msgstr ""
+
+msgid "RQ Worker"
+msgstr ""
+
+msgid "Worker Name"
+msgstr ""
+
+msgid "Current Job ID"
+msgstr ""
+
+msgid "PID"
+msgstr ""
+
+msgid "Last Heartbeat"
+msgstr ""
+
+msgid "Start Time"
+msgstr ""
+
+msgid "Successful Job Count"
+msgstr ""
+
+msgid "Failed Job Count"
+msgstr ""
+
+msgid "Total Working Time"
+msgstr ""
+
+msgid "Queue(s)"
+msgstr ""
+
+msgid "Queue Type(s)"
+msgstr ""
+
+msgid "Worker Information"
+msgstr ""
+
+msgid "Statistics"
+msgstr ""
+
+msgid "Utilization %"
+msgstr ""
+
+msgid "Scheduled Job Log"
+msgstr ""
+
+msgid "Scheduled"
+msgstr ""
+
+msgid "Complete"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "Scheduled Job"
+msgstr ""
+
+msgid "Scheduled Job Type"
+msgstr ""
+
+msgid "Stopped"
+msgstr ""
+
+msgid "Create Log"
+msgstr ""
+
+msgid "Last Execution"
+msgstr ""
+
+msgid "Cron Format"
+msgstr ""
+
+msgid "Hourly"
+msgstr ""
+
+msgid "Hourly Long"
+msgstr ""
+
+msgid "Daily Long"
+msgstr ""
+
+msgid "Weekly Long"
+msgstr ""
+
+msgid "Monthly Long"
+msgstr ""
+
+msgid "Cron"
+msgstr ""
+
+msgid "Annual"
+msgstr ""
+
+msgid "Next Execution"
+msgstr ""
+
+msgid "Script Type"
+msgstr ""
+
+msgid "DocType Event"
+msgstr ""
+
+msgid "Scheduler Event"
+msgstr ""
+
+msgid "Permission Query"
+msgstr ""
+
+msgid "API"
+msgstr ""
+
+msgid "Before Insert"
+msgstr ""
+
+msgid "Before Validate"
+msgstr ""
+
+msgid "Before Save"
+msgstr ""
+
+msgid "After Insert"
+msgstr ""
+
+msgid "After Save"
+msgstr ""
+
+msgid "Before Submit"
+msgstr ""
+
+msgid "After Submit"
+msgstr ""
+
+msgid "Before Cancel"
+msgstr ""
+
+msgid "After Cancel"
+msgstr ""
+
+msgid "Before Delete"
+msgstr ""
+
+msgid "After Delete"
+msgstr ""
+
+msgid "Before Save (Submitted Document)"
+msgstr ""
+
+msgid "After Save (Submitted Document)"
+msgstr ""
+
+msgid "On Payment Authorization"
+msgstr ""
+
+msgid "API Method"
+msgstr ""
+
+msgid "Allow Guest"
+msgstr ""
+
+msgid "Help"
+msgstr ""
+
+msgid "Event Frequency"
+msgstr ""
+
+msgid "Module (for export)"
+msgstr ""
+
+msgid "Script Manager"
+msgstr ""
+
+msgid "Compilation warning"
+msgstr ""
+
+msgid "Enabled scheduled execution for script {0}"
+msgstr ""
+
+msgid "Scheduled execution for script {0} has updated"
+msgstr ""
+
+msgid "Session Default"
+msgstr ""
+
+msgid "Session Default Settings"
+msgstr ""
+
+msgid "Session Defaults"
+msgstr ""
+
+msgid "Default {0}"
+msgstr ""
+
+msgid "SMS Parameter"
+msgstr ""
+
+msgid "Parameter"
+msgstr ""
+
+msgid "Header"
+msgstr ""
+
+msgid "SMS Settings"
+msgstr ""
+
+msgid "SMS Gateway URL"
+msgstr ""
+
+msgid "Eg. smsgateway.com/api/send_sms.cgi"
+msgstr ""
+
+msgid "Message Parameter"
+msgstr ""
+
+msgid "Enter url parameter for message"
+msgstr ""
+
+msgid "Receiver Parameter"
+msgstr ""
+
+msgid "Enter url parameter for receiver nos"
+msgstr ""
+
+msgid "Static Parameters"
+msgstr ""
+
+msgid ""
+"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, "
+"password=1234 etc.)"
+msgstr ""
+
+msgid "Use POST"
+msgstr ""
+
+msgid "Please enter valid mobile nos"
+msgstr ""
+
+msgid "Please Update SMS Settings"
+msgstr ""
+
+msgid "SMS sent to following numbers: {0}"
+msgstr ""
+
+msgid "Submission Queue"
+msgstr ""
+
+msgid "Job Id"
+msgstr ""
+
+msgid "Reference Docname"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Enqueued By"
+msgstr ""
+
+msgid "Created At"
+msgstr ""
+
+msgid "Action {0} failed on {1} {2}. View it {3}"
+msgstr ""
+
+msgid "Action {0} completed successfully on {1} {2}. View it {3}"
+msgstr ""
+
+msgid "Document Unlocked"
+msgstr ""
+
+msgid "Queued for Submission. You can track the progress over {0}."
+msgstr ""
+
+msgid "Success Action"
+msgstr ""
+
+msgid "First Success Message"
+msgstr ""
+
+msgid "Next Actions HTML"
+msgstr ""
+
+msgid "Action Timeout (Seconds)"
+msgstr ""
+
+msgid "System Settings"
+msgstr ""
+
+msgid "Time Zone"
+msgstr ""
+
+msgid "Setup Complete"
+msgstr ""
+
+msgid "Date and Number Format"
+msgstr ""
+
+msgid "Date Format"
+msgstr ""
+
+msgid "yyyy-mm-dd"
+msgstr ""
+
+msgid "dd-mm-yyyy"
+msgstr ""
+
+msgid "dd/mm/yyyy"
+msgstr ""
+
+msgid "dd.mm.yyyy"
+msgstr ""
+
+msgid "mm/dd/yyyy"
+msgstr ""
+
+msgid "mm-dd-yyyy"
+msgstr ""
+
+msgid "Time Format"
+msgstr ""
+
+msgid "HH:mm:ss"
+msgstr ""
+
+msgid "HH:mm"
+msgstr ""
+
+msgid "Number Format"
+msgstr ""
+
+msgid "#,###.##"
+msgstr ""
+
+msgid "#.###,##"
+msgstr ""
+
+msgid "# ###.##"
+msgstr ""
+
+msgid "# ###,##"
+msgstr ""
+
+msgid "#'###.##"
+msgstr ""
+
+msgid "#, ###.##"
+msgstr ""
+
+msgid "#,##,###.##"
+msgstr ""
+
+msgid "#,###.###"
+msgstr ""
+
+msgid "#.###"
+msgstr ""
+
+msgid "#,###"
+msgstr ""
+
+msgid "Float Precision"
+msgstr ""
+
+msgid "Currency Precision"
+msgstr ""
+
+msgid "If not set, the currency precision will depend on number format"
+msgstr ""
+
+msgid "Backups"
+msgstr ""
+
+msgid "Number of Backups"
+msgstr ""
+
+msgid "Older backups will be automatically deleted"
+msgstr ""
+
+msgid "Background Workers"
+msgstr ""
+
+msgid "Enable Scheduled Jobs"
+msgstr ""
+
+msgid "Run scheduled jobs only if checked"
+msgstr ""
+
+msgid "Apply Strict User Permissions"
+msgstr ""
+
+msgid ""
+"If Apply Strict User Permission is checked and User Permission is defined"
+" for a DocType for a User, then all the documents where value of the link"
+" is blank, will not be shown to that User"
+msgstr ""
+
+msgid "Security"
+msgstr ""
+
+msgid "Session Expiry (idle timeout)"
+msgstr ""
+
+msgid ""
+"Example: Setting this to 24:00 will log out a user if they are not active"
+" for 24:00 hours."
+msgstr ""
+
+msgid "Allow only one session per user"
+msgstr ""
+
+msgid "Note: Multiple sessions will be allowed in case of mobile device"
+msgstr ""
+
+msgid "Allow Login using Mobile Number"
+msgstr ""
+
+msgid "User can login using Email id or Mobile number"
+msgstr ""
+
+msgid "Allow Login using User Name"
+msgstr ""
+
+msgid "User can login using Email id or User Name"
+msgstr ""
+
+msgid "Show Full Error and Allow Reporting of Issues to the Developer"
+msgstr ""
+
+msgid "Force User to Reset Password"
+msgstr ""
+
+msgid "In Days"
+msgstr ""
+
+msgid "Enable Password Policy"
+msgstr ""
+
+msgid ""
+"If enabled, the password strength will be enforced based on the Minimum "
+"Password Score value. A value of 2 being medium strong and 4 being very "
+"strong."
+msgstr ""
+
+msgid "Minimum Password Score"
+msgstr ""
+
+msgid "Brute Force Security"
+msgstr ""
+
+msgid "Allow Consecutive Login Attempts "
+msgstr ""
+
+msgid "Allow Login After Fail"
+msgstr ""
+
+msgid "In seconds"
+msgstr ""
+
+msgid "Enable Two Factor Auth"
+msgstr ""
+
+msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
+msgstr ""
+
+msgid ""
+"If enabled, users who login from Restricted IP Address, won't be prompted"
+" for Two Factor Auth"
+msgstr ""
+
+msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
+msgstr ""
+
+msgid ""
+"If enabled, all users can login from any IP Address using Two Factor "
+"Auth. This can also be set only for specific user(s) in User Page"
+msgstr ""
+
+msgid "Two Factor Authentication method"
+msgstr ""
+
+msgid "Choose authentication method to be used by all users"
+msgstr ""
+
+msgid "OTP App"
+msgstr ""
+
+msgid "Expiry time of QR Code Image Page"
+msgstr ""
+
+msgid ""
+"Time in seconds to retain QR code image on server. "
+"Min:<strong>240</strong>"
+msgstr ""
+
+msgid "OTP Issuer Name"
+msgstr ""
+
+msgid "Email Footer Address"
+msgstr ""
+
+msgid "Your organization name and address for the email footer."
+msgstr ""
+
+msgid "Disable Standard Email Footer"
+msgstr ""
+
+msgid "Hide footer in auto email reports"
+msgstr ""
+
+msgid "Allow Guests to Upload Files"
+msgstr ""
+
+msgid ""
+"When enabled this will allow guests to upload files to your application, "
+"You can enable this if you wish to collect files from user without having"
+" them to log in, for example in job applications web form."
+msgstr ""
+
+msgid "Run Jobs only Daily if Inactive For (Days)"
+msgstr ""
+
+msgid ""
+"Will run scheduled jobs only once a day for inactive sites. Default 4 "
+"days if set to 0."
+msgstr ""
+
+msgid "Password Reset Link Generation Limit"
+msgstr ""
+
+msgid "Hourly rate limit for generating password reset links"
+msgstr ""
+
+msgid "Logout All Sessions on Password Reset"
+msgstr ""
+
+msgid "Enable Onboarding"
+msgstr ""
+
+msgid "Send document Web View link in email"
+msgstr ""
+
+msgid "Reports"
+msgstr ""
+
+msgid "The application name will be used in the Login page."
+msgstr ""
+
+msgid "Strip EXIF tags from uploaded images"
+msgstr ""
+
+msgid "Encrypt Backups"
+msgstr ""
+
+msgid "System Updates"
+msgstr ""
+
+msgid "Disable System Update Notification"
+msgstr ""
+
+msgid "First Day of the Week"
+msgstr ""
+
+msgid "Document Share Key Expiry (in Days)"
+msgstr ""
+
+msgid ""
+"Number of days after which the document Web View link shared on email "
+"will be expired"
+msgstr ""
+
+msgid "Allow Older Web View Links (Insecure)"
+msgstr ""
+
+msgid "Max auto email report per user"
+msgstr ""
+
+msgid "Disable Change Log Notification"
+msgstr ""
+
+msgid "Reset Password Link Expiry Duration"
+msgstr ""
+
+msgid "Email Retry Limit"
+msgstr ""
+
+msgid "Disable Username/Password Login"
+msgstr ""
+
+msgid ""
+"Make sure to configure a Social Login Key before disabling to prevent "
+"lockout"
+msgstr ""
+
+msgid "Login with email link"
+msgstr ""
+
+msgid ""
+"Allow users to log in without a password, using a login link sent to "
+"their email"
+msgstr ""
+
+msgid "Login with email link expiry (in minutes)"
+msgstr ""
+
+msgid "Rounding Method"
+msgstr ""
+
+msgid "Banker's Rounding (legacy)"
+msgstr ""
+
+msgid "Banker's Rounding"
+msgstr ""
+
+msgid "Commercial Rounding"
+msgstr ""
+
+msgid "Please select Minimum Password Score"
+msgstr ""
+
+msgid "Session Expiry must be in format {0}"
+msgstr ""
+
+msgid ""
+"Please setup SMS before setting it as an authentication method, via SMS "
+"Settings"
+msgstr ""
+
+msgid ""
+"Please enable atleast one Social Login Key or LDAP or Login With Email "
+"Link before disabling username/password based login."
+msgstr ""
+
+msgid "Transaction Log"
+msgstr ""
+
+msgid "Row Index"
+msgstr ""
+
+msgid "Checksum Version"
+msgstr ""
+
+msgid "Previous Hash"
+msgstr ""
+
+msgid "Transaction Hash"
+msgstr ""
+
+msgid "Chaining Hash"
+msgstr ""
+
+msgid "Amended From"
+msgstr ""
+
+msgid "Translation"
+msgstr ""
+
+msgid "Context"
+msgstr ""
+
+msgid "Contributed"
+msgstr ""
+
+msgid "Contribution Status"
+msgstr ""
+
+msgid "Verified"
+msgstr ""
+
+msgid "Contribution Document Name"
+msgstr ""
+
+msgid "Source Text"
+msgstr ""
+
+msgid ""
+"If your data is in HTML, please copy paste the exact HTML code with the "
+"tags."
+msgstr ""
+
+msgid "Translated Text"
+msgstr ""
+
+msgid "Basic Info"
+msgstr ""
+
+msgid "Send Welcome Email"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "User Image"
+msgstr ""
+
+msgid "Get your globally recognized avatar from Gravatar.com"
+msgstr ""
+
+msgid "Birth Date"
+msgstr ""
+
+msgid "Location"
+msgstr ""
+
+msgid "Banner Image"
+msgstr ""
+
+msgid "Interests"
+msgstr ""
+
+msgid "Bio"
+msgstr ""
+
+msgid "Mute Sounds"
+msgstr ""
+
+msgid "Change Password"
+msgstr ""
+
+msgid "Set New Password"
+msgstr ""
+
+msgid "Logout From All Devices After Changing Password"
+msgstr ""
+
+msgid "Reset Password Key"
+msgstr ""
+
+msgid "Last Password Reset Date"
+msgstr ""
+
+msgid "Redirect URL"
+msgstr ""
+
+msgid "Document Follow"
+msgstr ""
+
+msgid "Send Notifications For Documents Followed By Me"
+msgstr ""
+
+msgid "Send Notifications For Email Threads"
+msgstr ""
+
+msgid "Send Me A Copy of Outgoing Emails"
+msgstr ""
+
+msgid "Allowed In Mentions"
+msgstr ""
+
+msgid "Email Signature"
+msgstr ""
+
+msgid "User Emails"
+msgstr ""
+
+msgid "Allow Modules"
+msgstr ""
+
+msgid "Modules HTML"
+msgstr ""
+
+msgid "Home Settings"
+msgstr ""
+
+msgid ""
+"These values will be automatically updated in transactions and also will "
+"be useful to restrict permissions for this user on transactions "
+"containing these values."
+msgstr ""
+
+msgid "User Defaults"
+msgstr ""
+
+msgid ""
+"Enter default value fields (keys) and values. If you add multiple values "
+"for a field, the first one will be picked. These defaults are also used "
+"to set \"match\" permission rules. To see list of fields, go to "
+"\"Customize Form\"."
+msgstr ""
+
+msgid "Security Settings"
+msgstr ""
+
+msgid "Simultaneous Sessions"
+msgstr ""
+
+msgid "User Type"
+msgstr ""
+
+msgid ""
+"If the user has any role checked, then the user becomes a \"System "
+"User\". \"System User\" has access to the desktop"
+msgstr ""
+
+msgid "Login After"
+msgstr ""
+
+msgid "Allow user to login only after this hour (0-24)"
+msgstr ""
+
+msgid "Login Before"
+msgstr ""
+
+msgid "Allow user to login only before this hour (0-24)"
+msgstr ""
+
+msgid "Restrict IP"
+msgstr ""
+
+msgid ""
+"Restrict user from this IP address only. Multiple IP addresses can be "
+"added by separating with commas. Also accepts partial IP addresses like "
+"(111.111.111)"
+msgstr ""
+
+msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
+msgstr ""
+
+msgid ""
+"If enabled,  user can login from any IP Address using Two Factor Auth, "
+"this can also be set for all users in System Settings"
+msgstr ""
+
+msgid "Last Login"
+msgstr ""
+
+msgid "Last IP"
+msgstr ""
+
+msgid "Last Active"
+msgstr ""
+
+msgid "Last Known Versions"
+msgstr ""
+
+msgid ""
+"Stores the JSON of last known versions of various installed apps. It is "
+"used to show release notes."
+msgstr ""
+
+msgid "Third Party Authentication"
+msgstr ""
+
+msgid "Social Logins"
+msgstr ""
+
+msgid "API Access"
+msgstr ""
+
+msgid "API Key"
+msgstr ""
+
+msgid "API Key cannot be regenerated"
+msgstr ""
+
+msgid "Generate Keys"
+msgstr ""
+
+msgid "API Secret"
+msgstr ""
+
+msgid "Desk Theme"
+msgstr ""
+
+msgid "Light"
+msgstr ""
+
+msgid "Dark"
+msgstr ""
+
+msgid "Automatic"
+msgstr ""
+
+msgid "Last Reset Password Key Generated On"
+msgstr ""
+
+msgid "Stores the datetime when the last reset password key was generated."
+msgstr ""
+
+msgid "Auto follow documents that you create"
+msgstr ""
+
+msgid "Auto follow documents that you comment on"
+msgstr ""
+
+msgid "Auto follow documents that you Like"
+msgstr ""
+
+msgid "Auto follow documents that are shared with you"
+msgstr ""
+
+msgid "Auto follow documents that are assigned to you"
+msgstr ""
+
+msgid "User Details"
+msgstr ""
+
+msgid "Roles & Permissions"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Desk Settings"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Blogger"
+msgstr ""
+
+msgid "Logs"
+msgstr ""
+
+msgid "Energy Point Log"
+msgstr ""
+
+msgid "Route History"
+msgstr ""
+
+msgid "User Permission"
+msgstr ""
+
+msgid "Activity"
+msgstr ""
+
+msgid "ToDo"
+msgstr ""
+
+msgid "Integrations"
+msgstr ""
+
+msgid "Token Cache"
+msgstr ""
+
+msgid "Not a valid User Image."
+msgstr ""
+
+msgid "User {0} cannot be disabled"
+msgstr ""
+
+msgid ""
+"Adding System Manager to this User as there must be atleast one System "
+"Manager"
+msgstr ""
+
+msgid "Role has been set as per the user type {0}"
+msgstr ""
+
+msgid "Welcome email sent"
+msgstr ""
+
+msgid "Password Reset"
+msgstr ""
+
+msgid "Welcome to {0}"
+msgstr ""
+
+msgid "Complete Registration"
+msgstr ""
+
+msgid "There should remain at least one System Manager"
+msgstr ""
+
+msgid "User {0} cannot be deleted"
+msgstr ""
+
+msgid "User {0} cannot be renamed"
+msgstr ""
+
+msgid "Username {0} already exists"
+msgstr ""
+
+msgid "Suggested Username: {0}"
+msgstr ""
+
+msgid "Email Account added multiple times"
+msgstr ""
+
+msgid "The reset password link has been expired"
+msgstr ""
+
+msgid "The reset password link has either been used before or is invalid"
+msgstr ""
+
+msgid "Sign Up is disabled"
+msgstr ""
+
+msgid "Not Allowed"
+msgstr ""
+
+msgid "Already Registered"
+msgstr ""
+
+msgid "Registered but disabled"
+msgstr ""
+
+msgid "Temporarily Disabled"
+msgstr ""
+
+msgid ""
+"Too many users signed up recently, so the registration is disabled. "
+"Please try back in an hour"
+msgstr ""
+
+msgid "Please check your email for verification"
+msgstr ""
+
+msgid "Please ask your administrator to verify your sign-up"
+msgstr ""
+
+msgid "Password reset instructions have been sent to your email"
+msgstr ""
+
+msgid "Password Email Sent"
+msgstr ""
+
+msgid "Administrator accessed {0} on {1} via IP Address {2}."
+msgstr ""
+
+msgid "Administrator Logged In"
+msgstr ""
+
+msgid "Invalid Password"
+msgstr ""
+
+msgid "Throttled"
+msgstr ""
+
+msgid "User Document Type"
+msgstr ""
+
+msgid "Role Permissions"
+msgstr ""
+
+msgid "User Email"
+msgstr ""
+
+msgid "Awaiting Password"
+msgstr ""
+
+msgid "Enable Outgoing"
+msgstr ""
+
+msgid "Used OAuth"
+msgstr ""
+
+msgid "User Group"
+msgstr ""
+
+msgid "User Group Members"
+msgstr ""
+
+msgid "User Group Member"
+msgstr ""
+
+msgid "Allow"
+msgstr ""
+
+msgid "For Value"
+msgstr ""
+
+msgid "Advanced Control"
+msgstr ""
+
+msgid "Apply To All Document Types"
+msgstr ""
+
+msgid "Applicable For"
+msgstr ""
+
+msgid "Hide Descendants"
+msgstr ""
+
+msgid "Hide descendant records of <b>For Value</b>."
+msgstr ""
+
+msgid "User permission already exists"
+msgstr ""
+
+msgid "{0} has already assigned default value for {1}."
+msgstr ""
+
+msgid "User Select Document Type"
+msgstr ""
+
+msgid "User Social Login"
+msgstr ""
+
+msgid "Provider"
+msgstr ""
+
+msgid "User ID"
+msgstr ""
+
+msgid "Document Types and Permissions"
+msgstr ""
+
+msgid "Document Types"
+msgstr ""
+
+msgid "Document Types (Select Permissions Only)"
+msgstr ""
+
+msgid "Apply User Permission On"
+msgstr ""
+
+msgid ""
+"Can only list down the document types which has been linked to the User "
+"document type."
+msgstr ""
+
+msgid "User Id Field"
+msgstr ""
+
+msgid "Allowed Modules"
+msgstr ""
+
+msgid "User Type Module"
+msgstr ""
+
+msgid "Custom Document Types (Select Permission)"
+msgstr ""
+
+msgid "Standard user type {0} can not be deleted."
+msgstr ""
+
+msgid "User does not have permission to create the new {0}"
+msgstr ""
+
+msgid "Permission Error"
+msgstr ""
+
+msgid "The limit has not set for the user type {0} in the site config file."
+msgstr ""
+
+msgid "Set Limit"
+msgstr ""
+
+msgid "The total number of user document types limit has been crossed."
+msgstr ""
+
+msgid "User Document Types Limit Exceeded"
+msgstr ""
+
+msgid "You can only set the 3 custom doctypes in the Document Types table."
+msgstr ""
+
+msgid "Custom Document Types Limit Exceeded"
+msgstr ""
+
+msgid "The field {0} is mandatory"
+msgstr ""
+
+msgid "The role {0} should be a custom role."
+msgstr ""
+
+msgid "User Id Field is mandatory in the user type {0}"
+msgstr ""
+
+msgid ""
+"To set the role {0} in the user {1}, kindly set the {2} field as {3} in "
+"one of the {4} record."
+msgstr ""
+
+msgid "Version"
+msgstr ""
+
+msgid "Table HTML"
+msgstr ""
+
+msgid "View Log"
+msgstr ""
+
+msgid "Viewed By"
+msgstr ""
+
+msgid "Reference name"
+msgstr ""
+
+msgid "There must be atleast one permission rule."
+msgstr ""
+
+msgid "Cannot Remove"
+msgstr ""
+
+msgid "First Transaction"
+msgstr ""
+
+msgid "Chain Integrity"
+msgstr ""
+
+msgid "Reference Doctype"
+msgstr ""
+
+msgid "Owner"
+msgstr ""
+
+msgid "Modified By"
+msgstr ""
+
+msgid "Sample"
+msgstr ""
+
+msgid "Apply To"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "Form"
+msgstr ""
+
+msgid "Label Help"
+msgstr ""
+
+msgid "Insert After"
+msgstr ""
+
+msgid "Select the label after which you want to insert new field."
+msgstr ""
+
+msgid "Field Type"
+msgstr ""
+
+msgid "Fetch If Empty"
+msgstr ""
+
+msgid ""
+"If checked, this field will be not overwritten based on Fetch From if a "
+"value already exists."
+msgstr ""
+
+msgid "Options Help"
+msgstr ""
+
+msgid "Collapsible Depends On"
+msgstr ""
+
+msgid "Default Value"
+msgstr ""
+
+msgid "Depends On"
+msgstr ""
+
+msgid "Field Description"
+msgstr ""
+
+msgid "Permission Level"
+msgstr ""
+
+msgid "Is Mandatory Field"
+msgstr ""
+
+msgid "In Standard Filter"
+msgstr ""
+
+msgid ""
+"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like "
+"&lt; or &gt;, as they could be intentionally used in this field"
+msgstr ""
+
+msgid "Mandatory Depends On"
+msgstr ""
+
+msgid "Read Only Depends On"
+msgstr ""
+
+msgid "Is System Generated"
+msgstr ""
+
+msgid "Label is mandatory"
+msgstr ""
+
+msgid "A field with the name {0} already exists in {1}"
+msgstr ""
+
+msgid "Fieldtype cannot be changed from {0} to {1}"
+msgstr ""
+
+msgid "Fieldname not set for Custom Field"
+msgstr ""
+
+msgid ""
+"Custom Field {0} is created by the Administrator and can only be deleted "
+"through the Administrator account."
+msgstr ""
+
+msgid ""
+"Insert After field '{0}' mentioned in Custom Field '{1}', with label "
+"'{2}', does not exist"
+msgstr ""
+
+msgid "Insert After cannot be set as {0}"
+msgstr ""
+
+msgid "Custom Fields cannot be added to core DocTypes."
+msgstr ""
+
+msgid "Custom Fields can only be added to a standard DocType."
+msgstr ""
+
+msgid "Customize Form"
+msgstr ""
+
+msgid "Enter Form Type"
+msgstr ""
+
+msgid "Change Label (via Custom Translation)"
+msgstr ""
+
+msgid "Is Table"
+msgstr ""
+
+msgid "Use this fieldname to generate title"
+msgstr ""
+
+msgid ""
+"Fields separated by comma (,) will be included in the \"Search By\" list "
+"of Search dialog box"
+msgstr ""
+
+msgid "Sort Field"
+msgstr ""
+
+msgid "Sort Order"
+msgstr ""
+
+msgid "Customize Label, Print Hide, Default etc."
+msgstr ""
+
+msgid "Document Links"
+msgstr ""
+
+msgid "Document Actions"
+msgstr ""
+
+msgid ""
+"Naming Options:\n"
+"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b>"
+" - By Naming Series (field called naming_series must be "
+"present)</li><li><b>Prompt</b> - Prompt user for a "
+"name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for"
+" example PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> "
+"- Replace all braced words (fieldnames, date words (DD, MM, YY), series) "
+"with their value. Outside braces, any characters can be used.</li></ol>"
+msgstr ""
+
+msgid "Core DocTypes cannot be customized."
+msgstr ""
+
+msgid "Single DocTypes cannot be customized."
+msgstr ""
+
+msgid "Only standard DocTypes are allowed to be customized from Customize Form."
+msgstr ""
+
+msgid "{0} updated"
+msgstr ""
+
+msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
+msgstr ""
+
+msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
+msgstr ""
+
+msgid "'In List View' not allowed for type {0} in row {1}"
+msgstr ""
+
+msgid "You cannot unset 'Read Only' for field {0}"
+msgstr ""
+
+msgid "You can't set 'Options' for field {0}"
+msgstr ""
+
+msgid "You can't set 'Translatable' for field {0}"
+msgstr ""
+
+msgid "Fieldtype cannot be changed from {0} to {1} in row {2}"
+msgstr ""
+
+msgid ""
+"Value for field {0} is too long in {1}. Length should be lesser than {2} "
+"characters"
+msgstr ""
+
+msgid "Data Too Long"
+msgstr ""
+
+msgid "Customize Form Field"
+msgstr ""
+
+msgid "Label and Type"
+msgstr ""
+
+msgid ""
+"This field will appear only if the fieldname defined here has value OR "
+"the rules are true (examples): \n"
+"myfield\n"
+"eval:doc.myfield=='My Value'\n"
+"eval:doc.age&gt;18"
+msgstr ""
+
+msgid "Print Width of the field, if the field is a column in a table"
+msgstr ""
+
+msgid ""
+"Number of columns for a field in a Grid (Total Columns in a grid should "
+"be less than 11)"
+msgstr ""
+
+msgid "Is Custom Field"
+msgstr ""
+
+msgid "Property Depends On"
+msgstr ""
+
+msgid "DocType Layout"
+msgstr ""
+
+msgid "DocType Layout Field"
+msgstr ""
+
+msgid ""
+"<div class=\"alert\">Please don't update it as it can mess up your form. "
+"Use the Customize Form View and Custom Fields to set properties!</div>"
+msgstr ""
+
+msgid "Applied On"
+msgstr ""
+
+msgid "Set Value"
+msgstr ""
+
+msgid "New value to be set"
+msgstr ""
+
+msgid "Field Name"
+msgstr ""
+
+msgid "ID (name) of the entity whose property is to be set"
+msgstr ""
+
+msgid "Property"
+msgstr ""
+
+msgid "Property Type"
+msgstr ""
+
+msgid "Row Name"
+msgstr ""
+
+msgid "For DocType Link / DocType Action"
+msgstr ""
+
+msgid "Field type cannot be changed for {0}"
+msgstr ""
+
+msgid ""
+"Site is running in read only mode for maintenance or site update, this "
+"action can not be performed right now. Please try again later."
+msgstr ""
+
+msgid "In Read Only Mode"
+msgstr ""
+
+msgid "Too many changes to database in single action."
+msgstr ""
+
+msgid "The changes have been reverted."
+msgstr ""
+
+msgid "Field {0} does not exist on {1}"
+msgstr ""
+
+msgid "Insufficient Permission for {0}"
+msgstr ""
+
+msgid "Fieldname is limited to 64 characters ({0})"
+msgstr ""
+
+msgid "Length of {0} should be between 1 and 1000"
+msgstr ""
+
+msgid ""
+"Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} "
+"will cause truncation of data."
+msgstr ""
+
+msgid "Fieldname {0} cannot have special characters like {1}"
+msgstr ""
+
+msgid ""
+"{0} field cannot be set as unique in {1}, as there are non-unique "
+"existing values"
+msgstr ""
+
+msgid "label"
+msgstr ""
+
+msgid "Custom Documents"
+msgstr ""
+
+msgid "Custom Reports"
+msgstr ""
+
+msgid "{0}: {1} in {2}"
+msgstr ""
+
+msgid "Liked"
+msgstr ""
+
+msgid "{0} mentioned you in a comment in {1} {2}"
+msgstr ""
+
+msgid "You don't have access to Report: {0}"
+msgstr ""
+
+msgid "You don't have permission to get a report on: {0}"
+msgstr ""
+
+msgid "Report {0} is disabled"
+msgstr ""
+
+msgid "Must have report permission to access this report."
+msgstr ""
+
+msgid "Prepared report render failed"
+msgstr ""
+
+msgid "No data to export"
+msgstr ""
+
+msgid "You can try changing the filters of your report."
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Report updated successfully"
+msgstr ""
+
+msgid "{0} saved successfully"
+msgstr ""
+
+msgid "Invalid aggregate function"
+msgstr ""
+
+msgid "Field not permitted in query"
+msgstr ""
+
+msgid "Standard Reports cannot be edited"
+msgstr ""
+
+msgid "Only reports of type Report Builder can be edited"
+msgstr ""
+
+msgid "Insufficient Permissions for editing Report"
+msgstr ""
+
+msgid "Report {0} saved"
+msgstr ""
+
+msgid "Standard Reports cannot be deleted"
+msgstr ""
+
+msgid "Only reports of type Report Builder can be deleted"
+msgstr ""
+
+msgid "Insufficient Permissions for deleting Report"
+msgstr ""
+
+msgid "Report {0} deleted"
+msgstr ""
+
+msgid "Sr"
+msgstr ""
+
+msgid "Deleting {0}"
+msgstr ""
+
+msgid "No Tags"
+msgstr ""
+
+msgid "Invalid Search Field {0}"
+msgstr ""
+
+msgid "This query style is discontinued"
+msgstr ""
+
+msgid "Name already taken, please set a new name"
+msgstr ""
+
+msgid "Bulk Update"
+msgstr ""
+
+msgid "Update Value"
+msgstr ""
+
+msgid "SQL Conditions. Example: status=\"Open\""
+msgstr ""
+
+msgid "Limit"
+msgstr ""
+
+msgid "Max 500 records at a time"
+msgstr ""
+
+msgid "; not allowed in condition"
+msgstr ""
+
+msgid "Queuing {0} for Submission"
+msgstr ""
+
+msgid "Submitting {0}"
+msgstr ""
+
+msgid "Cancelling {0}"
+msgstr ""
+
+msgid "Updating {0}"
+msgstr ""
+
+msgid "Start Date Field"
+msgstr ""
+
+msgid "End Date Field"
+msgstr ""
+
+msgid "All Day"
+msgstr ""
+
+msgid "Console Log"
+msgstr ""
+
+msgid "Output"
+msgstr ""
+
+msgid "Dashboard Name"
+msgstr ""
+
+msgid "Charts"
+msgstr ""
+
+msgid "Chart Options"
+msgstr ""
+
+msgid ""
+"Set Default Options for all charts on this Dashboard (Ex: \"colors\": "
+"[\"#d1d8dd\", \"#ff5858\"])"
+msgstr ""
+
+msgid "Cards"
+msgstr ""
+
+msgid "Dashboard Manager"
+msgstr ""
+
+msgid "Cannot edit Standard Dashboards"
+msgstr ""
+
+msgid "Standard Not Set"
+msgstr ""
+
+msgid "Invalid json added in the custom options: {0}"
+msgstr ""
+
+msgid "Please set the following documents in this Dashboard as standard first."
+msgstr ""
+
+msgid "Dashboard Chart"
+msgstr ""
+
+msgid "Chart Name"
+msgstr ""
+
+msgid "Chart Type"
+msgstr ""
+
+msgid "Count"
+msgstr ""
+
+msgid "Sum"
+msgstr ""
+
+msgid "Average"
+msgstr ""
+
+msgid "Group By"
+msgstr ""
+
+msgid "Chart Source"
+msgstr ""
+
+msgid "Time Series Based On"
+msgstr ""
+
+msgid "Value Based On"
+msgstr ""
+
+msgid "Timespan"
+msgstr ""
+
+msgid "Last Year"
+msgstr ""
+
+msgid "Last Quarter"
+msgstr ""
+
+msgid "Last Month"
+msgstr ""
+
+msgid "Last Week"
+msgstr ""
+
+msgid "Select Date Range"
+msgstr ""
+
+msgid "Time Interval"
+msgstr ""
+
+msgid "Time Series"
+msgstr ""
+
+msgid "Filters JSON"
+msgstr ""
+
+msgid "Line"
+msgstr ""
+
+msgid "Bar"
+msgstr ""
+
+msgid "Percentage"
+msgstr ""
+
+msgid "Pie"
+msgstr ""
+
+msgid "Donut"
+msgstr ""
+
+msgid "Heatmap"
+msgstr ""
+
+msgid "Last Synced On"
+msgstr ""
+
+msgid "Group By Based On"
+msgstr ""
+
+msgid "Group By Type"
+msgstr ""
+
+msgid "Aggregate Function Based On"
+msgstr ""
+
+msgid "Number of Groups"
+msgstr ""
+
+msgid "From Date"
+msgstr ""
+
+msgid "To Date"
+msgstr ""
+
+msgid "X Field"
+msgstr ""
+
+msgid "Y Axis"
+msgstr ""
+
+msgid "Custom Options"
+msgstr ""
+
+msgid "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]"
+msgstr ""
+
+msgid "Is Public"
+msgstr ""
+
+msgid "This chart will be available to all Users if this is set"
+msgstr ""
+
+msgid "Year"
+msgstr ""
+
+msgid "Dynamic Filters JSON"
+msgstr ""
+
+msgid "Dynamic Filters"
+msgstr ""
+
+msgid "Use Report Chart"
+msgstr ""
+
+msgid "Parent Document Type"
+msgstr ""
+
+msgid ""
+"The document type selected is a child table, so the parent document type "
+"is required."
+msgstr ""
+
+msgid "Cannot edit Standard charts"
+msgstr ""
+
+msgid "Document type is required to create a dashboard chart"
+msgstr ""
+
+msgid "Parent document type is required to create a dashboard chart"
+msgstr ""
+
+msgid "Group By field is required to create a dashboard chart"
+msgstr ""
+
+msgid "Aggregate Function field is required to create a dashboard chart"
+msgstr ""
+
+msgid "Time series based on is required to create a dashboard chart"
+msgstr ""
+
+msgid "You cannot create a dashboard chart from single DocTypes"
+msgstr ""
+
+msgid "Dashboard Chart Field"
+msgstr ""
+
+msgid "Y Field"
+msgstr ""
+
+msgid "Dashboard Chart Link"
+msgstr ""
+
+msgid "Chart"
+msgstr ""
+
+msgid "Half"
+msgstr ""
+
+msgid "Full"
+msgstr ""
+
+msgid "Dashboard Chart Source"
+msgstr ""
+
+msgid "Source Name"
+msgstr ""
+
+msgid "Timeseries"
+msgstr ""
+
+msgid "Dashboard Settings"
+msgstr ""
+
+msgid "Chart Configuration"
+msgstr ""
+
+msgid "Desktop Icon"
+msgstr ""
+
+msgid "App"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Blocked"
+msgstr ""
+
+msgid "Force Show"
+msgstr ""
+
+msgid "module"
+msgstr ""
+
+msgid "list"
+msgstr ""
+
+msgid "link"
+msgstr ""
+
+msgid "page"
+msgstr ""
+
+msgid "query-report"
+msgstr ""
+
+msgid "_doctype"
+msgstr ""
+
+msgid "_report"
+msgstr ""
+
+msgid "Reverse Icon Color"
+msgstr ""
+
+msgid "Idx"
+msgstr ""
+
+msgid "Desktop Icon already exists"
+msgstr ""
+
+msgid "{0} not found"
+msgstr ""
+
+msgid "Event Category"
+msgstr ""
+
+msgid "Call"
+msgstr ""
+
+msgid "Sent/Received Email"
+msgstr ""
+
+msgid "Event Type"
+msgstr ""
+
+msgid "Private"
+msgstr ""
+
+msgid "Public"
+msgstr ""
+
+msgid "Send an email reminder in the morning"
+msgstr ""
+
+msgid "Repeat this Event"
+msgstr ""
+
+msgid "Starts on"
+msgstr ""
+
+msgid "Ends on"
+msgstr ""
+
+msgid "Repeat On"
+msgstr ""
+
+msgid "Repeat Till"
+msgstr ""
+
+msgid "Leave blank to repeat always"
+msgstr ""
+
+msgid "Participants"
+msgstr ""
+
+msgid "Event Participants"
+msgstr ""
+
+msgid "Google Calendar"
+msgstr ""
+
+msgid "Google Calendar ID"
+msgstr ""
+
+msgid "Google Calendar Event ID"
+msgstr ""
+
+msgid "Sync with Google Calendar"
+msgstr ""
+
+msgid "Pulled from Google Calendar"
+msgstr ""
+
+msgid "Sender"
+msgstr ""
+
+msgid "Add Video Conferencing"
+msgstr ""
+
+msgid "via Google Meet"
+msgstr ""
+
+msgid "Google Meet Link"
+msgstr ""
+
+msgid "Daily Events should finish on the Same Day."
+msgstr ""
+
+msgid "Select Google Calendar to which event should be synced."
+msgstr ""
+
+msgid "Upcoming Events for Today"
+msgstr ""
+
+msgid "Events in Today's Calendar"
+msgstr ""
+
+msgid "Form Tour"
+msgstr ""
+
+msgid "Steps"
+msgstr ""
+
+msgid "Save on Completion"
+msgstr ""
+
+msgid "Show First Document Tour"
+msgstr ""
+
+msgid "Include Name Field"
+msgstr ""
+
+msgid "Form Tour Step"
+msgstr ""
+
+msgid "Position"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Left Center"
+msgstr ""
+
+msgid "Left Bottom"
+msgstr ""
+
+msgid "Top"
+msgstr ""
+
+msgid "Top Center"
+msgstr ""
+
+msgid "Top Right"
+msgstr ""
+
+msgid "Right"
+msgstr ""
+
+msgid "Right Center"
+msgstr ""
+
+msgid "Right Bottom"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
+msgid "Bottom Center"
+msgstr ""
+
+msgid "Bottom Right"
+msgstr ""
+
+msgid "Mid Center"
+msgstr ""
+
+msgid "Next Step Condition"
+msgstr ""
+
+msgid "Has Next Condition"
+msgstr ""
+
+msgid "Is Table Field"
+msgstr ""
+
+msgid "Hidden Fields"
+msgstr ""
+
+msgid "Child Doctype"
+msgstr ""
+
+msgid "Parent Field"
+msgstr ""
+
+msgid "Global Search DocType"
+msgstr ""
+
+msgid "Global Search Settings"
+msgstr ""
+
+msgid "Search Priorities"
+msgstr ""
+
+msgid "Core Modules {0} cannot be searched in Global Search."
+msgstr ""
+
+msgid "Document Type {0} has been repeated."
+msgstr ""
+
+msgid "Fetching default Global Search documents."
+msgstr ""
+
+msgid "Setting up Global Search documents."
+msgstr ""
+
+msgid "Kanban Board Name"
+msgstr ""
+
+msgid "Show Labels"
+msgstr ""
+
+msgid "Column Name cannot be empty"
+msgstr ""
+
+msgid "Column <b>{0}</b> already exist."
+msgstr ""
+
+msgid "Kanban Board Column"
+msgstr ""
+
+msgid "Archived"
+msgstr ""
+
+msgid "Indicator"
+msgstr ""
+
+msgid "Order"
+msgstr ""
+
+msgid "List Filter"
+msgstr ""
+
+msgid "Filter Name"
+msgstr ""
+
+msgid "For User"
+msgstr ""
+
+msgid "List View Settings"
+msgstr ""
+
+msgid "Disable Count"
+msgstr ""
+
+msgid "Disable Sidebar Stats"
+msgstr ""
+
+msgid "Disable Auto Refresh"
+msgstr ""
+
+msgid "Maximum Number of Fields"
+msgstr ""
+
+msgid "Disable Comment Count"
+msgstr ""
+
+msgid "Module Onboarding"
+msgstr ""
+
+msgid "Subtitle"
+msgstr ""
+
+msgid "Success Message"
+msgstr ""
+
+msgid "Is Complete"
+msgstr ""
+
+msgid "System managers are allowed by default"
+msgstr ""
+
+msgid "Notify users with a popup when they log in"
+msgstr ""
+
+msgid "Notify Users On Every Login"
+msgstr ""
+
+msgid ""
+"If enabled, users will be notified every time they login. If not enabled,"
+" users will only be notified once."
+msgstr ""
+
+msgid "Expire Notification On"
+msgstr ""
+
+msgid ""
+"Help: To link to another record in the system, use \"/app/note/[Note "
+"Name]\" as the Link URL. (don't use \"http://\")"
+msgstr ""
+
+msgid "Seen By"
+msgstr ""
+
+msgid "Seen By Table"
+msgstr ""
+
+msgid "Note Seen By"
+msgstr ""
+
+msgid "Notification Log"
+msgstr ""
+
+msgid "Mention"
+msgstr ""
+
+msgid "Energy Point"
+msgstr ""
+
+msgid "Assignment"
+msgstr ""
+
+msgid "Alert"
+msgstr ""
+
+msgid "Document Link"
+msgstr ""
+
+msgid "From User"
+msgstr ""
+
+msgid "Open Reference Document"
+msgstr ""
+
+msgid "Attached File"
+msgstr ""
+
+msgid "Attachment Link"
+msgstr ""
+
+msgid "Failed to send notification email"
+msgstr ""
+
+msgid "New Notification"
+msgstr ""
+
+msgid "New Mention on {0}"
+msgstr ""
+
+msgid "Assignment Update on {0}"
+msgstr ""
+
+msgid "New Document Shared {0}"
+msgstr ""
+
+msgid "Energy Point Update on {0}"
+msgstr ""
+
+msgid "Notification Settings"
+msgstr ""
+
+msgid "Open Documents"
+msgstr ""
+
+msgid "Enable Email Notifications"
+msgstr ""
+
+msgid "Mentions"
+msgstr ""
+
+msgid "Assignments"
+msgstr ""
+
+msgid "Energy Points"
+msgstr ""
+
+msgid "Document Share"
+msgstr ""
+
+msgid "System Notifications"
+msgstr ""
+
+msgid "Event Reminders"
+msgstr ""
+
+msgid "Notification Subscribed Document"
+msgstr ""
+
+msgid "Number Card"
+msgstr ""
+
+msgid "Function"
+msgstr ""
+
+msgid "Minimum"
+msgstr ""
+
+msgid "Maximum"
+msgstr ""
+
+msgid "Filters Section"
+msgstr ""
+
+msgid "This card will be available to all Users if this is set"
+msgstr ""
+
+msgid "Show Percentage Stats"
+msgstr ""
+
+msgid "Stats Time Interval"
+msgstr ""
+
+msgid "Show percentage difference according to this time interval"
+msgstr ""
+
+msgid "Stats"
+msgstr ""
+
+msgid "Dynamic Filters Section"
+msgstr ""
+
+msgid "Custom Configuration"
+msgstr ""
+
+msgid "Filters Configuration"
+msgstr ""
+
+msgid "Document Type and Function are required to create a number card"
+msgstr ""
+
+msgid "Aggregate Field is required to create a number card"
+msgstr ""
+
+msgid "Parent Document Type is required to create a number card"
+msgstr ""
+
+msgid ""
+"Report Name, Report Field and Fucntion are required to create a number "
+"card"
+msgstr ""
+
+msgid "Method is required to create a number card"
+msgstr ""
+
+msgid "Number Card Link"
+msgstr ""
+
+msgid "Card"
+msgstr ""
+
+msgid "Onboarding Permission"
+msgstr ""
+
+msgid "Create Entry"
+msgstr ""
+
+msgid "Update Settings"
+msgstr ""
+
+msgid "Show Form Tour"
+msgstr ""
+
+msgid "View Report"
+msgstr ""
+
+msgid "Go to Page"
+msgstr ""
+
+msgid "Watch Video"
+msgstr ""
+
+msgid "Video URL"
+msgstr ""
+
+msgid "Is Skipped"
+msgstr ""
+
+msgid "Value to Validate"
+msgstr ""
+
+#, python-format
+msgid "Use % for any non empty value."
+msgstr ""
+
+msgid "Report Description"
+msgstr ""
+
+msgid "This will be shown to the user in a dialog after routing to the report"
+msgstr ""
+
+msgid "Report Reference Doctype"
+msgstr ""
+
+msgid "Example: #Tree/Account"
+msgstr ""
+
+msgid "Callback Title"
+msgstr ""
+
+msgid "Callback Message"
+msgstr ""
+
+msgid "This will be shown in a modal after routing"
+msgstr ""
+
+msgid "Validate Field"
+msgstr ""
+
+msgid "Show Full Form?"
+msgstr ""
+
+msgid "Show full form instead of a quick entry modal"
+msgstr ""
+
+msgid ""
+"Description to inform the user about any action that is going to be "
+"performed"
+msgstr ""
+
+msgid "Intro Video URL"
+msgstr ""
+
+msgid "Action Label"
+msgstr ""
+
+msgid "Onboarding Step Map"
+msgstr ""
+
+msgid "Step"
+msgstr ""
+
+msgid "System Console"
+msgstr ""
+
+msgid "Console"
+msgstr ""
+
+msgid "To print output use <code>log(text)</code>"
+msgstr ""
+
+msgid "Commit"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Database Processes"
+msgstr ""
+
+msgid "Show Processlist"
+msgstr ""
+
+msgid "processlist"
+msgstr ""
+
+msgid "Python"
+msgstr ""
+
+msgid "SQL"
+msgstr ""
+
+msgid "SQL Output"
+msgstr ""
+
+msgid "Tag"
+msgstr ""
+
+msgid "Tag Link"
+msgstr ""
+
+msgid "Document Title"
+msgstr ""
+
+msgid "Document Tag"
+msgstr ""
+
+msgid "High"
+msgstr ""
+
+msgid "Medium"
+msgstr ""
+
+msgid "Low"
+msgstr ""
+
+msgid "Due Date"
+msgstr ""
+
+msgid "Reference Type"
+msgstr ""
+
+msgid "Assigned By"
+msgstr ""
+
+msgid "Assigned By Full Name"
+msgstr ""
+
+msgid "Allocated To"
+msgstr ""
+
+msgid "{0} self assigned this task: {1}"
+msgstr ""
+
+msgid "{0} assigned {1}: {2}"
+msgstr ""
+
+msgid "{0} removed their assignment."
+msgstr ""
+
+msgid "Assignment of {0} removed by {1}"
+msgstr ""
+
+msgid "Dashboards"
+msgstr ""
+
+msgid "Shortcuts"
+msgstr ""
+
+msgid "Restrict to Domain"
+msgstr ""
+
+msgid "Link Cards"
+msgstr ""
+
+msgid "Hide Custom DocTypes and Reports"
+msgstr ""
+
+msgid "Checking this will hide custom doctypes and reports cards in Links section"
+msgstr ""
+
+msgid "Parent Page"
+msgstr ""
+
+msgid "Sequence Id"
+msgstr ""
+
+msgid "Quick Lists"
+msgstr ""
+
+msgid "Is Hidden"
+msgstr ""
+
+msgid "Number Cards"
+msgstr ""
+
+msgid "Workspace Manager"
+msgstr ""
+
+msgid "You need to be Workspace Manager to edit this document"
+msgstr ""
+
+msgid "Content data shoud be a list"
+msgstr ""
+
+msgid "Need Workspace Manager role to hide/unhide public workspaces"
+msgstr ""
+
+msgid "Cannot update private workspace of other users"
+msgstr ""
+
+msgid "Workspace Chart"
+msgstr ""
+
+msgid "Workspace Link"
+msgstr ""
+
+msgid "Card Break"
+msgstr ""
+
+msgid "Link Details"
+msgstr ""
+
+msgid "Link Type"
+msgstr ""
+
+msgid "Link To"
+msgstr ""
+
+msgid "Dependencies"
+msgstr ""
+
+msgid "Only for"
+msgstr ""
+
+msgid "Onboard"
+msgstr ""
+
+msgid "Is Query Report"
+msgstr ""
+
+msgid "Link Count"
+msgstr ""
+
+msgid "Workspace Number Card"
+msgstr ""
+
+msgid "Number Card Name"
+msgstr ""
+
+msgid "Workspace Quick List"
+msgstr ""
+
+msgid "Quick List Filter"
+msgstr ""
+
+msgid "Workspace Shortcut"
+msgstr ""
+
+msgid "DocType View"
+msgstr ""
+
+msgid "Which view of the associated DocType should this shortcut take you to?"
+msgstr ""
+
+msgid "Tree"
+msgstr ""
+
+msgid "New"
+msgstr ""
+
+msgid "Calendar"
+msgstr ""
+
+msgid "Count Filter"
+msgstr ""
+
+msgid "Format"
+msgstr ""
+
+msgid "For example: {} Open"
+msgstr ""
+
+msgid "Assignment for {0} {1}"
+msgstr ""
+
+msgid "Shared with the following Users with Read access:{0}"
+msgstr ""
+
+msgid "Already in the following Users ToDo list:{0}"
+msgstr ""
+
+msgid "Your assignment on {0} {1} has been removed by {2}"
+msgstr ""
+
+msgid "{0} assigned a new task {1} {2} to you"
+msgstr ""
+
+msgid "Document Follow Notification"
+msgstr ""
+
+msgid "Cancelling documents"
+msgstr ""
+
+msgid "Field {0} is referring to non-existing doctype {1}."
+msgstr ""
+
+msgid "Please delete the field from {0} or add the required doctype."
+msgstr ""
+
+msgid "Missing DocType"
+msgstr ""
+
+msgid "Saved"
+msgstr ""
+
+msgid "Comment can only be edited by the owner"
+msgstr ""
+
+msgid "No further records"
+msgstr ""
+
+msgid "Queued for backup. You will receive an email with the download link"
+msgstr ""
+
+msgid ""
+"Backup job is already queued. You will receive an email with the download"
+" link"
+msgstr ""
+
+msgid "File backup is ready"
+msgstr ""
+
+msgid "Assigned To/Owner"
+msgstr ""
+
+msgid "Please Authorize OAuth for Email Account {}"
+msgstr ""
+
+msgid "OAuth Error"
+msgstr ""
+
+msgid "Unsubscribe"
+msgstr ""
+
+msgid "{0} to stop receiving emails of this type"
+msgstr ""
+
+msgid "{0} has left the conversation in {1} {2}"
+msgstr ""
+
+msgid "Emails are muted"
+msgstr ""
+
+msgid "Invalid Mail Server. Please rectify and try again."
+msgstr ""
+
+msgid "Invalid User Name or Support Password. Please rectify and try again."
+msgstr ""
+
+msgid "Invalid login or password"
+msgstr ""
+
+msgid "Invalid recipient address"
+msgstr ""
+
+msgid ""
+"Email Account not setup. Please create a new Email Account from Setup > "
+"Email > Email Account"
+msgstr ""
+
+msgid "Could not connect to outgoing email server"
+msgstr ""
+
+msgid "Invalid Outgoing Mail Server or Port"
+msgstr ""
+
+msgid "Incorrect Configuration"
+msgstr ""
+
+msgid "Please check your email login credentials."
+msgstr ""
+
+msgid "Invalid Credentials"
+msgstr ""
+
+msgid "Auto Email Report"
+msgstr ""
+
+msgid "Based on Permissions For User"
+msgstr ""
+
+msgid "Filter Data"
+msgstr ""
+
+msgid "Send only if there is any data"
+msgstr ""
+
+msgid "Only Send Records Updated in Last X Hours"
+msgstr ""
+
+msgid "Zero means send records updated at anytime"
+msgstr ""
+
+msgid "No of Rows (Max 500)"
+msgstr ""
+
+msgid "Report Filters"
+msgstr ""
+
+msgid "Filters Display"
+msgstr ""
+
+msgid "Filter Meta"
+msgstr ""
+
+msgid "Dynamic Report Filters"
+msgstr ""
+
+msgid "From Date Field"
+msgstr ""
+
+msgid "To Date Field"
+msgstr ""
+
+msgid "Period"
+msgstr ""
+
+msgid "Half Yearly"
+msgstr ""
+
+msgid "Email To"
+msgstr ""
+
+msgid ""
+"For multiple addresses, enter the address on different line. e.g. "
+"test@test.com ⏎ test1@test.com"
+msgstr ""
+
+msgid "Day of Week"
+msgstr ""
+
+msgid "Weekdays"
+msgstr ""
+
+msgid "XLSX"
+msgstr ""
+
+msgid "Only {0} emailed reports are allowed per user."
+msgstr ""
+
+msgid "To allow more reports update limit in System Settings."
+msgstr ""
+
+msgid "Report limit reached"
+msgstr ""
+
+msgid ""
+"{0} is not a valid report format. Report format should one of the "
+"following {1}"
+msgstr ""
+
+msgid "Missing Filters Required"
+msgstr ""
+
+msgid "Following Report Filters have missing values:"
+msgstr ""
+
+msgid "Invalid Output Format"
+msgstr ""
+
+msgid "Please set filters value in Report Filter table."
+msgstr ""
+
+msgid "Doctype"
+msgstr ""
+
+msgid "Use different Email ID"
+msgstr ""
+
+msgid "Alternative Email ID"
+msgstr ""
+
+msgid "Awaiting password"
+msgstr ""
+
+msgid "Use ASCII encoding for password"
+msgstr ""
+
+msgid "Email Account Name"
+msgstr ""
+
+msgid "e.g. \"Support\", \"Sales\", \"Jerry Yang\""
+msgstr ""
+
+msgid "Service"
+msgstr ""
+
+msgid "GMail"
+msgstr ""
+
+msgid "Sendgrid"
+msgstr ""
+
+msgid "SparkPost"
+msgstr ""
+
+msgid "Yahoo Mail"
+msgstr ""
+
+msgid "Outlook.com"
+msgstr ""
+
+msgid "Yandex.Mail"
+msgstr ""
+
+msgid "Incoming (POP/IMAP) Settings"
+msgstr ""
+
+msgid "Enable Incoming"
+msgstr ""
+
+msgid "Use IMAP"
+msgstr ""
+
+msgid "Incoming Server"
+msgstr ""
+
+msgid "e.g. pop.gmail.com / imap.gmail.com"
+msgstr ""
+
+msgid "Use SSL"
+msgstr ""
+
+msgid "Attachment Limit (MB)"
+msgstr ""
+
+msgid "Ignore attachments over this size"
+msgstr ""
+
+msgid "Append To"
+msgstr ""
+
+msgid ""
+"Append as communication against this DocType (must have fields: "
+"\"Sender\" and \"Subject\"). These fields can be defined in the email "
+"settings section of the appended doctype."
+msgstr ""
+
+msgid "Default Incoming"
+msgstr ""
+
+msgid "e.g. replies@yourcomany.com. All replies will come to this inbox."
+msgstr ""
+
+msgid "Email Sync Option"
+msgstr ""
+
+msgid "ALL"
+msgstr ""
+
+msgid "UNSEEN"
+msgstr ""
+
+msgid "Initial Sync Count"
+msgstr ""
+
+msgid "Total number of emails to sync in initial sync process "
+msgstr ""
+
+msgid "Notify if unreplied"
+msgstr ""
+
+msgid "Notify if unreplied for (in mins)"
+msgstr ""
+
+msgid "Send Notification to"
+msgstr ""
+
+msgid "Email Addresses"
+msgstr ""
+
+msgid "Outgoing (SMTP) Settings"
+msgstr ""
+
+msgid "SMTP Settings for outgoing emails"
+msgstr ""
+
+msgid "Outgoing Server"
+msgstr ""
+
+msgid "e.g. smtp.gmail.com"
+msgstr ""
+
+msgid "Use TLS"
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "If non standard port (e.g. 587). If on Google Cloud, try port 2525."
+msgstr ""
+
+msgid "Default Outgoing"
+msgstr ""
+
+msgid "Notifications and bulk mails will be sent from this outgoing server."
+msgstr ""
+
+msgid "Always use this email address as sender address"
+msgstr ""
+
+msgid "Always use this name as sender name"
+msgstr ""
+
+msgid "Send unsubscribe message in email"
+msgstr ""
+
+msgid "Track Email Status"
+msgstr ""
+
+msgid ""
+"Track if your email has been opened by the recipient.\n"
+"<br>\n"
+"Note: If you're sending to multiple recipients, even if 1 recipient reads"
+" the email, it'll be considered \"Opened\""
+msgstr ""
+
+msgid "Disable SMTP server authentication"
+msgstr ""
+
+msgid "Add Signature"
+msgstr ""
+
+msgid "Auto Reply"
+msgstr ""
+
+msgid "Enable Auto Reply"
+msgstr ""
+
+msgid "Auto Reply Message"
+msgstr ""
+
+msgid ""
+"ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name "
+"}}</code> to send document reference"
+msgstr ""
+
+msgid "Footer"
+msgstr ""
+
+msgid "Footer Content"
+msgstr ""
+
+msgid "UIDVALIDITY"
+msgstr ""
+
+msgid "UIDNEXT"
+msgstr ""
+
+msgid "no failed attempts"
+msgstr ""
+
+msgid "Document Linking"
+msgstr ""
+
+msgid "Enable Automatic Linking in Documents"
+msgstr ""
+
+msgid ""
+"For more information, <a class=\"text-muted\" "
+"href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-"
+"emails-to-document\">click here</a>."
+msgstr ""
+
+msgid "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)"
+msgstr ""
+
+msgid "Append Emails to Sent Folder"
+msgstr ""
+
+msgid "Create Contacts from Incoming Emails"
+msgstr ""
+
+msgid "Brand Logo"
+msgstr ""
+
+msgid "Authentication"
+msgstr ""
+
+msgid "Account"
+msgstr ""
+
+msgid "IMAP Details"
+msgstr ""
+
+msgid "Authorize API Access"
+msgstr ""
+
+msgid "Basic"
+msgstr ""
+
+msgid "OAuth"
+msgstr ""
+
+msgid "Use STARTTLS"
+msgstr ""
+
+msgid "Connected App"
+msgstr ""
+
+msgid "Connected User"
+msgstr ""
+
+msgid "Login Id is required"
+msgstr ""
+
+msgid "You need to set one IMAP folder for {0}"
+msgstr ""
+
+msgid "Password is required or select Awaiting Password"
+msgstr ""
+
+msgid "{0} is mandatory"
+msgstr ""
+
+msgid "Append To can be one of {0}"
+msgstr ""
+
+msgid "SMTP Server is required"
+msgstr ""
+
+msgid "{} has been disabled. It can only be enabled if {} is checked."
+msgstr ""
+
+msgid "Defaults Updated"
+msgstr ""
+
+msgid "{0} is required"
+msgstr ""
+
+msgid "Authentication failed while receiving emails from Email Account: {0}."
+msgstr ""
+
+msgid "Message from server: {0}"
+msgstr ""
+
+msgid "Please setup default Email Account from Setup > Email > Email Account"
+msgstr ""
+
+msgid "Error while connecting to email account {0}"
+msgstr ""
+
+msgid "Re:"
+msgstr ""
+
+msgid "Automatic Linking can be activated only if Incoming is enabled."
+msgstr ""
+
+msgid "Automatic Linking can be activated only for one Email Account."
+msgstr ""
+
+msgid "Enabled email inbox for user {0}"
+msgstr ""
+
+msgid "Email Domain"
+msgstr ""
+
+msgid "Domain Name"
+msgstr ""
+
+msgid "Incoming Settings"
+msgstr ""
+
+msgid "Outgoing Settings"
+msgstr ""
+
+msgid "If non standard port (e.g. 587)"
+msgstr ""
+
+msgid "Incoming email account not correct"
+msgstr ""
+
+msgid "Error connecting via IMAP/POP3: {e}"
+msgstr ""
+
+msgid "Outgoing email account not correct"
+msgstr ""
+
+msgid "Error connecting via SMTP: {e}"
+msgstr ""
+
+msgid "Error has occurred in {0}"
+msgstr ""
+
+msgid "Email Flag Queue"
+msgstr ""
+
+msgid "Is Completed"
+msgstr ""
+
+msgid "Unread"
+msgstr ""
+
+msgid "Email Group"
+msgstr ""
+
+msgid "Total Subscribers"
+msgstr ""
+
+msgid "Confirmation Email Template"
+msgstr ""
+
+msgid "Welcome Email Template"
+msgstr ""
+
+msgid "Members"
+msgstr ""
+
+msgid "Email Group Member"
+msgstr ""
+
+msgid "Newsletter Manager"
+msgstr ""
+
+msgid "{0} subscribers added"
+msgstr ""
+
+msgid "{0} is not a valid Email Address"
+msgstr ""
+
+msgid "Email Queue"
+msgstr ""
+
+msgid "Recipient"
+msgstr ""
+
+msgid "Show as cc"
+msgstr ""
+
+msgid "Not Sent"
+msgstr ""
+
+msgid "Reference DocName"
+msgstr ""
+
+msgid "Send After"
+msgstr ""
+
+msgid "Add Unsubscribe Link"
+msgstr ""
+
+msgid "Unsubscribe Param"
+msgstr ""
+
+msgid "Unsubscribe Method"
+msgstr ""
+
+msgid "Expose Recipients"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Only Administrator can delete Email Queue"
+msgstr ""
+
+msgid "Email Queue Recipient"
+msgstr ""
+
+msgid "Email Rule"
+msgstr ""
+
+msgid "Is Spam"
+msgstr ""
+
+msgid "Response"
+msgstr ""
+
+msgid "Email Reply Help"
+msgstr ""
+
+msgid ""
+"<h4>Email Reply Example</h4>\n"
+"\n"
+"<pre>Order Overdue\n"
+"\n"
+"Transaction {{ name }} has exceeded Due Date. Please take necessary "
+"action.\n"
+"\n"
+"Details\n"
+"\n"
+"- Customer: {{ customer }}\n"
+"- Amount: {{ grand_total }}\n"
+"</pre>\n"
+"\n"
+"<h4>How to get fieldnames</h4>\n"
+"\n"
+"<p>The fieldnames you can use in your email template are the fields in "
+"the document from which you are sending the email. You can find out the "
+"fields of any documents via Setup &gt; Customize Form View and selecting "
+"the document type (e.g. Sales Invoice)</p>\n"
+"\n"
+"<h4>Templating</h4>\n"
+"\n"
+"<p>Templates are compiled using the Jinja Templating Language. To learn "
+"more about Jinja, <a class=\"strong\" "
+"href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this "
+"documentation.</a></p>\n"
+msgstr ""
+
+msgid "Use HTML"
+msgstr ""
+
+msgid "Response "
+msgstr ""
+
+msgid "Email Unsubscribe"
+msgstr ""
+
+msgid "Global Unsubscribe"
+msgstr ""
+
+msgid "Reference DocType and Reference Name are required"
+msgstr ""
+
+msgid "Delete this record to allow sending to this email address"
+msgstr ""
+
+msgid "{0} already unsubscribed"
+msgstr ""
+
+msgid "{0} already unsubscribed for {1} {2}"
+msgstr ""
+
+msgid "Left this conversation"
+msgstr ""
+
+msgid "Folder Name"
+msgstr ""
+
+msgid "Newsletter"
+msgstr ""
+
+msgid "Audience"
+msgstr ""
+
+msgid "Email Sent"
+msgstr ""
+
+msgid "Send Unsubscribe Link"
+msgstr ""
+
+msgid "Scheduled To Send"
+msgstr ""
+
+msgid "Send Email At"
+msgstr ""
+
+msgid "Content Type"
+msgstr ""
+
+msgid "Rich Text"
+msgstr ""
+
+msgid "Markdown"
+msgstr ""
+
+msgid "Message (Markdown)"
+msgstr ""
+
+msgid "Message (HTML)"
+msgstr ""
+
+msgid "Schedule sending at a later time"
+msgstr ""
+
+msgid "Send Web View Link"
+msgstr ""
+
+msgid "Sender Name"
+msgstr ""
+
+msgid "Sender Email"
+msgstr ""
+
+msgid "Publish as a web page"
+msgstr ""
+
+msgid "Scheduled Sending"
+msgstr ""
+
+msgid "Email Sent At"
+msgstr ""
+
+msgid "Total Recipients"
+msgstr ""
+
+msgid "Total Views"
+msgstr ""
+
+msgid "Test email sent to {0}"
+msgstr ""
+
+msgid "Newsletter has already been sent"
+msgstr ""
+
+msgid "Please save the Newsletter before sending"
+msgstr ""
+
+msgid "Newsletter should have atleast one recipient"
+msgstr ""
+
+msgid "Newsletter must be published to send webview link in email"
+msgstr ""
+
+msgid "Confirm Your Email"
+msgstr ""
+
+msgid "Thank you for your interest in subscribing to our updates"
+msgstr ""
+
+msgid "Please verify your Email Address"
+msgstr ""
+
+msgid "Click here to verify"
+msgstr ""
+
+msgid "Confirmed"
+msgstr ""
+
+msgid "{0} has been successfully added to the Email Group."
+msgstr ""
+
+msgid "Newsletters"
+msgstr ""
+
+msgid "Newsletter Attachment"
+msgstr ""
+
+msgid "Newsletter Email Group"
+msgstr ""
+
+msgid "Channel"
+msgstr ""
+
+msgid "Slack"
+msgstr ""
+
+msgid "System Notification"
+msgstr ""
+
+msgid "Slack Channel"
+msgstr ""
+
+msgid ""
+"To use Slack Channel, add a <a "
+"href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>."
+msgstr ""
+
+msgid ""
+"To add dynamic subject, use jinja tags like\n"
+"\n"
+"<div><pre><code>{{ doc.name }} Delivered</code></pre></div>"
+msgstr ""
+
+msgid "Send Alert On"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Days After"
+msgstr ""
+
+msgid "Days Before"
+msgstr ""
+
+msgid "Value Change"
+msgstr ""
+
+msgid "Trigger Method"
+msgstr ""
+
+msgid ""
+"Trigger on valid methods like \"before_insert\", \"after_update\", etc "
+"(will depend on the DocType selected)"
+msgstr ""
+
+msgid "Reference Date"
+msgstr ""
+
+msgid "Send alert if date matches this field's value"
+msgstr ""
+
+msgid "Days Before or After"
+msgstr ""
+
+msgid "Send days before or after the reference date"
+msgstr ""
+
+msgid "Value Changed"
+msgstr ""
+
+msgid "Send alert if this field's value changes"
+msgstr ""
+
+msgid "Optional: The alert will be sent if this expression is true"
+msgstr ""
+
+msgid ""
+"<p><strong>Condition Examples:</strong></p>\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; "
+"40000\n"
+"</pre>\n"
+msgstr ""
+
+msgid "Set Property After Alert"
+msgstr ""
+
+msgid "Value To Be Set"
+msgstr ""
+
+msgid "Message Examples"
+msgstr ""
+
+#, python-format
+msgid ""
+"<h5>Message Example</h5>\n"
+"\n"
+"<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n"
+"\n"
+"&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take "
+"necessary action.&lt;/p&gt;\n"
+"\n"
+"&lt;!-- show last comment --&gt;\n"
+"{% if comments %}\n"
+"Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n"
+"{% endif %}\n"
+"\n"
+"&lt;h4&gt;Details&lt;/h4&gt;\n"
+"\n"
+"&lt;ul&gt;\n"
+"&lt;li&gt;Customer: {{ doc.customer }}\n"
+"&lt;li&gt;Amount: {{ doc.grand_total }}\n"
+"&lt;/ul&gt;\n"
+"</pre>"
+msgstr ""
+
+msgid "View Properties (via Customize Form)"
+msgstr ""
+
+msgid "Print Settings"
+msgstr ""
+
+msgid "Attach Print"
+msgstr ""
+
+msgid "Send System Notification"
+msgstr ""
+
+msgid ""
+"If enabled, the notification will show up in the notifications dropdown "
+"on the top right corner of the navigation bar."
+msgstr ""
+
+msgid "Send To All Assignees"
+msgstr ""
+
+msgid "Please specify which date field must be checked"
+msgstr ""
+
+msgid "Please specify which value field must be checked"
+msgstr ""
+
+msgid ""
+"Cannot edit Standard Notification. To edit, please disable this and "
+"duplicate it"
+msgstr ""
+
+msgid "The Condition '{0}' is invalid"
+msgstr ""
+
+msgid "Cannot set Notification on Document Type {0}"
+msgstr ""
+
+msgid "via Notification"
+msgstr ""
+
+msgid ""
+"Not allowed to attach {0} document, please enable Allow Print For {0} in "
+"Print Settings"
+msgstr ""
+
+msgid "Error in Notification"
+msgstr ""
+
+msgid "Error while evaluating Notification {0}. Please fix your template."
+msgstr ""
+
+msgid "Notification Recipient"
+msgstr ""
+
+msgid "Optional: Always send to these ids. Each Email Address on a new row"
+msgstr ""
+
+msgid "Expression, Optional"
+msgstr ""
+
+msgid "Receiver By Document Field"
+msgstr ""
+
+msgid "Receiver By Role"
+msgstr ""
+
+msgid "Unhandled Email"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "Message-id"
+msgstr ""
+
+msgid "Raw Email"
+msgstr ""
+
+msgid "This Doctype does not contain location fields"
+msgstr ""
+
+msgid "This Doctype does not contain latitude and longitude fields"
+msgstr ""
+
+msgid "Country Name"
+msgstr ""
+
+msgid "Time format"
+msgstr ""
+
+msgid "Time Zones"
+msgstr ""
+
+msgid "Currency Name"
+msgstr ""
+
+msgid "Fraction"
+msgstr ""
+
+msgid "Sub-currency. For e.g. \"Cent\""
+msgstr ""
+
+msgid "Fraction Units"
+msgstr ""
+
+msgid ""
+"1 Currency = [?] Fraction\n"
+"For e.g. 1 USD = 100 Cent"
+msgstr ""
+
+msgid "Smallest Currency Fraction Value"
+msgstr ""
+
+msgid ""
+"Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it"
+" should be entered as 0.01"
+msgstr ""
+
+msgid "Symbol"
+msgstr ""
+
+msgid "A symbol for this currency. For e.g. $"
+msgstr ""
+
+msgid ""
+"How should this currency be formatted? If not set, will use system "
+"defaults"
+msgstr ""
+
+msgid "Show Currency Symbol on Right Side"
+msgstr ""
+
+msgid "Please enable {} before continuing."
+msgstr ""
+
+msgid "Please update {} before continuing."
+msgstr ""
+
+msgid "Provider Name"
+msgstr ""
+
+msgid "OpenID Configuration"
+msgstr ""
+
+msgid "Client Credentials"
+msgstr ""
+
+msgid "Client Id"
+msgstr ""
+
+msgid "Redirect URI"
+msgstr ""
+
+msgid "Client Secret"
+msgstr ""
+
+msgid "Scopes"
+msgstr ""
+
+msgid "Endpoints"
+msgstr ""
+
+msgid "Authorization URI"
+msgstr ""
+
+msgid "Token URI"
+msgstr ""
+
+msgid "Revocation URI"
+msgstr ""
+
+msgid "Userinfo URI"
+msgstr ""
+
+msgid "Introspection URI"
+msgstr ""
+
+msgid "Extra Parameters"
+msgstr ""
+
+msgid "Query Parameters"
+msgstr ""
+
+msgid "Invalid Parameters."
+msgstr ""
+
+msgid "Invalid state."
+msgstr ""
+
+msgid "Dropbox Settings"
+msgstr ""
+
+msgid "Send Notifications To"
+msgstr ""
+
+msgid "Send Email for Successful Backup"
+msgstr ""
+
+msgid "Note: By default emails for failed backups are sent."
+msgstr ""
+
+msgid "Backup Frequency"
+msgstr ""
+
+msgid "Limit Number of DB Backups"
+msgstr ""
+
+msgid "Number of DB Backups"
+msgstr ""
+
+msgid "File Backup"
+msgstr ""
+
+msgid "App Access Key"
+msgstr ""
+
+msgid "App Secret Key"
+msgstr ""
+
+msgid "Allow Dropbox Access"
+msgstr ""
+
+msgid "Dropbox Access Key"
+msgstr ""
+
+msgid "Dropbox Access Secret"
+msgstr ""
+
+msgid "Dropbox Access Token"
+msgstr ""
+
+msgid "Number of DB backups cannot be less than 1"
+msgstr ""
+
+msgid "Queued for backup. It may take a few minutes to an hour."
+msgstr ""
+
+msgid "Please set Dropbox access keys in your site config"
+msgstr ""
+
+msgid ""
+"Something went wrong while generating dropbox access token. Please check "
+"error log for more details."
+msgstr ""
+
+msgid "Please close this window"
+msgstr ""
+
+msgid "Dropbox Setup"
+msgstr ""
+
+msgid "Illegal Access Token. Please try again"
+msgstr ""
+
+msgid "Dropbox access is approved!"
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Calendar Name"
+msgstr ""
+
+msgid "The name that will appear in Google Calendar"
+msgstr ""
+
+msgid "Refresh Token"
+msgstr ""
+
+msgid "Authorization Code"
+msgstr ""
+
+msgid "Next Sync Token"
+msgstr ""
+
+msgid "Authorize Google Calendar Access"
+msgstr ""
+
+msgid "Sync"
+msgstr ""
+
+msgid "Pull from Google Calendar"
+msgstr ""
+
+msgid "Push to Google Calendar"
+msgstr ""
+
+msgid "Enable Google API in Google Settings."
+msgstr ""
+
+msgid "Enter Client Id and Client Secret in Google Settings."
+msgstr ""
+
+msgid "Allow Google Calendar Access"
+msgstr ""
+
+msgid "Click on {0} to generate Refresh Token."
+msgstr ""
+
+msgid ""
+"Something went wrong during the token generation. Click on {0} to "
+"generate a new one."
+msgstr ""
+
+msgid "Google Calendar has been configured."
+msgstr ""
+
+msgid "Google Calendar - Could not create Calendar for {0}, error code {1}."
+msgstr ""
+
+msgid ""
+"Google Calendar - Could not fetch event from Google Calendar, error code "
+"{0}."
+msgstr ""
+
+msgid "Sync token was invalid and has been reset, Retry syncing."
+msgstr ""
+
+msgid "No Google Calendar Event to sync."
+msgstr ""
+
+msgid "1 Google Calendar Event synced."
+msgstr ""
+
+msgid "{0} Google Calendar Events synced."
+msgstr ""
+
+msgid "Event Synced with Google Calendar."
+msgstr ""
+
+msgid ""
+"Google Calendar - Could not insert event in Google Calendar {0}, error "
+"code {1}."
+msgstr ""
+
+msgid ""
+"Google Calendar - Could not update Event {0} in Google Calendar, error "
+"code {1}."
+msgstr ""
+
+msgid ""
+"Google Calendar - Could not delete Event {0} from Google Calendar, error "
+"code {1}."
+msgstr ""
+
+msgid ""
+"Google Calendar - Contact / email not found. Did not add attendee for "
+"-<br>{0}"
+msgstr ""
+
+msgid "Last Sync On"
+msgstr ""
+
+msgid "Email Address whose Google Contacts are to be synced."
+msgstr ""
+
+msgid "Authorize Google Contacts Access"
+msgstr ""
+
+msgid "Pull from Google Contacts"
+msgstr ""
+
+msgid "Push to Google Contacts"
+msgstr ""
+
+msgid "Allow Google Contacts Access"
+msgstr ""
+
+msgid ""
+"Google Contacts - Could not sync contacts from Google Contacts {0}, error"
+" code {1}."
+msgstr ""
+
+msgid "{0} Google Contacts synced."
+msgstr ""
+
+msgid "No new Google Contacts synced."
+msgstr ""
+
+msgid ""
+"Google Calendar - Could not insert contact in Google Contacts {0}, error "
+"code {1}."
+msgstr ""
+
+msgid "Contact Synced with Google Contacts."
+msgstr ""
+
+msgid ""
+"Google Contacts - Could not update contact in Google Contacts {0}, error "
+"code {1}."
+msgstr ""
+
+msgid "Google Drive"
+msgstr ""
+
+msgid "Backup Folder Name"
+msgstr ""
+
+msgid "Authorize Google Drive Access"
+msgstr ""
+
+msgid "Backup Folder ID"
+msgstr ""
+
+msgid "Last Backup On"
+msgstr ""
+
+msgid "Send Email for Successful backup"
+msgstr ""
+
+msgid "Send Notification To"
+msgstr ""
+
+msgid "Allow Google Drive Access"
+msgstr ""
+
+msgid "Google Drive - Could not create folder in Google Drive - Error Code {0}"
+msgstr ""
+
+msgid "Google Drive - Could not find folder in Google Drive - Error Code {0}"
+msgstr ""
+
+msgid "Google Drive - Could not locate - {0}"
+msgstr ""
+
+msgid "Google Drive Backup Successful."
+msgstr ""
+
+msgid "Google Settings"
+msgstr ""
+
+msgid "Client ID"
+msgstr ""
+
+msgid ""
+"The Client ID obtained from the Google Cloud Console under <a "
+"href=\"https://console.cloud.google.com/apis/credentials\">\n"
+"\"APIs &amp; Services\" &gt; \"Credentials\"\n"
+"</a>"
+msgstr ""
+
+msgid ""
+"The browser API key obtained from the Google Cloud Console under <a "
+"href=\"https://console.cloud.google.com/apis/credentials\">\n"
+"\"APIs &amp; Services\" &gt; \"Credentials\"\n"
+"</a>"
+msgstr ""
+
+msgid "OAuth Client ID"
+msgstr ""
+
+msgid "App ID"
+msgstr ""
+
+msgid ""
+"The project number obtained from Google Cloud Console under <a "
+"href=\"https://console.cloud.google.com/iam-admin/settings\">\n"
+"\"IAM &amp; Admin\" &gt; \"Settings\"\n"
+"</a>"
+msgstr ""
+
+msgid "Google Drive Picker"
+msgstr ""
+
+msgid "Google Drive Picker Enabled"
+msgstr ""
+
+msgid "Integration Request"
+msgstr ""
+
+msgid "Authorized"
+msgstr ""
+
+msgid "Request Data"
+msgstr ""
+
+msgid "Is Remote Request?"
+msgstr ""
+
+msgid "Request Description"
+msgstr ""
+
+msgid "Request ID"
+msgstr ""
+
+msgid "URL"
+msgstr ""
+
+msgid "Request Headers"
+msgstr ""
+
+msgid "LDAP Group Mapping"
+msgstr ""
+
+msgid "LDAP Group"
+msgstr ""
+
+msgid "User Role"
+msgstr ""
+
+msgid "LDAP Settings"
+msgstr ""
+
+msgid "LDAP Server Url"
+msgstr ""
+
+msgid "Base Distinguished Name (DN)"
+msgstr ""
+
+msgid "Password for Base DN"
+msgstr ""
+
+msgid "Default User Role"
+msgstr ""
+
+msgid "LDAP Search String"
+msgstr ""
+
+msgid ""
+"Must be enclosed in '()' and include '{0}', which is a placeholder for "
+"the user/login name. i.e. (&(objectclass=user)(uid={0}))"
+msgstr ""
+
+msgid "LDAP Email Field"
+msgstr ""
+
+msgid "LDAP Username Field"
+msgstr ""
+
+msgid "LDAP First Name Field"
+msgstr ""
+
+msgid "LDAP Middle Name Field"
+msgstr ""
+
+msgid "LDAP Last Name Field"
+msgstr ""
+
+msgid "LDAP Phone Field"
+msgstr ""
+
+msgid "LDAP Mobile Field"
+msgstr ""
+
+msgid "LDAP Security"
+msgstr ""
+
+msgid "SSL/TLS Mode"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "StartTLS"
+msgstr ""
+
+msgid "Require Trusted Certificate"
+msgstr ""
+
+msgid "Path to private Key File"
+msgstr ""
+
+msgid "Path to Server Certificate"
+msgstr ""
+
+msgid "Path to CA Certs File"
+msgstr ""
+
+msgid "LDAP Group Mappings"
+msgstr ""
+
+msgid "LDAP Group Field"
+msgstr ""
+
+msgid ""
+"NOTE: This box is due for depreciation. Please re-setup LDAP to work with"
+" the newer settings"
+msgstr ""
+
+msgid "LDAP Server Settings"
+msgstr ""
+
+msgid "LDAP Auth"
+msgstr ""
+
+msgid "LDAP Search and Paths"
+msgstr ""
+
+msgid "LDAP User Creation and Mapping"
+msgstr ""
+
+msgid "LDAP Custom Settings"
+msgstr ""
+
+msgid "These settings are required if 'Custom' LDAP Directory is used"
+msgstr ""
+
+msgid "LDAP Group Member attribute"
+msgstr ""
+
+msgid "string value, i.e. member"
+msgstr ""
+
+msgid "Directory Server"
+msgstr ""
+
+msgid "Please select the LDAP Directory being used"
+msgstr ""
+
+msgid "Active Directory"
+msgstr ""
+
+msgid "OpenLDAP"
+msgstr ""
+
+msgid "Group Object Class"
+msgstr ""
+
+msgid "string value, i.e. group"
+msgstr ""
+
+msgid "Custom Group Search"
+msgstr ""
+
+msgid "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com"
+msgstr ""
+
+msgid "LDAP search path for Users"
+msgstr ""
+
+msgid "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com"
+msgstr ""
+
+msgid "LDAP search path for Groups"
+msgstr ""
+
+msgid "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com"
+msgstr ""
+
+msgid "Default User Type"
+msgstr ""
+
+msgid "Do Not Create New User "
+msgstr ""
+
+msgid "Do not create new user if user with email does not exist in the system"
+msgstr ""
+
+msgid "LDAP settings incorrect. validation response was: {0}"
+msgstr ""
+
+msgid "Misconfigured"
+msgstr ""
+
+msgid "Ensure the user and group search paths are correct."
+msgstr ""
+
+msgid ""
+"Custom LDAP Directoy Selected, please ensure 'LDAP Group Member "
+"attribute' and 'Group Object Class' are entered"
+msgstr ""
+
+msgid ""
+"Custom Group Search if filled needs to contain the user placeholder {0}, "
+"eg uid={0},ou=users,dc=example,dc=com"
+msgstr ""
+
+msgid ""
+"LDAP Search String must be enclosed in '()' and needs to contian the user"
+" placeholder {0}, eg sAMAccountName={0}"
+msgstr ""
+
+msgid "Please Install the ldap3 library via pip to use ldap functionality."
+msgstr ""
+
+msgid "LDAP Not Installed"
+msgstr ""
+
+msgid "Invalid username or password"
+msgstr ""
+
+msgid ""
+"User with email: {0} does not exist in the system. Please ask 'System "
+"Administrator' to create the user for you."
+msgstr ""
+
+msgid "LDAP is not enabled."
+msgstr ""
+
+msgid "Please use a valid LDAP search filter"
+msgstr ""
+
+msgid "Password changed successfully."
+msgstr ""
+
+msgid "Failed to change password."
+msgstr ""
+
+msgid "No Entry for the User {0} found within LDAP!"
+msgstr ""
+
+msgid "No LDAP User found for email: {0}"
+msgstr ""
+
+msgid "OAuth Authorization Code"
+msgstr ""
+
+msgid "Client"
+msgstr ""
+
+msgid "Expiration time"
+msgstr ""
+
+msgid "Redirect URI Bound To Auth Code"
+msgstr ""
+
+msgid "Validity"
+msgstr ""
+
+msgid "Valid"
+msgstr ""
+
+msgid "Invalid"
+msgstr ""
+
+msgid "nonce"
+msgstr ""
+
+msgid "Code Challenge"
+msgstr ""
+
+msgid "Code challenge method"
+msgstr ""
+
+msgid "s256"
+msgstr ""
+
+msgid "plain"
+msgstr ""
+
+msgid "OAuth Bearer Token"
+msgstr ""
+
+msgid "Access Token"
+msgstr ""
+
+msgid "Expires In"
+msgstr ""
+
+msgid "Revoked"
+msgstr ""
+
+msgid "OAuth Client"
+msgstr ""
+
+msgid "App Client ID"
+msgstr ""
+
+msgid "App Client Secret"
+msgstr ""
+
+msgid "Skip Authorization"
+msgstr ""
+
+msgid "If checked, users will not see the Confirm Access dialog."
+msgstr ""
+
+msgid ""
+"A list of resources which the Client App will have access to after the "
+"user allows it.<br> e.g. project"
+msgstr ""
+
+msgid "Redirect URIs"
+msgstr ""
+
+msgid ""
+"URIs for receiving authorization code once the user allows access, as "
+"well as failure responses. Typically a REST endpoint exposed by the "
+"Client App.\n"
+"<br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook"
+msgstr ""
+
+msgid "Default Redirect URI"
+msgstr ""
+
+msgid "Advanced Settings"
+msgstr ""
+
+msgid "Grant Type"
+msgstr ""
+
+msgid "Implicit"
+msgstr ""
+
+msgid "Response Type"
+msgstr ""
+
+msgid "Token"
+msgstr ""
+
+msgid ""
+"Combination of Grant Type (<code>{0}</code>) and Response Type "
+"(<code>{1}</code>) not allowed"
+msgstr ""
+
+msgid "OAuth Provider Settings"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "OAuth Scope"
+msgstr ""
+
+msgid "Scope"
+msgstr ""
+
+msgid "S3 Backup Settings"
+msgstr ""
+
+msgid "Enable Automatic Backup"
+msgstr ""
+
+msgid "By default, emails are only sent for failed backups."
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Access Key ID"
+msgstr ""
+
+msgid "Access Key Secret"
+msgstr ""
+
+msgid "Endpoint URL"
+msgstr ""
+
+msgid ""
+"Only change this if you want to use other S3 compatible object storage "
+"backends."
+msgstr ""
+
+msgid "Bucket Name"
+msgstr ""
+
+msgid "S3 Bucket Details"
+msgstr ""
+
+msgid "Backup Details"
+msgstr ""
+
+msgid "Backup Files"
+msgstr ""
+
+msgid "Backup public and private files along with the database."
+msgstr ""
+
+msgid "Do not have permission to access bucket {0}."
+msgstr ""
+
+msgid "Bucket {0} not found."
+msgstr ""
+
+msgid "Slack Webhook URL"
+msgstr ""
+
+msgid "Webhook URL"
+msgstr ""
+
+msgid "Show link to document"
+msgstr ""
+
+msgid "See the document at {0}"
+msgstr ""
+
+msgid "Go to the document"
+msgstr ""
+
+msgid "Slack Webhook Error"
+msgstr ""
+
+msgid "Social Login Key"
+msgstr ""
+
+msgid "Enable Social Login"
+msgstr ""
+
+msgid "Social Login Provider"
+msgstr ""
+
+msgid "Facebook"
+msgstr ""
+
+msgid "Frappe"
+msgstr ""
+
+msgid "GitHub"
+msgstr ""
+
+msgid "Google"
+msgstr ""
+
+msgid "Office 365"
+msgstr ""
+
+msgid "Salesforce"
+msgstr ""
+
+msgid "fairlogin"
+msgstr ""
+
+msgid "Identity Details"
+msgstr ""
+
+msgid "Base URL"
+msgstr ""
+
+msgid "Client URLs"
+msgstr ""
+
+msgid "Authorize URL"
+msgstr ""
+
+msgid "Access Token URL"
+msgstr ""
+
+msgid "API Endpoint"
+msgstr ""
+
+msgid "Custom Base URL"
+msgstr ""
+
+msgid "Client Information"
+msgstr ""
+
+msgid "API Endpoint Args"
+msgstr ""
+
+msgid "Auth URL Data"
+msgstr ""
+
+msgid "User ID Property"
+msgstr ""
+
+msgid "Please enter Base URL"
+msgstr ""
+
+msgid "Please enter Authorize URL"
+msgstr ""
+
+msgid "Please enter Access Token URL"
+msgstr ""
+
+msgid "Please enter Redirect URL"
+msgstr ""
+
+msgid "Please enter Client ID before social login is enabled"
+msgstr ""
+
+msgid "Please enter Client Secret before social login is enabled"
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Success URI"
+msgstr ""
+
+msgid "Token Type"
+msgstr ""
+
+msgid "Received an invalid token type."
+msgstr ""
+
+msgid "Doc Events"
+msgstr ""
+
+msgid "Doc Event"
+msgstr ""
+
+msgid "after_insert"
+msgstr ""
+
+msgid "on_update"
+msgstr ""
+
+msgid "on_submit"
+msgstr ""
+
+msgid "on_cancel"
+msgstr ""
+
+msgid "on_trash"
+msgstr ""
+
+msgid "on_update_after_submit"
+msgstr ""
+
+msgid "on_change"
+msgstr ""
+
+msgid "Webhook Trigger"
+msgstr ""
+
+msgid "The webhook will be triggered if this expression is true"
+msgstr ""
+
+msgid ""
+"<p><strong>Condition Examples:</strong></p>\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; "
+"40000\n"
+"</pre>"
+msgstr ""
+
+msgid "Webhook Request"
+msgstr ""
+
+msgid "Request URL"
+msgstr ""
+
+msgid "Webhook Headers"
+msgstr ""
+
+msgid "Headers"
+msgstr ""
+
+msgid "Webhook Data"
+msgstr ""
+
+msgid "Request Structure"
+msgstr ""
+
+msgid "Form URL-Encoded"
+msgstr ""
+
+msgid "JSON Request Body"
+msgstr ""
+
+msgid "HOOK-.####"
+msgstr ""
+
+msgid "Webhook Security"
+msgstr ""
+
+msgid "Enable Security"
+msgstr ""
+
+msgid "Webhook Secret"
+msgstr ""
+
+msgid "Request Method"
+msgstr ""
+
+msgid "POST"
+msgstr ""
+
+msgid "PUT"
+msgstr ""
+
+msgid "DELETE"
+msgstr ""
+
+msgid "Select Document"
+msgstr ""
+
+msgid "Request Body"
+msgstr ""
+
+msgid "Meets Condition?"
+msgstr ""
+
+msgid "DocType must be Submittable for the selected Doc Event"
+msgstr ""
+
+msgid "Invalid Condition: {}"
+msgstr ""
+
+msgid "Check Request URL"
+msgstr ""
+
+msgid "Same Field is entered more than once"
+msgstr ""
+
+msgid "Select a document to check if it meets conditions."
+msgstr ""
+
+msgid "Failed to evaluate conditions: {}"
+msgstr ""
+
+msgid "Select a document to preview request data"
+msgstr ""
+
+msgid "Failed to compute request body: {}"
+msgstr ""
+
+msgid "Webhook Header"
+msgstr ""
+
+msgid "Webhook Request Log"
+msgstr ""
+
+msgid "Value for {0} cannot be a list"
+msgstr ""
+
+msgid "{0} {1} already exists"
+msgstr ""
+
+msgid "Duplicate Name"
+msgstr ""
+
+msgid "{0} must be unique"
+msgstr ""
+
+msgid "Data missing in table"
+msgstr ""
+
+msgid "Row"
+msgstr ""
+
+msgid "Value missing for"
+msgstr ""
+
+msgid "Error: Value missing for {0}: {1}"
+msgstr ""
+
+msgid "Options not set for link field {0}"
+msgstr ""
+
+msgid "{0} must be set first"
+msgstr ""
+
+msgid "Please check the value of \"Fetch From\" set for field {0}"
+msgstr ""
+
+msgid "Wrong Fetch From value"
+msgstr ""
+
+msgid "Row #{0}:"
+msgstr ""
+
+msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
+msgstr ""
+
+msgid "Value cannot be changed for {0}"
+msgstr ""
+
+msgid "{0}, Row {1}"
+msgstr ""
+
+msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
+msgstr ""
+
+msgid "Value too big"
+msgstr ""
+
+msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
+msgstr ""
+
+msgid "Cannot Update After Submit"
+msgstr ""
+
+msgid "Use of sub-query or function is restricted"
+msgstr ""
+
+msgid "Use of function {0} in field is restricted"
+msgstr ""
+
+msgid "Illegal SQL Query"
+msgstr ""
+
+msgid "No permission to read {0}"
+msgstr ""
+
+msgid "Cannot use sub-query in order by"
+msgstr ""
+
+msgid "Please select atleast 1 column from {0} to sort/group"
+msgstr ""
+
+msgid "Cannot use {0} in order/group by"
+msgstr ""
+
+msgid "Standard DocType can not be deleted."
+msgstr ""
+
+msgid "User not allowed to delete {0}: {1}"
+msgstr ""
+
+msgid ""
+"{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it "
+"first."
+msgstr ""
+
+msgid "Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}"
+msgstr ""
+
+msgid "Value cannot be negative for"
+msgstr ""
+
+msgid "Value cannot be negative for {0}: {1}"
+msgstr ""
+
+msgid "Negative Value"
+msgstr ""
+
+msgid "Error: Document has been modified after you have opened it"
+msgstr ""
+
+msgid "Please refresh to get the latest document."
+msgstr ""
+
+msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
+msgstr ""
+
+msgid "Invalid docstatus"
+msgstr ""
+
+msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
+msgstr ""
+
+msgid "Cannot edit cancelled document"
+msgstr ""
+
+msgid "Could not find {0}"
+msgstr ""
+
+msgid "Cannot link cancelled document: {0}"
+msgstr ""
+
+msgid "one of"
+msgstr ""
+
+msgid "none of"
+msgstr ""
+
+msgid "beginning with"
+msgstr ""
+
+msgid "Incorrect value in row {0}: {1} must be {2} {3}"
+msgstr ""
+
+msgid "Incorrect value: {0} must be {1} {2}"
+msgstr ""
+
+msgid "Table {0} cannot be empty"
+msgstr ""
+
+msgid "This document is currently queued for execution. Please try again"
+msgstr ""
+
+msgid "Document Queued"
+msgstr ""
+
+msgid "{0} must be after {1}"
+msgstr ""
+
+msgid "Action Failed"
+msgstr ""
+
+msgid "Cannot map because following condition fails:"
+msgstr ""
+
+msgid "Created On"
+msgstr ""
+
+msgid "Document Status"
+msgstr ""
+
+msgid "Last Updated On"
+msgstr ""
+
+msgid "Last Updated By"
+msgstr ""
+
+msgid "Created By"
+msgstr ""
+
+msgid "Tags"
+msgstr ""
+
+msgid "Liked By"
+msgstr ""
+
+msgid "Comments"
+msgstr ""
+
+msgid "Assigned To"
+msgstr ""
+
+msgid "Invalid naming series {}: dot (.) missing"
+msgstr ""
+
+msgid ""
+"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed "
+"in naming series {0}"
+msgstr ""
+
+msgid "Invalid Naming Series: {}"
+msgstr ""
+
+msgid "Naming Series mandatory"
+msgstr ""
+
+msgid "No Name Specified for {0}"
+msgstr ""
+
+msgid "Invalid name type (integer) for varchar name column"
+msgstr ""
+
+msgid "There were some errors setting the name, please contact the administrator"
+msgstr ""
+
+msgid "Name of {0} cannot be {1}"
+msgstr ""
+
+msgid "Name cannot contain special characters like {0}"
+msgstr ""
+
+msgid "Please set the document name"
+msgstr ""
+
+msgid "merged {0} into {1}"
+msgstr ""
+
+msgid "renamed from {0} to {1}"
+msgstr ""
+
+msgid "Document renamed from {0} to {1}"
+msgstr ""
+
+msgid "Can't rename {0} to {1} because {0} doesn't exist."
+msgstr ""
+
+msgid "No changes made because old and new name are the same."
+msgstr ""
+
+msgid "{0} {1} does not exist, select a new target to merge"
+msgstr ""
+
+msgid "Another {0} with name {1} exists, select another name"
+msgstr ""
+
+msgid "You need write permission to rename"
+msgstr ""
+
+msgid "{0} not allowed to be renamed"
+msgstr ""
+
+msgid "Please select a valid csv file with data"
+msgstr ""
+
+msgid "Maximum {0} rows allowed"
+msgstr ""
+
+msgid "Successful: {0} to {1}"
+msgstr ""
+
+msgid "** Failed: {0} to {1}: {2}"
+msgstr ""
+
+msgid "Failed to import virtual doctype {}, is controller file present?"
+msgstr ""
+
+msgid "Virtual DocType {} requires a static method called {} found {}"
+msgstr ""
+
+msgid "Incomplete Virtual Doctype Implementation"
+msgstr ""
+
+msgid ""
+"Virtual DocType {} requires overriding an instance method called {} found"
+" {}"
+msgstr ""
+
+msgid "Workflow State not set"
+msgstr ""
+
+msgid "Not a valid Workflow Action"
+msgstr ""
+
+msgid "Self approval is not allowed"
+msgstr ""
+
+msgid "Illegal Document Status for {0}"
+msgstr ""
+
+msgid ""
+"{0} is not a valid Workflow State. Please update your Workflow and try "
+"again."
+msgstr ""
+
+msgid "Workflow State transition not allowed from {0} to {1}"
+msgstr ""
+
+msgid "Applying: {0}"
+msgstr ""
+
+msgid "Failed Transactions"
+msgstr ""
+
+msgid "Successful Transactions"
+msgstr ""
+
+msgid "Workflow Status"
+msgstr ""
+
+msgid "Invalid include path"
+msgstr ""
+
+msgid "Patch type {} not found in patches.txt"
+msgstr ""
+
+msgid "Only allowed to export customizations in developer mode"
+msgstr ""
+
+msgid "Customizations for <b>{0}</b> exported to:<br>{1}"
+msgstr ""
+
+msgid "DocType {} not found"
+msgstr ""
+
+msgid "Module {} not found"
+msgstr ""
+
+msgid "App not found for module: {0}"
+msgstr ""
+
+msgid "Your Shortcuts"
+msgstr ""
+
+msgid "Reports & Masters"
+msgstr ""
+
+msgid "Letter Head Name"
+msgstr ""
+
+msgid "Letter Head Based On"
+msgstr ""
+
+msgid "Default Letter Head"
+msgstr ""
+
+msgid "Letter Head Image"
+msgstr ""
+
+msgid "Header HTML"
+msgstr ""
+
+msgid "Letter Head in HTML"
+msgstr ""
+
+msgid "Footer HTML"
+msgstr ""
+
+msgid "Footer will display correctly only in PDF"
+msgstr ""
+
+msgid "Align"
+msgstr ""
+
+msgid "Center"
+msgstr ""
+
+msgid "Image Height"
+msgstr ""
+
+msgid "Image Width"
+msgstr ""
+
+msgid "Footer Image"
+msgstr ""
+
+msgid "Footer Based On"
+msgstr ""
+
+msgid "Letter Head cannot be both disabled and default"
+msgstr ""
+
+msgid "Header HTML set from attachment {0}"
+msgstr ""
+
+msgid "Please attach an image file to set HTML for Letter Head."
+msgstr ""
+
+msgid "Footer HTML set from attachment {0}"
+msgstr ""
+
+msgid "Please attach an image file to set HTML for Footer."
+msgstr ""
+
+msgid "Network Printer Settings"
+msgstr ""
+
+msgid "Server IP"
+msgstr ""
+
+msgid "Printer Name"
+msgstr ""
+
+msgid ""
+"This feature can not be used as dependencies are missing.\n"
+"\t\t\t\tPlease contact your system manager to enable this by installing "
+"pycups!"
+msgstr ""
+
+msgid "Failed to connect to server"
+msgstr ""
+
+msgid "Custom Format"
+msgstr ""
+
+msgid "Print Format Type"
+msgstr ""
+
+msgid "Jinja"
+msgstr ""
+
+msgid "JS"
+msgstr ""
+
+msgid "Raw Printing"
+msgstr ""
+
+msgid "Raw Commands"
+msgstr ""
+
+msgid ""
+"Any string-based printer languages can be used. Writing raw commands "
+"requires knowledge of the printer's native language provided by the "
+"printer manufacturer. Please refer to the developer manual provided by "
+"the printer manufacturer on how to write their native commands. These "
+"commands are rendered on the server side using the Jinja Templating "
+"Language."
+msgstr ""
+
+msgid "Style Settings"
+msgstr ""
+
+msgid "Align Labels to the Right"
+msgstr ""
+
+msgid "Show Section Headings"
+msgstr ""
+
+msgid "Show Line Breaks after Sections"
+msgstr ""
+
+msgid "Default Print Language"
+msgstr ""
+
+msgid "Google Font"
+msgstr ""
+
+msgid "Custom CSS"
+msgstr ""
+
+msgid "Custom HTML Help"
+msgstr ""
+
+msgid ""
+"<h3>Custom CSS Help</h3>\n"
+"\n"
+"<p>Notes:</p>\n"
+"\n"
+"<ol>\n"
+"<li>All field groups (label + value) are set attributes <code>data-"
+"fieldtype</code> and <code>data-fieldname</code></li>\n"
+"<li>All values are given class <code>value</code></li>\n"
+"<li>All Section Breaks are given class <code>section-break</code></li>\n"
+"<li>All Column Breaks are given class <code>column-break</code></li>\n"
+"</ol>\n"
+"\n"
+"<h4>Examples</h4>\n"
+"\n"
+"<p>1. Left align integers</p>\n"
+"\n"
+"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; "
+"}</code></pre>\n"
+"\n"
+"<p>1. Add border to sections except the last section</p>\n"
+"\n"
+"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid "
+"#eee; }\n"
+".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  "
+"}</code></pre>\n"
+msgstr ""
+
+msgid "Print Format Help"
+msgstr ""
+
+#, python-format
+msgid ""
+"<h3>Print Format Help</h3>\n"
+"<hr>\n"
+"<h4>Introduction</h4>\n"
+"<p>Print Formats are rendered on the server side using the Jinja "
+"Templating Language. All forms have access to the <code>doc</code> object"
+" which contains information about the document that is being formatted. "
+"You can also access common utilities via the <code>frappe</code> "
+"module.</p>\n"
+"<p>For styling, the Boostrap CSS framework is provided and you can enjoy "
+"the full range of classes.</p>\n"
+"<hr>\n"
+"<h4>References</h4>\n"
+"<ol>\n"
+"\t<li><a href=\"http://jinja.pocoo.org/docs/templates/\" "
+"target=\"_blank\">Jinja Templating Language</a></li>\n"
+"\t<li><a href=\"http://getbootstrap.com\" target=\"_blank\">Bootstrap CSS"
+" Framework</a></li>\n"
+"</ol>\n"
+"<hr>\n"
+"<h4>Example</h4>\n"
+"<pre><code>&lt;h3&gt;{{ doc.select_print_heading or \"Invoice\" "
+"}}&lt;/h3&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"\t&lt;div class=\"col-md-3 text-right\"&gt;Customer Name&lt;/div&gt;\n"
+"\t&lt;div class=\"col-md-9\"&gt;{{ doc.customer_name }}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;div class=\"row\"&gt;\n"
+"\t&lt;div class=\"col-md-3 text-right\"&gt;Date&lt;/div&gt;\n"
+"\t&lt;div class=\"col-md-9\"&gt;{{ doc.get_formatted(\"invoice_date\") "
+"}}&lt;/div&gt;\n"
+"&lt;/div&gt;\n"
+"&lt;table class=\"table table-bordered\"&gt;\n"
+"\t&lt;tbody&gt;\n"
+"\t\t&lt;tr&gt;\n"
+"\t\t\t&lt;th&gt;Sr&lt;/th&gt;\n"
+"\t\t\t&lt;th&gt;Item Name&lt;/th&gt;\n"
+"\t\t\t&lt;th&gt;Description&lt;/th&gt;\n"
+"\t\t\t&lt;th class=\"text-right\"&gt;Qty&lt;/th&gt;\n"
+"\t\t\t&lt;th class=\"text-right\"&gt;Rate&lt;/th&gt;\n"
+"\t\t\t&lt;th class=\"text-right\"&gt;Amount&lt;/th&gt;\n"
+"\t\t&lt;/tr&gt;\n"
+"\t\t{%- for row in doc.items -%}\n"
+"\t\t&lt;tr&gt;\n"
+"\t\t\t&lt;td style=\"width: 3%;\"&gt;{{ row.idx }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 20%;\"&gt;\n"
+"\t\t\t\t{{ row.item_name }}\n"
+"\t\t\t\t{% if row.item_code != row.item_name -%}\n"
+"\t\t\t\t&lt;br&gt;Item Code: {{ row.item_code}}\n"
+"\t\t\t\t{%- endif %}\n"
+"\t\t\t&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 37%;\"&gt;\n"
+"\t\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row.description "
+"}}&lt;/div&gt;&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row.qty }} {{"
+" row.uom or row.stock_uom }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"\t\t\t\trow.get_formatted(\"rate\", doc) }}&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
+"\t\t\t\trow.get_formatted(\"amount\", doc) }}&lt;/td&gt;\n"
+"\t\t&lt;/tr&gt;\n"
+"\t\t{%- endfor -%}\n"
+"\t&lt;/tbody&gt;\n"
+"&lt;/table&gt;</code></pre>\n"
+"<hr>\n"
+"<h4>Common Functions</h4>\n"
+"<table class=\"table table-bordered\">\n"
+"\t<tbody>\n"
+"\t\t<tr>\n"
+"\t\t\t<td style=\"width: 30%;\"><code>doc.get_formatted(\"[fieldname]\", "
+"[parent_doc])</code></td>\n"
+"\t\t\t<td>Get document value formatted as Date, Currency, etc. Pass "
+"parent <code>doc</code> for currency type fields.</td>\n"
+"\t\t</tr>\n"
+"\t\t<tr>\n"
+"\t\t\t<td style=\"width: 30%;\"><code>frappe.db.get_value(\"[doctype]\", "
+"\"[name]\", \"fieldname\")</code></td>\n"
+"\t\t\t<td>Get value from another document.</td>\n"
+"\t\t</tr>\n"
+"\t</tbody>\n"
+"</table>\n"
+msgstr ""
+
+msgid "Format Data"
+msgstr ""
+
+msgid "Print Format Builder"
+msgstr ""
+
+msgid "Show Absolute Values"
+msgstr ""
+
+msgid ""
+"If checked, negative numeric values of Currency, Quantity or Count would "
+"be shown as positive"
+msgstr ""
+
+msgid "Print Format Builder Beta"
+msgstr ""
+
+msgid "Margin Top"
+msgstr ""
+
+msgid "Margin Bottom"
+msgstr ""
+
+msgid "Margin Left"
+msgstr ""
+
+msgid "Margin Right"
+msgstr ""
+
+msgid "Font Size"
+msgstr ""
+
+msgid "Page Number"
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Top Left"
+msgstr ""
+
+msgid "Bottom Left"
+msgstr ""
+
+msgid "Standard Print Format cannot be updated"
+msgstr ""
+
+msgid "{0} are required"
+msgstr ""
+
+msgid "{0} is now default print format for {1} doctype"
+msgstr ""
+
+msgid "Print Format Field Template"
+msgstr ""
+
+msgid "Default Template For Field"
+msgstr ""
+
+msgid "Template File"
+msgstr ""
+
+msgid "Enable developer mode to create a standard Print Template"
+msgstr ""
+
+msgid "A template already exists for field {0} of {1}"
+msgstr ""
+
+msgid "Duplicate Entry"
+msgstr ""
+
+msgid "Print Heading"
+msgstr ""
+
+msgid "PDF Settings"
+msgstr ""
+
+msgid "Send Print as PDF"
+msgstr ""
+
+msgid "Send Email Print Attachments as PDF (Recommended)"
+msgstr ""
+
+msgid "Repeat Header and Footer in PDF"
+msgstr ""
+
+msgid "PDF Page Size"
+msgstr ""
+
+msgid "A0"
+msgstr ""
+
+msgid "A1"
+msgstr ""
+
+msgid "A2"
+msgstr ""
+
+msgid "A3"
+msgstr ""
+
+msgid "A4"
+msgstr ""
+
+msgid "A5"
+msgstr ""
+
+msgid "A6"
+msgstr ""
+
+msgid "A7"
+msgstr ""
+
+msgid "A8"
+msgstr ""
+
+msgid "A9"
+msgstr ""
+
+msgid "B0"
+msgstr ""
+
+msgid "B1"
+msgstr ""
+
+msgid "B2"
+msgstr ""
+
+msgid "B3"
+msgstr ""
+
+msgid "B4"
+msgstr ""
+
+msgid "B5"
+msgstr ""
+
+msgid "B6"
+msgstr ""
+
+msgid "B7"
+msgstr ""
+
+msgid "B8"
+msgstr ""
+
+msgid "B9"
+msgstr ""
+
+msgid "B10"
+msgstr ""
+
+msgid "C5E"
+msgstr ""
+
+msgid "Comm10E"
+msgstr ""
+
+msgid "DLE"
+msgstr ""
+
+msgid "Executive"
+msgstr ""
+
+msgid "Folio"
+msgstr ""
+
+msgid "Ledger"
+msgstr ""
+
+msgid "Legal"
+msgstr ""
+
+msgid "Letter"
+msgstr ""
+
+msgid "Tabloid"
+msgstr ""
+
+msgid "Page Settings"
+msgstr ""
+
+msgid "Print with letterhead"
+msgstr ""
+
+msgid "Always add \"Draft\" Heading for printing draft documents"
+msgstr ""
+
+msgid "Allow page break inside tables"
+msgstr ""
+
+msgid "Allow Print for Cancelled"
+msgstr ""
+
+msgid "Print Server"
+msgstr ""
+
+msgid "Enable Print Server"
+msgstr ""
+
+msgid "Enable Raw Printing"
+msgstr ""
+
+msgid "Print Style"
+msgstr ""
+
+msgid "Print Style Preview"
+msgstr ""
+
+msgid "Fonts"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Helvetica Neue"
+msgstr ""
+
+msgid "Arial"
+msgstr ""
+
+msgid "Helvetica"
+msgstr ""
+
+msgid "Inter"
+msgstr ""
+
+msgid "Verdana"
+msgstr ""
+
+msgid "Monospace"
+msgstr ""
+
+msgid "In points. Default is 9."
+msgstr ""
+
+msgid "PDF Page Height (in mm)"
+msgstr ""
+
+msgid "PDF Page Width (in mm)"
+msgstr ""
+
+msgid "Page height and width cannot be zero"
+msgstr ""
+
+msgid "Print Style Name"
+msgstr ""
+
+msgid "CSS"
+msgstr ""
+
+msgid "Standard Print Style cannot be changed. Please duplicate to edit."
+msgstr ""
+
+msgid "Appreciation"
+msgstr ""
+
+msgid "Criticism"
+msgstr ""
+
+msgid "Review"
+msgstr ""
+
+msgid "Revert"
+msgstr ""
+
+msgid "Points"
+msgstr ""
+
+msgid "Reverted"
+msgstr ""
+
+msgid "Revert Of"
+msgstr ""
+
+msgid "You cannot give review points to yourself"
+msgstr ""
+
+msgid "This document cannot be reverted"
+msgstr ""
+
+msgid "{0} gained {1} point for {2} {3}"
+msgstr ""
+
+msgid "{0} gained {1} points for {2} {3}"
+msgstr ""
+
+msgid "{0} appreciated your work on {1} with {2} point"
+msgstr ""
+
+msgid "{0} appreciated your work on {1} with {2} points"
+msgstr ""
+
+msgid "{0} criticized your work on {1} with {2} point"
+msgstr ""
+
+msgid "{0} criticized your work on {1} with {2} points"
+msgstr ""
+
+msgid "{0} reverted your point on {1}"
+msgstr ""
+
+msgid "{0} reverted your points on {1}"
+msgstr ""
+
+msgid "You gained {0} point"
+msgstr ""
+
+msgid "You gained {0} points"
+msgstr ""
+
+msgid "You do not have enough review points"
+msgstr ""
+
+msgid "Stats based on last month's performance (from {0} to {1})"
+msgstr ""
+
+msgid "Stats based on last week's performance (from {0} to {1})"
+msgstr ""
+
+msgid "Rule Name"
+msgstr ""
+
+msgid ""
+"If the condition is satisfied user will be rewarded with the points. eg. "
+"doc.status == 'Closed'\n"
+msgstr ""
+
+msgid "User Field"
+msgstr ""
+
+msgid "The user from this field will be rewarded points"
+msgstr ""
+
+msgid "Multiplier Field"
+msgstr ""
+
+msgid "Maximum Points"
+msgstr ""
+
+msgid ""
+"Maximum points allowed after multiplying points with the multiplier value"
+"\n"
+"(Note: For no limit leave this field empty or set 0)"
+msgstr ""
+
+msgid "For Document Event"
+msgstr ""
+
+msgid "Allot Points To Assigned Users"
+msgstr ""
+
+msgid "Users assigned to the reference document will get points."
+msgstr ""
+
+msgid "Field To Check"
+msgstr ""
+
+msgid "Apply Only Once"
+msgstr ""
+
+msgid "Apply this rule only once per document"
+msgstr ""
+
+msgid "Reference document has been cancelled"
+msgstr ""
+
+msgid "Energy Point Settings"
+msgstr ""
+
+msgid "Review Levels"
+msgstr ""
+
+msgid "Point Allocation Periodicity"
+msgstr ""
+
+msgid "Last Point Allocation Date"
+msgstr ""
+
+msgid "Review Level"
+msgstr ""
+
+msgid "Level Name"
+msgstr ""
+
+msgid "Review Points"
+msgstr ""
+
+msgid "The comment cannot be empty"
+msgstr ""
+
+msgid "Comments cannot have links or email addresses"
+msgstr ""
+
+msgid "View Comment"
+msgstr ""
+
+msgid "New Comment on {0}: {1}"
+msgstr ""
+
+msgid "Like on {0}: {1}"
+msgstr ""
+
+msgid "You have received a ❤️ like on your blog post"
+msgstr ""
+
+msgid "View Blog Post"
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid "this shouldn't break"
+msgstr ""
+
+msgid "just now"
+msgstr ""
+
+msgid "1 minute ago"
+msgstr ""
+
+msgid "3 minutes ago"
+msgstr ""
+
+msgid "1 hour ago"
+msgstr ""
+
+msgid "2 hours ago"
+msgstr ""
+
+msgid "Yesterday"
+msgstr ""
+
+msgid "5 days ago"
+msgstr ""
+
+msgid "1 week ago"
+msgstr ""
+
+msgid "2 weeks ago"
+msgstr ""
+
+msgid "1 month ago"
+msgstr ""
+
+msgid "2 months ago"
+msgstr ""
+
+msgid "1 year ago"
+msgstr ""
+
+msgid "2 years ago"
+msgstr ""
+
+msgid "Phone Number {0} set in field {1} is not valid."
+msgstr ""
+
+msgid "Invalid Phone Number"
+msgstr ""
+
+msgid "Please select a country code for field {1}."
+msgstr ""
+
+msgid "Country Code Required"
+msgstr ""
+
+msgid "{0} is not a valid Phone Number"
+msgstr ""
+
+msgid "{0} is not a valid Name"
+msgstr ""
+
+msgid "'{0}' is not a valid URL"
+msgstr ""
+
+msgid ""
+"Using enqueue with is_async=False outside of tests is not recommended, "
+"use now=True instead."
+msgstr ""
+
+msgid "Queue should be one of {0}"
+msgstr ""
+
+msgid "New {} releases for the following apps are available"
+msgstr ""
+
+msgid "New updates are available"
+msgstr ""
+
+msgid "File not attached"
+msgstr ""
+
+msgid "Unable to open attached file. Did you export it as CSV?"
+msgstr ""
+
+msgid "Invalid CSV Format"
+msgstr ""
+
+msgid "Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
+msgstr ""
+
+msgid "Not a valid Comma Separated Value (CSV File)"
+msgstr ""
+
+msgid "{0} must be one of {1}"
+msgstr ""
+
+msgid "Google Sheets URL is invalid or not publicly accessible."
+msgstr ""
+
+msgid ""
+"Google Sheets URL must end with \"gid={number}\". Copy and paste the URL "
+"from the browser address bar and try again."
+msgstr ""
+
+msgid "Incorrect URL"
+msgstr ""
+
+msgid "\"{0}\" is not a valid Google Sheets URL"
+msgstr ""
+
+msgid "Please check the filter values set for Dashboard Chart: {}"
+msgstr ""
+
+msgid "Invalid Filter Value"
+msgstr ""
+
+msgid "{} is not a valid date string."
+msgstr ""
+
+msgid "Invalid Date"
+msgstr ""
+
+msgid "Please select a valid date filter"
+msgstr ""
+
+msgid "Unknown Rounding Method: {}"
+msgstr ""
+
+msgid "Cent"
+msgstr ""
+
+msgid "Zero"
+msgstr ""
+
+msgid "and"
+msgstr ""
+
+msgid "only."
+msgstr ""
+
+msgid "{0} minutes ago"
+msgstr ""
+
+msgid "{0} hours ago"
+msgstr ""
+
+msgid "{0} days ago"
+msgstr ""
+
+msgid "{0} weeks ago"
+msgstr ""
+
+msgid "{0} months ago"
+msgstr ""
+
+msgid "{0} years ago"
+msgstr ""
+
+msgid "{0} or {1}"
+msgstr ""
+
+msgid "{0} and {1}"
+msgstr ""
+
+msgid "Filter must be a tuple or list (in a list)"
+msgstr ""
+
+msgid "Filter must have 4 values (doctype, fieldname, operator, value): {0}"
+msgstr ""
+
+msgid "Operator must be one of {0}"
+msgstr ""
+
+msgid "Invalid field name {0}"
+msgstr ""
+
+msgid "{} Invalid python code on line {}"
+msgstr ""
+
+msgid "Syntax Error"
+msgstr ""
+
+msgid "{} Possibly invalid python code. <br>{}"
+msgstr ""
+
+msgid "Please select a file or url"
+msgstr ""
+
+msgid "No file attached"
+msgstr ""
+
+msgid "This month"
+msgstr ""
+
+msgid "Goal"
+msgstr ""
+
+msgid "Syntax error in template"
+msgstr ""
+
+msgid "Illegal template"
+msgstr ""
+
+msgid "Web Template is not specified"
+msgstr ""
+
+msgid "Nested set error. Please contact the Administrator."
+msgstr ""
+
+msgid "Rebuilding of tree is not supported for {}"
+msgstr ""
+
+msgid "Invalid Action"
+msgstr ""
+
+msgid "Item cannot be added to its own descendants"
+msgstr ""
+
+msgid "Root {0} cannot be deleted"
+msgstr ""
+
+msgid "Cannot delete {0} as it has child nodes"
+msgstr ""
+
+msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
+msgstr ""
+
+msgid "Multiple root nodes not allowed."
+msgstr ""
+
+msgid "{0} {1} cannot be a leaf node as it has children"
+msgstr ""
+
+msgid "Email not verified with {0}"
+msgstr ""
+
+msgid "Token is missing"
+msgstr ""
+
+msgid "Please ensure that your profile has an email address"
+msgstr ""
+
+msgid "User {0} is disabled"
+msgstr ""
+
+msgid "Password not found for {0} {1} {2}"
+msgstr ""
+
+msgid "Most probably your password is too long."
+msgstr ""
+
+msgid "Incorrect User or Password"
+msgstr ""
+
+msgid "Encryption key is in invalid format!"
+msgstr ""
+
+msgid "Encryption key is invalid! Please check site_config.json"
+msgstr ""
+
+msgid "Use a few words, avoid common phrases."
+msgstr ""
+
+msgid "No need for symbols, digits, or uppercase letters."
+msgstr ""
+
+msgid "Better add a few more letters or another word"
+msgstr ""
+
+msgid "Short keyboard patterns are easy to guess"
+msgstr ""
+
+msgid "Make use of longer keyboard patterns"
+msgstr ""
+
+msgid "Straight rows of keys are easy to guess"
+msgstr ""
+
+msgid "Try to use a longer keyboard pattern with more turns"
+msgstr ""
+
+msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
+msgstr ""
+
+msgid "Try to avoid repeated words and characters"
+msgstr ""
+
+msgid "Repeats like \"aaa\" are easy to guess"
+msgstr ""
+
+msgid "Let's avoid repeated words and characters"
+msgstr ""
+
+msgid "Avoid sequences like abc or 6543 as they are easy to guess"
+msgstr ""
+
+msgid "Recent years are easy to guess."
+msgstr ""
+
+msgid "Avoid recent years."
+msgstr ""
+
+msgid "Avoid years that are associated with you."
+msgstr ""
+
+msgid "Dates are often easy to guess."
+msgstr ""
+
+msgid "Avoid dates and years that are associated with you."
+msgstr ""
+
+msgid "This is a top-10 common password."
+msgstr ""
+
+msgid "This is a top-100 common password."
+msgstr ""
+
+msgid "This is a very common password."
+msgstr ""
+
+msgid "This is similar to a commonly used password."
+msgstr ""
+
+msgid "A word by itself is easy to guess."
+msgstr ""
+
+msgid "Names and surnames by themselves are easy to guess."
+msgstr ""
+
+msgid "Common names and surnames are easy to guess."
+msgstr ""
+
+msgid "Capitalization doesn't help very much."
+msgstr ""
+
+msgid "All-uppercase is almost as easy to guess as all-lowercase."
+msgstr ""
+
+msgid "Predictable substitutions like '@' instead of 'a' don't help very much."
+msgstr ""
+
+msgid "PDF generation failed because of broken image links"
+msgstr ""
+
+msgid "You need to install pycups to use this feature!"
+msgstr ""
+
+msgid "PDF generation failed"
+msgstr ""
+
+msgid "Printing failed"
+msgstr ""
+
+msgid ""
+"You need to be logged in and have System Manager Role to be able to "
+"access backups."
+msgstr ""
+
+msgid "You don't have permission to access this file"
+msgstr ""
+
+msgid "Updating"
+msgstr ""
+
+msgid "The system is being updated. Please refresh again after a few moments."
+msgstr ""
+
+msgid "Please Enable Server Scripts"
+msgstr ""
+
+msgid "Query must be of SELECT or read-only WITH type."
+msgstr ""
+
+msgid "Unsafe SQL query"
+msgstr ""
+
+msgid "Failed to aquire lock: {}. Lock may be held by another process."
+msgstr ""
+
+msgid "You can manually remove the lock if you think it's safe: {}"
+msgstr ""
+
+msgid "Invalid Link"
+msgstr ""
+
+msgid ""
+"This link is invalid or expired. Please make sure you have pasted "
+"correctly."
+msgstr ""
+
+msgid "No Letterhead"
+msgstr ""
+
+msgid "get_shade method has been deprecated."
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "About Us Settings"
+msgstr ""
+
+msgid "Company Introduction"
+msgstr ""
+
+msgid "Introduce your company to the website visitor."
+msgstr ""
+
+msgid "Org History"
+msgstr ""
+
+msgid "Org History Heading"
+msgstr ""
+
+msgid "\"Company History\""
+msgstr ""
+
+msgid "Team Members"
+msgstr ""
+
+msgid "Team Members Heading"
+msgstr ""
+
+msgid "\"Team Members\" or \"Management\""
+msgstr ""
+
+msgid "More content for the bottom of the page."
+msgstr ""
+
+msgid "Page Title"
+msgstr ""
+
+msgid "Team Members Subtitle"
+msgstr ""
+
+msgid "About Us Team Member"
+msgstr ""
+
+msgid "Image Link"
+msgstr ""
+
+msgid "Blog Category"
+msgstr ""
+
+msgid "Preview Image"
+msgstr ""
+
+msgid "Posts"
+msgstr ""
+
+msgid "Blog Post"
+msgstr ""
+
+msgid "Published On"
+msgstr ""
+
+msgid "Blog Intro"
+msgstr ""
+
+msgid ""
+"Description for listing page, in plain text, only a couple of lines. (max"
+" 200 characters)"
+msgstr ""
+
+msgid "Content (Markdown)"
+msgstr ""
+
+msgid "Content (HTML)"
+msgstr ""
+
+msgid "Disable Comments"
+msgstr ""
+
+msgid "Meta Description"
+msgstr ""
+
+msgid "Meta Image"
+msgstr ""
+
+msgid "Google Snippet Preview"
+msgstr ""
+
+msgid "This is an example Google SERP Preview."
+msgstr ""
+
+msgid "Meta Tags"
+msgstr ""
+
+msgid "Read Time"
+msgstr ""
+
+msgid "in minutes"
+msgstr ""
+
+msgid "Featured"
+msgstr ""
+
+msgid "Hide CTA"
+msgstr ""
+
+msgid "Meta Title"
+msgstr ""
+
+msgid "Enable Email Notification"
+msgstr ""
+
+msgid ""
+"Enable email notification for any comment or likes received on your Blog "
+"Post."
+msgstr ""
+
+msgid "Disable Likes"
+msgstr ""
+
+msgid "A featured post must have a cover image"
+msgstr ""
+
+msgid "Blog"
+msgstr ""
+
+msgid "Posts filed under {0}"
+msgstr ""
+
+msgid "Posts by {0}"
+msgstr ""
+
+msgid "Filtered by \"{0}\""
+msgstr ""
+
+msgid "No comments yet"
+msgstr ""
+
+msgid "1 comment"
+msgstr ""
+
+msgid "{0} comments"
+msgstr ""
+
+msgid "Blog Settings"
+msgstr ""
+
+msgid "Blog Title"
+msgstr ""
+
+msgid "Blog Introduction"
+msgstr ""
+
+msgid "Enable Social Sharing"
+msgstr ""
+
+msgid "Show \"Call to Action\" in Blog"
+msgstr ""
+
+msgid "Call to Action"
+msgstr ""
+
+msgid "CTA Label"
+msgstr ""
+
+msgid "CTA URL"
+msgstr ""
+
+msgid "Rate Limits"
+msgstr ""
+
+msgid "Comment limit"
+msgstr ""
+
+msgid "Comment limit per hour"
+msgstr ""
+
+msgid "Allow Guest to comment"
+msgstr ""
+
+msgid "Browse by category"
+msgstr ""
+
+msgid "Like limit"
+msgstr ""
+
+msgid "Like limit per hour"
+msgstr ""
+
+msgid "Short Name"
+msgstr ""
+
+msgid "Will be used in url (usually first name)."
+msgstr ""
+
+msgid "Avatar"
+msgstr ""
+
+msgid "Company History"
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Contact Us Settings"
+msgstr ""
+
+msgid "Introduction"
+msgstr ""
+
+msgid "Forward To Email Address"
+msgstr ""
+
+msgid "Send enquiries to this email address"
+msgstr ""
+
+msgid "Default: \"Contact Us\""
+msgstr ""
+
+msgid "Introductory information for the Contact Us Page"
+msgstr ""
+
+msgid "Query Options"
+msgstr ""
+
+msgid ""
+"Contact options, like \"Sales Query, Support Query\" etc each on a new "
+"line or separated by commas."
+msgstr ""
+
+msgid "City"
+msgstr ""
+
+msgid "Pincode"
+msgstr ""
+
+msgid "Email Id"
+msgstr ""
+
+msgid "Skype"
+msgstr ""
+
+msgid "Discussion Reply"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
+msgid "Topic"
+msgstr ""
+
+msgid "Discussion Topic"
+msgstr ""
+
+msgid "Help Article"
+msgstr ""
+
+msgid "Author"
+msgstr ""
+
+msgid "Beginner"
+msgstr ""
+
+msgid "Intermediate"
+msgstr ""
+
+msgid "Expert"
+msgstr ""
+
+msgid "Likes"
+msgstr ""
+
+msgid "Helpful"
+msgstr ""
+
+msgid "Not Helpful"
+msgstr ""
+
+msgid "Knowledge Base Editor"
+msgstr ""
+
+msgid "Knowledge Base Contributor"
+msgstr ""
+
+msgid "Knowledge Base"
+msgstr ""
+
+msgid "Help Category"
+msgstr ""
+
+msgid "Category Name"
+msgstr ""
+
+msgid "Category Description"
+msgstr ""
+
+msgid "Help Articles"
+msgstr ""
+
+msgid "Personal Data Deletion Request"
+msgstr ""
+
+msgid "Pending Verification"
+msgstr ""
+
+msgid "Pending Approval"
+msgstr ""
+
+msgid "On Hold"
+msgstr ""
+
+msgid "Anonymization Matrix"
+msgstr ""
+
+msgid "Deletion Steps "
+msgstr ""
+
+msgid "Confirm Deletion of Account"
+msgstr ""
+
+msgid "User {0} has requested for data deletion"
+msgstr ""
+
+msgid "Approval Required"
+msgstr ""
+
+msgid "This request has not yet been approved by the user."
+msgstr ""
+
+msgid "Your account has been deleted"
+msgstr ""
+
+msgid ""
+"The User record for this request has been auto-deleted due to inactivity "
+"by system admins."
+msgstr ""
+
+msgid ""
+"The process for deletion of {0} data associated with {1} has been "
+"initiated."
+msgstr ""
+
+msgid "Link Expired"
+msgstr ""
+
+msgid "This link has already been activated for verification."
+msgstr ""
+
+msgid "Personal Data Deletion Step"
+msgstr ""
+
+msgid "Partial"
+msgstr ""
+
+msgid "Filtered By"
+msgstr ""
+
+msgid "Personal Data Download Request"
+msgstr ""
+
+msgid "User Name"
+msgstr ""
+
+msgid "Download Your Data"
+msgstr ""
+
+msgid "Portal Menu Item"
+msgstr ""
+
+msgid "Target"
+msgstr ""
+
+msgid "Portal Settings"
+msgstr ""
+
+msgid "Default Role at Time of Signup"
+msgstr ""
+
+msgid "Standard Sidebar Menu"
+msgstr ""
+
+msgid "Hide Standard Menu"
+msgstr ""
+
+msgid "Portal Menu"
+msgstr ""
+
+msgid "Custom Sidebar Menu"
+msgstr ""
+
+msgid "Custom Menu Items"
+msgstr ""
+
+msgid "Default Portal Home"
+msgstr ""
+
+msgid "Example: \"/desk\""
+msgstr ""
+
+msgid "Social Link Settings"
+msgstr ""
+
+msgid "Social Link Type"
+msgstr ""
+
+msgid "facebook"
+msgstr ""
+
+msgid "linkedin"
+msgstr ""
+
+msgid "twitter"
+msgstr ""
+
+msgid "email"
+msgstr ""
+
+msgid "Background Color"
+msgstr ""
+
+msgid "Top Bar Item"
+msgstr ""
+
+msgid "Parent Label"
+msgstr ""
+
+msgid ""
+"If you set this, this Item will come in a drop-down under the selected "
+"parent."
+msgstr ""
+
+msgid ""
+"Link to the page you want to open. Leave blank if you want to make it a "
+"group parent."
+msgstr ""
+
+msgid "Align Right"
+msgstr ""
+
+msgid "If Icon is set, it will be shown instead of Label"
+msgstr ""
+
+msgid "Open URL in a New Tab"
+msgstr ""
+
+msgid "Select DocType"
+msgstr ""
+
+msgid "Login Required"
+msgstr ""
+
+msgid "Allow Editing After Submit"
+msgstr ""
+
+msgid "Allow Multiple Responses"
+msgstr ""
+
+msgid "Allow Delete"
+msgstr ""
+
+msgid "Allow Print"
+msgstr ""
+
+msgid "Allow Comments"
+msgstr ""
+
+msgid "Show Attachments"
+msgstr ""
+
+msgid "Allow Incomplete Forms"
+msgstr ""
+
+msgid "Allow saving if mandatory fields are not filled"
+msgstr ""
+
+msgid "Web Form Fields"
+msgstr ""
+
+msgid "Max Attachment Size (in MB)"
+msgstr ""
+
+msgid ""
+"For help see <a href=\"https://frappeframework.com/docs/user/en/guides"
+"/portal-development/web-forms\" target=\"_blank\">Client Script API and "
+"Examples</a>"
+msgstr ""
+
+msgid "Submit Button Label"
+msgstr ""
+
+msgid "Message to be displayed on successful completion"
+msgstr ""
+
+msgid "Success URL"
+msgstr ""
+
+msgid "Go to this URL after completing the form"
+msgstr ""
+
+msgid "Show Sidebar"
+msgstr ""
+
+msgid "Breadcrumbs"
+msgstr ""
+
+msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
+msgstr ""
+
+msgid "Apply Document Permissions"
+msgstr ""
+
+msgid "Show List"
+msgstr ""
+
+msgid "List Columns"
+msgstr ""
+
+msgid "Website Sidebar"
+msgstr ""
+
+msgid "List Setting Message"
+msgstr ""
+
+msgid "Success Title"
+msgstr ""
+
+msgid "Sidebar Settings"
+msgstr ""
+
+msgid "After Submission"
+msgstr ""
+
+msgid "Scripting / Style"
+msgstr ""
+
+msgid "Meta"
+msgstr ""
+
+msgid "You need to be in developer mode to edit a Standard Web Form"
+msgstr ""
+
+msgid "Following fields are missing:"
+msgstr ""
+
+msgid "You need to be logged in to access this {0}."
+msgstr ""
+
+msgid "You don't have the permissions to access this document"
+msgstr ""
+
+msgid "New {0}"
+msgstr ""
+
+msgid "My Account"
+msgstr ""
+
+msgid "Mandatory Information missing:"
+msgstr ""
+
+msgid "You are not allowed to update this Web Form Document"
+msgstr ""
+
+msgid "You must login to submit this form"
+msgstr ""
+
+msgid "You must be logged in to use this form."
+msgstr ""
+
+msgid "You don't have permission to access the {0} DocType."
+msgstr ""
+
+msgid "Web Form Field"
+msgstr ""
+
+msgid "Page Break"
+msgstr ""
+
+msgid "Custom Label"
+msgstr ""
+
+msgid "Allow Read On All Link Options"
+msgstr ""
+
+msgid "Display Depends On"
+msgstr ""
+
+msgid "Show in filter"
+msgstr ""
+
+msgid "Max Length"
+msgstr ""
+
+msgid "Max Value"
+msgstr ""
+
+msgid "Web Form List Column"
+msgstr ""
+
+msgid "Slideshow"
+msgstr ""
+
+msgid "Show Title"
+msgstr ""
+
+msgid "Page Builder"
+msgstr ""
+
+msgid "Main Section"
+msgstr ""
+
+msgid "Main Section (Markdown)"
+msgstr ""
+
+msgid "Main Section (HTML)"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "Insert Style"
+msgstr ""
+
+msgid "Text Align"
+msgstr ""
+
+msgid "Sidebar and Comments"
+msgstr ""
+
+msgid "Enable Comments"
+msgstr ""
+
+msgid "0 is highest"
+msgstr ""
+
+msgid "Header and Breadcrumbs"
+msgstr ""
+
+msgid "HTML for header section. Optional"
+msgstr ""
+
+msgid "Add Custom Tags"
+msgstr ""
+
+msgid "Dynamic Template"
+msgstr ""
+
+msgid "Page Building Blocks"
+msgstr ""
+
+msgid "Full Width"
+msgstr ""
+
+msgid "Dynamic Route"
+msgstr ""
+
+msgid ""
+"Map route parameters into form variables. Example "
+"<code>/project/&lt;name&gt;</code>"
+msgstr ""
+
+msgid "Context Script"
+msgstr ""
+
+msgid ""
+"<p>Set context before rendering a template. Example:</p><p>\n"
+"</p><div><pre><code>\n"
+"context.project = frappe.get_doc(\"Project\", frappe.form_dict.name)\n"
+"</code></pre></div>"
+msgstr ""
+
+msgid "Scripting"
+msgstr ""
+
+msgid "Publishing Dates"
+msgstr ""
+
+msgid "End Date cannot be before Start Date!"
+msgstr ""
+
+msgid "Clearing end date, as it cannot be in the past for published pages."
+msgstr ""
+
+msgid "Web Page Block"
+msgstr ""
+
+msgid "Edit Values"
+msgstr ""
+
+msgid "Web Template Values"
+msgstr ""
+
+msgid "CSS Class"
+msgstr ""
+
+msgid "Add Gray Background"
+msgstr ""
+
+msgid "Add Container"
+msgstr ""
+
+msgid "Hide Block"
+msgstr ""
+
+msgid "Add Space at Top"
+msgstr ""
+
+msgid "Add Space at Bottom"
+msgstr ""
+
+msgid "Add Border at Top"
+msgstr ""
+
+msgid "Add Border at Bottom"
+msgstr ""
+
+msgid "Add Background Image"
+msgstr ""
+
+msgid "Background Image"
+msgstr ""
+
+msgid "Section ID"
+msgstr ""
+
+msgid ""
+"IDs must contain only alphanumeric characters, not contain spaces, and "
+"should be unique."
+msgstr ""
+
+msgid "Web Page View"
+msgstr ""
+
+msgid "Referrer"
+msgstr ""
+
+msgid "Browser"
+msgstr ""
+
+msgid "Browser Version"
+msgstr ""
+
+msgid "Is Unique"
+msgstr ""
+
+msgid "User Agent"
+msgstr ""
+
+msgid "Visitor ID"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Component"
+msgstr ""
+
+msgid "Section"
+msgstr ""
+
+msgid "Navbar"
+msgstr ""
+
+msgid "Enable developer mode to create a standard Web Template"
+msgstr ""
+
+msgid "Web Template Field"
+msgstr ""
+
+msgid "Table Break"
+msgstr ""
+
+msgid "Website Meta Tag"
+msgstr ""
+
+msgid "Website Route Meta"
+msgstr ""
+
+msgid "Website Route Redirect"
+msgstr ""
+
+msgid "Website Script"
+msgstr ""
+
+msgid "Website Settings"
+msgstr ""
+
+msgid "Landing Page"
+msgstr ""
+
+msgid ""
+"Link that is the website home page. Standard Links (home, login, "
+"products, blog, about, contact)"
+msgstr ""
+
+msgid "Title Prefix"
+msgstr ""
+
+msgid "Show title in browser window as \"Prefix - title\""
+msgstr ""
+
+msgid "Theme"
+msgstr ""
+
+msgid "Website Theme Image"
+msgstr ""
+
+msgid "Website Theme Image Link"
+msgstr ""
+
+msgid "Brand"
+msgstr ""
+
+msgid "Brand Image"
+msgstr ""
+
+msgid ""
+"Select an image of approx width 150px with a transparent background for "
+"best results."
+msgstr ""
+
+msgid "Brand HTML"
+msgstr ""
+
+msgid ""
+"Brand is what appears on the top-left of the toolbar. If it is an image, "
+"make sure it\n"
+"has a transparent background and use the &lt;img /&gt; tag. Keep size as "
+"200px x 30px"
+msgstr ""
+
+msgid "Set Banner from Image"
+msgstr ""
+
+msgid "Include Search in Top Bar"
+msgstr ""
+
+msgid "Top Bar Items"
+msgstr ""
+
+msgid "Banner"
+msgstr ""
+
+msgid "Banner HTML"
+msgstr ""
+
+msgid "Banner is above the Top Menu Bar."
+msgstr ""
+
+msgid "Footer Items"
+msgstr ""
+
+msgid "Copyright"
+msgstr ""
+
+msgid "Address and other legal information you may want to put in the footer."
+msgstr ""
+
+msgid "Hide Footer Signup"
+msgstr ""
+
+msgid "Google Analytics ID"
+msgstr ""
+
+msgid "Login Page"
+msgstr ""
+
+msgid "FavIcon"
+msgstr ""
+
+msgid ""
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a"
+" favicon generator. [favicon-generator.org]"
+msgstr ""
+
+msgid "Subdomain"
+msgstr ""
+
+msgid "Sub-domain provided by erpnext.com"
+msgstr ""
+
+msgid "Disable Signup"
+msgstr ""
+
+msgid "Disable Customer Signup link in Login page"
+msgstr ""
+
+msgid "Header, Robots"
+msgstr ""
+
+msgid "&lt;head&gt; HTML"
+msgstr ""
+
+msgid ""
+"Added HTML in the &lt;head&gt; section of the web page, primarily used "
+"for website verification and SEO"
+msgstr ""
+
+msgid "Robots.txt"
+msgstr ""
+
+msgid "Route Redirects"
+msgstr ""
+
+msgid "Enable Google Indexing"
+msgstr ""
+
+msgid ""
+"To use Google Indexing, enable <a href=\"/app/google-settings\">Google "
+"Settings</a>."
+msgstr ""
+
+msgid "Indexing Refresh Token"
+msgstr ""
+
+msgid "Indexing Authorization Code"
+msgstr ""
+
+msgid "Authorize API Indexing  Access"
+msgstr ""
+
+msgid "Enable In App Website Tracking"
+msgstr ""
+
+msgid "Footer Logo"
+msgstr ""
+
+msgid "Call To Action"
+msgstr ""
+
+msgid "Call To Action URL"
+msgstr ""
+
+msgid "Hide Login"
+msgstr ""
+
+msgid "Navbar Template"
+msgstr ""
+
+msgid "Navbar Template Values"
+msgstr ""
+
+msgid "Footer Template"
+msgstr ""
+
+msgid "Footer Template Values"
+msgstr ""
+
+msgid "Google Analytics Anonymize IP"
+msgstr ""
+
+msgid "Show Language Picker"
+msgstr ""
+
+msgid "App Logo"
+msgstr ""
+
+msgid "Account Deletion Settings"
+msgstr ""
+
+msgid "Show Account Deletion Link in My Account Page"
+msgstr ""
+
+msgid "Auto Account Deletion within (Hours)"
+msgstr ""
+
+msgid "Footer \"Powered By\""
+msgstr ""
+
+msgid "Splash Image"
+msgstr ""
+
+msgid "Footer Details"
+msgstr ""
+
+msgid "Custom Footer"
+msgstr ""
+
+msgid "Redirects"
+msgstr ""
+
+msgid "Analytics"
+msgstr ""
+
+msgid "Invalid Home Page"
+msgstr ""
+
+msgid "{0} does not exist in row {1}"
+msgstr ""
+
+msgid "{0} in row {1} cannot have both URL and child items"
+msgstr ""
+
+msgid "Invalid redirect regex in row #{}: {}"
+msgstr ""
+
+msgid "Allow API Indexing Access"
+msgstr ""
+
+msgid "Log out"
+msgstr ""
+
+msgid "Sidebar Items"
+msgstr ""
+
+msgid "Website Sidebar Item"
+msgstr ""
+
+msgid "Website Slideshow"
+msgstr ""
+
+msgid "Slideshow Name"
+msgstr ""
+
+msgid ""
+"Note: For best results,  images must be of the same size and width must "
+"be greater than height."
+msgstr ""
+
+msgid "Slideshow Items"
+msgstr ""
+
+msgid "This goes above the slideshow."
+msgstr ""
+
+msgid "All Images attached to Website Slideshow should be public"
+msgstr ""
+
+msgid "Website Slideshow Item"
+msgstr ""
+
+msgid "URL to go to on clicking the slideshow image"
+msgstr ""
+
+msgid "Theme URL"
+msgstr ""
+
+msgid "JavaScript"
+msgstr ""
+
+msgid "Theme Configuration"
+msgstr ""
+
+msgid "Primary Color"
+msgstr ""
+
+msgid "Text Color"
+msgstr ""
+
+msgid "Dark Color"
+msgstr ""
+
+msgid "Stylesheet"
+msgstr ""
+
+msgid "Custom SCSS"
+msgstr ""
+
+msgid "Light Color"
+msgstr ""
+
+msgid "Font Properties"
+msgstr ""
+
+msgid "Button Rounded Corners"
+msgstr ""
+
+msgid "Button Shadows"
+msgstr ""
+
+msgid "Button Gradients"
+msgstr ""
+
+msgid "Custom Overrides"
+msgstr ""
+
+msgid "Ignored Apps"
+msgstr ""
+
+msgid "You are not allowed to delete a standard Website Theme"
+msgstr ""
+
+msgid "Please Duplicate this Website Theme to customize."
+msgstr ""
+
+msgid "Compiled Successfully"
+msgstr ""
+
+msgid "Website Theme Ignore App"
+msgstr ""
+
+msgid "Workflow Name"
+msgstr ""
+
+msgid "DocType on which this Workflow is applicable."
+msgstr ""
+
+msgid "Is Active"
+msgstr ""
+
+msgid "If checked, all other workflows become inactive."
+msgstr ""
+
+msgid "Don't Override Status"
+msgstr ""
+
+msgid "If Checked workflow status will not override status in list view"
+msgstr ""
+
+msgid "Send Email Alert"
+msgstr ""
+
+msgid "Emails will be sent with next possible workflow actions"
+msgstr ""
+
+msgid ""
+"Different \"States\" this document can exist in. Like \"Open\", \"Pending"
+" Approval\" etc."
+msgstr ""
+
+msgid ""
+"All possible Workflow States and roles of the workflow. Docstatus "
+"Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
+msgstr ""
+
+msgid "Transition Rules"
+msgstr ""
+
+msgid ""
+"Rules for how states are transitions, like next state and which role is "
+"allowed to change state etc."
+msgstr ""
+
+msgid "Transitions"
+msgstr ""
+
+msgid "Rules defining transition of state in the workflow."
+msgstr ""
+
+msgid "Workflow State Field"
+msgstr ""
+
+msgid ""
+"Field that represents the Workflow State of the transaction (if field is "
+"not present, a new hidden Custom Field will be created)"
+msgstr ""
+
+msgid "Created Custom Field {0} in {1}"
+msgstr ""
+
+msgid "{0} not a valid State"
+msgstr ""
+
+msgid "Cannot change state of Cancelled Document. Transition row {0}"
+msgstr ""
+
+msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
+msgstr ""
+
+msgid "Cannot cancel before submitting. See Transition {0}"
+msgstr ""
+
+msgid "Workflow Action"
+msgstr ""
+
+msgid "Workflow State"
+msgstr ""
+
+msgid "Completed By User"
+msgstr ""
+
+msgid "Completed By Role"
+msgstr ""
+
+msgid "Permitted Roles"
+msgstr ""
+
+msgid "{0}: {1} is set to state {2}"
+msgstr ""
+
+msgid "Document {0} has been set to state {1} by {2}"
+msgstr ""
+
+msgid "Workflow Action Master"
+msgstr ""
+
+msgid "Workflow Action Name"
+msgstr ""
+
+msgid "Workflow Action Permitted Role"
+msgstr ""
+
+msgid "Workflow Document State"
+msgstr ""
+
+msgid "Doc Status"
+msgstr ""
+
+msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
+msgstr ""
+
+msgid "Update Field"
+msgstr ""
+
+msgid "Only Allow Edit For"
+msgstr ""
+
+msgid "Next Action Email Template"
+msgstr ""
+
+msgid "Is Optional State"
+msgstr ""
+
+msgid "Workflow Action is not created for optional states"
+msgstr ""
+
+msgid "Icon will appear on the button"
+msgstr ""
+
+msgid "glass"
+msgstr ""
+
+msgid "music"
+msgstr ""
+
+msgid "search"
+msgstr ""
+
+msgid "envelope"
+msgstr ""
+
+msgid "heart"
+msgstr ""
+
+msgid "star"
+msgstr ""
+
+msgid "star-empty"
+msgstr ""
+
+msgid "user"
+msgstr ""
+
+msgid "film"
+msgstr ""
+
+msgid "th-large"
+msgstr ""
+
+msgid "th"
+msgstr ""
+
+msgid "th-list"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "remove"
+msgstr ""
+
+msgid "zoom-in"
+msgstr ""
+
+msgid "zoom-out"
+msgstr ""
+
+msgid "off"
+msgstr ""
+
+msgid "signal"
+msgstr ""
+
+msgid "cog"
+msgstr ""
+
+msgid "trash"
+msgstr ""
+
+msgid "home"
+msgstr ""
+
+msgid "file"
+msgstr ""
+
+msgid "time"
+msgstr ""
+
+msgid "road"
+msgstr ""
+
+msgid "download-alt"
+msgstr ""
+
+msgid "download"
+msgstr ""
+
+msgid "upload"
+msgstr ""
+
+msgid "inbox"
+msgstr ""
+
+msgid "play-circle"
+msgstr ""
+
+msgid "repeat"
+msgstr ""
+
+msgid "refresh"
+msgstr ""
+
+msgid "list-alt"
+msgstr ""
+
+msgid "lock"
+msgstr ""
+
+msgid "flag"
+msgstr ""
+
+msgid "headphones"
+msgstr ""
+
+msgid "volume-off"
+msgstr ""
+
+msgid "volume-down"
+msgstr ""
+
+msgid "volume-up"
+msgstr ""
+
+msgid "qrcode"
+msgstr ""
+
+msgid "barcode"
+msgstr ""
+
+msgid "tag"
+msgstr ""
+
+msgid "tags"
+msgstr ""
+
+msgid "book"
+msgstr ""
+
+msgid "bookmark"
+msgstr ""
+
+msgid "print"
+msgstr ""
+
+msgid "camera"
+msgstr ""
+
+msgid "font"
+msgstr ""
+
+msgid "bold"
+msgstr ""
+
+msgid "italic"
+msgstr ""
+
+msgid "text-height"
+msgstr ""
+
+msgid "text-width"
+msgstr ""
+
+msgid "align-left"
+msgstr ""
+
+msgid "align-center"
+msgstr ""
+
+msgid "align-right"
+msgstr ""
+
+msgid "align-justify"
+msgstr ""
+
+msgid "indent-left"
+msgstr ""
+
+msgid "indent-right"
+msgstr ""
+
+msgid "facetime-video"
+msgstr ""
+
+msgid "picture"
+msgstr ""
+
+msgid "pencil"
+msgstr ""
+
+msgid "map-marker"
+msgstr ""
+
+msgid "adjust"
+msgstr ""
+
+msgid "tint"
+msgstr ""
+
+msgid "edit"
+msgstr ""
+
+msgid "share"
+msgstr ""
+
+msgid "check"
+msgstr ""
+
+msgid "move"
+msgstr ""
+
+msgid "step-backward"
+msgstr ""
+
+msgid "fast-backward"
+msgstr ""
+
+msgid "backward"
+msgstr ""
+
+msgid "play"
+msgstr ""
+
+msgid "pause"
+msgstr ""
+
+msgid "stop"
+msgstr ""
+
+msgid "forward"
+msgstr ""
+
+msgid "fast-forward"
+msgstr ""
+
+msgid "step-forward"
+msgstr ""
+
+msgid "eject"
+msgstr ""
+
+msgid "chevron-left"
+msgstr ""
+
+msgid "chevron-right"
+msgstr ""
+
+msgid "plus-sign"
+msgstr ""
+
+msgid "minus-sign"
+msgstr ""
+
+msgid "remove-sign"
+msgstr ""
+
+msgid "ok-sign"
+msgstr ""
+
+msgid "question-sign"
+msgstr ""
+
+msgid "info-sign"
+msgstr ""
+
+msgid "screenshot"
+msgstr ""
+
+msgid "remove-circle"
+msgstr ""
+
+msgid "ok-circle"
+msgstr ""
+
+msgid "ban-circle"
+msgstr ""
+
+msgid "arrow-left"
+msgstr ""
+
+msgid "arrow-right"
+msgstr ""
+
+msgid "arrow-up"
+msgstr ""
+
+msgid "arrow-down"
+msgstr ""
+
+msgid "share-alt"
+msgstr ""
+
+msgid "resize-full"
+msgstr ""
+
+msgid "resize-small"
+msgstr ""
+
+msgid "plus"
+msgstr ""
+
+msgid "minus"
+msgstr ""
+
+msgid "asterisk"
+msgstr ""
+
+msgid "exclamation-sign"
+msgstr ""
+
+msgid "gift"
+msgstr ""
+
+msgid "leaf"
+msgstr ""
+
+msgid "fire"
+msgstr ""
+
+msgid "eye-open"
+msgstr ""
+
+msgid "eye-close"
+msgstr ""
+
+msgid "warning-sign"
+msgstr ""
+
+msgid "plane"
+msgstr ""
+
+msgid "calendar"
+msgstr ""
+
+msgid "random"
+msgstr ""
+
+msgid "comment"
+msgstr ""
+
+msgid "magnet"
+msgstr ""
+
+msgid "chevron-up"
+msgstr ""
+
+msgid "chevron-down"
+msgstr ""
+
+msgid "retweet"
+msgstr ""
+
+msgid "shopping-cart"
+msgstr ""
+
+msgid "folder-close"
+msgstr ""
+
+msgid "folder-open"
+msgstr ""
+
+msgid "resize-vertical"
+msgstr ""
+
+msgid "resize-horizontal"
+msgstr ""
+
+msgid "hdd"
+msgstr ""
+
+msgid "bullhorn"
+msgstr ""
+
+msgid "bell"
+msgstr ""
+
+msgid "certificate"
+msgstr ""
+
+msgid "thumbs-up"
+msgstr ""
+
+msgid "thumbs-down"
+msgstr ""
+
+msgid "hand-right"
+msgstr ""
+
+msgid "hand-left"
+msgstr ""
+
+msgid "hand-up"
+msgstr ""
+
+msgid "hand-down"
+msgstr ""
+
+msgid "circle-arrow-right"
+msgstr ""
+
+msgid "circle-arrow-left"
+msgstr ""
+
+msgid "circle-arrow-up"
+msgstr ""
+
+msgid "circle-arrow-down"
+msgstr ""
+
+msgid "globe"
+msgstr ""
+
+msgid "wrench"
+msgstr ""
+
+msgid "tasks"
+msgstr ""
+
+msgid "filter"
+msgstr ""
+
+msgid "briefcase"
+msgstr ""
+
+msgid "fullscreen"
+msgstr ""
+
+msgid ""
+"Style represents the button color: Success - Green, Danger - Red, Inverse"
+" - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
+msgstr ""
+
+msgid "Primary"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "Danger"
+msgstr ""
+
+msgid "Inverse"
+msgstr ""
+
+msgid "Workflow Transition"
+msgstr ""
+
+msgid "Next State"
+msgstr ""
+
+msgid "Allowed"
+msgstr ""
+
+msgid "Allow Self Approval"
+msgstr ""
+
+msgid "Allow approval for creator of the document"
+msgstr ""
+
+msgid "Example"
+msgstr ""
+
+msgid ""
+"<pre><code>doc.grand_total &gt; 0</code></pre>\n"
+"\n"
+"<p>Conditions should be written in simple Python. Please use properties "
+"available in the form only.</p>\n"
+"<p>Allowed functions: \n"
+"</p><ul>\n"
+"<li>frappe.db.get_value</li>\n"
+"<li>frappe.db.get_list</li>\n"
+"<li>frappe.session</li>\n"
+"<li>frappe.utils.now_datetime</li>\n"
+"<li>frappe.utils.get_datetime</li>\n"
+"<li>frappe.utils.add_to_date</li>\n"
+"<li>frappe.utils.now</li>\n"
+"</ul>\n"
+"<p>Example: </p><pre><code>doc.creation &gt; "
+"frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, "
+"as_string=True, as_datetime=True) </code></pre><p></p>"
+msgstr ""
+
+msgid "Log in to access this page."
+msgstr ""
+
+msgid "You are not permitted to access this page."
+msgstr ""
+
+msgid "New Message from Website Contact Page"
+msgstr ""
+
+msgid "Uncaught Server Exception"
+msgstr ""
+
+msgid "There was an error building this page"
+msgstr ""
+
+msgid "Child DocTypes are not allowed"
+msgstr ""
+
+msgid "Invalid DocType"
+msgstr ""
+
+msgid "Mobile"
+msgstr ""
+
+msgid "Invalid Login Token"
+msgstr ""
+
+msgid "Login To {0}"
+msgstr ""
+
+msgid "User with email address {0} does not exist"
+msgstr ""
+
+msgid "The link you trying to login is invalid or expired."
+msgstr ""
+
+msgid "You need to be logged in to access this page"
+msgstr ""
+
+msgid "Not allowed to print draft documents"
+msgstr ""
+
+msgid "Not allowed to print cancelled documents"
+msgstr ""
+
+msgid "{0} is not a raw printing format."
+msgstr ""
+
+msgid "You do not have permission to view this document"
+msgstr ""
+
+msgid "Print Format {0} is disabled"
+msgstr ""
+
+msgid "No template found at path: {0}"
+msgstr ""
+
+msgid "Page has expired!"
+msgstr ""
+
+msgid "Search Results for"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+

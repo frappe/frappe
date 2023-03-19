@@ -2,7 +2,6 @@
 *.py~
 *.comp.js
 *.DS_Store
-locale
 .wnf-lang-status
 *.swp
 *.egg-info
@@ -68,10 +67,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 .cypress-coverage
-
-# Translations
-*.mo
-*.pot
 
 # Django stuff:
 *.log

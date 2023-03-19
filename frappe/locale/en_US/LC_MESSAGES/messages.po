@@ -1,0 +1,91 @@
+# Translations template for frappe translation.
+# Copyright (C) 2023 Frappe Technologies Pvt. Ltd.
+# This file is distributed under the same license as the frappe translation
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: frappe translation 0.1\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgctxt "Canceled"
+msgid "DocType: Communication"
+msgstr "Cancelled"
+
+msgctxt "Allow Print for Canceled"
+msgid "DocType: Print Settings"
+msgstr "Allow Print for Cancelled"
+
+msgctxt "0 - Draft; 1 - Submitted; 2 - Canceled"
+msgid "DocType: Workflow Document State"
+msgstr "0 - Draft; 1 - Submitted; 2 - Cancelled"
+
+msgctxt "Facetime-Video"
+msgid "DocType: Workflow State"
+msgstr "facetime-video"
+
+msgctxt "zoom-out"
+msgid "DocType: Workflow State"
+msgstr "zoom-out"
+
+msgctxt "States for workflow (e.g. Draft, Approved, Canceled)."
+msgid "apps/frappe/frappe/config/setup.py +226"
+msgstr "States for workflow (e.g. Draft, Approved, Cancelled)."
+
+msgctxt "Canceled Document restored as Draft"
+msgid "apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py +20"
+msgstr "Cancelled Document restored as Draft"
+
+msgctxt "Canceling {0}"
+msgid "apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +50"
+msgstr "Cancelling {0}"
+
+msgctxt "Cannot edit canceled document"
+msgid "apps/frappe/frappe/model/document.py +685"
+msgstr "Cannot edit cancelled document"
+
+msgctxt "Cannot link canceled document: {0}"
+msgid "apps/frappe/frappe/model/document.py +753"
+msgstr "Cannot link cancelled document: {0}"
+
+msgctxt "canceled this document"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +520"
+msgstr "cancelled this document"
+
+msgctxt "Canceling"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +15"
+msgstr "Cancelling"
+
+msgctxt "You selected Draft or Canceled documents"
+msgid "apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +23"
+msgstr "You selected Draft or Cancelled documents"
+
+msgctxt "Your payment is canceled."
+msgid "apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +11"
+msgstr "Your payment is cancelled."
+
+msgctxt "Payment Canceled"
+msgid "apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3"
+msgstr "Payment Cancelled"
+
+msgctxt "1 week ago"
+msgid "apps/frappe/frappe/utils/data.py +641"
+msgstr "1 weeks ago"
+
+msgctxt "Cannot change state of Canceled Document. Transition row {0}"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow.py +72"
+msgstr "Cannot change state of Cancelled Document. Transition row {0}"
+
+msgctxt "Not allowed to print canceled documents"
+msgid "apps/frappe/frappe/www/printview.py +83"
+msgstr "Not allowed to print cancelled documents"
+

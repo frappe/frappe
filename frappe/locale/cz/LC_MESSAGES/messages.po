@@ -1,0 +1,6317 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: frappe translation 0.1\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgctxt "\"Historie organizace\""
+msgid "DocType: About Us Settings"
+msgstr "\"Company History\""
+
+msgctxt "\"Členové týmu\" nebo \"Vedení\""
+msgid "DocType: About Us Settings"
+msgstr "\"Team Members\" or \"Management\""
+
+msgctxt "Historie organizace"
+msgid "DocType: About Us Settings"
+msgstr "Org History"
+
+msgctxt "Nastavení O nás"
+msgid "DocType: About Us Settings"
+msgstr "About Us Settings"
+
+msgctxt "Nastavení pro stránku O nás"
+msgid "DocType: About Us Settings"
+msgstr "Settings for the About Us Page"
+
+msgctxt "Představení organizace"
+msgid "DocType: About Us Settings"
+msgstr "Company Introduction"
+
+msgctxt "Představte svoji organizaci návštěvníků internetových stránek."
+msgid "DocType: About Us Settings"
+msgstr "Introduce your company to the website visitor."
+
+msgctxt "Více obsahu na spodek stránky."
+msgid "DocType: About Us Settings"
+msgstr "More content for the bottom of the page."
+
+msgctxt "Záhlaví historie organizace"
+msgid "DocType: About Us Settings"
+msgstr "Org History Heading"
+
+msgctxt "Záhlaví členů týmu"
+msgid "DocType: About Us Settings"
+msgstr "Team Members Heading"
+
+msgctxt "Členové týmu"
+msgid "DocType: About Us Settings"
+msgstr "Team Members"
+
+msgctxt "O nás – člen týmu"
+msgid "DocType: About Us Team Member"
+msgstr "About Us Team Member"
+
+msgctxt "Odkaz na obrázek"
+msgid "DocType: About Us Team Member"
+msgstr "Image Link"
+
+msgctxt "Block Module"
+msgid "DocType: Block Module"
+msgstr "Block Module"
+
+msgctxt "Jádro"
+msgid "DocType: Block Module"
+msgstr "Core"
+
+msgctxt "Modul"
+msgid "DocType: Block Module"
+msgstr "Module"
+
+msgctxt "Blogger"
+msgid "DocType: Blog Category"
+msgstr "Blogger"
+
+msgctxt "Kategorie blogu"
+msgid "DocType: Blog Category"
+msgstr "Blog Category"
+
+msgctxt "Název kategorie"
+msgid "DocType: Blog Category"
+msgstr "Category Name"
+
+msgctxt "Publikováno"
+msgid "DocType: Blog Category"
+msgstr "Published"
+
+msgctxt "Email odeslán"
+msgid "DocType: Blog Post"
+msgstr "Email Sent"
+
+msgctxt "Popis pro stránku výpisů, v čistém textu, pouze pár řádek. (max 140 znaků)"
+msgid "DocType: Blog Post"
+msgstr ""
+"Description for listing page, in plain text, only a couple of lines. (max"
+" 140 characters)"
+
+msgctxt "Publikováno (kdy)"
+msgid "DocType: Blog Post"
+msgstr "Published On"
+
+msgctxt "Úvod blogu"
+msgid "DocType: Blog Post"
+msgstr "Blog Intro"
+
+msgctxt "Nastavení blogu"
+msgid "DocType: Blog Settings"
+msgstr "Blog Settings"
+
+msgctxt "Představení blogu"
+msgid "DocType: Blog Settings"
+msgstr "Blog Introduction"
+
+msgctxt "Představení přispěvovatelů"
+msgid "DocType: Blog Settings"
+msgstr "Writers Introduction"
+
+msgctxt "Titulek blogu"
+msgid "DocType: Blog Settings"
+msgstr "Blog Title"
+
+msgctxt "Avatar"
+msgid "DocType: Blogger"
+msgstr "Avatar"
+
+msgctxt "Bude použito v url (obvykle první jméno)."
+msgid "DocType: Blogger"
+msgstr "Will be used in url (usually first name)."
+
+msgctxt "ID uživatele bloggera"
+msgid "DocType: Blogger"
+msgstr "User ID of a Blogger"
+
+msgctxt "Příspěvky"
+msgid "DocType: Blogger"
+msgstr "Posts"
+
+msgctxt "Zkrácené jméno"
+msgid "DocType: Blogger"
+msgstr "Short Name"
+
+msgctxt "Hromadný Email"
+msgid "DocType: Bulk Email"
+msgstr "Bulk Email"
+
+msgctxt "Odeslat Po"
+msgid "DocType: Bulk Email"
+msgstr "Send After"
+
+msgctxt "Odeslání"
+msgid "DocType: Bulk Email"
+msgstr "Sending"
+
+msgctxt "Příjemce"
+msgid "DocType: Bulk Email"
+msgstr "Recipient"
+
+msgctxt "Reference DocName"
+msgid "DocType: Bulk Email"
+msgstr "Reference DocName"
+
+msgctxt "Záznamy hromadných emailů."
+msgid "DocType: Bulk Email"
+msgstr "Bulk Email records."
+
+msgctxt "Datum komentáře"
+msgid "DocType: Comment"
+msgstr "Comment Date"
+
+msgctxt "Komentováno (celé jméno)"
+msgid "DocType: Comment"
+msgstr "Comment By Fullname"
+
+msgctxt "Komentováno (kým)"
+msgid "DocType: Comment"
+msgstr "Comment By"
+
+msgctxt "Komentář Docname"
+msgid "DocType: Comment"
+msgstr "Comment Docname"
+
+msgctxt "Komentář Doctype"
+msgid "DocType: Comment"
+msgstr "Comment Doctype"
+
+msgctxt "Publikovat téma"
+msgid "DocType: Comment"
+msgstr "Post Topic"
+
+msgctxt "Typ komentáře"
+msgid "DocType: Comment"
+msgstr "Comment Type"
+
+msgctxt "Čas komentáře"
+msgid "DocType: Comment"
+msgstr "Comment Time"
+
+msgctxt "Archivovaných"
+msgid "DocType: Communication"
+msgstr "Archived"
+
+msgctxt "Chat"
+msgid "DocType: Communication"
+msgstr "Chat"
+
+msgctxt "E-mailový účet"
+msgid "DocType: Communication"
+msgstr "Email Account"
+
+msgctxt "Kdy"
+msgid "DocType: Communication"
+msgstr "On"
+
+msgctxt "Komunikační médium"
+msgid "DocType: Communication"
+msgstr "Communication Medium"
+
+msgctxt "Kým"
+msgid "DocType: Communication"
+msgstr "By"
+
+msgctxt "Nepřečtené oznámení Odesláno"
+msgid "DocType: Communication"
+msgstr "Unread Notification Sent"
+
+msgctxt "Návštěva"
+msgid "DocType: Communication"
+msgstr "Visit"
+
+msgctxt "Obsah"
+msgid "DocType: Communication"
+msgstr "Content"
+
+msgctxt "Odesilatel"
+msgid "DocType: Communication"
+msgstr "Sender"
+
+msgctxt "Odesláno či přijato"
+msgid "DocType: Communication"
+msgstr "Sent or Received"
+
+msgctxt "Odesílatel Jméno a příjmení"
+msgid "DocType: Communication"
+msgstr "Sender Full Name"
+
+msgctxt "Reference DocType"
+msgid "DocType: Communication"
+msgstr "Reference DocType"
+
+msgctxt "Rozšířené informace"
+msgid "DocType: Communication"
+msgstr "Additional Info"
+
+msgctxt "Telefonní číslo"
+msgid "DocType: Communication"
+msgstr "Phone No."
+
+msgctxt "Uživatelské štítky"
+msgid "DocType: Communication"
+msgstr "User Tags"
+
+msgctxt "Vést přehled o veškeré komunikaci"
+msgid "DocType: Communication"
+msgstr "Keep a track of all communications"
+
+msgctxt "Historie organizace"
+msgid "DocType: Company History"
+msgstr "Company History"
+
+msgctxt "Zvýraznit"
+msgid "DocType: Company History"
+msgstr "Highlight"
+
+msgctxt "Možnosti dotazu"
+msgid "DocType: Contact Us Settings"
+msgstr "Query Options"
+
+msgctxt ""
+"Možnosti kontaktu, např.: \"Dotaz prodeje, dotaz podpory\" atd., každý na"
+" novém řádku nebo oddělené čárkami."
+msgid "DocType: Contact Us Settings"
+msgstr ""
+"Contact options, like \"Sales Query, Support Query\" etc each on a new "
+"line or separated by commas."
+
+msgctxt "Nastavení - Kontaktujte nás"
+msgid "DocType: Contact Us Settings"
+msgstr "Contact Us Settings"
+
+msgctxt "Nastavení pro stránku Kontaktujte nás"
+msgid "DocType: Contact Us Settings"
+msgstr "Settings for Contact Us Page"
+
+msgctxt "Odeslat dotazy na tuto emailovou adresu"
+msgid "DocType: Contact Us Settings"
+msgstr "Send enquiries to this email address"
+
+msgctxt "Přeposlat na emailovou adresu"
+msgid "DocType: Contact Us Settings"
+msgstr "Forward To Email Address"
+
+msgctxt "Výchozí: \"Kontaktujte nás\""
+msgid "DocType: Contact Us Settings"
+msgstr "Default: \"Contact Us\""
+
+msgctxt "Úvodní informace na stránce kontaktujte nás"
+msgid "DocType: Contact Us Settings"
+msgstr "Introductory information for the Contact Us Page"
+
+msgctxt "Geo"
+msgid "DocType: Country"
+msgstr "Geo"
+
+msgctxt "Stát Název"
+msgid "DocType: Country"
+msgstr "Country Name"
+
+msgctxt "Časová pásma"
+msgid "DocType: Country"
+msgstr "Time Zones"
+
+msgctxt "** Měna ** Hlavní"
+msgid "DocType: Currency"
+msgstr "**Currency** Master"
+
+msgctxt ""
+"1 Měna = [?] Zlomek\n"
+" například pro 1 USD = 100 Cent"
+msgid "DocType: Currency"
+msgstr ""
+"1 Currency = [?] Fraction\n"
+"For e.g. 1 USD = 100 Cent"
+
+msgctxt ""
+"Jak by se to měna naformátovat? Pokud není nastavena, použije výchozí "
+"nastavení systému"
+msgid "DocType: Currency"
+msgstr ""
+"How should this currency be formatted? If not set, will use system "
+"defaults"
+
+msgctxt "Jméno měny"
+msgid "DocType: Currency"
+msgstr "Currency Name"
+
+msgctxt "Sub-měna. Pro např \"Cent \""
+msgid "DocType: Currency"
+msgstr "Sub-currency. For e.g. \"Cent\""
+
+msgctxt "Symbol"
+msgid "DocType: Currency"
+msgstr "Symbol"
+
+msgctxt "Symbol této měny,  např. $"
+msgid "DocType: Currency"
+msgstr "A symbol for this currency. For e.g. $"
+
+msgctxt "Zlomek"
+msgid "DocType: Currency"
+msgstr "Fraction"
+
+msgctxt "Zlomkové jednotky"
+msgid "DocType: Currency"
+msgstr "Fraction Units"
+
+msgctxt "Dokument"
+msgid "DocType: Custom Field"
+msgstr "Document"
+
+msgctxt "Je Povinné Pole"
+msgid "DocType: Custom Field"
+msgstr "Is Mandatory Field"
+
+msgctxt "Jedinečný"
+msgid "DocType: Custom Field"
+msgstr "Unique"
+
+msgctxt "Možnosti nápovědy"
+msgid "DocType: Custom Field"
+msgstr "Options Help"
+
+msgctxt "Nápověda popisek"
+msgid "DocType: Custom Field"
+msgstr "Label Help"
+
+msgctxt "Název pole"
+msgid "DocType: Custom Field"
+msgstr "Fieldname"
+
+msgctxt "Popis pole"
+msgid "DocType: Custom Field"
+msgstr "Field Description"
+
+msgctxt "Přidá přizpůsobené pole do DocType "
+msgid "DocType: Custom Field"
+msgstr "Adds a custom field to a DocType"
+
+msgctxt "Přizpůsobené pole"
+msgid "DocType: Custom Field"
+msgstr "Custom Field"
+
+msgctxt "Typ pole"
+msgid "DocType: Custom Field"
+msgstr "Field Type"
+
+msgctxt "Ve filtru Reportu"
+msgid "DocType: Custom Field"
+msgstr "In Report Filter"
+
+msgctxt "Vlastnosti"
+msgid "DocType: Custom Field"
+msgstr "Properties"
+
+msgctxt "Vložit za"
+msgid "DocType: Custom Field"
+msgstr "Insert After"
+
+msgctxt "Výchozí hodnota"
+msgid "DocType: Custom Field"
+msgstr "Default Value"
+
+msgctxt "Zvolte popisek, za kterým chcete vložit nové pole."
+msgid "DocType: Custom Field"
+msgstr "Select the label after which you want to insert new field."
+
+msgctxt "úroveň oprávnění"
+msgid "DocType: Custom Field"
+msgstr "Permission Level"
+
+msgctxt "Přidá přizpůsobený skript (klient nebo server) do DocType"
+msgid "DocType: Custom Script"
+msgstr "Adds a custom script (client or server) to a DocType"
+
+msgctxt "Přizpůsobený skript"
+msgid "DocType: Custom Script"
+msgstr "Custom Script"
+
+msgctxt "Skript"
+msgid "DocType: Custom Script"
+msgstr "Script"
+
+msgctxt "Typ skriptu"
+msgid "DocType: Custom Script"
+msgstr "Script Type"
+
+msgctxt "Vzorek"
+msgid "DocType: Custom Script"
+msgstr "Sample"
+
+msgctxt "Pole oddělená čárkou (,) budou zahrnuta v dialogu<br /><b>Vyhledat dle</b>"
+msgid "DocType: Customize Form"
+msgstr ""
+"Fields separated by comma (,) will be included in the<br /><b>Search "
+"By</b> list of Search dialog box"
+
+msgctxt "Přizpůsobit formulář"
+msgid "DocType: Customize Form"
+msgstr "Customize Form"
+
+msgctxt "Přizpůsobit popisek, skrýt tisk, výchozí atd."
+msgid "DocType: Customize Form"
+msgstr "Customize Label, Print Hide, Default etc."
+
+msgctxt "Vložte typ formuláře"
+msgid "DocType: Customize Form"
+msgstr "Enter Form Type"
+
+msgctxt "Je Vlastní pole"
+msgid "DocType: Customize Form Field"
+msgstr "Is Custom Field"
+
+msgctxt "Popisek a typ"
+msgid "DocType: Customize Form Field"
+msgstr "Label and Type"
+
+msgctxt "Přizpůsobit formulářové pole"
+msgid "DocType: Customize Form Field"
+msgstr "Customize Form Field"
+
+msgctxt "Tisková šířka pole, pokud je pole sloupcem v tabulce"
+msgid "DocType: Customize Form Field"
+msgstr "Print Width of the field, if the field is a column in a table"
+
+msgctxt ""
+"Toto pole se zobrazí pouze v případě, že fieldname zde definovány má "
+"hodnotu, nebo pravidla jsou pravdivé (příklady): <br> \n"
+" MyField \n"
+" eval: doc.myfield == 'My Value' <br> \n"
+" eval: doc.age> 18"
+msgid "DocType: Customize Form Field"
+msgstr ""
+"This field will appear only if the fieldname defined here has value OR "
+"the rules are true (examples): <br>\n"
+"myfield\n"
+"eval:doc.myfield=='My Value'<br>\n"
+"eval:doc.age>18"
+
+msgctxt "Klíč"
+msgid "DocType: DefaultValue"
+msgstr "Key"
+
+msgctxt "Výchozí hodnota"
+msgid "DocType: DefaultValue"
+msgstr "DefaultValue"
+
+msgctxt "Celé číslo"
+msgid "DocType: DocField"
+msgstr "Int"
+
+msgctxt "Data"
+msgid "DocType: DocField"
+msgstr "Data"
+
+msgctxt "Datum a čas"
+msgid "DocType: DocField"
+msgstr "Datetime"
+
+msgctxt "Desetinné číslo"
+msgid "DocType: DocField"
+msgstr "Float"
+
+msgctxt "Dlouhý text"
+msgid "DocType: DocField"
+msgstr "Long Text"
+
+msgctxt "DocField"
+msgid "DocType: DocField"
+msgstr "DocField"
+
+msgctxt "Dynamický odkaz"
+msgid "DocType: DocField"
+msgstr "Dynamic Link"
+
+msgctxt "Editor textu"
+msgid "DocType: DocField"
+msgstr "Text Editor"
+
+msgctxt "Ignorovat uživatelská oprávnění"
+msgid "DocType: DocField"
+msgstr "Ignore User Permissions"
+
+msgctxt "Index"
+msgid "DocType: DocField"
+msgstr "Index"
+
+msgctxt "Krátký text"
+msgid "DocType: DocField"
+msgstr "Small Text"
+
+msgctxt "Kód"
+msgid "DocType: DocField"
+msgstr "Code"
+
+msgctxt "Možnosti"
+msgid "DocType: DocField"
+msgstr "Options"
+
+msgctxt "Nadpis"
+msgid "DocType: DocField"
+msgstr "Heading"
+
+msgctxt "Nastavit nestandardní přesnost pro desetinná čísla nebo pole měny"
+msgid "DocType: DocField"
+msgstr "Set non-standard precision for a Float or Currency field"
+
+msgctxt "Nastavit pouze jednou"
+msgid "DocType: DocField"
+msgstr "Set Only Once"
+
+msgctxt "Nepovolit uživateli změnu po prvním nastavení"
+msgid "DocType: DocField"
+msgstr "Do not allow user to change after set the first time"
+
+msgctxt "Odkaz"
+msgid "DocType: DocField"
+msgstr "Link"
+
+msgctxt "Oprávnění"
+msgid "DocType: DocField"
+msgstr "Permissions"
+
+msgctxt "Pouze pro čtení"
+msgid "DocType: DocField"
+msgstr "Read Only"
+
+msgctxt "Povinné"
+msgid "DocType: DocField"
+msgstr "Mandatory"
+
+msgctxt "Povolit při Odeslání"
+msgid "DocType: DocField"
+msgstr "Allow on Submit"
+
+msgctxt ""
+"Pro odkazy, zadejte DocType jako rozsah. Pro Select, zadejte seznam "
+"možností, z nichž každý na nový řádek."
+msgid "DocType: DocField"
+msgstr ""
+"For Links, enter the DocType as range.\n"
+"For Select, enter list of Options, each on a new line."
+
+msgctxt "Procento"
+msgid "DocType: DocField"
+msgstr "Percent"
+
+msgctxt "Přiložit"
+msgid "DocType: DocField"
+msgstr "Attach"
+
+msgctxt "Skrýt tisk"
+msgid "DocType: DocField"
+msgstr "Print Hide"
+
+msgctxt "Skrýt výpis"
+msgid "DocType: DocField"
+msgstr "Report Hide"
+
+msgctxt "Tabulka"
+msgid "DocType: DocField"
+msgstr "Table"
+
+msgctxt "Text"
+msgid "DocType: DocField"
+msgstr "Text"
+
+msgctxt "Tlačítko"
+msgid "DocType: DocField"
+msgstr "Button"
+
+msgctxt "Uživatelská oprávnění by neměla být aplikována na tento odkaz"
+msgid "DocType: DocField"
+msgstr "User permissions should not apply for this Link"
+
+msgctxt "V seznamu"
+msgid "DocType: DocField"
+msgstr "In List View"
+
+msgctxt "Ve filtru"
+msgid "DocType: DocField"
+msgstr "In Filter"
+
+msgctxt "Vybrat"
+msgid "DocType: DocField"
+msgstr "Select"
+
+msgctxt "Zalomení sekce"
+msgid "DocType: DocField"
+msgstr "Section Break"
+
+msgctxt "Zobrazit"
+msgid "DocType: DocField"
+msgstr "Display"
+
+msgctxt "Závisí na"
+msgid "DocType: DocField"
+msgstr "Depends On"
+
+msgctxt "přesnost"
+msgid "DocType: DocField"
+msgstr "Precision"
+
+msgctxt "úroveň oprávnění"
+msgid "DocType: DocField"
+msgstr "Perm Level"
+
+msgctxt "Šířka"
+msgid "DocType: DocField"
+msgstr "Width"
+
+msgctxt "šířka tisku"
+msgid "DocType: DocField"
+msgstr "Print Width"
+
+msgctxt "Žádná kopie"
+msgid "DocType: DocField"
+msgstr "No Copy"
+
+msgctxt "DocPerm"
+msgid "DocType: DocPerm"
+msgstr "DocPerm"
+
+msgctxt "Exportovat"
+msgid "DocType: DocPerm"
+msgstr "Export"
+
+msgctxt ""
+"Filtrovat záznamy za základě uživatelských oprávnění definovaných pro "
+"uživatele"
+msgid "DocType: DocPerm"
+msgstr "Filter records based on User Permissions defined for a user"
+
+msgctxt "Importovat"
+msgid "DocType: DocPerm"
+msgstr "Import"
+
+msgctxt ""
+"JSON sezam DocTypes použitých pro aplikování uživatelských oprávnění. "
+"Pakliže je prázdný, všechny provázané DocTypes budou použity pro "
+"aplikování uživatelských oprávnění."
+msgid "DocType: DocPerm"
+msgstr ""
+"JSON list of DocTypes used to apply User Permissions. If empty, all "
+"linked DocTypes will be used to apply User Permissions."
+
+msgctxt "Nastavit práva"
+msgid "DocType: DocPerm"
+msgstr "Set User Permissions"
+
+msgctxt "Odeslat"
+msgid "DocType: DocPerm"
+msgstr "Submit"
+
+msgctxt "Použít oprávnění"
+msgid "DocType: DocPerm"
+msgstr "Apply User Permissions"
+
+msgctxt "Report"
+msgid "DocType: DocPerm"
+msgstr "Report"
+
+msgctxt "Role"
+msgid "DocType: DocPerm"
+msgstr "Role"
+
+msgctxt "Role a úroveň"
+msgid "DocType: DocPerm"
+msgstr "Role and Level"
+
+msgctxt "Rozšířená oprávnění"
+msgid "DocType: DocPerm"
+msgstr "Additional Permissions"
+
+msgctxt "Tato role aktualizuje uživatelská oprávnění pro uživatele"
+msgid "DocType: DocPerm"
+msgstr "This role update User Permissions for a user"
+
+msgctxt "Uživatelská oprávnění DocTypes"
+msgid "DocType: DocPerm"
+msgstr "User Permission DocTypes"
+
+msgctxt "Vytvořit"
+msgid "DocType: DocPerm"
+msgstr "Create"
+
+msgctxt "Zapsat"
+msgid "DocType: DocPerm"
+msgstr "Write"
+
+msgctxt "Změnit"
+msgid "DocType: DocPerm"
+msgstr "Amend"
+
+msgctxt "Zrušit"
+msgid "DocType: DocPerm"
+msgstr "Cancel"
+
+msgctxt "Číst"
+msgid "DocType: DocPerm"
+msgstr "Read"
+
+msgctxt "DocShare"
+msgid "DocType: DocShare"
+msgstr "DocShare"
+
+msgctxt "Interní záznam akcií dokumentů"
+msgid "DocType: DocShare"
+msgstr "Internal record of document shares"
+
+msgctxt "Název dokumentu"
+msgid "DocType: DocShare"
+msgstr "Document Name"
+
+msgctxt ""
+"<a onclick=\"msgprint('<ol> \\\n"
+" <li> <b> obor: [fieldname] </ b> - podle oboru \\\n"
+" <li> <b> naming_series: </ b > - tím, že jmenuje série (pole s názvem "
+"naming_series musí být přítomen \\\n"
+" <li> <b> Prompt </ b> - Vyzvat uživatele k zadání názvu \\\n"
+" <li> <b> [sériové] </ . b> - Série předponou (oddělené tečkou), jako je "
+"například PRE ##### \\\n"
+" </ ol> ') \"> Pojmenování Možnosti </a>"
+msgid "DocType: DocType"
+msgstr ""
+"<a onclick=\"msgprint('<ol>\\\n"
+"<li><b>field:[fieldname]</b> - By Field\\\n"
+"<li><b>naming_series:</b> - By Naming Series (field called naming_series "
+"must be present\\\n"
+"<li><b>Prompt</b> - Prompt user for a name\\\n"
+"<li><b>[series]</b> - Series by prefix (separated by a dot); for example "
+"PRE.#####\\\n"
+"</ol>')\">Naming Options</a>"
+
+msgctxt "Automatický název"
+msgid "DocType: DocType"
+msgstr "Auto Name"
+
+msgctxt "DocType"
+msgid "DocType: DocType"
+msgstr "DocType"
+
+msgctxt "DocType je tabulka / formulář v aplikaci"
+msgid "DocType: DocType"
+msgstr "DocType is a Table / Form in the application."
+
+msgctxt "Doplněk"
+msgid "DocType: DocType"
+msgstr "Plugin"
+
+msgctxt "Hlavní"
+msgid "DocType: DocType"
+msgstr "Master"
+
+msgctxt "Je Odeslatelné"
+msgid "DocType: DocType"
+msgstr "Is Submittable"
+
+msgctxt "Je osamocené"
+msgid "DocType: DocType"
+msgstr "Is Single"
+
+msgctxt "Je podtabulka"
+msgid "DocType: DocType"
+msgstr "Is Child Table"
+
+msgctxt "Max příloh"
+msgid "DocType: DocType"
+msgstr "Max Attachments"
+
+msgctxt "Nastavení oprávnění"
+msgid "DocType: DocType"
+msgstr "Permissions Settings"
+
+msgctxt "Název případu"
+msgid "DocType: DocType"
+msgstr "Name Case"
+
+msgctxt "Podřízené tabulky jsou zobrazovány jako mřížka v jiných DocTypes."
+msgid "DocType: DocType"
+msgstr "Child Tables are shown as a Grid in other DocTypes."
+
+msgctxt "Pojmenování"
+msgid "DocType: DocType"
+msgstr "Naming"
+
+msgctxt "Pole"
+msgid "DocType: DocType"
+msgstr "Fields"
+
+msgctxt "Pole řadit dle"
+msgid "DocType: DocType"
+msgstr "Sort Field"
+
+msgctxt "Povolit Import pomocí Nástroje pro Import Dat"
+msgid "DocType: DocType"
+msgstr "Allow Import via Data Import Tool"
+
+msgctxt "Povolit import"
+msgid "DocType: DocType"
+msgstr "Allow Import"
+
+msgctxt "Povolit přejmenování"
+msgid "DocType: DocType"
+msgstr "Allow Rename"
+
+msgctxt "Pořadí řazení"
+msgid "DocType: DocType"
+msgstr "Sort Order"
+
+msgctxt "Pravidla oprávnění"
+msgid "DocType: DocType"
+msgstr "Permission Rules"
+
+msgctxt "Přizpůsobit?"
+msgid "DocType: DocType"
+msgstr "Custom?"
+
+msgctxt "Skrýt akce"
+msgid "DocType: DocType"
+msgstr "Hide Actions"
+
+msgctxt "Skrýt kopii"
+msgid "DocType: DocType"
+msgstr "Hide Copy"
+
+msgctxt "Skrýt panel nástrojů"
+msgid "DocType: DocType"
+msgstr "Hide Toolbar"
+
+msgctxt "Skrýt záhlaví"
+msgid "DocType: DocType"
+msgstr "Hide Heading"
+
+msgctxt "Titulek pole"
+msgid "DocType: DocType"
+msgstr "Title Field"
+
+msgctxt "Titulek případu"
+msgid "DocType: DocType"
+msgstr "Title Case"
+
+msgctxt ""
+"Typy osamocené mají pouze jeden záznam - není asociovaná žádná tabulka. "
+"Hodnoty jsou uloženy v tabSingles"
+msgid "DocType: DocType"
+msgstr ""
+"Single Types have only one record no tables associated. Values are stored"
+" in tabSingles"
+
+msgctxt "Uživatel nemůže Vytvořit"
+msgid "DocType: DocType"
+msgstr "User Cannot Create"
+
+msgctxt "Uživatel nemůže vyhledávat"
+msgid "DocType: DocType"
+msgstr "User Cannot Search"
+
+msgctxt "V dialogu"
+msgid "DocType: DocType"
+msgstr "In Dialog"
+
+msgctxt "Vyhledávací pole"
+msgid "DocType: DocType"
+msgstr "Search Fields"
+
+msgctxt "Výchozí formát tisku"
+msgid "DocType: DocType"
+msgstr "Default Print Format"
+
+msgctxt "Zobrazit nejdříve tisk"
+msgid "DocType: DocType"
+msgstr "Show Print First"
+
+msgctxt "Zobrazit toto pole jako titulek"
+msgid "DocType: DocType"
+msgstr "Show this field as title"
+
+msgctxt "GMail"
+msgid "DocType: Email Account"
+msgstr "GMail"
+
+msgctxt "Ignorovat příloh přes tuto velikost"
+msgid "DocType: Email Account"
+msgstr "Ignore attachments over this size"
+
+msgctxt "Není-li na standardním portu (např.: 587)"
+msgid "DocType: Email Account"
+msgstr "If non standard port (e.g. 587)"
+
+msgctxt "Název e-mailového účtu"
+msgid "DocType: Email Account"
+msgstr "Email Account Name"
+
+msgctxt "Odeslat oznámení na"
+msgid "DocType: Email Account"
+msgstr "Send Notification to"
+
+msgctxt "Omezit přílohu (MB)"
+msgid "DocType: Email Account"
+msgstr "Attachment Limit (MB)"
+
+msgctxt "Outlook.com"
+msgid "DocType: Email Account"
+msgstr "Outlook.com"
+
+msgctxt "POP3 server"
+msgid "DocType: Email Account"
+msgstr "POP3 Server"
+
+msgctxt "Podpis"
+msgid "DocType: Email Account"
+msgstr "Signature"
+
+msgctxt "Podívejte se na to, aby vytáhnout e-maily z poštovní schránky"
+msgid "DocType: Email Account"
+msgstr "Check this to pull emails from your mailbox"
+
+msgctxt "Port"
+msgid "DocType: Email Account"
+msgstr "Port"
+
+msgctxt "Použít SSL"
+msgid "DocType: Email Account"
+msgstr "Use SSL"
+
+msgctxt "Použít TLS"
+msgid "DocType: Email Account"
+msgstr "Use TLS"
+
+msgctxt "Povolení příchozích"
+msgid "DocType: Email Account"
+msgstr "Enable Incoming"
+
+msgctxt "Povolit automatické odpovědi"
+msgid "DocType: Email Account"
+msgstr "Enable Auto Reply"
+
+msgctxt "Povolit odchozí"
+msgid "DocType: Email Account"
+msgstr "Enable Outgoing"
+
+msgctxt "Přidat podpis"
+msgid "DocType: Email Account"
+msgstr "Add Signature"
+
+msgctxt ""
+"Připojit jako komunikace se proti tomuto DOCTYPE (musí mít pole, "
+"\"Status\", \"Předmět\")"
+msgid "DocType: Email Account"
+msgstr ""
+"Append as communication against this DocType (must have fields, "
+"\"Status\", \"Subject\")"
+
+msgctxt "Připojit k"
+msgid "DocType: Email Account"
+msgstr "Append To"
+
+msgctxt "SMTP nastavení pro odchozí e-maily"
+msgid "DocType: Email Account"
+msgstr "SMTP Settings for outgoing emails"
+
+msgctxt "SMTP server"
+msgid "DocType: Email Account"
+msgstr "SMTP Server"
+
+msgctxt "Upozornit, pokud Nezodpovězená"
+msgid "DocType: Email Account"
+msgstr "Notify if unreplied"
+
+msgctxt "Upozornit, pokud Nezodpovězená pro (v min)"
+msgid "DocType: Email Account"
+msgstr "Notify if unreplied for (in mins)"
+
+msgctxt "Upozornění a hromadné emaily budou zaslány z tohoto odchozího serveru."
+msgid "DocType: Email Account"
+msgstr "Notifications and bulk mails will be sent from this outgoing server."
+
+msgctxt "Výchozí Odchozí"
+msgid "DocType: Email Account"
+msgstr "Default Outgoing"
+
+msgctxt "Výchozí Příchozí"
+msgid "DocType: Email Account"
+msgstr "Default Incoming"
+
+msgctxt "Yahoo Mail"
+msgid "DocType: Email Account"
+msgstr "Yahoo Mail"
+
+msgctxt "Zpráva automatické odpovědi"
+msgid "DocType: Email Account"
+msgstr "Auto Reply Message"
+
+msgctxt "Zápatí"
+msgid "DocType: Email Account"
+msgstr "Footer"
+
+msgctxt "např \"Podpora \",\" Prodej\",\" Jerry Yang \""
+msgid "DocType: Email Account"
+msgstr "e.g. \"Support\", \"Sales\", \"Jerry Yang\""
+
+msgctxt "např. pop.gmail.com"
+msgid "DocType: Email Account"
+msgstr "e.g. pop.gmail.com"
+
+msgctxt "např. replies@yourcomany.com. Všechny odpovědi přijdou do této schránky."
+msgid "DocType: Email Account"
+msgstr "e.g. replies@yourcomany.com. All replies will come to this inbox."
+
+msgctxt "např. smtp.gmail.com"
+msgid "DocType: Email Account"
+msgstr "e.g. smtp.gmail.com"
+
+msgctxt "Dny před"
+msgid "DocType: Email Alert"
+msgstr "Days Before"
+
+msgctxt "Dní po"
+msgid "DocType: Email Alert"
+msgstr "Days After"
+
+msgctxt "Dnů před nebo po"
+msgid "DocType: Email Alert"
+msgstr "Days Before or After"
+
+msgctxt "Filtry"
+msgid "DocType: Email Alert"
+msgstr "Filters"
+
+msgctxt "Hodnota změněna"
+msgid "DocType: Email Alert"
+msgstr "Value Changed"
+
+msgctxt "Odeslat upozornění (kdy)"
+msgid "DocType: Email Alert"
+msgstr "Send Alert On"
+
+msgctxt "Odeslat upozornění pokud datum souhlasí s hodnotou tohoto pole"
+msgid "DocType: Email Alert"
+msgstr "Send alert if date matches this field's value"
+
+msgctxt "Podmínka"
+msgid "DocType: Email Alert"
+msgstr "Condition"
+
+msgctxt "Poslat dní před nebo po referenčním datem"
+msgid "DocType: Email Alert"
+msgstr "Send days before or after the reference date"
+
+msgctxt "Připojit Tisk"
+msgid "DocType: Email Alert"
+msgstr "Attach Print"
+
+msgctxt "Příklady Zpráv"
+msgid "DocType: Email Alert"
+msgstr "Message Examples"
+
+msgctxt "Uložit"
+msgid "DocType: Email Alert"
+msgstr "Save"
+
+msgctxt "Upozornění emailem"
+msgid "DocType: Email Alert"
+msgstr "Email Alert"
+
+msgctxt "Volitelné: Upozornění bude zasláno pokud je tento výraz pravdivý"
+msgid "DocType: Email Alert"
+msgstr "Optional: The alert will be sent if this expression is true"
+
+msgctxt "Zaslat upozornění, pokud se změní hodnota tohoto pole"
+msgid "DocType: Email Alert"
+msgstr "Send alert if this field's value changes"
+
+msgctxt "Změnit hodnotu"
+msgid "DocType: Email Alert"
+msgstr "Value Change"
+
+msgctxt "Zobrazení vlastností (přes Vlastní forma)"
+msgid "DocType: Email Alert"
+msgstr "View Properties (via Customize Form)"
+
+msgctxt "Email od pole dokumentu"
+msgid "DocType: Email Alert Recipient"
+msgstr "Email By Document Field"
+
+msgctxt "Příjemce upozornění emailem"
+msgid "DocType: Email Alert Recipient"
+msgstr "Email Alert Recipient"
+
+msgctxt ""
+"Volitelné: Upozornění bude zasláno pouze pokud hodnota je validní email "
+"id."
+msgid "DocType: Email Alert Recipient"
+msgstr "Optional: Alert will only be sent if value is a valid email id."
+
+msgctxt "Volitelné: Vždy zaslat na tyto id. Každé email id na novém řádku"
+msgid "DocType: Email Alert Recipient"
+msgstr "Optional: Always send to these ids. Each email id on a new row"
+
+msgctxt "Výraz, Volitelné"
+msgid "DocType: Email Alert Recipient"
+msgstr "Expression, Optional"
+
+msgctxt "Email Odhlásit"
+msgid "DocType: Email Unsubscribe"
+msgstr "Email Unsubscribe"
+
+msgctxt "Každý den"
+msgid "DocType: Event"
+msgstr "Every Day"
+
+msgctxt "Končí"
+msgid "DocType: Event"
+msgstr "Ends on"
+
+msgctxt "Měsíčně"
+msgid "DocType: Event"
+msgstr "Every Month"
+
+msgctxt "Nechte prázdné pro opakování vždy"
+msgid "DocType: Event"
+msgstr "Leave blank to repeat always"
+
+msgctxt "Název reference"
+msgid "DocType: Event"
+msgstr "Ref Name"
+
+msgctxt "Opakovat dokud"
+msgid "DocType: Event"
+msgstr "Repeat Till"
+
+msgctxt "Opakovat na"
+msgid "DocType: Event"
+msgstr "Repeat On"
+
+msgctxt "Opakovat tuto událost"
+msgid "DocType: Event"
+msgstr "Repeat this Event"
+
+msgctxt "Ročně"
+msgid "DocType: Event"
+msgstr "Every Year"
+
+msgctxt "Ráno odeslat upozornění emailem"
+msgid "DocType: Event"
+msgstr "Send an email reminder in the morning"
+
+msgctxt "Soukromé"
+msgid "DocType: Event"
+msgstr "Private"
+
+msgctxt "Stůl"
+msgid "DocType: Event"
+msgstr "Desk"
+
+msgctxt "Typ reference"
+msgid "DocType: Event"
+msgstr "Ref Type"
+
+msgctxt "Typ události"
+msgid "DocType: Event"
+msgstr "Event Type"
+
+msgctxt "Týdně"
+msgid "DocType: Event"
+msgstr "Every Week"
+
+msgctxt "Událost"
+msgid "DocType: Event"
+msgstr "Event"
+
+msgctxt "Veřejné"
+msgid "DocType: Event"
+msgstr "Public"
+
+msgctxt "Začíná"
+msgid "DocType: Event"
+msgstr "Starts on"
+
+msgctxt "Účastníci"
+msgid "DocType: Event"
+msgstr "Participants"
+
+msgctxt "Role události"
+msgid "DocType: Event Role"
+msgstr "Event Role"
+
+msgctxt "Barva"
+msgid "DocType: Feed"
+msgstr "Color"
+
+msgctxt "Doc Name"
+msgid "DocType: Feed"
+msgstr "Doc Name"
+
+msgctxt "Doc Type"
+msgid "DocType: Feed"
+msgstr "Doc Type"
+
+msgctxt "Feed Type"
+msgid "DocType: Feed"
+msgstr "Feed Type"
+
+msgctxt "Info"
+msgid "DocType: Feed"
+msgstr "Info"
+
+msgctxt "Krmivo"
+msgid "DocType: Feed"
+msgstr "Feed"
+
+msgctxt "Přihlášení"
+msgid "DocType: Feed"
+msgstr "Login"
+
+msgctxt "Adresa URL souboru"
+msgid "DocType: File Data"
+msgstr "File URL"
+
+msgctxt "Nahrané soubory"
+msgid "DocType: File Data"
+msgstr "File Data"
+
+msgctxt "Název souboru"
+msgid "DocType: File Data"
+msgstr "File Name"
+
+msgctxt "Otisk obsahu (hash)"
+msgid "DocType: File Data"
+msgstr "Content Hash"
+
+msgctxt "Přiloženo jménu"
+msgid "DocType: File Data"
+msgstr "Attached To Name"
+
+msgctxt "Přiloženo k DocType"
+msgid "DocType: File Data"
+msgstr "Attached To DocType"
+
+msgctxt "Velikost souboru"
+msgid "DocType: File Data"
+msgstr "File Size"
+
+msgctxt "Letter hlavička v HTML"
+msgid "DocType: Letter Head"
+msgstr "Letter Head in HTML"
+
+msgctxt "Letter název záhlaví"
+msgid "DocType: Letter Head"
+msgstr "Letter Head Name"
+
+msgctxt "Toto zaškrtněte pro vytvoření výchozího záhlaví pro veškerý tisk"
+msgid "DocType: Letter Head"
+msgstr "Check this to make this the default letter head in all prints"
+
+msgctxt "Název aplikace"
+msgid "DocType: Module Def"
+msgstr "App Name"
+
+msgctxt "Název modulu"
+msgid "DocType: Module Def"
+msgstr "Module Name"
+
+msgctxt "Vymezení modulů"
+msgid "DocType: Module Def"
+msgstr "Module Def"
+
+msgctxt "Každý může číst"
+msgid "DocType: Note"
+msgstr "Everyone can read"
+
+msgctxt ""
+"Nápověda: Pro odkaz na jiný záznam v systému, použijte \"# Form / Note / "
+"[Poznámka: name]\" jako URL odkazu. (Nepoužívejte \"http: //\")"
+msgid "DocType: Note"
+msgstr ""
+"Help: To link to another record in the system, use \"#Form/Note/[Note "
+"Name]\" as the Link URL. (don't use \"http://\")"
+
+msgctxt ""
+"Poznámka: je zdarma stránky, kde mohou uživatelé sdílet dokumenty / "
+"poznámky"
+msgid "DocType: Note"
+msgstr "Note is a free page where users can share documents / notes"
+
+msgctxt "HTML kód stránky"
+msgid "DocType: Page"
+msgstr "Page HTML"
+
+msgctxt "Role"
+msgid "DocType: Page"
+msgstr "Roles"
+
+msgctxt "Stránka"
+msgid "DocType: Page"
+msgstr "Page"
+
+msgctxt "ikona"
+msgid "DocType: Page"
+msgstr "Icon"
+
+msgctxt "Role stránky"
+msgid "DocType: Page Role"
+msgstr "Page Role"
+
+msgctxt "Seznam provedených záplat"
+msgid "DocType: Patch Log"
+msgstr "List of patches executed"
+
+msgctxt "Záplata"
+msgid "DocType: Patch Log"
+msgstr "Patch"
+
+msgctxt "Záznam o o záplatách (patch)"
+msgid "DocType: Patch Log"
+msgstr "Patch Log"
+
+msgctxt "Edit Format"
+msgid "DocType: Print Format"
+msgstr "Edit Format"
+
+msgctxt "Formát dat"
+msgid "DocType: Print Format"
+msgstr "Format Data"
+
+msgctxt "Formát tisku"
+msgid "DocType: Print Format"
+msgstr "Print Format"
+
+msgctxt "Nápověda formát tisku"
+msgid "DocType: Print Format"
+msgstr "Print Format Help"
+
+msgctxt "Print Format Builder"
+msgid "DocType: Print Format"
+msgstr "Print Format Builder"
+
+msgctxt "Server"
+msgid "DocType: Print Format"
+msgstr "Server"
+
+msgctxt "Typ formátu tisku"
+msgid "DocType: Print Format"
+msgstr "Print Format Type"
+
+msgctxt "Vlastní formát"
+msgid "DocType: Print Format"
+msgstr "Custom Format"
+
+msgctxt "Dopis"
+msgid "DocType: Print Settings"
+msgstr "Letter"
+
+msgctxt "Monochromatické"
+msgid "DocType: Print Settings"
+msgstr "Monochrome"
+
+msgctxt "Nastavení PDF"
+msgid "DocType: Print Settings"
+msgstr "PDF Settings"
+
+msgctxt "Nastavení tisku"
+msgid "DocType: Print Settings"
+msgstr "Print Settings"
+
+msgctxt "Náhled stylu tisku"
+msgid "DocType: Print Settings"
+msgstr "Print Style Preview"
+
+msgctxt "Odeslat tisk jako PDF"
+msgid "DocType: Print Settings"
+msgstr "Send Print as PDF"
+
+msgctxt "Styl tisku"
+msgid "DocType: Print Settings"
+msgstr "Print Style"
+
+msgctxt ""
+"Tisk s hlavičkou Letterhead, pokud není nazaškrtnuté v konkrétním "
+"dokumentu"
+msgid "DocType: Print Settings"
+msgstr "Print with Letterhead, unless unchecked in a particular Document"
+
+msgctxt "V bodech. Výchozí je 9."
+msgid "DocType: Print Settings"
+msgstr "In points. Default is 9."
+
+msgctxt "Velikost písma"
+msgid "DocType: Print Settings"
+msgstr "Font Size"
+
+msgctxt "Velikost stránky PDF"
+msgid "DocType: Print Settings"
+msgstr "PDF Page Size"
+
+msgctxt "Zvolte tiskové přílohy emailu jako PDF (doporučeno)"
+msgid "DocType: Print Settings"
+msgstr "Send Email Print Attachments as PDF (Recommended)"
+
+msgctxt "šířka Letterhead"
+msgid "DocType: Print Settings"
+msgstr "With Letterhead"
+
+msgctxt "DocType nebo pole"
+msgid "DocType: Property Setter"
+msgstr "DocType or Field"
+
+msgctxt "ID (název) entity jejíž vlastnost bude nastavena"
+msgid "DocType: Property Setter"
+msgstr "ID (name) of the entity whose property is to be set"
+
+msgctxt "Konfigurátor vlastností"
+msgid "DocType: Property Setter"
+msgstr "Property Setter"
+
+msgctxt "Konfigurátor vlastností přepisuje standardní DocType nebo vlastnosti pole"
+msgid "DocType: Property Setter"
+msgstr "Property Setter overrides a standard DocType or Field property"
+
+msgctxt "Nastavit hodnotu"
+msgid "DocType: Property Setter"
+msgstr "Set Value"
+
+msgctxt "Nová hodnota k nastavení"
+msgid "DocType: Property Setter"
+msgstr "New value to be set"
+
+msgctxt "Název pole"
+msgid "DocType: Property Setter"
+msgstr "Field Name"
+
+msgctxt "Typ vlastnosti"
+msgid "DocType: Property Setter"
+msgstr "Property Type"
+
+msgctxt "Vlastnost"
+msgid "DocType: Property Setter"
+msgstr "Property"
+
+msgctxt "Dotaz"
+msgid "DocType: Report"
+msgstr "Query"
+
+msgctxt "JavaScript Formát: frappe.query_reports['REPORTNAME'] = {}"
+msgid "DocType: Report"
+msgstr "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
+
+msgctxt "Javascript"
+msgid "DocType: Report"
+msgstr "Javascript"
+
+msgctxt "Je standardní"
+msgid "DocType: Report"
+msgstr "Is Standard"
+
+msgctxt "Konfigurátor Reportu"
+msgid "DocType: Report"
+msgstr "Report Builder"
+
+msgctxt "Manažer výpisů"
+msgid "DocType: Report"
+msgstr "Report Manager"
+
+msgctxt "Název výpisu"
+msgid "DocType: Report"
+msgstr "Report Name"
+
+msgctxt "Přidat řádek celkem"
+msgid "DocType: Report"
+msgstr "Add Total Row"
+
+msgctxt "Referenční DocType"
+msgid "DocType: Report"
+msgstr "Ref DocType"
+
+msgctxt "Report dotazu"
+msgid "DocType: Report"
+msgstr "Query Report"
+
+msgctxt "Skriptovaný výpis"
+msgid "DocType: Report"
+msgstr "Script Report"
+
+msgctxt "Název role"
+msgid "DocType: Role"
+msgstr "Role Name"
+
+msgctxt "Chyba"
+msgid "DocType: Scheduler Log"
+msgstr "Error"
+
+msgctxt "Log chyb plánovače."
+msgid "DocType: Scheduler Log"
+msgstr "Log of Scheduler Errors"
+
+msgctxt "Log plánovače"
+msgid "DocType: Scheduler Log"
+msgstr "Scheduler Log"
+
+msgctxt "Metoda"
+msgid "DocType: Scheduler Log"
+msgstr "Method"
+
+msgctxt "Facebook"
+msgid "DocType: Social Login Keys"
+msgstr "Facebook"
+
+msgctxt "Facebook ID klienta"
+msgid "DocType: Social Login Keys"
+msgstr "Facebook Client ID"
+
+msgctxt "Facebook tajný klíč klienta"
+msgid "DocType: Social Login Keys"
+msgstr "Facebook Client Secret"
+
+msgctxt "GitHub"
+msgid "DocType: Social Login Keys"
+msgstr "GitHub"
+
+msgctxt "GitHub ID klienta"
+msgid "DocType: Social Login Keys"
+msgstr "GitHub Client ID"
+
+msgctxt "GitHub tajný klíč klienta"
+msgid "DocType: Social Login Keys"
+msgstr "GitHub Client Secret"
+
+msgctxt "Google"
+msgid "DocType: Social Login Keys"
+msgstr "Google"
+
+msgctxt "Google ID klienta"
+msgid "DocType: Social Login Keys"
+msgstr "Google Client ID"
+
+msgctxt "Google tajný klíč klienta"
+msgid "DocType: Social Login Keys"
+msgstr "Google Client Secret"
+
+msgctxt "Přihlašování přes sociální služby"
+msgid "DocType: Social Login Keys"
+msgstr "Social Login Keys"
+
+msgctxt "Odpověď"
+msgid "DocType: Standard Reply"
+msgstr "Response"
+
+msgctxt "Standardní odpověď"
+msgid "DocType: Standard Reply"
+msgstr "Standard Reply"
+
+msgctxt "Bezpečnost"
+msgid "DocType: System Settings"
+msgstr "Security"
+
+msgctxt "Formát data"
+msgid "DocType: System Settings"
+msgstr "Date Format"
+
+msgctxt "Formát čísel"
+msgid "DocType: System Settings"
+msgstr "Number Format"
+
+msgctxt "Formát čísel a data"
+msgid "DocType: System Settings"
+msgstr "Date and Number Format"
+
+msgctxt "Jazyk"
+msgid "DocType: System Settings"
+msgstr "Language"
+
+msgctxt "Platnost relace"
+msgid "DocType: System Settings"
+msgstr "Session Expiry"
+
+msgctxt "Počet desetinných míst"
+msgid "DocType: System Settings"
+msgstr "Float Precision"
+
+msgctxt "Scheduler Poslední závod"
+msgid "DocType: System Settings"
+msgstr "Scheduler Last Event"
+
+msgctxt "Spouštět plánované operace pouze když je zaškrtnuto"
+msgid "DocType: System Settings"
+msgstr "Run scheduled jobs only if checked"
+
+msgctxt "Vypršení platnosti relace v hodinách např. 06:00"
+msgid "DocType: System Settings"
+msgstr "Session Expiry in Hours e.g. 06:00"
+
+msgctxt "Zapnout plánované operace (cron)"
+msgid "DocType: System Settings"
+msgstr "Enable Scheduled Jobs"
+
+msgctxt "dd-mm-rrrr"
+msgid "DocType: System Settings"
+msgstr "dd-mm-yyyy"
+
+msgctxt "dd.mm.rrrr"
+msgid "DocType: System Settings"
+msgstr "dd.mm.yyyy"
+
+msgctxt "dd/mm/rrrr"
+msgid "DocType: System Settings"
+msgstr "dd/mm/yyyy"
+
+msgctxt "mm-dd-rrrr"
+msgid "DocType: System Settings"
+msgstr "mm-dd-yyyy"
+
+msgctxt "mm/dd/rrrr"
+msgid "DocType: System Settings"
+msgstr "mm/dd/yyyy"
+
+msgctxt "rrrr-mm-dd"
+msgid "DocType: System Settings"
+msgstr "yyyy-mm-dd"
+
+msgctxt "Popis a stav"
+msgid "DocType: ToDo"
+msgstr "Description and Status"
+
+msgctxt "Přiřazeno (komu)"
+msgid "DocType: ToDo"
+msgstr "Assigned To"
+
+msgctxt "Typ reference"
+msgid "DocType: ToDo"
+msgstr "Reference Type"
+
+msgctxt "Úkoly"
+msgid "DocType: ToDo"
+msgstr "ToDo"
+
+msgctxt "Odkaz na stánku kterou chcete otevřít"
+msgid "DocType: Top Bar Item"
+msgstr "Link to the page you want to open"
+
+msgctxt ""
+"Pokud je toto nastaveno, tato položka bude v rozevíracím seznamu (drop-"
+"down) pod zvoleným nadřazeným uzlem."
+msgid "DocType: Top Bar Item"
+msgstr ""
+"If you set this, this Item will come in a drop-down under the selected "
+"parent."
+
+msgctxt "Položka horního panelu"
+msgid "DocType: Top Bar Item"
+msgstr "Top Bar Item"
+
+msgctxt "Pro horní panel"
+msgid "DocType: Top Bar Item"
+msgstr "For top bar"
+
+msgctxt "V pravo"
+msgid "DocType: Top Bar Item"
+msgstr "Right"
+
+msgctxt "Zvolte cíl (target) = \"_blank\" pro otevření na nové stránce."
+msgid "DocType: Top Bar Item"
+msgstr "Select target = \"_blank\" to open in a new page."
+
+msgctxt "nadřazený popisek"
+msgid "DocType: Top Bar Item"
+msgstr "Parent Label"
+
+msgctxt "target = \"_blank\""
+msgid "DocType: Top Bar Item"
+msgstr "target = \"_blank\""
+
+msgctxt "Datum narození"
+msgid "DocType: User"
+msgstr "Birth Date"
+
+msgctxt "Dlaždice"
+msgid "DocType: User"
+msgstr "Tile"
+
+msgctxt "Druhé jméno (volitelné)"
+msgid "DocType: User"
+msgstr "Middle Name (Optional)"
+
+msgctxt "Facebook ID uživatele"
+msgid "DocType: User"
+msgstr "Facebook User ID"
+
+msgctxt "Facebook uživatelské jméno"
+msgid "DocType: User"
+msgstr "Facebook Username"
+
+msgctxt "Github - uživatelské jméno"
+msgid "DocType: User"
+msgstr "Github Username"
+
+msgctxt "Github ID uživatele"
+msgid "DocType: User"
+msgstr "Github User ID"
+
+msgctxt "Google ID uživatele"
+msgid "DocType: User"
+msgstr "Google User ID"
+
+msgctxt "Karma"
+msgid "DocType: User"
+msgstr "Karma"
+
+msgctxt "Moduly Blokové"
+msgid "DocType: User"
+msgstr "Block Modules"
+
+msgctxt "Moduly HTML"
+msgid "DocType: User"
+msgstr "Modules HTML"
+
+msgctxt "Moduly Přístup"
+msgid "DocType: User"
+msgstr "Modules Access"
+
+msgctxt "Místo"
+msgid "DocType: User"
+msgstr "Location"
+
+msgctxt "Nastavení emailu"
+msgid "DocType: User"
+msgstr "Email Settings"
+
+msgctxt "Nastavení zabezpečení"
+msgid "DocType: User"
+msgstr "Security Settings"
+
+msgctxt "Nastavit nové heslo"
+msgid "DocType: User"
+msgstr "Set New Password"
+
+msgctxt "Obnovit heslo klíče"
+msgid "DocType: User"
+msgstr "Reset Password Key"
+
+msgctxt "Obrázek na pozadí"
+msgid "DocType: User"
+msgstr "Background Image"
+
+msgctxt "Obrázek uživatele (avatar)"
+msgid "DocType: User"
+msgstr "User Image"
+
+msgctxt "Odeslat uvítací e-mail"
+msgid "DocType: User"
+msgstr "Send Welcome Email"
+
+msgctxt "Omezit IP"
+msgid "DocType: User"
+msgstr "Restrict IP"
+
+msgctxt ""
+"Omezit přístup uživatele pouze z této IP adresy. Můžete přidat více IP "
+"adres, oddělených čárkou. Je možno zadat dílčí IP adresy jako "
+"(111.111.111)."
+msgid "DocType: User"
+msgstr ""
+"Restrict user from this IP address only. Multiple IP addresses can be "
+"added by separating with commas. Also accepts partial IP addresses like "
+"(111.111.111)"
+
+msgctxt "Ověření třetí stranou"
+msgid "DocType: User"
+msgstr "Third Party Authentication"
+
+msgctxt "Poslední IP"
+msgid "DocType: User"
+msgstr "Last IP"
+
+msgctxt "Poslední přihlášení"
+msgid "DocType: User"
+msgstr "Last Login"
+
+msgctxt "Poslední známá verze"
+msgid "DocType: User"
+msgstr "Last Known Versions"
+
+msgctxt "Posílat oznámení pro transakce sleduji"
+msgid "DocType: User"
+msgstr "Send Notifications for Transactions I Follow"
+
+msgctxt "Povolit uživateli se přihlásit pouze po této hodině (0-24)"
+msgid "DocType: User"
+msgstr "Allow user to login only after this hour (0-24)"
+
+msgctxt "Povolit uživatelům přihlásit pouze před tuto hodinu (0-24)"
+msgid "DocType: User"
+msgstr "Allow user to login only before this hour (0-24)"
+
+msgctxt ""
+"Pořiďte si celosvětově uznávaný avatar z <a "
+"href=\"https://gravatar.com/\">Gravatar.com</a>"
+msgid "DocType: User"
+msgstr ""
+"Get your globally recognized avatar from <a "
+"href=\"https://gravatar.com/\">Gravatar.com</a>"
+
+msgctxt "Představuje uživatele v systému"
+msgid "DocType: User"
+msgstr "Represents a User in the system."
+
+msgctxt ""
+"Přidat / odebrat role přiřazené uživateli. Klikněte na roli, abyste "
+"zjistili, jaké oprávnění tato role má."
+msgid "DocType: User"
+msgstr ""
+"Check / Uncheck roles assigned to the User. Click on the Role to find out"
+" what permissions that Role has."
+
+msgctxt "Přihlášení po"
+msgid "DocType: User"
+msgstr "Login After"
+
+msgctxt "Přihlášení před"
+msgid "DocType: User"
+msgstr "Login Before"
+
+msgctxt "Přiřazení rolí"
+msgid "DocType: User"
+msgstr "Roles Assigned"
+
+msgctxt "Role HTML"
+msgid "DocType: User"
+msgstr "Roles HTML"
+
+msgctxt "Styl pozadí"
+msgid "DocType: User"
+msgstr "Background Style"
+
+msgctxt "Systémový uživatel"
+msgid "DocType: User"
+msgstr "System User"
+
+msgctxt "Typ uživatele"
+msgid "DocType: User"
+msgstr "User Type"
+
+msgctxt ""
+"Tyto hodnoty budou automaticky aktualizovány v transakcích a rovněž bude "
+"užitečné omezit oprávnění pro tohoto uživatele v transakcích obsahujících"
+" tyto hodnoty."
+msgid "DocType: User"
+msgstr ""
+"These values will be automatically updated in transactions and also will "
+"be useful to restrict permissions for this user on transactions "
+"containing these values."
+
+msgctxt ""
+"Uchovává JSON posledních známých verzí různých instalovaných aplikací. To"
+" se používá k zobrazení poznámky k vydání."
+msgid "DocType: User"
+msgstr ""
+"Stores the JSON of last known versions of various installed apps. It is "
+"used to show release notes."
+
+msgctxt ""
+"User Type \"System User\" přístup Desktop. \"Webové stránky User\" může "
+"být přihlášen na webu a stránkách portálu pouze."
+msgid "DocType: User"
+msgstr ""
+"User Type \"System User\" can access Desktop. \"Website User\" can only "
+"be logged into the website and portal pages."
+
+msgctxt "Uživatel webu"
+msgid "DocType: User"
+msgstr "Website User"
+
+msgctxt "Vyplnit obrazovku"
+msgid "DocType: User"
+msgstr "Fill Screen"
+
+msgctxt "Výchozí"
+msgid "DocType: User"
+msgstr "Defaults"
+
+msgctxt "Výchozí nastavení uživatele"
+msgid "DocType: User"
+msgstr "User Defaults"
+
+msgctxt ""
+"Zadejte pole výchozí hodnota (klávesy) a hodnoty. Přidáte-li více hodnot "
+"pro pole, bude první, kdo se zvedl. Tyto výchozí hodnoty se také "
+"používají k nastavení \"utkání\" pravidla oprávnění. Chcete-li zobrazit "
+"seznam polí, přejděte na <a href=\"#Form/Customize Form/Customize Form\">"
+" Vlastní formulář </a>."
+msgid "DocType: User"
+msgstr ""
+"Enter default value fields (keys) and values. If you add multiple values "
+"for a field, the first one will be picked. These defaults are also used "
+"to set \"match\" permission rules. To see list of fields, go to <a "
+"href=\"#Form/Customize Form/Customize Form\">Customize Form</a>."
+
+msgctxt "Zrušte zaškrtnutí moduly se schovávat před desktopu uživatele"
+msgid "DocType: User"
+msgstr "Uncheck modules to hide from user's desktop"
+
+msgctxt "Zápatí v emailu (podpis)"
+msgid "DocType: User"
+msgstr "Email Signature"
+
+msgctxt "user_image_show"
+msgid "DocType: User"
+msgstr "user_image_show"
+
+msgctxt "Časové pásmo"
+msgid "DocType: User"
+msgstr "Timezone"
+
+msgctxt "Role uživatele"
+msgid "DocType: UserRole"
+msgstr "UserRole"
+
+msgctxt "Doclist JSON"
+msgid "DocType: Version"
+msgstr "Doclist JSON"
+
+msgctxt "Docname"
+msgid "DocType: Version"
+msgstr "Docname"
+
+msgctxt "Verze"
+msgid "DocType: Version"
+msgstr "Version"
+
+msgctxt "Akce"
+msgid "DocType: Web Form"
+msgstr "Actions"
+
+msgctxt "Drobečková navigace (Breadcrumbs)"
+msgid "DocType: Web Form"
+msgstr "Breadcrumbs"
+
+msgctxt "Jít na tuto adresu URL po dokončení formuláře."
+msgid "DocType: Web Form"
+msgstr "Go to this url after completing the form."
+
+msgctxt "Pokročilé"
+msgid "DocType: Web Form"
+msgstr "Advanced"
+
+msgctxt "Pole webových formulářů"
+msgid "DocType: Web Form"
+msgstr "Web Form Fields"
+
+msgctxt "Povolit komentáře"
+msgid "DocType: Web Form"
+msgstr "Allow Comments"
+
+msgctxt "Povolit mazání"
+msgid "DocType: Web Form"
+msgstr "Allow Delete"
+
+msgctxt "Povolit vícenásobné"
+msgid "DocType: Web Form"
+msgstr "Allow Multiple"
+
+msgctxt "Povolit úpravy"
+msgid "DocType: Web Form"
+msgstr "Allow Edit"
+
+msgctxt "Přihlášení vyžadováno"
+msgid "DocType: Web Form"
+msgstr "Login Required"
+
+msgctxt ""
+"Text k zobrazení k prolinkování www stránky pokud má tento formulář www "
+"stránku. Cesta odkazu bude automaticky generována na základě `page_name` "
+"a `parent_website_route`"
+msgid "DocType: Web Form"
+msgstr ""
+"Text to be displayed for Link to Web Page if this form has a web page. "
+"Link route will be automatically generated based on `page_name` and "
+"`parent_website_route`"
+
+msgctxt "Text odkazu www stránky"
+msgid "DocType: Web Form"
+msgstr "Web Page Link Text"
+
+msgctxt "URL Povedlo se"
+msgid "DocType: Web Form"
+msgstr "Success URL"
+
+msgctxt "URL webu"
+msgid "DocType: Web Form"
+msgstr "Website URL"
+
+msgctxt "V JSON jako <pre>[{\"title\":\"Jobs\", \"name\":\"jobs\"}]</pre>"
+msgid "DocType: Web Form"
+msgstr "In JSON as <pre>[{\"title\":\"Jobs\", \"name\":\"jobs\"}]</pre>"
+
+msgctxt "Webový formulář"
+msgid "DocType: Web Form"
+msgstr "Web Form"
+
+msgctxt "Zpráva o úspěchu"
+msgid "DocType: Web Form"
+msgstr "Success Message"
+
+msgctxt "Zpráva, která bude zobrazena po úspěšném dokončení"
+msgid "DocType: Web Form"
+msgstr "Message to be displayed on successful completion"
+
+msgctxt "Pole webového formuláře"
+msgid "DocType: Web Form Field"
+msgstr "Web Form Field"
+
+msgctxt "Typ pole"
+msgid "DocType: Web Form Field"
+msgstr "Fieldtype"
+
+msgctxt "0 je nejvyšší"
+msgid "DocType: Web Page"
+msgstr "0 is highest"
+
+msgctxt "Cesta šablony"
+msgid "DocType: Web Page"
+msgstr "Template Path"
+
+msgctxt "HTML kód pro záhlaví. Volitelné"
+msgid "DocType: Web Page"
+msgstr "HTML for header section. Optional"
+
+msgctxt "Hlavní sekce"
+msgid "DocType: Web Page"
+msgstr "Main Section"
+
+msgctxt "Název url stránky (generováno automaticky)"
+msgid "DocType: Web Page"
+msgstr "Page url name (auto-generated)"
+
+msgctxt "Obsah stránky"
+msgid "DocType: Web Page"
+msgstr "Page content"
+
+msgctxt ""
+"Obsah ve značkovacím formátu, který se zobrazí v hlavní části Vaší www "
+"stránky"
+msgid "DocType: Web Page"
+msgstr "Content in markdown format that appears on the main side of your page"
+
+msgctxt "Page ukázat na webových stránkách"
+msgid "DocType: Web Page"
+msgstr "Page to show on the website\n"
+
+msgctxt "Popis pro optimalizaci pro vyhledávače."
+msgid "DocType: Web Page"
+msgstr "Description for search engine optimization."
+
+msgctxt "Přidat kód jako &lt;script&gt;"
+msgid "DocType: Web Page"
+msgstr "Add code as &lt;script&gt;"
+
+msgctxt "Přizpůsobené CSS"
+msgid "DocType: Web Page"
+msgstr "Custom CSS"
+
+msgctxt "Přizpůsobený Javascript"
+msgid "DocType: Web Page"
+msgstr "Custom Javascript"
+
+msgctxt "Show Název"
+msgid "DocType: Web Page"
+msgstr "Show Title"
+
+msgctxt "Střed"
+msgid "DocType: Web Page"
+msgstr "Center"
+
+msgctxt "Titulek / nadpis Vaší stránky"
+msgid "DocType: Web Page"
+msgstr "Title / headline of your page"
+
+msgctxt "Vložit kód"
+msgid "DocType: Web Page"
+msgstr "Insert Code"
+
+msgctxt "Vložit styl"
+msgid "DocType: Web Page"
+msgstr "Insert Style"
+
+msgctxt "Www stránky"
+msgid "DocType: Web Page"
+msgstr "Web Page"
+
+msgctxt "Zapnout komentáře"
+msgid "DocType: Web Page"
+msgstr "Enable Comments"
+
+msgctxt "Zarovnání textu"
+msgid "DocType: Web Page"
+msgstr "Text Align"
+
+msgctxt "Začněte tuto stránku slideshow obrázků"
+msgid "DocType: Web Page"
+msgstr "Begin this page with a slideshow of images"
+
+msgctxt "Záhlaví"
+msgid "DocType: Web Page"
+msgstr "Header"
+
+msgctxt "nadřazená internetová stránka"
+msgid "DocType: Web Page"
+msgstr "Parent Web Page"
+
+msgctxt "Skript pro přidání na všechny www stránky."
+msgid "DocType: Website Script"
+msgstr "Script to attach to all web pages."
+
+msgctxt "Skript www stránky"
+msgid "DocType: Website Script"
+msgstr "Website Script"
+
+msgctxt "Adresa a další formální informace, které byste rádi uvedli v zápatí."
+msgid "DocType: Website Settings"
+msgstr "Address and other legal information you may want to put in the footer."
+
+msgctxt "Banner"
+msgid "DocType: Website Settings"
+msgstr "Banner"
+
+msgctxt "Banner HTML"
+msgid "DocType: Website Settings"
+msgstr "Banner HTML"
+
+msgctxt "Banner je nad horní lištou menu."
+msgid "DocType: Website Settings"
+msgstr "Banner is above the Top Menu Bar."
+
+msgctxt "Copyright"
+msgid "DocType: Website Settings"
+msgstr "Copyright"
+
+msgctxt "Domovskou stránkou je stránka Produkty."
+msgid "DocType: Website Settings"
+msgstr "Home Page is Products"
+
+msgctxt "Domovská stránka"
+msgid "DocType: Website Settings"
+msgstr "Home Page"
+
+msgctxt "Facebook sdílení"
+msgid "DocType: Website Settings"
+msgstr "Facebook Share"
+
+msgctxt "FavIcon"
+msgid "DocType: Website Settings"
+msgstr "FavIcon"
+
+msgctxt "Google Plus One"
+msgid "DocType: Website Settings"
+msgstr "Google Plus One"
+
+msgctxt "Google analytics ID"
+msgid "DocType: Website Settings"
+msgstr "Google Analytics ID"
+
+msgctxt "Horní panel"
+msgid "DocType: Website Settings"
+msgstr "Top Bar"
+
+msgctxt "Integrace"
+msgid "DocType: Website Settings"
+msgstr "Integrations"
+
+msgctxt "Internetové stránky Téma"
+msgid "DocType: Website Settings"
+msgstr "Website Theme"
+
+msgctxt "Internetové stránky Téma Image"
+msgid "DocType: Website Settings"
+msgstr "Website Theme Image"
+
+msgctxt "Internetové stránky Téma Image Link"
+msgid "DocType: Website Settings"
+msgstr "Website Theme Image Link"
+
+msgctxt "Landing stránka"
+msgid "DocType: Website Settings"
+msgstr "Landing Page"
+
+msgctxt "Nastavit banner z obrázku"
+msgid "DocType: Website Settings"
+msgstr "Set Banner from Image"
+
+msgctxt "Obrázek banneru"
+msgid "DocType: Website Settings"
+msgstr "Banner Image"
+
+msgctxt ""
+"Odkaz na domovskou www stránku. Standardní odkazy (index, přihlášení, "
+"produkty, blog, o nás, kontakt)"
+msgid "DocType: Website Settings"
+msgstr ""
+"Link that is the website home page. Standard Links (index, login, "
+"products, blog, about, contact)"
+
+msgctxt "Odkazy postranního panelu pouze pro domovskou stránku"
+msgid "DocType: Website Settings"
+msgstr "Sidebar Links for Home Page only"
+
+msgctxt ""
+"Pakliže je toto zaškrtnuto, domovská stránka se stane výchozí skupinou "
+"položek pro www stránku."
+msgid "DocType: Website Settings"
+msgstr "If checked, the Home page will be the default Item Group for the website."
+
+msgctxt "Položky horního panelu"
+msgid "DocType: Website Settings"
+msgstr "Top Bar Items"
+
+msgctxt ""
+"Položky menu v horní liště. Pro nastavení barvy horní liště, jděte na "
+"vybrané webové stránky tématu."
+msgid "DocType: Website Settings"
+msgstr ""
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to "
+"selected Website Theme."
+
+msgctxt "Položky postranního panelu"
+msgid "DocType: Website Settings"
+msgstr "Sidebar Items"
+
+msgctxt "Položky zápatí"
+msgid "DocType: Website Settings"
+msgstr "Footer Items"
+
+msgctxt "Postranní panel"
+msgid "DocType: Website Settings"
+msgstr "Sidebar"
+
+msgctxt "Provázáno ve sdílení"
+msgid "DocType: Website Settings"
+msgstr "Linked In Share"
+
+msgctxt ""
+"Přidat Google Analytics ID: např.: UA-89XXX57-1. Pro více informací "
+"prosím vyhledejte nápovědu na stránkách Google Analytics."
+msgid "DocType: Website Settings"
+msgstr ""
+"Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google "
+"Analytics for more information."
+
+msgctxt "Přidat banner na stránku. (malé bannery bývají ok)"
+msgid "DocType: Website Settings"
+msgstr "Add a banner to the site. (small banners are usually good)"
+
+msgctxt "Různé"
+msgid "DocType: Website Settings"
+msgstr "Misc"
+
+msgctxt "Sdílet Twitter"
+msgid "DocType: Website Settings"
+msgstr "Twitter Share"
+
+msgctxt "Sdílet pomocí Twitter"
+msgid "DocType: Website Settings"
+msgstr "Twitter Share via"
+
+msgctxt ""
+"Soubor ikony s příponou *.ico. Měl by být 16 x 16 px. Vygenerováno "
+"použitím favicon generator. [<a href=\"http://favicon-generator.org/\" "
+"target=\"_blank\">favicon-generator.org</a>]"
+msgid "DocType: Website Settings"
+msgstr ""
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a"
+" favicon generator. [<a href=\"http://favicon-generator.org/\" "
+"target=\"_blank\">favicon-generator.org</a>]"
+
+msgctxt "Sub doména"
+msgid "DocType: Website Settings"
+msgstr "Subdomain"
+
+msgctxt "Sub doména poskytnutá (kým) erpnext.com"
+msgid "DocType: Website Settings"
+msgstr "Sub-domain provided by erpnext.com"
+
+msgctxt "Title Prefix"
+msgid "DocType: Website Settings"
+msgstr "Title Prefix"
+
+msgctxt "Tweet bude sdílen skrze Váš uživatelský účet (pakliže je specifikován)"
+msgid "DocType: Website Settings"
+msgstr "Tweet will be shared via your user account (if specified)"
+
+msgctxt "Vypnout odkaz pro registraci zákazníků na přihlašovací stránce"
+msgid "DocType: Website Settings"
+msgstr "Disable Customer Signup link in Login page"
+
+msgctxt "Vypnout registrování"
+msgid "DocType: Website Settings"
+msgstr "Disable Signup"
+
+msgctxt "Značka HTML"
+msgid "DocType: Website Settings"
+msgstr "Brand HTML"
+
+msgctxt "Zobrazit titul v okně prohlížeče jako &quot;Předčíslí - nadpis&quot;"
+msgid "DocType: Website Settings"
+msgstr "Show title in browser window as \"Prefix - title\""
+
+msgctxt ""
+"Zvolte obrázek s šířkou okolo 150px a s transparentním pozadím pro "
+"nejlepší výsledek."
+msgid "DocType: Website Settings"
+msgstr ""
+"Select an image of approx width 150px with a transparent background for "
+"best results."
+
+msgctxt "Název promítání obrázků"
+msgid "DocType: Website Slideshow"
+msgstr "Slideshow Name"
+
+msgctxt "Položky promítání obrázků"
+msgid "DocType: Website Slideshow"
+msgstr "Slideshow Items"
+
+msgctxt ""
+"Poznámka: Pro nejlepší výsledky, obrázky musí být stejné velikosti a "
+"šířka musí být větší než výška."
+msgid "DocType: Website Slideshow"
+msgstr ""
+"Note: For best results, images must be of the same size and width must be"
+" greater than height."
+
+msgctxt "Promítání obrázků (slideshow) pro zobrazení na www stránce"
+msgid "DocType: Website Slideshow"
+msgstr "Slideshow like display for the website"
+
+msgctxt "Promítání obrázků na www stránce"
+msgid "DocType: Website Slideshow"
+msgstr "Website Slideshow"
+
+msgctxt "Toto přijde nad promítání obrázků."
+msgid "DocType: Website Slideshow"
+msgstr "This goes above the slideshow."
+
+msgctxt "Položka promítání obrázků www stránky"
+msgid "DocType: Website Slideshow Item"
+msgstr "Website Slideshow Item"
+
+msgctxt "Aplikovat styl"
+msgid "DocType: Website Theme"
+msgstr "Apply Style"
+
+msgctxt "Barva odkazu"
+msgid "DocType: Website Theme"
+msgstr "Link Color"
+
+msgctxt "Barva pozadí"
+msgid "DocType: Website Theme"
+msgstr "Background Color"
+
+msgctxt "Barva textu"
+msgid "DocType: Website Theme"
+msgstr "Text Color"
+
+msgctxt "Google Font (Text)"
+msgid "DocType: Website Theme"
+msgstr "Google Font (Text)"
+
+msgctxt "Google Font (okruh)"
+msgid "DocType: Website Theme"
+msgstr "Google Font (Heading)"
+
+msgctxt "Odkaz na bootstrapu CSS"
+msgid "DocType: Website Theme"
+msgstr "Link to Bootstrap CSS"
+
+msgctxt "Odkaz na motivu Bootstrap"
+msgid "DocType: Website Theme"
+msgstr "Link to your Bootstrap theme"
+
+msgctxt "Okruh Style"
+msgid "DocType: Website Theme"
+msgstr "Heading Style"
+
+msgctxt "Pokud je vybraný obraz, bude barva ignorovány."
+msgid "DocType: Website Theme"
+msgstr "If image is selected, color will be ignored."
+
+msgctxt ""
+"Přidejte název <a href=\"https://www.google.com/fonts/\" "
+"target=\"_blank\">Google Web písma</a> např &quot;otevřené Sans&quot;"
+msgid "DocType: Website Theme"
+msgstr ""
+"Add the name of a <a href=\"https://www.google.com/fonts/\" "
+"target=\"_blank\">Google Web Font</a> e.g. \"Open Sans\""
+
+msgctxt "Skrýt Sidebar"
+msgid "DocType: Website Theme"
+msgstr "Hide Sidebar"
+
+msgctxt "Styl pomocí CSS"
+msgid "DocType: Website Theme"
+msgstr "Style using CSS"
+
+msgctxt "Top Bar Barva textu"
+msgid "DocType: Website Theme"
+msgstr "Top Bar Text Color"
+
+msgctxt "Top Bar Color"
+msgid "DocType: Website Theme"
+msgstr "Top Bar Color"
+
+msgctxt "Toto je třeba zkontrolovat, zda nastavení níže stylu jsou použitelné"
+msgid "DocType: Website Theme"
+msgstr "This must be checked if the below style settings are applicable"
+
+msgctxt "Téma"
+msgid "DocType: Website Theme"
+msgstr "Theme"
+
+msgctxt "Zápatí Barva textu"
+msgid "DocType: Website Theme"
+msgstr "Footer Text Color"
+
+msgctxt "Zápatí Color"
+msgid "DocType: Website Theme"
+msgstr "Footer Color"
+
+msgctxt "malá písmena"
+msgid "DocType: Website Theme"
+msgstr "lowercase"
+
+msgctxt "DocType na který je aplikovatelný tento tok (workflow)."
+msgid "DocType: Workflow"
+msgstr "DocType on which this Workflow is applicable."
+
+msgctxt "Dokument státy"
+msgid "DocType: Workflow"
+msgstr "Document States"
+
+msgctxt "Jméno toku"
+msgid "DocType: Workflow"
+msgstr "Workflow Name"
+
+msgctxt ""
+"Mohou existovat různé \"stavy\" tohoto dokumentu. Jako \"Otevřeno\", "
+"\"Čeká na schválení\" atd."
+msgid "DocType: Workflow"
+msgstr ""
+"Different \"States\" this document can exist in. Like \"Open\", \"Pending"
+" Approval\" etc."
+
+msgctxt ""
+"Pakliže je toto zaškrtnuto, všechny ostatní toky (workflow) se stanou "
+"neaktivními."
+msgid "DocType: Workflow"
+msgstr "If checked, all other workflows become inactive."
+
+msgctxt ""
+"Pole které reprezentuje stav toku (workflow) transakce (pakliže pole není"
+" přítomno, bude vytvořeno nové skryté přizpůsobené pole)"
+msgid "DocType: Workflow"
+msgstr ""
+"Field that represents the Workflow State of the transaction (if field is "
+"not present, a new hidden Custom Field will be created)"
+
+msgctxt "Pole stavu toku (workflow)"
+msgid "DocType: Workflow"
+msgstr "Workflow State Field"
+
+msgctxt "Pravidla definující přechod stavů v tocích (workflow)."
+msgid "DocType: Workflow"
+msgstr "Rules defining transition of state in the workflow."
+
+msgctxt ""
+"Pravidla pro přechod stavů, jako následný stav a která role má povoleno "
+"změnit stav atd."
+msgid "DocType: Workflow"
+msgstr ""
+"Rules for how states are transitions, like next state and which role is "
+"allowed to change state etc."
+
+msgctxt "Pravidla transakce"
+msgid "DocType: Workflow"
+msgstr "Transition Rules"
+
+msgctxt "Přechody"
+msgid "DocType: Workflow"
+msgstr "Transitions"
+
+msgctxt "Stavy"
+msgid "DocType: Workflow"
+msgstr "States"
+
+msgctxt "Toky (workflow)"
+msgid "DocType: Workflow"
+msgstr "Workflow"
+
+msgctxt "Vymezuje jednotlivé stavy toků."
+msgid "DocType: Workflow"
+msgstr "Defines workflow states and rules for a document."
+
+msgctxt ""
+"Všechny možné stavy toků (workflow) a role toků. <br>Možnosti stavů "
+"dokumentů (Docstatus): 0 je \"Uloženo\", 1 je \"Vloženo\" a 2 je "
+"\"Zrušeno\""
+msgid "DocType: Workflow"
+msgstr ""
+"All possible Workflow States and roles of the workflow. <br>Docstatus "
+"Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
+
+msgctxt "Akce hlavních toků"
+msgid "DocType: Workflow Action"
+msgstr "Workflow Action Master"
+
+msgctxt "Akce toků"
+msgid "DocType: Workflow Action"
+msgstr "Workflow Action"
+
+msgctxt "Název akce toku (workflow)"
+msgid "DocType: Workflow Action"
+msgstr "Workflow Action Name"
+
+msgctxt "0 - Rozpracováno; 1 - Odesláno; 2 - Zrušeno"
+msgid "DocType: Workflow Document State"
+msgstr "0 - Draft; 1 - Submitted; 2 - Cancelled"
+
+msgctxt "Aktualizovat hodnotu"
+msgid "DocType: Workflow Document State"
+msgstr "Update Value"
+
+msgctxt "Aktualizovat pole"
+msgid "DocType: Workflow Document State"
+msgstr "Update Field"
+
+msgctxt "Doc Status"
+msgid "DocType: Workflow Document State"
+msgstr "Doc Status"
+
+msgctxt "Je povolenou pouze upravovat pro"
+msgid "DocType: Workflow Document State"
+msgstr "Only Allow Edit For"
+
+msgctxt ""
+"Reprezentuje stavy povolené v jednom dokumentu a přiřazené role pro změnu"
+" stavu."
+msgid "DocType: Workflow Document State"
+msgstr ""
+"Represents the states allowed in one document and role assigned to change"
+" the state."
+
+msgctxt "Stav toku (workflow) dokumentu"
+msgid "DocType: Workflow Document State"
+msgstr "Workflow Document State"
+
+msgctxt "Check"
+msgid "DocType: Workflow State"
+msgstr "Check"
+
+msgctxt "Domácí"
+msgid "DocType: Workflow State"
+msgstr "Home"
+
+msgctxt "Ikona se zobrazí na tlačítku"
+msgid "DocType: Workflow State"
+msgstr "Icon will appear on the button"
+
+msgctxt "Inbox"
+msgid "DocType: Workflow State"
+msgstr "Inbox"
+
+msgctxt "Invertovat"
+msgid "DocType: Workflow State"
+msgstr "Inverse"
+
+msgctxt "Kalendář"
+msgid "DocType: Workflow State"
+msgstr "Calendar"
+
+msgctxt "Komentář"
+msgid "DocType: Workflow State"
+msgstr "Comment"
+
+msgctxt "Nebezpečí"
+msgid "DocType: Workflow State"
+msgstr "Danger"
+
+msgctxt "Odstranit"
+msgid "DocType: Workflow State"
+msgstr "remove"
+
+msgctxt "Povedlo se"
+msgid "DocType: Workflow State"
+msgstr "Success"
+
+msgctxt "Stav toku představuje aktuální stav dokumentu"
+msgid "DocType: Workflow State"
+msgstr "Workflow state represents the current state of a document."
+
+msgctxt "Stav toků"
+msgid "DocType: Workflow State"
+msgstr "Workflow State"
+
+msgctxt "Styl"
+msgid "DocType: Workflow State"
+msgstr "Style"
+
+msgctxt ""
+"Styly reprezentující barvy tlačítek: Úspěch - zelená, Nebezpečí - "
+"Červená, Inverze - černá, Hlavní – tmavě modrá, Info – světle modrá, "
+"Upozornění – oranžová"
+msgid "DocType: Workflow State"
+msgstr ""
+"Style represents the button color: Success - Green, Danger - Red, Inverse"
+" - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
+
+msgctxt "Stáhnout"
+msgid "DocType: Workflow State"
+msgstr "Download"
+
+msgctxt "Stěhovat"
+msgid "DocType: Workflow State"
+msgstr "move"
+
+msgctxt "Tisk"
+msgid "DocType: Workflow State"
+msgstr "Print"
+
+msgctxt "Upozornění"
+msgid "DocType: Workflow State"
+msgstr "Warning"
+
+msgctxt "Zmenšit"
+msgid "DocType: Workflow State"
+msgstr "zoom-out"
+
+msgctxt "Zvětšit"
+msgid "DocType: Workflow State"
+msgstr "zoom-in"
+
+msgctxt "adjust"
+msgid "DocType: Workflow State"
+msgstr "adjust"
+
+msgctxt "asterisk"
+msgid "DocType: Workflow State"
+msgstr "asterisk"
+
+msgctxt "ban-circle"
+msgid "DocType: Workflow State"
+msgstr "ban-circle"
+
+msgctxt "celá obrazovka"
+msgid "DocType: Workflow State"
+msgstr "fullscreen"
+
+msgctxt "certifikát"
+msgid "DocType: Workflow State"
+msgstr "certificate"
+
+msgctxt "chevron-down"
+msgid "DocType: Workflow State"
+msgstr "chevron-down"
+
+msgctxt "chevron-left"
+msgid "DocType: Workflow State"
+msgstr "chevron-left"
+
+msgctxt "chevron-right"
+msgid "DocType: Workflow State"
+msgstr "chevron-right"
+
+msgctxt "chevron-up"
+msgid "DocType: Workflow State"
+msgstr "chevron-up"
+
+msgctxt "circle-arrow-down"
+msgid "DocType: Workflow State"
+msgstr "circle-arrow-down"
+
+msgctxt "circle-arrow-left"
+msgid "DocType: Workflow State"
+msgstr "circle-arrow-left"
+
+msgctxt "circle-arrow-right"
+msgid "DocType: Workflow State"
+msgstr "circle-arrow-right"
+
+msgctxt "circle-arrow-up"
+msgid "DocType: Workflow State"
+msgstr "circle-arrow-up"
+
+msgctxt "cog"
+msgid "DocType: Workflow State"
+msgstr "cog"
+
+msgctxt "download-alt"
+msgid "DocType: Workflow State"
+msgstr "download-alt"
+
+msgctxt "dárek"
+msgid "DocType: Workflow State"
+msgstr "gift"
+
+msgctxt "eject"
+msgid "DocType: Workflow State"
+msgstr "eject"
+
+msgctxt "exclamation-sign"
+msgid "DocType: Workflow State"
+msgstr "exclamation-sign"
+
+msgctxt "eye-close"
+msgid "DocType: Workflow State"
+msgstr "eye-close"
+
+msgctxt "eye-open"
+msgid "DocType: Workflow State"
+msgstr "eye-open"
+
+msgctxt "facetime-video"
+msgid "DocType: Workflow State"
+msgstr "facetime-video"
+
+msgctxt "fast-backward"
+msgid "DocType: Workflow State"
+msgstr "fast-backward"
+
+msgctxt "fast-forward"
+msgid "DocType: Workflow State"
+msgstr "fast-forward"
+
+msgctxt "film"
+msgid "DocType: Workflow State"
+msgstr "film"
+
+msgctxt "flag"
+msgid "DocType: Workflow State"
+msgstr "flag"
+
+msgctxt "folder-close"
+msgid "DocType: Workflow State"
+msgstr "folder-close"
+
+msgctxt "folder-open"
+msgid "DocType: Workflow State"
+msgstr "folder-open"
+
+msgctxt "font"
+msgid "DocType: Workflow State"
+msgstr "font"
+
+msgctxt "fotoaparát"
+msgid "DocType: Workflow State"
+msgstr "camera"
+
+msgctxt "glass"
+msgid "DocType: Workflow State"
+msgstr "glass"
+
+msgctxt "glóbus"
+msgid "DocType: Workflow State"
+msgstr "globe"
+
+msgctxt "hand-down"
+msgid "DocType: Workflow State"
+msgstr "hand-down"
+
+msgctxt "hand-left"
+msgid "DocType: Workflow State"
+msgstr "hand-left"
+
+msgctxt "hand-right"
+msgid "DocType: Workflow State"
+msgstr "hand-right"
+
+msgctxt "hand-up"
+msgid "DocType: Workflow State"
+msgstr "hand-up"
+
+msgctxt "hdd"
+msgid "DocType: Workflow State"
+msgstr "hdd"
+
+msgctxt "indent-left"
+msgid "DocType: Workflow State"
+msgstr "indent-left"
+
+msgctxt "indent-right"
+msgid "DocType: Workflow State"
+msgstr "indent-right"
+
+msgctxt "info-sign"
+msgid "DocType: Workflow State"
+msgstr "info-sign"
+
+msgctxt "italic"
+msgid "DocType: Workflow State"
+msgstr "italic"
+
+msgctxt "kniha"
+msgid "DocType: Workflow State"
+msgstr "book"
+
+msgctxt "koš"
+msgid "DocType: Workflow State"
+msgstr "trash"
+
+msgctxt "kufřík"
+msgid "DocType: Workflow State"
+msgstr "briefcase"
+
+msgctxt "letadlo"
+msgid "DocType: Workflow State"
+msgstr "plane"
+
+msgctxt "list"
+msgid "DocType: Workflow State"
+msgstr "leaf"
+
+msgctxt "list-alt"
+msgid "DocType: Workflow State"
+msgstr "list-alt"
+
+msgctxt "magnet"
+msgid "DocType: Workflow State"
+msgstr "magnet"
+
+msgctxt "map-marker"
+msgid "DocType: Workflow State"
+msgstr "map-marker"
+
+msgctxt "megafon"
+msgid "DocType: Workflow State"
+msgstr "bullhorn"
+
+msgctxt "mínus"
+msgid "DocType: Workflow State"
+msgstr "minus"
+
+msgctxt "nahrát"
+msgid "DocType: Workflow State"
+msgstr "Upload"
+
+msgctxt "nákupní košík"
+msgid "DocType: Workflow State"
+msgstr "shopping-cart"
+
+msgctxt "obrázek"
+msgid "DocType: Workflow State"
+msgstr "picture"
+
+msgctxt "obálka"
+msgid "DocType: Workflow State"
+msgstr "envelope"
+
+msgctxt "off"
+msgid "DocType: Workflow State"
+msgstr "off"
+
+msgctxt "oheň"
+msgid "DocType: Workflow State"
+msgstr "fire"
+
+msgctxt "ok"
+msgid "DocType: Workflow State"
+msgstr "ok"
+
+msgctxt "ok-circle"
+msgid "DocType: Workflow State"
+msgstr "ok-circle"
+
+msgctxt "ok-sign"
+msgid "DocType: Workflow State"
+msgstr "ok-sign"
+
+msgctxt "pause"
+msgid "DocType: Workflow State"
+msgstr "pause"
+
+msgctxt "play"
+msgid "DocType: Workflow State"
+msgstr "play"
+
+msgctxt "play-circle"
+msgid "DocType: Workflow State"
+msgstr "play-circle"
+
+msgctxt "plus"
+msgid "DocType: Workflow State"
+msgstr "plus"
+
+msgctxt "plus-sign"
+msgid "DocType: Workflow State"
+msgstr "plus-sign"
+
+msgctxt "pozpátku"
+msgid "DocType: Workflow State"
+msgstr "backward"
+
+msgctxt "předat dál"
+msgid "DocType: Workflow State"
+msgstr "forward"
+
+msgctxt "qrcode"
+msgid "DocType: Workflow State"
+msgstr "qrcode"
+
+msgctxt "question-sign"
+msgid "DocType: Workflow State"
+msgstr "question-sign"
+
+msgctxt "remove-circle"
+msgid "DocType: Workflow State"
+msgstr "remove-circle"
+
+msgctxt "remove-sign"
+msgid "DocType: Workflow State"
+msgstr "remove-sign"
+
+msgctxt "repeat"
+msgid "DocType: Workflow State"
+msgstr "repeat"
+
+msgctxt "resize-full"
+msgid "DocType: Workflow State"
+msgstr "resize-full"
+
+msgctxt "resize-horizontal"
+msgid "DocType: Workflow State"
+msgstr "resize-horizontal"
+
+msgctxt "resize-small"
+msgid "DocType: Workflow State"
+msgstr "resize-small"
+
+msgctxt "resize-vertical"
+msgid "DocType: Workflow State"
+msgstr "resize-vertical"
+
+msgctxt "retweet"
+msgid "DocType: Workflow State"
+msgstr "retweet"
+
+msgctxt "road"
+msgid "DocType: Workflow State"
+msgstr "road"
+
+msgctxt "seznam"
+msgid "DocType: Workflow State"
+msgstr "List"
+
+msgctxt "share-alt"
+msgid "DocType: Workflow State"
+msgstr "share-alt"
+
+msgctxt "signal"
+msgid "DocType: Workflow State"
+msgstr "signal"
+
+msgctxt "sluchátka"
+msgid "DocType: Workflow State"
+msgstr "headphones"
+
+msgctxt "snímek obrazovky"
+msgid "DocType: Workflow State"
+msgstr "screenshot"
+
+msgctxt "soubor"
+msgid "DocType: Workflow State"
+msgstr "file"
+
+msgctxt "srdce"
+msgid "DocType: Workflow State"
+msgstr "heart"
+
+msgctxt "star"
+msgid "DocType: Workflow State"
+msgstr "star"
+
+msgctxt "star-empty"
+msgid "DocType: Workflow State"
+msgstr "star-empty"
+
+msgctxt "step-backward"
+msgid "DocType: Workflow State"
+msgstr "step-backward"
+
+msgctxt "step-forward"
+msgid "DocType: Workflow State"
+msgstr "step-forward"
+
+msgctxt "tagy"
+msgid "DocType: Workflow State"
+msgstr "Tags"
+
+msgctxt "text-height"
+msgid "DocType: Workflow State"
+msgstr "text-height"
+
+msgctxt "text-width"
+msgid "DocType: Workflow State"
+msgstr "text-width"
+
+msgctxt "th"
+msgid "DocType: Workflow State"
+msgstr "th"
+
+msgctxt "th-large"
+msgid "DocType: Workflow State"
+msgstr "th-large"
+
+msgctxt "th-list"
+msgid "DocType: Workflow State"
+msgstr "th-list"
+
+msgctxt "thumbs-down"
+msgid "DocType: Workflow State"
+msgstr "thumbs-down"
+
+msgctxt "thumbs-up"
+msgid "DocType: Workflow State"
+msgstr "thumbs-up"
+
+msgctxt "tint"
+msgid "DocType: Workflow State"
+msgstr "tint"
+
+msgctxt "tučně"
+msgid "DocType: Workflow State"
+msgstr "bold"
+
+msgctxt "tužka"
+msgid "DocType: Workflow State"
+msgstr "pencil"
+
+msgctxt "volume-down"
+msgid "DocType: Workflow State"
+msgstr "volume-down"
+
+msgctxt "volume-off"
+msgid "DocType: Workflow State"
+msgstr "volume-off"
+
+msgctxt "volume-up"
+msgid "DocType: Workflow State"
+msgstr "volume-up"
+
+msgctxt "warning-sign"
+msgid "DocType: Workflow State"
+msgstr "warning-sign"
+
+msgctxt "wrench"
+msgid "DocType: Workflow State"
+msgstr "wrench"
+
+msgctxt "zarovnat-střed"
+msgid "DocType: Workflow State"
+msgstr "align-center"
+
+msgctxt "zarovnat-vlevo"
+msgid "DocType: Workflow State"
+msgstr "align-left"
+
+msgctxt "zarovnat-vpravo"
+msgid "DocType: Workflow State"
+msgstr "align-right"
+
+msgctxt "zarovnat-vyplnit"
+msgid "DocType: Workflow State"
+msgstr "align-justify"
+
+msgctxt "znaménko mínus"
+msgid "DocType: Workflow State"
+msgstr "minus-sign"
+
+msgctxt "zvon"
+msgid "DocType: Workflow State"
+msgstr "bell"
+
+msgctxt "záložka"
+msgid "DocType: Workflow State"
+msgstr "bookmark"
+
+msgctxt "zámek"
+msgid "DocType: Workflow State"
+msgstr "lock"
+
+msgctxt "Štítek"
+msgid "DocType: Workflow State"
+msgstr "Tag"
+
+msgctxt "šipka-dolů"
+msgid "DocType: Workflow State"
+msgstr "arrow-down"
+
+msgctxt "šipka-nahoru"
+msgid "DocType: Workflow State"
+msgstr "arrow-up"
+
+msgctxt "šipka-vlevo"
+msgid "DocType: Workflow State"
+msgstr "arrow-left"
+
+msgctxt "šipka-vpravo"
+msgid "DocType: Workflow State"
+msgstr "arrow-right"
+
+msgctxt "Akce"
+msgid "DocType: Workflow Transition"
+msgstr "Action"
+
+msgctxt "Definuje akce na stavech a další krok a povolené role."
+msgid "DocType: Workflow Transition"
+msgstr "Defines actions on states and the next step and allowed roles."
+
+msgctxt "Povoleno"
+msgid "DocType: Workflow Transition"
+msgstr "Allowed"
+
+msgctxt "Přechod toku (workflow)"
+msgid "DocType: Workflow Transition"
+msgstr "Workflow Transition"
+
+msgctxt "Příští stav"
+msgid "DocType: Workflow Transition"
+msgstr "Next State"
+
+msgctxt "Není povoleno z této IP adresy"
+msgid "apps/frappe/frappe/auth.py +184"
+msgstr "Not allowed from this IP Address"
+
+msgctxt "Přihlášení není povoleno v tuto dobu"
+msgid "apps/frappe/frappe/auth.py +198"
+msgstr "Login not allowed at this time"
+
+msgctxt "Nemůžete upravovat pole určená pouze pro čtení"
+msgid "apps/frappe/frappe/client.py +63"
+msgstr "Can not edit Read Only fields"
+
+msgctxt "Instalátor"
+msgid "apps/frappe/frappe/config/desktop.py +60"
+msgstr "Installer"
+
+msgctxt "Spravovat nahrané soubory."
+msgid "apps/frappe/frappe/config/setup.py +104"
+msgstr "Manage uploaded files."
+
+msgctxt "Přidat / Správa e-mailových účtů."
+msgid "apps/frappe/frappe/config/setup.py +115"
+msgstr "Add / Manage Email Accounts."
+
+msgctxt "Nastavit emailová upozornění za základě různých kritérií."
+msgid "apps/frappe/frappe/config/setup.py +120"
+msgstr "Setup Email Alert based on various criteria."
+
+msgctxt "Standardní odpovědi na běžné dotazy."
+msgid "apps/frappe/frappe/config/setup.py +125"
+msgstr "Standard replies to common queries."
+
+msgctxt "Drag and Drop nástroj k vytvoření a přizpůsobit tiskové formáty."
+msgid "apps/frappe/frappe/config/setup.py +137"
+msgstr "Drag and Drop tool to build and customize Print Formats."
+
+msgctxt "Systémový a veřejní uživatelé"
+msgid "apps/frappe/frappe/config/setup.py +14"
+msgstr "System and Website Users"
+
+msgctxt "Nastavit výchozí formát, velikost stránky, styl tisku atd."
+msgid "apps/frappe/frappe/config/setup.py +142"
+msgstr "Set default format, page size, print style etc."
+
+msgctxt "Upravené HTML Šablony pro tisk transakcí."
+msgid "apps/frappe/frappe/config/setup.py +147"
+msgstr "Customized HTML Templates for printing transactions."
+
+msgctxt "Vymezuje toky (workflow) pro formuláře."
+msgid "apps/frappe/frappe/config/setup.py +158"
+msgstr "Define workflows for forms."
+
+msgctxt "Stavy toků jako např.: Rozpracováno, Schváleno, Zrušeno."
+msgid "apps/frappe/frappe/config/setup.py +163"
+msgstr "States for workflow (e.g. Draft, Approved, Cancelled)."
+
+msgctxt "Akce toků jako např.: schválit, zrušit."
+msgid "apps/frappe/frappe/config/setup.py +168"
+msgstr "Actions for workflow (e.g. Approve, Cancel)."
+
+msgctxt "Změnit vlastnosti pole (skrýt, jen pro čtení, práva atd.)"
+msgid "apps/frappe/frappe/config/setup.py +179"
+msgstr "Change field properties (hide, readonly, permission etc.)"
+
+msgctxt "Přidat pole do formulářů."
+msgid "apps/frappe/frappe/config/setup.py +185"
+msgstr "Add fields to forms."
+
+msgctxt "Uživatelské role"
+msgid "apps/frappe/frappe/config/setup.py +19"
+msgstr "User Roles"
+
+msgctxt "Přidat přizpůsobený javascript do formulářů."
+msgid "apps/frappe/frappe/config/setup.py +190"
+msgstr "Add custom javascript to forms."
+
+msgctxt "Přidat vlastní formuláře."
+msgid "apps/frappe/frappe/config/setup.py +195"
+msgstr "Add custom forms."
+
+msgctxt "Instaluje aplikace"
+msgid "apps/frappe/frappe/config/setup.py +208"
+msgstr "Install Applications."
+
+msgctxt "Stáhnout zálohu"
+msgid "apps/frappe/frappe/config/setup.py +214"
+msgstr "Download Backup"
+
+msgctxt "Pošle odkaz na stažení vytvořené zálohy systémovým správcům"
+msgid "apps/frappe/frappe/config/setup.py +217"
+msgstr "Send download link of a recent backup to System Managers"
+
+msgctxt "Spravuje zálohy na službě Dropbox"
+msgid "apps/frappe/frappe/config/setup.py +223"
+msgstr "Manage cloud backups on Dropbox"
+
+msgctxt "Log chyb automatických událostí (plánovač)."
+msgid "apps/frappe/frappe/config/setup.py +229"
+msgstr "Log of error on automated events (scheduler)."
+
+msgctxt "Nastavit role a oprávnění na DocType"
+msgid "apps/frappe/frappe/config/setup.py +32"
+msgstr "Set Permissions on Document Types and Roles"
+
+msgctxt "Nastavení oprávnění pro jednotlivé uživatele"
+msgid "apps/frappe/frappe/config/setup.py +39"
+msgstr "Set Permissions per User"
+
+msgctxt "Podívejte se, které dokumenty jsou čitelné uživatelem"
+msgid "apps/frappe/frappe/config/setup.py +47"
+msgstr "Check which Documents are readable by a User"
+
+msgctxt "Zpráva ze všech akcií dokumentů"
+msgid "apps/frappe/frappe/config/setup.py +54"
+msgstr "Report of all document shares"
+
+msgctxt "Nastavení Jazyka, Data a Času"
+msgid "apps/frappe/frappe/config/setup.py +66"
+msgstr "Language, Date and Time settings"
+
+msgctxt "Zobrazit / skrýt moduly"
+msgid "apps/frappe/frappe/config/setup.py +72"
+msgstr "Show / Hide Modules"
+
+msgctxt "Zobrazit nebo skrýt moduly globálně."
+msgid "apps/frappe/frappe/config/setup.py +74"
+msgstr "Show or hide modules globally."
+
+msgctxt "Nastavit čáslené řady pro transakce."
+msgid "apps/frappe/frappe/config/setup.py +79"
+msgstr "Set numbering series for transactions."
+
+msgctxt "Uživatelé"
+msgid "apps/frappe/frappe/config/setup.py +8"
+msgstr "Users"
+
+msgctxt "Importovat / exportovat "
+msgid "apps/frappe/frappe/config/setup.py +91"
+msgstr "Import / Export Data"
+
+msgctxt "Importovat / exportovat data z/do .csv souboru"
+msgid "apps/frappe/frappe/config/setup.py +93"
+msgstr "Import / Export Data from .csv files."
+
+msgctxt "Přejmenovat více položek nahráním souboru typu *.csv"
+msgid "apps/frappe/frappe/config/setup.py +98"
+msgstr "Rename many items by uploading a .csv file."
+
+msgctxt "Obsah www stránky."
+msgid "apps/frappe/frappe/config/website.py +13"
+msgstr "Content web page."
+
+msgctxt "Publikovat jednotlivé příspěvky na blogu (články)."
+msgid "apps/frappe/frappe/config/website.py +18"
+msgstr "Single Post (article)."
+
+msgctxt "Uživatelem přizpůsobitelné formuláře na stránkách."
+msgid "apps/frappe/frappe/config/website.py +23"
+msgstr "User editable form on Website."
+
+msgctxt "ID uživatele přispěvovatele do blogu."
+msgid "apps/frappe/frappe/config/website.py +28"
+msgstr "User ID of a blog writer."
+
+msgctxt "Vloží promítání obrázků do www stránky."
+msgid "apps/frappe/frappe/config/website.py +33"
+msgstr "Embed image slideshows in website pages."
+
+msgctxt "Nastavení horního navigačního panelu, zápatí a loga."
+msgid "apps/frappe/frappe/config/website.py +44"
+msgstr "Setup of top navigation bar, footer and logo."
+
+msgctxt "Nastavení fonty a pozadí."
+msgid "apps/frappe/frappe/config/website.py +49"
+msgstr "Setup of fonts and background."
+
+msgctxt "Javascript pro přidání do hlavičky stránky."
+msgid "apps/frappe/frappe/config/website.py +54"
+msgstr "Javascript to append to the head section of the page."
+
+msgctxt "Zadejte titulek a úvod pro Váš blog."
+msgid "apps/frappe/frappe/config/website.py +59"
+msgstr "Write titles and introductions to your blog."
+
+msgctxt "Kategorizujte příspěvky blogu."
+msgid "apps/frappe/frappe/config/website.py +64"
+msgstr "Categorize blog posts."
+
+msgctxt "Nastavení pro stránku O nás."
+msgid "apps/frappe/frappe/config/website.py +69"
+msgstr "Settings for About Us Page."
+
+msgctxt "Nastavení pro stránku Kontaktujte nás."
+msgid "apps/frappe/frappe/config/website.py +74"
+msgstr "Settings for Contact Us Page."
+
+msgctxt "Seznam témat pro webové stránky."
+msgid "apps/frappe/frappe/config/website.py +79"
+msgstr "List of themes for Website."
+
+msgctxt "Vložte klíče, které umožní přihlásit se přes Facebook, Google, GitHub."
+msgid "apps/frappe/frappe/config/website.py +84"
+msgstr "Enter keys to enable login via Facebook, Google, GitHub."
+
+msgctxt "Nelze přidat více než 50 komentářů"
+msgid "apps/frappe/frappe/core/doctype/comment/comment.py +39"
+msgstr "Cannot add more than 50 comments"
+
+msgctxt "Přidat do"
+msgid "apps/frappe/frappe/core/doctype/communication/communication.js +17"
+msgstr "Add To"
+
+msgctxt "Nemohu najít přílohu: {0}"
+msgid "apps/frappe/frappe/core/doctype/communication/communication.py +119"
+msgstr "Unable to find attachment {0}"
+
+msgctxt "Musíte mít \"Sdílet\" oprávnění"
+msgid "apps/frappe/frappe/core/doctype/docshare/docshare.py +33"
+msgstr "You need to have \"Share\" permission"
+
+msgctxt "{0} sdílí tento dokument s {1}"
+msgid "apps/frappe/frappe/core/doctype/docshare/docshare.py +37"
+msgstr "{0} shared this document with {1}"
+
+msgctxt "{0} již nesdílí tento dokument s {1}"
+msgid "apps/frappe/frappe/core/doctype/docshare/docshare.py +44"
+msgstr "{0} un-shared this document with {1}"
+
+msgctxt "DocType nemůže být sloučen"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +131"
+msgstr "DocType can not be merged"
+
+msgctxt "{0}: není povoleno v názvu pole {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +226"
+msgstr "{0} not allowed in fieldname {1}"
+
+msgctxt "Název pole {0} se vyskytuje vícekrát na řádcích {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +231"
+msgstr "Fieldname {0} appears multiple times in rows {1}"
+
+msgctxt "Pole {0} typu {1} nemůže být povinné"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +235"
+msgstr "Field {0} of type {1} cannot be mandatory"
+
+msgctxt "Možnosti jsou vyžadovány pro odkaz nebo pole typu tabulka {0} na řádku {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +240"
+msgstr "Options requried for Link or Table type field {0} in row {1}"
+
+msgctxt "Možnosti musí být validní DocType pro pole{0} na řádku {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +244"
+msgstr "Options must be a valid DocType for field {0} in row {1}"
+
+msgctxt "Pole {0} na řádku {1} nemůže být skryté a povinné bez výchozí hodnoty"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +248"
+msgstr "Field {0} in row {1} cannot be hidden and mandatory without default"
+
+msgctxt "Max šířka pro typ měny je 100px na řádku {0}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +252"
+msgstr "Max width for type Currency is 100px in row {0}"
+
+msgctxt ""
+"Možnosti pole typu 'Dynamický odkaz' musí odkazovat na jiné provázané "
+"pole s možnostmi jako 'DocType'"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +263"
+msgstr ""
+"Options 'Dynamic Link' type of field must point to another Link Field "
+"with options as 'DocType'"
+
+msgctxt "Výchozí hodnota pro  'zaškrtávací' pole musí být '0' nebo '1'"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +267"
+msgstr "Default for 'Check' type of field must be either '0' or '1'"
+
+msgctxt "Výchozí pro {0} musí být možnost"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +269"
+msgstr "Default for {0} must be an option"
+
+msgctxt "přesnost by měla být mezi 1 a 6"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +273"
+msgstr "Precision should be between 1 and 6"
+
+msgctxt "Fieldtype {0} na {1} nemůže být jedinečné"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +277"
+msgstr "Fieldtype {0} for {1} cannot be unique"
+
+msgctxt "Fieldtype {0} na {1} nelze indexovat"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +280"
+msgstr "Fieldtype {0} for {1} cannot be indexed"
+
+msgctxt "Může být pouze jeden Fold ve formuláři"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +287"
+msgstr "There can be only one Fold in a form"
+
+msgctxt "Složit musí přijít před konec oddílu"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +292"
+msgstr "Fold must come before a Section Break"
+
+msgctxt "Fold nemůže být na konci formuláře"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +294"
+msgstr "Fold can not be at the end of the form"
+
+msgctxt "Vyhledávací pole by měla obsahovat validní názvy polí"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +304"
+msgstr "Search Fields should contain valid fieldnames"
+
+msgctxt "Název pole je vyžadován v řádku: {0}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +312"
+msgstr "Fieldname is required in row {0}"
+
+msgctxt ""
+"Není v režimu pro vývojáře! Nachází se v site_config.json nebo učinit "
+"'custom' DocType."
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +34"
+msgstr "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
+
+msgctxt "Vložte přinejmenším jeden řádek oprávnění"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +344"
+msgstr "Enter at least one permission row"
+
+msgctxt "Pro {0} na úrovni {1} v {2} na řádku {3}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +352"
+msgstr "For {0} at level {1} in {2} in row {3}"
+
+msgctxt "{0}: Nejsou nastavena základní práva"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +356"
+msgstr "{0}: No basic permissions set"
+
+msgctxt ""
+"{0}: Pouze jedno pravidlo je povolené s touto rolí, úrovní a aplikování "
+"uživatelských oprávnění"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +367"
+msgstr ""
+"{0}: Only one rule allowed with the same Role, Level and Apply User "
+"Permissions"
+
+msgctxt "{0}: není povoleno v názvu"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +37"
+msgstr "{0} not allowed in name"
+
+msgctxt ""
+"{0}: Oprávnění na úrovni 0 musí být nastaveno před nastavením vyšších "
+"úrovní"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +378"
+msgstr "{0}: Permission at level 0 must be set before higher levels are set"
+
+msgctxt "{0}: Vytvořit, Odeslat, Zrušit a Změnit je validní pouze na úrovni 0"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +381"
+msgstr "{0}: Create, Submit, Cancel and Amend only valid at level 0"
+
+msgctxt "{0}: Nelze nastavit Zrušit bez Odeslání"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +385"
+msgstr "{0}: Cannot set Cancel without Submit"
+
+msgctxt "{0}: Nelze nastavit Odeslat, Zrušit, Změnit bez zapsání"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +388"
+msgstr "{0}: Cannot set Submit, Cancel, Amend without Write"
+
+msgctxt "{0}: Nelze Změnit bez Zrušení"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +390"
+msgstr "{0}: Cannot set Amend without Cancel"
+
+msgctxt "{0}: Nelze nastavit Import bez Vytvoření"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +392"
+msgstr "{0}: Cannot set Import without Create"
+
+msgctxt "Výpis nemůže být nastaven pro typy osamocené"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +399"
+msgstr "Report cannot be set for Single types"
+
+msgctxt "{0} nelze nastavit pro Single types"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +409"
+msgstr "{0} cannot be set for Single types"
+
+msgctxt "{0}: Nelze nastavit Odeslat když není Odeslatelné"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +413"
+msgstr "{0}: Cannot set Assign Submit if not Submittable"
+
+msgctxt "{0}: Nelze nastavit přiřadit Změny když není Odeslatelné"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +415"
+msgstr "{0}: Cannot set Assign Amend if not Submittable"
+
+msgctxt "{0}: Nelze nastavit import, protože {1} není importovatelné"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +419"
+msgstr "{0}: Cannot set import as {1} is not importable"
+
+msgctxt "Titulek musí být validní název pole"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +79"
+msgstr "Title field must be a valid fieldname"
+
+msgctxt "Stejný soubor již byl k záznamu přiložen"
+msgid "apps/frappe/frappe/core/doctype/file_data/file_data.py +33"
+msgstr "Same file has already been attached to the record"
+
+msgctxt "Bez oprávnění k zápisu / odebrání."
+msgid "apps/frappe/frappe/core/doctype/file_data/file_data.py +42"
+msgstr "No permission to write / remove."
+
+msgctxt "[Označení]:[Typ pole]/[Možnosti]:[šířka]"
+msgid "apps/frappe/frappe/core/doctype/report/report.js +10"
+msgstr "[Label]:[Field Type]/[Options]:[Width]"
+
+msgctxt "Příklad:"
+msgid "apps/frappe/frappe/core/doctype/report/report.js +11"
+msgstr "Example:"
+
+msgctxt ""
+"Zapíše soubor Pythonu ve stejném adresáři kde je toto uloženo a vrátí "
+"sloupec a výsledek."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +16"
+msgstr ""
+"Write a Python file in the same folder where this is saved and return "
+"column and result."
+
+msgctxt "Vypnout Report"
+msgid "apps/frappe/frappe/core/doctype/report/report.js +37"
+msgstr "Disable Report"
+
+msgctxt "Zapnout report"
+msgid "apps/frappe/frappe/core/doctype/report/report.js +37"
+msgstr "Enable Report"
+
+msgctxt ""
+"Výpisy konfigurátoru výpisů jsou spravovány přímo konfigurátorem výpisů. "
+"Nelze provést žádnou akci."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +5"
+msgstr ""
+"Report Builder reports are managed directly by the report builder. "
+"Nothing to do."
+
+msgctxt ""
+"Napište SQL dotaz SELECT. Poznámka: výsledky nebudou stránkovány (všechna"
+" data budou odeslána najednou)."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +8"
+msgstr ""
+"Write a SELECT query. Note result is not paged (all data is sent in one "
+"go)."
+
+msgctxt "Pro formátování sloupců, zadejte označení sloupců v dotazu."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +9"
+msgstr "To format columns, give column labels in the query."
+
+msgctxt ""
+"Pouze administrátor může uložit standardní výpis. Prosím přejmenujte a "
+"uložte."
+msgid "apps/frappe/frappe/core/doctype/report/report.py +24"
+msgstr "Only Administrator can save a standard report. Please rename and save."
+
+msgctxt ""
+"Pouze administrátor má povoleno vytvářet Dotazy (query) / skriptované "
+"výpisy (script reports)"
+msgid "apps/frappe/frappe/core/doctype/report/report.py +29"
+msgstr "Only Administrator allowed to create Query / Script Reports"
+
+msgctxt "Upravit oprávnění"
+msgid "apps/frappe/frappe/core/doctype/role/role.js +9"
+msgstr "Edit Permissions"
+
+msgctxt "Vypršení platnosti relace musí být ve formátu {0}"
+msgid "apps/frappe/frappe/core/doctype/system_settings/system_settings.py +17"
+msgstr "Session Expiry must be in format {0}"
+
+msgctxt "Přidat všechny role"
+msgid "apps/frappe/frappe/core/doctype/user/user.js +158"
+msgstr "Add all roles"
+
+msgctxt "Odebrat všechny role"
+msgid "apps/frappe/frappe/core/doctype/user/user.js +168"
+msgstr "Clear all roles"
+
+msgctxt "Oprávnění rolí"
+msgid "apps/frappe/frappe/core/doctype/user/user.js +323"
+msgstr "Role Permissions"
+
+msgctxt "Obnovuji..."
+msgid "apps/frappe/frappe/core/doctype/user/user.js +45"
+msgstr "Refreshing..."
+
+msgctxt "Je nám líto! Uživatel by měl mít kompletní přístup k vlastnímu záznamu."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +101"
+msgstr "Sorry! User should have complete access to their own record."
+
+msgctxt "Je nám líto! Sdílení s webových stránek Uživateli je zakázáno."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +103"
+msgstr "Sorry! Sharing with Website User is prohibited."
+
+msgctxt "Uvítací email odeslán"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +115"
+msgstr "Welcome email sent"
+
+msgctxt "Aktualizovat heslo"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +156"
+msgstr "Password Update"
+
+msgctxt "Ověřit Váš účet"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +165"
+msgstr "Verify Your Account"
+
+msgctxt "Měl by zde zbýt alespoň jeden systémový administrátor"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +197"
+msgstr "There should remain at least one System Manager"
+
+msgctxt "Uživatel: {0} nemůže být vymazán"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +202"
+msgstr "User {0} cannot be deleted"
+
+msgctxt "Uživatel: {0} nemůže být přejmenován"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +234"
+msgstr "User {0} cannot be renamed"
+
+msgctxt "Nelze obnovit: Neplatný / expirovaný odkaz."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +332"
+msgstr "Cannot Update: Incorrect / Expired Link."
+
+msgctxt "Registrováno ale vypnuto."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +350"
+msgstr "Registered but disabled."
+
+msgctxt "Již registrováno"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +352"
+msgstr "Already Registered"
+
+msgctxt "Podrobnosti o registraci odeslány emailem."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +369"
+msgstr "Registration Details Emailed."
+
+msgctxt "Není povoleno obnovit heslo pro {0}"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +374"
+msgstr "Not allowed to reset the password of {0}"
+
+msgctxt "Informace o obnově hesla byly zaslány na Váš email"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +381"
+msgstr "Password reset instructions have been sent to your email"
+
+msgctxt "Uživatel: {0} neexistuje"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +384"
+msgstr "User {0} does not exist"
+
+msgctxt "Uživatel: {0} nemůže být vypnut"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +47"
+msgstr "User {0} cannot be disabled"
+
+msgctxt "Vážení System Manager,"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +470"
+msgstr "Dear System Manager,"
+
+msgctxt "Správce přístupné {0} na {1} pomocí IP adresy {2}."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +472"
+msgstr "Administrator accessed {0} on {1} via IP Address {2}."
+
+msgctxt "Pokud si myslíte, že to je oprávněné, prosím, změňte heslo správce."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +478"
+msgstr ""
+"If you think this is unauthorized, please change the Administrator "
+"password."
+
+msgctxt "Přihlášen Administrátor"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +481"
+msgstr "Administrator Logged In"
+
+msgctxt ""
+"Přidávám roli systémového správce tomuto uživateli jelikož musí existovat"
+" nejméně jeden systémový správce"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +63"
+msgstr ""
+"Adding System Manager to this User as there must be atleast one System "
+"Manager"
+
+msgctxt "Uživatel s role správce systému by měl mít vždy Typ uživatele: System User"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +73"
+msgstr "User with System Manager Role should always have User Type: System User"
+
+msgctxt "Nové heslo zasláno emailem"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +80"
+msgstr "New password emailed"
+
+msgctxt "Role existuje"
+msgid "apps/frappe/frappe/core/doctype/userrole/userrole.py +14"
+msgstr "Role exists"
+
+msgctxt "Verze obnovena"
+msgid "apps/frappe/frappe/core/doctype/version/version.js +10"
+msgstr "Version restored"
+
+msgctxt "Stáhněte si prázdnou šablonu"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21"
+msgstr "Download Blank Template"
+
+msgctxt "Doporučuje se pro vkládání nových záznamů."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24"
+msgstr "Recommended for inserting new records."
+
+msgctxt "Šablona exportu"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3"
+msgstr "Export Template"
+
+msgctxt ""
+"Doporučená hromadné editaci záznamů přes dovoz, nebo pochopení formát "
+"importu."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33"
+msgstr ""
+"Recommended bulk editing records via import, or understanding the import "
+"format."
+
+msgctxt ""
+"Chcete-li importovat nebo aktualizovat záznamy, musíte nejprve stáhnout "
+"pro import šablony."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +4"
+msgstr ""
+"To import or update records, you must first download the template for "
+"importing."
+
+msgctxt ""
+"Aktualizujte šablony a uložit ve formátu CSV (čárkami různé hodnoty) ve "
+"formátu před připojením."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +40"
+msgstr ""
+"Update the template and save in CSV (Comma Separate Values) format before"
+" attaching."
+
+msgctxt "Nepoužívejte aktualizovat, ale vložit nové rekordy."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +47"
+msgstr "Do not update, but insert new records."
+
+msgctxt "Zvolte typ dokumentu ke stažení"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5"
+msgstr "Select Type of Document to Download"
+
+msgctxt "Odeslat po importu."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +53"
+msgstr "Submit after importing."
+
+msgctxt "Ignorovat kódování chyby."
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +59"
+msgstr "Ignore encoding errors."
+
+msgctxt "Vyberte typ"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7"
+msgstr "Select Type"
+
+msgctxt "Import se nezdařil"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +116"
+msgstr "Import Failed"
+
+msgctxt "začněte vkládat data pod tímto řádkem"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13"
+msgstr "Start entering data below this line"
+
+msgctxt "nadřazená tabulka"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15"
+msgstr "Parent Table"
+
+msgctxt "Název sloupce"
+msgid "apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16"
+msgstr "Column Name"
+
+msgctxt "Označení sloupce:"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +217"
+msgstr "Column Labels:"
+
+msgctxt "Povinné:"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +219"
+msgstr "Mandatory:"
+
+msgctxt "Typu:"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +220"
+msgstr "Type:"
+
+msgctxt "Informace:"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +221"
+msgstr "Info:"
+
+msgctxt "Šablona importu dat"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +51"
+msgstr "Data Import Template"
+
+msgctxt "Poznámky:"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +60"
+msgstr "Notes:"
+
+msgctxt "Prosím neměňte nadpis šablony."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +61"
+msgstr "Please do not change the template headings."
+
+msgctxt "První sloupec dat musí být prázdný."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +62"
+msgstr "First data column must be blank."
+
+msgctxt ""
+"Pakliže nahráváte nové záznamy, nechte sloupec (ID) \"název/jméno\" "
+"prázdný."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +63"
+msgstr "If you are uploading new records, leave the \"name\" (ID) column blank."
+
+msgctxt ""
+"Pokud nahráváte nové záznamy, \"číselníky\" se stanou povinnými, pakliže "
+"jsou zvoleny."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +64"
+msgstr ""
+"If you are uploading new records, \"Naming Series\" becomes mandatory, if"
+" present."
+
+msgctxt ""
+"Pouze povinná pole jsou potřeba pro nové záznamy. Můžete smazat nepovinné"
+" sloupce přejete-li si."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +65"
+msgstr ""
+"Only mandatory fields are necessary for new records. You can delete non-"
+"mandatory columns if you wish."
+
+msgctxt "Pro aktualizaci, můžete aktualizovat pouze vybrané sloupce."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +66"
+msgstr "For updating, you can update only selective columns."
+
+msgctxt ""
+"Můžete nahrát nejvýše 5000 záznamů najednou. (může být i méně v některých"
+" případech)"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +67"
+msgstr ""
+"You can only upload upto 5000 records in one go. (may be less in some "
+"cases)"
+
+msgctxt "\"Nadřazeno\" značí tabulku, ve které musí být přidán tento řádek"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +69"
+msgstr "\"Parent\" signifies the parent table in which this row must be added"
+
+msgctxt ""
+"Pakliže aktualizujete, zvolte prosím \"Přepsat\" jinak nebudou existující"
+" řádky vymazány."
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +70"
+msgstr ""
+"If you are updating, please select \"Overwrite\" else existing rows will "
+"not be deleted."
+
+msgctxt "Nechte prázdné pro nové záznamy"
+msgid "apps/frappe/frappe/core/page/data_import_tool/exporter.py +91"
+msgstr "Leave blank for new records"
+
+msgctxt "Není povoleno importovat"
+msgid "apps/frappe/frappe/core/page/data_import_tool/importer.py +175"
+msgstr "Not allowed to Import"
+
+msgctxt "Nenalezeno {0} pro {0} ({1})"
+msgid "apps/frappe/frappe/core/page/data_import_tool/importer.py +257"
+msgstr "Did not find {0} for {0} ({1})"
+
+msgctxt "Prosím neměňte řádky výše: {0}"
+msgid "apps/frappe/frappe/core/page/data_import_tool/importer.py +35"
+msgstr "Please do not change the rows above {0}"
+
+msgctxt "Nenalezena žádná data"
+msgid "apps/frappe/frappe/core/page/data_import_tool/importer.py +40"
+msgstr "No data found"
+
+msgctxt "Je povoleno pouze {0} řádků v jednom importu"
+msgid "apps/frappe/frappe/core/page/data_import_tool/importer.py +42"
+msgstr "Only allowed {0} rows in one import"
+
+msgctxt "Prosím ujistěte se, zda v souboru nejsou prázdné sloupce."
+msgid "apps/frappe/frappe/core/page/data_import_tool/importer.py +67"
+msgstr "Please make sure that there are no empty columns in the file."
+
+msgctxt "Hledání aplikací"
+msgid "apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1"
+msgstr "Search Application"
+
+msgctxt "Zaškrtnuté položky se zobrazí na ploše"
+msgid "apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3"
+msgstr "Checked items will be shown on desktop"
+
+msgctxt "Všechny aplikace"
+msgid "apps/frappe/frappe/core/page/desktop/desktop.js +48"
+msgstr "All Applications"
+
+msgctxt ""
+"Zvolte které moduly budou zobrazeny (na základě oprávnění). Pokud jsou "
+"skryté, budou skryté pro všechny uživatele."
+msgid "apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18"
+msgstr ""
+"Select modules to be shown (based on permission). If hidden, they will be"
+" hidden for all users."
+
+msgctxt "Skrýt či zobrazit moduly"
+msgid "apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5"
+msgstr "Show or Hide Modules"
+
+msgctxt "Vyskytly se chyby"
+msgid "apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55"
+msgstr "There were errors"
+
+msgctxt "Zvolte DocType nebo roli pro zahájení"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140"
+msgstr "Select Document Type or Role to start."
+
+msgctxt "Žádná oprávnění nastavena pro toto kritérium."
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162"
+msgstr "No Permissions set for this criteria."
+
+msgctxt "Zvolte typy dokumentů"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +248"
+msgstr "Select Document Types"
+
+msgctxt "Zobrazit práva uživatele"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +249"
+msgstr "Show User Permissions"
+
+msgctxt "Uživatelé s rolí {0}:"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +292"
+msgstr "Users with role {0}:"
+
+msgctxt "Nebylo odebráno"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +316"
+msgstr "Did not remove"
+
+msgctxt "Přidat nové pravidlo"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +359"
+msgstr "Add A New Rule"
+
+msgctxt "Přidat nové pravidlo oprávnění"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +363"
+msgstr "Add New Permission Rule"
+
+msgctxt ""
+"úroveň 0 je pro úroveň oprávnění dokumentů, vyšší úrovně jsou pro úrovně "
+"oprávnění polí."
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +371"
+msgstr ""
+"Level 0 is for document level permissions, higher levels for field level "
+"permissions."
+
+msgctxt "Nebylo přidáno"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +396"
+msgstr "Did not add"
+
+msgctxt "Pokud {0} je povoleno"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +414"
+msgstr "If {0} is permitted"
+
+msgctxt "Použít pravidlo"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +426"
+msgstr "Apply Rule"
+
+msgctxt "Nebylo nastaveno"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +467"
+msgstr "Did not set"
+
+msgctxt "Uloženo!"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469"
+msgstr "Saved!"
+
+msgctxt "Typy dokumentů"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47"
+msgstr "Document Types"
+
+msgctxt "Zvolte typ dokumentu"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48"
+msgstr "Select Document Type"
+
+msgctxt "Obnovit původní práva"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +487"
+msgstr "Restore Original Permissions"
+
+msgctxt "Vyberte roli"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54"
+msgstr "Select Role"
+
+msgctxt "Obnovit oprávnění pro: {0}?"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95"
+msgstr "Reset Permissions for {0}?"
+
+msgctxt ""
+"Oprávnění jsou automaticky překládána ve standardních výpisech a "
+"vyhledávačích."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +10"
+msgstr "Permissions are automatically translated to Standard Reports and Searches."
+
+msgctxt ""
+"Nejlepší praxí je NEpřiřazovat stejnou sadu oprávnění různým rolím. "
+"Namísto toho nastavte více rolí stejnému uživateli."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +11"
+msgstr ""
+"As a best practice, do not assign the same set of permission rule to "
+"different Roles. Instead, set multiple Roles to the same User."
+
+msgctxt "Význam pojmů Vložit, Zrušit, Změnit"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +14"
+msgstr "Meaning of Submit, Cancel, Amend"
+
+msgctxt ""
+"Některé dokumenty, například faktura, nemůže být změněna pokud je "
+"dokončena. Finální stav pro takové dokumenty se nazývá Vloženo. Můžete "
+"omezit, které role mohou vkládat."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +16"
+msgstr ""
+"Certain documents, like an Invoice, should not be changed once final. The"
+" final state for such documents is called Submitted. You can restrict "
+"which roles can Submit."
+
+msgctxt "Můžete upravit Odeslané dokumenty jejich zrušením a následovnou změnou."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +17"
+msgstr ""
+"You can change Submitted documents by cancelling them and then, amending "
+"them."
+
+msgctxt ""
+"Pokud změníte dokument po jeho zrušení a uložíte ho, dostane přiřazeno "
+"nové číslo. Toto je verze starého čísla."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +18"
+msgstr ""
+"When you Amend a document after Cancel and save it, it will get a new "
+"number that is a version of the old number."
+
+msgctxt ""
+"Například, pokud zrušíte a pozměnit INV004 se stane nový dokument "
+"INV004-1. To vám pomůže udržet přehled o každé změny."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +19"
+msgstr ""
+"For example if you cancel and amend INV004 it will become a new document "
+"INV004-1. This helps you to keep track of each amendment."
+
+msgctxt "Úrovně oprávnění"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +22"
+msgstr "Permission Levels"
+
+msgctxt ""
+"Oprávnění na úrovni 0ar oprávnění na úrovni dokumentu, to znamená, že "
+"jsou primárně pro přístup k dokumentu."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +24"
+msgstr ""
+"Permissions at level 0 are Document Level permissions, i.e. they are "
+"primary for access to the document."
+
+msgctxt "Pakliže role nemá přístup na úrovni 0, pak vyšší úrovně nemají efekt."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +25"
+msgstr ""
+"If a Role does not have access at Level 0, then higher levels are "
+"meaningless."
+
+msgctxt ""
+"Oprávnění na vyšších úrovních jsou oprávnění Field úrovně. Všechna pole "
+"jsou Úroveň oprávnění nastavit proti nim a pravidla určená na to "
+"oprávnění se vztahují na pole. To je užitečné v případě, že chcete skrýt "
+"nebo ujistil pole jen pro čtení pro určité role."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +26"
+msgstr ""
+"Permissions at higher levels are Field Level permissions. All Fields have"
+" a Permission Level set against them and the rules defined at that "
+"permissions apply to the field. This is useful in case you want to hide "
+"or make certain field read-only for certain Roles."
+
+msgctxt "Můžete použít Formulář Přizpůsobení pro nastavení úrovní na polích."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +27"
+msgstr "You can use Customize Form to set levels on fields."
+
+msgctxt "Rychlá Nápověda pro nastavení oprávnění"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +3"
+msgstr "Quick Help for Setting Permissions"
+
+msgctxt "Uživatelská oprávnění"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +30"
+msgstr "User Permissions"
+
+msgctxt ""
+"Chcete-li dát acess do role pouze pro konkrétní záznamy, zaškrtněte "
+"políčko Použít uživatelské oprávnění. Uživatelská oprávnění se používají "
+"k omezení uživatelů s těmito role na konkrétní záznamy."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +32"
+msgstr ""
+"To give acess to a role for only specific records, check the Apply User "
+"Permissions. User Permissions are used to limit users with such role to "
+"specific records."
+
+msgctxt "Nastavení > Správce oprávnění"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +33"
+msgstr "Setup > User Permissions Manager"
+
+msgctxt ""
+"Zvolte typ dokumentu pro nastavení která uživatelská oprávnění budou "
+"použita pro omezení přístupu."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +34"
+msgstr ""
+"Select Document Types to set which User Permissions are used to limit "
+"access."
+
+msgctxt ""
+"Pakliže toto nastavíte, uživatelé budou moci přistoupit pouze na "
+"dokumenty (např.: příspěvky blogu), kam existují odkazy (např.: blogger)."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +35"
+msgstr ""
+"Once you have set this, the users will only be able access documents (eg."
+" Blog Post) where the link exists (eg. Blogger)."
+
+msgctxt ""
+"Na rozdíl od správce systému, role se sadou Oprávnění uživatele právo lze"
+" nastavit oprávnění pro ostatní uživatele pro daný typ dokumentu."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +36"
+msgstr ""
+"Apart from System Manager, roles with Set User Permissions right can set "
+"permissions for other users for that Document Type."
+
+msgctxt ""
+"Pakliže tyto instrukce nebyly nápomocné, prosím přidejte Vaše doporučení "
+"na GitHub Issues."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +38"
+msgstr ""
+"If these instructions where not helpful, please add in your suggestions "
+"on GitHub Issues."
+
+msgctxt "Vložit případ podpory"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +39"
+msgstr "Submit an Issue"
+
+msgctxt ""
+"Oprávnění se nastavují na rolích a typech dokumentů (nazýváme je "
+"DocTypes) nastavením práv jako číst, Zapsat, Vytvořit, Smazat, Vložit, "
+"Zrušit, Změnit, Výpis, Import, Export, Tisk, Email a Nastavení "
+"uživatelských oprávnění."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +5"
+msgstr ""
+"Permissions are set on Roles and Document Types (called DocTypes) by "
+"setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, "
+"Report, Import, Export, Print, Email and Set User Permissions."
+
+msgctxt "Práva se aplikují na uživatele na základě přiřazené role."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +6"
+msgstr "Permissions get applied on Users based on what Roles they are assigned."
+
+msgctxt "Role uživatelů mohou být nastaveny z jejich uživatelské stránky."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +7"
+msgstr "Roles can be set for users from their User page."
+
+msgctxt "Nastavení > Uživatel"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +8"
+msgstr "Setup > User"
+
+msgctxt "Přidat novou roli"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +9"
+msgstr "Add a New Role"
+
+msgctxt ""
+"Systém poskytuje mnoho předdefinovaných rolí. Můžete přidat vlastní nové "
+"role pro detailnější nastavení oprávnění."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +9"
+msgstr ""
+"The system provides many pre-defined roles. You can add new roles to set "
+"finer permissions."
+
+msgctxt "Nahrát (upload) uživatelská oprávnění"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127"
+msgstr "Upload User Permissions"
+
+msgctxt ""
+"Nahrát (upload) soubor CSV obsahující všechna uživatelská oprávnění ve "
+"stejném formatu, v jakém jste je stáhli."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132"
+msgstr ""
+"Upload CSV file containing all user permissions in the same format as "
+"Download."
+
+msgctxt "Všechna stávající oprávnění budou smazána / přepsána."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133"
+msgstr "Any existing permission will be deleted / overwritten."
+
+msgctxt "Upravit oprávnění rolí"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14"
+msgstr "Edit Role Permissions"
+
+msgctxt "Nahrát a sloučit"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140"
+msgstr "Upload and Sync"
+
+msgctxt "Oprávnění aktualizována"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +149"
+msgstr "Permissions Updated"
+
+msgctxt "Pomoc pro uživatele oprávnění"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16"
+msgstr "Help for User Permissions"
+
+msgctxt ""
+"Kromě pravidel oprávnění založených na rolích, můžete aplikovat "
+"uživatelská oprávnění založená na DocTypes."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19"
+msgstr ""
+"Apart from Role based Permission Rules, you can apply User Permissions "
+"based on DocTypes."
+
+msgctxt "Nebyly nalezeny žádné omezení uživatelů."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +194"
+msgstr "No User Restrictions found."
+
+msgctxt "Vyberte uživatele nebo DocType pro zahájení"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +217"
+msgstr "Select User or DocType to start."
+
+msgctxt ""
+"These permissions will apply for all transactions where the permitted "
+"record is linked. For example, if Company C is added to User Permissions "
+"of user X, user X will only be able to see transactions that has company "
+"C as a linked value."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23"
+msgstr ""
+"These permissions will apply for all transactions where the permitted "
+"record is linked. For example, if Company C is added to User Permissions "
+"of user X, user X will only be able to see transactions that has company "
+"C as a linked value."
+
+msgctxt ""
+"Tato omezení budou platit pro typy dokumentů, kde &quot;Použít "
+"uživatelské oprávnění&quot; je kontrolována pro pravidlo oprávnění a "
+"hřiště s Tato hodnota je přítomna."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +243"
+msgstr ""
+"These restrictions will apply for Document Types where 'Apply User "
+"Permissions' is checked for the permission rule and a field with this "
+"value is present."
+
+msgctxt "Je"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246"
+msgstr "Is"
+
+msgctxt "Povolit uživatele Pokud"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +246"
+msgstr "Allow User If"
+
+msgctxt ""
+"Tyto budou rovněž nastaveny jako výchozí hodnoty pro tyto odkazy, pakliže"
+" pouze jeden záznam oprávnění je definován."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27"
+msgstr ""
+"These will also be set as default values for those links, if only one "
+"such permission record is defined."
+
+msgctxt "Přidání uživatele Omezení"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +297"
+msgstr "Add A User Restriction"
+
+msgctxt "Přidat nový Omezení"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +301"
+msgstr "Add A New Restriction"
+
+msgctxt "Uživatel může mít povoleno více záznamů na stejném DocType."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31"
+msgstr "A user can be permitted to multiple records of the same DocType."
+
+msgctxt "Vyberte uživatele"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68"
+msgstr "Select User"
+
+msgctxt "Prosím nahrajte s použitím stejné šablony jakou jste stáhli."
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105"
+msgstr "Please upload using the same template as download."
+
+msgctxt "Nemůžete odebrat oprávnění pro DocType: {0} a jméno: {1}"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58"
+msgstr "Cannot remove permission for DocType: {0} and Name: {1}"
+
+msgctxt "Nelze nastavit oprávnění pro DocType: {0} a jméno: {1}"
+msgid "apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66"
+msgstr "Cannot set permission for DocType: {0} and Name: {1}"
+
+msgctxt "Prosím specifikujte uživatele"
+msgid ""
+"apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py"
+" +25"
+msgstr "Please specify user"
+
+msgctxt "Prosím specifikujte doctype"
+msgid ""
+"apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py"
+" +28"
+msgstr "Please specify doctype"
+
+msgctxt "Přiřazeno (komu)/Majitel"
+msgid "apps/frappe/frappe/core/report/todo/todo.py +21"
+msgstr "Assigned To/Owner"
+
+msgctxt ""
+"Název dokumentu typu (DocType) se kterým chcete provázat toto pole. "
+"Např.: Zákazník"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52"
+msgstr ""
+"Name of the Document Type (DocType) you want this field to be linked to. "
+"e.g. Customer"
+
+msgctxt ""
+"Možnosti pro výběr. Každá možnost na novém řádku. Např.: <br>Možnost "
+"1<br>Možnost 2<br>Možnost 3<br>"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55"
+msgstr ""
+"Options for select. Each option on a new line. e.g.: <br>Option "
+"1<br>Option 2<br>Option 3<br>"
+
+msgctxt "Název pole který bude DocType pro toto provázané pole."
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58"
+msgstr "Fieldname which will be the DocType for this link field."
+
+msgctxt "Popisek je vyžadován"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19"
+msgstr "Label is mandatory"
+
+msgctxt "Přizpůsobené pole nemá nastaven název"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29"
+msgstr "Fieldname not set for Custom Field"
+
+msgctxt "Vložit za pole '{0}' zmiňováno v přizpůsobeném poli '{1}', neexistuje"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61"
+msgstr "Insert After field '{0}' mentioned in Custom Field '{1}', does not exist"
+
+msgctxt "Všechna přizpůsobení budou odebrána. Prosím potvrďte."
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +109"
+msgstr "All customizations will be removed. Please confirm."
+
+msgctxt "Nápověda"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +142"
+msgstr "Help"
+
+msgctxt "Nápověda: Vlastnosti pole"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +146"
+msgstr "Help: Field Properties"
+
+msgctxt "Nastavit zobrazované označení pole"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +154"
+msgstr "Set the display label for the field"
+
+msgctxt ""
+"Změňte typ pole. (V současné době, typ změny je \\\n"
+" povoleno mezi \"měnou a Float\")"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +158"
+msgstr ""
+"Change type of field. (Currently, Type change is \\\n"
+"\t\t\t\t\t\tallowed among 'Currency and Float')"
+
+msgctxt "Zadejte hodnotu pole"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +163"
+msgstr "Specify the value of the field"
+
+msgctxt "Přiřadit úroveň oprávnění poli."
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168"
+msgstr "Assign a permission level to the field."
+
+msgctxt ""
+"Oprávnění mohou být spravována přes Nastavení &gt; Správce rolí a "
+"oprávnění"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169"
+msgstr "Permissions can be managed via Setup &gt; Role Permissions Manager"
+
+msgctxt "Šířka vstupního pole"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +175"
+msgstr "Width of the input box"
+
+msgctxt "Příklad"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +176"
+msgstr "Example"
+
+msgctxt "Vyžadováno"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +180"
+msgstr "Reqd"
+
+msgctxt "Označit pole jako povinné"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +181"
+msgstr "Mark the field as Mandatory"
+
+msgctxt "Použijte pole pro filtrování záznamů"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +185"
+msgstr "Use the field to filter records"
+
+msgctxt "Skrýt pole ve formuláři"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +189"
+msgstr "Hide field in form"
+
+msgctxt "Skrýt pole ve standardním formátu tisku"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +193"
+msgstr "Hide field in Standard Print Format"
+
+msgctxt "Skrýt pole v konfigurátoru výpisů"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +197"
+msgstr "Hide field in Report Builder"
+
+msgctxt "Povolit aby pole zůstalo upravovatelné i po vložení"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +201"
+msgstr "Allow field to remain editable even after submission"
+
+msgctxt "Zobrazit popis pod polem"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214"
+msgstr "Show a description below the field"
+
+msgctxt "Zadejte výchozí hodnotu"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218"
+msgstr "Specify a default value"
+
+msgctxt "Pro zavření zmáčkněte Esc"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +224"
+msgstr "Press Esc to close"
+
+msgctxt "Obnovit formulář"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +49"
+msgstr "Refresh Form"
+
+msgctxt "Obnovit výchozí"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +53"
+msgstr "Reset to defaults"
+
+msgctxt "Odebrat všechna přizpůsobení?"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +54"
+msgstr "Remove all customizations?"
+
+msgctxt "Nelze smazat standardní pole. Můžete ji skrýt, pokud chcete"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +80"
+msgstr "Cannot delete standard field. You can hide it if you want"
+
+msgctxt "řádek {0}: Nelze povolit při vkládání pro standardní pole"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +125"
+msgstr "Row {0}: Not allowed to enable Allow on Submit for standard fields"
+
+msgctxt "'V seznamu' není povoleno pro typ {0} na řádku {1}"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +130"
+msgstr "'In List View' not allowed for type {0} in row {1}"
+
+msgctxt "Typ pole nemůže být změněn z {0} na {1} na řádku {2}"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +253"
+msgstr "Fieldtype cannot be changed from {0} to {1} in row {2}"
+
+msgctxt "{0}: aktualizováno"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +97"
+msgstr "{0} updated"
+
+msgctxt "Hodnota pro zaškrtávací pole může být 0 nebo 1"
+msgid "apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7"
+msgstr "Value for a check field can be either 0 or 1"
+
+msgctxt "Velmi mnoho zápisů v jednom požadavku. Prosím pošlete menší požadavek"
+msgid "apps/frappe/frappe/database.py +217"
+msgstr "Too many writes in one request. Please send smaller requests"
+
+msgctxt "Konec události musí být po začátku události"
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +16"
+msgstr "Event end must be after start"
+
+msgctxt "Denní události by měly skončit ve stejný den."
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +24"
+msgstr "Every day events should finish on the same day."
+
+msgctxt "Dnešní události v kalendáři"
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +55"
+msgstr "Events In Today's Calendar"
+
+msgctxt ""
+"Denní přehled událostí je zasílán pro kalendářní události kde je "
+"nastaveno připomínání."
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +62"
+msgstr "Daily Event Digest is sent for Calendar Events where reminders are set."
+
+msgctxt "Nadcházející události pro dnešek"
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +64"
+msgstr "Upcoming Events for Today"
+
+msgctxt "{0} přihlášeni"
+msgid "apps/frappe/frappe/desk/doctype/feed/feed.py +91"
+msgstr "{0} logged in"
+
+msgctxt "Zavřít"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo.js +22"
+msgstr "Close"
+
+msgctxt "Znovu otevřít"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo.js +30"
+msgstr "Re-open"
+
+msgctxt "Přiřazeno (komu) {0}"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo.py +17"
+msgstr "Assigned to {0}"
+
+msgctxt "Úkol uzavřen {0}"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo.py +21"
+msgstr "Assignment closed by {0}"
+
+msgctxt "Úkoly"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo_list.js +7"
+msgstr "To Do"
+
+msgctxt "Úkol {0}, které jste přiřadili k {1}, byl uzavřen."
+msgid "apps/frappe/frappe/desk/form/assign_to.py +114"
+msgstr "The task {0}, that you assigned to {1}, has been closed."
+
+msgctxt "Úkol {0}, které jste přiřadili k {1}, bylo uzavřeno {2}."
+msgid "apps/frappe/frappe/desk/form/assign_to.py +120"
+msgstr "The task {0}, that you assigned to {1}, has been closed by {2}."
+
+msgctxt "Nový úkol, {0}, byla přiřazena k vám od {1}. {2}"
+msgid "apps/frappe/frappe/desk/form/assign_to.py +127"
+msgstr "A new task, {0}, has been assigned to you by {1}. {2}"
+
+msgctxt "Je již v uživatelském seznamu úkolů"
+msgid "apps/frappe/frappe/desk/form/assign_to.py +39"
+msgstr "Already in user's To Do list"
+
+msgctxt "Nebylo nahráno"
+msgid "apps/frappe/frappe/desk/form/load.py +42"
+msgstr "Did not load"
+
+msgctxt "{0} {1} již existuje"
+msgid "apps/frappe/frappe/desk/form/save.py +21"
+msgstr "{0} {1} already exists"
+
+msgctxt "Nebylo uloženo"
+msgid "apps/frappe/frappe/desk/form/save.py +30"
+msgstr "Did not save"
+
+msgctxt "Nebylo zrušeno"
+msgid "apps/frappe/frappe/desk/form/save.py +44"
+msgstr "Did not cancel"
+
+msgctxt "Žádné další záznamy"
+msgid "apps/frappe/frappe/desk/form/utils.py +103"
+msgstr "No further records"
+
+msgctxt "Tuto metodu lze použít pouze k vytvoření komentář"
+msgid "apps/frappe/frappe/desk/form/utils.py +66"
+msgstr "This method can only be used to create a Comment"
+
+msgctxt "Přizpůsobené Reporty"
+msgid "apps/frappe/frappe/desk/moduleview.py +31"
+msgstr "Custom Reports"
+
+msgctxt "Modul nenalezen"
+msgid "apps/frappe/frappe/desk/moduleview.py +57"
+msgstr "Module Not Found"
+
+msgctxt "Bře"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +152"
+msgstr "Mar"
+
+msgctxt "Dubna"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +152"
+msgstr "Apr"
+
+msgctxt "Květen"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +152"
+msgstr "May"
+
+msgctxt "Leden"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +152"
+msgstr "Jan"
+
+msgctxt "Únor"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +152"
+msgstr "Feb"
+
+msgctxt "Červen"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +152"
+msgstr "Jun"
+
+msgctxt "Listopad"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +153"
+msgstr "Nov"
+
+msgctxt "Pro"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +153"
+msgstr "Dec"
+
+msgctxt "Srp"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +153"
+msgstr "Aug"
+
+msgctxt "Září"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +153"
+msgstr "Sep"
+
+msgctxt "Červenec"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +153"
+msgstr "Jul"
+
+msgctxt "Říjen"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +153"
+msgstr "Oct"
+
+msgctxt "{0} na {1}"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +196"
+msgstr "{0} on {1}"
+
+msgctxt "Sestav Report"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +47"
+msgstr "Build Report"
+
+msgctxt "Přihlášen"
+msgid "apps/frappe/frappe/desk/page/activity/activity_row.html +11"
+msgstr "Logged in"
+
+msgctxt "Komentoval {0}: {1}"
+msgid "apps/frappe/frappe/desk/page/activity/activity_row.html +15"
+msgstr "Commented on {0}: {1}"
+
+msgctxt "Aktualizovaný {0}: {1}"
+msgid "apps/frappe/frappe/desk/page/activity/activity_row.html +17"
+msgstr "Updated {0}: {1}"
+
+msgctxt "Vydavatel"
+msgid "apps/frappe/frappe/desk/page/applications/application_row.html +15"
+msgstr "Publisher"
+
+msgctxt "Instalováno"
+msgid "apps/frappe/frappe/desk/page/applications/application_row.html +5"
+msgstr "Installed"
+
+msgctxt "Instalovat"
+msgid "apps/frappe/frappe/desk/page/applications/application_row.html +7"
+msgstr "Install"
+
+msgctxt "Žádné Apps Instalovaný"
+msgid "apps/frappe/frappe/desk/page/applications/applications.js +24"
+msgstr "No Apps Installed"
+
+msgctxt "Instalátor aplikací"
+msgid "apps/frappe/frappe/desk/page/applications/applications.js +94"
+msgstr "Application Installer"
+
+msgctxt "Nemůžete instalovat tuto aplikaci"
+msgid "apps/frappe/frappe/desk/page/applications/applications.py +34"
+msgstr "You cannot install this app"
+
+msgctxt "Příspěvek"
+msgid "apps/frappe/frappe/desk/page/messages/messages_main.html +12"
+msgstr "Post"
+
+msgctxt "Všichni"
+msgid "apps/frappe/frappe/desk/page/messages/messages_sidebar.html +9"
+msgstr "Everyone"
+
+msgctxt "Nemáte přístup k Reportu: {0}"
+msgid "apps/frappe/frappe/desk/query_report.py +18"
+msgstr "You don't have access to Report: {0}"
+
+msgctxt "Nemáte práva přistoupit k výpisu: {0}"
+msgid "apps/frappe/frappe/desk/query_report.py +21"
+msgstr "You don't have permission to get a report on: {0}"
+
+msgctxt "Výpis: {0} je vypnutý"
+msgid "apps/frappe/frappe/desk/query_report.py +25"
+msgstr "Report {0} is disabled"
+
+msgctxt "Potřebujete práva pro přístup k tomuto Reportu."
+msgid "apps/frappe/frappe/desk/query_report.py +69"
+msgstr "Must have report permission to access this report."
+
+msgctxt "Musíte specifikovat Dotaz pro spuštění"
+msgid "apps/frappe/frappe/desk/query_report.py +75"
+msgstr "Must specify a Query to run"
+
+msgctxt "Dotaz musí být SELECT"
+msgid "apps/frappe/frappe/desk/query_report.py +79"
+msgstr "Query must be a SELECT"
+
+msgctxt "{0} uloženo"
+msgid "apps/frappe/frappe/desk/reportview.py +69"
+msgstr "{0} is saved"
+
+msgctxt "Email hranice {0} překročila"
+msgid "apps/frappe/frappe/email/bulk.py +120"
+msgstr "Email limit {0} crossed"
+
+msgctxt "Odhlásit se z tohoto seznamu"
+msgid "apps/frappe/frappe/email/bulk.py +129"
+msgstr "Unsubscribe from this list"
+
+msgctxt "{0} již opustil konverzaci v {1} {2}"
+msgid "apps/frappe/frappe/email/bulk.py +167"
+msgstr "{0} has has left the conversation in {1} {2}"
+
+msgctxt "Emaily jsou potlačené (muted)"
+msgid "apps/frappe/frappe/email/bulk.py +176"
+msgstr "Emails are muted"
+
+msgctxt "Zrušit odkaz: {0}"
+msgid "apps/frappe/frappe/email/bulk.py +78"
+msgstr "Unsubscribe link: {0}"
+
+msgctxt "Re: "
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account.py +231"
+msgstr "Re:"
+
+msgctxt "Opustit tuto konverzaci"
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account.py +237"
+msgstr "Leave this conversation"
+
+msgctxt "Výchozí Inbox"
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10"
+msgstr "Default Inbox"
+
+msgctxt "Výchozí Odeslání"
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14"
+msgstr "Default Sending"
+
+msgctxt "Výchozí Odeslání a Inbox"
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6"
+msgstr "Default Sending and Inbox"
+
+msgctxt "Prosím specifikujte které datum musí být prověřeno"
+msgid "apps/frappe/frappe/email/doctype/email_alert/email_alert.py +13"
+msgstr "Please specify which date field must be checked"
+
+msgctxt "Prosím specifikujte která hodnota musí být prověřena"
+msgid "apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16"
+msgstr "Please specify which value field must be checked"
+
+msgctxt "Nelze nastavit emailové upozornění na typ dokumentu {0}"
+msgid "apps/frappe/frappe/email/doctype/email_alert/email_alert.py +20"
+msgstr "Cannot set Email Alert on Document Type {0}"
+
+msgctxt "Levá tento rozhovor"
+msgid ""
+"apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py "
+"+13"
+msgstr "Left this conversation"
+
+msgctxt "Neplatný Mail Server. Prosím, opravu a zkuste to znovu."
+msgid "apps/frappe/frappe/email/receive.py +49"
+msgstr "Invalid Mail Server. Please rectify and try again."
+
+msgctxt ""
+"Neplatný Uživatelské jméno nebo Support heslo. Prosím, opravu a zkuste to"
+" znovu."
+msgid "apps/frappe/frappe/email/receive.py +53"
+msgstr "Invalid User Name or Support Password. Please rectify and try again."
+
+msgctxt ""
+"E-mailový účet není nastaven. Prosím vytvořte nový e-mailový účet v "
+"Nastavení> E-mail> E-mailový účet"
+msgid "apps/frappe/frappe/email/smtp.py +131"
+msgstr ""
+"Email Account not setup. Please create a new Email Account from Setup > "
+"Email > Email Account"
+
+msgctxt "Nelze se spojit se serverem odchozí emailové pošty"
+msgid "apps/frappe/frappe/email/smtp.py +143"
+msgstr "Could not connect to outgoing email server"
+
+msgctxt "Neplatný odchozí Mail Server nebo Port"
+msgid "apps/frappe/frappe/email/smtp.py +165"
+msgstr "Invalid Outgoing Mail Server or Port"
+
+msgctxt "Nelze odeslat emaily v tomto Čase"
+msgid "apps/frappe/frappe/email/smtp.py +169"
+msgstr "Unable to send emails at this time"
+
+msgctxt "Neplatné heslo či uživatelské jméno"
+msgid "apps/frappe/frappe/email/smtp.py +34"
+msgstr "Invalid login or password"
+
+msgctxt "Neplatná adresa příjemce"
+msgid "apps/frappe/frappe/email/smtp.py +37"
+msgstr "Invalid recipient address"
+
+msgctxt ""
+"Prosím, nastavte výchozí e-mailový účet v  Nastavení > E-mail > E-mailový"
+" účet"
+msgid "apps/frappe/frappe/email/smtp.py +58"
+msgstr "Please setup default Email Account from Setup > Email > Email Account"
+
+msgctxt "Tato měna je zakázáno. Povolení k použití při transakcích"
+msgid "apps/frappe/frappe/geo/doctype/currency/currency.js +7"
+msgstr "This Currency is disabled. Enable to use in transactions"
+
+msgctxt "Duplicitní jméno {0} {1}"
+msgid "apps/frappe/frappe/model/base_document.py +263"
+msgstr "Duplicate name {0} {1}"
+
+msgctxt "{0} musí být jedinečný"
+msgid "apps/frappe/frappe/model/base_document.py +287"
+msgstr "{0} must be unique"
+
+msgctxt "Data chybí v tabulce"
+msgid "apps/frappe/frappe/model/base_document.py +318"
+msgstr "Data missing in table"
+
+msgctxt "Chybí hodnota pro "
+msgid "apps/frappe/frappe/model/base_document.py +322"
+msgstr "Value missing for"
+
+msgctxt "Možnosti nejsou nastaveny pro provázané pole {0}"
+msgid "apps/frappe/frappe/model/base_document.py +353"
+msgstr "Options not set for link field {0}"
+
+msgctxt "{0}: musí být nastaveno první"
+msgid "apps/frappe/frappe/model/base_document.py +357"
+msgstr "{0} must be set first"
+
+msgctxt "Řádek #{0}:"
+msgid "apps/frappe/frappe/model/base_document.py +394"
+msgstr "Row #{0}:"
+
+msgctxt "{0} {1} nemůže být \"{2}\". Mělo by být jedno ze \"{3}\""
+msgid "apps/frappe/frappe/model/base_document.py +398"
+msgstr "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
+
+msgctxt "Hodnota nemůže být změněna pro {0}"
+msgid "apps/frappe/frappe/model/base_document.py +411"
+msgstr "Value cannot be changed for {0}"
+
+msgctxt "Není povoleno změnit {0} po vložení"
+msgid "apps/frappe/frappe/model/base_document.py +423"
+msgstr "Not allowed to change {0} after submission"
+
+msgctxt "Bez oprávnění číst: {0}"
+msgid "apps/frappe/frappe/model/db_query.py +286"
+msgstr "No permission to read {0}"
+
+msgctxt "Prosím vyberte nejméně 1 sloupec z {0} pro řazení"
+msgid "apps/frappe/frappe/model/db_query.py +389"
+msgstr "Please select atleast 1 column from {0} to sort"
+
+msgctxt "FieldName {0} nemůže mít speciální znaky jako {1}"
+msgid "apps/frappe/frappe/model/db_schema.py +417"
+msgstr "Fieldname {0} cannot have special characters like {1}"
+
+msgctxt "Uživatel nemá povoleno mazat {0}: {1}"
+msgid "apps/frappe/frappe/model/delete_doc.py +131"
+msgstr "User not allowed to delete {0}: {1}"
+
+msgctxt "{0} {1}: Odeslaný záznam nemůže být smazán."
+msgid "apps/frappe/frappe/model/delete_doc.py +135"
+msgstr "{0} {1}: Submitted Record cannot be deleted."
+
+msgctxt "Nelze smazat nebo zrušit, protože {0} {1} je provázáno s {2} {3}"
+msgid "apps/frappe/frappe/model/delete_doc.py +153"
+msgstr "Cannot delete or cancel because {0} {1} is linked with {2} {3}"
+
+msgctxt "Vypouští se"
+msgid "apps/frappe/frappe/model/delete_doc.py +200"
+msgstr "Deleted"
+
+msgctxt "Záznam neexistuje"
+msgid "apps/frappe/frappe/model/document.py +376"
+msgstr "Record does not exist"
+
+msgctxt "Chyba: Dokument byl upraven poté, co jste ho otevřeli"
+msgid "apps/frappe/frappe/model/document.py +388"
+msgstr "Error: Document has been modified after you have opened it"
+
+msgctxt "Prosím klikněte na obnovit pro získání nejnovějšího dokumentu."
+msgid "apps/frappe/frappe/model/document.py +390"
+msgstr "Please refresh to get the latest document."
+
+msgctxt "Nelze změnit docstatus z 0 na 2"
+msgid "apps/frappe/frappe/model/document.py +412"
+msgstr "Cannot change docstatus from 0 to 2"
+
+msgctxt "Nelze změnit docstatus z 1 na 0"
+msgid "apps/frappe/frappe/model/document.py +422"
+msgstr "Cannot change docstatus from 1 to 0"
+
+msgctxt "Nelze upravovat zrušeno dokument"
+msgid "apps/frappe/frappe/model/document.py +425"
+msgstr "Cannot edit cancelled document"
+
+msgctxt "Nemohu najít: {0}"
+msgid "apps/frappe/frappe/model/document.py +475"
+msgstr "Could not find {0}"
+
+msgctxt "Nelze odkazovat zrušený dokument: {0}"
+msgid "apps/frappe/frappe/model/document.py +480"
+msgstr "Cannot link cancelled document: {0}"
+
+msgctxt "žádný z"
+msgid "apps/frappe/frappe/model/document.py +637"
+msgstr "none of"
+
+msgctxt "počínaje"
+msgid "apps/frappe/frappe/model/document.py +638"
+msgstr "Beginning with"
+
+msgctxt "Nesprávná hodnota na řádku {0}: {1} musí být {2} {3}"
+msgid "apps/frappe/frappe/model/document.py +653"
+msgstr "Incorrect value in row {0}: {1} must be {2} {3}"
+
+msgctxt "Nesprávná hodnota: {0} musí být {1} {2}"
+msgid "apps/frappe/frappe/model/document.py +655"
+msgstr "Incorrect value: {0} must be {1} {2}"
+
+msgctxt "Tabulka: {0} nemůže být prázdná"
+msgid "apps/frappe/frappe/model/document.py +664"
+msgstr "Table {0} cannot be empty"
+
+msgctxt ""
+"Narazili jsme na problémy při nastavování jména, prosím kontaktujte "
+"administrátora"
+msgid "apps/frappe/frappe/model/naming.py +156"
+msgstr "There were some errors setting the name, please contact the administrator"
+
+msgctxt "Název {0} nemůže být {1}"
+msgid "apps/frappe/frappe/model/naming.py +162"
+msgstr "Name of {0} cannot be {1}"
+
+msgctxt "Název není nastaven pomocí prompt"
+msgid "apps/frappe/frappe/model/naming.py +49"
+msgstr "Name not set via Prompt"
+
+msgctxt "Číselné řady jsou povinné"
+msgid "apps/frappe/frappe/model/naming.py +62"
+msgstr "Naming Series mandatory"
+
+msgctxt "Neplatné číselné řady (. chybí)"
+msgid "apps/frappe/frappe/model/naming.py +90"
+msgstr "Invalid naming series (. missing)"
+
+msgctxt "{0}: není povoleno přejmenovat"
+msgid "apps/frappe/frappe/model/rename_doc.py +101"
+msgstr "{0} not allowed to be renamed"
+
+msgctxt "{0} {1} neexistuje, zvolte nový cíl pro sloučení"
+msgid "apps/frappe/frappe/model/rename_doc.py +92"
+msgstr "{0} {1} does not exist, select a new target to merge"
+
+msgctxt "Jiné {0} s názvem {1} již existuje, vyberte jiný název"
+msgid "apps/frappe/frappe/model/rename_doc.py +95"
+msgstr "Another {0} with name {1} exists, select another name"
+
+msgctxt "Potřebujete oprávnění k zápisu pro přejmenování"
+msgid "apps/frappe/frappe/model/rename_doc.py +98"
+msgstr "You need write permission to rename"
+
+msgctxt "Aplikace nenalezena"
+msgid "apps/frappe/frappe/modules/__init__.py +81"
+msgstr "App not found"
+
+msgctxt "Není povoleno přistupovat k {0} s {1} = {2}"
+msgid "apps/frappe/frappe/permissions.py +168"
+msgstr "Not allowed to access {0} with {1} = {2}"
+
+msgctxt "Řádek"
+msgid "apps/frappe/frappe/permissions.py +171"
+msgstr "Row"
+
+msgctxt "{0} {1} nenalezeno"
+msgid "apps/frappe/frappe/permissions.py +222"
+msgstr "{0} {1} not found"
+
+msgctxt "Oprávnění již bylo nastaveno"
+msgid "apps/frappe/frappe/permissions.py +226"
+msgstr "Permission already set"
+
+msgctxt "Prosím, kopírovat to, aby se změny"
+msgid "apps/frappe/frappe/print/doctype/print_format/print_format.js +14"
+msgstr "Please duplicate this to make changes"
+
+msgctxt "Prosím, vyberte první DocType"
+msgid "apps/frappe/frappe/print/doctype/print_format/print_format.js +20"
+msgstr "Please select DocType first"
+
+msgctxt "Standardní formát tisku nemůže být aktualizován"
+msgid "apps/frappe/frappe/print/doctype/print_format/print_format.py +17"
+msgstr "Standard Print Format cannot be updated"
+
+msgctxt "Syntaxní chyba v šabloně Jinja"
+msgid "apps/frappe/frappe/print/doctype/print_format/print_format.py +29"
+msgstr "Syntax error in Jinja template"
+
+msgctxt "Vyberte DocType vytvořit nový formát"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +102"
+msgstr "Select a DocType to make a new format"
+
+msgctxt "Jméno nového Print Format"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +111"
+msgstr "Name of the new Print Format"
+
+msgctxt "Jak DOCTYPE tak Jméno je vyžadováno"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +120"
+msgstr "Both DocType and Name required"
+
+msgctxt "Začít Nový formát"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +155"
+msgstr "Start new Format"
+
+msgctxt "Upravit vlastnosti"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +159"
+msgstr "Edit Properties"
+
+msgctxt "Vlastní HTML"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +181"
+msgstr "Custom HTML"
+
+msgctxt "Počet sloupců"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +360"
+msgstr "No of Columns"
+
+msgctxt "Odstranit oddíl"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +366"
+msgstr "Remove Section"
+
+msgctxt "Upravit záhlaví"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +459"
+msgstr "Edit Heading"
+
+msgctxt "Vyberte sloupců tabulky pro {0}"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +478"
+msgstr "Select Table Columns for {0}"
+
+msgctxt "Upravit pro přidání obsahu"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +526"
+msgstr "Edit to add content"
+
+msgctxt "Upravit vlastní HTML"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +531"
+msgstr "Edit Custom HTML"
+
+msgctxt "Můžete přidat dynamické vlastnosti z dokumentu pomocí Jinja šablonovacího."
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +548"
+msgstr ""
+"You can add dynamic properties from the document by using Jinja "
+"templating."
+
+msgctxt "Například: Chcete-li zahrnout ID dokumentu, použijte {0}"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +549"
+msgstr "For example: If you want to include the document ID, use {0}"
+
+msgctxt "Uloženo"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +626"
+msgstr "Saved"
+
+msgctxt "Zvolte formát tisku upravit"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js"
+" +75"
+msgstr "Select Print Format to Edit"
+
+msgctxt "Zkontrolujte, zda sloupce vybrat, přetáhnout nastavení pořadí."
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html"
+" +1"
+msgstr "Check columns to select, drag to set order."
+
+msgctxt "Šířky lze nastavit v px nebo %."
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html"
+" +2"
+msgstr "Widths can be set in px or &#37;."
+
+msgctxt "Sloupec"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html"
+" +4"
+msgstr "Column"
+
+msgctxt "Upravit HTML"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html"
+" +14"
+msgstr "Edit HTML"
+
+msgctxt "Vyberte sloupce"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html"
+" +22"
+msgstr "Select Columns"
+
+msgctxt "<Span class = text-ztlumen dat no-content = 1>"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html"
+" +11"
+msgstr "<span class=text-muted data-no-content=1>"
+
+msgctxt "Upravit pro nastavení záhlaví"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html"
+" +12"
+msgstr "Edit to set heading"
+
+msgctxt "Přetáhnout prvky z postranního panelu přidat. Přetáhnout zpátky do koše."
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html"
+" +3"
+msgstr "Drag elements from the sidebar to add. Drag them back to trash."
+
+msgctxt "Filtr ..."
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.html"
+" +3"
+msgstr "Filter..."
+
+msgctxt "Vytvořit nový formát"
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html"
+" +16"
+msgstr "Create a New Format"
+
+msgctxt "Vyberte existující formát, který chcete upravit, nebo začít nový formát."
+msgid ""
+"apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html"
+" +2"
+msgstr "Select an existing format to edit or start a new format."
+
+msgctxt ""
+"Redis vyrovnávací server neběží. Prosím, obraťte se na správce / "
+"technickou podporu"
+msgid "apps/frappe/frappe/sessions.py +106"
+msgstr ""
+"Redis cache server not running. Please contact Administrator / Tech "
+"support"
+
+msgctxt "Vyrovnávací paměť vyčistěna"
+msgid "apps/frappe/frappe/sessions.py +28"
+msgstr "Cache Cleared"
+
+msgctxt "Děkujeme za váš e-mail"
+msgid "apps/frappe/frappe/templates/emails/auto_reply.html +1"
+msgstr "Thank you for your email"
+
+msgctxt ""
+"Váš dotaz byl přijat. Brzy Vám odpovíme. Máte-li jakékoli další "
+"informace, prosím, odpovězte na tento mail."
+msgid "apps/frappe/frappe/templates/emails/auto_reply.html +2"
+msgstr ""
+"Your query has been received. We will back reply shortly. If you have any"
+" additional information, please reply to this mail."
+
+msgctxt "To je automaticky generovaný odpověď"
+msgid "apps/frappe/frappe/templates/emails/auto_reply.html +4"
+msgstr "This is an automatically generated reply"
+
+msgctxt "Byl Vám vytvořen nový účet"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +3"
+msgstr "A new account has been created for you"
+
+msgctxt "Vaše přihlašovací id je"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +4"
+msgstr "Your login id is"
+
+msgctxt ""
+"Klikněte na odkaz dole pro dokončení Vaší registrace a nastavení nového "
+"hesla"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +5"
+msgstr ""
+"Click on the link below to complete your registration and set a new "
+"password"
+
+msgctxt "Dokončit registraci"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +6"
+msgstr "Complete Registration"
+
+msgctxt "Můžete také kopírovat - vložit tento odkaz do Vašeho prohlížeče"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +8"
+msgstr "You can also copy-paste this link in your browser"
+
+msgctxt "Obnovit heslo"
+msgid "apps/frappe/frappe/templates/emails/password_reset.html +1"
+msgstr "Password Reset"
+
+msgctxt "Prosím klikněte na následující odkaz, pro nastavení nového hesla"
+msgid "apps/frappe/frappe/templates/emails/password_reset.html +4"
+msgstr "Please click on the following link to set your new password"
+
+msgctxt "Děkujeme Vám"
+msgid "apps/frappe/frappe/templates/emails/password_reset.html +6"
+msgstr "Thank you"
+
+msgctxt "Oznámení o aktualizování hesla"
+msgid "apps/frappe/frappe/templates/emails/password_update.html +1"
+msgstr "Password Update Notification"
+
+msgctxt "Vaše heslo bylo aktualizováno. Zde je Vaše nové heslo"
+msgid "apps/frappe/frappe/templates/emails/password_update.html +3"
+msgstr "Your password has been updated. Here is your new password"
+
+msgctxt "Podívej se na to ve svém prohlížeči"
+msgid "apps/frappe/frappe/templates/emails/print_link.html +2"
+msgstr "View this in your browser"
+
+msgctxt "Prosím přihlašte se pro vytvoření nového: {0}"
+msgid "apps/frappe/frappe/templates/generators/web_form.html +18"
+msgstr "Please login to create a new {0}"
+
+msgctxt "Pokračovat"
+msgid "apps/frappe/frappe/templates/generators/web_form.html +265"
+msgstr "Continue"
+
+msgctxt "{0} x {1}"
+msgid "apps/frappe/frappe/templates/includes/comments/comments.py +50"
+msgstr "{0} by {1}"
+
+msgctxt "Zobrazit ve Vašem prohlížeči"
+msgid "apps/frappe/frappe/templates/includes/comments/comments.py +52"
+msgstr "View it in your browser"
+
+msgctxt "Nový komentář: {0} {1}"
+msgid "apps/frappe/frappe/templates/includes/comments/comments.py +57"
+msgstr "New comment on {0} {1}"
+
+msgctxt ""
+"Prosím, zadejte i svůj e-mail a poselství, abychom \\\n"
+" může dostat zpět k vám. Díky!"
+msgid "apps/frappe/frappe/templates/includes/contact.js +11"
+msgstr ""
+"Please enter both your email and message so that we \\\n"
+"\t\t\t\tcan get back to you. Thanks!"
+
+msgctxt ""
+"Zdá se, že jste napsal své jméno namísto svůj e-mail. \\\n"
+" Zadejte prosím platnou e-mailovou adresu, abychom se Vám mohli ozvat."
+msgid "apps/frappe/frappe/templates/includes/contact.js +17"
+msgstr ""
+"You seem to have written your name instead of your email. \\\n"
+"\t\t\t\t\tPlease enter a valid email address so that we can get back."
+
+msgctxt "Děkujeme Vám za zprávu"
+msgid "apps/frappe/frappe/templates/includes/contact.js +30"
+msgstr "Thank you for your message"
+
+msgctxt "jasný"
+msgid "apps/frappe/frappe/templates/includes/list/filters.html +19"
+msgstr "clear"
+
+msgctxt "Neplatné přihlášení"
+msgid "apps/frappe/frappe/templates/includes/login/login.js +119"
+msgstr "Invalid Login"
+
+msgctxt "Jejda! Něco nevyšlo dobře :("
+msgid "apps/frappe/frappe/templates/includes/login/login.js +120"
+msgstr "Oops! Something went wrong"
+
+msgctxt "Obojí, přihlašovací jméno a heslo je vyžadováno"
+msgid "apps/frappe/frappe/templates/includes/login/login.js +18"
+msgstr "Both login and password required"
+
+msgctxt "Je vyžadován platný email a jméno"
+msgid "apps/frappe/frappe/templates/includes/login/login.js +31"
+msgstr "Valid email and name required"
+
+msgctxt "Validní přihlašovací id je vyžadováno."
+msgid "apps/frappe/frappe/templates/includes/login/login.js +43"
+msgstr "Valid Login id required."
+
+msgctxt "Zpět"
+msgid "apps/frappe/frappe/templates/includes/sidebar.html +7"
+msgstr "Back"
+
+msgctxt ""
+"Je nám velmi líto, ale stránka kterou hledáte chybí (může to být "
+"typografickou chybou v adresním řádku) nebo mohla být přesunuta."
+msgid "apps/frappe/frappe/templates/pages/404.html +10"
+msgstr ""
+"We are very sorry for this, but the page you are looking for is missing "
+"(this could be because of a typo in the address) or moved."
+
+msgctxt "Stránka chybí nebo byla přesunuta"
+msgid "apps/frappe/frappe/templates/pages/404.html +4"
+msgstr "Page missing or moved"
+
+msgctxt "Nemáte povolen přístup na tuto stránku."
+msgid "apps/frappe/frappe/templates/pages/desk.py +19"
+msgstr "You are not permitted to access this page."
+
+msgctxt "Filtrováno podle &quot;{0}&quot;"
+msgid "apps/frappe/frappe/templates/pages/list.py +59"
+msgstr "Filtered by \"{0}\""
+
+msgctxt "Email není verifikován s {1}"
+msgid "apps/frappe/frappe/templates/pages/login.py +162"
+msgstr "Email not verified with {1}"
+
+msgctxt "Můj Účet"
+msgid "apps/frappe/frappe/templates/pages/me.html +1"
+msgstr "My Account"
+
+msgctxt "Musíte být přihlášen, aby přístup k této stránce."
+msgid "apps/frappe/frappe/templates/pages/me.py +14"
+msgstr "You need to be logged in to access this page."
+
+msgctxt "Bez oprávnění: {0}"
+msgid "apps/frappe/frappe/templates/pages/print.py +127"
+msgstr "No {0} permission"
+
+msgctxt "Formát tisku: {0} je vypnutý"
+msgid "apps/frappe/frappe/templates/pages/print.py +139"
+msgstr "Print Format {0} is disabled"
+
+msgctxt "Žádná šablona nenalezena na cestě: {0}"
+msgid "apps/frappe/frappe/templates/pages/print.py +153"
+msgstr "No template found at path: {0}"
+
+msgctxt "Obnovit heslo"
+msgid "apps/frappe/frappe/templates/pages/update-password.html +1"
+msgstr "Reset Password"
+
+msgctxt "Staré heslo"
+msgid "apps/frappe/frappe/templates/pages/update-password.html +18"
+msgstr "Old Password"
+
+msgctxt "Nové heslo"
+msgid "apps/frappe/frappe/templates/pages/update-password.html +22"
+msgstr "New Password"
+
+msgctxt "Heslo aktualizováno"
+msgid "apps/frappe/frappe/templates/pages/update-password.html +69"
+msgstr "Password Updated"
+
+msgctxt "Download link pro zálohování bude zasláno na e-mailovou adresu: {0}"
+msgid "apps/frappe/frappe/utils/backups.py +140"
+msgstr ""
+"Download link for your backup will be emailed on the following email "
+"address: {0}"
+
+msgctxt "{app_title}"
+msgid "apps/frappe/frappe/utils/boilerplate.py +228"
+msgstr "{app_title}"
+
+msgctxt "{0} musí být jedno ze {1}"
+msgid "apps/frappe/frappe/utils/csvutils.py +123"
+msgstr "{0} must be one of {1}"
+
+msgctxt "Soubor není příložen"
+msgid "apps/frappe/frappe/utils/csvutils.py +25"
+msgstr "File not attached"
+
+msgctxt "Nemohu otevřít přiložený soubor. Prosím zkuste to znovu."
+msgid "apps/frappe/frappe/utils/csvutils.py +33"
+msgstr "Unable to open attached file. Please try again."
+
+msgctxt "Neznámé kódování souboru. Vyzkoušeno utf-8, windows-1250, windows-1252."
+msgid "apps/frappe/frappe/utils/csvutils.py +50"
+msgstr "Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
+
+msgctxt "Není validní CSV soubor (hodnoty oddělené čárkami)"
+msgid "apps/frappe/frappe/utils/csvutils.py +74"
+msgstr "Not a valid Comma Separated Value (CSV File)"
+
+msgctxt "Cent"
+msgid "apps/frappe/frappe/utils/data.py +380"
+msgstr "Cent"
+
+msgctxt "pouze."
+msgid "apps/frappe/frappe/utils/data.py +397"
+msgstr "only."
+
+msgctxt "Soubor překročil maximální povolenou velikost v MB: {0}"
+msgid "apps/frappe/frappe/utils/file_manager.py +181"
+msgstr "File size exceeded the maximum allowed size of {0} MB"
+
+msgctxt "Odebráno: {0}"
+msgid "apps/frappe/frappe/utils/file_manager.py +230"
+msgstr "Removed {0}"
+
+msgctxt "Prosím vyberte soubor nebo url"
+msgid "apps/frappe/frappe/utils/file_manager.py +28"
+msgstr "Please select a file or url"
+
+msgctxt "Přidáno: {0}"
+msgid "apps/frappe/frappe/utils/file_manager.py +40"
+msgstr "Added {0}"
+
+msgctxt "Žádný soubor nepřiložen"
+msgid "apps/frappe/frappe/utils/file_manager.py +83"
+msgstr "No file attached"
+
+msgctxt "Položka nemůže být přidána jako svůj vlastní podřízený potomek"
+msgid "apps/frappe/frappe/utils/nestedset.py +181"
+msgstr "Item cannot be added to its own descendants"
+
+msgctxt "Kořen (nejvyšší úroveň): {0} nelze smazat"
+msgid "apps/frappe/frappe/utils/nestedset.py +194"
+msgstr "Root {0} cannot be deleted"
+
+msgctxt "Nelze smazat {0} jelikož to má podřízené uzly"
+msgid "apps/frappe/frappe/utils/nestedset.py +201"
+msgstr "Cannot delete {0} as it has child nodes"
+
+msgctxt ""
+"Slučování je možné pouze mezi skupinami (skupina-skupina) nebo mezi uzlem"
+" typu stránka a jiným uzlem typu stránka"
+msgid "apps/frappe/frappe/utils/nestedset.py +210"
+msgstr "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
+
+msgctxt "Není povoleno více kořenových uzlů (uzlů nejvyšší úrovně)."
+msgid "apps/frappe/frappe/utils/nestedset.py +221"
+msgstr "Multiple root nodes not allowed."
+
+msgctxt "{0} {1} nemůže být uzel koncový uzel jelikož má podřízené uzly"
+msgid "apps/frappe/frappe/utils/nestedset.py +227"
+msgstr "{0} {1} cannot be a leaf node as it has children"
+
+msgctxt "Ošklivá chyba nastavení. Prosím kontaktujte admina."
+msgid "apps/frappe/frappe/utils/nestedset.py +77"
+msgstr "Nested set error. Please contact the Administrator."
+
+msgctxt ""
+"Musíte být přihlášen a mít roli systémového správce, pro přístup k "
+"zálohám."
+msgid "apps/frappe/frappe/utils/response.py +108"
+msgstr ""
+"You need to be logged in and have System Manager Role to be able to "
+"access backups."
+
+msgctxt "Neplatný Link"
+msgid "apps/frappe/frappe/utils/verified_command.py +38"
+msgstr "Invalid Link"
+
+msgctxt ""
+"Tento odkaz je neplatný nebo vypršela. Ujistěte se, že jste vložili "
+"správně."
+msgid "apps/frappe/frappe/utils/verified_command.py +39"
+msgstr ""
+"This link is invalid or expired. Please make sure you have pasted "
+"correctly."
+
+msgctxt "Zatím žádné komentáře"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +162"
+msgstr "No comments yet"
+
+msgctxt "1 komentář"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +164"
+msgstr "1 comment"
+
+msgctxt "{0} komentáře"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +166"
+msgstr "{0} comments"
+
+msgctxt "Blog"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +84"
+msgstr "Blog"
+
+msgctxt "Příspěvky podané v rámci {0}"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +93"
+msgstr "Posts filed under {0}"
+
+msgctxt "Příspěvky od {0}"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +97"
+msgstr "Posts by {0}"
+
+msgctxt "Není publikováno"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7"
+msgstr "Not Published"
+
+msgctxt "Neplatný požadavek"
+msgid "apps/frappe/frappe/website/doctype/web_form/web_form.py +53"
+msgstr "Invalid Request"
+
+msgctxt "Musíte se přihlásit pro odeslání tohoto formuláře"
+msgid "apps/frappe/frappe/website/doctype/web_form/web_form.py +87"
+msgstr "You must login to submit this form"
+
+msgctxt "Website vyhledávání"
+msgid "apps/frappe/frappe/website/doctype/web_page/web_page.py +158"
+msgstr "Website Search"
+
+msgctxt "Nelze upravit stránku šablony"
+msgid "apps/frappe/frappe/website/doctype/web_page/web_page.py +30"
+msgstr "Cannot edit templated page"
+
+msgctxt "Exportováno"
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.js "
+"+17"
+msgstr "Exported"
+
+msgctxt "Zvolte nejdříve obrázek banneru."
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.js "
+"+72"
+msgstr "Select a Banner Image first."
+
+msgctxt "Neplatná domovská stránka"
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.py "
+"+23"
+msgstr "Invalid Home Page"
+
+msgctxt "{0}: neexistuje na řádku {1}"
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.py "
+"+34"
+msgstr "{0} does not exist in row {1}"
+
+msgctxt "{0} na řádku {1} nemůže mít zároveň URL a podřízené položky"
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.py "
+"+38"
+msgstr "{0} in row {1} cannot have both URL and child items"
+
+msgctxt "Ty není dovoleno odstranit standardní webové stránky Theme"
+msgid "apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30"
+msgstr "You are not allowed to delete a standard Website Theme"
+
+msgctxt "Prosím, Duplicate to Website Téma přizpůsobit."
+msgid "apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35"
+msgstr "Please Duplicate this Website Theme to customize."
+
+msgctxt ""
+"Top Bar barev a Barva textu jsou stejné. Měly by být mít dobrý kontrast, "
+"aby byl čitelný."
+msgid "apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40"
+msgstr ""
+"Top Bar Color and Text Color are the same. They should be have good "
+"contrast to be readable."
+
+msgctxt "Vytvořit přizpůsobené pole {0} uvnitř {1}"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38"
+msgstr "Created Custom Field {0} in {1}"
+
+msgctxt "{0} není validní stav"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57"
+msgstr "{0} not a valid State"
+
+msgctxt "Nelze změnit stav zrušeného dokumentu. řádek transakce: {0}"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64"
+msgstr "Cannot change state of Cancelled Document. Transition row {0}"
+
+msgctxt ""
+"Vložený dokument nemůže být konvertován na stav rozpracováno. řádek "
+"transkace {0}"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67"
+msgstr "Submitted Document cannot be converted back to draft. Transition row {0}"
+
+msgctxt "Nelze zrušit před vložením. Transakce {0}"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70"
+msgstr "Cannot cancel before submitting. See Transition {0}"
+
+msgctxt "Potvrdit"
+msgid "sites/assets/js/desk.min.js +125"
+msgstr "Confirm"
+
+msgctxt "Zadejte hodnotu"
+msgid "sites/assets/js/desk.min.js +163"
+msgstr "Enter Value"
+
+msgctxt "Nenalezeno"
+msgid "sites/assets/js/desk.min.js +182"
+msgstr "Not Found"
+
+msgctxt ""
+"Další transakce blokuje tento jeden. Zkuste to prosím znovu za několik "
+"sekund."
+msgid "sites/assets/js/desk.min.js +183"
+msgstr ""
+"Another transaction is blocking this one. Please try again in a few "
+"seconds."
+
+msgctxt ""
+"Serverová chyba: Prosím zkontrolujte serverové logy nebo kontaktujte "
+"technickou podporu."
+msgid "sites/assets/js/desk.min.js +183"
+msgstr "Server Error: Please check your server logs or contact tech support."
+
+msgctxt "Platnost relace vypršela. Odhlašuji Vás"
+msgid "sites/assets/js/desk.min.js +191"
+msgstr "Session Expired. Logging you out"
+
+msgctxt "Nahlásit tento problém"
+msgid "sites/assets/js/desk.min.js +211"
+msgstr "Report this issue"
+
+msgctxt "Menu"
+msgid "sites/assets/js/desk.min.js +328"
+msgstr "Menu"
+
+msgctxt "Tento formulář nemá žádný vstup"
+msgid "sites/assets/js/desk.min.js +366"
+msgstr "This form does not have any input"
+
+msgctxt "Zobrazit více podrobností"
+msgid "sites/assets/js/desk.min.js +373"
+msgstr "Show more details"
+
+msgctxt "Chybějící hodnoty vyžadovány"
+msgid "sites/assets/js/desk.min.js +403"
+msgstr "Missing Values Required"
+
+msgctxt "Neplatný email: {0}"
+msgid "sites/assets/js/desk.min.js +439"
+msgstr "Invalid Email: {0}"
+
+msgctxt "Datum musí být ve formátu: {0}"
+msgid "sites/assets/js/desk.min.js +444"
+msgstr "Date must be in format: {0}"
+
+msgctxt "Před nahráním prosím uložení dokumentu."
+msgid "sites/assets/js/desk.min.js +463"
+msgstr "Please save the document before uploading."
+
+msgctxt "Vyberte ze stávajících příloh"
+msgid "sites/assets/js/desk.min.js +464"
+msgstr "Select from existing attachments"
+
+msgctxt "Prosím přiložte soubor nebo nastavte adresu URL"
+msgid "sites/assets/js/desk.min.js +467"
+msgstr "Please attach a file or set a URL"
+
+msgctxt "Prosím nejdříve přiložte soubor."
+msgid "sites/assets/js/desk.min.js +475"
+msgstr "Please attach a file first."
+
+msgctxt "Otevrít odkaz"
+msgid "sites/assets/js/desk.min.js +479"
+msgstr "Open Link"
+
+msgctxt "Nově Vytvořit: {0}"
+msgid "sites/assets/js/desk.min.js +490"
+msgstr "Create a new {0}"
+
+msgctxt "Pokročilé vyhledávání"
+msgid "sites/assets/js/desk.min.js +493"
+msgstr "Advanced Search"
+
+msgctxt "Prosím nejprve nastavte {0}"
+msgid "sites/assets/js/desk.min.js +502"
+msgstr "Please set {0} first"
+
+msgctxt "Edit as {0}"
+msgid "sites/assets/js/desk.min.js +507"
+msgstr "Edit as {0}"
+
+msgctxt "Markdown"
+msgid "sites/assets/js/desk.min.js +507"
+msgstr "Markdown"
+
+msgctxt "Rich Text"
+msgid "sites/assets/js/desk.min.js +507"
+msgstr "Rich Text"
+
+msgctxt "Dialogové okno pro výběr odkazu hodnoty"
+msgid "sites/assets/js/desk.min.js +512"
+msgstr "Dialog box to select a Link Value"
+
+msgctxt "Můžete použít zástupný znak %"
+msgid "sites/assets/js/desk.min.js +512"
+msgstr "You can use wildcard &#37;"
+
+msgctxt "Vyberte {0}"
+msgid "sites/assets/js/desk.min.js +512"
+msgstr "Select {0}"
+
+msgctxt "Žádné výsledky"
+msgid "sites/assets/js/desk.min.js +519"
+msgstr "No Results"
+
+msgctxt "Nově Vytvořit"
+msgid "sites/assets/js/desk.min.js +521"
+msgstr "Make a new"
+
+msgctxt "Nastavit Množství"
+msgid "sites/assets/js/desk.min.js +522"
+msgstr "Set Quantity"
+
+msgctxt "Přidáno: {0} ({1})"
+msgid "sites/assets/js/desk.min.js +522"
+msgstr "Added {0} ({1})"
+
+msgctxt "{0}: přidáno"
+msgid "sites/assets/js/desk.min.js +522"
+msgstr "{0} added"
+
+msgctxt "Hvězdičkou By"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Starred By"
+
+msgctxt "Nadřazeno"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Parent"
+
+msgctxt "Naposledy Aktualizováno (kdy)"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Last Updated On"
+
+msgctxt "Naposledy aktualizováno by"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Last Updated By"
+
+msgctxt "Neznámý sloupec: {0}"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Unknown Column: {0}"
+
+msgctxt "Stav dokumentu"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Document Status"
+
+msgctxt "Vytvořeno (kdy)"
+msgid "sites/assets/js/desk.min.js +536"
+msgstr "Created On"
+
+msgctxt "Nemohu nahrát: {0}"
+msgid "sites/assets/js/desk.min.js +538"
+msgstr "Unable to load: {0}"
+
+msgctxt "Nové jméno"
+msgid "sites/assets/js/desk.min.js +555"
+msgstr "New Name"
+
+msgctxt "Přejmenovat: {0}"
+msgid "sites/assets/js/desk.min.js +555"
+msgstr "Rename {0}"
+
+msgctxt "Sloučit s existujícím"
+msgid "sites/assets/js/desk.min.js +555"
+msgstr "Merge with existing"
+
+msgctxt "Smazat na trvalo: {0}?"
+msgid "sites/assets/js/desk.min.js +555"
+msgstr "Permanently delete {0}?"
+
+msgctxt ""
+"V tomto formuláři máte neuložené změny. Prosím, uložte změny než budete "
+"pokračovat."
+msgid "sites/assets/js/desk.min.js +600"
+msgstr "You have unsaved changes in this form. Please save before you continue."
+
+msgctxt "Získat"
+msgid "sites/assets/js/desk.min.js +603"
+msgstr "Get"
+
+msgctxt "Vy"
+msgid "sites/assets/js/desk.min.js +649"
+msgstr "You"
+
+msgctxt "nebo"
+msgid "sites/assets/js/desk.min.js +684"
+msgstr "or"
+
+msgctxt "Export není povolen. Potřebujete roli {0} pro exportování."
+msgid "sites/assets/js/desk.min.js +708"
+msgstr "Export not allowed. You need {0} role to export."
+
+msgctxt "Prohlížet"
+msgid "sites/assets/js/desk.min.js +752"
+msgstr "Browse"
+
+msgctxt "Web odkaz"
+msgid "sites/assets/js/desk.min.js +752"
+msgstr "Web Link"
+
+msgctxt "Nahrávám..."
+msgid "sites/assets/js/desk.min.js +765"
+msgstr "Uploading..."
+
+msgctxt "Pouze rozšíření obrazu (GIF, JPG, JPEG, TIFF, PNG, .svg) povolena"
+msgid "sites/assets/js/desk.min.js +768"
+msgstr "Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"
+
+msgctxt "Rozbalit"
+msgid "sites/assets/js/desk.min.js +779"
+msgstr "Expand"
+
+msgctxt "Sbalit"
+msgid "sites/assets/js/desk.min.js +779"
+msgstr "Collapse"
+
+msgctxt "Stránka nenalezena"
+msgid "sites/assets/js/desk.min.js +788"
+msgstr "Page not found"
+
+msgctxt "Je nám líto! Nemohl jsem najít to, co jste hledali."
+msgid "sites/assets/js/desk.min.js +807"
+msgstr "Sorry! I could not find what you were looking for."
+
+msgctxt "Je nám líto! Nemáte povoleno zobrazení této stránky."
+msgid "sites/assets/js/desk.min.js +808"
+msgstr "Sorry! You are not permitted to view this page."
+
+msgctxt "Nápověda k vyhledávání"
+msgid "sites/assets/js/desk.min.js +822"
+msgstr "Help on Search"
+
+msgctxt "Nově Vytvořit záznam"
+msgid "sites/assets/js/desk.min.js +823"
+msgstr "Make a new record"
+
+msgctxt "<b>nový</b> <i>typ dokumentu</i>"
+msgid "sites/assets/js/desk.min.js +824"
+msgstr "<b>new</b> <i>type of document</i>"
+
+msgctxt "Seznam typů dokumentů"
+msgid "sites/assets/js/desk.min.js +825"
+msgstr "List a document type"
+
+msgctxt "<i>typ dokumentu...</i>, např.: <b>zákazník</b>"
+msgid "sites/assets/js/desk.min.js +826"
+msgstr "<i>document type...</i>, e.g. <b>customer</b>"
+
+msgctxt "Hledat v typu dokumentu"
+msgid "sites/assets/js/desk.min.js +827"
+msgstr "Search in a document type"
+
+msgctxt "<i>text</i> <b>v</b> <i>typu dokumentu</i>"
+msgid "sites/assets/js/desk.min.js +828"
+msgstr "<i>text</i> <b>in</b> <i>document type</i>"
+
+msgctxt "Otevřít modul nebo nástroj"
+msgid "sites/assets/js/desk.min.js +829"
+msgstr "Open a module or tool"
+
+msgctxt "<i>název modulu...</i>"
+msgid "sites/assets/js/desk.min.js +830"
+msgstr "<i>module name...</i>"
+
+msgctxt "Vypočítat"
+msgid "sites/assets/js/desk.min.js +831"
+msgstr "Calculate"
+
+msgctxt ""
+"<i>např.: <strong>(55 + 434) / 4</strong> or "
+"<strong>=Math.sin(Math.PI/2)</strong>...</i>"
+msgid "sites/assets/js/desk.min.js +832"
+msgstr ""
+"<i>e.g. <strong>(55 + 434) / 4</strong> or "
+"<strong>=Math.sin(Math.PI/2)</strong>...</i>"
+
+msgctxt "Hledej: {0} v: {1}"
+msgid "sites/assets/js/desk.min.js +836"
+msgstr "Find {0} in {1}"
+
+msgctxt "Otevřít {0}"
+msgid "sites/assets/js/desk.min.js +836"
+msgstr "Open {0}"
+
+msgctxt "Seznam: {0}"
+msgid "sites/assets/js/desk.min.js +836"
+msgstr "{0} List"
+
+msgctxt "Frappe Framework"
+msgid "sites/assets/js/desk.min.js +839"
+msgstr "Frappe Framework"
+
+msgctxt "Open Source aplikací pro web"
+msgid "sites/assets/js/desk.min.js +841"
+msgstr "Open Source Applications for the Web"
+
+msgctxt "(Ctrl + G)"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "(Ctrl + G)"
+
+msgctxt "Dokumentace"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Documentation"
+
+msgctxt "Fóra"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Forums"
+
+msgctxt "K webové stránce"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "View Website"
+
+msgctxt "Mé nastavení"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "My Settings"
+
+msgctxt "Nahlásit problém"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Report an Issue"
+
+msgctxt "Nepřečtené zprávy"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Unread Messages"
+
+msgctxt "O aplikaci"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "About"
+
+msgctxt "Odhlásit se"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Logout"
+
+msgctxt "Vyhledávání nebo zadejte příkaz"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Search or type a command"
+
+msgctxt "Znovu načíst"
+msgid "sites/assets/js/desk.min.js +852"
+msgstr "Reload"
+
+msgctxt ""
+"Vaše záloha se připravuje pro stažení, tato operace může chvíli trvat v "
+"závislosti na objemu dat, trpělivost prosím …"
+msgid "sites/assets/js/desk.min.js +867"
+msgstr "Your download is being built, this may take a few moments..."
+
+msgctxt "Odeslat jako email"
+msgid "sites/assets/js/desk.min.js +870"
+msgstr "Send As Email"
+
+msgctxt "Přidat odpověď"
+msgid "sites/assets/js/desk.min.js +870"
+msgstr "Add Reply"
+
+msgctxt "Přiložit tisku dokumentu"
+msgid "sites/assets/js/desk.min.js +870"
+msgstr "Attach Document Print"
+
+msgctxt "Vyberte přílohy"
+msgid "sites/assets/js/desk.min.js +870"
+msgstr "Select Attachments"
+
+msgctxt "Vybrat formát tisku"
+msgid "sites/assets/js/desk.min.js +870"
+msgstr "Select Print Format"
+
+msgctxt "Přidat přílohy"
+msgid "sites/assets/js/desk.min.js +881"
+msgstr "Add Attachments"
+
+msgctxt "Nemáte povoleno odesílat emaily související s tímto dokumentem"
+msgid "sites/assets/js/desk.min.js +890"
+msgstr "You are not allowed to send emails related to this document"
+
+msgctxt "Email odeslán (komu) {0}"
+msgid "sites/assets/js/desk.min.js +892"
+msgstr "Email sent to {0}"
+
+msgctxt "Narazili jsme na problémy při odesílání emailu. Prosím zkuste to znovu."
+msgid "sites/assets/js/desk.min.js +893"
+msgstr "There were errors while sending email. Please try again."
+
+msgctxt "Vážený (á)"
+msgid "sites/assets/js/desk.min.js +896"
+msgstr "Dear"
+
+msgctxt "Dne {0}, {1} napsal:"
+msgid "sites/assets/js/desk.min.js +901"
+msgstr "On {0}, {1} wrote:"
+
+msgctxt "Novinky ve verzi {0}"
+msgid "sites/assets/js/desk.min.js +904"
+msgstr "New in version {0}"
+
+msgctxt "aktualizován na {0}"
+msgid "sites/assets/js/desk.min.js +904"
+msgstr "updated to {0}"
+
+msgctxt "Zpráva z {0}"
+msgid "sites/assets/js/desk.min.js +910"
+msgstr "Message from {0}"
+
+msgctxt "Aktualizováno na novou verzi"
+msgid "sites/assets/js/desk.min.js +917"
+msgstr "Updated To New Version"
+
+msgctxt "Tučně (Ctrl/Cmd+B)"
+msgid "sites/assets/js/editor.min.js +103"
+msgstr "Bold (Ctrl/Cmd+B)"
+
+msgctxt "Bodový seznam"
+msgid "sites/assets/js/editor.min.js +105"
+msgstr "Bullet list"
+
+msgctxt "číselný seznam"
+msgid "sites/assets/js/editor.min.js +107"
+msgstr "Number list"
+
+msgctxt "Vložit obrázek (nebo přetáhni & pusť)"
+msgid "sites/assets/js/editor.min.js +111"
+msgstr "Insert picture (or just drag & drop)"
+
+msgctxt "Vložit odkaz"
+msgid "sites/assets/js/editor.min.js +113"
+msgstr "Insert Link"
+
+msgctxt "Odebrat odkaz"
+msgid "sites/assets/js/editor.min.js +115"
+msgstr "Remove Link"
+
+msgctxt "Zarovnat vlevo (Ctrl/Cmd+L)"
+msgid "sites/assets/js/editor.min.js +119"
+msgstr "Align Left (Ctrl/Cmd+L)"
+
+msgctxt "Vycentrovat (Ctrl/Cmd+E)"
+msgid "sites/assets/js/editor.min.js +121"
+msgstr "Center (Ctrl/Cmd+E)"
+
+msgctxt "Zmenšit odsazení (Shift+Tab)"
+msgid "sites/assets/js/editor.min.js +123"
+msgstr "Reduce indent (Shift+Tab)"
+
+msgctxt "Odsazení (Tab)"
+msgid "sites/assets/js/editor.min.js +125"
+msgstr "Indent (Tab)"
+
+msgctxt "Horizontální oddělovač"
+msgid "sites/assets/js/editor.min.js +128"
+msgstr "Horizontal Line Break"
+
+msgctxt "Otevřít odkaz v novém okně"
+msgid "sites/assets/js/editor.min.js +152"
+msgstr "Open Link in a new Window"
+
+msgctxt "Vložit"
+msgid "sites/assets/js/editor.min.js +155"
+msgstr "Insert"
+
+msgctxt "Odstavec"
+msgid "sites/assets/js/editor.min.js +94"
+msgstr "Paragraph"
+
+msgctxt "Odkazy"
+msgid "sites/assets/js/form.min.js +157"
+msgstr "Links"
+
+msgctxt "Duplikát"
+msgid "sites/assets/js/form.min.js +158"
+msgstr "Duplicate"
+
+msgctxt "Aktualizace"
+msgid "sites/assets/js/form.min.js +180"
+msgstr "Updating"
+
+msgctxt "Kterým se mění"
+msgid "sites/assets/js/form.min.js +180"
+msgstr "Amending"
+
+msgctxt "Odeslání"
+msgid "sites/assets/js/form.min.js +180"
+msgstr "Submitting"
+
+msgctxt "Spoření"
+msgid "sites/assets/js/form.min.js +180"
+msgstr "Saving"
+
+msgctxt "Zrušení"
+msgid "sites/assets/js/form.min.js +180"
+msgstr "Cancelling"
+
+msgctxt "Ctrl + Down"
+msgid "sites/assets/js/form.min.js +196"
+msgstr "Ctrl + Down"
+
+msgctxt "Ctrl + Up"
+msgid "sites/assets/js/form.min.js +196"
+msgstr "Ctrl + Up"
+
+msgctxt "Hotový"
+msgid "sites/assets/js/form.min.js +196"
+msgstr "Done"
+
+msgctxt "Vložit Nad"
+msgid "sites/assets/js/form.min.js +196"
+msgstr "Insert Above"
+
+msgctxt "Hromadná Upravit {0}"
+msgid "sites/assets/js/form.min.js +210"
+msgstr "Bulk Edit {0}"
+
+msgctxt "Upravit pomocí Vkládání"
+msgid "sites/assets/js/form.min.js +210"
+msgstr "Edit via Upload"
+
+msgctxt "Full Page"
+msgid "sites/assets/js/form.min.js +256"
+msgstr "Full Page"
+
+msgctxt "New Custom Print Format"
+msgid "sites/assets/js/form.min.js +261"
+msgstr "New Custom Print Format"
+
+msgctxt "{0} upravovat tento {1}"
+msgid "sites/assets/js/form.min.js +270"
+msgstr "{0} edited this {1}"
+
+msgctxt "{0} vytvoření této {1}"
+msgid "sites/assets/js/form.min.js +270"
+msgstr "{0} created this {1}"
+
+msgctxt "Společná pracoviště s {0}"
+msgid "sites/assets/js/form.min.js +274"
+msgstr "Shared with {0}"
+
+msgctxt "Podíl {0} s"
+msgid "sites/assets/js/form.min.js +277"
+msgstr "Share {0} with"
+
+msgctxt "Dokáže napsat"
+msgid "sites/assets/js/form.min.js +282"
+msgstr "Can Write"
+
+msgctxt "Mohou sdílet"
+msgid "sites/assets/js/form.min.js +282"
+msgstr "Can Share"
+
+msgctxt "Může Přečtěte si"
+msgid "sites/assets/js/form.min.js +282"
+msgstr "Can Read"
+
+msgctxt "Nesdílí se s nikým dosud."
+msgid "sites/assets/js/form.min.js +282"
+msgstr "Not shared with anyone yet."
+
+msgctxt "Sdílejte tento dokument s"
+msgid "sites/assets/js/form.min.js +282"
+msgstr "Share this document with"
+
+msgctxt "Přiložit Soubor"
+msgid "sites/assets/js/form.min.js +283"
+msgstr "Attach File"
+
+msgctxt "Přiřadit"
+msgid "sites/assets/js/form.min.js +283"
+msgstr "Assign"
+
+msgctxt "Sdílené S"
+msgid "sites/assets/js/form.min.js +283"
+msgstr "Shared With"
+
+msgctxt "Přidat komentář"
+msgid "sites/assets/js/form.min.js +285"
+msgstr "Add a comment"
+
+msgctxt "Odpověď"
+msgid "sites/assets/js/form.min.js +286"
+msgstr "Reply"
+
+msgctxt "Skládat"
+msgid "sites/assets/js/form.min.js +302"
+msgstr "Compose"
+
+msgctxt "Hrál By Me"
+msgid "sites/assets/js/list.min.js +102"
+msgstr "Starred By Me"
+
+msgctxt "{0} není nastavena"
+msgid "sites/assets/js/list.min.js +105"
+msgstr "{0} is not set"
+
+msgctxt "Není uložené"
+msgid "sites/assets/js/list.min.js +21"
+msgstr "Not Saved"
+
+msgctxt "Ne V"
+msgid "sites/assets/js/list.min.js +65"
+msgstr "Not In"
+
+msgctxt "Přidat značku"
+msgid "sites/assets/js/list.min.js +67"
+msgstr "Add a tag"
+
+msgctxt "Smazat trvale?"
+msgid "sites/assets/js/list.min.js +93"
+msgstr "Delete permanently?"
+
+msgctxt "Gantt"
+msgid "sites/assets/js/list.min.js +98"
+msgstr "Gantt"
+
+msgctxt "Nelze upravit standardní pole"
+msgid "sites/assets/js/report.min.js +17"
+msgstr "Cannot edit standard fields"
+
+msgctxt "Tip: Poklepáním buňka editovat"
+msgid "sites/assets/js/report.min.js +2"
+msgstr "Tip: Double click cell to edit"
+

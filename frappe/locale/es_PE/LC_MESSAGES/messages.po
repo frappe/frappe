@@ -1,0 +1,2244 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: frappe translation 0.1\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgctxt "Administrador de Página Web"
+msgid "DocType: About Us Settings"
+msgstr "Website Manager"
+
+msgctxt "Ajustes de la página Quiénes somos"
+msgid "DocType: About Us Settings"
+msgstr "Settings for the About Us Page"
+
+msgctxt "Configuración de Acerca de Nosotros"
+msgid "DocType: About Us Settings"
+msgstr "About Us Settings"
+
+msgctxt "Dar a conocer su empresa al visitante del sitio Web ."
+msgid "DocType: About Us Settings"
+msgstr "Introduce your company to the website visitor."
+
+msgctxt "Miembros del Equipo Lider"
+msgid "DocType: About Us Settings"
+msgstr "Team Members Heading"
+
+msgctxt "Sujeto"
+msgid "DocType: Activity Log"
+msgstr "Subject"
+
+msgctxt "Ciudad/Provincia"
+msgid "DocType: Address"
+msgstr "City/Town"
+
+msgctxt "Direcciones"
+msgid "DocType: Address"
+msgstr "Address"
+
+msgctxt "Dirección Título"
+msgid "DocType: Address"
+msgstr "Address Title"
+
+msgctxt "Envío"
+msgid "DocType: Address"
+msgstr "Shipping"
+
+msgctxt "Filial"
+msgid "DocType: Address"
+msgstr "Subsidiary"
+
+msgctxt "Mantenimiento por el Usuario"
+msgid "DocType: Address"
+msgstr "Maintenance User"
+
+msgctxt "Tienda"
+msgid "DocType: Address"
+msgstr "Shop"
+
+msgctxt "Este formato se utiliza si no se encuentra un formato específico del país"
+msgid "DocType: Address Template"
+msgstr "This format is used if country specific format is not found"
+
+msgctxt "Borrador."
+msgid "DocType: Auto Repeat"
+msgstr "Draft"
+
+msgctxt "Detenido"
+msgid "DocType: Auto Repeat"
+msgstr "Stopped"
+
+msgctxt ""
+"Descripción de la página perfil, en texto plano, sólo un par de líneas. "
+"(máx. 140 caracteres)"
+msgid "DocType: Blog Post"
+msgstr ""
+"Description for listing page, in plain text, only a couple of lines. (max"
+" 140 characters)"
+
+msgctxt "Mensajes"
+msgid "DocType: Blogger"
+msgstr "Posts"
+
+msgctxt "Comentarios"
+msgid "DocType: Communication"
+msgstr "Feedback"
+
+msgctxt "Correo electrónico"
+msgid "DocType: Communication"
+msgstr "Email"
+
+msgctxt "Enviado"
+msgid "DocType: Communication"
+msgstr "Submitted"
+
+msgctxt "Envío"
+msgid "DocType: Communication"
+msgstr "Sending"
+
+msgctxt "Envío y de recepción"
+msgid "DocType: Communication"
+msgstr "Sent or Received"
+
+msgctxt "Flujo de Trabajo"
+msgid "DocType: Communication"
+msgstr "Workflow"
+
+msgctxt "Lectura"
+msgid "DocType: Communication"
+msgstr "Read"
+
+msgctxt "Notificación No leído Enviado"
+msgid "DocType: Communication"
+msgstr "Unread Notification Sent"
+
+msgctxt "Nube de Etiquetas"
+msgid "DocType: Communication"
+msgstr "User Tags"
+
+msgctxt "Abrir"
+msgid "DocType: Contact"
+msgstr "Open"
+
+msgctxt "Es Contacto principal"
+msgid "DocType: Contact"
+msgstr "Is Primary Contact"
+
+msgctxt "Gerente de Ventas"
+msgid "DocType: Contact"
+msgstr "Sales Master Manager"
+
+msgctxt "Respondio"
+msgid "DocType: Contact"
+msgstr "Replied"
+
+msgctxt "Saludo"
+msgid "DocType: Contact"
+msgstr "Salutation"
+
+msgctxt "Ajustes para Contáctenos Página"
+msgid "DocType: Contact Us Settings"
+msgstr "Settings for Contact Us Page"
+
+msgctxt "Configuración de Contáctenos"
+msgid "DocType: Contact Us Settings"
+msgstr "Contact Us Settings"
+
+msgctxt ""
+"Opciones de contacto , como \" Consultas de Ventas , Soporte de "
+"consultas\" , etc cada uno en una nueva línea o separados por comas."
+msgid "DocType: Contact Us Settings"
+msgstr ""
+"Contact options, like \"Sales Query, Support Query\" etc each on a new "
+"line or separated by commas."
+
+msgctxt "Puede enviar sus preguntas a la siguiente dirección de correo electrónico"
+msgid "DocType: Contact Us Settings"
+msgstr "Send enquiries to this email address"
+
+msgctxt "Husos horarios"
+msgid "DocType: Country"
+msgstr "Time Zones"
+
+msgctxt "**Moneda** Principal"
+msgid "DocType: Currency"
+msgstr "**Currency** Master"
+
+msgctxt "1 Moneda = [?] Fracción, ejem: 1 USD = 100 Centavos"
+msgid "DocType: Currency"
+msgstr ""
+"1 Currency = [?] Fraction\n"
+"For e.g. 1 USD = 100 Cent"
+
+msgctxt "Sub-moneda, por ejemplo, \"Centavo\""
+msgid "DocType: Currency"
+msgstr "Sub-currency. For e.g. \"Cent\""
+
+msgctxt "Símbolo"
+msgid "DocType: Currency"
+msgstr "Symbol"
+
+msgctxt ""
+"¿Cómo se debe formatear esta moneda ? Si no se establece, utilizará "
+"valores predeterminados del sistema"
+msgid "DocType: Currency"
+msgstr ""
+"How should this currency be formatted? If not set, will use system "
+"defaults"
+
+msgctxt "Este función actualiza los Permisos de Usuario para un usuario"
+msgid "DocType: Custom DocPerm"
+msgstr "This role update User Permissions for a user"
+
+msgctxt "Exportación"
+msgid "DocType: Custom DocPerm"
+msgstr "Export"
+
+msgctxt "Función"
+msgid "DocType: Custom DocPerm"
+msgstr "Role"
+
+msgctxt "Función y Nivel"
+msgid "DocType: Custom DocPerm"
+msgstr "Role and Level"
+
+msgctxt "Importación"
+msgid "DocType: Custom DocPerm"
+msgstr "Import"
+
+msgctxt "Informe"
+msgid "DocType: Custom DocPerm"
+msgstr "Report"
+
+msgctxt "Añade un campo personalizado para un tipo de documento"
+msgid "DocType: Custom Field"
+msgstr "Adds a custom field to a DocType"
+
+msgctxt "Descripción del Campo"
+msgid "DocType: Custom Field"
+msgstr "Field Description"
+
+msgctxt "Etiqueta Ayuda"
+msgid "DocType: Custom Field"
+msgstr "Label Help"
+
+msgctxt "Seleccione la etiqueta después de la cual desea insertar el nuevo campo ."
+msgid "DocType: Custom Field"
+msgstr "Select the label after which you want to insert new field."
+
+msgctxt "Añade un acript personalizado (cliente o servidor) a un tipo de documento"
+msgid "DocType: Custom Script"
+msgstr "Adds a custom script (client or server) to a DocType"
+
+msgctxt "Guión"
+msgid "DocType: Custom Script"
+msgstr "Script"
+
+msgctxt "Guión Tipo"
+msgid "DocType: Custom Script"
+msgstr "Script Type"
+
+msgctxt "Muestra"
+msgid "DocType: Custom Script"
+msgstr "Sample"
+
+msgctxt "Introduzca Tipo de Formulario"
+msgid "DocType: Customize Form"
+msgstr "Enter Form Type"
+
+msgctxt "Personaliza etiquetas, impresión Hide , Default , etc"
+msgid "DocType: Customize Form"
+msgstr "Customize Label, Print Hide, Default etc."
+
+msgctxt "Seleccione tipo de documento"
+msgid "DocType: Data Export"
+msgstr "Select DocType"
+
+msgctxt "Vista de árbol"
+msgid "DocType: Desktop Icon"
+msgstr "List"
+
+msgctxt "Ajuste de precisión no estándar para Decimales  Campo de Moneda"
+msgid "DocType: DocField"
+msgstr "Set non-standard precision for a Float or Currency field"
+
+msgctxt "Defecto"
+msgid "DocType: DocField"
+msgstr "Default"
+
+msgctxt "Divisa"
+msgid "DocType: DocField"
+msgstr "Currency"
+
+msgctxt "Nivel Perm"
+msgid "DocType: DocField"
+msgstr "Perm Level"
+
+msgctxt "Ocultar Informe"
+msgid "DocType: DocField"
+msgstr "Report Hide"
+
+msgctxt ""
+"Para enlaces, introduzca el DocType como rango. para seleccionar, ingrese"
+" lista de opciones, cada uno en una nueva línea."
+msgid "DocType: DocField"
+msgstr ""
+"For Links, enter the DocType as range.\n"
+"For Select, enter list of Options, each on a new line."
+
+msgctxt "Permitir en Enviar"
+msgid "DocType: DocField"
+msgstr "Allow on Submit"
+
+msgctxt "Salto de sección"
+msgid "DocType: DocField"
+msgstr "Section Break"
+
+msgctxt "Sin copia"
+msgid "DocType: DocField"
+msgstr "No Copy"
+
+msgctxt "Título"
+msgid "DocType: DocField"
+msgstr "Heading"
+
+msgctxt "Un único ajuste"
+msgid "DocType: DocField"
+msgstr "Set Only Once"
+
+msgctxt "flotador"
+msgid "DocType: DocField"
+msgstr "Float"
+
+msgctxt "Nombre del documento"
+msgid "DocType: DocShare"
+msgstr "Document Name"
+
+msgctxt "Copia Oculta"
+msgid "DocType: DocType"
+msgstr "Hide Copy"
+
+msgctxt "El DocType es una tabla / formulario en la aplicación."
+msgid "DocType: DocType"
+msgstr "DocType is a Table / Form in the application."
+
+msgctxt "Es Individual"
+msgid "DocType: DocType"
+msgstr "Is Single"
+
+msgctxt "Es presentable--"
+msgid "DocType: DocType"
+msgstr "Is Submittable"
+
+msgctxt "Las tablas secundarias se muestran como una cuadrícula en los DocTypes."
+msgid "DocType: DocType"
+msgstr "Child Tables are shown as a Grid in other DocTypes."
+
+msgctxt "Los campos"
+msgid "DocType: DocType"
+msgstr "Fields"
+
+msgctxt "Mostrar Imprimir Primera"
+msgid "DocType: DocType"
+msgstr "Show Print First"
+
+msgctxt "Ocultar Rubro"
+msgid "DocType: DocType"
+msgstr "Hide Heading"
+
+msgctxt "Orden de Clasificación"
+msgid "DocType: DocType"
+msgstr "Sort Order"
+
+msgctxt "Ordenar campo"
+msgid "DocType: DocType"
+msgstr "Sort Field"
+
+msgctxt ""
+"Tipos simples tienen sólo un registro no hay tablas asociadas . Los "
+"valores se almacenan en tabSingles"
+msgid "DocType: DocType"
+msgstr ""
+"Single Types have only one record no tables associated. Values are stored"
+" in tabSingles"
+
+msgctxt "Acceso Secreto de Dropbox"
+msgid "DocType: Dropbox Settings"
+msgstr "Dropbox Access Secret"
+
+msgctxt "Clave de Acceso de Dropbox"
+msgid "DocType: Dropbox Settings"
+msgstr "Dropbox Access Key"
+
+msgctxt ""
+"Anexar como la comunicación en contra de este tipo de documento (debe "
+"tener campos, \"Estado\", \"Asunto\")"
+msgid "DocType: Email Account"
+msgstr ""
+"Append as communication against this DocType (must have fields, "
+"\"Status\", \"Subject\")"
+
+msgctxt "Correo electrónico Nombre de cuenta"
+msgid "DocType: Email Account"
+msgstr "Email Account Name"
+
+msgctxt "Habilitar entrante"
+msgid "DocType: Email Account"
+msgstr "Enable Incoming"
+
+msgctxt "Ignorar los adjuntos mayores a este tamaño"
+msgid "DocType: Email Account"
+msgstr "Ignore attachments over this size"
+
+msgctxt "Servicio"
+msgid "DocType: Email Account"
+msgstr "Service"
+
+msgctxt "Utilice TLS"
+msgid "DocType: Email Account"
+msgstr "Use TLS"
+
+msgctxt "por ejemplo \"Soporte \",\" Ventas \",\" Jerry Yang \""
+msgid "DocType: Email Account"
+msgstr "e.g. \"Support\", \"Sales\", \"Jerry Yang\""
+
+msgctxt "Los suscriptores totales"
+msgid "DocType: Email Group"
+msgstr "Total Subscribers"
+
+msgctxt "Domingo"
+msgid "DocType: Event"
+msgstr "Sunday"
+
+msgctxt "Enviar un recordatorio por correo electrónico en la mañana"
+msgid "DocType: Event"
+msgstr "Send an email reminder in the morning"
+
+msgctxt "Repetir OK"
+msgid "DocType: Event"
+msgstr "Repeat On"
+
+msgctxt "Repita Hasta"
+msgid "DocType: Event"
+msgstr "Repeat Till"
+
+msgctxt "Repita este Evento"
+msgid "DocType: Event"
+msgstr "Repeat this Event"
+
+msgctxt "Sábado"
+msgid "DocType: Event"
+msgstr "Saturday"
+
+msgctxt "Opcional: La alerta será enviado si esta expresión es verdadera"
+msgid "DocType: Feedback Trigger"
+msgstr "Optional: The alert will be sent if this expression is true"
+
+msgctxt "Asociado A DocType"
+msgid "DocType: File"
+msgstr "Attached To DocType"
+
+msgctxt "Hash contenido"
+msgid "DocType: File"
+msgstr "Content Hash"
+
+msgctxt "Tamaño del archivo"
+msgid "DocType: File"
+msgstr "File Size"
+
+msgctxt "Compañía(s)"
+msgid "DocType: Footer Item"
+msgstr "Company"
+
+msgctxt ""
+"Enlace a la página que desea abrir. Dejar en blanco si desea que sea un "
+"grupo padre."
+msgid "DocType: Footer Item"
+msgstr ""
+"Link to the page you want to open. Leave blank if you want to make it a "
+"group parent."
+
+msgctxt "Select target = \" _blank\" para abrir en una nueva página."
+msgid "DocType: Footer Item"
+msgstr "Select target = \"_blank\" to open in a new page."
+
+msgctxt "target = \" _blank\""
+msgid "DocType: Footer Item"
+msgstr "target = \"_blank\""
+
+msgctxt "Referencia DocNombre"
+msgid "DocType: Integration Request"
+msgstr "Reference DocName"
+
+msgctxt "Nombre de la columna"
+msgid "DocType: Kanban Board Column"
+msgstr "Column Name"
+
+msgctxt "Enviar Email ?"
+msgid "DocType: Newsletter"
+msgstr "Email Sent?"
+
+msgctxt "Días Anteriores o Posteriores"
+msgid "DocType: Notification"
+msgstr "Days Before or After"
+
+msgctxt "Ejemplos de Mensajes"
+msgid "DocType: Notification"
+msgstr "Message Examples"
+
+msgctxt "Enviar alerta si cambia el valor de este campo"
+msgid "DocType: Notification"
+msgstr "Send alert if this field's value changes"
+
+msgctxt "Envíe la alarma si la fecha coincide con el valor de este campo"
+msgid "DocType: Notification"
+msgstr "Send alert if date matches this field's value"
+
+msgctxt "Email Por Campo Documento"
+msgid "DocType: Notification Recipient"
+msgstr "Email By Document Field"
+
+msgctxt "Funciones"
+msgid "DocType: Page"
+msgstr "Roles"
+
+msgctxt "Registro de Parches"
+msgid "DocType: Patch Log"
+msgstr "Patch Log"
+
+msgctxt "Nombre del informe"
+msgid "DocType: Prepared Report"
+msgstr "Report Name"
+
+msgctxt "Servidor"
+msgid "DocType: Print Format"
+msgstr "Server"
+
+msgctxt "Configuración de PDF"
+msgid "DocType: Print Settings"
+msgstr "PDF Settings"
+
+msgctxt "En puntos. El valor predeterminado es 9."
+msgid "DocType: Print Settings"
+msgstr "In points. Default is 9."
+
+msgctxt "Enviar Emails con adjuntos en formato PDF (recomendado)"
+msgid "DocType: Print Settings"
+msgstr "Send Email Print Attachments as PDF (Recommended)"
+
+msgctxt "Enviar Impresión como PDF"
+msgid "DocType: Print Settings"
+msgstr "Send Print as PDF"
+
+msgctxt "Vista previa de Estilo de impresión"
+msgid "DocType: Print Settings"
+msgstr "Print Style Preview"
+
+msgctxt "DocType o campo"
+msgid "DocType: Property Setter"
+msgstr "DocType or Field"
+
+msgctxt "Establecer prioridad--"
+msgid "DocType: Property Setter"
+msgstr "Property Setter"
+
+msgctxt "Nombre del campo"
+msgid "DocType: Property Setter"
+msgstr "Field Name"
+
+msgctxt "Propiedad Setter se impone a una DocType estándar o propiedad Campo"
+msgid "DocType: Property Setter"
+msgstr "Property Setter overrides a standard DocType or Field property"
+
+msgctxt "Valor seleccionado"
+msgid "DocType: Property Setter"
+msgstr "Set Value"
+
+msgctxt "Administrador de informes"
+msgid "DocType: Report"
+msgstr "Report Manager"
+
+msgctxt "Formato de JavaScript: frappe.query_reports [' REPORTNAME'] = { }"
+msgid "DocType: Report"
+msgstr "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
+
+msgctxt "Generador de informes"
+msgid "DocType: Report"
+msgstr "Report Builder"
+
+msgctxt "Informe de secuencias de comandos"
+msgid "DocType: Report"
+msgstr "Script Report"
+
+msgctxt "Membretes"
+msgid "DocType: Report"
+msgstr "Letter Head"
+
+msgctxt "Referencia Tipo de Documento"
+msgid "DocType: Report"
+msgstr "Ref DocType"
+
+msgctxt "Tipo de informe"
+msgid "DocType: Report"
+msgstr "Report Type"
+
+msgctxt "Nombre de la Función"
+msgid "DocType: Role"
+msgstr "Role Name"
+
+msgctxt "Funciones Asignadas"
+msgid "DocType: Role Profile"
+msgstr "Roles Assigned"
+
+msgctxt "Introduzca el parámetro url para el receptor no"
+msgid "DocType: SMS Settings"
+msgstr "Enter url parameter for receiver nos"
+
+msgctxt ""
+"Introduzca los parámetros de URL estáticas aquí (Ej. sender = ERPNext , "
+"nombre de usuario = ERPNext , contraseña = 1234 etc )"
+msgid "DocType: SMS Settings"
+msgstr ""
+"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, "
+"password=1234 etc.)"
+
+msgctxt "Configuración completa"
+msgid "DocType: System Settings"
+msgstr "Setup Complete"
+
+msgctxt "Desactivar pie de página estandar en Email"
+msgid "DocType: System Settings"
+msgstr "Disable Standard Email Footer"
+
+msgctxt "Programador Último Evento"
+msgid "DocType: System Settings"
+msgstr "Scheduler Last Event"
+
+msgctxt "Seguridad"
+msgid "DocType: System Settings"
+msgstr "Security"
+
+msgctxt ""
+"Su nombre de la organización y dirección para el pie de página de correo "
+"electrónico."
+msgid "DocType: System Settings"
+msgstr "Your organization name and address for the email footer."
+
+msgctxt "Vencimiento de sesión en dispositivo mobil"
+msgid "DocType: System Settings"
+msgstr "Session Expiry Mobile"
+
+msgctxt "dd- mm- aaaa"
+msgid "DocType: System Settings"
+msgstr "dd-mm-yyyy"
+
+msgctxt "Si usted habilita esto, el elemento creará un menú desplegable--"
+msgid "DocType: Top Bar Item"
+msgstr ""
+"If you set this, this Item will come in a drop-down under the selected "
+"parent."
+
+msgctxt ""
+"Almacena el JSON de las últimas versiones conocidas de diferentes "
+"aplicaciones instaladas. Se utiliza para mostrar notas de la versión."
+msgid "DocType: User"
+msgstr ""
+"Stores the JSON of last known versions of various installed apps. It is "
+"used to show release notes."
+
+msgctxt "Autenticación de socios"
+msgid "DocType: User"
+msgstr "Third Party Authentication"
+
+msgctxt "Cambiar contraseña."
+msgid "DocType: User"
+msgstr "Change Password"
+
+msgctxt "Configuración del correo electrónico"
+msgid "DocType: User"
+msgstr "Email Settings"
+
+msgctxt "Enviar Bienvenido Email"
+msgid "DocType: User"
+msgstr "Send Welcome Email"
+
+msgctxt "Enviar contraseña Notificación de actualización"
+msgid "DocType: User"
+msgstr "Send Password Update Notification"
+
+msgctxt "Firma Email"
+msgid "DocType: User"
+msgstr "Email Signature"
+
+msgctxt "Imagen del banner"
+msgid "DocType: User"
+msgstr "Banner Image"
+
+msgctxt "Predeterminadas del Usuario"
+msgid "DocType: User"
+msgstr "User Defaults"
+
+msgctxt ""
+"Restringir el usuario a esta dirección IP. Todas las direcciones IP se "
+"pueden agregar separandolas con comas. También se aceptan direcciones IP "
+"parciales como ( 111.111.111 )"
+msgid "DocType: User"
+msgstr ""
+"Restrict user from this IP address only. Multiple IP addresses can be "
+"added by separating with commas. Also accepts partial IP addresses like "
+"(111.111.111)"
+
+msgctxt "Segundo Nombre ( Opcional)"
+msgid "DocType: User"
+msgstr "Middle Name (Optional)"
+
+msgctxt "Habilitar saliente"
+msgid "DocType: User Email"
+msgstr "Enable Outgoing"
+
+msgctxt "Referencia DocType"
+msgid "DocType: View log"
+msgstr "Reference DocType"
+
+msgctxt ""
+"El texto que se muestra para enlazar a la página Web si esta forma "
+"dispone de una página web. Ruta Enlace automáticamente se genera en base "
+"a `page_name` y` parent_website_route`"
+msgid "DocType: Web Form"
+msgstr ""
+"Text to be displayed for Link to Web Page if this form has a web page. "
+"Link route will be automatically generated based on `page_name` and "
+"`parent_website_route`"
+
+msgctxt "Mensaje de éxito"
+msgid "DocType: Web Form"
+msgstr "Success Message"
+
+msgctxt "Sidebar Artículos"
+msgid "DocType: Web Form"
+msgstr "Sidebar Items"
+
+msgctxt "URL de Éxito"
+msgid "DocType: Web Form"
+msgstr "Success URL"
+
+msgctxt "Alineación del texto"
+msgid "DocType: Web Page"
+msgstr "Text Align"
+
+msgctxt "Estilo"
+msgid "DocType: Web Page"
+msgstr "Style"
+
+msgctxt "Inserte Estilo"
+msgid "DocType: Web Page"
+msgstr "Insert Style"
+
+msgctxt "Izquierda"
+msgid "DocType: Web Page"
+msgstr "Left"
+
+msgctxt "Guión del Sitio Web"
+msgid "DocType: Website Script"
+msgstr "Website Script"
+
+msgctxt "Guión para unir a todas las páginas web."
+msgid "DocType: Website Script"
+msgstr "Script to attach to all web pages."
+
+msgctxt "Desactivar enlace de registro del cliente en la página de entrada"
+msgid "DocType: Website Settings"
+msgstr "Disable Customer Signup link in Login page"
+
+msgctxt "El Banner está por sobre la barra de menú superior."
+msgid "DocType: Website Settings"
+msgstr "Banner is above the Top Menu Bar."
+
+msgctxt "Elementos del Pie de Página"
+msgid "DocType: Website Settings"
+msgstr "Footer Items"
+
+msgctxt "Establecer Banner de imagen"
+msgid "DocType: Website Settings"
+msgstr "Set Banner from Image"
+
+msgctxt ""
+"Mostrar título en la ventana del navegador como &quot;Prefijo - "
+"título&quot;"
+msgid "DocType: Website Settings"
+msgstr "Show title in browser window as \"Prefix - title\""
+
+msgctxt "Prefijo del Título"
+msgid "DocType: Website Settings"
+msgstr "Title Prefix"
+
+msgctxt ""
+"Seleccione una imagen de ancho aprox 150px con fondo transparente para "
+"obtener mejores resultados ."
+msgid "DocType: Website Settings"
+msgstr ""
+"Select an image of approx width 150px with a transparent background for "
+"best results."
+
+msgctxt "Sitio web Imagen por tema"
+msgid "DocType: Website Settings"
+msgstr "Website Theme Image"
+
+msgctxt "Sitio web Imagen por tema Enlace"
+msgid "DocType: Website Settings"
+msgstr "Website Theme Image Link"
+
+msgctxt "Esto va por encima de la presentación de diapositivas."
+msgid "DocType: Website Slideshow"
+msgstr "This goes above the slideshow."
+
+msgctxt "Presentación Artículos"
+msgid "DocType: Website Slideshow"
+msgstr "Slideshow Items"
+
+msgctxt "Presentación Nombre"
+msgid "DocType: Website Slideshow"
+msgstr "Slideshow Name"
+
+msgctxt "Presentación como pantalla para el sitio web"
+msgid "DocType: Website Slideshow"
+msgstr "Slideshow like display for the website"
+
+msgctxt "Color del texto"
+msgid "DocType: Website Theme"
+msgstr "Text Color"
+
+msgctxt "Estilo de título"
+msgid "DocType: Website Theme"
+msgstr "Heading Style"
+
+msgctxt "Google Font (Título)"
+msgid "DocType: Website Theme"
+msgstr "Google Font (Heading)"
+
+msgctxt "Inicio Barra Color"
+msgid "DocType: Website Theme"
+msgstr "Top Bar Color"
+
+msgctxt "Top Bar Color del texto"
+msgid "DocType: Website Theme"
+msgstr "Top Bar Text Color"
+
+msgctxt "El DocType en el presente del flujo de trabajo es aplicable."
+msgid "DocType: Workflow"
+msgstr "DocType on which this Workflow is applicable."
+
+msgctxt ""
+"Este documento puede estar en Diferentes \"Estados\". Como \"Abierto\", "
+"\"Pendiente de Aprobación\", etc."
+msgid "DocType: Workflow"
+msgstr ""
+"Different \"States\" this document can exist in. Like \"Open\", \"Pending"
+" Approval\" etc."
+
+msgctxt ""
+"Reglas para transición entre estados, como el siguiente estado y qué "
+"función permite cambiar de estado , etc"
+msgid "DocType: Workflow"
+msgstr ""
+"Rules for how states are transitions, like next state and which role is "
+"allowed to change state etc."
+
+msgctxt "Reglas que definen la transición de estado del flujo de trabajo ."
+msgid "DocType: Workflow"
+msgstr "Rules defining transition of state in the workflow."
+
+msgctxt "Si se selecciona, todos los otros flujos de trabajo se vuelven inactivos ."
+msgid "DocType: Workflow"
+msgstr "If checked, all other workflows become inactive."
+
+msgctxt "Unidos"
+msgid "DocType: Workflow"
+msgstr "States"
+
+msgctxt "Acciones de los flujos de trabajo"
+msgid "DocType: Workflow Action"
+msgstr "Workflow Action"
+
+msgctxt "Estados de los flujos de trabajo"
+msgid "DocType: Workflow Action"
+msgstr "Workflow State"
+
+msgctxt "Actualizar Campos"
+msgid "DocType: Workflow Document State"
+msgstr "Update Field"
+
+msgctxt "Estado Doc."
+msgid "DocType: Workflow Document State"
+msgstr "Doc Status"
+
+msgctxt ""
+"Representa los estados permitidos en un solo documento y función asignada"
+" a cambiar el estado."
+msgid "DocType: Workflow Document State"
+msgstr ""
+"Represents the states allowed in one document and role assigned to change"
+" the state."
+
+msgctxt "Sólo Permitir Editar Para"
+msgid "DocType: Workflow Document State"
+msgstr "Only Allow Edit For"
+
+msgctxt "- estrella vacía"
+msgid "DocType: Workflow State"
+msgstr "star-empty"
+
+msgctxt "- ojo abierto"
+msgid "DocType: Workflow State"
+msgstr "eye-open"
+
+msgctxt "-ésimo gran"
+msgid "DocType: Workflow State"
+msgstr "th-large"
+
+msgctxt "Búsqueda"
+msgid "DocType: Workflow State"
+msgstr "Search"
+
+msgctxt "Consultar Firma"
+msgid "DocType: Workflow State"
+msgstr "question-sign"
+
+msgctxt "Detenerse"
+msgid "DocType: Workflow State"
+msgstr "Stop"
+
+msgctxt "Eliminar el efecto de círculo"
+msgid "DocType: Workflow State"
+msgstr "remove-circle"
+
+msgctxt "Eliminar el efecto de signo"
+msgid "DocType: Workflow State"
+msgstr "remove-sign"
+
+msgctxt ""
+"Estilo representa el color del botón : Éxito - Verde , Peligro - Rojo , "
+"Inverso - Negro , Primaria - Azul Oscuro , Info - Azul Claro, Advertencia"
+" - Orange"
+msgid "DocType: Workflow State"
+msgstr ""
+"Style represents the button color: Success - Green, Danger - Red, Inverse"
+" - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
+
+msgctxt "Etiqueta"
+msgid "DocType: Workflow State"
+msgstr "Tag"
+
+msgctxt "Fuente"
+msgid "DocType: Workflow State"
+msgstr "font"
+
+msgctxt "Icono aparecerá en el botón"
+msgid "DocType: Workflow State"
+msgstr "Icon will appear on the button"
+
+msgctxt "Quitar"
+msgid "DocType: Workflow State"
+msgstr "remove"
+
+msgctxt "alinear - justificar"
+msgid "DocType: Workflow State"
+msgstr "align-justify"
+
+msgctxt "alinear -izquierda"
+msgid "DocType: Workflow State"
+msgstr "align-left"
+
+msgctxt "alinear a la derecha"
+msgid "DocType: Workflow State"
+msgstr "align-right"
+
+msgctxt "cambiar a tamaño completo"
+msgid "DocType: Workflow State"
+msgstr "resize-full"
+
+msgctxt "cambiar el tamaño horizontal"
+msgid "DocType: Workflow State"
+msgstr "resize-horizontal"
+
+msgctxt "cambiar el tamaño pequeño"
+msgid "DocType: Workflow State"
+msgstr "resize-small"
+
+msgctxt "cambiar el tamaño vertical"
+msgid "DocType: Workflow State"
+msgstr "resize-vertical"
+
+msgctxt "carro de la compra"
+msgid "DocType: Workflow State"
+msgstr "shopping-cart"
+
+msgctxt "descargar -alt"
+msgid "DocType: Workflow State"
+msgstr "download-alt"
+
+msgctxt "diente"
+msgid "DocType: Workflow State"
+msgstr "cog"
+
+msgctxt "estrella"
+msgid "DocType: Workflow State"
+msgstr "star"
+
+msgctxt "itálico"
+msgid "DocType: Workflow State"
+msgstr "italic"
+
+msgctxt "ojo -cierre"
+msgid "DocType: Workflow State"
+msgstr "eye-close"
+
+msgctxt "paso hacia adelante"
+msgid "DocType: Workflow State"
+msgstr "step-forward"
+
+msgctxt "paso hacia atrás"
+msgid "DocType: Workflow State"
+msgstr "step-backward"
+
+msgctxt "pulgar hacia abajo"
+msgid "DocType: Workflow State"
+msgstr "thumbs-down"
+
+msgctxt "pulgar hacia arriba"
+msgid "DocType: Workflow State"
+msgstr "thumbs-up"
+
+msgctxt "share- alt"
+msgid "DocType: Workflow State"
+msgstr "share-alt"
+
+msgctxt "signo de exclamación"
+msgid "DocType: Workflow State"
+msgstr "exclamation-sign"
+
+msgctxt "signo menos"
+msgid "DocType: Workflow State"
+msgstr "minus-sign"
+
+msgctxt "text- altura"
+msgid "DocType: Workflow State"
+msgstr "text-height"
+
+msgctxt "texto de ancho"
+msgid "DocType: Workflow State"
+msgstr "text-width"
+
+msgctxt "th -list"
+msgid "DocType: Workflow State"
+msgstr "th-list"
+
+msgctxt "ª"
+msgid "DocType: Workflow State"
+msgstr "th"
+
+msgctxt ""
+"Define las acciones de los estados y el siguiente paso y funciones "
+"permitidas."
+msgid "DocType: Workflow Transition"
+msgstr "Defines actions on states and the next step and allowed roles."
+
+msgctxt "Gracias"
+msgid "apps/frappe/frappe/__init__.py +1178"
+msgstr "Thank you"
+
+msgctxt "No se permite desde esta dirección IP"
+msgid "apps/frappe/frappe/auth.py +272"
+msgstr "Not allowed from this IP Address"
+
+msgctxt "No se puede editar campos estándar"
+msgid "apps/frappe/frappe/client.py +106"
+msgstr "Cannot edit standard fields"
+
+msgctxt "Registro de Actividad para todos los Usuarios"
+msgid "apps/frappe/frappe/config/desk.py +44"
+msgstr "Activity log of all users."
+
+msgctxt "Boletines para contactos, clientes potenciales ."
+msgid "apps/frappe/frappe/config/desk.py +54"
+msgstr "Newsletters to contacts, leads."
+
+msgctxt "Establecer series de numeración para las transacciones."
+msgid "apps/frappe/frappe/config/setup.py +119"
+msgstr "Set numbering series for transactions."
+
+msgctxt "Funciones de Usuario"
+msgid "apps/frappe/frappe/config/setup.py +19"
+msgstr "User Roles"
+
+msgctxt ""
+"Establecer formato por defecto, tamaño de página, el estilo de impresión,"
+" etc"
+msgid "apps/frappe/frappe/config/setup.py +200"
+msgstr "Set default format, page size, print style etc."
+
+msgctxt "Definir los flujos de trabajo para las formas ."
+msgid "apps/frappe/frappe/config/setup.py +221"
+msgstr "Define workflows for forms."
+
+msgctxt "Acciones para los flujos de trabajo (por ejemplo: Aprobar, Cancelar)."
+msgid "apps/frappe/frappe/config/setup.py +231"
+msgstr "Actions for workflow (e.g. Approve, Cancel)."
+
+msgctxt "Cambiar las propiedades de campo (ocultar, sólo lectura, permisos, etc)"
+msgid "apps/frappe/frappe/config/setup.py +242"
+msgstr "Change field properties (hide, readonly, permission etc.)"
+
+msgctxt "Añadir javascript personalizado las formas ."
+msgid "apps/frappe/frappe/config/setup.py +259"
+msgstr "Add custom javascript to forms."
+
+msgctxt "Establecer Permisos en los Tipos de Documentos y Funciones"
+msgid "apps/frappe/frappe/config/setup.py +37"
+msgstr "Set Permissions on Document Types and Roles"
+
+msgctxt "Marque que documentos pueden ser leídos por el usuario"
+msgid "apps/frappe/frappe/config/setup.py +57"
+msgstr "Check which Documents are readable by a User"
+
+msgctxt "Forma editable Usuario en el Sitio Web."
+msgid "apps/frappe/frappe/config/website.py +18"
+msgstr "User editable form on Website."
+
+msgctxt "Presentacion de imágenes incrustadas en páginas web ."
+msgid "apps/frappe/frappe/config/website.py +27"
+msgstr "Embed image slideshows in website pages."
+
+msgctxt "Mensaje Individual ( artículo)."
+msgid "apps/frappe/frappe/config/website.py +37"
+msgstr "Single Post (article)."
+
+msgctxt "Escribe títulos y las introducciones a tu blog ."
+msgid "apps/frappe/frappe/config/website.py +42"
+msgstr "Write titles and introductions to your blog."
+
+msgctxt ""
+"Configuración de la barra de navegación superior , pie de página y el "
+"logotipo."
+msgid "apps/frappe/frappe/config/website.py +58"
+msgstr "Setup of top navigation bar, footer and logo."
+
+msgctxt "Ajustes para Nosotros Pagina ."
+msgid "apps/frappe/frappe/config/website.py +73"
+msgstr "Settings for About Us Page."
+
+msgctxt "Ajustes para la página de contacto."
+msgid "apps/frappe/frappe/config/website.py +78"
+msgstr "Settings for Contact Us Page."
+
+msgctxt ""
+"Al establecer esta plantilla de dirección por defecto ya que no hay otra "
+"manera predeterminada"
+msgid ""
+"apps/frappe/frappe/contacts/doctype/address_template/address_template.py "
+"+22"
+msgstr "Setting this Address Template as default as there is no other default"
+
+msgctxt "Plantilla de la Direcciones Predeterminadas no puede eliminarse"
+msgid ""
+"apps/frappe/frappe/contacts/doctype/address_template/address_template.py "
+"+33"
+msgstr "Default Address Template cannot be deleted"
+
+msgctxt "Seleccionar columnas"
+msgid "apps/frappe/frappe/core/doctype/data_import/data_import.js +172"
+msgstr "Select Columns"
+
+msgctxt "Descarga de datos"
+msgid "apps/frappe/frappe/core/doctype/data_import/data_import.js +204"
+msgstr "Download with data"
+
+msgctxt "Por favor, no cambiar los encabezados de la plantilla."
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +63"
+msgstr "Please do not change the template headings."
+
+msgctxt "Si va a cargar nuevos registros, deje en blanco la columna \"nombre\" (ID)"
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +65"
+msgstr "If you are uploading new records, leave the \"name\" (ID) column blank."
+
+msgctxt ""
+"Si va a cargar nuevos registros, \"Secuencias\" se convierte en "
+"obligatoria, si está presente."
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +66"
+msgstr ""
+"If you are uploading new records, \"Naming Series\" becomes mandatory, if"
+" present."
+
+msgctxt "Para la actualización, usted lo puede hacer solo en algunas columnas."
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +68"
+msgstr "For updating, you can update only selective columns."
+
+msgctxt "'Padre' es la tabla principal en la que hay que añadir esta fila"
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +71"
+msgstr "\"Parent\" signifies the parent table in which this row must be added"
+
+msgctxt "Empiece a introducir datos por debajo de esta línea"
+msgid "apps/frappe/frappe/core/doctype/data_import/importer.py +25"
+msgstr "Start entering data below this line"
+
+msgctxt "Tabla de Padres"
+msgid "apps/frappe/frappe/core/doctype/data_import/importer.py +27"
+msgstr "Parent Table"
+
+msgctxt "No tiene permisos para importar"
+msgid "apps/frappe/frappe/core/doctype/data_import/importer.py +324"
+msgstr "Not allowed to Import"
+
+msgctxt "Usted necesita tener el permiso \"Compartir\""
+msgid "apps/frappe/frappe/core/doctype/docshare/docshare.py +40"
+msgstr "You need to have \"Share\" permission"
+
+msgctxt "{0} compartió este documento con todos"
+msgid "apps/frappe/frappe/core/doctype/docshare/docshare.py +47"
+msgstr "{0} shared this document with everyone"
+
+msgctxt "Serie {0} ya se utiliza en {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +249"
+msgstr "Series {0} already used in {1}"
+
+msgctxt "El DocType no se puede fusionar"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +355"
+msgstr "DocType can not be merged"
+
+msgctxt ""
+"Las opciones deben ser validas para el DocType en el campo {0} de la "
+"linea {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +526"
+msgstr "Options must be a valid DocType for field {0} in row {1}"
+
+msgctxt "El ancho máximo para la moneda es 100px en la linea {0}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +540"
+msgstr "Max width for type Currency is 100px in row {0}"
+
+msgctxt "No está permitido para el tipo {0} en la linea {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +544"
+msgstr "'In List View' not allowed for type {0} in row {1}"
+
+msgctxt ""
+"Las opciones de campo de tipo 'Vinculo Dinámico' debe apuntar a otro "
+"campo con propiedades \"Tipo de Documento\""
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +556"
+msgstr ""
+"Options 'Dynamic Link' type of field must point to another Link Field "
+"with options as 'DocType'"
+
+msgctxt "Predeterminado para {0} debe ser una opción"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +562"
+msgstr "Default for {0} must be an option"
+
+msgctxt "Sólo puede haber un doblez en forma"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +594"
+msgstr "There can be only one Fold in a form"
+
+msgctxt "Campo Título debe ser un nombre de campo válido"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +625"
+msgstr "Title field must be a valid fieldname"
+
+msgctxt "{0}: No se han asignado permisos básicos"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +771"
+msgstr "{0}: No basic permissions set"
+
+msgctxt "{0}: Sólo una regla es permitida con el mismo rol, Nivel y {1}"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +784"
+msgstr "{0}: Only one rule allowed with the same Role, Level and {1}"
+
+msgctxt ""
+"{0} : Permiso en el nivel 0 se debe establecer antes de fijar niveles más"
+" altos"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +796"
+msgstr "{0}: Permission at level 0 must be set before higher levels are set"
+
+msgctxt "{0}: no se puede 'Cancelar' sin presentarlo"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +803"
+msgstr "{0}: Cannot set Cancel without Submit"
+
+msgctxt "{0}: no se puede Presentar, Cancelar y Corregir sin Guardar"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +806"
+msgstr "{0}: Cannot set Submit, Cancel, Amend without Write"
+
+msgctxt "{0}: no se puede 'Corregir' sin antes cancelar"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +808"
+msgstr "{0}: Cannot set Amend without Cancel"
+
+msgctxt "{0}: no se puede establecer 'De importación' sin crearlo primero"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +810"
+msgstr "{0}: Cannot set Import without Create"
+
+msgctxt "Reportar no se puede configurar para los tipos individuales"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +817"
+msgstr "Report cannot be set for Single types"
+
+msgctxt "{0} no se puede establecer para los tipos individuales"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +825"
+msgstr "{0} cannot be set for Single types"
+
+msgctxt "{0}: no se puede 'Asignar Enviar' si no se puede presentar"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +829"
+msgstr "{0}: Cannot set Assign Submit if not Submittable"
+
+msgctxt "{0}: no se puede 'Asignar Correción' si no se puede presentar"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +831"
+msgstr "{0}: Cannot set Assign Amend if not Submittable"
+
+msgctxt "{0}: no se puede definir 'De Importación' como {1} porque no es importable"
+msgid "apps/frappe/frappe/core/doctype/doctype/doctype.py +835"
+msgstr "{0}: Cannot set import as {1} is not importable"
+
+msgctxt "El mismo archivo ya se ha adjuntado al registro"
+msgid "apps/frappe/frappe/core/doctype/file/file.py +195"
+msgstr "Same file has already been attached to the record"
+
+msgctxt ""
+"Escriba un archivo de Python en la misma carpeta donde esta se guarda y "
+"devuelve la columna y el resultado."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +16"
+msgstr ""
+"Write a Python file in the same folder where this is saved and return "
+"column and result."
+
+msgctxt "Desactivar Informe"
+msgid "apps/frappe/frappe/core/doctype/report/report.js +37"
+msgstr "Disable Report"
+
+msgctxt ""
+"Informes del Generador de informes son enviadas por el generador de "
+"informes . No hay nada que hacer."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +5"
+msgstr ""
+"Report Builder reports are managed directly by the report builder. "
+"Nothing to do."
+
+msgctxt ""
+"Escriba una consulta SELECT. Nota resultado no se pagina ( todos los "
+"datos se envían en una sola vez ) ."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +8"
+msgstr ""
+"Write a SELECT query. Note result is not paged (all data is sent in one "
+"go)."
+
+msgctxt "Para dar formato a columnas, dar títulos de las columnas en la consulta."
+msgid "apps/frappe/frappe/core/doctype/report/report.js +9"
+msgstr "To format columns, give column labels in the query."
+
+msgctxt ""
+"Sólo el administrador puede guardar un informe estándar. Por favor, "
+"cambie el nombre y guardar."
+msgid "apps/frappe/frappe/core/doctype/report/report.py +33"
+msgstr "Only Administrator can save a standard report. Please rename and save."
+
+msgctxt ""
+"Solo el Administrador puede crear consultas / Informes de Secuencias de "
+"Comandos"
+msgid "apps/frappe/frappe/core/doctype/report/report.py +37"
+msgstr "Only Administrator allowed to create Query / Script Reports"
+
+msgctxt "Vencimiento de sesión debe estar en formato {0}"
+msgid "apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27"
+msgstr "Session Expiry must be in format {0}"
+
+msgctxt "¡Lo siento! El usuario debe tener acceso completo a su propio récord."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +189"
+msgstr "Sorry! User should have complete access to their own record."
+
+msgctxt "¡Lo siento! Compartir con los del Sitio Web está prohibido."
+msgid "apps/frappe/frappe/core/doctype/user/user.py +191"
+msgstr "Sorry! Sharing with Website User is prohibited."
+
+msgctxt "Fila #"
+msgid "apps/frappe/frappe/core/doctype/version/version_view.html +74"
+msgstr "Row # "
+
+msgctxt "Restablecer los permisos para {0} ?"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +102"
+msgstr "Reset Permissions for {0}?"
+
+msgctxt "Seleccione el Tipo de Documento o Función para empezar."
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +149"
+msgstr "Select Document Type or Role to start."
+
+msgctxt "Los usuarios con función {0}:"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +291"
+msgstr "Users with role {0}:"
+
+msgctxt "Tipos de Documento"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48"
+msgstr "Document Types"
+
+msgctxt "Seleccionar el tipo de documento"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +49"
+msgstr "Select Document Type"
+
+msgctxt "Seleccione Función"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +55"
+msgstr "Select Role"
+
+msgctxt ""
+"Como práctica recomendada , no asigne el mismo conjunto de permisos para "
+"diferentes funciones. En su lugar, establecer varias funciones al mismo "
+"usuario ."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +11"
+msgstr ""
+"As a best practice, do not assign the same set of permission rule to "
+"different Roles. Instead, set multiple Roles to the same User."
+
+msgctxt "Significado de Enviar, Cancelar, Corregir"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +14"
+msgstr "Meaning of Submit, Cancel, Amend"
+
+msgctxt ""
+"Algunos documentos como facturas, no se deben cambiar una vez guardados. "
+"El estado final de dichos documentos se llama 'Presentado'. Puede "
+"restringir qué roles/usuarios pueden presentar documentos"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +16"
+msgstr ""
+"Certain documents, like an Invoice, should not be changed once final. The"
+" final state for such documents is called Submitted. You can restrict "
+"which roles can Submit."
+
+msgctxt ""
+"Puede cambiar los documentos Enviados cancelándolos y luego, haciendo los"
+" cambios pertinentes."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +17"
+msgstr ""
+"You can change Submitted documents by cancelling them and then, amending "
+"them."
+
+msgctxt ""
+"Cuando se modifique un documento después de Cancelar y guardarlo , se "
+"obtendrá un nuevo número que es una versión del antiguo número."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +18"
+msgstr ""
+"When you Amend a document after Cancel and save it, it will get a new "
+"number that is a version of the old number."
+
+msgctxt ""
+"Los permisos del nivel 0 son los permisos a nivel de documentos, es "
+"decir, que tienen permiso especial para los documentos."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +24"
+msgstr ""
+"Permissions at level 0 are Document Level permissions, i.e. they are "
+"primary for access to the document."
+
+msgctxt ""
+"Si una función no tiene acceso en el Nivel 0, entonces los niveles más "
+"altos no tienen sentido ."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +25"
+msgstr ""
+"If a Role does not have access at Level 0, then higher levels are "
+"meaningless."
+
+msgctxt ""
+"Permisos en los niveles más altos son los permisos de nivel de campo. "
+"Todos los campos tienen un conjunto Nivel de permiso en su contra y las "
+"reglas definidas en el que los permisos se aplican al campo. Esto es útil"
+" en caso de que quiera ocultar o hacer cierto campo de sólo lectura para "
+"ciertas funciones."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +26"
+msgstr ""
+"Permissions at higher levels are Field Level permissions. All Fields have"
+" a Permission Level set against them and the rules defined at that "
+"permissions apply to the field. This is useful in case you want to hide "
+"or make certain field read-only for certain Roles."
+
+msgctxt ""
+"Usted puede utilizar Personalizar formulario para establecer los niveles "
+"de los campos ."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +27"
+msgstr "You can use Customize Form to set levels on fields."
+
+msgctxt ""
+"Seleccione los Tipos de Documento para establecer los Permisos de Usuario"
+" para limitar el acceso."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +34"
+msgstr ""
+"Select Document Types to set which User Permissions are used to limit "
+"access."
+
+msgctxt ""
+"Una vez que haya establecido esto, los usuarios sólo tendrán acceso a los"
+" documentos que puedan (por ejemplo, Entrada de blog ) donde se encuentra"
+" la relación (por ejemplo, Blogger ) ."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +35"
+msgstr ""
+"Once you have set this, the users will only be able access documents (eg."
+" Blog Post) where the link exists (eg. Blogger)."
+
+msgctxt "Presentar un problema"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +39"
+msgstr "Submit an Issue"
+
+msgctxt ""
+"Los permisos se establecen en las Funciones y Tipos de Documentos "
+"(llamados  DocTypes ) mediante el establecimiento de permisos  como Leer,"
+" Escribir , Crear, Eliminar , Enviar, Cancelar, Corregir, Informe , "
+"Importación, Exportación, Impresión , Correo Electrónico y Establecer "
+"Permisos de Usuario ."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +5"
+msgstr ""
+"Permissions are set on Roles and Document Types (called DocTypes) by "
+"setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, "
+"Report, Import, Export, Print, Email and Set User Permissions."
+
+msgctxt ""
+"Permisos han sido aplicados a los Usuarios en base a los funciones que "
+"tienen asignadas."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +6"
+msgstr "Permissions get applied on Users based on what Roles they are assigned."
+
+msgctxt ""
+"Las funciones se pueden configurar para los usuarios de su página de "
+"usuario ."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +7"
+msgstr "Roles can be set for users from their User page."
+
+msgctxt "Añadir un Nuevo Rol"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +9"
+msgstr "Add a New Role"
+
+msgctxt ""
+"El sistema ofrece muchas funciones predefinidas . Usted puede agregar "
+"nuevos roles para establecer permisos más finos."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +9"
+msgstr ""
+"The system provides many pre-defined roles. You can add new roles to set "
+"finer permissions."
+
+msgctxt ""
+"Nombre del tipo de documento (DocType) el cual quiere que este campo este"
+" vinculado. por ejemplo al Cliente"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +60"
+msgstr ""
+"Name of the Document Type (DocType) you want this field to be linked to. "
+"e.g. Customer"
+
+msgctxt "Nombre de campo el cual será el DocType para enlazar el campo."
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +66"
+msgstr "Fieldname which will be the DocType for this link field."
+
+msgctxt "Etiqueta es obligatoria"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +24"
+msgstr "Label is mandatory"
+
+msgctxt "Ajuste la etiqueta de visualización para el campo"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214"
+msgstr "Set the display label for the field"
+
+msgctxt ""
+"Cambiar el tipo de campo. (Actual, Tipo de cambio, Cantidad permitida, "
+"Moneda, Flotante, etc)"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218"
+msgstr ""
+"Change type of field. (Currently, Type change is \\\n"
+"\t\t\t\t\t\tallowed among 'Currency and Float')"
+
+msgctxt ""
+"Los permisos se pueden gestionar a través de Configuración > "
+"Administrador de Funciones"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229"
+msgstr "Permissions can be managed via Setup &gt; Role Permissions Manager"
+
+msgctxt "Marque el campo como obligatorio"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241"
+msgstr "Mark the field as Mandatory"
+
+msgctxt "Ocultar campo en forma"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249"
+msgstr "Hide field in form"
+
+msgctxt "Ocultar campo en el Generador de Informes"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +257"
+msgstr "Hide field in Report Builder"
+
+msgctxt "Mostrar una descripción debajo del campo"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +274"
+msgstr "Show a description below the field"
+
+msgctxt "Formulario de actualización"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71"
+msgstr "Refresh Form"
+
+msgctxt "Eliminar todas las personalizaciones ?"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76"
+msgstr "Remove all customizations?"
+
+msgctxt "Fila {0}: No se permite habilitar Permitir en Enviar para campos estándar"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +180"
+msgstr "Row {0}: Not allowed to enable Allow on Submit for standard fields"
+
+msgctxt "Nuevo {0}: # {1}"
+msgid "apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +285"
+msgstr "New {0}: #{1}"
+
+msgctxt "Finalización del evento debe ser posterior al inicio"
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +25"
+msgstr "Event end must be after start"
+
+msgctxt "Los eventos deben terminar el mismo día."
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +32"
+msgstr "Every day events should finish on the same day."
+
+msgctxt "La tarea {0}, que asignó a {1}, se ha cerrado."
+msgid "apps/frappe/frappe/desk/form/assign_to.py +155"
+msgstr "The task {0}, that you assigned to {1}, has been closed."
+
+msgctxt "La tarea {0}, que asignó a {1}, ha sido cerrado por {2}."
+msgid "apps/frappe/frappe/desk/form/assign_to.py +161"
+msgstr "The task {0}, that you assigned to {1}, has been closed by {2}."
+
+msgctxt "No hay registros adicionales"
+msgid "apps/frappe/frappe/desk/form/utils.py +114"
+msgstr "No further records"
+
+msgctxt "Este método sólo se puede utilizar para crear un comentario"
+msgid "apps/frappe/frappe/desk/form/utils.py +67"
+msgstr "This method can only be used to create a Comment"
+
+msgctxt "Debe tener permiso de informe para acceder a este informe."
+msgid "apps/frappe/frappe/desk/query_report.py +162"
+msgstr "Must have report permission to access this report."
+
+msgctxt "Informe {0} está deshabilitado"
+msgid "apps/frappe/frappe/desk/query_report.py +30"
+msgstr "Report {0} is disabled"
+
+msgctxt "Debe especificar una consulta para ejecutar"
+msgid "apps/frappe/frappe/desk/query_report.py +48"
+msgstr "Must specify a Query to run"
+
+msgctxt "Debe seleccionar la Consulta"
+msgid "apps/frappe/frappe/desk/query_report.py +52"
+msgstr "Query must be a SELECT"
+
+msgctxt "Bandeja de entrada por defecto"
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10"
+msgstr "Default Inbox"
+
+msgctxt "Programado para enviar a {0}"
+msgid "apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35"
+msgstr "Scheduled to send to {0}"
+
+msgctxt "El boletín de noticias ya ha sido enviado"
+msgid "apps/frappe/frappe/email/doctype/newsletter/newsletter.py +40"
+msgstr "Newsletter has already been sent"
+
+msgctxt "Programado para enviar a {0} destinatarios"
+msgid "apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54"
+msgstr "Scheduled to send to {0} recipients"
+
+msgctxt "No puede conectarse: {0}"
+msgid "apps/frappe/frappe/email/receive.py +64"
+msgstr "Cannot connect: {0}"
+
+msgctxt "Esta moneda está deshabilitada . Habilite el uso en las transacciones"
+msgid "apps/frappe/frappe/geo/doctype/currency/currency.js +7"
+msgstr "This Currency is disabled. Enable to use in transactions"
+
+msgctxt "Los datos que faltan en la tabla"
+msgid "apps/frappe/frappe/model/base_document.py +402"
+msgstr "Data missing in table"
+
+msgctxt "Las opciones no establecen para campo de enlace {0}"
+msgid "apps/frappe/frappe/model/base_document.py +444"
+msgstr "Options not set for link field {0}"
+
+msgctxt "debe establecerse primero: {0}"
+msgid "apps/frappe/frappe/model/base_document.py +448"
+msgstr "{0} must be set first"
+
+msgctxt "Fila # {0}:"
+msgid "apps/frappe/frappe/model/base_document.py +515"
+msgstr "Row #{0}:"
+
+msgctxt "El usuario no puede eliminar {0}: {1}"
+msgid "apps/frappe/frappe/model/delete_doc.py +171"
+msgstr "User not allowed to delete {0}: {1}"
+
+msgctxt "{0} {1}: registro presentado no se puede eliminar."
+msgid "apps/frappe/frappe/model/delete_doc.py +176"
+msgstr "{0} {1}: Submitted Record cannot be deleted."
+
+msgctxt "La tabla {0} no puede estar vacío"
+msgid "apps/frappe/frappe/model/document.py +1101"
+msgstr "Table {0} cannot be empty"
+
+msgctxt "Registro no existe"
+msgid "apps/frappe/frappe/model/document.py +634"
+msgstr "Record does not exist"
+
+msgctxt "No se puede editar un documento anulado"
+msgid "apps/frappe/frappe/model/document.py +685"
+msgstr "Cannot edit cancelled document"
+
+msgctxt "Serie de nombres Inválidos (. Faltante)"
+msgid "apps/frappe/frappe/model/naming.py +113"
+msgstr "Invalid naming series (. missing)"
+
+msgctxt ""
+"Había algunos errores de configuración el nombre, por favor póngase en "
+"contacto con el administrador"
+msgid "apps/frappe/frappe/model/naming.py +202"
+msgstr "There were some errors setting the name, please contact the administrator"
+
+msgctxt "{0} es necesario"
+msgid "apps/frappe/frappe/model/naming.py +48"
+msgstr "{0} is required"
+
+msgctxt "Las secuencias son obligatorias"
+msgid "apps/frappe/frappe/model/naming.py +85"
+msgstr "Naming Series mandatory"
+
+msgctxt "{0} no es permitido ser renombrado"
+msgid "apps/frappe/frappe/model/rename_doc.py +168"
+msgstr "{0} not allowed to be renamed"
+
+msgctxt "Máximo {0} filas permitidos"
+msgid "apps/frappe/frappe/model/rename_doc.py +418"
+msgstr "Maximum {0} rows allowed"
+
+msgctxt "** Fallo: {0} a {1}: {2}"
+msgid "apps/frappe/frappe/model/rename_doc.py +431"
+msgstr "** Failed: {0} to {1}: {2}"
+
+msgctxt "Por favor, seleccione DocType primero"
+msgid "apps/frappe/frappe/printing/doctype/print_format/print_format.js +28"
+msgstr "Please select DocType first"
+
+msgctxt "Formato de impresión estándar no se puede actualizar"
+msgid "apps/frappe/frappe/printing/doctype/print_format/print_format.py +19"
+msgstr "Standard Print Format cannot be updated"
+
+msgctxt "Seleccione un tipo de documento para hacer un nuevo formato"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +108"
+msgstr "Select a DocType to make a new format"
+
+msgctxt "Tanto DocType y Nombre son obligatorios"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +126"
+msgstr "Both DocType and Name required"
+
+msgctxt "Comenzar una nueva Formato"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +162"
+msgstr "Start new Format"
+
+msgctxt "Retire la Sección"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +411"
+msgstr "Remove Section"
+
+msgctxt "Seleccionar columnas de tabla para {0}"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +600"
+msgstr "Select Table Columns for {0}"
+
+msgctxt "Edición de HTML personalizado"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +679"
+msgstr "Edit Custom HTML"
+
+msgctxt ""
+"Puede añadir propiedades dinámicas del documento mediante el uso de "
+"plantillas Jinja."
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +697"
+msgstr ""
+"You can add dynamic properties from the document by using Jinja "
+"templating."
+
+msgctxt "Guardado"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +790"
+msgstr "Saved"
+
+msgctxt "Seleccione Formato de impresión a Editar"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +82"
+msgstr "Select Print Format to Edit"
+
+msgctxt "Edición de HTML"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html"
+" +21"
+msgstr "Edit HTML"
+
+msgctxt ""
+"Arrastre los elementos de la barra lateral para agregar. Arrastre de "
+"nuevo a la papelera de reciclaje."
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html"
+" +3"
+msgstr "Drag elements from the sidebar to add. Drag them back to trash."
+
+msgctxt "Editar Rubro"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html"
+" +8"
+msgstr "Edit Heading"
+
+msgctxt "Crear un nuevo formato"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html"
+" +16"
+msgstr "Create a New Format"
+
+msgctxt "Seleccione de archivos adjuntos existentes"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58"
+msgstr "Select from existing attachments"
+
+msgctxt "Adjunte un archivo primero ."
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/select.js +61"
+msgstr "Please attach a file first."
+
+msgctxt "Editar vía Subir Archivo"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid.js +681"
+msgstr "Edit via Upload"
+
+msgctxt "Mostrar más detalles"
+msgid "apps/frappe/frappe/public/js/frappe/form/layout.js +162"
+msgstr "Show more details"
+
+msgctxt "Esta forma no tiene ninguna entrada"
+msgid "apps/frappe/frappe/public/js/frappe/form/layout.js +28"
+msgstr "This form does not have any input"
+
+msgctxt "Crear un nuevo {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +106"
+msgstr "Make a new {0}"
+
+msgctxt "conjunto"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +142"
+msgstr "Set"
+
+msgctxt "{0} agregado(s)"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +151"
+msgstr "{0} added"
+
+msgctxt "Seleccione {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +22"
+msgstr "Select {0}"
+
+msgctxt "Puede utilizar caracteres comodín%"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +26"
+msgstr "You can use wildcard &#37;"
+
+msgctxt "Hacer una nueva"
+msgid "apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +58"
+msgstr "Make a new"
+
+msgctxt ""
+"Advertencia: Este formato de impresión es de estilo antiguo y no se puede"
+" generar a través de la API."
+msgid "apps/frappe/frappe/public/js/frappe/form/print.js +216"
+msgstr ""
+"Warning: This Print Format is in old style and cannot be generated via "
+"the API."
+
+msgctxt "Presentar"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +12"
+msgstr "Submitting"
+
+msgctxt "Campos obligatorios requeridos en {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +150"
+msgstr "Mandatory fields required in {0}"
+
+msgctxt "Comparte con"
+msgid "apps/frappe/frappe/public/js/frappe/form/share.js +115"
+msgstr "Share With"
+
+msgctxt "Compartido con todo el mundo"
+msgid "apps/frappe/frappe/public/js/frappe/form/share.js +27"
+msgstr "Shared with everyone"
+
+msgctxt "Situación Actual"
+msgid "apps/frappe/frappe/public/js/frappe/form/workflow.js +37"
+msgstr "Current status"
+
+msgctxt "{0} no encontrado"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_renderer.js +629"
+msgstr "No {0} found"
+
+msgctxt "Hace 1 minuto"
+msgid "apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +47"
+msgstr "1 minute ago"
+
+msgctxt "Hace 1 hora"
+msgid "apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49"
+msgstr "1 hour ago"
+
+msgctxt "Exportaciones no permitido. Es necesario {0} función de exportar ."
+msgid "apps/frappe/frappe/public/js/frappe/misc/tools.js +10"
+msgstr "Export not allowed. You need {0} role to export."
+
+msgctxt "No se puede cargar : {0}"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +119"
+msgstr "Unable to load: {0}"
+
+msgctxt "Padre"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +33"
+msgstr "Parent"
+
+msgctxt "Eliminar permanentemente {0} ?"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +518"
+msgstr "Permanently delete {0}?"
+
+msgctxt ""
+"Error de servidor : Se recomienda consultar los registros del servidor o "
+"contacte con Soporte técnico."
+msgid "apps/frappe/frappe/public/js/frappe/request.js +169"
+msgstr "Server Error: Please check your server logs or contact tech support."
+
+msgctxt "Reportar Incidencia"
+msgid "apps/frappe/frappe/public/js/frappe/request.js +390"
+msgstr "Report this issue"
+
+msgctxt "Permisos de la Función"
+msgid "apps/frappe/frappe/public/js/frappe/roles_editor.js +194"
+msgstr "Role Permissions"
+
+msgctxt "Desactive todos los roles"
+msgid "apps/frappe/frappe/public/js/frappe/roles_editor.js +40"
+msgstr "Clear all roles"
+
+msgctxt "Valores perdidos requeridos"
+msgid "apps/frappe/frappe/public/js/frappe/ui/field_group.js +97"
+msgstr "Missing Values Required"
+
+msgctxt "El campo {0} no se puede seleccionar ."
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +157"
+msgstr "Field {0} is not selectable."
+
+msgctxt "Use% como comodín"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +283"
+msgstr "use &#37; as wildcard"
+
+msgctxt "Introducir valor"
+msgid "apps/frappe/frappe/public/js/frappe/ui/messages.js +68"
+msgstr "Enter Value"
+
+msgctxt "Próximo"
+msgid "apps/frappe/frappe/public/js/frappe/ui/slides.js +324"
+msgstr "Next"
+
+msgctxt "Ayuda en la búsqueda"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127"
+msgstr "Help on Search"
+
+msgctxt "Hacer un Nuevo Registro"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132"
+msgstr "Make a new record"
+
+msgctxt "Tipo de documento ..., por ejemplo, al cliente"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135"
+msgstr "document type..., e.g. customer"
+
+msgctxt "Buscar en un tipo de documento"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +136"
+msgstr "Search in a document type"
+
+msgctxt "Abra un Módulo o Herramienta"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +138"
+msgstr "Open a module or tool"
+
+msgctxt "Busque o escriba un comando"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +87"
+msgstr "Search or type a command"
+
+msgctxt "Se está generando su descarga, esto puede tardar unos minutos..."
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +256"
+msgstr "Your download is being built, this may take a few moments..."
+
+msgctxt "Por favor, adjuntar un archivo o defina una URL"
+msgid "apps/frappe/frappe/public/js/frappe/upload.js +252"
+msgstr "Please attach a file or set a URL"
+
+msgctxt "Subir Archivos Adjuntos"
+msgid "apps/frappe/frappe/public/js/frappe/upload.js +26"
+msgstr "Upload Attachment"
+
+msgctxt ""
+"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de "
+"nuevo."
+msgid "apps/frappe/frappe/public/js/frappe/views/communication.js +594"
+msgstr "There were errors while sending email. Please try again."
+
+msgctxt "Seleccionar el formato de impresión"
+msgid "apps/frappe/frappe/public/js/frappe/views/communication.js +97"
+msgstr "Select Print Format"
+
+msgctxt "Mes."
+msgid "apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +144"
+msgstr "Month"
+
+msgctxt "Añadir"
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19"
+msgstr "Add"
+
+msgctxt "¡Lo siento! No pude encontrar lo que estabas buscando."
+msgid "apps/frappe/frappe/public/js/frappe/views/pageview.js +104"
+msgstr "Sorry! I could not find what you were looking for."
+
+msgctxt "¡Lo siento! Usted no está autorizado a ver esta página."
+msgid "apps/frappe/frappe/public/js/frappe/views/pageview.js +112"
+msgstr "Sorry! You are not permitted to view this page."
+
+msgctxt "Seleccione la descarga :"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +821"
+msgstr "Select To Download:"
+
+msgctxt "Con Libro Mayor"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +823"
+msgstr "With Ledgers"
+
+msgctxt "Hacer"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +562"
+msgstr "Make "
+
+msgctxt "Seleccione columnas"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +606"
+msgstr "Pick Columns"
+
+msgctxt "Ordenado por"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +665"
+msgstr "Sort By"
+
+msgctxt "Entonces por ( opcional)"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +671"
+msgstr "Then By (optional)"
+
+msgctxt "Informe no se guardó ( hubo errores )"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +775"
+msgstr "Report was not saved (there were errors)"
+
+msgctxt "Agregar subcuenta"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +183"
+msgstr "Add Child"
+
+msgctxt "Seleccione un nodo de grupo primero."
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +234"
+msgstr "Select a group node first."
+
+msgctxt "Nuevo {0}"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +242"
+msgstr "New {0}"
+
+msgctxt "{0} Árbol"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +89"
+msgstr "{0} Tree"
+
+msgctxt "Por favor, guarde los cambios antes de conectar"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +136"
+msgstr "Please save before attaching."
+
+msgctxt "Permitir DocType , tipo de documento . ¡Ten cuidado!"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +62"
+msgstr "Allowing DocType, DocType. Be careful!"
+
+msgctxt "Presentar permanentemente {0}?"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +775"
+msgstr "Permanently Submit {0}?"
+
+msgctxt ""
+"Servidor de Caché Redis no esta funcionando. Por favor, póngase en "
+"contacto con el Administrador / Soporte técnico"
+msgid "apps/frappe/frappe/sessions.py +139"
+msgstr ""
+"Redis cache server not running. Please contact Administrator / Tech "
+"support"
+
+msgctxt "Gracias por tu email"
+msgid "apps/frappe/frappe/templates/emails/auto_reply.html +1"
+msgstr "Thank you for your email"
+
+msgctxt ""
+"Su petición ha sido recibida. Le contestaremos en breve. Si usted tiene "
+"alguna información adicional, por favor responda a este correo."
+msgid "apps/frappe/frappe/templates/emails/auto_reply.html +2"
+msgstr ""
+"Your query has been received. We will reply back shortly. If you have any"
+" additional information, please reply to this mail."
+
+msgctxt "Esta es una respuesta generada automáticamente"
+msgid "apps/frappe/frappe/templates/emails/auto_reply.html +5"
+msgstr "This is an automatically generated reply"
+
+msgctxt "También puede copiar y pegar este enlace en su navegador"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +16"
+msgstr "You can also copy-paste this link in your browser"
+
+msgctxt "Una nueva cuenta ha sido creada para ti en {0}"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +2"
+msgstr "A new account has been created for you at {0}"
+
+msgctxt "Su nombre de usuario es"
+msgid "apps/frappe/frappe/templates/emails/new_user.html +3"
+msgstr "Your login id is"
+
+msgctxt "Su contraseña se ha actualizado. Aquí está tu nueva contraseña"
+msgid "apps/frappe/frappe/templates/emails/password_update.html +2"
+msgstr "Your password has been updated. Here is your new password"
+
+msgctxt "Periódico"
+msgid "apps/frappe/frappe/templates/emails/recurring_document_failed.html +1"
+msgstr "Recurring"
+
+msgctxt "Véalo en su navegador"
+msgid "apps/frappe/frappe/templates/includes/comments/comments.py +50"
+msgstr "View it in your browser"
+
+msgctxt "claro"
+msgid "apps/frappe/frappe/templates/includes/list/filters.html +19"
+msgstr "clear"
+
+msgctxt "Oups! Algo salió mal"
+msgid "apps/frappe/frappe/templates/includes/login/login.js +223"
+msgstr "Oops! Something went wrong"
+
+msgctxt "Se requiere tanto usuario como contraseña"
+msgid "apps/frappe/frappe/templates/includes/login/login.js +24"
+msgstr "Both login and password required"
+
+msgctxt "Nombre y Correo Electrónico válido requerido"
+msgid "apps/frappe/frappe/templates/includes/login/login.js +39"
+msgstr "Valid email and name required"
+
+msgctxt "exactos."
+msgid "apps/frappe/frappe/utils/data.py +551"
+msgstr "only."
+
+msgctxt "Raíz {0} no se puede eliminar"
+msgid "apps/frappe/frappe/utils/nestedset.py +196"
+msgstr "Root {0} cannot be deleted"
+
+msgctxt "No se puede eliminar {0} , ya que tiene nodos secundarios"
+msgid "apps/frappe/frappe/utils/nestedset.py +217"
+msgstr "Cannot delete {0} as it has child nodes"
+
+msgctxt "Nodos raíz múltiples no permitidos."
+msgid "apps/frappe/frappe/utils/nestedset.py +241"
+msgstr "Multiple root nodes not allowed."
+
+msgctxt "{0} {1} no puede ser un nodo de hoja , ya que tiene los niños"
+msgid "apps/frappe/frappe/utils/nestedset.py +252"
+msgstr "{0} {1} cannot be a leaf node as it has children"
+
+msgctxt ""
+"Error de conjunto anidado . Por favor, póngase en contacto con el "
+"Administrador."
+msgid "apps/frappe/frappe/utils/nestedset.py +80"
+msgstr "Nested set error. Please contact the Administrator."
+
+msgctxt ""
+"Necesitas estar conectado y tener la función de Administrador del "
+"Sistema, para poder tener acceso a las copias de seguridad ."
+msgid "apps/frappe/frappe/utils/response.py +151"
+msgstr ""
+"You need to be logged in and have System Manager Role to be able to "
+"access backups."
+
+msgctxt ""
+"Este enlace no es válido o caducado. Por favor, asegúrese de que ha "
+"pegado correctamente."
+msgid "apps/frappe/frappe/utils/verified_command.py +45"
+msgstr ""
+"This link is invalid or expired. Please make sure you have pasted "
+"correctly."
+
+msgctxt "Publicaciones por {0}"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106"
+msgstr "Posts by {0}"
+
+msgctxt "Tienes que estar registrado para acceder a este {0}."
+msgid "apps/frappe/frappe/website/doctype/web_form/web_form.py +130"
+msgstr "You need to be logged in to access this {0}."
+
+msgctxt ""
+"Se requiere estar en modo desarrollador para editar un formulario web "
+"estándar."
+msgid "apps/frappe/frappe/website/doctype/web_form/web_form.py +37"
+msgstr "You need to be in developer mode to edit a Standard Web Form"
+
+msgctxt "{0} no existe en la linea {1}"
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.py "
+"+34"
+msgstr "{0} does not exist in row {1}"
+
+msgctxt "{0} en la linea {1} no puede tener URL y elementos secundarios"
+msgid ""
+"apps/frappe/frappe/website/doctype/website_settings/website_settings.py "
+"+38"
+msgstr "{0} in row {1} cannot have both URL and child items"
+
+msgctxt "No se le permite eliminar un tema Sitio web estándar"
+msgid "apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30"
+msgstr "You are not allowed to delete a standard Website Theme"
+
+msgctxt ""
+"Top Bar en color y texto en color son los mismos. Deben tienen buen "
+"contraste para ser legible."
+msgid "apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40"
+msgstr ""
+"Top Bar Color and Text Color are the same. They should be have good "
+"contrast to be readable."
+
+msgctxt "Listado: {0}"
+msgid "apps/frappe/frappe/www/list.html +4"
+msgstr "{0} List"
+

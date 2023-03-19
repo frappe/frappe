@@ -1,0 +1,1947 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: frappe translation 0.1\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgctxt "Menadžer za web sajt"
+msgid "DocType: About Us Settings"
+msgstr "Website Manager"
+
+msgctxt "Podešavanja o nama"
+msgid "DocType: About Us Settings"
+msgstr "About Us Settings"
+
+msgctxt "Web sajt"
+msgid "DocType: About Us Settings"
+msgstr "Website"
+
+msgctxt "Link za sliku"
+msgid "DocType: About Us Team Member"
+msgstr "Image Link"
+
+msgctxt "Datum"
+msgid "DocType: Activity Log"
+msgstr "Date"
+
+msgctxt "Naslov"
+msgid "DocType: Activity Log"
+msgstr "Subject"
+
+msgctxt "Poruka"
+msgid "DocType: Activity Log"
+msgstr "Message"
+
+msgctxt "Prijava"
+msgid "DocType: Activity Log"
+msgstr "Login"
+
+msgctxt "Puno ime"
+msgid "DocType: Activity Log"
+msgstr "Full Name"
+
+msgctxt "Zatvoreno"
+msgid "DocType: Activity Log"
+msgstr "Closed"
+
+msgctxt "Adresa"
+msgid "DocType: Address"
+msgstr "Address"
+
+msgctxt "Adresa 1"
+msgid "DocType: Address"
+msgstr "Address Line 1"
+
+msgctxt "Adresa 2"
+msgid "DocType: Address"
+msgstr "Address Line 2"
+
+msgctxt "Kontakti"
+msgid "DocType: Address"
+msgstr "Contacts"
+
+msgctxt "Korisnik održavanja"
+msgid "DocType: Address"
+msgstr "Maintenance User"
+
+msgctxt "Korisnik prodaje"
+msgid "DocType: Address"
+msgstr "Sales User"
+
+msgctxt "Korisnik u nabavci"
+msgid "DocType: Address"
+msgstr "Purchase User"
+
+msgctxt "Linkovi"
+msgid "DocType: Address"
+msgstr "Links"
+
+msgctxt "Neaktivni"
+msgid "DocType: Address"
+msgstr "Disabled"
+
+msgctxt "Poštanski broj"
+msgid "DocType: Address"
+msgstr "Postal Code"
+
+msgctxt "Računi korisnik"
+msgid "DocType: Address"
+msgstr "Accounts User"
+
+msgctxt "Skladište"
+msgid "DocType: Address"
+msgstr "Warehouse"
+
+msgctxt "Vezni dokumenti"
+msgid "DocType: Address"
+msgstr "Reference"
+
+msgctxt "Filteri na izvještaju"
+msgid "DocType: Auto Email Report"
+msgstr "Report Filters"
+
+msgctxt "Datum početka"
+msgid "DocType: Auto Repeat"
+msgstr "Start Date"
+
+msgctxt "Datum završetka"
+msgid "DocType: Auto Repeat"
+msgstr "End Date"
+
+msgctxt "Izmijenjena iz"
+msgid "DocType: Auto Repeat"
+msgstr "Amended From"
+
+msgctxt "Na čekanju"
+msgid "DocType: Auto Repeat"
+msgstr "Draft"
+
+msgctxt "Nedeljni"
+msgid "DocType: Auto Repeat"
+msgstr "Weekly"
+
+msgctxt "Vrsta dokumenta"
+msgid "DocType: Auto Repeat"
+msgstr "Series"
+
+msgctxt "Blogger"
+msgid "DocType: Blog Category"
+msgstr "Blogger"
+
+msgctxt "Polje naslova"
+msgid "DocType: Calendar View"
+msgstr "Subject Field"
+
+msgctxt "Menadžer sistema"
+msgid "DocType: Chat Message"
+msgstr "System Manager"
+
+msgctxt "Poruke"
+msgid "DocType: Chat Message"
+msgstr "Chat"
+
+msgctxt "Tip"
+msgid "DocType: Chat Message"
+msgstr "Type"
+
+msgctxt "Prilog"
+msgid "DocType: Chat Message Attachment"
+msgstr "Attachment"
+
+msgctxt "Na mreži"
+msgid "DocType: Chat Profile"
+msgstr "Online"
+
+msgctxt "Status"
+msgid "DocType: Chat Profile"
+msgstr "Status"
+
+msgctxt "Van mreže (offline)"
+msgid "DocType: Chat Profile"
+msgstr "Offline"
+
+msgctxt "Korisnici"
+msgid "DocType: Chat Room"
+msgstr "Users"
+
+msgctxt "Država"
+msgid "DocType: Chat Token"
+msgstr "Country"
+
+msgctxt "Dodijeljeno"
+msgid "DocType: Communication"
+msgstr "Assigned"
+
+msgctxt "Email"
+msgid "DocType: Communication"
+msgstr "Email"
+
+msgctxt "Email nalog"
+msgid "DocType: Communication"
+msgstr "Email Account"
+
+msgctxt "Greška"
+msgid "DocType: Communication"
+msgstr "Error"
+
+msgctxt "Korisnički tagovi"
+msgid "DocType: Communication"
+msgstr "User Tags"
+
+msgctxt "Nije podijeljen"
+msgid "DocType: Communication"
+msgstr "Unshared"
+
+msgctxt "Obrisan"
+msgid "DocType: Communication"
+msgstr "Deleted"
+
+msgctxt "Od"
+msgid "DocType: Communication"
+msgstr "From"
+
+msgctxt "Otkazan"
+msgid "DocType: Communication"
+msgstr "Cancelled"
+
+msgctxt "Otvoreno"
+msgid "DocType: Communication"
+msgstr "Opened"
+
+msgctxt "Potvrđen"
+msgid "DocType: Communication"
+msgstr "Submitted"
+
+msgctxt "Prilog uklonjen"
+msgid "DocType: Communication"
+msgstr "Attachment Removed"
+
+msgctxt "Primljeno"
+msgid "DocType: Communication"
+msgstr "Received"
+
+msgctxt "Status isporuke"
+msgid "DocType: Communication"
+msgstr "Delivery Status"
+
+msgctxt "Direktor nabavke"
+msgid "DocType: Contact"
+msgstr "Purchase Master Manager"
+
+msgctxt "Direktor prodaje"
+msgid "DocType: Contact"
+msgstr "Sales Master Manager"
+
+msgctxt "Ime"
+msgid "DocType: Contact"
+msgstr "First Name"
+
+msgctxt "Je primarni kontakt"
+msgid "DocType: Contact"
+msgstr "Is Primary Contact"
+
+msgctxt "Kontakt"
+msgid "DocType: Contact"
+msgstr "Contact"
+
+msgctxt "Menadžer nabavke"
+msgid "DocType: Contact"
+msgstr "Purchase Manager"
+
+msgctxt "Menadžer održavanja"
+msgid "DocType: Contact"
+msgstr "Maintenance Manager"
+
+msgctxt "Menadžer prodaje"
+msgid "DocType: Contact"
+msgstr "Sales Manager"
+
+msgctxt "Menadžer računa"
+msgid "DocType: Contact"
+msgstr "Accounts Manager"
+
+msgctxt "Mobilni br."
+msgid "DocType: Contact"
+msgstr "Mobile No"
+
+msgctxt "Otvoren"
+msgid "DocType: Contact"
+msgstr "Open"
+
+msgctxt "Pol"
+msgid "DocType: Contact"
+msgstr "Gender"
+
+msgctxt "Prezime"
+msgid "DocType: Contact"
+msgstr "Last Name"
+
+msgctxt "Slika"
+msgid "DocType: Contact"
+msgstr "Image"
+
+msgctxt "Svi"
+msgid "DocType: Contact"
+msgstr "All"
+
+msgctxt "Titula"
+msgid "DocType: Contact"
+msgstr "Salutation"
+
+msgctxt "Više informacija"
+msgid "DocType: Contact"
+msgstr "More Information"
+
+msgctxt "Email adresa"
+msgid "DocType: Contact Us Settings"
+msgstr "Email ID"
+
+msgctxt "Ime države"
+msgid "DocType: Country"
+msgstr "Country Name"
+
+msgctxt "Izmijeni"
+msgid "DocType: Custom DocPerm"
+msgstr "Amend"
+
+msgctxt "Izvezi"
+msgid "DocType: Custom DocPerm"
+msgstr "Export"
+
+msgctxt "Izvještaj"
+msgid "DocType: Custom DocPerm"
+msgstr "Report"
+
+msgctxt "Obriši"
+msgid "DocType: Custom DocPerm"
+msgstr "Delete"
+
+msgctxt "Otkaži"
+msgid "DocType: Custom DocPerm"
+msgstr "Cancel"
+
+msgctxt "Postavite korisnička prava"
+msgid "DocType: Custom DocPerm"
+msgstr "Set User Permissions"
+
+msgctxt "Potvrdi"
+msgid "DocType: Custom DocPerm"
+msgstr "Submit"
+
+msgctxt "Uloga"
+msgid "DocType: Custom DocPerm"
+msgstr "Role"
+
+msgctxt "Uvoz"
+msgid "DocType: Custom DocPerm"
+msgstr "Import"
+
+msgctxt "Prilagođjena rola"
+msgid "DocType: Custom Role"
+msgstr "Custom Role"
+
+msgctxt "Polje sa slikom"
+msgid "DocType: Customize Form"
+msgstr "Image Field"
+
+msgctxt "Log uvoza"
+msgid "DocType: Data Import"
+msgstr "Import Log"
+
+msgctxt "Status uvoza"
+msgid "DocType: Data Import"
+msgstr "Import Status"
+
+msgctxt "Uvoz podataka"
+msgid "DocType: Data Import"
+msgstr "Data Import"
+
+msgctxt "Novi naziv"
+msgid "DocType: Deleted Document"
+msgstr "New Name"
+
+msgctxt "Ikone na radnoj površini"
+msgid "DocType: Desktop Icon"
+msgstr "Desktop Icon"
+
+msgctxt "Lista"
+msgid "DocType: Desktop Icon"
+msgstr "List"
+
+msgctxt "_doctype"
+msgid "DocType: Desktop Icon"
+msgstr "_doctype"
+
+msgctxt "_izvještaj"
+msgid "DocType: Desktop Icon"
+msgstr "_report"
+
+msgctxt "Datum vrijeme"
+msgid "DocType: DocField"
+msgstr "Datetime"
+
+msgctxt "Dodajte sliku"
+msgid "DocType: DocField"
+msgstr "Attach Image"
+
+msgctxt "Lozinka"
+msgid "DocType: DocField"
+msgstr "Password"
+
+msgctxt "Opis"
+msgid "DocType: DocField"
+msgstr "Description"
+
+msgctxt "Sakrij izvještaj"
+msgid "DocType: DocField"
+msgstr "Report Hide"
+
+msgctxt "Valuta"
+msgid "DocType: DocField"
+msgstr "Currency"
+
+msgctxt "Dijeljenje dokumenta"
+msgid "DocType: DocShare"
+msgstr "DocShare"
+
+msgctxt "Svi"
+msgid "DocType: DocShare"
+msgstr "Everyone"
+
+msgctxt "Podešavanje"
+msgid "DocType: DocType"
+msgstr "Setup"
+
+msgctxt "Prikaz slike"
+msgid "DocType: DocType"
+msgstr "Image View"
+
+msgctxt "Sortiranje"
+msgid "DocType: DocType"
+msgstr "Sort Order"
+
+msgctxt "Dodaj potpis"
+msgid "DocType: Email Account"
+msgstr "Add Signature"
+
+msgctxt "Email adrese"
+msgid "DocType: Email Account"
+msgstr "Email Addresses"
+
+msgctxt "Prilog limitiran na (MB)"
+msgid "DocType: Email Account"
+msgstr "Attachment Limit (MB)"
+
+msgctxt "Yandex.Mail"
+msgid "DocType: Email Account"
+msgstr "Yandex.Mail"
+
+msgctxt "Email grupa"
+msgid "DocType: Email Group"
+msgstr "Email Group"
+
+msgctxt "Menadžer newsletter-a"
+msgid "DocType: Email Group"
+msgstr "Newsletter Manager"
+
+msgctxt "Prilozi"
+msgid "DocType: Email Queue"
+msgstr "Attachments"
+
+msgctxt "Log grešaka"
+msgid "DocType: Error Log"
+msgstr "Error Log"
+
+msgctxt "Naslov"
+msgid "DocType: Error Log"
+msgstr "Title"
+
+msgctxt "Snimak grešaka (snapshot)"
+msgid "DocType: Error Snapshot"
+msgstr "Error Snapshot"
+
+msgctxt "Aktivan"
+msgid "DocType: Feedback Trigger"
+msgstr "Enabled"
+
+msgctxt "Da li je Folder"
+msgid "DocType: File"
+msgstr "Is Folder"
+
+msgctxt "Da li je folder naslovna"
+msgid "DocType: File"
+msgstr "Is Home Folder"
+
+msgctxt "Da li je prilog folder"
+msgid "DocType: File"
+msgstr "Is Attachments Folder"
+
+msgctxt "Folder"
+msgid "DocType: File"
+msgstr "Folder"
+
+msgctxt "Naziv dokumenta"
+msgid "DocType: File"
+msgstr "File Name"
+
+msgctxt "Priložen u vrstu dokumetu"
+msgid "DocType: File"
+msgstr "Attached To DocType"
+
+msgctxt "Veličina fajla"
+msgid "DocType: File"
+msgstr "File Size"
+
+msgctxt "Preduzeće"
+msgid "DocType: Footer Item"
+msgstr "Company"
+
+msgctxt "Država (USA)"
+msgid "DocType: GCalendar Settings"
+msgstr "State"
+
+msgctxt "Kućna adresa"
+msgid "DocType: Google Maps Settings"
+msgstr "Home Address"
+
+msgctxt "Ima ulogu"
+msgid "DocType: Has Role"
+msgstr "Has Role"
+
+msgctxt "Saradnik zs bazu znanja"
+msgid "DocType: Help Article"
+msgstr "Knowledge Base Contributor"
+
+msgctxt "Urednik baze znanja"
+msgid "DocType: Help Article"
+msgstr "Knowledge Base Editor"
+
+msgctxt "жуто"
+msgid "DocType: Kanban Board Column"
+msgstr "yellow"
+
+msgctxt "Jezik"
+msgid "DocType: Language"
+msgstr "Language"
+
+msgctxt "Naziv filtera"
+msgid "DocType: List Filter"
+msgstr "Filter Name"
+
+msgctxt "Newsletter"
+msgid "DocType: Newsletter"
+msgstr "Newsletter"
+
+msgctxt "Bilješke"
+msgid "DocType: Note"
+msgstr "Note"
+
+msgctxt "Bilješku je vidio"
+msgid "DocType: Note Seen By"
+msgstr "Note Seen By"
+
+msgctxt "Podešavanje štampanja"
+msgid "DocType: Notification"
+msgstr "Print Settings"
+
+msgctxt "Sačuvaj"
+msgid "DocType: Notification"
+msgstr "Save"
+
+msgctxt "Napredna podešavanja"
+msgid "DocType: OAuth Client"
+msgstr " Advanced Settings"
+
+msgctxt "Da"
+msgid "DocType: Page"
+msgstr "Yes"
+
+msgctxt "Ne"
+msgid "DocType: Page"
+msgstr "No"
+
+msgctxt "Role"
+msgid "DocType: Page"
+msgstr "Roles"
+
+msgctxt "Komentari"
+msgid "DocType: Post"
+msgstr "Comments"
+
+msgctxt "Pošalji"
+msgid "DocType: Post"
+msgstr "Post"
+
+msgctxt "Naziv izvještaja"
+msgid "DocType: Prepared Report"
+msgstr "Report Name"
+
+msgctxt "Završeno"
+msgid "DocType: Prepared Report"
+msgstr "Completed"
+
+msgctxt "Štampaj u PDF"
+msgid "DocType: Print Settings"
+msgstr "Send Print as PDF"
+
+msgctxt "Dodaj red ukupno bez PDV-a"
+msgid "DocType: Report"
+msgstr "Add Total Row"
+
+msgctxt "Generator izvještaja"
+msgid "DocType: Report"
+msgstr "Report Builder"
+
+msgctxt "Menadžer za izvještaje"
+msgid "DocType: Report"
+msgstr "Report Manager"
+
+msgctxt "Vrsta izvještaja"
+msgid "DocType: Report"
+msgstr "Report Type"
+
+msgctxt "Zaglavlje"
+msgid "DocType: Report"
+msgstr "Letter Head"
+
+msgctxt "Podešavanje završeno"
+msgid "DocType: System Settings"
+msgstr "Setup Complete"
+
+msgctxt "Sesija ističe"
+msgid "DocType: System Settings"
+msgstr "Session Expiry"
+
+msgctxt "Sesija ističe u satima npr. 06:00"
+msgid "DocType: System Settings"
+msgstr "Session Expiry in Hours e.g. 06:00"
+
+msgctxt "Sistemska podešavanja"
+msgid "DocType: System Settings"
+msgstr "System Settings"
+
+msgctxt "Datum dospijeća"
+msgid "DocType: ToDo"
+msgstr "Due Date"
+
+msgctxt "Dodijelio od strane"
+msgid "DocType: ToDo"
+msgstr "Assigned By"
+
+msgctxt "Dodijeljeno je"
+msgid "DocType: ToDo"
+msgstr "Allocated To"
+
+msgctxt "Nizak"
+msgid "DocType: ToDo"
+msgstr "Low"
+
+msgctxt "Srednji"
+msgid "DocType: ToDo"
+msgstr "Medium"
+
+msgctxt "To Do"
+msgid "DocType: ToDo"
+msgstr "ToDo"
+
+msgctxt "Visok"
+msgid "DocType: ToDo"
+msgstr "High"
+
+msgctxt "Bezbjedonosna podešavanja"
+msgid "DocType: User"
+msgstr "Security Settings"
+
+msgctxt "Podešavanje emaila"
+msgid "DocType: User"
+msgstr "Email Settings"
+
+msgctxt "Poslednja prijava"
+msgid "DocType: User"
+msgstr "Last Login"
+
+msgctxt "Pozadina radne površine"
+msgid "DocType: User"
+msgstr "Desktop Background"
+
+msgctxt "Pozadinska slika"
+msgid "DocType: User"
+msgstr "Background Image"
+
+msgctxt "Prijava nakon"
+msgid "DocType: User"
+msgstr "Login After"
+
+msgctxt "Prijava prije"
+msgid "DocType: User"
+msgstr "Login Before"
+
+msgctxt "Promjena lozinke"
+msgid "DocType: User"
+msgstr "Change Password"
+
+msgctxt "Resetuj ključ lozinke"
+msgid "DocType: User"
+msgstr "Reset Password Key"
+
+msgctxt "Srednje ime (opciono)"
+msgid "DocType: User"
+msgstr "Middle Name (Optional)"
+
+msgctxt "Vremenska zona"
+msgid "DocType: User"
+msgstr "Timezone"
+
+msgctxt "Dozvoli komentare"
+msgid "DocType: Web Form"
+msgstr "Allow Comments"
+
+msgctxt "Plaćanja"
+msgid "DocType: Web Form"
+msgstr "Payments"
+
+msgctxt "Poruka o uspjehu"
+msgid "DocType: Web Form"
+msgstr "Success Message"
+
+msgctxt "Vrijednost"
+msgid "DocType: Web Form"
+msgstr "Amount"
+
+msgctxt "Brend"
+msgid "DocType: Website Settings"
+msgstr "Brand"
+
+msgctxt "Slika brenda"
+msgid "DocType: Website Settings"
+msgstr "Brand Image"
+
+msgctxt "Države"
+msgid "DocType: Workflow"
+msgstr "States"
+
+msgctxt "Je aktivan"
+msgid "DocType: Workflow"
+msgstr "Is Active"
+
+msgctxt "Folder-zatvori"
+msgid "DocType: Workflow State"
+msgstr "folder-close"
+
+msgctxt "Izmijeni"
+msgid "DocType: Workflow State"
+msgstr "Edit"
+
+msgctxt "Kalendar"
+msgid "DocType: Workflow State"
+msgstr "Calendar"
+
+msgctxt "Komentar"
+msgid "DocType: Workflow State"
+msgstr "Comment"
+
+msgctxt "Korisnik"
+msgid "DocType: Workflow State"
+msgstr "User"
+
+msgctxt "Kretanje"
+msgid "DocType: Workflow State"
+msgstr "move"
+
+msgctxt "Naslovna"
+msgid "DocType: Workflow State"
+msgstr "Home"
+
+msgctxt "Osvježi"
+msgid "DocType: Workflow State"
+msgstr "Refresh"
+
+msgctxt "Podijeli"
+msgid "DocType: Workflow State"
+msgstr "share"
+
+msgctxt "Podijeli-alt"
+msgid "DocType: Workflow State"
+msgstr "share-alt"
+
+msgctxt "Preuzmi"
+msgid "DocType: Workflow State"
+msgstr "Download"
+
+msgctxt "Priloži"
+msgid "DocType: Workflow State"
+msgstr "Upload"
+
+msgctxt "Primarni"
+msgid "DocType: Workflow State"
+msgstr "Primary"
+
+msgctxt "Slika"
+msgid "DocType: Workflow State"
+msgstr "picture"
+
+msgctxt "Tagovi"
+msgid "DocType: Workflow State"
+msgstr "Tags"
+
+msgctxt "Ukloni"
+msgid "DocType: Workflow State"
+msgstr "remove"
+
+msgctxt "barkod"
+msgid "DocType: Workflow State"
+msgstr "barcode"
+
+msgctxt "folder-otvori"
+msgid "DocType: Workflow State"
+msgstr "folder-open"
+
+msgctxt "Štampaj"
+msgid "DocType: Workflow State"
+msgstr "Print"
+
+msgctxt "Немате дозволу да завршите ову акцију."
+msgid "apps/frappe/frappe/app.py +158"
+msgstr "You do not have enough permissions to complete the action"
+
+msgctxt "Skripte ili query izvještaji"
+msgid "apps/frappe/frappe/config/core.py +27"
+msgstr "Script or Query reports"
+
+msgctxt "Fajlovi"
+msgid "apps/frappe/frappe/config/desk.py +19"
+msgstr "Files"
+
+msgctxt "Događaji i ostali kalendari."
+msgid "apps/frappe/frappe/config/desk.py +26"
+msgstr "Event and other calendars."
+
+msgctxt "Poruke i ostala obavještenja."
+msgid "apps/frappe/frappe/config/desk.py +32"
+msgstr "Chat messages and other notifications."
+
+msgctxt "Alati"
+msgid "apps/frappe/frappe/config/desktop.py +8"
+msgstr "Tools"
+
+msgctxt "Obrisana dokumenta"
+msgid "apps/frappe/frappe/config/setup.py +146"
+msgstr "Deleted Documents"
+
+msgctxt "Vrati ili trajno obriši dokument."
+msgid "apps/frappe/frappe/config/setup.py +147"
+msgstr "Restore or permanently delete a document."
+
+msgctxt "Adrese"
+msgid "apps/frappe/frappe/contacts/doctype/address/address.py +137"
+msgstr "Addresses"
+
+msgctxt "Zatvori"
+msgid "apps/frappe/frappe/core/doctype/communication/communication.js +42"
+msgstr "Close"
+
+msgctxt "Dodaj kontakt"
+msgid "apps/frappe/frappe/core/doctype/communication/communication.js +77"
+msgstr "Add Contact"
+
+msgctxt "Priloži dokument"
+msgid "apps/frappe/frappe/core/doctype/data_import/data_import.js +43"
+msgstr "Attach File"
+
+msgctxt "Pomoć"
+msgid "apps/frappe/frappe/core/doctype/data_import/data_import.js +67"
+msgstr "Help"
+
+msgctxt "Šablon za uvoz podataka"
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +53"
+msgstr "Data Import Template"
+
+msgctxt "Bilješke :"
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +62"
+msgstr "Notes:"
+
+msgctxt "Можете поднети највише 5000 записа одједном. (некада може бити и мање)"
+msgid "apps/frappe/frappe/core/doctype/data_import/exporter.py +69"
+msgstr ""
+"You can only upload upto 5000 records in one go. (may be less in some "
+"cases)"
+
+msgctxt "Očisti Log grešaka"
+msgid "apps/frappe/frappe/core/doctype/error_log/error_log_list.js +12"
+msgstr "Clear Error Logs"
+
+msgctxt "Isti fajl je već dodijeljen nekom zapisu"
+msgid "apps/frappe/frappe/core/doctype/file/file.py +195"
+msgstr "Same file has already been attached to the record"
+
+msgctxt "Ne možete brisati foldere Naslovna i prilozi"
+msgid "apps/frappe/frappe/core/doctype/file/file.py +216"
+msgstr "Cannot delete Home and Attachments folders"
+
+msgctxt "Folder {0} nije prazan"
+msgid "apps/frappe/frappe/core/doctype/file/file.py +268"
+msgstr "Folder {0} is not empty"
+
+msgctxt "Folder {0} ne postoji"
+msgid "apps/frappe/frappe/core/doctype/file/file.py +586"
+msgstr "Folder {0} does not exist"
+
+msgctxt "Naslovna / Test Folder1"
+msgid "apps/frappe/frappe/core/doctype/file/test_file.py +202"
+msgstr "Home/Test Folder 1"
+
+msgctxt "Nalovna/ Test Folder2"
+msgid "apps/frappe/frappe/core/doctype/file/test_file.py +217"
+msgstr "Home/Test Folder 2"
+
+msgctxt "Naslovna / Test Folder1 / Test Folder3"
+msgid "apps/frappe/frappe/core/doctype/file/test_file.py +241"
+msgstr "Home/Test Folder 1/Test Folder 3"
+
+msgctxt "Test_folder"
+msgid "apps/frappe/frappe/core/doctype/file/test_file.py +249"
+msgstr "Test_Folder"
+
+msgctxt "Korisnik '{0}' već sarži rolu  '{1}'"
+msgid "apps/frappe/frappe/core/doctype/has_role/has_role.py +12"
+msgstr "User '{0}' already has the role '{1}'"
+
+msgctxt "Kreiraj korisnički Email"
+msgid "apps/frappe/frappe/core/doctype/user/user.js +136"
+msgstr "Create User Email"
+
+msgctxt "Podesi ikonice na radnoj površini"
+msgid "apps/frappe/frappe/core/doctype/user/user.js +74"
+msgstr "Set Desktop Icons"
+
+msgctxt "Resetuju lozinku"
+msgid "apps/frappe/frappe/core/doctype/user/user.js +94"
+msgstr "Reset Password"
+
+msgctxt "Pogrešna lozinka:"
+msgid "apps/frappe/frappe/core/doctype/user/user.py +935"
+msgstr "Invalid Password: "
+
+msgctxt "Aktivan"
+msgid "apps/frappe/frappe/core/doctype/user/user_list.js +12"
+msgstr "Active"
+
+msgctxt "Prikaži sve verzije"
+msgid "apps/frappe/frappe/core/doctype/version/version.js +5"
+msgstr "Show all Versions"
+
+msgctxt "Nova vrijednost"
+msgid "apps/frappe/frappe/core/doctype/version/version_view.html +14"
+msgstr "New Value"
+
+msgctxt "Uspješno"
+msgid "apps/frappe/frappe/core/doctype/version/version_view.html +47"
+msgstr "Success"
+
+msgctxt "Istraži"
+msgid "apps/frappe/frappe/core/page/desktop/desktop.js +38"
+msgstr "Explore"
+
+msgctxt "Dodaj zaposlenog u \"Manage them\""
+msgid "apps/frappe/frappe/core/page/desktop/desktop.py +14"
+msgstr "Add Employees to Manage Them"
+
+msgctxt ""
+"Dodaj Vaše zaposlene, tako da možete da upravljate odsustvom, troškovima "
+"i platnim spiskovima"
+msgid "apps/frappe/frappe/core/page/desktop/desktop.py +15"
+msgstr "Add your Employees so you can manage leaves, expenses and payroll"
+
+msgctxt "Učitavanje"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +145"
+msgstr "Loading"
+
+msgctxt "Korisnici sa rolom {0} :"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +291"
+msgstr "Users with role {0}:"
+
+msgctxt "Nije dodato"
+msgid "apps/frappe/frappe/core/page/permission_manager/permission_manager.js +401"
+msgstr "Did not add"
+
+msgctxt ""
+"Можете да измените потврђене документе тако што ћете их поништити а затим"
+" изменити."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +17"
+msgstr ""
+"You can change Submitted documents by cancelling them and then, amending "
+"them."
+
+msgctxt "Можете користити Прилагоди Формулар да подесите нивое на пољима."
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +27"
+msgstr "You can use Customize Form to set levels on fields."
+
+msgctxt "Prava pristupa korisnika"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +30"
+msgstr "User Permissions"
+
+msgctxt "Dodaj novu rolu"
+msgid ""
+"apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html"
+" +9"
+msgstr "Add a New Role"
+
+msgctxt "Od datuma"
+msgid "apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33"
+msgstr "From Date"
+
+msgctxt "Do datuma"
+msgid "apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +40"
+msgstr "To Date"
+
+msgctxt "npr:"
+msgid "apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63"
+msgstr "e.g.:"
+
+msgctxt "Не можете искључити \"Само за читање\" за поље {0}"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +208"
+msgstr "You cannot unset 'Read Only' for field {0}"
+
+msgctxt "Не можете поставити 'Може се превести' за поље {0}"
+msgid "apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +216"
+msgstr "You can't set 'Translatable' for field {0}"
+
+msgctxt "Novi {0}: # {1}"
+msgid "apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +285"
+msgstr "New {0}: #{1}"
+
+msgctxt "; није дозвољенa у услову"
+msgid "apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +23"
+msgstr "; not allowed in condition"
+
+msgctxt "Ikona na radnoj površini već postoji"
+msgid "apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +166"
+msgstr "Desktop Icon already exists"
+
+msgctxt "Događaji u kalendaru na današnji dan."
+msgid "apps/frappe/frappe/desk/doctype/event/event.py +121"
+msgstr "Events In Today's Calendar"
+
+msgctxt "Bilješke"
+msgid "apps/frappe/frappe/desk/doctype/note/note_list.js +3"
+msgstr "Notes"
+
+msgctxt "Dodijelio drugima"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo_list.js +22"
+msgstr "Assigned By Me"
+
+msgctxt "To Do"
+msgid "apps/frappe/frappe/desk/doctype/todo/todo_list.js +9"
+msgstr "To Do"
+
+msgctxt "Nije se sačuvalo"
+msgid "apps/frappe/frappe/desk/form/save.py +34"
+msgstr "Did not save"
+
+msgctxt "Не можете лајковати нешто што сте Ви направили."
+msgid "apps/frappe/frappe/desk/like.py +38"
+msgstr "You cannot like something that you created"
+
+msgctxt "Standardni izvještaji"
+msgid "apps/frappe/frappe/desk/moduleview.py +94"
+msgstr "Standard Reports"
+
+msgctxt "Prikaži lajkove"
+msgid "apps/frappe/frappe/desk/page/activity/activity.js +58"
+msgstr "Show Likes"
+
+msgctxt "{0} {1} do {2}"
+msgid "apps/frappe/frappe/desk/page/activity/activity_row.html +34"
+msgstr "{0} {1} to {2}"
+
+msgctxt "Priložite svoju fotografiju"
+msgid "apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +419"
+msgstr "Attach Your Picture"
+
+msgctxt "Немате дозволу да приступите Извештају: {0}"
+msgid "apps/frappe/frappe/desk/query_report.py +23"
+msgstr "You don't have access to Report: {0}"
+
+msgctxt "Немате дозволу да добијете извештај о: {0}"
+msgid "apps/frappe/frappe/desk/query_report.py +26"
+msgstr "You don't have permission to get a report on: {0}"
+
+msgctxt "Izvještaj {0} јe onemogućen"
+msgid "apps/frappe/frappe/desk/query_report.py +30"
+msgstr "Report {0} is disabled"
+
+msgctxt "Ukupno"
+msgid "apps/frappe/frappe/desk/query_report.py +331"
+msgstr "Total"
+
+msgctxt "ID"
+msgid "apps/frappe/frappe/desk/report/todo/todo.py +19"
+msgstr "ID"
+
+msgctxt "Dodijeljeno / Vlasnik"
+msgid "apps/frappe/frappe/desk/report/todo/todo.py +20"
+msgstr "Assigned To/Owner"
+
+msgctxt "{0} je sačuvan"
+msgid "apps/frappe/frappe/desk/reportview.py +110"
+msgstr "{0} is saved"
+
+msgctxt "Nema tag-ova"
+msgid "apps/frappe/frappe/desk/reportview.py +269"
+msgstr "No Tags"
+
+msgctxt ""
+"Постављате Начин усклађивања на СВЕ, што ће поново усклатиди све "
+"прочитане и непрочитане поруке са сервера. Ово може изазвати дупликате "
+"комуникација (мејлова)."
+msgid "apps/frappe/frappe/email/doctype/email_account/email_account.js +183"
+msgstr ""
+"You are selecting Sync Option as ALL, It will resync all \\\n"
+"\t\t\t\tread as well as unread message from server. This may also cause "
+"the duplication\\\n"
+"\t\t\t\tof Communication (emails)."
+
+msgctxt "Novi newsletter"
+msgid "apps/frappe/frappe/email/doctype/email_group/email_group.js +45"
+msgstr "New Newsletter"
+
+msgctxt "Pogledaj"
+msgid "apps/frappe/frappe/email/doctype/email_group/email_group.js +9"
+msgstr "View"
+
+msgctxt "Немате дозволу да видите овај билтен."
+msgid "apps/frappe/frappe/email/doctype/newsletter/newsletter.py +115"
+msgstr "You are not permitted to view the newsletter."
+
+msgctxt "Potvrdi tvoj E mail"
+msgid "apps/frappe/frappe/email/doctype/newsletter/newsletter.py +179"
+msgstr "Confirm Your Email"
+
+msgctxt "Kreirano"
+msgid "apps/frappe/frappe/email/doctype/notification/notification.js +33"
+msgstr "Created On"
+
+msgctxt "Успешно сте се одјавили"
+msgid "apps/frappe/frappe/handler.py +94"
+msgstr "You have been successfully logged out"
+
+msgctxt "Dropbox podešavanje"
+msgid ""
+"apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py"
+" +335"
+msgstr "Dropbox Setup"
+
+msgctxt "Dodatо {0}"
+msgid ""
+"apps/frappe/frappe/integrations/doctype/gsuite_templates/gsuite_templates.py"
+" +38"
+msgstr "Added {0}"
+
+msgctxt "Vrsta dokumenta je obavezna"
+msgid "apps/frappe/frappe/model/naming.py +85"
+msgstr "Naming Series mandatory"
+
+msgctxt "Preimenuj iz {0} u {1}"
+msgid "apps/frappe/frappe/model/rename_doc.py +79"
+msgstr "renamed from {0} to {1}"
+
+msgctxt "Dodjeljivanje"
+msgid "apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +131"
+msgstr "Assignment"
+
+msgctxt "Можете да додате динамичке вредности из документа помоћу Jinja шаблона."
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +697"
+msgstr ""
+"You can add dynamic properties from the document by using Jinja "
+"templating."
+
+msgctxt "Sačuvano"
+msgid ""
+"apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js"
+" +790"
+msgstr "Saved"
+
+msgctxt "Још увек немате порука."
+msgid "apps/frappe/frappe/public/js/frappe/chat.js +1703"
+msgstr "You don't have any messages yet."
+
+msgctxt "Sesija je istekla"
+msgid "apps/frappe/frappe/public/js/frappe/desk.js +402"
+msgstr "Session Expired"
+
+msgctxt "Za nastavak unesite lozinku"
+msgid "apps/frappe/frappe/public/js/frappe/desk.js +406"
+msgstr "Please Enter Your Password to Continue"
+
+msgctxt "Potvrdi"
+msgid "apps/frappe/frappe/public/js/frappe/dom.js +295"
+msgstr "Confirm"
+
+msgctxt "Odaberite neku od već dodatih"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58"
+msgstr "Select from existing attachments"
+
+msgctxt "Obriši dodatu sliku"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60"
+msgstr "Clear Attachment"
+
+msgctxt "Dodaj komentar"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/comment.js +11"
+msgstr "Add a comment"
+
+msgctxt "Ctrl + enter da dodate komentar"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/comment.js +19"
+msgstr "Ctrl+Enter to add comment"
+
+msgctxt "Kreirajte {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/link.js +172"
+msgstr "Create a new {0}"
+
+msgctxt "Napredna pretraga"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/link.js +185"
+msgstr "Advanced Search"
+
+msgctxt "Dodaj u To Do"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +134"
+msgstr "Add to To Do"
+
+msgctxt "Dodijeli"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +137"
+msgstr "Assign To"
+
+msgctxt "Dodijeljeno meni"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +138"
+msgstr "Assign to me"
+
+msgctxt "Kreirano"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +178"
+msgstr "Created"
+
+msgctxt "{0} od {1} za {2}"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +530"
+msgstr "{0} from {1} to {2}"
+
+msgctxt "{0} od {1} do {2} na poziciji # {3}"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +559"
+msgstr "{0} from {1} to {2} in row #{3}"
+
+msgctxt "Dodato"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +579"
+msgstr "Added"
+
+msgctxt "Obriši komentar?"
+msgid "apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +663"
+msgstr "Delete comment?"
+
+msgctxt "{1} {0} je izmijenio/la ovo"
+msgid "apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +59"
+msgstr "{0} edited this {1}"
+
+msgctxt "{1} {0} je kreirao/la ovo."
+msgid "apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +62"
+msgstr "{0} created this {1}"
+
+msgctxt "{0} trenutno gleda ovaj dokumenat"
+msgid "apps/frappe/frappe/public/js/frappe/form/form_viewers.js +35"
+msgstr "{0} is currently viewing this document"
+
+msgctxt "{0} do {1}"
+msgid "apps/frappe/frappe/public/js/frappe/form/formatters.js +135"
+msgstr "{0} to {1}"
+
+msgctxt "Dodaj više"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid.js +69"
+msgstr "Add Multiple"
+
+msgctxt "Dodaj red"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid.js +72"
+msgstr "Add Row"
+
+msgctxt "Izmjena u redu"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +43"
+msgstr "Editing Row"
+
+msgctxt "Ubacite iznad"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +49"
+msgstr "Insert Above"
+
+msgctxt "Ubacite ispod"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +52"
+msgstr "Insert Below"
+
+msgctxt "Dupliraj"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +55"
+msgstr "Duplicate"
+
+msgctxt "Ctrl + down"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +67"
+msgstr "Ctrl + Down"
+
+msgctxt "Ctrl + up"
+msgid "apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +67"
+msgstr "Ctrl + Up"
+
+msgctxt "Nadzorna ploča"
+msgid "apps/frappe/frappe/public/js/frappe/form/layout.js +108"
+msgstr "Dashboard"
+
+msgctxt "Sakrij detalje"
+msgid "apps/frappe/frappe/public/js/frappe/form/layout.js +170"
+msgstr "Hide Details"
+
+msgctxt "Napravite novi {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +106"
+msgstr "Make a new {0}"
+
+msgctxt "Dodato {0} ({1})"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +125"
+msgstr "Added {0} ({1})"
+
+msgctxt "Set"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +142"
+msgstr "Set"
+
+msgctxt "Dodao je {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +151"
+msgstr "{0} added"
+
+msgctxt "Можете да користите џокер %"
+msgid "apps/frappe/frappe/public/js/frappe/form/link_selector.js +26"
+msgstr "You can use wildcard &#37;"
+
+msgctxt "Pretraga"
+msgid "apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +26"
+msgstr "Search term"
+
+msgctxt "Opseg datuma"
+msgid "apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +53"
+msgstr "Date Range"
+
+msgctxt "Napravite novi"
+msgid "apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +58"
+msgstr "Make a new"
+
+msgctxt "Dodaj stavke"
+msgid "apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +67"
+msgstr "Get Items"
+
+msgctxt "Sa zaglavljem"
+msgid "apps/frappe/frappe/public/js/frappe/form/print.js +284"
+msgstr "With Letter head"
+
+msgctxt "Izmijeni u punoj strani"
+msgid "apps/frappe/frappe/public/js/frappe/form/quick_entry.js +216"
+msgstr "Edit in full page"
+
+msgctxt "Čuvanje"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +11"
+msgstr "Saving"
+
+msgctxt "Potvrđivanje"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +12"
+msgstr "Submitting"
+
+msgctxt "Obavezna polja koja se moraju unijeti u tabeli {0}, Red {1}"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +147"
+msgstr "Mandatory fields required in table {0}, Row {1}"
+
+msgctxt "Obavezna polja koja se moraju unijeti u dijelu {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +150"
+msgstr "Mandatory fields required in {0}"
+
+msgctxt "Polja koja nisu unešena"
+msgid "apps/frappe/frappe/public/js/frappe/form/save.js +157"
+msgstr "Missing Fields"
+
+msgctxt "Podijeli sa"
+msgid "apps/frappe/frappe/public/js/frappe/form/share.js +115"
+msgstr "Share With"
+
+msgctxt "Podijeljeno sa svima"
+msgid "apps/frappe/frappe/public/js/frappe/form/share.js +27"
+msgstr "Shared with everyone"
+
+msgctxt "Podijeljeno sa {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/share.js +36"
+msgstr "Shared with {0}"
+
+msgctxt "Podijeli {0} sa"
+msgid "apps/frappe/frappe/public/js/frappe/form/share.js +57"
+msgstr "Share {0} with"
+
+msgctxt "Otvoren {0}"
+msgid "apps/frappe/frappe/public/js/frappe/form/templates/form_links.html +13"
+msgstr "Open {0}"
+
+msgctxt "Dodijeli"
+msgid "apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +44"
+msgstr "Assign"
+
+msgctxt "Podijeljeno sa"
+msgid "apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63"
+msgstr "Shared With"
+
+msgctxt "Podijelite ovaj dokument sa"
+msgid "apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +39"
+msgstr "Share this document with"
+
+msgctxt "Može dijeliti"
+msgid "apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +7"
+msgstr "Can Share"
+
+msgctxt "Učitaj ponovo"
+msgid "apps/frappe/frappe/public/js/frappe/form/toolbar.js +153"
+msgstr "Reload"
+
+msgctxt "Prilagodite"
+msgid "apps/frappe/frappe/public/js/frappe/form/toolbar.js +171"
+msgstr "Customize"
+
+msgctxt "Novi {0} (Ctrl-B)"
+msgid "apps/frappe/frappe/public/js/frappe/form/toolbar.js +197"
+msgstr "New {0} (Ctrl+B)"
+
+msgctxt "Ime filtera već postoji"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_filter.js +102"
+msgstr "Duplicate Filter Name"
+
+msgctxt "Sačuvaj filter"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_filter.js +22"
+msgstr "Save Filter"
+
+msgctxt "{0} nije nadjen"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_renderer.js +629"
+msgstr "No {0} found"
+
+msgctxt "Izvještaji"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +10"
+msgstr "Reports"
+
+msgctxt "Stablo"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +26"
+msgstr "Tree"
+
+msgctxt "Kanban"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32"
+msgstr "Kanban"
+
+msgctxt "Dodijeljeno meni"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49"
+msgstr "Assigned To Me"
+
+msgctxt "Prikaži tagove"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +21"
+msgstr "Show Tags"
+
+msgctxt "Trajno obriši stavke{0} ?"
+msgid "apps/frappe/frappe/public/js/frappe/list/list_view.js +1066"
+msgstr "Delete {0} items permanently?"
+
+msgctxt "Juče"
+msgid "apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51"
+msgstr "Yesterday"
+
+msgctxt "prije {0} dana"
+msgid "apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52"
+msgstr "{0} days ago"
+
+msgctxt "Prije {0} mjeseci"
+msgid "apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54"
+msgstr "{0} months ago"
+
+msgctxt "Nije sačuvano"
+msgid "apps/frappe/frappe/public/js/frappe/model/indicator.js +19"
+msgstr "Not Saved"
+
+msgctxt "Poslednji put izmijenjeno"
+msgid "apps/frappe/frappe/public/js/frappe/model/meta.js +182"
+msgstr "Last Modified On"
+
+msgctxt "Kreirao"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +18"
+msgstr "Created By"
+
+msgctxt "Dodijeljeno prema"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +26"
+msgstr "Assigned To"
+
+msgctxt "Status dokumenta"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +27"
+msgstr "Document Status"
+
+msgctxt "Trajno obriši dokument {0} ?"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +518"
+msgstr "Permanently delete {0}?"
+
+msgctxt "Preimenuj {0}"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +538"
+msgstr "Rename {0}"
+
+msgctxt "Spoji sa postojećim"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +541"
+msgstr "Merge with existing"
+
+msgctxt "Reimenuj"
+msgid "apps/frappe/frappe/public/js/frappe/model/model.js +544"
+msgstr "Rename"
+
+msgctxt ""
+"Немате дозволу да приступите овоме. Молимо јавите се свом менаџеру да "
+"добијете приступ."
+msgid "apps/frappe/frappe/public/js/frappe/request.js +137"
+msgstr ""
+"You do not have enough permissions to access this resource. Please "
+"contact your manager to get access."
+
+msgctxt "Нисте повезани са Интернетом. Покушајте касније."
+msgid "apps/frappe/frappe/public/js/frappe/request.js +31"
+msgstr "You are not connected to Internet. Retry after sometime."
+
+msgctxt "Prava pristupa rolama"
+msgid "apps/frappe/frappe/public/js/frappe/roles_editor.js +194"
+msgstr "Role Permissions"
+
+msgctxt "Dodaj sve role"
+msgid "apps/frappe/frappe/public/js/frappe/roles_editor.js +30"
+msgstr "Add all roles"
+
+msgctxt "Obriši sve role"
+msgid "apps/frappe/frappe/public/js/frappe/roles_editor.js +40"
+msgstr "Clear all roles"
+
+msgctxt "Dodavanje priloga neuspješno"
+msgid "apps/frappe/frappe/public/js/frappe/socketio_client.js +267"
+msgstr "Upload Failed"
+
+msgctxt "Dodavanje fajla"
+msgid "apps/frappe/frappe/public/js/frappe/socketio_client.js +357"
+msgstr "File Upload"
+
+msgctxt "Primijeni"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +28"
+msgstr "Apply"
+
+msgctxt "Jednak"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +10"
+msgstr "Equals"
+
+msgctxt "Nije jednak"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +11"
+msgstr "Not equals"
+
+msgctxt "Nije u"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15"
+msgstr "Not In"
+
+msgctxt "Između"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +20"
+msgstr "Between"
+
+msgctxt "Dodaj filter"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144"
+msgstr "Add Filter"
+
+msgctxt "Kao"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512"
+msgstr "Like"
+
+msgctxt "Nije kao"
+msgid "apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512"
+msgstr "Not Like"
+
+msgctxt "Unesite lozinku"
+msgid "apps/frappe/frappe/public/js/frappe/ui/messages.js +215"
+msgstr "Enter your password"
+
+msgctxt "Meni"
+msgid "apps/frappe/frappe/public/js/frappe/ui/page.html +23"
+msgstr "Menu"
+
+msgctxt "Dodaj još"
+msgid "apps/frappe/frappe/public/js/frappe/ui/slides.js +29"
+msgstr "Add More"
+
+msgctxt "Najviše korišćeno"
+msgid "apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182"
+msgstr "Most Used"
+
+msgctxt "Pomoć oko pretrage"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127"
+msgstr "Help on Search"
+
+msgctxt "Napravite novi zapis"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132"
+msgstr "Make a new record"
+
+msgctxt "Moja podešavanja"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +28"
+msgstr "My Settings"
+
+msgctxt "Oko čega Vam je potrebna pomoć?"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +51"
+msgstr "What do you need help with?"
+
+msgctxt "Traži"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +52"
+msgstr "Go"
+
+msgctxt "Dokumentacija"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58"
+msgstr "Documentation"
+
+msgctxt "O Nama"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +62"
+msgstr "About"
+
+msgctxt "Pretražite ili otkucajte komandu"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +87"
+msgstr "Search or type a command"
+
+msgctxt "Novi"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +111"
+msgstr "New"
+
+msgctxt "Izvještaj {0}"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +197"
+msgstr "Report {0}"
+
+msgctxt "Email primljene"
+msgid "apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +250"
+msgstr "Email Inbox"
+
+msgctxt "Url adresa"
+msgid "apps/frappe/frappe/public/js/frappe/ui/upload.html +12"
+msgstr "Web Link"
+
+msgctxt "Izaberi"
+msgid "apps/frappe/frappe/public/js/frappe/ui/upload.html +4"
+msgstr "Browse"
+
+msgctxt "Prilaganje datoteke"
+msgid "apps/frappe/frappe/public/js/frappe/upload.js +232"
+msgstr "Uploading"
+
+msgctxt "Priloži datoteku"
+msgid "apps/frappe/frappe/public/js/frappe/upload.js +26"
+msgstr "Upload Attachment"
+
+msgctxt "Novi email"
+msgid "apps/frappe/frappe/public/js/frappe/views/communication.js +15"
+msgstr "New Email"
+
+msgctxt "Немате дозволу да шаљете мејлове у вези са овим документом"
+msgid "apps/frappe/frappe/public/js/frappe/views/communication.js +539"
+msgstr "You are not allowed to send emails related to this document"
+
+msgctxt "Fajlovi"
+msgid "apps/frappe/frappe/public/js/frappe/views/file/file_view.js +38"
+msgstr "File Manager"
+
+msgctxt "Novi folder"
+msgid "apps/frappe/frappe/public/js/frappe/views/file/file_view.js +65"
+msgstr "New Folder"
+
+msgctxt "Unesi naziv foldera"
+msgid "apps/frappe/frappe/public/js/frappe/views/file/file_view.js +79"
+msgstr "Enter folder name"
+
+msgctxt "Uvoz zip arhive"
+msgid "apps/frappe/frappe/public/js/frappe/views/file/file_view.js +90"
+msgstr "Import Zip"
+
+msgctxt "Gantogram"
+msgid "apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +10"
+msgstr "Gantt"
+
+msgctxt "Nedelja"
+msgid "apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +144"
+msgstr "Week"
+
+msgctxt "Slike"
+msgid "apps/frappe/frappe/public/js/frappe/views/image/image_view.js +13"
+msgstr "Images"
+
+msgctxt "{0} email nije nađen"
+msgid "apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +163"
+msgstr "No {0} mail"
+
+msgctxt "Dodaj prilog"
+msgid "apps/frappe/frappe/public/js/frappe/views/interaction.js +156"
+msgstr "Add Attachment"
+
+msgctxt "Učitavanje ..."
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +11"
+msgstr "Loading..."
+
+msgctxt "Dodaj kolonu"
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +4"
+msgstr "Add a column"
+
+msgctxt "Немате дозволу да правите колоне"
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +61"
+msgstr "You are not allowed to create columns"
+
+msgctxt "Dodaj"
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19"
+msgstr "Add"
+
+msgctxt "Nova Kanban prikaz"
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +229"
+msgstr "New Kanban Board"
+
+msgctxt "Projekti"
+msgid "apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +262"
+msgstr "Project"
+
+msgctxt "Niste autorizovani za prikaz ove stranice."
+msgid "apps/frappe/frappe/public/js/frappe/views/pageview.js +112"
+msgstr "Sorry! You are not permitted to view this page."
+
+msgctxt "Učitavanje izvještaja"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +284"
+msgstr "Loading Report"
+
+msgctxt "Napravi"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +562"
+msgstr "Make "
+
+msgctxt "Izvoz izvještaja:"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +840"
+msgstr "Export Report: "
+
+msgctxt "PDF"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +895"
+msgstr "PDF"
+
+msgctxt "Поља на Y-oси"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +405"
+msgstr "Y Axis Fields"
+
+msgctxt "Ukupno"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +856"
+msgstr "Totals"
+
+msgctxt "Izvještaj {0}"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +112"
+msgstr "{0} Report"
+
+msgctxt "Podešavanje auto e-mail-a"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +131"
+msgstr "Setup Auto Email"
+
+msgctxt "Odaberi kolone"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +606"
+msgstr "Pick Columns"
+
+msgctxt "Prikaži ukupno"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614"
+msgstr "Show Totals"
+
+msgctxt "Odaberite tip datoteke"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +723"
+msgstr "Select File Type"
+
+msgctxt "Izvoz izvještaja: {0}"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +738"
+msgstr "Export Report: {0}"
+
+msgctxt "Sačuvaj kao"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +749"
+msgstr "Save As"
+
+msgctxt "Novi naziv izvještaja"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +788"
+msgstr "New Report name"
+
+msgctxt "Dodaj kolonu"
+msgid "apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +867"
+msgstr "Add Column"
+
+msgctxt "Prikaži sve podatke"
+msgid ""
+"apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html "
+"+9"
+msgstr "Show all data"
+
+msgctxt "Dodaj podređeni"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +183"
+msgstr "Add Child"
+
+msgctxt "Novi {0}"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +242"
+msgstr "New {0}"
+
+msgctxt "Немате дозволу да штампате овај извештај"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +319"
+msgstr "You are not allowed to print this report"
+
+msgctxt "Prikaz liste"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +342"
+msgstr "View List"
+
+msgctxt "Dodaj na radnu površinu"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +378"
+msgstr "Add to Desktop"
+
+msgctxt "Kontni plan"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +380"
+msgstr "Chart of Accounts"
+
+msgctxt "Proširi sve"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +75"
+msgstr "Expand All"
+
+msgctxt "{0} stablo"
+msgid "apps/frappe/frappe/public/js/frappe/views/treeview.js +89"
+msgstr "{0} Tree"
+
+msgctxt "Немате дозволу да штампате овај документ"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +173"
+msgstr "You are not allowed to print this document"
+
+msgctxt "Potvrdi ovaj dokument da bi ga zaključio"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +348"
+msgstr "Submit this document to confirm"
+
+msgctxt "Trajno potvrdi {0} ?"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +775"
+msgstr "Permanently Submit {0}?"
+
+msgctxt "Trajno otkaži {0} ?"
+msgid "apps/frappe/frappe/public/js/legacy/form.js +809"
+msgstr "Permanently Cancel {0}?"
+
+msgctxt "Можете и да копирате и налепите овај линк у свој претраживач."
+msgid "apps/frappe/frappe/templates/emails/new_user.html +16"
+msgstr "You can also copy-paste this link in your browser"
+
+msgctxt "Dodaj komentar"
+msgid "apps/frappe/frappe/templates/includes/comments/comments.html +25"
+msgstr "Add Comment"
+
+msgctxt "Pređi na radnu površinu"
+msgid "apps/frappe/frappe/templates/includes/navbar/navbar_login.html +23"
+msgstr "Switch To Desk"
+
+msgctxt "Plati"
+msgid ""
+"apps/frappe/frappe/templates/pages/integrations/braintree_checkout.html "
+"+29"
+msgstr "Pay"
+
+msgctxt "Plaćenje otkazano"
+msgid "apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3"
+msgstr "Payment Cancelled"
+
+msgctxt "Plaćanje nije uspjelo"
+msgid "apps/frappe/frappe/templates/pages/integrations/payment-failed.html +3"
+msgstr "Payment Failed"
+
+msgctxt "Plaćanje uspješno"
+msgid "apps/frappe/frappe/templates/pages/integrations/payment-success.html +3"
+msgstr "Payment Success"
+
+msgctxt "Rb"
+msgid "apps/frappe/frappe/templates/print_formats/standard_macros.html +39"
+msgstr "Sr"
+
+msgctxt "Можете тражити ствари претрагом \"тражи наранџасто у купцима\""
+msgid "apps/frappe/frappe/utils/bot.py +150"
+msgstr "You can find things by asking 'find orange in customers'"
+
+msgctxt "Prikaži"
+msgid "apps/frappe/frappe/utils/bot.py +89"
+msgstr "show"
+
+msgctxt "{0} {1} ili"
+msgid "apps/frappe/frappe/utils/data.py +654"
+msgstr "{0} or {1}"
+
+msgctxt "Немате дозволу да приступите овој датотеци."
+msgid "apps/frappe/frappe/utils/response.py +162"
+msgstr "You don't have permission to access this file"
+
+msgctxt "1 komentar"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +78"
+msgstr "1 comment"
+
+msgctxt "{0} komentara"
+msgid "apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80"
+msgstr "{0} comments"
+
+msgctxt "Plaćanje zaključeno"
+msgid "apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +134"
+msgstr "Payment Complete"
+
+msgctxt "Немате дозволу да приступите овом документу."
+msgid "apps/frappe/frappe/website/doctype/web_form/web_form.py +133"
+msgstr "You don't have the permissions to access this document"
+
+msgctxt "Немате дозволу да ажурирате овај Документ Веб Форме"
+msgid "apps/frappe/frappe/website/doctype/web_form/web_form.py +366"
+msgstr "You are not allowed to update this Web Form Document"
+
+msgctxt "Pogledaj sajt"
+msgid "apps/frappe/frappe/website/doctype/website_settings/website_settings.js +3"
+msgstr "View Website"
+
+msgctxt "Немате дозволу за брисање стандардне Вебсајт Теме"
+msgid "apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30"
+msgstr "You are not allowed to delete a standard Website Theme"
+
+msgctxt "Nije aktivna"
+msgid "apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7"
+msgstr "Not active"
+
+msgctxt "Немате дозволу да приступите овој страници."
+msgid "apps/frappe/frappe/www/desk.py +18"
+msgstr "You are not permitted to access this page."
+
+msgctxt "{0} Lista"
+msgid "apps/frappe/frappe/www/list.html +4"
+msgstr "{0} List"
+
+msgctxt "Email adresa"
+msgid "apps/frappe/frappe/www/login.html +21"
+msgstr "Email Address"
+
+msgctxt "Zaboravili ste lozinku"
+msgid "apps/frappe/frappe/www/login.html +84"
+msgstr "Forgot Password"
+
+msgctxt "Vrati se na prijavu"
+msgid "apps/frappe/frappe/www/login.html +91"
+msgstr "Back to Login"
+
+msgctxt "Mobilni br. telefona"
+msgid "apps/frappe/frappe/www/login.py +48"
+msgstr "Mobile Number"
+
+msgctxt "{0} Nema dozvolu"
+msgid "apps/frappe/frappe/www/printview.py +199"
+msgstr "No {0} permission"
+
+msgctxt "Nova lozinka"
+msgid "apps/frappe/frappe/www/update-password.html +18"
+msgstr "New Password"
+
+msgctxt "Pogrešna lozinka"
+msgid "apps/frappe/frappe/www/update-password.html +71"
+msgstr "Invalid Password"
+

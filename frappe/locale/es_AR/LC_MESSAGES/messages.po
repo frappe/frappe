@@ -1,0 +1,31 @@
+# Translations template for frappe translation.
+# Copyright (C) 2023 Frappe Technologies Pvt. Ltd.
+# This file is distributed under the same license as the frappe translation
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: frappe translation 0.1\n"
+"Report-Msgid-Bugs-To: contact@frappe.io\n"
+"POT-Creation-Date: 2023-03-19 14:58+0553\n"
+"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"Last-Translator: contact@frappe.io\n"
+"Language-Team: contact@frappe.io\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+msgctxt "Comunicacion"
+msgid "DocType: Communication"
+msgstr "Communication"
+
+msgctxt "Tipo de Comentario"
+msgid "DocType: Communication"
+msgstr "Comment Type"
+
+msgctxt "Limpiar Adjunto"
+msgid "apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60"
+msgstr "Clear Attachment"
+
