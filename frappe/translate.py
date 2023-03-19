@@ -180,6 +180,29 @@ def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool 
 	return t.gettext
 
 
+def babel_extract_javascript(fileobj, keywords, comment_tags, options):
+	from babel.messages.extract import extract_javascript
+
+    # We use `__` as our translation function
+	keywords = "__"
+
+	for lineno, funcname, messages, comments in extract_javascript(
+		fileobj, keywords, comment_tags, options
+	):
+        # `funcname` here will be `__` which is our translation function. We
+        # have to convert it back to usual function names
+		funcname = "gettext"
+
+		if isinstance(messages, tuple):
+			if len(messages) == 3:
+				funcname = "pgettext"
+				messages = (messages[2], messages[0])
+			else:
+				messages = messages[0]
+
+		yield lineno, funcname, messages, comments
+
+
 def generate_pot(target_app: str | None = None):
 	"""
 	Generate a POT (PO template) file. This file will contain only messages IDs.
@@ -190,6 +213,7 @@ def generate_pot(target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	method_map = [
 		("**.py", "frappe.translate.babel_extract_python"),
+		("**.js", "frappe.translate.babel_extract_javascript"),
 		("**/doctype/*/*.json", "frappe.translate.babel_extract_doctype_json"),
 	]
 
@@ -702,10 +726,10 @@ def babel_extract_python(*args, **kwargs):
 
 def babel_extract_doctype_json(fileobj, *args, **kwargs):
 	"""
-    Extract messages from DocType JSON files. To be used to babel extractor
+	Extract messages from DocType JSON files. To be used to babel extractor
 
-    :param fileobj: the file-like object the messages should be extracted from
-    :rtype: `iterator`
+	:param fileobj: the file-like object the messages should be extracted from
+	:rtype: `iterator`
 	"""
 	data = json.load(fileobj)
 
@@ -745,9 +769,7 @@ def babel_extract_doctype_json(fileobj, *args, **kwargs):
 					for option in select_options
 				)
 			elif fieldtype == "HTML":
-				messages.append(
-					(message, f"Content of an HTML field in DocType '{doctype}'")
-				)
+				messages.append((message, f"Content of an HTML field in DocType '{doctype}'"))
 
 	for link in links:
 		if group := link.get("group"):

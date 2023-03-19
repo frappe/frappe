@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Translation VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2023-03-19 14:58+0553\n"
-"PO-Revision-Date: 2023-03-19 14:58+0553\n"
+"POT-Creation-Date: 2023-03-19 16:50+0553\n"
+"PO-Revision-Date: 2023-03-19 16:50+0553\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -245,6 +245,15 @@ msgstr ""
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
 msgstr ""
 
+msgid "Assign one by one, in sequence"
+msgstr ""
+
+msgid "Assign to the one who has the least assignments"
+msgstr ""
+
+msgid "Assign to the user set in this field"
+msgstr ""
+
 msgid "Assignment Rule"
 msgstr ""
 
@@ -366,6 +375,21 @@ msgid "Assignment Rule User"
 msgstr ""
 
 msgid "User"
+msgstr ""
+
+msgid "To configure Auto Repeat, enable \"Allow Auto Repeat\" from {0}."
+msgstr ""
+
+msgid "View {0}"
+msgstr ""
+
+msgid "Please setup a message first"
+msgstr ""
+
+msgid "Message not setup"
+msgstr ""
+
+msgid "Auto Repeat Schedule"
 msgstr ""
 
 msgid "Auto Repeat"
@@ -545,22 +569,10 @@ msgstr ""
 msgid "Field to Track"
 msgstr ""
 
-msgid "Reminder"
+msgid "{0}: {1}"
 msgstr ""
 
-msgid "Document Name"
-msgstr ""
-
-msgid "Remind At"
-msgstr ""
-
-msgid "notified"
-msgstr ""
-
-msgid "All"
-msgstr ""
-
-msgid "Reminder cannot be created in past."
+msgid "Links"
 msgstr ""
 
 msgid "Address"
@@ -647,9 +659,6 @@ msgstr ""
 msgid "Reference"
 msgstr ""
 
-msgid "Links"
-msgstr ""
-
 msgid "Sales User"
 msgstr ""
 
@@ -704,6 +713,15 @@ msgid "Setting this Address Template as default as there is no other default"
 msgstr ""
 
 msgid "Default Address Template cannot be deleted"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Invite as User"
+msgstr ""
+
+msgid "Call"
 msgstr ""
 
 msgid "Contact"
@@ -799,6 +817,9 @@ msgstr ""
 msgid "Maintenance Manager"
 msgstr ""
 
+msgid "All"
+msgstr ""
+
 msgid "Select Google Contacts to which contact should be synced."
 msgstr ""
 
@@ -830,6 +851,15 @@ msgid "Is Primary Mobile"
 msgstr ""
 
 msgid "Administrator"
+msgstr ""
+
+msgid "Entity Type"
+msgstr ""
+
+msgid "Entity Name"
+msgstr ""
+
+msgid "Please select Entity Type first"
 msgstr ""
 
 msgid "No records present in {0}"
@@ -1021,6 +1051,78 @@ msgstr ""
 msgid "Website Manager"
 msgstr ""
 
+msgid "Close"
+msgstr ""
+
+msgid "Reopen"
+msgstr ""
+
+msgid "Relink"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
+msgid "Reply All"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Forward"
+msgstr ""
+
+msgid "Mark as Unread"
+msgstr ""
+
+msgid "Mark as Read"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Mark as Spam"
+msgstr ""
+
+msgid "Move To Trash"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Add Contact"
+msgstr ""
+
+msgid "Relink Communication"
+msgstr ""
+
+msgid "Reference Doctype"
+msgstr ""
+
+msgid "Are you sure you want to relink this communication to {0}?"
+msgstr ""
+
+msgid "Document not Relinked"
+msgstr ""
+
+msgid "Email Account"
+msgstr ""
+
+msgid "Re: {0}"
+msgstr ""
+
+msgid "Res: {0}"
+msgstr ""
+
+msgid "Fw: {0}"
+msgstr ""
+
+msgid "Email has been marked as spam"
+msgstr ""
+
+msgid "Email has been moved to trash"
+msgstr ""
+
 msgid "Communication"
 msgstr ""
 
@@ -1028,9 +1130,6 @@ msgid "To and CC"
 msgstr ""
 
 msgid "Type"
-msgstr ""
-
-msgid "Email"
 msgstr ""
 
 msgid "Chat"
@@ -1135,9 +1234,6 @@ msgstr ""
 msgid "Read by Recipient On"
 msgstr ""
 
-msgid "Email Account"
-msgstr ""
-
 msgid "In Reply To"
 msgstr ""
 
@@ -1232,9 +1328,6 @@ msgstr ""
 msgid "Write"
 msgstr ""
 
-msgid "Create"
-msgstr ""
-
 msgid "Delete"
 msgstr ""
 
@@ -1259,6 +1352,12 @@ msgstr ""
 msgid "Import"
 msgstr ""
 
+msgid "Set User Permissions"
+msgstr ""
+
+msgid "This role update User Permissions for a user"
+msgstr ""
+
 msgid "Share"
 msgstr ""
 
@@ -1278,6 +1377,12 @@ msgid "Permission Rules"
 msgstr ""
 
 msgid "response"
+msgstr ""
+
+msgid "Please select the Document Type."
+msgstr ""
+
+msgid "Atleast one field of Parent Document Type is mandatory"
 msgstr ""
 
 msgid "Data Export"
@@ -1384,6 +1489,92 @@ msgstr ""
 msgid "One of"
 msgstr ""
 
+msgid "About {0} seconds remaining"
+msgstr ""
+
+msgid "About {0} minute remaining"
+msgstr ""
+
+msgid "About {0} minutes remaining"
+msgstr ""
+
+msgid "Importing {0} of {1}, {2}"
+msgstr ""
+
+msgid "Updating {0} of {1}, {2}"
+msgstr ""
+
+msgid "Skipping {0} of {1}, {2}"
+msgstr ""
+
+msgid "Import Progress"
+msgstr ""
+
+msgid "In Progress"
+msgstr ""
+
+msgid "Export Errored Rows"
+msgstr ""
+
+msgid "Go to {0} List"
+msgstr ""
+
+msgid "Start Import"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Successfully imported {0} records."
+msgstr ""
+
+msgid "Successfully imported {0} record."
+msgstr ""
+
+msgid "Successfully updated {0} records."
+msgstr ""
+
+msgid "Successfully updated {0} record."
+msgstr ""
+
+msgid ""
+"Successfully imported {0} records out of {1}. Click on Export Errored "
+"Rows, fix the errors and import again."
+msgstr ""
+
+msgid ""
+"Successfully imported {0} record out of {1}. Click on Export Errored "
+"Rows, fix the errors and import again."
+msgstr ""
+
+msgid ""
+"Successfully updated {0} records out of {1}. Click on Export Errored "
+"Rows, fix the errors and import again."
+msgstr ""
+
+msgid ""
+"Successfully updated {0} record out of {1}. Click on Export Errored Rows,"
+" fix the errors and import again."
+msgstr ""
+
+msgid "Loading import file..."
+msgstr ""
+
+msgid "Successfully imported {0}"
+msgstr ""
+
+msgid "Successfully updated {0}"
+msgstr ""
+
+msgid "Failure"
+msgstr ""
+
+msgid "Export Import Log"
+msgstr ""
+
 msgid "Data Import"
 msgstr ""
 
@@ -1460,6 +1651,12 @@ msgid "Scheduler is inactive. Cannot import data."
 msgstr ""
 
 msgid "Scheduler Inactive"
+msgstr ""
+
+msgid "Insert"
+msgstr ""
+
+msgid "Update"
 msgstr ""
 
 msgid "via Data Import"
@@ -1554,6 +1751,9 @@ msgstr ""
 msgid "Key"
 msgstr ""
 
+msgid "Restore"
+msgstr ""
+
 msgid "Deleted Document"
 msgstr ""
 
@@ -1585,6 +1785,18 @@ msgid "Document Restored"
 msgstr ""
 
 msgid "Restoring Deleted Document"
+msgstr ""
+
+msgid "Documents restored successfully"
+msgstr ""
+
+msgid "Documents that were already restored"
+msgstr ""
+
+msgid "Documents that failed to restore"
+msgstr ""
+
+msgid "Document Restoration Summary"
 msgstr ""
 
 msgid "DocField"
@@ -1875,6 +2087,9 @@ msgstr ""
 msgid "DocShare"
 msgstr ""
 
+msgid "Document Name"
+msgstr ""
+
 msgid "Everyone"
 msgstr ""
 
@@ -1899,6 +2114,32 @@ msgid "{0} shared this document with {1}"
 msgstr ""
 
 msgid "{0} un-shared this document with {1}"
+msgstr ""
+
+msgid "Try new form builder"
+msgstr ""
+
+msgid "Go to {0}"
+msgstr ""
+
+msgid "DocTypes can not be modified, please use {0} instead"
+msgstr ""
+
+msgid ""
+"This site is running in developer mode. Any change made here will be "
+"updated in code."
+msgstr ""
+
+msgid "If you just want to customize for your site, use {0} instead."
+msgstr ""
+
+msgid "In Grid View"
+msgstr ""
+
+msgid "Select DocType"
+msgstr ""
+
+msgid "Select Field"
 msgstr ""
 
 msgid "Is Submittable"
@@ -2102,9 +2343,6 @@ msgid "Documentation Link"
 msgstr ""
 
 msgid "URL for documentation or help"
-msgstr ""
-
-msgid "Actions"
 msgstr ""
 
 msgid "Linked Documents"
@@ -2484,6 +2722,9 @@ msgstr ""
 msgid "Report cannot be set for Single types"
 msgstr ""
 
+msgid "{0} cannot be set for Single types"
+msgstr ""
+
 msgid "{0}: Cannot set Assign Submit if not Submittable"
 msgstr ""
 
@@ -2584,6 +2825,20 @@ msgstr ""
 msgid "Yellow"
 msgstr ""
 
+msgid "Update Counter"
+msgstr ""
+
+msgid "New Counter"
+msgstr ""
+
+msgid ""
+"Warning: Updating counter may lead to document name conflicts if not done"
+" properly"
+msgstr ""
+
+msgid "Update Counter Value for Prefix: {0}"
+msgstr ""
+
 msgid "Document Naming Rule"
 msgstr ""
 
@@ -2633,6 +2888,12 @@ msgid ">="
 msgstr ""
 
 msgid "<="
+msgstr ""
+
+msgid "Updating naming series options"
+msgstr ""
+
+msgid "Failed to generate preview of series"
 msgstr ""
 
 msgid "Document Naming Settings"
@@ -2700,9 +2961,6 @@ msgid ""
 "saving. There will be no default if you check this."
 msgstr ""
 
-msgid "Update"
-msgstr ""
-
 msgid "Update Series Counter"
 msgstr ""
 
@@ -2726,10 +2984,10 @@ msgstr ""
 msgid "Series List for this Transaction"
 msgstr ""
 
-msgid "Try a Naming Series"
+msgid "Try a naming Series"
 msgstr ""
 
-msgid "Get a preview of generated names with a series."
+msgid "Generate 3 preview of names generate by any valid series."
 msgstr ""
 
 msgid "Select Transaction"
@@ -2783,10 +3041,22 @@ msgstr ""
 msgid "Link Document Type"
 msgstr ""
 
+msgid "Show Related Errors"
+msgstr ""
+
 msgid "Error Log"
 msgstr ""
 
 msgid "Reference DocType"
+msgstr ""
+
+msgid "Not Seen"
+msgstr ""
+
+msgid "Clear Error Logs"
+msgstr ""
+
+msgid "Show Relapses"
 msgstr ""
 
 msgid "Error Snapshot"
@@ -2817,6 +3087,27 @@ msgid "Locals"
 msgstr ""
 
 msgid "Frames"
+msgstr ""
+
+msgid "Relapsed"
+msgstr ""
+
+msgid "First Level"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Optimize"
+msgstr ""
+
+msgid "Unzip"
+msgstr ""
+
+msgid "Optimizing image..."
+msgstr ""
+
+msgid "Image optimized"
 msgstr ""
 
 msgid "File"
@@ -3001,6 +3292,18 @@ msgstr ""
 msgid "Application Version"
 msgstr ""
 
+msgid "Update Hooks Resolution Order"
+msgstr ""
+
+msgid "Installed Apps"
+msgstr ""
+
+msgid "App Name"
+msgstr ""
+
+msgid "Update Order"
+msgstr ""
+
 msgid "Installed Applications"
 msgstr ""
 
@@ -3070,9 +3373,6 @@ msgid "Module Def"
 msgstr ""
 
 msgid "Module Name"
-msgstr ""
-
-msgid "App Name"
 msgstr ""
 
 msgid "Package"
@@ -3216,6 +3516,9 @@ msgstr ""
 msgid "Publish"
 msgstr ""
 
+msgid "Go to {0} Page"
+msgstr ""
+
 msgid "System Page"
 msgstr ""
 
@@ -3277,6 +3580,12 @@ msgid "Prepared Report User"
 msgstr ""
 
 msgid "Cannot Download Report due to insufficient permissions"
+msgstr ""
+
+msgid "Enable Report"
+msgstr ""
+
+msgid "Disable Report"
 msgstr ""
 
 msgid "Ref DocType"
@@ -3378,6 +3687,9 @@ msgstr ""
 msgid "Will add \"%\" before and after the query"
 msgstr ""
 
+msgid "Role 'All' will be given to all System Users."
+msgstr ""
+
 msgid "Role Name"
 msgstr ""
 
@@ -3432,6 +3744,18 @@ msgstr ""
 msgid "Standard roles cannot be disabled"
 msgstr ""
 
+msgid "Reset to defaults"
+msgstr ""
+
+msgid "Successfully Updated"
+msgstr ""
+
+msgid "Mandatory field: set role for"
+msgstr ""
+
+msgid "Mandatory field: {0}"
+msgstr ""
+
 msgid "Role Permission for Page and Report"
 msgstr ""
 
@@ -3454,6 +3778,9 @@ msgid "Roles HTML"
 msgstr ""
 
 msgid "Roles Assigned"
+msgstr ""
+
+msgid "Force Stop job"
 msgstr ""
 
 msgid "RQ Job"
@@ -3520,6 +3847,18 @@ msgid "Job is not running."
 msgstr ""
 
 msgid "Invalid Operation"
+msgstr ""
+
+msgid "Remove Failed Jobs"
+msgstr ""
+
+msgid "Are you sure you want to remove all failed jobs?"
+msgstr ""
+
+msgid "Scheduler: Active"
+msgstr ""
+
+msgid "Scheduler: Inactive"
 msgstr ""
 
 msgid "RQ Worker"
@@ -3616,6 +3955,9 @@ msgid "Annual"
 msgstr ""
 
 msgid "Next Execution"
+msgstr ""
+
+msgid "Compare Versions"
 msgstr ""
 
 msgid "Script Type"
@@ -3764,6 +4106,9 @@ msgstr ""
 msgid "SMS sent to following numbers: {0}"
 msgstr ""
 
+msgid "Unlock Reference Document"
+msgstr ""
+
 msgid "Submission Queue"
 msgstr ""
 
@@ -3792,6 +4137,15 @@ msgid "Document Unlocked"
 msgstr ""
 
 msgid "Queued for Submission. You can track the progress over {0}."
+msgstr ""
+
+msgid "Select atleast 2 actions"
+msgstr ""
+
+msgid "New"
+msgstr ""
+
+msgid "View All"
 msgstr ""
 
 msgid "Success Action"
@@ -4125,18 +4479,6 @@ msgstr ""
 msgid "Login with email link expiry (in minutes)"
 msgstr ""
 
-msgid "Rounding Method"
-msgstr ""
-
-msgid "Banker's Rounding (legacy)"
-msgstr ""
-
-msgid "Banker's Rounding"
-msgstr ""
-
-msgid "Commercial Rounding"
-msgstr ""
-
 msgid "Please select Minimum Password Score"
 msgstr ""
 
@@ -4201,6 +4543,42 @@ msgid ""
 msgstr ""
 
 msgid "Translated Text"
+msgstr ""
+
+msgid "Note: Etc timezones have their signs reversed."
+msgstr ""
+
+msgid "Refreshing..."
+msgstr ""
+
+msgid "View Permitted Documents"
+msgstr ""
+
+msgid "Reset Password"
+msgstr ""
+
+msgid "Reset LDAP Password"
+msgstr ""
+
+msgid "New Password"
+msgstr ""
+
+msgid "Confirm New Password"
+msgstr ""
+
+msgid "Logout All Sessions"
+msgstr ""
+
+msgid "Passwords do not match!"
+msgstr ""
+
+msgid "Reset OTP Secret"
+msgstr ""
+
+msgid "Create User Email"
+msgstr ""
+
+msgid "Save API Secret: {0}"
 msgstr ""
 
 msgid "Basic Info"
@@ -4604,6 +4982,51 @@ msgstr ""
 msgid "{0} has already assigned default value for {1}."
 msgstr ""
 
+msgid "Add / Update"
+msgstr ""
+
+msgid "Add User Permissions"
+msgstr ""
+
+msgid "For User"
+msgstr ""
+
+msgid "Apply to all Documents Types"
+msgstr ""
+
+msgid "Applicable Document Types"
+msgstr ""
+
+msgid "User Permissions created sucessfully"
+msgstr ""
+
+msgid "Nothing to update"
+msgstr ""
+
+msgid "Bulk Delete"
+msgstr ""
+
+msgid "Clear User Permissions"
+msgstr ""
+
+msgid "For Document Type"
+msgstr ""
+
+msgid "Are you sure?"
+msgstr ""
+
+msgid "No records deleted"
+msgstr ""
+
+msgid "{0} record deleted"
+msgstr ""
+
+msgid "{0} records deleted"
+msgstr ""
+
+msgid "Please select applicable Doctypes"
+msgstr ""
+
 msgid "User Select Document Type"
 msgstr ""
 
@@ -4686,6 +5109,9 @@ msgid ""
 "one of the {4} record."
 msgstr ""
 
+msgid "Show all Versions"
+msgstr ""
+
 msgid "Version"
 msgstr ""
 
@@ -4701,10 +5127,81 @@ msgstr ""
 msgid "Reference name"
 msgstr ""
 
+msgid "dashboard"
+msgstr ""
+
+msgid "{0} Dashboard"
+msgstr ""
+
+msgid "No Permitted Charts on this Dashboard"
+msgstr ""
+
+msgid "No Permitted Charts"
+msgstr ""
+
+msgid "Refresh All"
+msgstr ""
+
+msgid "Role Permissions Manager"
+msgstr ""
+
+msgid "Select Document Type"
+msgstr ""
+
+msgid "Select Role"
+msgstr ""
+
+msgid "Reset Permissions for {0}?"
+msgstr ""
+
+msgid "Loading"
+msgstr ""
+
+msgid "Select Document Type or Role to start."
+msgstr ""
+
+msgid "No Permissions set for this criteria."
+msgstr ""
+
+msgid "Users with role {0}:"
+msgstr ""
+
+msgid "Did not remove"
+msgstr ""
+
+msgid "Add A New Rule"
+msgstr ""
+
+msgid "Add New Permission Rule"
+msgstr ""
+
+msgid "Permission Level"
+msgstr ""
+
+msgid ""
+"Level 0 is for document level permissions, higher levels for field level "
+"permissions."
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Did not add"
+msgstr ""
+
+msgid "Restore Original Permissions"
+msgstr ""
+
 msgid "There must be atleast one permission rule."
 msgstr ""
 
 msgid "Cannot Remove"
+msgstr ""
+
+msgid "Recorder"
+msgstr ""
+
+msgid "Show Permissions"
 msgstr ""
 
 msgid "First Transaction"
@@ -4713,13 +5210,16 @@ msgstr ""
 msgid "Chain Integrity"
 msgstr ""
 
-msgid "Reference Doctype"
-msgstr ""
-
 msgid "Owner"
 msgstr ""
 
 msgid "Modified By"
+msgstr ""
+
+msgid "Add script for Child Table"
+msgstr ""
+
+msgid "Select Child Table"
 msgstr ""
 
 msgid "Sample"
@@ -4732,6 +5232,32 @@ msgid "List"
 msgstr ""
 
 msgid "Form"
+msgstr ""
+
+msgid "Special Characters are not allowed"
+msgstr ""
+
+msgid ""
+"Name of the Document Type (DocType) you want this field to be linked to. "
+"e.g. Customer"
+msgstr ""
+
+msgid "Options for select. Each option on a new line."
+msgstr ""
+
+msgid "e.g.:"
+msgstr ""
+
+msgid "Option 1"
+msgstr ""
+
+msgid "Option 2"
+msgstr ""
+
+msgid "Option 3"
+msgstr ""
+
+msgid "Fieldname which will be the DocType for this link field."
 msgstr ""
 
 msgid "Label Help"
@@ -4767,9 +5293,6 @@ msgid "Depends On"
 msgstr ""
 
 msgid "Field Description"
-msgstr ""
-
-msgid "Permission Level"
 msgstr ""
 
 msgid "Is Mandatory Field"
@@ -4821,6 +5344,54 @@ msgid "Custom Fields cannot be added to core DocTypes."
 msgstr ""
 
 msgid "Custom Fields can only be added to a standard DocType."
+msgstr ""
+
+msgid "Customize Child Table"
+msgstr ""
+
+msgid "Customize Form - {0}"
+msgstr ""
+
+msgid "Reload"
+msgstr ""
+
+msgid "Remove all customizations?"
+msgstr ""
+
+msgid "Set Permissions"
+msgstr ""
+
+msgid "Export Customizations"
+msgstr ""
+
+msgid "Module to Export"
+msgstr ""
+
+msgid "Sync on Migrate"
+msgstr ""
+
+msgid "Export Custom Permissions"
+msgstr ""
+
+msgid "Select Module"
+msgstr ""
+
+msgid "Cannot delete standard field. You can hide it if you want"
+msgstr ""
+
+msgid "Cannot delete standard link. You can hide it if you want"
+msgstr ""
+
+msgid "Cannot delete standard action. You can hide it if you want"
+msgstr ""
+
+msgid "Cannot delete standard document state."
+msgstr ""
+
+msgid "All customizations will be removed. Please confirm."
+msgstr ""
+
+msgid "Customizations Reset"
 msgstr ""
 
 msgid "Customize Form"
@@ -4939,10 +5510,22 @@ msgstr ""
 msgid "Property Depends On"
 msgstr ""
 
+msgid "Sync {0} Fields"
+msgstr ""
+
+msgid "No changes to sync"
+msgstr ""
+
+msgid "Synced Fields"
+msgstr ""
+
 msgid "DocType Layout"
 msgstr ""
 
 msgid "DocType Layout Field"
+msgstr ""
+
+msgid "Value for a check field can be either 0 or 1"
 msgstr ""
 
 msgid ""
@@ -4981,8 +5564,8 @@ msgid "Field type cannot be changed for {0}"
 msgstr ""
 
 msgid ""
-"Site is running in read only mode for maintenance or site update, this "
-"action can not be performed right now. Please try again later."
+"Site is running in read only mode, this action can not be performed right"
+" now. Please try again later."
 msgstr ""
 
 msgid "In Read Only Mode"
@@ -4994,7 +5577,7 @@ msgstr ""
 msgid "The changes have been reverted."
 msgstr ""
 
-msgid "Field {0} does not exist on {1}"
+msgid "Invalid field name: {0}"
 msgstr ""
 
 msgid "Insufficient Permission for {0}"
@@ -5115,6 +5698,15 @@ msgstr ""
 msgid "Name already taken, please set a new name"
 msgstr ""
 
+msgid "Field \"value\" is mandatory. Please specify value to be updated"
+msgstr ""
+
+msgid "Cannot update {0}"
+msgstr ""
+
+msgid "Updated Successfully"
+msgstr ""
+
 msgid "Bulk Update"
 msgstr ""
 
@@ -5143,6 +5735,9 @@ msgid "Cancelling {0}"
 msgstr ""
 
 msgid "Updating {0}"
+msgstr ""
+
+msgid "Show Calendar"
 msgstr ""
 
 msgid "Start Date Field"
@@ -5190,6 +5785,30 @@ msgid "Invalid json added in the custom options: {0}"
 msgstr ""
 
 msgid "Please set the following documents in this Dashboard as standard first."
+msgstr ""
+
+msgid "Please create chart first"
+msgstr ""
+
+msgid "Report has no numeric fields, please change the Report Name"
+msgstr ""
+
+msgid "Report has no data, please modify the filters or change the Report Name"
+msgstr ""
+
+msgid "Created On"
+msgstr ""
+
+msgid "Last Modified On"
+msgstr ""
+
+msgid "Cannot edit filters for standard charts"
+msgstr ""
+
+msgid "Set Filters"
+msgstr ""
+
+msgid "Set Dynamic Filters"
 msgstr ""
 
 msgid "Dashboard Chart"
@@ -5428,10 +6047,22 @@ msgstr ""
 msgid "{0} not found"
 msgstr ""
 
-msgid "Event Category"
+msgid "Participants"
 msgstr ""
 
-msgid "Call"
+msgid "Add Participants"
+msgstr ""
+
+msgid "Add Contacts"
+msgstr ""
+
+msgid "Join video conference with {0}"
+msgstr ""
+
+msgid "{0}"
+msgstr ""
+
+msgid "Event Category"
 msgstr ""
 
 msgid "Sent/Received Email"
@@ -5465,9 +6096,6 @@ msgid "Repeat Till"
 msgstr ""
 
 msgid "Leave blank to repeat always"
-msgstr ""
-
-msgid "Participants"
 msgstr ""
 
 msgid "Event Participants"
@@ -5510,6 +6138,9 @@ msgid "Upcoming Events for Today"
 msgstr ""
 
 msgid "Events in Today's Calendar"
+msgstr ""
+
+msgid "Show Tour"
 msgstr ""
 
 msgid "Form Tour"
@@ -5593,6 +6224,12 @@ msgstr ""
 msgid "Global Search DocType"
 msgstr ""
 
+msgid "Reset"
+msgstr ""
+
+msgid "Global Search Document Types Reset."
+msgstr ""
+
 msgid "Global Search Settings"
 msgstr ""
 
@@ -5641,9 +6278,6 @@ msgstr ""
 msgid "Filter Name"
 msgstr ""
 
-msgid "For User"
-msgstr ""
-
 msgid "List View Settings"
 msgstr ""
 
@@ -5659,7 +6293,9 @@ msgstr ""
 msgid "Maximum Number of Fields"
 msgstr ""
 
-msgid "Disable Comment Count"
+msgid ""
+"Saving this will export this document as well as the steps linked here as"
+" json."
 msgstr ""
 
 msgid "Module Onboarding"
@@ -5702,7 +6338,13 @@ msgstr ""
 msgid "Seen By Table"
 msgstr ""
 
+msgid "Notes"
+msgstr ""
+
 msgid "Note Seen By"
+msgstr ""
+
+msgid "Please enable pop-ups"
 msgstr ""
 
 msgid "Notification Log"
@@ -5753,6 +6395,9 @@ msgstr ""
 msgid "Energy Point Update on {0}"
 msgstr ""
 
+msgid "Go to Notification Settings List"
+msgstr ""
+
 msgid "Notification Settings"
 msgstr ""
 
@@ -5781,6 +6426,9 @@ msgid "Event Reminders"
 msgstr ""
 
 msgid "Notification Subscribed Document"
+msgstr ""
+
+msgid "Please create Card first"
 msgstr ""
 
 msgid "Number Card"
@@ -5846,6 +6494,11 @@ msgid "Card"
 msgstr ""
 
 msgid "Onboarding Permission"
+msgstr ""
+
+msgid ""
+"To export this step as JSON, link it in a Onboarding document and save "
+"the document."
 msgstr ""
 
 msgid "Create Entry"
@@ -5926,6 +6579,15 @@ msgstr ""
 msgid "Step"
 msgstr ""
 
+msgid "Execute Console script"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Executing..."
+msgstr ""
+
 msgid "System Console"
 msgstr ""
 
@@ -5936,9 +6598,6 @@ msgid "To print output use <code>log(text)</code>"
 msgstr ""
 
 msgid "Commit"
-msgstr ""
-
-msgid "Execute"
 msgstr ""
 
 msgid "Database Processes"
@@ -6007,6 +6666,36 @@ msgstr ""
 msgid "Assignment of {0} removed by {1}"
 msgstr ""
 
+msgid "Task"
+msgstr ""
+
+msgid "To Do"
+msgstr ""
+
+msgid "Open {0}"
+msgstr ""
+
+msgid "Assigned By Me"
+msgstr ""
+
+msgid "Go to Workspace"
+msgstr ""
+
+msgid ""
+"This document allows you to edit limited fields. For all kinds of "
+"workspace customization, use the Edit button located on the workspace "
+"page"
+msgstr ""
+
+msgid "Only Workspace Manager can edit public workspaces"
+msgstr ""
+
+msgid ""
+"We do not allow editing of this document. Simply click the Edit button on"
+" the workspace page to make your workspace editable and customize it as "
+"you wish"
+msgstr ""
+
 msgid "Dashboards"
 msgstr ""
 
@@ -6035,9 +6724,6 @@ msgid "Quick Lists"
 msgstr ""
 
 msgid "Is Hidden"
-msgstr ""
-
-msgid "Number Cards"
 msgstr ""
 
 msgid "Workspace Manager"
@@ -6088,12 +6774,6 @@ msgstr ""
 msgid "Link Count"
 msgstr ""
 
-msgid "Workspace Number Card"
-msgstr ""
-
-msgid "Number Card Name"
-msgstr ""
-
 msgid "Workspace Quick List"
 msgstr ""
 
@@ -6110,9 +6790,6 @@ msgid "Which view of the associated DocType should this shortcut take you to?"
 msgstr ""
 
 msgid "Tree"
-msgstr ""
-
-msgid "New"
 msgstr ""
 
 msgid "Calendar"
@@ -6148,10 +6825,9 @@ msgstr ""
 msgid "Cancelling documents"
 msgstr ""
 
-msgid "Field {0} is referring to non-existing doctype {1}."
-msgstr ""
-
-msgid "Please delete the field from {0} or add the required doctype."
+msgid ""
+"Field {0} is referring to non-existing doctype {1}, please remove the "
+"field from {2} or add the required doctype."
 msgstr ""
 
 msgid "Missing DocType"
@@ -6166,6 +6842,24 @@ msgstr ""
 msgid "No further records"
 msgstr ""
 
+msgid "Download Backups"
+msgstr ""
+
+msgid "Set Number of Backups"
+msgstr ""
+
+msgid "Download Files Backup"
+msgstr ""
+
+msgid "Get Backup Encryption Key"
+msgstr ""
+
+msgid "Backup Encryption Key"
+msgstr ""
+
+msgid "System Manager privileges required."
+msgstr ""
+
 msgid "Queued for backup. You will receive an email with the download link"
 msgstr ""
 
@@ -6175,6 +6869,129 @@ msgid ""
 msgstr ""
 
 msgid "File backup is ready"
+msgstr ""
+
+msgid "Form Builder"
+msgstr ""
+
+msgid "Leaderboard"
+msgstr ""
+
+msgid "Company"
+msgstr ""
+
+msgid "Date Range"
+msgstr ""
+
+msgid "Please select Company"
+msgstr ""
+
+msgid "No Items Found"
+msgstr ""
+
+msgid "starting the setup..."
+msgstr ""
+
+msgid "Failed to complete setup"
+msgstr ""
+
+msgid "Setting up your system"
+msgstr ""
+
+msgid "Starting Frappe ..."
+msgstr ""
+
+msgid "Welcome"
+msgstr ""
+
+msgid "Your Language"
+msgstr ""
+
+msgid "Select Language"
+msgstr ""
+
+msgid "Your Country"
+msgstr ""
+
+msgid "Select Country"
+msgstr ""
+
+msgid "Select Time Zone"
+msgstr ""
+
+msgid "Select Currency"
+msgstr ""
+
+msgid "Let's setup your account"
+msgstr ""
+
+msgid "Will be your login ID"
+msgstr ""
+
+msgid "Translation Tool"
+msgstr ""
+
+msgid "Contribute Translations"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Please select target language for translation"
+msgstr ""
+
+msgid "Search Source Text"
+msgstr ""
+
+msgid "Fetching..."
+msgstr ""
+
+msgid "Confirm Translations"
+msgstr ""
+
+msgid "Submitting..."
+msgstr ""
+
+msgid "Successfully Submitted!"
+msgstr ""
+
+msgid "Source Message"
+msgstr ""
+
+msgid "Translated Message"
+msgstr ""
+
+msgid "Verified By"
+msgstr ""
+
+msgid "{0} translation pending"
+msgstr ""
+
+msgid "{0} translations pending"
+msgstr ""
+
+msgid "Untranslated"
+msgstr ""
+
+msgid "Google Translation"
+msgstr ""
+
+msgid "Community Contribution"
+msgstr ""
+
+msgid "Loading user profile"
+msgstr ""
+
+msgid "User does not exist"
+msgstr ""
+
+msgid "Change User"
+msgstr ""
+
+msgid "Go"
+msgstr ""
+
+msgid "Edit Profile"
 msgstr ""
 
 msgid "Assigned To/Owner"
@@ -6228,6 +7045,18 @@ msgid "Please check your email login credentials."
 msgstr ""
 
 msgid "Invalid Credentials"
+msgstr ""
+
+msgid "Send Now"
+msgstr ""
+
+msgid "Scheduled to send"
+msgstr ""
+
+msgid "Filter"
+msgstr ""
+
+msgid "Click table to edit"
 msgstr ""
 
 msgid "Auto Email Report"
@@ -6319,6 +7148,25 @@ msgid "Please set filters value in Report Filter table."
 msgstr ""
 
 msgid "Doctype"
+msgstr ""
+
+msgid ""
+"OAuth has been enabled but not authorised. Please use \"Authorise API "
+"Access\" button to do the same."
+msgstr ""
+
+msgid ""
+"You are selecting Sync Option as ALL, It will resync all read as well as "
+"unread message from server. This may also cause the duplication of "
+"Communication (emails)."
+msgstr ""
+
+msgid ""
+"Enabling auto reply on an incoming email account will send automated "
+"replies to all the synchronized emails. Do you wish to continue?"
+msgstr ""
+
+msgid "Disabled Auto Reply"
 msgstr ""
 
 msgid "Use different Email ID"
@@ -6609,6 +7457,23 @@ msgstr ""
 msgid "Enabled email inbox for user {0}"
 msgstr ""
 
+msgid "Default Sending and Inbox"
+msgstr ""
+
+msgid "Default Inbox"
+msgstr ""
+
+msgid "Default Sending"
+msgstr ""
+
+msgid "Inbox"
+msgstr ""
+
+msgid ""
+"Changing any setting will reflect on all the email accounts associated "
+"with this domain."
+msgstr ""
+
 msgid "Email Domain"
 msgstr ""
 
@@ -6646,6 +7511,18 @@ msgid "Is Completed"
 msgstr ""
 
 msgid "Unread"
+msgstr ""
+
+msgid "Import Subscribers"
+msgstr ""
+
+msgid "Import Email From"
+msgstr ""
+
+msgid "Add Subscribers"
+msgstr ""
+
+msgid "New Newsletter"
 msgstr ""
 
 msgid "Email Group"
@@ -6705,10 +7582,13 @@ msgstr ""
 msgid "Expose Recipients"
 msgstr ""
 
-msgid "Retry"
+msgid "Only Administrator can delete Email Queue"
 msgstr ""
 
-msgid "Only Administrator can delete Email Queue"
+msgid "Resume Sending"
+msgstr ""
+
+msgid "Suspend Sending"
 msgstr ""
 
 msgid "Email Queue Recipient"
@@ -6785,6 +7665,71 @@ msgstr ""
 msgid "Folder Name"
 msgstr ""
 
+msgid "Send a test email"
+msgstr ""
+
+msgid "Check broken links"
+msgstr ""
+
+msgid "Checking broken links..."
+msgstr ""
+
+msgid "Following links are broken in the email content: {0}"
+msgstr ""
+
+msgid "No broken links found in the email content"
+msgstr ""
+
+msgid "Send now"
+msgstr ""
+
+msgid ""
+"This newsletter was scheduled to send on a later date. Are you sure you "
+"want to send it now?"
+msgstr ""
+
+msgid "Are you sure you want to send this newsletter now?"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "Schedule sending"
+msgstr ""
+
+msgid "Queuing emails..."
+msgstr ""
+
+msgid "Queued {0} emails"
+msgstr ""
+
+msgid "Schedule Newsletter"
+msgstr ""
+
+msgid "Schedule"
+msgstr ""
+
+msgid "Cancel Scheduling"
+msgstr ""
+
+msgid "Send Test Email"
+msgstr ""
+
+msgid "Sending..."
+msgstr ""
+
+msgid "Send again"
+msgstr ""
+
+msgid "Sending emails"
+msgstr ""
+
+msgid "{0} of {1} sent"
+msgstr ""
+
+msgid "This newsletter is scheduled to be sent on {0}"
+msgstr ""
+
 msgid "Newsletter"
 msgstr ""
 
@@ -6842,9 +7787,6 @@ msgstr ""
 msgid "Total Recipients"
 msgstr ""
 
-msgid "Total Views"
-msgstr ""
-
 msgid "Test email sent to {0}"
 msgstr ""
 
@@ -6887,6 +7829,12 @@ msgstr ""
 msgid "Newsletter Email Group"
 msgstr ""
 
+msgid "Get Alerts for Today"
+msgstr ""
+
+msgid "No alerts for today"
+msgstr ""
+
 msgid "Channel"
 msgstr ""
 
@@ -6911,9 +7859,6 @@ msgid ""
 msgstr ""
 
 msgid "Send Alert On"
-msgstr ""
-
-msgid "Save"
 msgstr ""
 
 msgid "Days After"
@@ -7044,6 +7989,9 @@ msgstr ""
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr ""
 
+msgid "Error in Notification: {}"
+msgstr ""
+
 msgid "Notification Recipient"
 msgstr ""
 
@@ -7084,6 +8032,9 @@ msgid "Time format"
 msgstr ""
 
 msgid "Time Zones"
+msgstr ""
+
+msgid "This Currency is disabled. Enable to use in transactions"
 msgstr ""
 
 msgid "Currency Name"
@@ -7129,6 +8080,18 @@ msgid "Please enable {} before continuing."
 msgstr ""
 
 msgid "Please update {} before continuing."
+msgstr ""
+
+msgid "Get OpenID Configuration"
+msgstr ""
+
+msgid "Please enter OpenID Configuration URL"
+msgstr ""
+
+msgid "Please check OpenID Configuration URL"
+msgstr ""
+
+msgid "Connect to {}"
 msgstr ""
 
 msgid "Provider Name"
@@ -7180,6 +8143,12 @@ msgid "Invalid Parameters."
 msgstr ""
 
 msgid "Invalid state."
+msgstr ""
+
+msgid "Please enter values for App Access Key and App Secret Key"
+msgstr ""
+
+msgid "Take Backup Now"
 msgstr ""
 
 msgid "Dropbox Settings"
@@ -7248,6 +8217,18 @@ msgid "Illegal Access Token. Please try again"
 msgstr ""
 
 msgid "Dropbox access is approved!"
+msgstr ""
+
+msgid "To use Google Calendar, enable {0}."
+msgstr ""
+
+msgid "Syncing {0} of {1}"
+msgstr ""
+
+msgid "Sync Calendar"
+msgstr ""
+
+msgid "Syncing"
 msgstr ""
 
 msgid "Enable"
@@ -7343,6 +8324,15 @@ msgid ""
 "-<br>{0}"
 msgstr ""
 
+msgid "To use Google Contacts, enable {0}."
+msgstr ""
+
+msgid "Importing {0} of {1}"
+msgstr ""
+
+msgid "Sync Contacts"
+msgstr ""
+
 msgid "Last Sync On"
 msgstr ""
 
@@ -7385,6 +8375,20 @@ msgid ""
 "code {1}."
 msgstr ""
 
+msgid "To use Google Drive, enable {0}."
+msgstr ""
+
+msgid "Take Backup"
+msgstr ""
+
+msgid "Backing up to Google Drive."
+msgstr ""
+
+msgid ""
+"Click on <b>Authorize Google Drive Access</b> to authorize Google Drive "
+"Access."
+msgstr ""
+
 msgid "Google Drive"
 msgstr ""
 
@@ -7419,6 +8423,9 @@ msgid "Google Drive - Could not locate - {0}"
 msgstr ""
 
 msgid "Google Drive Backup Successful."
+msgstr ""
+
+msgid "For more information, {0}."
 msgstr ""
 
 msgid "Google Settings"
@@ -7808,6 +8815,9 @@ msgid "OAuth Scope"
 msgstr ""
 
 msgid "Scope"
+msgstr ""
+
+msgid "S3 Backup complete!"
 msgstr ""
 
 msgid "S3 Backup Settings"
@@ -8256,9 +9266,6 @@ msgstr ""
 msgid "Cannot map because following condition fails:"
 msgstr ""
 
-msgid "Created On"
-msgstr ""
-
 msgid "Document Status"
 msgstr ""
 
@@ -8500,6 +9507,18 @@ msgid ""
 msgstr ""
 
 msgid "Failed to connect to server"
+msgstr ""
+
+msgid "Please duplicate this to make changes"
+msgstr ""
+
+msgid "Edit Format"
+msgstr ""
+
+msgid "Please select DocType first"
+msgstr ""
+
+msgid "Set as Default"
 msgstr ""
 
 msgid "Custom Format"
@@ -8922,6 +9941,2771 @@ msgstr ""
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
 msgstr ""
 
+msgid "Full Page"
+msgstr ""
+
+msgid "PDF"
+msgstr ""
+
+msgid "Raw Printing Setting"
+msgstr ""
+
+msgid "Customize"
+msgstr ""
+
+msgid "Select Network Printer"
+msgstr ""
+
+msgid "New Print Format Name"
+msgstr ""
+
+msgid "Use the new Print Format Builder"
+msgstr ""
+
+msgid "New Custom Print Format"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "This may get printed on multiple pages"
+msgstr ""
+
+msgid "PDF printing via \"Raw Print\" is not supported."
+msgstr ""
+
+msgid "Please remove the printer mapping in Printer Settings and try again."
+msgstr ""
+
+msgid "Printer mapping not set."
+msgstr ""
+
+msgid "Please set a printer mapping for this print format in the Printer Settings"
+msgstr ""
+
+msgid "No Letterhead"
+msgstr ""
+
+msgid "Printer Settings"
+msgstr ""
+
+msgid "Printer Mapping"
+msgstr ""
+
+msgid "Printer"
+msgstr ""
+
+msgid "Cannot have multiple printers mapped to a single print format."
+msgstr ""
+
+msgid "No Printer is Available."
+msgstr ""
+
+msgid "Select Print Format to Edit"
+msgstr ""
+
+msgid "Select a DocType to make a new format"
+msgstr ""
+
+msgid "Name of the new Print Format"
+msgstr ""
+
+msgid "Both DocType and Name required"
+msgstr ""
+
+msgid "Start new Format"
+msgstr ""
+
+msgid "Edit Properties"
+msgstr ""
+
+msgid "Custom HTML"
+msgstr ""
+
+msgid "No of Columns"
+msgstr ""
+
+msgid "Section Heading"
+msgstr ""
+
+msgid "Will only be shown if section headings are enabled"
+msgstr ""
+
+msgid "Remove Section"
+msgstr ""
+
+msgid "Set Properties"
+msgstr ""
+
+msgid "Align Value"
+msgstr ""
+
+msgid "Remove Field"
+msgstr ""
+
+msgid "Edit Heading"
+msgstr ""
+
+msgid "Select Table Columns for {0}"
+msgstr ""
+
+msgid "Edit to add content"
+msgstr ""
+
+msgid "Edit Custom HTML"
+msgstr ""
+
+msgid ""
+"You can add dynamic properties from the document by using Jinja "
+"templating."
+msgstr ""
+
+msgid "For example: If you want to include the document ID, use {0}"
+msgstr ""
+
+msgid "Create or Edit Print Format"
+msgstr ""
+
+msgid "Create New"
+msgstr ""
+
+msgid "Edit Existing"
+msgstr ""
+
+msgid "Select Print Format"
+msgstr ""
+
+msgid "Take Photo"
+msgstr ""
+
+msgid "No Images"
+msgstr ""
+
+msgid "Switch Camera"
+msgstr ""
+
+msgid "Switching Camera"
+msgstr ""
+
+msgid "Capture"
+msgstr ""
+
+msgid "Camera"
+msgstr ""
+
+msgid "Unable to load camera."
+msgstr ""
+
+msgid "This value is fetched from {0}'s {1} field"
+msgstr ""
+
+msgid ""
+"The value you pasted was {0} characters long. Max allowed characters is "
+"{1}."
+msgstr ""
+
+msgid "this form"
+msgstr ""
+
+msgid "{0}: You can increase the limit for the field if required via {1}"
+msgstr ""
+
+msgid "Data Clipped"
+msgstr ""
+
+msgid "{0} already exists. Select another name"
+msgstr ""
+
+msgid "Today"
+msgstr ""
+
+msgid "Date {0} must be in format: {1}"
+msgstr ""
+
+msgid "Now"
+msgstr ""
+
+msgid "Time {0} must be in format: {1}"
+msgstr ""
+
+msgid "{0} to {1}"
+msgstr ""
+
+msgid "Please attach a file first."
+msgstr ""
+
+msgid "Create a new {0}"
+msgstr ""
+
+msgid "Advanced Search"
+msgstr ""
+
+msgid "Filters applied for {0}"
+msgstr ""
+
+msgid "{0} is not a valid DocType for Dynamic Link"
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Move to Row Number"
+msgstr ""
+
+msgid "Cannot move row"
+msgstr ""
+
+msgid "Move To"
+msgstr ""
+
+msgid "No."
+msgstr ""
+
+msgid "Configure Columns"
+msgstr ""
+
+msgid "Reset to default"
+msgstr ""
+
+msgid "{0} Fields"
+msgstr ""
+
+msgid "Select Fields"
+msgstr ""
+
+msgid "Column width cannot be zero."
+msgstr ""
+
+msgid "The total column width cannot be more than 10."
+msgstr ""
+
+msgid "At least one column is required to show in the grid."
+msgstr ""
+
+msgid "Invalid \"depends_on\" expression"
+msgstr ""
+
+msgid "1 = True & 0 = False"
+msgstr ""
+
+msgid "Password cannot be filtered"
+msgstr ""
+
+msgid "Are you sure you want to delete all rows?"
+msgstr ""
+
+msgid "Table updated"
+msgstr ""
+
+msgid "Bulk Edit {0}"
+msgstr ""
+
+msgid "The CSV format is case sensitive"
+msgstr ""
+
+msgid "Do not edit headers which are preset in the template"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Choose a color"
+msgstr ""
+
+msgid "Weak"
+msgstr ""
+
+msgid "Strong"
+msgstr ""
+
+msgid "Excellent"
+msgstr ""
+
+msgid "Include symbols, numbers and capital letters in the password"
+msgstr ""
+
+msgid "You can only insert images in Markdown fields"
+msgstr ""
+
+msgid "Insert Image in Markdown"
+msgstr ""
+
+msgid "{0} values selected"
+msgstr ""
+
+msgid "Choose an icon"
+msgstr ""
+
+msgid "Export Data"
+msgstr ""
+
+msgid "Export Type"
+msgstr ""
+
+msgid "All Records"
+msgstr ""
+
+msgid "Filtered Records"
+msgstr ""
+
+msgid "5 Records"
+msgstr ""
+
+msgid "Blank Template"
+msgstr ""
+
+msgid "{0} ({1}) (1 row mandatory)"
+msgstr ""
+
+msgid "{0} ({1})"
+msgstr ""
+
+msgid "Select Fields To Insert"
+msgstr ""
+
+msgid "Select Fields To Update"
+msgstr ""
+
+msgid "Select Mandatory"
+msgstr ""
+
+msgid "No records will be exported"
+msgstr ""
+
+msgid "1 record will be exported"
+msgstr ""
+
+msgid "{0} records will be exported"
+msgstr ""
+
+msgid "Export 1 record"
+msgstr ""
+
+msgid "Export {0} records"
+msgstr ""
+
+msgid "Untitled Column"
+msgstr ""
+
+msgid "Map Columns"
+msgstr ""
+
+msgid "Show Warnings"
+msgstr ""
+
+msgid "Don't Import"
+msgstr ""
+
+msgid "Parent"
+msgstr ""
+
+msgid "Unknown Column: {0}"
+msgstr ""
+
+msgid "Unable to load: {0}"
+msgstr ""
+
+msgid "Permanently delete {0}?"
+msgstr ""
+
+msgid "Deleting {0}..."
+msgstr ""
+
+msgid "Merge with existing"
+msgstr ""
+
+msgid "This cannot be undone"
+msgstr ""
+
+msgid "Rename {0}"
+msgstr ""
+
+msgid "Rename"
+msgstr ""
+
+msgid "Please specify"
+msgstr ""
+
+msgid ""
+"{|}~.]+@[-a-z0-9]+(.[-a-z0-9]+)*.[a-z]+)(?=$|s)/gmi, delimMailRegex = "
+"/<()(?:mailto:)?([-.w]+@[-a-z0-9]+(.[-a-z0-9]+)*.[a-z]+)>/gi, replaceLink"
+" = function(options) {\n"
+"          \"use strict\";\n"
+"          return function(wm, leadingMagicChars, link, m2, m3, "
+"trailingPunctuation, trailingMagicChars) {\n"
+"            link = "
+"link.replace(showdown2.helper.regexes.asteriskDashAndColon, "
+"showdown2.helper.escapeCharactersCallback);\n"
+"            var lnkTxt = link, append = \"\", target = \"\", lmc = "
+"leadingMagicChars || \"\", tmc = trailingMagicChars || \"\";\n"
+"            if (/^www./i.test(link)) {\n"
+"              link = link.replace(/^www./i, \"http://www.\");\n"
+"            }\n"
+"            if (options.excludeTrailingPunctuationFromURLs && "
+"trailingPunctuation) {\n"
+"              append = trailingPunctuation;\n"
+"            }\n"
+"            if (options.openLinksInNewWindow) {\n"
+"              target = ' rel=\"noopener noreferrer\" "
+"target=\"¨E95Eblank\"';\n"
+"            }\n"
+"            return lmc + '<a href=\"' + link + '\"' + target + \">\" + "
+"lnkTxt + \"</a>\" + append + tmc;\n"
+"          };\n"
+"        }, replaceMail = function(options, globals) {\n"
+"          \"use strict\";\n"
+"          return function(wholeMatch, b2, mail) {\n"
+"            var href = \"mailto:\";\n"
+"            b2 = b2 || \"\";\n"
+"            mail = showdown2.subParser(\"unescapeSpecialChars\")(mail, "
+"options, globals);\n"
+"            if (options.encodeEmails) {\n"
+"              href = showdown2.helper.encodeEmailAddress(href + mail);\n"
+"              mail = showdown2.helper.encodeEmailAddress(mail);\n"
+"            } else {\n"
+"              href = href + mail;\n"
+"            }\n"
+"            return b2 + '<a href=\"' + href + '\">' + mail + \"</a>\";\n"
+"          };\n"
+"        };\n"
+"        showdown2.subParser(\"autoLinks\", function(text, options, "
+"globals) {\n"
+"          \"use strict\";\n"
+"          text = globals.converter._dispatch(\"autoLinks.before\", text, "
+"options, globals);\n"
+"          text = text.replace(delimUrlRegex, replaceLink(options));\n"
+"          text = text.replace(delimMailRegex, replaceMail(options, "
+"globals));\n"
+"          text = globals.converter._dispatch(\"autoLinks.after\", text, "
+"options, globals);\n"
+"          return text;\n"
+"        });\n"
+"        showdown2.subParser(\"simplifiedAutoLinks\", function(text, "
+"options, globals) {\n"
+"          \"use strict\";\n"
+"          if (!options.simplifiedAutoLink) {\n"
+"            return text;\n"
+"          }\n"
+"          text = "
+"globals.converter._dispatch(\"simplifiedAutoLinks.before\", text, "
+"options, globals);\n"
+"          if (options.excludeTrailingPunctuationFromURLs) {\n"
+"            text = text.replace(simpleURLRegex2, replaceLink(options));\n"
+"          } else {\n"
+"            text = text.replace(simpleURLRegex, replaceLink(options));\n"
+"          }\n"
+"          text = text.replace(simpleMailRegex, replaceMail(options, "
+"globals));\n"
+"          text = "
+"globals.converter._dispatch(\"simplifiedAutoLinks.after\", text, options,"
+" globals);\n"
+"          return text;\n"
+"        });\n"
+"        showdown2.subParser(\"blockGamut\", function(text, options, "
+"globals) {\n"
+"          \"use strict\";\n"
+"          text = globals.converter._dispatch(\"blockGamut.before\", text,"
+" options, globals);\n"
+"          text = showdown2.subParser(\"blockQuotes\")(text, options, "
+"globals);\n"
+"          text = showdown2.subParser(\"headers\")(text, options, "
+"globals);\n"
+"          text = showdown2.subParser(\"horizontalRule\")(text, options, "
+"globals);\n"
+"          text = showdown2.subParser(\"lists\")(text, options, globals);\n"
+"          text = showdown2.subParser(\"codeBlocks\")(text, options, "
+"globals);\n"
+"          text = showdown2.subParser(\"tables\")(text, options, globals);"
+"\n"
+"          text = showdown2.subParser(\"hashHTMLBlocks\")(text, options, "
+"globals);\n"
+"          text = showdown2.subParser(\"paragraphs\")(text, options, "
+"globals);\n"
+"          text = globals.converter._dispatch(\"blockGamut.after\", text, "
+"options, globals);\n"
+"          return text;\n"
+"        });\n"
+"        showdown2.subParser(\"blockQuotes\", function(text, options, "
+"globals) {\n"
+"          \"use strict\";\n"
+"          text = globals.converter._dispatch(\"blockQuotes.before\", "
+"text, options, globals);\n"
+"          text = text + \"\n"
+"\n"
+"\";\n"
+"          var rgx = /(^ {0,3}>[ \t]?.+\n"
+"(.+\n"
+")*\n"
+"*)+/gm;\n"
+"          if (options.splitAdjacentBlockquotes) {\n"
+"            rgx = /^ {0,3}>[sS]*?(?:\n"
+"\n"
+")/gm;\n"
+"          }\n"
+"          text = text.replace(rgx, function(bq) {\n"
+"            bq = bq.replace(/^[ \t]*>[ \t]?/gm, \"\");\n"
+"            bq = bq.replace(/¨0/g, \"\");\n"
+"            bq = bq.replace(/^[ \t]+$/gm, \"\");\n"
+"            bq = showdown2.subParser(\"githubCodeBlocks\")(bq, options, "
+"globals);\n"
+"            bq = showdown2.subParser(\"blockGamut\")(bq, options, "
+"globals);\n"
+"            bq = bq.replace(/(^|\n"
+")/g, \"$1  \");\n"
+"            bq = bq.replace(/(s*<pre>[^\r"
+"]+?</pre>)/gm, function(wholeMatch, m1) {\n"
+"              var pre = m1;\n"
+"              pre = pre.replace(/^  /mg, \"¨0\");\n"
+"              pre = pre.replace(/¨0/g, \"\");\n"
+"              return pre;\n"
+"            });\n"
+"            return showdown2.subParser(\"hashBlock\")(\"<blockquote>\n"
+"\" + bq + \"\n"
+"</blockquote>\", options, globals);\n"
+"          });\n"
+"          text = globals.converter._dispatch(\"blockQuotes.after\", text,"
+" options, globals);\n"
+"          return text;\n"
+"        });\n"
+"        showdown2.subParser(\"codeBlocks\", function(text, options, "
+"globals) {\n"
+"          \"use strict\";\n"
+"          text = globals.converter._dispatch(\"codeBlocks.before\", text,"
+" options, globals);\n"
+"          text += \"¨0\";\n"
+"          var pattern = /(?:\n"
+"\n"
+"|^)((?:(?:[ ]{4}|\t).*\n"
+"+)+)(\n"
+"*[ ]{0,3}[^ \t\n"
+"]|(?=¨0))/g;\n"
+"          text = text.replace(pattern, function(wholeMatch, m1, m2) {\n"
+"            var codeblock = m1, nextChar = m2, end = \"\n"
+"\";\n"
+"            codeblock = showdown2.subParser(\"outdent\")(codeblock, "
+"options, globals);\n"
+"            codeblock = showdown2.subParser(\"encodeCode\")(codeblock, "
+"options, globals);\n"
+"            codeblock = showdown2.subParser(\"detab\")(codeblock, "
+"options, globals);\n"
+"            codeblock = codeblock.replace(/^\n"
+"+/g, \"\");\n"
+"            codeblock = codeblock.replace(/\n"
+"+$/g, \"\");\n"
+"            if (options.omitExtraWLInCodeBlocks) {\n"
+"              end = \"\";\n"
+"            }\n"
+"            codeblock = \"<pre><code>\" + codeblock + end + "
+"\"</code></pre>\";\n"
+"            return showdown2.subParser(\"hashBlock\")(codeblock, options,"
+" globals) + nextChar;\n"
+"          });\n"
+"          text = text.replace(/¨0/, \"\");\n"
+"          text = globals.converter._dispatch(\"codeBlocks.after\", text, "
+"options, globals);\n"
+"          return text;\n"
+"        });\n"
+"        showdown2.subParser(\"codeSpans\", function(text, options, "
+"globals) {\n"
+"          \"use strict\";\n"
+"          text = globals.converter._dispatch(\"codeSpans.before\", text, "
+"options, globals);\n"
+"          if (typeof text === \"undefined\") {\n"
+"            text = \"\";\n"
+"          }\n"
+"          text = text.replace(/(^|[^\\])("
+msgstr ""
+
+msgid "Help on Search"
+msgstr ""
+
+msgid "Create a new record"
+msgstr ""
+
+msgid "new type of document"
+msgstr ""
+
+msgid "List a document type"
+msgstr ""
+
+msgid "document type..., e.g. customer"
+msgstr ""
+
+msgid "Search in a document type"
+msgstr ""
+
+msgid "text in document type"
+msgstr ""
+
+msgid "tag name..., e.g. #tag"
+msgstr ""
+
+msgid "Open a module or tool"
+msgstr ""
+
+msgid "module name..."
+msgstr ""
+
+msgid "Calculate"
+msgstr ""
+
+msgid "e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)..."
+msgstr ""
+
+msgid "Search Help"
+msgstr ""
+
+msgid "Search for {0}"
+msgstr ""
+
+msgid "Find {0} in {1}"
+msgstr ""
+
+msgid "{0} = {1}"
+msgstr ""
+
+msgid "Result"
+msgstr ""
+
+msgid "Generate Random Password"
+msgstr ""
+
+msgid "Invalid expression set in filter {0} ({1})"
+msgstr ""
+
+msgid "Invalid expression set in filter {0}"
+msgstr ""
+
+msgid "Select Dashboard"
+msgstr ""
+
+msgid "Add to Dashboard"
+msgstr ""
+
+msgid "{0} {1} added to Dashboard {2}"
+msgstr ""
+
+msgid "You are connected to internet."
+msgstr ""
+
+msgid "Connection lost. Some features might not work."
+msgstr ""
+
+msgid "Hide details"
+msgstr ""
+
+msgid "Show more details"
+msgstr ""
+
+msgid "Show Fieldname (click to copy on clipboard)"
+msgstr ""
+
+msgid "Missing Values Required"
+msgstr ""
+
+msgid "Following fields have missing values:"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid "Enter Value"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Enter your password"
+msgstr ""
+
+msgid "Verify Password"
+msgstr ""
+
+msgid "Verify"
+msgstr ""
+
+msgid "Global Shortcuts"
+msgstr ""
+
+msgid "Page Shortcuts"
+msgstr ""
+
+msgid "Grid Shortcuts"
+msgstr ""
+
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+msgid "Trigger Primary Action"
+msgstr ""
+
+msgid "Open Awesomebar"
+msgstr ""
+
+msgid "Navigate Home"
+msgstr ""
+
+msgid "Open Settings"
+msgstr ""
+
+msgid "Show Keyboard Shortcuts"
+msgstr ""
+
+msgid "Open Help"
+msgstr ""
+
+msgid "Clear Cache and Reload"
+msgstr ""
+
+msgid "Connection Lost"
+msgstr ""
+
+msgid "You are not connected to Internet. Retry after sometime."
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid ""
+"You do not have enough permissions to access this resource. Please "
+"contact your manager to get access."
+msgstr ""
+
+msgid "Please try again"
+msgstr ""
+
+msgid ""
+"Another transaction is blocking this one. Please try again in a few "
+"seconds."
+msgstr ""
+
+msgid "File too big"
+msgstr ""
+
+msgid "Request Timed Out"
+msgstr ""
+
+msgid "Internal Server Error"
+msgstr ""
+
+msgid "Request Timeout"
+msgstr ""
+
+msgid "Server was too busy to process this request. Please try again."
+msgstr ""
+
+msgid "Deadlock Occurred"
+msgstr ""
+
+msgid "Server Error"
+msgstr ""
+
+msgid "Support Email Address Not Specified"
+msgstr ""
+
+msgid "Copy error to clipboard"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "T"
+msgstr ""
+
+msgid "B"
+msgstr ""
+
+msgid "M"
+msgstr ""
+
+msgid "K"
+msgstr ""
+
+msgid "Cr"
+msgstr ""
+
+msgid "Lakh"
+msgstr ""
+
+msgid "or"
+msgstr ""
+
+msgid "and"
+msgstr ""
+
+msgid "Note: Changing the Page Name will break previous URL to this page."
+msgstr ""
+
+msgid "{0} Report"
+msgstr ""
+
+msgid "{0} List"
+msgstr ""
+
+msgid "{0} Modules"
+msgstr ""
+
+msgid "Copied to clipboard."
+msgstr ""
+
+msgid "d"
+msgstr ""
+
+msgid "h"
+msgstr ""
+
+msgid "m"
+msgstr ""
+
+msgid "s"
+msgstr ""
+
+msgid "Please enable pop-ups in your browser"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
+msgid "Toggle Sidebar"
+msgstr ""
+
+msgid "Select {0}"
+msgstr ""
+
+msgid "Beginning with"
+msgstr ""
+
+msgid "You can use wildcard %"
+msgstr ""
+
+msgid "More"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "No Results"
+msgstr ""
+
+msgid "Added {0} ({1})"
+msgstr ""
+
+msgid "Set Quantity"
+msgstr ""
+
+msgid "{0} {1} added"
+msgstr ""
+
+msgid "{0} added"
+msgstr ""
+
+msgid "Get Items"
+msgstr ""
+
+msgid "Make {0}"
+msgstr ""
+
+msgid "Switch Theme"
+msgstr ""
+
+msgid "Frappe Light"
+msgstr ""
+
+msgid "Light Theme"
+msgstr ""
+
+msgid "Timeless Night"
+msgstr ""
+
+msgid "Dark Theme"
+msgstr ""
+
+msgid "Uses system's theme to switch between light and dark mode"
+msgstr ""
+
+msgid "Theme Changed"
+msgstr ""
+
+msgid "Warning: Unable to find {0} in any table related to {1}"
+msgstr ""
+
+msgid "You have unsaved changes in this form. Please save before you continue."
+msgstr ""
+
+msgid "You"
+msgstr ""
+
+msgid "now"
+msgstr ""
+
+msgid "{0} m"
+msgstr ""
+
+msgid "{0} h"
+msgstr ""
+
+msgid "{0} d"
+msgstr ""
+
+msgid "{0} w"
+msgstr ""
+
+msgid "{0} M"
+msgstr ""
+
+msgid "{0} y"
+msgstr ""
+
+msgid "just now"
+msgstr ""
+
+msgid "1 minute ago"
+msgstr ""
+
+msgid "{0} minutes ago"
+msgstr ""
+
+msgid "1 hour ago"
+msgstr ""
+
+msgid "{0} hours ago"
+msgstr ""
+
+msgid "yesterday"
+msgstr ""
+
+msgid "{0} days ago"
+msgstr ""
+
+msgid "1 week ago"
+msgstr ""
+
+msgid "{0} weeks ago"
+msgstr ""
+
+msgid "1 month ago"
+msgstr ""
+
+msgid "{0} months ago"
+msgstr ""
+
+msgid "1 year ago"
+msgstr ""
+
+msgid "{0} years ago"
+msgstr ""
+
+msgid "Export not allowed. You need {0} role to export."
+msgstr ""
+
+msgid "From version"
+msgstr ""
+
+msgid "To version"
+msgstr ""
+
+msgid "Diff"
+msgstr ""
+
+msgid "Select two versions to view the diff."
+msgstr ""
+
+msgid "Sort Ascending"
+msgstr ""
+
+msgid "Sort Descending"
+msgstr ""
+
+msgid "Reset sorting"
+msgstr ""
+
+msgid "Remove column"
+msgstr ""
+
+msgid "{count} cell copied"
+msgstr ""
+
+msgid "{count} cells copied"
+msgstr ""
+
+msgid "{count} row selected"
+msgstr ""
+
+msgid "{count} rows selected"
+msgstr ""
+
+msgid "Page not found"
+msgstr ""
+
+msgid "Sorry! I could not find what you were looking for."
+msgstr ""
+
+msgid "Sorry! You are not permitted to view this page."
+msgstr ""
+
+msgid "Mark all as read"
+msgstr ""
+
+msgid "Today's Events"
+msgstr ""
+
+msgid "Rest of the day"
+msgstr ""
+
+msgid "Search for anything"
+msgstr ""
+
+msgid "No Results found"
+msgstr ""
+
+msgid "No documents found tagged with {0}"
+msgstr ""
+
+msgid "Searching ..."
+msgstr ""
+
+msgid "#{0}"
+msgstr ""
+
+msgid "{0} ${label}"
+msgstr ""
+
+msgid "new"
+msgstr ""
+
+msgid "New {0}"
+msgstr ""
+
+msgid "{0} ${skip_list ? \"\" : type}"
+msgstr ""
+
+msgid "{0} ${type}"
+msgstr ""
+
+msgid "Report {0}"
+msgstr ""
+
+msgid "calendar"
+msgstr ""
+
+msgid "hub"
+msgstr ""
+
+msgid "email inbox"
+msgstr ""
+
+msgid "Recents"
+msgstr ""
+
+msgid "Create a new ..."
+msgstr ""
+
+msgid "Lists"
+msgstr ""
+
+msgid "Administration"
+msgstr ""
+
+msgid "Find '{0}' in ..."
+msgstr ""
+
+msgid "Frappe Framework"
+msgstr ""
+
+msgid "Custom Script List"
+msgstr ""
+
+msgid "Session Defaults Saved"
+msgstr ""
+
+msgid "An error occurred while setting Session Defaults"
+msgstr ""
+
+msgid ""
+"Your subscription will end in ${cstr(diff_days).bold()} ${diff_days > 1 ?"
+" \"days\" : \"day\"}. After that your site will be suspended."
+msgstr ""
+
+msgid "No active subscriptions found."
+msgstr ""
+
+msgid "New Email"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Send me a copy"
+msgstr ""
+
+msgid "Send Read Receipt"
+msgstr ""
+
+msgid "Attach Document Print"
+msgstr ""
+
+msgid "Select Languages"
+msgstr ""
+
+msgid "Select Attachments"
+msgstr ""
+
+msgid "Enter Email Recipient(s)"
+msgstr ""
+
+msgid "You are not allowed to send emails related to this document"
+msgstr ""
+
+msgid "Email not sent to {0} (unsubscribed / disabled)"
+msgstr ""
+
+msgid "There were errors while sending email. Please try again."
+msgstr ""
+
+msgid "Message clipped"
+msgstr ""
+
+msgid "Translate {0}"
+msgstr ""
+
+msgid "Update Translations"
+msgstr ""
+
+msgid "Successfully updated translations"
+msgstr ""
+
+msgid "Translations"
+msgstr ""
+
+msgid "Something went wrong"
+msgstr ""
+
+msgid "Create Workspace"
+msgstr ""
+
+msgid "Saving"
+msgstr ""
+
+msgid "Customizations Discarded"
+msgstr ""
+
+msgid "Only Workspace Manager can sort or edit this page"
+msgstr ""
+
+msgid "Duplicate Workspace"
+msgstr ""
+
+msgid "Unhide Workspace"
+msgstr ""
+
+msgid "Drag"
+msgstr ""
+
+msgid "Update Details"
+msgstr ""
+
+msgid "Workspace {0} Edited Successfully"
+msgstr ""
+
+msgid "Edit Workspace"
+msgstr ""
+
+msgid "Duplicate"
+msgstr ""
+
+msgid "Hide Workspace"
+msgstr ""
+
+msgid "Delete Workspace"
+msgstr ""
+
+msgid "Are you sure you want to delete page {0}?"
+msgstr ""
+
+msgid "Workspace {0} Deleted Successfully"
+msgstr ""
+
+msgid "Create Duplicate"
+msgstr ""
+
+msgid "Duplicate of {0} named as {1} is created successfully"
+msgstr ""
+
+msgid "New Workspace"
+msgstr ""
+
+msgid "Workspace {0} Created Successfully"
+msgstr ""
+
+msgid "Page with title {0} already exist."
+msgstr ""
+
+msgid "Doctype with same route already exist. Please choose different title."
+msgstr ""
+
+msgid ""
+"One of the child page with name {0} already exist in {1} Section. Please "
+"update the name of the child page first before moving"
+msgstr ""
+
+msgid "Choose a block or continue typing"
+msgstr ""
+
+msgid "No changes made on the page"
+msgstr ""
+
+msgid "Page Saved Successfully"
+msgstr ""
+
+msgid "Add Filters"
+msgstr ""
+
+msgid "Card Links"
+msgstr ""
+
+msgid "You must add atleast one link."
+msgstr ""
+
+msgid "Following fields have missing values"
+msgstr ""
+
+msgid "Count Customizations"
+msgstr ""
+
+msgid "For Example: {} Open"
+msgstr ""
+
+msgid "Choose Existing Card or create New Card"
+msgstr ""
+
+msgid "Number Cards"
+msgstr ""
+
+msgid "Function Based On"
+msgstr ""
+
+msgid "Templates"
+msgstr ""
+
+msgid "Let's Get Started"
+msgstr ""
+
+msgid "Show"
+msgstr ""
+
+msgid "Reset Chart"
+msgstr ""
+
+msgid "No Filters Set"
+msgstr ""
+
+msgid "Set Filters for {0}"
+msgstr ""
+
+msgid "Last synced {0}"
+msgstr ""
+
+msgid "You can continue with the onboarding after exploring this page"
+msgstr ""
+
+msgid "Awesome Work"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Go Back"
+msgstr ""
+
+msgid "Let's take you back to onboarding"
+msgstr ""
+
+msgid "Onboarding complete"
+msgstr ""
+
+msgid "Action Complete"
+msgstr ""
+
+msgid "Looks like you didn't change the value"
+msgstr ""
+
+msgid "Try Again"
+msgstr ""
+
+msgid "Skip Step"
+msgstr ""
+
+msgid "Awesome, now try making an entry yourself"
+msgstr ""
+
+msgid "Document Saved"
+msgstr ""
+
+msgid "Submit this document to complete this step."
+msgstr ""
+
+msgid "Let us continue with the onboarding"
+msgstr ""
+
+msgid "You seem good to go!"
+msgstr ""
+
+msgid ""
+"Congratulations on completing the module setup. If you want to learn more"
+" you can refer to the documentation <a target=\"_blank\" "
+"href=\"{0}\">here</a>."
+msgstr ""
+
+msgid "since yesterday"
+msgstr ""
+
+msgid "since last week"
+msgstr ""
+
+msgid "since last month"
+msgstr ""
+
+msgid "since last year"
+msgstr ""
+
+msgid "Set"
+msgstr ""
+
+msgid "ascending"
+msgstr ""
+
+msgid "descending"
+msgstr ""
+
+msgid "Most Used"
+msgstr ""
+
+msgid "Browser not supported"
+msgstr ""
+
+msgid ""
+"Some of the features might not work in your browser. Please update your "
+"browser to the latest version."
+msgstr ""
+
+msgid "Session Start Failed"
+msgstr ""
+
+msgid ""
+"Using this console may allow attackers to impersonate you and steal your "
+"information. Do not enter or paste code that you do not understand."
+msgstr ""
+
+msgid ""
+"The application has been updated to a new version, please refresh this "
+"page"
+msgstr ""
+
+msgid "Version Updated"
+msgstr ""
+
+msgid "Password missing in Email Account"
+msgstr ""
+
+msgid "Please enter the password for: <b>{0}</b>"
+msgstr ""
+
+msgid "Checking one moment"
+msgstr ""
+
+msgid "Login Failed please try again"
+msgstr ""
+
+msgid "Please Enter Your Password to Continue"
+msgstr ""
+
+msgid "Authenticating..."
+msgstr ""
+
+msgid "Updated To A New Version u{1F389}"
+msgstr ""
+
+msgid "Creating {0}"
+msgstr ""
+
+msgid "{0} appreciated on {1}"
+msgstr ""
+
+msgid "{0} criticized on {1}"
+msgstr ""
+
+msgid "{0} reverted {1}"
+msgstr ""
+
+msgid "via automatic rule {0} on {1}"
+msgstr ""
+
+msgid "{0} appreciated {1}"
+msgstr ""
+
+msgid "{0} criticized {1}"
+msgstr ""
+
+msgid "gained by {0} via automatic rule {1}"
+msgstr ""
+
+msgid ""
+"Length of passed data array is greater than value of maximum allowed "
+"label points!"
+msgstr ""
+
+msgid "Scan QRCode"
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "Load more"
+msgstr ""
+
+msgid "Search Results"
+msgstr ""
+
+msgid "← Back to upload files"
+msgstr ""
+
+msgid "Search by filename or extension"
+msgstr ""
+
+msgid "Attach a web link"
+msgstr ""
+
+msgid "Google Authentication was closed abruptly by the user"
+msgstr ""
+
+msgid "Google Authentication Error"
+msgstr ""
+
+msgid "1:1"
+msgstr ""
+
+msgid "4:3"
+msgstr ""
+
+msgid "16:9"
+msgstr ""
+
+msgid "Free"
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Crop"
+msgstr ""
+
+msgid ""
+"File \"{0}\" was skipped because only {1} uploads are allowed for DocType"
+" \"{2}\""
+msgstr ""
+
+msgid "File \"{0}\" was skipped because only {1} uploads are allowed"
+msgstr ""
+
+msgid "File \"{0}\" was skipped because of invalid file type"
+msgstr ""
+
+msgid "File \"{0}\" was skipped because size exceeds {1} MB"
+msgstr ""
+
+msgid "Click on a file to select it."
+msgstr ""
+
+msgid "Drag and drop files here or upload from"
+msgstr ""
+
+msgid "My Device"
+msgstr ""
+
+msgid "Library"
+msgstr ""
+
+msgid "Drop files here"
+msgstr ""
+
+msgid "Upload file"
+msgstr ""
+
+msgid "Upload {0} files"
+msgstr ""
+
+msgid "Click on the lock icon to toggle public/private"
+msgstr ""
+
+msgid "Set all public"
+msgstr ""
+
+msgid "Set all private"
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Error in Client Script"
+msgstr ""
+
+msgid "Error in Client Script."
+msgstr ""
+
+msgid "{0} Name"
+msgstr ""
+
+msgid "Saving..."
+msgstr ""
+
+msgid "Edit Full Form"
+msgstr ""
+
+msgid "Linked With"
+msgstr ""
+
+msgid "Not Linked to any record"
+msgstr ""
+
+msgid "Currently Viewing"
+msgstr ""
+
+msgid "Unchanged"
+msgstr ""
+
+msgid "Are you sure you want to merge {0} with {1}?"
+msgstr ""
+
+msgid "Updating related fields..."
+msgstr ""
+
+msgid "Document renaming from {0} to {1} has been queued"
+msgstr ""
+
+msgid "Not Saved"
+msgstr ""
+
+msgid "Previous Document"
+msgstr ""
+
+msgid "Next Document"
+msgstr ""
+
+msgid "Jump to field"
+msgstr ""
+
+msgid "Copy to Clipboard"
+msgstr ""
+
+msgid "Repeat"
+msgstr ""
+
+msgid "Edit DocType"
+msgstr ""
+
+msgid "Graph"
+msgstr ""
+
+msgid "None: End of Workflow"
+msgstr ""
+
+msgid "Submitting"
+msgstr ""
+
+msgid "Updating"
+msgstr ""
+
+msgid "Amending"
+msgstr ""
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "No changes in document"
+msgstr ""
+
+msgid "Mandatory fields required in table {0}, Row {1}"
+msgstr ""
+
+msgid "Mandatory fields required in {0}"
+msgstr ""
+
+msgid "Missing Fields"
+msgstr ""
+
+msgid "Invalid \"mandatory_depends_on\" expression"
+msgstr ""
+
+msgid "With Letter head"
+msgstr ""
+
+msgid "Orientation"
+msgstr ""
+
+msgid "Landscape"
+msgstr ""
+
+msgid "Portrait"
+msgstr ""
+
+msgid "Pick Columns"
+msgstr ""
+
+msgid "Select Columns"
+msgstr ""
+
+msgid "Attempting Connection to QZ Tray..."
+msgstr ""
+
+msgid "Connected to QZ Tray!"
+msgstr ""
+
+msgid "Attempting to launch QZ Tray..."
+msgstr ""
+
+msgid ""
+"Error connecting to QZ Tray Application...<br><br> You need to have QZ "
+"Tray application installed and running, to use the Raw Print "
+"feature.<br><br><a target=\"_blank\" "
+"href=\"https://qz.io/download/\">Click here to Download and install QZ "
+"Tray</a>.<br> <a target=\"_blank\" "
+"href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-"
+"printing\">Click here to learn more about Raw Printing</a>."
+msgstr ""
+
+msgid "Print Sent to the printer!"
+msgstr ""
+
+msgid "QZ Tray Failed: "
+msgstr ""
+
+msgid "Please save the document before assignment"
+msgstr ""
+
+msgid "Please save the document before removing assignment"
+msgstr ""
+
+msgid "Add to ToDo"
+msgstr ""
+
+msgid "Assign to me"
+msgstr ""
+
+msgid "Assign To"
+msgstr ""
+
+msgid "Complete By"
+msgstr ""
+
+msgid "Assign a user"
+msgstr ""
+
+msgid "Assigning..."
+msgstr ""
+
+msgid "Maximum attachment limit of {0} has been reached."
+msgstr ""
+
+msgid "Are you sure you want to delete the attachment?"
+msgstr ""
+
+msgid "There were errors"
+msgstr ""
+
+msgid "Share {0} with"
+msgstr ""
+
+msgid "Share With"
+msgstr ""
+
+msgid "Add Review"
+msgstr ""
+
+msgid "To User"
+msgstr ""
+
+msgid "Only users involved in the document are listed"
+msgstr ""
+
+msgid "Appreciate"
+msgstr ""
+
+msgid "Criticize"
+msgstr ""
+
+msgid "Points"
+msgstr ""
+
+msgid "Currently you have {0} review points"
+msgstr ""
+
+msgid "You do not have enough points"
+msgstr ""
+
+msgid "{0} appreciation point for {1}"
+msgstr ""
+
+msgid "{0} appreciation points for {1}"
+msgstr ""
+
+msgid "{0} criticism point for {1}"
+msgstr ""
+
+msgid "{0} criticism points for {1}"
+msgstr ""
+
+msgid ""
+"You are now following this document. You will receive daily updates via "
+"email. You can change this in User Settings."
+msgstr ""
+
+msgid "You unfollowed this document"
+msgstr ""
+
+msgid "{0} is currently {1}"
+msgstr ""
+
+msgid "{0} are currently {1}"
+msgstr ""
+
+msgid "{0} Page Views"
+msgstr ""
+
+msgid "{0} edited this {1}"
+msgstr ""
+
+msgid "{0} created this {1}"
+msgstr ""
+
+msgid "Repeats {0}"
+msgstr ""
+
+msgid "Unfollow"
+msgstr ""
+
+msgid "Follow"
+msgstr ""
+
+msgid "via {0}"
+msgstr ""
+
+msgid "You submitted this document {0}"
+msgstr ""
+
+msgid "{0} submitted this document {1}"
+msgstr ""
+
+msgid "You submitted this document"
+msgstr ""
+
+msgid "{0} submitted this document"
+msgstr ""
+
+msgid "You cancelled this document {1}"
+msgstr ""
+
+msgid "{0} cancelled this document {1}"
+msgstr ""
+
+msgid "You cancelled this document"
+msgstr ""
+
+msgid "{0} cancelled this document"
+msgstr ""
+
+msgid "{0} from {1} to {2}"
+msgstr ""
+
+msgid "You changed the value of {0} {1}"
+msgstr ""
+
+msgid "{0} changed the value of {1} {2}"
+msgstr ""
+
+msgid "You changed the value of {0}"
+msgstr ""
+
+msgid "{0} changed the value of {1}"
+msgstr ""
+
+msgid "{0} from {1} to {2} in row #{3}"
+msgstr ""
+
+msgid "You changed the values for {0} {1}"
+msgstr ""
+
+msgid "{0} changed the values for {1} {2}"
+msgstr ""
+
+msgid "You changed the values for {0}"
+msgstr ""
+
+msgid "{0} changed the values for {1}"
+msgstr ""
+
+msgid "added rows for {0}"
+msgstr ""
+
+msgid "removed rows for {0}"
+msgstr ""
+
+msgid "New Event"
+msgstr ""
+
+msgid "Add to this activity by mailing to {0}"
+msgstr ""
+
+msgid "{0} Web page views"
+msgstr ""
+
+msgid "You created this"
+msgstr ""
+
+msgid "{0} created this"
+msgstr ""
+
+msgid "You last edited this"
+msgstr ""
+
+msgid "{0} last edited this"
+msgstr ""
+
+msgid "You viewed this {0}"
+msgstr ""
+
+msgid "{0} viewed this {1}"
+msgstr ""
+
+msgid "You attached {0}"
+msgstr ""
+
+msgid "{0} attached {1}"
+msgstr ""
+
+msgid "You removed attachment {0}"
+msgstr ""
+
+msgid "{0} removed attachment {1}"
+msgstr ""
+
+msgid "You changed {0} to {1}"
+msgstr ""
+
+msgid "{0} changed {1} to {2}"
+msgstr ""
+
+msgid "You Liked"
+msgstr ""
+
+msgid "{0} Liked"
+msgstr ""
+
+msgid "Delete comment?"
+msgstr ""
+
+msgid "Enter a name for this {0}"
+msgstr ""
+
+msgid "Add a Row"
+msgstr ""
+
+msgid "Select an Image"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "Nothing left to undo"
+msgstr ""
+
+msgid "Nothing left to redo"
+msgstr ""
+
+msgid "Go to next record"
+msgstr ""
+
+msgid "Go to previous record"
+msgstr ""
+
+msgid "Undo last action"
+msgstr ""
+
+msgid "Redo last action"
+msgstr ""
+
+msgid "Move cursor to above row"
+msgstr ""
+
+msgid "Move cursor to below row"
+msgstr ""
+
+msgid "Move cursor to next column"
+msgstr ""
+
+msgid "Move cursor to previous column"
+msgstr ""
+
+msgid "Add a row above the current row"
+msgstr ""
+
+msgid "Add a row below the current row"
+msgstr ""
+
+msgid "Add a row at the top"
+msgstr ""
+
+msgid "Add a row at the bottom"
+msgstr ""
+
+msgid "Duplicate current row"
+msgstr ""
+
+msgid "Please save before attaching."
+msgstr ""
+
+msgid "{} Complete"
+msgstr ""
+
+msgid "Permanently Submit {0}?"
+msgstr ""
+
+msgid "{0} {1} is linked with the following submitted documents: {2}"
+msgstr ""
+
+msgid "Do you want to cancel all linked documents?"
+msgstr ""
+
+msgid "You do not have permissions to cancel all linked documents."
+msgstr ""
+
+msgid "Cancel All Documents"
+msgstr ""
+
+msgid "Permanently Cancel {0}?"
+msgstr ""
+
+msgid "\"amended_from\" field must be present to do an amendment."
+msgstr ""
+
+msgid "This document is already amended, you cannot ammend it again"
+msgstr ""
+
+msgid "No permission to '{0}' {1}"
+msgstr ""
+
+msgid "This form has been modified after you have loaded it"
+msgstr ""
+
+msgid "Submit this document to confirm"
+msgstr ""
+
+msgid "See on Website"
+msgstr ""
+
+msgid "Allowing DocType, DocType. Be careful!"
+msgstr ""
+
+msgid "Field {0} not found."
+msgstr ""
+
+msgid "Previous Submission"
+msgstr ""
+
+msgid "You are not allowed to create columns"
+msgstr ""
+
+msgid "Archived Columns"
+msgstr ""
+
+msgid "Tree view is not available for {0}"
+msgstr ""
+
+msgid "Collapse All"
+msgstr ""
+
+msgid "Expand All"
+msgstr ""
+
+msgid "{0} Tree"
+msgstr ""
+
+msgid "Add Child"
+msgstr ""
+
+msgid "Select a group node first."
+msgstr ""
+
+msgid "Group Node"
+msgstr ""
+
+msgid "Further nodes can be only created under 'Group' type nodes"
+msgstr ""
+
+msgid "You are not allowed to print this report"
+msgstr ""
+
+msgid "View List"
+msgstr ""
+
+msgid "Rebuild Tree"
+msgstr ""
+
+msgid "Draft"
+msgstr ""
+
+msgid "Equals"
+msgstr ""
+
+msgid "Not Equals"
+msgstr ""
+
+msgid "Not Like"
+msgstr ""
+
+msgid "In"
+msgstr ""
+
+msgid "Not In"
+msgstr ""
+
+msgid "Is"
+msgstr ""
+
+msgid "Between"
+msgstr ""
+
+msgid "Descendants Of"
+msgstr ""
+
+msgid "Not Descendants Of"
+msgstr ""
+
+msgid "Ancestors Of"
+msgstr ""
+
+msgid "Not Ancestors Of"
+msgstr ""
+
+msgid "values separated by commas"
+msgstr ""
+
+msgid "use % as wildcard"
+msgstr ""
+
+msgid "Not Set"
+msgstr ""
+
+msgid "{0} filters"
+msgstr ""
+
+msgid "{0} filter"
+msgstr ""
+
+msgid "Invalid filter: {0}"
+msgstr ""
+
+msgid "Apply Filters"
+msgstr ""
+
+msgid "Add a tag ..."
+msgstr ""
+
+msgid "{0} View"
+msgstr ""
+
+msgid "Nothing to show"
+msgstr ""
+
+msgid "Doctype required"
+msgstr ""
+
+msgid "You selected Draft or Cancelled documents"
+msgstr ""
+
+msgid "Select atleast 1 record for printing"
+msgstr ""
+
+msgid "Print Documents"
+msgstr ""
+
+msgid "Page Size"
+msgstr ""
+
+msgid "Page Height (in mm)"
+msgstr ""
+
+msgid "Page Width (in mm)"
+msgstr ""
+
+msgid "Cannot delete {0}"
+msgstr ""
+
+msgid "Select records for assignment"
+msgstr ""
+
+msgid "Cannot {0} {1}"
+msgstr ""
+
+msgid "Bulk Edit"
+msgstr ""
+
+msgid "Updated successfully"
+msgstr ""
+
+msgid "Update {0} records"
+msgstr ""
+
+msgid "You have not entered a value. The field will be set to empty."
+msgstr ""
+
+msgid "Add Tags"
+msgstr ""
+
+msgid "{0} Settings"
+msgstr ""
+
+msgid "Reset Fields"
+msgstr ""
+
+msgid "Not permitted to view {0}"
+msgstr ""
+
+msgid "Restrictions"
+msgstr ""
+
+msgid "No {0} found"
+msgstr ""
+
+msgid "You haven't created a {0} yet"
+msgstr ""
+
+msgid "Create your first {0}"
+msgstr ""
+
+msgid "{0} of {1}"
+msgstr ""
+
+msgid "{0} of {1} ({2} rows with children)"
+msgstr ""
+
+msgid "Document is in draft state"
+msgstr ""
+
+msgid "Document has been submitted"
+msgstr ""
+
+msgid "Document has been cancelled"
+msgstr ""
+
+msgid "Navigate list down"
+msgstr ""
+
+msgid "Navigate list up"
+msgstr ""
+
+msgid "Select multiple list items"
+msgstr ""
+
+msgid "Open list item"
+msgstr ""
+
+msgid "Select list item"
+msgstr ""
+
+msgid "{0} items selected"
+msgstr ""
+
+msgid "Hide Tags"
+msgstr ""
+
+msgid "Show Tags"
+msgstr ""
+
+msgid "User Permissions"
+msgstr ""
+
+msgid "Apply Assignment Rule"
+msgstr ""
+
+msgid "Delete {0} item permanently?"
+msgstr ""
+
+msgid "Delete {0} items permanently?"
+msgstr ""
+
+msgid "Cancel {0} documents?"
+msgstr ""
+
+msgid "Submit {0} documents?"
+msgstr ""
+
+msgid "New Email Account"
+msgstr ""
+
+msgid "Select Kanban"
+msgstr ""
+
+msgid "Create New Kanban Board"
+msgstr ""
+
+msgid "Is Global"
+msgstr ""
+
+msgid "Hide Saved"
+msgstr ""
+
+msgid "Show Saved"
+msgstr ""
+
+msgid "Are you sure you want to remove the {0} filter?"
+msgstr ""
+
+msgid "Press Enter to save"
+msgstr ""
+
+msgid "Duplicate Filter Name"
+msgstr ""
+
+msgid "Select Filters"
+msgstr ""
+
+msgid "Me"
+msgstr ""
+
+msgid "Gantt"
+msgstr ""
+
+msgid "{0} ({1}) - {2}%"
+msgstr ""
+
+msgid "{0} Calendar"
+msgstr ""
+
+msgid "{0} is not a valid Calendar. Redirecting to default Calendar."
+msgstr ""
+
+msgid "Select or drag across time slots to create a new event."
+msgstr ""
+
+msgid "Hide Weekends"
+msgstr ""
+
+msgid "Show Weekends"
+msgstr ""
+
+msgid "Unable to update event"
+msgstr ""
+
+msgid "Customize Dashboard"
+msgstr ""
+
+msgid "Reset Dashboard Customizations"
+msgstr ""
+
+msgid "Save Customizations"
+msgstr ""
+
+msgid "Are you sure you want to reset all customizations?"
+msgstr ""
+
+msgid "Add a {0} Chart"
+msgstr ""
+
+msgid "Images"
+msgstr ""
+
+msgid "{0} Map"
+msgstr ""
+
+msgid "DocType required"
+msgstr ""
+
+msgid "Save filters"
+msgstr ""
+
+msgid "Delete Kanban Board"
+msgstr ""
+
+msgid "There was an error saving filters"
+msgstr ""
+
+msgid "Filters saved"
+msgstr ""
+
+msgid "Kanban Settings"
+msgstr ""
+
+msgid "New Kanban Board"
+msgstr ""
+
+msgid "No Select Field Found"
+msgstr ""
+
+msgid "This Kanban Board will be private"
+msgstr ""
+
+msgid "Columns based on"
+msgstr ""
+
+msgid "Project"
+msgstr ""
+
+msgid ""
+"No email account associated with the User. Please add an account under "
+"User > Email Inbox."
+msgstr ""
+
+msgid "No {0} mail"
+msgstr ""
+
+msgid "No Email Account"
+msgstr ""
+
+msgid "No Emails"
+msgstr ""
+
+msgid "Compose Email"
+msgstr ""
+
+msgid "Toggle Grid View"
+msgstr ""
+
+msgid "File Manager"
+msgstr ""
+
+msgid "New Folder"
+msgstr ""
+
+msgid "Folder name should not include '/' (slash)"
+msgstr ""
+
+msgid "Enter folder name"
+msgstr ""
+
+msgid "Import Zip"
+msgstr ""
+
+msgid "Unzipping files..."
+msgstr ""
+
+msgid "Unzipped {0} files"
+msgstr ""
+
+msgid "Cut"
+msgstr ""
+
+msgid "Paste"
+msgstr ""
+
+msgid "Export as zip"
+msgstr ""
+
+msgid "New Activity"
+msgstr ""
+
+msgid "Summary"
+msgstr ""
+
+msgid "Add Attachment"
+msgstr ""
+
+msgid "{0} created successfully"
+msgstr ""
+
+msgid "There were errors while creating the document. Please try again."
+msgstr ""
+
+msgid "The document has been assigned to {0}"
+msgstr ""
+
+msgid "The document could not be correctly assigned"
+msgstr ""
+
+msgid "The attachments could not be correctly linked to the new document"
+msgstr ""
+
+msgid "You can change the retention policy from {0}."
+msgstr ""
+
+msgid "{0} records are not automatically deleted."
+msgstr ""
+
+msgid "{0} records are retained for {1} days."
+msgstr ""
+
+msgid "Field Template"
+msgstr ""
+
+msgid "Page Margins"
+msgstr ""
+
+msgid "Search fields"
+msgstr ""
+
+msgid "Editing {0}"
+msgstr ""
+
+msgid "Show Preview"
+msgstr ""
+
+msgid "Reset Changes"
+msgstr ""
+
+msgid "Edit Print Format"
+msgstr ""
+
+msgid "Change Print Format"
+msgstr ""
+
+msgid "Hide Preview"
+msgstr ""
+
+msgid "Duration (ms)"
+msgstr ""
+
+msgid "Time in Queries (ms)"
+msgstr ""
+
+msgid "Queries"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "Clear"
+msgstr ""
+
+msgid "First"
+msgstr ""
+
+msgid "Previous"
+msgstr ""
+
+msgid "Last"
+msgstr ""
+
+msgid "Add Filter"
+msgstr ""
+
+msgid "Start Recording"
+msgstr ""
+
+msgid "Recorder is Inactive."
+msgstr ""
+
+msgid "Start recording or drag & drop a previously exported data file to view it."
+msgstr ""
+
+msgid "No Requests found"
+msgstr ""
+
+msgid "Go make some noise"
+msgstr ""
+
+msgid "CMD"
+msgstr ""
+
+msgid "Number of Queries"
+msgstr ""
+
+msgid "Form Dict"
+msgstr ""
+
+msgid "Execution Order"
+msgstr ""
+
+msgid "Exact Copies"
+msgstr ""
+
+msgid "SQL Queries"
+msgstr ""
+
+msgid "Group Duplicate Queries"
+msgstr ""
+
+msgid "SQL Query"
+msgstr ""
+
+msgid "Stack Trace"
+msgstr ""
+
+msgid "SQL Explain"
+msgstr ""
+
+msgid "Report:"
+msgstr ""
+
+msgid ""
+"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values "
+"between 5 & 10)."
+msgstr ""
+
+msgid "Add Column"
+msgstr ""
+
+msgid "Select Column"
+msgstr ""
+
+msgid "Insert Column Before {0}"
+msgstr ""
+
+msgid "Invalid column"
+msgstr ""
+
+msgid "Configure Chart"
+msgstr ""
+
+msgid "X Axis Field"
+msgstr ""
+
+msgid "Y Axis Fields"
+msgstr ""
+
+msgid "Showing only Numeric fields from Report"
+msgstr ""
+
+msgid "{0} Chart"
+msgstr ""
+
+msgid "Edit {0}"
+msgstr ""
+
+msgid "Also adding the dependent currency field {0}"
+msgstr ""
+
+msgid "Also adding the status dependency field {0}"
+msgstr ""
+
+msgid "Cannot remove ID field"
+msgstr ""
+
+msgid "Totals Row"
+msgstr ""
+
+msgid "Totals"
+msgstr ""
+
+msgid "Report was not saved (there were errors)"
+msgstr ""
+
+msgid "New Report name"
+msgstr ""
+
+msgid "Save As"
+msgstr ""
+
+msgid "Show Totals"
+msgstr ""
+
+msgid "Toggle Chart"
+msgstr ""
+
+msgid "Export All {0} rows?"
+msgstr ""
+
+msgid "Setup Auto Email"
+msgstr ""
+
+msgid "Please save the report first"
+msgstr ""
+
+msgid "Create Card"
+msgstr ""
+
+msgid "Set Chart"
+msgstr ""
+
+msgid "Add Chart to Dashboard"
+msgstr ""
+
+msgid "Card Label"
+msgstr ""
+
+msgid "Create Chart"
+msgstr ""
+
+msgid "Please Set Chart"
+msgstr ""
+
+msgid "New {0} {1} added to Dashboard {2}"
+msgstr ""
+
+msgid "New {0} {1} created"
+msgstr ""
+
+msgid "New {0} Created"
+msgstr ""
+
+msgid "Preparing Report"
+msgstr ""
+
+msgid "Invalid \"depends_on\" expression set in filter {0}"
+msgstr ""
+
+msgid "Download Report"
+msgstr ""
+
+msgid "This report was generated {0}."
+msgstr ""
+
+msgid "To get the updated report, click on {0}."
+msgstr ""
+
+msgid "See all past reports."
+msgstr ""
+
+msgid "Generate New Report"
+msgstr ""
+
+msgid "Rebuild"
+msgstr ""
+
+msgid "Reports already in Queue"
+msgstr ""
+
+msgid "Proceed Anyway"
+msgstr ""
+
+msgid "Report initiated, click to view status"
+msgstr ""
+
+msgid "{0}: {1} vs {2}"
+msgstr ""
+
+msgid "Please set filters"
+msgstr ""
+
+msgid "Include indentation"
+msgstr ""
+
+msgid "From Document Type"
+msgstr ""
+
+msgid "Save Report"
+msgstr ""
+
+msgid "Report with more than 10 columns looks better in Landscape mode."
+msgstr ""
+
+msgid "Execution Time: {0} sec"
+msgstr ""
+
+msgid ""
+"This is a background report. Please set the appropriate filters and then "
+"generate a new one."
+msgstr ""
+
+msgid "Sum of {0}"
+msgstr ""
+
+msgid "Average of {0}"
+msgstr ""
+
+msgid "Group By {0}"
+msgstr ""
+
+msgid "Add Group"
+msgstr ""
+
+msgid "Export Report: {0}"
+msgstr ""
+
+msgid "Delimiter must be a single character"
+msgstr ""
+
+msgid "Quoting must be between 0 and 3"
+msgstr ""
+
+msgid "No more items to display"
+msgstr ""
+
+msgid "Discard?"
+msgstr ""
+
+msgid "Are you sure you want to discard the changes?"
+msgstr ""
+
+msgid "Invalid values for fields:"
+msgstr ""
+
+msgid "Mandatory fields required:"
+msgstr ""
+
+msgid "Page {0} of {1}"
+msgstr ""
+
+msgid "Couldn't save, please check the data you have entered"
+msgstr ""
+
+msgid "Validation Error"
+msgstr ""
+
+msgid "Your form has been successfully updated"
+msgstr ""
+
+msgid "You are not permitted to access this page without login."
+msgstr ""
+
+msgid "Form Builder: {0}"
+msgstr ""
+
+msgid "Switch to Customize Form"
+msgstr ""
+
+msgid "Switch to DocType Form"
+msgstr ""
+
+msgid "Go to DocType"
+msgstr ""
+
+msgid "Go to Customize Form"
+msgstr ""
+
+msgid "Preview Mode"
+msgstr ""
+
+msgid "Fieldname {0} appears multiple times"
+msgstr ""
+
+msgid "Options is required for field {0} of type {1}"
+msgstr ""
+
+msgid "{0} cannot be hidden and mandatory without any default value"
+msgstr ""
+
+msgid "'In List View' is not allowed for field {0} of type {1}"
+msgstr ""
+
+msgid "'In Global Search' is not allowed for field {0} of type {1}"
+msgstr ""
+
+msgid "No changes to save"
+msgstr ""
+
+msgid "Updated To A New Version 🎉"
+msgstr ""
+
+msgid ""
+"Your subscription will end in ${cstr(diff_days).bold()} ${\n"
+"\t\t\t\tdiff_days > 1 ? \"days\" : \"day\"\n"
+"\t\t\t}. After that your site will be suspended."
+msgstr ""
+
+msgid "Auto Repeat created for this document"
+msgstr ""
+
+msgid "Edit Values"
+msgstr ""
+
+msgid "This document has been reverted"
+msgstr ""
+
+msgid "Revert"
+msgstr ""
+
 msgid "Appreciation"
 msgstr ""
 
@@ -8929,12 +12713,6 @@ msgid "Criticism"
 msgstr ""
 
 msgid "Review"
-msgstr ""
-
-msgid "Revert"
-msgstr ""
-
-msgid "Points"
 msgstr ""
 
 msgid "Reverted"
@@ -8988,6 +12766,9 @@ msgstr ""
 msgid "Stats based on last week's performance (from {0} to {1})"
 msgstr ""
 
+msgid "View Ref"
+msgstr ""
+
 msgid "Rule Name"
 msgstr ""
 
@@ -9033,6 +12814,12 @@ msgid "Apply this rule only once per document"
 msgstr ""
 
 msgid "Reference document has been cancelled"
+msgstr ""
+
+msgid "Give Review Points"
+msgstr ""
+
+msgid "Successfully Done"
 msgstr ""
 
 msgid "Energy Point Settings"
@@ -9083,16 +12870,7 @@ msgstr ""
 msgid "this shouldn't break"
 msgstr ""
 
-msgid "just now"
-msgstr ""
-
-msgid "1 minute ago"
-msgstr ""
-
 msgid "3 minutes ago"
-msgstr ""
-
-msgid "1 hour ago"
 msgstr ""
 
 msgid "2 hours ago"
@@ -9104,19 +12882,10 @@ msgstr ""
 msgid "5 days ago"
 msgstr ""
 
-msgid "1 week ago"
-msgstr ""
-
 msgid "2 weeks ago"
 msgstr ""
 
-msgid "1 month ago"
-msgstr ""
-
 msgid "2 months ago"
-msgstr ""
-
-msgid "1 year ago"
 msgstr ""
 
 msgid "2 years ago"
@@ -9204,37 +12973,13 @@ msgstr ""
 msgid "Please select a valid date filter"
 msgstr ""
 
-msgid "Unknown Rounding Method: {}"
-msgstr ""
-
 msgid "Cent"
 msgstr ""
 
 msgid "Zero"
 msgstr ""
 
-msgid "and"
-msgstr ""
-
 msgid "only."
-msgstr ""
-
-msgid "{0} minutes ago"
-msgstr ""
-
-msgid "{0} hours ago"
-msgstr ""
-
-msgid "{0} days ago"
-msgstr ""
-
-msgid "{0} weeks ago"
-msgstr ""
-
-msgid "{0} months ago"
-msgstr ""
-
-msgid "{0} years ago"
 msgstr ""
 
 msgid "{0} or {1}"
@@ -9440,9 +13185,6 @@ msgstr ""
 msgid "You don't have permission to access this file"
 msgstr ""
 
-msgid "Updating"
-msgstr ""
-
 msgid "The system is being updated. Please refresh again after a few moments."
 msgstr ""
 
@@ -9469,13 +13211,10 @@ msgid ""
 "correctly."
 msgstr ""
 
-msgid "No Letterhead"
-msgstr ""
-
 msgid "get_shade method has been deprecated."
 msgstr ""
 
-msgid "Next"
+msgid "Link for About Us Page is \"/about\"."
 msgstr ""
 
 msgid "About Us Settings"
@@ -9617,6 +13356,9 @@ msgstr ""
 msgid "{0} comments"
 msgstr ""
 
+msgid "Not Published"
+msgstr ""
+
 msgid "Blog Settings"
 msgstr ""
 
@@ -9718,9 +13460,6 @@ msgstr ""
 msgid "Discussion Reply"
 msgstr ""
 
-msgid "Reply"
-msgstr ""
-
 msgid "Topic"
 msgstr ""
 
@@ -9770,6 +13509,12 @@ msgid "Category Description"
 msgstr ""
 
 msgid "Help Articles"
+msgstr ""
+
+msgid "Delete Data"
+msgstr ""
+
+msgid "Put on Hold"
 msgstr ""
 
 msgid "Personal Data Deletion Request"
@@ -9845,6 +13590,9 @@ msgstr ""
 msgid "Target"
 msgstr ""
 
+msgid "Restore to default settings?"
+msgstr ""
+
 msgid "Portal Settings"
 msgstr ""
 
@@ -9918,7 +13666,21 @@ msgstr ""
 msgid "Open URL in a New Tab"
 msgstr ""
 
-msgid "Select DocType"
+msgid "Atleast one field is required in Web Form Fields Table"
+msgstr ""
+
+msgid "There can be only 9 Page Break fields in a Web Form"
+msgstr ""
+
+msgid "Unpublish"
+msgstr ""
+
+msgid "Get Fields"
+msgstr ""
+
+msgid ""
+"Login is required to see web form list view. Enable {0} to see list "
+"settings"
 msgstr ""
 
 msgid "Login Required"
@@ -10023,9 +13785,6 @@ msgstr ""
 msgid "You don't have the permissions to access this document"
 msgstr ""
 
-msgid "New {0}"
-msgstr ""
-
 msgid "My Account"
 msgstr ""
 
@@ -10069,6 +13828,58 @@ msgid "Max Value"
 msgstr ""
 
 msgid "Web Form List Column"
+msgstr ""
+
+msgid "Title of the page"
+msgstr ""
+
+msgid ""
+"This title will be used as the title of the webpage as well as in meta "
+"tags"
+msgstr ""
+
+msgid "Makes the page public"
+msgstr ""
+
+msgid ""
+"Checking this will publish the page on your website and it'll be visible "
+"to everyone."
+msgstr ""
+
+msgid "URL of the page"
+msgstr ""
+
+msgid ""
+"This will be automatically generated when you publish the page, you can "
+"also enter a route yourself if you wish"
+msgstr ""
+
+msgid "Content type for building the page"
+msgstr ""
+
+msgid ""
+"Checking this will show a text area where you can write custom javascript"
+" that will run on this page."
+msgstr ""
+
+msgid "Meta title for SEO"
+msgstr ""
+
+msgid ""
+"By default the title is used as meta title, adding a value here will "
+"override it."
+msgstr ""
+
+msgid ""
+"The meta description is an HTML attribute that provides a brief summary "
+"of a web page. Search engines such as Google often display the meta "
+"description in search results, which can influence click-through rates."
+msgstr ""
+
+msgid ""
+"The meta image is unique image representing the content of the page. "
+"Images for this Card should be at least 280px in width, and at least "
+"150px in height."
 msgstr ""
 
 msgid "Slideshow"
@@ -10158,9 +13969,6 @@ msgstr ""
 msgid "Web Page Block"
 msgstr ""
 
-msgid "Edit Values"
-msgstr ""
-
 msgid "Web Template Values"
 msgstr ""
 
@@ -10220,10 +14028,7 @@ msgstr ""
 msgid "User Agent"
 msgstr ""
 
-msgid "Visitor ID"
-msgstr ""
-
-msgid "Source"
+msgid "Please save to edit the template."
 msgstr ""
 
 msgid "Component"
@@ -10247,13 +14052,42 @@ msgstr ""
 msgid "Website Meta Tag"
 msgstr ""
 
+msgid "Visit Web Page"
+msgstr ""
+
 msgid "Website Route Meta"
 msgstr ""
 
 msgid "Website Route Redirect"
 msgstr ""
 
+msgid "Source"
+msgstr ""
+
 msgid "Website Script"
+msgstr ""
+
+msgid "View Website"
+msgstr ""
+
+msgid "Select a Brand Image first."
+msgstr ""
+
+msgid "Please select {0}"
+msgstr ""
+
+msgid "Enable Tracking Page Views"
+msgstr ""
+
+msgid "Checking this will enable tracking page views for blogs, web pages, etc."
+msgstr ""
+
+msgid "Disable Signup for your site"
+msgstr ""
+
+msgid ""
+"Check this if you don't want users to sign up for an account on your "
+"site. Users won't get desk access unless you explicitly provide it."
 msgstr ""
 
 msgid "Website Settings"
@@ -10480,6 +14314,21 @@ msgstr ""
 msgid "Website Sidebar Item"
 msgstr ""
 
+msgid "First set the name and save the record."
+msgstr ""
+
+msgid "Attach files / urls and add in table."
+msgstr ""
+
+msgid "Fetch attached images from document"
+msgstr ""
+
+msgid "Fetch Images"
+msgstr ""
+
+msgid "Add to table"
+msgstr ""
+
 msgid "Website Slideshow"
 msgstr ""
 
@@ -10504,6 +14353,15 @@ msgid "Website Slideshow Item"
 msgstr ""
 
 msgid "URL to go to on clicking the slideshow image"
+msgstr ""
+
+msgid "Default Theme"
+msgstr ""
+
+msgid "Set as Default Theme"
+msgstr ""
+
+msgid "Include Theme from Apps"
 msgstr ""
 
 msgid "Theme URL"
@@ -10561,6 +14419,20 @@ msgid "Compiled Successfully"
 msgstr ""
 
 msgid "Website Theme Ignore App"
+msgstr ""
+
+msgid "Range"
+msgstr ""
+
+msgid ""
+"Note: Your request for account deletion will be fulfilled within {0} "
+"hours."
+msgstr ""
+
+msgid "Worflow States Don't Exist"
+msgstr ""
+
+msgid "Save Anyway"
 msgstr ""
 
 msgid "Workflow Name"
@@ -10632,6 +14504,9 @@ msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
 msgstr ""
 
 msgid "Cannot cancel before submitting. See Transition {0}"
+msgstr ""
+
+msgid "Not active"
 msgstr ""
 
 msgid "Workflow Action"
@@ -11012,9 +14887,6 @@ msgstr ""
 msgid "plane"
 msgstr ""
 
-msgid "calendar"
-msgstr ""
-
 msgid "random"
 msgstr ""
 
@@ -11224,8 +15096,5 @@ msgid "Page has expired!"
 msgstr ""
 
 msgid "Search Results for"
-msgstr ""
-
-msgid "Search"
 msgstr ""
 
