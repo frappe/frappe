@@ -22,7 +22,7 @@ def get_context(context):
 	return out
 
 
-max_communications_per_hour = 1000
+max_communications_per_hour = 100
 
 
 @frappe.whitelist(allow_guest=True)
@@ -53,7 +53,9 @@ def send_message(subject="Website Query", message="", sender=""):
 	# send email
 	forward_to_email = frappe.db.get_single_value("Contact Us Settings", "forward_to_email")
 	if forward_to_email:
-		frappe.sendmail(recipients=forward_to_email, sender=sender, content=message, subject=subject)
+		frappe.sendmail(
+			recipients=sender, reply_to=sender, bcc=forward_to_email, content=message, subject=subject
+		)
 
 	# add to to-do ?
 	frappe.get_doc(
