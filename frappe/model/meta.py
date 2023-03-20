@@ -207,7 +207,12 @@ class Meta(Document):
 
 		return self._set_only_once_fields
 
-	def get_table_fields(self):
+	def get_table_fields(self):    
+		if not hasattr(self, '_table_fields'):
+			if self.name != "DocType":
+				self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
+			else:
+				self._table_fields = DOCTYPE_TABLE_FIELDS
 		return self._table_fields
 
 	def get_global_search_fields(self):
