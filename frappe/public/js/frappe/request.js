@@ -498,7 +498,11 @@ frappe.request.report_error = function(xhr, request_opts) {
 			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
 			'### Route',
 			code_block(frappe.get_route_str()),
+<<<<<<< HEAD
 			'### Trackeback',
+=======
+			"### Traceback",
+>>>>>>> 98006eb5fb (chore: fix typo in error dump (#20393))
 			code_block(exc),
 			'### Request Data',
 			code_block(JSON.stringify(request_opts, null, "\t")),
