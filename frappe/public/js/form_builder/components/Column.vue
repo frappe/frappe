@@ -85,7 +85,7 @@ function delete_column(with_children) {
 
 	// remove column
 	columns.splice(index, 1);
-	store.selected_field = null;
+	store.form.selected_field = null;
 }
 
 function move_columns_to_section() {
@@ -101,7 +101,7 @@ function move_columns_to_section() {
 			store.selected(column.df.name) ? 'selected' : ''
 		]"
 		:title="column.df.fieldname"
-		@click.stop="store.selected_field = column.df"
+		@click.stop="store.form.selected_field = column.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>

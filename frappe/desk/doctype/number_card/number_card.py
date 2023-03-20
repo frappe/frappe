@@ -124,10 +124,10 @@ def get_result(doc, filters, to_date=None):
 			)
 		]
 
-	filters = frappe.parse_json(filters)
-
 	if not filters:
 		filters = []
+	elif isinstance(filters, str):
+		filters = frappe.parse_json(filters)
 
 	if to_date:
 		filters.append([doc.document_type, "creation", "<", to_date])

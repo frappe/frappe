@@ -40,7 +40,7 @@ export default class GridRow {
 			render_row = this.render_row();
 		}
 
-		if (!this.render_row) return;
+		if (!render_row) return;
 
 		this.set_data();
 		this.wrapper.appendTo(this.parent);
@@ -762,7 +762,8 @@ export default class GridRow {
 
 	show_search_row() {
 		// show or remove search columns based on grid rows
-		this.show_search = this.show_search && this.grid?.data?.length >= 20;
+		this.show_search =
+			this.show_search && (this.grid?.data?.length >= 20 || this.grid.filter_applied);
 		!this.show_search && this.wrapper.remove();
 		return this.show_search;
 	}
@@ -939,12 +940,17 @@ export default class GridRow {
 					let grid_start = inital_position_x - event.touches[0].clientX;
 					let grid_end = grid.clientWidth - grid_container.clientWidth + 2;
 
+					if (frappe.utils.is_rtl()) {
+						grid_start = -grid_start;
+					}
+
 					if (grid_start < 0) {
 						grid_start = 0;
 					} else if (grid_start > grid_end) {
 						grid_start = grid_end;
 					}
-					grid.style.left = `-${grid_start}px`;
+
+					grid.style.left = `${frappe.utils.is_rtl() ? "" : "-"}${grid_start}px`;
 				}
 			})
 			.on("touchend", function () {

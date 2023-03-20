@@ -12,6 +12,7 @@ from frappe.desk.doctype.route_history.route_history import frequently_visited_l
 from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.model.base_document import get_controller
+from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import ParameterizedValueWrapper, SubQuery
@@ -20,7 +21,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.translate import get_lang_dict, get_messages_for_boot, get_translated_doctypes
-from frappe.utils import add_user_info, cstr, get_time_zone
+from frappe.utils import add_user_info, cstr, get_system_timezone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -101,7 +102,7 @@ def get_bootinfo():
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
-	bootinfo.subscription_expiry = add_subscription_expiry()
+	bootinfo.subscription_conf = add_subscription_conf()
 
 	return bootinfo
 
@@ -234,7 +235,10 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		reports = frappe.get_all(
+		if not has_permission("Report", raise_exception=False):
+			return {}
+
+		reports = frappe.get_list(
 			"Report",
 			fields=["name", "report_type"],
 			filters={"name": ("in", has_role.keys())},
@@ -242,6 +246,10 @@ def get_user_pages_or_reports(parent, cache=False):
 		)
 		for report in reports:
 			has_role[report.name]["report_type"] = report.report_type
+
+		non_permitted_reports = set(has_role.keys()) - {r.name for r in reports}
+		for r in non_permitted_reports:
+			has_role.pop(r, None)
 
 	# Expire every six hours
 	_cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
@@ -394,9 +402,9 @@ def get_link_title_doctypes():
 
 def set_time_zone(bootinfo):
 	bootinfo.time_zone = {
-		"system": get_time_zone(),
+		"system": get_system_timezone(),
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
-		or get_time_zone(),
+		or get_system_timezone(),
 	}
 
 
@@ -431,8 +439,8 @@ def load_currency_docs(bootinfo):
 	bootinfo.docs += currency_docs
 
 
-def add_subscription_expiry():
+def add_subscription_conf():
 	try:
-		return frappe.conf.subscription["expiry"]
+		return frappe.conf.subscription
 	except Exception:
 		return ""

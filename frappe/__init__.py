@@ -622,6 +622,7 @@ def sendmail(
 	header=None,
 	print_letterhead=False,
 	with_container=False,
+	email_read_tracker_url=None,
 ):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -703,6 +704,7 @@ def sendmail(
 		header=header,
 		print_letterhead=print_letterhead,
 		with_container=with_container,
+		email_read_tracker_url=email_read_tracker_url,
 	)
 
 	# build email queue and send the email if send_now is True.

@@ -845,11 +845,14 @@ class TestDBQuery(FrappeTestCase):
 			self.assertTrue("count" in data[0])
 			self.assertEqual(len(data[0]), 2)
 
-			with self.assertRaises(frappe.PermissionError):
-				frappe.get_list(
-					"Blog Post",
-					fields=["blog_category.description"],
-				)
+			data = frappe.get_list(
+				"Blog Post",
+				fields=["name", "blogger.full_name as blogger_full_name", "blog_category.description"],
+				limit=1,
+			)
+			self.assertTrue("name" in data[0])
+			self.assertTrue("blogger_full_name" in data[0])
+			self.assertTrue("description" in data[0])
 
 	def test_cast_name(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -986,6 +989,46 @@ class TestDBQuery(FrappeTestCase):
 
 
 class TestReportView(FrappeTestCase):
+	def test_get_count(self):
+		frappe.local.request = frappe._dict()
+		frappe.local.request.method = "GET"
+
+		# test with data check field
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"filters": [["DocType", "show_title_field_in_link", "=", 1]],
+				"fields": [],
+				"distinct": "false",
+			}
+		)
+		list_filter_response = execute_cmd("frappe.desk.reportview.get_count")
+		frappe.local.form_dict = frappe._dict(
+			{"doctype": "DocType", "filters": {"show_title_field_in_link": 1}, "distinct": "true"}
+		)
+		dict_filter_response = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(list_filter_response, int)
+		self.assertEqual(list_filter_response, dict_filter_response)
+
+		# test with child table filter
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"filters": [["DocField", "fieldtype", "=", "Data"]],
+				"fields": [],
+				"distinct": "true",
+			}
+		)
+		child_filter_response = execute_cmd("frappe.desk.reportview.get_count")
+		current_value = frappe.db.sql(
+			# the below query is equivalent to the one in reportview.get_count
+			"select distinct count(distinct `tabDocType`.name) as total_count"
+			" from `tabDocType` left join `tabDocField`"
+			" on (`tabDocField`.parenttype = 'DocType' and `tabDocField`.parent = `tabDocType`.name)"
+			" where `tabDocField`.`fieldtype` = 'Data'"
+		)[0][0]
+		self.assertEqual(child_filter_response, current_value)
+
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
 		add_child_table_to_blog_post()

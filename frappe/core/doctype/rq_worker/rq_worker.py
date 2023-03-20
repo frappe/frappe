@@ -8,7 +8,7 @@ from rq import Worker
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, convert_utc_to_user_timezone
+from frappe.utils import cint, convert_utc_to_system_timezone
 from frappe.utils.background_jobs import get_workers
 
 
@@ -66,14 +66,14 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 		status=worker.get_state(),
 		pid=worker.pid,
 		current_job_id=worker.get_current_job_id(),
-		last_heartbeat=convert_utc_to_user_timezone(worker.last_heartbeat),
-		birth_date=convert_utc_to_user_timezone(worker.birth_date),
+		last_heartbeat=convert_utc_to_system_timezone(worker.last_heartbeat),
+		birth_date=convert_utc_to_system_timezone(worker.birth_date),
 		successful_job_count=worker.successful_job_count,
 		failed_job_count=worker.failed_job_count,
 		total_working_time=worker.total_working_time,
 		_comment_count=0,
-		modified=convert_utc_to_user_timezone(worker.last_heartbeat),
-		creation=convert_utc_to_user_timezone(worker.birth_date),
+		modified=convert_utc_to_system_timezone(worker.last_heartbeat),
+		creation=convert_utc_to_system_timezone(worker.birth_date),
 		utilization_percent=compute_utilization(worker),
 	)
 
