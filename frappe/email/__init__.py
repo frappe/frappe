@@ -11,7 +11,7 @@ def sendmail_to_system_managers(subject, content):
 
 @frappe.whitelist()
 def get_contact_list(txt, page_length=20) -> list[dict]:
-	"""Returns contacts (from autosuggest)"""
+	"""Return email ids for a multiselect field."""
 
 	if cached_contacts := get_cached_contacts(txt):
 		return cached_contacts[:page_length]
@@ -19,6 +19,9 @@ def get_contact_list(txt, page_length=20) -> list[dict]:
 	reportview_conditions = build_match_conditions("Contact")
 	match_conditions = f"and {reportview_conditions}" if reportview_conditions else ""
 
+	# The multiselect field will store the `label` as the selected value.
+	# The `value` is just used as a unique key to distinguish between the options.
+	# https://github.com/frappe/frappe/blob/6c6a89bcdd9454060a1333e23b855d0505c9ebc2/frappe/public/js/frappe/form/controls/autocomplete.js#L29-L35
 	out = frappe.db.sql(
 		f"""select name as value, email_id as label,
 		concat(first_name, ifnull(concat(' ',last_name), '' )) as description
