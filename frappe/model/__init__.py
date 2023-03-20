@@ -198,6 +198,10 @@ def get_permitted_fields(
 	if doctype in core_doctypes_list:
 		return valid_columns
 
+	# DocType has only fields of type Table (Table, Table MultiSelect)
+	if set(valid_columns).issubset(default_fields):
+		return valid_columns
+
 	if permitted_fields := meta.get_permitted_fieldnames(parenttype=parenttype, user=user):
 		meta_fields = meta.default_fields.copy()
 		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
