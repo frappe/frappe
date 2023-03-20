@@ -382,8 +382,8 @@ class ShortcutDialog extends WidgetDialog {
 				reqd: 1,
 				options: "type",
 				onchange: () => {
-					if (this.dialog.get_value("type") == "DocType") {
-						let doctype = this.dialog.get_value("link_to");
+					const doctype = this.dialog.get_value("link_to");
+					if (doctype && this.dialog.get_value("type") == "DocType") {
 						frappe.model.with_doctype(doctype, () => {
 							let meta = frappe.get_meta(doctype);
 
