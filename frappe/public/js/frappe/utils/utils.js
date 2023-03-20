@@ -1610,4 +1610,56 @@ Object.assign(frappe.utils, {
 			});
 		},
 	},
+	generate_tracking_url() {
+		frappe.prompt(
+			[
+				{
+					fieldname: "url",
+					label: __("Web Page URL"),
+					fieldtype: "Data",
+					options: "URL",
+					reqd: 1,
+				},
+				{
+					fieldname: "source",
+					label: __("Source"),
+					fieldtype: "Data",
+				},
+				{
+					fieldname: "campaign",
+					label: __("Campaign"),
+					fieldtype: "Link",
+					ignore_link_validation: 1,
+					options: "Marketing Campaign",
+				},
+				{
+					fieldname: "medium",
+					label: __("Medium"),
+					fieldtype: "Data",
+				},
+			],
+			function (data) {
+				let url = data.url;
+				if (data.source) {
+					url += "?source=" + data.source;
+				}
+				if (data.campaign) {
+					url += "&campaign=" + data.campaign;
+				}
+				if (data.medium) {
+					url += "&medium=" + data.medium.toLowerCase();
+				}
+
+				frappe.utils.copy_to_clipboard(url);
+
+				frappe.msgprint(
+					__("Tracking URL generated and copied to clipboard") +
+						": <br>" +
+						`<a href="${url}">${url.bold()}</a>`,
+					__("Here's your tracking URL")
+				);
+			},
+			__("Generate Tracking URL")
+		);
+	},
 });
