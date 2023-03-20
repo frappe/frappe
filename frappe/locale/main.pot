@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Translation VERSION\n"
 "Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2023-03-19 16:50+0553\n"
-"PO-Revision-Date: 2023-03-19 16:50+0553\n"
+"POT-Creation-Date: 2023-03-20 12:40+0553\n"
+"PO-Revision-Date: 2023-03-20 12:40+0553\n"
 "Last-Translator: contact@frappe.io\n"
 "Language-Team: contact@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -15035,13 +15035,52 @@ msgid ""
 "as_string=True, as_datetime=True) </code></pre><p></p>"
 msgstr ""
 
+msgid "There's nothing here"
+msgstr ""
+
+msgid "The page you are looking for has gone missing."
+msgstr ""
+
+msgid "Back to Home"
+msgstr ""
+
+msgid "About Us"
+msgstr ""
+
 msgid "Log in to access this page."
 msgstr ""
 
 msgid "You are not permitted to access this page."
 msgstr ""
 
+msgid "One Last Step"
+msgstr ""
+
+msgid "Please confirm your action to {0} this document."
+msgstr ""
+
+msgid "Note:"
+msgstr ""
+
+msgid "This document has been modified after the email was sent."
+msgstr ""
+
+msgid "View document"
+msgstr ""
+
+msgid "Your email address"
+msgstr ""
+
 msgid "New Message from Website Contact Page"
+msgstr ""
+
+msgid "Error Code: {0}"
+msgstr ""
+
+msgid "Show Traceback"
+msgstr ""
+
+msgid "Hide Traceback"
 msgstr ""
 
 msgid "Uncaught Server Exception"
@@ -15054,6 +15093,57 @@ msgid "Child DocTypes are not allowed"
 msgstr ""
 
 msgid "Invalid DocType"
+msgstr ""
+
+msgid "jane@example.com"
+msgstr ""
+
+msgid "Forgot Password?"
+msgstr ""
+
+msgid "Login with LDAP"
+msgstr ""
+
+msgid "Login to {0}"
+msgstr ""
+
+msgid "Javascript is disabled on your browser"
+msgstr ""
+
+msgid "You need to enable JavaScript for your app to work."
+msgstr ""
+
+msgid "To enable it follow the instructions in the following link: {0}"
+msgstr ""
+
+msgid "Login With {0}"
+msgstr ""
+
+msgid "Login with Email Link"
+msgstr ""
+
+msgid "Don't have an account?"
+msgstr ""
+
+msgid "Sign up"
+msgstr ""
+
+msgid "Signup Disabled"
+msgstr ""
+
+msgid "Signups have been disabled for this website."
+msgstr ""
+
+msgid "Forgot Password"
+msgstr ""
+
+msgid "Back to Login"
+msgstr ""
+
+msgid "Login With Email Link"
+msgstr ""
+
+msgid "Send login link"
 msgstr ""
 
 msgid "Mobile"
@@ -15071,7 +15161,34 @@ msgstr ""
 msgid "The link you trying to login is invalid or expired."
 msgstr ""
 
+msgid "Reset the password for your account"
+msgstr ""
+
+msgid "Manage third party apps"
+msgstr ""
+
+msgid "To manage your authorized third party apps"
+msgstr ""
+
+msgid "Manage your apps"
+msgstr ""
+
+msgid "Request Account Deletion"
+msgstr ""
+
+msgid "Send a request to delete your account"
+msgstr ""
+
+msgid "Delete Account"
+msgstr ""
+
 msgid "You need to be logged in to access this page"
+msgstr ""
+
+msgid "Status: {0}"
+msgstr ""
+
+msgid "Get PDF"
 msgstr ""
 
 msgid "Not allowed to print draft documents"
@@ -15092,9 +15209,98 @@ msgstr ""
 msgid "No template found at path: {0}"
 msgstr ""
 
+msgid "QR Code"
+msgstr ""
+
+msgid "QR Code for Login Verification"
+msgstr ""
+
+msgid "Hi {0}"
+msgstr ""
+
+msgid "Steps to verify your login"
+msgstr ""
+
+msgid "Open your authentication app on your mobile phone."
+msgstr ""
+
+msgid "Scan the QR Code and enter the resulting code displayed."
+msgstr ""
+
+msgid ""
+"Return to the Verification screen and enter the code displayed by your "
+"authentication app"
+msgstr ""
+
+msgid "Authentication Apps you can use are: "
+msgstr ""
+
 msgid "Page has expired!"
 msgstr ""
 
 msgid "Search Results for"
+msgstr ""
+
+msgid "Third Party Apps"
+msgstr ""
+
+msgid "This will log out {0} from all other devices"
+msgstr ""
+
+msgid "Active Sessions"
+msgstr ""
+
+msgid "logged in"
+msgstr ""
+
+msgid "Revoke"
+msgstr ""
+
+msgid "No Active Sessions"
+msgstr ""
+
+msgid "Looks like you haven’t added any third party apps."
+msgstr ""
+
+msgid "Set Password"
+msgstr ""
+
+msgid "Old Password"
+msgstr ""
+
+msgid "Confirm Password"
+msgstr ""
+
+msgid "The password of your account has expired."
+msgstr ""
+
+msgid "Missing Value"
+msgstr ""
+
+msgid "Please enter your old password."
+msgstr ""
+
+msgid "Please enter your new password."
+msgstr ""
+
+msgid "Passwords do not match"
+msgstr ""
+
+msgid "Status Updated"
+msgstr ""
+
+msgid "Password set"
+msgstr ""
+
+msgid "Your new password has been set successfully."
+msgstr ""
+
+msgid "Please enter the password"
+msgstr ""
+
+msgid "Hint: Include symbols, numbers and capital letters in the password"
+msgstr ""
+
+msgid "Success! You are good to go 👍"
 msgstr ""
 
