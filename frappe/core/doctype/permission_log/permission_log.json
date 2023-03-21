@@ -45,6 +45,7 @@
    "in_list_view": 1,
    "label": "For DocType",
    "options": "DocType",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -53,19 +54,22 @@
    "in_list_view": 1,
    "label": "For Document",
    "options": "for_doctype",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "for_parenttype",
    "fieldtype": "Link",
    "label": "For Parenttype",
-   "options": "DocType"
+   "options": "DocType",
+   "read_only": 1
   },
   {
    "fieldname": "for_parent",
    "fieldtype": "Dynamic Link",
    "label": "For Parent",
-   "options": "for_parenttype"
+   "options": "for_parenttype",
+   "read_only": 1
   },
   {
    "default": "Update",
@@ -74,6 +78,7 @@
    "in_list_view": 1,
    "label": "Action",
    "options": "Update\nRemove\nCreate",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -118,7 +123,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-21 23:09:50.390426",
+ "modified": "2023-03-21 23:23:07.962506",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",
