@@ -244,7 +244,7 @@
    "fieldtype": "Link",
    "label": "Campaign",
    "options": "Marketing Campaign",
-   "reqd": 1
+   "reqd": 0
   }
  ],
  "has_web_view": 1,

@@ -1619,11 +1619,13 @@ Object.assign(frappe.utils, {
 					fieldtype: "Data",
 					options: "URL",
 					reqd: 1,
+					default: localStorage.getItem("tracker_url:url"),
 				},
 				{
 					fieldname: "source",
 					label: __("Source"),
 					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:source"),
 				},
 				{
 					fieldname: "campaign",
@@ -1631,23 +1633,30 @@ Object.assign(frappe.utils, {
 					fieldtype: "Link",
 					ignore_link_validation: 1,
 					options: "Marketing Campaign",
+					default: localStorage.getItem("tracker_url:campaign"),
 				},
 				{
 					fieldname: "medium",
 					label: __("Medium"),
 					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:medium"),
 				},
 			],
 			function (data) {
 				let url = data.url;
+				localStorage.setItem("tracker_url:url", data.url);
+
 				if (data.source) {
 					url += "?source=" + data.source;
+					localStorage.setItem("tracker_url:source", data.source);
 				}
 				if (data.campaign) {
 					url += "&campaign=" + data.campaign;
+					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
 					url += "&medium=" + data.medium.toLowerCase();
+					localStorage.setItem("tracker_url:medium", data.medium);
 				}
 
 				frappe.utils.copy_to_clipboard(url);
