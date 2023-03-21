@@ -11,6 +11,22 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, unique
 
+SEARCHABLE_FIELD_TYPES = frozenset(
+	(
+		"Data",
+		"Text",
+		"Small Text",
+		"Long Text",
+		"Link",
+		"Select",
+		"Read Only",
+		"Text Editor",
+		"Date",
+		"Datetime",
+		"Time",
+	)
+)
+
 
 def sanitize_searchfield(searchfield):
 	if not searchfield:
@@ -124,27 +140,14 @@ def search_widget(
 
 			# build from doctype
 			if txt:
-				field_types = [
-					"Data",
-					"Text",
-					"Small Text",
-					"Long Text",
-					"Link",
-					"Select",
-					"Read Only",
-					"Text Editor",
-				]
-				search_fields = ["name"]
+				search_fields = meta.get_search_fields()
 				if meta.title_field:
 					search_fields.append(meta.title_field)
-
-				if meta.search_fields:
-					search_fields.extend(meta.get_search_fields())
 
 				for f in search_fields:
 					fmeta = meta.get_field(f.strip())
 					if not meta.translated_doctype and (
-						f == "name" or (fmeta and fmeta.fieldtype in field_types)
+						f == "name" or (fmeta and fmeta.fieldtype in SEARCHABLE_FIELD_TYPES)
 					):
 						or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
 
