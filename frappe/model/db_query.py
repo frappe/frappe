@@ -14,7 +14,7 @@ import frappe.share
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy, FallBackDateTimeStr, NestedSetHierarchy
-from frappe.model import get_permitted_fields, optional_fields
+from frappe.model import datetime_fields, get_permitted_fields, numeric_fieldtypes, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -766,7 +766,7 @@ class DatabaseQuery:
 			df = meta.get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
-			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
+			if df and df.fieldtype in numeric_fieldtypes:
 				can_be_null = False
 
 			if f.operator.lower() in ("previous", "next", "timespan"):
@@ -801,18 +801,11 @@ class DatabaseQuery:
 				if "ifnull" not in column_name.lower():
 					column_name = f"ifnull({column_name}, {fallback})"
 
-			elif f.operator.lower() in ("like", "not like") or (
-				isinstance(f.value, str)
-				and (
-					not df
-					or df.fieldtype
-					not in ["Float", "Int", "Currency", "Percent", "Check", "Date", "Datetime", "Time"]
-				)
-			):
+			elif f.operator.lower() in ("like", "not like"):
 				value = "" if f.value is None else f.value
 				fallback = "''"
 
-				if f.operator.lower() in ("like", "not like") and isinstance(value, str):
+				if isinstance(value, str):
 					# because "like" uses backslash (\) for escaping
 					value = value.replace("\\", "\\\\").replace("%", "%%")
 
@@ -827,6 +820,10 @@ class DatabaseQuery:
 			elif df and df.fieldtype == "Time":
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
+
+			elif isinstance(f.value, str) and (not df or df.fieldtype not in numeric_fieldtypes):
+				value = "" if f.value is None else f.value
+				fallback = "''"
 
 			elif (
 				f.operator == "=" and df and df.fieldtype in ["Link", "Data"]
