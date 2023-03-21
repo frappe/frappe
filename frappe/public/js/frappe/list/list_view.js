@@ -1347,6 +1347,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	process_document_refreshes() {
 		if (!this.pending_document_refreshes.length) return;
 
+		const route = frappe.get_route() || [];
+		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
+			// wait till user is back on list view before refreshing
+			this.pending_document_refreshes = [];
+			return;
+		}
+
 		const names = this.pending_document_refreshes.map((d) => d.name);
 		this.pending_document_refreshes = this.pending_document_refreshes.filter(
 			(d) => names.indexOf(d.name) === -1
