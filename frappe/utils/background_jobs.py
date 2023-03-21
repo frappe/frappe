@@ -239,7 +239,12 @@ def start_worker(
 		if quiet:
 			logging_level = "WARNING"
 		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(logging_level=logging_level, burst=burst)
+		worker.work(
+			logging_level=logging_level,
+			burst=burst,
+			date_format="%Y-%m-%d %H:%M:%S",
+			log_format="%(asctime)s,%(msecs)03d %(message)s",
+		)
 
 
 def get_worker_name(queue):
