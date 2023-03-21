@@ -977,7 +977,7 @@ def has_permission(
 
 
 def perm_log(*args, **kwargs):
-	from frappe.core.doctype.role_permission_log.role_permission_log import make_perm_log
+	from frappe.core.doctype.permission_log.permission_log import make_perm_log
 
 	make_perm_log(*args, **kwargs)
 

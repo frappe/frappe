@@ -1,6 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2022-11-23 14:13:55.437321",
  "default_view": "List",
  "doctype": "DocType",
@@ -8,7 +8,21 @@
  "engine": "InnoDB",
  "field_order": [
   "changed_by",
-  "changed_at"
+  "column_break_gvuy",
+  "changed_at",
+  "column_break_pvd9",
+  "action",
+  "section_break_ttv7",
+  "for_doctype",
+  "column_break_acow",
+  "for_document",
+  "section_break_6gd5",
+  "for_parenttype",
+  "column_break_8nk0",
+  "for_parent",
+  "section_break_mt9x",
+  "changes",
+  "changed_values"
  ],
  "fields": [
   {
@@ -24,15 +38,91 @@
    "is_virtual": 1,
    "label": "Changed At",
    "read_only": 1
+  },
+  {
+   "fieldname": "for_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "For DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "for_document",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "For Document",
+   "options": "for_doctype",
+   "reqd": 1
+  },
+  {
+   "fieldname": "for_parenttype",
+   "fieldtype": "Link",
+   "label": "For Parenttype",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "for_parent",
+   "fieldtype": "Dynamic Link",
+   "label": "For Parent",
+   "options": "for_parenttype"
+  },
+  {
+   "default": "Update",
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Action",
+   "options": "Update\nRemove\nCreate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "changes",
+   "fieldtype": "Text",
+   "hidden": 1
+  },
+  {
+   "fieldname": "changed_values",
+   "fieldtype": "HTML",
+   "label": "Changes"
+  },
+  {
+   "fieldname": "column_break_gvuy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_pvd9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ttv7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_acow",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_mt9x",
+   "fieldtype": "Section Break",
+   "label": "Changes"
+  },
+  {
+   "fieldname": "section_break_6gd5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_8nk0",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-15 00:22:49.528711",
+ "modified": "2023-03-21 23:09:50.390426",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",
- "naming_rule": "Autoincrement",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
