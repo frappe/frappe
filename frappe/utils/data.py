@@ -913,7 +913,9 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(s: NumericType | str, precision: int | None = None) -> float:
+def flt(
+	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
+) -> float:
 	"""Convert to float (ignoring commas in string)
 
 	:param s: Number in string or other numeric format.
@@ -939,8 +941,10 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	try:
 		num = float(s)
 		if precision is not None:
-			num = rounded(num, precision)
-	except Exception:
+			num = rounded(num, precision, rounding_method)
+	except Exception as e:
+		if isinstance(e, frappe.InvalidRoundingMethod):
+			raise
 		num = 0.0
 
 	return num
@@ -1039,12 +1043,30 @@ def sbool(x: str) -> bool | Any:
 		return x
 
 
-def rounded(num, precision=0):
-	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
+def rounded(num, precision=0, rounding_method=None):
+	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
-	multiplier = 10**precision
 
+	rounding_method = (
+		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
+	)
+
+	if rounding_method == "Banker's Rounding (legacy)":
+		return _bankers_rounding_legacy(num, precision)
+	elif rounding_method == "Banker's Rounding":
+		return _bankers_rounding(num, precision)
+	elif rounding_method == "Commercial Rounding":
+		return _round_away_from_zero(num, precision)
+	else:
+		frappe.throw(
+			frappe._("Unknown Rounding Method: {}").format(rounding_method),
+			exc=frappe.InvalidRoundingMethod,
+		)
+
+
+def _bankers_rounding_legacy(num, precision):
 	# avoid rounding errors
+	multiplier = 10**precision
 	num = round(num * multiplier if precision else num, 8)
 
 	floor_num = math.floor(num)
@@ -1059,6 +1081,51 @@ def rounded(num, precision=0):
 			num = round(num)
 
 	return (num / multiplier) if precision else num
+
+
+def _round_away_from_zero(num, precision):
+	if num == 0:
+		return 0.0
+
+	# Epsilon is small correctional value added to correctly round numbers which can't be
+	# represented in IEEE 754 representation.
+
+	# In simplified terms, the representation optimizes for absolute errors in representation
+	# so if a number is not representable it might be represented by a value ever so slighly
+	# smaller than the value itself. This becomes a problem when breaking ties for numbers
+	# ending with 5 when it's represented by a smaller number. By adding a very small value
+	# close to what's "least count" or smallest representable difference in the scale we force
+	# the number to be bigger than actual value, this increases representation error but
+	# removes rounding error.
+
+	# References:
+	# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+	# - https://docs.python.org/3/tutorial/floatingpoint.html#representation-error
+	# - https://docs.python.org/3/library/functions.html#round
+	# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+
+	return round(num + math.copysign(epsilon, num), precision)
+
+
+def _bankers_rounding(num, precision):
+	if num == 0:
+		return 0.0
+
+	multiplier = 10**precision
+	num = round(num * multiplier, 12)
+
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	if abs(decimal_part - 0.5) < epsilon:
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+	else:
+		num = round(num)
+
+	return num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:

@@ -164,7 +164,6 @@ execute:frappe.delete_doc("DocType", "Footer Item")
 execute:frappe.reload_doctype('user')
 execute:frappe.reload_doctype('docperm')
 frappe.patches.v13_0.replace_field_target_with_open_in_new_tab
-frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v13_0.add_switch_theme_to_navbar_settings
 frappe.patches.v13_0.update_icons_in_customized_desk_pages
 execute:frappe.db.set_default('desktop:home_page', 'space')
@@ -200,6 +199,7 @@ frappe.patches.v14_0.delete_payment_gateways
 frappe.patches.v14_0.event_streaming_deprecation_warning
 
 [post_model_sync]
+frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
@@ -216,3 +216,4 @@ frappe.patches.v14_0.update_multistep_webforms
 frappe.patches.v14_0.drop_unused_indexes
 frappe.patches.v14_0.disable_email_accounts_with_oauth
 frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
+frappe.core.doctype.system_settings.patches.set_default_rounding_method
