@@ -11,11 +11,10 @@ class CustomRole(Document):
 			self.ref_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 
 	def before_save(self):
-		if self.is_new():
-			pass
+		frappe.perm_log(self)
 
-	def on_trash(self):
-		pass
+	def after_delete(self):
+		frappe.perm_log(self, for_delete=True)
 
 
 def get_custom_allowed_roles(field, name):

@@ -23,37 +23,64 @@ def make_perm_log(doc: Document, for_delete: bool = False):
 			return "Update"
 		return "Remove"
 
-	perm_log = frappe.get_doc(
+	changes = get_changes(doc, for_delete)
+	if not changes["from"] and not changes["to"]:
+		return
+
+	frappe.get_doc(
 		{
 			"doctype": "Permission Log",
 			"owner": frappe.session.user,
 			"for_doctype": doc.doctype,
 			"for_document": doc.name,
+			"for_parenttype": getattr(doc, "parenttype", None),
+			"for_parent": getattr(doc, "parent", None),
 			"action": get_action(),
-			"changes": get_changes(doc),
+			"changes": frappe.as_json(changes, indent=0),
 		}
-	)
-
-	if parenttype := getattr(doc, "parenttype", None):
-		perm_log.for_parenttype = parenttype
-		perm_log.for_parent = doc.parent
-
-	perm_log.db_insert()
+	).db_insert()
 
 
-def get_changes(doc: Document):
+def get_changes(doc: Document, for_delete):
 	current_changes = doc.as_dict(
-		no_default_fields=True, no_child_table_fields=True, convert_dates_to_str=True
+		no_default_fields=True, no_child_table_fields=True, no_private_properties=True
 	)
+
 	if not doc.get_doc_before_save():
-		return current_changes
+		if for_delete:
+			return {"from": current_changes, "to": dict.fromkeys(current_changes, None)}
+		return {"from": dict.fromkeys(current_changes, None), "to": current_changes}
 
-	changes = {}
 	previous_changes = doc.get_doc_before_save().as_dict(
-		no_default_fields=True, no_child_table_fields=True, convert_dates_to_str=True
+		no_default_fields=True, no_child_table_fields=True, no_private_properties=True
 	)
-	for k, v in current_changes.items():
-		if previous_changes.get(k, None) != v:
-			changes[k] = v
 
-	return frappe.as_json(changes, indent=0)
+	return get_changes_dict(current_changes, previous_changes)
+
+
+def get_changes_dict(current_changes, previous_changes):
+	changes = {"from": {}, "to": {}}
+
+	def set_changes(key, current, previous):
+		changes["from"][key] = previous
+		changes["to"][key] = current
+
+	for k, v in current_changes.items():
+		if isinstance(v, list):
+			if v and previous_changes.get(k, None):
+				i_set = {frozenset(row.items()) for row in v}
+				a_set = {frozenset(row.items()) for row in previous_changes[k]}
+
+				if len(i_set) == len(a_set) and not (i_set - a_set):
+					continue
+
+				set_changes(k, v, previous_changes[k])
+			else:
+				if not v and not previous_changes.get(k, None):
+					continue
+
+				set_changes(k, v, previous_changes[k])
+		elif previous_changes.get(k, None) != v:
+			set_changes(k, v, previous_changes[k])
+
+	return changes

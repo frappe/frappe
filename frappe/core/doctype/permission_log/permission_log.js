@@ -13,17 +13,19 @@ frappe.ui.form.on("Permission Log", {
 			<thead>
 				<tr>
 					<td>${__("Field")}</td>
-					<td>${__("Value")}</td>
+					<td>${__("From")}</td>
+					<td>${__("To")}</td>
 				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>`);
 
-		Object.keys(changes).forEach((key) => {
+		Object.keys(changes["from"]).forEach((key) => {
 			changes_table.find("tbody").append(
 				$(`<tr>
 			<td>${frappe.model.unscrub(key)}</td>
-			<td>${changes[key]}</td>
+			<td>${JSON.stringify(changes["from"][key])}</td>
+			<td>${JSON.stringify(changes["to"][key])}</td>
 		</tr>`)
 			);
 		});
