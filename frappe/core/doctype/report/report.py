@@ -43,6 +43,9 @@ class Report(Document):
 		if self.report_type == "Report Builder":
 			self.update_report_json()
 
+	def before_save(self):
+		frappe.perm_log(self, self.get_doc_before_save(), filters=["roles"])
+
 	def before_insert(self):
 		self.set_doctype_roles()
 
@@ -57,6 +60,9 @@ class Report(Document):
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
+
+	def after_delete(self):
+		frappe.perm_log(self, self.get_doc_before_save(), filters=["roles"], for_delete=True)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
