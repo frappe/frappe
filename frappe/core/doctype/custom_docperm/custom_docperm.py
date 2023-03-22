@@ -7,13 +7,13 @@ from frappe.model.document import Document
 
 class CustomDocPerm(Document):
 	def before_save(self):
-		frappe.perm_log(self)
+		frappe.perm_log(self, self.get_doc_before_save())
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.parent)
 
 	def after_delete(self):
-		frappe.perm_log(self, for_delete=True)
+		frappe.perm_log(self, self.get_doc_before_save(), for_delete=True)
 
 
 def update_custom_docperm(docperm, values):
