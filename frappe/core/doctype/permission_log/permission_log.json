@@ -10,7 +10,6 @@
   "changed_by",
   "column_break_gvuy",
   "changed_at",
-  "column_break_pvd9",
   "action",
   "section_break_ttv7",
   "for_doctype",
@@ -43,6 +42,7 @@
    "fieldname": "for_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "For DocType",
    "options": "DocType",
    "read_only": 1,
@@ -52,6 +52,7 @@
    "fieldname": "for_document",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "For Document",
    "options": "for_doctype",
    "read_only": 1,
@@ -59,27 +60,19 @@
   },
   {
    "fieldname": "for_parenttype",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "For Parenttype",
-   "options": "DocType",
    "read_only": 1
   },
   {
    "fieldname": "for_parent",
-   "fieldtype": "Dynamic Link",
-   "label": "For Parent",
-   "options": "for_parenttype",
-   "read_only": 1
-  },
-  {
-   "default": "Update",
-   "fieldname": "action",
-   "fieldtype": "Select",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Action",
-   "options": "Update\nRemove\nCreate",
-   "read_only": 1,
-   "reqd": 1
+   "in_standard_filter": 1,
+   "label": "For Parent",
+   "read_only": 1
   },
   {
    "fieldname": "changes",
@@ -93,10 +86,6 @@
   },
   {
    "fieldname": "column_break_gvuy",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_pvd9",
    "fieldtype": "Column Break"
   },
   {
@@ -119,11 +108,19 @@
   {
    "fieldname": "column_break_8nk0",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Action",
+   "options": "Update\nCreate\nRemove",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-21 23:23:07.962506",
+ "modified": "2023-03-22 12:34:30.891523",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",
@@ -138,5 +135,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "for_doctype"
 }
