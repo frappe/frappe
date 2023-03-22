@@ -534,8 +534,11 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 
 	out = setup_custom_perms(doctype)
 
-	name = frappe.db.get_value("Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel))
-	update_custom_docperm(name, {ptype: value})
+	custom_docperm = frappe.db.get_value(
+		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel)
+	)
+	if custom_docperm:
+		update_custom_docperm(custom_docperm, {ptype: value})
 
 	if validate:
 		validate_permissions_for_doctype(doctype)
@@ -597,7 +600,7 @@ def reset_perms(doctype):
 	from frappe.desk.notifications import delete_notification_count_for
 
 	delete_notification_count_for(doctype)
-	for custom_docperm in frappe.get_all("Custom DocPerm", filters={"parent": doctype}):
+	for custom_docperm in frappe.get_all("Custom DocPerm", filters={"parent": doctype}, pluck="name"):
 		frappe.delete_doc("Custom DocPerm", custom_docperm)
 
 
