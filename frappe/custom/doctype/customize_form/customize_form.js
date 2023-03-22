@@ -89,7 +89,7 @@ frappe.ui.form.on("Customize Form", {
 
 	setup_sortable: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (!f.is_custom_field) {
+			if (!f.is_custom_field || f.is_system_generated) {
 				f._sortable = false;
 			}
 
@@ -251,10 +251,23 @@ frappe.ui.form.on("Customize Form", {
 // can't delete standard fields
 frappe.ui.form.on("Customize Form Field", {
 	before_fields_remove: function (frm, doctype, name) {
-		var row = frappe.get_doc(doctype, name);
+		const row = frappe.get_doc(doctype, name);
+
+		if (row.is_system_generated) {
+			frappe.throw(
+				__(
+					"Cannot delete system generated field <strong>{0}</strong>. You can hide it instead.",
+					[__(row.label) || row.fieldname]
+				)
+			);
+		}
+
 		if (!(row.is_custom_field || row.__islocal)) {
-			frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
-			throw "cannot delete standard field";
+			frappe.throw(
+				__("Cannot delete standard field <strong>{0}</strong>. You can hide it instead.", [
+					__(row.label) || row.fieldname,
+				])
+			);
 		}
 	},
 	fields_add: function (frm, cdt, cdn) {

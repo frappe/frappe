@@ -529,7 +529,7 @@ frappe.request.report_error = function (xhr, request_opts) {
 			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
 			"### Route",
 			code_block(frappe.get_route_str()),
-			"### Trackeback",
+			"### Traceback",
 			code_block(exc),
 			"### Request Data",
 			code_block(JSON.stringify(request_opts, null, "\t")),

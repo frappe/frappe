@@ -25,6 +25,27 @@ frappe.ui.form.on("Custom Field", {
 		frm.toggle_enable("dt", frm.doc.__islocal);
 		frm.trigger("dt");
 		frm.toggle_reqd("label", !frm.doc.fieldname);
+
+		if (frm.doc.is_system_generated) {
+			frm.dashboard.add_comment(
+				__(
+					"<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead.",
+					[
+						frappe.utils.get_form_link(
+							"Customize Form",
+							"Customize Form",
+							true,
+							__("Customize Form"),
+							{
+								doc_type: frm.doc.dt,
+							}
+						),
+					]
+				),
+				"yellow",
+				true
+			);
+		}
 	},
 	dt: function (frm) {
 		if (!frm.doc.dt) {
