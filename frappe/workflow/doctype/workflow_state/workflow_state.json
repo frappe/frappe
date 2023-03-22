@@ -40,10 +40,11 @@
  "icon": "fa fa-flag",
  "idx": 1,
  "links": [],
- "modified": "2022-08-03 12:20:52.588427",
+ "modified": "2023-03-13 22:33:58.504532",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow State",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -66,5 +67,6 @@
  "sort_field": "modified",
  "sort_order": "ASC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "translated_doctype": 1
 }

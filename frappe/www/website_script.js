@@ -33,6 +33,8 @@ ga('send', 'pageview');
 						version: browser.version,
 						user_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
 						source: query_params.source,
+						medium: query_params.medium,
+						campaign: query_params.campaign,
 						visitor_id: result.visitorId
 					})
 			})
