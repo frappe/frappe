@@ -24,8 +24,8 @@ frappe.ui.form.on("Permission Log", {
 			changes_table.find("tbody").append(
 				$(`<tr>
 			<td>${frappe.model.unscrub(key)}</td>
-			<td>${JSON.stringify(changes["from"][key])}</td>
-			<td>${JSON.stringify(changes["to"][key])}</td>
+			<td style="word-break: break-all">${JSON.stringify(changes["from"][key], null, 1)}</td>
+			<td style="word-break: break-all">${JSON.stringify(changes["to"][key], null, 1)}</td>
 		</tr>`)
 			);
 		});
