@@ -1039,7 +1039,7 @@ class Database:
 				if hasattr(obj, "on_rollback"):
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
-		
+
 			frappe.local.realtime_log = []
 			frappe.flags.enqueue_after_commit = []
 
