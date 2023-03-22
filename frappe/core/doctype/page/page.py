@@ -46,6 +46,9 @@ class Page(Document):
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
 
+	def before_save(self):
+		frappe.perm_log(self, self.get_doc_before_save(), filters=["roles"])
+
 	# export
 	def on_update(self):
 		"""
@@ -78,14 +81,17 @@ class Page(Document):
 						% (self.name, self.title)
 					)
 
-	def as_dict(self, no_nulls=False):
-		d = super().as_dict(no_nulls=no_nulls)
+	def as_dict(self, **kwargs):
+		d = super().as_dict(**kwargs)
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 		return d
 
 	def on_trash(self):
 		delete_custom_role("page", self.name)
+
+	def after_delete(self):
+		frappe.perm_log(self, self.get_doc_before_save(), filters=["roles"], for_delete=True)
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
