@@ -16,6 +16,9 @@ class UserPermission(Document):
 		self.validate_user_permission()
 		self.validate_default_permission()
 
+	def before_save(self):
+		frappe.perm_log(self, self.get_doc_before_save())
+
 	def on_update(self):
 		frappe.cache().hdel("user_permissions", self.user)
 		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
@@ -58,6 +61,9 @@ class UserPermission(Document):
 		if overlap_exists:
 			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
+
+	def after_delete(self):
+		frappe.perm_log(self, self.get_doc_before_save(), for_delete=True)
 
 
 @frappe.whitelist()
