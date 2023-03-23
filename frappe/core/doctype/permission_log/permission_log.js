@@ -13,7 +13,7 @@ frappe.ui.form.on("Permission Log", {
 			<thead>
 				<tr>
 					<td>${__("Field")}</td>
-					<td>${__("From")}</td>
+					<td>${__("Changed Value(s)")}</td>
 					<td>${__("To")}</td>
 				</tr>
 			</thead>
@@ -24,8 +24,8 @@ frappe.ui.form.on("Permission Log", {
 			changes_table.find("tbody").append(
 				$(`<tr>
 			<td>${frappe.model.unscrub(key)}</td>
-			<td style="word-break: break-all">${JSON.stringify(changes["from"][key], null, 1)}</td>
-			<td style="word-break: break-all">${JSON.stringify(changes["to"][key], null, 1)}</td>
+			<td style="word-break: break-word">${JSON.stringify(changes["from"][key], null, 1)}</td>
+			<td style="word-break: break-word">${JSON.stringify(changes["to"][key], null, 1)}</td>
 		</tr>`)
 			);
 		});

@@ -1,8 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from difflib import HtmlDiff
-
 import frappe
 from frappe.model.document import Document
 
@@ -20,7 +18,10 @@ class PermissionLog(Document):
 def make_perm_log(
 	doc: Document,
 	doc_before_save: Document = None,
+	reference_doctype=None,
+	reference_docname=None,
 	filters: list | tuple = None,
+	ignore_changes_to=None,
 	for_delete: bool = False,
 ):
 	def get_action():
@@ -50,7 +51,7 @@ def get_changes(doc: Document, doc_before_save=None, filters=None, for_delete=Fa
 	current_changes = get_filtered_changes(
 		doc.as_dict(
 			no_default_fields=True,
-			no_child_table_fields=not (doc.doctype == "Custom DocPerm"),
+			no_child_table_fields=(doc.doctype != "Custom DocPerm"),
 			no_private_properties=True,
 		),
 		filters,
@@ -63,7 +64,7 @@ def get_changes(doc: Document, doc_before_save=None, filters=None, for_delete=Fa
 	previous_changes = get_filtered_changes(
 		doc_before_save.as_dict(
 			no_default_fields=True,
-			no_child_table_fields=not (doc.doctype == "Custom DocPerm"),
+			no_child_table_fields=(doc.doctype != "Custom DocPerm"),
 			no_private_properties=True,
 		),
 		filters,
@@ -79,19 +80,18 @@ def clean_changes(current_changes, previous_changes):
 	for k, current_val in current_changes.items():
 		if isinstance(current_val, list):
 			# for child table docs
-			if current_val and previous_changes.get(k, None):
-				current = {frozenset(row.items()) for row in current_val}
-				previous = {frozenset(row.items()) for row in previous_changes[k]}
-				if len(current) == len(previous) and not (current - previous):
-					continue
-
-			elif not current_val and not previous_changes.get(k, None):
+			current = {frozenset(row.items()) for row in current_val}
+			previous = {frozenset(row.items()) for row in previous_changes[k]}
+			if not current.symmetric_difference(previous):
 				continue
+
+			previous_values[k] = [dict(i) for i in previous - current]
+			current_val = [dict(i) for i in current - previous]
 
 		elif previous_changes.get(k, None) == current_val:
 			continue
 
-		previous_values[k] = previous_changes[k]
+		previous_values[k] = previous_values.get(k, None) or previous_changes[k]
 		current_values[k] = current_val
 
 	return current_values, previous_values
