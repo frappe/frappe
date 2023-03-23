@@ -180,6 +180,11 @@ def _get_last_modified_timestamp(doctype):
 
 @frappe.whitelist()
 def activate_scheduler():
+	frappe.only_for("Administrator")
+
+	if frappe.local.conf.maintenance_mode:
+		frappe.throw(frappe._("Scheduler can not be re-enabled when maintenance mode is active."))
+
 	if is_scheduler_disabled():
 		enable_scheduler()
 	if frappe.conf.pause_scheduler:
