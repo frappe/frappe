@@ -46,5 +46,27 @@ context('List View', () => {
 			cy.clear_filters();
 			cy.get('.list-row-container:visible').should('contain', 'Approved');
 		});
+<<<<<<< HEAD
+=======
+		cy.get(".actions-btn-group button").contains("Actions").should("be.visible").click();
+		cy.get(".dropdown-menu li:visible .dropdown-item")
+			.should("have.length", 9)
+			.each((el, index) => {
+				cy.wrap(el).contains(actions[index]);
+			})
+			.then((elements) => {
+				cy.intercept({
+					method: "POST",
+					url: "api/method/frappe.model.workflow.bulk_workflow_approval",
+				}).as("bulk-approval");
+				cy.wrap(elements).contains("Approve").click();
+				cy.wait("@bulk-approval");
+				cy.wait(300);
+				cy.get_open_dialog().find(".btn-modal-close").click();
+				cy.reload();
+				cy.clear_filters();
+				cy.get(".list-row-container:visible").should("contain", "Approved");
+			});
+>>>>>>> 6e3ef3dc3d (test: fixed failing UI test)
 	});
 });
