@@ -308,6 +308,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.render_header(refresh_header);
 			this.update_checkbox();
 			this.update_url_with_filters();
+			this.setup_realtime_updates();
 		});
 	}
 
@@ -1329,17 +1330,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_realtime_updates() {
 		this.pending_document_refreshes = [];
 
-		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
+		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
 			return;
 		}
 		frappe.socketio.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
 		frappe.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
 				return;
 			}
 
-			if (!frappe.get_doc(data?.doctype, data?.name)?.__unsaved) {
-				frappe.model.remove_from_locals(data.doctype, data.name);
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
 			}
 
 			if (this.avoid_realtime_update()) {
@@ -1349,10 +1352,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.pending_document_refreshes.push(data);
 			frappe.utils.debounce(this.process_document_refreshes.bind(this), 1000)();
 		});
+		this.realtime_events_setup = true;
+	}
+
+	disable_realtime_updates() {
+		frappe.socketio.doctype_unsubscribe(this.doctype);
+		this.realtime_events_setup = false;
 	}
 
 	process_document_refreshes() {
 		if (!this.pending_document_refreshes.length) return;
+
+		const route = frappe.get_route() || [];
+		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
+			// wait till user is back on list view before refreshing
+			this.pending_document_refreshes = [];
+			this.disable_realtime_updates();
+			return;
+		}
 
 		const names = this.pending_document_refreshes.map((d) => d.name);
 		this.pending_document_refreshes = this.pending_document_refreshes.filter(
