@@ -1334,13 +1334,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		frappe.socketio.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
 		frappe.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
 				return;
 			}
 
-			if (!frappe.get_doc(data?.doctype, data?.name)?.__unsaved) {
-				frappe.model.remove_from_locals(data.doctype, data.name);
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
 			}
 
 			if (this.avoid_realtime_update()) {
