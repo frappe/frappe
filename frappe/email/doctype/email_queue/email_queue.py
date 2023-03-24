@@ -5,6 +5,7 @@ import json
 import quopri
 import smtplib
 import traceback
+from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTPUTF8
 
@@ -684,7 +685,10 @@ class QueueBuilder:
 			if not smtp_server_instance:
 				email_account = q.get_email_account()
 				smtp_server_instance = email_account.get_smtp_server()
-			q.send(smtp_server_instance=smtp_server_instance)
+
+			with suppress(Exception):
+				q.send(smtp_server_instance=smtp_server_instance)
+
 		smtp_server_instance.quit()
 
 	def as_dict(self, include_recipients=True):
