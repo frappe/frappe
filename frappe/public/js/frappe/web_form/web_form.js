@@ -20,9 +20,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make() {
-		this.after_init && this.after_init();
 		this.parent.empty();
 		super.make();
+		this.after_init && this.after_init();
 		this.set_page_breaks();
 		this.set_field_values();
 
