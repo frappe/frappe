@@ -195,6 +195,10 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return False
 
+	def exists(self, *names: str) -> int:
+		names = [self.make_key(n) for n in names]
+		return super().exists(*names)
+
 	def hgetall(self, name):
 		value = super().hgetall(self.make_key(name))
 		return {key: pickle.loads(value) for key, value in value.items()}

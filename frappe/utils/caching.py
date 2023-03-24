@@ -130,39 +130,26 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	return time_cache_wrapper
 
 
-def redis_cache(ttl: int | None = 3600, maxsize: int | None = None) -> Callable:
+def redis_cache(ttl: int | None = 3600) -> Callable:
 	"""Decorator to cache method calls and its return values in Redis"""
 
 	def decorator(func: Callable = None) -> Callable:
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
 			func_key = f"{func.__module__}.{func.__name__}"
-			func_call_key = __generate_request_cache_key(args, kwargs)
 
 			def clear_cache():
-				frappe.cache().delete_key(func_key)
+				frappe.cache().delete_keys(func_key)
+
 			func.clear_cache = clear_cache
 
-			if maxsize is not None and not callable(maxsize):
-				func.maxsize = maxsize
-
-			if (
-				hasattr(func, "maxsize")
-				and len(frappe.cache().get_value(func_key)) >= func.maxsize
-			):
-				frappe.cache().delete_key(func_key)
-
-			if not frappe.cache().get_value(func_key):
-				frappe.cache().set_value(
-					func_key, {func_call_key: func(*args, **kwargs)}, expires_in_sec=ttl
-				)
+			func_call_key = func_key + __generate_request_cache_key(args, kwargs)
+			if frappe.cache().exists(func_call_key):
+				return frappe.cache().get_value(func_call_key)
 			else:
-				if func_call_key not in frappe.cache().get_value(func_key):
-					func_key_cache = frappe.cache().get_value(func_key)
-					func_key_cache[func_call_key] = func(*args, **kwargs)
-					frappe.cache().set_value(func_key, func_key_cache, expires_in_sec=ttl)
-
-			return frappe.cache().get_value(func_key)[func_call_key]
+				val = func(*args, **kwargs)
+				frappe.cache().set_value(func_call_key, val, expires_in_sec=ttl)
+				return val
 
 		return redis_cache_wrapper
 
