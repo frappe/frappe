@@ -143,7 +143,7 @@ def redis_cache(ttl: int | None = 3600) -> Callable:
 
 			func.clear_cache = clear_cache
 
-			func_call_key = func_key + __generate_request_cache_key(args, kwargs)
+			func_call_key = func_key + str(__generate_request_cache_key(args, kwargs))
 			if frappe.cache().exists(func_call_key):
 				return frappe.cache().get_value(func_call_key)
 			else:
