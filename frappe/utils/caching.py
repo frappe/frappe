@@ -95,7 +95,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 		func.clear_cache = clear_cache
 
 		if ttl is not None and not callable(ttl):
-			ttl = ttl
+			func.ttl = ttl
 			func.expiration = datetime.utcnow() + timedelta(seconds=ttl)
 
 		if maxsize is not None and not callable(maxsize):
@@ -108,7 +108,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 				if hasattr(func, "ttl") and datetime.utcnow() >= func.expiration:
 					func.clear_cache()
-					func.expiration = datetime.utcnow() + timedelta(seconds=ttl)
+					func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
 					_SITE_CACHE[func_key][frappe.local.site].pop(
