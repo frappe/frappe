@@ -1296,13 +1296,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
-			if (data.doctype && data.name) {
-				let doc = frappe.get_doc(data.doctype, data.name);
-				if (doc && doc.__unsaved) {
-					frappe.model.remove_from_locals(data.doctype, data.name);
-				}
-			}
-
 			if (this.filter_area.is_being_edited()) {
 				return;
 			}
