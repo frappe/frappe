@@ -1052,6 +1052,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_events() {
 		this.setup_filterable();
 		this.setup_list_click();
+		this.setup_drag_click();
 		this.setup_tag_event();
 		this.setup_new_doc_event();
 		this.setup_check_events();
@@ -1227,6 +1228,41 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 	}
+
+	setup_drag_click() {
+		this.dragClick = false;
+		this.$result.on("mousedown", ".list-row-checkbox", (e) => {
+			this.dragClick = true;
+			e.target.oncontextmenu = function() {
+				return false;
+			}
+		});
+		$(document).on("mouseup", () => {
+			this.dragClick = false;
+		})
+		this.$result.on("mousemove", ".level.list-row", (e) => {
+			$(e.target).find(".list-row-checkbox").addClass('has-error');
+			if (this.dragClick) {
+				this.check_on_drag(e);
+			}
+		});
+	}
+
+	check_on_drag(event) {
+		switch (event.which) {
+            case 1:
+                this.checkRow(event, true);
+                break;
+            case 3:
+                this.checkRow(event, false);
+                break;
+        }
+	}
+
+	checkRow(event, check=true) {
+        $(event.target).find(".list-row-checkbox").prop("checked", check);
+		this.on_row_checked();
+    }
 
 	setup_action_handler() {
 		this.$result.on("click", ".btn-action", (e) => {
