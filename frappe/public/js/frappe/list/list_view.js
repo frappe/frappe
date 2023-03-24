@@ -1357,6 +1357,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		frappe.socketio.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
 		frappe.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
 				return;
