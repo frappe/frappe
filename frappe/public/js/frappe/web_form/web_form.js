@@ -20,6 +20,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	make() {
+		this.after_init && this.after_init();
 		this.parent.empty();
 		super.make();
 		this.set_page_breaks();
@@ -389,7 +390,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					// Success
 					this.handle_success(response.message);
 					frappe.web_form.events.trigger("after_save");
-					this.after_save && this.after_save();
+					this.after_save && this.after_save(response.message);
 					// args doctype and docname added to link doctype in file manager
 					if (is_new && (response.message.attachment || response.message.file)) {
 						frappe.call({
