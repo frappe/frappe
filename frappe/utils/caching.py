@@ -95,8 +95,8 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 		func.clear_cache = clear_cache
 
 		if ttl is not None and not callable(ttl):
-			func.ttl = ttl
-			func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
+			ttl = ttl
+			func.expiration = datetime.utcnow() + timedelta(seconds=ttl)
 
 		if maxsize is not None and not callable(maxsize):
 			func.maxsize = maxsize
@@ -108,7 +108,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 				if hasattr(func, "ttl") and datetime.utcnow() >= func.expiration:
 					func.clear_cache()
-					func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
+					func.expiration = datetime.utcnow() + timedelta(seconds=ttl)
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
 					_SITE_CACHE[func_key][frappe.local.site].pop(
@@ -130,32 +130,21 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	return time_cache_wrapper
 
 
-def redis_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
+def redis_cache(ttl: int | None = 3600, maxsize: int | None = None) -> Callable:
 	"""Decorator to cache method calls and its return values in Redis"""
 
-	def time_cache_wrapper(func: Callable = None) -> Callable:
-		func_key = f"{func.__module__}.{func.__name__}"
-
-		def clear_cache():
-			"""Clear cache for this function for all sites if not specified."""
-			frappe.cache().delete_key(func_key)
-
-		func.clear_cache = clear_cache
-
-		if ttl is not None and not callable(ttl):
-			func.ttl = ttl
-			func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
-
-		if maxsize is not None and not callable(maxsize):
-			func.maxsize = maxsize
-
+	def decorator(func: Callable = None) -> Callable:
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
+			func_key = f"{func.__module__}.{func.__name__}"
 			func_call_key = __generate_request_cache_key(args, kwargs)
 
-			if hasattr(func, "ttl") and datetime.utcnow() >= func.expiration:
-				func.clear_cache()
-				func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
+			def clear_cache():
+				frappe.cache().delete_key(func_key)
+			func.clear_cache = clear_cache
+
+			if maxsize is not None and not callable(maxsize):
+				func.maxsize = maxsize
 
 			if (
 				hasattr(func, "maxsize")
@@ -164,18 +153,17 @@ def redis_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 				frappe.cache().delete_key(func_key)
 
 			if not frappe.cache().get_value(func_key):
-				frappe.cache().set_value(func_key, {func_call_key: func(*args, **kwargs)})
+				frappe.cache().set_value(
+					func_key, {func_call_key: func(*args, **kwargs)}, expires_in_sec=ttl
+				)
 			else:
 				if func_call_key not in frappe.cache().get_value(func_key):
 					func_key_cache = frappe.cache().get_value(func_key)
 					func_key_cache[func_call_key] = func(*args, **kwargs)
-					frappe.cache().set_value(func_key, func_key_cache)
+					frappe.cache().set_value(func_key, func_key_cache, expires_in_sec=ttl)
 
 			return frappe.cache().get_value(func_key)[func_call_key]
 
 		return redis_cache_wrapper
 
-	if callable(ttl):
-		return time_cache_wrapper(ttl)
-
-	return time_cache_wrapper
+	return decorator
