@@ -93,11 +93,20 @@ def add(args=None):
 
 			doc = frappe.get_doc(args["doctype"], args["name"])
 
-			# if sharing is not disabled & assignee does not have permissions, share
-			sharing_disabled = frappe.get_system_settings("disable_document_sharing")
-			if not sharing_disabled and not frappe.has_permission(doc=doc, user=assign_to):
-				frappe.share.add(doc.doctype, doc.name, assign_to)
-				shared_with_users.append(assign_to)
+			# if assignee does not have permissions, share or inform
+			if not frappe.has_permission(doc=doc, user=assign_to):
+				if frappe.get_system_settings("disable_document_sharing"):
+					frappe.msgprint(
+						msg=_(
+							"User {0} is assigned to this document but not permitted to access it.\
+							As document sharing is disabled, please give them the required permissions."
+						).format(frappe.bold(assign_to)),
+						title="Missing Permission",
+						indicator="blue",
+					)
+				else:
+					frappe.share.add(doc.doctype, doc.name, assign_to)
+					shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
