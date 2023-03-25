@@ -27,6 +27,8 @@ def restore(name, alert=True):
 	except frappe.DocstatusTransitionError:
 		frappe.msgprint(_("Cancelled Document restored as Draft"))
 		doc.docstatus = 0
+		if doc.workflow_state:
+			doc.workflow_state = None
 		doc.insert()
 
 	doc.add_comment("Edit", _("restored {0} as {1}").format(deleted.deleted_name, doc.name))
