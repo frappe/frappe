@@ -103,7 +103,7 @@ class TestRedisCache(FrappeAPITestCase):
 			nonlocal function_call_count
 			function_call_count += 1
 			return 3.14 * radius**2
-		
+
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 1)
 		self.assertEqual(calculate_area(10), 314)
@@ -112,3 +112,56 @@ class TestRedisCache(FrappeAPITestCase):
 		time.sleep(CACHE_TTL)
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 2)
+
+		calculate_area.clear_cache()
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 3)
+		calculate_area.clear_cache()
+
+	def test_redis_cache_without_params(self):
+		function_call_count = 0
+
+		@redis_cache
+		def calculate_area(radius: float) -> float:
+			nonlocal function_call_count
+			function_call_count += 1
+			return 3.14 * radius**2
+
+		calculate_area.clear_cache()
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 1)
+
+		calculate_area.clear_cache()
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 2)
+
+		calculate_area.clear_cache()
+
+	def test_redis_cache_diff_args(self):
+		function_call_count = 0
+
+		@redis_cache(ttl=CACHE_TTL)
+		def calculate_area(radius: float) -> float:
+			nonlocal function_call_count
+			function_call_count += 1
+			return 3.14 * radius**2
+
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 1)
+		self.assertEqual(calculate_area(100), 31400)
+		self.assertEqual(function_call_count, 2)
+
+		self.assertEqual(calculate_area(5), 25 * 3.14)
+		self.assertEqual(function_call_count, 3)
+
+		calculate_area(10)
+		# from cache now
+		self.assertEqual(function_call_count, 3)
+
+		calculate_area(radius=10)
+		# args, kwargs are treated differently
+		self.assertEqual(function_call_count, 4)
+
+		calculate_area(radius=10)
+		# kwargs should hit cache too
+		self.assertEqual(function_call_count, 4)
