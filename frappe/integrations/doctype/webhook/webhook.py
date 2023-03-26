@@ -128,32 +128,40 @@ def enqueue_webhook(doc, webhook) -> None:
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
-			log_request(webhook.request_url, headers, data, r)
+			log_request(webhook.name, doc.name, webhook.request_url, headers, data, r)
 			break
 
 		except requests.exceptions.ReadTimeout as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.request_url, headers, data)
+			log_request(webhook.name, doc.name, webhook.request_url, headers, data)
 
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.request_url, headers, data, r)
+			log_request(webhook.name, doc.name, webhook.request_url, headers, data, r)
 			sleep(3 * i + 1)
 			if i != 2:
 				continue
-			else:
-				webhook.log_error("Webhook failed")
 
 
-def log_request(url: str, headers: dict, data: dict, res: requests.Response | None = None):
+def log_request(
+	webhook: str,
+	docname: str,
+	url: str,
+	headers: dict,
+	data: dict,
+	res: requests.Response | None = None,
+):
 	request_log = frappe.get_doc(
 		{
 			"doctype": "Webhook Request Log",
+			"webhook": webhook,
+			"reference_document": docname,
 			"user": frappe.session.user if frappe.session.user else None,
 			"url": url,
 			"headers": frappe.as_json(headers) if headers else None,
 			"data": frappe.as_json(data) if data else None,
-			"response": frappe.as_json(res.json()) if res else None,
+			"response": res and res.text,
+			"error": frappe.get_traceback(),
 		}
 	)
 

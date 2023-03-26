@@ -14,18 +14,18 @@ let docfield_df = computed(() => {
 		if (in_list(frappe.model.layout_fields, df.fieldtype) || df.hidden) {
 			return false;
 		}
-		if (df.depends_on && !evaluate_depends_on_value(df.depends_on, store.selected_field)) {
+		if (df.depends_on && !evaluate_depends_on_value(df.depends_on, store.form.selected_field)) {
 			return false;
 		}
 
 		if (
 			in_list(["fetch_from", "fetch_if_empty"], df.fieldname) &&
-			in_list(frappe.model.no_value_type, store.selected_field.fieldtype)
+			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
 		) {
 			return false;
 		}
 
-		if (df.fieldname === "reqd" && store.selected_field.fieldtype === "Check") {
+		if (df.fieldname === "reqd" && store.form.selected_field.fieldtype === "Check") {
 			return false;
 		}
 
@@ -34,11 +34,11 @@ let docfield_df = computed(() => {
 			df.options = "";
 			args.value = {};
 
-			if (in_list(["Table", "Link"], store.selected_field.fieldtype)) {
+			if (in_list(["Table", "Link"], store.form.selected_field.fieldtype)) {
 				df.fieldtype = "Link";
 				df.options = "DocType";
 
-				if (store.selected_field.fieldtype === "Table") {
+				if (store.form.selected_field.fieldtype === "Table") {
 					args.value.is_table_field = 1;
 				}
 			}
@@ -63,14 +63,14 @@ let docfield_df = computed(() => {
 <template>
 	<SearchBox v-model="search_text" />
 	<div class="control-data">
-		<div v-if="store.selected_field">
+		<div v-if="store.form.selected_field">
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
 				<component
 					:is="df.fieldtype.replace(' ', '') + 'Control'"
 					:args="args"
 					:df="df"
-					:value="store.selected_field[df.fieldname]"
-					v-model="store.selected_field[df.fieldname]"
+					:value="store.form.selected_field[df.fieldname]"
+					v-model="store.form.selected_field[df.fieldname]"
 					:data-fieldname="df.fieldname"
 					:data-fieldtype="df.fieldtype"
 				/>

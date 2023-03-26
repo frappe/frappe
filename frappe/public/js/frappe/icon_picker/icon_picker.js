@@ -51,14 +51,14 @@ class Picker {
 					set_values();
 				}
 			});
-			this.search_input.keyup((e) => {
-				e.preventDefault();
-				this.filter_icons();
-			});
+		});
+		this.search_input.keyup((e) => {
+			e.preventDefault();
+			this.filter_icons();
+		});
 
-			this.search_input.on("search", () => {
-				this.filter_icons();
-			});
+		this.search_input.on("search", () => {
+			this.filter_icons();
 		});
 	}
 

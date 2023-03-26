@@ -305,7 +305,7 @@ def get_traceback(with_context=False) -> str:
 		return ""
 
 	if with_context:
-		trace_list = iter_exc_lines(fmt=_get_sanitizer())
+		trace_list = iter_exc_lines(fmt=_get_traceback_sanitizer())
 		tb = "\n".join(trace_list)
 	else:
 		trace_list = traceback.format_exception(exc_type, exc_value, exc_tb)
@@ -316,7 +316,7 @@ def get_traceback(with_context=False) -> str:
 
 
 @functools.lru_cache(maxsize=1)
-def _get_sanitizer():
+def _get_traceback_sanitizer():
 	from traceback_with_variables import Format
 
 	blocklist = [
@@ -346,7 +346,7 @@ def _get_sanitizer():
 	return Format(
 		custom_var_printers=[
 			# redact variables
-			*[(variable_name, lambda: placeholder) for variable_name in blocklist],
+			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
 		],

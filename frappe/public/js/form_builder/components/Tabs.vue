@@ -9,13 +9,12 @@ import { ref, computed, nextTick } from "vue";
 let store = useStore();
 
 let dragged = ref(false);
-let layout = computed(() => store.layout);
-let has_tabs = computed(() => layout.value.tabs.length > 1);
-store.active_tab = layout.value.tabs[0].df.name;
+let has_tabs = computed(() => store.form.layout.tabs.length > 1);
+store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
-	store.active_tab = tab.df.name;
-	store.selected_field = tab.df;
+	store.form.active_tab = tab.df.name;
+	store.form.selected_field = tab.df;
 
 	// scroll to active tab
 	nextTick(() => {
@@ -29,24 +28,24 @@ function activate_tab(tab) {
 function drag_over(tab) {
 	!dragged.value &&
 		setTimeout(() => {
-			store.active_tab = tab.df.name;
+			store.form.active_tab = tab.df.name;
 		}, 500);
 }
 
 function add_new_tab() {
 	let tab = {
-		df: store.get_df("Tab Break", "", "Tab " + (layout.value.tabs.length + 1)),
+		df: store.get_df("Tab Break", "", "Tab " + (store.form.layout.tabs.length + 1)),
 		sections: [section_boilerplate()],
 	};
 
-	layout.value.tabs.push(tab);
+	store.form.layout.tabs.push(tab);
 	activate_tab(tab);
 }
 
 function add_new_section() {
 	let section = section_boilerplate();
 	store.current_tab.sections.push(section);
-	store.selected_field = section.df;
+	store.form.selected_field = section.df;
 }
 
 function is_current_tab_empty() {
@@ -77,7 +76,7 @@ function remove_tab() {
 }
 
 function delete_tab(with_children) {
-	let tabs = layout.value.tabs;
+	let tabs = store.form.layout.tabs;
 	let index = tabs.indexOf(store.current_tab);
 
 	if (!with_children) {
@@ -103,17 +102,17 @@ function delete_tab(with_children) {
 
 	// activate previous tab
 	let prev_tab_index = index == 0 ? 0 : index - 1;
-	store.active_tab = tabs[prev_tab_index].df.name;
-	store.selected_field = null;
+	store.form.active_tab = tabs[prev_tab_index].df.name;
+	store.form.selected_field = null;
 }
 </script>
 
 <template>
-	<div class="tab-header" v-if="!(layout.tabs.length == 1 && store.read_only)">
+	<div class="tab-header" v-if="!(store.form.layout.tabs.length == 1 && store.read_only)">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
-			v-model="layout.tabs"
+			v-model="store.form.layout.tabs"
 			group="tabs"
 			filter="[data-has-std-field='true']"
 			:prevent-on-filter="false"
@@ -124,7 +123,7 @@ function delete_tab(with_children) {
 		>
 			<template #item="{ element }">
 				<div
-					:class="['tab', store.active_tab == element.df.name ? 'active' : '']"
+					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
 					:data-is-custom="element.df.is_custom_field"
 					:data-has-std-field="store.has_standard_field(element)"
@@ -167,9 +166,9 @@ function delete_tab(with_children) {
 	<div class="tab-contents">
 		<div
 			class="tab-content"
-			v-for="(tab, i) in layout.tabs"
+			v-for="(tab, i) in store.form.layout.tabs"
 			:key="i"
-			:class="[store.active_tab == tab.df.name ? 'active' : '']"
+			:class="[store.form.active_tab == tab.df.name ? 'active' : '']"
 		>
 			<draggable
 				class="tab-content-container"

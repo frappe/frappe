@@ -31,7 +31,7 @@ class StaticPage(BaseRenderer):
 		return self.is_valid_file_path() and self.file_path
 
 	def is_valid_file_path(self):
-		extension = self.path.rsplit(".", 1)[-1]
+		extension = self.path.rsplit(".", 1)[-1] if "." in self.path else ""
 		if extension in UNSUPPORTED_STATIC_PAGE_TYPES:
 			return False
 		return True

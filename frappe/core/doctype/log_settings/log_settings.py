@@ -19,6 +19,9 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Route History": 90,
 	"Submission Queue": 30,
 	"Prepared Report": 30,
+	"Webhook Request Log": 30,
+	"Integration Request": 90,
+	"Reminder": 30,
 }
 
 

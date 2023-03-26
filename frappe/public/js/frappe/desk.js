@@ -34,15 +34,6 @@ frappe.Application = class Application {
 		frappe.socketio.init();
 		frappe.model.init();
 
-		if (frappe.boot.status === "failed") {
-			frappe.msgprint({
-				message: frappe.boot.error,
-				title: __("Session Start Failed"),
-				indicator: "red",
-			});
-			throw "boot failed";
-		}
-
 		this.load_bootinfo();
 		this.load_user_permissions();
 		this.make_nav_bar();
@@ -154,7 +145,7 @@ frappe.Application = class Application {
 							user: frappe.session.user,
 						},
 						callback: function (r) {
-							if (r.message.show_alert) {
+							if (r.message && r.message.show_alert) {
 								frappe.show_alert({
 									indicator: "red",
 									message: r.message.message,
@@ -430,62 +421,12 @@ frappe.Application = class Application {
 		});
 	}
 	handle_session_expired() {
-		if (!frappe.app.session_expired_dialog) {
-			var dialog = new frappe.ui.Dialog({
-				title: __("Session Expired"),
-				keep_open: true,
-				fields: [
-					{
-						fieldtype: "Password",
-						fieldname: "password",
-						label: __("Please Enter Your Password to Continue"),
-					},
-				],
-				onhide: () => {
-					if (!dialog.logged_in) {
-						frappe.app.redirect_to_login();
-					}
-				},
-			});
-			dialog.get_field("password").disable_password_checks();
-			dialog.set_primary_action(__("Login"), () => {
-				dialog.set_message(__("Authenticating..."));
-				frappe.call({
-					method: "login",
-					args: {
-						usr: frappe.session.user,
-						pwd: dialog.get_values().password,
-					},
-					callback: (r) => {
-						if (r.message === "Logged In") {
-							dialog.logged_in = true;
-
-							// revert backdrop
-							$(".modal-backdrop").css({
-								opacity: "",
-								"background-color": "#334143",
-							});
-						}
-						dialog.hide();
-					},
-					statusCode: () => {
-						dialog.hide();
-					},
-				});
-			});
-			frappe.app.session_expired_dialog = dialog;
-		}
-		if (!frappe.app.session_expired_dialog.display) {
-			frappe.app.session_expired_dialog.show();
-			// add backdrop
-			$(".modal-backdrop").css({
-				opacity: 1,
-				"background-color": "#4B4C9D",
-			});
-		}
+		frappe.app.redirect_to_login();
 	}
 	redirect_to_login() {
-		window.location.href = "/";
+		window.location.href = `/login?redirect-to=${encodeURIComponent(
+			window.location.pathname + window.location.search
+		)}`;
 	}
 	set_favicon() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");

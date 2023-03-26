@@ -157,7 +157,10 @@ frappe.views.Workspace = class Workspace {
 			sidebar_section.addClass("hidden");
 		}
 
-		if (sidebar_section.find("> [item-is-hidden='0']").length == 0) {
+		if (
+			sidebar_section.find("sidebar-item-container").length &&
+			sidebar_section.find("> [item-is-hidden='0']").length == 0
+		) {
 			sidebar_section.addClass("hidden show-in-edit-mode");
 		}
 	}
@@ -390,6 +393,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
+				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
@@ -1334,9 +1338,16 @@ frappe.views.Workspace = class Workspace {
 					page_data: this.page_data || [],
 				},
 			},
+			number_card: {
+				class: this.blocks["number_card"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
 			spacer: this.blocks["spacer"],
 			HeaderSize: frappe.workspace_block.tunes["header_size"],
 		};
+
 		this.editor = new EditorJS({
 			data: {
 				blocks: blocks || [],
@@ -1425,27 +1436,27 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	create_page_skeleton() {
-		if ($(".layout-main-section").find(".workspace-skeleton").length) return;
+		if (this.body.find(".workspace-skeleton").length) return;
 
-		$(".layout-main-section").prepend(frappe.render_template("workspace_loading_skeleton"));
-		$(".layout-main-section").find(".codex-editor").addClass("hidden");
+		this.body.prepend(frappe.render_template("workspace_loading_skeleton"));
+		this.body.find(".codex-editor").addClass("hidden");
 	}
 
 	remove_page_skeleton() {
-		$(".layout-main-section").find(".codex-editor").removeClass("hidden");
-		$(".layout-main-section").find(".workspace-skeleton").remove();
+		this.body.find(".codex-editor").removeClass("hidden");
+		this.body.find(".workspace-skeleton").remove();
 	}
 
 	create_sidebar_skeleton() {
-		if ($(".list-sidebar").find(".workspace-sidebar-skeleton").length) return;
+		if ($(".workspace-sidebar-skeleton").length) return;
 
-		$(".list-sidebar").prepend(frappe.render_template("workspace_sidebar_loading_skeleton"));
-		$(".desk-sidebar").addClass("hidden");
+		$(frappe.render_template("workspace_sidebar_loading_skeleton")).insertBefore(this.sidebar);
+		this.sidebar.addClass("hidden");
 	}
 
 	remove_sidebar_skeleton() {
-		$(".desk-sidebar").removeClass("hidden");
-		$(".list-sidebar").find(".workspace-sidebar-skeleton").remove();
+		this.sidebar.removeClass("hidden");
+		$(".workspace-sidebar-skeleton").remove();
 	}
 
 	register_awesomebar_shortcut() {
