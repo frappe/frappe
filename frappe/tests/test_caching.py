@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import frappe
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils.caching import request_cache, site_cache
+from frappe.utils.caching import redis_cache, request_cache, site_cache
 
 CACHE_TTL = 4
 external_service = MagicMock(return_value=30)
@@ -92,3 +92,28 @@ class TestSiteCache(FrappeAPITestCase):
 		time.sleep(CACHE_TTL - (end - start))
 		self.get(f"/api/method/{api_with_ttl}")
 		self.assertEqual(register_with_external_service.call_count, 3)
+
+
+
+
+from unittest.mock import Mock
+
+
+class TestRedisCache(FrappeAPITestCase):
+	def test_redis_cache(self):
+		function_call_count = 0
+
+		@redis_cache(ttl=CACHE_TTL)
+		def calculate_area(radius: float) -> float:
+			nonlocal function_call_count
+			function_call_count += 1
+			return 3.14 * radius**2
+		
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 1)
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 1)
+
+		time.sleep(CACHE_TTL)
+		self.assertEqual(calculate_area(10), 314)
+		self.assertEqual(function_call_count, 2)

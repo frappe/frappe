@@ -136,7 +136,7 @@ def redis_cache(ttl: int | None = 3600) -> Callable:
 	def decorator(func: Callable = None) -> Callable:
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
-			func_key = f"{func.__module__}.{func.__name__}"
+			func_key = f"{func.__module__}.{func.__qualname__}"
 
 			def clear_cache():
 				frappe.cache().delete_keys(func_key)
