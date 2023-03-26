@@ -7,6 +7,7 @@ from contextlib import suppress
 import redis
 
 import frappe
+from frappe.utils.caching import redis_cache
 from frappe.utils.data import cstr
 
 redis_server = None
@@ -103,6 +104,7 @@ def get_redis_server():
 
 
 @frappe.whitelist(allow_guest=True)
+@redis_cache(ttl=5 * 60, user=True)
 def can_subscribe_doc(doctype: str, docname: str) -> bool:
 	from frappe.exceptions import PermissionError
 
@@ -113,6 +115,7 @@ def can_subscribe_doc(doctype: str, docname: str) -> bool:
 
 
 @frappe.whitelist(allow_guest=True)
+@redis_cache(ttl=5 * 60, user=True)
 def can_subscribe_doctype(doctype: str) -> bool:
 	from frappe.exceptions import PermissionError
 
