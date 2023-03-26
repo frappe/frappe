@@ -94,11 +94,6 @@ class TestSiteCache(FrappeAPITestCase):
 		self.assertEqual(register_with_external_service.call_count, 3)
 
 
-
-
-from unittest.mock import Mock
-
-
 class TestRedisCache(FrappeAPITestCase):
 	def test_redis_cache(self):
 		function_call_count = 0
