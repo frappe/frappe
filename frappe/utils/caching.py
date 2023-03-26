@@ -130,8 +130,13 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	return time_cache_wrapper
 
 
-def redis_cache(ttl: int | None = 3600) -> Callable:
-	"""Decorator to cache method calls and its return values in Redis"""
+def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Callable:
+	"""Decorator to cache method calls and its return values in Redis
+
+	args:
+	        ttl: time to expiry in seconds, defaults to 1 hour
+	        user: `true` should cache be specific to session user.
+	"""
 
 	def decorator(func: Callable = None) -> Callable:
 		@wraps(func)
@@ -145,10 +150,10 @@ def redis_cache(ttl: int | None = 3600) -> Callable:
 
 			func_call_key = func_key + str(__generate_request_cache_key(args, kwargs))
 			if frappe.cache().exists(func_call_key):
-				return frappe.cache().get_value(func_call_key)
+				return frappe.cache().get_value(func_call_key, user=user)
 			else:
 				val = func(*args, **kwargs)
-				frappe.cache().set_value(func_call_key, val, expires_in_sec=ttl)
+				frappe.cache().set_value(func_call_key, val, expires_in_sec=ttl, user=user)
 				return val
 
 		return redis_cache_wrapper
