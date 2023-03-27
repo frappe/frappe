@@ -195,16 +195,20 @@ def new_catalog(app: str, locale: str | None = None) -> Catalog:
 	)
 
 
-def get_locale_dir(app: str) -> Path:
+def get_locales_dir(app: str) -> Path:
 	return Path(frappe.get_app_path(app)) / LOCALE_DIR
 
 
+def get_locales(app: str) -> list[str]:
+	return [locale.name for locale in get_locales_dir(app).iterdir() if locale.is_dir()]
+
+
 def get_po_path(app: str, locale: str | None = None) -> Path:
-	return get_locale_dir(app) / locale / "LC_MESSAGES" / "messages.po"
+	return get_locales_dir(app) / locale / "LC_MESSAGES" / "messages.po"
 
 
 def get_pot_path(app: str) -> Path:
-	return get_locale_dir(app) / "main.pot"
+	return get_locales_dir(app) / "main.pot"
 
 
 def get_catalog(app: str, locale: str | None = None) -> Catalog:
@@ -302,20 +306,14 @@ def compile(target_app: str | None = None, locale: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
-		locales = (
-			[locale]
-			if locale
-			else [
-				locale_folder.name for locale_folder in get_locale_dir(app).iterdir() if locale_folder.is_dir()
-			]
-		)
+		locales = [locale] if locale else get_locales(app)
 		for locale in locales:
 			catalog = get_catalog(app, locale)
 			mo_path = write_binary(app, catalog, locale)
 			print(f"MO file created at {mo_path}")
 
 
-def update_po(target_app: str | None = None):
+def update_po(target_app: str | None = None, locale: str | None = None):
 	"""
 	Add keys to available PO files, from POT file. This could be used to keep
 	track of available keys, and missing translations
@@ -325,13 +323,9 @@ def update_po(target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
+		locales = [locale] if locale else get_locales(app)
 		pot_catalog = get_catalog(app)
-		locale_dir = get_locale_dir(app)
-
-		for locale in os.listdir(locale_dir):
-			if not os.path.isdir(locale_dir / locale):
-				continue
-
+		for locale in locales:
 			po_catalog = get_catalog(app, locale)
 			po_catalog.update(pot_catalog)
 			po_path = write_catalog(app, po_catalog, locale)
