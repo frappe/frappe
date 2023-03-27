@@ -1,12 +1,18 @@
 const cookie = require("cookie");
 const request = require("superagent");
+const http = require("node:http");
 
 const { get_conf, get_redis_subscriber } = require("./node_utils");
 const conf = get_conf();
 const log = console.log; // eslint-disable-line
 const subscriber = get_redis_subscriber();
 
-const io = require("socket.io")(conf.socketio_port, {
+const unix = process.env.FRAPPE_SOCKETIO_SOCKET;
+const port = process.env.FRAPPE_SOCKETIO_PORT || conf.socketio_port;
+
+const server = http.createServer();
+
+const io = require("socket.io")(server, {
 	cors: {
 		// Should be fine since we are ensuring whether hostname and origin are same before adding setting listeners for s socket
 		origin: true,
@@ -197,6 +203,10 @@ subscriber.on("message", function (_channel, message) {
 });
 
 subscriber.subscribe("events");
+
+server.listen(unix || port, () => {
+	log("Listening on", unix || port);
+});
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
