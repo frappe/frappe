@@ -31,14 +31,15 @@ def compile_translation(context, app: str = None, locale: str = None):
 
 @click.command("migrate-translation", help="Migrate CSV translation files to PO")
 @click.option("--app", help="App name. eg: frappe")
+@click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
-def migrate_translation(context, app: str):
+def migrate_translation(context, app: str, locale: str = None):
 	from frappe.translate import migrate
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
 
-	migrate(app)
+	migrate(app, locale)
 
 
 @click.command("update-po", help="Sync PO files with main POT file")

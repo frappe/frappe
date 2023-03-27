@@ -11,14 +11,15 @@
 import csv
 import functools
 import gettext
-import glob
 import itertools
 import json
 import operator
 import os
 import re
+from collections import defaultdict
 from contextlib import contextmanager, suppress
 from datetime import datetime
+from pathlib import Path
 
 from babel.messages.catalog import Catalog
 from babel.messages.extract import extract_from_dir, extract_python
@@ -175,6 +176,70 @@ def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool 
 	return t.gettext
 
 
+def new_catalog(app: str, locale: str | None = None) -> Catalog:
+	def get_hook(hook, app):
+		return frappe.get_hooks(hook, [None], app)[0]
+
+	app_email = get_hook("app_email", app)
+	return Catalog(
+		locale=locale,
+		domain="messages",
+		msgid_bugs_address=app_email,
+		language_team=app_email,
+		copyright_holder=get_hook("app_publisher", app),
+		last_translator=app_email,
+		project=get_hook("app_title", app),
+		creation_date=datetime.now(),
+		revision_date=datetime.now(),
+		fuzzy=False,
+	)
+
+
+def get_locale_dir(app: str) -> Path:
+	return Path(frappe.get_app_path(app)) / LOCALE_DIR
+
+
+def get_po_path(app: str, locale: str | None = None) -> Path:
+	return get_locale_dir(app) / locale / "LC_MESSAGES" / "messages.po"
+
+
+def get_pot_path(app: str) -> Path:
+	return get_locale_dir(app) / "main.pot"
+
+
+def get_catalog(app: str, locale: str | None = None) -> Catalog:
+	"""Returns a catatalog for the given app and locale"""
+	po_path = get_po_path(app, locale) if locale else get_pot_path(app)
+
+	if not po_path.exists():
+		return new_catalog(app, locale)
+
+	with open(po_path, "rb") as f:
+		return read_po(f)
+
+
+def write_catalog(app: str, catalog: Catalog, locale: str | None = None) -> Path:
+	"""Writes a catalog to the given app and locale"""
+	po_path = get_po_path(app, locale) if locale else get_pot_path(app)
+
+	if not po_path.parent.exists():
+		po_path.parent.mkdir(parents=True)
+
+	with open(po_path, "wb") as f:
+		write_po(f, catalog, sort_output=True, ignore_obsolete=True)
+
+	return po_path
+
+
+def write_binary(app: str, catalog: Catalog, locale: str) -> Path:
+	po_path = get_po_path(app, locale)
+	mo_path = po_path.with_suffix(".mo")
+	with open(mo_path, "wb") as mo_file:
+		write_mo(mo_file, catalog)
+
+	return mo_path
+
+
 def generate_pot(target_app: str | None = None):
 	"""
 	Generate a POT (PO template) file. This file will contain only messages IDs.
@@ -182,9 +247,6 @@ def generate_pot(target_app: str | None = None):
 
 	:param target_app: If specified, limit to `app`
 	"""
-
-	def get_hook(hook, app):
-		return frappe.get_hooks(hook, [None], app)[0]
 
 	def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
 		if "public/dist" in dirpath:
@@ -203,22 +265,7 @@ def generate_pot(target_app: str | None = None):
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
-		loc_path = os.path.join(app_path, "locale")
-		pot_path = os.path.join(loc_path, "main.pot")
-		os.makedirs(loc_path, exist_ok=True)
-		app_email = get_hook("app_email", app)
-
-		c = Catalog(
-			domain="messages",
-			msgid_bugs_address=app_email,
-			language_team=app_email,
-			copyright_holder=get_hook("app_publisher", app),
-			last_translator=app_email,
-			project=get_hook("app_title", app),
-			creation_date=datetime.now(),
-			revision_date=datetime.now(),
-			fuzzy=False,
-		)
+		catalog = get_catalog(app)
 
 		for filename, lineno, message, comments, context in extract_from_dir(
 			app_path, method_map, directory_filter=directory_filter
@@ -226,73 +273,46 @@ def generate_pot(target_app: str | None = None):
 			if not message:
 				continue
 
-			c.add(message, locations=[(filename, lineno)], auto_comments=comments, context=context)
+			catalog.add(message, locations=[(filename, lineno)], auto_comments=comments, context=context)
 
-		with open(pot_path, "wb") as f:
-			write_po(f, c)
-			print(f"POT file created at {pot_path}")
+		pot_path = write_catalog(app, catalog)
+		print(f"POT file created at {pot_path}")
 
 
-def new_po(lang_code, target_app: str | None = None):
+def new_po(locale, target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for target_app in apps:
-		app_path = frappe.get_app_path(target_app)
-		loc_path = os.path.join(app_path, "locale")
-		pot_path = os.path.join(loc_path, POT_FILE)
-		po_path = os.path.join(loc_path, lang_code, "LC_MESSAGES", "messages.po")
-
+		po_path = get_po_path(target_app, locale)
 		if os.path.exists(po_path):
 			print(f"{po_path} exists. Skipping")
 			continue
 
-		pot_file = open(pot_path)
-		pot_catalog = read_po(pot_file)
-		pot_file.close()
+		pot_catalog = get_catalog(target_app)
+		pot_catalog.locale = locale
+		po_path = write_catalog(target_app, pot_catalog, locale)
 
-		po_catalog = Catalog(
-			domain="messages",
-			msgid_bugs_address="contact@frappe.io",
-			language_team="contact@frappe.io",
-			copyright_holder="Frappe Technologies Pvt. Ltd.",
-			last_translator="contact@frappe.io",
-			project="Frappe Translation",
-			creation_date=datetime.now(),
-			revision_date=datetime.now(),
-			fuzzy=False,
+		print(f"PO file created_at {po_path}")
+		print(
+			"You will need to add the language in frappe/geo/languages.json, if you haven't done it already."
 		)
-
-		for m in pot_catalog:
-			po_catalog.add(m.id, context=m.context)
-
-		with open(po_path, "wb") as po_file:
-			write_po(po_file, po_catalog)
-			print(f"PO file created_at {po_path}")
-			print(
-				"You will need to add the language in frappe/geo/languages.json, if you haven't done it already."
-			)
 
 
 def compile(target_app: str | None = None, locale: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
-		app_path = frappe.get_app_path(app)
-		loc_path = os.path.join(app_path, "locale")
-		po_files = glob.glob(
-			f"{locale or '*'}/LC_MESSAGES/messages.po", root_dir=loc_path, recursive=True
+		locales = (
+			[locale]
+			if locale
+			else [
+				locale_folder.name for locale_folder in get_locale_dir(app).iterdir() if locale_folder.is_dir()
+			]
 		)
-
-		for file in po_files:
-			po_path = os.path.join(loc_path, file)
-			po_dir, _ = os.path.split(po_path)
-			mo_path = os.path.join(po_dir, "messages.mo")
-
-			with open(po_path) as po_file:
-				c = read_po(po_file)
-				with open(mo_path, "wb") as mo_file:
-					write_mo(mo_file, c)
-					print(f"MO file created at {mo_path}")
+		for locale in locales:
+			catalog = get_catalog(app, locale)
+			mo_path = write_binary(app, catalog, locale)
+			print(f"MO file created at {mo_path}")
 
 
 def update_po(target_app: str | None = None):
@@ -305,27 +325,62 @@ def update_po(target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
-		app_path = frappe.get_app_path(app)
-		loc_path = os.path.join(app_path, LOCALE_DIR)
-		pot_path = os.path.join(loc_path, POT_FILE)
-		po_files = glob.glob("**/*.po", root_dir=loc_path, recursive=True)
+		pot_catalog = get_catalog(app)
+		locale_dir = get_locale_dir(app)
 
-		pot_file = open(pot_path)
-		pot_catalog = read_po(pot_file)
-		pot_file.close()
+		for locale in os.listdir(locale_dir):
+			if not os.path.isdir(locale_dir / locale):
+				continue
 
-		for f in po_files:
-			po_path = os.path.join(loc_path, f)
+			po_catalog = get_catalog(app, locale)
+			po_catalog.update(pot_catalog)
+			po_path = write_catalog(app, po_catalog, locale)
+			print(f"PO file modified at {po_path}")
 
-			with open(po_path, "r+b") as po_file:
-				po_catalog = read_po(po_file)
 
-				for i in pot_catalog:
-					if not po_catalog.get(i.id, context=i.context):
-						po_catalog.add(i.id, context=i.context)
+def migrate(app: str | None = None, locale: str | None = None):
+	apps = [app] if app else frappe.get_all_apps(True)
 
-				write_po(po_file, po_catalog)
-				print(f"PO file modified at {po_path}")
+	for app in apps:
+		if locale:
+			csv_to_po(app, locale)
+		else:
+			app_path = Path(frappe.get_app_path(app))
+			for filename in (app_path / "translations").iterdir():
+				if filename.suffix != ".csv":
+					continue
+				csv_to_po(app, filename.stem)
+
+
+def csv_to_po(app: str, locale: str):
+	csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
+	if not csv_file.exists():
+		return
+
+	catalog: Catalog = get_catalog(app)
+	msgid_context_map = defaultdict(list)
+	for message in catalog:
+		msgid_context_map[message.id].append(message.context)
+
+	with open(csv_file) as f:
+		for row in csv.reader(f):
+			if len(row) < 2:
+				continue
+
+			msgid = escape_percent(row[0])
+			msgstr = escape_percent(row[1])
+			msgctxt = row[2] if len(row) >= 3 else None
+
+			if not msgctxt:
+				# if old context is not defined, add msgstr to all contexts
+				for context in msgid_context_map.get(msgid, []):
+					if message := catalog.get(msgid, context):
+						message.string = msgstr
+			elif message := catalog.get(msgid, msgctxt):
+				message.string = msgstr
+
+	po_path = write_catalog(app, catalog, locale)
+	print(f"PO file created at {po_path}")
 
 
 def f(msg: str, context: str = None, lang: str = DEFAULT_LANG) -> str:
@@ -569,63 +624,6 @@ def deduplicate_messages(messages):
 	for k, g in itertools.groupby(messages, op):
 		ret.append(next(g))
 	return ret
-
-
-def csv_to_po(file: str, localedir: str):
-	l = os.path.split(file)[-1].split(".")[0].replace("-", "_")
-	m = os.path.join(localedir, l, "LC_MESSAGES")
-	os.makedirs(m, exist_ok=True)
-	p = os.path.join(m, "messages.po")
-
-	c = Catalog(
-		domain="messages",
-		msgid_bugs_address="contact@frappe.io",
-		language_team="contact@frappe.io",
-		copyright_holder="Frappe Technologies Pvt. Ltd.",
-		last_translator="contact@frappe.io",
-		project="frappe translation",
-		version="0.1",
-		creation_date=datetime.now(),
-		revision_date=datetime.now(),
-		fuzzy=False,
-	)
-
-	with open(file) as f:
-		r = csv.reader(f)
-
-		for row in r:
-			if len(row) <= 2:
-				continue
-
-			msgid = escape_percent(row[0])
-			msgstr = escape_percent(row[1])
-			msgctxt = row[2] if len(row) >= 3 else None
-
-			c.add(msgid, string=msgstr, context=msgctxt)
-
-	with open(p, "wb") as f:
-		write_po(f, c, sort_output=True)
-		print(f"PO file created at {p}")
-
-
-def migrate(app: str | None = None):
-	apps = [app] if app else frappe.get_all_apps(True)
-
-	for app in apps:
-		app_path = frappe.get_app_path(app)
-		translations_path = os.path.join(app_path, "translations")
-
-		if not os.path.exists(translations_path):
-			continue
-
-		if not os.path.isdir(translations_path):
-			continue
-
-		po_locale_dir = os.path.join(app_path, "locale")
-		csv_files = [i for i in os.listdir(translations_path) if i.endswith(".csv")]
-
-		for f in csv_files:
-			csv_to_po(os.path.join(translations_path, f), po_locale_dir)
 
 
 def escape_percent(s: str):
