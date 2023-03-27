@@ -273,13 +273,15 @@ def new_po(lang_code, target_app: str | None = None):
 			)
 
 
-def compile(target_app: str | None = None):
+def compile(target_app: str | None = None, locale: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
 		app_path = frappe.get_app_path(app)
 		loc_path = os.path.join(app_path, "locale")
-		po_files = glob.glob("**/*.po", root_dir=loc_path, recursive=True)
+		po_files = glob.glob(
+			f"{locale or '*'}/LC_MESSAGES/messages.po", root_dir=loc_path, recursive=True
+		)
 
 		for file in po_files:
 			po_path = os.path.join(loc_path, file)

@@ -18,14 +18,15 @@ def generate_pot(context, app: str):
 
 @click.command("compile-translation", help="Compile PO files to MO files")
 @click.option("--app", help="App name. eg: frappe")
+@click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
-def compile_translation(context, app: str):
+def compile_translation(context, app: str = None, locale: str = None):
 	from frappe.translate import compile
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
 
-	compile(app)
+	compile(app, locale)
 
 
 @click.command("migrate-translation", help="Migrate CSV translation files to PO")
