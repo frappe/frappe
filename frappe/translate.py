@@ -354,6 +354,7 @@ def migrate(app: str | None = None, locale: str | None = None):
 
 def csv_to_po(app: str, locale: str):
 	csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
+	locale = locale.replace("-", "_")
 	if not csv_file.exists():
 		return
 
