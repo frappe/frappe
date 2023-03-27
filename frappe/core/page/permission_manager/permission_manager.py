@@ -62,8 +62,8 @@ def get_roles_and_doctypes():
 	roles_list = [{"label": _(d.get("name")), "value": d.get("name")} for d in roles]
 
 	return {
-		"doctypes": sorted(doctypes_list, key=lambda d: d["label"]),
-		"roles": sorted(roles_list, key=lambda d: d["label"]),
+		"doctypes": sorted(doctypes_list, key=lambda d: d["label"].casefold()),
+		"roles": sorted(roles_list, key=lambda d: d["label"].casefold()),
 	}
 
 

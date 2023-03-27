@@ -3,6 +3,7 @@ import datetime
 import signal
 import unittest
 from contextlib import contextmanager
+from typing import Sequence
 
 import frappe
 from frappe.model.base_document import BaseDocument
@@ -39,6 +40,10 @@ class FrappeTestCase(unittest.TestCase):
 
 		return super().setUpClass()
 
+	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
+		"""Assert that `expected` is a subset of `actual`."""
+		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
+
 	# --- Frappe Framework specific assertions
 	def assertDocumentEqual(self, expected, actual):
 		"""Compare a (partial) expected document with actual Document."""
@@ -55,12 +60,14 @@ class FrappeTestCase(unittest.TestCase):
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
 
-	def _compare_field(self, expected, actual, doc, field):
+	def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
 		msg = f"{field} should be same."
 
 		if isinstance(expected, float):
 			precision = doc.precision(field)
-			self.assertAlmostEqual(expected, actual, f"{field} should be same to {precision} digits")
+			self.assertAlmostEqual(
+				expected, actual, places=precision, msg=f"{field} should be same to {precision} digits"
+			)
 		elif isinstance(expected, (bool, int)):
 			self.assertEqual(expected, cint(actual), msg=msg)
 		elif isinstance(expected, datetime_like_types):

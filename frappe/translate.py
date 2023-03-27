@@ -7,6 +7,7 @@
 	Translation tools for frappe
 """
 
+
 import csv
 import functools
 import gettext
@@ -16,7 +17,7 @@ import json
 import operator
 import os
 import re
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import datetime
 
 from babel.messages.catalog import Catalog
@@ -77,9 +78,7 @@ def get_language(lang_list: list = None) -> str:
 
 	# fetch language from form_dict
 	if frappe.form_dict._lang:
-		language = get_lang_code(
-			frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang)
-		)
+		language = get_lang_code(frappe.form_dict._lang or get_parent_language(frappe.form_dict._lang))
 		if language:
 			return language
 
@@ -163,16 +162,12 @@ def set_default_language(lang):
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
 	return dict(
-		frappe.get_all(
-			"Language", fields=["language_name", "name"], order_by="modified", as_list=True
-		)
+		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
 	)
 
 
 def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool | None = False):
-	t = gettext.translation(
-		TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True
-	)
+	t = gettext.translation(TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True)
 
 	if context:
 		return t.pgettext
@@ -383,7 +378,7 @@ def get_dict_from_hooks(fortype: str, name: str) -> dict[str, str]:
 	Hook example:
 	```
 	get_translated_dict = {
-		("doctype", "Global Defaults"): "frappe.geo.country_info.get_translated_dict",
+	        ("doctype", "Global Defaults"): "frappe.geo.country_info.get_translated_dict",
 	}
 	```
 
@@ -439,19 +434,16 @@ def get_all_translations(lang: str) -> dict[str, str]:
 
 	def t():
 		all_translations = get_translations_from_apps(lang)
-
-		try:
+		with suppress(Exception):
 			# get user specific translation data
 			user_translations = get_user_translations(lang)
 			all_translations.update(user_translations)
-		except:
-			pass
 
 		return all_translations
 
 	try:
 		return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=t)
-	except:
+	except Exception:
 		# People mistakenly call translation function on global variables where
 		# locals are not initialized, translations don't make much sense there
 		return {}
@@ -705,14 +697,14 @@ def babel_extract_python(*args, **kwargs):
 def babel_extract_javascript(fileobj, keywords, comment_tags, options):
 	from babel.messages.extract import extract_javascript
 
-    # We use `__` as our translation function
+	# We use `__` as our translation function
 	keywords = "__"
 
 	for lineno, funcname, messages, comments in extract_javascript(
 		fileobj, keywords, comment_tags, options
 	):
-        # `funcname` here will be `__` which is our translation function. We
-        # have to convert it back to usual function names
+		# `funcname` here will be `__` which is our translation function. We
+		# have to convert it back to usual function names
 		funcname = "gettext"
 
 		if isinstance(messages, tuple):
@@ -752,22 +744,17 @@ def babel_extract_doctype_json(fileobj, *args, **kwargs):
 			messages.append((label, f"Label of a {fieldtype} field in DocType '{doctype}'"))
 
 		if description := field.get("description"):
-			messages.append(
-				(description, f"Description of a {fieldtype} field in DocType '{doctype}'")
-			)
+			messages.append((description, f"Description of a {fieldtype} field in DocType '{doctype}'"))
 
 		if message := field.get("options"):
 			if fieldtype == "Select":
-				select_options = [
-					option for option in message.split("\n") if option and not option.isdigit()
-				]
+				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
 
 				if select_options and "icon" in select_options[0]:
 					continue
 
 				messages.extend(
-					(option, f"Option for a Select field in DocType '{doctype}'")
-					for option in select_options
+					(option, f"Option for a Select field in DocType '{doctype}'") for option in select_options
 				)
 			elif fieldtype == "HTML":
 				messages.append((message, f"Content of an HTML field in DocType '{doctype}'"))

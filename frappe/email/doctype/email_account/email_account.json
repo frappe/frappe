@@ -628,7 +628,6 @@
    "delete": 1,
    "read": 1,
    "role": "System Manager",
-   "set_user_permissions": 1,
    "write": 1
   },
   {

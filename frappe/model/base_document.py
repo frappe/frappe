@@ -11,6 +11,7 @@ from frappe.model import (
 	default_fields,
 	display_fieldtypes,
 	float_like_fields,
+	get_permitted_fields,
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
@@ -42,7 +43,7 @@ def get_controller(doctype):
 	:param doctype: DocType name as string.
 	"""
 
-	if frappe.local.dev_server:
+	if frappe.local.dev_server or frappe.flags.in_migrate:
 		return import_controller(doctype)
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
@@ -58,11 +59,11 @@ def import_controller(doctype):
 
 	module_name = "Core"
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
-		meta = frappe.get_meta(doctype)
-		if meta.custom:
-			return NestedSet if meta.get("is_tree") else Document
-
-		module_name = meta.module
+		doctype_info = frappe.db.get_value("DocType", doctype, fieldname="*")
+		if doctype_info:
+			if doctype_info.custom:
+				return NestedSet if doctype_info.is_tree else Document
+			module_name = doctype_info.module
 
 	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
@@ -303,19 +304,24 @@ class BaseDocument:
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> dict:
 		d = _dict()
+		permitted_fields = get_permitted_fields(doctype=self.doctype)
+
 		for fieldname in self.meta.get_valid_columns():
+			field_value = getattr(self, fieldname, None)
+
 			# column is valid, we can use getattr
-			d[fieldname] = getattr(self, fieldname, None)
+			d[fieldname] = field_value
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
 				continue
 
 			df = self.meta.get_field(fieldname)
+			is_virtual_field = getattr(df, "is_virtual", False)
 
 			if df:
-				if getattr(df, "is_virtual", False):
-					if ignore_virtual:
+				if is_virtual_field:
+					if ignore_virtual or fieldname not in permitted_fields:
 						del d[fieldname]
 						continue
 
@@ -353,7 +359,7 @@ class BaseDocument:
 			):
 				d[fieldname] = str(d[fieldname])
 
-			if ignore_nulls and d[fieldname] is None:
+			if ignore_nulls and not is_virtual_field and d[fieldname] is None:
 				del d[fieldname]
 
 		return d
@@ -756,7 +762,7 @@ class BaseDocument:
 					values.name = doctype
 
 				if frappe.get_meta(doctype).get("is_virtual"):
-					values = frappe.get_doc(doctype, docname)
+					values = frappe.get_doc(doctype, docname).as_dict()
 
 				if values:
 					setattr(self, df.fieldname, values.name)
@@ -1068,7 +1074,7 @@ class BaseDocument:
 	def is_dummy_password(self, pwd):
 		return "".join(set(pwd)) == "*"
 
-	def precision(self, fieldname, parentfield=None):
+	def precision(self, fieldname, parentfield=None) -> int | None:
 		"""Returns float precision for a particular field (or get global default).
 
 		:param fieldname: Fieldname for which precision is required.
@@ -1109,7 +1115,8 @@ class BaseDocument:
 			df = get_default_df(fieldname)
 
 		if (
-			df.fieldtype == "Currency"
+			df
+			and df.fieldtype == "Currency"
 			and not currency
 			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))

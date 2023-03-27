@@ -10,7 +10,7 @@ from pypika.queries import QueryBuilder, Table
 import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
-from frappe.database.utils import get_doctype_name
+from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
@@ -314,7 +314,7 @@ class Engine:
 		return _fields
 
 	def apply_order_by(self, order_by: str | None):
-		if not order_by or order_by == "KEEP_DEFAULT_ORDERING":
+		if not order_by or order_by == DefaultOrderBy:
 			return
 		for declaration in order_by.split(","):
 			if _order_by := declaration.strip():

@@ -103,8 +103,9 @@ context("View", () => {
 	});
 
 	it("Route to File View", () => {
+		cy.intercept("POST", "/api/method/frappe.desk.reportview.get").as("list_loaded");
 		cy.visit("app/file");
-		cy.wait(500);
+		cy.wait("@list_loaded");
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
@@ -113,7 +114,7 @@ context("View", () => {
 			});
 
 		cy.visit("app/file/view/home/Attachments");
-		cy.wait(500);
+		cy.wait("@list_loaded");
 		cy.window()
 			.its("cur_list")
 			.then((list) => {

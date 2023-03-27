@@ -397,7 +397,11 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
 	for df in meta.get_table_fields():
-		frappe.qb.update(df.options).set("parent", new).where(Field("parent") == old).run()
+		(
+			frappe.qb.update(df.options)
+			.set("parent", new)
+			.where((Field("parent") == old) & (Field("parenttype") == meta.name))
+		).run()
 
 
 def update_link_field_values(link_fields: list[dict], old: str, new: str, doctype: str) -> None:

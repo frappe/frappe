@@ -318,7 +318,7 @@
   },
   {
    "fieldname": "message_id",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "ignore_xss_filter": 1,
    "label": "Message ID",
    "length": 995,
@@ -395,7 +395,7 @@
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2022-05-09 00:13:45.310564",
+ "modified": "2023-03-16 12:04:18.113817",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

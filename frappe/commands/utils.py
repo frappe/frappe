@@ -17,13 +17,18 @@ DATA_IMPORT_DEPRECATION = (
 	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
 	"Use `data-import` command instead to import data via 'Data Import'."
 )
+EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 
 
 @click.command("build")
 @click.option("--app", help="Build assets for app")
 @click.option("--apps", help="Build assets for specific apps")
 @click.option(
-	"--hard-link", is_flag=True, default=False, help="Copy the files instead of symlinking"
+	"--hard-link",
+	is_flag=True,
+	default=False,
+	help="Copy the files instead of symlinking",
+	envvar="FRAPPE_HARD_LINK_ASSETS",
 )
 @click.option(
 	"--make-copy",
@@ -485,9 +490,10 @@ def bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 
-@click.command("db-console")
+@click.command("db-console", context_settings=EXTRA_ARGS_CTX)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def database(context):
+def database(context, extra_args):
 	"""
 	Enter into the Database console for given site.
 	"""
@@ -496,14 +502,18 @@ def database(context):
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
 	if not frappe.conf.db_type or frappe.conf.db_type == "mariadb":
-		_mariadb()
+		_mariadb(extra_args=extra_args)
 	elif frappe.conf.db_type == "postgres":
-		_psql()
+		_psql(extra_args=extra_args)
 
 
-@click.command("mariadb")
+@click.command(
+	"mariadb",
+	context_settings=EXTRA_ARGS_CTX,
+)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def mariadb(context):
+def mariadb(context, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
@@ -511,21 +521,22 @@ def mariadb(context):
 	if not site:
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	_mariadb()
+	_mariadb(extra_args=extra_args)
 
 
-@click.command("postgres")
+@click.command("postgres", context_settings=EXTRA_ARGS_CTX)
+@click.argument("extra_args", nargs=-1)
 @pass_context
-def postgres(context):
+def postgres(context, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
 	site = get_site(context)
 	frappe.init(site=site)
-	_psql()
+	_psql(extra_args=extra_args)
 
 
-def _mariadb():
+def _mariadb(extra_args=None):
 	from frappe.database.mariadb.database import MariaDBDatabase
 
 	mysql = which("mysql")
@@ -543,10 +554,12 @@ def _mariadb():
 		"--safe-updates",
 		"-A",
 	]
+	if extra_args:
+		command += list(extra_args)
 	os.execv(mysql, command)
 
 
-def _psql():
+def _psql(extra_args=None):
 	psql = which("psql")
 
 	host = frappe.conf.db_host or "127.0.0.1"
@@ -554,7 +567,10 @@ def _psql():
 	env = os.environ.copy()
 	env["PGPASSWORD"] = frappe.conf.db_password
 	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
-	subprocess.run([psql, conn_string], check=True, env=env)
+	psql_cmd = [psql, conn_string]
+	if extra_args:
+		psql_cmd = psql_cmd + list(extra_args)
+	subprocess.run(psql_cmd, check=True, env=env)
 
 
 @click.command("jupyter")
@@ -562,7 +578,7 @@ def _psql():
 def jupyter(context):
 	"""Start an interactive jupyter notebook"""
 	installed_packages = (
-		r.split("==")[0]
+		r.split("==", 1)[0]
 		for r in subprocess.check_output([sys.executable, "-m", "pip", "freeze"], encoding="utf8")
 	)
 
@@ -896,7 +912,7 @@ def run_ui_tests(
 
 	os.chdir(app_base_path)
 
-	node_bin = subprocess.getoutput("npm bin")
+	node_bin = subprocess.getoutput("yarn bin")
 	cypress_path = f"{node_bin}/cypress"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
@@ -1001,7 +1017,7 @@ def request(context, args=None, path=None):
 					frappe.local.form_dict = frappe._dict()
 
 				if args.startswith("/api/method"):
-					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+					frappe.local.form_dict.cmd = args.split("?", 1)[0].split("/")[-1]
 			elif path:
 				with open(os.path.join("..", path)) as f:
 					args = json.loads(f.read())
@@ -1071,6 +1087,8 @@ def set_config(context, key, value, global_=False, parse=False, as_dict=False):
 		common_site_config_path = os.path.join(sites_path, "common_site_config.json")
 		update_site_config(key, value, validate=False, site_config_path=common_site_config_path)
 	else:
+		if not context.sites:
+			raise SiteNotSpecifiedError
 		for site in context.sites:
 			frappe.init(site=site)
 			update_site_config(key, value, validate=False)
