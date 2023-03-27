@@ -182,6 +182,10 @@ def generate_pot(target_app: str | None = None):
 
 	:param target_app: If specified, limit to `app`
 	"""
+
+	def get_hook(hook, app):
+		return frappe.get_hooks(hook, [None], app)[0]
+
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	method_map = [
 		("**.py", "frappe.translate.babel_extract_python"),
@@ -195,14 +199,15 @@ def generate_pot(target_app: str | None = None):
 		loc_path = os.path.join(app_path, "locale")
 		pot_path = os.path.join(loc_path, "main.pot")
 		os.makedirs(loc_path, exist_ok=True)
+		app_email = get_hook("app_email", app)
 
 		c = Catalog(
 			domain="messages",
-			msgid_bugs_address="contact@frappe.io",
-			language_team="contact@frappe.io",
-			copyright_holder="Frappe Technologies Pvt. Ltd.",
-			last_translator="contact@frappe.io",
-			project="Frappe Translation",
+			msgid_bugs_address=app_email,
+			language_team=app_email,
+			copyright_holder=get_hook("app_publisher", app),
+			last_translator=app_email,
+			project=get_hook("app_title", app),
 			creation_date=datetime.now(),
 			revision_date=datetime.now(),
 			fuzzy=False,

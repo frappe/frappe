@@ -1,17 +1,17 @@
-# Translations template for Frappe Translation.
-# Copyright (C) 2023 Frappe Technologies Pvt. Ltd.
-# This file is distributed under the same license as the Frappe Translation
+# Translations template for Frappe Framework.
+# Copyright (C) 2023 Frappe Technologies
+# This file is distributed under the same license as the Frappe Framework
 # project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Frappe Translation VERSION\n"
-"Report-Msgid-Bugs-To: contact@frappe.io\n"
-"POT-Creation-Date: 2023-03-20 12:40+0553\n"
-"PO-Revision-Date: 2023-03-20 12:40+0553\n"
-"Last-Translator: contact@frappe.io\n"
-"Language-Team: contact@frappe.io\n"
+"Project-Id-Version: Frappe Framework VERSION\n"
+"Report-Msgid-Bugs-To: developers@frappe.io\n"
+"POT-Creation-Date: 2023-03-27 17:29+0053\n"
+"PO-Revision-Date: 2023-03-27 17:29+0053\n"
+"Last-Translator: developers@frappe.io\n"
+"Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -569,6 +569,24 @@ msgstr ""
 msgid "Field to Track"
 msgstr ""
 
+msgid "Reminder"
+msgstr ""
+
+msgid "Document Name"
+msgstr ""
+
+msgid "Remind At"
+msgstr ""
+
+msgid "notified"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Reminder cannot be created in past."
+msgstr ""
+
 msgid "{0}: {1}"
 msgstr ""
 
@@ -715,9 +733,6 @@ msgstr ""
 msgid "Default Address Template cannot be deleted"
 msgstr ""
 
-msgid "Email"
-msgstr ""
-
 msgid "Invite as User"
 msgstr ""
 
@@ -815,9 +830,6 @@ msgid "Purchase Manager"
 msgstr ""
 
 msgid "Maintenance Manager"
-msgstr ""
-
-msgid "All"
 msgstr ""
 
 msgid "Select Google Contacts to which contact should be synced."
@@ -1132,6 +1144,9 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
+msgid "Email"
+msgstr ""
+
 msgid "Chat"
 msgstr ""
 
@@ -1350,12 +1365,6 @@ msgid "Export"
 msgstr ""
 
 msgid "Import"
-msgstr ""
-
-msgid "Set User Permissions"
-msgstr ""
-
-msgid "This role update User Permissions for a user"
 msgstr ""
 
 msgid "Share"
@@ -2087,9 +2096,6 @@ msgstr ""
 msgid "DocShare"
 msgstr ""
 
-msgid "Document Name"
-msgstr ""
-
 msgid "Everyone"
 msgstr ""
 
@@ -2134,12 +2140,6 @@ msgid "If you just want to customize for your site, use {0} instead."
 msgstr ""
 
 msgid "In Grid View"
-msgstr ""
-
-msgid "Select DocType"
-msgstr ""
-
-msgid "Select Field"
 msgstr ""
 
 msgid "Is Submittable"
@@ -2722,9 +2722,6 @@ msgstr ""
 msgid "Report cannot be set for Single types"
 msgstr ""
 
-msgid "{0} cannot be set for Single types"
-msgstr ""
-
 msgid "{0}: Cannot set Assign Submit if not Submittable"
 msgstr ""
 
@@ -2984,10 +2981,10 @@ msgstr ""
 msgid "Series List for this Transaction"
 msgstr ""
 
-msgid "Try a naming Series"
+msgid "Try a Naming Series"
 msgstr ""
 
-msgid "Generate 3 preview of names generate by any valid series."
+msgid "Get a preview of generated names with a series."
 msgstr ""
 
 msgid "Select Transaction"
@@ -3861,6 +3858,18 @@ msgstr ""
 msgid "Scheduler: Inactive"
 msgstr ""
 
+msgid "Enable Scheduler"
+msgstr ""
+
+msgid "Are you sure you want to re-enable scheduler?"
+msgstr ""
+
+msgid "Enabled Scheduler"
+msgstr ""
+
+msgid "Failed to enable scheduler: {0}"
+msgstr ""
+
 msgid "RQ Worker"
 msgstr ""
 
@@ -4158,6 +4167,14 @@ msgid "Next Actions HTML"
 msgstr ""
 
 msgid "Action Timeout (Seconds)"
+msgstr ""
+
+msgid ""
+"Changing rounding method on site with data can result in unexpected "
+"behaviour."
+msgstr ""
+
+msgid "Do you still want to proceed?"
 msgstr ""
 
 msgid "System Settings"
@@ -4479,6 +4496,18 @@ msgstr ""
 msgid "Login with email link expiry (in minutes)"
 msgstr ""
 
+msgid "Rounding Method"
+msgstr ""
+
+msgid "Banker's Rounding (legacy)"
+msgstr ""
+
+msgid "Banker's Rounding"
+msgstr ""
+
+msgid "Commercial Rounding"
+msgstr ""
+
 msgid "Please select Minimum Password Score"
 msgstr ""
 
@@ -4549,6 +4578,9 @@ msgid "Note: Etc timezones have their signs reversed."
 msgstr ""
 
 msgid "Refreshing..."
+msgstr ""
+
+msgid "Set User Permissions"
 msgstr ""
 
 msgid "View Permitted Documents"
@@ -5234,6 +5266,11 @@ msgstr ""
 msgid "Form"
 msgstr ""
 
+msgid ""
+"<strong>Warning:</strong> This field is system generated and may be "
+"overwritten by a future update. Modify it using {0} instead."
+msgstr ""
+
 msgid "Special Characters are not allowed"
 msgstr ""
 
@@ -5376,7 +5413,14 @@ msgstr ""
 msgid "Select Module"
 msgstr ""
 
-msgid "Cannot delete standard field. You can hide it if you want"
+msgid ""
+"Cannot delete system generated field <strong>{0}</strong>. You can hide "
+"it instead."
+msgstr ""
+
+msgid ""
+"Cannot delete standard field <strong>{0}</strong>. You can hide it "
+"instead."
 msgstr ""
 
 msgid "Cannot delete standard link. You can hide it if you want"
@@ -5386,6 +5430,14 @@ msgid "Cannot delete standard action. You can hide it if you want"
 msgstr ""
 
 msgid "Cannot delete standard document state."
+msgstr ""
+
+msgid ""
+"For field <b>{0}</b> in row <b>{1}</b>, fieldname <b>{2}</b> is "
+"restricted it will be renamed as <b>{2}1</b>. Do you want to continue?"
+msgstr ""
+
+msgid "Saving Customization..."
 msgstr ""
 
 msgid "All customizations will be removed. Please confirm."
@@ -5564,8 +5616,8 @@ msgid "Field type cannot be changed for {0}"
 msgstr ""
 
 msgid ""
-"Site is running in read only mode, this action can not be performed right"
-" now. Please try again later."
+"Site is running in read only mode for maintenance or site update, this "
+"action can not be performed right now. Please try again later."
 msgstr ""
 
 msgid "In Read Only Mode"
@@ -5577,7 +5629,7 @@ msgstr ""
 msgid "The changes have been reverted."
 msgstr ""
 
-msgid "Invalid field name: {0}"
+msgid "Field {0} does not exist on {1}"
 msgstr ""
 
 msgid "Insufficient Permission for {0}"
@@ -6293,6 +6345,9 @@ msgstr ""
 msgid "Maximum Number of Fields"
 msgstr ""
 
+msgid "Disable Comment Count"
+msgstr ""
+
 msgid ""
 "Saving this will export this document as well as the steps linked here as"
 " json."
@@ -6726,6 +6781,9 @@ msgstr ""
 msgid "Is Hidden"
 msgstr ""
 
+msgid "Number Cards"
+msgstr ""
+
 msgid "Workspace Manager"
 msgstr ""
 
@@ -6772,6 +6830,12 @@ msgid "Is Query Report"
 msgstr ""
 
 msgid "Link Count"
+msgstr ""
+
+msgid "Workspace Number Card"
+msgstr ""
+
+msgid "Number Card Name"
 msgstr ""
 
 msgid "Workspace Quick List"
@@ -6825,9 +6889,10 @@ msgstr ""
 msgid "Cancelling documents"
 msgstr ""
 
-msgid ""
-"Field {0} is referring to non-existing doctype {1}, please remove the "
-"field from {2} or add the required doctype."
+msgid "Field {0} is referring to non-existing doctype {1}."
+msgstr ""
+
+msgid "Please delete the field from {0} or add the required doctype."
 msgstr ""
 
 msgid "Missing DocType"
@@ -6926,57 +6991,6 @@ msgid "Let's setup your account"
 msgstr ""
 
 msgid "Will be your login ID"
-msgstr ""
-
-msgid "Translation Tool"
-msgstr ""
-
-msgid "Contribute Translations"
-msgstr ""
-
-msgid "Refresh"
-msgstr ""
-
-msgid "Please select target language for translation"
-msgstr ""
-
-msgid "Search Source Text"
-msgstr ""
-
-msgid "Fetching..."
-msgstr ""
-
-msgid "Confirm Translations"
-msgstr ""
-
-msgid "Submitting..."
-msgstr ""
-
-msgid "Successfully Submitted!"
-msgstr ""
-
-msgid "Source Message"
-msgstr ""
-
-msgid "Translated Message"
-msgstr ""
-
-msgid "Verified By"
-msgstr ""
-
-msgid "{0} translation pending"
-msgstr ""
-
-msgid "{0} translations pending"
-msgstr ""
-
-msgid "Untranslated"
-msgstr ""
-
-msgid "Google Translation"
-msgstr ""
-
-msgid "Community Contribution"
 msgstr ""
 
 msgid "Loading user profile"
@@ -7787,6 +7801,12 @@ msgstr ""
 msgid "Total Recipients"
 msgstr ""
 
+msgid "Total Views"
+msgstr ""
+
+msgid "Campaign"
+msgstr ""
+
 msgid "Test email sent to {0}"
 msgstr ""
 
@@ -7989,9 +8009,6 @@ msgstr ""
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr ""
 
-msgid "Error in Notification: {}"
-msgstr ""
-
 msgid "Notification Recipient"
 msgstr ""
 
@@ -8145,7 +8162,7 @@ msgstr ""
 msgid "Invalid state."
 msgstr ""
 
-msgid "Please enter values for App Access Key and App Secret Key"
+msgid "App Access Key and/or Secret Key are not present."
 msgstr ""
 
 msgid "Take Backup Now"
@@ -8184,10 +8201,7 @@ msgstr ""
 msgid "Allow Dropbox Access"
 msgstr ""
 
-msgid "Dropbox Access Key"
-msgstr ""
-
-msgid "Dropbox Access Secret"
+msgid "Dropbox Refresh Token"
 msgstr ""
 
 msgid "Dropbox Access Token"
@@ -8199,12 +8213,7 @@ msgstr ""
 msgid "Queued for backup. It may take a few minutes to an hour."
 msgstr ""
 
-msgid "Please set Dropbox access keys in your site config"
-msgstr ""
-
-msgid ""
-"Something went wrong while generating dropbox access token. Please check "
-"error log for more details."
+msgid "Please set Dropbox access keys in site config or doctype"
 msgstr ""
 
 msgid "Please close this window"
@@ -8214,9 +8223,6 @@ msgid "Dropbox Setup"
 msgstr ""
 
 msgid "Illegal Access Token. Please try again"
-msgstr ""
-
-msgid "Dropbox access is approved!"
 msgstr ""
 
 msgid "To use Google Calendar, enable {0}."
@@ -9947,6 +9953,9 @@ msgstr ""
 msgid "PDF"
 msgstr ""
 
+msgid "Refresh"
+msgstr ""
+
 msgid "Raw Printing Setting"
 msgstr ""
 
@@ -10297,36 +10306,6 @@ msgid "Show Warnings"
 msgstr ""
 
 msgid "Don't Import"
-msgstr ""
-
-msgid "Parent"
-msgstr ""
-
-msgid "Unknown Column: {0}"
-msgstr ""
-
-msgid "Unable to load: {0}"
-msgstr ""
-
-msgid "Permanently delete {0}?"
-msgstr ""
-
-msgid "Deleting {0}..."
-msgstr ""
-
-msgid "Merge with existing"
-msgstr ""
-
-msgid "This cannot be undone"
-msgstr ""
-
-msgid "Rename {0}"
-msgstr ""
-
-msgid "Rename"
-msgstr ""
-
-msgid "Please specify"
 msgstr ""
 
 msgid ""
@@ -10763,6 +10742,21 @@ msgstr ""
 msgid "s"
 msgstr ""
 
+msgid "Web Page URL"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Tracking URL generated and copied to clipboard"
+msgstr ""
+
+msgid "Here's your tracking URL"
+msgstr ""
+
+msgid "Generate Tracking URL"
+msgstr ""
+
 msgid "Please enable pop-ups in your browser"
 msgstr ""
 
@@ -10827,6 +10821,36 @@ msgid "Uses system's theme to switch between light and dark mode"
 msgstr ""
 
 msgid "Theme Changed"
+msgstr ""
+
+msgid "Parent"
+msgstr ""
+
+msgid "Unknown Column: {0}"
+msgstr ""
+
+msgid "Unable to load: {0}"
+msgstr ""
+
+msgid "Permanently delete {0}?"
+msgstr ""
+
+msgid "Deleting {0}..."
+msgstr ""
+
+msgid "Merge with existing"
+msgstr ""
+
+msgid "This cannot be undone"
+msgstr ""
+
+msgid "Rename {0}"
+msgstr ""
+
+msgid "Rename"
+msgstr ""
+
+msgid "Please specify"
 msgstr ""
 
 msgid "Warning: Unable to find {0} in any table related to {1}"
@@ -11015,21 +11039,10 @@ msgstr ""
 msgid "Frappe Framework"
 msgstr ""
 
-msgid "Custom Script List"
-msgstr ""
-
 msgid "Session Defaults Saved"
 msgstr ""
 
 msgid "An error occurred while setting Session Defaults"
-msgstr ""
-
-msgid ""
-"Your subscription will end in ${cstr(diff_days).bold()} ${diff_days > 1 ?"
-" \"days\" : \"day\"}. After that your site will be suspended."
-msgstr ""
-
-msgid "No active subscriptions found."
 msgstr ""
 
 msgid "New Email"
@@ -11045,9 +11058,6 @@ msgid "Send Read Receipt"
 msgstr ""
 
 msgid "Attach Document Print"
-msgstr ""
-
-msgid "Select Languages"
 msgstr ""
 
 msgid "Select Attachments"
@@ -11181,9 +11191,6 @@ msgstr ""
 msgid "Choose Existing Card or create New Card"
 msgstr ""
 
-msgid "Number Cards"
-msgstr ""
-
 msgid "Function Based On"
 msgstr ""
 
@@ -11291,9 +11298,6 @@ msgid ""
 "browser to the latest version."
 msgstr ""
 
-msgid "Session Start Failed"
-msgstr ""
-
 msgid ""
 "Using this console may allow attackers to impersonate you and steal your "
 "information. Do not enter or paste code that you do not understand."
@@ -11317,12 +11321,6 @@ msgid "Checking one moment"
 msgstr ""
 
 msgid "Login Failed please try again"
-msgstr ""
-
-msgid "Please Enter Your Password to Continue"
-msgstr ""
-
-msgid "Authenticating..."
 msgstr ""
 
 msgid "Updated To A New Version u{1F389}"
@@ -11449,12 +11447,6 @@ msgstr ""
 msgid "Upload"
 msgstr ""
 
-msgid "Error in Client Script"
-msgstr ""
-
-msgid "Error in Client Script."
-msgstr ""
-
 msgid "{0} Name"
 msgstr ""
 
@@ -11471,6 +11463,27 @@ msgid "Not Linked to any record"
 msgstr ""
 
 msgid "Currently Viewing"
+msgstr ""
+
+msgid "Create a Reminder"
+msgstr ""
+
+msgid "Remind Me In"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "1 hour"
+msgstr ""
+
+msgid "4 hours"
+msgstr ""
+
+msgid "1 Day"
+msgstr ""
+
+msgid "Reminder set at {0}"
 msgstr ""
 
 msgid "Unchanged"
@@ -11500,10 +11513,16 @@ msgstr ""
 msgid "Copy to Clipboard"
 msgstr ""
 
+msgid "Remind Me"
+msgstr ""
+
 msgid "Repeat"
 msgstr ""
 
 msgid "Edit DocType"
+msgstr ""
+
+msgid "Select Field"
 msgstr ""
 
 msgid "Graph"
@@ -11580,6 +11599,12 @@ msgid "Print Sent to the printer!"
 msgstr ""
 
 msgid "QZ Tray Failed: "
+msgstr ""
+
+msgid "Error in Client Script"
+msgstr ""
+
+msgid "Error in Client Script."
 msgstr ""
 
 msgid "Please save the document before assignment"
@@ -11866,6 +11891,9 @@ msgstr ""
 msgid "Please save before attaching."
 msgstr ""
 
+msgid "This form is not editable due to a Workflow."
+msgstr ""
+
 msgid "{} Complete"
 msgstr ""
 
@@ -11882,6 +11910,9 @@ msgid "You do not have permissions to cancel all linked documents."
 msgstr ""
 
 msgid "Cancel All Documents"
+msgstr ""
+
+msgid "Cancel All"
 msgstr ""
 
 msgid "Permanently Cancel {0}?"
@@ -11912,6 +11943,9 @@ msgid "Field {0} not found."
 msgstr ""
 
 msgid "Previous Submission"
+msgstr ""
+
+msgid "Select DocType"
 msgstr ""
 
 msgid "You are not allowed to create columns"
@@ -12038,6 +12072,9 @@ msgid "Page Height (in mm)"
 msgstr ""
 
 msgid "Page Width (in mm)"
+msgstr ""
+
+msgid "Deleting {0} records..."
 msgstr ""
 
 msgid "Cannot delete {0}"
@@ -12688,12 +12725,6 @@ msgstr ""
 msgid "Updated To A New Version 🎉"
 msgstr ""
 
-msgid ""
-"Your subscription will end in ${cstr(diff_days).bold()} ${\n"
-"\t\t\t\tdiff_days > 1 ? \"days\" : \"day\"\n"
-"\t\t\t}. After that your site will be suspended."
-msgstr ""
-
 msgid "Auto Repeat created for this document"
 msgstr ""
 
@@ -12973,6 +13004,9 @@ msgstr ""
 msgid "Please select a valid date filter"
 msgstr ""
 
+msgid "Unknown Rounding Method: {}"
+msgstr ""
+
 msgid "Cent"
 msgstr ""
 
@@ -13197,6 +13231,9 @@ msgstr ""
 msgid "Unsafe SQL query"
 msgstr ""
 
+msgid "Scheduler can not be re-enabled when maintenance mode is active."
+msgstr ""
+
 msgid "Failed to aquire lock: {}. Lock may be held by another process."
 msgstr ""
 
@@ -13269,6 +13306,9 @@ msgid "Posts"
 msgstr ""
 
 msgid "Blog Post"
+msgstr ""
+
+msgid "Unpublish"
 msgstr ""
 
 msgid "Published On"
@@ -13511,6 +13551,12 @@ msgstr ""
 msgid "Help Articles"
 msgstr ""
 
+msgid "Marketing Campaign"
+msgstr ""
+
+msgid "Campaign Description (Optional)"
+msgstr ""
+
 msgid "Delete Data"
 msgstr ""
 
@@ -13670,9 +13716,6 @@ msgid "Atleast one field is required in Web Form Fields Table"
 msgstr ""
 
 msgid "There can be only 9 Page Break fields in a Web Form"
-msgstr ""
-
-msgid "Unpublish"
 msgstr ""
 
 msgid "Get Fields"
@@ -14028,6 +14071,9 @@ msgstr ""
 msgid "User Agent"
 msgstr ""
 
+msgid "Visitor ID"
+msgstr ""
+
 msgid "Please save to edit the template."
 msgstr ""
 
@@ -14059,9 +14105,6 @@ msgid "Website Route Meta"
 msgstr ""
 
 msgid "Website Route Redirect"
-msgstr ""
-
-msgid "Source"
 msgstr ""
 
 msgid "Website Script"
