@@ -82,14 +82,12 @@ class TestSiteCache(FrappeAPITestCase):
 		api_with_ttl = f"{module}.ping_with_ttl"
 		api_without_ttl = f"{module}.ping"
 
-		start = time.monotonic()
 		for _ in range(5):
 			self.get(f"/api/method/{api_with_ttl}")
 			self.get(f"/api/method/{api_without_ttl}")
-		end = time.monotonic()
 
 		self.assertEqual(register_with_external_service.call_count, 2)
-		time.sleep(CACHE_TTL - (end - start))
+		time.sleep(CACHE_TTL)
 		self.get(f"/api/method/{api_with_ttl}")
 		self.assertEqual(register_with_external_service.call_count, 3)
 
