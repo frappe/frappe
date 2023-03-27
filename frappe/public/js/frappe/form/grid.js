@@ -1042,7 +1042,6 @@ export default class Grid {
 			};
 
 			// upload
-			frappe.flags.no_socketio = true;
 			$(this.wrapper)
 				.find(".grid-upload")
 				.removeClass("hidden")
@@ -1075,12 +1074,15 @@ export default class Grid {
 												me.df.options,
 												fieldname
 											);
-											if (df) {
-												d[fieldnames[ci]] = value_formatter_map[
-													df.fieldtype
-												]
-													? value_formatter_map[df.fieldtype](value)
-													: value;
+											if (df && !df.read_only) {
+												frappe.model.set_value(
+													d.doctype,
+													d.name,
+													fieldname,
+													value_formatter_map[df.fieldtype]
+														? value_formatter_map[df.fieldtype](value)
+														: value
+												);
 											}
 										});
 									}
