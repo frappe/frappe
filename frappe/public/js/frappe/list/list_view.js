@@ -1241,7 +1241,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.dragClick = false;
 		})
 		this.$result.on("mousemove", ".level.list-row", (e) => {
-			$(e.target).find(".list-row-checkbox").addClass('has-error');
 			if (this.dragClick) {
 				this.check_on_drag(e);
 			}
