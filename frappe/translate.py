@@ -186,6 +186,13 @@ def generate_pot(target_app: str | None = None):
 	def get_hook(hook, app):
 		return frappe.get_hooks(hook, [None], app)[0]
 
+	def directory_filter(dirpath: str | os.PathLike[str]) -> bool:
+		if "public/dist" in dirpath:
+			return False
+
+		subdir = os.path.basename(dirpath)
+		return not (subdir.startswith(".") or subdir.startswith("_"))
+
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	method_map = [
 		("**.py", "frappe.translate.babel_extract_python"),
@@ -213,18 +220,13 @@ def generate_pot(target_app: str | None = None):
 			fuzzy=False,
 		)
 
-		for i in extract_from_dir(app_path, method_map):
-			_file, _lineno, msgid, *rest = i
-
-			if not msgid:
+		for filename, lineno, message, comments, context in extract_from_dir(
+			app_path, method_map, directory_filter=directory_filter
+		):
+			if not message:
 				continue
 
-			messages = msgid if isinstance(msgid, tuple) else [msgid]
-
-			for m in messages:
-				c.add(m)
-
-			c.add(msgid)
+			c.add(message, locations=[(filename, lineno)], auto_comments=comments, context=context)
 
 		with open(pot_path, "wb") as f:
 			write_po(f, c)
