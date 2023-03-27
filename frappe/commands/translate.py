@@ -1,19 +1,17 @@
 import click
 
 from frappe.commands import pass_context
+from frappe.exceptions import SiteNotSpecifiedError
 
 
 @click.command("generate-pot", help="Generate gettext POT file")
 @click.option("--app", help="App name. eg: frappe")
 @pass_context
 def generate_pot(context, app: str):
-	import frappe
 	from frappe.translate import generate_pot
 
 	if not app:
-		if not context["sites"]:
-			raise Exception("--site is required")
-		frappe.connect(site=context["sites"][0])
+		connect_to_site(context.sites[0] if context.sites else None)
 
 	generate_pot(app)
 
@@ -22,13 +20,10 @@ def generate_pot(context, app: str):
 @click.option("--app", help="App name. eg: frappe")
 @pass_context
 def compile_translation(context, app: str):
-	import frappe
 	from frappe.translate import compile
 
 	if not app:
-		if not context["sites"]:
-			raise Exception("--site is required")
-		frappe.connect(site=context["sites"][0])
+		connect_to_site(context.sites[0] if context.sites else None)
 
 	compile(app)
 
@@ -37,13 +32,10 @@ def compile_translation(context, app: str):
 @click.option("--app", help="App name. eg: frappe")
 @pass_context
 def migrate_translation(context, app: str):
-	import frappe
 	from frappe.translate import migrate
 
 	if not app:
-		if not context["sites"]:
-			raise Exception("--site is required")
-		frappe.connect(site=context["sites"][0])
+		connect_to_site(context.sites[0] if context.sites else None)
 
 	migrate(app)
 
@@ -52,13 +44,10 @@ def migrate_translation(context, app: str):
 @click.option("--app", help="App name. eg: frappe")
 @pass_context
 def update_po(context, app: str):
-	import frappe
 	from frappe.translate import update_po
 
 	if not app:
-		if not context["sites"]:
-			raise Exception("--site is required")
-		frappe.connect(site=context["sites"][0])
+		connect_to_site(context.sites[0] if context.sites else None)
 
 	update_po(app)
 
@@ -71,15 +60,21 @@ def new_po(context, lang_code: str, app: str):
 	"""
 	Create PO file for lang code
 	"""
-	import frappe
 	from frappe.translate import new_po
 
 	if not app:
-		if not context["sites"]:
-			raise Exception("--site is required")
-		frappe.connect(site=context["sites"][0])
+		connect_to_site(context.sites[0] if context.sites else None)
 
 	new_po(lang_code, app)
+
+
+def connect_to_site(site):
+	from frappe import connect
+
+	if not site:
+		raise SiteNotSpecifiedError
+
+	connect(site=site)
 
 
 commands = [
