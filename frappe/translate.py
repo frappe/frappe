@@ -264,6 +264,7 @@ def generate_pot(target_app: str | None = None):
 		("**.py", "frappe.translate.babel_extract_python"),
 		("**.js", "frappe.translate.babel_extract_javascript"),
 		("**/doctype/*/*.json", "frappe.translate.babel_extract_doctype_json"),
+		("**/workspace/*/*.json", "frappe.translate.babel_extract_workspace_json"),
 		("**/www/**/*.html", "jinja2.ext:babel_extract"),
 	]
 
@@ -776,6 +777,48 @@ def babel_extract_doctype_json(fileobj, *args, **kwargs):
 		(None, "_", perm["role"], ["Name of a role"])
 		for perm in data.get("permissions", [])
 		if "role" in perm
+	)
+
+
+def babel_extract_workspace_json(fileobj, *args, **kwargs):
+	"""
+	Extract messages from DocType JSON files. To be used to babel extractor
+
+	:param fileobj: the file-like object the messages should be extracted from
+	:rtype: `iterator`
+	"""
+	data = json.load(fileobj)
+
+	if isinstance(data, list):
+		return
+
+	if data.get("doctype") != "Workspace":
+		return
+
+	workspace_name = data.get("label")
+
+	yield None, "_", workspace_name, ["Name of a Workspace"]
+	yield from (
+		(None, "_", chart.get("label"), [f"Label of a chart in the {workspace_name} Workspace"])
+		for chart in data.get("charts", [])
+	)
+	yield from (
+		(
+			None,
+			"pgettext",
+			(link.get("link_to") if link.get("link_type") == "DocType" else None, link.get("label")),
+			[f"Label of a {link.get('type')} in the {workspace_name} Workspace"],
+		)
+		for link in data.get("links", [])
+	)
+	yield from (
+		(
+			None,
+			"pgettext",
+			(shortcut.get("link_to") if shortcut.get("type") == "DocType" else None, shortcut.get("label")),
+			[f"Label of a shortcut in the {workspace_name} Workspace"],
+		)
+		for shortcut in data.get("shortcuts", [])
 	)
 
 
