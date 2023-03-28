@@ -111,7 +111,7 @@ frappe.ui.Filter = class {
 			let fieldtype = null;
 
 			if (["in", "like", "not in", "not like"].includes(condition)) {
-				fieldtype = "Data";
+				fieldtype = "Link";
 				this.add_condition_help(condition);
 			} else {
 				this.filter_edit_area.find(".filter-description").empty();
