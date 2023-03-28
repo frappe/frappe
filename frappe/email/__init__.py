@@ -13,7 +13,7 @@ def sendmail_to_system_managers(subject, content):
 
 @frappe.whitelist()
 def get_contact_list(txt, page_length=20):
-	"""Returns contacts (from autosuggest)"""
+	"""Return email ids for a multiselect field."""
 
 	cached_contacts = get_cached_contacts(txt)
 	if cached_contacts:
@@ -22,14 +22,17 @@ def get_contact_list(txt, page_length=20):
 	match_conditions = build_match_conditions("Contact")
 	match_conditions = "and {0}".format(match_conditions) if match_conditions else ""
 
+	# The multiselect field will store the `label` as the selected value.
+	# The `value` is just used as a unique key to distinguish between the options.
+	# https://github.com/frappe/frappe/blob/6c6a89bcdd9454060a1333e23b855d0505c9ebc2/frappe/public/js/frappe/form/controls/autocomplete.js#L29-L35
 	out = frappe.db.sql(
-		"""select email_id as value,
+		f"""select name as value, email_id as label,
 		concat(first_name, ifnull(concat(' ',last_name), '' )) as description
 		from tabContact
-		where name like %(txt)s or email_id like %(txt)s
-		%(condition)s
+		where (name like %(txt)s or email_id like %(txt)s) and email_id != ''
+		{match_conditions}
 		limit %(page_length)s""",
-		{"txt": "%" + txt + "%", "condition": match_conditions, "page_length": page_length},
+		{"txt": "%" + txt + "%", "page_length": page_length},
 		as_dict=True,
 	)
 	out = filter(None, out)
