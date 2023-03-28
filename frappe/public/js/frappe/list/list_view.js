@@ -1290,11 +1290,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (!data || (data.doctype !== this.doctype)) {
 				return;
 			}
-			if (data.doctype && data.name) {
-				let doc = frappe.get_doc(data.doctype, data.name);
-				if (doc && doc.__unsaved) {
-					frappe.model.remove_from_locals(data.doctype, data.name);
-				}
+
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
 			}
 
 			if (this.filter_area.is_being_edited()) {

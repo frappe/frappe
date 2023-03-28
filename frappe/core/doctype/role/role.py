@@ -66,10 +66,13 @@ class Role(Document):
 					user.save()
 
 
-def get_info_based_on_role(role, field="email"):
+def get_info_based_on_role(role, field="email", ignore_permissions=False):
 	"""Get information of all users that have been assigned this role"""
 	users = frappe.get_list(
-		"Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent as user_name"]
+		"Has Role",
+		filters={"role": role, "parenttype": "User"},
+		fields=["parent as user_name"],
+		ignore_permissions=ignore_permissions,
 	)
 
 	return get_user_info(users, field)
