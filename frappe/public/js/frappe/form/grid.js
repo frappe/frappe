@@ -1089,7 +1089,6 @@ export default class Grid {
 								}
 							});
 
-							me.frm.refresh_field(me.df.fieldname);
 							frappe.msgprint({
 								message: __("Table updated"),
 								title: __("Success"),
