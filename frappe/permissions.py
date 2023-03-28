@@ -86,6 +86,9 @@ def has_permission(
 	if user == "Administrator":
 		return True
 
+	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
+		return False
+
 	meta = frappe.get_meta(doctype)
 
 	if doc:
