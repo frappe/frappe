@@ -244,7 +244,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	add_insights_banner() {
 		try {
-			if (!this.list_view.view == "Report") {
+			if (this.list_view.view != "Report") {
 				return;
 			}
 
@@ -256,9 +256,9 @@ frappe.views.ListSidebar = class ListSidebar {
 				this.insights_banner.remove();
 			}
 
-			const message = "Get more insights from your data with Frappe Insights!";
+			const message = "Get more insights from your data with Frappe Insights.";
 			const link = "https://frappe.io/s/insights";
-			const cta = "Get Started";
+			const cta = "Get Frappe Insights";
 
 			this.insights_banner = $(`
 				<div style="position: relative;">
@@ -268,7 +268,7 @@ frappe.views.ListSidebar = class ListSidebar {
 					<div class="mt-2">
 						<a href="${link}" target="_blank" style="color: var(--primary-color)">${cta} -> </a>
 					</div>
-					<div style="position: absolute; top: 0px; right: 0px; cursor: pointer;"
+					<div style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Dismiss"
 						onclick="localStorage.setItem('show_insights_banner', 'false') || this.parentElement.remove()">
 						<svg class="icon  icon-sm" style="">
 							<use class="" href="#icon-close"></use>
