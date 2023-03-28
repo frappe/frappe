@@ -1065,7 +1065,9 @@ class DatabaseQuery:
 
 			if full_field_name:
 				tbl = field.split(".", 1)[0]
-				if tbl not in self.tables:
+				if tbl not in self.tables and tbl not in  (
+					d.table_name for d in self.link_tables
+				):
 					if tbl.startswith("`"):
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))

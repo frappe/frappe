@@ -180,6 +180,27 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			);
 	}
 
+	get_group_by() {
+		let group_by = [];
+		let group_by_name = super.get_group_by();
+		if (group_by_name) {
+			group_by.push(group_by_name);
+		}
+		Object.keys(this.link_field_title_fields || {}).forEach((link_field) => {
+			let df = frappe.meta.get_docfield(this.doctype, link_field);
+			let df_doctype = df.options;
+			let col = frappe.model.get_full_column_name(
+				this.link_field_title_fields[link_field],
+				df_doctype
+			);
+			group_by.push(col);
+		});
+		if (group_by.length) {
+			return group_by.join(",");
+		}
+		return null;
+	}
+
 	async set_fields() {
 		this.link_field_title_fields = {};
 		let fields = [].concat(
