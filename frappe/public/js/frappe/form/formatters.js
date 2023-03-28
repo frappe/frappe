@@ -186,7 +186,7 @@ frappe.form.formatters = {
 			return value;
 		}
 		if (value) {
-			value = frappe.datetime.str_to_user(value);
+			value = frappe.datetime.str_to_user(value, false, true);
 			// handle invalid date
 			if (value === "Invalid date") {
 				value = null;
