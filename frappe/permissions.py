@@ -75,6 +75,15 @@ def has_permission(
 	if not user:
 		user = frappe.session.user
 
+<<<<<<< HEAD
+=======
+	if user == "Administrator":
+		return True
+
+	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
+		return False
+
+>>>>>>> 90f8f945b4 (feat: Disable Sharing globally (#20318))
 	if not doc and hasattr(doctype, "doctype"):
 		# first argument can be doc or doctype
 		doc = doctype
