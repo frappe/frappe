@@ -98,7 +98,11 @@ context("Kanban Board", () => {
 	});
 
 	it("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
-		// create admin kanban board
+		// Add another System Manager so that the role can be removed from `frappe@example.com`
+		cy.call("frappe.tests.ui_test_helpers.create_system_manager_user", {
+			username: "sysmanager@example.com",
+		});
+
 		cy.call("frappe.tests.ui_test_helpers.create_todo", { description: "Frappe User ToDo" });
 
 		cy.switch_to_user("Administrator");
@@ -123,6 +127,7 @@ context("Kanban Board", () => {
 		cy.get(".kanban .column-options").should("have.length", 0);
 
 		cy.add_role("frappe@example.com", "System Manager");
+		cy.call("frappe.client.delete", { doctype: "User", name: "sysmanager@example.com" });
 	});
 
 	after(() => {
