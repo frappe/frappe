@@ -1233,29 +1233,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.dragClick = false;
 		this.$result.on("mousedown", ".list-row-checkbox", (e) => {
 			this.dragClick = true;
-			e.target.oncontextmenu = function() {
-				return false;
-			}
+			this.check = !e.target.checked;
 		});
 		$(document).on("mouseup", () => {
 			this.dragClick = false;
 		})
 		this.$result.on("mousemove", ".level.list-row", (e) => {
 			if (this.dragClick) {
-				this.check_on_drag(e);
+				this.check_on_drag(e, this.check);
 			}
 		});
 	}
 
-	check_on_drag(event) {
-		switch (event.which) {
-            case 1:
-                this.checkRow(event, true);
-                break;
-            case 3:
-                this.checkRow(event, false);
-                break;
-        }
+	check_on_drag(event, check) {
+        this.checkRow(event, check);
 	}
 
 	checkRow(event, check=true) {
