@@ -649,6 +649,9 @@ class User(Document):
 		if not self.time_zone:
 			self.time_zone = get_system_timezone()
 
+	def for_perm_log(self):
+		return {"filters": ("role_profile_name", "roles", "module_profile", "block_modules")}
+
 
 @frappe.whitelist()
 def get_timezones():
