@@ -18,3 +18,6 @@ class RoleProfile(Document):
 			user = frappe.get_doc("User", d)
 			user.set("roles", [])
 			user.add_roles(*roles)
+
+	def for_perm_log(self):
+		return {"filters": ["roles"]}
