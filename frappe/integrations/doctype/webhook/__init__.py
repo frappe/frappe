@@ -7,7 +7,7 @@ import frappe
 def run_webhooks(doc, method):
 	"""Run webhooks for this method"""
 	if (
-		frappe.flags.in_import
+		(frappe.flags.in_import and frappe.flags.mute_webhooks)
 		or frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_migrate
@@ -25,7 +25,7 @@ def run_webhooks(doc, method):
 			# query webhooks
 			webhooks_list = frappe.get_all(
 				"Webhook",
-				fields=["name", "condition", "webhook_docevent", "webhook_doctype"],
+				fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"],
 				filters={"enabled": True},
 			)
 
