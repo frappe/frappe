@@ -1230,6 +1230,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_drag_click() {
+		/*
+			Click on the check box in the list view and 
+			drag through the rows to select.
+
+			Do it again to unselect.
+
+			If the first click is on checked checkbox, then it will unselect rows on drag,
+			else if it is unchecked checkbox, it will select rows on drag.
+		*/
 		this.dragClick = false;
 		this.$result.on("mousedown", ".list-row-checkbox", (e) => {
 			this.dragClick = true;
