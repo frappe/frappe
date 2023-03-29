@@ -19,6 +19,7 @@
         "status",
         "submit_after_import",
         "mute_emails",
+        "mute_webhooks",
         "template_options",
         "import_warnings_section",
         "template_warnings",
@@ -133,6 +134,13 @@
             "fieldname": "mute_emails",
             "fieldtype": "Check",
             "label": "Don't Send Emails",
+            "set_only_once": 1
+        },
+        {
+            "default": "1",
+            "fieldname": "mute_webhooks",
+            "fieldtype": "Check",
+            "label": "Don't Trigger Webhooks",
             "set_only_once": 1
         },
         {
