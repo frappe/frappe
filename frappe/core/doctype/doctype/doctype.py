@@ -382,12 +382,10 @@ class DocType(Document):
 			if d.unique:
 				d.search_index = 0
 
-	def before_save(self):
-		frappe.perm_log(
-			self,
-			self.get_doc_before_save(),
-			filters=("permissions", ("fields", ("fieldname", "permlevel", "ignore_user_permissions"))),
-		)
+	def for_perm_log(self):
+		return {
+			"filters": ("permissions", ("fields", ("fieldname", "permlevel", "ignore_user_permissions")))
+		}
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""

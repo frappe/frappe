@@ -15,23 +15,33 @@ class PermissionLog(Document):
 		return self.creation
 
 
-def make_perm_log(
+def make_perm_log(doc, method=None):
+	if not getattr(doc, "for_perm_log", None):
+		return
+
+	params = doc.for_perm_log() or {}
+	perm_log(doc, doc.get_doc_before_save(), **params)
+
+
+"""
+create filter mechanism for not tracking certain things
+"""
+
+
+def perm_log(
 	doc: Document,
 	doc_before_save: Document = None,
-	reference_doctype=None,
-	reference_docname=None,
+	for_doctype=None,
+	for_document=None,
 	filters: list | tuple = None,
-	ignore_changes_to=None,
-	for_delete: bool = False,
+	ignore_keys_in_diff=None,
 ):
-	def get_action():
-		if not for_delete:
-			if doc.is_new():
-				return "Create"
-			return "Update"
-		return "Remove"
+	if doc.is_new():
+		# don't log new documents
+		# "update" logs will have what it was changed from and to
+		return
 
-	current, previous = get_changes(doc, doc_before_save, filters, for_delete)
+	current, previous = get_changes(doc, doc_before_save, filters, ignore_keys_in_diff)
 	if not previous and not current:
 		return
 
@@ -39,41 +49,42 @@ def make_perm_log(
 		{
 			"doctype": "Permission Log",
 			"owner": frappe.session.user,
-			"for_doctype": doc.doctype,
-			"for_document": doc.name,
-			"action": get_action(),
+			"reference_doctype": doc.doctype,
+			"reference_document": doc.name,
+			"for_doctype": for_doctype,
+			"for_document": for_document,
+			"action": "Remove" if not doc_before_save else "Update",
 			"changes": frappe.as_json({"from": previous, "to": current}, indent=0),
 		}
 	).db_insert()
 
 
-def get_changes(doc: Document, doc_before_save=None, filters=None, for_delete=False):
+def get_changes(doc: Document, doc_before_save=None, filters=None, ignore_keys_in_diff=None):
 	current_changes = get_filtered_changes(
 		doc.as_dict(
 			no_default_fields=True,
-			no_child_table_fields=(doc.doctype != "Custom DocPerm"),
+			no_child_table_fields=True,
 			no_private_properties=True,
 		),
 		filters,
 	)
 
 	if not doc_before_save:
-		empty_state = dict.fromkeys(current_changes, None)
-		return (empty_state, current_changes) if for_delete else (current_changes, empty_state)
+		return dict.fromkeys(current_changes, None), current_changes
 
 	previous_changes = get_filtered_changes(
 		doc_before_save.as_dict(
 			no_default_fields=True,
-			no_child_table_fields=(doc.doctype != "Custom DocPerm"),
+			no_child_table_fields=True,
 			no_private_properties=True,
 		),
 		filters,
 	)
 
-	return clean_changes(current_changes, previous_changes)
+	return get_changes_diff(current_changes, previous_changes, ignore_keys_in_diff)
 
 
-def clean_changes(current_changes, previous_changes):
+def get_changes_diff(current_changes, previous_changes, ignore_keys_in_diff=None):
 	current_values = {}
 	previous_values = {}
 

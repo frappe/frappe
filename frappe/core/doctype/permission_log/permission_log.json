@@ -12,13 +12,13 @@
   "changed_at",
   "action",
   "section_break_ttv7",
-  "for_doctype",
+  "reference_doctype",
   "column_break_acow",
-  "for_document",
+  "reference_document",
   "section_break_6gd5",
-  "for_parenttype",
+  "for_doctype",
   "column_break_8nk0",
-  "for_parent",
+  "for_document",
   "section_break_mt9x",
   "changes",
   "changed_values"
@@ -45,8 +45,7 @@
    "in_standard_filter": 1,
    "label": "For DocType",
    "options": "DocType",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "for_document",
@@ -55,23 +54,6 @@
    "in_standard_filter": 1,
    "label": "For Document",
    "options": "for_doctype",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "for_parenttype",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "For Parenttype",
-   "read_only": 1
-  },
-  {
-   "fieldname": "for_parent",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "For Parent",
    "read_only": 1
   },
   {
@@ -114,13 +96,33 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Action",
-   "options": "Update\nCreate\nRemove",
+   "options": "Update\nRemove",
    "read_only": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Doctype",
+   "options": "DocType",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_document",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Document",
+   "options": "reference_doctype",
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-22 12:34:30.891523",
+ "modified": "2023-03-29 19:52:32.025617",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",
@@ -136,5 +138,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "for_doctype"
+ "title_field": "reference_doctype"
 }

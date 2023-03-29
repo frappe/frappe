@@ -162,6 +162,8 @@ doc_events = {
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
 		],
+		"before_save": ["frappe.core.doctype.permission_log.permission_log.make_perm_log"],
+		"after_delete": ["frappe.core.doctype.permission_log.permission_log.make_perm_log"],
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",

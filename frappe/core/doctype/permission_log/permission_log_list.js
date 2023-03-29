@@ -3,9 +3,7 @@ frappe.listview_settings["Permission Log"] = {
 	add_fields: ["action"],
 
 	get_indicator(doc) {
-		if (doc.action === "Create") {
-			return ["Create", "blue"];
-		} else if (doc.action === "Update") {
+		if (doc.action === "Update") {
 			return ["Update", "darkgrey"];
 		} else {
 			return ["Remove", "red"];

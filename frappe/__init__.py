@@ -976,12 +976,6 @@ def has_permission(
 	return out
 
 
-def perm_log(*args, **kwargs):
-	from frappe.core.doctype.permission_log.permission_log import make_perm_log
-
-	make_perm_log(*args, **kwargs)
-
-
 def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doctype=None):
 	"""Raises `frappe.PermissionError` if not permitted.
 
