@@ -103,25 +103,20 @@ def get_redis_server():
 
 
 @frappe.whitelist(allow_guest=True)
-def can_subscribe_doc(doctype, docname):
-	if os.environ.get("CI"):
-		return True
-
+def can_subscribe_doc(doctype: str, docname: str) -> bool:
 	from frappe.exceptions import PermissionError
-	from frappe.sessions import Session
 
-	session = Session(None, resume=True).get_session_data()
-	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype="read"):
+	if not frappe.has_permission(doctype=doctype, doc=docname, ptype="read"):
 		raise PermissionError()
 
 	return True
 
 
 @frappe.whitelist(allow_guest=True)
-def can_subscribe_list(doctype):
+def can_subscribe_doctype(doctype: str) -> bool:
 	from frappe.exceptions import PermissionError
 
-	if not frappe.has_permission(user=frappe.session.user, doctype=doctype, ptype="read"):
+	if not frappe.has_permission(doctype=doctype, ptype="read"):
 		raise PermissionError()
 
 	return True
@@ -129,13 +124,9 @@ def can_subscribe_list(doctype):
 
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
-	from frappe.sessions import Session
-
-	session = Session(None, resume=True).get_session_data()
-
 	return {
-		"user": session.user,
-		"user_type": session.user_type,
+		"user": frappe.session.user,
+		"user_type": frappe.session.user_type,
 	}
 
 

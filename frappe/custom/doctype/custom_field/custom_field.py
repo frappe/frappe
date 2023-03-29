@@ -9,7 +9,7 @@ from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.query_builder.functions import IfNull
-from frappe.utils import cstr
+from frappe.utils import cstr, random_string
 
 
 class CustomField(Document):
@@ -18,11 +18,23 @@ class CustomField(Document):
 		self.name = self.dt + "-" + self.fieldname
 
 	def set_fieldname(self):
+		restricted = (
+			"name",
+			"parent",
+			"creation",
+			"modified",
+			"modified_by",
+			"parentfield",
+			"parenttype",
+			"file_list",
+			"flags",
+			"docstatus",
+		)
 		if not self.fieldname:
 			label = self.label
 			if not label:
 				if self.fieldtype in ["Section Break", "Column Break", "Tab Break"]:
-					label = self.fieldtype + "_" + str(self.idx)
+					label = self.fieldtype + "_" + str(random_string(5))
 				else:
 					frappe.throw(_("Label is mandatory"))
 
@@ -33,6 +45,9 @@ class CustomField(Document):
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
+
+		if self.fieldname in restricted:
+			self.fieldname = self.fieldname + "1"
 
 	def before_insert(self):
 		self.set_fieldname()
@@ -142,7 +157,7 @@ def get_fields_label(doctype=None):
 		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
 
 	return [
-		{"value": df.fieldname or "", "label": _(df.label or "")}
+		{"value": df.fieldname or "", "label": _(df.label) if df.label else ""}
 		for df in frappe.get_meta(doctype).get("fields")
 	]
 

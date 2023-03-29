@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import re
 
 import frappe
 from frappe.app import make_form_dict
@@ -14,10 +15,7 @@ class TestSearch(FrappeTestCase):
 	def setUp(self):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
-
-	def tearDown(self):
-		if self._testMethodName == "test_link_field_order":
-			teardown_test_link_field_order(self)
+			self.addCleanup(teardown_test_link_field_order, self)
 
 	def test_search_field_sanitizer(self):
 		# pass
@@ -26,71 +24,24 @@ class TestSearch(FrappeTestCase):
 		self.assertTrue("User" in result["value"])
 
 		# raise exception on injection
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="1=1",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="select * from tabSessions) --",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="name or (select * from tabSessions)",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield="*",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield=";",
-		)
-
-		self.assertRaises(
-			frappe.DataError,
-			search_link,
-			"DocType",
-			"Customer",
-			query=None,
-			filters=None,
-			page_length=20,
-			searchfield=";",
-		)
+		for searchfield in (
+			"1=1",
+			"select * from tabSessions) --",
+			"name or (select * from tabSessions)",
+			"*",
+			";",
+			"select`sid`from`tabSessions`",
+		):
+			self.assertRaises(
+				frappe.DataError,
+				search_link,
+				"DocType",
+				"User",
+				query=None,
+				filters=None,
+				page_length=20,
+				searchfield=searchfield,
+			)
 
 	def test_only_enabled_in_mention(self):
 		email = "test_disabled_user_in_mentions@example.com"
@@ -100,7 +51,7 @@ class TestSearch(FrappeTestCase):
 			user.update(
 				{
 					"email": email,
-					"first_name": email.split("@")[0],
+					"first_name": email.split("@", 1)[0],
 					"enabled": False,
 					"allowed_in_mentions": True,
 				}
@@ -192,24 +143,28 @@ def setup_test_link_field_order(TestCase):
 	TestCase.parent_doctype_name = "All Territories"
 
 	# Create Tree doctype
-	TestCase.tree_doc = frappe.get_doc(
-		{
-			"doctype": "DocType",
-			"name": TestCase.tree_doctype_name,
-			"module": "Custom",
-			"custom": 1,
-			"is_tree": 1,
-			"autoname": "field:random",
-			"fields": [{"fieldname": "random", "label": "Random", "fieldtype": "Data"}],
-		}
-	).insert()
-	TestCase.tree_doc.search_fields = "parent_test_tree_order"
-	TestCase.tree_doc.save()
+	if not frappe.db.exists("DocType", TestCase.tree_doctype_name):
+		TestCase.tree_doc = frappe.get_doc(
+			{
+				"doctype": "DocType",
+				"name": TestCase.tree_doctype_name,
+				"module": "Custom",
+				"custom": 1,
+				"is_tree": 1,
+				"autoname": "field:random",
+				"fields": [{"fieldname": "random", "label": "Random", "fieldtype": "Data"}],
+			}
+		).insert()
+		TestCase.tree_doc.search_fields = "parent_test_tree_order"
+		TestCase.tree_doc.save()
+	else:
+		TestCase.tree_doc = frappe.get_doc("DocType", TestCase.tree_doctype_name)
 
 	# Create root for the tree doctype
-	frappe.get_doc(
-		{"doctype": TestCase.tree_doctype_name, "random": TestCase.parent_doctype_name, "is_group": 1}
-	).insert()
+	if not frappe.db.exists(TestCase.tree_doctype_name, {"random": TestCase.parent_doctype_name}):
+		frappe.get_doc(
+			{"doctype": TestCase.tree_doctype_name, "random": TestCase.parent_doctype_name, "is_group": 1}
+		).insert(ignore_if_duplicate=True)
 
 	# Create children for the root
 	for child_name in TestCase.child_doctypes_names:
@@ -219,7 +174,7 @@ def setup_test_link_field_order(TestCase):
 				"random": child_name,
 				"parent_test_tree_order": TestCase.parent_doctype_name,
 			}
-		).insert()
+		).insert(ignore_if_duplicate=True)
 		TestCase.child_doctype_list.append(temp)
 
 

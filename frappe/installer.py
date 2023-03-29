@@ -76,40 +76,38 @@ def _new_site(
 
 	make_site_dirs()
 
-	installing = touch_file(get_site_path("locks", "installing.lock"))
+	with filelock("bench_new_site", timeout=1):
+		install_db(
+			root_login=db_root_username,
+			root_password=db_root_password,
+			db_name=db_name,
+			admin_password=admin_password,
+			verbose=verbose,
+			source_sql=source_sql,
+			force=force,
+			reinstall=reinstall,
+			db_password=db_password,
+			db_type=db_type,
+			db_host=db_host,
+			db_port=db_port,
+			no_mariadb_socket=no_mariadb_socket,
+		)
 
-	install_db(
-		root_login=db_root_username,
-		root_password=db_root_password,
-		db_name=db_name,
-		admin_password=admin_password,
-		verbose=verbose,
-		source_sql=source_sql,
-		force=force,
-		reinstall=reinstall,
-		db_password=db_password,
-		db_type=db_type,
-		db_host=db_host,
-		db_port=db_port,
-		no_mariadb_socket=no_mariadb_socket,
-	)
-	apps_to_install = (
-		["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
-	)
+		apps_to_install = (
+			["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
+		)
 
-	for app in apps_to_install:
-		# NOTE: not using force here for 2 reasons:
-		# 	1. It's not really needed here as we've freshly installed a new db
-		# 	2. If someone uses a sql file to do restore and that file already had
-		# 		installed_apps then it might cause problems as that sql file can be of any previous version(s)
-		# 		which might be incompatible with the current version and using force might cause problems.
-		# 		Example: the DocType DocType might not have `migration_hash` column which will cause failure in the restore.
-		install_app(app, verbose=verbose, set_as_patched=not source_sql, force=False)
+		for app in apps_to_install:
+			# NOTE: not using force here for 2 reasons:
+			# 	1. It's not really needed here as we've freshly installed a new db
+			# 	2. If someone uses a sql file to do restore and that file already had
+			# 		installed_apps then it might cause problems as that sql file can be of any previous version(s)
+			# 		which might be incompatible with the current version and using force might cause problems.
+			# 		Example: the DocType DocType might not have `migration_hash` column which will cause failure in the restore.
+			install_app(app, verbose=verbose, set_as_patched=not source_sql, force=False)
 
-	os.remove(installing)
-
-	scheduler.toggle_scheduler(enable_scheduler)
-	frappe.db.commit()
+		scheduler.toggle_scheduler(enable_scheduler)
+		frappe.db.commit()
 
 	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	print("*** Scheduler is", scheduler_status, "***")
@@ -244,7 +242,7 @@ def parse_app_name(name: str) -> str:
 			_repo = name.split(":")[1].rsplit("/", 1)[1]
 		else:
 			_repo = name.rsplit("/", 2)[2]
-		repo = _repo.split(".")[0]
+		repo = _repo.split(".", 1)[0]
 	else:
 		_, repo, _ = fetch_details_from_tag(name)
 	return repo
@@ -273,7 +271,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	frappe.clear_cache()
 
 	if name not in frappe.get_all_apps():
-		raise Exception("App not in apps.txt")
+		raise Exception(f"App {name} not in apps.txt")
 
 	if not force and name in installed_apps:
 		click.secho(f"App {name} already installed", fg="yellow")
@@ -541,7 +539,6 @@ def make_site_config(
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 
-@filelock("site_config")
 def update_site_config(key, value, validate=True, site_config_path=None):
 	"""Update a value in site_config"""
 	from frappe.utils.synchronization import filelock
@@ -549,7 +546,16 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 	if not site_config_path:
 		site_config_path = get_site_config_path()
 
-	with open(site_config_path) as f:
+	# Sometimes global config file is passed directly to this function
+	_is_global_conf = "common_site_config" in site_config_path
+
+	with filelock("site_config", is_global=_is_global_conf):
+		_update_config_file(key=key, value=value, config_file=site_config_path)
+
+
+def _update_config_file(key: str, value, config_file: str):
+	"""Updates site or common config"""
+	with open(config_file) as f:
 		site_config = json.loads(f.read())
 
 	# In case of non-int value
@@ -569,7 +575,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 	else:
 		site_config[key] = value
 
-	with open(site_config_path, "w") as f:
+	with open(config_file, "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 	if hasattr(frappe.local, "conf"):
@@ -779,7 +785,7 @@ def is_downgrade(sql_file_path, verbose=False):
 
 				for app in all_apps:
 					app_name = app[0]
-					app_version = app[1].split(" ")[0]
+					app_version = app[1].split(" ", 1)[0]
 
 					if app_name == "frappe":
 						try:

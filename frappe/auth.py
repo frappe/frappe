@@ -57,7 +57,9 @@ class HTTPRequest:
 
 	def set_request_ip(self):
 		if frappe.get_request_header("X-Forwarded-For"):
-			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",")[0]).strip()
+			frappe.local.request_ip = (
+				frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]
+			).strip()
 
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
@@ -236,10 +238,11 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 
+		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)
 
 		if not user:
-			self.fail("Invalid login credentials")
+			self.fail("Invalid login credentials", user=_raw_user_name)
 
 		# Current login flow uses cached credentials for authentication while checking OTP.
 		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
@@ -310,7 +313,7 @@ class LoginManager:
 
 		current_hour = int(now_datetime().strftime("%H"))
 
-		if login_before and current_hour > login_before:
+		if login_before and current_hour >= login_before:
 			frappe.throw(_("Login not allowed at this time"), frappe.AuthenticationError)
 
 		if login_after and current_hour < login_after:

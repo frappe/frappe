@@ -81,10 +81,10 @@
   },
   {
    "depends_on": "transaction_type",
-   "description": "Generate 3 preview of names generate by any valid series.",
+   "description": "Get a preview of generated names with a series.",
    "fieldname": "try_naming_series",
    "fieldtype": "Data",
-   "label": "Try a naming Series"
+   "label": "Try a Naming Series"
   },
   {
    "fieldname": "transaction_type",
@@ -111,7 +111,7 @@
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2022-05-30 23:51:36.136535",
+ "modified": "2023-02-20 13:11:56.662100",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",

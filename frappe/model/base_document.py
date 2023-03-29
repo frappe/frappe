@@ -11,13 +11,14 @@ from frappe.model import (
 	default_fields,
 	display_fieldtypes,
 	float_like_fields,
+	get_permitted_fields,
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
+from frappe.utils import cast_fieldtype, cint, compare, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
@@ -35,52 +36,58 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
-	"""Returns the **class** object of the given DocType.
+	"""
+	Returns the locally cached **class** object of the given DocType.
 	For `custom` type, returns `frappe.model.document.Document`.
 
-	:param doctype: DocType name as string."""
+	:param doctype: DocType name as string.
+	"""
 
-	def _get_controller():
-		from frappe.model.document import Document
-		from frappe.utils.nestedset import NestedSet
-
-		module_name, custom = frappe.db.get_value(
-			"DocType", doctype, ("module", "custom"), cache=True
-		) or ("Core", False)
-
-		if custom:
-			is_tree = frappe.db.get_value("DocType", doctype, "is_tree", ignore=True, cache=True)
-			_class = NestedSet if is_tree else Document
-		else:
-			class_overrides = frappe.get_hooks("override_doctype_class")
-			if class_overrides and class_overrides.get(doctype):
-				import_path = class_overrides[doctype][-1]
-				module_path, classname = import_path.rsplit(".", 1)
-				module = frappe.get_module(module_path)
-				if not hasattr(module, classname):
-					raise ImportError(f"{doctype}: {classname} does not exist in module {module_path}")
-			else:
-				module = load_doctype_module(doctype, module_name)
-				classname = doctype.replace(" ", "").replace("-", "")
-
-			if hasattr(module, classname):
-				_class = getattr(module, classname)
-				if issubclass(_class, BaseDocument):
-					_class = getattr(module, classname)
-				else:
-					raise ImportError(doctype)
-			else:
-				raise ImportError(doctype)
-		return _class
-
-	if frappe.local.dev_server:
-		return _get_controller()
+	if frappe.local.dev_server or frappe.flags.in_migrate:
+		return import_controller(doctype)
 
 	site_controllers = frappe.controllers.setdefault(frappe.local.site, {})
 	if doctype not in site_controllers:
-		site_controllers[doctype] = _get_controller()
+		site_controllers[doctype] = import_controller(doctype)
 
 	return site_controllers[doctype]
+
+
+def import_controller(doctype):
+	from frappe.model.document import Document
+	from frappe.utils.nestedset import NestedSet
+
+	module_name = "Core"
+	if doctype not in DOCTYPES_FOR_DOCTYPE:
+		doctype_info = frappe.db.get_value("DocType", doctype, fieldname="*")
+		if doctype_info:
+			if doctype_info.custom:
+				return NestedSet if doctype_info.is_tree else Document
+			module_name = doctype_info.module
+
+	module_path = None
+	class_overrides = frappe.get_hooks("override_doctype_class")
+	if class_overrides and class_overrides.get(doctype):
+		import_path = class_overrides[doctype][-1]
+		module_path, classname = import_path.rsplit(".", 1)
+		module = frappe.get_module(module_path)
+
+	else:
+		module = load_doctype_module(doctype, module_name)
+		classname = doctype.replace(" ", "").replace("-", "")
+
+	class_ = getattr(module, classname, None)
+	if class_ is None:
+		raise ImportError(
+			doctype
+			if module_path is None
+			else f"{doctype}: {classname} does not exist in module {module_path}"
+		)
+
+	if not issubclass(class_, BaseDocument):
+		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
+
+	return class_
 
 
 class BaseDocument:
@@ -89,8 +96,10 @@ class BaseDocument:
 		"meta",
 		"_meta",
 		"flags",
+		"parent_doc",
 		"_table_fields",
 		"_valid_columns",
+		"_doc_before_save",
 		"_table_fieldnames",
 		"_reserved_keywords",
 		"dont_update_if_missing",
@@ -286,7 +295,7 @@ class BaseDocument:
 			return DOCTYPE_TABLE_FIELDS
 
 		# child tables don't have child tables
-		if self.doctype in DOCTYPES_FOR_DOCTYPE or getattr(self, "parentfield", None):
+		if self.doctype in DOCTYPES_FOR_DOCTYPE:
 			return ()
 
 		return self.meta.get_table_fields()
@@ -295,19 +304,24 @@ class BaseDocument:
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> dict:
 		d = _dict()
+		permitted_fields = get_permitted_fields(doctype=self.doctype)
+
 		for fieldname in self.meta.get_valid_columns():
+			field_value = getattr(self, fieldname, None)
+
 			# column is valid, we can use getattr
-			d[fieldname] = getattr(self, fieldname, None)
+			d[fieldname] = field_value
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
 				continue
 
 			df = self.meta.get_field(fieldname)
+			is_virtual_field = getattr(df, "is_virtual", False)
 
 			if df:
-				if getattr(df, "is_virtual", False):
-					if ignore_virtual:
+				if is_virtual_field:
+					if ignore_virtual or fieldname not in permitted_fields:
 						del d[fieldname]
 						continue
 
@@ -345,7 +359,7 @@ class BaseDocument:
 			):
 				d[fieldname] = str(d[fieldname])
 
-			if ignore_nulls and d[fieldname] is None:
+			if ignore_nulls and not is_virtual_field and d[fieldname] is None:
 				del d[fieldname]
 
 		return d
@@ -671,7 +685,11 @@ class BaseDocument:
 			value = cstr(self.get(df.fieldname))
 			has_text_content = strip_html(value).strip()
 			has_img_tag = "<img" in value
-			if df.fieldtype == "Text Editor" and (has_text_content or has_img_tag):
+			has_text_or_img_tag = has_text_content or has_img_tag
+
+			if df.fieldtype == "Text Editor" and has_text_or_img_tag:
+				return True
+			elif df.fieldtype == "Code" and df.options == "HTML" and has_text_or_img_tag:
 				return True
 			else:
 				return has_text_content
@@ -744,7 +762,7 @@ class BaseDocument:
 					values.name = doctype
 
 				if frappe.get_meta(doctype).get("is_virtual"):
-					values = frappe.get_doc(doctype, docname)
+					values = frappe.get_doc(doctype, docname).as_dict()
 
 				if values:
 					setattr(self, df.fieldname, values.name)
@@ -969,8 +987,14 @@ class BaseDocument:
 					)
 				if self_value != db_value:
 					frappe.throw(
-						_("Not allowed to change {0} after submission").format(df.label),
+						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
+							f"Row #{self.idx}:" if self.get("parent") else "",
+							frappe.bold(_(df.label)),
+							frappe.bold(db_value),
+							frappe.bold(self_value),
+						),
 						frappe.UpdateAfterSubmitError,
+						title=_("Cannot Update After Submit"),
 					)
 
 	def _sanitize_content(self):
@@ -1050,7 +1074,7 @@ class BaseDocument:
 	def is_dummy_password(self, pwd):
 		return "".join(set(pwd)) == "*"
 
-	def precision(self, fieldname, parentfield=None):
+	def precision(self, fieldname, parentfield=None) -> int | None:
 		"""Returns float precision for a particular field (or get global default).
 
 		:param fieldname: Fieldname for which precision is required.
@@ -1091,7 +1115,8 @@ class BaseDocument:
 			df = get_default_df(fieldname)
 
 		if (
-			df.fieldtype == "Currency"
+			df
+			and df.fieldtype == "Currency"
 			and not currency
 			and (currency_field := df.get("options"))
 			and (currency_value := self.get(currency_field))
@@ -1227,7 +1252,7 @@ def _filter(data, filters, limit=None):
 
 	for d in data:
 		for f, fval in _filters.items():
-			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
+			if not compare(getattr(d, f, None), fval[0], fval[1]):
 				break
 		else:
 			out.append(d)

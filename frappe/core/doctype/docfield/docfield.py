@@ -29,3 +29,12 @@ class DocField(Document):
 		if self.fieldtype == "Select":
 			options = self.options or ""
 			return [d for d in options.split("\n") if d]
+
+	def __repr__(self):
+		unsaved = "unsaved" if not self.name else ""
+		doctype = self.__class__.__name__
+
+		docstatus = f" docstatus={self.docstatus}" if self.docstatus else ""
+		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
+
+		return f"<{self.fieldtype}{doctype}: {self.fieldname}{docstatus}{parent}{unsaved}>"

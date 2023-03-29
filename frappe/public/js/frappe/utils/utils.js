@@ -280,9 +280,9 @@ Object.assign(frappe.utils, {
 	},
 
 	html2text: function (html) {
-		let d = document.createElement("div");
-		d.innerHTML = html;
-		return d.textContent;
+		const parser = new DOMParser();
+		const dom = parser.parseFromString(html, "text/html");
+		return dom.body.textContent;
 	},
 
 	is_url: function (txt) {
@@ -1609,5 +1609,66 @@ Object.assign(frappe.utils, {
 				},
 			});
 		},
+	},
+	generate_tracking_url() {
+		frappe.prompt(
+			[
+				{
+					fieldname: "url",
+					label: __("Web Page URL"),
+					fieldtype: "Data",
+					options: "URL",
+					reqd: 1,
+					default: localStorage.getItem("tracker_url:url"),
+				},
+				{
+					fieldname: "source",
+					label: __("Source"),
+					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:source"),
+				},
+				{
+					fieldname: "campaign",
+					label: __("Campaign"),
+					fieldtype: "Link",
+					ignore_link_validation: 1,
+					options: "Marketing Campaign",
+					default: localStorage.getItem("tracker_url:campaign"),
+				},
+				{
+					fieldname: "medium",
+					label: __("Medium"),
+					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:medium"),
+				},
+			],
+			function (data) {
+				let url = data.url;
+				localStorage.setItem("tracker_url:url", data.url);
+
+				if (data.source) {
+					url += "?source=" + data.source;
+					localStorage.setItem("tracker_url:source", data.source);
+				}
+				if (data.campaign) {
+					url += "&campaign=" + data.campaign;
+					localStorage.setItem("tracker_url:campaign", data.campaign);
+				}
+				if (data.medium) {
+					url += "&medium=" + data.medium.toLowerCase();
+					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+
+				frappe.utils.copy_to_clipboard(url);
+
+				frappe.msgprint(
+					__("Tracking URL generated and copied to clipboard") +
+						": <br>" +
+						`<a href="${url}">${url.bold()}</a>`,
+					__("Here's your tracking URL")
+				);
+			},
+			__("Generate Tracking URL")
+		);
 	},
 });

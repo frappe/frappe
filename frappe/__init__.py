@@ -23,7 +23,7 @@ import click
 from werkzeug.local import Local, release_local
 
 from frappe.query_builder import (
-	get_qb_engine,
+	get_query,
 	get_query_builder,
 	patch_query_aggregation,
 	patch_query_execute,
@@ -42,7 +42,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "14.0.0-dev"
+__version__ = "15.0.0-dev"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -238,13 +238,12 @@ def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
 	local.jenv = None
 	local.jloader = None
 	local.cache = {}
-	local.document_cache = {}
 	local.form_dict = _dict()
 	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
-	local.qb.engine = get_qb_engine()
+	local.qb.get_query = get_query
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -453,7 +452,10 @@ def msgprint(
 		out.as_list = 1
 
 	if sys.stdin and sys.stdin.isatty():
-		msg = _strip_html_tags(out.message)
+		if out.as_list:
+			msg = [_strip_html_tags(msg) for msg in out.message]
+		else:
+			msg = _strip_html_tags(out.message)
 
 	if flags.print_messages and out.message:
 		print(f"Message: {_strip_html_tags(out.message)}")
@@ -568,7 +570,7 @@ def get_user():
 
 def get_roles(username=None) -> list[str]:
 	"""Returns roles of current user."""
-	if not local.session:
+	if not local.session or not local.session.user:
 		return ["Guest"]
 	import frappe.permissions
 
@@ -620,6 +622,7 @@ def sendmail(
 	header=None,
 	print_letterhead=False,
 	with_container=False,
+	email_read_tracker_url=None,
 ):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -701,6 +704,7 @@ def sendmail(
 		header=header,
 		print_letterhead=print_letterhead,
 		with_container=with_container,
+		email_read_tracker_url=email_read_tracker_url,
 	)
 
 	# build email queue and send the email if send_now is True.
@@ -732,14 +736,21 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		methods = ["GET", "POST", "PUT", "DELETE"]
 
 	def innerfn(fn):
+		from frappe.utils.typing_validations import validate_argument_types
+
 		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+
+		# validate argument types only if request is present
+		in_request_or_test = lambda: getattr(local, "request", None) or local.flags.in_test  # noqa: E731
 
 		# get function from the unbound / bound method
 		# this is needed because functions can be compared, but not methods
 		method = None
 		if hasattr(fn, "__func__"):
-			method = fn
+			method = validate_argument_types(fn, apply_condition=in_request_or_test)
 			fn = method.__func__
+		else:
+			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
 		whitelisted.append(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
@@ -760,7 +771,12 @@ def is_whitelisted(method):
 
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
-		throw(_("Not permitted"), PermissionError)
+		summary = _("You are not permitted to access this resource.")
+		detail = _("Function {0} is not whitelisted.").format(
+			bold(f"{method.__module__}.{method.__name__}")
+		)
+		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		throw(msg, PermissionError, title="Method Not Allowed")
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
@@ -1060,25 +1076,10 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	def _respond(doc, from_redis=False):
-		if isinstance(doc, dict):
-			local.document_cache[key] = doc = get_doc(doc)
-
-		elif from_redis:
-			local.document_cache[key] = doc
-
+	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
 		return doc
 
-	if key := can_cache_doc(args):
-		# local cache - has "ready" `Document` objects
-		if doc := local.document_cache.get(key):
-			return _respond(doc)
-
-		# redis cache
-		if doc := cache().hget("document_cache", key):
-			return _respond(doc, True)
-
-	# Not found in local/redis, fetch from DB
+	# Not found in cache, fetch from DB
 	doc = get_doc(*args, **kwargs)
 
 	# Store in cache
@@ -1091,14 +1092,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	local.document_cache[key] = doc
-
-	# Avoid setting in local.cache since we're already using local.document_cache above
-	# Try pickling the doc object as-is first, else fallback to doc.as_dict()
-	try:
-		cache().hset("document_cache", key, doc, cache_locally=False)
-	except Exception:
-		cache().hset("document_cache", key, doc.as_dict(), cache_locally=False)
+	cache().hset("document_cache", key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1124,12 +1118,11 @@ def get_document_cache_key(doctype: str, name: str):
 
 def clear_document_cache(doctype, name):
 	cache().hdel("last_modified", doctype)
-	key = get_document_cache_key(doctype, name)
-	if key in local.document_cache:
-		del local.document_cache[key]
-	cache().hdel("document_cache", key)
+	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
+
 	if doctype == "Website Settings" and hasattr(local, "website_settings"):
 		delattr(local, "website_settings")
 
@@ -1389,23 +1382,37 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(sort=False, frappe_last=False):
-	"""Get list of installed apps in current site."""
+def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False):
+	"""
+	Get list of installed apps in current site.
+
+	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
+	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
+	:param ensure_on_bench: Only return apps that are present on bench.
+	"""
+	from frappe.utils.deprecations import deprecation_warning
+
 	if getattr(flags, "in_install_db", True):
 		return []
 
 	if not db:
 		connect()
 
-	if not local.all_apps:
-		local.all_apps = cache().get_value("all_apps", get_all_apps)
-
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
 	if sort:
+		if not local.all_apps:
+			local.all_apps = cache().get_value("all_apps", get_all_apps)
+
+		deprecation_warning("`sort` argument is deprecated and will be removed in v15.")
 		installed = [app for app in local.all_apps if app in installed]
 
+	if _ensure_on_bench:
+		all_apps = cache().get_value("all_apps", get_all_apps)
+		installed = [app for app in installed if app in all_apps]
+
 	if frappe_last:
+		deprecation_warning("`frappe_last` argument is deprecated and will be removed in v15.")
 		if "frappe" in installed:
 			installed.remove("frappe")
 		installed.append("frappe")
@@ -1435,19 +1442,17 @@ def _load_app_hooks(app_name: str | None = None):
 	import types
 
 	hooks = {}
-	apps = [app_name] if app_name else get_installed_apps(sort=True)
+	apps = [app_name] if app_name else get_installed_apps(_ensure_on_bench=True)
 
 	for app in apps:
 		try:
 			app_hooks = get_module(f"{app}.hooks")
-		except ImportError:
+		except ImportError as e:
 			if local.flags.in_install_app:
 				# if app is not installed while restoring
 				# ignore it
 				pass
-			print(f'Could not find app "{app}"')
-			if not request:
-				raise SystemExit
+			print(f'Could not find app "{app}": \n{e}')
 			raise
 
 		def _is_valid_hook(obj):
@@ -1563,7 +1568,7 @@ def read_file(path, raise_not_found=False):
 
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
-	app_name = method_string.split(".")[0]
+	app_name = method_string.split(".", 1)[0]
 	if (
 		not local.flags.in_uninstall
 		and not local.flags.in_install
@@ -1724,27 +1729,6 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	return newdoc
 
 
-def compare(val1, condition, val2):
-	"""Compare two values using `frappe.utils.compare`
-
-	`condition` could be:
-	- "^"
-	- "in"
-	- "not in"
-	- "="
-	- "!="
-	- ">"
-	- "<"
-	- ">="
-	- "<="
-	- "not None"
-	- "None"
-	"""
-	import frappe.utils
-
-	return frappe.utils.compare(val1, condition, val2)
-
-
 def respond_as_web_page(
 	title,
 	html,
@@ -1866,9 +1850,6 @@ def get_list(doctype, *args, **kwargs):
 
 	        # filter as a list of lists
 	        frappe.get_list("ToDo", fields="*", filters = [["modified", ">", "2014-01-01"]])
-
-	        # filter as a list of dicts
-	        frappe.get_list("ToDo", fields="*", filters = {"description": ("like", "test%")})
 	"""
 	import frappe.model.db_query
 
@@ -1893,9 +1874,6 @@ def get_all(doctype, *args, **kwargs):
 
 	        # filter as a list of lists
 	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
-
-	        # filter as a list of dicts
-	        frappe.get_all("ToDo", fields=["*"], filters = {"description": ("like", "test%")})
 	"""
 	kwargs["ignore_permissions"] = True
 	if not "limit_page_length" in kwargs:
@@ -1918,7 +1896,7 @@ def get_value(*args, **kwargs):
 	return db.get_value(*args, **kwargs)
 
 
-def as_json(obj: dict | list, indent=1, separators=None) -> str:
+def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
 	from frappe.utils.response import json_handler
 
 	if separators is None:
@@ -1926,13 +1904,24 @@ def as_json(obj: dict | list, indent=1, separators=None) -> str:
 
 	try:
 		return json.dumps(
-			obj, indent=indent, sort_keys=True, default=json_handler, separators=separators
+			obj,
+			indent=indent,
+			sort_keys=True,
+			default=json_handler,
+			separators=separators,
+			ensure_ascii=ensure_ascii,
 		)
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(sorted_obj, indent=indent, default=json_handler, separators=separators)
+		return json.dumps(
+			sorted_obj,
+			indent=indent,
+			default=json_handler,
+			separators=separators,
+			ensure_ascii=ensure_ascii,
+		)
 
 
 def are_emails_muted():
@@ -1980,7 +1969,6 @@ def get_print(
 	name=None,
 	print_format=None,
 	style=None,
-	html=None,
 	as_pdf=False,
 	doc=None,
 	output=None,
@@ -2012,13 +2000,8 @@ def get_print(
 	if password:
 		pdf_options["password"] = password
 
-	if not html:
-		html = get_response_content("printview")
-
-	if as_pdf:
-		return get_pdf(html, options=pdf_options, output=output)
-	else:
-		return html
+	html = get_response_content("printview")
+	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
 def attach_print(
@@ -2034,6 +2017,7 @@ def attach_print(
 	password=None,
 ):
 	from frappe.utils import scrub_urls
+	from frappe.utils.pdf import get_pdf
 
 	if not file_name:
 		file_name = name
@@ -2053,7 +2037,6 @@ def attach_print(
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
-		html=html,
 		doc=doc,
 		no_letterhead=no_letterhead,
 		password=password,
@@ -2063,10 +2046,14 @@ def attach_print(
 	if int(print_settings.send_print_as_pdf or 0):
 		ext = ".pdf"
 		kwargs["as_pdf"] = True
-		content = get_print(doctype, name, **kwargs)
+		content = (
+			get_pdf(html, options={"password": password} if password else None)
+			if html
+			else get_print(doctype, name, **kwargs)
+		)
 	else:
 		ext = ".html"
-		content = scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+		content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
 
 	out = {"fname": file_name + ext, "fcontent": content}
 
@@ -2213,6 +2200,10 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 
 	title = title or "Error"
 	traceback = as_unicode(traceback or get_traceback(with_context=True))
+
+	if not db:
+		print(f"Failed to log error in db: {title}")
+		return
 
 	error_log = get_doc(
 		doctype="Error Log",

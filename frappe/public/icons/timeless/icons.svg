@@ -43,6 +43,21 @@
 		<path d="M7.70015 3.00244L10.7001 6.00244L7.70015 9.00244" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-move">
+		<path d="M12.5 6L9 6C5.68629 6 3 8.68629 3 12L3 13" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M9 3L13 5.99999L9 9" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-unhide">
+		<path stroke="none" fill-rule="evenodd" clip-rule="evenodd" d="M2.10756 9.53547C1.93501 9.82126 1.93501 10.1787 2.10756 10.4645C3.75635 13.1955 6.60531 15 9.84351 15C13.0817 15 15.9307 13.1955 17.5795 10.4645C17.752 10.1787 17.752 9.82127 17.5795 9.53548C15.9307 6.80451 13.0817 5 9.84351 5C6.60531 5 3.75635 6.8045 2.10756 9.53547ZM10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13Z" fill="var(--icon-stroke)"/>
+		<circle cx="10" cy="10" r="1" stroke="none" fill="var(--icon-stroke)"/>
+	</symbol>
+
+	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-hide">
+		<rect stroke="none" x="3.02185" y="3.89151" width="1.26078" height="18.4481" rx="0.630391" transform="rotate(-45 3.02185 3.89151)" fill="var(--icon-stroke)"/>
+		<path stroke="none" fill-rule="evenodd" clip-rule="evenodd" d="M5.02016 6.99831C4.84611 6.82426 4.57032 6.80165 4.37821 6.95554C3.49472 7.66323 2.73193 8.53749 2.12941 9.53547C1.95686 9.82126 1.95686 10.1787 2.12941 10.4645C3.7782 13.1955 6.62716 15 9.86536 15C10.5301 15 11.1784 14.924 11.8032 14.7795C12.1655 14.6957 12.2727 14.2508 12.0098 13.9879L11.1052 13.0833C10.9747 12.9529 10.7837 12.9083 10.6027 12.9438C10.4148 12.9807 10.2206 13 10.0219 13C8.365 13 7.02185 11.6569 7.02185 10C7.02185 9.80128 7.04117 9.60707 7.07804 9.41915C7.11355 9.23815 7.06896 9.04711 6.93853 8.91668L5.02016 6.99831ZM12.1967 12.8433C11.9793 12.6259 12.011 12.2666 12.2202 12.0414C12.7176 11.506 13.0219 10.7885 13.0219 10C13.0219 8.34315 11.6787 7 10.0219 7C9.23334 7 8.51587 7.30421 7.98043 7.80167C7.75522 8.0109 7.3959 8.04255 7.17854 7.82518L5.98518 6.63183C5.75274 6.39939 5.80413 6.00935 6.10001 5.86613C7.24996 5.3095 8.52428 5 9.86536 5C13.1036 5 15.9525 6.80451 17.6013 9.53548C17.7739 9.82127 17.7739 10.1787 17.6013 10.4645C16.6787 11.9927 15.3803 13.2307 13.8482 14.0249C13.6613 14.1218 13.4343 14.0809 13.2854 13.932L12.1967 12.8433Z" fill="var(--icon-stroke)"/>
+	</symbol>
+
 	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-sidebar-collapse">
 		<path d="M12 6L6 12L12 18" stroke="var(--icon-stroke)"  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M18 6L12 12L18 18" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -116,8 +131,14 @@
 		<path d="M8 4v8M4 8h8" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 
-	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-add">
-		<path d="M8 3v10M3 8h10" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-add">
+		<path d="M8.00209 3L8 13" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M13 8.00223L3 8" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-remove">
+		<path d="M12.2407 12.2445L3.75736 3.75736" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M3.75736 12.2426L12.2445 3.75926" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-close">
@@ -812,6 +833,13 @@
 		<path d="M15.3287 15.9019V17.1876" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M16.814 15.0444L17.9274 15.6873" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M16.814 13.3304L17.9274 12.6875" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-number-card">
+		<rect width="15" height="11" x="2.5" y="4.5" stroke="var(--icon-stroke)" rx="2.5"/>
+		<path stroke="var(--icon-stroke)" stroke-linecap="round" d="m9 13.2717 2.1349-2.0457 1.3641 1.3642L14.9999 10"/>
+		<path stroke="var(--icon-stroke)" stroke-linecap="round" d="M13.1812 10H15v1.8188"/>
+		<path stroke="#000" stroke-linecap="round" stroke-width=".7" d="M5.53911 7.55204h2.60407M5.25 8.83237h2.60407M6.49749 6.67866l-.82364 3.07385M7.79075 6.67866l-.82364 3.07385"/>
 	</symbol>
 
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-dashboard-list">

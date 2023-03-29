@@ -56,7 +56,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (this.list_view_settings?.disable_auto_refresh) {
 			return;
 		}
-		frappe.socketio.list_subscribe(this.doctype);
+		frappe.socketio.doctype_subscribe(this.doctype);
 		frappe.realtime.on("list_update", (data) => this.on_update(data));
 	}
 
@@ -1581,7 +1581,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		// user permissions
-		if (this.report_name && frappe.model.can_set_user_permissions("Report")) {
+		if (this.report_name && frappe.user.has_role("System Manager")) {
 			items.push({
 				label: __("User Permissions"),
 				action: () => {

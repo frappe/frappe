@@ -17,7 +17,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				<div class="form-group">
 					<div class="clearfix">
 						<label class="control-label" style="padding-right: 0px;"></label>
-						<span class="ml-1 help"></span>
+						<span class="help"></span>
 					</div>
 					<div class="control-input-wrapper">
 						<div class="control-input"></div>
@@ -53,6 +53,14 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		}
 	}
 
+	read_only_because_of_fetch_from() {
+		return (
+			this.df.fetch_from &&
+			!this.df.fetch_if_empty &&
+			this.frm?.doc?.[this.df.fetch_from.split(".")[0]]
+		);
+	}
+
 	// update input value, label, description
 	// display (show/hide/read-only),
 	// mandatory style on refresh
@@ -83,7 +91,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 				me.value = me.doc[me.df.fieldname] || "";
 			}
 
-			let is_fetch_from_read_only = me.df.fetch_from && !me.df.fetch_if_empty;
+			let is_fetch_from_read_only = me.read_only_because_of_fetch_from();
 
 			if (me.can_write() && !is_fetch_from_read_only) {
 				me.disp_area && $(me.disp_area).toggle(false);
@@ -109,7 +117,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 						"title",
 						__(
 							"This value is fetched from {0}'s {1} field",
-							me.df.fetch_from.split(".")
+							me.df.fetch_from.split(".").map((value) => __(frappe.unscrub(value)))
 						)
 					);
 				}

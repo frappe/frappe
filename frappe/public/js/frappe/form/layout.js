@@ -35,6 +35,7 @@ frappe.ui.form.Layout = class Layout {
 		}
 
 		this.setup_tab_events();
+		this.frm && this.setup_tooltip_events();
 		this.render();
 	}
 
@@ -49,17 +50,6 @@ frappe.ui.form.Layout = class Layout {
 			this.page
 		);
 		this.setup_events();
-	}
-
-	show_empty_form_message() {
-		if (
-			!(
-				this.wrapper.find(".frappe-control:visible").length ||
-				this.wrapper.find(".section-head.collapsed").length
-			)
-		) {
-			this.show_message(__("This form does not have any input"));
-		}
 	}
 
 	get_doctype_fields() {
@@ -527,6 +517,25 @@ frappe.ui.form.Layout = class Layout {
 				}
 			}
 		});
+	}
+
+	setup_tooltip_events() {
+		$(document).on("keydown", (e) => {
+			if (e.altKey) {
+				this.wrapper.addClass("show-tooltip");
+			}
+		});
+		$(document).on("keyup", (e) => {
+			if (!e.altKey) {
+				this.wrapper.removeClass("show-tooltip");
+			}
+		});
+		this.frm.page &&
+			frappe.ui.keys.add_shortcut({
+				shortcut: "alt+hover",
+				page: this.frm.page,
+				description: __("Show Fieldname (click to copy on clipboard)"),
+			});
 	}
 
 	handle_tab(doctype, fieldname, shift) {

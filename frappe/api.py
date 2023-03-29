@@ -131,6 +131,7 @@ class _RESTAPIHandler:
 		doc = frappe.get_doc(self.doctype, self.name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
+		doc.apply_fieldlevel_read_permissions()
 		frappe.local.response.update({"data": doc})
 
 	def update_doc(self):

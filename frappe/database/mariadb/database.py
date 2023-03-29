@@ -129,12 +129,11 @@ class MariaDBConnectionUtil:
 			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-			ssl_params = {
+			conn_settings["ssl"] = {
 				"ca": frappe.conf.db_ssl_ca,
 				"cert": frappe.conf.db_ssl_cert,
 				"key": frappe.conf.db_ssl_key,
 			}
-			conn_settings |= ssl_params
 		return conn_settings
 
 
@@ -201,7 +200,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return db_size[0].get("database_size")
 
 	def log_query(self, query, values, debug, explain):
-		self.last_query = query = self._cursor._last_executed
+		self.last_query = query = self._cursor._executed
 		self._log_query(query, debug, explain)
 		return self.last_query
 

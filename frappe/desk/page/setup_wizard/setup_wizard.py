@@ -165,6 +165,7 @@ def update_system_settings(args):
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
 			"float_precision": 3,
+			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
 			"number_format": number_format,
@@ -267,10 +268,10 @@ def add_all_roles_to(name):
 
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
-	frappe.db.set_value("System Settings", "System Settings", "setup_complete", 1)
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 	# Enable onboarding after install
-	frappe.db.set_value("System Settings", "System Settings", "enable_onboarding", 1)
+	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access

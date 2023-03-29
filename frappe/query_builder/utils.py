@@ -2,8 +2,7 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, Callable, get_type_hints
 
-from pypika import Query
-from pypika.queries import Column
+from pypika.queries import Column, QueryBuilder
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -55,10 +54,10 @@ def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	return picks[db]
 
 
-def get_qb_engine():
+def get_query(*args, **kwargs) -> QueryBuilder:
 	from frappe.database.query import Engine
 
-	return Engine()
+	return Engine().get_query(*args, **kwargs)
 
 
 def get_attr(method_string):
@@ -104,9 +103,8 @@ def patch_query_execute():
 				# frame1: execute_query()
 				# frame2: frame that called `query.run()`
 				#
-				# if frame2 is server script it wont have a filename and hence
+				# if frame2 is server script <serverscript> is set as the filename
 				# it shouldn't be allowed.
-				# p.s. stack() returns `"<unknown>"` as filename if not a file.
 				pass
 			else:
 				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")

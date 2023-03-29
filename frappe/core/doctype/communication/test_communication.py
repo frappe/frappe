@@ -219,17 +219,17 @@ class TestCommunication(FrappeTestCase):
 		self.assertIn(comm_note_2.name, data)
 
 	def test_link_in_email(self):
-		frappe.delete_doc_if_exists("Note", "test document link in email")
-
 		create_email_account()
 
-		note = frappe.get_doc(
-			{
-				"doctype": "Note",
-				"title": "test document link in email",
-				"content": "test document link in email",
-			}
-		).insert(ignore_permissions=True)
+		notes = {}
+		for i in range(2):
+			frappe.delete_doc_if_exists("Note", f"test document link in email {i}")
+			notes[i] = frappe.get_doc(
+				{
+					"doctype": "Note",
+					"title": f"test document link in email {i}",
+				}
+			).insert(ignore_permissions=True)
 
 		comm = frappe.get_doc(
 			{
@@ -237,14 +237,15 @@ class TestCommunication(FrappeTestCase):
 				"communication_medium": "Email",
 				"subject": "Document Link in Email",
 				"sender": "comm_sender@example.com",
-				"recipients": f'comm_recipient+{quote("Note")}+{quote(note.name)}@example.com',
+				"recipients": f'comm_recipient+{quote("Note")}+{quote(notes[0].name)}@example.com,comm_recipient+{quote("Note")}={quote(notes[1].name)}@example.com',
 			}
 		).insert(ignore_permissions=True)
 
 		doc_links = [
 			(timeline_link.link_doctype, timeline_link.link_name) for timeline_link in comm.timeline_links
 		]
-		self.assertIn(("Note", note.name), doc_links)
+		self.assertIn(("Note", notes[0].name), doc_links)
+		self.assertIn(("Note", notes[1].name), doc_links)
 
 	def test_parse_emails(self):
 		emails = get_emails(
@@ -343,7 +344,7 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		user = self.new_user(email="bcc+2@test.com", enabled=0)
 		comm = self.new_communication(bcc=bcc_list)
 		res = comm.get_mail_bcc_with_displayname()
-		self.assertCountEqual(res, ["bcc+1@test.com"])
+		self.assertCountEqual(res, bcc_list)
 		user.delete()
 		comm.delete()
 

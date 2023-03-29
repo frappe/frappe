@@ -126,8 +126,8 @@ def enqueue(
 		timeout=timeout,
 		kwargs=queue_args,
 		at_front=at_front,
-		failure_ttl=RQ_JOB_FAILURE_TTL,
-		result_ttl=RQ_RESULTS_TTL,
+		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 	)
 
 
@@ -153,6 +153,7 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 
 def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
+	retval = None
 	if is_async:
 		frappe.connect(site)
 		if os.environ.get("CI"):
@@ -167,9 +168,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
-	frappe.monitor.start("job", method_name, kwargs)
+	for before_job_task in frappe.get_hooks("before_job"):
+		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
+
 	try:
-		method(**kwargs)
+		retval = method(**kwargs)
 
 	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
@@ -200,14 +203,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	else:
 		frappe.db.commit()
+		return retval
 
 	finally:
-		# background job hygiene: release file locks if unreleased
-		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
-		for doc in frappe.local.locked_documents:
-			doc.unlock()
+		for after_job_task in frappe.get_hooks("after_job"):
+			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
 
-		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
 
@@ -219,7 +220,7 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: Literal["round_robin", "random"] | None = None,
-) -> NoReturn | None:
+) -> NoReturn | None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
@@ -242,7 +243,12 @@ def start_worker(
 		if quiet:
 			logging_level = "WARNING"
 		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(logging_level=logging_level, burst=burst)
+		worker.work(
+			logging_level=logging_level,
+			burst=burst,
+			date_format="%Y-%m-%d %H:%M:%S",
+			log_format="%(asctime)s,%(msecs)03d %(message)s",
+		)
 
 
 def get_worker_name(queue):

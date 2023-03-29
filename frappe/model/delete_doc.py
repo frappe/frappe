@@ -9,30 +9,13 @@ import frappe.defaults
 import frappe.model.meta
 from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
+from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
 from frappe.utils.password import delete_all_passwords_for
-
-doctypes_to_skip = (
-	"Communication",
-	"ToDo",
-	"DocShare",
-	"Email Unsubscribe",
-	"Activity Log",
-	"File",
-	"Version",
-	"Document Follow",
-	"Comment",
-	"View Log",
-	"Tag Link",
-	"Notification Log",
-	"Email Queue",
-	"Document Share Key",
-	"Integration Request",
-)
 
 
 def delete_doc(
@@ -193,7 +176,7 @@ def update_naming_series(doc):
 		if doc.meta.autoname.startswith("naming_series:") and getattr(doc, "naming_series", None):
 			revert_series_if_last(doc.naming_series, doc.name, doc)
 
-		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash", "autoincrement"):
+		elif doc.meta.autoname.split(":", 1)[0] not in ("Prompt", "field", "hash", "autoincrement"):
 			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
@@ -277,13 +260,13 @@ def check_if_doc_is_linked(doc, method="Delete"):
 				item_parent = getattr(item, "parent", None)
 				linked_doctype = item.parenttype if item_parent else link_dt
 
-				if linked_doctype in doctypes_to_skip or (
+				if linked_doctype in frappe.get_hooks("ignore_links_on_delete") or (
 					linked_doctype in ignore_linked_doctypes and method == "Cancel"
 				):
 					# don't check for communication and todo!
 					continue
 
-				if method != "Delete" and (method != "Cancel" or item.docstatus != 1):
+				if method != "Delete" and (method != "Cancel" or not DocStatus(item.docstatus).is_submitted()):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
@@ -306,7 +289,9 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
-		if df.parent in doctypes_to_skip or (df.parent in ignore_linked_doctypes and method == "Cancel"):
+		if df.parent in frappe.get_hooks("ignore_links_on_delete") or (
+			df.parent in ignore_linked_doctypes and method == "Cancel"
+		):
 			# don't check for communication and todo!
 			continue
 
@@ -318,13 +303,12 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				refdoc.get(df.options) == doc.doctype
 				and refdoc.get(df.fieldname) == doc.name
 				and (
-					(method == "Delete" and refdoc.docstatus < 2)
-					or (method == "Cancel" and refdoc.docstatus == 1)
+					# linked to an non-cancelled doc when deleting
+					(method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled())
+					# linked to a submitted doc when cancelling
+					or (method == "Cancel" and DocStatus(refdoc.docstatus).is_submitted())
 				)
 			):
-				# raise exception only if
-				# linked to an non-cancelled doc when deleting
-				# or linked to a submitted doc when cancelling
 				raise_link_exists_exception(doc, df.parent, df.parent)
 		else:
 			# dynamic link in table
@@ -337,14 +321,11 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				(doc.doctype, doc.name),
 				as_dict=True,
 			):
-
-				if (method == "Delete" and refdoc.docstatus < 2) or (
-					method == "Cancel" and refdoc.docstatus == 1
+				# linked to an non-cancelled doc when deleting
+				# or linked to a submitted doc when cancelling
+				if (method == "Delete" and not DocStatus(refdoc.docstatus).is_cancelled()) or (
+					method == "Cancel" and DocStatus(refdoc.docstatus).is_submitted()
 				):
-					# raise exception only if
-					# linked to an non-cancelled doc when deleting
-					# or linked to a submitted doc when cancelling
-
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
 					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
@@ -364,7 +345,7 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 
 	frappe.throw(
 		_("Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}").format(
-			doc.doctype, doc_link, reference_doctype, reference_link, row
+			_(doc.doctype), doc_link, _(reference_doctype), reference_link, row
 		),
 		frappe.LinkExistsError,
 	)

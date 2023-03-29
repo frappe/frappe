@@ -390,11 +390,6 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	for fieldtype in fields_with_options:
 		update_options_for_fieldtype(fieldtype, old, new)
 
-	# change options where select options are hardcoded i.e. listed
-	select_fields = get_select_fields(old, new)
-	update_link_field_values(select_fields, old, new, doctype)
-	update_select_field_values(old, new)
-
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 
@@ -402,7 +397,11 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
 	for df in meta.get_table_fields():
-		frappe.qb.update(df.options).set("parent", new).where(Field("parent") == old).run()
+		(
+			frappe.qb.update(df.options)
+			.set("parent", new)
+			.where((Field("parent") == old) & (Field("parenttype") == meta.name))
+		).run()
 
 
 def update_link_field_values(link_fields: list[dict], old: str, new: str, doctype: str) -> None:
@@ -489,6 +488,9 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 
 	if frappe.conf.developer_mode:
 		for name in frappe.get_all("DocField", filters={"options": old}, pluck="parent"):
+			if name in (old, new):
+				continue
+
 			doctype = frappe.get_doc("DocType", name)
 			save = False
 			for f in doctype.fields:
@@ -497,11 +499,11 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 					save = True
 			if save:
 				doctype.save()
-	else:
-		DocField = frappe.qb.DocType("DocField")
-		frappe.qb.update(DocField).set(DocField.options, new).where(
-			(DocField.fieldtype == fieldtype) & (DocField.options == old)
-		).run()
+
+	DocField = frappe.qb.DocType("DocField")
+	frappe.qb.update(DocField).set(DocField.options, new).where(
+		(DocField.fieldtype == fieldtype) & (DocField.options == old)
+	).run()
 
 	frappe.qb.update(CustomField).set(CustomField.options, new).where(
 		(CustomField.fieldtype == fieldtype) & (CustomField.options == old)

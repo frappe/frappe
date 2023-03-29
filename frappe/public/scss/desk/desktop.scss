@@ -1017,7 +1017,17 @@ body {
 
 	.sidebar-item-container {
 		position: relative;
-		.sidebar-item-container{
+
+		&[item-is-hidden="1"] {
+			display: none;
+			opacity: 0.4;
+
+			&:hover {
+				opacity: 1;
+			}
+		}
+
+		.sidebar-item-container {
 			margin-left: 10px;
 
 			.standard-sidebar-item {
@@ -1026,30 +1036,69 @@ body {
 		}
 	}
 
-	.standard-sidebar-section.show-control {
-		.desk-sidebar-item.standard-sidebar-item {
+	.desk-sidebar {
+		&.show-hidden-workspaces {
 
-			&:hover, &.selected {
-				.drag-handle {
-					display: inline-block;
-				}
+			.unhide-workspace-btn {
+				display: none;
+			}
 
-				.setting-btn, .duplicate-page {
-					display: inline-block;
-					margin-right: 8px;
-				}
+			.standard-sidebar-section {
+				display: block;
 
-				.drop-icon {
-					padding: 10px 8px 10px 2px;
-					margin-left: -8px;
+				.sidebar-item-container {
+					&[item-is-hidden="1"] {
+						display: block;
+					}
+					&[item-is-hidden="0"] {
+						.drop-icon {
+							display: inline-block;
+						}
+					}
 				}
 			}
 
-			.block-click {
-				pointer-events:none;
+			.show-in-edit-mode {
+				display: block !important;
+
+				&.drop-icon {
+					display: inline-block !important;
+				}
+			}
+		}
+
+		.standard-sidebar-section.show-control {
+			.desk-sidebar-item.standard-sidebar-item {
+
+				&:hover, &.selected {
+					.drag-handle {
+						display: inline-block;
+					}
+
+					.setting-btn, .duplicate-page, .unhide-workspace-btn {
+						display: inline-block;
+						margin-right: 8px;
+					}
+
+					.drop-icon {
+						padding: 10px 8px 10px 2px;
+						margin-left: -8px;
+					}
+				}
+
+				.block-click {
+					pointer-events:none;
+				}
 			}
 		}
 	}
+
+
+	// widgets
+	.widget.number-widget-box {
+		box-shadow: var(--shadow-sm);
+	}
+
 
 	.codex-editor__loader {
 		display: none !important;

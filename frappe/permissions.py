@@ -22,25 +22,8 @@ rights = (
 	"report",
 	"import",
 	"export",
-	"set_user_permissions",
 	"share",
 )
-
-
-def check_admin_or_system_manager(user=None):
-	from frappe.utils.commands import warn
-
-	warn(
-		"The function check_admin_or_system_manager will be deprecated in version 15."
-		'Please use frappe.only_for("System Manager") instead.',
-		category=PendingDeprecationWarning,
-	)
-
-	if not user:
-		user = frappe.session.user
-
-	if ("System Manager" not in frappe.get_roles(user)) and (user != "Administrator"):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
 def print_has_permission_check_logs(func):
@@ -48,7 +31,7 @@ def print_has_permission_check_logs(func):
 		frappe.flags["has_permission_check_logs"] = []
 		result = func(*args, **kwargs)
 		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
-		raise_exception = False if kwargs.get("raise_exception") is False else True
+		raise_exception = kwargs.get("raise_exception", True)
 
 		# print only if access denied
 		# and if user is checking his own permission
@@ -93,6 +76,9 @@ def has_permission(
 
 	if user == "Administrator":
 		return True
+
+	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
+		return False
 
 	if not doc and hasattr(doctype, "doctype"):
 		# first argument can be doc or doctype
@@ -333,14 +319,26 @@ def has_user_permission(doc, user=None):
 				# restricted for this link field, and no matching values found
 				# make the right message and exit
 				if d.get("parentfield"):
-					# "Not allowed for Company = Restricted Company in Row 3. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1} in Row {2}. Restricted field: {3}").format(
-						_(field.options), d.get(field.fieldname), d.idx, field.fieldname
+					# "You are not allowed to access this Employee record because it is linked
+					# to Company 'Restricted Company' in row 3, field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						d.idx,
+						_(field.label) if field.label else field.fieldname,
 					)
 				else:
-					# "Not allowed for Company = Restricted Company. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1}. Restricted field: {2}").format(
-						_(field.options), d.get(field.fieldname), field.fieldname
+					# "You are not allowed to access Company 'Restricted Company' in field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						_(field.label) if field.label else field.fieldname,
 					)
 
 				push_perm_check_log(msg)
@@ -417,7 +415,7 @@ def get_roles(user=None, with_standard=True):
 	if not user:
 		user = frappe.session.user
 
-	if user == "Guest":
+	if user == "Guest" or not user:
 		return ["Guest"]
 
 	def get():
@@ -461,29 +459,6 @@ def get_doctypes_with_custom_docperms():
 
 	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
 	return [d.parent for d in doctypes]
-
-
-def can_set_user_permissions(doctype, docname=None):
-	# System Manager can always set user permissions
-	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
-		return True
-
-	meta = frappe.get_meta(doctype)
-
-	# check if current user has read permission for docname
-	if docname and not has_permission(doctype, "read", docname):
-		return False
-
-	# check if current user has a role that can set permission
-	if get_role_permissions(meta).set_user_permissions != 1:
-		return False
-
-	return True
-
-
-def set_user_permission_if_allowed(doctype, name, user, with_message=False):
-	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions != 1:
-		add_user_permission(doctype, name, user)
 
 
 def add_user_permission(
@@ -641,7 +616,7 @@ def get_linked_doctypes(dt: str) -> list:
 def get_doc_name(doc):
 	if not doc:
 		return None
-	return doc if isinstance(doc, str) else doc.name
+	return doc if isinstance(doc, str) else str(doc.name)
 
 
 def allow_everything():
@@ -707,8 +682,10 @@ def has_child_permission(
 
 	parent_meta = frappe.get_meta(parent_doctype)
 
-	if parent_meta.istable or all(
-		df.options != child_doctype for df in parent_meta.get_table_fields()
+	if parent_meta.istable or not (
+		valid_parentfields := [
+			df.fieldname for df in parent_meta.get_table_fields() if df.options == child_doctype
+		]
 	):
 		push_perm_check_log(
 			_("{0} is not a valid parent DocType for {1}").format(
@@ -717,15 +694,30 @@ def has_child_permission(
 		)
 		return False
 
-	if (
-		child_doc
-		and (permlevel := parent_meta.get_field(child_doc.parentfield).permlevel) > 0
-		and permlevel not in parent_meta.get_permlevel_access(ptype, user=user)
-	):
-		push_perm_check_log(
-			_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
-		)
-		return False
+	if child_doc:
+		parentfield = child_doc.parentfield
+		if not parentfield:
+			push_perm_check_log(
+				_("Parentfield not specified in {0}: {1}").format(
+					frappe.bold(child_doctype), frappe.bold(child_doc.name)
+				)
+			)
+			return False
+
+		if parentfield not in valid_parentfields:
+			push_perm_check_log(
+				_("{0} is not a valid parentfield for {1}").format(
+					frappe.bold(parentfield), frappe.bold(child_doctype)
+				)
+			)
+			return False
+
+		permlevel = parent_meta.get_field(parentfield).permlevel
+		if permlevel > 0 and permlevel not in parent_meta.get_permlevel_access(ptype, user=user):
+			push_perm_check_log(
+				_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
+			)
+			return False
 
 	return has_permission(
 		parent_doctype,

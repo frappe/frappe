@@ -307,7 +307,7 @@ def get_routes_to_index():
 					filepath = os.path.join(dirpath, f)
 
 					route = os.path.relpath(filepath, base)
-					route = route.split(".")[0]
+					route = route.split(".", 1)[0]
 
 					if route.endswith("index"):
 						route = route.rsplit("index", 1)[0]
@@ -489,7 +489,7 @@ def search(text, start=0, limit=20, doctype=""):
 
 
 @frappe.whitelist(allow_guest=True)
-def web_search(text, scope=None, start=0, limit=20):
+def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
 	:param text: phrase to be searched

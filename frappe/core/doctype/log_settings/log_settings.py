@@ -19,6 +19,9 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Route History": 90,
 	"Submission Queue": 30,
 	"Prepared Report": 30,
+	"Webhook Request Log": 30,
+	"Integration Request": 90,
+	"Reminder": 30,
 }
 
 
@@ -42,27 +45,26 @@ def _supports_log_clearing(doctype: str) -> bool:
 
 class LogSettings(Document):
 	def validate(self):
-		self.validate_supported_doctypes()
-		self.validate_duplicates()
+		self._remove_unsupported_doctypes()
+		self._deduplicate_entries()
 		self.add_default_logtypes()
 
-	def validate_supported_doctypes(self):
-		for entry in self.logs_to_clear:
+	def _remove_unsupported_doctypes(self):
+		for entry in list(self.logs_to_clear):
 			if _supports_log_clearing(entry.ref_doctype):
 				continue
 
 			msg = _("{} does not support automated log clearing.").format(frappe.bold(entry.ref_doctype))
 			if frappe.conf.developer_mode:
 				msg += "<br>" + _("Implement `clear_old_logs` method to enable auto error clearing.")
-			frappe.throw(msg, title=_("DocType not supported by Log Settings."))
+			frappe.msgprint(msg, title=_("DocType not supported by Log Settings."))
+			self.remove(entry)
 
-	def validate_duplicates(self):
+	def _deduplicate_entries(self):
 		seen = set()
-		for entry in self.logs_to_clear:
+		for entry in list(self.logs_to_clear):
 			if entry.ref_doctype in seen:
-				frappe.throw(
-					_("{} appears more than once in configured log doctypes.").format(entry.ref_doctype)
-				)
+				self.remove(entry)
 			seen.add(entry.ref_doctype)
 
 	def add_default_logtypes(self):

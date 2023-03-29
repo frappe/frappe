@@ -59,8 +59,8 @@ class NamingSeries:
 		if not NAMING_SERIES_PATTERN.match(self.series):
 			frappe.throw(
 				_(
-					'Special Characters except "-", "#", ".", "/", "{" and "}" not allowed in naming series',
-				),
+					"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
+				).format(frappe.bold(self.series)),
 				exc=InvalidNamingSeriesError,
 			)
 
@@ -232,7 +232,11 @@ def set_naming_from_document_naming_rule(doc):
 	"""
 	Evaluate rules based on "Document Naming Series" doctype
 	"""
-	if doc.doctype in log_types:
+	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+
+	IGNORED_DOCTYPES = {*log_types, *DOCTYPES_FOR_DOCTYPE, "DefaultValue", "Patch Log"}
+
+	if doc.doctype in IGNORED_DOCTYPES:
 		return
 
 	document_naming_rules = frappe.cache_manager.get_doctype_map(

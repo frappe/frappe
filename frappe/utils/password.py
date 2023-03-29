@@ -62,7 +62,10 @@ def get_decrypted_password(doctype, name, fieldname="password", raise_exception=
 		return decrypt(result[0][0])
 
 	elif raise_exception:
-		frappe.throw(_("Password not found"), frappe.AuthenticationError)
+		frappe.throw(
+			_("Password not found for {0} {1} {2}").format(doctype, name, fieldname),
+			frappe.AuthenticationError,
+		)
 
 
 def set_encrypted_password(doctype, name, pwd, fieldname="password"):
@@ -118,7 +121,7 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	if delete_tracker_cache:
 		delete_login_failed_cache(user)
 
-	if not passlibctx.needs_update(result[0].password):
+	if passlibctx.needs_update(result[0].password):
 		update_password(user, pwd, doctype, fieldname)
 
 	return user

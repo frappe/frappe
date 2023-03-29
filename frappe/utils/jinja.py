@@ -60,7 +60,7 @@ def validate_template(html):
 		frappe.throw(frappe._("Syntax error in template"))
 
 
-def render_template(template, context, is_path=None, safe_render=True):
+def render_template(template, context=None, is_path=None, safe_render=True):
 	"""Render a template using Jinja
 
 	:param template: path or HTML containing the jinja template
@@ -75,6 +75,9 @@ def render_template(template, context, is_path=None, safe_render=True):
 
 	if not template:
 		return ""
+
+	if context is None:
+		context = {}
 
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
@@ -109,8 +112,9 @@ def get_jloader():
 
 		apps = frappe.get_hooks("template_apps")
 		if not apps:
-			apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
-			apps.reverse()
+			apps = list(
+				reversed(frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True))
+			)
 
 		if "frappe" not in apps:
 			apps.append("frappe")

@@ -285,7 +285,7 @@ Cypress.Commands.add("get_open_dialog", () => {
 
 Cypress.Commands.add("save", () => {
 	cy.intercept("/api/method/frappe.desk.form.save.savedocs").as("save_call");
-	cy.get(`button[data-label="Save"]:visible`).click({ scrollBehavior: "top", force: true });
+	cy.get(`.page-container:visible button[data-label="Save"]`).click({ force: true });
 	cy.wait("@save_call");
 });
 Cypress.Commands.add("hide_dialog", () => {
@@ -370,6 +370,45 @@ Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 				});
 		});
 });
+
+Cypress.Commands.add("switch_to_user", (user) => {
+	cy.call("logout");
+	cy.login(user);
+});
+
+Cypress.Commands.add("add_role", (user, role) => {
+	cy.window()
+		.its("frappe")
+		.then((frappe) => {
+			const session_user = frappe.session.user;
+			add_remove_role("add", user, role, session_user);
+		});
+});
+
+Cypress.Commands.add("remove_role", (user, role) => {
+	cy.window()
+		.its("frappe")
+		.then((frappe) => {
+			const session_user = frappe.session.user;
+			add_remove_role("remove", user, role, session_user);
+		});
+});
+
+const add_remove_role = (action, user, role, session_user) => {
+	if (session_user !== "Administrator") {
+		cy.switch_to_user("Administrator");
+	}
+
+	cy.call("frappe.tests.ui_test_helpers.add_remove_role", {
+		action: action,
+		user: user,
+		role: role,
+	});
+
+	if (session_user !== "Administrator") {
+		cy.switch_to_user(session_user);
+	}
+};
 
 Cypress.Commands.add("open_list_filter", () => {
 	cy.get(".filter-section .filter-button").click();

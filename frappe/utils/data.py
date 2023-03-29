@@ -12,12 +12,13 @@ import typing
 from code import compile_command
 from enum import Enum
 from typing import Any, Literal, Optional, TypeVar, Union
-from urllib.parse import quote, urljoin
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 from click import secho
 
 import frappe
 from frappe.desk.utils import slug
+from frappe.utils.deprecations import deprecation_warning
 
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]
@@ -304,7 +305,7 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 
 
 def now_datetime():
-	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_system_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
 
 
@@ -317,15 +318,15 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 
-def _get_time_zone():
+def _get_system_timezone():
 	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
-def get_time_zone():
+def get_system_timezone():
 	if frappe.local.flags.in_test:
-		return _get_time_zone()
+		return _get_system_timezone()
 
-	return frappe.cache().get_value("time_zone", _get_time_zone)
+	return frappe.cache().get_value("time_zone", _get_system_timezone)
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
@@ -343,8 +344,8 @@ def get_datetime_in_timezone(time_zone):
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
-def convert_utc_to_user_timezone(utc_timestamp):
-	time_zone = get_time_zone()
+def convert_utc_to_system_timezone(utc_timestamp):
+	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
@@ -919,7 +920,9 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(s: NumericType | str, precision: int | None = None) -> float:
+def flt(
+	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
+) -> float:
 	"""Convert to float (ignoring commas in string)
 
 	:param s: Number in string or other numeric format.
@@ -945,8 +948,10 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	try:
 		num = float(s)
 		if precision is not None:
-			num = rounded(num, precision)
-	except Exception:
+			num = rounded(num, precision, rounding_method)
+	except Exception as e:
+		if isinstance(e, frappe.InvalidRoundingMethod):
+			raise
 		num = 0.0
 
 	return num
@@ -1045,12 +1050,30 @@ def sbool(x: str) -> bool | Any:
 		return x
 
 
-def rounded(num, precision=0):
-	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
+def rounded(num, precision=0, rounding_method=None):
+	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
-	multiplier = 10**precision
 
+	rounding_method = (
+		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
+	)
+
+	if rounding_method == "Banker's Rounding (legacy)":
+		return _bankers_rounding_legacy(num, precision)
+	elif rounding_method == "Banker's Rounding":
+		return _bankers_rounding(num, precision)
+	elif rounding_method == "Commercial Rounding":
+		return _round_away_from_zero(num, precision)
+	else:
+		frappe.throw(
+			frappe._("Unknown Rounding Method: {}").format(rounding_method),
+			exc=frappe.InvalidRoundingMethod,
+		)
+
+
+def _bankers_rounding_legacy(num, precision):
 	# avoid rounding errors
+	multiplier = 10**precision
 	num = round(num * multiplier if precision else num, 8)
 
 	floor_num = math.floor(num)
@@ -1065,6 +1088,51 @@ def rounded(num, precision=0):
 			num = round(num)
 
 	return (num / multiplier) if precision else num
+
+
+def _round_away_from_zero(num, precision):
+	if num == 0:
+		return 0.0
+
+	# Epsilon is small correctional value added to correctly round numbers which can't be
+	# represented in IEEE 754 representation.
+
+	# In simplified terms, the representation optimizes for absolute errors in representation
+	# so if a number is not representable it might be represented by a value ever so slighly
+	# smaller than the value itself. This becomes a problem when breaking ties for numbers
+	# ending with 5 when it's represented by a smaller number. By adding a very small value
+	# close to what's "least count" or smallest representable difference in the scale we force
+	# the number to be bigger than actual value, this increases representation error but
+	# removes rounding error.
+
+	# References:
+	# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+	# - https://docs.python.org/3/tutorial/floatingpoint.html#representation-error
+	# - https://docs.python.org/3/library/functions.html#round
+	# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+
+	return round(num + math.copysign(epsilon, num), precision)
+
+
+def _bankers_rounding(num, precision):
+	if num == 0:
+		return 0.0
+
+	multiplier = 10**precision
+	num = round(num * multiplier, 12)
+
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	if abs(decimal_part - 0.5) < epsilon:
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+	else:
+		num = round(num)
+
+	return num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
@@ -1191,7 +1259,7 @@ def fmt_money(
 	if flt(amount) < 0:
 		minus = "-"
 
-	amount = cstr(abs(flt(amount))).split(".")[0]
+	amount = cstr(abs(flt(amount))).split(".", 1)[0]
 
 	if len(amount) > 3:
 		parts.append(amount[-3:])
@@ -1348,7 +1416,7 @@ def is_image(filepath: str) -> bool:
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
-	filepath = (filepath or "").split("?")[0]
+	filepath = (filepath or "").split("?", 1)[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
@@ -1672,9 +1740,9 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
 	if report_type == "Report Builder":
-		return get_url(uri=f"/app/{quoted(doctype)}/view/report?{filters}")
-	else:
-		return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
+		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
+
+	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
 
 
 operator_map = {
@@ -1714,6 +1782,7 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	if fieldtype:
+		val1 = cast(fieldtype, val1)
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		return operator_map[condition](val1, val2)
@@ -1885,7 +1954,7 @@ def expand_relative_urls(html: str) -> str:
 	def _expand_relative_urls(match):
 		to_expand = list(match.groups())
 
-		if not to_expand[2].startswith("mailto") and not to_expand[2].startswith("data:"):
+		if not to_expand[2].startswith(("mailto", "data:", "tel:")):
 			if not to_expand[2].startswith("/"):
 				to_expand[2] = "/" + to_expand[2]
 			to_expand.insert(2, url)
@@ -2166,3 +2235,41 @@ def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
 	if doc_name:
 		job_name += f"_{doc_name}"
 	return job_name
+
+
+def get_imaginary_pixel_response():
+	return {
+		"type": "binary",
+		"filename": "imaginary_pixel.png",
+		"filecontent": (
+			b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+			b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+			b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+			b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+		),
+	}
+
+
+def is_site_link(link: str) -> bool:
+	if link.startswith("/"):
+		return True
+	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
+
+
+def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:
+	url_parts = list(urlparse(url))
+	if url_parts[0] == "mailto":
+		return url
+
+	trackers = {
+		"source": source,
+		"medium": medium,
+	}
+
+	if campaign:
+		trackers["campaign"] = campaign
+
+	query = dict(parse_qsl(url_parts[4])) | trackers
+
+	url_parts[4] = urlencode(query)
+	return urlunparse(url_parts)

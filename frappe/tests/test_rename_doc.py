@@ -8,14 +8,10 @@ from random import choice, sample
 from unittest.mock import patch
 
 import frappe
-from frappe.exceptions import DoesNotExistError, ValidationError
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.exceptions import DoesNotExistError
 from frappe.model.base_document import get_controller
-from frappe.model.rename_doc import (
-	bulk_rename,
-	get_fetch_fields,
-	update_document_title,
-	update_linked_doctypes,
-)
+from frappe.model.rename_doc import bulk_rename, update_document_title
 from frappe.modules.utils import get_doc_path
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now
@@ -223,7 +219,7 @@ class TestRenameDoc(FrappeTestCase):
 		new_name = f"{dn}-new"
 
 		# pass invalid types to API
-		with self.assertRaises(ValidationError):
+		with self.assertRaises(TypeError):
 			update_document_title(doctype=dt, docname=dn, title={}, name={"hack": "this"})
 
 		doc_before = frappe.get_doc(test_doctype, dn)
@@ -254,14 +250,16 @@ class TestRenameDoc(FrappeTestCase):
 			)
 
 	def test_deprecated_utils(self):
+		from frappe.model.rename_doc import get_fetch_fields, update_linked_doctypes
+
 		stdout = StringIO()
 
 		with redirect_stdout(stdout), patch_db(["set_value"]):
 			get_fetch_fields("User", "ToDo", ["Activity Log"])
-			self.assertTrue("Function frappe.model.rename_doc.get_fetch_fields" in stdout.getvalue())
+			self.assertIn("Function frappe.model.rename_doc.get_fetch_fields", stdout.getvalue())
 
 			update_linked_doctypes("User", "ToDo", "str", "str")
-			self.assertTrue("Function frappe.model.rename_doc.update_linked_doctypes" in stdout.getvalue())
+			self.assertIn("Function frappe.model.rename_doc.update_linked_doctypes", stdout.getvalue())
 
 	def test_doc_rename_method(self):
 		name = choice(self.available_documents)
@@ -271,3 +269,29 @@ class TestRenameDoc(FrappeTestCase):
 		self.assertEqual(doc.name, new_name)
 		self.available_documents.append(new_name)
 		self.available_documents.remove(name)
+
+	def test_parenttype(self):
+		child = new_doctype(istable=1).insert()
+		table_field = {
+			"label": "Test Table",
+			"fieldname": "test_table",
+			"fieldtype": "Table",
+			"options": child.name,
+		}
+
+		parent_a = new_doctype(fields=[table_field], allow_rename=1, autoname="Prompt").insert()
+		parent_b = new_doctype(fields=[table_field], allow_rename=1, autoname="Prompt").insert()
+
+		parent_a_instance = frappe.get_doc(
+			doctype=parent_a.name, test_table=[{"some_fieldname": "x"}], name="XYZ"
+		).insert()
+
+		parent_b_instance = frappe.get_doc(
+			doctype=parent_b.name, test_table=[{"some_fieldname": "x"}], name="XYZ"
+		).insert()
+
+		parent_b_instance.rename("ABC")
+		parent_a_instance.reload()
+
+		self.assertEqual(len(parent_a_instance.test_table), 1)
+		self.assertEqual(len(parent_b_instance.test_table), 1)

@@ -2,12 +2,6 @@ frappe.ui.form.Control = class BaseControl {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
-
-		// if developer_mode=1, show fieldname as tooltip
-		if (frappe.boot.user && frappe.boot.developer_mode === 1 && this.$wrapper) {
-			this.$wrapper.attr("title", __(this.df.fieldname));
-		}
-
 		if (this.render_input) {
 			this.refresh();
 		}
@@ -19,6 +13,14 @@ frappe.ui.form.Control = class BaseControl {
 			.attr("data-fieldname", this.df.fieldname);
 		this.wrapper = this.$wrapper.get(0);
 		this.wrapper.fieldobj = this; // reference for event handlers
+
+		this.tooltip = $(`<span class="tooltip-content">${__(this.df.fieldname)}</span>`);
+		this.$wrapper.append(this.tooltip);
+
+		this.tooltip.on("click", (e) => {
+			let text = $(e.target).text();
+			frappe.utils.copy_to_clipboard(text);
+		});
 	}
 
 	make_wrapper() {

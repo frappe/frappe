@@ -265,7 +265,7 @@ class BackupGenerator:
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
-			file_timestamp = file_name.split("-")[0]
+			file_timestamp = file_name.split("-", 1)[0]
 			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
 
 		def get_latest(file_pattern):
@@ -710,76 +710,3 @@ def backup(
 		"backup_path_files": odb.backup_path_files,
 		"backup_path_private_files": odb.backup_path_private_files,
 	}
-
-
-if __name__ == "__main__":
-	import sys
-
-	from frappe.utils.commands import warn
-
-	warn(
-		"Calling the backup script directly is deprecated. "
-		"Use the backup command instead. This script will be removed in Frappe v15.",
-		category=DeprecationWarning,
-	)
-
-	cmd = sys.argv[1]
-
-	db_type = "mariadb"
-	try:
-		db_type = sys.argv[6]
-	except IndexError:
-		pass
-
-	db_port = 3306
-	try:
-		db_port = int(sys.argv[7])
-	except IndexError:
-		pass
-
-	if cmd == "is_file_old":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		is_file_old(odb.db_file_name)
-
-	if cmd == "get_backup":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		odb.get_backup()
-
-	if cmd == "take_dump":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		odb.take_dump()
-
-	if cmd == "send_email":
-		odb = BackupGenerator(
-			sys.argv[2],
-			sys.argv[3],
-			sys.argv[4],
-			sys.argv[5] or "localhost",
-			db_type=db_type,
-			db_port=db_port,
-		)
-		odb.send_email()
-
-	if cmd == "delete_temp_backups":
-		delete_temp_backups()

@@ -3,6 +3,7 @@
 
 
 import json
+from typing import Any
 
 from rq import get_current_job
 
@@ -106,13 +107,22 @@ def make_prepared_report(report_name, filters=None):
 		{
 			"doctype": "Prepared Report",
 			"report_name": report_name,
-			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
-			# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
-			"filters": json.dumps(json.loads(filters)),
+			"filters": process_filters_for_prepared_report(filters),
 		}
 	).insert(ignore_permissions=True)
 
 	return {"name": prepared_report.name}
+
+
+def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
+	# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
+	# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
+	# We are also ensuring that order of keys is same so generated JSON string will be identical too.
+	# PS: frappe.as_json sorts keys
+	return frappe.as_json(filters, indent=None, separators=(",", ":"))
 
 
 @frappe.whitelist()
@@ -121,7 +131,7 @@ def get_reports_in_queued_state(report_name, filters):
 		"Prepared Report",
 		filters={
 			"report_name": report_name,
-			"filters": json.dumps(json.loads(filters)),
+			"filters": process_filters_for_prepared_report(filters),
 			"status": "Queued",
 			"owner": frappe.session.user,
 		},
@@ -134,7 +144,7 @@ def get_completed_prepared_report(filters, user, report_name):
 		"Prepared Report",
 		filters={
 			"status": "Completed",
-			"filters": json.dumps(filters),
+			"filters": process_filters_for_prepared_report(filters),
 			"owner": user,
 			"report_name": report_name,
 		},

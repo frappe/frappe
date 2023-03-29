@@ -7,44 +7,17 @@ import re
 
 import frappe
 from frappe import _, is_whitelisted
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, unique
 
 
 def sanitize_searchfield(searchfield):
-	blacklisted_keywords = ["select", "delete", "drop", "update", "case", "and", "or", "like"]
+	if not searchfield:
+		return
 
-	def _raise_exception(searchfield):
+	if SPECIAL_CHAR_PATTERN.search(searchfield):
 		frappe.throw(_("Invalid Search Field {0}").format(searchfield), frappe.DataError)
-
-	if len(searchfield) == 1:
-		# do not allow special characters to pass as searchfields
-		regex = re.compile(r'^.*[=;*,\'"$\-+%#@()_].*')
-		if regex.match(searchfield):
-			_raise_exception(searchfield)
-
-	if len(searchfield) >= 3:
-
-		# to avoid 1=1
-		if "=" in searchfield:
-			_raise_exception(searchfield)
-
-		# in mysql -- is used for commenting the query
-		elif " --" in searchfield:
-			_raise_exception(searchfield)
-
-		# to avoid and, or and like
-		elif any(f" {keyword} " in searchfield.split() for keyword in blacklisted_keywords):
-			_raise_exception(searchfield)
-
-		# to avoid select, delete, drop, update and case
-		elif any(keyword in searchfield.split() for keyword in blacklisted_keywords):
-			_raise_exception(searchfield)
-
-		else:
-			regex = re.compile(r'^.*[=;*,\'"$\-+%#@()].*')
-			if any(regex.match(f) for f in searchfield.split()):
-				_raise_exception(searchfield)
 
 
 # this is called by the Link Field
@@ -103,7 +76,7 @@ def search_widget(
 
 	standard_queries = frappe.get_hooks().standard_queries or {}
 
-	if query and query.split()[0].lower() != "select":
+	if query and query.split(maxsplit=1)[0].lower() != "select":
 		# by method
 		try:
 			is_whitelisted(frappe.get_attr(query))
@@ -309,7 +282,7 @@ def scrub_custom_query(query, key, txt):
 
 def relevance_sorter(key, query, as_dict):
 	value = _(key.name if as_dict else key[0])
-	return (cstr(value).lower().startswith(query.lower()) is not True, value)
+	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
 def validate_and_sanitize_search_inputs(fn):

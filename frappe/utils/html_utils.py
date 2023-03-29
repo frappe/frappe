@@ -4,6 +4,7 @@ import re
 from bleach_allowlist import bleach_allowlist
 
 import frappe
+from frappe.utils.data import escape_html
 
 EMOJI_PATTERN = re.compile(
 	"(\ud83d[\ude00-\ude4f])|"
@@ -204,10 +205,12 @@ def get_icon_html(icon, small=False):
 
 	if is_image(icon):
 		return (
-			f'<img style="width: 16px; height: 16px;" src="{icon}">' if small else f'<img src="{icon}">'
+			f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
+			if small
+			else f"<img src={escape_html(icon)!r}>"
 		)
 	else:
-		return f"<i class='{icon}'></i>"
+		return f"<i class={escape_html(icon)!r}></i>"
 
 
 def unescape_html(value):
@@ -424,6 +427,7 @@ acceptable_attributes = [
 	"cols",
 	"colspan",
 	"compact",
+	"content",
 	"contenteditable",
 	"controls",
 	"coords",
