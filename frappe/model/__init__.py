@@ -190,7 +190,7 @@ def get_permitted_fields(
 
 	if doctype in core_doctypes_list:
 		return valid_columns
-	
+
 	# DocType has only fields of type Table (Table, Table MultiSelect)
 	if set(valid_columns).issubset(default_fields):
 		return valid_columns
