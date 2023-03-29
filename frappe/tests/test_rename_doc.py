@@ -12,7 +12,6 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.exceptions import DoesNotExistError
 from frappe.model.base_document import get_controller
 from frappe.model.rename_doc import bulk_rename, update_document_title
-from frappe.model.utils.rename_doc import get_fetch_fields, update_linked_doctypes
 from frappe.modules.utils import get_doc_path
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now
@@ -251,6 +250,8 @@ class TestRenameDoc(FrappeTestCase):
 			)
 
 	def test_deprecated_utils(self):
+		from frappe.model.rename_doc import get_fetch_fields, update_linked_doctypes
+
 		stdout = StringIO()
 
 		with redirect_stdout(stdout), patch_db(["set_value"]):
