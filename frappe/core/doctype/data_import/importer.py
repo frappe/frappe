@@ -68,6 +68,7 @@ class Importer:
 		# set flags
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
+		frappe.flags.mute_webhooks = self.data_import.mute_webhooks
 
 		self.data_import.db_set("template_warnings", "")
 
@@ -236,6 +237,7 @@ class Importer:
 	def after_import(self):
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
+		frappe.flags.mute_webhooks = False
 
 	def process_doc(self, doc):
 		if self.import_type == INSERT:
