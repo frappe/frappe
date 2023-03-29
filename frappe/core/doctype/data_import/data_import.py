@@ -210,10 +210,12 @@ def import_doc(path, pre_process=None):
 	for f in files:
 		if f.endswith(".json"):
 			frappe.flags.mute_emails = True
+			frappe.flags.mute_webhooks = True
 			import_file_by_path(
 				f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True
 			)
 			frappe.flags.mute_emails = False
+			frappe.flags.mute_webhooks = False
 			frappe.db.commit()
 		else:
 			raise NotImplementedError("Only .json files can be imported")
