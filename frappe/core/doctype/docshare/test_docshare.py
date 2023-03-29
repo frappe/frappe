@@ -187,18 +187,13 @@ class TestDocShare(FrappeTestCase):
 		Assigning a document to a user without access must not share the document,
 		if sharing disabled.
 		"""
-		from frappe.desk.form.assign_to import add, get
+		from frappe.desk.form.assign_to import add
 
 		frappe.share.add("Event", self.event.name, self.user, share=1)
 		frappe.set_user(self.user)
 
-		# Assign to 'test1@example.com'
-		add({"doctype": "Event", "name": self.event.name, "assign_to": ["test1@example.com"]})
-
-		# Check if assigned to 'test1@example.com'
-		assignments = get(dict(doctype="Event", name=self.event.name))
-		self.assertEqual(len(assignments), 1)
-
-		# Check if not shared with 'test1@example.com'
-		shared_users = [x.user for x in frappe.share.get_users("Event", self.event.name)]
-		self.assertNotIn("test1@example.com", shared_users)
+		self.assertRaises(
+			frappe.ValidationError,
+			add,
+			{"doctype": "Event", "name": self.event.name, "assign_to": ["test1@example.com"]},
+		)
