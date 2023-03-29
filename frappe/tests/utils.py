@@ -44,7 +44,7 @@ def change_settings(doctype, settings_dict):
 		# change setting
 		for key, value in settings_dict.items():
 			setattr(settings, key, value)
-		settings.save()
+		settings.save(ignore_permissions=True)
 		# singles are cached by default, clear to avoid flake
 		frappe.db.value_cache[settings] = {}
 		yield  # yield control to calling function
@@ -54,7 +54,7 @@ def change_settings(doctype, settings_dict):
 		settings = frappe.get_doc(doctype)
 		for key, value in previous_settings.items():
 			setattr(settings, key, value)
-		settings.save()
+		settings.save(ignore_permissions=True)
 		frappe.db.value_cache[settings] = {}
 
 
