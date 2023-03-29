@@ -14,6 +14,7 @@
   "is_first_startup",
   "enable_onboarding",
   "setup_complete",
+  "disable_document_sharing",
   "date_and_number_format",
   "date_format",
   "time_format",
@@ -525,12 +526,18 @@
    "fieldname": "apply_perm_level_on_api_calls",
    "fieldtype": "Check",
    "label": "Apply Perm Level on API calls (Recommended)"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_document_sharing",
+   "fieldtype": "Check",
+   "label": "Disable Document Sharing"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-03-03 11:47:24.867356",
+ "modified": "2023-03-14 11:30:56.465653",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
