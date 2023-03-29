@@ -490,6 +490,4 @@ def reset_otp_secret(user: str):
 		**email_args,
 	)
 
-	frappe.msgprint(
-		_("OTP Secret has been reset. Re-registration will be required on next login.")
-	)
+	frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
