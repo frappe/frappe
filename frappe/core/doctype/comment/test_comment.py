@@ -128,4 +128,4 @@ class TestComment(FrappeTestCase):
 		frappe.form_dict.route = test_blog.route
 		frappe.local.request_ip = "127.0.0.1"
 
-		self.assertRaises(add_comment(), frappe.ValidationError)
+		self.assertRaises(frappe.ValidationError, add_comment)
