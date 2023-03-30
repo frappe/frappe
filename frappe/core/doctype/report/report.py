@@ -58,8 +58,8 @@ class Report(Document):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
 
-	def for_perm_log(self):
-		return {"filters": ["roles"]}
+	def log_permission(self):
+		return {"fields": ["roles"]}
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]

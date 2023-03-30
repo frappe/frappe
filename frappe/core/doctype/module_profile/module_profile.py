@@ -10,5 +10,5 @@ class ModuleProfile(Document):
 
 		self.set_onload("all_modules", [m.get("module_name") for m in get_modules_from_all_apps()])
 
-	def for_perm_log(self):
-		return {"filters": ["block_modules"]}
+	def log_permission(self):
+		return {"fields": ["block_modules"]}

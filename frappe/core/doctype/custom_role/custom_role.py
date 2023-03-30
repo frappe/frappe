@@ -10,11 +10,11 @@ class CustomRole(Document):
 		if self.report and not self.ref_doctype:
 			self.ref_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 
-	def for_perm_log(self):
-		filters = ["roles"]
+	def log_permission(self):
+		fields = ["roles"]
 		if self.report:
-			return {"for_doctype": "Report", "for_document": self.report, "filters": filters}
-		return {"for_doctype": "Page", "for_document": self.page, "filters": filters}
+			return {"for_doctype": "Report", "for_document": self.report, "fields": fields}
+		return {"for_doctype": "Page", "for_document": self.page, "fields": fields}
 
 
 def get_custom_allowed_roles(field, name):

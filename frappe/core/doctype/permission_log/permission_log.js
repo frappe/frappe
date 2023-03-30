@@ -37,13 +37,13 @@ frappe.ui.form.on("Permission Log", {
 				};
 
 				[value, changes["to"][key]].forEach((val, index) => {
-					let child_data = { from: [], to: [] };
+					let child_data = [];
 					let for_value = index > 0 ? "to" : "from";
 
 					val.forEach((k) => {
-						child_data[for_value].push([Object.keys(k), Object.values(k)]);
+						child_data.push([Object.keys(k), Object.values(k)]);
 					});
-					child_data[for_value].forEach((k) => {
+					child_data.forEach((k) => {
 						html[for_value].find("tbody").append(
 							$(`<tr>
 							<td style="word-break: break-word">${frappe.model.unscrub(k[0].join(" | "))}</td>

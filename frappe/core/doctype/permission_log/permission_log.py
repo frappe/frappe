@@ -16,32 +16,27 @@ class PermissionLog(Document):
 
 
 def make_perm_log(doc, method=None):
-	if not getattr(doc, "for_perm_log", None):
+	if not getattr(doc, "log_permission", None):
 		return
 
-	params = doc.for_perm_log() or {}
-	perm_log(doc, doc.get_doc_before_save(), **params)
+	params = doc.log_permission() or {}
+	if not getattr(doc, "_no_perm_log", False):
+		insert_perm_log(doc, doc.get_doc_before_save(), **params)
 
 
-"""
-create filter mechanism for not tracking certain things
-"""
-
-
-def perm_log(
+def insert_perm_log(
 	doc: Document,
 	doc_before_save: Document = None,
 	for_doctype=None,
 	for_document=None,
-	filters: list | tuple = None,
-	ignore_keys_in_diff=None,
+	fields: list | tuple = None,
 ):
 	if doc.flags.get("in_insert", False):
 		# don't log new documents
 		# "update" logs will have what it was changed from and to
 		return
 
-	current, previous = get_changes(doc, doc_before_save, filters, ignore_keys_in_diff)
+	current, previous = get_changes(doc, doc_before_save, fields)
 	if not previous and not current:
 		return
 
@@ -59,14 +54,14 @@ def perm_log(
 	).db_insert()
 
 
-def get_changes(doc: Document, doc_before_save=None, filters=None, ignore_keys_in_diff=None):
+def get_changes(doc: Document, doc_before_save=None, fields=None):
 	current_changes = get_filtered_changes(
 		doc.as_dict(
 			no_default_fields=True,
 			no_child_table_fields=True,
 			no_private_properties=True,
 		),
-		filters,
+		fields,
 	)
 
 	if not doc_before_save:
@@ -78,13 +73,13 @@ def get_changes(doc: Document, doc_before_save=None, filters=None, ignore_keys_i
 			no_child_table_fields=True,
 			no_private_properties=True,
 		),
-		filters,
+		fields,
 	)
 
-	return get_changes_diff(current_changes, previous_changes, ignore_keys_in_diff)
+	return get_changes_diff(current_changes, previous_changes)
 
 
-def get_changes_diff(current_changes, previous_changes, ignore_keys_in_diff=None):
+def get_changes_diff(current_changes, previous_changes):
 	current_values = {}
 	previous_values = {}
 
@@ -102,7 +97,7 @@ def get_changes_diff(current_changes, previous_changes, ignore_keys_in_diff=None
 		elif previous_changes.get(k, None) == current_val:
 			continue
 
-		previous_values[k] = previous_values.get(k, None) or previous_changes[k]
+		previous_values[k] = previous_values[k] if k in previous_values else previous_changes[k]
 		current_values[k] = current_val
 
 	return current_values, previous_values

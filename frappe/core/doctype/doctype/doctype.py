@@ -382,10 +382,8 @@ class DocType(Document):
 			if d.unique:
 				d.search_index = 0
 
-	def for_perm_log(self):
-		return {
-			"filters": ("permissions", ("fields", ("fieldname", "permlevel", "ignore_user_permissions")))
-		}
+	def log_permission(self):
+		return {"fields": ["permissions"]}
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""

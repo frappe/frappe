@@ -9,7 +9,7 @@ class CustomDocPerm(Document):
 	def on_update(self):
 		frappe.clear_cache(doctype=self.parent)
 
-	def for_perm_log(self):
+	def log_permission(self):
 		return {"for_doctype": "DocType", "for_document": self.parent}
 
 

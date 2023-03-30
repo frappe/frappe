@@ -145,6 +145,9 @@ class CustomField(Document):
 		if self.fieldname == self.insert_after:
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
 
+	def log_permission(self):
+		return {"fields": ("permlevel", "fieldname"), "for_doctype": "DocType", "for_document": self.dt}
+
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
