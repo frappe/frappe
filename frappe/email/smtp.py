@@ -70,7 +70,7 @@ class SMTPServer:
 		if not self.server:
 			frappe.msgprint(
 				_(
-					"Email Account not setup. Please create a new Email Account from Setup > Email > Email Account"
+					"Email Account not setup. Please create a new Email Account from Settings > Email Account"
 				),
 				raise_exception=frappe.OutgoingEmailError,
 			)
