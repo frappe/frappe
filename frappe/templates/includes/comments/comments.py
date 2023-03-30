@@ -31,10 +31,12 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 			frappe.throw(_("Please login to post a comment."))
 
 	if not comment.strip():
-		frappe.throw(_("The comment cannot be empty"))
+		frappe.msgprint(_("The comment cannot be empty"))
+		return False
 
 	if URLS_COMMENT_PATTERN.search(comment) or EMAIL_PATTERN.search(comment):
-		frappe.throw(_("Comments cannot have links or email addresses"))
+		frappe.msgprint(_("Comments cannot have links or email addresses"))
+		return False
 
 	doc = frappe.get_doc(reference_doctype, reference_name)
 	comment = doc.add_comment(
