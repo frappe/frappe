@@ -12,11 +12,11 @@ from frappe.utils.scheduler import is_scheduler_inactive
 class BulkUpdate(Document):
 	@frappe.whitelist()
 	def bulk_update(self):
+		self.check_permission("write")
 		limit = self.limit if self.limit and cint(self.limit) < 500 else 500
 
 		condition = ""
 		if self.condition:
-			self.check_permission("write")
 			if ";" in self.condition:
 				frappe.throw(_("; not allowed in condition"))
 
