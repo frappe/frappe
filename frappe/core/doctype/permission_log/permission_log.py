@@ -36,7 +36,7 @@ def perm_log(
 	filters: list | tuple = None,
 	ignore_keys_in_diff=None,
 ):
-	if doc.is_new():
+	if doc.flags.get("in_insert", False):
 		# don't log new documents
 		# "update" logs will have what it was changed from and to
 		return
