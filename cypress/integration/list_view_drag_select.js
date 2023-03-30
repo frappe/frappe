@@ -1,4 +1,4 @@
-describe('Frappe list view', () => {
+context("List View", () => {
 	before(() => {
 		cy.login();
 		cy.go_to_list("DocType");
