@@ -38,6 +38,8 @@ frappe.views.ListSidebar = class ListSidebar {
 				this.reload_stats();
 			});
 		}
+
+		this.add_insights_banner();
 	}
 
 	setup_views() {
@@ -238,5 +240,44 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.sidebar.find(".stat-link").remove();
 		this.sidebar.find(".stat-no-records").remove();
 		this.get_stats();
+	}
+
+	add_insights_banner() {
+		try {
+			if (this.list_view.view != "Report") {
+				return;
+			}
+
+			if (localStorage.getItem("show_insights_banner") == "false") {
+				return;
+			}
+
+			if (this.insights_banner) {
+				this.insights_banner.remove();
+			}
+
+			const message = "Get more insights from your data with Frappe Insights.";
+			const link = "https://frappe.io/s/insights";
+			const cta = "Get Frappe Insights";
+
+			this.insights_banner = $(`
+				<div style="position: relative;">
+					<div class="">
+						${message}
+					</div>
+					<div class="mt-2">
+						<a href="${link}" target="_blank" style="color: var(--primary-color)">${cta} -> </a>
+					</div>
+					<div style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Dismiss"
+						onclick="localStorage.setItem('show_insights_banner', 'false') || this.parentElement.remove()">
+						<svg class="icon  icon-sm" style="">
+							<use class="" href="#icon-close"></use>
+						</svg>
+					</div>
+				</div>
+			`).appendTo(this.sidebar);
+		} catch (error) {
+			console.error(error);
+		}
 	}
 };

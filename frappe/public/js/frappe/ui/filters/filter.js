@@ -508,6 +508,7 @@ frappe.ui.filter_utils = {
 				"HTML Editor",
 				"Tag",
 				"Phone",
+				"JSON",
 				"Comments",
 				"Barcode",
 				"Dynamic Link",
