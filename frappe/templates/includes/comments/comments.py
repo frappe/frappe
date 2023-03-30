@@ -22,7 +22,9 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		if reference_doctype not in ("Blog Post", "Web Page"):
 			return
 
-		if not frappe.db.get_single_value("Blog Settings", "allow_guest_to_comment"):
+		if reference_doctype == "Blog Post" and not frappe.db.get_single_value(
+			"Blog Settings", "allow_guest_to_comment"
+		):
 			return
 
 		if frappe.db.exists("User", comment_email):
