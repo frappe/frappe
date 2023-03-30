@@ -14,7 +14,8 @@ class SessionDefaultSettings(Document):
 
 @frappe.whitelist()
 def get_session_default_values():
-	settings = frappe.get_single("Session Default Settings")
+	settings = frappe.get_cached_doc("Session Default Settings")
+
 	fields = []
 	for default_values in settings.session_defaults:
 		reference_doctype = frappe.scrub(default_values.ref_doctype)
@@ -27,17 +28,21 @@ def get_session_default_values():
 				"default": frappe.defaults.get_user_default(reference_doctype),
 			}
 		)
+
 	return json.dumps(fields)
 
 
-@frappe.whitelist()
-def set_session_default_values(default_values):
-	default_values = frappe.parse_json(default_values)
+@frappe.whitelist(methods=["POST"])
+def set_session_default_values(default_values: str | dict):
+	if isinstance(default_values, str):
+		default_values = frappe.parse_json(default_values)
+
 	for entry in default_values:
 		try:
 			frappe.defaults.set_user_default(entry, default_values.get(entry))
 		except Exception:
 			return
+
 	return "success"
 
 
