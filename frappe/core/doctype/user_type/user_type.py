@@ -322,4 +322,6 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 				user_doc.update_children()
 				add_user_permission(doc.doctype, doc.name, doc.get(data[1]))
 			else:
-				frappe.db.set_value("User Permission", perm_data[0], "user", doc.get(data[1]))
+				user_perm = frappe.get_doc("User Permission", perm_data[0])
+				user_perm.user = doc.get(data[1])
+				user_perm.save(ignore_permissions=True)
