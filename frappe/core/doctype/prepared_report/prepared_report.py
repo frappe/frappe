@@ -101,7 +101,7 @@ def update_job_id(prepared_report, job_id):
 
 
 @frappe.whitelist()
-def make_prepared_report(report_name, filters=None):
+def make_prepared_report(report_name: str, filters: str | None = None):
 	"""run reports in background"""
 	prepared_report = frappe.get_doc(
 		{
@@ -109,7 +109,7 @@ def make_prepared_report(report_name, filters=None):
 			"report_name": report_name,
 			"filters": process_filters_for_prepared_report(filters),
 		}
-	).insert(ignore_permissions=True)
+	).insert()
 
 	return {"name": prepared_report.name}
 
@@ -151,13 +151,12 @@ def get_completed_prepared_report(filters, user, report_name):
 	)
 
 
-@frappe.whitelist()
-def delete_prepared_reports(reports):
+@frappe.whitelist(methods=["POST", "DELETE"])
+def delete_prepared_reports(reports: list):
 	reports = frappe.parse_json(reports)
+
 	for report in reports:
-		frappe.delete_doc(
-			"Prepared Report", report["name"], ignore_permissions=True, delete_permanently=True
-		)
+		frappe.delete_doc("Prepared Report", report["name"], delete_permanently=True)
 
 
 def create_json_gz_file(data, dt, dn):
@@ -184,8 +183,9 @@ def create_json_gz_file(data, dt, dn):
 
 
 @frappe.whitelist()
-def download_attachment(dn):
+def download_attachment(dn: str):
 	pr = frappe.get_doc("Prepared Report", dn)
+
 	if not pr.has_permission("read"):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
 
