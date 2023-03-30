@@ -63,6 +63,7 @@ user_cache_keys = (
 	"has_role:Page",
 	"has_role:Report",
 	"desk_sidebar_items",
+	"contacts",
 )
 
 doctype_cache_keys = (

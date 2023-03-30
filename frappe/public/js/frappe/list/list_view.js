@@ -304,10 +304,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header = false) {
-		super.refresh().then(() => {
+		return super.refresh().then(() => {
 			this.render_header(refresh_header);
 			this.update_checkbox();
 			this.update_url_with_filters();
+			this.setup_realtime_updates();
 		});
 	}
 
@@ -504,9 +505,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_args() {
 		const args = super.get_args();
 
-		return Object.assign(args, {
-			with_comment_count: true,
-		});
+		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
+			args.with_comment_count = 1;
+		} else {
+			args.with_comment_count = 0;
+		}
+
+		return args;
 	}
 
 	before_refresh() {
@@ -896,10 +901,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>`;
 		}
 
-		const comment_count = `<span class="comment-count">
+		let comment_count = null;
+		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
+			comment_count = $(`<span class="comment-count"></span>`);
+			$(comment_count).append(`
 				${frappe.utils.icon("small-message")}
-				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
-			</span>`;
+				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}`);
+		}
 
 		html += `
 			<div class="level-item list-row-activity hidden-xs">
@@ -907,7 +915,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${settings_button || assigned_to}
 				</div>
 				${modified}
-				${comment_count}
+				${comment_count ? $(comment_count).prop("outerHTML") : ""}
 			</div>
 			<div class="level-item visible-xs text-right">
 				${this.get_indicator_dot(doc)}
@@ -1322,17 +1330,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_realtime_updates() {
 		this.pending_document_refreshes = [];
 
-		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
+		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
 			return;
 		}
 		frappe.socketio.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
 		frappe.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
 				return;
 			}
 
-			if (!frappe.get_doc(data?.doctype, data?.name)?.__unsaved) {
-				frappe.model.remove_from_locals(data.doctype, data.name);
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
 			}
 
 			if (this.avoid_realtime_update()) {
@@ -1342,10 +1352,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.pending_document_refreshes.push(data);
 			frappe.utils.debounce(this.process_document_refreshes.bind(this), 1000)();
 		});
+		this.realtime_events_setup = true;
+	}
+
+	disable_realtime_updates() {
+		frappe.socketio.doctype_unsubscribe(this.doctype);
+		this.realtime_events_setup = false;
 	}
 
 	process_document_refreshes() {
 		if (!this.pending_document_refreshes.length) return;
+
+		const route = frappe.get_route() || [];
+		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
+			// wait till user is back on list view before refreshing
+			this.pending_document_refreshes = [];
+			this.disable_realtime_updates();
+			return;
+		}
 
 		const names = this.pending_document_refreshes.map((d) => d.name);
 		this.pending_document_refreshes = this.pending_document_refreshes.filter(
@@ -1526,7 +1550,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		if (frappe.model.can_set_user_permissions(doctype)) {
+		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("User Permissions", null, "Button in list view menu"),
 				action: () =>

@@ -36,6 +36,10 @@
 			top: 5px;
 			right: 10px;
 		}
+
+		.help {
+			display: none;
+		}
 	}
 
 	.dt-header {
@@ -67,6 +71,10 @@
 
 	.checkbox {
 		margin: 7px 0 7px 8px;
+
+		.label-area {
+			display: none;
+		}
 	}
 
 	[data-fieldtype="Color"] .control-input {

@@ -298,7 +298,7 @@ def get_context(context):
 
 			# For sending emails to specified role
 			if recipient.receiver_by_role:
-				emails = get_info_based_on_role(recipient.receiver_by_role, "email")
+				emails = get_info_based_on_role(recipient.receiver_by_role, "email", ignore_permissions=True)
 
 				for email in emails:
 					recipients = recipients + email.split("\n")
@@ -453,16 +453,17 @@ def evaluate_alert(doc: Document, alert, event):
 			doc.reload()
 		alert.send(doc)
 	except TemplateError:
-		frappe.throw(
-			_("Error while evaluating Notification {0}. Please fix your template.").format(alert)
+		message = _("Error while evaluating Notification {0}. Please fix your template.").format(
+			frappe.utils.get_link_to_form("Notification", alert.name)
 		)
+		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
-		error_log = frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(
-			_("Error in Notification: {}").format(
-				frappe.utils.get_link_to_form("Error Log", error_log.name)
-			)
-		)
+		title = str(e)
+		message = frappe.get_traceback()
+		frappe.log_error(message=message, title=title)
+
+		msg = f"<details><summary>{title}</summary>{message}</details>"
+		frappe.throw(msg, title=_("Error in Notification"))
 
 
 def get_context(doc):

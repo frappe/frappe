@@ -3,6 +3,7 @@ import datetime
 import signal
 import unittest
 from contextlib import contextmanager
+from typing import Sequence
 
 import frappe
 from frappe.model.base_document import BaseDocument
@@ -38,6 +39,10 @@ class FrappeTestCase(unittest.TestCase):
 		cls.addClassCleanup(_rollback_db)
 
 		return super().setUpClass()
+
+	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
+		"""Assert that `expected` is a subset of `actual`."""
+		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
 
 	# --- Frappe Framework specific assertions
 	def assertDocumentEqual(self, expected, actual):
@@ -138,7 +143,7 @@ def change_settings(doctype, settings_dict):
 		# change setting
 		for key, value in settings_dict.items():
 			setattr(settings, key, value)
-		settings.save()
+		settings.save(ignore_permissions=True)
 		# singles are cached by default, clear to avoid flake
 		frappe.db.value_cache[settings] = {}
 		yield  # yield control to calling function
@@ -148,7 +153,7 @@ def change_settings(doctype, settings_dict):
 		settings = frappe.get_doc(doctype)
 		for key, value in previous_settings.items():
 			setattr(settings, key, value)
-		settings.save()
+		settings.save(ignore_permissions=True)
 
 
 def timeout(seconds=30, error_message="Test timed out."):

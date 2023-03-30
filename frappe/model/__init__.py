@@ -95,6 +95,7 @@ optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 table_fields = ("Table", "Table MultiSelect")
 
 core_doctypes_list = (
+	"DefaultValue",
 	"DocType",
 	"DocField",
 	"DocPerm",
@@ -199,14 +200,17 @@ def get_permitted_fields(
 	if doctype in core_doctypes_list:
 		return valid_columns
 
-	meta_fields = meta.default_fields.copy()
-	optional_meta_fields = [x for x in optional_fields if x in valid_columns]
+	# DocType has only fields of type Table (Table, Table MultiSelect)
+	if set(valid_columns).issubset(default_fields):
+		return valid_columns
 
-	if meta.istable:
-		meta_fields.extend(child_table_fields)
+	if permitted_fields := meta.get_permitted_fieldnames(parenttype=parenttype, user=user):
+		meta_fields = meta.default_fields.copy()
+		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
 
-	return (
-		meta_fields
-		+ meta.get_permitted_fieldnames(parenttype=parenttype, user=user)
-		+ optional_meta_fields
-	)
+		if meta.istable:
+			meta_fields.extend(child_table_fields)
+
+		return meta_fields + permitted_fields + optional_meta_fields
+
+	return []
