@@ -304,10 +304,7 @@ class BaseDocument:
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> dict:
 		d = _dict()
-		if parent_doc := getattr(self, "parent_doc", None):
-			permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=parent_doc.doctype)
-		else:
-			permitted_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 		for fieldname in self.meta.get_valid_columns():
 			field_value = getattr(self, fieldname, None)
