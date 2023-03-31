@@ -254,10 +254,10 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		"""select
 			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
 		from
-			`tabAddress`, `tabDynamic Link`
+			`tabAddress`
+		join `tabDynamic Link`
+			on (`tabDynamic Link`.parent = `tabAddress`.name and `tabDynamic Link`.parenttype = 'Address')
 		where
-			`tabDynamic Link`.parent = `tabAddress`.name and
-			`tabDynamic Link`.parenttype = 'Address' and
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
 			ifnull(`tabAddress`.disabled, 0) = 0 and
