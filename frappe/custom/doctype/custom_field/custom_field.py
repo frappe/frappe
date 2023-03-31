@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -116,7 +117,7 @@ class CustomField(Document):
 			)
 
 		# delete property setter entries
-		frappe.db.delete("Property Setter", {"doc_type": self.dt, "field_name": self.fieldname})
+		delete_property_setter(self.dt, field_name=self.fieldname)
 
 		# update doctype layouts
 		doctype_layouts = frappe.get_all(
@@ -146,7 +147,10 @@ class CustomField(Document):
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
 
 	def log_permission(self):
-		return {"fields": ("permlevel", "fieldname"), "for_doctype": "DocType", "for_document": self.dt}
+		if self.fieldtype not in ("HTML", "Section Break", "Column Break", "Tab Break", "Fold"):
+			return {"fields": ("permlevel", "fieldname"), "for_doctype": "DocType", "for_document": self.dt}
+
+		self._no_perm_log = True
 
 
 @frappe.whitelist()
