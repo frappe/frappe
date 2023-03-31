@@ -99,7 +99,7 @@ context("Kanban Board", () => {
 
 	it("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
 		// Add another System Manager so that the role can be removed from `frappe@example.com`
-		cy.call("frappe.tests.ui_test_helpers.create_system_manager_user", {
+		cy.call("frappe.tests.ui_test_helpers.create_test_user", {
 			username: "sysmanager@example.com",
 		});
 

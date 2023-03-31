@@ -426,12 +426,15 @@ def create_blog_post():
 	return doc
 
 
-def create_test_user():
-	if frappe.db.exists("User", UI_TEST_USER):
+@whitelist_for_tests
+def create_test_user(username=None):
+	name = username or UI_TEST_USER
+
+	if frappe.db.exists("User", name):
 		return
 
 	user = frappe.new_doc("User")
-	user.email = UI_TEST_USER
+	user.email = name
 	user.first_name = "Frappe"
 	user.new_password = frappe.local.conf.admin_password
 	user.send_welcome_email = 0
@@ -622,28 +625,3 @@ def add_remove_role(action, user, role):
 		user_doc.remove_roles(role)
 	else:
 		user_doc.add_roles(role)
-
-
-@whitelist_for_tests
-def create_system_manager_user(username):
-	if frappe.db.exists("User", username):
-		return
-
-	user = frappe.new_doc("User")
-	user.email = username
-	user.first_name = "System Manager"
-	user.new_password = frappe.local.conf.admin_password
-	user.send_welcome_email = 0
-	user.time_zone = "Asia/Kolkata"
-	user.flags.ignore_password_policy = True
-	user.insert(ignore_if_duplicate=True)
-
-	user.reload()
-
-	blocked_roles = {"Administrator", "Guest", "All"}
-	all_roles = set(frappe.get_all("Role", pluck="name"))
-
-	for role in all_roles - blocked_roles:
-		user.append("roles", {"role": role})
-
-	user.save()
