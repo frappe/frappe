@@ -23,6 +23,8 @@
   "send_welcome_email",
   "unsubscribed",
   "user_image",
+  "workspaces_section",
+  "default_workspace",
   "roles_permissions_tab",
   "sb1",
   "role_profile_name",
@@ -702,6 +704,29 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Role Profiles",
+   "options": "User Role Profile",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "workspaces_section",
+   "fieldtype": "Section Break",
+   "label": "Workspaces"
+  },
+  {
+   "description": "If left empty, the default workspace will be the last visited workspace",
+   "fieldname": "default_workspace",
+   "fieldtype": "Link",
+   "label": "Default Workspace",
+   "options": "Workspace"
+>>>>>>> 3ec47b0975 (feat(workspace): Allow user to choose a default workspace)
   }
  ],
  "icon": "fa fa-user",
@@ -764,7 +789,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-02-11 13:16:29.574666",
+ "modified": "2024-03-06 11:14:38.424148",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
