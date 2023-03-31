@@ -90,12 +90,7 @@ frappe.breadcrumbs = {
 		// get preferred module for breadcrumbs, based on history and module
 
 		if (!breadcrumbs.workspace) {
-			// guess from last route
-			if (this.last_route?.[0] == "Workspaces") {
-				breadcrumbs.workspace = this.last_route[1];
-			} else {
-				this.set_workspace(breadcrumbs);
-			}
+			this.set_workspace(breadcrumbs);
 		}
 		if (!breadcrumbs.workspace) {
 			return;
@@ -130,6 +125,19 @@ frappe.breadcrumbs = {
 			breadcrumbs.module = this.preferred[breadcrumbs.doctype];
 		}
 
+		// guess from last route
+		if (this.last_route?.[0] == "Workspaces") {
+			let last_workspace = this.last_route[1];
+
+			if (
+				breadcrumbs.module &&
+				frappe.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
+			) {
+				breadcrumbs.workspace = last_workspace;
+				return;
+			}
+		}
+
 		if (breadcrumbs.module) {
 			if (this.module_map[breadcrumbs.module]) {
 				breadcrumbs.module = this.module_map[breadcrumbs.module];
@@ -138,8 +146,11 @@ frappe.breadcrumbs = {
 			breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
 
 			// set workspace
-			if (breadcrumbs.module_info && frappe.boot.module_page_map[breadcrumbs.module]) {
-				breadcrumbs.workspace = frappe.boot.module_page_map[breadcrumbs.module];
+			if (
+				breadcrumbs.module_info &&
+				frappe.boot.module_wise_workspaces[breadcrumbs.module]
+			) {
+				breadcrumbs.workspace = frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
 			}
 		}
 	},
