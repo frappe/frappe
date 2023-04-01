@@ -98,19 +98,17 @@ context("Kanban Board", () => {
 	});
 
 	it("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
-		// Add another System Manager so that the role can be removed from `frappe@example.com`
-		cy.call("frappe.tests.ui_test_helpers.create_test_user", {
-			username: "sysmanager@example.com",
-		});
-
-		cy.call("frappe.tests.ui_test_helpers.create_todo", { description: "Frappe User ToDo" });
-
 		cy.switch_to_user("Administrator");
-		cy.call("frappe.tests.ui_test_helpers.create_admin_kanban");
-		// remove sys manager
-		cy.remove_role("frappe@example.com", "System Manager");
 
-		cy.switch_to_user("frappe@example.com");
+		const noSystemManager = "nosysmanager@example.com";
+		cy.call("frappe.tests.ui_test_helpers.create_test_user", {
+			username: noSystemManager,
+		});
+		cy.remove_role(noSystemManager, "System Manager");
+		cy.call("frappe.tests.ui_test_helpers.create_todo", { description: "Frappe User ToDo" });
+		cy.call("frappe.tests.ui_test_helpers.create_admin_kanban");
+
+		cy.switch_to_user(noSystemManager);
 
 		cy.visit("/app/todo/view/kanban/Admin Kanban");
 
@@ -126,8 +124,8 @@ context("Kanban Board", () => {
 		// Column actions should be hidden (dropdown for 'Archive' and indicators)
 		cy.get(".kanban .column-options").should("have.length", 0);
 
-		cy.add_role("frappe@example.com", "System Manager");
-		cy.call("frappe.client.delete", { doctype: "User", name: "sysmanager@example.com" });
+		cy.switch_to_user("Administrator");
+		cy.call("frappe.client.delete", { doctype: "User", name: noSystemManager });
 	});
 
 	after(() => {
