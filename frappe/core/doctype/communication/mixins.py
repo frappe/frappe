@@ -216,7 +216,7 @@ class CommunicationEmailMixin:
 			"reference_name": self.reference_name,
 			"reference_type": self.reference_doctype,
 		}
-		
+
 		if self.reference_doctype and self.reference_name:
 			return ToDo.get_owners(filters)
 		else:
