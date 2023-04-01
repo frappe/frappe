@@ -68,18 +68,26 @@ class DbManager:
 		if pipe:
 			print("Restoring Database file...")
 
-		command = (
-			"{pipe} mysql -u {user} -p{password} -h{host} "
-			+ ("-P{port}" if frappe.db.port else "")
-			+ " {target} {source}"
-		)
-		command = command.format(
-			pipe=pipe,
-			user=esc(user),
-			password=esc(password),
-			host=esc(frappe.db.host),
-			target=esc(target),
-			source=source,
-			port=frappe.db.port,
-		)
-		os.system(command)
+		args = {
+			"pipe": pipe,
+			"user": esc(user),
+			"password": esc(password),
+			"target": esc(target),
+			"source": source,
+		}
+
+		command = "{pipe} mysql -u {user} -p{password} "
+		if frappe.db.socket:
+			command += " -S{socket} "
+			args["socket"] = esc(frappe.db.socket)
+		elif frappe.db.port:
+			command += " -h{host} "
+			command += " -p{host} "
+			args["host"] = esc(frappe.db.host)
+			args["port"] = esc(frappe.db.port)
+		else:
+			command += " -h{host} "
+			args["host"] = esc(frappe.db.host)
+
+		command += " {target} {source}"
+		os.system(command.format(**args))

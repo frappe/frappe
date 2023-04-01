@@ -17,10 +17,10 @@ class RedisQueue:
 
 	@classmethod
 	def get_connection(cls, username=None, password=None):
-		rq_url = frappe.local.conf.redis_queue
-		domain = rq_url.split("redis://", 1)[-1]
-		url = (username and f"redis://{username}:{password or ''}@{domain}") or rq_url
-		conn = redis.from_url(url)
+		if username and password:
+			conn = redis.from_url(frappe.conf.redis_queue, username=username, password=password)
+		else:
+			conn = redis.from_url(frappe.conf.redis_queue)
 		conn.ping()
 		return conn
 

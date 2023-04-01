@@ -97,8 +97,7 @@ def get_redis_server():
 	global redis_server
 	if not redis_server:
 		from redis import Redis
-
-		redis_server = Redis.from_url(frappe.conf.redis_socketio or "redis://localhost:12311")
+		redis_server = Redis.from_url(frappe.conf.redis_socketio)
 	return redis_server
 
 

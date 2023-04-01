@@ -538,17 +538,24 @@ def _mariadb(extra_args=None):
 	mysql = which("mysql")
 	command = [
 		mysql,
-		"--port",
-		str(frappe.conf.db_port or MariaDBDatabase.default_port),
-		"-u",
-		frappe.conf.db_name,
-		f"-p{frappe.conf.db_password}",
-		frappe.conf.db_name,
-		"-h",
-		frappe.conf.db_host or "localhost",
 		"--pager=less -SFX",
 		"--safe-updates",
-		"-A",
+		"--no-auto-rehash",
+	]
+	if frappe.conf.db_socket:
+		command += [
+			f"--socket={frappe.conf.db_socket}"
+		]
+	else:
+		port = str(frappe.conf.db_port or MariaDBDatabase.default_port)
+		command = [
+			f"--port={port}",
+			f"--host={frappe.conf.db_host}",
+		]
+	command += [
+		f"--user={frappe.conf.db_name}",
+		f"--password={frappe.conf.db_password}",
+		frappe.conf.db_name,
 	]
 	if extra_args:
 		command += list(extra_args)

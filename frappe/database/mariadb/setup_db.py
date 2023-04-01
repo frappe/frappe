@@ -23,16 +23,14 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
+def setup_database(force, source_sql, verbose, socket, host, port, user, password):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
+	root_conn = get_root_connection(socket, host, port, user, password)
+
 	db_name = frappe.local.conf.db_name
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
-	if no_mariadb_socket:
-		dbman_kwargs["host"] = "%"
-
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.delete_user(db_name, **dbman_kwargs)
 		dbman.drop_database(db_name)
@@ -58,8 +56,8 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	bootstrap_database(db_name, verbose, source_sql)
 
 
-def drop_user_and_database(db_name, root_login, root_password):
-	frappe.local.db = get_root_connection(root_login, root_password)
+def drop_user_and_database(db_name, socket, host, port, user, password):
+	frappe.local.db = get_root_connection(socket, host, port, user, password)
 	dbman = DbManager(frappe.local.db)
 	dbman.drop_database(db_name)
 	dbman.delete_user(db_name, host="%")
@@ -152,21 +150,17 @@ def check_compatible_versions():
 		)
 
 
-def get_root_connection(root_login, root_password):
-	import getpass
+def get_root_connection(socket, host, port, user, password):
 
 	if not frappe.local.flags.root_connection:
-		if not root_login:
-			root_login = "root"
+		if not user:
+			user = frappe.conf.get("root_login") or os.getlogin()
 
-		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
-
-		if not root_password:
-			root_password = getpass.getpass("MySQL root password: ")
+		if not password:
+			password = frappe.conf.get("root_password") or None
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
-			user=root_login, password=root_password
+			socket, host, port, user, password
 		)
 
 	return frappe.local.flags.root_connection

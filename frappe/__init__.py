@@ -267,7 +267,14 @@ def connect(
 	if site:
 		init(site)
 
-	local.db = get_db(user=db_name or local.conf.db_name)
+	local.db = get_db(
+		socket=local.conf.db_socket,
+		host=local.conf.db_host,
+		port=local.conf.db_port,
+		user=db_name or local.conf.db_name,
+		password=local.conf.db_password,
+		cur_db_name=db_name or local.conf.db_name,
+	)
 	if set_admin_as_user:
 		set_user("Administrator")
 
@@ -277,13 +284,19 @@ def connect_replica():
 
 	user = local.conf.db_name
 	password = local.conf.db_password
-	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		socket=None,
+		host=local.conf.replica_host,
+		port=local.conf.replica_db_port,
+		user=user,
+		password=password,
+		cur_db_name=user,
+	)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -317,6 +330,12 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				print(error)
 		elif local.site and not local.flags.new_site:
 			raise IncorrectSitePath(f"{local.site} does not exist")
+
+	# Generalized env variable overrides and defaults
+	config["redis_queue"] = os.environ.get("FRAPPE_REDIS_QUEUE_CONN_STRING") or config.get("redis_queue") or "redis://localhost:11311"
+	config["redis_socketio"] = os.environ.get("FRAPPE_REDIS_SOCKETIO_CONN_STRING") or config.get("redis_socketio")  or "redis://localhost:12311"
+	config["redis_cache"] = os.environ.get("FRAPPE_REDIS_CACHE_CONN_STRING") or config.get("redis_cache") or "redis://localhost:13311"
+	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
 
 	return _dict(config)
 
@@ -359,8 +378,7 @@ def cache() -> "RedisWrapper":
 	global redis_server
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
-
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
+		redis_server = RedisWrapper.from_url(conf.redis_cache)
 	return redis_server
 
 

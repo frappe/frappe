@@ -44,6 +44,7 @@ class BackupGenerator:
 		backup_path_db=None,
 		backup_path_files=None,
 		backup_path_private_files=None,
+		db_socket=None,
 		db_host="localhost",
 		db_port=None,
 		db_type="mariadb",
@@ -56,6 +57,7 @@ class BackupGenerator:
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
+		self.db_socket = db_socket
 		self.db_host = db_host
 		self.db_port = db_port
 		self.db_name = db_name
@@ -437,7 +439,17 @@ class BackupGenerator:
 				# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
 				"self=$$; "
 				" ( {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
-				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude} || kill $self ) "
+			)
+			if self.db_socket:
+				cmd_string += (
+					" -S {db_socket} "
+				)
+			else:
+				cmd_string += (
+					" -h {db_host} -P {db_port} "
+				)
+			cmd_string += (
+				" -p{password} {db_name} {include} {exclude} || kill $self ) "
 				" | {gzip} >> {backup_path_db}"
 			)
 
@@ -445,6 +457,7 @@ class BackupGenerator:
 			user=args.user,
 			password=args.password,
 			db_exc=db_exc,
+			db_socket=args.db_socket,
 			db_host=args.db_host,
 			db_port=args.db_port,
 			db_name=args.db_name,
@@ -502,6 +515,7 @@ def fetch_latest_backups(partial=False):
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
+		db_socket=frappe.db.socket,
 		db_host=frappe.db.host,
 		db_type=frappe.conf.db_type,
 		db_port=frappe.conf.db_port,
@@ -567,6 +581,7 @@ def new_backup(
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
+		db_socket=frappe.db.socket,
 		db_host=frappe.db.host,
 		db_port=frappe.db.port,
 		db_type=frappe.conf.db_type,

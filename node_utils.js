@@ -41,15 +41,15 @@ function get_conf() {
 function get_redis_subscriber(kind = "redis_socketio", options = {}) {
 	const conf = get_conf();
 	let redisSock = {
-	    redis_cache:
-	    	process.env.FRAPPE_REDIS_CACHE_SOCKET || conf[kind] || conf.redis_async_broker_port,
-	    redis_queue:
-	    	process.env.FRAPPE_REDIS_QUEUE_SOCKET || conf[kind] || conf.redis_async_broker_port,
-	    redis_socketio:
-	    	process.env.FRAPPE_REDIS_SOCKETIO_SOCKET || conf[kind] || conf.redis_async_broker_port,
+		redis_cache:
+			process.env.FRAPPE_REDIS_CACHE_SOCKET || conf[kind] || conf.redis_async_broker_port,
+		redis_queue:
+			process.env.FRAPPE_REDIS_QUEUE_SOCKET || conf[kind] || conf.redis_async_broker_port,
+		redis_socketio:
+			process.env.FRAPPE_REDIS_SOCKETIO_SOCKET || conf[kind] || conf.redis_async_broker_port,
 	};
-	const sockStr = redisSock[kind];
-	if socketStr.startsWith("/") {
+	let sockStr = redisSock[kind];
+	if (sockStr.startsWith("/")) {
 		return redis.createClient({ socket: { path: sockStr }, ...options });
 	} else {
 		return redis.createClient({ url: sockStr, ...options });

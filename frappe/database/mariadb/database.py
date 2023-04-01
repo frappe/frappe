@@ -111,18 +111,21 @@ class MariaDBConnectionUtil:
 
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
-			"host": self.host,
 			"user": self.user,
 			"password": self.password,
 			"conv": self.CONVERSION_MAP,
+			"database": self.cur_db_name,
 			"charset": "utf8mb4",
 			"use_unicode": True,
 		}
+		if self.cur_db_name:
+			conn_settings["database"] = self.cur_db_name
+		if self.socket:
+			conn_settings["unix_socket"] = self.socket
+		else:
+			conn_settings["host"] = self.host
 
-		if self.user not in (frappe.flags.root_login, "root"):
-			conn_settings["database"] = self.user
-
-		if self.port:
+		if not self.socket and self.port:
 			conn_settings["port"] = int(self.port)
 
 		if frappe.conf.local_infile:
@@ -193,7 +196,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			SUM(`data_length` + `index_length`) / 1024 / 1024 AS `database_size`
 			FROM information_schema.tables WHERE `table_schema` = %s GROUP BY `table_schema`
 			""",
-			self.db_name,
+			self.cur_db_name,
 			as_dict=True,
 		)
 

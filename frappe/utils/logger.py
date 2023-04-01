@@ -19,7 +19,7 @@ def get_logger(
 	filter=None,
 	max_size=100_000,
 	file_count=20,
-	stream_only=False,
+	stream_only=os.environ.get("FRAPPE_STREAM_LOGGING"),
 ) -> "logging.Logger":
 	"""Application Logger for your given module
 
