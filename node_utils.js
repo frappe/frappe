@@ -51,9 +51,7 @@ function get_conf() {
 function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	const conf = get_conf();
 	const host = conf[kind];
-	const client = redis.createClient({ legacyMode: true, url: host, ...options });
-	client.connect();
-	return client;
+	return redis.createClient({ url: host, ...options });
 }
 
 module.exports = {
