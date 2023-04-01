@@ -407,18 +407,16 @@ async function write_assets_json(metafile) {
 	};
 }
 
-function update_assets_json_in_cache() {
+async function update_assets_json_in_cache() {
 	// update assets_json cache in redis, so that it can be read directly by python
-	return new Promise((resolve) => {
-		let client = get_redis_subscriber("redis_cache");
-		// handle error event to avoid printing stack traces
-		client.on("error", (_) => {
-			log_warn("Cannot connect to redis_cache to update assets_json");
-		});
-		client.del("assets_json", (err) => {
-			client.unref();
-			resolve();
-		});
+	let client = await get_redis_subscriber("redis_cache");
+	// handle error event to avoid printing stack traces
+	client.on("error", (_) => {
+		log_warn("Cannot connect to redis_cache to update assets_json");
+	});
+	client.del("assets_json", (err) => {
+		client.unref();
+		resolve();
 	});
 }
 
@@ -446,7 +444,7 @@ function run_build_command_for_apps(apps) {
 
 async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
-	let subscriber = get_redis_subscriber("redis_queue");
+	let subscriber = await get_redis_subscriber("redis_queue");
 	subscriber.on("error", (_) => {
 		log_warn("Cannot connect to redis_queue for browser events");
 	});
@@ -472,7 +470,7 @@ async function notify_redis({ error, success, changed_files }) {
 		};
 	}
 
-	subscriber.publish(
+	await subscriber.publish(
 		"events",
 		JSON.stringify({
 			event: "build_event",
@@ -481,21 +479,18 @@ async function notify_redis({ error, success, changed_files }) {
 	);
 }
 
-function open_in_editor() {
-	let subscriber = get_redis_subscriber("redis_queue");
+async function open_in_editor() {
+	let subscriber = await get_redis_subscriber("redis_queue");
 	subscriber.on("error", (_) => {
 		log_warn("Cannot connect to redis_queue for open_in_editor events");
 	});
-	subscriber.on("message", (event, file) => {
-		if (event === "open_in_editor") {
-			file = JSON.parse(file);
-			let file_path = path.resolve(file.file);
-			log("Opening file in editor:", file_path);
-			let launch = require("launch-editor");
-			launch(`${file_path}:${file.line}:${file.column}`);
-		}
+	subscriber.subscribe("open_in_editor", (file) => {
+		file = JSON.parse(file);
+		let file_path = path.resolve(file.file);
+		log("Opening file in editor:", file_path);
+		let launch = require("launch-editor");
+		launch(`${file_path}:${file.line}:${file.column}`);
 	});
-	subscriber.subscribe("open_in_editor");
 }
 
 function get_rebuilt_assets(prev_assets, new_assets) {

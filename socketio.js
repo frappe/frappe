@@ -4,7 +4,6 @@ const request = require("superagent");
 const { get_conf, get_redis_subscriber } = require("./node_utils");
 const conf = get_conf();
 const log = console.log; // eslint-disable-line
-const subscriber = get_redis_subscriber();
 
 const io = require("socket.io")(conf.socketio_port, {
 	cors: {
@@ -180,23 +179,24 @@ io.on("connection", function (socket) {
 		);
 	});
 
-	socket.on("open_in_editor", (data) => {
+	socket.on("open_in_editor", async (data) => {
 		let s = get_redis_subscriber("redis_queue");
-		s.publish("open_in_editor", JSON.stringify(data));
+		await s.publish("open_in_editor", JSON.stringify(data));
 	});
 });
 
-subscriber.on("message", function (_channel, message) {
-	message = JSON.parse(message);
+(async () => {
+	const subscriber = await get_redis_subscriber();
+	await subscriber.subscribe("events", (message) => {
+		message = JSON.parse(message);
 
-	if (message.room) {
-		io.to(message.room).emit(message.event, message.message);
-	} else {
-		io.emit(message.event, message.message);
-	}
-});
-
-subscriber.subscribe("events");
+		if (message.room) {
+			io.to(message.room).emit(message.event, message.message);
+		} else {
+			io.emit(message.event, message.message);
+		}
+	});
+})();
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
