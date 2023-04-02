@@ -488,14 +488,14 @@ class Meta(Document):
 		existing_fields = set(field_order)
 		insert_after_map = {}
 
-		for idx, field in enumerate(self.fields):
+		for index, field in enumerate(self.fields):
 			if existing_fields and field.fieldname in existing_fields:
 				continue
 
 			if not getattr(field, "is_custom_field", False):
 				if existing_fields:
 					# compute insert_after from previous field
-					insert_after_map.setdefault(self.fields[idx - 1].fieldname, []).append(field.fieldname)
+					insert_after_map.setdefault(self.fields[index - 1].fieldname, []).append(field.fieldname)
 				else:
 					field_order.append(field.fieldname)
 
