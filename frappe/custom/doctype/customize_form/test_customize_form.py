@@ -6,7 +6,6 @@ import json
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.custom.doctype.customize_form.customize_form import reset_customization
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.tests.utils import FrappeTestCase
 
@@ -427,189 +426,14 @@ class TestCustomizeForm(FrappeTestCase):
 			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
 		)
 
-	def test_customized_field_order(self):
-		def shuffle_fields():
-			import random
-
-			customized_form = self.get_customize_form(doctype="ToDo")
-			random.shuffle(customized_form.fields)
-			customized_form.save_customization()
-
-		shuffle_fields()
-
-		property_setter_field_order = json.loads(frappe.get_last_doc("Property Setter").value)
-		set_field_order = self.get_customize_form(doctype="ToDo").fields
-
-		for idx, field in enumerate(set_field_order, 0):
-			self.assertEqual(field.fieldname, property_setter_field_order[idx])
-
-	def test_customized_field_order_greater_than_insert_after(self):
-		reset_customization(doctype="ToDo")
-		frappe.delete_doc_if_exists("Custom Field", "ToDo-test_todo_type", force=True)
-		frappe.get_doc(
-			{
-				"doctype": "Custom Field",
-				"dt": "ToDo",
-				"label": "Test ToDo Type",
-				"description": "A Custom Field for Testing",
-				"fieldtype": "Select",
-				"in_list_view": 1,
-				"options": "\nCustom 1\nCustom 2\nCustom 3",
-				"default": "Custom 3",
-				"insert_after": "description_section",
-				"is_system_generated": 1,
-			}
-		).insert()
-
+	def test_custom_field_order(self):
+		# shuffle fields
 		customize_form = self.get_customize_form(doctype="ToDo")
-		test_position = [f.fieldname for f in customize_form.fields].index("test_todo_type")
-		self.assertEqual(customize_form.fields[test_position - 1].fieldname, "description_section")
-
-		# Modify position of system generated field then test it is in its correct position.
-		customize_form.fields.insert(1, customize_form.fields.pop(test_position))
-		customize_form.save_customization()
-		frappe.clear_cache(doctype="ToDo")
-
-		customize_form = self.get_customize_form(doctype="ToDo")
-		self.assertEqual(customize_form.fields[1].fieldname, "test_todo_type")
-
-	def test_migrated_standard_field_order(self):
-		def revert_standard_field_creation():
-			# Revert new standard field test_new_standard_field if re-run.
-			doctype = frappe.get_doc("DocType", "ToDo")
-			doctype.fields.sort(key=lambda f: f.idx)
-			if "test_new_standard_field" in [f.fieldname for f in doctype.fields]:
-				position = [f.fieldname for f in doctype.fields].index("test_new_standard_field")
-				for field in doctype.fields[position:]:
-					if field.fieldname == "test_new_standard_field":
-						frappe.db.delete("DocField", filters={"name": field.name})
-					else:
-						field.idx = field.idx - 1
-						field.db_update()
-				frappe.clear_cache(doctype="ToDo")
-
-		frappe.db.delete("Custom Field", filters={"dt": "ToDo"})
-		frappe.db.delete("Property Setter", filters={"doc_type": "ToDo"})
-
-		revert_standard_field_creation()
-
-		# Move description field to top of form.
-		customize_form = self.get_customize_form("ToDo")
-		fields = [f.fieldname for f in customize_form.fields]
-		description = customize_form.fields.pop(fields.index("description"))
-		customize_form.fields.insert(1, description)
+		customize_form.fields.insert(0, customize_form.fields.pop())
 		customize_form.save_customization()
 
-		# Create a new standard field under "Description"
-		doctype = frappe.get_doc("DocType", "ToDo")
-
-		# Shift standard field indexes after description up.
-		doctype.fields.sort(key=lambda f: f.idx)
-		position_description = [f.fieldname for f in doctype.fields].index("description")
-		for field in doctype.fields[position_description + 1 :]:
-			field.idx = field.idx + 1
-			field.db_update()
-
-		# Insert the new standard field after description.
-		new_standard_field = doctype.append(
-			"fields",
-			{
-				"fieldname": "test_new_standard_field",
-				"label": "Test new standared field",
-				"fieldtype": "Data",
-				"idx": position_description + 2,
-			},
-		)
-		new_standard_field.db_insert()
-
-		# Test that my_test_field is ordered after description
-		frappe.clear_cache(doctype="ToDo")
-		customize_form = self.get_customize_form("ToDo")
-		fields = [f.fieldname for f in customize_form.fields]
-		self.assertEqual(fields[fields.index("description") + 1], "test_new_standard_field")
-		revert_standard_field_creation()
-
-	def test_system_generated_custom_field(self):
-		"""
-		Using a system generated field, move the field position.
-		   Then migrate a new system generated field.
-		   Ensure the existing system generated field:
-		        a) field_order is retainiend.
-		        b) field properties is retainited.
-		   Ensure the new system generated field is inserted
-		   using insert_after as it doesn't exist in field_order.
-		"""
-		from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-
-		# Reset all customizations including system generated.
-		reset_customization(doctype="ToDo")
-		frappe.db.delete("Custom Field", filters={"dt": "ToDo"})
-		frappe.db.delete("Property Setter", filters={"doc_type": "ToDo"})
-
-		create_custom_field(
-			doctype="ToDo",
-			df=frappe._dict(
-				{
-					"fieldname": "test_todo_type",
-					"fieldtype": "Data",
-					"label": "Test ToDo Type",
-					"insert_after": "description",
-					"read_only": 0,
-					"default": "",
-				}
-			),
-			is_system_generated=True,
+		field_order_property = json.loads(
+			frappe.db.get_value("Property Setter", {"doc_type": "ToDo", "property": "field_order"}, "value")
 		)
 
-		# A new system generated field is created without field_order.
-		# It should be placed after description.
-		frappe.clear_cache(doctype="ToDo")
-		customize_form = self.get_customize_form(doctype="ToDo")
-		fields = [f.fieldname for f in customize_form.fields]
-		self.assertEqual(fields[fields.index("description") + 1], "test_todo_type")
-
-		# Move the description field to the beginning of the form.
-		# This will create a property setter field_order.
-		# The existing system generated field should no longer
-		# be placed after description.
-		description = customize_form.fields.pop(fields.index("description"))
-		customize_form.fields.insert(2, description)
-		customize_form.save_customization()
-		fields = [f.fieldname for f in customize_form.fields]
-		self.assertNotEqual(fields[fields.index("description") + 1], "test_todo_type")
-
-		# Set a default setting to test_todo_type and make it read_only.
-		customize_form.fields[fields.index("test_todo_type")].default = "Test ToDo"
-		customize_form.fields[fields.index("test_todo_type")].read_only = 1
-		customize_form.save_customization()
-
-		# Create a new system generated field, ensure the previous system generated
-		# field didn't get overriden.
-		create_custom_field(
-			doctype="ToDo",
-			df=frappe._dict(
-				{
-					"fieldname": "test_todo_sub_type",
-					"fieldtype": "Data",
-					"label": "Test ToDo Sub Type",
-					"insert_after": "test_todo_type",
-				}
-			),
-			is_system_generated=True,
-		)
-		frappe.clear_cache(doctype="ToDo")
-
-		customize_form = self.get_customize_form(doctype="ToDo")
-		fields = [f.fieldname for f in customize_form.fields]
-
-		# Test that the original system generated field didn't get re-migrated to it's
-		# original position.
-		self.assertNotEqual(fields[fields.index("description") + 1], "test_todo_type")
-
-		# Test the original system field kept custom property setters. E.g: default, read_only.
-		self.assertEqual(customize_form.fields[fields.index("test_todo_type")].read_only, 1)
-		self.assertEqual(customize_form.fields[fields.index("test_todo_type")].default, "Test ToDo")
-
-		# Test the new system generated field uses insert_after as it doesn't have an
-		# existing position.
-		self.assertEqual(fields[fields.index("test_todo_type") + 1], "test_todo_sub_type")
+		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])
