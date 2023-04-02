@@ -485,7 +485,7 @@ class Meta(Document):
 					# worst case scenario, invalidate field_order
 					field_order = fields_to_prepend
 
-		existing_fields = set(field_order)
+		existing_fields = set(field_order) if field_order else False
 		insert_after_map = {}
 
 		for index, field in enumerate(self.fields):
