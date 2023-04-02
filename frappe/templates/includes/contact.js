@@ -23,20 +23,22 @@ frappe.ready(function() {
 		}
 
 		$("#contact-alert").toggle(false);
-		frappe.send_message({
-			subject: $('[name="subject"]').val(),
-			sender: email,
-			message: message,
+		frappe.call({
+			type: "POST",
+			method: "frappe.www.contact.send_message",
+			args: {
+				subject: $('[name="subject"]').val(),
+				sender: email,
+				message: message,
+			},
 			callback: function(r) {
 				if (!r.exc) {
 					frappe.msgprint('{{ _("Thank you for your message") }}');
 				}
 				$(':input').val('');
-			}
-		}, this);
-		return false;
+			},
+		});
 	});
-
 });
 
 var msgprint = function(txt) {
