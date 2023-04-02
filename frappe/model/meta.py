@@ -138,7 +138,6 @@ class Meta(Document):
 		self.apply_property_setters()
 		self.init_field_caches()
 		self.sort_fields()
-
 		self.get_valid_columns()
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
@@ -370,7 +369,10 @@ class Meta(Document):
 			return
 
 		property_setters = frappe.db.get_values(
-			"Property Setter", fieldname="*", filters={"doc_type": self.name}, as_dict=1
+			"Property Setter",
+			filters={"doc_type": self.name},
+			fieldname="*",
+			as_dict=True,
 		)
 
 		if not property_setters:
@@ -445,67 +447,59 @@ class Meta(Document):
 		else:
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
-	def sort_fields_based_on_field_order(self):
-		if not hasattr(self, "field_order") or not self.field_order:
-			self.field_order = []
-			return
-
-		sorted_fields = []
-		fields_to_remove = []
-		self.field_order = json.loads(self.field_order)
-
-		# Remove fields not present in self.fields.
-		for field in self.field_order:
-			if field not in self._fields:
-				fields_to_remove.append(field)
-
-		for field in fields_to_remove:
-			self.field_order.remove(field)
-
-		# Add fields present in self.fields
-		for idx, field in enumerate(self.fields):
-			if field.fieldname not in self.field_order:
-				# Insert after logic handles rearranging of custom fields
-				# If field.fieldname doesn't exist in field_order attempt to
-				# lookup it's previous field order fieldname, then insert
-				# after that fieldname. If the fieldname doesn't exist.
-				# Insert at end of list.
-				try:
-					if not getattr(field, "is_custom_field", False):
-						# This is a new standard field.
-						position = self.field_order.index(self.fields[idx - 1].fieldname) + 1
-					else:
-						# This is a new system generated custom field. Use insert_after.
-						position = self.field_order.index(field.insert_after) + 1
-					self.field_order.insert(position, field.fieldname)
-				except (ValueError, IndexError):
-					self.field_order.append(field.fieldname)
-
-		for idx, fieldname in enumerate(self.field_order, 1):
-			field = self._fields[fieldname]
-			field.idx = idx
-			sorted_fields.append(field)
-
-		self.fields = sorted_fields
-
 	def sort_fields(self):
-		"""Sort standard fields on the basis of property setter,
-		and custom fields on the basis of insert_after"""
+		"""
+		Sort fields on the basis of following rules (priority descending):
+		- `field_order` property setter
+		- `insert_after` computed based on default order for standard fields
+		- `insert_after` property for custom fields
+		"""
 
-		self.sort_fields_based_on_field_order()
+		if field_order := getattr(self, "field_order", []):
+			field_order = [fieldname for fieldname in json.loads(field_order) if fieldname in self._fields]
 
-		field_order = []
+			# all fields match, best case scenario
+			if len(field_order) == len(self.fields):
+				self._update_fields_based_on_order(field_order)
+				return
+
+			# if the first few standard fields are not in the field order, prepare to prepend them
+			if self.fields[0].fieldname not in field_order:
+				fields_to_prepend = []
+				standard_field_found = False
+
+				for fieldname, field in self._fields.items():
+					if getattr(field, "is_custom_field", False):
+						# all custom fields from here on
+						break
+
+					if fieldname in field_order:
+						standard_field_found = True
+						break
+
+					fields_to_prepend.append(fieldname)
+
+				if standard_field_found:
+					field_order = fields_to_prepend + field_order
+				else:
+					# worst case scenario, invalidate field_order
+					field_order = fields_to_prepend
+
+		existing_fields = set(field_order)
 		insert_after_map = {}
 
-		for field in self.fields:
-			if not getattr(field, "is_custom_field", False) or field.fieldname in self.field_order:
-				field_order.append(field.fieldname)
+		for idx, field in enumerate(self.fields):
+			if existing_fields and field.fieldname in existing_fields:
+				continue
 
-			elif (
-				insert_after := getattr(field, "insert_after", None)
-			) and field.fieldname not in self.field_order:
-				# If is_custom_field and has insert_after, and fieldname does not have an existing
-				# field order. Then fallback to insert_after.
+			if not getattr(field, "is_custom_field", False):
+				if existing_fields:
+					# compute insert_after from previous field
+					insert_after_map.setdefault(self.fields[idx - 1].fieldname, []).append(field.fieldname)
+				else:
+					field_order.append(field.fieldname)
+
+			elif insert_after := getattr(field, "insert_after", None):
 				insert_after_map.setdefault(insert_after, []).append(field.fieldname)
 
 			else:
@@ -515,6 +509,9 @@ class Meta(Document):
 		if insert_after_map:
 			_update_field_order_based_on_insert_after(field_order, insert_after_map)
 
+		self._update_fields_based_on_order(field_order)
+
+	def _update_fields_based_on_order(self, field_order):
 		sorted_fields = []
 
 		for idx, fieldname in enumerate(field_order, 1):

@@ -165,8 +165,8 @@ class CustomizeForm(Document):
 		validate_autoincrement_autoname(self)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
-		self.update_custom_fields()
 		self.set_property_setters()
+		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
 		check_email_append_to(self)
@@ -189,7 +189,6 @@ class CustomizeForm(Document):
 
 		# doctype
 		self.set_property_setters_for_doctype(meta)
-		self.set_property_setter_for_field_order(meta)
 
 		# docfield
 		for df in self.get("fields"):
@@ -203,32 +202,27 @@ class CustomizeForm(Document):
 		self.set_property_setters_for_actions_and_links(meta)
 
 	def set_property_setter_for_field_order(self, meta):
-		has_changed = False
+		new_order = [df.fieldname for df in self.fields]
+		existing_order = getattr(meta, "field_order", None)
+		default_order = [
+			fieldname for fieldname, df in meta._fields.items() if not getattr(df, "is_custom_field", False)
+		]
 
-		if current_order := frappe.get_value(
-			"Property Setter",
-			fieldname="value",
-			filters={"doc_type": self.doctype, "property": "field_order"},
-		):
-			current_order = current_order.replace(" ", "").split(",")
-			has_changed = any(a != b.fieldname for a, b in zip(current_order, self.get("fields")))
+		if new_order == default_order:
+			if existing_order:
+				delete_property_setter(self.doc_type, "field_order")
 
-		else:
-			has_changed = any(
-				a.fieldname != b.fieldname for a, b in zip(self.get("fields"), meta.get("fields"))
-			)
-
-		if not has_changed:
 			return
 
-		field_order = json.dumps([a.fieldname for a in self.get("fields")])
+		if existing_order and new_order == json.loads(existing_order):
+			return
+
 		frappe.make_property_setter(
-			args={
+			{
 				"doctype": self.doc_type,
-				"property": "field_order",
-				"value": field_order,
 				"doctype_or_field": "DocType",
-				"property_type": "JSON",
+				"property": "field_order",
+				"value": json.dumps(new_order),
 			},
 			is_system_generated=False,
 		)
@@ -237,6 +231,8 @@ class CustomizeForm(Document):
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
+
+		self.set_property_setter_for_field_order(meta)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
 		for prop, prop_type in docfield_properties.items():
@@ -434,7 +430,7 @@ class CustomizeForm(Document):
 		# check and update `insert_after` property
 		if i != 0:
 			insert_after = self.fields[i - 1].fieldname
-			if not custom_field.is_system_generated and custom_field.insert_after != insert_after:
+			if custom_field.insert_after != insert_after:
 				custom_field.insert_after = insert_after
 				custom_field.idx = i
 				changed = True
