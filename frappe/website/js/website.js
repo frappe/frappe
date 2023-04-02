@@ -197,6 +197,7 @@ $.extend(frappe, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
+<<<<<<< HEAD
 	send_message: function(opts, btn) {
 		return frappe.call({
 			type: "POST",
@@ -207,6 +208,9 @@ $.extend(frappe, {
 		});
 	},
 	has_permission: function(doctype, docname, perm_type, callback) {
+=======
+	has_permission: function (doctype, docname, perm_type, callback) {
+>>>>>>> 0e4909b28b (refactor: remove frappe.send_message js util)
 		return frappe.call({
 			type: "GET",
 			method: "frappe.client.has_permission",
