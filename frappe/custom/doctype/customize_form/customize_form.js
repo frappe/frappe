@@ -81,15 +81,13 @@ frappe.ui.form.on("Customize Form", {
 
 	add_customize_child_table_button: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (f.fieldtype == "Table") {
-				frm.add_custom_button(
-					f.options,
-					function () {
-						frm.set_value("doc_type", f.options);
-					},
-					__("Customize Child Table")
-				);
-			}
+			if (!in_list(["Table", "Table MultiSelect"], f.fieldtype)) return;
+
+			frm.add_custom_button(
+				f.options,
+				() => frm.set_value("doc_type", f.options),
+				__("Customize Child Table")
+			);
 		});
 	},
 
