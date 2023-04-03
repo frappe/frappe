@@ -150,7 +150,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
 
 		# initialize git repository
-		app_repo = git.Repo.init(app_directory)
+		app_repo = git.Repo.init(app_directory, initial_branch="develop")
 		app_repo.git.add(A=True)
 		app_repo.index.commit("feat: Initialize App")
 
