@@ -1249,19 +1249,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 		this.$result.on("mousemove", ".level.list-row", (e) => {
 			if (this.dragClick) {
-				this.check_on_drag(e, this.check);
+				this.check_row_on_drag(e, this.check);
 			}
 		});
 	}
 
-	check_on_drag(event, check) {
-		this.checkRow(event, check);
-	}
-
-	checkRow(event, check = true) {
+	check_row_on_drag(event, check = true) {
 		$(event.target).find(".list-row-checkbox").prop("checked", check);
 		this.on_row_checked();
-    }
+	}
 
 	setup_action_handler() {
 		this.$result.on("click", ".btn-action", (e) => {
