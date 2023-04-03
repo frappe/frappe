@@ -112,7 +112,7 @@ frappe.ui.Filter = class {
 
       if (['in', 'like', 'not in', 'not like'].includes(condition)) {
         fieldtype = 'Link';
-        await this.set_dynamic_options();
+        this.set_dynamic_options();
         this.add_condition_help(condition);
       } else {
         this.filter_edit_area.find('.filter-description').empty();
