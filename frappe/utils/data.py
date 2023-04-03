@@ -2256,11 +2256,20 @@ def is_site_link(link: str) -> bool:
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
-def add_source_to_url(url: str, reference_doctype: str, reference_docname: str) -> str:
+def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:
 	url_parts = list(urlparse(url))
-	query = dict(parse_qsl(url_parts[4])) | {
-		"source": f"{reference_doctype} > {reference_docname}",
+	if url_parts[0] == "mailto":
+		return url
+
+	trackers = {
+		"source": source,
+		"medium": medium,
 	}
+
+	if campaign:
+		trackers["campaign"] = campaign
+
+	query = dict(parse_qsl(url_parts[4])) | trackers
 
 	url_parts[4] = urlencode(query)
 	return urlunparse(url_parts)
