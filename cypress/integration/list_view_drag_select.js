@@ -5,15 +5,15 @@ context("List View", () => {
 	});
 
 	it("List view check rows on drag", () => {
-		cy.get(".list-row-checkbox").then($checkbox => {
+		cy.get(".list-row-checkbox").then(($checkbox) => {
 			cy.wrap($checkbox).first().trigger("mousedown");
-			cy.get(".level.list-row").each($ele => {
+			cy.get(".level.list-row").each(($ele) => {
 				cy.wrap($ele).trigger("mousemove");
 			});
 			cy.document().trigger("mouseup");
 		});
 
-		cy.get(".level.list-row .list-row-checkbox").each($checkbox => {
+		cy.get(".level.list-row .list-row-checkbox").each(($checkbox) => {
 			cy.wrap($checkbox).should("be.checked");
 		});
 	});
@@ -22,25 +22,27 @@ context("List View", () => {
 		cy.get(".level.list-row .list-row-checkbox")
 			.its("length")
 			.then((len) => {
-				cy.get(".level-item.list-header-meta").should("be.visible").should("contain.text", `${len} items selected`);
+				cy.get(".level-item.list-header-meta")
+					.should("be.visible")
+					.should("contain.text", `${len} items selected`);
 			});
 	});
 
 	it("List view uncheck rows on drag", () => {
-		cy.get(".list-row-checkbox").then($checkbox => {
+		cy.get(".list-row-checkbox").then(($checkbox) => {
 			cy.wrap($checkbox).first().trigger("mousedown");
-			cy.get(".level.list-row").each($ele => {
+			cy.get(".level.list-row").each(($ele) => {
 				cy.wrap($ele).trigger("mousemove");
 			});
 			cy.document().trigger("mouseup");
 		});
 
-		cy.get(".level.list-row .list-row-checkbox").each($checkbox => {
+		cy.get(".level.list-row .list-row-checkbox").each(($checkbox) => {
 			cy.wrap($checkbox).should("not.be.checked");
 		});
 	});
 
 	it("Check all rows are unchecked", () => {
-		cy.get(".level-item.list-header-meta").should("not.be.visible")
+		cy.get(".level-item.list-header-meta").should("not.be.visible");
 	});
 });
