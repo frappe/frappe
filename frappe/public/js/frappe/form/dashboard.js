@@ -69,6 +69,12 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.progress_area.body.empty();
 		this.progress_area.hide();
 
+		// clear heatmap
+		this.heatmap_area.hide();
+
+		// clear chart
+		this.chart_area.hide();
+
 		// clear links
 		this.links_area.body.find(".count, .open-notification").addClass("hidden");
 		this.links_area.hide();
