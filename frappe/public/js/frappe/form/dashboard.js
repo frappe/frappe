@@ -571,7 +571,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.chart_area.show();
 		this.chart_area.body.empty();
 		$.extend(args, {
-			type: "line",
+			type: args.type || "line",
 			colors: args.colors || ["green"],
 			truncateLegends: 1,
 			axisOptions: {
