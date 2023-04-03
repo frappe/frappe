@@ -1231,7 +1231,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_drag_click() {
 		/*
-			Click on the check box in the list view and 
+			Click on the check box in the list view and
 			drag through the rows to select.
 
 			Do it again to unselect.
@@ -1246,7 +1246,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 		$(document).on("mouseup", () => {
 			this.dragClick = false;
-		})
+		});
 		this.$result.on("mousemove", ".level.list-row", (e) => {
 			if (this.dragClick) {
 				this.check_on_drag(e, this.check);
@@ -1255,11 +1255,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	check_on_drag(event, check) {
-        this.checkRow(event, check);
+		this.checkRow(event, check);
 	}
 
-	checkRow(event, check=true) {
-        $(event.target).find(".list-row-checkbox").prop("checked", check);
+	checkRow(event, check = true) {
+		$(event.target).find(".list-row-checkbox").prop("checked", check);
 		this.on_row_checked();
     }
 
