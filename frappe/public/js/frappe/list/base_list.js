@@ -774,6 +774,7 @@ class FilterArea {
 							"Data",
 							"Code",
 							"Phone",
+							"JSON",
 							"Read Only",
 						].includes(fieldtype)
 					) {
