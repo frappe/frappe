@@ -1185,8 +1185,23 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
+<<<<<<< HEAD
 @whitelist()
 def rename_doc(*args, **kwargs):
+=======
+@whitelist(methods=["POST", "PUT"])
+def rename_doc(
+	doctype: str,
+	old: str,
+	new: str,
+	force: bool = False,
+	merge: bool = False,
+	*,
+	ignore_if_exists: bool = False,
+	show_alert: bool = True,
+	rebuild_search: bool = True,
+) -> str:
+>>>>>>> 3db1c1aea0 (fix: allowed only POST and PUT methods in `rename_doc` (#20504))
 	"""
 	Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
 
