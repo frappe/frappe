@@ -99,34 +99,62 @@ frappe.ui.Filter = class {
 	}
 
 	set_events() {
-		this.filter_edit_area.find(".remove-filter").on("click", () => {
-			this.remove();
-			this.on_change();
-		});
+    this.filter_edit_area.find('.remove-filter').on('click', () => {
+      this.remove();
+      this.on_change();
+    });
 
-		this.filter_edit_area.find(".condition").change(() => {
-			if (!this.field) return;
+    this.filter_edit_area.find('.condition').change(async () => {
+      if (!this.field) return;
 
-			let condition = this.get_condition();
-			let fieldtype = null;
+      let condition = this.get_condition();
+      let fieldtype = null;
 
-			if (["in", "like", "not in", "not like"].includes(condition)) {
-				fieldtype = "Link";
-				this.add_condition_help(condition);
-			} else {
-				this.filter_edit_area.find(".filter-description").empty();
-			}
+      if (['in', 'like', 'not in', 'not like'].includes(condition)) {
+        fieldtype = 'Link';
+        await this.set_dynamic_options();
+        this.add_condition_help(condition);
+      } else {
+        this.filter_edit_area.find('.filter-description').empty();
+      }
 
-			if (
-				["Select", "MultiSelect"].includes(this.field.df.fieldtype) &&
-				["in", "not in"].includes(condition)
-			) {
-				fieldtype = "MultiSelect";
-			}
+      if (
+        ['Select', 'MultiSelect'].includes(this.field.df.fieldtype) &&
+        ['in', 'not in'].includes(condition)
+      ) {
+        fieldtype = 'MultiSelect';
+      }
 
-			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
-		});
-	}
+      this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
+    });
+  }
+
+  async set_dynamic_options() {
+    if (!this.field) return;
+
+    let condition_value = this.filter_edit_area.find('.value').val();
+    let doctype = this.field.df.options;
+    let options = [];
+
+    if (condition_value) {
+      let res = await frappe.call({
+        method: 'frappe.desk.search.search_link',
+        args: {
+          doctype,
+          txt: condition_value,
+          searchfield: 'name',
+        },
+      });
+
+      if (res.message) {
+        options = res.message.map((doc) => doc.value);
+      }
+    }
+
+    this.field.df.options = options;
+    this.field.refresh();
+  }
+
 
 	setup() {
 		const fieldname = this.fieldname || "name";
