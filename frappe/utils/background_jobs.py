@@ -199,17 +199,7 @@ def start_worker(queue=None, quiet=False):
 		logging_level = "INFO"
 		if quiet:
 			logging_level = "WARNING"
-<<<<<<< HEAD
-		Worker(queues, name=get_worker_name(queue)).work(logging_level=logging_level)
-=======
-		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(
-			logging_level=logging_level,
-			burst=burst,
-			date_format="%Y-%m-%d %H:%M:%S",
-			log_format="%(asctime)s,%(msecs)03d %(message)s",
-		)
->>>>>>> c5cfe8f5aa (feat(minor): log datetime in worker log  (#20414))
+		Worker(queues, name=get_worker_name(queue)).work(logging_level=logging_level, date_format="%Y-%m-%d %H:%M:%S", log_format="%(asctime)s,%(msecs)03d %(message)s")
 
 
 def get_worker_name(queue):
