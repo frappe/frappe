@@ -186,6 +186,18 @@ def upload_file():
 		content = file.stream.read()
 		filename = file.filename
 
+<<<<<<< HEAD
+=======
+		content_type = guess_type(filename)[0]
+		if optimize and content_type and content_type.startswith("image/"):
+			args = {"content": content, "content_type": content_type}
+			if frappe.form_dict.max_width:
+				args["max_width"] = int(frappe.form_dict.max_width)
+			if frappe.form_dict.max_height:
+				args["max_height"] = int(frappe.form_dict.max_height)
+			content = optimize_image(**args)
+
+>>>>>>> b66c3d9106 (fix: content_type can be `None` during file upload (#20572))
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
