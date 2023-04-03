@@ -482,6 +482,7 @@ def disable():
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def reset_otp_secret(user):
 	otp_issuer = frappe.db.get_value("System Settings", "System Settings", "otp_issuer_name")
 	user_email = frappe.db.get_value("User", user, "email")
@@ -513,3 +514,46 @@ def reset_otp_secret(user):
 		)
 	else:
 		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
+=======
+def reset_otp_secret(user: str):
+	if frappe.session.user != user:
+		frappe.only_for("System Manager", message=True)
+
+	settings = frappe.get_cached_doc("System Settings")
+
+	if not settings.enable_two_factor_auth:
+		frappe.throw(
+			_("You have to enable Two Factor Auth from System Settings."),
+			title=_("Enable Two Factor Auth"),
+		)
+
+	otp_issuer = settings.otp_issuer_name or "Frappe Framework"
+	user_email = frappe.get_cached_value("User", user, "email")
+
+	clear_default(user + "_otplogin")
+	clear_default(user + "_otpsecret")
+
+	email_args = {
+		"recipients": user_email,
+		"sender": None,
+		"subject": _("OTP Secret Reset - {0}").format(otp_issuer),
+		"message": _(
+			"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
+		).format(otp_issuer),
+		"delayed": False,
+		"retry": 3,
+	}
+
+	enqueue(
+		method=frappe.sendmail,
+		queue="short",
+		timeout=300,
+		event=None,
+		is_async=True,
+		job_name=None,
+		now=False,
+		**email_args,
+	)
+
+	frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
+>>>>>>> 06580bdbff (fix: allow `reset_otp_secret` only if Two Factor Auth is enabled (#20506))
