@@ -56,5 +56,5 @@ class TestAddress(unittest.TestCase):
 			}
 		).insert()
 
-		self.assertGreaterEqual(len(query(txt="admin")), 1)
+		self.assertGreaterEqual(len(query(txt="Admin")), 1)
 		self.assertEqual(len(query(txt="what_zyx")), 0)
