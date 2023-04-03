@@ -271,7 +271,11 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			({search_condition})
 			{mcond} {condition}
 		order by
-			if(locate(%(_txt)s, `tabAddress`.name), locate(%(_txt)s, `tabAddress`.name), 99999),
+			case
+				when locate(%(_txt)s, `tabAddress`.name) != 0
+				then locate(%(_txt)s, `tabAddress`.name)
+				else 99999
+			end,
 			`tabAddress`.idx desc, `tabAddress`.name
 		limit %(page_len)s offset %(start)s""".format(
 			mcond=get_match_cond(doctype),
