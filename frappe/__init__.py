@@ -1290,7 +1290,7 @@ def reload_doc(
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
-@whitelist()
+@whitelist(methods=["POST", "PUT"])
 def rename_doc(
 	doctype: str,
 	old: str,
