@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import unittest
 
 import frappe
-from frappe.contacts.doctype.address.address import get_address_display
+from frappe.contacts.doctype.address.address import address_query, get_address_display
 
 
 class TestAddress(unittest.TestCase):
@@ -32,3 +32,29 @@ class TestAddress(unittest.TestCase):
 		address = frappe.get_list("Address")[0].name
 		display = get_address_display(frappe.get_doc("Address", address).as_dict())
 		self.assertTrue(display)
+
+	def test_address_query(self):
+		def query(doctype="Address", txt="", searchfield="name", start=0, page_len=20, filters=None):
+			if filters is None:
+				filters = {"link_doctype": "User", "link_name": "Administrator"}
+			return address_query(doctype, txt, searchfield, start, page_len, filters)
+
+		frappe.get_doc(
+			{
+				"address_type": "Billing",
+				"address_line1": "1",
+				"city": "Mumbai",
+				"state": "Maharashtra",
+				"country": "India",
+				"doctype": "Address",
+				"links": [
+					{
+						"link_doctype": "User",
+						"link_name": "Administrator",
+					}
+				],
+			}
+		).insert()
+
+		self.assertGreaterEqual(len(query(txt="Admin")), 1)
+		self.assertEqual(len(query(txt="what_zyx")), 0)

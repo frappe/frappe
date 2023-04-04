@@ -161,7 +161,6 @@ class ServerScript(Document):
 		return items
 
 
-@frappe.whitelist()
 def setup_scheduler_events(script_name, frequency):
 	"""Creates or Updates Scheduled Job Type documents based on the specified script name and frequency
 
