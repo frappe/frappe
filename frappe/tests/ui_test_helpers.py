@@ -426,12 +426,15 @@ def create_blog_post():
 	return doc
 
 
-def create_test_user():
-	if frappe.db.exists("User", UI_TEST_USER):
+@whitelist_for_tests
+def create_test_user(username=None):
+	name = username or UI_TEST_USER
+
+	if frappe.db.exists("User", name):
 		return
 
 	user = frappe.new_doc("User")
-	user.email = UI_TEST_USER
+	user.email = name
 	user.first_name = "Frappe"
 	user.new_password = frappe.local.conf.admin_password
 	user.send_welcome_email = 0

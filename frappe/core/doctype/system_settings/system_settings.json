@@ -13,6 +13,7 @@
   "time_zone",
   "enable_onboarding",
   "setup_complete",
+  "disable_document_sharing",
   "date_and_number_format",
   "date_format",
   "time_format",
@@ -548,12 +549,18 @@
    "fieldtype": "Select",
    "label": "Rounding Method",
    "options": "Banker's Rounding (legacy)\nBanker's Rounding\nCommercial Rounding"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_document_sharing",
+   "fieldtype": "Check",
+   "label": "Disable Document Sharing"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-03-10 12:23:45.248125",
+ "modified": "2023-03-14 11:30:56.465653",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

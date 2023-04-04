@@ -474,12 +474,20 @@ def disable():
 
 
 @frappe.whitelist()
-def reset_otp_secret(user):
+def reset_otp_secret(user: str):
 	if frappe.session.user != user:
 		frappe.only_for("System Manager", message=True)
 
-	otp_issuer = frappe.db.get_single_value("System Settings", "otp_issuer_name")
-	user_email = frappe.db.get_value("User", user, "email")
+	settings = frappe.get_cached_doc("System Settings")
+
+	if not settings.enable_two_factor_auth:
+		frappe.throw(
+			_("You have to enable Two Factor Auth from System Settings."),
+			title=_("Enable Two Factor Auth"),
+		)
+
+	otp_issuer = settings.otp_issuer_name or "Frappe Framework"
+	user_email = frappe.get_cached_value("User", user, "email")
 
 	clear_default(user + "_otplogin")
 	clear_default(user + "_otpsecret")
@@ -487,10 +495,10 @@ def reset_otp_secret(user):
 	email_args = {
 		"recipients": user_email,
 		"sender": None,
-		"subject": _("OTP Secret Reset - {0}").format(otp_issuer or "Frappe Framework"),
+		"subject": _("OTP Secret Reset - {0}").format(otp_issuer),
 		"message": _(
 			"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-		).format(otp_issuer or "Frappe Framework"),
+		).format(otp_issuer),
 		"delayed": False,
 		"retry": 3,
 	}

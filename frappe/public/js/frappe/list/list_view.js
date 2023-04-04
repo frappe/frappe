@@ -308,6 +308,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.render_header(refresh_header);
 			this.update_checkbox();
 			this.update_url_with_filters();
+			this.setup_realtime_updates();
 		});
 	}
 
@@ -1044,6 +1045,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_events() {
 		this.setup_filterable();
 		this.setup_list_click();
+		this.setup_drag_click();
 		this.setup_tag_event();
 		this.setup_new_doc_event();
 		this.setup_check_events();
@@ -1220,6 +1222,36 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	setup_drag_click() {
+		/*
+			Click on the check box in the list view and
+			drag through the rows to select.
+
+			Do it again to unselect.
+
+			If the first click is on checked checkbox, then it will unselect rows on drag,
+			else if it is unchecked checkbox, it will select rows on drag.
+		*/
+		this.dragClick = false;
+		this.$result.on("mousedown", ".list-row-checkbox", (e) => {
+			this.dragClick = true;
+			this.check = !e.target.checked;
+		});
+		$(document).on("mouseup", () => {
+			this.dragClick = false;
+		});
+		this.$result.on("mousemove", ".level.list-row", (e) => {
+			if (this.dragClick) {
+				this.check_row_on_drag(e, this.check);
+			}
+		});
+	}
+
+	check_row_on_drag(event, check = true) {
+		$(event.target).find(".list-row-checkbox").prop("checked", check);
+		this.on_row_checked();
+	}
+
 	setup_action_handler() {
 		this.$result.on("click", ".btn-action", (e) => {
 			const $button = $(e.currentTarget);
@@ -1322,10 +1354,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_realtime_updates() {
 		this.pending_document_refreshes = [];
 
-		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
+		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
 			return;
 		}
 		frappe.socketio.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
 		frappe.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
 				return;
@@ -1343,6 +1376,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.pending_document_refreshes.push(data);
 			frappe.utils.debounce(this.process_document_refreshes.bind(this), 1000)();
 		});
+		this.realtime_events_setup = true;
+	}
+
+	disable_realtime_updates() {
+		frappe.socketio.doctype_unsubscribe(this.doctype);
+		this.realtime_events_setup = false;
 	}
 
 	process_document_refreshes() {
@@ -1352,6 +1391,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (!cur_list || route[0] != "List" || cur_list.doctype != route[1]) {
 			// wait till user is back on list view before refreshing
 			this.pending_document_refreshes = [];
+			this.disable_realtime_updates();
 			return;
 		}
 
