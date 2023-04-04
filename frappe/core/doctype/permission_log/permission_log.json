@@ -10,15 +10,15 @@
   "changed_by",
   "column_break_gvuy",
   "changed_at",
-  "action",
+  "status",
   "section_break_ttv7",
-  "reference_doctype",
-  "column_break_acow",
-  "reference_document",
-  "section_break_6gd5",
   "for_doctype",
-  "column_break_8nk0",
+  "column_break_acow",
   "for_document",
+  "section_break_6gd5",
+  "reference_type",
+  "column_break_8nk0",
+  "reference",
   "section_break_mt9x",
   "changes",
   "changed_values"
@@ -26,9 +26,10 @@
  "fields": [
   {
    "fieldname": "changed_by",
-   "fieldtype": "Data",
-   "is_virtual": 1,
+   "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Changed By",
+   "options": "User",
    "read_only": 1
   },
   {
@@ -36,24 +37,6 @@
    "fieldtype": "Data",
    "is_virtual": 1,
    "label": "Changed At",
-   "read_only": 1
-  },
-  {
-   "fieldname": "for_doctype",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "For DocType",
-   "options": "DocType",
-   "read_only": 1
-  },
-  {
-   "fieldname": "for_document",
-   "fieldtype": "Dynamic Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "For Document",
-   "options": "for_doctype",
    "read_only": 1
   },
   {
@@ -92,37 +75,54 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "action",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "Action",
-   "options": "Update\nRemove",
-   "read_only": 1
-  },
-  {
-   "fieldname": "reference_doctype",
+   "fieldname": "for_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Reference Doctype",
+   "label": "For Doctype",
    "options": "DocType",
    "read_only": 1,
    "reqd": 1
   },
   {
-   "fieldname": "reference_document",
+   "fieldname": "for_document",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Reference Document",
-   "options": "reference_doctype",
+   "label": "For Document",
+   "options": "for_doctype",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "reference_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reference",
+   "options": "reference_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Status",
+   "options": "Updated\nRemoved"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-29 19:52:32.025617",
+ "modified": "2023-04-05 02:07:37.456631",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",
@@ -137,6 +137,15 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
- "title_field": "reference_doctype"
+ "states": [
+  {
+   "color": "Yellow",
+   "title": "Updated"
+  },
+  {
+   "color": "Red",
+   "title": "Removed"
+  }
+ ],
+ "title_field": "for_document"
 }

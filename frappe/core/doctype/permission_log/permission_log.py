@@ -7,10 +7,6 @@ from frappe.model.document import Document
 
 class PermissionLog(Document):
 	@property
-	def changed_by(self):
-		return self.owner
-
-	@property
 	def changed_at(self):
 		return self.creation
 
@@ -44,11 +40,12 @@ def insert_perm_log(
 		{
 			"doctype": "Permission Log",
 			"owner": frappe.session.user,
-			"reference_doctype": doc.doctype,
-			"reference_document": doc.name,
-			"for_doctype": for_doctype,
-			"for_document": for_document,
-			"action": "Remove" if not doc_before_save else "Update",
+			"changed_by": frappe.session.user,
+			"reference_type": for_doctype and doc.doctype,
+			"reference": for_document and doc.name,
+			"for_doctype": for_doctype or doc.doctype,
+			"for_document": for_document or doc.name,
+			"status": "Removed" if not doc_before_save else "Updated",
 			"changes": frappe.as_json({"from": previous, "to": current}, indent=0),
 		}
 	).db_insert()
