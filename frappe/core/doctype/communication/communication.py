@@ -397,6 +397,7 @@ def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
+	frappe.db.add_index("Communication", ["message_id(140)"])
 
 
 def has_permission(doc, ptype, user):
