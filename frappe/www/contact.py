@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+from contextlib import suppress
+
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
@@ -29,9 +31,8 @@ def get_context(context):
 @rate_limit(limit=1000, seconds=60 * 60)
 def send_message(sender, message, subject="Website Query"):
 	sender = validate_email_address(sender, throw=True)
-	if forward_to_email := frappe.db.get_single_value("Contact Us Settings", "forward_to_email"):
-		frappe.sendmail(recipients=forward_to_email, reply_to=sender, content=message, subject=subject)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 	if not sender:
 		frappe.response["message"] = "Email Address Required"
@@ -63,6 +64,20 @@ def send_message(sender, message, subject="Website Query"):
 		subject="We've received your query!",
 	)
 >>>>>>> 67de2a34ac (fix: contact us email reply)
+=======
+	with suppress(frappe.OutgoingEmailError):
+		if forward_to_email := frappe.db.get_single_value("Contact Us Settings", "forward_to_email"):
+			frappe.sendmail(recipients=forward_to_email, reply_to=sender, content=message, subject=subject)
+
+		frappe.sendmail(
+			recipients=sender,
+			content=f"<div style='white-space: pre-wrap'>Thank you for reaching out to us. We will get back to you at the earliest.\n\n\nYour query:\n\n{message}</div>",
+			subject="We've received your query!",
+		)
+
+	# for clearing outgoing email error message
+	frappe.clear_last_message()
+>>>>>>> cbe0ce37d3 (fix: suppress outgoing email error for contact-us page)
 
 	# add to to-do ?
 	frappe.get_doc(
