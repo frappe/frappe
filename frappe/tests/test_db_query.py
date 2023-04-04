@@ -319,6 +319,10 @@ class TestDBQuery(FrappeTestCase):
 			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]}, fields=["name"]
 		)
 
+	def test_like_filter_for_datetime(self):
+		create_event(starts_on="2002-04-21 23:59:59")
+		self.assertTrue(frappe.get_all("Event", filters={"starts_on": ("like", "%2002-04-21%")}))
+
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
 		self.assertRaises(frappe.PermissionError, get_filters_cond, "DocType", dict(istable=1), [])
