@@ -28,10 +28,10 @@ frappe.ui.form.on("Permission Log", {
 					<td class="to"></td>
 				</tr>`);
 				let html = {
-					from: $(`<table class="table table-bordered">
+					from: $(`<table class="table-bordered small">
 					<tbody></tbody>
 				</table>`),
-					to: $(`<table class="table table-bordered">
+					to: $(`<table class="table-bordered small">
 					<tbody></tbody>
 				</table>`),
 				};
@@ -44,12 +44,40 @@ frappe.ui.form.on("Permission Log", {
 						child_data.push([Object.keys(k), Object.values(k)]);
 					});
 					child_data.forEach((k) => {
-						html[for_value].find("tbody").append(
-							$(`<tr>
-							<td style="word-break: break-word">${frappe.model.unscrub(k[0].join(" | "))}</td>
-							<td style="word-break: break-word">${k[1].join(" | ")}</td>
-						</tr>`)
-						);
+						if (k[0].length > 1) {
+							// for multiple child fields
+							let sub_child = $(`<tr>
+								<td class="field"></td>
+								<td class="value"></td>
+							</tr>`);
+
+							k[0].forEach((child, index) => {
+								sub_child
+									.find(".field")
+									.append(
+										$(
+											`<tr><td style="word-break: break-word">${frappe.model.unscrub(
+												child
+											)}</td></tr>`
+										)
+									);
+								sub_child
+									.find(".value")
+									.append(
+										$(
+											`<tr><td style="word-break: break-word">${k[1][index]}</td></tr>`
+										)
+									);
+							});
+							html[for_value].find("tbody").append(sub_child);
+						} else {
+							html[for_value].find("tbody").append(
+								$(`<tr>
+								<td style="word-break: break-word">${frappe.model.unscrub(k[0][0])}</td>
+								<td style="word-break: break-word">${k[1][0]}</td>
+							</tr>`)
+							);
+						}
 					});
 				});
 
