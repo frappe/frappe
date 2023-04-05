@@ -403,7 +403,7 @@ def insert_event_in_google_calendar(doc, method=None):
 	event = {"summary": doc.subject, "description": doc.description, "google_calendar_event": 1}
 	event.update(
 		format_date_according_to_google_calendar(
-			doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)
+			doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on) if doc.ends_on else None
 		)
 	)
 
@@ -484,7 +484,7 @@ def update_event_in_google_calendar(doc, method=None):
 		)
 		event.update(
 			format_date_according_to_google_calendar(
-				doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)
+				doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on) if doc.ends_on else None
 			)
 		)
 

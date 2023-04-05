@@ -63,6 +63,7 @@ from frappe.utils.data import (
 	now_datetime,
 	nowtime,
 	pretty_date,
+	rounded,
 	to_timedelta,
 	validate_python_code,
 )
@@ -1007,7 +1008,7 @@ class TestTBSanitization(FrappeTestCase):
 
 
 class TestRounding(FrappeTestCase):
-	@change_settings("System Settings", {"rounding_method": "Rounding Half Away From Zero"})
+	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	def test_normal_rounding(self):
 		self.assertEqual(flt("what"), 0)
 
@@ -1041,7 +1042,7 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-0.15, 1), -0.2)
 
 	def test_normal_rounding_as_argument(self):
-		rounding_method = "Rounding Half Away From Zero"
+		rounding_method = "Commercial Rounding"
 
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 1)
 		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
@@ -1073,9 +1074,84 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-1.25, 1, rounding_method=rounding_method), -1.3)
 		self.assertEqual(flt(-0.15, 1, rounding_method=rounding_method), -0.2)
 
-	@change_settings("System Settings", {"rounding_method": "Rounding Half Away From Zero"})
+		# Nearest number and not even (the default behaviour)
+		self.assertEqual(flt(0.5, 0, rounding_method=rounding_method), 1)
+		self.assertEqual(flt(1.5, 0, rounding_method=rounding_method), 2)
+		self.assertEqual(flt(2.5, 0, rounding_method=rounding_method), 3)
+		self.assertEqual(flt(3.5, 0, rounding_method=rounding_method), 4)
+
+		self.assertEqual(flt(0.05, 1, rounding_method=rounding_method), 0.1)
+		self.assertEqual(flt(1.15, 1, rounding_method=rounding_method), 1.2)
+		self.assertEqual(flt(2.25, 1, rounding_method=rounding_method), 2.3)
+		self.assertEqual(flt(3.35, 1, rounding_method=rounding_method), 3.4)
+
+	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_normal_rounding_property(self, number, precision):
 		with localcontext() as ctx:
 			ctx.rounding = ROUND_HALF_UP
 			self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
+
+	def test_bankers_rounding(self):
+		rounding_method = "Banker's Rounding"
+
+		self.assertEqual(rounded(0, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
+
+		self.assertEqual(flt("1.5", 0, rounding_method=rounding_method), 2)
+
+		# positive rounding to integers
+		self.assertEqual(flt(0.4, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt(0.5, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt(1.455, 0, rounding_method=rounding_method), 1)
+		self.assertEqual(flt(1.5, 0, rounding_method=rounding_method), 2)
+
+		# negative rounding to integers
+		self.assertEqual(flt(-0.5, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt(-1.5, 0, rounding_method=rounding_method), -2)
+
+		# negative precision i.e. round to nearest 10th
+		self.assertEqual(flt(123, -1, rounding_method=rounding_method), 120)
+		self.assertEqual(flt(125, -1, rounding_method=rounding_method), 120)
+		self.assertEqual(flt(134.45, -1, rounding_method=rounding_method), 130)
+		self.assertEqual(flt(135, -1, rounding_method=rounding_method), 140)
+
+		# positive multiple digit rounding
+		self.assertEqual(flt(1.25, 1, rounding_method=rounding_method), 1.2)
+		self.assertEqual(flt(0.15, 1, rounding_method=rounding_method), 0.2)
+		self.assertEqual(flt(2.675, 2, rounding_method=rounding_method), 2.68)
+		self.assertEqual(flt(-2.675, 2, rounding_method=rounding_method), -2.68)
+
+		# negative multiple digit rounding
+		self.assertEqual(flt(-1.25, 1, rounding_method=rounding_method), -1.2)
+		self.assertEqual(flt(-0.15, 1, rounding_method=rounding_method), -0.2)
+
+		# Nearest number and not even (the default behaviour)
+		self.assertEqual(flt(0.5, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt(1.5, 0, rounding_method=rounding_method), 2)
+		self.assertEqual(flt(2.5, 0, rounding_method=rounding_method), 2)
+		self.assertEqual(flt(3.5, 0, rounding_method=rounding_method), 4)
+
+		self.assertEqual(flt(0.05, 1, rounding_method=rounding_method), 0.0)
+		self.assertEqual(flt(1.15, 1, rounding_method=rounding_method), 1.2)
+		self.assertEqual(flt(2.25, 1, rounding_method=rounding_method), 2.2)
+		self.assertEqual(flt(3.35, 1, rounding_method=rounding_method), 3.4)
+
+		self.assertEqual(flt(-0.5, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(flt(-1.5, 0, rounding_method=rounding_method), -2)
+		self.assertEqual(flt(-2.5, 0, rounding_method=rounding_method), -2)
+		self.assertEqual(flt(-3.5, 0, rounding_method=rounding_method), -4)
+
+		self.assertEqual(flt(-0.05, 1, rounding_method=rounding_method), 0.0)
+		self.assertEqual(flt(-1.15, 1, rounding_method=rounding_method), -1.2)
+		self.assertEqual(flt(-2.25, 1, rounding_method=rounding_method), -2.2)
+		self.assertEqual(flt(-3.35, 1, rounding_method=rounding_method), -3.4)
+
+	@change_settings("System Settings", {"rounding_method": "Banker's Rounding"})
+	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
+	def test_bankers_rounding_property(self, number, precision):
+		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
+
+	def test_default_rounding(self):
+		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")

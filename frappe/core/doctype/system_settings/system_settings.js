@@ -16,6 +16,8 @@ frappe.ui.form.on("System Settings", {
 				}
 			},
 		});
+
+		frm.trigger("set_rounding_method_options");
 	},
 	enable_password_policy: function (frm) {
 		if (frm.doc.enable_password_policy == 0) {
@@ -55,5 +57,18 @@ frappe.ui.form.on("System Settings", {
 				frm.set_value("rounding_method", frappe.boot.sysdefaults.rounding_method);
 			}
 		);
+	},
+
+	set_rounding_method_options: function (frm) {
+		if (frm.doc.rounding_method != "Banker's Rounding (legacy)") {
+			let field = frm.fields_dict.rounding_method;
+
+			field.df.options = field.df.options
+				.split("\n")
+				.filter((o) => o != "Banker's Rounding (legacy)")
+				.join("\n");
+
+			field.refresh();
+		}
 	},
 });
