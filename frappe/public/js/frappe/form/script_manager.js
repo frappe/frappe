@@ -161,10 +161,9 @@ frappe.ui.form.ScriptManager = Class.extend({
 		let client_script;
 
 		// process the custom script for this form
-		if (this.frm.doctype_layout) {
-			client_script = this.frm.doctype_layout.client_script;
-		} else {
-			client_script = doctype.__js;
+		if (this.frm.doctype_layout?.client_script) {
+			// add a newline to avoid conflict with doctype JS
+			client_script += `\n${this.frm.doctype_layout.client_script}`;
 		}
 
 		if (client_script) {
