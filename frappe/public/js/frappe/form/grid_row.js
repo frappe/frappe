@@ -1428,22 +1428,27 @@ export default class GridRow {
 	set_field_property(fieldname, property, value) {
 		// set a field property for open form / grid form
 		var me = this;
-
+	  
 		var set_property = function (field) {
-			if (!field) return;
-			field.df[property] = value;
-			field.refresh();
+		  if (!field) return;
+		  field.df[property] = value;
+		  field.refresh();
 		};
-
+	  
 		// set property in grid form
 		if (this.grid_form) {
-			set_property(this.grid_form.fields_dict[fieldname]);
-			this.grid_form.layout && this.grid_form.layout.refresh_sections();
+		  // add event listener for grid row form onload event
+		  this.grid_form.events.on('onload', function () {
+			// set property for specified field
+			set_property(me.grid_form.fields_dict[fieldname]);
+			me.grid_form.layout && me.grid_form.layout.refresh_sections();
+		  });
 		}
-
+	  
 		// set property in on grid fields
 		set_property(this.on_grid_fields_dict[fieldname]);
-	}
+	  }
+	  
 	toggle_reqd(fieldname, reqd) {
 		this.set_field_property(fieldname, "reqd", reqd ? 1 : 0);
 	}
