@@ -128,8 +128,8 @@ frappe.dom = {
 		$parent.find(`.${common_class}.${active_class}`).removeClass(active_class);
 		$child.addClass(active_class);
 	},
-	freeze: function (msg, css_class) {
-		// blur
+	freeze:function (msg, css_class) {
+		
 		if (!$("#freeze").length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
 				.on("click", function () {
@@ -138,28 +138,29 @@ frappe.dom = {
 						return false;
 					}
 				})
-				.appendTo("#body");
-
+				.appendTo($('.modal:visible')); 
+	
 			freeze.html(
 				repl(
 					'<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
 					{ msg: msg || "" }
 				)
 			);
-
+	
 			setTimeout(function () {
 				freeze.addClass("in");
 			}, 1);
 		} else {
 			$("#freeze").addClass("in");
 		}
-
+	
 		if (css_class) {
 			$("#freeze").addClass(css_class);
 		}
-
+	
 		frappe.dom.freeze_count++;
 	},
+	
 	unfreeze: function () {
 		if (!frappe.dom.freeze_count) return; // anything open?
 		frappe.dom.freeze_count--;
