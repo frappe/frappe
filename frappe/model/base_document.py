@@ -271,8 +271,34 @@ class BaseDocument(object):
 
 		return value
 
+<<<<<<< HEAD
 	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False):
 		d = frappe._dict()
+=======
+	def _get_table_fields(self):
+		"""
+		To get table fields during Document init
+		Meta.get_table_fields goes into recursion for special doctypes
+		"""
+
+		if self.doctype == "DocType":
+			return DOCTYPE_TABLE_FIELDS
+
+		# child tables don't have child tables
+		if self.doctype in DOCTYPES_FOR_DOCTYPE:
+			return ()
+
+		return self.meta.get_table_fields()
+
+	def get_valid_dict(
+		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
+	) -> dict:
+		d = _dict()
+		permitted_fields = get_permitted_fields(
+			doctype=self.doctype, parenttype=getattr(self, "parenttype", None)
+		)
+
+>>>>>>> 090c91b44f (fix: virtual fields in child tables not displaying (#20528))
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 
