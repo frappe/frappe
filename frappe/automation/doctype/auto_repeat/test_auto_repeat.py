@@ -156,7 +156,7 @@ class TestAutoRepeat(FrappeTestCase):
 		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), months)
 
-	def test_notification_is_attached(self):
+	def test_email_notification(self):
 		todo = frappe.get_doc(
 			dict(
 				doctype="ToDo",
@@ -180,10 +180,10 @@ class TestAutoRepeat(FrappeTestCase):
 			"ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name"
 		)
 
-		linked_comm = frappe.db.exists(
-			"Communication", dict(reference_doctype="ToDo", reference_name=new_todo)
+		email_queue = frappe.db.exists(
+			"Email Queue", dict(reference_doctype="ToDo", reference_name=new_todo)
 		)
-		self.assertTrue(linked_comm)
+		self.assertTrue(email_queue)
 
 	def test_next_schedule_date(self):
 		current_date = getdate(today())
