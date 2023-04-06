@@ -28,12 +28,27 @@ def get_user_default(key, user=None):
 
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
+			if not d:
+				# If no default value is found, use the User Permission value
+				d = get_user_permission_default(key)
 
 	value = isinstance(d, (list, tuple)) and d[0] or d
 	if not_in_user_permission(key, value, user):
 		return
 
 	return value
+
+
+def get_user_permission_default(key):
+	permissions = get_user_permissions()
+	user_default = ""
+	if permissions.get(key):
+		for item in permissions.get(key):
+			if item.get("is_default"):
+				user_default = item.get("doc")
+				break
+
+	return user_default
 
 
 def get_user_default_as_list(key, user=None):
