@@ -167,7 +167,7 @@ class Newsletter(WebsiteGenerator):
 		attachments = self.get_newsletter_attachments()
 		sender = self.send_from or frappe.utils.get_formatted_email(self.owner)
 		args = self.as_dict()
-		args["message"] = self.get_message()
+		args["message"] = self.get_message(medium="email")
 
 		is_auto_commit_set = bool(frappe.db.auto_commit_on_many_writes)
 		frappe.db.auto_commit_on_many_writes = not frappe.flags.in_test
@@ -193,7 +193,7 @@ class Newsletter(WebsiteGenerator):
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
 
-	def get_message(self) -> str:
+	def get_message(self, medium=None) -> str:
 		message = self.message
 		if self.content_type == "Markdown":
 			message = frappe.utils.md_to_html(self.message_md)
@@ -202,9 +202,9 @@ class Newsletter(WebsiteGenerator):
 
 		html = frappe.render_template(message, {"doc": self.as_dict()})
 
-		return self.add_source(html)
+		return self.add_source(html, medium=medium)
 
-	def add_source(self, html: str) -> str:
+	def add_source(self, html: str, medium="None") -> str:
 		"""Add source to the site links in the newsletter content."""
 		from bs4 import BeautifulSoup
 
@@ -216,8 +216,8 @@ class Newsletter(WebsiteGenerator):
 			if href and not href.startswith("#"):
 				if not frappe.utils.is_site_link(href):
 					continue
-				new_href = frappe.utils.add_source_to_url(
-					href, reference_doctype=self.doctype, reference_docname=self.name
+				new_href = frappe.utils.add_trackers_to_url(
+					href, source="Newsletter", campaign=self.campaign, medium=medium
 				)
 				link["href"] = new_href
 
@@ -377,14 +377,17 @@ def send_scheduled_email():
 def newsletter_email_read(recipient_email, reference_doctype, reference_name):
 	verify_request()
 	try:
-		doc = frappe.get_doc(reference_doctype, reference_name)
+		doc = frappe.get_cached_doc("Newsletter", reference_name)
 		if doc.add_viewed(recipient_email, force=True, unique_views=True):
-			doc.db_set("total_views", frappe.utils.cint(doc.total_views) + 1, update_modified=False)
+			newsletter = frappe.qb.DocType("Newsletter")
+			(
+				frappe.qb.update(newsletter)
+				.set(newsletter.total_views, newsletter.total_views + 1)
+				.where(newsletter.name == doc.name)
+			).run()
 
 	except Exception:
-		frappe.log_error(
-			f"Unable to mark as viewed for {recipient_email}", None, reference_doctype, reference_name
-		)
+		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
