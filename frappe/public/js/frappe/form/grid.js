@@ -1027,6 +1027,27 @@ export default class Grid {
 		this.multiple_set = true;
 	}
 
+	bulk_value_set(data, fieldnames, value_formatter_map) {
+		let me = this;
+		$.each(data, (i, row) => {
+			let d = me.frm.add_child(me.df.fieldname);
+			$.each(row, (ci, value) => {
+				let fieldname = fieldnames[ci];
+				let df = frappe.meta.get_docfield(me.df.options, fieldname);
+				if (df && !df.read_only) {
+					frappe.model.set_value(
+						d.doctype,
+						d.name,
+						fieldname,
+						value_formatter_map[df.fieldtype]
+							? value_formatter_map[df.fieldtype](value)
+							: value
+					);
+				}
+			});
+		});
+	}
+
 	setup_allow_bulk_edit() {
 		let me = this;
 		if (this.frm && this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
@@ -1050,53 +1071,26 @@ export default class Grid {
 						as_dataurl: true,
 						allow_multiple: false,
 						on_success(file) {
-							var data = frappe.utils.csv_to_array(
+							let data = frappe.utils.csv_to_array(
 								frappe.utils.get_decoded_string(file.dataurl)
 							);
 							// row #2 contains fieldnames;
-							var fieldnames = data[2];
+							let fieldnames = data[2];
 							me.frm.clear_table(me.df.fieldname);
-							$.each(data, (i, row) => {
-								if (i > 6) {
-									var blank_row = true;
-									$.each(row, function (ci, value) {
-										if (value) {
-											blank_row = false;
-											return false;
-										}
-									});
+							data = data.splice(7);
 
-									if (!blank_row) {
-										var d = me.frm.add_child(me.df.fieldname);
-										$.each(row, (ci, value) => {
-											var fieldname = fieldnames[ci];
-											var df = frappe.meta.get_docfield(
-												me.df.options,
-												fieldname
-											);
-											if (df && !df.read_only) {
-												frappe.model.set_value(
-													d.doctype,
-													d.name,
-													fieldname,
-													value_formatter_map[df.fieldtype]
-														? value_formatter_map[df.fieldtype](value)
-														: value
-												);
-											}
-										});
-									}
-								}
-							});
-
-							frappe.msgprint({
-								message: __("Table updated"),
-								title: __("Success"),
-								indicator: "green",
-							});
+							let tasks = [() => frappe.dom.freeze(__("Processing") + "...")];
+							while (data.length > 0) {
+								let _data = data.splice(0, 5);
+								tasks.push(() => frappe.timeout(1));
+								tasks.push(() =>
+									me.bulk_value_set(_data, fieldnames, value_formatter_map)
+								);
+							}
+							tasks.push(() => frappe.dom.unfreeze());
+							frappe.run_serially(tasks);
 						},
 					});
-					return false;
 				});
 		}
 	}
