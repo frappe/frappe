@@ -65,6 +65,7 @@ def as_restricted_user():
 	old_user = frappe.session.user
 	user = "test@example.com"
 
+<<<<<<< HEAD
 	perm_doc = frappe.get_doc(
 		{
 			"doctype": "User Permission",
@@ -80,3 +81,41 @@ def as_restricted_user():
 
 	perm_doc.delete(ignore_permissions=True)
 	frappe.set_user(old_user)
+=======
+		frappe.delete_doc("User Permission", perm_doc.name)
+		frappe.set_user(old_user)
+
+	def test_user_permission_defaults(self):
+		# Create user permission
+		frappe.set_user("user_default_test@example.com")
+		set_global_default("Language", "")
+		clear_user_default("Language")
+
+		perm_doc = frappe.get_doc(
+			dict(
+				doctype="User Permission",
+				user=frappe.session.user,
+				allow="Language",
+				for_value="en-US",
+			)
+		).insert(ignore_permissions=True)
+
+		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 1)
+		set_global_default("Language", "en-GB")
+		self.assertEqual(get_user_default("Language"), "en-US")
+
+		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 0)
+		clear_user_default("Language")
+		self.assertEqual(get_user_default("Language"), None)
+
+		perm_doc = frappe.get_doc(
+			dict(
+				doctype="User Permission",
+				user=frappe.session.user,
+				allow="Language",
+				for_value="en-GB",
+			)
+		).insert(ignore_permissions=True)
+
+		self.assertEqual(get_user_default("Language"), "en-GB")
+>>>>>>> 087caff4cd (test: Add test for user perm defaults)
