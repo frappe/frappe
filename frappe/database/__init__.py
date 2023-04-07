@@ -3,6 +3,8 @@
 
 # Database Module
 # --------------------
+import os
+from shutil import which
 
 from frappe.database.database import savepoint
 
@@ -50,3 +52,65 @@ def get_db(host=None, user=None, password=None, port=None):
 		import frappe.database.mariadb.database
 
 		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port=port)
+
+def get_command(host=None, port=None, user=None, password=None, db_name=None, extra=[], dump=False):
+	import frappe
+	from frappe.utils import make_esc
+
+	esc = make_esc("$ ")
+
+	if frappe.conf.db_type == "postgres":
+		if dump:
+			bin = which("pg_dump")
+		else:
+			bin = which("psql")
+
+		if not host:
+			host = '127.0.0.1'
+		if not port:
+			port = 5432
+
+		conn_string = str
+		if password:
+			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
+		else:
+			conn_string = f"postgresql://{user}@{host}:{port}/{db_name}"
+
+		return bin, [esc(conn_string)]
+
+	else:
+		if dump:
+			bin = which("mysql")
+		else:
+			bin = which("mysqldump")
+
+		if not host:
+			host = '127.0.0.1'
+		if not port:
+			from frappe.database.mariadb.database import MariaDBDatabase
+			port = MariaDBDatabase.default_port
+
+		command = [
+			f"--user={user}",
+			f"--host={host}",
+			f"--port={port}",
+		]
+		if dump:
+			command.extend([
+				"--single-transaction",
+				"--quick",
+				"--lock-tables=false",
+    			])
+		else:
+			command.extend([
+				"--pager=less -SFX",
+				"--safe-updates",
+				"--no-auto-rehash",
+			])
+		if password:
+			command.append(f"--password={password}")
+
+		command.extend(extra)
+		command.append(db_name)
+
+		return bin, list(map(esc, command))

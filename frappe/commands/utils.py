@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 import sys
-from shutil import which
 
 import click
 
@@ -12,7 +11,6 @@ from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
 
-find_executable = which  # backwards compatibility
 DATA_IMPORT_DEPRECATION = (
 	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
 	"Use `data-import` command instead to import data via 'Data Import'."
@@ -497,31 +495,18 @@ def database(context, extra_args):
 	"""
 	Enter into the Database console for given site.
 	"""
-	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
-	frappe.init(site=site)
-	if not frappe.conf.db_type or frappe.conf.db_type == "mariadb":
-		_mariadb(extra_args=extra_args)
-	elif frappe.conf.db_type == "postgres":
-		_psql(extra_args=extra_args)
+	_enter_console(extra_args=extra_args)
 
 
-@click.command(
-	"mariadb",
-	context_settings=EXTRA_ARGS_CTX,
-)
+@click.command("mariadb", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
 def mariadb(context, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
-	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
-	frappe.init(site=site)
-	_mariadb(extra_args=extra_args)
+	frappe.conf.db_type = "mariadb"
+	_enter_console(extra_args=extra_args)
 
 
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
@@ -531,46 +516,29 @@ def postgres(context, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
+	frappe.conf.db_type = "postgres"
+	_enter_console(extra_args=extra_args)
+
+
+def _enter_console(extra_args=None):
 	site = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	_psql(extra_args=extra_args)
-
-
-def _mariadb(extra_args=None):
-	from frappe.database.mariadb.database import MariaDBDatabase
-
-	mysql = which("mysql")
-	command = [
-		mysql,
-		"--port",
-		str(frappe.conf.db_port or MariaDBDatabase.default_port),
-		"-u",
-		frappe.conf.db_name,
-		f"-p{frappe.conf.db_password}",
-		frappe.conf.db_name,
-		"-h",
-		frappe.conf.db_host or "localhost",
-		"--pager=less -SFX",
-		"--safe-updates",
-		"-A",
-	]
-	if extra_args:
-		command += list(extra_args)
-	os.execv(mysql, command)
-
-
-def _psql(extra_args=None):
-	psql = which("psql")
-
-	host = frappe.conf.db_host or "127.0.0.1"
-	port = frappe.conf.db_port or "5432"
-	env = os.environ.copy()
-	env["PGPASSWORD"] = frappe.conf.db_password
-	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
-	psql_cmd = [psql, conn_string]
-	if extra_args:
-		psql_cmd = psql_cmd + list(extra_args)
-	subprocess.run(psql_cmd, check=True, env=env)
+	from frappe.database import get_command
+	bin, args = get_command(
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=frappe.conf.db_name,
+		password=frappe.conf.db_password,
+		db_name=frappe.conf.db_name,
+		extra=list(extra_args) if extra_args else [],
+	)
+	if not bin:
+		frappe.throw(
+			f"{bin} not found in PATH! This is required to access the console.", exc=frappe.ExecutableNotFound
+		)
+	os.execv(bin, args)
 
 
 @click.command("jupyter")

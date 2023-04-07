@@ -52,34 +52,31 @@ class DbManager:
 	def restore_database(target, source, user, password):
 		import os
 		from shutil import which
+		from frappe.database import get_command
 
-		from frappe.utils import make_esc
-
-		esc = make_esc("$ ")
 		pv = which("pv")
 
+		command = []
+
 		if pv:
-			pipe = f"{pv} {source} |"
+			command.append(f"{pv}", f"{source}", "|")
 			source = ""
+			print("Restoring Database file...")
 		else:
-			pipe = ""
 			source = f"< {source}"
 
-		if pipe:
-			print("Restoring Database file...")
-
-		command = (
-			"{pipe} mysql -u {user} -p{password} -h{host} "
-			+ ("-P{port}" if frappe.db.port else "")
-			+ " {target} {source}"
-		)
-		command = command.format(
-			pipe=pipe,
-			user=esc(user),
-			password=esc(password),
-			host=esc(frappe.db.host),
-			target=esc(target),
-			source=source,
+		bin, args = get_command(
+			host=frappe.db.host,
 			port=frappe.db.port,
+			user=user,
+			password=password,
+			db_name=target,
 		)
-		os.system(command)
+		if not bin:
+			frappe.throw(
+				f"{bin} not found in PATH! This is required to restore the database.", exc=frappe.ExecutableNotFound
+			)
+		command.append(bin)
+		command.extend(args)
+		command.append(source)
+		os.system(" ".join(command))
