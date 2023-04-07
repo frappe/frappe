@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.defaults import *
 from frappe.tests.utils import FrappeTestCase
 
@@ -74,6 +75,7 @@ class TestDefaults(FrappeTestCase):
 
 	def test_user_permission_defaults(self):
 		# Create user permission
+		create_user("user_default_test@example.com", "Blogger")
 		frappe.set_user("user_default_test@example.com")
 		set_global_default("Language", "")
 		clear_user_default("Language")
