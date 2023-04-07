@@ -25,12 +25,12 @@ def get_user_default(key, user=None):
 		if d and isinstance(d, (list, tuple)) and len(d) == 1:
 			# Use User Permission value when only when it has a single value
 			d = d[0]
-
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
+			user_permission_default = get_user_permission_default(key, user_defaults)
 			if not d:
 				# If no default value is found, use the User Permission value
-				d = get_user_permission_default(key)
+				d = user_permission_default
 
 	value = isinstance(d, (list, tuple)) and d[0] or d
 	if not_in_user_permission(key, value, user):
@@ -39,10 +39,16 @@ def get_user_default(key, user=None):
 	return value
 
 
-def get_user_permission_default(key):
+def get_user_permission_default(key, defaults):
 	permissions = get_user_permissions()
 	user_default = ""
 	if permissions.get(key):
+		# global default in user permission
+		for item in permissions.get(key):
+			doc = item.get("doc")
+			if defaults.get(key) == doc:
+				user_default = doc
+
 		for item in permissions.get(key):
 			if item.get("is_default"):
 				user_default = item.get("doc")
