@@ -16,6 +16,7 @@ class PropertySetter(Document):
 
 	def validate(self):
 		self.validate_fieldtype_change()
+		self.validate_default_value()
 
 		if self.is_new():
 			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
@@ -24,6 +25,29 @@ class PropertySetter(Document):
 	def validate_fieldtype_change(self):
 		if self.property == "fieldtype" and self.field_name in not_allowed_fieldtype_change:
 			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
+
+	def validate_default_value(self):
+		if self.property == "default":
+			field_meta = frappe.get_meta(self.doc_type).get_field(self.field_name)
+			fieldtype = field_meta.fieldtype
+			label = field_meta.label
+
+			if fieldtype == "Int":
+				try:
+					int(self.value)
+				except ValueError:
+					frappe.throw(
+						_("Default value for field {0} must be an integer").format(frappe.bold(label)),
+						title=_("Invalid Value"),
+					)
+			elif fieldtype in ["Percent", "Float"]:
+				try:
+					float(self.value)
+				except ValueError:
+					frappe.throw(
+						_("Default value for field {0} must be a number").format(frappe.bold(label)),
+						title=_("Invalid Value"),
+					)
 
 	def on_update(self):
 		if frappe.flags.in_patch:
