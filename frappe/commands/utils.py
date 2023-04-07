@@ -533,33 +533,24 @@ def postgres(context, extra_args):
 
 
 def _mariadb(extra_args=None):
-	from frappe.database.mariadb.database import MariaDBDatabase
-
-	mysql = which("mysql")
-	command = [
-		mysql,
+	from frappe.database import get_command_args
+	extra = [
 		"--pager=less -SFX",
 		"--safe-updates",
 		"--no-auto-rehash",
 	]
-	if frappe.conf.db_socket:
-		command += [
-			f"--socket={frappe.conf.db_socket}"
-		]
-	else:
-		port = str(frappe.conf.db_port or MariaDBDatabase.default_port)
-		command = [
-			f"--port={port}",
-			f"--host={frappe.conf.db_host}",
-		]
-	command += [
-		f"--user={frappe.conf.db_name}",
-		f"--password={frappe.conf.db_password}",
-		frappe.conf.db_name,
-	]
+	bin, command = get_command_args(
+		socket=frappe.conf.db_socket,
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=frappe.conf.db_name,
+		password=frappe.conf.db_password,
+		db_name=frappe.conf.db_name,
+		extra=extra,
+	)
 	if extra_args:
-		command += list(extra_args)
-	os.execv(mysql, command)
+		command.extend(list(extra_args))
+	os.execv(bin, command)
 
 
 def _psql(extra_args=None):

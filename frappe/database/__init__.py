@@ -4,6 +4,7 @@
 # Database Module
 # --------------------
 import os
+from shutil import which
 
 from frappe.database.database import savepoint
 
@@ -71,3 +72,42 @@ def get_db(socket=None, host=None, port=None, user=None, password=None, cur_db_n
 			password=password,
 			cur_db_name=cur_db_name,
 		)
+
+def get_command_args(socket=None, host=None, port=None, user=None, password=None, db_name=None, extra=[]):
+	import frappe
+	from frappe.utils import make_esc
+
+	esc = make_esc("$ ")
+
+	if frappe.conf.db_type == "postgres":
+		import frappe.database.postgres.database
+		pass
+
+	else:
+		bin = which("mysql")
+
+		# Defaults for MySQL
+		if not socket:
+			socket = os.environ.get('MYSQL_UNIX_PORT')
+
+		if not socket:
+			if not host:
+				host = '127.0.0.1'
+			if not port:
+				from frappe.database.mariadb.database import MariaDBDatabase
+				port = MariaDBDatabase.default_port
+
+		command = [bin, f"--user={user}"]
+
+		if password:
+			command.append(f"--password={frappe.conf.db_password}")
+
+		if socket:
+			command.append(f"--socket={socket}")
+		else:
+			command.extend([f"--host={host}", f"--port={port}"])
+
+		command.extend(extra)
+		command.append(db_name)
+
+		return bin, list(map(esc, command))

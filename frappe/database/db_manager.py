@@ -52,42 +52,27 @@ class DbManager:
 	def restore_database(target, source, user, password):
 		import os
 		from shutil import which
+		from frappe.database import get_command_args
 
-		from frappe.utils import make_esc
-
-		esc = make_esc("$ ")
 		pv = which("pv")
 
+		command = []
+
 		if pv:
-			pipe = f"{pv} {source} |"
+			command.append(f"{pv}", f"{source}", "|")
 			source = ""
+			print("Restoring Database file...")
 		else:
-			pipe = ""
 			source = f"< {source}"
 
-		if pipe:
-			print("Restoring Database file...")
-
-		args = {
-			"pipe": pipe,
-			"user": esc(user),
-			"password": esc(password),
-			"target": esc(target),
-			"source": source,
-		}
-
-		command = "{pipe} mysql -u {user} -p{password} "
-		if frappe.db.socket:
-			command += " -S{socket} "
-			args["socket"] = esc(frappe.db.socket)
-		elif frappe.db.port:
-			command += " -h{host} "
-			command += " -p{host} "
-			args["host"] = esc(frappe.db.host)
-			args["port"] = esc(frappe.db.port)
-		else:
-			command += " -h{host} "
-			args["host"] = esc(frappe.db.host)
-
-		command += " {target} {source}"
-		os.system(command.format(**args))
+		bin, cmds = get_command_args(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			port=frappe.db.port,
+			user=user,
+			password=password,
+			db_name=target,
+		)
+		command.extend(cmds)
+		command.append(source)
+		os.system(" ".join(command))

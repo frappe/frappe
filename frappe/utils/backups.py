@@ -387,6 +387,7 @@ class BackupGenerator:
 			"",
 		]
 
+
 		# escape reserved characters
 		args = frappe._dict(
 			[item[0], frappe.utils.esc(str(item[1]), "$ ")] for item in self.__dict__.copy().items()
@@ -413,60 +414,45 @@ class BackupGenerator:
 		with gzip.open(args.backup_path_db, "wt") as f:
 			f.write(generated_header)
 
-		if self.db_type == "postgres":
-			if self.backup_includes:
-				args["include"] = " ".join([f"--table='public.\"{table}\"'" for table in self.backup_includes])
-			elif self.backup_excludes:
-				args["exclude"] = " ".join(
-					[f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes]
-				)
+		# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
+		cmd = ["self=$$;", "(", db_exc]
+		cmd_end = ["||", "kill", "$self", ")", "|", gzip_exc, ">>", self.backup_path_db]
+		extra = []
 
-			cmd_string = (
-				"self=$$; "
-				"( {db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
-				" {include} {exclude} || kill $self ) | {gzip} >> {backup_path_db}"
-			)
+		if self.db_type == "mariadb":
+			extra.extend([
+				"--single-transaction",
+				"--quick",
+				"--lock-tables=false",
+			])
 
-		else:
-			if self.backup_includes:
-				args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
-			elif self.backup_excludes:
-				args["exclude"] = " ".join(
-					[f"--ignore-table='{frappe.conf.db_name}.{table}'" for table in self.backup_excludes]
-				)
-
-			cmd_string = (
-				# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
-				"self=$$; "
-				" ( {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
-			)
-			if self.db_socket:
-				cmd_string += (
-					" -S {db_socket} "
-				)
-			else:
-				cmd_string += (
-					" -h {db_host} -P {db_port} "
-				)
-			cmd_string += (
-				" -p{password} {db_name} {include} {exclude} || kill $self ) "
-				" | {gzip} >> {backup_path_db}"
-			)
-
-		command = cmd_string.format(
-			user=args.user,
-			password=args.password,
-			db_exc=db_exc,
-			db_socket=args.db_socket,
-			db_host=args.db_host,
-			db_port=args.db_port,
-			db_name=args.db_name,
-			backup_path_db=args.backup_path_db,
-			exclude=args.get("exclude", ""),
-			include=args.get("include", ""),
-			gzip=gzip_exc,
+		from frappe.database import get_command_args
+		_, cmds = get_command_args(
+			socket=frappe.db.socket,
+			host=frappe.db.host,
+			port=frappe.db.port,
+			user=frappe.db.user,
+			password=frappe.db.password,
+			db_name=frappe.db.cur_db_name,
+			extra=extra,
 		)
+		cmd.extend(cmds[1:]) # only use args
 
+		if self.db_type == "mariadb":
+			if self.backup_includes:
+				cmd.extend([f"'{x}'" for x in self.backup_includes])
+			elif self.backup_excludes:
+				cmd.extend([f"--ignore-table='{frappe.conf.db_name}.{table}'" for table in self.backup_excludes])
+
+		elif self.db_type == "postgres":
+			if self.backup_includes:
+				cmd.extend([f"--table='public.\"{table}\"'" for table in self.backup_includes])
+			elif self.backup_excludes:
+				cmd.extend([f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes])
+
+		cmd.extend(cmd_end)
+
+		command = " ".join(cmd)
 		if self.verbose:
 			print(command.replace(args.password, "*" * 10) + "\n")
 
