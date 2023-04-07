@@ -30,25 +30,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.report_doc = doc;
 					this.report_doc.json = JSON.parse(this.report_doc.json);
 
-<<<<<<< HEAD
 					this.filters = this.report_doc.json.filters;
 					this.order_by = this.report_doc.json.order_by;
 					this.add_totals_row = this.report_doc.json.add_totals_row;
-					this.page_title = this.report_name;
+					this.page_title = __(this.report_name);
 					this.page_length = this.report_doc.json.page_length || 20;
 					this.order_by = this.report_doc.json.order_by || 'modified desc';
 					this.chart_args = this.report_doc.json.chart_args;
 				});
-=======
-				this.filters = this.report_doc.json.filters;
-				this.order_by = this.report_doc.json.order_by;
-				this.add_totals_row = this.report_doc.json.add_totals_row;
-				this.page_title = __(this.report_name);
-				this.page_length = this.report_doc.json.page_length || 20;
-				this.order_by = this.report_doc.json.order_by || "modified desc";
-				this.chart_args = this.report_doc.json.chart_args;
-			});
->>>>>>> cd670bf78f (feat: make report name translatable (#20608))
 		} else {
 			this.add_totals_row = this.view_user_settings.add_totals_row || 0;
 			this.chart_args = this.view_user_settings.chart_args;
