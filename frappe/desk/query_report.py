@@ -184,7 +184,7 @@ def run(
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
-	is_default_filters=True
+	is_default_filters=True,
 ):
 	report = get_report_doc(report_name)
 	if not user:
@@ -197,7 +197,7 @@ def run(
 
 	result = None
 
-	if is_default_filters == 'true' and report.custom_filters:
+	if is_default_filters == "true" and report.custom_filters:
 		filters = report.custom_filters
 
 	if report.prepared_report and not ignore_prepared_report and not custom_columns:
@@ -215,7 +215,7 @@ def run(
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
-	if is_default_filters == 'true' and report.custom_filters:
+	if is_default_filters == "true" and report.custom_filters:
 		result["custom_filters"] = report.custom_filters
 
 	return result

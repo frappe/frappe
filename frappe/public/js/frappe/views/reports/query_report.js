@@ -599,9 +599,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
-		let is_default_filters = this.filters.map((filter) => {
-			return !filter.default && !filter.value || filter.default === filter.value
-		}).every(res => res === true);
+		let is_default_filters = this.filters
+			.map((filter) => {
+				return (!filter.default && !filter.value) || filter.default === filter.value;
+			})
+			.every((res) => res === true);
 		this.show_loading_screen();
 
 		// only one refresh at a time
