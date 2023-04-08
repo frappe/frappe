@@ -973,6 +973,8 @@ class BaseDocument:
 						seconds=db_value.second,
 						microseconds=db_value.microsecond,
 					)
+				if isinstance(self_value,float):
+					self_value = round(self_value,2)
 				if self_value != db_value:
 					frappe.throw(
 						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
