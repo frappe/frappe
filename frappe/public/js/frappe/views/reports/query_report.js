@@ -599,6 +599,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
+		let is_default_filters = this.filters.map((filter) => {
+			return !filter.default && !filter.value || filter.default === filter.value
+		}).every(res => res === true);
 		this.show_loading_screen();
 
 		// only one refresh at a time
@@ -621,6 +624,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters: filters,
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
+					is_default_filters: is_default_filters,
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
@@ -632,6 +636,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				clearInterval(this.interval);
 
 				this.execution_time = data.execution_time || 0.1;
+
+				if (data.custom_filters) {
+					Object.keys(data.custom_filters).forEach((fieldname) => {
+						const value = data.custom_filters[fieldname];
+						this.get_filter(fieldname).set_value(value);
+					});
+				}
 
 				if (data.prepared_report) {
 					this.prepared_report = true;
@@ -1712,6 +1723,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									reference_report: this.report_name,
 									report_name: values.report_name,
 									columns: this.get_visible_columns(),
+									filters: this.get_filter_values(),
 								},
 								callback: function (r) {
 									this.show_save = false;
