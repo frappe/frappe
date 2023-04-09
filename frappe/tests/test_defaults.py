@@ -51,6 +51,9 @@ class TestDefaults(FrappeTestCase):
 		self.assertEqual(get_user_default("key6"), None)
 
 	def test_user_permission_on_defaults(self):
+		add_global_default("language", "en")
+		set_user_default("language", "en")
+
 		self.assertEqual(get_global_default("language"), "en")
 		self.assertEqual(get_user_default("language"), "en")
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
@@ -104,6 +107,7 @@ def as_restricted_user():
 
 		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 1)
 		set_global_default("Language", "en-GB")
+		clear_user_default("Language")
 		self.assertEqual(get_user_default("Language"), "en-US")
 
 		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 0)
