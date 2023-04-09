@@ -118,6 +118,7 @@ class TestReport(FrappeTestCase):
 					}
 				]
 			),
+			json.dumps({"user": "Administrator", "doctype": "User"}),
 		)
 		custom_report = frappe.get_doc("Report", custom_report_name)
 		columns, result = custom_report.run_query_report(user=frappe.session.user)
