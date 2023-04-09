@@ -31,8 +31,8 @@ def get_report_doc(report_name):
 		if custom_report_doc.json:
 			data = json.loads(custom_report_doc.json)
 			if data:
-				doc.custom_columns = data["columns"]
-				doc.custom_filters = data["filters"]
+				doc.custom_columns = data.get("columns")
+				doc.custom_filters = data.get("filters")
 		doc.is_custom_report = True
 
 	if not doc.is_permitted():
@@ -197,7 +197,7 @@ def run(
 
 	result = None
 
-	if is_default_filters == "true" and report.custom_filters:
+	if (is_default_filters == True or is_default_filters == "true") and report.custom_filters:
 		filters = report.custom_filters
 
 	if report.prepared_report and not ignore_prepared_report and not custom_columns:
@@ -215,7 +215,7 @@ def run(
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
-	if is_default_filters == "true" and report.custom_filters:
+	if (is_default_filters == True or is_default_filters == "true") and report.custom_filters:
 		result["custom_filters"] = report.custom_filters
 
 	return result

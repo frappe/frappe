@@ -539,7 +539,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						if (this.prepared_report) {
 							this.reset_report_view();
 						} else if (!this._no_refresh) {
-							this.refresh();
+							this.refresh(true);
 						}
 					}
 				};
@@ -595,13 +595,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page.clear_fields();
 	}
 
-	refresh() {
+	refresh(have_filters_changed) {
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
 		let is_default_filters = this.filters
 			.map((filter) => {
-				return (!filter.default && !filter.value) || filter.default === filter.value;
+				return (
+					((!filter.default && !filter.value) || filter.default === filter.value) &&
+					!have_filters_changed
+				);
 			})
 			.every((res) => res === true);
 		this.show_loading_screen();
@@ -640,10 +643,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.execution_time = data.execution_time || 0.1;
 
 				if (data.custom_filters) {
-					Object.keys(data.custom_filters).forEach((fieldname) => {
-						const value = data.custom_filters[fieldname];
-						this.get_filter(fieldname).set_value(value);
-					});
+					this.set_filters(data.custom_filters);
+					this.previous_filters = data.custom_filters;
 				}
 
 				if (data.prepared_report) {
