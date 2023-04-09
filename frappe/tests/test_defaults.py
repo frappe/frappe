@@ -51,9 +51,6 @@ class TestDefaults(FrappeTestCase):
 		self.assertEqual(get_user_default("key6"), None)
 
 	def test_user_permission_on_defaults(self):
-		add_global_default("language", "en")
-		set_user_default("language", "en")
-
 		self.assertEqual(get_global_default("language"), "en")
 		self.assertEqual(get_user_default("language"), "en")
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
@@ -93,35 +90,38 @@ def as_restricted_user():
 		# Create user permission
 		create_user("user_default_test@example.com", "Blogger")
 		frappe.set_user("user_default_test@example.com")
-		set_global_default("Language", "")
-		clear_user_default("Language")
+		set_global_default("Country", "")
+		clear_user_default("Country")
 
 		perm_doc = frappe.get_doc(
 			dict(
 				doctype="User Permission",
 				user=frappe.session.user,
-				allow="Language",
-				for_value="en-US",
+				allow="Country",
+				for_value="India",
 			)
 		).insert(ignore_permissions=True)
 
 		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 1)
-		set_global_default("Language", "en-GB")
-		clear_user_default("Language")
-		self.assertEqual(get_user_default("Language"), "en-US")
+		set_global_default("Country", "United States")
+		self.assertEqual(get_user_default("Country"), "India")
 
 		frappe.db.set_value("User Permission", perm_doc.name, "is_default", 0)
-		clear_user_default("Language")
-		self.assertEqual(get_user_default("Language"), None)
+		clear_user_default("Country")
+		self.assertEqual(get_user_default("Country"), None)
 
 		perm_doc = frappe.get_doc(
 			dict(
 				doctype="User Permission",
 				user=frappe.session.user,
-				allow="Language",
-				for_value="en-GB",
+				allow="Country",
+				for_value="United States",
 			)
 		).insert(ignore_permissions=True)
 
+<<<<<<< HEAD
 		self.assertEqual(get_user_default("Language"), "en-GB")
 >>>>>>> 087caff4cd (test: Add test for user perm defaults)
+=======
+		self.assertEqual(get_user_default("Country"), "United States")
+>>>>>>> 5d61ed2d8f (test: Update test)
