@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.model import log_types
 from frappe.query_builder import DocType
-from frappe.utils import cint, cstr, now_datetime
+from frappe.utils import cint, cstr, getdate, now_datetime
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 # whether `log_types` have autoincremented naming set for the site or not.
 autoincremented_site_status_map = {}
 
-NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
+NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}\(\)]+$", re.UNICODE)
 BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
 
 
@@ -59,7 +59,7 @@ class NamingSeries:
 		if not NAMING_SERIES_PATTERN.match(self.series):
 			frappe.throw(
 				_(
-					"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
+					"Special Characters except '-', '#', '.', '/', '(', ')', '{{' and '}}' not allowed in naming series {0}"
 				).format(frappe.bold(self.series)),
 				exc=InvalidNamingSeriesError,
 			)
@@ -324,32 +324,50 @@ def parse_naming_series(
 				series_set = True
 		elif e == "YY":
 			part = today.strftime("%y")
+		elif e == "YYYY":
+			part = today.strftime("%Y")
 		elif e == "MM":
 			part = today.strftime("%m")
 		elif e == "DD":
 			part = today.strftime("%d")
-		elif e == "YYYY":
-			part = today.strftime("%Y")
 		elif e == "WW":
 			part = determine_consecutive_week_number(today)
 		elif e == "timestamp":
 			part = str(today)
 		elif e == "FY":
 			part = frappe.defaults.get_user_default("fiscal_year")
-		elif e.startswith("{") and doc:
+		elif doc and "(" in e:
+			e = e.replace("{", "").replace("}", "").replace("(", "('").replace(")", "')")
+			part = frappe.safe_eval(
+				e,
+				eval_locals={
+					"YYYY": get_formatted_date(doc, "%Y"),
+					"MM": get_formatted_date(doc, "%m"),
+					"YY": get_formatted_date(doc, "%y"),
+					"DD": get_formatted_date(doc, "%d"),
+					"getdate": getdate,
+					"now_datetime": now_datetime,
+				},
+			)
+		elif doc and (e.startswith("{") or doc.get(e)):
 			e = e.replace("{", "").replace("}", "")
-			part = doc.get(e)
-		elif doc and doc.get(e):
 			part = doc.get(e)
 		else:
 			part = e
 
-		if isinstance(part, str):
-			name += part
-		elif isinstance(part, NAMING_SERIES_PART_TYPES):
+		if isinstance(part, NAMING_SERIES_PART_TYPES):
 			name += cstr(part).strip()
 
 	return name
+
+
+def get_formatted_date(doc, formatter):
+	def inner(field_part):
+		return (
+			(date := getdate(doc.get(field_part))) and date.strftime(formatter)
+		) or now_datetime().strftime(formatter)
+
+	return inner
 
 
 def determine_consecutive_week_number(datetime):
