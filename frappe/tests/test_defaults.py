@@ -3,6 +3,8 @@
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.defaults import *
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -73,6 +75,7 @@ class TestDefaults(FrappeTestCase):
 		frappe.delete_doc("User Permission", perm_doc.name)
 		frappe.set_user(old_user)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_user_permission_defaults(self):
 		# Create user permission
 		create_user("user_default_test@example.com", "Blogger")
