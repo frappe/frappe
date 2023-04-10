@@ -182,7 +182,7 @@ function get_all_files_to_build(apps) {
 	for (let app of apps) {
 		let public_path = get_public_path(app);
 		include_patterns.push(
-			path.resolve(public_path, "**", "*.bundle.{js,ts,css,sass,scss,less,styl}")
+			path.resolve(public_path, "**", "*.bundle.{js,ts,css,sass,scss,less,styl,jsx}")
 		);
 		ignore_patterns.push(
 			path.resolve(public_path, "node_modules"),
