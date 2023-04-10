@@ -474,6 +474,44 @@ def get_context(doc):
 	}
 
 
+def get_all_assignees(doc, recipients=[]):
+	attr_ref_doctype = ""
+	attr_ref_name = ""
+	doc_reference_doctype = ""
+	doc_reference_name = ""
+	
+	if hasattr(doc, "reference_doctype"): # For most 
+		attr_ref_doctype = "reference_doctype"
+	elif hasattr(doc, "ref_doctype"): # For 'Version' and ... 
+		attr_ref_doctype = "ref_doctype"
+	if attr_ref_doctype:
+		doc_reference_doctype = getattr(doc, attr_ref_doctype)
+
+	if hasattr(doc, "reference_name"): #+For most
+		attr_ref_name = "reference_name"
+	elif hasattr(doc, "docname"): #+For 'Version' and ... 
+		attr_ref_name = "docname"
+	if attr_ref_name:
+		doc_reference_name = getattr(doc, attr_ref_name)
+
+	if doc_reference_doctype and doc_reference_name:
+		assignees = []
+		assignees = frappe.get_all(
+			doc_reference_doctype,
+			filters={"name": doc_reference_name},
+			fields=["owner"],
+		)
+		recipients = recipients + [d.owner for d in assignees]
+
+		recipients_assign = frappe.db.get_value(doc_reference_doctype, doc_reference_name, "_assign")
+		if recipients_assign:
+			recipients = recipients + json.loads(recipients_assign)
+
+		get_all_assignees(frappe.get_doc(doc_reference_doctype, doc_reference_name), recipients)
+		
+	return recipients
+
+
 def get_assignees(doc):
 	assignees = []
 	assignees = frappe.get_all(
@@ -484,31 +522,24 @@ def get_assignees(doc):
 
 	recipients = [d.allocated_to for d in assignees]
 
-	assignees = []
-	assignees = frappe.get_all(
-		doc.reference_doctype,
-		filters={"name": doc.reference_name},
-		fields=["owner"],
-	)
-	recipients = recipients + [d.owner for d in assignees]
-
-	recipients_assign = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_assign")
-	if recipients_assign:
-		recipients = recipients + json.loads(recipients_assign)
-
+	recipients = recipients + get_all_assignees(doc)
+	
 	recipients_tmp = []
 	for recipient in recipients:
 		if "@" in recipient:
 			recipients_tmp.append(recipient)
-		else: #А здесь нужно попробовать по имени найти почту !!!!
+		else:
 			user_email = frappe.db.get_value("User", recipient, "email")
 			if user_email:
 				recipients_tmp.append(user_email)
-	recipients = recipients_tmp
-	recipients_tmp = []
-
-	for recipient in recipients:
-		if doc.owner != recipient: 
-			recipients_tmp.append(recipient)
-
-	return list(set(recipients_tmp))
+	recipients = []
+	
+	if "@" in doc.owner:
+		owner_email = doc.owner
+	else:
+		owner_email = frappe.db.get_value("User", doc.owner, "email")
+	for recipient in recipients_tmp:
+		if owner_email != recipient: 
+			recipients.append(recipient)
+			
+	return recipients	
