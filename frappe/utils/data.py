@@ -1514,9 +1514,9 @@ def escape_html(text: str) -> str:
 
 def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	"""
-	Takes an ISO time and returns a string representing how
-	long ago the date represents.
-	Ported from PrettyDate by John Resig
+	Return a localized string representation of the delta to the current system time.
+
+	For example, "1 hour ago", "2 days ago", "in 5 seconds", etc.
 	"""
 	if not iso_datetime:
 		return ""
