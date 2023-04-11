@@ -32,41 +32,9 @@ def get_context(context):
 def send_message(sender, message, subject="Website Query"):
 	sender = validate_email_address(sender, throw=True)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-	if not sender:
-		frappe.response["message"] = "Email Address Required"
-		return
-
-	# guest method, cap max writes per hour
-	if (
-		frappe.db.sql(
-			"""select count(*) from `tabCommunication`
-		where `sent_or_received`="Received"
-		and TIMEDIFF(%s, modified) < '01:00:00'""",
-			now(),
-		)[0][0]
-		> max_communications_per_hour
-	):
-		frappe.response[
-			"message"
-		] = "Sorry: we believe we have received an unreasonably high number of requests of this kind. Please try later"
-		return
-
-	# send email
-	forward_to_email = frappe.db.get_value("Contact Us Settings", None, "forward_to_email")
-	if forward_to_email:
-		frappe.sendmail(recipients=forward_to_email, sender=sender, content=message, subject=subject)
-=======
-	frappe.sendmail(
-		recipients=sender,
-		content=f"<div style='white-space: pre-wrap'>Thank you for reaching out to us. We will get back to you at the earliest.\n\n\nYour query:\n\n{message}</div>",
-		subject="We've received your query!",
-	)
->>>>>>> 67de2a34ac (fix: contact us email reply)
-=======
 	with suppress(frappe.OutgoingEmailError):
-		if forward_to_email := frappe.db.get_single_value("Contact Us Settings", "forward_to_email"):
+		forward_to_email = frappe.db.get_single_value("Contact Us Settings", "forward_to_email")
+		if forward_to_email:
 			frappe.sendmail(recipients=forward_to_email, reply_to=sender, content=message, subject=subject)
 
 		frappe.sendmail(
@@ -77,7 +45,6 @@ def send_message(sender, message, subject="Website Query"):
 
 	# for clearing outgoing email error message
 	frappe.clear_last_message()
->>>>>>> cbe0ce37d3 (fix: suppress outgoing email error for contact-us page)
 
 	# add to to-do ?
 	frappe.get_doc(
