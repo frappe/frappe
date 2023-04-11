@@ -501,13 +501,13 @@ def get_all_assignees(doc, recipients=[]):
 			filters={"name": doc_reference_name},
 			fields=["owner"],
 		)
-		recipients = recipients + [d.owner for d in assignees]
+		recipients += [d.owner for d in assignees]
 
 		recipients_assign = frappe.db.get_value(doc_reference_doctype, doc_reference_name, "_assign")
 		if recipients_assign:
-			recipients = recipients + json.loads(recipients_assign)
+			recipients += json.loads(recipients_assign)
 
-		get_all_assignees(frappe.get_doc(doc_reference_doctype, doc_reference_name), recipients)
+		recipients += get_all_assignees(frappe.get_doc(doc_reference_doctype, doc_reference_name), recipients)
 		
 	return recipients
 
@@ -522,7 +522,7 @@ def get_assignees(doc):
 
 	recipients = [d.allocated_to for d in assignees]
 
-	recipients = recipients + get_all_assignees(doc)
+	recipients += get_all_assignees(doc)
 	
 	recipients_tmp = []
 	for recipient in recipients:
