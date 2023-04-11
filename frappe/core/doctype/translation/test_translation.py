@@ -7,6 +7,11 @@ import unittest
 
 import frappe
 from frappe import _
+<<<<<<< HEAD
+=======
+from frappe.tests.utils import FrappeTestCase
+from frappe.translate import APP_TRANSLATION_KEY, clear_cache
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 
 
 class TestTranslation(unittest.TestCase):
@@ -113,3 +118,10 @@ def create_translation(key, val):
 	translation.translated_text = val[1]
 	translation.save()
 	return translation
+<<<<<<< HEAD
+=======
+
+
+def clear_translation_cache():
+	frappe.cache().delete_key(APP_TRANSLATION_KEY)
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)

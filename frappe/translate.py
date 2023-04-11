@@ -174,7 +174,7 @@ def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 	fortype = fortype.lower()
 	cache = frappe.cache()
 	asset_key = fortype + ":" + (name or "-")
-	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
+	translation_assets = cache.hget("translation_assets", frappe.local.lang) or {}
 
 	if not asset_key in translation_assets:
 		messages = []
@@ -210,7 +210,7 @@ def get_dict(fortype: str, name: Optional[str] = None) -> Dict:
 		# remove untranslated
 		message_dict = {k: v for k, v in iteritems(message_dict) if k != v}
 		translation_assets[asset_key] = message_dict
-		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
+		cache.hset("translation_assets", frappe.local.lang, translation_assets)
 
 	translation_map: Dict = translation_assets[asset_key]
 
@@ -304,10 +304,16 @@ def load_lang(lang, apps=None):
 	if lang == "en":
 		return {}
 
+<<<<<<< HEAD
 	out = frappe.cache().hget("lang_full_dict", lang, shared=True)
 	if not out:
 		out = {}
 		for app in apps or frappe.get_all_apps(True):
+=======
+	def _get_from_disk():
+		translations = {}
+		for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 			out.update(get_translation_dict_from_file(path, lang, app) or {})
 
@@ -319,7 +325,11 @@ def load_lang(lang, apps=None):
 
 		frappe.cache().hset("lang_full_dict", lang, out, shared=True)
 
+<<<<<<< HEAD
 	return out or {}
+=======
+	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, generator=_get_from_disk)
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 
 
 def get_translation_dict_from_file(path, lang, app, throw=False):
@@ -374,9 +384,16 @@ def clear_cache():
 
 	# clear translations saved in boot cache
 	cache.delete_key("bootinfo")
+<<<<<<< HEAD
 	cache.delete_key("lang_full_dict", shared=True)
 	cache.delete_key("translation_assets", shared=True)
 	cache.delete_key("lang_user_translations")
+=======
+	cache.delete_key("translation_assets")
+	cache.delete_key(APP_TRANSLATION_KEY)
+	cache.delete_key(USER_TRANSLATION_KEY)
+	cache.delete_key(MERGED_TRANSLATION_KEY)
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 
 
 def get_messages_for_app(app, deduplicate=True):
@@ -673,7 +690,7 @@ def get_messages_from_include_files(app_name=None):
 def get_all_messages_from_js_files(app_name=None):
 	"""Extracts all translatable strings from app `.js` files"""
 	messages = []
-	for app in [app_name] if app_name else frappe.get_installed_apps():
+	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
 			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
 				if "frappe/public/js/lib" in basepath:

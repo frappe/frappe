@@ -10,7 +10,19 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
+<<<<<<< HEAD
 from frappe.translate import get_language, get_parent_language, get_translation_dict_from_file
+=======
+from frappe.tests.utils import FrappeTestCase
+from frappe.translate import (
+	extract_javascript,
+	extract_messages_from_javascript_code,
+	extract_messages_from_python_code,
+	get_language,
+	get_parent_language,
+	get_translation_dict_from_file,
+)
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 from frappe.utils import set_request
 
 dirname = os.path.dirname(__file__)
@@ -31,13 +43,19 @@ class TestTranslate(unittest.TestCase):
 	def setUp(self):
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Guest")
+<<<<<<< HEAD
 		frappe.local.lang_full_dict = None  # reset cached translations
+=======
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 
 	def tearDown(self):
 		frappe.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
+<<<<<<< HEAD
 		frappe.local.lang_full_dict = None  # reset cached translations
+=======
+>>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
