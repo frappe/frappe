@@ -374,7 +374,13 @@ input.list-check-all {
 	}
 
 	.filter-button.btn-primary-light {
+<<<<<<< HEAD
 		color: var(--blue-500);
+=======
+		color: var(--text-on-blue);
+		outline: 1px solid var(--bg-dark-blue);
+		z-index: 1;
+>>>>>>> eeedfd0f2c (fix: filter button border when have active filters)
 	}
 
 	.sort-selector {
