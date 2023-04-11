@@ -509,7 +509,7 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 def get_data_for_custom_field(doctype, fieldname, field=None):
 
 	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
 
 	if field:
 		custom_field = field + " as " + fieldname
