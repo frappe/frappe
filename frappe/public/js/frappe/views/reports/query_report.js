@@ -599,14 +599,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
-		let is_default_filters = this.filters
+
+		// for custom reports,
+		// are_default_filters is true if the filters haven't been modified and for all filters,
+		// the filter value is the default value or there's no default value for the filter and the current value is empty.
+		// are_default_filters is false otherwise.
+
+		let are_default_filters = this.filters
 			.map((filter) => {
 				return (
-					((!filter.default && !filter.value) || filter.default === filter.value) &&
-					!have_filters_changed
+					!have_filters_changed &&
+					(filter.default === filter.value || (!filter.default && !filter.value))
 				);
 			})
 			.every((res) => res === true);
+
 		this.show_loading_screen();
 
 		// only one refresh at a time
@@ -629,7 +636,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters: filters,
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
-					is_default_filters: is_default_filters,
+					are_default_filters: are_default_filters,
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
