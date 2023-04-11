@@ -170,6 +170,7 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 	if data["property_setters"]:
 		sync("property_setters", "Property Setter", "doc_type")
 
+	print(f"Updating customizations for {doctype}")
 	if data.get("custom_perms"):
 		sync("custom_perms", "Custom DocPerm", "parent")
 
