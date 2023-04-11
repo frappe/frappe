@@ -369,9 +369,8 @@ input.list-check-all {
 		padding: 0 var(--padding-xs);
 	}
 
-	.filter-button {
-		margin: 5px;
-		// padding: 4px 8px;
+	.filter-selector .btn-group {
+		margin: var(--margin-xs);
 	}
 
 	.filter-button.btn-primary-light {

@@ -809,6 +809,7 @@ class FilterArea {
 
 	make_filter_list() {
 		$(`<div class="filter-selector">
+<<<<<<< HEAD
 			<button class="btn btn-default btn-sm filter-button">
 				<span class="filter-icon">
 					${frappe.utils.icon('filter')}
@@ -821,11 +822,33 @@ class FilterArea {
 		).appendTo(this.$filter_list_wrapper);
 
 		this.filter_button = this.$filter_list_wrapper.find('.filter-button');
+=======
+			<div class="btn-group">
+				<button class="btn btn-default btn-sm filter-button">
+					<span class="filter-icon">
+						${frappe.utils.icon("filter")}
+					</span>
+					<span class="button-label hidden-xs">
+					${__("Filter")}
+					<span>
+				</button>
+				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
+					<span class="filter-icon">
+						${frappe.utils.icon("filter-x")}
+					</span>
+				</button>
+			</div>
+		</div>`).appendTo(this.$filter_list_wrapper);
+
+		this.filter_button = this.$filter_list_wrapper.find(".filter-button");
+		this.filter_x_button = this.$filter_list_wrapper.find(".filter-x-button");
+>>>>>>> 7037b408a3 (fix: separate clear all filter button grouped with filter button)
 		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this.list_view,
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
 			filter_button: this.filter_button,
+			filter_x_button: this.filter_x_button,
 			default_filters: [],
 			on_change: () => this.refresh_list_view(),
 		});
