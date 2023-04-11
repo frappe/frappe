@@ -92,7 +92,8 @@ jobs:
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
 
-      - run: |
+      - name: Install and run pip-audit
+        run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
           sed -i '/dropbox/d' pyproject.toml   # Remove dropbox temporarily https://github.com/dropbox/dropbox-sdk-python/pull/456
