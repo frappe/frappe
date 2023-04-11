@@ -56,8 +56,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.view = "List";
 		// initialize with saved order by
-		this.sort_by = this.view_user_settings.sort_by || "modified";
-		this.sort_order = this.view_user_settings.sort_order || "desc";
+		this.sort_by = this.view_user_settings.sort_by || this.sort_by || "modified";
+		this.sort_order = this.view_user_settings.sort_order || this.sort_order || "desc";
 
 		// set filters from user_settings or list_settings
 		if (
