@@ -56,7 +56,6 @@ CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
 # Cache keys
 MERGED_TRANSLATION_KEY = "merged_translations"
-APP_TRANSLATION_KEY = "translations_from_apps"
 USER_TRANSLATION_KEY = "lang_user_translations"
 
 
@@ -308,20 +307,17 @@ def get_translations_from_apps(lang, apps=None):
 	if lang == "en":
 		return {}
 
-	def _get_from_disk():
-		translations = {}
-		for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
-			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
-			translations.update(get_translation_dict_from_file(path, lang, app) or {})
-		if "-" in lang:
-			parent = lang.split("-", 1)[0]
-			parent_translations = get_translations_from_apps(parent)
-			parent_translations.update(translations)
-			return parent_translations
+	translations = {}
+	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
+		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
+		translations.update(get_translation_dict_from_file(path, lang, app) or {})
+	if "-" in lang:
+		parent = lang.split("-", 1)[0]
+		parent_translations = get_translations_from_apps(parent)
+		parent_translations.update(translations)
+		return parent_translations
 
-		return translations
-
-	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, generator=_get_from_disk)
+	return translations
 
 
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
@@ -376,7 +372,6 @@ def clear_cache():
 	# clear translations saved in boot cache
 	cache.delete_key("bootinfo")
 	cache.delete_key("translation_assets")
-	cache.delete_key(APP_TRANSLATION_KEY)
 	cache.delete_key(USER_TRANSLATION_KEY)
 	cache.delete_key(MERGED_TRANSLATION_KEY)
 
