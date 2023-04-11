@@ -23,27 +23,12 @@ class BulkUpdate(Document):
 
 			condition = f" where {self.condition}"
 
-<<<<<<< HEAD
-	if condition:
-		condition = " where " + condition
-
-	if ";" in condition:
-		frappe.throw(_("; not allowed in condition"))
-
-	docnames = frappe.db.sql_list(
-		"""select name from `tab{0}`{1} limit 0, {2}""".format(doctype, condition, limit)
-	)
-	data = {}
-	data[field] = value
-	return submit_cancel_or_update_docs(doctype, docnames, "update", data)
-=======
 		docnames = frappe.db.sql_list(
 			f"""select name from `tab{self.document_type}`{condition} limit {limit} offset 0"""
 		)
 		return submit_cancel_or_update_docs(
 			self.document_type, docnames, "update", {self.field: self.update_value}
 		)
->>>>>>> 9758781f80 (fix: bulk update using doc method, check perms (#20522))
 
 
 @frappe.whitelist()
