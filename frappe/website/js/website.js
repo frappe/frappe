@@ -213,15 +213,6 @@ $.extend(frappe, {
 			)
 			.appendTo(document.body);
 	},
-	send_message: function (opts, btn) {
-		return frappe.call({
-			type: "POST",
-			method: "frappe.www.contact.send_message",
-			btn: btn,
-			args: opts,
-			callback: opts.callback,
-		});
-	},
 	has_permission: function (doctype, docname, perm_type, callback) {
 		return frappe.call({
 			type: "GET",
