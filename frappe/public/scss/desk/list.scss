@@ -401,6 +401,8 @@ input.list-check-all {
 
 	.filter-button.btn-primary-light {
 		color: var(--text-on-blue);
+		outline: 1px solid var(--bg-dark-blue);
+		z-index: 1;
 	}
 
 	.sort-selector {
