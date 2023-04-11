@@ -3,7 +3,7 @@
 import frappe
 from frappe import _
 from frappe.tests.utils import FrappeTestCase
-from frappe.translate import clear_cache
+from frappe.translate import APP_TRANSLATION_KEY, clear_cache
 
 
 class TestTranslation(FrappeTestCase):
@@ -115,4 +115,4 @@ def create_translation(key, val):
 
 
 def clear_translation_cache():
-	frappe.cache().delete_key("translations_from_apps", shared=True)
+	frappe.cache().delete_key(APP_TRANSLATION_KEY)

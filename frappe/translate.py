@@ -171,7 +171,7 @@ def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	fortype = fortype.lower()
 	cache = frappe.cache()
 	asset_key = fortype + ":" + (name or "-")
-	translation_assets = cache.hget("translation_assets", frappe.local.lang, shared=True) or {}
+	translation_assets = cache.hget("translation_assets", frappe.local.lang) or {}
 
 	if asset_key not in translation_assets:
 		messages = []
@@ -211,7 +211,7 @@ def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 		# remove untranslated
 		message_dict = {k: v for k, v in message_dict.items() if k != v}
 		translation_assets[asset_key] = message_dict
-		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
+		cache.hset("translation_assets", frappe.local.lang, translation_assets)
 
 	translation_map: dict = translation_assets[asset_key]
 
@@ -310,7 +310,7 @@ def get_translations_from_apps(lang, apps=None):
 
 	def _get_from_disk():
 		translations = {}
-		for app in apps or frappe.get_all_apps(True):
+		for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
 			path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 			translations.update(get_translation_dict_from_file(path, lang, app) or {})
 		if "-" in lang:
@@ -321,7 +321,7 @@ def get_translations_from_apps(lang, apps=None):
 
 		return translations
 
-	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=_get_from_disk)
+	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, generator=_get_from_disk)
 
 
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
@@ -375,8 +375,8 @@ def clear_cache():
 
 	# clear translations saved in boot cache
 	cache.delete_key("bootinfo")
-	cache.delete_key("translation_assets", shared=True)
-	cache.delete_key(APP_TRANSLATION_KEY, shared=True)
+	cache.delete_key("translation_assets")
+	cache.delete_key(APP_TRANSLATION_KEY)
 	cache.delete_key(USER_TRANSLATION_KEY)
 	cache.delete_key(MERGED_TRANSLATION_KEY)
 
@@ -687,7 +687,7 @@ def get_messages_from_include_files(app_name=None):
 def get_all_messages_from_js_files(app_name=None):
 	"""Extracts all translatable strings from app `.js` files"""
 	messages = []
-	for app in [app_name] if app_name else frappe.get_installed_apps():
+	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
 			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
 				if "frappe/public/js/lib" in basepath:
