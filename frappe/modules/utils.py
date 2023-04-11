@@ -117,7 +117,7 @@ def sync_customizations(app=None):
 							sync_customizations_for_doctype(data, folder, fname)
 
 
-def sync_customizations_for_doctype(data: dict, folder: str, fname: str):
+def sync_customizations_for_doctype(data: dict, folder: str, filename: str = ""):
 	"""Sync doctype customzations for a particular data set"""
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -160,7 +160,7 @@ def sync_customizations_for_doctype(data: dict, folder: str, fname: str):
 
 	if not frappe.db.exists("DocType", doctype):
 		print(_("DocType {0} does not exist.").format(doctype))
-		print(_("Skipping fixture syncing for doctyoe {0} from file {1} ").format(doctype, fname))
+		print(_("Skipping fixture syncing for doctyoe {0} from file {1} ").format(doctype, filename))
 		return
 
 	if data["custom_fields"]:
