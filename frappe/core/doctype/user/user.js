@@ -168,16 +168,6 @@ frappe.ui.form.on('User', {
 				});
 			}
 
-<<<<<<< HEAD
-			frm.add_custom_button(__("Reset OTP Secret"), function() {
-				frappe.call({
-					method: "frappe.twofactor.reset_otp_secret",
-					args: {
-						"user": frm.doc.name
-					}
-				});
-			}, __("Password"));
-=======
 			if (
 				cint(frappe.boot.sysdefaults.enable_two_factor_auth) &&
 				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
@@ -195,7 +185,6 @@ frappe.ui.form.on('User', {
 					__("Password")
 				);
 			}
->>>>>>> 06580bdbff (fix: allow `reset_otp_secret` only if Two Factor Auth is enabled (#20506))
 
 			frm.trigger('enabled');
 
