@@ -10,8 +10,12 @@ from frappe import _
 <<<<<<< HEAD
 =======
 from frappe.tests.utils import FrappeTestCase
+<<<<<<< HEAD
 from frappe.translate import APP_TRANSLATION_KEY, clear_cache
 >>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
+=======
+from frappe.translate import clear_cache
+>>>>>>> 0b8b829483 (perf: dont cache intermediate translation files)
 
 
 class TestTranslation(unittest.TestCase):
@@ -47,20 +51,31 @@ class TestTranslation(unittest.TestCase):
 
 		frappe.local.lang = "es"
 
+<<<<<<< HEAD
 		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[0][0]), data[0][1])
 
 		frappe.local.lang_full_dict = None
+=======
+		self.assertTrue(_(data[0][0]), data[0][1])
+
+>>>>>>> 0b8b829483 (perf: dont cache intermediate translation files)
 		self.assertTrue(_(data[1][0]), data[1][1])
 
 		frappe.local.lang = "es-MX"
 
 		# different translation for es-MX
+<<<<<<< HEAD
 		frappe.local.lang_full_dict = None
 		self.assertTrue(_(data[2][0]), data[2][1])
 
 		# from spanish (general)
 		frappe.local.lang_full_dict = None
+=======
+		self.assertTrue(_(data[2][0]), data[2][1])
+
+		# from spanish (general)
+>>>>>>> 0b8b829483 (perf: dont cache intermediate translation files)
 		self.assertTrue(_(data[1][0]), data[1][1])
 
 	def test_html_content_data_translation(self):
@@ -119,9 +134,12 @@ def create_translation(key, val):
 	translation.save()
 	return translation
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 
 def clear_translation_cache():
 	frappe.cache().delete_key(APP_TRANSLATION_KEY)
 >>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
+=======
+>>>>>>> 0b8b829483 (perf: dont cache intermediate translation files)

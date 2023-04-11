@@ -63,7 +63,16 @@ TRANSLATE_PATTERN = re.compile(
 )
 
 
+<<<<<<< HEAD
 def get_language(lang_list: List = None) -> str:
+=======
+# Cache keys
+MERGED_TRANSLATION_KEY = "merged_translations"
+USER_TRANSLATION_KEY = "lang_user_translations"
+
+
+def get_language(lang_list: list = None) -> str:
+>>>>>>> 0b8b829483 (perf: dont cache intermediate translation files)
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -305,6 +314,7 @@ def load_lang(lang, apps=None):
 		return {}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	out = frappe.cache().hget("lang_full_dict", lang, shared=True)
 	if not out:
 		out = {}
@@ -330,6 +340,19 @@ def load_lang(lang, apps=None):
 =======
 	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, generator=_get_from_disk)
 >>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
+=======
+	translations = {}
+	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
+		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
+		translations.update(get_translation_dict_from_file(path, lang, app) or {})
+	if "-" in lang:
+		parent = lang.split("-", 1)[0]
+		parent_translations = get_translations_from_apps(parent)
+		parent_translations.update(translations)
+		return parent_translations
+
+	return translations
+>>>>>>> 0b8b829483 (perf: dont cache intermediate translation files)
 
 
 def get_translation_dict_from_file(path, lang, app, throw=False):
@@ -390,7 +413,6 @@ def clear_cache():
 	cache.delete_key("lang_user_translations")
 =======
 	cache.delete_key("translation_assets")
-	cache.delete_key(APP_TRANSLATION_KEY)
 	cache.delete_key(USER_TRANSLATION_KEY)
 	cache.delete_key(MERGED_TRANSLATION_KEY)
 >>>>>>> 361e44de1d (fix(translations)!: load translation in installed order)
