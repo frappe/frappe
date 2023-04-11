@@ -111,11 +111,7 @@ def sync_customizations(app=None):
 							sync_customizations_for_doctype(data, folder, fname)
 
 
-<<<<<<< HEAD
-def sync_customizations_for_doctype(data, folder):
-=======
-def sync_customizations_for_doctype(data: dict, folder: str, filename: str = ""):
->>>>>>> 26e73208d5 (fix: validate if doctype exists before syncing customisations (#20598))
+def sync_customizations_for_doctype(data, folder, filename: str = ""):
 	"""Sync doctype customzations for a particular data set"""
 	from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -173,6 +169,7 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 	if data.get("custom_perms"):
 		sync("custom_perms", "Custom DocPerm", "parent")
 
+	print(f"Updating customizations for {doctype}")
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value("DocType", doctype, "issingle"):
