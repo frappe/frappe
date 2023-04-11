@@ -237,8 +237,14 @@
 		<path d="M2.5 3.5h2m7 9h2m-10-6h6m-3 3h6" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 
-	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-filter">
-		<path d="M2 4h12M4 8h8m-5.5 4h3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-filter">
+		<path stroke-width="1.2" d="M3.67546 3L16.4542 3C17.1032 3 17.4821 3.73214 17.1073 4.262L12.2889 11.0738C12.1694 11.2427 12.1053 11.4444 12.1053 11.6513L12.1053 17.4037C12.1053 17.6503 11.8244 17.7916 11.6265 17.6446L9.14086 15.7999C8.88669 15.6112 8.73684 15.3134 8.73684 14.9969L8.73684 11.687C8.73684 11.4582 8.65836 11.2363 8.5145 11.0583L3.05333 4.30294C2.63041 3.7798 3.00275 3 3.67546 3Z" stroke="var(--icon-stroke)" stroke-linecap="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-filter-x">
+		<path stroke-width="1.2" d="M10.3333 2.99999L3.6645 3.00001C2.99369 3.00001 2.62076 3.77595 3.0398 4.29976L8.44753 11.0594C8.58938 11.2367 8.66666 11.4571 8.66666 11.6841L8.66666 15C8.66666 15.3148 8.81486 15.6111 9.06666 15.8L11.52 17.64C11.7178 17.7883 12 17.6472 12 17.4L12 11.7476C12 11.4823 12.1053 11.228 12.2929 11.0404L13.6667 9.66668" stroke="var(--icon-stroke)" stroke-linecap="round"/>
+		<path stroke-width="1.2" d="M13.5151 3.0303L17.6818 7.19697" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path stroke-width="1.2" d="M17.6818 3.0303L13.5151 7.19697" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-list">
