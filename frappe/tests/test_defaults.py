@@ -68,7 +68,6 @@ def as_restricted_user():
 	old_user = frappe.session.user
 	user = "test@example.com"
 
-<<<<<<< HEAD
 	perm_doc = frappe.get_doc(
 		{
 			"doctype": "User Permission",
@@ -84,9 +83,6 @@ def as_restricted_user():
 
 	perm_doc.delete(ignore_permissions=True)
 	frappe.set_user(old_user)
-=======
-		frappe.delete_doc("User Permission", perm_doc.name)
-		frappe.set_user(old_user)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_user_permission_defaults(self):
@@ -122,9 +118,4 @@ def as_restricted_user():
 			)
 		).insert(ignore_permissions=True)
 
-<<<<<<< HEAD
-		self.assertEqual(get_user_default("Language"), "en-GB")
->>>>>>> 087caff4cd (test: Add test for user perm defaults)
-=======
 		self.assertEqual(get_user_default("Country"), "United States")
->>>>>>> 5d61ed2d8f (test: Update test)
