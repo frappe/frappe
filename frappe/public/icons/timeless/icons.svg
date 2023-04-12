@@ -232,13 +232,13 @@
 	</symbol>
 
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-filter">
-		<path stroke-width="1.2" d="M3.67546 3L16.4542 3C17.1032 3 17.4821 3.73214 17.1073 4.262L12.2889 11.0738C12.1694 11.2427 12.1053 11.4444 12.1053 11.6513L12.1053 17.4037C12.1053 17.6503 11.8244 17.7916 11.6265 17.6446L9.14086 15.7999C8.88669 15.6112 8.73684 15.3134 8.73684 14.9969L8.73684 11.687C8.73684 11.4582 8.65836 11.2363 8.5145 11.0583L3.05333 4.30294C2.63041 3.7798 3.00275 3 3.67546 3Z" stroke="var(--icon-stroke)" stroke-linecap="round"/>
+		<path stroke-width="1.2" d="M3.68016 3L15.4502 3C16.1 3 16.4787 3.73367 16.1023 4.26337L11.6585 10.5177C11.5383 10.6869 11.4737 10.8893 11.4737 11.0969L11.4737 16.4053C11.4737 16.6516 11.1934 16.7929 10.9954 16.6466L8.72152 14.9665C8.46635 14.7779 8.31579 14.4795 8.31579 14.1622L8.31579 11.1327C8.31579 10.9031 8.2368 10.6805 8.09208 10.5023L3.05913 4.3043C2.63456 3.78145 3.00664 3 3.68016 3Z" stroke="var(--icon-stroke)" stroke-linecap="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-filter-x">
-		<path stroke-width="1.2" d="M10.3333 2.99999L3.6645 3.00001C2.99369 3.00001 2.62076 3.77595 3.0398 4.29976L8.44753 11.0594C8.58938 11.2367 8.66666 11.4571 8.66666 11.6841L8.66666 15C8.66666 15.3148 8.81486 15.6111 9.06666 15.8L11.52 17.64C11.7178 17.7883 12 17.6472 12 17.4L12 11.7476C12 11.4823 12.1053 11.228 12.2929 11.0404L13.6667 9.66668" stroke="var(--icon-stroke)" stroke-linecap="round"/>
-		<path stroke-width="1.2" d="M13.5151 3.0303L17.6818 7.19697" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
-		<path stroke-width="1.2" d="M17.6818 3.0303L13.5151 7.19697" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path stroke-width="1.2" d="M8.5 3L3.66449 3.00002C2.99369 3.00002 2.62075 3.77596 3.0398 4.29977L8.15768 10.6971C8.29953 10.8744 8.37681 11.0947 8.37681 11.3218L8.37681 14.4565C8.37681 14.7713 8.525 15.0677 8.77681 15.2565L11.0852 16.9878C11.283 17.1362 11.5652 16.9951 11.5652 16.7478L11.5652 11.3742C11.5652 11.1155 11.6654 10.8669 11.8448 10.6806L12.5 10" stroke="var(--icon-stroke)" stroke-linecap="round"/>
+		<path stroke-width="1.2" d="M11 3L16 8" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path stroke-width="1.2" d="M16 3L11 8" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-list">
