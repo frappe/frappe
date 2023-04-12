@@ -14,23 +14,18 @@ frappe.ui.form.on('Bulk Update', {
 
 		frm.page.set_primary_action(__('Update'), function() {
 			if (!frm.doc.update_value) {
-				frappe.throw(__('Field "value" is mandatory. Please specify value to be updated'));
+				frappe.throw(
+					__('Field "value" is mandatory. Please specify value to be updated')
+				);
 			} else {
-				frappe.call({
-					method: 'frappe.desk.doctype.bulk_update.bulk_update.update',
-					args: {
-						doctype: frm.doc.document_type,
-						field: frm.doc.field,
-						value: frm.doc.update_value,
-						condition: frm.doc.condition,
-						limit: frm.doc.limit
-					},
-				}).then(r => {
+				frm.call('bulk_update').then(r => {
 					let failed = r.message;
 					if (!failed) failed = [];
 
 					if (failed.length && !r._server_messages) {
-						frappe.throw(__('Cannot update {0}', [failed.map(f => f.bold ? f.bold(): f).join(', ')]));
+						frappe.throw(
+							__('Cannot update {0}', [failed.map(f => (f.bold ? f.bold() : f)).join(", ")])
+						);
 					} else {
 						frappe.msgprint({
 							title: __('Success'),
