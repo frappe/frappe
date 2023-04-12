@@ -23,6 +23,9 @@ from frappe.utils.image import optimize_image, strip_exif_data
 from .exceptions import AttachmentLimitReached, FolderNotEmpty, MaxFileSizeReachedError
 from .utils import *
 
+import tempfile
+import urllib.request
+
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 URL_PREFIXES = ("http://", "https://")
@@ -457,10 +460,15 @@ class File(Document):
 
 		if self.file_url:
 			self.validate_file_url()
+			tmp_file = None
+			if(self.file_url.startswith(URL_PREFIXES)):
+				with urllib.request.urlopen(self.file_url) as response:
+					with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+						shutil.copyfileobj(response, tmp_file)
 		file_path = self.get_full_path()
 
 		# read the file
-		with open(file_path, mode="rb") as f:
+		with open(tmp_file or file_path, mode="rb") as f:
 			self._content = f.read()
 			try:
 				# for plain text files
