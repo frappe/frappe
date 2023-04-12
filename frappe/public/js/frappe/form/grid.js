@@ -1189,7 +1189,10 @@ export default class Grid {
 		this.docfields.find((d) => d.fieldname === fieldname)[property] = value;
 
 		if (this.user_defined_columns && this.user_defined_columns.length > 0) {
-			this.user_defined_columns.find((d) => d.fieldname === fieldname)[property] = value;
+			let field = this.user_defined_columns.find((d) => d.fieldname === fieldname);
+			if (field && Object.keys(field).includes(property)) {
+				field[property] = value;
+			}
 		}
 
 		this.debounced_refresh();
