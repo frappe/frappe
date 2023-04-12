@@ -611,12 +611,12 @@ class TestDateUtils(FrappeTestCase):
 		now = get_datetime()
 
 		test_cases = {
-			now: _("just now"),
+			now: _("1 second ago"),
 			add_to_date(now, minutes=-1): _("1 minute ago"),
 			add_to_date(now, minutes=-3): _("3 minutes ago"),
 			add_to_date(now, hours=-1): _("1 hour ago"),
 			add_to_date(now, hours=-2): _("2 hours ago"),
-			add_to_date(now, days=-1): _("Yesterday"),
+			add_to_date(now, days=-1): _("1 day ago"),
 			add_to_date(now, days=-5): _("5 days ago"),
 			add_to_date(now, days=-8): _("1 week ago"),
 			add_to_date(now, days=-14): _("2 weeks ago"),
