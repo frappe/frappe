@@ -15,7 +15,7 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions
-from frappe.utils import cint, cstr, flt, format_duration, get_html_format
+from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
 
 
 def get_report_doc(report_name):
@@ -197,7 +197,7 @@ def run(
 
 	result = None
 
-	if frappe.parse_json(are_default_filters) and report.custom_filters:
+	if sbool(are_default_filters) and report.custom_filters:
 		filters = report.custom_filters
 
 	if report.prepared_report and not ignore_prepared_report and not custom_columns:
@@ -215,7 +215,7 @@ def run(
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
-	if frappe.parse_json(are_default_filters) and report.custom_filters:
+	if sbool(are_default_filters) and report.custom_filters:
 		result["custom_filters"] = report.custom_filters
 
 	return result
