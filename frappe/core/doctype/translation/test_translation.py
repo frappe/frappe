@@ -37,20 +37,16 @@ class TestTranslation(FrappeTestCase):
 
 		frappe.local.lang = "es"
 
-		clear_translation_cache()
 		self.assertTrue(_(data[0][0]), data[0][1])
 
-		clear_translation_cache()
 		self.assertTrue(_(data[1][0]), data[1][1])
 
 		frappe.local.lang = "es-MX"
 
 		# different translation for es-MX
-		clear_translation_cache()
 		self.assertTrue(_(data[2][0]), data[2][1])
 
 		# from spanish (general)
-		clear_translation_cache()
 		self.assertTrue(_(data[1][0]), data[1][1])
 
 	def test_multi_language_translations(self):
@@ -112,7 +108,3 @@ def create_translation(key, val):
 	translation.translated_text = val[1]
 	translation.save()
 	return translation
-
-
-def clear_translation_cache():
-	frappe.cache().delete_key("translations_from_apps", shared=True)
