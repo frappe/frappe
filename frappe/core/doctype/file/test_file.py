@@ -462,7 +462,7 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 
 		test_file.make_thumbnail()
-		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpeg"))
+		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpg"))
 
 		# test local image
 		test_file.db_set("thumbnail_url", None)
@@ -746,4 +746,4 @@ class TestFileOptimization(FrappeTestCase):
 		with open(file_path, "rb") as f:
 			file_content = f.read()
 
-		self.assertEqual(get_extension("", None, file_content), "jpeg")
+		self.assertEqual(get_extension("", None, file_content), "jpg")
