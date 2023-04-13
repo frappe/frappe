@@ -76,11 +76,11 @@ def get_extension(
 
 		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
 
-	if mimetype is None or not mimetype.startswith("image/") and content:
-		# detect file extension by reading image header properties
-		_type_info = filetype.image_match(content)
+	if mimetype is None and extn is None and content:
+		# detect file extension by using filetype matchers
+		_type_info = filetype.match(content)
 		if _type_info:
-			extn = _type_info.mime.split("/")[1]
+			extn = _type_info.extension
 
 	return extn
 
