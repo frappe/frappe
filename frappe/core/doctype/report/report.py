@@ -186,7 +186,7 @@ class Report(Document):
 
 		return columns, result
 
-	def run_query_report(self, filters, user, ignore_prepared_report=False):
+	def run_query_report(self, filters=None, user=None, ignore_prepared_report=False):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(
 			self.name, filters=filters, user=user, ignore_prepared_report=ignore_prepared_report

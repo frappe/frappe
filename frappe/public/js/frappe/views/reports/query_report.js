@@ -501,8 +501,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					if (this.prepared_report) {
 						this.reset_report_view();
 					}
+<<<<<<< HEAD
 					else if (!this._no_refresh) {
 						this.refresh();
+=======
+
+					// clear previous_filters after 10 seconds, to allow refresh for new data
+					this.previous_filters = current_filters;
+					setTimeout(() => (this.previous_filters = null), 10000);
+
+					if (f.on_change) {
+						f.on_change(this);
+					} else {
+						if (this.prepared_report) {
+							this.reset_report_view();
+						} else if (!this._no_refresh) {
+							this.refresh(true);
+						}
+>>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
 					}
 				}
 			};
@@ -554,10 +570,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page.clear_fields();
 	}
 
-	refresh() {
+	refresh(have_filters_changed) {
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
+
+		// for custom reports,
+		// are_default_filters is true if the filters haven't been modified and for all filters,
+		// the filter value is the default value or there's no default value for the filter and the current value is empty.
+		// are_default_filters is false otherwise.
+
+		let are_default_filters = this.filters
+			.map((filter) => {
+				return (
+					!have_filters_changed &&
+					(filter.default === filter.value || (!filter.default && !filter.value))
+				);
+			})
+			.every((res) => res === true);
+
 		this.show_loading_screen();
 
 		// only one refresh at a time
@@ -579,7 +610,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					report_name: this.report_name,
 					filters: filters,
 					is_tree: this.report_settings.tree,
+<<<<<<< HEAD
 					parent_field: this.report_settings.parent_field
+=======
+					parent_field: this.report_settings.parent_field,
+					are_default_filters: are_default_filters,
+>>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
@@ -591,6 +627,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			this.execution_time = data.execution_time || 0.1;
 
+<<<<<<< HEAD
 			if (data.prepared_report) {
 				this.prepared_report = true;
 				this.prepared_report_document = data.doc
@@ -607,6 +644,31 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							field.input.disabled = true;
 						}
 					});
+=======
+				if (data.custom_filters) {
+					this.set_filters(data.custom_filters);
+					this.previous_filters = data.custom_filters;
+				}
+
+				if (data.prepared_report) {
+					this.prepared_report = true;
+					this.prepared_report_document = data.doc;
+					// If query_string contains prepared_report_name then set filters
+					// to match the mentioned prepared report doc and disable editing
+					if (query_params.prepared_report_name) {
+						this.prepared_report_action = "Edit";
+						const filters_from_report = JSON.parse(data.doc.filters);
+						Object.values(this.filters).forEach(function (field) {
+							if (filters_from_report[field.fieldname]) {
+								field.set_input(filters_from_report[field.fieldname]);
+							}
+							if (field.input) {
+								field.input.disabled = true;
+							}
+						});
+					}
+					this.add_prepared_report_buttons(data.doc);
+>>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
 				}
 				this.add_prepared_report_buttons(data.doc);
 			}
@@ -1619,7 +1681,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
+<<<<<<< HEAD
 									columns: this.get_visible_columns()
+=======
+									columns: this.get_visible_columns(),
+									filters: this.get_filter_values(),
+>>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
 								},
 								callback: function(r) {
 									this.show_save = false;
