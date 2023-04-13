@@ -2,6 +2,9 @@
 // MIT License. See license.txt
 import DataTable from "frappe-datatable";
 
+// Expose DataTable globally to allow customizations.
+window.DataTable = DataTable;
+
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
@@ -933,7 +936,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
-			this.datatable = new DataTable(this.$report[0], datatable_options);
+			this.datatable = new window.DataTable(this.$report[0], datatable_options);
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
