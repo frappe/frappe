@@ -42,40 +42,8 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
 
-<<<<<<< HEAD
       - uses: actions/setup-node@v2
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-=======
-  test:
-    runs-on: ubuntu-latest
-    needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.repository_owner == 'frappe' }}
-    timeout-minutes: 60
-
-    strategy:
-      fail-fast: false
-      matrix:
-       # Make sure you modify coverage submission file list if changing this
-       container: [1, 2, 3]
-
-    name: UI Tests (Cypress)
-
-    services:
-      mariadb:
-        image: mariadb:10.6
-        env:
-          MARIADB_ROOT_PASSWORD: travis
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
->>>>>>> 939bf872ae (fix: use compact JSON representation for monitor)
         with:
           node-version: '12'
           check-latest: true
