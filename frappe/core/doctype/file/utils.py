@@ -1,5 +1,4 @@
 import hashlib
-import imghdr
 import mimetypes
 import os
 import re
@@ -7,6 +6,7 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
 
+import filetype
 import requests
 import requests.exceptions
 from PIL import Image
@@ -76,9 +76,11 @@ def get_extension(
 
 		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
 
-	if mimetype is None or not mimetype.startswith("image/") and content:
-		# detect file extension by reading image header properties
-		extn = imghdr.what(filename + "." + (extn or ""), h=content)
+	if mimetype is None and extn is None and content:
+		# detect file extension by using filetype matchers
+		_type_info = filetype.match(content)
+		if _type_info:
+			extn = _type_info.extension
 
 	return extn
 
