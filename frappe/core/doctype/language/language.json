@@ -51,7 +51,7 @@
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
- "modified": "2023-04-13 12:18:38.127995",
+ "modified": "2023-04-13 13:48:38.127995",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",
@@ -67,7 +67,7 @@
   },
   {
    "role": "All",
-   "select": 1
+   "read": 1
   }
  ],
  "search_fields": "language_name",
