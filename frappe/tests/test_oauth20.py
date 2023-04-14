@@ -367,6 +367,10 @@ class TestOAuth20(FrappeRequestTestCase):
 			audience=self.client_id,
 			key=self.client_secret,
 			algorithms=["HS256"],
+			options={
+				"verify_signature": True,
+				"require": ["exp", "iat", "aud"] 
+			}
 		)
 
 
