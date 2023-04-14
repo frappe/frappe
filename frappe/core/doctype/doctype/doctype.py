@@ -1140,10 +1140,6 @@ def validate_fields(meta):
 				HiddenAndMandatoryWithoutDefaultError,
 			)
 
-	def check_width(d):
-		if d.fieldtype == "Currency" and cint(d.width) < 100:
-			frappe.throw(_("Max width for type Currency is 100px in row {0}").format(d.idx))
-
 	def check_in_list_view(is_table, d):
 		if d.in_list_view and (d.fieldtype in not_allowed_in_list_view):
 			property_label = "In Grid View" if is_table else "In List View"
@@ -1191,14 +1187,6 @@ def validate_fields(meta):
 				frappe.throw(
 					_("Default value for {0} must be in the list of options.").format(frappe.bold(d.fieldname))
 				)
-
-	def check_precision(d):
-		if (
-			d.fieldtype in ("Currency", "Float", "Percent")
-			and d.precision is not None
-			and not (1 <= cint(d.precision) <= 6)
-		):
-			frappe.throw(_("Precision should be between 1 and 6"))
 
 	def check_unique_and_text(docname, d):
 		if meta.is_virtual:
@@ -1443,6 +1431,25 @@ def validate_fields(meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
+	def validate_default_values(docfield):
+		if docfield.get("default"):
+			if docfield.fieldtype == "Int":
+				try:
+					int(docfield.default)
+				except ValueError:
+					frappe.throw(
+						_("Default value for field {0} must be an integer").format(frappe.bold(docfield.label)),
+						title=_("Invalid Value"),
+					)
+			elif docfield.fieldtype in ["Percent", "Float"]:
+				try:
+					float(docfield.default)
+				except ValueError:
+					frappe.throw(
+						_("Default value for field {0} must be a number").format(frappe.bold(docfield.label)),
+						title=_("Invalid Value"),
+					)
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1466,6 +1473,7 @@ def validate_fields(meta):
 		scrub_options_in_select(d)
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
+		validate_default_values(d)
 
 		if not frappe.flags.in_migrate:
 			check_link_table_options(meta.get("name"), d)
