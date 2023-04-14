@@ -331,7 +331,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		userinfo = get_userinfo(user)
 
-		id_token['exp'] = id_token.get('iat') + token.get('expires_in')
+		id_token["exp"] = id_token.get("iat") + token.get("expires_in")
 
 		if userinfo.get("iss"):
 			id_token["iss"] = userinfo.get("iss")
