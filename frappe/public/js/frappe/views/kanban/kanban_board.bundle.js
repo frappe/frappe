@@ -326,7 +326,7 @@ frappe.provide("frappe.views");
 			store.watch((state, getters) => {
 				return state.empty_state;
 			}, show_empty_state);
-
+			make_columns();
 			store.dispatch("update_order");
 		}
 
