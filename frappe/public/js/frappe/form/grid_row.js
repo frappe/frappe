@@ -1295,7 +1295,7 @@ export default class GridRow {
 			.find(".grid-delete-row")
 			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
-		frappe.dom.freeze("", "dark");
+		frappe.dom.freeze("", "dark grid-form");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if (
