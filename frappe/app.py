@@ -90,15 +90,11 @@ def application(request):
 		rollback = after_request(rollback)
 
 	finally:
-<<<<<<< HEAD
-		if request.method in ("POST", "PUT") and frappe.db and rollback:
-=======
 		# Important note:
 		# this function *must* always return a response, hence any exception thrown outside of
 		# try..catch block like this finally block needs to be handled appropriately.
 
-		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
->>>>>>> 1e9ede40fa (fix: stale `frappe.local` (#20695))
+		if request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
 
 		try:
