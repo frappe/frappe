@@ -1434,9 +1434,7 @@ def validate_fields(meta):
 	def validate_default_values(docfield):
 		if docfield.get("default"):
 			if docfield.fieldtype == "Int":
-				try:
-					int(docfield.default)
-				except ValueError:
+				if not isinstance(docfield.default, int):
 					frappe.throw(
 						_("Default value for field {0} must be an integer").format(frappe.bold(docfield.label)),
 						title=_("Invalid Value"),
