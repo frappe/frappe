@@ -614,7 +614,7 @@ class FormTimeline extends BaseTimeline {
 		// REDESIGN TODO: What is this? Check again
 		communications
 			.sort((a, b) => (a.creation > b.creation ? -1 : 1))
-			.forEach((c) => {
+			.every((c) => {
 				if (
 					c.communication_type === "Communication" &&
 					c.communication_medium === "Email"
