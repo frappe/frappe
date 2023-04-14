@@ -84,7 +84,8 @@ def application(request: Request):
 		try:
 			run_after_request_hooks(request, response)
 		except Exception as e:
-			pass  # We can not handle exceptions safely here.
+			# We can not handle exceptions safely here.
+			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
 		log_request(request, response)
 		process_response(response)
@@ -107,7 +108,7 @@ def init_request(request):
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site=site, sites_path=_sites_path)
+	frappe.init(site=site, sites_path=_sites_path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
