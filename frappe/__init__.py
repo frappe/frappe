@@ -179,9 +179,13 @@ if typing.TYPE_CHECKING:
 # end: static analysis hack
 
 
+<<<<<<< HEAD
 def init(site, sites_path=None, new_site=False):
+=======
+def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
+>>>>>>> 1e9ede40fa (fix: stale `frappe.local` (#20695))
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None):
+	if getattr(local, "initialised", None) and not force:
 		return
 
 	if not sites_path:
