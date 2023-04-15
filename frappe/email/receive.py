@@ -483,7 +483,10 @@ class Email:
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
 		if _subject[0][1]:
-			self.subject = safe_decode(self.subject, _subject[0][1])
+			charset = _subject[0][1]
+			if _subject[0][1] == "unknown-8bit":
+				charset = chardet.detect(_subject[0][0])["encoding"]
+			self.subject = safe_decode(self.subject, charset)
 		else:
 			# assume that the encoding is utf-8
 			self.subject = safe_decode(self.subject)[:140]
