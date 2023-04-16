@@ -719,7 +719,7 @@ class TestDocType(FrappeTestCase):
 		self.assertTrue(doctype.fields[1].in_list_view)
 		frappe.delete_doc("DocType", doctype.name)
 
-	def test_default_value_validate(self):
+	def test_validate_default_value(self):
 		"""Test default value validation."""
 		doctype = new_doctype(
 			fields=[

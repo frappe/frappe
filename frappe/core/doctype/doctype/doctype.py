@@ -1188,6 +1188,21 @@ def validate_fields(meta):
 					_("Default value for {0} must be in the list of options.").format(frappe.bold(d.fieldname))
 				)
 
+		if d.default and d.fieldtype == "Int":
+			if not isinstance(d.default, int):
+				frappe.throw(
+					_("Default value for field {0} must be an integer").format(frappe.bold(d.label)),
+					title=_("Invalid Value"),
+				)
+		if d.default and d.fieldtype in ["Percent", "Float"]:
+			try:
+				float(d.default)
+			except ValueError:
+				frappe.throw(
+					_("Default value for field {0} must be a number").format(frappe.bold(d.label)),
+					title=_("Invalid Value"),
+				)
+
 	def check_unique_and_text(docname, d):
 		if meta.is_virtual:
 			return
@@ -1431,23 +1446,6 @@ def validate_fields(meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
-	def validate_default_values(docfield):
-		if docfield.get("default"):
-			if docfield.fieldtype == "Int":
-				if not isinstance(docfield.default, int):
-					frappe.throw(
-						_("Default value for field {0} must be an integer").format(frappe.bold(docfield.label)),
-						title=_("Invalid Value"),
-					)
-			elif docfield.fieldtype in ["Percent", "Float"]:
-				try:
-					float(docfield.default)
-				except ValueError:
-					frappe.throw(
-						_("Default value for field {0} must be a number").format(frappe.bold(docfield.label)),
-						title=_("Invalid Value"),
-					)
-
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1471,7 +1469,6 @@ def validate_fields(meta):
 		scrub_options_in_select(d)
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
-		validate_default_values(d)
 
 		if not frappe.flags.in_migrate:
 			check_link_table_options(meta.get("name"), d)
