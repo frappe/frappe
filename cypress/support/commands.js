@@ -331,13 +331,8 @@ Cypress.Commands.add('click_listview_row_item_with_text', (text) => {
 		.click({force: true});
 });
 
-<<<<<<< HEAD
-Cypress.Commands.add('click_filter_button', () => {
-	cy.get('.filter-selector > .btn').click();
-=======
 Cypress.Commands.add("click_filter_button", () => {
 	cy.get(".filter-button").click();
->>>>>>> c12406fa3e (test: fixed failing UI test)
 });
 
 Cypress.Commands.add('click_listview_primary_button', (btn_name) => {
