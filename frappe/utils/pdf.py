@@ -221,8 +221,8 @@ def prepare_header_footer(soup):
 				tag.extract()
 
 			toggle_visible_pdf(content)
-			mapper = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
-			hook_func = frappe.get_hooks(mapper.get(html_id))
+			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
+			hook_func = frappe.get_hooks(id_map.get(html_id))
 			html = frappe.get_attr(hook_func[-1])(
 				soup=soup,
 				head=head,
