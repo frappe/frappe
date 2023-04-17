@@ -17,7 +17,6 @@ from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions
-<<<<<<< HEAD
 from frappe.utils import (
 	cint,
 	cstr,
@@ -26,10 +25,8 @@ from frappe.utils import (
 	get_html_format,
 	get_url_to_form,
 	gzip_decompress,
+	sbool,
 )
-=======
-from frappe.utils import cint, cstr, flt, format_duration, get_html_format, sbool
->>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
 
 
 def get_report_doc(report_name):
@@ -240,19 +237,15 @@ def run(
 
 	result = None
 
-<<<<<<< HEAD
+	if sbool(are_default_filters) and report.custom_filters:
+		filters = report.custom_filters
+
 	if (
 		report.prepared_report
 		and not report.disable_prepared_report
 		and not ignore_prepared_report
 		and not custom_columns
 	):
-=======
-	if sbool(are_default_filters) and report.custom_filters:
-		filters = report.custom_filters
-
-	if report.prepared_report and not ignore_prepared_report and not custom_columns:
->>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
 		if filters:
 			if isinstance(filters, string_types):
 				filters = json.loads(filters)

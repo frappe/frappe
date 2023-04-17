@@ -195,11 +195,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2022-09-15 13:37:24.531848",
-=======
  "modified": "2023-04-07 18:18:11.782178",
->>>>>>> b62bb8b0ec (fix: allow filter values to be saved in custom report (#20623))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
