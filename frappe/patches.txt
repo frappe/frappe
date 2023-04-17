@@ -218,7 +218,11 @@ frappe.patches.v14_0.drop_unused_indexes
 frappe.patches.v14_0.disable_email_accounts_with_oauth
 frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
 <<<<<<< HEAD
+<<<<<<< HEAD
 frappe.core.doctype.system_settings.patches.set_default_rounding_method
 =======
 frappe.patches.v15_0.update_background_jobs_url
 >>>>>>> 1053fba273 (fix: Patch to update Background Jobs URL)
+=======
+frappe.patches.v15_0.remove_background_jobs_from_dropdown
+>>>>>>> 9938ab0f44 (fix: Remove Background Jobs from dropdown)
