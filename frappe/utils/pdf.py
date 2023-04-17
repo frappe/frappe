@@ -23,7 +23,7 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def pdf_header_html(head, content, styles, html_id, css):
+def pdf_header_html(soup, head, content, styles, html_id, css):
 	return frappe.render_template(
 		"templates/print_formats/pdf_header_footer.html",
 		{
@@ -42,8 +42,10 @@ def pdf_body_html(template, args, **kwargs):
 	return template.render(args, filters={"len": len})
 
 
-def pdf_footer_html(head, content, styles, html_id, css):
-	return pdf_header_html(head=head, content=content, styles=styles, html_id=html_id, css=css)
+def pdf_footer_html(soup, head, content, styles, html_id, css):
+	return pdf_header_html(
+		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css
+	)
 
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
