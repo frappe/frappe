@@ -143,10 +143,18 @@ frappe.ui.toolbar.Toolbar = class {
 				__("Generate Tracking URL")
 			);
 
+<<<<<<< HEAD
 			frappe.search.utils.make_function_searchable(function () {
 				frappe.set_route("List", "RQ Job");
 			}, __("Background Jobs"));
 >>>>>>> c262eaf18d (fix: Redirect Background Jobs to RQ Jobs)
+=======
+			if (frappe.perm.has_perm("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
+>>>>>>> cdb943d49a (fix: Show background jobs only to permitted users)
 		}
 	}
 
