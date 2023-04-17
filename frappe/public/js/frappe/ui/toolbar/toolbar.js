@@ -131,11 +131,27 @@ frappe.ui.toolbar.Toolbar = class {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup("#navbar-search");
+<<<<<<< HEAD
 			if (frappe.perm.has_perm("RQ Job")) {
 				frappe.search.utils.make_function_searchable(function () {
 					frappe.set_route("List", "RQ Job");
 				}, __("Background Jobs"));
 			}
+=======
+
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+
+			frappe.model.with_doctype("RQ Job").then(() => {
+				if (frappe.perm.has_perm("RQ Job", 0, "read")) {
+					frappe.search.utils.make_function_searchable(function () {
+						frappe.set_route("List", "RQ Job");
+					}, __("Background Jobs"));
+				}
+			});
+>>>>>>> ee97800f8c (fix: Load doc before checking permission)
 		}
 	}
 
