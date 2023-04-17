@@ -6,4 +6,4 @@ def execute():
 	if not item:
 		return
 
-	frappe.set_value("Navbar Item", item, "route", "/app/rq-job")
+	frappe.delete_doc("Navbar Item", item)
