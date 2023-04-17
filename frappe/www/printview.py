@@ -208,8 +208,10 @@ def get_rendered_template(
 			"print_settings": print_settings,
 		}
 	)
-
-	html = template.render(args, filters={"len": len})
+	hook_func = frappe.get_hooks("pdf_body_html")
+	html = frappe.get_attr(hook_func[-1])(
+		jenv=jenv, template=template, print_format=print_format, args=args
+	)
 
 	if cint(trigger_print):
 		html += trigger_print_script
