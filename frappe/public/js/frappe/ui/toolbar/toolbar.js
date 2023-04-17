@@ -137,9 +137,11 @@ frappe.ui.toolbar.Toolbar = class {
 				__("Generate Tracking URL")
 			);
 
-			frappe.search.utils.make_function_searchable(function () {
-				frappe.set_route("List", "RQ Job");
-			}, __("Background Jobs"));
+			if (frappe.perm.has_perm("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
 		}
 	}
 
