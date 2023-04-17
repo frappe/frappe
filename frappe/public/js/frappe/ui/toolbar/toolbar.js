@@ -129,10 +129,21 @@ frappe.ui.toolbar.Toolbar = class {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup("#navbar-search");
 
+<<<<<<< HEAD
 			// TODO: Remove this in v14
 			frappe.search.utils.make_function_searchable(function () {
 				frappe.set_route("List", "Client Script");
 			}, __("Custom Script List"));
+=======
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+
+			frappe.search.utils.make_function_searchable(function () {
+				frappe.set_route("List", "RQ Job");
+			}, __("Background Jobs"));
+>>>>>>> c262eaf18d (fix: Redirect Background Jobs to RQ Jobs)
 		}
 	}
 
