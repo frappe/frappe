@@ -37,7 +37,7 @@ from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
-poplib._MAXLINE = 20480
+poplib._MAXLINE = 1_00_000
 
 THREAD_ID_PATTERN = re.compile(r"(?<=\[)[\w/-]+")
 WORDS_PATTERN = re.compile(r"\w+")
