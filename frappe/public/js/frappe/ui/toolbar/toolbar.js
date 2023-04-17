@@ -13,6 +13,9 @@ frappe.ui.toolbar.Toolbar = class {
 			})
 		);
 		$(".dropdown-toggle").dropdown();
+		$("#toolbar-user a[href]").click(function () {
+			$(this).closest(".dropdown-menu").prev().dropdown("toggle");
+		});
 
 		this.setup_awesomebar();
 		this.setup_notifications();
