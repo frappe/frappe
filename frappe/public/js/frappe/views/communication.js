@@ -346,7 +346,7 @@ frappe.views.CommunicationComposer = class {
 			await this.dialog.set_value(fieldname, this[fieldname] || "");
 		}
 
-		const subject = frappe.utils.html2text(this.subject) || "";
+		const subject = this.subject ? frappe.utils.html2text(this.subject) : "";
 		await this.dialog.set_value("subject", subject);
 
 		await this.set_values_from_last_edited_communication();
