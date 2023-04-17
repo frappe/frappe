@@ -475,7 +475,7 @@ Cypress.Commands.add("click_listview_row_item_with_text", (text) => {
 });
 
 Cypress.Commands.add("click_filter_button", () => {
-	cy.get(".filter-selector > .btn").click();
+	cy.get(".filter-button").click();
 });
 
 Cypress.Commands.add("click_listview_primary_button", (btn_name) => {

@@ -5,6 +5,7 @@ context("List View", () => {
 	});
 
 	it("List view check rows on drag", () => {
+		cy.get(".filter-x-button").click();
 		cy.get(".list-row-checkbox").then(($checkbox) => {
 			cy.wrap($checkbox).first().trigger("mousedown");
 			cy.get(".level.list-row").each(($ele) => {
