@@ -7,8 +7,7 @@ context("Folder Navigation", () => {
 
 	it("Adding Folders", () => {
 		//Adding filter to go into the home folder
-		cy.get(".filter-selector > .btn").findByText("1 filter").click();
-		cy.findByRole("button", { name: "Clear Filters" }).click();
+		cy.get(".filter-x-button").click();
 		cy.get(".filter-action-buttons > .text-muted").findByText("+ Add a Filter").click();
 		cy.get(".fieldname-select-area > .awesomplete > .form-control:last").type("Fol{enter}");
 		cy.get(
