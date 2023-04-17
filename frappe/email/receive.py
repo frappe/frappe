@@ -151,7 +151,7 @@ class EmailServer:
 
 		except _socket.error:
 			# log performs rollback and logs error in Error Log
-			self.log_error("POP: Unable to connect")
+			frappe.log_error("POP: Unable to connect")
 
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
@@ -332,7 +332,7 @@ class EmailServer:
 
 			else:
 				# log performs rollback and logs error in Error Log
-				self.log_error("Unable to fetch email", self.make_error_msg(msg_num, incoming_mail))
+				frappe.log_error("Unable to fetch email", self.make_error_msg(msg_num, incoming_mail))
 				self.errors = True
 				frappe.db.rollback()
 
