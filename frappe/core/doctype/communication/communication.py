@@ -467,7 +467,8 @@ def get_emails(email_strings: list[str]) -> list[str]:
 		if email_string:
 			result = getaddresses([email_string])
 			for email in result:
-				email_addrs.append(email[1])
+				if "@" in email[1]:
+					email_addrs.append(email[1])
 
 	return email_addrs
 
