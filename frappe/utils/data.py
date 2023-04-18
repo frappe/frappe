@@ -2195,6 +2195,15 @@ def validate_python_code(
 		)
 
 
+def parse_float(num: float | str) -> float:
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	decimal_str, comma_str, _ = get_number_format_info(number_format)
+
+	num = str(num).replace(decimal_str, "#").replace(comma_str, "")
+	num = num.replace("#", ".")
+	return flt(num)
+
+
 class UnicodeWithAttrs(str):
 	def __init__(self, text):
 		self.toc_html = text.toc_html

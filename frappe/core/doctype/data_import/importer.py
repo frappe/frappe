@@ -12,7 +12,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.version.version import get_diff
 from frappe.model import no_value_fields
-from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
+from frappe.utils import cint, cstr, duration_to_seconds, parse_float, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
@@ -766,7 +766,7 @@ class Row:
 		if df.fieldtype in ["Int", "Check"]:
 			value = cint(value)
 		elif df.fieldtype in ["Float", "Percent", "Currency"]:
-			value = flt(value)
+			value = parse_float(value)
 		elif df.fieldtype in ["Date", "Datetime"]:
 			value = self.get_date(value, col)
 		elif df.fieldtype == "Duration":
