@@ -177,9 +177,9 @@ class EmailServer:
 
 		email_list = self.get_new_mails(folder)
 
-		for i, message_meta in enumerate(email_list[:100]):
+		for i, uid in enumerate(email_list[:100]):
 			try:
-				self.retrieve_message(message_meta, i + 1)
+				self.retrieve_message(uid, i + 1)
 			except (EmailTimeoutError, LoginLimitExceeded):
 				# get whatever messages were retrieved
 				break
@@ -258,15 +258,19 @@ class EmailServer:
 		else:
 			return None
 
-	def retrieve_message(self, message_meta, msg_num=None):
+	def retrieve_message(self, uid, msg_num):
 		try:
 			if cint(self.settings.use_imap):
+<<<<<<< HEAD
 				status, message = self.imap.uid(
 					"fetch", message_meta, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)"
 				)
+=======
+				status, message = self.imap.uid("fetch", uid, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
+>>>>>>> 97b2adfaf2 (chore: rename message_meta -> uid)
 				raw = message[0]
 
-				self.get_email_seen_status(message_meta, raw[0])
+				self.get_email_seen_status(uid, raw[0])
 				self.latest_messages.append(raw[1])
 			else:
 				msg = self.pop.retr(msg_num)
@@ -280,6 +284,7 @@ class EmailServer:
 				raise LoginLimitExceeded(e)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 			else:
 				# log performs rollback and logs error in Error Log
 				frappe.log_error("Unable to fetch email", self.make_error_msg(msg_num, incoming_mail))
@@ -288,8 +293,11 @@ class EmailServer:
 =======
 			frappe.log_error("Unable to fetch email", self.make_error_msg(msg_num))
 >>>>>>> b483deac3d (refactor(minor): email retreiveing)
+=======
+			frappe.log_error("Unable to fetch email", self.make_error_msg(uid, msg_num))
+>>>>>>> 97b2adfaf2 (chore: rename message_meta -> uid)
 
-		self.post_retrieve_cleanup(message_meta, msg_num)
+		self._post_retrieve_cleanup(uid, msg_num)
 
 	def get_email_seen_status(self, uid, flag_string):
 		"""parse the email FLAGS response"""
@@ -309,14 +317,14 @@ class EmailServer:
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e))
 
-	def post_retrieve_cleanup(self, message_meta, msg_num=None):
+	def _post_retrieve_cleanup(self, uid, msg_num):
 		with suppress(Exception):
 			if not cint(self.settings.use_imap):
 				self.pop.dele(msg_num)
 			else:
 				# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
 				if self.settings.email_sync_rule == "UNSEEN":
-					self.imap.uid("STORE", message_meta, "+FLAGS", "(\\SEEN)")
+					self.imap.uid("STORE", uid, "+FLAGS", "(\\SEEN)")
 
 	def is_temporary_system_problem(self, e):
 		messages = (
@@ -328,24 +336,24 @@ class EmailServer:
 				return True
 		return False
 
-	def make_error_msg(self, message_meta, msg_num):
-		incoming_mail = None
+	def make_error_msg(self, uid, msg_num):
+		partial_mail = None
 		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
 			if not cint(self.settings.use_imap):
-				partial_message = b"\n".join(self.pop.top(msg_num, 5)[1])
+				headers = b"\n".join(self.pop.top(msg_num, 5)[1])
 			else:
-				partial_message = self.imap.uid("fetch", message_meta, "(BODY.PEEK[HEADER])")[1][0][1]
+				headers = self.imap.uid("fetch", uid, "(BODY.PEEK[HEADER])")[1][0][1]
 
-			incoming_mail = Email(partial_message)
+			partial_mail = Email(headers)
 
-		if incoming_mail:
+		if partial_mail:
 			return (
 				"\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n\n\nTraceback: \n{traceback}".format(
-					date=incoming_mail.date,
-					from_email=incoming_mail.from_email,
-					subject=incoming_mail.subject,
+					date=partial_mail.date,
+					from_email=partial_mail.from_email,
+					subject=partial_mail.subject,
 					traceback=traceback,
 				)
 			)
