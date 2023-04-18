@@ -53,7 +53,7 @@ context("Sidebar", () => {
 		);
 
 		//To check if there is no filter added to the listview
-		cy.get(".filter-selector > .btn").should("contain", "Filter");
+		cy.get(".filter-button").should("contain", "Filter");
 
 		//To add a filter to display data into the listview
 		cy.get(".group-by-field.show > .dropdown-menu > .group-by-item > .dropdown-item").click();

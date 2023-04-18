@@ -40,17 +40,21 @@ frappe.ui.form.on("Workflow", {
 	},
 	update_field_options: function (frm) {
 		var doc = frm.doc;
-		if (doc.document_type) {
-			const get_field_method =
-				"frappe.workflow.doctype.workflow.workflow.get_fieldnames_for";
-			frappe.xcall(get_field_method, { doctype: doc.document_type }).then((resp) => {
-				frm.fields_dict.states.grid.update_docfield_property(
-					"update_field",
-					"options",
-					[""].concat(resp)
-				);
-			});
+		if (!doc.document_type) {
+			return;
 		}
+		frappe.model.with_doctype(doc.document_type, () => {
+			const fieldnames = frappe
+				.get_meta(doc.document_type)
+				.fields.filter((field) => !frappe.model.no_value_type.includes(field.fieldtype))
+				.map((field) => field.fieldname);
+
+			frm.fields_dict.states.grid.update_docfield_property(
+				"update_field",
+				"options",
+				[""].concat(fieldnames)
+			);
+		});
 	},
 	create_warning_dialog: function (frm) {
 		const warning_html = `<p class="bold">

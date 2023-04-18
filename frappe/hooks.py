@@ -83,6 +83,11 @@ on_logout = (
 	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 )
 
+# PDF
+pdf_header_html = "frappe.utils.pdf.pdf_header_html"
+pdf_body_html = "frappe.utils.pdf.pdf_body_html"
+pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
+
 # permissions
 
 permission_query_conditions = {
@@ -186,11 +191,13 @@ scheduler_events = {
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
 			"frappe.twofactor.delete_all_barcodes_for_users",
-		]
+		],
+		"0/10 * * * *": [
+			"frappe.email.doctype.email_account.email_account.pull",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
-		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
