@@ -194,8 +194,8 @@ class EmailServer:
 
 	def get_new_mails(self, folder):
 		"""Return list of new mails"""
+		email_list = []
 		if cint(self.settings.use_imap):
-			email_list = []
 			self.check_imap_uidvalidity(folder)
 
 			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
@@ -207,7 +207,7 @@ class EmailServer:
 		else:
 			email_list = self.pop.list()[1]
 
-		return email_list or []
+		return email_list
 
 	def check_imap_uidvalidity(self, folder):
 		# compare the UIDVALIDITY of email account and imap server
