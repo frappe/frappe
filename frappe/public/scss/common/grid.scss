@@ -321,7 +321,7 @@
 	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	z-index: 1051;
+	z-index: 1021;
 	border-radius: var(--border-radius-md);
 	@include base-grid();
 
@@ -360,6 +360,10 @@
 	.grid-append-row {
 		margin-top: calc(-1 * var(--margin-xs));
 	}
+}
+
+#freeze.grid-form {
+	z-index: 1020;
 }
 
 .recorder-form-in-grid {

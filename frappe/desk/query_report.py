@@ -22,12 +22,14 @@ from frappe.utils import (
 	get_html_format,
 	get_url_to_form,
 	gzip_decompress,
+	sbool,
 )
 
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
 	doc.custom_columns = []
+	doc.custom_filters = []
 
 	if doc.report_type == "Custom Report":
 		custom_report_doc = doc
@@ -37,7 +39,8 @@ def get_report_doc(report_name):
 		if custom_report_doc.json:
 			data = json.loads(custom_report_doc.json)
 			if data:
-				doc.custom_columns = data["columns"]
+				doc.custom_columns = data.get("columns")
+				doc.custom_filters = data.get("filters")
 		doc.is_custom_report = True
 
 	if not doc.is_permitted():
@@ -220,6 +223,7 @@ def run(
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
+	are_default_filters=True,
 ):
 	report = get_report_doc(report_name)
 	if not user:
@@ -231,6 +235,9 @@ def run(
 		)
 
 	result = None
+
+	if sbool(are_default_filters) and report.custom_filters:
+		filters = report.custom_filters
 
 	if (
 		report.prepared_report
@@ -252,6 +259,9 @@ def run(
 		add_data_to_monitor(report=report.reference_report or report.name)
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
+
+	if sbool(are_default_filters) and report.custom_filters:
+		result["custom_filters"] = report.custom_filters
 
 	return result
 
@@ -526,7 +536,7 @@ def get_data_for_custom_report(columns):
 
 
 @frappe.whitelist()
-def save_report(reference_report, report_name, columns):
+def save_report(reference_report, report_name, columns, filters):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
@@ -542,6 +552,7 @@ def save_report(reference_report, report_name, columns):
 		report = frappe.get_doc("Report", docname)
 		existing_jd = json.loads(report.json)
 		existing_jd["columns"] = json.loads(columns)
+		existing_jd["filters"] = json.loads(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
@@ -552,7 +563,7 @@ def save_report(reference_report, report_name, columns):
 			{
 				"doctype": "Report",
 				"report_name": report_name,
-				"json": f'{{"columns":{columns}}}',
+				"json": f'{{"columns":{columns},"filters":{filters}}}',
 				"ref_doctype": report_doc.ref_doctype,
 				"is_standard": "No",
 				"report_type": "Custom Report",

@@ -203,7 +203,7 @@ frappe.router = {
 						? meta.default_view
 						: null
 				);
-			} else if (route[1] && route[1] !== "view" && !route[2]) {
+			} else if (route[1] && route[1] !== "view") {
 				let docname = route[1];
 				if (route.length > 2) {
 					docname = route.slice(1).join("/");
