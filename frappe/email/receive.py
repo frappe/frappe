@@ -330,19 +330,26 @@ class EmailServer:
 
 	def make_error_msg(self, message_meta, msg_num):
 		incoming_mail = None
+		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
 			if not cint(self.settings.use_imap):
-				partial_message = self.pop.top(msg_num, 5)[1]
+				partial_message = b"\n".join(self.pop.top(msg_num, 5)[1])
 			else:
-				partial_message = self.imap.uid("fetch", message_meta, "(BODY.PEEK[HEADER])")[1]
+				partial_message = self.imap.uid("fetch", message_meta, "(BODY.PEEK[HEADER])")[1][0][1]
 
-			incoming_mail = Email(b"\n".join(partial_message))
+			incoming_mail = Email(partial_message)
 
 		if incoming_mail:
-			return "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
-				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject
+			return (
+				"\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n\n\nTraceback: \n{traceback}".format(
+					date=incoming_mail.date,
+					from_email=incoming_mail.from_email,
+					subject=incoming_mail.subject,
+					traceback=traceback,
+				)
 			)
+		return traceback
 
 	def update_flag(self, folder, uid_list=None):
 		"""set all uids mails the flag as seen"""
