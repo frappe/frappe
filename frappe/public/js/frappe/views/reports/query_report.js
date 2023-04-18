@@ -1337,10 +1337,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
 		return Object.keys(applied_filters)
+<<<<<<< HEAD
 			.map(fieldname => {
 				const label = frappe.query_report.get_filter(fieldname).df.label;
+=======
+			.map((fieldname) => {
+				const docfield = frappe.query_report.get_filter(fieldname).df;
+>>>>>>> af500bb3f5 (fix: format filter values in report print view (#20717))
 				const value = applied_filters[fieldname];
-				return `<h6>${__(label)}: ${value}</h6>`;
+				return `<h6>${__(docfield.label)}: ${frappe.format(value, docfield)}</h6>`;
 			})
 			.join('');
 	}
