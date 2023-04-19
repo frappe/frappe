@@ -350,7 +350,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "type",
 				label: "Type",
 				reqd: 1,
-				options: "DocType\nReport\nPage\nDashboard",
+				options: "DocType\nReport\nPage\nDashboard\nURL",
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
@@ -379,7 +379,6 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Dynamic Link",
 				fieldname: "link_to",
 				label: "Link To",
-				reqd: 1,
 				options: "type",
 				onchange: () => {
 					const doctype = this.dialog.get_value("link_to");
@@ -404,6 +403,17 @@ class ShortcutDialog extends WidgetDialog {
 						this.hide_filters();
 					}
 				},
+				depends_on: (s) => s.type != "URL",
+				mandatory_depends_on: (s) => s.type != "URL",
+			},
+			{
+				fieldtype: "Data",
+				fieldname: "url",
+				label: "URL",
+				options: "URL",
+				default: "",
+				depends_on: (s) => s.type == "URL",
+				mandatory_depends_on: (s) => s.type == "URL",
 			},
 			{
 				fieldtype: "Select",
@@ -499,6 +509,19 @@ class ShortcutDialog extends WidgetDialog {
 		}
 
 		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
+
+		if (data.url) {
+			!validate_url(data.url) &&
+				frappe.throw({
+					message: __("<b>{0}</b> is not a valid URL", [data.url]),
+					title: __("Invalid URL"),
+					indicator: "red",
+				});
+
+			if (!data.label) {
+				data.label = "No Label (URL)";
+			}
+		}
 
 		return data;
 	}
