@@ -14,10 +14,14 @@
   "domain",
   "service",
   "authentication_column",
+  "auth_method",
   "password",
   "awaiting_password",
   "ascii_encode_password",
+  "authorize_api_access",
   "column_break_10",
+  "connected_app",
+  "connected_user",
   "login_id_is_different",
   "login_id",
   "mailbox_settings",
@@ -97,6 +101,7 @@
    "label": "Email Login ID"
   },
   {
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
    "fieldname": "password",
    "fieldtype": "Password",
    "hide_days": 1,
@@ -105,6 +110,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -113,6 +119,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
    "fieldname": "ascii_encode_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -571,12 +578,41 @@
    "fieldname": "use_starttls",
    "fieldtype": "Check",
    "label": "Use STARTTLS"
+  },
+  {
+   "default": "Basic",
+   "fieldname": "auth_method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "options": "Basic\nOAuth"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "connected_app",
+   "fieldtype": "Link",
+   "label": "Connected App",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "options": "Connected App"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "connected_user",
+   "fieldtype": "Link",
+   "label": "Connected User",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "options": "User"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
+   "fieldname": "authorize_api_access",
+   "fieldtype": "Button",
+   "label": "Authorize API Access"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-19 10:26:00.762228",
+ "modified": "2023-04-20 17:47:17.222361",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

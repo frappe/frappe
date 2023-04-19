@@ -11,34 +11,8 @@ import _socket
 
 import frappe
 from frappe import _
+from frappe.email.oauth import Oauth
 from frappe.utils import cint, cstr, parse_addr
-
-
-def send(email, append_to=None, retry=1):
-	"""Deprecated: Send the message or add it to Outbox Email"""
-
-	def _send(retry):
-		try:
-			smtpserver = SMTPServer(append_to=append_to)
-
-			# validate is called in as_string
-			email_body = email.as_string()
-
-			smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []), email_body)
-		except smtplib.SMTPSenderRefused:
-			frappe.throw(_("Invalid login or password"), title="Email Failed")
-			raise
-		except smtplib.SMTPRecipientsRefused:
-			frappe.msgprint(_("Invalid recipient address"), title="Email Failed")
-			raise
-		except (smtplib.SMTPServerDisconnected, smtplib.SMTPAuthenticationError):
-			if not retry:
-				raise
-			else:
-				retry = retry - 1
-				_send(retry)
-
-	_send(retry)
 
 
 def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sender=None):
@@ -75,7 +49,6 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 					"enable_incoming": 1,
 					"append_to": append_to,
 				},
-				cache=True,
 			)
 
 			if email_accounts:
@@ -113,6 +86,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 				if (
 					email_account.smtp_server in ["localhost", "127.0.0.1"]
 					or email_account.no_smtp_authentication
+					or email_account.auth_method == "OAuth"
 				):
 					raise_exception = False
 				email_account.password = email_account.get_password(raise_exception=raise_exception)
@@ -198,6 +172,8 @@ class SMTPServer:
 		use_tls=None,
 		use_ssl=None,
 		append_to=None,
+		use_oauth=0,
+		access_token=None,
 	):
 		# get defaults from mail settings
 
@@ -213,7 +189,8 @@ class SMTPServer:
 			self.use_ssl = cint(use_ssl)
 			self.login = login
 			self.password = password
-
+			self.use_oauth = use_oauth
+			self.access_token = access_token
 		else:
 			self.setup_email_account(append_to)
 
@@ -242,6 +219,10 @@ class SMTPServer:
 			self.always_use_account_name_as_sender_name = cint(
 				self.email_account.get("always_use_account_name_as_sender_name")
 			)
+
+			oauth_token = self.email_account.get_oauth_token()
+			self.use_oauth = self.email_account.auth_method == "OAuth"
+			self.access_token = oauth_token.get_password("access_token") if oauth_token else None
 
 	@property
 	def sess(self):
@@ -279,7 +260,10 @@ class SMTPServer:
 				self._sess.starttls()
 				self._sess.ehlo()
 
-			if self.login and self.password:
+			if self.use_oauth:
+				Oauth(self._sess, self.email_account, self.login, self.access_token).connect()
+
+			elif self.password:
 				ret = self._sess.login(str(self.login or ""), str(self.password or ""))
 
 				# check if logged correctly
