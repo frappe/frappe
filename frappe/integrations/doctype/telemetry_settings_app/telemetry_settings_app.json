@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-04-19 16:48:24.783902",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "app",
+  "track_usage"
+ ],
+ "fields": [
+  {
+   "columns": 5,
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "App",
+   "reqd": 1
+  },
+  {
+   "columns": 5,
+   "default": "0",
+   "fieldname": "track_usage",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Track Usage"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-04-19 16:51:15.775263",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Telemetry Settings App",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

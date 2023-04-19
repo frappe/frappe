@@ -11,7 +11,6 @@ from contextlib import suppress
 from shutil import which
 
 import click
-
 import frappe
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, is_git_url
@@ -180,7 +179,6 @@ def find_org(org_repo: str) -> tuple[str, str]:
 	:rtype: Tuple[str, str]
 	"""
 	import requests
-
 	from frappe.exceptions import InvalidRemoteException
 
 	for org in ["frappe", "erpnext"]:
@@ -249,7 +247,8 @@ def parse_app_name(name: str) -> str:
 
 
 def install_app(name, verbose=False, set_as_patched=True, force=False):
-	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import \
+	    sync_jobs
 	from frappe.model.sync import sync_for
 	from frappe.modules.utils import sync_customizations
 	from frappe.utils.fixtures import sync_fixtures
@@ -266,6 +265,10 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 		for app in app_hooks.required_apps:
 			required_app = parse_app_name(app)
 			install_app(required_app, verbose=verbose, force=force)
+
+	telemetry_enabled = frappe.get_hooks(app_name=name, default={}).get("enable_telemetry", False)
+	if telemetry_enabled:
+		frappe.get_single_doc("Telemetry Settings").enable_telemetry(app)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
