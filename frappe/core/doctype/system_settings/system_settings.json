@@ -538,8 +538,14 @@
    "label": "Disable Username/Password Login"
   },
   {
+<<<<<<< HEAD
    "default": "0",
    "fieldname": "apply_perm_level_on_api_calls",
+=======
+   "default": "1",
+   "description": "Allow users to log in without a password, using a login link sent to their email",
+   "fieldname": "login_with_email_link",
+>>>>>>> 4ca74abea5 (fix(UX): enable login with link by default (#20772))
    "fieldtype": "Check",
    "label": "Apply Perm Level on API calls (Recommended)"
   },
