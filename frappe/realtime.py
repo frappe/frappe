@@ -141,8 +141,13 @@ def get_user_info():
 	session = Session(None, resume=True).get_session_data()
 
 	return {
+<<<<<<< HEAD
 		"user": session.user,
 		"user_type": session.user_type,
+=======
+		"user": frappe.session.user,
+		"user_type": frappe.session.data.user_type,
+>>>>>>> 98e8b6d389 (fix: correctly return session usertype (#20787))
 	}
 
 
