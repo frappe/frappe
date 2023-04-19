@@ -510,8 +510,17 @@ class ShortcutDialog extends WidgetDialog {
 
 		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
 
-		if (data.url && !data.label) {
-			data.label = "No Label (URL)";
+		if (data.url) {
+			!validate_url(data.url) &&
+				frappe.throw({
+					message: __("<b>{0}</b> is not a valid URL", [data.url]),
+					title: __("Invalid URL"),
+					indicator: "red",
+				});
+
+			if (!data.label) {
+				data.label = "No Label (URL)";
+			}
 		}
 
 		return data;
