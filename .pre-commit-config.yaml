@@ -44,6 +44,7 @@ repos:
                 .*boilerplate.*|
                 frappe/www/website_script.js|
                 frappe/templates/includes/.*|
+                .*telemetry.bundle.js|
                 frappe/public/js/lib/.*
             )$
 
