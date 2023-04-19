@@ -17,6 +17,7 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
+from frappe.core.doctype.file.utils import get_extension
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
@@ -461,7 +462,7 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 
 		test_file.make_thumbnail()
-		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpeg"))
+		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpg"))
 
 		# test local image
 		test_file.db_set("thumbnail_url", None)
@@ -739,3 +740,10 @@ class TestFileOptimization(FrappeTestCase):
 			size_after_rollback = os.stat(image_path).st_size
 
 			self.assertEqual(size_before_optimization, size_after_rollback)
+
+	def test_image_header_guessing(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+
+		self.assertEqual(get_extension("", None, file_content), "jpg")

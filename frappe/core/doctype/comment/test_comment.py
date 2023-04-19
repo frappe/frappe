@@ -3,7 +3,10 @@
 import json
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.templates.includes.comments.comments import add_comment
+from frappe.tests.test_model_utils import set_user
+from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 
 
 class TestComment(FrappeTestCase):
@@ -39,13 +42,9 @@ class TestComment(FrappeTestCase):
 
 	# test via blog
 	def test_public_comment(self):
-		from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
-
 		test_blog = make_test_blog()
 
 		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
-
-		from frappe.templates.includes.comments.comments import add_comment
 
 		frappe.form_dict.comment = "Good comment with 10 chars"
 		frappe.form_dict.comment_email = "test@test.com"
@@ -102,3 +101,32 @@ class TestComment(FrappeTestCase):
 		)
 
 		test_blog.delete()
+
+	@change_settings("Blog Settings", {"allow_guest_to_comment": 0})
+	def test_guest_cannot_comment(self):
+		test_blog = make_test_blog()
+		with set_user("Guest"):
+			frappe.form_dict.comment = "Good comment with 10 chars"
+			frappe.form_dict.comment_email = "mail@example.org"
+			frappe.form_dict.comment_by = "Good Tester"
+			frappe.form_dict.reference_doctype = "Blog Post"
+			frappe.form_dict.reference_name = test_blog.name
+			frappe.form_dict.route = test_blog.route
+			frappe.local.request_ip = "127.0.0.1"
+
+			self.assertEqual(add_comment(), None)
+
+	def test_user_not_logged_in(self):
+		some_system_user = frappe.db.get_value("User", {})
+
+		test_blog = make_test_blog()
+		with set_user("Guest"):
+			frappe.form_dict.comment = "Good comment with 10 chars"
+			frappe.form_dict.comment_email = some_system_user
+			frappe.form_dict.comment_by = "Good Tester"
+			frappe.form_dict.reference_doctype = "Blog Post"
+			frappe.form_dict.reference_name = test_blog.name
+			frappe.form_dict.route = test_blog.route
+			frappe.local.request_ip = "127.0.0.1"
+
+			self.assertRaises(frappe.ValidationError, add_comment)

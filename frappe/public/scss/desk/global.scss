@@ -234,6 +234,21 @@ h2 {
 	font-size: var(--text-md);
 }
 
+.btn-group {
+	.btn {
+		box-shadow: none;
+		outline: 1px solid var(--btn-group-border-color);
+
+		&:not(:first-child) {
+			margin-left: 1px;
+		}
+
+		&:focus {
+			outline: 2px solid var(--dark-border-color);
+		}
+	}
+}
+
 .btn-xs {
 	@extend .btn-sm;
 	line-height: 1.2;
@@ -418,7 +433,7 @@ kbd {
 
 // freeze backdrop text
 #freeze {
-	z-index: 1020;
+	z-index: 1055;
 	bottom: 0;
 	opacity: 0;
 	background-color: var(--bg-color);

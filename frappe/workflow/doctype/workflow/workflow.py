@@ -125,14 +125,8 @@ class Workflow(Document):
 
 
 @frappe.whitelist()
-def get_fieldnames_for(doctype):
-	return [
-		f.fieldname for f in frappe.get_meta(doctype).fields if f.fieldname not in no_value_fields
-	]
-
-
-@frappe.whitelist()
 def get_workflow_state_count(doctype, workflow_state_field, states):
+	frappe.has_permission(doctype=doctype, ptype="read", throw=True)
 	states = frappe.parse_json(states)
 	result = frappe.get_all(
 		doctype,

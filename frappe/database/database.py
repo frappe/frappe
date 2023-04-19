@@ -20,6 +20,7 @@ import frappe.defaults
 import frappe.model.meta
 from frappe import _
 from frappe.database.utils import (
+	DefaultOrderBy,
 	EmptyQueryValues,
 	FallBackDateTimeStr,
 	LazyMogrify,
@@ -221,7 +222,7 @@ class Database:
 			self._cursor.execute(query, values)
 		except Exception as e:
 			if self.is_syntax_error(e):
-				frappe.errprint(f"Syntax error in query:\n{query} {values}")
+				frappe.errprint(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
 				raise frappe.QueryDeadlockError(e) from e
@@ -232,7 +233,7 @@ class Database:
 			elif self.is_read_only_mode_error(e):
 				frappe.throw(
 					_(
-						"Site is running in read only mode, this action can not be performed right now. Please try again later."
+						"Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 					),
 					title=_("In Read Only Mode"),
 					exc=frappe.InReadOnlyMode,
@@ -422,7 +423,7 @@ class Database:
 		ignore=None,
 		as_dict=False,
 		debug=False,
-		order_by="KEEP_DEFAULT_ORDERING",
+		order_by=DefaultOrderBy,
 		cache=False,
 		for_update=False,
 		*,
@@ -492,7 +493,7 @@ class Database:
 		ignore=None,
 		as_dict=False,
 		debug=False,
-		order_by="KEEP_DEFAULT_ORDERING",
+		order_by=DefaultOrderBy,
 		update=None,
 		cache=False,
 		for_update=False,
@@ -551,7 +552,7 @@ class Database:
 			if (filters is not None) and (filters != doctype or doctype == "DocType"):
 				try:
 					if order_by:
-						order_by = "modified" if order_by == "KEEP_DEFAULT_ORDERING" else order_by
+						order_by = "modified" if order_by == DefaultOrderBy else order_by
 					out = self._get_values_from_table(
 						fields=fields,
 						filters=filters,
@@ -812,7 +813,7 @@ class Database:
 			distinct=distinct,
 			limit=limit,
 		)
-		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
+		if isinstance(fields, str) and fields == "*":
 			as_dict = True
 
 		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
@@ -994,6 +995,9 @@ class Database:
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
 
+			frappe.local.realtime_log = []
+			frappe.flags.enqueue_after_commit = []
+
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
 		return self.exists("DocField", {"fieldname": fn, "parent": dt})
@@ -1045,7 +1049,7 @@ class Database:
 			dt = dt.copy()  # don't modify the original dict
 			dt, dn = dt.pop("doctype"), dt
 
-		return self.get_value(dt, dn, ignore=True, cache=cache)
+		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None)
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
@@ -1069,13 +1073,7 @@ class Database:
 		if not datetime:
 			return FallBackDateTimeStr
 
-		if isinstance(datetime, str):
-			if ":" not in datetime:
-				datetime = datetime + " 00:00:00.000000"
-		else:
-			datetime = datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
-
-		return datetime
+		return get_datetime(datetime).strftime("%Y-%m-%d %H:%M:%S.%f")
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
@@ -1302,8 +1300,8 @@ def enqueue_jobs_after_commit():
 				execute_job,
 				timeout=job.get("timeout"),
 				kwargs=job.get("queue_args"),
-				failure_ttl=RQ_JOB_FAILURE_TTL,
-				result_ttl=RQ_RESULTS_TTL,
+				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			)
 		frappe.flags.enqueue_after_commit = []
 

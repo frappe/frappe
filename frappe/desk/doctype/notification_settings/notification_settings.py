@@ -92,4 +92,7 @@ def get_permission_query_conditions(user):
 
 @frappe.whitelist()
 def set_seen_value(value, user):
+	if frappe.flags.read_only:
+		return
+
 	frappe.db.set_value("Notification Settings", user, "seen", value, update_modified=False)

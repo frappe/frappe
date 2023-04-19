@@ -182,9 +182,9 @@ if TYPE_CHECKING:
 # end: static analysis hack
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None):
+	if getattr(local, "initialised", None) and not force:
 		return
 
 	local.error_log = []
@@ -570,7 +570,7 @@ def get_user():
 
 def get_roles(username=None) -> list[str]:
 	"""Returns roles of current user."""
-	if not local.session:
+	if not local.session or not local.session.user:
 		return ["Guest"]
 	import frappe.permissions
 
@@ -622,6 +622,7 @@ def sendmail(
 	header=None,
 	print_letterhead=False,
 	with_container=False,
+	email_read_tracker_url=None,
 ):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
@@ -703,6 +704,7 @@ def sendmail(
 		header=header,
 		print_letterhead=print_letterhead,
 		with_container=with_container,
+		email_read_tracker_url=email_read_tracker_url,
 	)
 
 	# build email queue and send the email if send_now is True.
@@ -1272,7 +1274,7 @@ def reload_doc(
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
-@whitelist()
+@whitelist(methods=["POST", "PUT"])
 def rename_doc(
 	doctype: str,
 	old: str,

@@ -1,5 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from typing import TYPE_CHECKING
+
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	create_repeated_entries,
@@ -10,8 +12,11 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_days, add_months, getdate, today
 
+if TYPE_CHECKING:
+	from frappe.custom.doctype.custom_field.custom_field import CustomField
 
-def add_custom_fields():
+
+def add_custom_fields() -> "CustomField":
 	df = dict(
 		fieldname="auto_repeat",
 		label="Auto Repeat",
@@ -22,15 +27,17 @@ def add_custom_fields():
 		print_hide=1,
 		read_only=1,
 	)
-	create_custom_field("ToDo", df)
+	return create_custom_field("ToDo", df) or frappe.get_doc(
+		"Custom Field", dict(fieldname=df["fieldname"], dt="ToDo")
+	)
 
 
 class TestAutoRepeat(FrappeTestCase):
-	def setUp(self):
-		if not frappe.db.sql(
-			"SELECT `fieldname` FROM `tabCustom Field` WHERE `fieldname`='auto_repeat' and `dt`=%s", "Todo"
-		):
-			add_custom_fields()
+	@classmethod
+	def setUpClass(cls):
+		cls.custom_field = add_custom_fields()
+		cls.addClassCleanup(cls.custom_field.delete)
+		return super().setUpClass()
 
 	def test_daily_auto_repeat(self):
 		todo = frappe.get_doc(
@@ -156,7 +163,7 @@ class TestAutoRepeat(FrappeTestCase):
 		docnames = frappe.get_all(doc.reference_doctype, {"auto_repeat": doc.name})
 		self.assertEqual(len(docnames), months)
 
-	def test_notification_is_attached(self):
+	def test_email_notification(self):
 		todo = frappe.get_doc(
 			dict(
 				doctype="ToDo",
@@ -180,10 +187,10 @@ class TestAutoRepeat(FrappeTestCase):
 			"ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name"
 		)
 
-		linked_comm = frappe.db.exists(
-			"Communication", dict(reference_doctype="ToDo", reference_name=new_todo)
+		email_queue = frappe.db.exists(
+			"Email Queue", dict(reference_doctype="ToDo", reference_name=new_todo)
 		)
-		self.assertTrue(linked_comm)
+		self.assertTrue(email_queue)
 
 	def test_next_schedule_date(self):
 		current_date = getdate(today())

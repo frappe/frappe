@@ -6,9 +6,9 @@ import frappe.utils
 from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
-from frappe.integrations.oauth2_logins import decoder_compat
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_url
+from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
 from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, redirect_post_login
@@ -72,7 +72,7 @@ def get_context(context):
 			if provider.provider_name == "Custom":
 				icon = get_icon_html(provider.icon, small=True)
 			else:
-				icon = f"<img src='{provider.icon}' alt={provider.provider_name}>"
+				icon = f"<img src={escape_html(provider.icon)!r} alt={escape_html(provider.provider_name)!r}>"
 
 		if provider.client_id and provider.base_url and get_oauth_keys(provider.name):
 			context.provider_logins.append(
@@ -120,6 +120,9 @@ def login_via_token(login_token: str):
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=5, seconds=60 * 60)
 def send_login_link(email: str):
+
+	if not frappe.get_system_settings("login_with_email_link"):
+		return
 
 	expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
 	link = _generate_temporary_login_link(email, expiry)

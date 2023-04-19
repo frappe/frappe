@@ -85,6 +85,11 @@ on_logout = (
 	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 )
 
+# PDF
+pdf_header_html = "frappe.utils.pdf.pdf_header_html"
+pdf_body_html = "frappe.utils.pdf.pdf_body_html"
+pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
+
 # permissions
 
 permission_query_conditions = {
@@ -188,14 +193,17 @@ scheduler_events = {
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
 			"frappe.twofactor.delete_all_barcodes_for_users",
-		]
+		],
+		"0/10 * * * *": [
+			"frappe.email.doctype.email_account.email_account.pull",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
-		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
+		"frappe.automation.doctype.reminder.reminder.send_reminders",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -222,7 +230,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
-		"frappe.utils.subscription.enable_manage_subscription",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -395,4 +402,22 @@ ignore_links_on_delete = [
 	"Document Share Key",
 	"Integration Request",
 	"Unhandled Email",
+	"Webhook Request Log",
+]
+
+# Request Hooks
+before_request = [
+	"frappe.recorder.record",
+	"frappe.monitor.start",
+	"frappe.rate_limiter.apply",
+]
+after_request = ["frappe.rate_limiter.update", "frappe.monitor.stop", "frappe.recorder.dump"]
+
+# Background Job Hooks
+before_job = [
+	"frappe.monitor.start",
+]
+after_job = [
+	"frappe.monitor.stop",
+	"frappe.utils.file_lock.release_document_locks",
 ]

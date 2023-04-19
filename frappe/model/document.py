@@ -675,14 +675,19 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access("read")
 
 		for df in self.meta.fields:
-			if df.permlevel and not df.permlevel in has_access_to:
-				self.set(df.fieldname, None)
+			if df.permlevel and hasattr(self, df.fieldname) and df.permlevel not in has_access_to:
+				try:
+					delattr(self, df.fieldname)
+				except AttributeError:
+					# hasattr might return True for class attribute which can't be delattr-ed.
+					continue
 
 		for table_field in self.meta.get_table_fields():
 			for df in frappe.get_meta(table_field.options).fields or []:
-				if df.permlevel and not df.permlevel in has_access_to:
+				if df.permlevel and df.permlevel not in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
-						child.set(df.fieldname, None)
+						if hasattr(child, df.fieldname):
+							delattr(child, df.fieldname)
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
@@ -1381,16 +1386,21 @@ class Document(BaseDocument):
 				frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
 
-	def add_viewed(self, user=None):
+	def add_viewed(self, user=None, force=False, unique_views=False):
 		"""add log to communication when a user views a document"""
 		if not user:
 			user = frappe.session.user
 
-		if hasattr(self.meta, "track_views") and self.meta.track_views:
+		if unique_views and frappe.db.exists(
+			"View Log", {"reference_doctype": self.doctype, "reference_name": self.name, "viewed_by": user}
+		):
+			return
+
+		if (hasattr(self.meta, "track_views") and self.meta.track_views) or force:
 			view_log = frappe.get_doc(
 				{
 					"doctype": "View Log",
-					"viewed_by": frappe.session.user,
+					"viewed_by": user,
 					"reference_doctype": self.doctype,
 					"reference_name": self.name,
 				}
@@ -1400,6 +1410,8 @@ class Document(BaseDocument):
 			else:
 				view_log.insert(ignore_permissions=True)
 				frappe.local.flags.commit = True
+
+			return view_log
 
 	def log_error(self, title=None, message=None):
 		"""Helper function to create an Error Log"""

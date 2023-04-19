@@ -24,7 +24,11 @@ EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 @click.option("--app", help="Build assets for app")
 @click.option("--apps", help="Build assets for specific apps")
 @click.option(
-	"--hard-link", is_flag=True, default=False, help="Copy the files instead of symlinking"
+	"--hard-link",
+	is_flag=True,
+	default=False,
+	help="Copy the files instead of symlinking",
+	envvar="FRAPPE_HARD_LINK_ASSETS",
 )
 @click.option(
 	"--make-copy",
@@ -908,7 +912,7 @@ def run_ui_tests(
 
 	os.chdir(app_base_path)
 
-	node_bin = subprocess.getoutput("npm bin")
+	node_bin = subprocess.getoutput("(cd ../frappe && yarn bin)")
 	cypress_path = f"{node_bin}/cypress"
 	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
 	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
@@ -935,7 +939,7 @@ def run_ui_tests(
 				"@cypress/code-coverage@^3",
 			]
 		)
-		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
+		frappe.commands.popen(f"(cd ../frappe && yarn add {packages} --no-lockfile)")
 
 	# run for headless mode
 	run_or_open = "run --browser chrome --record" if headless else "open"
