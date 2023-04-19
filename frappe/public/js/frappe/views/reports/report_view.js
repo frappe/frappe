@@ -1295,13 +1295,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_filters_html_for_print() {
 		const filters = this.filter_area.get();
 
-		return filters.map(f => {
-			const [doctype, fieldname, condition, value] = f;
-			if (condition !== '=') return '';
-
-			const label = frappe.meta.get_label(doctype, fieldname);
-			return `<h6>${__(label)}: ${value}</h6>`;
-		}).join('');
+		return filters
+			.map((f) => {
+				const [doctype, fieldname, condition, value] = f;
+				if (condition !== '=') return '';
+				const docfield = frappe.meta.get_docfield(doctype, fieldname);
+				return `<h6>${__(docfield.label)}: ${frappe.format(value, docfield)}</h6>`;
+			})
+			.join("");
 	}
 
 	get_columns_totals(data) {
