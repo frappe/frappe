@@ -508,7 +508,7 @@
    "label": "Disable Username/Password Login"
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "Allow users to log in without a password, using a login link sent to their email",
    "fieldname": "login_with_email_link",
    "fieldtype": "Check",
