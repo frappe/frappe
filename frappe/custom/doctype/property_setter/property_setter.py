@@ -24,6 +24,9 @@ class PropertySetter(Document):
 		# clear cache
 		frappe.clear_cache(doctype=self.doc_type)
 
+	def on_trash(self):
+		frappe.clear_cache(doctype=self.doc_type)
+
 	def validate_fieldtype_change(self):
 		if self.field_name in not_allowed_fieldtype_change and self.property == "fieldtype":
 			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
