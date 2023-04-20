@@ -86,7 +86,7 @@
   }
  ],
  "links": [],
- "modified": "2020-11-13 13:35:53.714352",
+ "modified": "2023-04-20 17:56:27.891296",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Token Cache",
@@ -105,6 +105,5 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+ "sort_order": "DESC"
 }

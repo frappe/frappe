@@ -76,7 +76,6 @@ frappe.ui.form.on("Email Account", {
 				frm.set_value(key, value);
 			});
 		}
-		frm.events.show_gmail_message_for_less_secure_apps(frm);
 	},
 
 	use_imap: function(frm) {
@@ -109,13 +108,13 @@ frappe.ui.form.on("Email Account", {
 	onload: function(frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query("append_to", "frappe.email.doctype.email_account.email_account.get_append_to");
+		frm.events.show_oauth_authorization_message(frm);
 	},
 
 	refresh: function(frm) {
 		frm.events.set_domain_fields(frm);
 		frm.events.enable_incoming(frm);
 		frm.events.notify_if_unreplied(frm);
-		frm.events.show_gmail_message_for_less_secure_apps(frm);
 
 		if(frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
@@ -123,13 +122,45 @@ frappe.ui.form.on("Email Account", {
 		}
 	},
 
-	show_gmail_message_for_less_secure_apps: function(frm) {
-		frm.dashboard.clear_headline();
-		if (frm.doc.service==="GMail") {
-			let msg = __("GMail will only work if you enable 2-step authentication and use app-specific password.");
-			let cta = __("Read the step by step guide here.");
-			msg += ` <a target="_blank" href="https://docs.erpnext.com/docs/v13/user/manual/en/setting-up/email/email_account_setup_with_gmail">${cta}</a>`;
-			frm.dashboard.set_headline_alert(msg);
+	authorize_api_access: function (frm) {
+		frm.events.oauth_access(frm);
+	},
+
+	oauth_access: function(frm) {
+		frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
+			const connected_app = frappe.get_doc("Connected App", frm.doc.connected_app);
+			return frappe.call({
+				doc: connected_app,
+				method: "initiate_web_application_flow",
+				args: {
+					success_uri: window.location.pathname,
+					user: frm.doc.connected_user,
+				},
+				callback: function (r) {
+					window.open(r.message, "_self");
+				},
+			});
+		});
+	},
+
+	show_oauth_authorization_message(frm) {
+		if (frm.doc.auth_method === "OAuth") {
+			frappe.call({
+				method: "frappe.integrations.doctype.connected_app.connected_app.has_token",
+				args: {
+					connected_app: frm.doc.connected_app,
+					connected_user: frm.doc.connected_user,
+				},
+				callback: (r) => {
+					if (!r.message) {
+						let msg = __(
+							'OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.'
+						);
+						frm.dashboard.clear_headline();
+						frm.dashboard.set_headline_alert(msg, "yellow");
+					}
+				},
+			});
 		}
 	},
 
