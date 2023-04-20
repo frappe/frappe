@@ -19,6 +19,8 @@ frappe.ui.FilterGroup = class {
 	}
 
 	set_clear_all_filters_event() {
+		if (!this.filter_x_button) return;
+
 		this.filter_x_button.on("click", () => {
 			this.toggle_empty_filters(true);
 			if (typeof this.base_list !== "undefined") {
