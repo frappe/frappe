@@ -380,11 +380,7 @@
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
-<<<<<<< HEAD
- "modified": "2022-12-15 17:14:44.939645",
-=======
  "modified": "2023-04-20 17:24:42.657731",
->>>>>>> 87cf164cac (feat: get anonymous response from webform)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
