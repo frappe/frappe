@@ -128,7 +128,7 @@ def sanitized_dict(form_dict):
 
 
 @contextmanager
-def pipe_to_log(logger_fn=None, stream=None):
+def pipe_to_log(logger_fn, stream=None):
 	"Pass an existing logger function e.g. logger.info. Stream defaults to stdout"
 	# late bind source
 	if stream is None:
