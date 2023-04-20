@@ -17,7 +17,10 @@ class Workspace(Document):
 	def validate(self):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
-		validate_route_conflict(self.doctype, self.name)
+		if self.has_value_changed("title"):
+			validate_route_conflict(self.doctype, self.title)
+		else:
+			validate_route_conflict(self.doctype, self.name)
 
 		try:
 			if not isinstance(loads(self.content), list):
