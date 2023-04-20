@@ -18,6 +18,7 @@ from email_reply_parser import EmailReplyParser
 import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file.file import MaxFileSizeReachedError, get_random_filename
+from frappe.email.oauth import Oauth
 from frappe.utils import (
 	cint,
 	convert_utc_to_user_timezone,
@@ -70,10 +71,7 @@ class EmailServer:
 
 	def connect(self):
 		"""Connect to **Email Account**."""
-		if cint(self.settings.use_imap):
-			return self.connect_imap()
-		else:
-			return self.connect_pop()
+		return self.connect_imap() if cint(self.settings.use_imap) else self.connect_pop()
 
 	def connect_imap(self):
 		"""Connect to IMAP"""
@@ -89,7 +87,17 @@ class EmailServer:
 				if self.settings.use_starttls:
 					self.imap.starttls()
 
-			self.imap.login(self.settings.username, self.settings.password)
+			if self.settings.use_oauth:
+				Oauth(
+					self.imap,
+					self.settings.email_account,
+					self.settings.username,
+					self.settings.access_token,
+				).connect()
+
+			else:
+				self.imap.login(self.settings.username, self.settings.password)
+
 			# connection established!
 			return True
 
@@ -110,8 +118,17 @@ class EmailServer:
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
-			self.pop.user(self.settings.username)
-			self.pop.pass_(self.settings.password)
+			if self.settings.use_oauth:
+				Oauth(
+					self.pop,
+					self.settings.email_account,
+					self.settings.username,
+					self.settings.access_token,
+				).connect()
+
+			else:
+				self.pop.user(self.settings.username)
+				self.pop.pass_(self.settings.password)
 
 			# connection established!
 			return True
