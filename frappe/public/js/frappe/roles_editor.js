@@ -102,8 +102,10 @@ frappe.RoleEditor = class {
 
 		this.perm_dialog.$wrapper
 			.find(".modal-dialog")
-			.css("width", "1200px")
-			.css("max-width", "80vw");
+			.css("width", "auto")
+			.css("max-width", "1200px");
+
+		this.perm_dialog.$wrapper.find(".modal-body").css("overflow", "overlay");
 	}
 	show() {
 		this.reset();
