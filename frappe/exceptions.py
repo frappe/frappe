@@ -273,6 +273,10 @@ class ExecutableNotFound(FileNotFoundError):
 	pass
 
 
+class InvalidRoundingMethod(FileNotFoundError):
+	pass
+
+
 class InvalidRemoteException(Exception):
 	pass
 

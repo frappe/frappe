@@ -236,6 +236,7 @@ class TestWebsite(FrappeTestCase):
 
 	def test_printview_page(self):
 		frappe.db.value_cache[("DocType", "Language", "name")] = (("Language",),)
+		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn("<div>Language</div>", content)
@@ -330,6 +331,17 @@ class TestWebsite(FrappeTestCase):
 		self.assertIn("Safe Render Off", content)
 		self.assertIn("test.__test", content)
 		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
+
+	def test_never_render(self):
+		from pathlib import Path
+		from random import choices
+
+		WWW = Path(frappe.get_app_path("frappe")) / "www"
+		FILES_TO_SKIP = choices(list(WWW.glob("**/*.py*")), k=10)
+
+		for suffix in FILES_TO_SKIP:
+			content = get_response_content(suffix.relative_to(WWW))
+			self.assertIn("404", content)
 
 	def test_metatags(self):
 		content = get_response_content("/_test/_test_metatags")

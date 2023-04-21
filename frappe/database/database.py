@@ -995,6 +995,9 @@ class Database:
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
 
+			frappe.local.realtime_log = []
+			frappe.flags.enqueue_after_commit = []
+
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
 		return self.exists("DocField", {"fieldname": fn, "parent": dt})
@@ -1297,8 +1300,8 @@ def enqueue_jobs_after_commit():
 				execute_job,
 				timeout=job.get("timeout"),
 				kwargs=job.get("queue_args"),
-				failure_ttl=RQ_JOB_FAILURE_TTL,
-				result_ttl=RQ_RESULTS_TTL,
+				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			)
 		frappe.flags.enqueue_after_commit = []
 

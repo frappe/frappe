@@ -12,6 +12,7 @@ from frappe.utils import get_table_name
 class Base:
 	terms = terms
 	desc = Order.desc
+	asc = Order.asc
 	Schema = Schema
 	Table = Table
 

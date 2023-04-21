@@ -347,7 +347,7 @@ frappe.ui.form.PrintView = class {
 	set_default_print_language() {
 		let print_format = this.get_print_format();
 		this.lang_code =
-			print_format.default_print_language || this.frm.doc.language || frappe.boot.lang;
+			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
 		this.language_selector.val(this.lang_code);
 	}
 
@@ -657,7 +657,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	get_letterhead() {
-		return this.letterhead_selector.val();
+		return this.letterhead_selector.val() || __("No Letterhead");
 	}
 
 	get_no_preview_html() {

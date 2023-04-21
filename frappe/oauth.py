@@ -3,7 +3,7 @@ import datetime
 import hashlib
 import re
 from http import cookies
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urljoin, urlparse
 
 import jwt
 import pytz
@@ -11,6 +11,7 @@ from oauthlib.openid import RequestValidator
 
 import frappe
 from frappe.auth import LoginManager
+from frappe.utils.data import get_system_timezone
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -248,7 +249,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", token)
 		token_expiration_local = otoken.expiration_time.replace(
-			tzinfo=pytz.timezone(frappe.utils.get_time_zone())
+			tzinfo=pytz.timezone(get_system_timezone())
 		)
 		token_expiration_utc = token_expiration_local.astimezone(pytz.utc)
 		is_token_valid = (
@@ -574,7 +575,7 @@ def get_userinfo(user):
 		if frappe.utils.validate_url(user.user_image, valid_schemes=valid_url_schemes):
 			picture = user.user_image
 		else:
-			picture = frappe_server_url + "/" + user.user_image
+			picture = urljoin(frappe_server_url, user.user_image)
 
 	userinfo = frappe._dict(
 		{

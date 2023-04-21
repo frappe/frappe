@@ -21,7 +21,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.translate import get_lang_dict, get_messages_for_boot, get_translated_doctypes
-from frappe.utils import add_user_info, cstr, get_time_zone
+from frappe.utils import add_user_info, cstr, get_system_timezone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -130,7 +130,7 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
 	bootinfo.allowed_workspaces = get_workspace_sidebar_items().get("pages")
-	bootinfo.module_page_map = get_controller("Workspace").get_module_page_map()
+	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
 
@@ -402,9 +402,9 @@ def get_link_title_doctypes():
 
 def set_time_zone(bootinfo):
 	bootinfo.time_zone = {
-		"system": get_time_zone(),
+		"system": get_system_timezone(),
 		"user": bootinfo.get("user_info", {}).get(frappe.session.user, {}).get("time_zone", None)
-		or get_time_zone(),
+		or get_system_timezone(),
 	}
 
 

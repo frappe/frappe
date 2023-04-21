@@ -182,9 +182,9 @@ if TYPE_CHECKING:
 # end: static analysis hack
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None):
+	if getattr(local, "initialised", None) and not force:
 		return
 
 	local.error_log = []
@@ -1274,7 +1274,7 @@ def reload_doc(
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
-@whitelist()
+@whitelist(methods=["POST", "PUT"])
 def rename_doc(
 	doctype: str,
 	old: str,
