@@ -432,7 +432,6 @@
    "label": "Send document Web View link in email"
   },
   {
-<<<<<<< HEAD
    "default": "30",
    "depends_on": "enable_prepared_report_auto_deletion",
    "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
@@ -447,8 +446,6 @@
    "label": "Enable Auto-deletion of Prepared Reports"
   },
   {
-=======
->>>>>>> 570442865b (feat: Login without password (through link sent on email))
    "collapsible": 1,
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
@@ -544,8 +541,6 @@
   },
   {
    "default": "0",
-<<<<<<< HEAD
-<<<<<<< HEAD
    "fieldname": "apply_perm_level_on_api_calls",
    "fieldtype": "Check",
    "label": "Apply Perm Level on API calls (Recommended)"
@@ -562,61 +557,26 @@
    "fieldname": "disable_document_sharing",
    "fieldtype": "Check",
    "label": "Disable Document Sharing"
-=======
-   "description": "User will be able to login using the link sent on the email",
-=======
+  },
+  {
+   "default": "0",
    "description": "Allow users to log in without a password, using a login link sent to their email",
-<<<<<<< HEAD
->>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
-   "fieldname": "passwordless_login",
-   "fieldtype": "Check",
-<<<<<<< HEAD
-   "label": "Login Without Password"
->>>>>>> 570442865b (feat: Login without password (through link sent on email))
-=======
-   "label": "Passwordless Login"
-<<<<<<< HEAD
->>>>>>> 83bf33c1fc (fix: renamed login without password to passwordless login)
-=======
-=======
    "fieldname": "login_with_email_link",
    "fieldtype": "Check",
    "label": "Login with email link"
->>>>>>> 8dad07949a (chore: again renaming to Login with email link)
   },
   {
    "default": "10",
    "depends_on": "login_with_email_link",
    "fieldname": "login_with_email_link_expiry",
    "fieldtype": "Int",
-<<<<<<< HEAD
-   "label": "Passwordless Login Link Expiry (in minutes)"
->>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
-=======
    "label": "Login with email link expiry (in minutes)"
->>>>>>> 8dad07949a (chore: again renaming to Login with email link)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- "modified": "2023-03-14 11:30:56.465653",
-=======
- "modified": "2022-12-20 11:20:40.735668",
->>>>>>> 570442865b (feat: Login without password (through link sent on email))
-=======
- "modified": "2022-12-20 15:39:31.751704",
->>>>>>> 83bf33c1fc (fix: renamed login without password to passwordless login)
-=======
- "modified": "2022-12-20 18:17:31.759701",
->>>>>>> eb7293c1d2 (fix: suggested changes and added passwordless_login_expiry option)
-=======
  "modified": "2022-12-20 21:45:37.651668",
->>>>>>> 8dad07949a (chore: again renaming to Login with email link)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
