@@ -912,17 +912,12 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
 		return False
 
-	if not user:
-		user = local.session.user
+	from frappe.permissions import get_role_permissions
 
-	import frappe.permissions
+	user = user or local.session.user
+	permissions = get_role_permissions(doctype, user=user)
 
-	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
-
-	if permissions.get("select") and not permissions.get("read"):
-		return True
-	else:
-		return False
+	return permissions.get("select") and not permissions.get("read")
 
 
 def has_permission(
