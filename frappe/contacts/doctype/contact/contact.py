@@ -140,11 +140,7 @@ def get_default_contact(doctype, name):
 		where
 			dl.link_doctype=%s and
 			dl.link_name=%s and
-<<<<<<< HEAD
-			dl.parenttype = 'Contact' """,
-=======
 			dl.parenttype = 'Contact'""",
->>>>>>> 55ac130823 (chore: linter fix)
 		(doctype, name),
 		as_dict=True,
 	)
