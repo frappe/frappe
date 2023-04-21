@@ -204,13 +204,22 @@ def get_permitted_fields(
 	if set(valid_columns).issubset(default_fields):
 		return valid_columns
 
-	if permitted_fields := meta.get_permitted_fieldnames(parenttype=parenttype, user=user):
+	permission_type = "select" if frappe.only_has_select_perm(meta.name, user=user) else "read"
+	if permitted_fields := meta.get_permitted_fieldnames(
+		parenttype=parenttype, user=user, permission_type=permission_type
+	):
 		meta_fields = meta.default_fields.copy()
 		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
 
 		if meta.istable:
 			meta_fields.extend(child_table_fields)
 
-		return meta_fields + permitted_fields + optional_meta_fields
+		result = meta_fields + permitted_fields + optional_meta_fields
+
+		if permission_type == "select":
+			search_fields = meta.get_search_fields()
+			return [x for x in result if x in search_fields]
+
+		return result
 
 	return []
