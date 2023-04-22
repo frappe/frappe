@@ -543,11 +543,14 @@ class Meta(Document):
 		if self.istable and not parenttype:
 			return permitted_fieldnames
 
-		if not self.get_permissions(parenttype=parenttype):
-			return self.get_fieldnames_with_value()
-
 		if not permission_type:
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
+
+		if permission_type == "select":
+			return self.get_search_fields()
+
+		if not self.get_permissions(parenttype=parenttype):
+			return self.get_fieldnames_with_value()
 
 		permlevel_access = set(
 			self.get_permlevel_access(permission_type=permission_type, parenttype=parenttype, user=user)
