@@ -89,6 +89,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	render_gantt() {
 		const me = this;
 		const gantt_view_mode = this.view_user_settings.gantt_view_mode || "Day";
+		const gantt_language = this.calendar_settings.gantt_language || "en";
 		const field_map = this.calendar_settings.field_map;
 		const date_format = "YYYY-MM-DD";
 
@@ -103,6 +104,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			resize_handle_corner_radius: 3,
 			resize_handle_offset: 4,
 			view_mode: gantt_view_mode,
+			language: gantt_language,
 			date_format: "YYYY-MM-DD",
 			on_click: (task) => {
 				frappe.set_route("Form", task.doctype, task.id);
