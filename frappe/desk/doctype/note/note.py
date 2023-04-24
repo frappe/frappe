@@ -30,3 +30,10 @@ def mark_as_seen(note: str):
 	note: Note = frappe.get_doc("Note", note)
 	note.mark_seen_by(frappe.session.user)
 	note.save(ignore_permissions=True, ignore_version=True)
+
+
+def get_permission_query_conditions(user):
+	if not user:
+		user = frappe.session.user
+
+	return f"(`tabNote`.owner = '{user}' or `tabNote`.public = 1)"

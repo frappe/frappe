@@ -100,6 +100,7 @@ permission_query_conditions = {
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
+	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
