@@ -54,26 +54,16 @@ frappe.RoleEditor = class {
 				const $body = $(this.perm_dialog.body);
 				if (!permissions.length) {
 					$body.append(`<div class="text-muted text-center padding">
-<<<<<<< HEAD
-						${__('{0} role does not have permission on any doctype', [role])}
-=======
 						${__("{0} role does not have permission on any doctype", [__(role)])}
->>>>>>> e384d94fcc (fix: make role info translatable (#20813))
 					</div>`);
 				} else {
 					$body.append(`
 						<table class="user-perm">
 							<thead>
 								<tr>
-<<<<<<< HEAD
-									<th> ${__('Document Type')} </th>
-									<th> ${__('Level')} </th>
-									${frappe.perm.rights.map(p => `<th> ${frappe.unscrub(p)}</th>`).join("")}
-=======
 									<th> ${__("Document Type")} </th>
 									<th> ${__("Level")} </th>
 									${frappe.perm.rights.map((p) => `<th> ${__(frappe.unscrub(p))}</th>`).join("")}
->>>>>>> e384d94fcc (fix: make role info translatable (#20813))
 								</tr>
 							</thead>
 							<tbody></tbody>
@@ -99,17 +89,11 @@ frappe.RoleEditor = class {
 		});
 
 		this.perm_dialog.$wrapper
-<<<<<<< HEAD
-			.find('.modal-dialog')
-			.css("width", "1200px")
-			.css("max-width", "80vw");
-=======
 			.find(".modal-dialog")
 			.css("width", "auto")
 			.css("max-width", "1200px");
 
 		this.perm_dialog.$wrapper.find(".modal-body").css("overflow", "overlay");
->>>>>>> e384d94fcc (fix: make role info translatable (#20813))
 	}
 	show() {
 		this.reset();
