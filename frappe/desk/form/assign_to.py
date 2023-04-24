@@ -146,26 +146,35 @@ def add_multiple(args=None):
 def close_all_assignments(doctype, name):
 	assignments = frappe.db.get_all(
 		"ToDo",
+<<<<<<< HEAD
 		fields=["owner"],
+=======
+		fields=["allocated_to", "name"],
+>>>>>>> 89186b8057 (fix: multiple assignments to the same person)
 		filters=dict(reference_type=doctype, reference_name=name, status=("!=", "Cancelled")),
 	)
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
+<<<<<<< HEAD
 		set_status(doctype, name, assign_to.owner, status="Closed")
+=======
+		set_status(doctype, name, todo=assign_to.name, assign_to=assign_to.allocated_to, status="Closed")
+>>>>>>> 89186b8057 (fix: multiple assignments to the same person)
 
 	return True
 
 
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
-	return set_status(doctype, name, assign_to, status="Cancelled")
+	return set_status(doctype, name, "", assign_to, status="Cancelled")
 
 
-def set_status(doctype, name, assign_to, status="Cancelled"):
+def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 	"""remove from todo"""
 	try:
+<<<<<<< HEAD
 		todo = frappe.db.get_value(
 			"ToDo",
 			{
@@ -175,6 +184,18 @@ def set_status(doctype, name, assign_to, status="Cancelled"):
 				"status": ("!=", status),
 			},
 		)
+=======
+		if not todo:
+			todo = frappe.db.get_value(
+				"ToDo",
+				{
+					"reference_type": doctype,
+					"reference_name": name,
+					"allocated_to": assign_to,
+					"status": ("!=", status),
+				},
+			)
+>>>>>>> 89186b8057 (fix: multiple assignments to the same person)
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
 			todo.status = status
@@ -195,14 +216,27 @@ def clear(doctype, name):
 	"""
 	Clears assignments, return False if not assigned.
 	"""
+<<<<<<< HEAD
 	assignments = frappe.db.get_all(
 		"ToDo", fields=["owner"], filters=dict(reference_type=doctype, reference_name=name)
+=======
+	assignments = frappe.get_all(
+		"ToDo",
+		fields=["allocated_to", "name"],
+		filters=dict(reference_type=doctype, reference_name=name),
+>>>>>>> 89186b8057 (fix: multiple assignments to the same person)
 	)
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
+<<<<<<< HEAD
 		set_status(doctype, name, assign_to.owner, "Cancelled")
+=======
+		set_status(
+			doctype, name, todo=assign_to.name, assign_to=assign_to.allocated_to, status="Cancelled"
+		)
+>>>>>>> 89186b8057 (fix: multiple assignments to the same person)
 
 	return True
 
