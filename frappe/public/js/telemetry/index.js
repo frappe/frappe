@@ -14,19 +14,24 @@ class TelemetryManager {
 
 	initialize() {
 		if (!this.enabled) return;
-		posthog.init(this.project_id, {
-			api_host: this.telemetry_host,
-			autocapture: false,
-			capture_pageview: false,
-			capture_pageleave: false,
-		});
-
-		// posthog.identify("site", "")
+		try {
+			posthog.init(this.project_id, {
+				api_host: this.telemetry_host,
+				autocapture: false,
+				capture_pageview: false,
+				capture_pageleave: false,
+				advanced_disable_decide: true,
+			});
+			posthog.identify(frappe.boot.sitename);
+		} catch (e) {
+			console.trace("Failed to initialize telemetry", e);
+			this.enabled = false;
+		}
 	}
 
-	log_event(event, app) {
+	log(event, app) {
 		if (!this.enabled) return;
-		posthog.capture(`${event}_${app}`);
+		posthog.capture(`${app}_${event}`);
 	}
 }
 
