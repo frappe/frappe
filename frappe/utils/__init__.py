@@ -217,7 +217,7 @@ def split_emails(txt):
 	# emails can be separated by comma or newline
 	s = WHITESPACE_PATTERN.sub(" ", cstr(txt))
 	for email in MULTI_EMAIL_STRING_PATTERN.split(s):
-		email = strip(cstr(email))
+		email = strip(cstr(email), chars="'\"").strip()
 		if email:
 			email_list.append(email)
 
