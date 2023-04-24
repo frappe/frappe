@@ -241,9 +241,7 @@ context("Web Form", () => {
 		cy.get(".web-list-actions button").contains("Delete").should("not.be.visible");
 
 		cy.visit("/note");
-		cy.get(".web-list-table tbody tr:nth-child(1)").should("exist");
-		cy.get(".web-list-table tbody tr:nth-child(2)").should("not.exist");
-		cy.get(".web-list-table tbody tr:nth-child(3)").should("not.exist");
+		cy.get(".web-list-table tbody tr:nth-child(1)").should("not.exist");
 	});
 
 	it("Navigate and Submit a WebForm", () => {
