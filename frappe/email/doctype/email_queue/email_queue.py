@@ -213,7 +213,6 @@ class SendMailContext:
 		exceptions = [
 			smtplib.SMTPServerDisconnected,
 			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPRecipientsRefused,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
