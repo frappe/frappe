@@ -36,4 +36,4 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
-	return f"(`tabNote`.owner = '{user}' or `tabNote`.public = 1)"
+	return f"(`tabNote`.owner = {frappe.db.escape(user)} or `tabNote`.public = 1)"
