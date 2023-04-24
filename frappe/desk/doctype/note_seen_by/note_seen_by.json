@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "autoname": "hash",
  "creation": "2016-08-29 05:29:16.726172",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -13,15 +14,17 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "User",
-   "options": "User"
+   "options": "User",
+   "permlevel": 2
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2022-08-03 12:20:51.030908",
+ "modified": "2023-04-24 17:11:08.544852",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note Seen By",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
