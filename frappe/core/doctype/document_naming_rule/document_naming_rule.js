@@ -53,6 +53,7 @@ frappe.ui.form.on("Document Naming Rule", {
 					callback: function () {
 						frm.set_value("counter", fields.new_counter);
 						dialog.hide();
+						frm.reload_doc();
 					},
 				});
 			};
