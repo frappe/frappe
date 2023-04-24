@@ -137,11 +137,13 @@ frappe.ui.toolbar.Toolbar = class {
 				__("Generate Tracking URL")
 			);
 
-			if (frappe.perm.has_perm("RQ Job")) {
-				frappe.search.utils.make_function_searchable(function () {
-					frappe.set_route("List", "RQ Job");
-				}, __("Background Jobs"));
-			}
+			frappe.model.with_doctype("RQ Job").then(() => {
+				if (frappe.perm.has_perm("RQ Job", 0, "read")) {
+					frappe.search.utils.make_function_searchable(function () {
+						frappe.set_route("List", "RQ Job");
+					}, __("Background Jobs"));
+				}
+			});
 		}
 	}
 

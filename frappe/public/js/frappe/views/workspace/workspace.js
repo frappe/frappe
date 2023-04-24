@@ -158,7 +158,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		if (
-			sidebar_section.find("sidebar-item-container").length &&
+			sidebar_section.find(".sidebar-item-container").length &&
 			sidebar_section.find("> [item-is-hidden='0']").length == 0
 		) {
 			sidebar_section.addClass("hidden show-in-edit-mode");
