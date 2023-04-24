@@ -4,11 +4,12 @@ frappe.ui.form.on("Note", {
 			frm.is_note_editable = false;
 			frm.events.set_editable(frm, frm.is_note_editable);
 
-			// toggle edit
-			frm.add_custom_button(__("Editing mode"), function () {
-				frm.is_note_editable = !frm.is_note_editable;
-				frm.events.set_editable(frm, frm.is_note_editable);
-			});
+			if (frm.has_perm("write")) {
+				frm.add_custom_button(__("Editing mode"), function () {
+					frm.is_note_editable = !frm.is_note_editable;
+					frm.events.set_editable(frm, frm.is_note_editable);
+				});
+			}
 		}
 	},
 	set_editable: function (frm, editable) {
