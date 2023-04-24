@@ -20,6 +20,7 @@ export default class ShortcutWidget extends Widget {
 			restrict_to_domain: this.restrict_to_domain,
 			stats_filter: this.stats_filter,
 			type: this.type,
+			url: this.url,
 		};
 	}
 
@@ -43,6 +44,16 @@ export default class ShortcutWidget extends Widget {
 
 			if (e.ctrlKey || e.metaKey) {
 				frappe.open_in_new_tab = true;
+			}
+
+			if (this.type == "URL") {
+				if (frappe.open_in_new_tab) {
+					window.open(this.url, "_blank");
+					frappe.open_in_new_tab = false;
+				} else {
+					window.location.href = this.url;
+				}
+				return;
 			}
 
 			frappe.set_route(route);
