@@ -114,9 +114,9 @@ frappe.ui.form.on("User", {
 			return;
 		}
 
-		function hasChanged(doc_attr, boot_attr) {
-			return (doc_attr || boot_attr) && doc_attr !== boot_attr;
-		}
+		const hasChanged = (doc_attr, boot_attr) => {
+			return doc_attr && boot_attr && doc_attr !== boot_attr;
+		};
 
 		if (
 			doc.name === frappe.session.user &&
