@@ -178,7 +178,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
-		frappe.telemetry.log("completed", "setup");
+		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
@@ -347,7 +347,7 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 		let me = this;
 		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
 			me.get_input(field.fieldname).on("change", function () {
-				frappe.telemetry.log(`${field.fieldname}_set`, "setup");
+				frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
 			});
 		});
 	}
