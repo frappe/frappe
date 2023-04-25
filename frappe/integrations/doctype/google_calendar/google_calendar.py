@@ -111,6 +111,7 @@ def authorize_access(g_calendar, reauthorize=None):
 	"""
 	google_settings = frappe.get_doc("Google Settings")
 	google_calendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_calendar.check_permission("write")
 
 	redirect_uri = (
 		get_request_site_address(True)
