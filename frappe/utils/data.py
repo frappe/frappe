@@ -1558,14 +1558,15 @@ def evaluate_filters(doc, filters: Union[Dict, List, Tuple]):
 	return True
 
 
-def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
+def compare(val1: Any, condition: str, val2: Any, fieldtype: Optional[str] = None):
+	ret = False
 	if fieldtype:
 		val1 = cast(fieldtype, val1)
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
-		return operator_map[condition](val1, val2)
+		ret = operator_map[condition](val1, val2)
 
-	return False
+	return ret
 
 
 def get_filter(doctype: str, f: Union[Dict, List, Tuple], filters_config=None) -> "frappe._dict":
