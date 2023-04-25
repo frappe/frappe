@@ -267,7 +267,15 @@ class CustomizeForm(Document):
 		):
 			self.flags.update_db = True
 
-		elif prop == "unique":
+		elif prop in ("unique", "search_index"):
+			if df.unique and df.search_index:
+				frappe.msgprint(
+					_("Cannot set UNIQUE and NON-UNIQUE index at the same time for {} in row {}").format(
+						frappe.bold(df.fieldname), frappe.bold(df.idx)
+					)
+				)
+				return False
+
 			self.flags.update_db = True
 
 		elif (
@@ -370,6 +378,9 @@ class CustomizeForm(Document):
 		for prop in docfield_properties:
 			d.set(prop, df.get(prop))
 
+		if d.unique:
+			d.search_index = 0
+
 		if i != 0:
 			d.insert_after = self.fields[i - 1].fieldname
 		d.idx = i
@@ -385,6 +396,14 @@ class CustomizeForm(Document):
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not meta_df or is_standard_or_system_generated_field(meta_df[0]):
 			# not a custom field
+			return
+
+		if df.unique and df.search_index:
+			frappe.msgprint(
+				_("Cannot set UNIQUE and NON-UNIQUE index at the same time for {} in row {}").format(
+					frappe.bold(df.fieldname), frappe.bold(df.idx)
+				)
+			)
 			return
 
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
@@ -615,6 +634,7 @@ docfield_properties = {
 	"non_negative": "Check",
 	"reqd": "Check",
 	"unique": "Check",
+	"search_index": "Check",
 	"ignore_user_permissions": "Check",
 	"in_list_view": "Check",
 	"in_standard_filter": "Check",
