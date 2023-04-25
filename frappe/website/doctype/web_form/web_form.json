@@ -9,7 +9,7 @@
   "title",
   "route",
   "published",
-  "column_break_1",
+  "column_break_vdhm",
   "doc_type",
   "module",
   "is_standard",
@@ -21,6 +21,7 @@
   "allow_multiple",
   "allow_edit",
   "allow_delete",
+  "anonymous",
   "column_break_2",
   "apply_document_permissions",
   "allow_print",
@@ -96,10 +97,12 @@
    "default": "0",
    "fieldname": "published",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Published"
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.anonymous",
    "fieldname": "login_required",
    "fieldtype": "Check",
    "label": "Login Required"
@@ -301,6 +304,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "show_list",
+   "depends_on": "eval:!doc.anonymous",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
    "label": "List Settings"
@@ -308,6 +312,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "show_sidebar",
+   "depends_on": "eval:!doc.anonymous",
    "fieldname": "section_break_4",
    "fieldtype": "Section Break",
    "label": "Sidebar Settings"
@@ -358,13 +363,24 @@
    "fieldname": "meta_image",
    "fieldtype": "Attach Image",
    "label": "Meta Image"
+  },
+  {
+   "fieldname": "column_break_vdhm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Receive anonymous response",
+   "fieldname": "anonymous",
+   "fieldtype": "Check",
+   "label": "Anonymous"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2022-12-15 17:14:44.939645",
+ "modified": "2023-04-20 17:24:42.657731",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
