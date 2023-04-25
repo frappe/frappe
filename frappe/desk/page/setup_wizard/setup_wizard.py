@@ -174,6 +174,7 @@ def update_system_settings(args):
 			"number_format": number_format,
 			"enable_scheduler": 1 if not frappe.flags.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
+			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
 	)
 	system_settings.save()

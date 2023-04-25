@@ -33,6 +33,11 @@ class TelemetryManager {
 		if (!this.enabled) return;
 		posthog.capture(`${app}_${event}`);
 	}
+
+	disable() {
+		this.enabled = false;
+		posthog.opt_out_capturing();
+	}
 }
 
 frappe.telemetry = new TelemetryManager();
