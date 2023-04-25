@@ -64,6 +64,9 @@ def setup_complete(args):
 
 @frappe.task()
 def process_setup_stages(stages, user_input, is_background_task=False):
+	from frappe.utils.telemetry import capture
+
+	capture("initated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -88,6 +91,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		)
 	else:
 		run_setup_success(user_input)
+		capture("completed_server_side", "setup")
 		if not is_background_task:
 			return {"status": "ok"}
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)

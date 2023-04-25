@@ -29,7 +29,7 @@ class TelemetryManager {
 		}
 	}
 
-	log(event, app) {
+	capture(event, app) {
 		if (!this.enabled) return;
 		posthog.capture(`${app}_${event}`);
 	}
