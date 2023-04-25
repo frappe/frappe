@@ -481,15 +481,17 @@ class Email:
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0] or ""
-		if _subject[0][1]:
-			charset = _subject[0][1]
-			if _subject[0][1] == "unknown-8bit":
-				charset = chardet.detect(_subject[0][0])["encoding"]
-			self.subject = safe_decode(self.subject, charset)
-		else:
-			# assume that the encoding is utf-8
-			self.subject = safe_decode(self.subject)[:140]
+		subject = ""
+		for i in range(len(_subject)):
+			if _subject[i][1]:
+				part_subject = safe_decode(_subject[i][0], _subject[i][1])
+				if(type(part_subject) != str):	# if _subject[i][1] = "unknown-8bit"
+					part_subject = safe_decode(_subject[i][0], chardet.detect(_subject[i][0])["encoding"])	
+				subject += part_subject
+			else:
+				# assume that the encoding is utf-8
+				subject += safe_decode(_subject[i][0])[:140]
+		self.subject = subject
 
 		if not self.subject:
 			self.subject = "No Subject"
