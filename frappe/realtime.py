@@ -129,7 +129,7 @@ def can_subscribe_doctype(doctype: str) -> bool:
 def get_user_info():
 	return {
 		"user": frappe.session.user,
-		"user_type": frappe.session.user_type,
+		"user_type": frappe.session.data.user_type,
 	}
 
 

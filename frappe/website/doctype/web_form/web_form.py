@@ -387,6 +387,10 @@ def accept(web_form, data):
 
 	web_form = frappe.get_doc("Web Form", web_form)
 	doctype = web_form.doc_type
+	user = frappe.session.user
+
+	if web_form.anonymous and frappe.session.user != "Guest":
+		frappe.session.user = "Guest"
 
 	if data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
@@ -467,6 +471,9 @@ def accept(web_form, data):
 		for f in files_to_delete:
 			if f:
 				remove_file_by_url(f, doctype=doctype, name=doc.name)
+
+	if web_form.anonymous and frappe.session.user == "Guest" and user:
+		frappe.session.user = user
 
 	frappe.flags.web_form_doc = doc
 	return doc

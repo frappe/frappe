@@ -207,9 +207,11 @@ class Exporter:
 		for df in self.fields:
 			is_parent = not df.is_child_table_field
 			if is_parent:
-				label = _(df.label)
+				label = _(df.label or df.fieldname)
 			else:
-				label = f"{_(df.label)} ({_(df.child_table_df.label)})"
+				label = (
+					f"{_(df.label or df.fieldname)} ({_(df.child_table_df.label or df.child_table_df.fieldname)})"
+				)
 
 			if label in header:
 				# this label is already in the header,
