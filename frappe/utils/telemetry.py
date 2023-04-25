@@ -9,13 +9,16 @@ from posthog import Posthog
 
 import frappe
 
+POSTHOG_PROJECT_FIELD = "posthog_project_id"
+POSTHOG_HOST_FIELD = "posthog_host"
+
 
 def add_bootinfo(bootinfo):
 	if not frappe.get_system_settings("enable_telemetry"):
 		return
 
-	bootinfo.posthog_host = frappe.conf.posthog_host
-	bootinfo.posthog_project_id = frappe.conf.posthog_project_id
+	bootinfo.posthog_host = frappe.conf.get(POSTHOG_HOST_FIELD)
+	bootinfo.posthog_project_id = frappe.conf.get(POSTHOG_PROJECT_FIELD)
 	bootinfo.enable_telemetry = True
 
 
@@ -27,8 +30,8 @@ def init_telemetry():
 	if not frappe.get_system_settings("enable_telemetry"):
 		return
 
-	posthog_host = frappe.conf.posthog_host
-	posthog_project_id = frappe.conf.posthog_project_id
+	posthog_host = frappe.conf.get(POSTHOG_HOST_FIELD)
+	posthog_project_id = frappe.conf.get(POSTHOG_PROJECT_FIELD)
 
 	if not posthog_host or not posthog_project_id:
 		return
