@@ -485,7 +485,7 @@ class Email:
 		for i in range(len(_subject)):
 			if _subject[i][1]:
 				part_subject = safe_decode(_subject[i][0], _subject[i][1])
-				if(type(part_subject) != str):	# if _subject[i][1] = "unknown-8bit"
+				if type(part_subject) != str:  # if _subject[i][1] = "unknown-8bit"
 					part_subject = safe_decode(_subject[i][0], chardet.detect(_subject[i][0])["encoding"])	
 				subject += part_subject
 			else:
