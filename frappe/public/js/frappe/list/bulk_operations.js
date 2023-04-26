@@ -50,7 +50,7 @@ export default class BulkOperations {
 					label: __("Print Format"),
 					fieldname: "print_sel",
 					options: frappe.meta.get_print_formats(this.doctype),
-					default: frappe.get_meta(this.doctype).default_print_format
+					default: frappe.get_meta(this.doctype).default_print_format,
 				},
 				{
 					fieldtype: "Select",
@@ -129,7 +129,7 @@ export default class BulkOperations {
 			args: {
 				doctype: "Letter Head",
 				fields: ["name", "is_default"],
-				filters: {"disabled": 0},
+				filters: { disabled: 0 },
 				limit_page_length: 0,
 			},
 			async: false,
