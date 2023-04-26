@@ -79,6 +79,7 @@ dependencies = [
     "google-api-python-client~=2.2.0",
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
+    "posthog~=3.0.1",
 ]
 
 [build-system]
