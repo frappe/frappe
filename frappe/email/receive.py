@@ -203,7 +203,7 @@ class EmailServer:
 		uid_validity = cint(self.settings.uid_validity)
 
 		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
-		current_uid_validity = int(self.parse_imap_response("UIDVALIDITY", message[0])) or 0
+		current_uid_validity = cint(self.parse_imap_response("UIDVALIDITY", message[0]))
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 
