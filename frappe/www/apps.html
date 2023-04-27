@@ -2,17 +2,21 @@
 base_template: 'templates/base.html'
 ---
 
+{%- block navbar -%}
+{%- endblock -%}
+
+{%- block footer -%}
+{%- endblock -%}
+
 {% block content %}
 <div class="container">
-    <h2>Apps</h2>
+    <h2 class="font-size-xl">{{ _("Apps") }}</h2>
     <div class="apps-container">
         {% for app in apps %}
-        <a href="{{ app.homepage }}" class="app-icon">
-
-            <img class="app-logo" src="{{ app.logo_url }}" />
-
+        <a href="{{ app.route }}" class="app-icon">
+            <img class="app-logo" src="{{ app.icon_url }}" />
             <div class="app-title">
-                {{ app.homepage_title or app.title }}
+                {{ app.title }}
             </div>
         </a>
         {% endfor %}

@@ -1,8 +1,13 @@
+.container {
+    max-width: 800px;
+    padding: 0 1.25rem;
+}
+
 .apps-container {
     margin-top: 2rem;
     margin-bottom: 2rem;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
     gap: 4rem;
 }
 
@@ -15,10 +20,11 @@
 }
 
 .app-logo {
-    width: 7.5rem;
-    height: 7.5rem;
+    width: 4.5rem;
+    height: 4.5rem;
     object-fit: cover;
     transition: transform 0.2s;
+    border-radius: 13px;
 }
 
 .app-icon:hover {
@@ -30,8 +36,25 @@
 }
 
 .app-title {
-    margin-top: 1rem;
-    font-size: 1.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
     font-weight: 500;
+    white-space: nowrap;
     color: var(--gray-900);
+}
+
+@media (max-width: 575px) {
+    .apps-container {
+        grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
+        gap: 2rem;
+    }
+
+    .app-logo {
+        width: 3.5rem;
+        height: 3.5rem;
+    }
+
+    .app-title {
+        font-size: 0.75rem;
+    }
 }
