@@ -17,7 +17,7 @@ import chardet
 from email_reply_parser import EmailReplyParser
 
 import frappe
-from frappe import _, safe_decode, safe_encode
+from frappe import _, safe_decode, safe_encode, decode_sequence
 from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
 from frappe.email.oauth import Oauth
 from frappe.utils import (
@@ -200,10 +200,10 @@ class EmailServer:
 
 	def check_imap_uidvalidity(self, folder):
 		# compare the UIDVALIDITY of email account and imap server
-		uid_validity = self.settings.uid_validity
+		uid_validity = int(self.settings.uid_validity) if self.settings.uid_validity else 0
 
 		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
-		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
+		current_uid_validity = int(self.parse_imap_response("UIDVALIDITY", message[0])) or 0
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
@@ -215,23 +215,17 @@ class EmailServer:
 				Communication.communication_medium == "Email"
 			).where(Communication.email_account == self.settings.email_account).run()
 
-			if self.settings.use_imap:
-				# new update for the IMAP Folder DocType
-				IMAPFolder = frappe.qb.DocType("IMAP Folder")
-				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
-					IMAPFolder.uidnext, uidnext
-				).where(IMAPFolder.parent == self.settings.email_account_name).where(
-					IMAPFolder.folder_name == folder
-				).run()
-			else:
-				EmailAccount = frappe.qb.DocType("Email Account")
-				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
-					EmailAccount.uidnext, uidnext
-				).where(EmailAccount.name == self.settings.email_account_name).run()
+			# new update for the IMAP Folder DocType
+			IMAPFolder = frappe.qb.DocType("IMAP Folder")
+			frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
+				IMAPFolder.uidnext, uidnext
+			).where(IMAPFolder.parent == self.settings.email_account_name).where(
+				IMAPFolder.folder_name == folder
+			).run()
 
 			# uid validity not found pulling emails for first time
 			if not uid_validity:
-				self.settings.email_sync_rule = "UNSEEN"
+				self.settings.email_sync_rule = "ALL"
 				return
 
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
@@ -404,12 +398,7 @@ class Email:
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0] or ""
-		if _subject[0][1]:
-			self.subject = safe_decode(self.subject, _subject[0][1])
-		else:
-			# assume that the encoding is utf-8
-			self.subject = safe_decode(self.subject)[:140]
+		self.subject = decode_sequence(_subject)
 
 		if not self.subject:
 			self.subject = "No Subject"
