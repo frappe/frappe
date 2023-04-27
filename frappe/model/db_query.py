@@ -489,7 +489,7 @@ class DatabaseQuery:
 			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
 		)
 
-	def check_read_permission(self, doctype, parent_doctype=None):
+	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
 		if self.flags.ignore_permissions:
 			return
 
@@ -498,12 +498,12 @@ class DatabaseQuery:
 
 		return self.permission_map[doctype]
 
-	def _set_permission_map(self, doctype, parent_doctype=None):
+	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 		val = frappe.has_permission(
 			doctype,
 			ptype=ptype,
-			parent_doctype=parent_doctype,
+			parent_doctype=parent_doctype or self.doctype,
 		)
 		if not val:
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
