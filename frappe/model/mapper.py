@@ -79,7 +79,7 @@ def get_mapped_doc(
 	):
 		target_doc.raise_no_permission_to("create")
 
-	source_doc = frappe.get_doc(from_doctype, from_docname)
+	source_doc = frappe.get_cached_doc(from_doctype, from_docname)
 
 	if not ignore_permissions:
 		if not source_doc.has_permission("read"):
