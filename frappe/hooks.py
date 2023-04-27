@@ -7,8 +7,6 @@ app_description = "Full stack web framework with Python, Javascript, MariaDB, Re
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-app_homepage = "/app"
-app_homepage_title = "Admin"
 
 develop_version = "15.x.x-develop"
 

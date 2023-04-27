@@ -2,24 +2,38 @@
 # MIT License. See license.txt
 
 import frappe
+from frappe import _
 
 
 def get_context():
 	_apps = frappe.get_installed_apps()
-	apps = []
+	apps = [
+		{
+			"name": "frappe",
+			"icon_url": "/assets/frappe/images/frappe-framework-logo.svg",
+			"title": _("Admin"),
+			"route": "/app",
+		}
+	]
 	for app in _apps:
-		homepage = frappe.get_hooks("app_homepage", app_name=app)
-		if homepage:
+		app_icon_url = frappe.get_hooks("app_icon_url", app_name=app)
+		app_icon_route = frappe.get_hooks("app_icon_route", app_name=app)
+		if app_icon_url and app_icon_route:
 			app_title = frappe.get_hooks("app_title", app_name=app)
-			homepage_title = frappe.get_hooks("app_homepage_title", app_name=app)
-			logo = frappe.get_hooks("app_logo_url", app_name=app)
+			icon_title = frappe.get_hooks("app_icon_title", app_name=app)
 			apps.append(
 				{
 					"name": app,
-					"title": app_title[0] if app_title else app,
-					"homepage_title": homepage_title[0] if homepage_title else app,
-					"logo_url": logo[0] if logo else None,
-					"homepage": homepage[0],
+					"icon_url": app_icon_url[0],
+					"title": _(icon_title[0] if icon_title else app_title[0] if app_title else app),
+					"route": app_icon_route[0],
 				}
 			)
+	apps.append(
+		{
+			"icon_url": "/assets/frappe/images/my-settings.svg",
+			"title": _("My Settings"),
+			"route": "/me",
+		}
+	)
 	return {"apps": apps}
