@@ -2367,6 +2367,30 @@ def safe_decode(param, encoding="utf-8"):
 	return param
 
 
+def decode_sequence(encoded_sequence) -> str:
+	"""
+	Decodes a encoded_sequence consisting of a tuple (string, charset_encoding). The function concatenates all chunks and returns the resulting decoded string.
+
+	Args:
+		encoded_sequence ((string, charset_encoding)): A list of tuples where each tuple contains a chunk of the string and its encoding.
+
+	Returns:
+		str: The decoded and concatenated sequence string.
+	"""
+	decoded_string = ""
+	for chunk, encoding in encoded_sequence:
+		if encoding is not None:
+			decoded_chunk = safe_decode(param=chunk, encoding=encoding)
+		else:
+			if not isinstance(chunk, str):
+				detected_encoding = chardet.detect(chunk)["encoding"]
+				decoded_chunk = safe_decode(param=chunk, encoding=detected_encoding)
+			else:
+				decoded_chunk = safe_decode(param=chunk)
+		decoded_string += decoded_chunk
+	return decoded_string
+
+
 def parse_json(val):
 	from frappe.utils import parse_json
 
