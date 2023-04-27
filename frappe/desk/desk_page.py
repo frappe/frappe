@@ -37,13 +37,12 @@ def has_permission(page):
 	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
 		return True
 
-	page_roles = [d.role for d in page.get("roles")]
-	if page_roles:
-		if frappe.session.user == "Guest" and "Guest" not in page_roles:
-			return False
-		elif not set(page_roles).intersection(set(frappe.get_roles())):
-			# check if roles match
-			return False
+	page_roles = {d.role for d in page.get("roles")}
+	if page_roles and (
+		(frappe.session.user == "Guest" and "Guest" not in page_roles)
+		or page_roles.isdisjoint(frappe.get_roles())
+	):
+		return False
 
 	if not frappe.has_permission("Page", ptype="read", doc=page):
 		# check if there are any user_permissions
