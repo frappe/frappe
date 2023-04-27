@@ -92,7 +92,8 @@ def has_permission(
 
 	if doc:
 		if isinstance(doc, str):
-			doc = frappe.get_doc(meta.name, doc)
+			doc = get_doc_without_children(meta.name, doc)
+
 		perm = get_doc_permissions(doc, user=user, ptype=ptype).get(ptype)
 		if not perm:
 			push_perm_check_log(
@@ -726,3 +727,8 @@ def has_child_permission(
 		user=user,
 		raise_exception=raise_exception,
 	)
+
+
+def get_doc_without_children(doctype, name):
+	data = frappe.db.get_value(doctype, name, "*", as_dict=True)
+	return frappe.get_doc(doctype=doctype, **data)
