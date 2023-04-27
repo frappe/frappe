@@ -206,7 +206,6 @@ class EmailServer:
 		current_uid_validity = int(self.parse_imap_response("UIDVALIDITY", message[0])) or 0
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
-		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
