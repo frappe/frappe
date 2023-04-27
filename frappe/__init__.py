@@ -17,6 +17,7 @@ import json
 import os
 import re
 import warnings
+import chardet
 from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, overload
 
 import click
