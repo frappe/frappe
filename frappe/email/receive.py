@@ -200,7 +200,7 @@ class EmailServer:
 
 	def check_imap_uidvalidity(self, folder):
 		# compare the UIDVALIDITY of email account and imap server
-		uid_validity = int(self.settings.uid_validity) if self.settings.uid_validity else 0
+		uid_validity = cint(self.settings.uid_validity)
 
 		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
 		current_uid_validity = int(self.parse_imap_response("UIDVALIDITY", message[0])) or 0
