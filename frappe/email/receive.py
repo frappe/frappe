@@ -17,7 +17,7 @@ import chardet
 from email_reply_parser import EmailReplyParser
 
 import frappe
-from frappe import _, safe_decode, safe_encode, decode_sequence
+from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
 from frappe.email.oauth import Oauth
 from frappe.utils import (
@@ -36,6 +36,7 @@ from frappe.utils import (
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
+from frappe.utils.data import decode_sequence
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 1_00_000
