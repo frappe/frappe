@@ -673,9 +673,9 @@ def get_all_roles(arg=None):
 
 
 @frappe.whitelist()
-def get_roles(arg=None):
+def get_roles(user: str | None = None) -> list[str]:
 	"""get roles for a user"""
-	return frappe.get_roles(frappe.form_dict["uid"])
+	return frappe.get_roles(user)
 
 
 @frappe.whitelist()
