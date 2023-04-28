@@ -2252,6 +2252,7 @@ def decode_sequence(encoded_sequence) -> str:
 	Returns:
 		str: The decoded and concatenated sequence string.
 	"""
+	from frappe import safe_decode
 	decoded_string = ""
 	for chunk, encoding in encoded_sequence:
 		if encoding is not None:
