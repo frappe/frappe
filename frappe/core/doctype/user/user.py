@@ -673,12 +673,6 @@ def get_all_roles(arg=None):
 
 
 @frappe.whitelist()
-def get_roles(user: str | None = None) -> list[str]:
-	"""get roles for a user"""
-	return frappe.get_roles(user)
-
-
-@frappe.whitelist()
 def get_perm_info(role):
 	"""get permission info"""
 	from frappe.permissions import get_all_perms

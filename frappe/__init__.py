@@ -568,15 +568,6 @@ def get_user():
 	return local.user_perms
 
 
-def get_roles(username=None) -> list[str]:
-	"""Returns roles of current user."""
-	if not local.session or not local.session.user:
-		return ["Guest"]
-	import frappe.permissions
-
-	return frappe.permissions.get_roles(username or local.session.user)
-
-
 def get_request_header(key, default=None):
 	"""Return HTTP request header.
 
@@ -1050,6 +1041,16 @@ def reset_metadata_version():
 	v = generate_hash()
 	cache().set_value("metadata_version", v)
 	return v
+
+
+@whitelist()
+def get_roles(username=None) -> list[str]:
+	"""Returns roles of current user."""
+	if not local.session or not local.session.user:
+		return ["Guest"]
+	import frappe.permissions
+
+	return frappe.permissions.get_roles(username or local.session.user)
 
 
 def new_doc(
