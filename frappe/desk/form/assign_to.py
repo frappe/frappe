@@ -147,35 +147,36 @@ def add_multiple(args=None):
 def close_all_assignments(doctype, name):
 	assignments = frappe.get_all(
 		"ToDo",
-		fields=["allocated_to"],
+		fields=["allocated_to", "name"],
 		filters=dict(reference_type=doctype, reference_name=name, status=("!=", "Cancelled")),
 	)
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
-		set_status(doctype, name, assign_to.allocated_to, status="Closed")
+		set_status(doctype, name, todo=assign_to.name, assign_to=assign_to.allocated_to, status="Closed")
 
 	return True
 
 
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
-	return set_status(doctype, name, assign_to, status="Cancelled")
+	return set_status(doctype, name, "", assign_to, status="Cancelled")
 
 
-def set_status(doctype, name, assign_to, status="Cancelled"):
+def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 	"""remove from todo"""
 	try:
-		todo = frappe.db.get_value(
-			"ToDo",
-			{
-				"reference_type": doctype,
-				"reference_name": name,
-				"allocated_to": assign_to,
-				"status": ("!=", status),
-			},
-		)
+		if not todo:
+			todo = frappe.db.get_value(
+				"ToDo",
+				{
+					"reference_type": doctype,
+					"reference_name": name,
+					"allocated_to": assign_to,
+					"status": ("!=", status),
+				},
+			)
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
 			todo.status = status
@@ -197,13 +198,17 @@ def clear(doctype, name):
 	Clears assignments, return False if not assigned.
 	"""
 	assignments = frappe.get_all(
-		"ToDo", fields=["allocated_to"], filters=dict(reference_type=doctype, reference_name=name)
+		"ToDo",
+		fields=["allocated_to", "name"],
+		filters=dict(reference_type=doctype, reference_name=name),
 	)
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
-		set_status(doctype, name, assign_to.allocated_to, "Cancelled")
+		set_status(
+			doctype, name, todo=assign_to.name, assign_to=assign_to.allocated_to, status="Cancelled"
+		)
 
 	return True
 
