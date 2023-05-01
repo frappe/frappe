@@ -1,4 +1,6 @@
 import { createApp } from "vue";
+import { createPinia } from "pinia";
+import { useStore } from "./store";
 import WorkflowBuilderComponent from "./WorkflowBuilder.vue";
 
 class WorkflowBuilder {
@@ -18,9 +20,13 @@ class WorkflowBuilder {
 	}
 
 	setup_app() {
+		// create a pinia instance
+		let pinia = createPinia();
+
 		// create a vue instance
 		let app = createApp(WorkflowBuilderComponent, { workflow: this.workflow });
 		SetVueGlobals(app);
+		app.use(pinia);
 
 		// mount the app
 		this.$workflow_builder = app.mount(this.$wrapper.get(0));
