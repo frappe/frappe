@@ -70,8 +70,7 @@
    "fieldname": "states",
    "fieldtype": "Table",
    "label": "Document States",
-   "options": "Workflow Document State",
-   "reqd": 1
+   "options": "Workflow Document State"
   },
   {
    "description": "Rules for how states are transitions, like next state and which role is allowed to change state etc.",
@@ -84,8 +83,7 @@
    "fieldname": "transitions",
    "fieldtype": "Table",
    "label": "Transitions",
-   "options": "Workflow Transition",
-   "reqd": 1
+   "options": "Workflow Transition"
   },
   {
    "default": "workflow_state",
@@ -99,7 +97,7 @@
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2020-12-17 20:35:16.898040",
+ "modified": "2023-05-01 13:21:30.951859",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",

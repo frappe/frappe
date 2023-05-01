@@ -25,6 +25,18 @@ frappe.ui.form.on("Workflow", {
 		});
 	},
 	validate: (frm) => {
+		if (
+			frm.doc.is_active &&
+			(frm.doc.states.length === 0 || frm.doc.transitions.length === 0)
+		) {
+			let message = "Workflow must have atleast one state and transition";
+			frappe.throw({
+				message: __(message),
+				title: __("Missing Values Required"),
+				indicator: "orange",
+			});
+		}
+
 		if (frm.ignore_warning) {
 			return;
 		}
