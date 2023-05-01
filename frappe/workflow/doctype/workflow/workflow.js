@@ -5,6 +5,11 @@ frappe.ui.form.on("Workflow", {
 		frm.set_query("document_type", { issingle: 0, istable: 0 });
 	},
 	refresh: function (frm) {
+		!frm.is_new() &&
+			frm.add_custom_button(__("Try new Workflow Builder", [__(frm.doc.name)]), () => {
+				frappe.set_route("workflow-builder", frm.doc.name);
+			});
+
 		if (frm.doc.document_type) {
 			frm.add_custom_button(__("Go to {0} List", [frm.doc.document_type]), () => {
 				frappe.set_route("List", frm.doc.document_type);

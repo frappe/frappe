@@ -21,7 +21,6 @@ class WorkflowBuilder {
 		// create a vue instance
 		let app = createApp(WorkflowBuilderComponent, { workflow: this.workflow });
 		SetVueGlobals(app);
-		app.use(pinia);
 
 		// mount the app
 		this.$workflow_builder = app.mount(this.$wrapper.get(0));
