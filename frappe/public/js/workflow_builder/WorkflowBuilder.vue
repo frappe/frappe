@@ -182,6 +182,8 @@ function onDragOver(event) {
 function onDrop(event) {
 	const { left, top } = vueFlowRef.value.getBoundingClientRect();
 
+	getSelectedNodes.value?.forEach(node => (node.selected = false));
+
 	const position = project({
 		x: event.clientX - left,
 		y: event.clientY - top
