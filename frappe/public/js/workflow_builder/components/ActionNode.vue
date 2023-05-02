@@ -1,6 +1,6 @@
 <script setup>
 import { Handle, useVueFlow } from "@vue-flow/core";
-import { watch } from "vue";
+import { watch, computed } from "vue";
 import { useStore } from "../store";
 
 const props = defineProps({
@@ -35,11 +35,17 @@ watch(
 		connected_edges.forEach(edge => edge.selected = val);
 	}
 );
+
+let label = computed(() => findNode(props.node.id)?.data?.action);
+
+watch(() => props.node.data, () => {
+	store.ref_history.commit();
+}, { deep: true });
 </script>
 
 <template>
 	<div class="node" tabindex="0" @click.stop="store.workflow.selected = node">
-		<div v-if="node.data.action" class="node-label">{{ node.data.action }}</div>
+		<div v-if="label" class="node-label">{{ label }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"
