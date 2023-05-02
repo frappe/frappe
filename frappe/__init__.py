@@ -182,9 +182,9 @@ if TYPE_CHECKING:
 # end: static analysis hack
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None):
+	if getattr(local, "initialised", None) and not force:
 		return
 
 	local.error_log = []
@@ -845,7 +845,7 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 	if isinstance(roles, str):
 		roles = (roles,)
 
-	if not set(roles).intersection(get_roles()):
+	if set(roles).isdisjoint(get_roles()):
 		if not message:
 			raise PermissionError
 
