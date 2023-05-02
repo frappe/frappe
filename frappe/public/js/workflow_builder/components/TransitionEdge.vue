@@ -1,8 +1,8 @@
 <script setup>
-import { computed, watch } from "vue";
+import { computed, nextTick, watch } from "vue";
 import { getSmoothStepPath, SmoothStepEdge, useVueFlow, EdgeLabelRenderer } from "@vue-flow/core";
 
-let { findEdge } = useVueFlow();
+let { findEdge, getSelectedNodes } = useVueFlow();
 
 const props = defineProps({
 	id: { type: String, required: true },
@@ -41,12 +41,21 @@ let marker_end_primary = {
 
 watch(
 	() => props.selected,
-	() => {
-		if (props.target?.startsWith("action-")) return;
-		findEdge(props.id).markerEnd = props.selected ? marker_end_primary : marker_end;
+	val => {
+		let target_is_action = props.target?.startsWith("action-");
+		val && selectAction(target_is_action);
+		if (target_is_action) return;
+		findEdge(props.id).markerEnd = val ? marker_end_primary : marker_end;
 	},
 	{ immediate: true }
 );
+
+function selectAction(target_is_action) {
+	let action = target_is_action ? props.targetNode : props.sourceNode;
+	if (action.selected) return;
+	getSelectedNodes.value?.forEach(node => (node.selected = false));
+	nextTick(() => (action.selected = true));
+}
 
 const d = computed(() => {
 	return getSmoothStepPath({
@@ -72,8 +81,11 @@ export default {
 	<SmoothStepEdge class="transition-edge" :id="id" :path="d[0]" :markerEnd="markerEnd" />
 	<EdgeLabelRenderer v-if="markerEnd == 'url(#)'">
 		<div
+			@click.stop="selectAction(true)"
 			:style="{
 				transform: `translate(-50%, -50%) translate(${d[1]}px, ${d[2]}px)`,
+				borderColor: selected ? 'var(--primary)' : 'var(--gray-600)',
+				borderWidth: selected ? '1.5px' : '1px'
 			}"
 			class="access nodrag nopan"
 		>
