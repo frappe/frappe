@@ -1,8 +1,10 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useStore } from "../store";
 
 let store = useStore();
+
+let title = ref("Workflow Details");
 
 let properties = computed(() => {
 	return store.workflowfields.filter(df => {
@@ -15,6 +17,7 @@ let properties = computed(() => {
 </script>
 
 <template>
+	<div class="title">{{ __(title) }}</div>
 	<div class="properties">
 		<div class="control-data">
 			<div v-if="store.workflow_doc">
@@ -34,6 +37,12 @@ let properties = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+.title {
+	font-size: var(--text-lg);
+	font-weight: 600;
+	padding: var(--padding-sm) var(--padding-md);
+	border-bottom: 1px solid var(--border-color);
+}
 .control-data {
 	height: calc(100vh - 210px);
 	overflow-y: auto;
