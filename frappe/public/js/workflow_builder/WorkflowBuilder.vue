@@ -64,6 +64,7 @@ onConnect(edge => {
 		id: "action-" + frappe.utils.get_random(5),
 		type: "action",
 		position: { x: center_x, y: center_y },
+		selected: true,
 		data: {
 			action: "",
 			allowed: "All",
@@ -104,6 +105,8 @@ onConnect(edge => {
 						y: node.position.y - node.dimensions.height / 2
 					};
 					stop();
+					node.selected = true;
+					store.workflow.selected = node;
 					store.ref_history.commit();
 				}
 			},
