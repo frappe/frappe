@@ -8,7 +8,17 @@ import ConnectionLine from "./components/ConnectionLine.vue";
 import { useStore } from "./store";
 
 let store = useStore();
-let { nodes, findNode, onConnect, addNodes, addEdges } = useVueFlow();
+let {
+	nodes,
+	findNode,
+	onConnect,
+	addNodes,
+	addEdges,
+	onPaneReady,
+	fitView,
+	zoomIn,
+	zoomOut
+} = useVueFlow();
 
 function add_state() {
 	let state_id = (nodes.value.length + 1).toString();
@@ -67,6 +77,8 @@ onConnect(edge => {
 	};
 	addEdges([action_edge, state_edge]);
 });
+
+onPaneReady(() => fitView({ padding: 0.4 }));
 </script>
 
 <template>
@@ -75,6 +87,13 @@ onConnect(edge => {
 			<Background pattern-color="#aaa" gap="10" />
 			<Panel :position="PanelPosition.TopRight">
 				<button @click="add_state">Add State</button>
+			</Panel>
+			<Panel :position="PanelPosition.BottomLeft">
+				<button class="btn btn-sm btn-default mr-2" @click="zoomIn">+</button>
+				<button class="btn btn-sm btn-default mr-2" @click="zoomOut">-</button>
+				<button class="btn btn-sm btn-default" @click="fitView({ padding: 0.4 })">
+					Fit
+				</button>
 			</Panel>
 			<template #node-state="node">
 				<StateNode :node="node" />
