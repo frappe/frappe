@@ -3,10 +3,12 @@ import { VueFlow, useVueFlow, Panel, PanelPosition } from "@vue-flow/core";
 import { Background } from "@vue-flow/background";
 import TransitionEdge from "./components/TransitionEdge.vue";
 import StateNode from "./components/StateNode.vue";
+import ActionNode from "./components/ActionNode.vue";
+import ConnectionLine from "./components/ConnectionLine.vue";
 import { useStore } from "./store";
 
 let store = useStore();
-let { nodes, onConnect, addNodes, addEdges } = useVueFlow();
+let { nodes, findNode, onConnect, addNodes, addEdges } = useVueFlow();
 
 function add_state() {
 	let state_id = (nodes.value.length + 1).toString();
@@ -20,10 +22,50 @@ function add_state() {
 	]);
 }
 
-onConnect(params => {
-	params.animated = true;
-	params.type = "transition";
-	addEdges([params]);
+onConnect(edge => {
+	let source_node = findNode(edge.source);
+	let target_node = findNode(edge.target);
+
+	let source_center = {
+		x: source_node.position.x + source_node.dimensions.width / 2,
+		y: source_node.position.y + source_node.dimensions.height / 2
+	};
+
+	let target_center = {
+		x: target_node.position.x + target_node.dimensions.width / 2,
+		y: target_node.position.y + target_node.dimensions.height / 2
+	};
+
+	let center_x = (source_center.x + target_center.x) / 2;
+	let center_y = source_center.y - 16;
+
+	const action_node = {
+		id: "action-" + frappe.utils.get_random(5),
+		type: "action",
+		label: "Approve",
+		position: { x: center_x, y: center_y }
+	};
+	addNodes([action_node]);
+
+	let action_edge = {
+		source: edge.source,
+		sourceHandle: edge.sourceHandle,
+		target: action_node.id,
+		targetHandle: "left",
+		type: "transition",
+		updatable: true,
+		animated: true
+	};
+	let state_edge = {
+		source: action_node.id,
+		sourceHandle: "right",
+		target: edge.target,
+		targetHandle: edge.targetHandle,
+		type: "transition",
+		updatable: true,
+		animated: true
+	};
+	addEdges([action_edge, state_edge]);
 });
 </script>
 
@@ -37,8 +79,14 @@ onConnect(params => {
 			<template #node-state="node">
 				<StateNode :node="node" />
 			</template>
+			<template #node-action="node">
+				<ActionNode :node="node" />
+			</template>
 			<template #edge-transition="props">
 				<TransitionEdge v-bind="props" />
+			</template>
+			<template #connection-line="props">
+				<ConnectionLine v-bind="props" />
 			</template>
 		</VueFlow>
 	</div>

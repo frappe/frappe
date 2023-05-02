@@ -16,10 +16,11 @@ const props = defineProps({
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"
 			class="handle"
-			:style="{ [handle]: '-12px'}"
+			:style="{ [handle]: '-3px', opacity: 0 }"
 			type="source"
 			:position="handle"
 			:id="handle"
+			@click.stop
 		/>
 	</div>
 </template>
@@ -27,26 +28,17 @@ const props = defineProps({
 <style lang="scss" scoped>
 .node {
 	position: relative;
-	background-color: var(--fg-color);
+	background-color: var(--gray-500);
 	font-weight: 500;
-	border-radius: 50%;
-	padding: 25px;
-	color: var(--gray-600);
-	border: 1px solid var(--gray-600);
+	border-radius: 5px;
+	padding: 5px 10px;
+	color: var(--fg-color);
+	border: 1px solid var(--fg-color);
 	box-shadow: var(--shadow-base);
 }
 
 .vue-flow__node.selected .node {
 	outline: 1.5px solid var(--primary);
 	outline-offset: 2px;
-}
-
-.handle {
-	position: absolute;
-	width: 7px;
-	height: 7px;
-	background-color: var(--gray-600);
-	border-radius: 50%;
-	transition: all 0.2s ease-in-out;
 }
 </style>

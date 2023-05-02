@@ -14,6 +14,8 @@ const props = defineProps({
 	targetPosition: { type: String, required: false },
 	sourceHandle: { type: String, required: false },
 	targetHandle: { type: String, required: false },
+	source: { type: String, required: false },
+	target: { type: String, required: false },
 	sourceNode: { type: Object, required: true },
 	targetNode: { type: Object, required: true },
 	markerEnd: { type: String, required: false },
@@ -23,23 +25,24 @@ const props = defineProps({
 
 let marker_end = {
 	type: "arrow",
-	width: 20,
-	height: 20,
+	width: 15,
+	height: 15,
 	strokeWidth: 1.5,
 	color: "#687178"
 };
 
 let marker_end_primary = {
 	type: "arrow",
-	width: 15,
-	height: 15,
-	strokeWidth: 1.5,
+	width: 11,
+	height: 11,
+	strokeWidth: 1.7,
 	color: "#2490ef"
 };
 
 watch(
 	() => props.selected,
 	() => {
+		if (props.target?.startsWith("action-")) return;
 		findEdge(props.id).markerEnd = props.selected ? marker_end_primary : marker_end;
 	},
 	{ immediate: true }
