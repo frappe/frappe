@@ -13,6 +13,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	let ref_history = ref(null);
 
 	async function fetch() {
+		workflow.value.elements = [];
 		await frappe.model.clear_doc("Workflow", workflow_name.value);
 		await frappe.model.with_doc("Workflow", workflow_name.value);
 
@@ -36,8 +37,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		if (
 			workflow_doc.value.workflow_data &&
-			JSON.parse(workflow_doc.value.workflow_data).length &&
-			typeof workflow_doc.value.workflow_data == "string"
+			typeof workflow_doc.value.workflow_data == "string" &&
+			JSON.parse(workflow_doc.value.workflow_data).length
 		) {
 			workflow.value.elements = JSON.parse(workflow_doc.value.workflow_data);
 		} else {
