@@ -192,7 +192,7 @@ onMounted(() => store.fetch());
 
 <template>
 	<div class="main">
-		<div class="sidebar-container">
+		<div class="sidebar-container" @click.stop>
 			<Sidebar />
 		</div>
 		<div class="workflow-container" @drop="onDrop">

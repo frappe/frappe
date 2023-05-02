@@ -41,10 +41,15 @@ export function get_workflow_elements(workflow) {
 
 	workflow.states.forEach((state, i) => {
 		x += 400;
+		let doc_status_map = {
+			0: "Draft",
+			1: "Submitted",
+			2: "Cancelled",
+		};
 		elements.push(
 			state_obj(i + 1, {
 				state: state.state,
-				doc_status: state.doc_status,
+				doc_status: doc_status_map[state.doc_status],
 				allow_edit: state.allow_edit,
 				update_field: state.update_field,
 				update_value: state.update_value,

@@ -25,7 +25,13 @@ let properties = computed(() => {
 		});
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
-		return store.statefields;
+		return store.statefields.filter(df => {
+			if (df.fieldname == "doc_status") {
+				df.options = ["Draft", "Submitted", "Cancelled"];
+				df.description = "";
+			}
+			return true;
+		});
 	}
 	title.value = "Workflow Details";
 	return store.workflowfields.filter(df => {
