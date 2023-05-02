@@ -20,8 +20,6 @@ import frappe
 from frappe.desk.utils import slug
 from frappe.utils.deprecations import deprecation_warning
 
-import chardet
-
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]
 
@@ -2240,28 +2238,3 @@ def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "ema
 
 	url_parts[4] = urlencode(query)
 	return urlunparse(url_parts)
-
-
-def decode_sequence(encoded_sequence) -> str:
-	"""
-	Decodes a encoded_sequence consisting of a tuple (string, charset_encoding). The function concatenates all chunks and returns the resulting decoded string.
-
-	Args:
-		encoded_sequence ((string, charset_encoding)): A list of tuples where each tuple contains a chunk of the string and its encoding.
-
-	Returns:
-		str: The decoded and concatenated sequence string.
-	"""
-	from frappe import safe_decode
-	decoded_string = ""
-	for chunk, encoding in encoded_sequence:
-		if encoding is not None:
-			decoded_chunk = safe_decode(param=chunk, encoding=encoding)
-		else:
-			if not isinstance(chunk, str):
-				detected_encoding = chardet.detect(chunk)["encoding"]
-				decoded_chunk = safe_decode(param=chunk, encoding=detected_encoding)
-			else:
-				decoded_chunk = safe_decode(param=chunk)
-		decoded_string += decoded_chunk
-	return decoded_string
