@@ -10,10 +10,14 @@ import { useStore } from "./store";
 let store = useStore();
 let {
 	nodes,
+	getEdges,
 	findNode,
 	onConnect,
+	onEdgeUpdate,
 	addNodes,
 	addEdges,
+	setEdges,
+	updateEdge,
 	onPaneReady,
 	fitView,
 	zoomIn,
@@ -76,6 +80,18 @@ onConnect(edge => {
 		animated: true
 	};
 	addEdges([action_edge, state_edge]);
+});
+
+onEdgeUpdate(({ edge, connection }) => {
+	if (
+		(connection.source == edge.source && connection.target != edge.target) ||
+		(connection.source != edge.source && connection.target == edge.target) ||
+		connection.source === connection.target
+	)
+		return;
+
+	updateEdge(edge, connection);
+	setEdges(getEdges.value);
 });
 
 onPaneReady(() => fitView({ padding: 0.4 }));

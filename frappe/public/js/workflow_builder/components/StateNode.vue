@@ -7,6 +7,17 @@ const props = defineProps({
 		required: true
 	}
 });
+
+const isValidConnection = ({ source, target }) => {
+	if (
+		(source.startsWith("action-") && !target.startsWith("action-")) ||
+		(!source.startsWith("action-") && target.startsWith("action-"))
+	) {
+		return false;
+	}
+
+	return source !== target;
+};
 </script>
 
 <template>
@@ -20,6 +31,7 @@ const props = defineProps({
 			type="source"
 			:position="handle"
 			:id="handle"
+			:isValidConnection="isValidConnection"
 		/>
 	</div>
 </template>

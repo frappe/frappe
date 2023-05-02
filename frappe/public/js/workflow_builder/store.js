@@ -14,6 +14,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				type: "transition",
 				sourceHandle: "right",
 				targetHandle: "left",
+				updatable: true,
 				animated: true,
 			},
 			{
@@ -23,6 +24,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				type: "transition",
 				sourceHandle: "right",
 				targetHandle: "left",
+				updatable: true,
 				animated: true,
 			},
 		],
