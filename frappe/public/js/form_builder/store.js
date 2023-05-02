@@ -104,6 +104,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
+		if (!ref_history.value) return;
 		if (e.ctrlKey || e.metaKey) {
 			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
 				ref_history.value.undo();
