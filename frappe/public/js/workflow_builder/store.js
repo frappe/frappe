@@ -18,13 +18,37 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		workflow_doc.value = frappe.get_doc("Workflow", workflow_name.value);
 		await frappe.model.with_doctype(workflow_doc.value.document_type);
 
-		workflow.value.elements = get_workflow_elements(workflow_doc.value);
+		if (
+			workflow_doc.value.workflow_data &&
+			JSON.parse(workflow_doc.value.workflow_data).length &&
+			typeof workflow_doc.value.workflow_data == "string"
+		) {
+			workflow.value.elements = JSON.parse(workflow_doc.value.workflow_data);
+		} else {
+			workflow.value.elements = get_workflow_elements(workflow_doc.value);
+		}
 
 		setup_undo_redo();
 	}
 
 	function reset_changes() {
 		fetch();
+	}
+
+	async function save_changes() {
+		frappe.dom.freeze(__("Saving..."));
+
+		try {
+			let doc = workflow_doc.value;
+			doc.workflow_data = JSON.stringify(workflow.value.elements);
+			await frappe.call("frappe.client.save", { doc });
+			frappe.toast("Workflow is updated successfully");
+			fetch();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			frappe.dom.unfreeze();
+		}
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
@@ -50,6 +74,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		ref_history,
 		fetch,
 		reset_changes,
+		save_changes,
 		setup_undo_redo,
 	};
 });
