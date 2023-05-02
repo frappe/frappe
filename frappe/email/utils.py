@@ -32,7 +32,7 @@ def decode_sequence(encoded_sequence) -> str:
 	decoded_string = ""
 	for chunk, encoding in encoded_sequence:
 		if not isinstance(chunk, str):
-			detected_encoding = encoding if encoding is not None and encoding != 'unknown-8bit' else 'utf-8' if encoding == 'unknown-8bit' else chardet.detect(chunk)["encoding"]
+			detected_encoding = encoding if encoding is not None and encoding != 'unknown-8bit' else chardet.detect(chunk)["encoding"]
 			decoded_chunk = safe_decode(param=chunk, encoding=detected_encoding)
 		else:
 			decoded_chunk = safe_decode(param=chunk)
