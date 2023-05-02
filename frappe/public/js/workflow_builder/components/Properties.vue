@@ -48,6 +48,9 @@ let properties = computed(() => {
 					name: ["not in", filter]
 				};
 			}
+			if (df.fieldname == "update_field") {
+				df.options = store.workflow_doc_fields;
+			}
 			return true;
 		});
 	}

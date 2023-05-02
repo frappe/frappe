@@ -6,6 +6,7 @@ import { useManualRefHistory, onKeyDown } from "@vueuse/core";
 export const useStore = defineStore("workflow-builder-store", () => {
 	let workflow_name = ref(null);
 	let workflow_doc = ref(null);
+	let workflow_doc_fields = ref([]);
 	let workflow = ref({ elements: [], selected: null });
 	let workflowfields = ref([]);
 	let statefields = ref([]);
@@ -32,6 +33,24 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		if (!transitionfields.value.length) {
 			await frappe.model.with_doctype("Workflow Transition");
 			transitionfields.value = frappe.get_meta("Workflow Transition").fields;
+		}
+
+		if (!workflow_doc_fields.value.length) {
+			let doc_type = workflow_doc.value.document_type;
+			await frappe.model.with_doctype(doc_type);
+			workflow_doc_fields.value = frappe.meta
+				.get_docfields(doc_type, null, {
+					fieldtype: ["not in", frappe.model.no_value_type],
+				})
+				.sort((a, b) => {
+					if (a.label && b.label) {
+						return a.label.localeCompare(b.label);
+					}
+				})
+				.map((df) => ({
+					label: `${df.label || __("No Label")} (${df.fieldtype})`,
+					value: df.fieldname,
+				}));
 		}
 
 		if (
@@ -159,6 +178,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	return {
 		workflow_name,
 		workflow_doc,
+		workflow_doc_fields,
 		workflow,
 		workflowfields,
 		statefields,
