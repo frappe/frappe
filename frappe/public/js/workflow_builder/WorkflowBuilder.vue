@@ -7,8 +7,8 @@ import ActionNode from "./components/ActionNode.vue";
 import ConnectionLine from "./components/ConnectionLine.vue";
 import Sidebar from "./components/Sidebar.vue";
 import { useStore } from "./store";
-import { ref, nextTick, onMounted, watch } from "vue";
-import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
+import { ref, computed, nextTick, onMounted, watch } from "vue";
+import { onClickOutside, useMagicKeys, whenever, useActiveElement } from "@vueuse/core";
 
 let store = useStore();
 
@@ -24,6 +24,7 @@ const {
 	addEdges,
 	setEdges,
 	updateEdge,
+	removeNodes,
 	onPaneReady,
 	fitView,
 	zoomIn,
@@ -39,13 +40,47 @@ onClickOutside(main, () => {
 });
 
 // cmd/ctrl + s to save the form
-const { meta_s, ctrl_s } = useMagicKeys();
+const { meta_s, ctrl_s, Backspace, meta_backspace, ctrl_backspace } = useMagicKeys();
 whenever(
 	() => meta_s.value || ctrl_s.value,
 	() => {
 		store.save_changes();
 	}
 );
+
+const activeElement = useActiveElement();
+const notUsingInput = computed(
+	() => activeElement.value?.tagName !== "INPUT" && activeElement.value?.tagName !== "TEXTAREA"
+);
+
+whenever(
+	() => Backspace.value || meta_backspace.value || ctrl_backspace.value,
+	() => {
+		if (meta_backspace.value || ctrl_backspace.value) return;
+		if (store.workflow.selected) {
+			if (
+				notUsingInput.value &&
+				(store.workflow.selected.type === "state" || store.workflow.selected.type === "action")
+			) {
+				removeNodes([store.workflow.selected.id]);
+				if (store.workflow.selected.data?.state) {
+					let connected_nodes = [];
+					connected_nodes = nodes.value
+						.filter(
+							node =>
+								node.data.from == store.workflow.selected.data.state ||
+								node.data.to == store.workflow.selected.data.state
+						)
+						.map(node => node.id);
+					removeNodes(connected_nodes);
+				}
+				store.workflow.selected = null;
+				nextTick(() => store.ref_history.commit());
+			}
+		}
+	}
+);
+
 
 onNodeDragStop(() => {
 	nextTick(() => store.ref_history.commit());
@@ -208,6 +243,7 @@ onMounted(() => store.fetch());
 				v-model="store.workflow.elements"
 				connection-mode="loose"
 				@dragover="onDragOver"
+				:delete-key-code="null"
 			>
 				<Background pattern-color="#aaa" gap="10" />
 				<Panel :position="PanelPosition.TopRight">
