@@ -166,8 +166,21 @@ class EmailServer:
 		self.uid_reindexed = False
 
 		email_list = self.get_new_mails(folder)
+		
+		num = len(email_list)
+		if num > 100:
+			num = 100
 
-		for i, uid in enumerate(email_list[:100]):
+		# reindexd or initial sync
+		if self.uid_reindexed and num > cint(self.settings.initial_sync_count):
+			# sort so that the most recent uid is on top of the list
+			email_list.reverse()
+			# process only up to initial_sync_count
+			email_list = email_list[:cint(self.settings.initial_sync_count)]
+			# resort, so that we load the oldest messages first
+			email_list.reverse()	
+
+		for i, uid in enumerate(email_list[:num]):
 			try:
 				self.retrieve_message(uid, i + 1)
 			except (EmailTimeoutError, LoginLimitExceeded):
