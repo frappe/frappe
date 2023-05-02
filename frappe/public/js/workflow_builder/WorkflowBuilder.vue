@@ -7,6 +7,7 @@ import ActionNode from "./components/ActionNode.vue";
 import ConnectionLine from "./components/ConnectionLine.vue";
 import { useStore } from "./store";
 import { nextTick, onMounted, watch } from "vue";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
 let store = useStore();
 let {
@@ -27,6 +28,15 @@ let {
 	project,
 	vueFlowRef
 } = useVueFlow();
+
+// cmd/ctrl + s to save the form
+const { meta_s, ctrl_s } = useMagicKeys();
+whenever(
+	() => meta_s.value || ctrl_s.value,
+	() => {
+		store.save_changes();
+	}
+);
 
 onNodeDragStop(() => {
 	nextTick(() => store.ref_history.commit());
