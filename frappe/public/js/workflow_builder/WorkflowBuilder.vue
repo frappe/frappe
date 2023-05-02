@@ -23,20 +23,10 @@ let {
 	onPaneReady,
 	fitView,
 	zoomIn,
-	zoomOut
+	zoomOut,
+	project,
+	vueFlowRef
 } = useVueFlow();
-
-function add_state() {
-	let state_id = (nodes.value.length + 1).toString();
-	addNodes([
-		{
-			id: state_id,
-			type: "state",
-			label: "State " + state_id,
-			position: { x: 250, y: 100 }
-		}
-	]);
-}
 
 onNodeDragStop(() => {
 	nextTick(() => store.ref_history.commit());
@@ -119,6 +109,58 @@ onEdgeUpdate(({ edge, connection }) => {
 	nextTick(() => store.ref_history.commit());
 });
 
+function onDragOver(event) {
+	event.preventDefault();
+
+	if (event.dataTransfer) {
+		event.dataTransfer.dropEffect = "move";
+	}
+}
+
+function onDrop(event) {
+	const { left, top } = vueFlowRef.value.getBoundingClientRect();
+
+	const position = project({
+		x: event.clientX - left,
+		y: event.clientY - top
+	});
+
+	let state_ids = nodes.value.filter(node => node.type == "state").map(node => node.id);
+	let state_id = (Math.max(...state_ids) + 1).toString();
+	const new_state = {
+		id: state_id,
+		type: "state",
+		label: "Open",
+		position,
+	};
+
+	addNodes([new_state]);
+
+	nextTick(() => {
+		const node = findNode(new_state.id);
+		const stop = watch(
+			() => node.dimensions,
+			dimensions => {
+				if (dimensions.width > 0 && dimensions.height > 0) {
+					node.position = {
+						x: node.position.x - node.dimensions.width / 2,
+						y: node.position.y - node.dimensions.height / 2
+					};
+					stop();
+					store.ref_history.commit();
+				}
+			},
+			{ deep: true, flush: "post" }
+		);
+	});
+}
+
+function onDragStart(event) {
+	if (event.dataTransfer) {
+		event.dataTransfer.effectAllowed = "move";
+	}
+}
+
 onPaneReady(() => fitView({ padding: 0.4 }));
 onMounted(() => {
 	setTimeout(() => {
@@ -128,11 +170,15 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="workflow-container">
-		<VueFlow v-model="store.workflow.elements" connection-mode="loose">
+	<div class="workflow-container" @drop="onDrop">
+		<VueFlow v-model="store.workflow.elements" connection-mode="loose" @dragover="onDragOver">
 			<Background pattern-color="#aaa" gap="10" />
 			<Panel :position="PanelPosition.TopRight">
-				<button @click="add_state">Add State</button>
+				<div class="empty-state">
+					<div class="btn btn-md drag-handle" :draggable="true" @dragstart="onDragStart">
+						Drag to add state
+					</div>
+				</div>
 			</Panel>
 			<Panel :position="PanelPosition.BottomLeft">
 				<button class="btn btn-sm btn-default mr-2" @click="zoomIn">+</button>
@@ -167,6 +213,11 @@ onMounted(() => {
 	border-radius: var(--border-radius-lg);
 	border: 1px solid var(--border-color);
 	background-color: var(--fg-color);
+}
+
+.drag-handle {
+	background-color: var(--fg-color);
+	cursor: grab !important;
 }
 
 :deep(.transition-edge) {
