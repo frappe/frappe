@@ -168,8 +168,6 @@ class EmailServer:
 		email_list = self.get_new_mails(folder)
 		
 		num = len(email_list)
-		if num > 100:
-			num = 100
 
 		# reindexd or initial sync
 		if self.uid_reindexed and num > cint(self.settings.initial_sync_count):
@@ -179,6 +177,9 @@ class EmailServer:
 			email_list = email_list[:cint(self.settings.initial_sync_count)]
 			# resort, so that we load the oldest messages first
 			email_list.reverse()	
+
+		if num > 100:
+			num = 100
 
 		for i, uid in enumerate(email_list[:num]):
 			try:
@@ -235,18 +236,8 @@ class EmailServer:
 			).where(IMAPFolder.parent == self.settings.email_account_name).where(
 				IMAPFolder.folder_name == folder
 			).run()
-
-			# uid validity not found pulling emails for first time
-			if not uid_validity:
-				self.settings.email_sync_rule = "ALL"
-				return
-
-			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = (
-				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
-			)
-			# sync last 100 email
-			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
+			
+			self.settings.email_sync_rule = "ALL"
 			self.uid_reindexed = True
 
 	def parse_imap_response(self, cmd, response):
