@@ -56,6 +56,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		try {
 			let doc = workflow_doc.value;
+			doc.states = get_updated_states();
+			doc.transitions = get_updated_transitions();
 			clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow.value.elements);
 			await frappe.call("frappe.client.save", { doc });
@@ -70,6 +72,71 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 	function clean_workflow_data() {
 		workflow.value.elements.forEach((el) => (el.selected = false));
+	}
+
+	function get_state_df(data) {
+		let doc_status_map = {
+			Draft: 0,
+			Submitted: 1,
+			Cancelled: 2,
+		};
+		let docfield = "Workflow Document State";
+		let df = frappe.model.get_new_doc(docfield);
+		df.name = frappe.utils.get_random(8);
+		df.state = data.state;
+		df.doc_status = doc_status_map[data.doc_status];
+		df.allow_edit = data.allow_edit;
+		df.update_field = data.update_field;
+		df.update_value = data.update_value;
+		df.is_optional_state = data.is_optional_state;
+		df.next_action_email_template = data.next_action_email_template;
+		df.message = data.message;
+		return df;
+	}
+
+	function get_updated_states() {
+		let states = [];
+		workflow.value.elements.forEach((element) => {
+			if (element.type == "state") {
+				states.push(get_state_df(element.data));
+			}
+		});
+		return states;
+	}
+
+	function get_transition_df({ state, action, next_state, allowed }) {
+		let docfield = "Workflow Transition";
+		let df = frappe.model.get_new_doc(docfield);
+		df.name = frappe.utils.get_random(8);
+		df.state = state;
+		df.action = action;
+		df.next_state = next_state;
+		df.allowed = allowed;
+		return df;
+	}
+
+	function get_updated_transitions() {
+		let transitions = [];
+		let actions = [];
+
+		workflow.value.elements.forEach((element) => {
+			if (element.type == "action") {
+				actions.push(element);
+			}
+		});
+
+		actions.forEach((action) => {
+			transitions.push(
+				get_transition_df({
+					state: action.data.from,
+					action: action.data.action,
+					next_state: action.data.to,
+					allowed: action.data.allowed,
+				})
+			);
+		});
+
+		return transitions;
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
