@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useStore } from "../store";
 import { useVueFlow } from "@vue-flow/core";
 
@@ -14,6 +14,10 @@ let doc = computed(() => {
 });
 
 let properties = computed(() => {
+	nextTick(() => {
+		let field = $(".field input[data-fieldname!='document_type']").first();
+		if (field.val() === "") field.focus();
+	});
 	if (store.selected && "action" in store.selected.data) {
 		title.value = "Transition Properties";
 		return store.transitionfields.filter(df => {

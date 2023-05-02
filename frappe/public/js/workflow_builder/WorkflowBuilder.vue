@@ -147,6 +147,7 @@ function onDrop(event) {
 		id: state_id,
 		type: "state",
 		position,
+		selected: true,
 		data: {
 			state: "",
 			doc_status: "0",
@@ -167,6 +168,7 @@ function onDrop(event) {
 						y: node.position.y - node.dimensions.height / 2
 					};
 					stop();
+					store.selected = node;
 					store.ref_history.commit();
 				}
 			},
