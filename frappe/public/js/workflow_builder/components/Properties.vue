@@ -28,6 +28,10 @@ let properties = computed(() => {
 		});
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
+		let allow_edit = store.statefields.find(df => df.fieldname == "allow_edit");
+		store.statefields = store.statefields.filter(df => df.fieldname != "allow_edit");
+		store.statefields.splice(2, 0, allow_edit);
+
 		return store.statefields.filter(df => {
 			if (df.fieldname == "doc_status") {
 				df.options = ["Draft", "Submitted", "Cancelled"];
