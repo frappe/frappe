@@ -6,12 +6,14 @@ import StateNode from "./components/StateNode.vue";
 import ActionNode from "./components/ActionNode.vue";
 import ConnectionLine from "./components/ConnectionLine.vue";
 import { useStore } from "./store";
+import { nextTick, onMounted, watch } from "vue";
 
 let store = useStore();
 let {
 	nodes,
 	getEdges,
 	findNode,
+	onNodeDragStop,
 	onConnect,
 	onEdgeUpdate,
 	addNodes,
@@ -36,6 +38,10 @@ function add_state() {
 	]);
 }
 
+onNodeDragStop(() => {
+	nextTick(() => store.ref_history.commit());
+});
+
 onConnect(edge => {
 	let source_node = findNode(edge.source);
 	let target_node = findNode(edge.target);
@@ -51,7 +57,7 @@ onConnect(edge => {
 	};
 
 	let center_x = (source_center.x + target_center.x) / 2;
-	let center_y = source_center.y - 16;
+	let center_y = source_center.y;
 
 	const action_node = {
 		id: "action-" + frappe.utils.get_random(5),
@@ -80,6 +86,24 @@ onConnect(edge => {
 		animated: true
 	};
 	addEdges([action_edge, state_edge]);
+
+	nextTick(() => {
+		const node = findNode(action_node.id);
+		const stop = watch(
+			() => node.dimensions,
+			dimensions => {
+				if (dimensions.width > 0 && dimensions.height > 0) {
+					node.position = {
+						x: node.position.x - node.dimensions.width / 2,
+						y: node.position.y - node.dimensions.height / 2
+					};
+					stop();
+					store.ref_history.commit();
+				}
+			},
+			{ deep: true, flush: "post" }
+		);
+	});
 });
 
 onEdgeUpdate(({ edge, connection }) => {
@@ -92,9 +116,15 @@ onEdgeUpdate(({ edge, connection }) => {
 
 	updateEdge(edge, connection);
 	setEdges(getEdges.value);
+	nextTick(() => store.ref_history.commit());
 });
 
 onPaneReady(() => fitView({ padding: 0.4 }));
+onMounted(() => {
+	setTimeout(() => {
+		store.setup_undo_redo();
+	}, 1000);
+});
 </script>
 
 <template>

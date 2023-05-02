@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { useManualRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("workflow-builder-store", () => {
 	let workflow = ref({
@@ -29,8 +30,28 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			},
 		],
 	});
+	let ref_history = ref(null);
+
+	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
+		if (!ref_history.value) return;
+		if (e.ctrlKey || e.metaKey) {
+			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
+				ref_history.value.undo();
+			} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
+				ref_history.value.redo();
+			}
+		}
+	});
+
+	function setup_undo_redo() {
+		ref_history.value = useManualRefHistory(workflow, { clone: true });
+
+		undo_redo_keyboard_event;
+	}
 
 	return {
 		workflow,
+		ref_history,
+		setup_undo_redo,
 	};
 });
