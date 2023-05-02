@@ -93,9 +93,12 @@ def enqueue(
 	try:
 		q = get_queue(queue, is_async=is_async)
 	except ConnectionError:
-		# If redis is not available for queueing execute the job directly
-		print(f"Redis queue is unreachable: Executing {method} synchronously")
-		return frappe.call(method, **kwargs)
+		if frappe.local.flags.in_migrate:
+			# If redis is not available during migration, execute the job directly
+			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			return frappe.call(method, **kwargs)
+
+		raise
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
