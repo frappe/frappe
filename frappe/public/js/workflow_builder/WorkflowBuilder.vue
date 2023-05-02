@@ -168,7 +168,7 @@ function onDrop(event) {
 						y: node.position.y - node.dimensions.height / 2
 					};
 					stop();
-					store.selected = node;
+					store.workflow.selected = node;
 					store.ref_history.commit();
 				}
 			},
@@ -193,11 +193,19 @@ onMounted(() => store.fetch());
 			<Sidebar />
 		</div>
 		<div class="workflow-container" @drop="onDrop">
-			<VueFlow v-model="store.workflow.elements" connection-mode="loose" @dragover="onDragOver">
+			<VueFlow
+				v-model="store.workflow.elements"
+				connection-mode="loose"
+				@dragover="onDragOver"
+			>
 				<Background pattern-color="#aaa" gap="10" />
 				<Panel :position="PanelPosition.TopRight">
 					<div class="empty-state">
-						<div class="btn btn-md drag-handle" :draggable="true" @dragstart="onDragStart">
+						<div
+							class="btn btn-md drag-handle"
+							:draggable="true"
+							@dragstart="onDragStart"
+						>
 							Drag to add state
 						</div>
 					</div>

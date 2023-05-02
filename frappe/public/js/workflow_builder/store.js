@@ -6,8 +6,7 @@ import { useManualRefHistory, onKeyDown } from "@vueuse/core";
 export const useStore = defineStore("workflow-builder-store", () => {
 	let workflow_name = ref(null);
 	let workflow_doc = ref(null);
-	let workflow = ref({ elements: [] });
-	let selected = ref(null);
+	let workflow = ref({ elements: [], selected: null });
 	let workflowfields = ref([]);
 	let statefields = ref([]);
 	let transitionfields = ref([]);
@@ -94,7 +93,6 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		workflow_name,
 		workflow_doc,
 		workflow,
-		selected,
 		workflowfields,
 		statefields,
 		transitionfields,

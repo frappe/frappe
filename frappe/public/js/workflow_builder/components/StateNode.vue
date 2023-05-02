@@ -26,13 +26,13 @@ const { findNode } = useVueFlow();
 watch(
 	() => findNode(props.node.id)?.selected,
 	val => {
-		store.selected = val ? props.node : "";
+		store.workflow.selected = val ? props.node : "";
 	}
 );
 </script>
 
 <template>
-	<div class="node" tabindex="0" @click.stop="store.selected = node">
+	<div class="node" tabindex="0" @click.stop="store.workflow.selected = node">
 		<div v-if="node.data.state" class="node-label">{{ node.data.state }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle

@@ -1,16 +1,13 @@
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import { useStore } from "../store";
-import { useVueFlow } from "@vue-flow/core";
 
 let store = useStore();
-
-let { nodes } = useVueFlow();
 
 let title = ref("Workflow Details");
 
 let doc = computed(() => {
-	return store.selected ? store.selected.data : store.workflow_doc;
+	return store.workflow.selected ? store.workflow.selected.data : store.workflow_doc;
 });
 
 let properties = computed(() => {
@@ -18,7 +15,7 @@ let properties = computed(() => {
 		let field = $(".field input[data-fieldname!='document_type']").first();
 		if (field.val() === "") field.focus();
 	});
-	if (store.selected && "action" in store.selected.data) {
+	if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = "Transition Properties";
 		return store.transitionfields.filter(df => {
 			if (in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname)) {
@@ -26,7 +23,7 @@ let properties = computed(() => {
 			}
 			return false;
 		});
-	} else if (store.selected && "state" in store.selected.data) {
+	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
 		return store.statefields;
 	}
