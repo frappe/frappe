@@ -40,6 +40,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		try {
 			let doc = workflow_doc.value;
+			clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow.value.elements);
 			await frappe.call("frappe.client.save", { doc });
 			frappe.toast("Workflow is updated successfully");
@@ -49,6 +50,10 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		} finally {
 			frappe.dom.unfreeze();
 		}
+	}
+
+	function clean_workflow_data() {
+		workflow.value.elements.forEach((el) => (el.selected = false));
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
