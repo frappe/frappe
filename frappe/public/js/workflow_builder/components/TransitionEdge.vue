@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch } from "vue";
-import { getSmoothStepPath, SmoothStepEdge, useVueFlow } from "@vue-flow/core";
+import { getSmoothStepPath, SmoothStepEdge, useVueFlow, EdgeLabelRenderer } from "@vue-flow/core";
 
 let { findEdge } = useVueFlow();
 
@@ -70,6 +70,17 @@ export default {
 </script>
 <template>
 	<SmoothStepEdge class="transition-edge" :id="id" :path="d[0]" :markerEnd="markerEnd" />
+	<EdgeLabelRenderer v-if="markerEnd == 'url(#)'">
+		<div
+			:style="{
+				transform: `translate(-50%, -50%) translate(${d[1]}px, ${d[2]}px)`,
+			}"
+			class="access nodrag nopan"
+		>
+			<span class="mr-1" v-html="frappe.utils.icon('users', 'sm')"></span>
+			<span>{{ targetNode.data.allowed }}</span>
+		</div>
+	</EdgeLabelRenderer>
 </template>
 
 <style lang="scss" scoped>
