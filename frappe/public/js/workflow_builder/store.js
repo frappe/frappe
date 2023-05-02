@@ -9,6 +9,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	let workflow = ref({
 		elements: [],
 	});
+	let workflowfields = ref([]);
 	let ref_history = ref(null);
 
 	async function fetch() {
@@ -17,6 +18,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		workflow_doc.value = frappe.get_doc("Workflow", workflow_name.value);
 		await frappe.model.with_doctype(workflow_doc.value.document_type);
+
+		if (!workflowfields.value.length) {
+			await frappe.model.with_doctype("Workflow");
+			workflowfields.value = frappe.get_meta("Workflow").fields;
+		}
 
 		if (
 			workflow_doc.value.workflow_data &&
@@ -75,7 +81,9 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 	return {
 		workflow_name,
+		workflow_doc,
 		workflow,
+		workflowfields,
 		ref_history,
 		fetch,
 		reset_changes,

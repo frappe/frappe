@@ -5,6 +5,7 @@ import TransitionEdge from "./components/TransitionEdge.vue";
 import StateNode from "./components/StateNode.vue";
 import ActionNode from "./components/ActionNode.vue";
 import ConnectionLine from "./components/ConnectionLine.vue";
+import Sidebar from "./components/Sidebar.vue";
 import { useStore } from "./store";
 import { nextTick, onMounted, watch } from "vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
@@ -185,36 +186,39 @@ onMounted(() => store.fetch());
 </script>
 
 <template>
-	<div class="workflow-container" @drop="onDrop">
-		<VueFlow v-model="store.workflow.elements" connection-mode="loose" @dragover="onDragOver">
-			<Background pattern-color="#aaa" gap="10" />
-			<Panel :position="PanelPosition.TopRight">
-				<div class="empty-state">
-					<div class="btn btn-md drag-handle" :draggable="true" @dragstart="onDragStart">
-						Drag to add state
+	<div class="main">
+		<Sidebar />
+		<div class="workflow-container" @drop="onDrop">
+			<VueFlow v-model="store.workflow.elements" connection-mode="loose" @dragover="onDragOver">
+				<Background pattern-color="#aaa" gap="10" />
+				<Panel :position="PanelPosition.TopRight">
+					<div class="empty-state">
+						<div class="btn btn-md drag-handle" :draggable="true" @dragstart="onDragStart">
+							Drag to add state
+						</div>
 					</div>
-				</div>
-			</Panel>
-			<Panel :position="PanelPosition.BottomLeft">
-				<button class="btn btn-sm btn-default mr-2" @click="zoomIn">+</button>
-				<button class="btn btn-sm btn-default mr-2" @click="zoomOut">-</button>
-				<button class="btn btn-sm btn-default" @click="fitView({ padding: 0.4 })">
-					Fit
-				</button>
-			</Panel>
-			<template #node-state="node">
-				<StateNode :node="node" />
-			</template>
-			<template #node-action="node">
-				<ActionNode :node="node" />
-			</template>
-			<template #edge-transition="props">
-				<TransitionEdge v-bind="props" />
-			</template>
-			<template #connection-line="props">
-				<ConnectionLine v-bind="props" />
-			</template>
-		</VueFlow>
+				</Panel>
+				<Panel :position="PanelPosition.BottomLeft">
+					<button class="btn btn-sm btn-default mr-2" @click="zoomIn">+</button>
+					<button class="btn btn-sm btn-default mr-2" @click="zoomOut">-</button>
+					<button class="btn btn-sm btn-default" @click="fitView({ padding: 0.4 })">
+						Fit
+					</button>
+				</Panel>
+				<template #node-state="node">
+					<StateNode :node="node" />
+				</template>
+				<template #node-action="node">
+					<ActionNode :node="node" />
+				</template>
+				<template #edge-transition="props">
+					<TransitionEdge v-bind="props" />
+				</template>
+				<template #connection-line="props">
+					<ConnectionLine v-bind="props" />
+				</template>
+			</VueFlow>
+		</div>
 	</div>
 </template>
 
@@ -222,6 +226,11 @@ onMounted(() => store.fetch());
 @import "@vue-flow/core/dist/style.css";
 @import "@vue-flow/core/dist/theme-default.css";
 
+.main {
+	display: flex;
+	flex-direction: row;
+	height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 65px);
+}
 .workflow-container {
 	width: 100%;
 	height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 65px);

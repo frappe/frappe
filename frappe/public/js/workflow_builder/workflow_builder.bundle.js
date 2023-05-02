@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { useStore } from "./store";
 import WorkflowBuilderComponent from "./WorkflowBuilder.vue";
+import { registerGlobalComponents } from "./globals.js";
 
 class WorkflowBuilder {
 	constructor({ wrapper, page, workflow }) {
@@ -52,6 +53,9 @@ class WorkflowBuilder {
 		// create a store
 		this.store = useStore();
 		this.store.workflow_name = this.workflow;
+
+		// register global components
+		registerGlobalComponents(app);
 
 		// mount the app
 		this.$workflow_builder = app.mount(this.$wrapper.get(0));
