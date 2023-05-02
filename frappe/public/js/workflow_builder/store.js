@@ -6,10 +6,11 @@ import { useManualRefHistory, onKeyDown } from "@vueuse/core";
 export const useStore = defineStore("workflow-builder-store", () => {
 	let workflow_name = ref(null);
 	let workflow_doc = ref(null);
-	let workflow = ref({
-		elements: [],
-	});
+	let workflow = ref({ elements: [] });
+	let selected = ref(null);
 	let workflowfields = ref([]);
+	let statefields = ref([]);
+	let transitionfields = ref([]);
 	let ref_history = ref(null);
 
 	async function fetch() {
@@ -22,6 +23,16 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		if (!workflowfields.value.length) {
 			await frappe.model.with_doctype("Workflow");
 			workflowfields.value = frappe.get_meta("Workflow").fields;
+		}
+
+		if (!statefields.value.length) {
+			await frappe.model.with_doctype("Workflow Document State");
+			statefields.value = frappe.get_meta("Workflow Document State").fields;
+		}
+
+		if (!transitionfields.value.length) {
+			await frappe.model.with_doctype("Workflow Transition");
+			transitionfields.value = frappe.get_meta("Workflow Transition").fields;
 		}
 
 		if (
@@ -83,7 +94,10 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		workflow_name,
 		workflow_doc,
 		workflow,
+		selected,
 		workflowfields,
+		statefields,
+		transitionfields,
 		ref_history,
 		fetch,
 		reset_changes,

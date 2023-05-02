@@ -1,12 +1,32 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useStore } from "../store";
+import { useVueFlow } from "@vue-flow/core";
 
 let store = useStore();
 
+let { nodes } = useVueFlow();
+
 let title = ref("Workflow Details");
 
+let doc = computed(() => {
+	return store.selected ? store.selected.data : store.workflow_doc;
+});
+
 let properties = computed(() => {
+	if (store.selected && "action" in store.selected.data) {
+		title.value = "Transition Properties";
+		return store.transitionfields.filter(df => {
+			if (in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname)) {
+				return true;
+			}
+			return false;
+		});
+	} else if (store.selected && "state" in store.selected.data) {
+		title.value = "State Properties";
+		return store.statefields;
+	}
+	title.value = "Workflow Details";
 	return store.workflowfields.filter(df => {
 		if (in_list(["states", "transitions", "workflow_data", "workflow_name"], df.fieldname)) {
 			return false;
@@ -20,13 +40,13 @@ let properties = computed(() => {
 	<div class="title">{{ __(title) }}</div>
 	<div class="properties">
 		<div class="control-data">
-			<div v-if="store.workflow_doc">
+			<div v-if="doc">
 				<div class="field" v-for="df in properties" :key="df.name">
 					<component
 						:is="df.fieldtype.replace(' ', '') + 'Control'"
 						:df="df"
-						:value="store.workflow_doc[df.fieldname]"
-						v-model="store.workflow_doc[df.fieldname]"
+						:value="doc[df.fieldname]"
+						v-model="doc[df.fieldname]"
 						:data-fieldname="df.fieldname"
 						:data-fieldtype="df.fieldtype"
 					/>
@@ -44,7 +64,7 @@ let properties = computed(() => {
 	border-bottom: 1px solid var(--border-color);
 }
 .control-data {
-	height: calc(100vh - 210px);
+	height: calc(100vh - 250px);
 	overflow-y: auto;
 	padding: 8px;
 

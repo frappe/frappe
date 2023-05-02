@@ -1,5 +1,7 @@
 <script setup>
-import { Handle } from "@vue-flow/core";
+import { Handle, useVueFlow } from "@vue-flow/core";
+import { watch } from "vue";
+import { useStore } from "../store";
 
 const props = defineProps({
 	node: {
@@ -7,6 +9,7 @@ const props = defineProps({
 		required: true
 	}
 });
+
 const isValidConnection = ({ source, target }) => {
 	if (
 		(source.startsWith("action-") && !target.startsWith("action-")) ||
@@ -18,10 +21,19 @@ const isValidConnection = ({ source, target }) => {
 
 	return source !== target;
 };
+
+let store = useStore();
+const { findNode } = useVueFlow();
+watch(
+	() => findNode(props.node.id)?.selected,
+	val => {
+		store.selected = val ? props.node : "";
+	}
+);
 </script>
 
 <template>
-	<div class="node" tabindex="0">
+	<div class="node" tabindex="0" @click.stop="store.selected = node">
 		<div v-if="node.data.action" class="node-label">{{ node.data.action }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle
