@@ -28,6 +28,10 @@ class WorkflowBuilder {
 		SetVueGlobals(app);
 		app.use(pinia);
 
+		// create a store
+		this.store = useStore();
+		this.store.workflow_name = this.workflow;
+
 		// mount the app
 		this.$workflow_builder = app.mount(this.$wrapper.get(0));
 	}

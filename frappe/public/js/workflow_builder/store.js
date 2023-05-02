@@ -1,36 +1,31 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import { get_workflow_elements } from "./utils";
 import { useManualRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("workflow-builder-store", () => {
+	let workflow_name = ref(null);
+	let workflow_doc = ref(null);
 	let workflow = ref({
-		elements: [
-			{ id: "1", label: "Open", type: "state", position: { x: 300, y: 150 } },
-			{ id: "2", label: "Approved", type: "state", position: { x: 700, y: 150 } },
-			{ id: "action-1", label: "Approve", type: "action", position: { x: 500, y: 170 } },
-			{
-				id: "edge-1-action-1",
-				source: "1",
-				target: "action-1",
-				type: "transition",
-				sourceHandle: "right",
-				targetHandle: "left",
-				updatable: true,
-				animated: true,
-			},
-			{
-				id: "edge-action-1-2",
-				source: "action-1",
-				target: "2",
-				type: "transition",
-				sourceHandle: "right",
-				targetHandle: "left",
-				updatable: true,
-				animated: true,
-			},
-		],
+		elements: [],
 	});
 	let ref_history = ref(null);
+
+	async function fetch() {
+		await frappe.model.clear_doc("Workflow", workflow_name.value);
+		await frappe.model.with_doc("Workflow", workflow_name.value);
+
+		workflow_doc.value = frappe.get_doc("Workflow", workflow_name.value);
+		await frappe.model.with_doctype(workflow_doc.value.document_type);
+
+		workflow.value.elements = get_workflow_elements(workflow_doc.value);
+
+		setup_undo_redo();
+	}
+
+	function reset_changes() {
+		fetch();
+	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
 		if (!ref_history.value) return;
@@ -50,8 +45,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	return {
+		workflow_name,
 		workflow,
 		ref_history,
+		fetch,
+		reset_changes,
 		setup_undo_redo,
 	};
 });

@@ -52,8 +52,13 @@ onConnect(edge => {
 	const action_node = {
 		id: "action-" + frappe.utils.get_random(5),
 		type: "action",
-		label: "Approve",
-		position: { x: center_x, y: center_y }
+		position: { x: center_x, y: center_y },
+		data: {
+			action: "",
+			allowed: "All",
+			from: source_node.data.state,
+			to: target_node.data.state
+		},
 	};
 	addNodes([action_node]);
 
@@ -130,8 +135,12 @@ function onDrop(event) {
 	const new_state = {
 		id: state_id,
 		type: "state",
-		label: "Open",
 		position,
+		data: {
+			state: "",
+			doc_status: "0",
+			allow_edit: "All"
+		}
 	};
 
 	addNodes([new_state]);
@@ -162,11 +171,7 @@ function onDragStart(event) {
 }
 
 onPaneReady(() => fitView({ padding: 0.4 }));
-onMounted(() => {
-	setTimeout(() => {
-		store.setup_undo_redo();
-	}, 1000);
-});
+onMounted(() => store.fetch());
 </script>
 
 <template>

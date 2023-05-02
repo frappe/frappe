@@ -22,7 +22,7 @@ const isValidConnection = ({ source, target }) => {
 
 <template>
 	<div class="node" tabindex="0">
-		<div v-if="node.label" class="node-label">{{ node.label }}</div>
+		<div v-if="node.data.state" class="node-label">{{ node.data.state }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"
