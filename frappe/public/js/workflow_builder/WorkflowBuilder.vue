@@ -7,13 +7,15 @@ import ActionNode from "./components/ActionNode.vue";
 import ConnectionLine from "./components/ConnectionLine.vue";
 import Sidebar from "./components/Sidebar.vue";
 import { useStore } from "./store";
-import { nextTick, onMounted, watch } from "vue";
-import { useMagicKeys, whenever } from "@vueuse/core";
+import { ref, nextTick, onMounted, watch } from "vue";
+import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
 
 let store = useStore();
-let {
+
+const {
 	nodes,
 	getEdges,
+	getSelectedNodes,
 	findNode,
 	onNodeDragStop,
 	onConnect,
@@ -29,6 +31,12 @@ let {
 	project,
 	vueFlowRef
 } = useVueFlow();
+
+let main = ref(null);
+onClickOutside(main, () => {
+	getSelectedNodes.value?.forEach(node => (node.selected = false));
+	store.workflow.selected = null;
+});
 
 // cmd/ctrl + s to save the form
 const { meta_s, ctrl_s } = useMagicKeys();
@@ -191,7 +199,7 @@ onMounted(() => store.fetch());
 </script>
 
 <template>
-	<div class="main">
+	<div class="main" ref="main">
 		<div class="sidebar-container" @click.stop>
 			<Sidebar />
 		</div>
