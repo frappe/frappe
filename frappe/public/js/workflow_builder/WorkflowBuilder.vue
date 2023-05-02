@@ -187,7 +187,9 @@ onMounted(() => store.fetch());
 
 <template>
 	<div class="main">
-		<Sidebar />
+		<div class="sidebar-container">
+			<Sidebar />
+		</div>
 		<div class="workflow-container" @drop="onDrop">
 			<VueFlow v-model="store.workflow.elements" connection-mode="loose" @dragover="onDragOver">
 				<Background pattern-color="#aaa" gap="10" />
@@ -230,6 +232,20 @@ onMounted(() => store.fetch());
 	display: flex;
 	flex-direction: row;
 	height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 65px);
+
+	&.resizing {
+		user-select: none;
+		cursor: col-resize;
+	}
+
+	.sidebar-container {
+		position: relative;
+		height: 100%;
+		margin-right: 10px;
+		border-radius: var(--border-radius-lg);
+		border: 1px solid var(--border-color);
+		background-color: var(--fg-color);
+	}
 }
 .workflow-container {
 	width: 100%;
