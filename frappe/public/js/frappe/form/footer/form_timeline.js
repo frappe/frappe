@@ -607,31 +607,26 @@ class FormTimeline extends BaseTimeline {
 			});
 	}
 
+	/**
+	 * Return the latest email communication.
+	 *
+	 * @param {boolean} from_recipient If true, only considers emails where the recipient is in the list of senders.
+	 * @returns {object|null} The latest email communication, or null if no communication is found.
+	 */
 	get_last_email(from_recipient) {
-		let last_email = null;
-		let communications = this.frm.get_docinfo().communications || [];
-		let email = this.get_recipient();
-		// REDESIGN TODO: What is this? Check again
-		communications
-			.sort((a, b) => (a.creation > b.creation ? -1 : 1))
-			.every((c) => {
-				if (
-					c.communication_type === "Communication" &&
-					c.communication_medium === "Email"
-				) {
-					if (from_recipient) {
-						if (c.sender.indexOf(email) !== -1) {
-							last_email = c;
-							return false;
-						}
-					} else {
-						last_email = c;
-						return false;
-					}
-				}
-			});
+		const communications = this.frm.get_docinfo().communications || [];
+		const email = this.get_recipient();
 
-		return last_email;
+		const filteredRecords = communications
+			.filter(
+				(record) =>
+					record.communication_type === "Communication" &&
+					record.communication_medium === "Email" &&
+					(!from_recipient || record.sender.indexOf(email) !== -1)
+			)
+			.sort((a, b) => b.creation - a.creation);
+
+		return filteredRecords.length > 0 ? filteredRecords[0] : null;
 	}
 
 	delete_comment(comment_name) {
