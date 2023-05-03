@@ -26,7 +26,7 @@ const { findNode } = useVueFlow();
 watch(
 	() => findNode(props.node.id)?.selected,
 	val => {
-		store.workflow.selected = val ? props.node : "";
+		if (val) store.workflow.selected = props.node;
 	}
 );
 

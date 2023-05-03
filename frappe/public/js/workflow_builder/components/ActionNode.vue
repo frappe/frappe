@@ -27,7 +27,7 @@ const { edges, findNode } = useVueFlow();
 watch(
 	() => findNode(props.node.id)?.selected,
 	val => {
-		store.workflow.selected = val ? props.node : "";
+		if (val) store.workflow.selected = props.node;
 
 		let connected_edges = edges.value.filter(
 			edge => edge.source === props.node.id || edge.target === props.node.id
