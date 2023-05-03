@@ -190,7 +190,7 @@ function onDrop(event) {
 	});
 
 	let state_ids = nodes.value.filter(node => node.type == "state").map(node => node.id);
-	let state_id = (Math.max(...state_ids) + 1).toString();
+	let state_id = state_ids.length ? (Math.max(...state_ids) + 1).toString() : "1";
 	const new_state = {
 		id: state_id,
 		type: "state",
@@ -198,7 +198,7 @@ function onDrop(event) {
 		selected: true,
 		data: {
 			state: "",
-			doc_status: "0",
+			doc_status: "Draft",
 			allow_edit: "All"
 		}
 	};
