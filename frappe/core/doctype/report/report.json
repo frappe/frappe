@@ -134,11 +134,11 @@
    "options": "Has Role"
   },
   {
-    "default": "0",
-    "fieldname": "disable_prepared_report",
-    "fieldtype": "Check",
-    "label": "Disable Prepared Report"
-   },
+   "default": "0",
+   "fieldname": "disable_prepared_report",
+   "fieldtype": "Check",
+   "label": "Disable Prepared Report"
+  },
   {
    "default": "0",
    "fieldname": "prepared_report",
