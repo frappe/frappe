@@ -34,10 +34,7 @@ const {
 } = useVueFlow();
 
 let main = ref(null);
-onClickOutside(main, () => {
-	getSelectedNodes.value?.forEach(node => (node.selected = false));
-	store.workflow.selected = null;
-});
+onClickOutside(main, loose_focus);
 
 // cmd/ctrl + s to save the form
 const { meta_s, ctrl_s, Backspace, meta_backspace, ctrl_backspace } = useMagicKeys();
@@ -231,6 +228,11 @@ function onDragStart(event) {
 	}
 }
 
+function loose_focus() {
+	getSelectedNodes.value?.forEach(node => (node.selected = false));
+	store.workflow.selected = null;
+}
+
 onPaneReady(() => fitView({ padding: 0.4 }));
 onMounted(() => store.fetch());
 </script>
@@ -240,7 +242,11 @@ onMounted(() => store.fetch());
 		<div class="sidebar-container" @click.stop>
 			<Sidebar />
 		</div>
-		<div class="workflow-container" @drop="onDrop">
+		<div
+			class="workflow-container"
+			@drop="onDrop"
+			@click.stop="loose_focus"
+		>
 			<VueFlow
 				v-model="store.workflow.elements"
 				connection-mode="loose"
