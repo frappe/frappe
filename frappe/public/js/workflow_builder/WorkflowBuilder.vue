@@ -20,6 +20,7 @@ const {
 	onNodeDragStop,
 	onConnect,
 	onEdgeUpdate,
+	onEdgeUpdateEnd,
 	addNodes,
 	addEdges,
 	setEdges,
@@ -154,6 +155,15 @@ onConnect(edge => {
 		);
 	});
 });
+
+onEdgeUpdateEnd(({ edge }) => {
+	getSelectedNodes.value?.forEach(node => (node.selected = false));
+	if (edge.source.startsWith("action-")) {
+		setTimeout(() => (findNode(edge.source).selected = true));
+	} else if (edge.target.startsWith("action-")){
+		setTimeout(() => (findNode(edge.target).selected = true));
+	}
+})
 
 onEdgeUpdate(({ edge, connection }) => {
 	if (
