@@ -429,7 +429,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				? __('empty')
 				: String(filter[3]);
 
+<<<<<<< HEAD
 			return [__(label).bold(), filter[2], value.bold()].join(' ');
+=======
+			return [__(label).bold(), __(frappe.model.unscrub(filter[2])), value.bold()].join(" ");
+>>>>>>> 7892a8bdb6 (fix: translate operator in link filters)
 		}
 
 		let filter_string = filter_array
