@@ -236,6 +236,7 @@ function onDragStart(event) {
 	if (event.dataTransfer) {
 		event.dataTransfer.effectAllowed = "move";
 	}
+	loose_focus();
 }
 
 function loose_focus() {
