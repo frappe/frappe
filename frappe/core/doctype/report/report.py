@@ -333,8 +333,8 @@ class Report(Document):
 		self.db_set("disabled", cint(disable))
 
 
-def is_prepared_report_enabled(report):
-	return cint(frappe.db.get_value("Report", report, "prepared_report")) or 0
+def is_prepared_report_disabled(report):
+	return frappe.db.get_value("Report", report, "disable_prepared_report") or 0
 
 
 def get_report_module_dotted_path(module, report_name):

@@ -137,45 +137,13 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def background_enqueue_run(report_name, filters=None):
-	"""run reports in background"""
-<<<<<<< HEAD
-	from frappe.core.doctype.prepared_report.prepared_report import (
-		process_filters_for_prepared_report,
-	)
+def background_enqueue_run(report_name, filters=None, user=None):
+	from frappe.core.doctype.prepared_report.prepared_report import make_prepared_report
 
-	if not user:
-		user = frappe.session.user
-	report = get_report_doc(report_name)
-	track_instance = frappe.get_doc(
-		{
-			"doctype": "Prepared Report",
-			"report_name": report_name,
-			"filters": process_filters_for_prepared_report(filters),
-			"ref_report_doctype": report_name,
-			"report_type": report.report_type,
-			"query": report.query,
-			"module": report.module,
-=======
-	prepared_report = frappe.get_doc(
-		{
-			"doctype": "Prepared Report",
-			"report_name": report_name,
-			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
-			# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
-			"filters": json.dumps(json.loads(filters)),
->>>>>>> 4fe8eadf5e (refactor: remove unnecessary fields from prepared report)
-		}
-	)
-	prepared_report.insert(ignore_permissions=True)
-
-	return {"name": prepared_report.name}
+	make_prepared_report(report_name, filters)
 
 
 @frappe.whitelist()
-=======
->>>>>>> 18d48ddeb8 (refactor: cleanup peprared result render and old logs cleanup)
 def get_script(report_name):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -230,16 +198,19 @@ def run(
 			raise_exception=True,
 		)
 
-	result = None
-
-	if report.prepared_report and not ignore_prepared_report and not custom_columns:
+	if (
+		report.prepared_report
+		and not report.disable_prepared_report
+		and not ignore_prepared_report
+		and not custom_columns
+	):
+		dn = None
 		if filters:
 			if isinstance(filters, str):
 				filters = json.loads(filters)
 
 			dn = filters.pop("prepared_report_name", None)
-		else:
-			dn = ""
+
 		result = get_prepared_report_result(report, filters, dn, user)
 	else:
 		result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
@@ -266,30 +237,7 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
-def get_prepared_report_result(report, filters, dn="", user=None):
-<<<<<<< HEAD
-	from frappe.core.doctype.prepared_report.prepared_report import (
-		process_filters_for_prepared_report,
-	)
-
-	latest_report_data = {}
-	doc = None
-	if dn:
-		# Get specified dn
-		doc = frappe.get_doc("Prepared Report", dn)
-	else:
-		# Only look for completed prepared reports with given filters.
-		doc_list = frappe.get_all(
-			"Prepared Report",
-			filters={
-				"status": "Completed",
-				"filters": process_filters_for_prepared_report(filters),
-				"owner": user,
-				"report_name": report.get("custom_report") or report.get("report_name"),
-			},
-			order_by="creation desc",
-		)
-=======
+def get_prepared_report_result(report, filters, dn=None, user=None):
 	from frappe.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
 
 	def get_report_data(doc, data):
@@ -300,11 +248,6 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			data = {"result": data}
 		else:
 			columns = data.get("columns")
-<<<<<<< HEAD
-			result = data.get("result")
->>>>>>> 18d48ddeb8 (refactor: cleanup peprared result render and old logs cleanup)
-=======
->>>>>>> a69c82e06c (feat(minor): option to show charts, total_row with prepared reports)
 
 		for column in columns:
 			if isinstance(column, dict) and column.get("label"):

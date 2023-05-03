@@ -17,11 +17,7 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
 	"Route History": 90,
-<<<<<<< HEAD
-=======
-	"Submission Queue": 30,
 	"Prepared Report": 30,
->>>>>>> 18d48ddeb8 (refactor: cleanup peprared result render and old logs cleanup)
 }
 
 
