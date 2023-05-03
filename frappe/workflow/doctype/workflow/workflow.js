@@ -5,6 +5,29 @@ frappe.ui.form.on("Workflow", {
 		frm.set_query("document_type", { issingle: 0, istable: 0 });
 	},
 	refresh: function (frm) {
+		frm.layout.message.empty();
+		let msg;
+
+		if (frm.is_new()) {
+			msg = __("Create your workflow visually using the Workflow Builder.");
+		} else {
+			msg = __("Edit your workflow visually using the Workflow Builder.");
+		}
+
+		let message = `
+		<div class="flex">
+			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="250" src="/assets/frappe/images/workflow-builder.gif"></div>
+			<div>
+				<p class="mb-3">${msg}</p>
+				<div>
+					<a class="btn btn-primary btn-sm" href="/app/workflow-builder"> ${__("Workflow Builder")} </a>
+				</div>
+			</div>
+		</div>
+		`;
+
+		frm.layout.show_message(message);
+
 		!frm.is_new() &&
 			frm.add_custom_button(__("Try new Workflow Builder", [__(frm.doc.name)]), () => {
 				frappe.set_route("workflow-builder", frm.doc.name);
