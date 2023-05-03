@@ -855,6 +855,12 @@
 		<path d="M15.5 10.5H12.5C11.9477 10.5 11.5 10.9477 11.5 11.5V16.5C11.5 17.0523 11.9477 17.5 12.5 17.5H15.5C16.0523 17.5 16.5 17.0523 16.5 16.5V11.5C16.5 10.9477 16.0523 10.5 15.5 10.5Z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
+	<symbol viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" id="icon-workflow" fill="none" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+		<rect width="8" height="8" x="3" y="3" rx="2"></rect>
+		<path d="M7 11v4a2 2 0 0 0 2 2h4"></path>
+		<rect width="8" height="8" x="13" y="13" rx="2"></rect>
+	</symbol>
+
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-text">
 		<path d="M5 4V6.4H9V16H11.4V6.4H15.4V4H5Z" fill="var(--icon-stroke)" stroke="none"/>
 	</symbol>
