@@ -29,6 +29,7 @@ app_include_js = [
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
+	"telemetry.bundle.js",
 ]
 app_include_css = [
 	"desk.bundle.css",
@@ -82,6 +83,11 @@ on_session_creation = [
 on_logout = (
 	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 )
+
+# PDF
+pdf_header_html = "frappe.utils.pdf.pdf_header_html"
+pdf_body_html = "frappe.utils.pdf.pdf_body_html"
+pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
 
 # permissions
 
@@ -413,4 +419,8 @@ before_job = [
 after_job = [
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
+]
+
+extend_bootinfo = [
+	"frappe.utils.telemetry.add_bootinfo",
 ]
