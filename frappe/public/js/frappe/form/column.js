@@ -32,7 +32,12 @@ export default class Column {
 
 	resize_all_columns() {
 		// distribute all columns equally
-		let colspan = cint(12 / this.section.wrapper.find(".form-column").length);
+		let columns = this.section.wrapper.find(".form-column").length;
+		let colspan = cint(12 / columns);
+
+		if (columns == 5) {
+			colspan = 20;
+		}
 
 		this.section.wrapper
 			.find(".form-column")

@@ -243,7 +243,7 @@ def parse_app_name(name: str) -> str:
 			_repo = name.split(":")[1].rsplit("/", 1)[1]
 		else:
 			_repo = name.rsplit("/", 2)[2]
-		repo = _repo.split(".")[0]
+		repo = _repo.split(".", 1)[0]
 	else:
 		_, repo, _ = fetch_details_from_tag(name)
 	return repo
@@ -272,7 +272,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	frappe.clear_cache()
 
 	if name not in frappe.get_all_apps():
-		raise Exception("App not in apps.txt")
+		raise Exception(f"App {name} not in apps.txt")
 
 	if not force and name in installed_apps:
 		click.secho(f"App {name} already installed", fg="yellow")
@@ -786,7 +786,7 @@ def is_downgrade(sql_file_path, verbose=False):
 
 				for app in all_apps:
 					app_name = app[0]
-					app_version = app[1].split(" ")[0]
+					app_version = app[1].split(" ", 1)[0]
 
 					if app_name == "frappe":
 						try:

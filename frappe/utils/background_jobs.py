@@ -86,11 +86,20 @@ def enqueue(
 			)
 		)
 
-	call_directly = now or frappe.flags.in_migrate or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.flags.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
-	q = get_queue(queue, is_async=is_async)
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except ConnectionError:
+		if frappe.local.flags.in_migrate:
+			# If redis is not available during migration, execute the job directly
+			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			return frappe.call(method, **kwargs)
+
+		raise
+
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
@@ -116,8 +125,8 @@ def enqueue(
 		timeout=timeout,
 		kwargs=queue_args,
 		at_front=at_front,
-		failure_ttl=RQ_JOB_FAILURE_TTL,
-		result_ttl=RQ_RESULTS_TTL,
+		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 	)
 
 
@@ -143,6 +152,7 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 
 def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
+	retval = None
 	if is_async:
 		frappe.connect(site)
 		if os.environ.get("CI"):
@@ -157,9 +167,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
-	frappe.monitor.start("job", method_name, kwargs)
+	for before_job_task in frappe.get_hooks("before_job"):
+		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
+
 	try:
-		method(**kwargs)
+		retval = method(**kwargs)
 
 	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
@@ -190,14 +202,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 	else:
 		frappe.db.commit()
+		return retval
 
 	finally:
-		# background job hygiene: release file locks if unreleased
-		# if this breaks something, move it to failed jobs alone - gavin@frappe.io
-		for doc in frappe.local.locked_documents:
-			doc.unlock()
+		for after_job_task in frappe.get_hooks("after_job"):
+			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
 
-		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
 
@@ -232,7 +242,12 @@ def start_worker(
 		if quiet:
 			logging_level = "WARNING"
 		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(logging_level=logging_level, burst=burst)
+		worker.work(
+			logging_level=logging_level,
+			burst=burst,
+			date_format="%Y-%m-%d %H:%M:%S",
+			log_format="%(asctime)s,%(msecs)03d %(message)s",
+		)
 
 
 def get_worker_name(queue):

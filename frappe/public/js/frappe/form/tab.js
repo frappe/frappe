@@ -48,8 +48,8 @@ export default class Tab {
 			hide = true;
 		}
 
-		if (!hide && !this.df.show_dashboard) {
-			// show only if there is at least one visibe section or control
+		if (!hide) {
+			// show only if there is at least one visible section or control
 			hide = true;
 			if (
 				this.wrapper.find(
@@ -81,7 +81,7 @@ export default class Tab {
 
 	set_active() {
 		this.parent.find(".nav-link").tab("show");
-		this.wrapper.addClass("active");
+		this.wrapper.addClass("show");
 		this.frm?.set_active_tab?.(this);
 	}
 

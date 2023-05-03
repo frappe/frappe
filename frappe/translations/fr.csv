@@ -1370,7 +1370,7 @@ Invalid fieldname '{0}' in autoname,Champ invalide '{0}' dans nom automatique,
 Invalid file path: {0},Chemin de fichier invalide : {0},
 Invalid login or password,Identifiant ou mot de passe invalide,
 Invalid module path,Chemin de module invalide,
-Invalid naming series (. missing),Nom de série invalide (. manquant),
+Invalid naming series (. missing),Masque de numérotation invalide (. manquant),
 Invalid payment gateway credentials,Identifiant de la Passerelle de Paiement Invalides,
 Invalid recipient address,Adresse de destinataire invalide,
 Invalid {0} condition,Condition {0} invalide,
@@ -1601,7 +1601,7 @@ Name of {0} cannot be {1},Nom de {0} ne peut pas être {1},
 Names and surnames by themselves are easy to guess.,Les noms et prénoms par eux-mêmes sont faciles à deviner.,
 Naming,Nom,
 "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","Options de nommage: <ol><li> <b>field: [fieldname]</b> - Par champ </li><li> <b>naming_series:</b> - En nommant les séries (le champ appelé naming_series doit être présent </li><li> <b>Invite</b> - Demander à l&#39;utilisateur un nom </li><li> <b>[série]</b> - Série par préfixe (séparé par un point); par exemple PRE. ##### </li><li> <b>format: EXEMPLE- {MM} morewords {fieldname1} - {fieldname2} - {#####}</b> - Remplace tous les mots accolés (noms de champs, mots de date (JJ, MM, AA), séries) par leur valeur. Des accolades extérieures, des caractères peuvent être utilisés. </li></ol>",
-Naming Series mandatory,Nom de série obligatoire,
+Naming Series mandatory,Masque de numérotation obligatoire,
 Nested set error. Please contact the Administrator.,Erreur d'ensemble imbriqué. Veuillez contacter l'Administrateur.,
 New Activity,Nouvelle activité,
 New Chat,Nouveau chat,
@@ -3428,8 +3428,8 @@ Me,Moi,
 Mention,Mention,
 Modules,Modules,
 Monthly Long,Long mensuel,
-Naming Series,Nom de série,
-Navigate Home,Naviguer à la maison,
+Naming Series,Masque de numérotation,
+Navigate Home,Naviguer à l'accueil,
 Navigate list down,Naviguer dans la liste,
 Navigate list up,Naviguer dans la liste en haut,
 New Notification,Nouvelle notification,
@@ -4147,7 +4147,7 @@ Collapse,Réduire,
 {0} is not a valid Name,{0} n&#39;est pas un nom valide,
 Your system is being updated. Please refresh again after a few moments.,Votre système est en cours de mise à jour. Veuillez actualiser à nouveau après quelques instants.,
 {0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.,{0} {1}: l&#39;enregistrement validé ne peut pas être supprimé. Vous devez d&#39;abord {2} l&#39;annuler {3}.,
-Invalid naming series (. missing) for {0},Série de noms non valide (. Manquante) pour {0},
+Invalid naming series (. missing) for {0},Masque de numérotation non valide (. Manquante) pour {0},
 Error has occurred in {0},Une erreur s&#39;est produite dans {0},
 Status Updated,Statut mis à jour,
 You can also copy-paste this {0} to your browser,Vous pouvez également copier-coller ce {0} dans votre navigateur,
@@ -4739,3 +4739,11 @@ Auto Reply,Réponse automatique
 Footer Content,Contenue du pied de page
 Brand Logo,Logo de la marque
 Folder Name,Nom du dossier
+Document Naming Settings,Masque de numérotation des documents
+Setup Series for transactions,Paramétrage des masques de numérotation
+Set Naming Series options on your transactions.,Définir les masques de numerotation pour vos documents
+Update Series Counter,Mettre à jour le compteur d'un masque de numérotation
+Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created.,Mettre à jour le compteur d'un masque de numérotation<br>\n\nAttention: Mettre à jour de maniére inconsistance le compteur peux empêcher la création d'un document
+No Results found,Aucun résultat trouvé
+Shelf Life in Days,Durée de conservation (en jours)
+Batch Expiry Date,Date d'expiration du Lot

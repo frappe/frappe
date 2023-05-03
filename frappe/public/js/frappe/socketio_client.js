@@ -132,6 +132,9 @@ frappe.socketio = {
 	doctype_subscribe: function (doctype) {
 		frappe.socketio.socket.emit("doctype_subscribe", doctype);
 	},
+	doctype_unsubscribe: function (doctype) {
+		frappe.socketio.socket.emit("doctype_unsubscribe", doctype);
+	},
 	doc_subscribe: function (doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
 			console.log("throttled");
@@ -216,7 +219,7 @@ frappe.socketio = {
 					}
 				});
 
-				if (cur_frm && cur_frm.doc) {
+				if (cur_frm && cur_frm.doc && !cur_frm.is_new()) {
 					frappe.socketio.doc_open(cur_frm.doc.doctype, cur_frm.doc.name);
 				}
 			}, 5000);

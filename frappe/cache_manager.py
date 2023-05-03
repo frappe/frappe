@@ -56,6 +56,7 @@ user_cache_keys = (
 	"has_role:Page",
 	"has_role:Report",
 	"desk_sidebar_items",
+	"contacts",
 )
 
 doctype_cache_keys = (
@@ -153,11 +154,10 @@ def clear_doctype_cache(doctype=None):
 
 def clear_controller_cache(doctype=None):
 	if not doctype:
-		del frappe.controllers
-		frappe.controllers = {}
+		frappe.controllers.pop(frappe.local.site, None)
 		return
 
-	for site_controllers in frappe.controllers.values():
+	if site_controllers := frappe.controllers.get(frappe.local.site):
 		site_controllers.pop(doctype, None)
 
 

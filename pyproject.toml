@@ -16,7 +16,7 @@ dependencies = [
     "Jinja2~=3.1.2",
     "Pillow~=9.3.0",
     "PyJWT~=2.4.0",
-    "PyMySQL~=1.0.2",
+    "PyMySQL==1.0.3",
     "PyPDF2~=2.1.0",
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
@@ -72,7 +72,7 @@ dependencies = [
     "traceback-with-variables~=2.0.4",
     "urllib3~=1.26.4",
     "xlrd~=2.0.1",
-    "zxcvbn-python~=4.4.24",
+    "zxcvbn~=4.4.28",
     "markdownify~=0.11.2",
 
     # integration dependencies
@@ -107,3 +107,4 @@ Faker = "~=13.12.1"
 pyngrok = "~=5.0.5"
 unittest-xml-reporting = "~=3.0.4"
 watchdog = "~=2.1.9"
+hypothesis = "~=6.68.2"

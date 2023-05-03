@@ -371,6 +371,21 @@
 	}
 }
 
+// handle 5 columns in form
+.form-column.col-sm-20 {
+	position: relative;
+	width: 100%;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+@media (min-width: map-get($grid-breakpoints, "sm")) {
+	.form-column.col-sm-20 {
+		flex: 0 0 20%;
+		max-width: 20%;
+	}
+}
+
 // above mobile
 @media (min-width: map-get($grid-breakpoints, "md")) {
 	.layout-main .form-column.col-sm-12 > form > .input-max-width {

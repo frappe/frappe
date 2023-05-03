@@ -44,7 +44,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option(
 	"--force", help="Force restore if site/database already exists", is_flag=True, default=False
 )
-@click.option("--source_sql", help="Initiate database with a SQL file")
+@click.option("--source-sql", "--source_sql", help="Initiate database with a SQL file")
 @click.option("--install-app", multiple=True, help="Install app after installation")
 @click.option(
 	"--set-default", is_flag=True, default=False, help="Set the new site as default site"
@@ -67,9 +67,12 @@ def new_site(
 	set_default=False,
 ):
 	"Create a new site"
-	from frappe.installer import _new_site
+	from frappe.installer import _new_site, extract_sql_from_archive
 
 	frappe.init(site=site, new_site=True)
+
+	if source_sql:
+		source_sql = extract_sql_from_archive(source_sql)
 
 	_new_site(
 		db_name,
@@ -544,6 +547,8 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
+	from traceback_with_variables import activate_by_import
+
 	from frappe.migrate import SiteMigration
 
 	for site in context.sites:

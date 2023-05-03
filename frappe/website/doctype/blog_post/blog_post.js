@@ -7,6 +7,8 @@ frappe.ui.form.on("Blog Post", {
 			frm.set_df_property("hide_cta", "hidden", !value);
 		});
 
+		frm.trigger("add_publish_button");
+
 		generate_google_search_preview(frm);
 	},
 	title: function (frm) {
@@ -29,6 +31,12 @@ frappe.ui.form.on("Blog Post", {
 				frm.set_value("route", r.message);
 			});
 		}
+	},
+	add_publish_button(frm) {
+		frm.add_custom_button(frm.doc.published ? __("Unpublish") : __("Publish"), () => {
+			frm.set_value("published", !frm.doc.published);
+			frm.save();
+		});
 	},
 });
 

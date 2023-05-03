@@ -156,7 +156,7 @@ class WebPage(WebsiteGenerator):
 	def check_for_redirect(self, context):
 		if "<!-- redirect:" in context.main_section:
 			frappe.local.flags.redirect_location = (
-				context.main_section.split("<!-- redirect:")[1].split("-->")[0].strip()
+				context.main_section.split("<!-- redirect:", 2)[1].split("-->", 1)[0].strip()
 			)
 			raise frappe.Redirect
 

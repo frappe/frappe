@@ -12,7 +12,7 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, get_time_zone, md_to_html
+from frappe.utils import cint, get_system_timezone, md_to_html
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -166,8 +166,8 @@ def get_boot_data():
 			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
 		},
 		"time_zone": {
-			"system": get_time_zone(),
-			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_time_zone(),
+			"system": get_system_timezone(),
+			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_system_timezone(),
 		},
 	}
 

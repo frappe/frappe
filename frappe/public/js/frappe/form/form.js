@@ -406,7 +406,10 @@ frappe.ui.form.Form = class FrappeForm {
 
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
-			if (this.read_only) this.set_read_only(true);
+			if (this.read_only) {
+				this.set_read_only(true);
+				frappe.show_alert(__("This form is not editable due to a Workflow."));
+			}
 
 			// check if doctype is already open
 			if (!this.opendocs[this.docname]) {
@@ -619,10 +622,6 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.$wrapper.trigger("render_complete");
-
-		if (!this.hidden) {
-			this.layout.show_empty_form_message();
-		}
 
 		frappe.after_ajax(() => {
 			$(document).ready(() => {
@@ -906,13 +905,13 @@ frappe.ui.form.Form = class FrappeForm {
 					.filter((link) => link.doctype == doctype)
 					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
 					.join(", ");
-				links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+				links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
 			}
 		}
 		links_text = `<ul>${links_text}</ul>`;
 
 		let confirm_message = __("{0} {1} is linked with the following submitted documents: {2}", [
-			me.doc.doctype.bold(),
+			__(me.doc.doctype).bold(),
 			me.doc.name,
 			links_text,
 		]);
@@ -940,7 +939,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// if user can cancel all linked docs, add action to the dialog
 		if (can_cancel) {
-			d.set_primary_action("Cancel All", () => {
+			d.set_primary_action(__("Cancel All"), () => {
 				d.hide();
 				frappe.call({
 					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
@@ -1935,7 +1934,9 @@ frappe.ui.form.Form = class FrappeForm {
 		let doctype = this.doctype;
 		let docname = this.docname;
 
-		frappe.socketio.doc_subscribe(doctype, docname);
+		if (this.doc && !this.is_new()) {
+			frappe.socketio.doc_subscribe(doctype, docname);
+		}
 		frappe.realtime.off("docinfo_update");
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
 			if (

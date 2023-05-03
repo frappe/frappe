@@ -426,12 +426,15 @@ def create_blog_post():
 	return doc
 
 
-def create_test_user():
-	if frappe.db.exists("User", UI_TEST_USER):
+@whitelist_for_tests
+def create_test_user(username=None):
+	name = username or UI_TEST_USER
+
+	if frappe.db.exists("User", name):
 		return
 
 	user = frappe.new_doc("User")
-	user.email = UI_TEST_USER
+	user.email = name
 	user.first_name = "Frappe"
 	user.new_password = frappe.local.conf.admin_password
 	user.send_welcome_email = 0
@@ -564,6 +567,40 @@ def create_kanban():
 				"reference_doctype": "Note",
 				"field_name": "kanban",
 				"private": 1,
+				"show_labels": 0,
+				"columns": [
+					{
+						"column_name": "Open",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+					{
+						"column_name": "Closed",
+						"status": "Active",
+						"indicator": "Gray",
+					},
+				],
+			}
+		).insert()
+
+
+@whitelist_for_tests
+def create_todo(description):
+	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+
+
+@whitelist_for_tests
+def create_admin_kanban():
+	if not frappe.db.exists("Kanban Board", "Admin Kanban"):
+		frappe.get_doc(
+			{
+				"doctype": "Kanban Board",
+				"name": "Admin Kanban",
+				"owner": "Administrator",
+				"kanban_board_name": "Admin Kanban",
+				"reference_doctype": "ToDo",
+				"field_name": "status",
+				"private": 0,
 				"show_labels": 0,
 				"columns": [
 					{

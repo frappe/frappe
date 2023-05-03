@@ -63,6 +63,7 @@ export default class Grid {
 		let template = `
 			<div class="grid-field">
 				<label class="control-label">${__(this.df.label || "")}</label>
+				<span class="help"></span>
 				<p class="text-muted small grid-description"></p>
 				<div class="grid-custom-buttons"></div>
 				<div class="form-grid-container">
@@ -118,6 +119,7 @@ export default class Grid {
 		this.wrapper = $(template).appendTo(this.parent);
 		$(this.parent).addClass("form-group");
 		this.set_grid_description();
+		this.set_doc_url();
 
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
@@ -147,6 +149,26 @@ export default class Grid {
 			description_wrapper.hide();
 		}
 	}
+
+	set_doc_url() {
+		let unsupported_fieldtypes = frappe.model.no_value_type.filter(
+			(x) => frappe.model.table_fields.indexOf(x) === -1
+		);
+
+		if (
+			!this.df.label ||
+			!this.df?.documentation_url ||
+			in_list(unsupported_fieldtypes, this.df.fieldtype)
+		)
+			return;
+
+		let $help = $(this.parent).find("span.help");
+		$help.empty();
+		$(`<a href="${this.df.documentation_url}" target="_blank">
+			${frappe.utils.icon("help", "sm")}
+		</a>`).appendTo($help);
+	}
+
 	setup_grid_pagination() {
 		this.grid_pagination = new GridPagination({
 			grid: this,
@@ -455,11 +477,16 @@ export default class Grid {
 					this.wrapper.find(".grid-add-multiple-rows").removeClass("hidden");
 				}
 			}
-		} else if (this.grid_rows.length < this.grid_pagination.page_length) {
+		} else if (
+			this.grid_rows.length < this.grid_pagination.page_length &&
+			!this.df.allow_bulk_edit
+		) {
 			this.wrapper.find(".grid-footer").toggle(false);
 		}
 
-		this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").toggle(this.is_editable());
+		this.wrapper
+			.find(".grid-add-row, .grid-add-multiple-rows, .grid-upload")
+			.toggle(this.is_editable());
 	}
 
 	truncate_rows() {
@@ -558,9 +585,9 @@ export default class Grid {
 	}
 
 	get_filtered_data() {
-		if (!this.frm) return;
+		let all_data = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
 
-		let all_data = this.frm.doc[this.df.fieldname];
+		if (!all_data) return;
 
 		for (const field in this.filter) {
 			all_data = all_data.filter((data) => {
@@ -1160,6 +1187,13 @@ export default class Grid {
 
 		// update the parent too (for new rows)
 		this.docfields.find((d) => d.fieldname === fieldname)[property] = value;
+
+		if (this.user_defined_columns && this.user_defined_columns.length > 0) {
+			let field = this.user_defined_columns.find((d) => d.fieldname === fieldname);
+			if (field && Object.keys(field).includes(property)) {
+				field[property] = value;
+			}
+		}
 
 		this.debounced_refresh();
 	}

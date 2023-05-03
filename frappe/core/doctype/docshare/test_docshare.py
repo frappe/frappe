@@ -4,7 +4,7 @@
 import frappe
 import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 
 test_dependencies = ["User"]
 
@@ -125,3 +125,75 @@ class TestDocShare(FrappeTestCase):
 		)
 
 		frappe.share.remove(doctype, submittable_doc.name, self.user)
+
+	def test_share_int_pk(self):
+		test_doc = frappe.new_doc("Console Log")
+
+		test_doc.insert()
+		frappe.share.add("Console Log", test_doc.name, self.user)
+
+		frappe.set_user(self.user)
+		self.assertIn(
+			str(test_doc.name), [str(name) for name in frappe.get_list("Console Log", pluck="name")]
+		)
+
+		test_doc.reload()
+		self.assertTrue(test_doc.has_permission("read"))
+
+	@change_settings("System Settings", {"disable_document_sharing": 1})
+	def test_share_disabled_add(self):
+		"Test if user loses share access on disabling share globally."
+		frappe.share.add("Event", self.event.name, self.user, share=1)  # Share as admin
+		frappe.set_user(self.user)
+
+		# User does not have share access although given to them
+		self.assertFalse(self.event.has_permission("share"))
+		self.assertRaises(
+			frappe.PermissionError, frappe.share.add, "Event", self.event.name, "test1@example.com"
+		)
+
+	@change_settings("System Settings", {"disable_document_sharing": 1})
+	def test_share_disabled_add_with_ignore_permissions(self):
+		frappe.share.add("Event", self.event.name, self.user, share=1)
+		frappe.set_user(self.user)
+
+		# User does not have share access although given to them
+		self.assertFalse(self.event.has_permission("share"))
+
+		# Test if behaviour is consistent for developer overrides
+		frappe.share.add_docshare(
+			"Event", self.event.name, "test1@example.com", flags={"ignore_share_permission": True}
+		)
+
+	@change_settings("System Settings", {"disable_document_sharing": 1})
+	def test_share_disabled_set_permission(self):
+		frappe.share.add("Event", self.event.name, self.user, share=1)
+		frappe.set_user(self.user)
+
+		# User does not have share access although given to them
+		self.assertFalse(self.event.has_permission("share"))
+		self.assertRaises(
+			frappe.PermissionError,
+			frappe.share.set_permission,
+			"Event",
+			self.event.name,
+			"test1@example.com",
+			"read",
+		)
+
+	@change_settings("System Settings", {"disable_document_sharing": 1})
+	def test_share_disabled_assign_to(self):
+		"""
+		Assigning a document to a user without access must not share the document,
+		if sharing disabled.
+		"""
+		from frappe.desk.form.assign_to import add
+
+		frappe.share.add("Event", self.event.name, self.user, share=1)
+		frappe.set_user(self.user)
+
+		self.assertRaises(
+			frappe.ValidationError,
+			add,
+			{"doctype": "Event", "name": self.event.name, "assign_to": ["test1@example.com"]},
+		)

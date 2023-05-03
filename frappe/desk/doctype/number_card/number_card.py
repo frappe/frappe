@@ -124,15 +124,17 @@ def get_result(doc, filters, to_date=None):
 			)
 		]
 
-	filters = frappe.parse_json(filters)
-
 	if not filters:
 		filters = []
+	elif isinstance(filters, str):
+		filters = frappe.parse_json(filters)
 
 	if to_date:
 		filters.append([doc.document_type, "creation", "<", to_date])
 
-	res = frappe.db.get_list(doc.document_type, fields=fields, filters=filters)
+	res = frappe.get_list(
+		doc.document_type, fields=fields, filters=filters, parent_doctype=doc.parent_document_type
+	)
 	number = res[0]["result"] if res else 0
 
 	return cint(number)

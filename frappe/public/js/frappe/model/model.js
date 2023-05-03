@@ -53,13 +53,31 @@ $.extend(frappe.model, {
 		"Client Script",
 	],
 
+	restricted_fields: [
+		"name",
+		"parent",
+		"creation",
+		"modified",
+		"modified_by",
+		"parentfield",
+		"parenttype",
+		"file_list",
+		"flags",
+		"docstatus",
+	],
+
 	std_fields: [
 		{ fieldname: "name", fieldtype: "Link", label: __("ID") },
 		{ fieldname: "owner", fieldtype: "Link", label: __("Created By"), options: "User" },
 		{ fieldname: "idx", fieldtype: "Int", label: __("Index") },
-		{ fieldname: "creation", fieldtype: "Date", label: __("Created On") },
-		{ fieldname: "modified", fieldtype: "Date", label: __("Last Updated On") },
-		{ fieldname: "modified_by", fieldtype: "Data", label: __("Last Updated By") },
+		{ fieldname: "creation", fieldtype: "Datetime", label: __("Created On") },
+		{ fieldname: "modified", fieldtype: "Datetime", label: __("Last Updated On") },
+		{
+			fieldname: "modified_by",
+			fieldtype: "Link",
+			label: __("Last Updated By"),
+			options: "User",
+		},
 		{ fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") },
 		{ fieldname: "_liked_by", fieldtype: "Data", label: __("Liked By") },
 		{ fieldname: "_comments", fieldtype: "Text", label: __("Comments") },
@@ -89,9 +107,13 @@ $.extend(frappe.model, {
 					cur_frm.doc.doctype === doc.doctype &&
 					cur_frm.doc.name === doc.name
 				) {
-					if (!frappe.ui.form.is_saving && data.modified != cur_frm.doc.modified) {
-						doc.__needs_refresh = true;
-						cur_frm.show_conflict_message();
+					if (data.modified !== cur_frm.doc.modified) {
+						if (!cur_frm.is_dirty()) {
+							cur_frm.reload_doc();
+						} else if (!frappe.ui.form.is_saving) {
+							doc.__needs_refresh = true;
+							cur_frm.show_conflict_message();
+						}
 					}
 				} else {
 					if (!doc.__unsaved) {
@@ -386,6 +408,12 @@ $.extend(frappe.model, {
 	},
 
 	can_share: function (doctype, frm) {
+		let disable_sharing = cint(frappe.sys_defaults.disable_document_sharing);
+
+		if (disable_sharing && frappe.session.user !== "Administrator") {
+			return false;
+		}
+
 		if (frm) {
 			return frm.perm[0].share === 1;
 		}

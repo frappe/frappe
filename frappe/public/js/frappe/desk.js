@@ -34,15 +34,6 @@ frappe.Application = class Application {
 		frappe.socketio.init();
 		frappe.model.init();
 
-		if (frappe.boot.status === "failed") {
-			frappe.msgprint({
-				message: frappe.boot.error,
-				title: __("Session Start Failed"),
-				indicator: "red",
-			});
-			throw "boot failed";
-		}
-
 		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
@@ -155,7 +146,7 @@ frappe.Application = class Application {
 							user: frappe.session.user,
 						},
 						callback: function (r) {
-							if (r.message.show_alert) {
+							if (r.message && r.message.show_alert) {
 								frappe.show_alert({
 									indicator: "red",
 									message: r.message.message,
@@ -453,6 +444,7 @@ frappe.Application = class Application {
 					}
 				},
 			});
+			dialog.get_field("password").disable_password_checks();
 			dialog.set_primary_action(__("Login"), () => {
 				dialog.set_message(__("Authenticating..."));
 				frappe.call({

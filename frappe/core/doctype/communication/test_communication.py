@@ -219,17 +219,17 @@ class TestCommunication(FrappeTestCase):
 		self.assertIn(comm_note_2.name, data)
 
 	def test_link_in_email(self):
-		frappe.delete_doc_if_exists("Note", "test document link in email")
-
 		create_email_account()
 
-		note = frappe.get_doc(
-			{
-				"doctype": "Note",
-				"title": "test document link in email",
-				"content": "test document link in email",
-			}
-		).insert(ignore_permissions=True)
+		notes = {}
+		for i in range(2):
+			frappe.delete_doc_if_exists("Note", f"test document link in email {i}")
+			notes[i] = frappe.get_doc(
+				{
+					"doctype": "Note",
+					"title": f"test document link in email {i}",
+				}
+			).insert(ignore_permissions=True)
 
 		comm = frappe.get_doc(
 			{
@@ -237,14 +237,15 @@ class TestCommunication(FrappeTestCase):
 				"communication_medium": "Email",
 				"subject": "Document Link in Email",
 				"sender": "comm_sender@example.com",
-				"recipients": f'comm_recipient+{quote("Note")}+{quote(note.name)}@example.com',
+				"recipients": f'comm_recipient+{quote("Note")}+{quote(notes[0].name)}@example.com,comm_recipient+{quote("Note")}={quote(notes[1].name)}@example.com',
 			}
 		).insert(ignore_permissions=True)
 
 		doc_links = [
 			(timeline_link.link_doctype, timeline_link.link_name) for timeline_link in comm.timeline_links
 		]
-		self.assertIn(("Note", note.name), doc_links)
+		self.assertIn(("Note", notes[0].name), doc_links)
+		self.assertIn(("Note", notes[1].name), doc_links)
 
 	def test_parse_emails(self):
 		emails = get_emails(
@@ -307,6 +308,7 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 				"recipients": recipients,
 				"cc": cc,
 				"bcc": bcc,
+				"sender": "sender@test.com",
 			}
 		).insert(ignore_permissions=True)
 
@@ -326,14 +328,26 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		comm.delete()
 
 	def test_cc(self):
-		to_list = ["to@test.com"]
-		cc_list = ["cc+1@test.com", "cc <cc+2@test.com>", "to@test.com"]
-		user = self.new_user(email="cc+1@test.com", thread_notify=0)
-		comm = self.new_communication(recipients=to_list, cc=cc_list)
-		res = comm.get_mail_cc_with_displayname()
-		self.assertCountEqual(res, ["cc <cc+2@test.com>"])
-		user.delete()
-		comm.delete()
+		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
+			if set_user_as:
+				frappe.set_user(set_user_as)
+
+			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
+			comm = self.new_communication(recipients=["to@test.com"], cc=cc_list)
+			res = comm.get_mail_cc_with_displayname(include_sender=include_sender)
+
+			frappe.set_user("Administrator")
+			user.delete()
+			comm.delete()
+
+			self.assertEqual(res, assertion)
+
+		# test filter_thread_notification_disbled_users and filter_mail_recipients
+		test(["cc <cc+2@test.com>"], cc_list=["cc+1@test.com", "cc <cc+2@test.com>", "to@test.com"])
+
+		# test include_sender
+		test(["sender@test.com"], include_sender=True, thread_notify=True)
+		test(["cc+1@test.com"], include_sender=True, thread_notify=True, set_user_as="cc+1@test.com")
 
 	def test_bcc(self):
 		bcc_list = [

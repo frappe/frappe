@@ -43,6 +43,7 @@ def getdoc(doctype, name, user=None):
 		)
 		raise frappe.PermissionError(("read", doctype, name))
 
+	# ignores system setting (apply_perm_level_on_api_calls) unconditionally to maintain backward compatibility
 	doc.apply_fieldlevel_read_permissions()
 
 	# add file list
@@ -406,7 +407,7 @@ def get_document_email(doctype, name):
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote(doctype)}+{quote(cstr(name))}@{email[1]}"
+	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
 
 
 def get_automatic_email_link():
