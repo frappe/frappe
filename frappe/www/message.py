@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe.utils import strip_html_tags
+from frappe.utils.html_utils import clean_html
 
 no_cache = 1
 
@@ -27,4 +28,13 @@ def get_context(context):
 			if message.get("http_status_code"):
 				frappe.local.response["http_status_code"] = message["http_status_code"]
 
+<<<<<<< HEAD
+=======
+	if not message_context.title:
+		message_context.title = clean_html(frappe.form_dict.title)
+
+	if not message_context.message:
+		message_context.message = clean_html(frappe.form_dict.message)
+
+>>>>>>> 8759a7b41c (fix: message.py executing script (#20887))
 	return message_context
