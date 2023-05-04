@@ -17,6 +17,7 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
 	"Route History": 90,
+	"Prepared Report": 30,
 	"Webhook Request Log": 30,
 }
 
