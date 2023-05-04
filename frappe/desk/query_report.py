@@ -151,7 +151,7 @@ def normalize_result(result, columns):
 def background_enqueue_run(report_name, filters=None, user=None):
 	from frappe.core.doctype.prepared_report.prepared_report import make_prepared_report
 
-	make_prepared_report(report_name, filters)
+	return make_prepared_report(report_name, filters)
 
 
 @frappe.whitelist()

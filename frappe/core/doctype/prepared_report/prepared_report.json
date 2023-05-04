@@ -103,7 +103,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-11-28 21:29:39.883803",
+ "modified": "2022-05-03 21:29:39.883803",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
@@ -148,6 +148,5 @@
    "title": "Completed"
   }
  ],
- "title_field": "report_name",
- "track_changes": 1
+ "title_field": "report_name"
 }
