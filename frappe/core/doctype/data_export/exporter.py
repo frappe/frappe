@@ -9,6 +9,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.model.utils import is_virtual_doctype
 from frappe.utils import cint, cstr, format_datetime, format_duration, formatdate, parse_json
 from frappe.utils.csvutils import UnicodeWriter
 
@@ -368,6 +369,8 @@ class DataExporter:
 			if self.all_doctypes:
 				# add child tables
 				for c in self.child_doctypes:
+					if is_virtual_doctype(c["doctype"]):
+						continue
 					child_doctype_table = DocType(c["doctype"])
 					data_row = (
 						frappe.qb.from_(child_doctype_table)
