@@ -607,26 +607,27 @@ class FormTimeline extends BaseTimeline {
 			});
 	}
 
-	/**
-	 * Return the latest email communication.
-	 *
-	 * @param {boolean} from_recipient If true, only considers emails where the recipient is in the list of senders.
-	 * @returns {object|null} The latest email communication, or null if no communication is found.
-	 */
 	get_last_email(from_recipient) {
-		const communications = this.frm.get_docinfo().communications || [];
-		const email = this.get_recipient();
+		/**
+		 * Return the latest email communication.
+		 *
+		 * @param {boolean} from_recipient If true, only considers emails where the recipient is in the list of senders.
+		 * @returns {object|null} The latest email communication, or null if no communication is found.
+		 */
 
-		const filteredRecords = communications
+		const communications = this.frm.get_docinfo().communications || [];
+		const recipient = this.get_recipient();
+
+		const filtered_records = communications
 			.filter(
 				(record) =>
 					record.communication_type === "Communication" &&
 					record.communication_medium === "Email" &&
-					(!from_recipient || record.sender === email)
+					(!from_recipient || record.sender === recipient)
 			)
 			.sort((a, b) => b.creation - a.creation);
 
-		return filteredRecords.length > 0 ? filteredRecords[0] : null;
+		return filtered_records[0] || null;
 	}
 
 	delete_comment(comment_name) {
