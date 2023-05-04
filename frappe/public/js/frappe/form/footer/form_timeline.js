@@ -550,6 +550,7 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_last_email(from_recipient) {
+<<<<<<< HEAD
 		let last_email = null;
 		let communications = this.frm.get_docinfo().communications || [];
 		let email = this.get_recipient();
@@ -568,8 +569,28 @@ class FormTimeline extends BaseTimeline {
 			}
 
 		});
+=======
+		/**
+		 * Return the latest email communication.
+		 *
+		 * @param {boolean} from_recipient If true, only considers emails where current form's recipient is the sender.
+		 * @returns {object|null} The latest email communication, or null if no communication is found.
+		 */
+>>>>>>> 4b7c73514e (fix: ensure that `get_last_email` returns the most recent email (#20711))
 
-		return last_email;
+		const communications = this.frm.get_docinfo().communications || [];
+		const recipient = this.get_recipient();
+
+		const filtered_records = communications
+			.filter(
+				(record) =>
+					record.communication_type === "Communication" &&
+					record.communication_medium === "Email" &&
+					(!from_recipient || record.sender === recipient)
+			)
+			.sort((a, b) => b.creation - a.creation);
+
+		return filtered_records[0] || null;
 	}
 
 	delete_comment(comment_name) {
