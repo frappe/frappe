@@ -611,7 +611,7 @@ class FormTimeline extends BaseTimeline {
 		/**
 		 * Return the latest email communication.
 		 *
-		 * @param {boolean} from_recipient If true, only considers emails where the recipient is in the list of senders.
+		 * @param {boolean} from_recipient If true, only considers emails where current form's recipient is the sender.
 		 * @returns {object|null} The latest email communication, or null if no communication is found.
 		 */
 
