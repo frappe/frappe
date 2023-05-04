@@ -622,7 +622,7 @@ class FormTimeline extends BaseTimeline {
 				(record) =>
 					record.communication_type === "Communication" &&
 					record.communication_medium === "Email" &&
-					(!from_recipient || record.sender.indexOf(email) !== -1)
+					(!from_recipient || record.sender === email)
 			)
 			.sort((a, b) => b.creation - a.creation);
 
