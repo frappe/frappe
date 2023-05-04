@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { get_workflow_elements } from "./utils";
+import { get_workflow_elements, validate_transitions } from "./utils";
 import { useManualRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("workflow-builder-store", () => {
@@ -80,7 +80,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow.value.elements);
 			await frappe.call("frappe.client.save", { doc });
-			frappe.toast("Workflow is updated successfully");
+			frappe.toast("Workflow updated successfully");
 			fetch();
 		} catch (e) {
 			console.error(e);
@@ -145,6 +145,16 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		});
 
 		actions.forEach((action) => {
+			let states = workflow.value.elements.filter((e) => e.type == "state");
+			let state = states.find((state) => state.data.state == action.data.from);
+			let next_state = states.find((state) => state.data.state == action.data.to);
+			let error = validate_transitions(state.data, next_state.data);
+			if (error) {
+				frappe.throw({
+					message: error,
+					title: __("Invalid Transition"),
+				});
+			}
 			transitions.push(
 				get_transition_df({
 					state: action.data.from,
