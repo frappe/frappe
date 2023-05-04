@@ -82,3 +82,27 @@ export function get_workflow_elements(workflow) {
 
 	return elements;
 }
+
+export function validate_transitions(state, next_state) {
+	let message;
+	if (state.doc_status == "Cancelled") {
+		message = __("Cannot change state of Cancelled Document <b>({0} State)</b>", [
+			state.state,
+		]);
+	}
+
+	if (state.doc_status == "Submitted" && next_state.doc_status == "Draft") {
+		message = __(
+			"Submitted document cannot be converted back to draft while transitioning from <b>{0} State</b> to <b>{1} State</b>",
+			[state.state, next_state.state]
+		);
+	}
+
+	if (state.doc_status == "Draft" && next_state.doc_status == "Cancelled") {
+		message = __(
+			"Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>",
+			[state.state, next_state.state]
+		);
+	}
+	return message;
+}
