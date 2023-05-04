@@ -7,11 +7,13 @@ frappe.ui.form.on("Workflow", {
 	refresh: function (frm) {
 		frm.layout.message.empty();
 		let msg;
+		let workflow_builder_url = "/app/workflow-builder";
 
 		if (frm.is_new()) {
 			msg = __("Create your workflow visually using the Workflow Builder.");
 		} else {
 			msg = __("Edit your workflow visually using the Workflow Builder.");
+			workflow_builder_url += "/" + frm.doc.name;
 		}
 
 		let message = `
@@ -20,7 +22,7 @@ frappe.ui.form.on("Workflow", {
 			<div>
 				<p class="mb-3">${msg}</p>
 				<div>
-					<a class="btn btn-primary btn-sm" href="/app/workflow-builder"> ${__("Workflow Builder")} </a>
+					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}"> ${__("Workflow Builder")} </a>
 				</div>
 			</div>
 		</div>
