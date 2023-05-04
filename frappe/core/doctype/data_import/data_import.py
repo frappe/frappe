@@ -142,7 +142,7 @@ def from_csv_upload(target_doctype: str, import_type: str = "Insert New Records"
 	)
 
 	data_import_doc.save()
-	start_import(data_import_doc.name)
+	data_import_doc.start_import()
 
 	return data_import_doc
 
