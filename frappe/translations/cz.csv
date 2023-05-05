@@ -676,7 +676,6 @@ In Filter,Ve filtru,
 Footer Color,Zápatí Color,
 "Page to show on the website,
 ",Page ukázat na webových stránkách,
-Cannot remove permission for Nemůžete odebrat oprávnění pro DocType: {0} a jméno: {1}
 Remove Link,Odebrat odkaz,
 Logged in,Přihlášen,
 Default Sending and Inbox,Výchozí Odeslání a Inbox,
@@ -834,7 +833,6 @@ Success Message,Zpráva o úspěchu,
 User Cannot Search,Uživatel nemůže vyhledávat,
 Build Report,Sestav Report,
 "{0} {1} does not exist, select a new target to merge","{0} {1} neexistuje, zvolte nový cíl pro sloučení"
-Cannot set permission for Nelze nastavit oprávnění pro DocType: {0} a jméno: {1}
 Comment Doctype,Komentář Doctype,
 There were errors,Vyskytly se chyby,
 Close,Zavřít,
