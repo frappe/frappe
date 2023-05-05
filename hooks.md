@@ -22,10 +22,6 @@
 1. `web_include_js` - assets/js/frappe-web.min.js
 1. `web_include_css` - assets/css/frappe-web.css
 
-#### Desktop
-
-1. `get_desktop_icons` - method to get list of desktop icons
-
 #### Notifications
 
 1. `notification_config` - method to get notification configuration

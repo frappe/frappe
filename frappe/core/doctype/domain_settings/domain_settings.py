@@ -17,17 +17,6 @@ class DomainSettings(Document):
 		if added:
 			self.save()
 
-	def on_update(self):
-		for i, d in enumerate(self.active_domains):
-			# set the flag to update the the desktop icons of all domains
-			if i >= 1:
-				frappe.flags.keep_desktop_icons = True
-			domain = frappe.get_doc("Domain", d.domain)
-			domain.setup_domain()
-
-		self.restrict_roles_and_modules()
-		frappe.clear_cache()
-
 	def restrict_roles_and_modules(self):
 		"""Disable all restricted roles and set `restrict_to_domain` property in Module Def"""
 		active_domains = frappe.get_active_domains()
