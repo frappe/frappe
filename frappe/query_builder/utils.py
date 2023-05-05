@@ -81,8 +81,20 @@ def patch_query_execute():
 	"""
 
 	def execute_query(query, *args, **kwargs):
+		child_queries = query._child_queries if isinstance(query._child_queries, list) else []
+
 		query, params = prepare_query(query)
-		return frappe.db.sql(query, params, *args, **kwargs)  # nosemgrep
+		result = frappe.db.sql(query, params, *args, **kwargs)  # nosemgrep
+
+		if result and isinstance(result[0], dict) and result[0].name:
+			parent_names = [d.name for d in result]
+			for child_query in child_queries or []:
+				data = child_query.get_query(parent_names).run(as_dict=1)
+				for row in result:
+					row[child_query.fieldname] = [
+						d for d in data if str(d.parent) == str(row.name) and d.parentfield == child_query.fieldname
+					]
+		return result
 
 	def prepare_query(query):
 		import inspect
