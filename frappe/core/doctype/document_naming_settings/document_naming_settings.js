@@ -25,8 +25,13 @@ frappe.ui.form.on("Document Naming Settings", {
 			doc: frm.doc,
 			callback: function (r) {
 				frm.set_value("naming_series_options", r.message);
-				if (r.message && r.message.split("\n")[0] == "")
-					frm.set_value("user_must_always_select", 1);
+				if (r.message) {
+					frm.fields_dict.prefix.set_data(r.message);
+					if (r.message.split("\n")[0] == "")
+						frm.set_value("user_must_always_select", 1);
+				} else {
+					frm.trigger("setup_transaction_autocomplete");
+				}
 			},
 		});
 	},
