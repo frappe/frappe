@@ -23,6 +23,7 @@ def deferred_insert(routes):
 			"user": frappe.session.user,
 			"route": route.get("route"),
 			"creation": route.get("creation"),
+			"ignore_permissions": True,
 		}
 		for route in frappe.parse_json(routes)
 	]

@@ -63,7 +63,7 @@ def make_view_log(
 
 	try:
 		if frappe.flags.read_only:
-			view.deferred_insert()
+			view.deferred_insert(ignore_permissions=True)
 		else:
 			view.insert(ignore_permissions=True)
 	except Exception:

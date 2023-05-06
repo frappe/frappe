@@ -46,7 +46,7 @@ def save_to_db():
 def insert_record(record: Union[dict, "Document"], doctype: str):
 	try:
 		record.update({"doctype": doctype})
-		frappe.get_doc(record).insert()
+		frappe.get_doc(record).insert(ignore_permissions=record.pop("ignore_permissions", False))
 	except Exception as e:
 		frappe.logger().error(f"Error while inserting deferred {doctype} record: {e}")
 

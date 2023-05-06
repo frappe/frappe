@@ -2214,7 +2214,7 @@ def log_error(title=None, message=None, reference_doctype=None, reference_name=N
 	)
 
 	if flags.read_only:
-		error_log.deferred_insert()
+		error_log.deferred_insert(ignore_permissions=True)
 	else:
 		return error_log.insert(ignore_permissions=True)
 
