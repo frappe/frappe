@@ -339,6 +339,10 @@ def parse_naming_series(
 		elif e.startswith("{") and doc:
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
+		elif e.startswith("M") and e.count('M') == 1 and (e[1::] or '').isnumeric():
+			length = e[1::] or ''
+			if(length.isnumeric()):
+				part = today.strftime("%B")[:int(length):].upper()
 		elif doc and doc.get(e):
 			part = doc.get(e)
 		else:
