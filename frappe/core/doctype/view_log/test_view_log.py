@@ -31,4 +31,3 @@ class TestViewLog(FrappeTestCase):
 		)
 
 		self.assertEqual("test@example.com", a)
-		self.assertNotEqual("test1@example.com", a)
