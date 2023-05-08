@@ -62,6 +62,7 @@ def enqueue(
 	enqueue_after_commit=False,
 	*,
 	at_front=False,
+	job_id=None,
 	**kwargs,
 ) -> Union["Job", Any]:
 	"""
@@ -116,7 +117,13 @@ def enqueue(
 			frappe.flags.enqueue_after_commit = []
 
 		frappe.flags.enqueue_after_commit.append(
-			{"queue": queue, "is_async": is_async, "timeout": timeout, "queue_args": queue_args}
+			{
+				"queue": queue,
+				"is_async": is_async,
+				"timeout": timeout,
+				"queue_args": queue_args,
+				"job_id": job_id,
+			}
 		)
 		return frappe.flags.enqueue_after_commit
 
@@ -127,6 +134,7 @@ def enqueue(
 		at_front=at_front,
 		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+		job_id=job_id,
 	)
 
 
