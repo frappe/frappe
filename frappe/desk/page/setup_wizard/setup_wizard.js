@@ -178,6 +178,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
+		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
@@ -325,6 +326,7 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	make() {
 		super.make();
 		this.set_init_values();
+		this.setup_telemetry_events();
 		this.reset_action_button_state();
 	}
 
@@ -339,6 +341,18 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 				}
 			});
 		}
+	}
+
+	setup_telemetry_events() {
+		let me = this;
+		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
+			me.get_input(field.fieldname).on("change", function () {
+				frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
+				if (field.fieldname == "enable_telemetry" && !me.get_value("enable_telemetry")) {
+					frappe.telemetry.disable();
+				}
+			});
+		});
 	}
 };
 
@@ -383,6 +397,15 @@ frappe.setup.slides_settings = [
 				placeholder: __("Select Currency"),
 				fieldtype: "Select",
 				reqd: 1,
+			},
+			{
+				fieldtype: "Section Break",
+			},
+			{
+				fieldname: "enable_telemetry",
+				label: __("Allow Sending Usage Data for Improving applications"),
+				fieldtype: "Check",
+				default: 1,
 			},
 		],
 

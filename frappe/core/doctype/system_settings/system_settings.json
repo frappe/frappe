@@ -78,7 +78,9 @@
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "telemetry_section",
+  "enable_telemetry"
  ],
  "fields": [
   {
@@ -550,12 +552,24 @@
    "fieldname": "login_with_email_link_expiry",
    "fieldtype": "Int",
    "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "telemetry_section",
+   "fieldtype": "Section Break",
+   "label": "Telemetry"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_telemetry",
+   "fieldtype": "Check",
+   "label": "Allow Sending Usage Data for Improving applications"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-12-20 21:45:37.651668",
+ "modified": "2023-04-24 11:14:59.302851",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
