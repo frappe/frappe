@@ -30,6 +30,7 @@ class ScheduledJobType(Document):
 					"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
 					queue=self.get_queue_name(),
 					job_type=self.method,
+					job_id=self.rq_job_id,
 				)
 				return True
 		return False
@@ -39,9 +40,17 @@ class ScheduledJobType(Document):
 		# if the next scheduled event is before NOW, then its due!
 		return self.get_next_execution() <= (current_time or now_datetime())
 
-	def is_job_in_queue(self):
-		queued_jobs = get_jobs(site=frappe.local.site, key="job_type")[frappe.local.site]
-		return self.method in queued_jobs
+	def is_job_in_queue(self) -> bool:
+		try:
+			job = frappe.get_doc("RQ Job", self.rq_job_id)
+			return job.status in ("queued", "started")
+		except frappe.DoesNotExistError:
+			return False
+
+	@property
+	def rq_job_id(self):
+		"""Unique ID created to deduplicate jobs with single RQ call."""
+		return f"scheduled_job::{frappe.local.site}::{self.method}"
 
 	@property
 	def next_execution(self):
