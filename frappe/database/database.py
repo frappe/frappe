@@ -861,7 +861,7 @@ class Database:
 		**Warning:** this function will not call Document events and should be avoided in normal cases.
 
 		:param dt: DocType name.
-		:param dn: Document name.
+		:param dn: Document name for updating single record or filters for updating many records.
 		:param field: Property / field name or dictionary of values to be updated
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
