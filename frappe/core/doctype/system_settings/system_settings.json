@@ -540,20 +540,6 @@
    "label": "Disable Document Sharing"
   },
   {
-<<<<<<< HEAD
-   "default": "0",
-   "description": "Allow users to log in without a password, using a login link sent to their email",
-   "fieldname": "login_with_email_link",
-   "fieldtype": "Check",
-   "label": "Login with email link"
-  },
-  {
-   "default": "10",
-   "depends_on": "login_with_email_link",
-   "fieldname": "login_with_email_link_expiry",
-   "fieldtype": "Int",
-   "label": "Login with email link expiry (in minutes)"
-=======
    "collapsible": 1,
    "fieldname": "telemetry_section",
    "fieldtype": "Section Break",
@@ -563,22 +549,13 @@
    "default": "1",
    "fieldname": "enable_telemetry",
    "fieldtype": "Check",
-<<<<<<< HEAD
-   "label": "Send Data for Improving Apps"
->>>>>>> 0d1c7fee42 (feat: let users disable telemetry from system settings)
-=======
    "label": "Allow Sending Usage Data for Improving applications"
->>>>>>> 93c326b971 (feat: let user opt out of telemetry from setup)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-12-20 21:45:37.651668",
-=======
- "modified": "2023-04-23 11:14:59.302851",
->>>>>>> 0d1c7fee42 (feat: let users disable telemetry from system settings)
+ "modified": "2023-04-24 11:14:59.302851",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
