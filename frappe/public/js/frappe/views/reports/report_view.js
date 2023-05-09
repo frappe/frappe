@@ -1362,7 +1362,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							subtitle: this.get_filters_html_for_print(),
 							print_settings: print_settings,
 							columns: this.columns,
+<<<<<<< HEAD
 							data: rows_in_order
+=======
+							data: rows_in_order,
+							can_use_smaller_font: 1,
+>>>>>>> 66716fbe12 (fix: use smaller font only if the report doesnt have a standard print format (#20878))
 						});
 					});
 				}
