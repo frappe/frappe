@@ -1283,12 +1283,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data: this.get_data_for_print(),
 			columns: this.get_columns_for_print(print_settings, custom_format),
 			original_data: this.data,
-<<<<<<< HEAD
-			report: this
-=======
 			report: this,
 			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
->>>>>>> 66716fbe12 (fix: use smaller font only if the report doesnt have a standard print format (#20878))
 		});
 	}
 
