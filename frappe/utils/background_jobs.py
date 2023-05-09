@@ -19,7 +19,6 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import cstr, get_bench_id
 from frappe.utils.commands import log
-from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
 
 if TYPE_CHECKING:
@@ -449,10 +448,16 @@ def create_job_id(job_id: str) -> str:
 
 
 def is_job_enqueued(job_id: str) -> str:
+	from rq.job import Job
+
 	try:
-		job = Job.fetch(job_id, connection=get_redis_conn())
+		job = Job.fetch(create_job_id(job_id), connection=get_redis_conn())
 	except NoSuchJobError:
 		return False
 
+<<<<<<< HEAD
 	return job.status in ("queued", "started")
 >>>>>>> bc3871b657 (refactor: standardize assigning `job_id`)
+=======
+	return job.get_status() in ("queued", "started")
+>>>>>>> ecce4ba5a7 (test: deduplication with unique job id)
