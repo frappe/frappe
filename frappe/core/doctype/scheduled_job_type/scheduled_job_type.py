@@ -10,7 +10,7 @@ from croniter import croniter
 import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
-from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.background_jobs import enqueue, is_job_enqueued
 
 
 class ScheduledJobType(Document):
@@ -41,16 +41,12 @@ class ScheduledJobType(Document):
 		return self.get_next_execution() <= (current_time or now_datetime())
 
 	def is_job_in_queue(self) -> bool:
-		try:
-			job = frappe.get_doc("RQ Job", self.rq_job_id)
-			return job.status in ("queued", "started")
-		except frappe.DoesNotExistError:
-			return False
+		return is_job_enqueued(self.rq_job_id)
 
 	@property
 	def rq_job_id(self):
 		"""Unique ID created to deduplicate jobs with single RQ call."""
-		return f"scheduled_job::{frappe.local.site}::{self.method}"
+		return f"scheduled_job::{self.method}"
 
 	@property
 	def next_execution(self):
