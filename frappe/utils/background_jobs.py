@@ -9,6 +9,7 @@ from uuid import uuid4
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
+from rq.exceptions import NoSuchJobError
 from rq.logutils import setup_loghandlers
 from rq.worker import RandomWorker, RoundRobinWorker
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -64,6 +65,7 @@ def enqueue(
 	enqueue_after_commit=False,
 	*,
 	at_front=False,
+	job_id=None,
 	**kwargs,
 ) -> Union["Job", Any]:
 	"""
@@ -77,9 +79,14 @@ def enqueue(
 	:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param now: if now=True, the method is executed via frappe.call
 	:param kwargs: keyword arguments to be passed to the method
+	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
+
+	if job_id:
+		# namespace job ids to sites
+		job_id = create_job_id(job_id)
 
 	if not is_async and not frappe.flags.in_test:
 		print(
@@ -118,7 +125,13 @@ def enqueue(
 			frappe.flags.enqueue_after_commit = []
 
 		frappe.flags.enqueue_after_commit.append(
-			{"queue": queue, "is_async": is_async, "timeout": timeout, "queue_args": queue_args}
+			{
+				"queue": queue,
+				"is_async": is_async,
+				"timeout": timeout,
+				"queue_args": queue_args,
+				"job_id": job_id,
+			}
 		)
 		return frappe.flags.enqueue_after_commit
 
@@ -131,6 +144,7 @@ def enqueue(
 		at_front=at_front,
 		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+		job_id=job_id,
 	)
 
 
@@ -417,6 +431,10 @@ def test_job(s):
 
 
 def is_job_queued(job_name: str) -> bool:
+	"""Check if job exists with given job_name
+
+	DEPRECATED: Use `job_id` parameter while enqueueing job instead instead.
+	"""
 	for queue in get_queues():
 		for job_id in queue.get_job_ids():
 			if not job_id:
@@ -425,3 +443,19 @@ def is_job_queued(job_name: str) -> bool:
 			if job.kwargs.get("job_name") == job_name and job.kwargs.get("site") == frappe.local.site:
 				return True
 	return False
+
+
+def create_job_id(job_id: str) -> str:
+	"""Generate unique job id for deduplication"""
+	return f"{frappe.local.site}::{job_id}"
+
+
+def is_job_enqueued(job_id: str) -> str:
+	from rq.job import Job
+
+	try:
+		job = Job.fetch(create_job_id(job_id), connection=get_redis_conn())
+	except NoSuchJobError:
+		return False
+
+	return job.get_status() in ("queued", "started")
