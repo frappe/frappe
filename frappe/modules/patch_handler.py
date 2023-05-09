@@ -68,7 +68,7 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 			else:
 				print("Failed to execute patch")
 				if skip_failing:
-					update_patch_log(patch, skip_failing)
+					update_patch_log(patch, skipped=True)
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -188,7 +188,7 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 					_patch()
 				else:
 					exec(patch, globals())
-				update_patch_log(patchmodule, False)
+				update_patch_log(patchmodule)
 
 		elif method:
 			method(**methodargs)
@@ -206,27 +206,16 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	return True
 
 
-def update_patch_log(patchmodule, skipped):
+def update_patch_log(patchmodule, skipped=False):
 	"""update patch_file in patch log"""
-	"""
-	skipped -> Patch failed
-	not skipped -> Patch executed successfully
-	"""
-	patch_log_exists = frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 1})
 
-	if patch_log_exists and not skipped:
-		frappe.db.set_value("Patch Log", {"patch": patchmodule}, "skipped", 0)
-	elif patch_log_exists:
+	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
+
+	if skipped:
 		traceback = frappe.get_traceback(with_context=True)
-		frappe.db.set_value("Patch Log", {"patch": patchmodule}, "traceback", traceback)
-	else:
-		patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
-
-		if skipped:
-			traceback = frappe.get_traceback(with_context=True)
-			patch.skipped = 1
-			patch.traceback = traceback
-		patch.insert(ignore_permissions=True)
+		patch.skipped = 1
+		patch.traceback = traceback
+	patch.insert(ignore_permissions=True)
 
 
 def executed(patchmodule):
