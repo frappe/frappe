@@ -888,7 +888,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return new Promise((resolve) =>
 				frappe.call({
 					method: "frappe.desk.query_report.background_enqueue_run",
-					type: "GET",
 					args: {
 						report_name: this.report_name,
 						filters: filters,
@@ -1366,6 +1365,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: this.get_columns_for_print(print_settings, custom_format),
 			original_data: this.data,
 			report: this,
+			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 	}
 
@@ -1402,6 +1402,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: columns,
 			lang: frappe.boot.lang,
 			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
+			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 
 		let filter_values = [],

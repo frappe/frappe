@@ -1000,7 +1000,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					href="${this.get_form_link(doc)}"
 					title="${escaped_subject}"
 					data-doctype="${this.doctype}"
-					data-name="${doc.name}">
+					data-name="${escaped_subject}">
 					${subject}
 				</a>
 			</span>
