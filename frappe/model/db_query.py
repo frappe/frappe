@@ -273,7 +273,7 @@ class DatabaseQuery:
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			args.tables += f" {self.join} `tab{link.doctype}` as linkDT on (linkDT.`name` = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
