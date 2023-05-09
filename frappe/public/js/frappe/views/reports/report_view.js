@@ -1362,7 +1362,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							subtitle: this.get_filters_html_for_print(),
 							print_settings: print_settings,
 							columns: this.columns,
-							data: rows_in_order
+							data: rows_in_order,
+							can_use_smaller_font: 1,
 						});
 					});
 				}
