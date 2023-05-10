@@ -260,7 +260,7 @@ export default class Grid {
 	}
 
 	select_row(name) {
-		this.grid_rows_by_docname[name].select();
+		this.grid_rows_by_docname[name].select(true); //must set true
 	}
 
 	remove_all() {
