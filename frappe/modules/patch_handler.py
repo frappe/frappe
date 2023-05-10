@@ -223,7 +223,7 @@ def executed(patchmodule):
 	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
 		patchmodule = patchmodule.replace("finally:", "")
-	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
+	return frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
 
 
 def _patch_mode(enable):
