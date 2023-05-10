@@ -67,8 +67,7 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 				raise
 			else:
 				print("Failed to execute patch")
-				if skip_failing:
-					update_patch_log(patch, skipped=True)
+				update_patch_log(patch, skipped=True)
 
 	patches = get_all_patches(patch_type=patch_type)
 
