@@ -39,6 +39,10 @@ class ScheduledJobType(Document):
 						job_id=self.rq_job_id,
 					)
 					return True
+				else:
+					frappe.logger("scheduler").error(
+						f"Skipped queueing {self.method} because it was found in queue for {frappe.local.site}"
+					)
 		return False
 
 	def is_event_due(self, current_time=None):
