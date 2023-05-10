@@ -14,7 +14,11 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+<<<<<<< HEAD
 from frappe.model import default_fields, optional_fields
+=======
+from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
+>>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.utils import cstr, format_duration
@@ -209,7 +213,10 @@ def update_wildcard_field_param(data):
 	if (isinstance(data.fields, string_types) and data.fields == "*") or (
 		isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
-		data.fields = frappe.db.get_table_columns(data.doctype)
+		if frappe.get_system_settings("apply_perm_level_on_api_calls"):
+			data.fields = get_permitted_fields(data.doctype, parenttype=data.parenttype)
+		else:
+			data.fields = frappe.db.get_table_columns(data.doctype)
 		return True
 
 	return False

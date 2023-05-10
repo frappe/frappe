@@ -183,8 +183,16 @@ def delete_fields(args_dict, delete=0):
 
 
 def get_permitted_fields(
+<<<<<<< HEAD
 	doctype: str, parenttype: Optional[str] = None, user: Optional[str] = None
 ) -> List[str]:
+=======
+	doctype: str,
+	parenttype: str | None = None,
+	user: str | None = None,
+	permission_type: str | None = None,
+) -> list[str]:
+>>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
 
@@ -195,9 +203,21 @@ def get_permitted_fields(
 	if set(valid_columns).issubset(default_fields):
 		return valid_columns
 
+<<<<<<< HEAD
 	permitted_fields = meta.get_permitted_fieldnames(parenttype=parenttype, user=user)
 
 	if permitted_fields:
+=======
+	if permission_type is None:
+		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
+
+	if permitted_fields := meta.get_permitted_fieldnames(
+		parenttype=parenttype, user=user, permission_type=permission_type
+	):
+		if permission_type == "select":
+			return permitted_fields
+
+>>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 		meta_fields = meta.default_fields.copy()
 		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
 
