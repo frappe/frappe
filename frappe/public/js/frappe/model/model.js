@@ -677,13 +677,8 @@ $.extend(frappe.model, {
 
 	get_all_docs: function(doc) {
 		var all = [doc];
-<<<<<<< HEAD
-		for(var key in doc) {
-			if($.isArray(doc[key])) {
-=======
 		for (var key in doc) {
 			if ($.isArray(doc[key]) && !key.startsWith("_")) {
->>>>>>> 46c37c2a5f (fix: avoid internal arrays in get_all_docs)
 				var children = doc[key];
 				for (var i=0, l=children.length; i < l; i++) {
 					all.push(children[i]);
