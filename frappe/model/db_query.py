@@ -93,26 +93,16 @@ class DatabaseQuery(object):
 		strict=True,
 		pluck=None,
 		ignore_ddl=False,
-<<<<<<< HEAD
 	) -> List:
 		if (
 			not ignore_permissions
 			and not frappe.has_permission(self.doctype, "select", user=user)
 			and not frappe.has_permission(self.doctype, "read", user=user)
 		):
-
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(
 				frappe.bold(self.doctype)
 			)
 			raise frappe.PermissionError(self.doctype)
-=======
-		*,
-		parent_doctype=None,
-	) -> list:
-
-		if not ignore_permissions:
-			self.check_read_permission(self.doctype, parent_doctype=parent_doctype)
->>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 
 		# filters and fields swappable
 		# its hard to remember what comes first
@@ -428,37 +418,7 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
 
-<<<<<<< HEAD
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype, ptype=ptype)):
-=======
-	def append_link_table(self, doctype, fieldname):
-		for d in self.link_tables:
-			if d.doctype == doctype and d.fieldname == fieldname:
-				return
-
-		self.check_read_permission(doctype)
-		self.link_tables.append(
-			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
-		)
-
-	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
-		if self.flags.ignore_permissions:
-			return
-
-		if doctype not in self.permission_map:
-			self._set_permission_map(doctype, parent_doctype)
-
-		return self.permission_map[doctype]
-
-	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
-		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
-		val = frappe.has_permission(
-			doctype,
-			ptype=ptype,
-			parent_doctype=parent_doctype or self.doctype,
-		)
-		if not val:
->>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
 		self.permission_map[doctype] = ptype
@@ -566,15 +526,11 @@ class DatabaseQuery(object):
 			return
 
 		asterisk_fields = []
-<<<<<<< HEAD
-		permitted_fields = get_permitted_fields(doctype=self.doctype)
-=======
 		permitted_fields = get_permitted_fields(
 			doctype=self.doctype,
 			parenttype=self.parent_doctype,
 			permission_type=self.permission_map.get(self.doctype),
 		)
->>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():

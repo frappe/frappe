@@ -21,12 +21,7 @@ from frappe.permissions import (
 	update_permission_property,
 )
 from frappe.test_runner import make_test_records_for_doctype
-<<<<<<< HEAD
-=======
 from frappe.tests.test_db_query import enable_permlevel_restrictions
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils.data import now_datetime
->>>>>>> 707e485d9b (fix: Check permission_type in get_permitted_fieldnames [v14] (#20905))
 
 test_dependencies = ["Blogger", "Blog Post", "User", "Contact", "Salutation"]
 
