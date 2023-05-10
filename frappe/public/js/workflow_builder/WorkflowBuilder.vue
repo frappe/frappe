@@ -279,7 +279,7 @@
 		store.workflow.selected = null;
 	}
 
-	onPaneReady(() => fitView({ padding: 0.4 }));
+	onPaneReady(() => fitView());
 	onMounted(() => store.fetch());
 </script>
 
@@ -323,7 +323,7 @@
 					</button>
 					<button
 						class="btn btn-sm btn-default"
-						@click="fitView({ padding: 0.4 })"
+						@click="fitView()"
 					>
 						Fit
 					</button>
