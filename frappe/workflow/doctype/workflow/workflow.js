@@ -6,23 +6,33 @@ frappe.ui.form.on("Workflow", {
 	},
 	refresh: function (frm) {
 		frm.layout.message.empty();
-		let msg;
+		let title, note;
 		let workflow_builder_url = "/app/workflow-builder";
+		msg = __(
+			"Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
+		);
 
 		if (frm.is_new()) {
-			msg = __("Create your workflow visually using the Workflow Builder.");
+			title = __("Create your workflow visually using the Workflow Builder.");
 		} else {
-			msg = __("Edit your workflow visually using the Workflow Builder.");
+			title = __("Edit your workflow visually using the Workflow Builder.");
+			note = __(
+				"NOTE: Avoid making changes to the states & transitions. It will not be reflected in the Workflow Builder."
+			);
 			workflow_builder_url += "/" + frm.doc.name;
 		}
 
 		let message = `
 		<div class="flex">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="250" src="/assets/frappe/images/workflow-builder.gif"></div>
+			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="510" src="/assets/frappe/images/workflow-builder.gif"></div>
 			<div>
-				<p class="mb-3">${msg}</p>
+				<p style="font-size: var(--text-xl)">${title}</p>
+				<p>${msg}</p>
+				<p class="mb-3">${note || ""}</p>
 				<div>
-					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}"> ${__("Workflow Builder")} </a>
+					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}"> ${__(
+			"Workflow Builder "
+		)} ${frappe.utils.icon("right", "xs")} </a>
 				</div>
 			</div>
 		</div>
