@@ -30,9 +30,9 @@ frappe.ui.form.on("Workflow", {
 				<p>${msg}</p>
 				<p class="mb-3">${note || ""}</p>
 				<div>
-					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}"> ${__(
-			"Workflow Builder "
-		)} ${frappe.utils.icon("right", "xs")} </a>
+					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}">
+						${__("Workflow Builder")} ${frappe.utils.icon("right", "xs")}
+					</a>
 				</div>
 			</div>
 		</div>
