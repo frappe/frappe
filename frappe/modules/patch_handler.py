@@ -215,6 +215,7 @@ def update_patch_log(patchmodule, skipped=False):
 		traceback = frappe.get_traceback(with_context=True)
 		patch.skipped = 1
 		patch.traceback = traceback
+		print(traceback)
 	patch.insert(ignore_permissions=True)
 
 
