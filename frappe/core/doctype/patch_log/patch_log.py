@@ -12,4 +12,4 @@ class PatchLog(Document):
 
 
 def before_migrate():
-	frappe.reload_doc("core", "doctype", "patch_log", force=True)
+	frappe.reload_doc("core", "doctype", "patch_log")
