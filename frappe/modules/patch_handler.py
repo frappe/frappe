@@ -53,7 +53,7 @@ class PatchType(Enum):
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
-	executed = set(frappe.get_all("Patch Log", fields="patch", pluck="patch"))
+	executed = set(frappe.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
 
 	frappe.flags.final_patches = []
 
@@ -67,6 +67,7 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 				raise
 			else:
 				print("Failed to execute patch")
+				update_patch_log(patch, skipped=True)
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -203,9 +204,17 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	return True
 
 
-def update_patch_log(patchmodule):
+def update_patch_log(patchmodule, skipped=False):
 	"""update patch_file in patch log"""
-	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert(ignore_permissions=True)
+
+	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
+
+	if skipped:
+		traceback = frappe.get_traceback(with_context=True)
+		patch.skipped = 1
+		patch.traceback = traceback
+		print(traceback)
+	patch.insert(ignore_permissions=True)
 
 
 def executed(patchmodule):
@@ -213,7 +222,7 @@ def executed(patchmodule):
 	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
 		patchmodule = patchmodule.replace("finally:", "")
-	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
+	return frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
 
 
 def _patch_mode(enable):
