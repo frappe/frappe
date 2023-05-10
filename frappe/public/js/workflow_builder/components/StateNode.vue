@@ -59,10 +59,15 @@ watch(() => props.node.data, () => {
 	background-color: var(--fg-color);
 	font-weight: 500;
 	border-radius: var(--border-radius-full);
-	padding: 25px;
+	padding: 15px 25px;
 	color: var(--gray-600);
 	border: 1px solid var(--gray-600);
 	box-shadow: var(--shadow-base);
+
+	.node-label {
+		max-width: 110px;
+		text-align: center;
+	}
 }
 
 .vue-flow__node.selected .node {
