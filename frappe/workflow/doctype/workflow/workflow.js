@@ -55,10 +55,7 @@ frappe.ui.form.on("Workflow", {
 		});
 	},
 	validate: (frm) => {
-		if (
-			frm.doc.is_active &&
-			(frm.doc.states.length === 0 || frm.doc.transitions.length === 0)
-		) {
+		if (frm.doc.is_active && (!frm.doc.states.length || !frm.doc.transitions.length)) {
 			let message = "Workflow must have atleast one state and transition";
 			frappe.throw({
 				message: __(message),

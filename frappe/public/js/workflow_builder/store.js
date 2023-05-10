@@ -77,6 +77,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			let doc = workflow_doc.value;
 			doc.states = get_updated_states();
 			doc.transitions = get_updated_transitions();
+			validate_workflow(doc);
 			clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow.value.elements);
 			await frappe.call("frappe.client.save", { doc });
@@ -86,6 +87,17 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			console.error(e);
 		} finally {
 			frappe.dom.unfreeze();
+		}
+	}
+
+	function validate_workflow(doc) {
+		if (doc.is_active && (!doc.states.length || !doc.transitions.length)) {
+			let message = "Workflow must have atleast one state and transition";
+			frappe.throw({
+				message: __(message),
+				title: __("Missing Values Required"),
+				indicator: "orange",
+			});
 		}
 	}
 
