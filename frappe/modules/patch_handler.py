@@ -65,9 +65,15 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 		except Exception:
 			if not skip_failing:
 				raise
+<<<<<<< HEAD
 
 			print("Failed to execute patch")
 			update_patch_log(patch, skipped=True)
+=======
+			else:
+				print("Failed to execute patch")
+				update_patch_log(patch, skipped=True)
+>>>>>>> d9b2d23ec3 (feat: track skipped patch with traceback (#20931))
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -215,8 +221,12 @@ def update_patch_log(patchmodule, skipped=False):
 		traceback = frappe.get_traceback(with_context=True)
 		patch.skipped = 1
 		patch.traceback = traceback
+<<<<<<< HEAD
 		print(traceback, end="\n\n")
 
+=======
+		print(traceback)
+>>>>>>> d9b2d23ec3 (feat: track skipped patch with traceback (#20931))
 	patch.insert(ignore_permissions=True)
 
 

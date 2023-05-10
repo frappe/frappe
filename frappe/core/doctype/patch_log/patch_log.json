@@ -22,22 +22,34 @@
    "default": "0",
    "fieldname": "skipped",
    "fieldtype": "Check",
+<<<<<<< HEAD
    "in_list_view": 1,
    "label": "Skipped",
    "read_only": 1
+=======
+   "label": "Skipped"
+>>>>>>> d9b2d23ec3 (feat: track skipped patch with traceback (#20931))
   },
   {
    "depends_on": "eval:doc.skipped == 1",
    "fieldname": "traceback",
    "fieldtype": "Code",
+<<<<<<< HEAD
    "label": "Traceback",
    "read_only": 1
+=======
+   "label": "Traceback"
+>>>>>>> d9b2d23ec3 (feat: track skipped patch with traceback (#20931))
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-06-07 00:00:01.369265",
+=======
+ "modified": "2023-05-04 23:56:02.270262",
+>>>>>>> d9b2d23ec3 (feat: track skipped patch with traceback (#20931))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Patch Log",
