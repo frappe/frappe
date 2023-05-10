@@ -348,11 +348,9 @@ $.extend(frappe.model, {
 	},
 
 	unscrub: function (txt) {
-		return __(txt || "")
-			.replace(/-|_/g, " ")
-			.replace(/\w*/g, function (keywords) {
-				return keywords.charAt(0).toUpperCase() + keywords.substr(1).toLowerCase();
-			});
+		return (txt || "").replace(/-|_/g, " ").replace(/\w*/g, function (keywords) {
+			return keywords.charAt(0).toUpperCase() + keywords.substr(1).toLowerCase();
+		});
 	},
 
 	can_create: function (doctype) {
@@ -793,7 +791,7 @@ $.extend(frappe.model, {
 	get_all_docs: function (doc) {
 		var all = [doc];
 		for (var key in doc) {
-			if ($.isArray(doc[key])) {
+			if ($.isArray(doc[key]) && !key.startsWith("_")) {
 				var children = doc[key];
 				for (var i = 0, l = children.length; i < l; i++) {
 					all.push(children[i]);

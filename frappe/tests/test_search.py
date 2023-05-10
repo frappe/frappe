@@ -130,10 +130,30 @@ class TestSearch(FrappeTestCase):
 		search_link("User", "user@random", searchfield="name")
 		self.assertListEqual(frappe.response["results"], [])
 
+	def test_reference_doctype(self):
+		"""search query methods should get reference_doctype if they want"""
+		search_link(
+			doctype="User",
+			txt="",
+			filters=None,
+			page_length=20,
+			reference_doctype="ToDo",
+			query="frappe.tests.test_search.query_with_reference_doctype",
+		)
+		self.assertListEqual(frappe.response["results"], [])
+
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
 	return [doctype, txt, searchfield, start, page_len, filters]
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def query_with_reference_doctype(
+	doctype, txt, searchfield, start, page_len, filters, reference_doctype=None
+):
+	return []
 
 
 def setup_test_link_field_order(TestCase):
