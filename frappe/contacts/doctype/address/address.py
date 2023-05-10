@@ -129,7 +129,7 @@ def get_default_address(doctype, name, sort_key="is_primary_address"):
 
 
 @frappe.whitelist()
-def get_address_display(address_dict):
+def get_address_display(address_dict: dict | str | None) -> str | None:
 	if not address_dict:
 		return
 

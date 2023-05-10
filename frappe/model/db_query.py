@@ -68,6 +68,7 @@ class DatabaseQuery:
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 		self.reference_doctype = None
+		self.permission_map = {}
 
 	@property
 	def doctype_meta(self):
@@ -115,15 +116,8 @@ class DatabaseQuery:
 		parent_doctype=None,
 	) -> list:
 
-		if (
-			not ignore_permissions
-			and not frappe.has_permission(self.doctype, "select", user=user, parent_doctype=parent_doctype)
-			and not frappe.has_permission(self.doctype, "read", user=user, parent_doctype=parent_doctype)
-		):
-			frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-				frappe.bold(self.doctype)
-			)
-			raise frappe.PermissionError(self.doctype)
+		if not ignore_permissions:
+			self.check_read_permission(self.doctype, parent_doctype=parent_doctype)
 
 		# filters and fields swappable
 		# its hard to remember what comes first
@@ -495,14 +489,26 @@ class DatabaseQuery:
 			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
 		)
 
-	def check_read_permission(self, doctype):
-		if not self.flags.ignore_permissions and not frappe.has_permission(
+	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
+		if self.flags.ignore_permissions:
+			return
+
+		if doctype not in self.permission_map:
+			self._set_permission_map(doctype, parent_doctype)
+
+		return self.permission_map[doctype]
+
+	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
+		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
+		val = frappe.has_permission(
 			doctype,
-			ptype="select" if frappe.only_has_select_perm(doctype) else "read",
-			parent_doctype=self.doctype,
-		):
+			ptype=ptype,
+			parent_doctype=parent_doctype or self.doctype,
+		)
+		if not val:
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
+		self.permission_map[doctype] = ptype
 
 	def set_field_tables(self):
 		"""If there are more than one table, the fieldname must not be ambiguous.
@@ -608,7 +614,11 @@ class DatabaseQuery:
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype, parenttype=self.parent_doctype)
+		permitted_fields = get_permitted_fields(
+			doctype=self.doctype,
+			parenttype=self.parent_doctype,
+			permission_type=self.permission_map.get(self.doctype),
+		)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():
