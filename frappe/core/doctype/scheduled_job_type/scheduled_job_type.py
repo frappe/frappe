@@ -25,7 +25,6 @@ class ScheduledJobType(Document):
 	def enqueue(self, force=False):
 		# enqueue event if last execution is done
 		if self.is_event_due() or force:
-<<<<<<< HEAD
 			if frappe.flags.enqueued_jobs:
 				frappe.flags.enqueued_jobs.append(self.method)
 
@@ -37,19 +36,9 @@ class ScheduledJobType(Document):
 						"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
 						queue=self.get_queue_name(),
 						job_type=self.method,
+						job_id=self.rq_job_id,
 					)
 					return True
-
-=======
-			if not self.is_job_in_queue():
-				enqueue(
-					"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
-					queue=self.get_queue_name(),
-					job_type=self.method,
-					job_id=self.rq_job_id,
-				)
-				return True
->>>>>>> 4bd02a4ed1 (perf: Faster scheduled job deduplication)
 		return False
 
 	def is_event_due(self, current_time=None):

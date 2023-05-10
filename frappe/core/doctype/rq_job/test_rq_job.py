@@ -11,10 +11,7 @@ import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
-<<<<<<< HEAD
-=======
-from frappe.utils.background_jobs import is_job_enqueued, is_job_queued
->>>>>>> ecce4ba5a7 (test: deduplication with unique job id)
+from frappe.utils.background_jobs import is_job_enqueued
 
 
 class TestRQJob(FrappeTestCase):

@@ -423,23 +423,6 @@ def test_job(s):
 
 	print("sleeping...")
 	time.sleep(s)
-<<<<<<< HEAD
-=======
-
-
-def is_job_queued(job_name: str) -> bool:
-	"""Check if job exists with given job_name
-
-	DEPRECATED: Use `job_id` parameter while enqueueing job instead instead.
-	"""
-	for queue in get_queues():
-		for job_id in queue.get_job_ids():
-			if not job_id:
-				continue
-			job = queue.fetch_job(job_id)
-			if job.kwargs.get("job_name") == job_name and job.kwargs.get("site") == frappe.local.site:
-				return True
-	return False
 
 
 def create_job_id(job_id: str) -> str:
@@ -455,9 +438,4 @@ def is_job_enqueued(job_id: str) -> str:
 	except NoSuchJobError:
 		return False
 
-<<<<<<< HEAD
-	return job.status in ("queued", "started")
->>>>>>> bc3871b657 (refactor: standardize assigning `job_id`)
-=======
 	return job.get_status() in ("queued", "started")
->>>>>>> ecce4ba5a7 (test: deduplication with unique job id)
