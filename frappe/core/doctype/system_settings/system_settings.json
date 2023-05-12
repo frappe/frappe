@@ -42,6 +42,8 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "disable_user_pass_login",
+  "login_with_email_link",
+  "login_with_email_link_expiry",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -73,13 +75,12 @@
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
   "prepared_report_section",
-  "enable_prepared_report_auto_deletion",
-  "prepared_report_expiry_period",
-  "column_break_64",
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "telemetry_section",
+  "enable_telemetry"
  ],
  "fields": [
   {
@@ -430,25 +431,11 @@
    "label": "Send document Web View link in email"
   },
   {
-   "default": "30",
-   "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
-   "fieldname": "prepared_report_expiry_period",
-   "fieldtype": "Int",
-   "label": "Prepared Report Expiry Period (Days)"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_prepared_report_auto_deletion",
-   "fieldtype": "Check",
-   "label": "Enable Auto-deletion of Prepared Reports"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "prepared_report_section",
-   "fieldtype": "Section Break",
-   "label": "Reports"
-  },
+    "collapsible": 1,
+    "fieldname": "prepared_report_section",
+    "fieldtype": "Section Break",
+    "label": "Reports"
+   },
   {
    "default": "Frappe",
    "description": "The application name will be used in the Login page.",
@@ -502,10 +489,6 @@
    "label": "Allow Older Web View Links (Insecure)"
   },
   {
-   "fieldname": "column_break_64",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "20",
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
@@ -555,12 +538,38 @@
    "fieldname": "disable_document_sharing",
    "fieldtype": "Check",
    "label": "Disable Document Sharing"
+  },
+  {
+   "default": "0",
+   "description": "Allow users to log in without a password, using a login link sent to their email",
+   "fieldname": "login_with_email_link",
+   "fieldtype": "Check",
+   "label": "Login with email link"
+  },
+  {
+   "default": "10",
+   "depends_on": "login_with_email_link",
+   "fieldname": "login_with_email_link_expiry",
+   "fieldtype": "Int",
+   "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "telemetry_section",
+   "fieldtype": "Section Break",
+   "label": "Telemetry"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_telemetry",
+   "fieldtype": "Check",
+   "label": "Allow Sending Usage Data for Improving applications"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-03-14 11:30:56.465653",
+ "modified": "2023-04-24 11:14:59.302851",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

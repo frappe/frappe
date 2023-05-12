@@ -30,13 +30,6 @@ frappe.ui.form.on("System Settings", {
 			frm.set_value("bypass_restrict_ip_check_if_2fa_enabled", 0);
 		}
 	},
-	enable_prepared_report_auto_deletion: function (frm) {
-		if (frm.doc.enable_prepared_report_auto_deletion) {
-			if (!frm.doc.prepared_report_expiry_period) {
-				frm.set_value("prepared_report_expiry_period", 7);
-			}
-		}
-	},
 	on_update: function (frm) {
 		if (frappe.boot.time_zone && frappe.boot.time_zone.system !== frm.doc.time_zone) {
 			// Clear cache after saving to refresh the values of boot.
