@@ -6,6 +6,7 @@ from types import FunctionType, MethodType, ModuleType
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.rate_limiter import rate_limit
 from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, safe_exec
 
 
@@ -77,17 +78,16 @@ class ServerScript(Document):
 		Returns:
 		        dict: Evaluates self.script with frappe.utils.safe_exec.safe_exec and returns the flags set in it's safe globals
 		"""
-		# wrong report type!
-		if self.script_type != "API":
-			raise frappe.DoesNotExistError
 
-		# validate if guest is allowed
-		if frappe.session.user == "Guest" and not self.allow_guest:
-			raise frappe.PermissionError
-
-		# output can be stored in flags
-		_globals, _locals = safe_exec(self.script)
-		return _globals.frappe.flags
+		if self.enable_rate_limit:
+			# Wrap in rate limiter, required for specifying custom limits for each script
+			# Note that rate limiter works on `cmd` which is script name
+			limit = self.rate_limit_count or 5
+			seconds = self.rate_limit_seconds or 24 * 60 * 60
+			_fn = rate_limit(limit=limit, seconds=seconds)(execute_api_server_script)
+			return _fn(script=self)
+		else:
+			return execute_api_server_script(self)
 
 	def execute_doc(self, doc: Document):
 		"""Specific to Document Event triggered Server Scripts
@@ -201,3 +201,17 @@ def setup_scheduler_events(script_name, frequency):
 		doc.save()
 
 		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(script_name))
+
+
+def execute_api_server_script(script):
+	if script.script_type != "API":
+		raise frappe.DoesNotExistError
+
+	# validate if guest is allowed
+	if frappe.session.user == "Guest" and not script.allow_guest:
+		raise frappe.PermissionError
+
+	# output can be stored in flags
+	_globals, _locals = safe_exec(script.script)
+
+	return _globals.frappe.flags
