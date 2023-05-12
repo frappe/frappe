@@ -336,10 +336,8 @@ def parse_naming_series(
 			part = str(today)
 		elif e == "FY":
 			part = frappe.defaults.get_user_default("fiscal_year")
-		elif e.startswith("{") and doc:
+		elif doc and (e.startswith("{") or hasattr(doc, e)):
 			e = e.replace("{", "").replace("}", "")
-			part = doc.get(e)
-		elif doc and doc.get(e):
 			part = doc.get(e)
 		else:
 			part = e
@@ -550,9 +548,7 @@ def _format_autoname(autoname, doc):
 
 	def get_param_value_for_match(match):
 		param = match.group()
-		# trim braces
-		trimmed_param = param[1:-1]
-		return parse_naming_series([trimmed_param], doc=doc)
+		return parse_naming_series([param[1:-1]], doc=doc)
 
 	# Replace braced params with their parsed value
 	name = BRACED_PARAMS_PATTERN.sub(get_param_value_for_match, autoname_value)
