@@ -528,7 +528,6 @@ class DatabaseQuery(object):
 		asterisk_fields = []
 		permitted_fields = get_permitted_fields(
 			doctype=self.doctype,
-			parenttype=self.parent_doctype,
 			permission_type=self.permission_map.get(self.doctype),
 		)
 
