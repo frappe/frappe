@@ -369,6 +369,15 @@ class TestNaming(FrappeTestCase):
 			name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value"
 		)
 
+	def test_naming_with_empty_field(self):
+		# check naming with empty field value
+
+		webhook = frappe.new_doc("Webhook")
+		series = "KOOH-.{request_structure}.-.request_structure.-.####"
+
+		name = parse_naming_series(series, doc=webhook)
+		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
+
 
 def make_invalid_todo():
 	frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert(set_name="ToDo")
