@@ -15,6 +15,8 @@ from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 
+PREPARED_REPORT_THRESHOLD = 30
+
 
 class Report(Document):
 	def validate(self):
@@ -121,21 +123,22 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 30
-		res = []
 
 		start_time = datetime.datetime.now()
 
-		# The JOB
 		if self.is_standard == "Yes":
 			res = self.execute_module(filters)
 		else:
 			res = self.execute_script(filters)
 
-		# automatically set as prepared
+		# automatically set as prepared for standard reports
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
-		if execution_time > threshold and not self.prepared_report:
-			self.db_set("prepared_report", 1)
+		if (
+			self.is_standard == "Yes"
+			and not self.prepared_report
+			and execution_time > PREPARED_REPORT_THRESHOLD
+		):
+			self.db_set("prepared_report", 1, update_modified=False)
 
 		frappe.cache().hset("report_execution_time", self.name, execution_time)
 
