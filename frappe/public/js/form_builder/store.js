@@ -129,7 +129,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		if (is_customize_form.value) {
 			breadcrumbs = `
 				<li><a href="/app/customize-form?doc_type=${doctype.value}">
-					${__("Customize Form ({0})", [__(doctype.value)])}
+					${__("Customize Form")}
 				</a></li>
 			`;
 		}
