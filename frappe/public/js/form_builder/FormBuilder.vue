@@ -1,8 +1,8 @@
 <script setup>
-import Sidebar from "./Sidebar.vue";
-import Tabs from "./Tabs.vue";
+import Sidebar from "./components/Sidebar.vue"
+import Tabs from "./components/Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
-import { useStore } from "../store";
+import { useStore } from "./store";
 import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
 
 let store = useStore();

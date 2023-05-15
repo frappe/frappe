@@ -1,7 +1,7 @@
 import { createApp, watchEffect } from "vue";
 import { createPinia } from "pinia";
 import { useStore } from "./store";
-import FormBuilderComponent from "./components/FormBuilder.vue";
+import FormBuilderComponent from "./FormBuilder.vue";
 import { registerGlobalComponents } from "./globals.js";
 
 class FormBuilder {
