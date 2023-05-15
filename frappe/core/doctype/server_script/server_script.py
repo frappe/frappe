@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from functools import partial
 from types import FunctionType, MethodType, ModuleType
 
 import frappe
@@ -84,8 +85,9 @@ class ServerScript(Document):
 			# Note that rate limiter works on `cmd` which is script name
 			limit = self.rate_limit_count or 5
 			seconds = self.rate_limit_seconds or 24 * 60 * 60
-			_fn = rate_limit(limit=limit, seconds=seconds)(execute_api_server_script)
-			return _fn(script=self)
+
+			_fn = partial(execute_api_server_script, script=self)
+			return rate_limit(limit=limit, seconds=seconds)(_fn)()
 		else:
 			return execute_api_server_script(self)
 
@@ -203,7 +205,7 @@ def setup_scheduler_events(script_name, frequency):
 		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(script_name))
 
 
-def execute_api_server_script(script):
+def execute_api_server_script(script=None, *args, **kwargs):
 	if script.script_type != "API":
 		raise frappe.DoesNotExistError
 
