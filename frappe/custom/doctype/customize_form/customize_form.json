@@ -22,6 +22,7 @@
   "allow_import",
   "queue_in_background",
   "fields_section_break",
+  "try_form_builder_html",
   "fields",
   "naming_section",
   "naming_rule",
@@ -366,6 +367,11 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "fieldname": "try_form_builder_html",
+   "fieldtype": "HTML",
+   "label": "Try Form Builder HTML"
   }
  ],
  "hide_toolbar": 1,
@@ -374,7 +380,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-10-30 23:39:49.628093",
+ "modified": "2023-05-15 16:03:19.872532",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
