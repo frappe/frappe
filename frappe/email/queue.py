@@ -3,14 +3,7 @@
 
 import frappe
 from frappe import _, msgprint
-<<<<<<< HEAD
-from frappe.query_builder import DocType, Interval
-from frappe.query_builder.functions import Now
-from frappe.utils import cint, get_url, now_datetime
-=======
 from frappe.utils import cint, cstr, get_url, now_datetime
-from frappe.utils.data import getdate
->>>>>>> 2ec893278a (fix: email: get unsub email: use `cstr` instead of `encode` (#20985))
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 
