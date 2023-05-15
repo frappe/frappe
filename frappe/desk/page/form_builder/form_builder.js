@@ -62,7 +62,26 @@ function load_form_builder(wrapper) {
 			],
 			primary_action_label: __("Edit"),
 			primary_action({ doctype, customize }) {
-				frappe.set_route("form-builder", doctype, customize ? "customize" : null);
+				if (customize) {
+					frappe.model.with_doctype(doctype).then(() => {
+						let meta = frappe.get_meta(doctype);
+						if (in_list(frappe.model.core_doctypes_list, this.doctype))
+							frappe.throw(__("Core DocTypes cannot be customized."));
+
+						if (meta.issingle)
+							frappe.throw(__("Single DocTypes cannot be customized."));
+
+						if (meta.custom)
+							frappe.throw(
+								__(
+									"Only standard DocTypes are allowed to be customized from Customize Form."
+								)
+							);
+						frappe.set_route("form-builder", doctype, "customize");
+					});
+				} else {
+					frappe.set_route("form-builder", doctype);
+				}
 			},
 			secondary_action_label: __("Create New DocType"),
 			secondary_action() {
