@@ -94,6 +94,11 @@ class Database:
 		self.db_name = frappe.conf.db_name
 		self._conn = None
 
+		self.sslmode = frappe.conf.db_ssl_mode or None
+		self.sslrootcert = frappe.conf.db_ssl_ca or None
+		self.sslcert = frappe.conf.db_ssl_cert or None
+		self.sslkey = frappe.conf.db_ssl_key or None
+
 		if ac_name:
 			self.user = ac_name or frappe.conf.db_name
 
