@@ -45,7 +45,7 @@ function load_form_builder(wrapper) {
 		});
 	} else {
 		let d = new frappe.ui.Dialog({
-			title: __("Edit DocType"),
+			title: __("Select DocType"),
 			fields: [
 				{
 					label: __("Select DocType"),
