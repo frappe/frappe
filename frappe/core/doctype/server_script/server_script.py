@@ -206,6 +206,10 @@ def setup_scheduler_events(script_name, frequency):
 
 
 def execute_api_server_script(script=None, *args, **kwargs):
+	# These are only added for compatibility with rate limiter.
+	del args
+	del kwargs
+
 	if script.script_type != "API":
 		raise frappe.DoesNotExistError
 
