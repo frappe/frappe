@@ -304,6 +304,7 @@ def parse_naming_series(
 	"""
 
 	name = ""
+	_sentinel = object()
 	if isinstance(parts, str):
 		parts = parts.split(".")
 
@@ -336,7 +337,7 @@ def parse_naming_series(
 			part = str(today)
 		elif e == "FY":
 			part = frappe.defaults.get_user_default("fiscal_year")
-		elif doc and (e.startswith("{") or hasattr(doc, e)):
+		elif doc and (e.startswith("{") or doc.get(e, _sentinel) is not _sentinel):
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
 		else:
