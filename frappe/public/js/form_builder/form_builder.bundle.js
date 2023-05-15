@@ -17,7 +17,7 @@ class FormBuilder {
 
 	init(refresh) {
 		// set page title
-		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
+		this.page.set_title(__(this.doctype));
 
 		this.setup_page_actions();
 		!refresh && this.setup_app();
