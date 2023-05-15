@@ -180,6 +180,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			);
 	}
 
+	get_group_by() {
+		let group_by = super.get_group_by()
+		Object.entries(this.link_field_title_fields).forEach((entry) => {
+			group_by += `,${entry.join(".")}`
+		  });
+		return group_by
+	}
+
 	async set_fields() {
 		this.link_field_title_fields = {};
 		let fields = [].concat(

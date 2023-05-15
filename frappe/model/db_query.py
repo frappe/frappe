@@ -361,6 +361,27 @@ class DatabaseQuery:
 				if alias:
 					field = f"{field} as {alias}"
 				self.fields[self.fields.index(original_field)] = field
+		
+		if self.group_by:
+			group_by_fields = self.group_by.split(",")
+			# convert child_table.fieldname to `tabChild DocType`.`fieldname`
+			for field in group_by_fields:
+				if "." in field:
+					original_field = field
+					alias = None
+					if " as " in field:
+						field, alias = field.split(" as ", 1)
+					linked_fieldname, fieldname = field.split(".", 1)
+					linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
+					# this is not a link field
+					if not linked_field:
+						continue
+					linked_doctype = linked_field.options
+					field = f"`tab{linked_doctype}`.`{fieldname}`"
+					if alias:
+						field = f"{field} as {alias}"
+					group_by_fields[group_by_fields.index(original_field)] = field
+			self.group_by = ', '.join(group_by_fields)
 
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
@@ -1068,6 +1089,13 @@ class DatabaseQuery:
 		if ORDER_GROUP_PATTERN.match(_lower):
 			frappe.throw(_("Illegal SQL Query"))
 
+		link_table_names = []
+		if self.link_tables:
+			for linked_table in self.link_tables:
+				link_table_names.append(linked_table["table_name"])
+
+		all_table_names = [*self.tables, *link_table_names]
+
 		for field in parameters.split(","):
 			field = field.strip()
 			function = field.split("(", 1)[0].rstrip().lower()
@@ -1075,7 +1103,7 @@ class DatabaseQuery:
 
 			if full_field_name:
 				tbl = field.split(".", 1)[0]
-				if tbl not in self.tables:
+				if tbl not in all_table_names:
 					if tbl.startswith("`"):
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
