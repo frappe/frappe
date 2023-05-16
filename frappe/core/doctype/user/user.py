@@ -51,7 +51,7 @@ class User(Document):
 	def onload(self):
 		from frappe.config import get_modules_from_all_apps
 
-		self.set_onload("all_modules", [m.get("module_name") for m in get_modules_from_all_apps()])
+		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
 	def before_insert(self):
 		self.flags.in_insert = True

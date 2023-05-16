@@ -11,6 +11,7 @@ import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
+from frappe.utils.background_jobs import is_job_enqueued
 
 
 class TestRQJob(FrappeTestCase):
@@ -95,6 +96,13 @@ class TestRQJob(FrappeTestCase):
 
 		_, stderr = execute_in_shell("bench worker --queue short,default --burst", check_exit_code=True)
 		self.assertIn("quitting", cstr(stderr))
+
+	@timeout(20)
+	def test_job_id_dedup(self):
+		job_id = "test_dedup"
+		job = frappe.enqueue(self.BG_JOB, sleep=10, job_id=job_id)
+		self.assertTrue(is_job_enqueued(job_id))
+		stop_job(job.id)
 
 
 def test_func(fail=False, sleep=0):
