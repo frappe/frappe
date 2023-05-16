@@ -26,6 +26,7 @@
   "is_virtual",
   "queue_in_background",
   "fields_section_break",
+  "try_form_builder_html",
   "fields",
   "sb1",
   "naming_rule",
@@ -630,6 +631,11 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "fieldname": "try_form_builder_html",
+   "fieldtype": "HTML",
+   "label": "Try Form Builder HTML"
   }
  ],
  "icon": "fa fa-bolt",
@@ -712,7 +718,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-03-23 16:15:51.067267",
+ "modified": "2023-05-15 14:07:51.526257",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

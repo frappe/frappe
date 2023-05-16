@@ -115,14 +115,7 @@ frappe.ui.form.on("Customize Form", {
 				frm.page.set_title(__("Customize Form - {0}", [frm.doc.doc_type]));
 				frappe.customize_form.set_primary_action(frm);
 
-				if (!frm.is_new()) {
-					frm.add_custom_button(
-						__("Try new form builder", [__(frm.doc.doc_type)]),
-						() => {
-							frappe.set_route("form-builder", frm.doc.doc_type, "customize");
-						}
-					);
-				}
+				render_form_builder_message(frm);
 
 				frm.add_custom_button(
 					__("Go to {0} List", [__(frm.doc.doc_type)]),
@@ -425,5 +418,32 @@ frappe.customize_form.clear_locals_and_refresh = function (frm) {
 	delete frappe.meta.docfield_copy[frm.doc.doc_type];
 	frm.refresh();
 };
+
+function render_form_builder_message(frm) {
+	$(frm.fields_dict["try_form_builder_html"].wrapper).empty();
+	if (!frm.is_new() && frm.fields_dict["try_form_builder_html"]) {
+		let title = __("Use Form Builder to visually customize your form layout");
+		let msg = __(
+			"You can drag and drop fields to create your form layout, add tabs, sections and columns to organize your form and update field properties all from one screen."
+		);
+
+		let message = `
+		<div class="flex form-message blue p-3">
+			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="275" src="/assets/frappe/images/form-builder.gif"></div>
+			<div>
+				<p style="font-size: var(--text-lg)">${title}</p>
+				<p>${msg}</p>
+				<div>
+					<a class="btn btn-primary btn-sm" href="/app/form-builder/${frm.doc.doc_type}/customize">
+						${__("Form Builder")} ${frappe.utils.icon("right", "xs")}
+					</a>
+				</div>
+			</div>
+		</div>
+		`;
+
+		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
+	}
+}
 
 extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
