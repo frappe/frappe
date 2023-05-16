@@ -424,3 +424,12 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 ]
+
+get_changelog_feed = [
+	{
+		"title": "Spid",
+		"creation": "2023-04-03 16:56:51.436456",
+		"app_name": "Frappe Framework",
+		"link": "https://frappe.io/wiki",
+	}
+]

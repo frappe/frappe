@@ -309,3 +309,15 @@ def show_update_popup():
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator="green")
 		cache.srem("update-user-set", user)
+
+
+@frappe.whitelist()
+def get_changelog_feed_items():
+	"""Returns a list of all fetched changelog feed items"""
+
+	changelog_feed_items = frappe.cache().get_value("changelog_feed")
+	if not changelog_feed_items:
+		changelog_feed_items = frappe.get_hooks("get_changelog_feed")
+		frappe.cache().set_value("changelog_feed", changelog_feed_items, expires_in_sec=60 * 60)
+
+	return changelog_feed_items
