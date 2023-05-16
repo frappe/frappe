@@ -411,10 +411,9 @@ export default class OnboardingWidget extends Widget {
 						});
 					};
 				} else {
-					frappe.msgprint({
-						message: __("Let us continue with the onboarding"),
-						title: __("Document Saved"),
-					});
+					frappe.show_alert(
+						__("Document Saved") + "<br>" + __("Let us continue with the onboarding")
+					);
 					this.mark_complete(step);
 				}
 			},
