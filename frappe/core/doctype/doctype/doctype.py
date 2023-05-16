@@ -345,6 +345,7 @@ class DocType(Document):
 			"name",
 			"parent",
 			"creation",
+			"owner",
 			"modified",
 			"modified_by",
 			"parentfield",

@@ -9,6 +9,7 @@ import json
 import poplib
 import re
 import time
+from contextlib import suppress
 from email.header import decode_header
 
 import _socket
@@ -37,7 +38,7 @@ from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
-poplib._MAXLINE = 20480
+poplib._MAXLINE = 1_00_000
 
 THREAD_ID_PATTERN = re.compile(r"(?<=\[)[\w/-]+")
 WORDS_PATTERN = re.compile(r"\w+")
@@ -48,10 +49,6 @@ class EmailSizeExceededError(frappe.ValidationError):
 
 
 class EmailTimeoutError(frappe.ValidationError):
-	pass
-
-
-class TotalSizeExceededError(frappe.ValidationError):
 	pass
 
 
@@ -67,26 +64,11 @@ class EmailServer:
 	"""Wrapper for POP server to pull emails."""
 
 	def __init__(self, args=None):
-		self.setup(args)
-
-	def setup(self, args=None):
-		# overrride
 		self.settings = args or frappe._dict()
-
-	def check_mails(self):
-		# overrride
-		return True
-
-	def process_message(self, mail):
-		# overrride
-		pass
 
 	def connect(self):
 		"""Connect to **Email Account**."""
-		if cint(self.settings.use_imap):
-			return self.connect_imap()
-		else:
-			return self.connect_pop()
+		return self.connect_imap() if cint(self.settings.use_imap) else self.connect_pop()
 
 	def connect_imap(self):
 		"""Connect to IMAP"""
@@ -150,8 +132,7 @@ class EmailServer:
 			return True
 
 		except _socket.error:
-			# log performs rollback and logs error in Error Log
-			self.log_error("POP: Unable to connect")
+			frappe.log_error("POP: Unable to connect")
 
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
@@ -177,66 +158,33 @@ class EmailServer:
 		return
 
 	def get_messages(self, folder="INBOX"):
-		"""Returns new email messages in a list."""
-		if not (self.check_mails() or self.connect()):
-			return []
+		"""Returns new email messages."""
 
-		frappe.db.commit()
+		self.latest_messages = []
+		self.seen_status = {}
+		self.uid_reindexed = False
 
-		uid_list = []
+		email_list = self.get_new_mails(folder)
 
-		try:
-			# track if errors arised
-			self.errors = False
-			self.latest_messages = []
-			self.seen_status = {}
-			self.uid_reindexed = False
-
-			uid_list = email_list = self.get_new_mails(folder)
-
-			if not email_list:
-				return
-
-			num = num_copy = len(email_list)
-
-			# WARNING: Hard coded max no. of messages to be popped
-			if num > 50:
-				num = 50
-
-			# size limits
-			self.total_size = 0
-			self.max_email_size = cint(frappe.local.conf.get("max_email_size"))
-			self.max_total_size = 5 * self.max_email_size
-
-			for i, message_meta in enumerate(email_list[:num]):
-				try:
-					self.retrieve_message(message_meta, i + 1)
-				except (TotalSizeExceededError, EmailTimeoutError, LoginLimitExceeded):
-					break
-			# WARNING: Mark as read - message number 101 onwards from the pop list
-			# This is to avoid having too many messages entering the system
-			num = num_copy
-			if not cint(self.settings.use_imap):
-				if num > 100 and not self.errors:
-					for m in range(101, num + 1):
-						self.pop.dele(m)
-
-		except Exception as e:
-			if not self.has_login_limit_exceeded(e):
-				raise
+		for i, uid in enumerate(email_list[:100]):
+			try:
+				self.retrieve_message(uid, i + 1)
+			except (EmailTimeoutError, LoginLimitExceeded):
+				# get whatever messages were retrieved
+				break
 
 		out = {"latest_messages": self.latest_messages}
 		if self.settings.use_imap:
 			out.update(
-				{"uid_list": uid_list, "seen_status": self.seen_status, "uid_reindexed": self.uid_reindexed}
+				{"uid_list": email_list, "seen_status": self.seen_status, "uid_reindexed": self.uid_reindexed}
 			)
 
 		return out
 
 	def get_new_mails(self, folder):
 		"""Return list of new mails"""
+		email_list = []
 		if cint(self.settings.use_imap):
-			email_list = []
 			self.check_imap_uidvalidity(folder)
 
 			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
@@ -294,9 +242,6 @@ class EmailServer:
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
 
-		elif uid_validity == current_uid_validity:
-			return
-
 	def parse_imap_response(self, cmd, response):
 		pattern = rf"(?<={cmd} )[0-9]*"
 		match = re.search(pattern, response.decode("utf-8"), re.U | re.I)
@@ -306,49 +251,28 @@ class EmailServer:
 		else:
 			return None
 
-	def retrieve_message(self, message_meta, msg_num=None):
-		incoming_mail = None
+	def retrieve_message(self, uid, msg_num):
 		try:
-			self.validate_message_limits(message_meta)
-
 			if cint(self.settings.use_imap):
-				status, message = self.imap.uid("fetch", message_meta, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
+				status, message = self.imap.uid("fetch", uid, "(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)")
 				raw = message[0]
 
-				self.get_email_seen_status(message_meta, raw[0])
+				self.get_email_seen_status(uid, raw[0])
 				self.latest_messages.append(raw[1])
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b"\n".join(msg[1]))
-		except (TotalSizeExceededError, EmailTimeoutError):
+		except EmailTimeoutError:
 			# propagate this error to break the loop
-			self.errors = True
 			raise
 
 		except Exception as e:
 			if self.has_login_limit_exceeded(e):
-				self.errors = True
 				raise LoginLimitExceeded(e)
 
-			else:
-				# log performs rollback and logs error in Error Log
-				self.log_error("Unable to fetch email", self.make_error_msg(msg_num, incoming_mail))
-				self.errors = True
-				frappe.db.rollback()
+			frappe.log_error("Unable to fetch email", self.make_error_msg(uid, msg_num))
 
-				if not cint(self.settings.use_imap):
-					self.pop.dele(msg_num)
-				else:
-					# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
-					if self.settings.email_sync_rule == "UNSEEN":
-						self.imap.uid("STORE", message_meta, "+FLAGS", "(\\SEEN)")
-		else:
-			if not cint(self.settings.use_imap):
-				self.pop.dele(msg_num)
-			else:
-				# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
-				if self.settings.email_sync_rule == "UNSEEN":
-					self.imap.uid("STORE", message_meta, "+FLAGS", "(\\SEEN)")
+		self._post_retrieve_cleanup(uid, msg_num)
 
 	def get_email_seen_status(self, uid, flag_string):
 		"""parse the email FLAGS response"""
@@ -368,6 +292,15 @@ class EmailServer:
 	def has_login_limit_exceeded(self, e):
 		return "-ERR Exceeded the login limit" in strip(cstr(e))
 
+	def _post_retrieve_cleanup(self, uid, msg_num):
+		with suppress(Exception):
+			if not cint(self.settings.use_imap):
+				self.pop.dele(msg_num)
+			else:
+				# mark as seen if email sync rule is UNSEEN (syncing only unseen mails)
+				if self.settings.email_sync_rule == "UNSEEN":
+					self.imap.uid("STORE", uid, "+FLAGS", "(\\SEEN)")
+
 	def is_temporary_system_problem(self, e):
 		messages = (
 			"-ERR [SYS/TEMP] Temporary system problem. Please try again later.",
@@ -378,36 +311,28 @@ class EmailServer:
 				return True
 		return False
 
-	def validate_message_limits(self, message_meta):
-		# throttle based on email size
-		if not self.max_email_size:
-			return
+	def make_error_msg(self, uid, msg_num):
+		partial_mail = None
+		traceback = frappe.get_traceback(with_context=True)
+		with suppress(Exception):
+			# retrieve headers
+			if not cint(self.settings.use_imap):
+				headers = b"\n".join(self.pop.top(msg_num, 5)[1])
+			else:
+				headers = self.imap.uid("fetch", uid, "(BODY.PEEK[HEADER])")[1][0][1]
 
-		m, size = message_meta.split()
-		size = cint(size)
+			partial_mail = Email(headers)
 
-		if size < self.max_email_size:
-			self.total_size += size
-			if self.total_size > self.max_total_size:
-				raise TotalSizeExceededError
-		else:
-			raise EmailSizeExceededError
-
-	def make_error_msg(self, msg_num, incoming_mail):
-		error_msg = "Error in retrieving email."
-		if not incoming_mail:
-			try:
-				# retrieve headers
-				incoming_mail = Email(b"\n".join(self.pop.top(msg_num, 5)[1]))
-			except Exception:
-				pass
-
-		if incoming_mail:
-			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
-				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject
+		if partial_mail:
+			return (
+				"\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n\n\nTraceback: \n{traceback}".format(
+					date=partial_mail.date,
+					from_email=partial_mail.from_email,
+					subject=partial_mail.subject,
+					traceback=traceback,
+				)
 			)
-
-		return error_msg
+		return traceback
 
 	def update_flag(self, folder, uid_list=None):
 		"""set all uids mails the flag as seen"""
@@ -723,6 +648,9 @@ class InboundMail(Email):
 		communication = frappe.get_doc(data)
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions=True)
+
+		# Communication might have been modified by some hooks, reload before saving
+		communication.reload()
 
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)

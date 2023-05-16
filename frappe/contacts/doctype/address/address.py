@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Optional
+
 from jinja2 import TemplateSyntaxError
 
 import frappe
@@ -100,36 +102,30 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 
 
 @frappe.whitelist()
-def get_default_address(doctype, name, sort_key="is_primary_address"):
+def get_default_address(
+	doctype: str, name: str, sort_key: str = "is_primary_address"
+) -> str | None:
 	"""Returns default Address name for the given doctype, name"""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
 		return None
 
-	out = frappe.db.sql(
-		""" SELECT
-			addr.name, addr.%s
-		FROM
-			`tabAddress` addr, `tabDynamic Link` dl
-		WHERE
-			dl.parent = addr.name and dl.link_doctype = %s and
-			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
-		"""
-		% (sort_key, "%s", "%s"),
-		(doctype, name),
-		as_dict=True,
+	addresses = frappe.get_all(
+		"Address",
+		filters=[
+			["Dynamic Link", "link_doctype", "=", doctype],
+			["Dynamic Link", "link_name", "=", name],
+			["disabled", "=", 0],
+		],
+		pluck="name",
+		order_by=f"{sort_key} DESC",
+		limit=1,
 	)
 
-	if out:
-		for contact in out:
-			if contact.get(sort_key):
-				return contact.name
-		return out[0].name
-	else:
-		return None
+	return addresses[0] if addresses else None
 
 
 @frappe.whitelist()
-def get_address_display(address_dict):
+def get_address_display(address_dict: dict | str | None) -> str | None:
 	if not address_dict:
 		return
 

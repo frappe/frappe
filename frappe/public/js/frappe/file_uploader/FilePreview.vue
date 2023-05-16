@@ -24,8 +24,8 @@
 			</div>
 
 			<div class="flex config-area">
-				<label v-if="is_optimizable" class="frappe-checkbox"><input type="checkbox" :checked="optimize" @change="emit('toggle_optimize')">Optimize</label>
-				<label class="frappe-checkbox"><input type="checkbox" :checked="file.private" @change="emit('toggle_private')">Private</label>
+				<label v-if="is_optimizable" class="frappe-checkbox"><input type="checkbox" :checked="optimize" @change="emit('toggle_optimize')">{{ __('Optimize') }}</label>
+				<label class="frappe-checkbox"><input type="checkbox" :checked="file.private" @change="emit('toggle_private')">{{ __('Private') }}</label>
 			</div>
 			<div>
 				<span v-if="file.error_message" class="file-error text-danger">

@@ -101,9 +101,11 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 
 		setup_undo_redo();
+		setup_breadcrumbs();
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
+		if (!ref_history.value) return;
 		if (e.ctrlKey || e.metaKey) {
 			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
 				ref_history.value.undo();
@@ -117,6 +119,23 @@ export const useStore = defineStore("form-builder-store", () => {
 		ref_history.value = useDebouncedRefHistory(form, { deep: true, debounce: 100 });
 
 		undo_redo_keyboard_event;
+	}
+
+	function setup_breadcrumbs() {
+		let breadcrumbs = `
+			<li><a href="/app/doctype">${__("DocType")}</a></li>
+			<li><a href="/app/doctype/${doctype.value}">${__(doctype.value)}</a></li>
+		`;
+		if (is_customize_form.value) {
+			breadcrumbs = `
+				<li><a href="/app/customize-form?doc_type=${doctype.value}">
+					${__("Customize Form")}
+				</a></li>
+			`;
+		}
+		breadcrumbs += `<li class="disabled"><a href="#">${__("Form Builder")}</a></li>`;
+		frappe.breadcrumbs.clear();
+		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
 	}
 
 	function reset_changes() {

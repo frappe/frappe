@@ -153,6 +153,8 @@ class Workspace:
 			return True
 		if item_type == "dashboard":
 			return True
+		if item_type == "url":
+			return True
 
 		return False
 
@@ -615,4 +617,8 @@ def update_onboarding_step(name, field, value):
 	        value: Value to be updated
 
 	"""
+	from frappe.utils.telemetry import capture
+
 	frappe.db.set_value("Onboarding Step", name, field, value)
+
+	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})

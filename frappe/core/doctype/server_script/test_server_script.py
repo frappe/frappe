@@ -3,6 +3,7 @@
 import requests
 
 import frappe
+from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url
 
@@ -233,3 +234,52 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		)
 		script.insert()
 		script.execute_method()
+
+	def test_server_script_rate_limiting(self):
+		# why not
+		script1 = frappe.get_doc(
+			doctype="Server Script",
+			name="rate_limited_server_script",
+			script_type="API",
+			enable_rate_limit=1,
+			allow_guest=1,
+			rate_limit_count=5,
+			api_method="rate_limited_endpoint",
+			script="""frappe.flags = {"test": True}""",
+		)
+
+		script1.insert()
+
+		script2 = frappe.get_doc(
+			doctype="Server Script",
+			name="rate_limited_server_script2",
+			script_type="API",
+			enable_rate_limit=1,
+			allow_guest=1,
+			rate_limit_count=5,
+			api_method="rate_limited_endpoint2",
+			script="""frappe.flags = {"test": False}""",
+		)
+
+		script2.insert()
+
+		frappe.db.commit()
+
+		site = frappe.utils.get_site_url(frappe.local.site)
+		client = FrappeClient(site)
+
+		# Exhaust rate limti
+		for _ in range(5):
+			client.get_api(script1.api_method)
+
+		self.assertRaises(FrappeException, client.get_api, script1.api_method)
+
+		# Exhaust rate limti
+		for _ in range(5):
+			client.get_api(script2.api_method)
+
+		self.assertRaises(FrappeException, client.get_api, script2.api_method)
+
+		script1.delete()
+		script2.delete()
+		frappe.db.commit()
