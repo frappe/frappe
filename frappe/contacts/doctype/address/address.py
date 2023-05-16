@@ -212,12 +212,11 @@ def get_address_templates(address):
 
 
 def get_company_address(company):
-	if not company:
-		return None
-
 	ret = frappe._dict()
-	ret.company_address = get_default_address("Company", company)
-	ret.company_address_display = get_address_display(ret.company_address)
+
+	if company:
+		ret.company_address = get_default_address("Company", company)
+		ret.company_address_display = get_address_display(ret.company_address)
 
 	return ret
 
