@@ -36,7 +36,7 @@ frappe.workflow = {
 		frappe.workflow.setup(doc.doctype);
 		return frappe.xcall("frappe.model.workflow.get_transitions", { doc: doc });
 	},
-	get_document_state: function (doctype, state) {
+	get_document_state_roles: function (doctype, state) {
 		frappe.workflow.setup(doctype);
 		let workflow_states = frappe.get_children(frappe.workflow.workflows[doctype], "states", { state: state }) || [];
 		let workflow_states =
@@ -59,7 +59,7 @@ frappe.workflow = {
 				doc[state_fieldname] || frappe.workflow.get_default_state(doctype, doc.docstatus);
 
 			let allow_edit_roles = state
-				? frappe.workflow.get_document_state(doctype, state)
+				? frappe.workflow.get_document_state_roles(doctype, state)
 				: null;
 			let has_common_role = frappe.user_roles.some((role) =>
 				allow_edit_roles.includes(role)
