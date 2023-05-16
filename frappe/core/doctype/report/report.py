@@ -157,10 +157,18 @@ class Report(Document):
 			return self.get_columns(), loc["result"]
 
 	def get_data(
-		self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False
+		self,
+		filters=None,
+		limit=None,
+		user=None,
+		as_dict=False,
+		ignore_prepared_report=False,
+		are_default_filters=True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
-			columns, result = self.run_query_report(filters, user, ignore_prepared_report)
+			columns, result = self.run_query_report(
+				filters, user, ignore_prepared_report, are_default_filters
+			)
 		else:
 			columns, result = self.run_standard_report(filters, limit, user)
 
@@ -169,10 +177,16 @@ class Report(Document):
 
 		return columns, result
 
-	def run_query_report(self, filters=None, user=None, ignore_prepared_report=False):
+	def run_query_report(
+		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+	):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(
-			self.name, filters=filters, user=user, ignore_prepared_report=ignore_prepared_report
+			self.name,
+			filters=filters,
+			user=user,
+			ignore_prepared_report=ignore_prepared_report,
+			are_default_filters=are_default_filters,
 		)
 
 		for d in data.get("columns"):
