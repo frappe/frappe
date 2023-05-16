@@ -103,7 +103,7 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 
 @frappe.whitelist()
 def get_default_address(
-	doctype: str, name: str, sort_key: str = "is_primary_address"
+	doctype: str, name: str | None, sort_key: str = "is_primary_address"
 ) -> str | None:
 	"""Returns default Address name for the given doctype, name"""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
@@ -212,6 +212,9 @@ def get_address_templates(address):
 
 
 def get_company_address(company):
+	if not company:
+		return None
+
 	ret = frappe._dict()
 	ret.company_address = get_default_address("Company", company)
 	ret.company_address_display = get_address_display(ret.company_address)
