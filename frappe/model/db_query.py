@@ -59,6 +59,7 @@ class DatabaseQuery(object):
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 		self.reference_doctype = None
+		self.permission_map = {}
 
 	def execute(
 		self,
@@ -98,7 +99,6 @@ class DatabaseQuery(object):
 			and not frappe.has_permission(self.doctype, "select", user=user)
 			and not frappe.has_permission(self.doctype, "read", user=user)
 		):
-
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(
 				frappe.bold(self.doctype)
 			)
@@ -421,6 +421,7 @@ class DatabaseQuery(object):
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype, ptype=ptype)):
 			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
+		self.permission_map[doctype] = ptype
 
 	def set_field_tables(self):
 		"""If there are more than one table, the fieldname must not be ambiguous.
@@ -525,7 +526,10 @@ class DatabaseQuery(object):
 			return
 
 		asterisk_fields = []
-		permitted_fields = get_permitted_fields(doctype=self.doctype)
+		permitted_fields = get_permitted_fields(
+			doctype=self.doctype,
+			permission_type=self.permission_map.get(self.doctype),
+		)
 
 		for i, field in enumerate(self.fields):
 			if "distinct" in field.lower():

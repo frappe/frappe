@@ -21,6 +21,7 @@ from frappe.permissions import (
 	update_permission_property,
 )
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.tests.test_db_query import enable_permlevel_restrictions
 
 test_dependencies = ["Blogger", "Blog Post", "User", "Contact", "Salutation"]
 
@@ -88,6 +89,12 @@ class TestPermissions(unittest.TestCase):
 		# validate does not have read and write perm
 		self.assertFalse(post.has_permission("read"))
 		self.assertRaises(frappe.PermissionError, post.save)
+
+		with enable_permlevel_restrictions():
+			permitted_record = frappe.get_list("Blog Post", fields="*", limit=1)[0]
+			full_record = frappe.get_all("Blog Post", fields="*", limit=1)[0]
+			self.assertNotEqual(permitted_record, full_record)
+			self.assertTrue(set(post.meta.get_search_fields()).issubset(set(permitted_record)))
 
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Blog Category", "-test-blog-category-1", "test2@example.com")

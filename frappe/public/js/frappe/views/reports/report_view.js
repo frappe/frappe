@@ -1298,9 +1298,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return filters
 			.map((f) => {
 				const [doctype, fieldname, condition, value] = f;
-				if (condition !== '=') return '';
+				if (condition !== "=") return "";
+				const label = frappe.meta.get_label(doctype, fieldname);
 				const docfield = frappe.meta.get_docfield(doctype, fieldname);
-				return `<h6>${__(docfield.label)}: ${frappe.format(value, docfield)}</h6>`;
+				return `<h6>${__(label)}: ${frappe.format(value, docfield)}</h6>`;
 			})
 			.join("");
 	}
