@@ -32,7 +32,7 @@ context("Form Builder", () => {
 
 		cy.click_modal_primary_button("Change");
 
-		cy.get(".page-title .title-text").should("have.text", "Form Builder: Web Form Field");
+		cy.get(".page-title .title-text").should("have.text", "Web Form Field");
 	});
 
 	it("Save without change, check form dirty and reset changes", () => {

@@ -124,14 +124,14 @@
    "depends_on": "enable_rate_limit",
    "fieldname": "rate_limit_count",
    "fieldtype": "Int",
-   "label": "Limit"
+   "label": "Request Limit"
   },
   {
    "default": "86400",
    "depends_on": "enable_rate_limit",
    "fieldname": "rate_limit_seconds",
    "fieldtype": "Int",
-   "label": "Seconds"
+   "label": "Time Window (Seconds)"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -141,7 +141,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2023-05-12 20:54:54.365266",
+ "modified": "2023-05-16 11:03:58.282680",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

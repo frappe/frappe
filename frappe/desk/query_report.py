@@ -298,7 +298,9 @@ def export_query():
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	data = run(report_name, form_params.filters, custom_columns=custom_columns)
+	data = run(
+		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
+	)
 	data = frappe._dict(data)
 	if not data.columns:
 		frappe.respond_as_web_page(
