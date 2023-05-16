@@ -625,6 +625,7 @@ svg_attributes = [
 	"color",
 	"color-rendering",
 	"content",
+	"colwidth",
 	"cx",
 	"cy",
 	"d",

@@ -649,6 +649,9 @@ class InboundMail(Email):
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions=True)
 
+		# Communication might have been modified by some hooks, reload before saving
+		communication.reload()
+
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)
 		communication.content = sanitize_html(self.replace_inline_images(communication._attachments))

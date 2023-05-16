@@ -617,4 +617,8 @@ def update_onboarding_step(name, field, value):
 	        value: Value to be updated
 
 	"""
+	from frappe.utils.telemetry import capture
+
 	frappe.db.set_value("Onboarding Step", name, field, value)
+
+	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})

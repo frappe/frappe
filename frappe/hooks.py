@@ -29,6 +29,7 @@ app_include_js = [
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
+	"telemetry.bundle.js",
 ]
 app_include_css = [
 	"desk.bundle.css",
@@ -272,7 +273,7 @@ setup_wizard_exception = [
 	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception",
 ]
 
-before_migrate = []
+before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = ["frappe.website.doctype.website_theme.website_theme.after_migrate"]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -417,4 +418,8 @@ before_job = [
 after_job = [
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
+]
+
+extend_bootinfo = [
+	"frappe.utils.telemetry.add_bootinfo",
 ]

@@ -88,9 +88,12 @@ class Engine:
 		if not self.fields:
 			self.fields = [getattr(self.table, "name")]
 
+		self.query._child_queries = []
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
 				self.query = field.apply_select(self.query)
+			elif isinstance(field, ChildQuery):
+				self.query._child_queries.append(field)
 			else:
 				self.query = self.query.select(field)
 
@@ -301,6 +304,9 @@ class Engine:
 		for field in fields:
 			if isinstance(field, Criterion):
 				_fields.append(field)
+			elif isinstance(field, dict):
+				for child_field, fields in field.items():
+					_fields.append(ChildQuery(child_field, fields, self.doctype))
 			elif isinstance(field, str):
 				if "," in field:
 					field = field.casefold() if "`" not in field else field
@@ -455,6 +461,35 @@ class LinkTableField(DynamicTableField):
 		if not query.is_joined(table):
 			query = query.left_join(table).on(table.name == getattr(main_table, self.link_fieldname))
 		return query
+
+
+class ChildQuery:
+	def __init__(
+		self,
+		fieldname: str,
+		fields: list,
+		parent_doctype: str,
+	) -> None:
+		field = frappe.get_meta(parent_doctype).get_field(fieldname)
+		if field.fieldtype not in frappe.model.table_fields:
+			return
+		self.fieldname = fieldname
+		self.fields = fields
+		self.parent_doctype = parent_doctype
+		self.doctype = field.options
+
+	def get_query(self, parent_names=None) -> QueryBuilder:
+		filters = {
+			"parenttype": self.parent_doctype,
+			"parentfield": self.fieldname,
+			"parent": ["in", parent_names],
+		}
+		return frappe.qb.get_query(
+			self.doctype,
+			fields=self.fields + ["parent", "parentfield"],
+			filters=filters,
+			order_by="idx asc",
+		)
 
 
 def literal_eval_(literal):
