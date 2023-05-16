@@ -38,11 +38,9 @@ frappe.workflow = {
 	},
 	get_document_state: function (doctype, state) {
 		frappe.workflow.setup(doctype);
-		var allow_edit = $.map(frappe.get_children(frappe.workflow.workflows[doctype], "states", { state: state }) || [],
-			function (d) {
-				return d.allow_edit;
-			});
-		return allow_edit
+		let workflow_states = frappe.get_children(frappe.workflow.workflows[doctype], "states", { state: state }) || [];
+		let allow_edit_list = workflow_states.map((d) => d.allow_edit);
+		return allow_edit_list
 	},
 	is_self_approval_enabled: function (doctype) {
 		return frappe.workflow.workflows[doctype].allow_self_approval;
