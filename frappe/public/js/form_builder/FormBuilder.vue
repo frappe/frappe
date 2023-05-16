@@ -1,8 +1,8 @@
 <script setup>
-import Sidebar from "./Sidebar.vue";
-import Tabs from "./Tabs.vue";
+import Sidebar from "./components/Sidebar.vue"
+import Tabs from "./components/Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
-import { useStore } from "../store";
+import { useStore } from "./store";
 import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
 
 let store = useStore();
@@ -35,8 +35,8 @@ function setup_change_doctype_dialog() {
 					default: store.doctype || null
 				},
 				{
-					label: __("For Customize Form"),
-					fieldname: "for_customize_form",
+					label: __("Customize"),
+					fieldname: "customize",
 					fieldtype: "Check",
 					default: store.is_customize_form
 				}
@@ -44,7 +44,7 @@ function setup_change_doctype_dialog() {
 			primary_action_label: __("Change"),
 			primary_action({ doctype }) {
 				dialog.hide();
-				let customize = dialog.get_value("for_customize_form") ? "customize" : "";
+				let customize = dialog.get_value("customize") ? "customize" : "";
 				frappe.set_route("form-builder", doctype, customize);
 			}
 		});
