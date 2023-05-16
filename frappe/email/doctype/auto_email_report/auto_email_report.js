@@ -63,21 +63,12 @@ frappe.ui.form.on('Auto Email Report', {
 			&& frappe.query_reports[frm.doc.report]
 			&& frappe.query_reports[frm.doc.report].filters)) {
 
-<<<<<<< HEAD
 			// make a table to show filters
 			var table = $('<table class="table table-bordered" style="cursor:pointer; margin:0px;"><thead>\
 				<tr><th style="width: 50%">'+__('Filter')+'</th><th>'+__('Value')+'</th></tr>\
 				</thead><tbody></tbody></table>').appendTo(wrapper);
 			$('<p class="text-muted small">' + __("Click table to edit") + '</p>').appendTo(wrapper);
 
-			var filters = JSON.parse(frm.doc.filters || '{}');
-
-			let report_filters;
-
-			if (frm.doc.report_type === 'Custom Report'
-				&& frappe.query_reports[frm.doc.reference_report]
-				&& frappe.query_reports[frm.doc.reference_report].filters) {
-=======
 			var filters = {};
 
 			let report_filters;
@@ -97,7 +88,6 @@ frappe.ui.form.on('Auto Email Report', {
 					});
 				}
 
->>>>>>> 348f852792 (fix: custom filters while exporting and creating new auto email reports)
 				report_filters = frappe.query_reports[frm.doc.reference_report].filters;
 			} else {
 				filters = JSON.parse(frm.doc.filters || "{}");
