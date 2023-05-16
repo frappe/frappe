@@ -51,11 +51,19 @@ frappe.ui.form.ControlDateRange = frappe.ui.form.ControlData.extend({
 			var to_date = moment(frappe.datetime.user_to_obj(vals[vals.length-1])).format('YYYY-MM-DD');
 			return [from_date, to_date];
 		}
+<<<<<<< HEAD
 	},
 	format_for_input: function(value1, value2) {
 		if(value1 && value2) {
 			value1 = frappe.datetime.str_to_user(value1);
 			value2 = frappe.datetime.str_to_user(value2);
+=======
+	}
+	format_for_input(value1, value2) {
+		if (value1 && value2) {
+			value1 = frappe.datetime.str_to_user(value1, false, true);
+			value2 = frappe.datetime.str_to_user(value2, false, true);
+>>>>>>> 28499d3eed (fix: do not consider time while formating date range value)
 			return __("{0} to {1}", [value1, value2]);
 		}
 		return "";
