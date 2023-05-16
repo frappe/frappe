@@ -638,7 +638,9 @@ class File(Document):
 
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
-		file_url = quote(frappe.safe_encode(self.file_url)) if self.file_url else self.file_name
+		file_url = (
+			quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
+		)
 		file_name = self.file_name or self.file_url
 
 		self.add_comment_in_reference_doc(
