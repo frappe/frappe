@@ -317,9 +317,8 @@ def export_query():
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-<<<<<<< HEAD
 	if file_format_type == "Excel":
-		data = run(report_name, filters, custom_columns=custom_columns)
+		data = run(report_name, filters, custom_columns=custom_columns, are_default_filters=False)
 		data = frappe._dict(data)
 		if not data.columns:
 			frappe.respond_as_web_page(
@@ -327,18 +326,6 @@ def export_query():
 				_("You can try changing the filters of your report."),
 			)
 			return
-=======
-	data = run(
-		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
-	)
-	data = frappe._dict(data)
-	if not data.columns:
-		frappe.respond_as_web_page(
-			_("No data to export"),
-			_("You can try changing the filters of your report."),
-		)
-		return
->>>>>>> 348f852792 (fix: custom filters while exporting and creating new auto email reports)
 
 		from frappe.utils.xlsxutils import make_xlsx
 
