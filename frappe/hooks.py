@@ -425,11 +425,21 @@ extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 ]
 
-get_changelog_feed = [
-	{
-		"title": "Spid",
-		"creation": "2023-04-03 16:56:51.436456",
-		"app_name": "Frappe Framework",
-		"link": "https://frappe.io/wiki",
-	}
-]
+get_changelog_feed = "frappe.hooks.get_feed"
+
+
+def get_feed():
+	return [
+		{
+			"title": "Spid",
+			"creation": "2023-04-03 16:56:51.436456",
+			"app_title": app_title,
+			"link": "https://frappe.io/wiki",
+		},
+		{
+			"title": "Stable something something",
+			"creation": "2023-05-03 16:56:51.436456",
+			"app_title": "HRMS",
+			"link": "https://frappe.io/blog",
+		},
+	]

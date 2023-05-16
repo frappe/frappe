@@ -317,7 +317,10 @@ def get_changelog_feed_items():
 
 	changelog_feed_items = frappe.cache().get_value("changelog_feed")
 	if not changelog_feed_items:
-		changelog_feed_items = frappe.get_hooks("get_changelog_feed")
+		changelog_feed_items = []
+		for fn in frappe.get_hooks("get_changelog_feed"):
+			changelog_feed_items += frappe.get_attr(fn)()
+
 		frappe.cache().set_value("changelog_feed", changelog_feed_items, expires_in_sec=60 * 60)
 
 	return changelog_feed_items
