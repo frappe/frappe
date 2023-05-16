@@ -57,16 +57,9 @@ frappe.workflow = {
 			var state =
 				doc[state_fieldname] || frappe.workflow.get_default_state(doctype, doc.docstatus);
 
-			var allow_edit_roles = state ? frappe.workflow.get_document_state(doctype, state) : null;
-			var read_only = true
-			if (allow_edit_roles) {
-				allow_edit_roles.forEach(allow_edit => {
-					if (frappe.user_roles.includes(allow_edit)) {
-						read_only = false;
-					}
-				});
-			}
-			return read_only
+			let allow_edit_roles = state ? frappe.workflow.get_document_state(doctype, state) : null;
+			let has_common_role = frappe.user_roles.some(role => allow_edit_roles.includes(role));
+			return !has_common_role;
 		}
 		return false;
 	},
