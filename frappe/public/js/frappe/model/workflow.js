@@ -38,7 +38,6 @@ frappe.workflow = {
 	},
 	get_document_state_roles: function (doctype, state) {
 		frappe.workflow.setup(doctype);
-		let workflow_states = frappe.get_children(frappe.workflow.workflows[doctype], "states", { state: state }) || [];
 		let workflow_states =
 			frappe.get_children(frappe.workflow.workflows[doctype], "states", { state: state }) ||
 			[];
