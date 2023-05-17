@@ -809,6 +809,18 @@ body {
 			}
 		}
 	}
+
+	&.custom-block-widget-box {
+		position: relative;
+
+		.widget-head {
+			position: absolute;
+			top: 0;
+			right: 0;
+			padding: 6px;
+			z-index: 1;
+		}
+	}
 }
 
 .onboarding-success {
