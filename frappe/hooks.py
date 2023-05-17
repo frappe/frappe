@@ -30,6 +30,7 @@ app_include_js = [
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
+	"onboarding.bundle.js",
 ]
 app_include_css = [
 	"desk.bundle.css",
