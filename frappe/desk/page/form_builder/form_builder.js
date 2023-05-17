@@ -155,6 +155,20 @@ function load_form_builder(wrapper) {
 								issingle: values.issingle,
 								custom: values.custom,
 								is_submittable: values.is_submittable,
+								permissions: [
+									{
+										create: 1,
+										delete: 1,
+										email: 1,
+										export: 1,
+										print: 1,
+										read: 1,
+										report: 1,
+										role: "System Manager",
+										share: 1,
+										write: 1,
+									},
+								],
 								fields: [
 									{
 										label: "Title",
