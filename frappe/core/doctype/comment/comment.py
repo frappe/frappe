@@ -161,7 +161,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 			raise frappe.DataTooLongException
 
 		else:
-			raise ImplicitCommitError
+			raise
 	else:
 		if frappe.flags.in_patch:
 			return
