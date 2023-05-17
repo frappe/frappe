@@ -186,8 +186,8 @@ async function get_path(frm) {
 			frm.doc.workspace_name = "";
 			frm.doc.new_document_form = 0;
 			frm.doc.list_name != "Report" && (frm.doc.report_name = "");
+			frm.doc.list_name != "Dashboard" && (frm.doc.dashboard_name = "");
 			frm.doc.page_name = "";
-			frm.doc.dashboard_name = "";
 			if (frm.doc.list_name == "File") return ["List", "File"];
 			if (!frm.doc.reference_doctype) {
 				if (frm.doc.list_name == "Dashboard")
