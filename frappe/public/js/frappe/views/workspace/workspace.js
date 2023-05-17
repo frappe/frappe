@@ -248,9 +248,7 @@ frappe.views.Workspace = class Workspace {
 		this.update_selected_sidebar(page, true); //add selected on new page
 
 		if (!frappe.router.current_route[0]) {
-			frappe.router.current_route = !page.public
-				? ["Workspaces", "private", page.name]
-				: ["Workspaces", page.name];
+			frappe.set_route(frappe.router.slug(page.public ? page.name : "private/" + page.name));
 		}
 
 		this.show_page(page);
