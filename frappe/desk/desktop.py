@@ -204,6 +204,24 @@ class Workspace:
 
 		return item
 
+	def is_custom_block_permitted(self, custom_block_name):
+		from frappe.utils import has_common
+
+		allowed = [
+			d.role
+			for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": custom_block_name})
+		]
+
+		if not allowed:
+			return True
+
+		roles = frappe.get_roles()
+
+		if has_common(roles, allowed):
+			return True
+
+		return False
+
 	@handle_not_exist
 	def get_links(self):
 		cards = self.doc.get_link_groups()
@@ -355,6 +373,9 @@ class Workspace:
 
 			for custom_block in custom_blocks:
 				if frappe.has_permission("Custom HTML Block", doc=custom_block.custom_block_name):
+					if not self.is_custom_block_permitted(custom_block.custom_block_name):
+						continue
+
 					# Translate label
 					custom_block.label = (
 						_(custom_block.label) if custom_block.label else _(custom_block.custom_block_name)

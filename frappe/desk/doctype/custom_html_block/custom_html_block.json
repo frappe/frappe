@@ -15,7 +15,9 @@
   "js_message",
   "script",
   "css_section",
-  "style"
+  "style",
+  "roles_section",
+  "roles"
  ],
  "fields": [
   {
@@ -74,11 +76,22 @@
    "fieldtype": "HTML",
    "label": "HTML Message",
    "options": "<p>You cannot use global class on elements. The css for those classes will not be applied on this HTML, you will have to rewrite styles again in CSS field</p><p>For Example:</p>\n<pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// style for class m-3 will not work\n<br>&lt;div class=\"m-3\"&gt;&lt;/div&gt;<br>\n<br>// You will have to add style of m-3 in CSS field below like\n<br>.m-3 {\n<br>    margin: 14px!important\n<br>}\n</code></pre>"
+  },
+  {
+   "fieldname": "roles_section",
+   "fieldtype": "Section Break",
+   "label": "Roles"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-17 16:51:32.449635",
+ "modified": "2023-05-17 17:17:04.232519",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom HTML Block",
