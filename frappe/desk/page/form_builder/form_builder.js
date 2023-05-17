@@ -85,6 +85,7 @@ function load_form_builder(wrapper) {
 			},
 			secondary_action_label: __("Create New DocType"),
 			secondary_action() {
+				let doctype = d.get_value("doctype") || "";
 				d.hide();
 				let new_d = new frappe.ui.Dialog({
 					title: __("Create New DocType"),
@@ -93,6 +94,7 @@ function load_form_builder(wrapper) {
 							label: __("DocType Name"),
 							fieldname: "doctype_name",
 							fieldtype: "Data",
+							default: doctype,
 							reqd: 1,
 						},
 						{ fieldtype: "Column Break" },
