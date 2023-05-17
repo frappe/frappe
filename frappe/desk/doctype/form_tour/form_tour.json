@@ -30,7 +30,7 @@
  ],
  "fields": [
   {
-   "depends_on": "eval:(!doc.ui_tour || doc.is_ui_tour && [\"Workspaces\", \"Page\", \"Tree\"].indexOf(doc.view_name) == -1);",
+   "depends_on": "eval:(!doc.ui_tour || doc.ui_tour && [\"Workspaces\", \"Page\", \"Tree\"].indexOf(doc.view_name) == -1);",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -188,7 +188,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-18 01:28:24.593730",
+ "modified": "2023-05-18 02:47:03.528693",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",
