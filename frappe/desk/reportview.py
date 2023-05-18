@@ -701,6 +701,7 @@ def get_filters_cond(
 				if isinstance(f[1], str) and f[1][0] == "!":
 					flt.append([doctype, f[0], "!=", f[1][1:]])
 				elif isinstance(f[1], (list, tuple)) and f[1][0].lower() in (
+					"=",
 					">",
 					"<",
 					">=",
@@ -711,6 +712,7 @@ def get_filters_cond(
 					"in",
 					"not in",
 					"between",
+					"is",
 				):
 
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
