@@ -400,6 +400,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
+				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
@@ -1348,6 +1349,12 @@ frappe.views.Workspace = class Workspace {
 			},
 			number_card: {
 				class: this.blocks["number_card"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
+			custom_block: {
+				class: this.blocks["custom_block"],
 				config: {
 					page_data: this.page_data || [],
 				},
