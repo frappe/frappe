@@ -701,6 +701,7 @@
    "label": "Onboarding Tours"
   },
   {
+   "default": "{}",
    "fieldname": "onboarding_status",
    "fieldtype": "JSON",
    "hidden": 1,
@@ -767,7 +768,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-05-17 22:56:28.260931",
+ "modified": "2023-05-18 12:41:36.765029",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
