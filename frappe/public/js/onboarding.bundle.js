@@ -14,7 +14,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			keyboardControl: true,
 			nextBtnText: "Next",
 			prevBtnText: "Previous",
-			opacity: 0.25,
+			opacity: 0.5,
 			onHighlighted: step => {
 				frappe.ui.next_form_tour = step.options.step_info?.next_form_tour;
 				const wait_for_node = setInterval(() => {
@@ -281,7 +281,6 @@ frappe.router.on("change", () => {
 				matching_tours.push(tour);
 			});
 	}
-	console.log(matching_tours);
 	matching_tours = matching_tours.filter(tour => {
 		if (frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true) return false;
 		return true;
@@ -296,21 +295,21 @@ frappe.router.on("change", () => {
 	let current_tour = matching_tours.find(
 		tour => tour[0] == frappe.ui.currentTourInstance?.tour.name
 	);
+	let next_tour = matching_tours.find(tour => tour[0] == frappe.ui.next_form_tour);
 	if (current_tour) {
 		tour_name = current_tour[0];
 		start_step = current_tour.at(-1);
 		if (typeof start_step != "number") {
 			start_step = 0;
 		}
-	} else if (frappe.ui.next_form_tour) {
-		let current_tour = matching_tours.find(tour => tour[0] == frappe.ui.next_form_tour);
-		tour_name = current_tour[0];
-		start_step = current_tour.at(-1);
-		if (typeof start_step != "number") {
-			start_step = 0;
-		} else {
-			start_step += 1;
-		}
+	} else if (next_tour) {
+			tour_name = next_tour[0];
+			start_step = next_tour.at(-1);
+			if (typeof start_step != "number") {
+				start_step = 0;
+			} else {
+				start_step += 1;
+			}
 		frappe.ui.next_form_tour = undefined;
 	} else {
 		tour_name = matching_tours[0][0];
