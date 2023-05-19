@@ -15,17 +15,19 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			nextBtnText: "Next",
 			prevBtnText: "Previous",
 			opacity: 0.5,
-			onHighlighted: step => {
+			onHighlighted: (step) => {
 				frappe.ui.next_form_tour = step.options.step_info?.next_form_tour;
 				const wait_for_node = setInterval(() => {
 					if (!step.popover.node) return;
 					if (step.options.step_info?.offset_x) {
-						step.popover.node.style.left = `${step.popover.node.offsetLeft +
-							step.options.step_info.offset_x}px`;
+						step.popover.node.style.left = `${
+							step.popover.node.offsetLeft + step.options.step_info.offset_x
+						}px`;
 					}
 					if (step.options.step_info?.offset_y) {
-						step.popover.node.style.top = `${step.popover.node.offsetTop +
-							step.options.step_info.offset_y}px`;
+						step.popover.node.style.top = `${
+							step.popover.node.offsetTop + step.options.step_info.offset_y
+						}px`;
 					}
 					if (step.popover.closeBtnNode) {
 						step.popover.closeBtnNode.onclick = () => {
@@ -54,11 +56,9 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 
 				// focus on first input.
 				// TODO : later add option to select which input to focus as well.
-				const $input = $(step.node)
-					.find("input")
-					.get(0);
+				const $input = $(step.node).find("input").get(0);
 				if ($input) frappe.utils.sleep(200).then(() => $input.focus());
-			}
+			},
 		});
 	}
 
@@ -75,12 +75,12 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 
 	build_steps() {
 		this.driver_steps = [];
-		this.tour.steps.forEach(step => {
-			const on_next = async el => {
+		this.tour.steps.forEach((step) => {
+			const on_next = async (el) => {
 				const step_index = this.driver.steps.indexOf(el);
 				if (step_index == -1 || this.last_step_saved?.name == step.name) return;
 				frappe.boot.user.onboarding_status[this.tour.name] = {
-					steps_complete: step_index
+					steps_complete: step_index,
 				};
 				if (!this.driver.hasNextStep()) {
 					this.on_finish && this.on_finish();
@@ -115,7 +115,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			hide_buttons,
 			next_on_click,
 			popover_element,
-			modal_trigger
+			modal_trigger,
 		} = step_info;
 		let element = cur_page?.page.querySelector(element_selector);
 		!element && (element = document.querySelector(element_selector));
@@ -165,7 +165,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 				if (this.driver_steps[step_index + 1]?.element.id == popover_id) return;
 
 				this.driver_steps = this.driver_steps.filter(
-					step => !step.element.id?.startsWith("popover")
+					(step) => !step.element.id?.startsWith("popover")
 				);
 
 				let new_step = { ...this.driver_steps[step_index] };
@@ -178,7 +178,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 				this.driver.moveNext();
 				this.driver.overlay.refresh();
 
-				$(popover).one("hide.bs.popover", e => {
+				$(popover).one("hide.bs.popover", (e) => {
 					this.driver_steps.splice(this.driver.currentStep, 1);
 					this.driver_steps[this.driver.currentStep - 1].showButtons = true;
 					new_step.popover.description = description;
@@ -199,11 +199,11 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			popover: {
 				title,
 				description,
-				position: frappe.router.slug(position || "Bottom")
+				position: frappe.router.slug(position || "Bottom"),
 			},
 			onNext: on_next,
 			step_info: step_info,
-			showButtons
+			showButtons,
 		};
 	}
 
@@ -232,8 +232,8 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 					title,
 					description,
 					position: "left-center",
-					doneBtnText: __("Next")
-				}
+					doneBtnText: __("Next"),
+				},
 			};
 			this.driver_steps.splice(step + 1, 0, attach_dialog_step);
 			this.update_driver_steps(); // need to define again, since driver.js only considers steps which are inside DOM
@@ -267,7 +267,7 @@ frappe.router.on("change", () => {
 	}
 	if (route[0] != "dashboard-view") {
 		frappe.boot.onboarding_tours &&
-			frappe.boot.onboarding_tours.forEach(tour => {
+			frappe.boot.onboarding_tours.forEach((tour) => {
 				let tour_route = tour[1];
 				length = Math.min(route.length, tour_route.length);
 				if (length >= 1 && route[0] != tour_route[0]) return;
@@ -281,11 +281,11 @@ frappe.router.on("change", () => {
 				matching_tours.push(tour);
 			});
 	}
-	matching_tours = matching_tours.filter(tour => {
+	matching_tours = matching_tours.filter((tour) => {
 		if (frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true) return false;
 		return true;
 	});
-	matching_tours = matching_tours.map(tour => {
+	matching_tours = matching_tours.map((tour) => {
 		if (frappe.boot.user.onboarding_status[tour[0]]?.steps_complete != undefined) {
 			tour.push(frappe.boot.user.onboarding_status[tour[0]].steps_complete);
 		}
@@ -293,9 +293,9 @@ frappe.router.on("change", () => {
 	});
 	if (matching_tours.length == 0) return;
 	let current_tour = matching_tours.find(
-		tour => tour[0] == frappe.ui.currentTourInstance?.tour.name
+		(tour) => tour[0] == frappe.ui.currentTourInstance?.tour.name
 	);
-	let next_tour = matching_tours.find(tour => tour[0] == frappe.ui.next_form_tour);
+	let next_tour = matching_tours.find((tour) => tour[0] == frappe.ui.next_form_tour);
 	if (current_tour) {
 		tour_name = current_tour[0];
 		start_step = current_tour.at(-1);
@@ -303,13 +303,13 @@ frappe.router.on("change", () => {
 			start_step = 0;
 		}
 	} else if (next_tour) {
-			tour_name = next_tour[0];
-			start_step = next_tour.at(-1);
-			if (typeof start_step != "number") {
-				start_step = 0;
-			} else {
-				start_step += 1;
-			}
+		tour_name = next_tour[0];
+		start_step = next_tour.at(-1);
+		if (typeof start_step != "number") {
+			start_step = 0;
+		} else {
+			start_step += 1;
+		}
 		frappe.ui.next_form_tour = undefined;
 	} else {
 		tour_name = matching_tours[0][0];
@@ -335,7 +335,7 @@ frappe.router.on("change", () => {
 			frappe.utils.sleep(500).then(() => {
 				tour.init({
 					tour_name,
-					start_step
+					start_step,
 				});
 				clearInterval(wait_for_data);
 			});
