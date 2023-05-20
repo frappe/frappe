@@ -78,12 +78,14 @@ class MariaDBTable(DBTable):
 			current_column = self.current_columns.get(col.fieldname.lower())
 			unique_constraint_changed = current_column.unique != col.unique
 			if unique_constraint_changed and not col.unique:
-				if unique_index := frappe.db.get_column_index(self.table_name, col.fieldname, unique=True):
+				unique_index = frappe.db.get_column_index(self.table_name, col.fieldname, unique=True)
+				if unique_index:
 					drop_index_query.append(f"DROP INDEX `{unique_index.Key_name}`")
 
 			index_constraint_changed = current_column.index != col.set_index
 			if index_constraint_changed and not col.set_index:
-				if index_record := frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
+				index_record = frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
+				if index_record:
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
 
 		try:
