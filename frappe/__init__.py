@@ -17,7 +17,7 @@ import json
 import os
 import re
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, overload
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypeVar, overload
 
 import click
 from werkzeug.local import Local, release_local
@@ -171,6 +171,7 @@ lang = local("lang")
 if TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.model.base_document import BaseDocument, DocumentDict
 	from frappe.model.document import Document
 	from frappe.query_builder.builder import MariaDB, Postgres
 	from frappe.utils.redis_wrapper import RedisWrapper
@@ -1140,6 +1141,35 @@ def get_cached_value(
 	if as_dict:
 		return _dict(zip(fieldname, values))
 	return values
+
+
+_BaseDocument = TypeVar("_BaseDocument", bound="BaseDocument")
+
+
+# Signatures for retrieval
+
+
+@overload
+def get_doc(document: "_BaseDocument", /) -> "_BaseDocument":
+	pass
+
+
+@overload
+def get_doc(doctype: str, name: str | None, *, for_update: bool | None = None) -> "Document":
+	pass
+
+
+# Signatures for creation
+
+
+@overload
+def get_doc(doctype: str, name: str | None = None, **kwargs) -> "Document":
+	pass
+
+
+@overload
+def get_doc(document: "DocumentDict", /) -> "Document":
+	pass
 
 
 def get_doc(*args, **kwargs) -> "Document":

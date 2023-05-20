@@ -3,7 +3,7 @@
 import hashlib
 import json
 import time
-from typing import Any, Generator, Iterable
+from typing import Any, Generator, Iterable, TypeVar, overload
 
 from werkzeug.exceptions import NotFound
 
@@ -13,7 +13,7 @@ from frappe.core.doctype.server_script.server_script_utils import run_server_scr
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
-from frappe.model.base_document import BaseDocument, get_controller
+from frappe.model.base_document import BaseDocument, DocumentDict, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
@@ -21,6 +21,34 @@ from frappe.model.workflow import set_workflow_state_on_action, validate_workflo
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
+
+_BaseDocument = TypeVar("_BaseDocument", bound=BaseDocument)
+
+
+# Forms of get_doc that create document
+
+
+@overload
+def get_doc(document: DocumentDict, /) -> "Document":
+	pass
+
+
+@overload
+def get_doc(doctype: str, name: str | None = None, **kwargs) -> "Document":
+	pass
+
+
+# Forms of get_doc that retrieve document
+
+
+@overload
+def get_doc(document: "_BaseDocument", /) -> "_BaseDocument":
+	pass
+
+
+@overload
+def get_doc(doctype: str, name: str | None, *, for_update: bool | None = None) -> "Document":
+	pass
 
 
 def get_doc(*args, **kwargs):
@@ -79,6 +107,24 @@ def get_doc(*args, **kwargs):
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+
+	# Signatures for retrieval
+
+	@overload
+	def __init__(
+		self, doctype: str, name: str | None = None, *, for_update: bool | None = None
+	) -> None:
+		pass
+
+	# Signatures for creation
+
+	@overload
+	def __init__(self, doctype: str, name: str | None = None, **kwargs) -> None:
+		pass
+
+	@overload
+	def __init__(self, document: DocumentDict, /) -> None:
+		pass
 
 	def __init__(self, *args, **kwargs):
 		"""Constructor.
