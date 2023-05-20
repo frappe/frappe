@@ -296,9 +296,6 @@ class MariaDBDatabase(Database):
 			)
 		)
 
-<<<<<<< HEAD
-	def add_index(self, doctype, fields, index_name=None):
-=======
 	def get_column_index(
 		self, table_name: str, fieldname: str, unique: bool = False
 	) -> frappe._dict | None:
@@ -330,8 +327,7 @@ class MariaDBDatabase(Database):
 			if not clustered_index:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str = None):
->>>>>>> cbe4b59100 (fix: correct index re-syncing)
+	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
