@@ -129,6 +129,7 @@
   },
   {
    "depends_on": "eval: doc.request_structure == \"JSON\"",
+   "description": "To add dynamic values from the document, use jinja tags like\n\n<div>\n<pre><code>{ \"id\": \"{{ doc.name }}\" }</code>\n</pre>\n</div>",
    "fieldname": "webhook_json",
    "fieldtype": "Code",
    "label": "JSON Request Body"
