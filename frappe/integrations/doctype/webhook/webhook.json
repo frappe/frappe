@@ -18,8 +18,9 @@
   "html_condition",
   "sb_webhook",
   "request_url",
-  "request_method",
+  "is_dynamic_url",
   "cb_webhook",
+  "request_method",
   "request_structure",
   "sb_security",
   "enable_security",
@@ -200,10 +201,17 @@
   {
    "fieldname": "section_break_28",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "On checking this option, URL will be treated like a jinja template string",
+   "fieldname": "is_dynamic_url",
+   "fieldtype": "Check",
+   "label": "Is Dynamic URL?"
   }
  ],
  "links": [],
- "modified": "2022-07-11 08:54:10.740512",
+ "modified": "2023-05-21 16:30:10.740512",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
