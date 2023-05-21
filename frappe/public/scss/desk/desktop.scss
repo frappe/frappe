@@ -342,6 +342,7 @@ body {
 		margin-bottom: var(--margin-2xl);
 		padding: var(--padding-lg) !important;
 		background-color: var(--bg-color);
+		box-shadow: var(--card-shadow) ;
 
 		&.edit-mode:hover {
 			background-color: var(--fg-color);
@@ -806,6 +807,18 @@ body {
 					background-color: var(--btn-default-hover-bg);
 				}
 			}
+		}
+	}
+
+	&.custom-block-widget-box {
+		position: relative;
+
+		.widget-head {
+			position: absolute;
+			top: 0;
+			right: 0;
+			padding: 6px;
+			z-index: 1;
 		}
 	}
 }

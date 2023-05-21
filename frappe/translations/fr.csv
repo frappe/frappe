@@ -418,8 +418,8 @@ Also adding the dependent currency field {0},Ajout également du champ de devise
 "Always add ""Draft"" Heading for printing draft documents","Toujours ajouter ""Brouillon"" pour l'impression des documents brouillons",
 Always use Account's Email Address as Sender,Toujours utiliser l'adresse Email du compte comme Expéditeur,
 Always use Account's Name as Sender's Name,Toujours utiliser le nom du compte comme nom de l&#39;expéditeur,
-Amend,Nouv. version
-amend,Nouv. version
+Amend,Nouv. version,
+amend,Nouv. version,
 Amending,Nouv. version en cours,
 Amount Based On Field,Montant Basé sur le Champ,
 Amount Field,Champ du Montant,
@@ -3619,7 +3619,7 @@ Upload {0} files,Télécharger des fichiers {0},
 Uploaded To Google Drive,Téléchargé sur Google Drive,
 Uploaded successfully,Envoyé avec succès,
 Uploading {0} of {1},Téléchargement de {0} sur {1},
-Use SSL,Utiliser SSL
+Use SSL,Utiliser SSL,
 Use Same Name,Utiliser le même nom,
 Used For Google Maps Integration.,Utilisé pour l&#39;intégration de Google Maps.,
 User ID Property,Propriété ID utilisateur,
@@ -4703,47 +4703,47 @@ Authentication failed while receiving emails from Email Account: {0}.,L&#39;auth
 Message from server: {0},Message du serveur: {0}
 {0} edited this {1},{0} a édité {1}
 {0} created this {1},{0} a créé {1}
-Report an Issue,Signaler une anomalie
-User Forum,Forum utilisateur
-About,A Propos
-My Profile,Mon profil
-My Settings,Mes paramètres
-Toggle Full Width,Changer l&#39;affichage en pleine largeur
-Toggle Theme,Basculer le thème
-Theme Changed,Thème changé
-Document has been submitted,Document validé
-Document has been cancelled,Document annulé
-Document is in draft state,Document au statut brouillon
-Copy to Clipboard,Copier vers le presse-papiers
+Report an Issue,Signaler une anomalie,
+User Forum,Forum utilisateur,
+About,A Propos,
+My Profile,Mon profil,
+My Settings,Mes paramètres,
+Toggle Full Width,Changer l&#39;affichage en pleine largeur,
+Toggle Theme,Basculer le thème,
+Theme Changed,Thème change,
+Document has been submitted,Document valide,
+Document has been cancelled,Document annule,
+Document is in draft state,Document au statut brouillon,
+Copy to Clipboard,Copier vers le presse-papiers,
 Don't have an account?,Vous n&#39;avez pas de compte?
-Left:alignment,Gauche
-Right:alignment,Droite
-Set Properties,Gérer les proriétés
-Create Workspace,Créer un espace de travail
-Always use this email address as sender address,Toujours utiliser cet email comme expediteur
-Always use this name as sender name,Toujours utiliser ce nom comme expediteur
+Left:alignment,Gauche,
+Right:alignment,Droite,
+Set Properties,Gérer les proriétés,
+Create Workspace,Créer un espace de travail,
+Always use this email address as sender address,Toujours utiliser cet email comme expediteur,
+Always use this name as sender name,Toujours utiliser ce nom comme expediteur,
 Login to {0},Se connecter à {0}
-Add / Remove Fields,Ajouter / Supprimer des colonnes
-Use STARTTLS,Utiliser le STARTTLS
-Outgoing Settings,Configurations des Courriels Sortant
-Incoming Settings,Configurations des Courriels Entrant
-Incoming Server,Serveur de Courriel Entrant
-Outgoing Server,Serveur de Courriel Sortant
-Use different Email ID,Utiliser une authentification email différente
-Alternative Email ID,Email de connexion alternatif
-Incoming (POP/IMAP) Settings,Configuration POP/IMAP
-IMAP Details,Détails IMAP
-IMAP Folder,Dossier IMAP à récupérer
-Document Linking,Lien vers les documents
-Auto Reply,Réponse automatique
-Footer Content,Contenue du pied de page
-Brand Logo,Logo de la marque
-Folder Name,Nom du dossier
-Document Naming Settings,Masque de numérotation des documents
-Setup Series for transactions,Paramétrage des masques de numérotation
-Set Naming Series options on your transactions.,Définir les masques de numerotation pour vos documents
-Update Series Counter,Mettre à jour le compteur d'un masque de numérotation
-Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created.,Mettre à jour le compteur d'un masque de numérotation<br>\n\nAttention: Mettre à jour de maniére inconsistance le compteur peux empêcher la création d'un document
-No Results found,Aucun résultat trouvé
+Add / Remove Fields,Ajouter / Supprimer des colonnes,
+Use STARTTLS,Utiliser le STARTTLS,
+Outgoing Settings,Configurations des Courriels Sortant,
+Incoming Settings,Configurations des Courriels Entrant,
+Incoming Server,Serveur de Courriel Entrant,
+Outgoing Server,Serveur de Courriel Sortant,
+Use different Email ID,Utiliser une authentification email différente,
+Alternative Email ID,Email de connexion alternatif,
+Incoming (POP/IMAP) Settings,Configuration POP/IMAP,
+IMAP Details,Détails IMAP,
+IMAP Folder,Dossier IMAP à récupérer,
+Document Linking,Lien vers les documents,
+Auto Reply,Réponse automatique,
+Footer Content,Contenue du pied de page,
+Brand Logo,Logo de la marque,
+Folder Name,Nom du dossier,
+Document Naming Settings,Masque de numérotation des documents,
+Setup Series for transactions,Paramétrage des masques de numérotation,
+Set Naming Series options on your transactions.,Définir les masques de numerotation pour vos documents,
+Update Series Counter,Mettre à jour le compteur d'un masque de numérotation,
+Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created.,Mettre à jour le compteur d'un masque de numérotation<br>\n\nAttention: Mettre à jour de maniére inconsistance le compteur peux empêcher la création d'un document,
+No Results found,Aucun résultat trouvs,
 Shelf Life in Days,Durée de conservation (en jours)
-Batch Expiry Date,Date d'expiration du Lot
+Batch Expiry Date,Date d'expiration du Lot,

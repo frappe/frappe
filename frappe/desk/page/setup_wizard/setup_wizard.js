@@ -178,6 +178,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 	}
 
 	action_on_complete() {
+		frappe.telemetry.capture("initated_client_side", "setup");
 		if (!this.current_slide.set_values()) return;
 		this.update_values();
 		this.show_working_state();
@@ -325,6 +326,7 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	make() {
 		super.make();
 		this.set_init_values();
+		this.setup_telemetry_events();
 		this.reset_action_button_state();
 	}
 
@@ -339,6 +341,18 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 				}
 			});
 		}
+	}
+
+	setup_telemetry_events() {
+		let me = this;
+		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
+			me.get_input(field.fieldname).on("change", function () {
+				frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
+				if (field.fieldname == "enable_telemetry" && !me.get_value("enable_telemetry")) {
+					frappe.telemetry.disable();
+				}
+			});
+		});
 	}
 };
 
@@ -384,6 +398,15 @@ frappe.setup.slides_settings = [
 				fieldtype: "Select",
 				reqd: 1,
 			},
+			{
+				fieldtype: "Section Break",
+			},
+			{
+				fieldname: "enable_telemetry",
+				label: __("Allow Sending Usage Data for Improving applications"),
+				fieldtype: "Check",
+				default: 1,
+			},
 		],
 
 		onload: function (slide) {
@@ -418,7 +441,7 @@ frappe.setup.slides_settings = [
 	{
 		// Profile slide
 		name: "user",
-		title: __("Let's setup your account"),
+		title: __("Let's set up your account"),
 		icon: "fa fa-user",
 		fields: [
 			{
@@ -467,12 +490,6 @@ frappe.setup.slides_settings = [
 			if (frappe.setup.data.email) {
 				let email = frappe.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
-				if (frappe.get_gravatar(email, 200)) {
-					let $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
-					$attach_user_image.find(".missing-image").toggle(false);
-					$attach_user_image.find("img").attr("src", frappe.get_gravatar(email, 200));
-					$attach_user_image.find(".img-container").toggle(true);
-				}
 			}
 		},
 	},

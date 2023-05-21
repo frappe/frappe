@@ -203,7 +203,7 @@ class SendMailContext:
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
-		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_main_sent()]
+		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()]
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
@@ -213,7 +213,6 @@ class SendMailContext:
 		exceptions = [
 			smtplib.SMTPServerDisconnected,
 			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPRecipientsRefused,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
