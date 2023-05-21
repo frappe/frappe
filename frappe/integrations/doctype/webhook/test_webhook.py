@@ -217,7 +217,7 @@ class TestWebhook(FrappeTestCase):
 			"is_dynamic_url": 1,
 			"request_method": "POST",
 			"request_structure": "JSON",
-			"webhook_json": '{}',
+			"webhook_json": "{}",
 			"meets_condition": "Yes",
 			"webhook_headers": [
 				{
@@ -244,7 +244,7 @@ class TestWebhook(FrappeTestCase):
 			"is_dynamic_url": 0,
 			"request_method": "POST",
 			"request_structure": "JSON",
-			"webhook_json": '{}',
+			"webhook_json": "{}",
 			"meets_condition": "Yes",
 			"webhook_headers": [
 				{
@@ -259,4 +259,6 @@ class TestWebhook(FrappeTestCase):
 			doc.title = "Test Webhook Note"
 			enqueue_webhook(doc, wh)
 			log = frappe.get_last_doc("Webhook Request Log")
-			self.assertEqual(json.loads(log.response)["url"], "https://httpbin.org/anything/{{doc.doctype}}")
+			self.assertEqual(
+				json.loads(log.response)["url"], "https://httpbin.org/anything/{{doc.doctype}}"
+			)
