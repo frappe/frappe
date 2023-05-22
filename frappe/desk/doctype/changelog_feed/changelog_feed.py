@@ -10,7 +10,7 @@ class ChangelogFeed(Document):
 	pass
 
 
-def get_feed():
+def get_feed(latest_date):
 	return [
 		{
 			"title": "Spid",
@@ -31,9 +31,15 @@ def fetch_changelog_feed_items_from_source():
 	"""Fetches changelog feed items from source using
 	`get_changelog_feed` hook and stores in the db"""
 
+	latest_feed_item_date = frappe.db.get_value(
+		"Changelog Feed",
+		filters={},
+		fieldname="creation_of_feed_item",
+		order_by="creation_of_feed_item desc",
+	)
 	changelog_feed_items = []
 	for fn in frappe.get_hooks("get_changelog_feed"):
-		changelog_feed_items += frappe.call(fn)
+		changelog_feed_items += frappe.call(fn, latest_feed_item_date)
 
 	for changelog_feed_item in changelog_feed_items:
 		change_log_feed_item_dict = {
@@ -54,6 +60,9 @@ def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
 	changelog_feed_items = frappe.cache().get_value("changelog_feed")
 	if not changelog_feed_items or frappe.conf.developer_mode:
+
+		# running this here while dev instead of waiting for a whole day
+		# fetch_changelog_feed_items_from_source()
 		changelog_feed_items = frappe.get_list(
 			"Changelog Feed",
 			fields=["title", "app_name", "link", "creation_of_feed_item"],
