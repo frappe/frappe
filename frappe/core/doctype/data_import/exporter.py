@@ -199,7 +199,7 @@ class Exporter:
 		# Group children data by parent name
 		grouped_children_data = self.group_children_data_by_parent(child_data)
 		for doc in parent_data:
-			related_children_docs = grouped_children_data.get(doc.name, {})
+			related_children_docs = grouped_children_data.get(str(doc.name), {})
 			yield {**doc, **related_children_docs}
 
 	def add_header(self):
