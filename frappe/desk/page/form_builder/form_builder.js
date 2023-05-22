@@ -85,6 +85,9 @@ function load_form_builder(wrapper) {
 			},
 			secondary_action_label: __("Create New DocType"),
 			secondary_action() {
+				let doctype = d.get_value("doctype") || "";
+				let non_developer =
+					frappe.session.user !== "Administrator" || !frappe.boot.developer_mode;
 				d.hide();
 				let new_d = new frappe.ui.Dialog({
 					title: __("Create New DocType"),
@@ -93,6 +96,7 @@ function load_form_builder(wrapper) {
 							label: __("DocType Name"),
 							fieldname: "doctype_name",
 							fieldtype: "Data",
+							default: doctype,
 							reqd: 1,
 						},
 						{ fieldtype: "Column Break" },
@@ -140,6 +144,8 @@ function load_form_builder(wrapper) {
 							label: __("Custom?"),
 							fieldname: "custom",
 							fieldtype: "Check",
+							default: non_developer,
+							read_only: non_developer,
 						},
 					],
 					primary_action_label: __("Create & Continue"),
@@ -155,6 +161,20 @@ function load_form_builder(wrapper) {
 								issingle: values.issingle,
 								custom: values.custom,
 								is_submittable: values.is_submittable,
+								permissions: [
+									{
+										create: 1,
+										delete: 1,
+										email: 1,
+										export: 1,
+										print: 1,
+										read: 1,
+										report: 1,
+										role: "System Manager",
+										share: 1,
+										write: 1,
+									},
+								],
 								fields: [
 									{
 										label: "Title",
