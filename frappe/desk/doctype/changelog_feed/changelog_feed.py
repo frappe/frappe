@@ -37,21 +37,20 @@ def fetch_changelog_feed_items_from_source():
 		fieldname="creation_of_feed_item",
 		order_by="creation_of_feed_item desc",
 	)
-	changelog_feed_items = []
-	for fn in frappe.get_hooks("get_changelog_feed"):
-		changelog_feed_items += frappe.call(fn, latest_feed_item_date)
 
-	for changelog_feed_item in changelog_feed_items:
-		change_log_feed_item_dict = {
-			"doctype": "Changelog Feed",
-			"title": changelog_feed_item["title"],
-			"app_name": changelog_feed_item["app_name"],
-			"link": changelog_feed_item["link"],
-			"creation_of_feed_item": changelog_feed_item["creation"],
-		}
-		if not frappe.db.exists(change_log_feed_item_dict):
-			feed_doc = frappe.get_doc(change_log_feed_item_dict)
-			feed_doc.insert()
+	for fn in frappe.get_hooks("get_changelog_feed"):
+		for changelog_feed_item in frappe.call(fn, latest_feed_item_date):
+			change_log_feed_item_dict = {
+				"doctype": "Changelog Feed",
+				"title": changelog_feed_item["title"],
+				"app_name": changelog_feed_item["app_name"],
+				"link": changelog_feed_item["link"],
+				"creation_of_feed_item": changelog_feed_item["creation"],
+			}
+			if not frappe.db.exists(change_log_feed_item_dict):
+				feed_doc = frappe.get_doc(change_log_feed_item_dict)
+				feed_doc.insert()
+
 	frappe.cache().delete_value("changelog_feed")
 
 
