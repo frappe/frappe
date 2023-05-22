@@ -204,7 +204,10 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	}
 
 	bind_leaflet_draw_control() {
-		if (!frappe.perm.has_perm(this.doctype, this.df.permlevel, "write", this.doc)) {
+		if (
+			!frappe.perm.has_perm(this.doctype, this.df.permlevel, "write", this.doc) ||
+			this.df.read_only
+		) {
 			return;
 		}
 
