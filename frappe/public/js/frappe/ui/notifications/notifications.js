@@ -474,7 +474,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 				</div>`;
 
 				const item_html = `<a class="recent-item notification-item"
-						href="${changelog_feed_item.link}"
+						href="${changelog_feed_item.link}?utm_source=frappe_desk"
 						data-name="${changelog_feed_item.title}"
 					>
 					<div class="notification-body">
