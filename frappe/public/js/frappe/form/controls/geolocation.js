@@ -11,6 +11,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	set_disp_area(value) {
 		// Create the elements for map area
 <<<<<<< HEAD
+<<<<<<< HEAD
 		super.make_wrapper();
 
 		let $input_wrapper = this.$wrapper.find(".control-input-wrapper");
@@ -18,12 +19,16 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		if (!this.disp_area) return;
 		
 >>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
+=======
+		if (!this.disp_area) {
+			return;
+		}
+
+>>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 		this.map_id = frappe.dom.get_unique_id();
 		this.map_area = $(
 			`<div class="map-wrapper border">
-				<div id="` +
-				this.map_id +
-				`" style="min-height: 400px; z-index: 1; max-width:100%"></div>
+				<div id="${this.map_id}" style="min-height: 400px; z-index: 1; max-width:100%"></div>
 			</div>`
 		);
 <<<<<<< HEAD
@@ -52,6 +57,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	make_map(value) {
 		this.bind_leaflet_map();
+<<<<<<< HEAD
 		this.bind_leaflet_draw_control();
 		this.bind_leaflet_event_listeners();
 		this.bind_leaflet_locate_control();
@@ -61,11 +67,29 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 =======
 		this.bind_leaflet_data(value);
 >>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
+=======
+		if (this.disabled) {
+			this.map.dragging.disable();
+			this.map.touchZoom.disable();
+			this.map.doubleClickZoom.disable();
+			this.map.scrollWheelZoom.disable();
+			this.map.boxZoom.disable();
+			this.map.keyboard.disable();
+			this.map.zoomControl.remove();
+		} else {
+			this.bind_leaflet_draw_control();
+			this.bind_leaflet_event_listeners();
+			this.bind_leaflet_locate_control();
+			this.bind_leaflet_data(value);
+		}
+>>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 	}
 
 	bind_leaflet_data(value) {
 		/* render raw value from db into map */
-		if (!this.map || !value) return;
+		if (!this.map || !value) {
+			return;
+		}
 		this.clear_editable_layers();
 <<<<<<< HEAD
 		if (value) {
@@ -97,27 +121,31 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 =======
 
-		var data_layers = new L.FeatureGroup()
-			.addLayer(L.geoJson(JSON.parse(value),{
-				pointToLayer: function(geoJsonPoint, latlng) {
-					if (geoJsonPoint.properties.point_type == "circle"){
-						return L.circle(latlng, {radius: geoJsonPoint.properties.radius});
+		const data_layers = new L.FeatureGroup().addLayer(
+			L.geoJson(JSON.parse(value), {
+				pointToLayer: function (geoJsonPoint, latlng) {
+					if (geoJsonPoint.properties.point_type == "circle") {
+						return L.circle(latlng, { radius: geoJsonPoint.properties.radius });
 					} else if (geoJsonPoint.properties.point_type == "circlemarker") {
-						return L.circleMarker(latlng, {radius: geoJsonPoint.properties.radius});
-					}
-					else {
+						return L.circleMarker(latlng, { radius: geoJsonPoint.properties.radius });
+					} else {
 						return L.marker(latlng);
 					}
-				}
-			}));
+				},
+			})
+		);
 		this.add_non_group_layers(data_layers, this.editableLayers);
 		try {
 			this.map.fitBounds(this.editableLayers.getBounds(), {
-				padding: [50,50]
+				padding: [50, 50],
 			});
+<<<<<<< HEAD
 >>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
 		}
 		catch(err) {
+=======
+		} catch (err) {
+>>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 			// suppress error if layer has a point.
 		}
 		this.editableLayers.addTo(this.map);
@@ -125,10 +153,10 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	}
 
 	bind_leaflet_map() {
-		var circleToGeoJSON = L.Circle.prototype.toGeoJSON;
+		const circleToGeoJSON = L.Circle.prototype.toGeoJSON;
 		L.Circle.include({
 			toGeoJSON: function () {
-				var feature = circleToGeoJSON.call(this);
+				const feature = circleToGeoJSON.call(this);
 				feature.properties = {
 					point_type: "circle",
 					radius: this.getRadius(),
@@ -139,7 +167,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 		L.CircleMarker.include({
 			toGeoJSON: function () {
-				var feature = circleToGeoJSON.call(this);
+				const feature = circleToGeoJSON.call(this);
 				feature.properties = {
 					point_type: "circlemarker",
 					radius: this.getRadius(),
@@ -156,12 +184,17 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
 			this.map
 		);
+<<<<<<< HEAD
 =======
 		L.tileLayer(frappe.utils.map_defaults.tiles,
 			frappe.utils.map_defaults.options).addTo(this.map);
 
 		this.editableLayers = new L.FeatureGroup();
 >>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
+=======
+
+		this.editableLayers = new L.FeatureGroup();
+>>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 	}
 
 	bind_leaflet_locate_control() {
@@ -171,7 +204,9 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	}
 
 	bind_leaflet_draw_control() {
-		if (!frappe.perm.has_perm(this.doctype, this.df.permlevel, 'write', this.doc)) return;
+		if (!frappe.perm.has_perm(this.doctype, this.df.permlevel, "write", this.doc)) {
+			return;
+		}
 
 <<<<<<< HEAD
 		var options = {
@@ -211,6 +246,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			edit: {
 				featureGroup: this.editableLayers, //REQUIRED!!
 <<<<<<< HEAD
+<<<<<<< HEAD
 				remove: true,
 			},
 		};
@@ -223,12 +259,20 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 =======
 				remove: true
 			}
+=======
+				remove: true,
+			},
+>>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 		});
 	}
 
 	bind_leaflet_event_listeners() {
+<<<<<<< HEAD
 		this.map.on('draw:created', (e) => {
 >>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
+=======
+		this.map.on("draw:created", (e) => {
+>>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 			var type = e.layerType,
 				layer = e.layer;
 			if (type === "marker") {
@@ -239,7 +283,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		});
 
 		this.map.on("draw:deleted draw:edited", (e) => {
-			var layer = e.layer;
+			const { layer } = e;
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
