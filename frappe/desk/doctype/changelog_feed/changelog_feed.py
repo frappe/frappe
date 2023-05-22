@@ -47,6 +47,7 @@ def fetch_changelog_feed_items_from_source():
 		if not frappe.db.exists(change_log_feed_item_dict):
 			feed_doc = frappe.get_doc(change_log_feed_item_dict)
 			feed_doc.insert()
+	frappe.cache().delete_value("changelog_feed")
 
 
 @frappe.whitelist()
