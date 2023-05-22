@@ -146,9 +146,18 @@ class CustomField(Document):
 		if self.fieldname == self.insert_after:
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
 
-	def log_permission(self):
-		if self.fieldtype not in ("HTML", "Section Break", "Column Break", "Tab Break", "Fold"):
-			return {"fields": ("permlevel", "fieldname"), "for_doctype": "DocType", "for_document": self.dt}
+	def get_permission_log_options(self, event=None):
+		if event != "after_delete" and self.fieldtype not in (
+			"Section Break",
+			"Column Break",
+			"Tab Break",
+			"Fold",
+		):
+			return {
+				"fields": ("ignore_user_permissions", "permlevel"),
+				"for_doctype": "DocType",
+				"for_document": self.dt,
+			}
 
 		self._no_perm_log = True
 

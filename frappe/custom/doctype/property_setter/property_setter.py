@@ -37,7 +37,7 @@ class PropertySetter(Document):
 
 			validate_fields_for_doctype(self.doc_type)
 
-	def log_permission(self):
+	def get_permission_log_options(self, event=None):
 		if self.property in ("ignore_user_permissions", "permlevel"):
 			return {
 				"for_doctype": "DocType",

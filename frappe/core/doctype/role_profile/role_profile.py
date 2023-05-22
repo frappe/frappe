@@ -19,5 +19,5 @@ class RoleProfile(Document):
 			user.set("roles", [])
 			user.add_roles(*roles)
 
-	def log_permission(self):
+	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}

@@ -34,7 +34,7 @@
   },
   {
    "fieldname": "changed_at",
-   "fieldtype": "Data",
+   "fieldtype": "Datetime",
    "is_virtual": 1,
    "label": "Changed At",
    "read_only": 1
@@ -117,12 +117,12 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "Updated\nRemoved"
+   "options": "Updated\nRemoved\nAdded"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-04-05 02:07:37.456631",
+ "modified": "2023-05-22 12:57:03.689150",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",
@@ -147,5 +147,5 @@
    "title": "Removed"
   }
  ],
- "title_field": "for_document"
+ "title_field": "changed_by"
 }

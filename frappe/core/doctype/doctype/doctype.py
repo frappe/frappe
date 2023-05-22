@@ -383,8 +383,13 @@ class DocType(Document):
 			if d.unique:
 				d.search_index = 0
 
-	def log_permission(self):
-		return {"fields": ["permissions"]}
+	def get_permission_log_options(self, event=None):
+		if self.custom and event != "after_delete":
+			return {
+				"fields": ("permissions", {"fields": ("fieldname", "ignore_user_permissions", "permlevel")})
+			}
+
+		self._no_perm_log = True
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""

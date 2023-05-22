@@ -12,10 +12,10 @@ class PermissionLog(Document):
 
 
 def make_perm_log(doc, method=None):
-	if not getattr(doc, "log_permission", None):
+	if not hasattr(doc, "get_permission_log_options"):
 		return
 
-	params = doc.log_permission() or {}
+	params = doc.get_permission_log_options(method) or {}
 	if not getattr(doc, "_no_perm_log", False):
 		insert_perm_log(doc, doc.get_doc_before_save(), **params)
 
@@ -23,18 +23,19 @@ def make_perm_log(doc, method=None):
 def insert_perm_log(
 	doc: Document,
 	doc_before_save: Document = None,
-	for_doctype=None,
-	for_document=None,
+	for_doctype: str = None,
+	for_document: str = None,
 	fields: list | tuple = None,
 ):
-	if doc.flags.get("in_insert", False):
-		# don't log new documents
-		# "update" logs will have what it was changed from and to
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		# no need to log changes when migrating or installing app/site
 		return
 
 	current, previous = get_changes(doc, doc_before_save, fields)
 	if not previous and not current:
 		return
+
+	status = "Updated" if doc_before_save else ("Added" if doc.flags.in_insert else "Removed")
 
 	frappe.get_doc(
 		{
@@ -45,7 +46,7 @@ def insert_perm_log(
 			"reference": for_document and doc.name,
 			"for_doctype": for_doctype or doc.doctype,
 			"for_document": for_document or doc.name,
-			"status": "Removed" if not doc_before_save else "Updated",
+			"status": status,
 			"changes": frappe.as_json({"from": previous, "to": current}, indent=0),
 		}
 	).db_insert()
@@ -62,7 +63,10 @@ def get_changes(doc: Document, doc_before_save=None, fields=None):
 	)
 
 	if not doc_before_save:
-		return dict.fromkeys(current_changes, None), current_changes
+		empty_changes = dict.fromkeys(current_changes, "")
+		return (
+			(current_changes, empty_changes) if doc.flags.in_insert else (empty_changes, current_changes)
+		)
 
 	previous_changes = get_filtered_changes(
 		doc_before_save.as_dict(
@@ -77,6 +81,8 @@ def get_changes(doc: Document, doc_before_save=None, fields=None):
 
 
 def get_changes_diff(current_changes, previous_changes):
+	# TODO: track, added, removed and changed rows in child tables
+
 	current_values = {}
 	previous_values = {}
 
@@ -101,12 +107,12 @@ def get_changes_diff(current_changes, previous_changes):
 
 
 def get_filtered_changes(changes, filters=None):
-	def filter_child_fields(child_dicts, filter_keys):
+	def filter_child_docs(child_docs, filter_keys):
 		changes = []
-		for field in child_dicts:
+		for child in child_docs:
 			temp = {}
 			for key in filter_keys:
-				temp[key] = field[key]
+				temp[key] = child[key]
 			changes.append(temp)
 
 		return changes
@@ -116,10 +122,10 @@ def get_filtered_changes(changes, filters=None):
 
 	filtered_changes = {}
 	for f in filters:
-		if isinstance(f, (list, tuple)):
-			filtered_changes[f[0]] = changes.get(f[0], [])
-			if len(f) > 1:
-				filtered_changes[f[0]] = filter_child_fields(changes.get(f[0], []), f[1])
+		if isinstance(f, dict):
+			# filtered child docs
+			for field, cf in f.items():
+				filtered_changes[field] = filter_child_docs(changes.get(field, []), cf)
 		else:
 			filtered_changes[f] = changes.get(f, None)
 

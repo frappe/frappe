@@ -46,7 +46,7 @@ class Page(Document):
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
 
-	def log_permission(self):
+	def get_permission_log_options(self, event=None):
 		return {"fields": ["roles"]}
 
 	# export

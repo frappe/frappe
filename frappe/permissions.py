@@ -601,7 +601,7 @@ def reset_perms(doctype):
 
 	delete_notification_count_for(doctype)
 	for custom_docperm in frappe.get_all("Custom DocPerm", filters={"parent": doctype}, pluck="name"):
-		frappe.delete_doc("Custom DocPerm", custom_docperm)
+		frappe.delete_doc("Custom DocPerm", custom_docperm, ignore_permissions=True)
 
 
 def get_linked_doctypes(dt: str) -> list:
