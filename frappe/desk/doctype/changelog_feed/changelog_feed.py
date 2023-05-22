@@ -55,7 +55,6 @@ def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
 	changelog_feed_items = frappe.cache().get_value("changelog_feed")
 	if not changelog_feed_items or frappe.conf.developer_mode:
-		fetch_changelog_feed_items_from_source()
 		changelog_feed_items = frappe.get_list(
 			"Changelog Feed",
 			fields=["title", "app_name", "link", "creation_of_feed_item"],
