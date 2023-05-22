@@ -9,6 +9,7 @@ from uuid import uuid4
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
+from rq.exceptions import NoSuchJobError
 from rq.logutils import setup_loghandlers
 from rq.worker import RandomWorker, RoundRobinWorker
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -18,6 +19,7 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import cstr, get_bench_id
 from frappe.utils.commands import log
+from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
 
 if TYPE_CHECKING:
@@ -64,6 +66,7 @@ def enqueue(
 	enqueue_after_commit=False,
 	*,
 	at_front=False,
+	job_id=None,
 	**kwargs,
 ) -> Union["Job", Any]:
 	"""
@@ -74,18 +77,24 @@ def enqueue(
 	:param timeout: should be set according to the functions
 	:param event: this is passed to enable clearing of jobs from queues
 	:param is_async: if is_async=False, the method is executed immediately, else via a worker
-	:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
+	:param job_name: [DEPRECATED] can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param now: if now=True, the method is executed via frappe.call
 	:param kwargs: keyword arguments to be passed to the method
+	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
 
+	if job_id:
+		# namespace job ids to sites
+		job_id = create_job_id(job_id)
+
+	if job_name:
+		deprecation_warning("Using enqueue with `job_name` is deprecated, use `job_id` instead.")
+
 	if not is_async and not frappe.flags.in_test:
-		print(
-			_(
-				"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
-			)
+		deprecation_warning(
+			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
 		)
 
 	call_directly = now or (not is_async and not frappe.flags.in_test)
@@ -95,9 +104,12 @@ def enqueue(
 	try:
 		q = get_queue(queue, is_async=is_async)
 	except ConnectionError:
-		# If redis is not available for queueing execute the job directly
-		print(f"Redis queue is unreachable: Executing {method} synchronously")
-		return frappe.call(method, **kwargs)
+		if frappe.local.flags.in_migrate:
+			# If redis is not available during migration, execute the job directly
+			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			return frappe.call(method, **kwargs)
+
+		raise
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
@@ -115,7 +127,13 @@ def enqueue(
 			frappe.flags.enqueue_after_commit = []
 
 		frappe.flags.enqueue_after_commit.append(
-			{"queue": queue, "is_async": is_async, "timeout": timeout, "queue_args": queue_args}
+			{
+				"queue": queue,
+				"is_async": is_async,
+				"timeout": timeout,
+				"queue_args": queue_args,
+				"job_id": job_id,
+			}
 		)
 		return frappe.flags.enqueue_after_commit
 
@@ -128,6 +146,7 @@ def enqueue(
 		at_front=at_front,
 		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+		job_id=job_id,
 	)
 
 
@@ -413,12 +432,17 @@ def test_job(s):
 	time.sleep(s)
 
 
-def is_job_queued(job_name: str) -> bool:
-	for queue in get_queues():
-		for job_id in queue.get_job_ids():
-			if not job_id:
-				continue
-			job = queue.fetch_job(job_id)
-			if job.kwargs.get("job_name") == job_name and job.kwargs.get("site") == frappe.local.site:
-				return True
-	return False
+def create_job_id(job_id: str) -> str:
+	"""Generate unique job id for deduplication"""
+	return f"{frappe.local.site}::{job_id}"
+
+
+def is_job_enqueued(job_id: str) -> str:
+	from rq.job import Job
+
+	try:
+		job = Job.fetch(create_job_id(job_id), connection=get_redis_conn())
+	except NoSuchJobError:
+		return False
+
+	return job.get_status() in ("queued", "started")

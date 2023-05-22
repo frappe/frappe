@@ -1,0 +1,23 @@
+{
+ "content": null,
+ "creation": "2023-05-01 13:02:17.223595",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2023-05-01 13:02:17.223595",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "workflow-builder",
+ "owner": "Administrator",
+ "page_name": "workflow-builder",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Workflow Builder"
+}

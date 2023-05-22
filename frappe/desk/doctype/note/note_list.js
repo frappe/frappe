@@ -1,8 +1,6 @@
 frappe.listview_settings["Note"] = {
-	onload: function (me) {
-		me.page.set_title(__("Notes"));
-	},
-	add_fields: ["title", "public"],
+	hide_name_column: true,
+	add_fields: ["public"],
 	get_indicator: function (doc) {
 		if (doc.public) {
 			return [__("Public"), "green", "public,=,Yes"];

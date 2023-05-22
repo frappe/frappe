@@ -861,7 +861,7 @@ class Database:
 		**Warning:** this function will not call Document events and should be avoided in normal cases.
 
 		:param dt: DocType name.
-		:param dn: Document name.
+		:param dn: Document name for updating single record or filters for updating many records.
 		:param field: Property / field name or dictionary of values to be updated
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
@@ -1222,7 +1222,7 @@ class Database:
 			# multi_word_regex is designed to match following patterns
 			# `tabXxx Xxx` and "tabXxx Xxx"
 
-			# ([`"]?) Captures " or ` at the begining of the table name (if provided)
+			# ([`"]?) Captures " or ` at the beginning of the table name (if provided)
 			# \1 matches the first captured group (quote character) at the end of the table name
 			# multi word table name must have surrounding quotes.
 
@@ -1302,6 +1302,7 @@ def enqueue_jobs_after_commit():
 				kwargs=job.get("queue_args"),
 				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+				job_id=job.get("job_id"),
 			)
 		frappe.flags.enqueue_after_commit = []
 

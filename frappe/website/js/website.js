@@ -84,7 +84,7 @@ $.extend(frappe, {
 		}
 		return $.ajax({
 			type: opts.type || "POST",
-			url: "/",
+			url: opts.url || "/",
 			data: opts.args,
 			dataType: "json",
 			headers: {
