@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-05-16 19:37:51.047664",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "app_name",
+  "link",
+  "creation_of_feed_item"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
+  },
+  {
+   "fieldname": "link",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Link",
+   "reqd": 1
+  },
+  {
+   "fieldname": "creation_of_feed_item",
+   "fieldtype": "Datetime",
+   "label": "Creation of Feed Item",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-05-22 10:04:52.980692",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Changelog Feed",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

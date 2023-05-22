@@ -449,7 +449,10 @@ class EventsView extends BaseNotificationsView {
 class ChangelogFeedView extends BaseNotificationsView {
 	make() {
 		frappe
-			.xcall("frappe.utils.change_log.get_changelog_feed_items", {})
+			.xcall(
+				"frappe.desk.doctype.changelog_feed.changelog_feed.get_changelog_feed_items",
+				{}
+			)
 			.then((changelog_feed_list) => {
 				this.render_changelog_feed_html(changelog_feed_list);
 			});
@@ -460,11 +463,13 @@ class ChangelogFeedView extends BaseNotificationsView {
 		if (changelog_feed_list.length) {
 			this.container.empty();
 			const get_changelog_feed_html = (changelog_feed_item) => {
-				const timestamp = frappe.datetime.comment_when(changelog_feed_item.creation);
+				const timestamp = frappe.datetime.comment_when(
+					changelog_feed_item.creation_of_feed_item
+				);
 				const message_html = `<div class="message">
 					<div>${changelog_feed_item.title}</div>
 					<div class="notification-timestamp text-muted">
-					${changelog_feed_item.app_title} | ${timestamp}
+					${changelog_feed_item.app_name} | ${timestamp}
 					</div>
 				</div>`;
 
