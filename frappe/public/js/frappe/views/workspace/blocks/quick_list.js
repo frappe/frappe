@@ -2,8 +2,8 @@ import Block from "./block.js";
 export default class QuickList extends Block {
 	static get toolbox() {
 		return {
-			title: 'Quick List',
-			icon: frappe.utils.icon('list', 'sm')
+			title: "Quick List",
+			icon: frappe.utils.icon("list", "sm"),
 		};
 	}
 
@@ -23,21 +23,21 @@ export default class QuickList extends Block {
 			allow_edit: true,
 			allow_resize: true,
 			min_width: 4,
-			max_widget_count: 2
+			max_widget_count: 2,
 		};
 	}
 
 	render() {
-		this.wrapper = document.createElement('div');
-		this.new('quick_list');
+		this.wrapper = document.createElement("div");
+		this.new("quick_list");
 
 		if (this.data && this.data.quick_list_name) {
-			let has_data = this.make('quick_list', this.data.quick_list_name);
+			let has_data = this.make("quick_list", this.data.quick_list_name);
 			if (!has_data) return;
 		}
 
 		if (!this.readOnly) {
-			$(this.wrapper).find('.widget').addClass('quick_list edit-mode');
+			$(this.wrapper).find(".widget").addClass("quick_list edit-mode");
 			this.add_settings_button();
 			this.add_new_block_button();
 		}
@@ -55,9 +55,9 @@ export default class QuickList extends Block {
 
 	save() {
 		return {
-			quick_list_name: this.wrapper.getAttribute('quick_list_name'),
+			quick_list_name: this.wrapper.getAttribute("quick_list_name"),
 			col: this.get_col(),
-			new: this.new_block_widget
+			new: this.new_block_widget,
 		};
 	}
 }

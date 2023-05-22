@@ -4,6 +4,7 @@ import re
 from bleach_allowlist import bleach_allowlist
 
 import frappe
+from frappe.utils.data import escape_html
 
 EMOJI_PATTERN = re.compile(
 	"(\ud83d[\ude00-\ude4f])|"
@@ -162,7 +163,13 @@ def sanitize_html(html, linkify=False):
 		+ mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
 	)
-	attributes = {"*": acceptable_attributes, "svg": svg_attributes}
+
+	def attributes_filter(tag, name, value):
+		if name.startswith("data-"):
+			return True
+		return name in acceptable_attributes
+
+	attributes = {"*": attributes_filter, "svg": svg_attributes}
 	styles = bleach_allowlist.all_styles
 	strip_comments = False
 
@@ -198,10 +205,12 @@ def get_icon_html(icon, small=False):
 
 	if is_image(icon):
 		return (
-			f'<img style="width: 16px; height: 16px;" src="{icon}">' if small else f'<img src="{icon}">'
+			f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
+			if small
+			else f"<img src={escape_html(icon)!r}>"
 		)
 	else:
-		return f"<i class='{icon}'></i>"
+		return f"<i class={escape_html(icon)!r}></i>"
 
 
 def unescape_html(value):
@@ -271,6 +280,7 @@ acceptable_elements = [
 	"li",
 	"m",
 	"map",
+	"mark",
 	"menu",
 	"meter",
 	"multicol",
@@ -417,6 +427,7 @@ acceptable_attributes = [
 	"cols",
 	"colspan",
 	"compact",
+	"content",
 	"contenteditable",
 	"controls",
 	"coords",
@@ -614,6 +625,7 @@ svg_attributes = [
 	"color",
 	"color-rendering",
 	"content",
+	"colwidth",
 	"cx",
 	"cy",
 	"d",

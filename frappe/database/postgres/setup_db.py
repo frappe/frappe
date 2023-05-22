@@ -75,15 +75,6 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		)
 
 
-def setup_help_database(help_db_name):
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
-	root_conn.sql(f"DROP DATABASE IF EXISTS `{help_db_name}`")
-	root_conn.sql(f"DROP USER IF EXISTS {help_db_name}")
-	root_conn.sql(f"CREATE DATABASE `{help_db_name}`")
-	root_conn.sql(f"CREATE user {help_db_name} password '{help_db_name}'")
-	root_conn.sql("GRANT ALL PRIVILEGES ON DATABASE `{0}` TO {0}".format(help_db_name))
-
-
 def get_root_connection(root_login=None, root_password=None):
 	if not frappe.local.flags.root_connection:
 		if not root_login:

@@ -1,8 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import typing
-
 import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, no_value_fields
@@ -183,7 +181,7 @@ class Exporter:
 			child_fields = ["name", "idx", "parent", "parentfield"] + list(
 				{format_column_name(df) for df in self.fields if df.parent == child_table_doctype}
 			)
-			data = frappe.db.get_all(
+			data = frappe.get_all(
 				child_table_doctype,
 				filters={
 					"parent": ("in", parent_names),
@@ -199,7 +197,7 @@ class Exporter:
 		# Group children data by parent name
 		grouped_children_data = self.group_children_data_by_parent(child_data)
 		for doc in parent_data:
-			related_children_docs = grouped_children_data.get(doc.name, {})
+			related_children_docs = grouped_children_data.get(str(doc.name), {})
 			yield {**doc, **related_children_docs}
 
 	def add_header(self):
@@ -207,9 +205,11 @@ class Exporter:
 		for df in self.fields:
 			is_parent = not df.is_child_table_field
 			if is_parent:
-				label = _(df.label)
+				label = _(df.label or df.fieldname)
 			else:
-				label = f"{_(df.label)} ({_(df.child_table_df.label)})"
+				label = (
+					f"{_(df.label or df.fieldname)} ({_(df.child_table_df.label or df.child_table_df.fieldname)})"
+				)
 
 			if label in header:
 				# this label is already in the header,
@@ -241,15 +241,9 @@ class Exporter:
 
 	def build_response(self):
 		if self.file_type == "CSV":
-			self.build_csv_response()
+			build_csv_response(self.get_csv_array_for_export(), _(self.doctype))
 		elif self.file_type == "Excel":
-			self.build_xlsx_response()
-
-	def build_csv_response(self):
-		build_csv_response(self.get_csv_array_for_export(), _(self.doctype))
-
-	def build_xlsx_response(self):
-		build_xlsx_response(self.get_csv_array_for_export(), _(self.doctype))
+			build_xlsx_response(self.get_csv_array_for_export(), _(self.doctype))
 
 	def group_children_data_by_parent(self, children_data: dict[str, list]):
 		return groupby_metric(children_data, key="parent")

@@ -24,6 +24,7 @@
   "ldap_email_field",
   "ldap_username_field",
   "ldap_first_name_field",
+  "do_not_create_new_user",
   "column_break_19",
   "ldap_middle_name_field",
   "ldap_last_name_field",
@@ -42,7 +43,10 @@
   "column_break_33",
   "ldap_group_member_attribute",
   "ldap_group_mappings_section",
+  "default_user_type",
+  "column_break_38",
   "default_role",
+  "section_break_40",
   "ldap_groups",
   "ldap_group_field"
  ],
@@ -79,11 +83,12 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval: doc.default_user_type == \"System User\"",
    "fieldname": "default_role",
    "fieldtype": "Link",
-   "label": "Default Role on Creation",
-   "options": "Role",
-   "reqd": 1
+   "label": "Default User Role",
+   "mandatory_depends_on": "eval: doc.default_user_type == \"System User\"",
+   "options": "Role"
   },
   {
    "description": "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
@@ -249,10 +254,10 @@
    "label": "Group Object Class"
   },
   {
-    "description": "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com",
-    "fieldname": "ldap_custom_group_search",
-    "fieldtype": "Data",
-    "label": "Custom Group Search"
+   "description": "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com",
+   "fieldname": "ldap_custom_group_search",
+   "fieldtype": "Data",
+   "label": "Custom Group Search"
   },
   {
    "description": "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com",
@@ -268,12 +273,35 @@
    "fieldtype": "Data",
    "label": "LDAP search path for Groups",
    "reqd": 1
+  },
+  {
+   "fieldname": "default_user_type",
+   "fieldtype": "Link",
+   "label": "Default User Type",
+   "options": "User Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_40",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "default": "0",
+   "description": "Do not create new user if user with email does not exist in the system",
+   "fieldname": "do_not_create_new_user",
+   "fieldtype": "Check",
+   "label": "Do Not Create New User "
   }
  ],
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-07-27 11:51:43.328271",
+ "modified": "2023-01-24 11:20:06.049708",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
@@ -294,5 +322,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -6,6 +6,7 @@ import OnboardingWidget from "../widgets/onboarding_widget";
 import NewWidget from "../widgets/new_widget";
 import NumberCardWidget from "../widgets/number_card_widget";
 import QuickListWidget from "../widgets/quick_list_widget";
+import CustomBlock from "../widgets/custom_block_widget";
 
 frappe.provide("frappe.widget");
 
@@ -16,7 +17,8 @@ frappe.widget.widget_factory = {
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
 	number_card: NumberCardWidget,
-	quick_list: QuickListWidget
+	quick_list: QuickListWidget,
+	custom_block: CustomBlock,
 };
 
 frappe.widget.make_widget = (opts) => {
@@ -49,7 +51,7 @@ export default class WidgetGroup {
 	}
 
 	make_container() {
-		const widget_area = $(`<div class="widget-group ${this.class_name || ''}">
+		const widget_area = $(`<div class="widget-group ${this.class_name || ""}">
 				<div class="widget-group-head">
 					<div class="widget-group-title"></div>
 					<div class="widget-group-control"></div>
@@ -209,8 +211,8 @@ export class SingleWidgetGroup {
 			options: {
 				...this.options,
 				on_delete: () => this.on_delete(),
-				on_edit: () => this.on_edit(widget_object)
-			}
+				on_edit: () => this.on_edit(widget_object),
+			},
 		});
 		this.widgets_list.push(widget_object);
 		this.widgets_dict[widget.name] = widget_object;

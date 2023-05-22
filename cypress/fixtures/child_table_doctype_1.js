@@ -12,38 +12,38 @@ export default {
 			fieldname: "data",
 			fieldtype: "Data",
 			in_list_view: 1,
-			label: "Data"
+			label: "Data",
 		},
 		{
 			fieldname: "barcode",
 			fieldtype: "Barcode",
 			in_list_view: 1,
-			label: "Barcode"
+			label: "Barcode",
 		},
 		{
 			fieldname: "check",
 			fieldtype: "Check",
 			in_list_view: 1,
-			label: "Check"
+			label: "Check",
 		},
 		{
 			fieldname: "rating",
 			fieldtype: "Rating",
 			in_list_view: 1,
-			label: "Rating"
+			label: "Rating",
 		},
 		{
 			fieldname: "duration",
 			fieldtype: "Duration",
 			in_list_view: 1,
-			label: "Duration"
+			label: "Duration",
 		},
 		{
 			fieldname: "date",
 			fieldtype: "Date",
 			in_list_view: 1,
-			label: "Date"
-		}
+			label: "Date",
+		},
 	],
 	links: [],
 	istable: 1,
@@ -53,7 +53,7 @@ export default {
 	naming_rule: "By fieldname",
 	owner: "Administrator",
 	permissions: [],
-	sort_field: 'modified',
-	sort_order: 'ASC',
-	track_changes: 1
+	sort_field: "modified",
+	sort_order: "ASC",
+	track_changes: 1,
 };

@@ -1,17 +1,16 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import sqlparse
 
 import frappe
 import frappe.recorder
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response_content
 
 
-class TestRecorder(unittest.TestCase):
+class TestRecorder(FrappeTestCase):
 	def setUp(self):
 		frappe.recorder.stop()
 		frappe.recorder.delete()
@@ -124,3 +123,15 @@ class TestRecorder(unittest.TestCase):
 	def test_error_page_rendering(self):
 		content = get_response_content("error")
 		self.assertIn("Error", content)
+
+
+class TestRecorderDeco(FrappeTestCase):
+	def test_recorder_flag(self):
+		frappe.recorder.delete()
+
+		@frappe.recorder.record_queries
+		def test():
+			frappe.get_all("User")
+
+		test()
+		self.assertTrue(frappe.recorder.get())

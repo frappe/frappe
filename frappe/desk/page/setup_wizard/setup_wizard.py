@@ -2,11 +2,10 @@
 # License: MIT. See LICENSE
 
 import json
-import os
 
 import frappe
 from frappe.geo.country_info import get_country_info
-from frappe.translate import get_dict, send_translations, set_default_language
+from frappe.translate import get_messages_for_boot, send_translations, set_default_language
 from frappe.utils import cint, strip
 from frappe.utils.password import update_password
 
@@ -65,6 +64,9 @@ def setup_complete(args):
 
 @frappe.task()
 def process_setup_stages(stages, user_input, is_background_task=False):
+	from frappe.utils.telemetry import capture
+
+	capture("initated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -89,6 +91,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		)
 	else:
 		run_setup_success(user_input)
+		capture("completed_server_side", "setup")
 		if not is_background_task:
 			return {"status": "ok"}
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
@@ -166,11 +169,13 @@ def update_system_settings(args):
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
 			"float_precision": 3,
+			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
 			"number_format": number_format,
 			"enable_scheduler": 1 if not frappe.flags.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
+			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
 	)
 	system_settings.save()
@@ -268,10 +273,10 @@ def add_all_roles_to(name):
 
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
-	frappe.db.set_value("System Settings", "System Settings", "setup_complete", 1)
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 	# Enable onboarding after install
-	frappe.db.set_value("System Settings", "System Settings", "enable_onboarding", 1)
+	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
@@ -290,15 +295,7 @@ def load_messages(language):
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))
 	frappe.db.commit()
-	m = get_dict("page", "setup-wizard")
-
-	for path in frappe.get_hooks("setup_wizard_requires"):
-		# common folder `assets` served from `sites/`
-		js_file_path = os.path.abspath(frappe.get_site_path("..", *path.strip("/").split("/")))
-		m.update(get_dict("jsfile", js_file_path))
-
-	m.update(get_dict("boot"))
-	send_translations(m)
+	send_translations(get_messages_for_boot())
 	return frappe.local.lang
 
 

@@ -12,8 +12,6 @@ from frappe.contacts.doctype.contact.contact import (
 	get_contacts_linked_from,
 	get_contacts_linking_to,
 )
-from frappe.core.doctype.communication.email import make
-from frappe.desk.form import assign_to
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
@@ -241,7 +239,7 @@ class AutoRepeat(Document):
 	def set_auto_repeat_period(self, new_doc):
 		mcount = month_map.get(self.frequency)
 		if mcount and new_doc.meta.get_field("from_date") and new_doc.meta.get_field("to_date"):
-			last_ref_doc = frappe.db.get_all(
+			last_ref_doc = frappe.get_all(
 				doctype=self.reference_doctype,
 				fields=["name", "from_date", "to_date"],
 				filters=[
@@ -365,7 +363,7 @@ class AutoRepeat(Document):
 			error_string += _(
 				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
-			attachments = "[]"
+			attachments = None
 
 		if error_string:
 			message = error_string
@@ -374,16 +372,14 @@ class AutoRepeat(Document):
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {"doc": new_doc})
 
-		recipients = self.recipients.split("\n")
-
-		make(
-			doctype=new_doc.doctype,
-			name=new_doc.name,
-			recipients=recipients,
+		frappe.sendmail(
+			reference_doctype=new_doc.doctype,
+			reference_name=new_doc.name,
+			recipients=self.recipients,
 			subject=subject,
 			content=message,
 			attachments=attachments,
-			send_email=1,
+			expose_recipients="header",
 		)
 
 	@frappe.whitelist()
@@ -470,7 +466,7 @@ def create_repeated_entries(data):
 def get_auto_repeat_entries(date=None):
 	if not date:
 		date = getdate(today())
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"Auto Repeat", filters=[["next_schedule_date", "<=", date], ["status", "=", "Active"]]
 	)
 
@@ -504,7 +500,7 @@ def make_auto_repeat(doctype, docname, frequency="Daily", start_date=None, end_d
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
-	res = frappe.db.get_all(
+	res = frappe.get_all(
 		"Property Setter",
 		{
 			"property": "allow_auto_repeat",
@@ -514,7 +510,7 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 	)
 	docs = [r.doc_type for r in res]
 
-	res = frappe.db.get_all(
+	res = frappe.get_all(
 		"DocType",
 		{
 			"allow_auto_repeat": 1,

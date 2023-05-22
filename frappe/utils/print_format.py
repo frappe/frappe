@@ -5,6 +5,7 @@ from PyPDF2 import PdfWriter
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.translate import print_language
 from frappe.utils.pdf import get_pdf
 
 no_cache = 1
@@ -16,7 +17,9 @@ from frappe.www.printview import validate_print_permission
 
 
 @frappe.whitelist()
-def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=None):
+def download_multi_pdf(
+	doctype, name, format=None, no_letterhead=False, letterhead=None, options=None
+):
 	"""
 	Concatenate multiple docs as PDF .
 
@@ -75,6 +78,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 				as_pdf=True,
 				output=output,
 				no_letterhead=no_letterhead,
+				letterhead=letterhead,
 				pdf_options=options,
 			)
 		frappe.local.response.filename = "{doctype}.pdf".format(
@@ -91,6 +95,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 						as_pdf=True,
 						output=output,
 						no_letterhead=no_letterhead,
+						letterhead=letterhead,
 						pdf_options=options,
 					)
 				except Exception:
@@ -103,7 +108,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, options=
 		frappe.local.response.filename = f"{name}.pdf"
 
 	frappe.local.response.filecontent = read_multi_pdf(output)
-	frappe.local.response.type = "download"
+	frappe.local.response.type = "pdf"
 
 
 def read_multi_pdf(output):
@@ -118,15 +123,21 @@ def read_multi_pdf(output):
 
 
 @frappe.whitelist(allow_guest=True)
-def download_pdf(doctype, name, format=None, doc=None, no_letterhead=0):
+def download_pdf(
+	doctype, name, format=None, doc=None, no_letterhead=0, language=None, letterhead=None
+):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
-	html = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead)
+	with print_language(language):
+		pdf_file = frappe.get_print(
+			doctype, name, format, doc=doc, as_pdf=True, letterhead=letterhead, no_letterhead=no_letterhead
+		)
+
 	frappe.local.response.filename = "{name}.pdf".format(
 		name=name.replace(" ", "-").replace("/", "-")
 	)
-	frappe.local.response.filecontent = get_pdf(html)
+	frappe.local.response.filecontent = pdf_file
 	frappe.local.response.type = "pdf"
 
 

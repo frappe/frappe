@@ -22,17 +22,8 @@ rights = (
 	"report",
 	"import",
 	"export",
-	"set_user_permissions",
 	"share",
 )
-
-
-def check_admin_or_system_manager(user=None):
-	if not user:
-		user = frappe.session.user
-
-	if ("System Manager" not in frappe.get_roles(user)) and (user != "Administrator"):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 
 def print_has_permission_check_logs(func):
@@ -40,7 +31,7 @@ def print_has_permission_check_logs(func):
 		frappe.flags["has_permission_check_logs"] = []
 		result = func(*args, **kwargs)
 		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
-		raise_exception = False if kwargs.get("raise_exception") is False else True
+		raise_exception = kwargs.get("raise_exception", True)
 
 		# print only if access denied
 		# and if user is checking his own permission
@@ -60,28 +51,42 @@ def has_permission(
 	verbose=False,
 	user=None,
 	raise_exception=True,
+	*,
 	parent_doctype=None,
 ):
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
 
-	Note: if Table DocType is passed, it always returns True.
+	:param doctype: DocType to check permission for
+	:param ptype: Permission Type to check
+	:param doc: Check User Permissions for specified document.
+	:param verbose: DEPRECATED, will be removed in a future release.
+	:param user: User to check permission for. Defaults to current user.
+	:param raise_exception:
+	        DOES NOT raise an exception.
+	        If not False, will display a message using frappe.msgprint
+	                which explains why the permission check failed.
+
+	:param parent_doctype:
+	        Required when checking permission for a child DocType (unless doc is specified)
 	"""
+
 	if not user:
 		user = frappe.session.user
+
+	if user == "Administrator":
+		return True
+
+	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
+		return False
 
 	if not doc and hasattr(doctype, "doctype"):
 		# first argument can be doc or doctype
 		doc = doctype
 		doctype = doc.doctype
 
-	if user == "Administrator":
-		return True
-
 	if frappe.is_table(doctype):
-		return has_child_table_permission(
-			doctype, ptype, doc, verbose, user, raise_exception, parent_doctype
-		)
+		return has_child_permission(doctype, ptype, doc, user, raise_exception, parent_doctype)
 
 	meta = frappe.get_meta(doctype)
 
@@ -201,7 +206,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 	if not user:
 		user = frappe.session.user
 
-	cache_key = (doctype_meta.name, user)
+	cache_key = (doctype_meta.name, user, bool(is_owner))
 
 	if user == "Administrator":
 		return allow_everything()
@@ -314,14 +319,26 @@ def has_user_permission(doc, user=None):
 				# restricted for this link field, and no matching values found
 				# make the right message and exit
 				if d.get("parentfield"):
-					# "Not allowed for Company = Restricted Company in Row 3. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1} in Row {2}. Restricted field: {3}").format(
-						_(field.options), d.get(field.fieldname), d.idx, field.fieldname
+					# "You are not allowed to access this Employee record because it is linked
+					# to Company 'Restricted Company' in row 3, field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						d.idx,
+						_(field.label) if field.label else field.fieldname,
 					)
 				else:
-					# "Not allowed for Company = Restricted Company. Restricted field: reference_type"
-					msg = _("Not allowed for {0}: {1}. Restricted field: {2}").format(
-						_(field.options), d.get(field.fieldname), field.fieldname
+					# "You are not allowed to access Company 'Restricted Company' in field Reference Type"
+					msg = _(
+						"You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
+					).format(
+						_(meta.doctype),
+						_(field.options),
+						d.get(field.fieldname) or _("empty"),
+						_(field.label) if field.label else field.fieldname,
 					)
 
 				push_perm_check_log(msg)
@@ -398,7 +415,7 @@ def get_roles(user=None, with_standard=True):
 	if not user:
 		user = frappe.session.user
 
-	if user == "Guest":
+	if user == "Guest" or not user:
 		return ["Guest"]
 
 	def get():
@@ -408,7 +425,9 @@ def get_roles(user=None, with_standard=True):
 			table = DocType("Has Role")
 			roles = (
 				frappe.qb.from_(table)
-				.where((table.parent == user) & (table.role.notin(["All", "Guest"])))
+				.where(
+					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(["All", "Guest"]))
+				)
 				.select(table.role)
 				.run(pluck=True)
 			)
@@ -432,37 +451,14 @@ def get_doctype_roles(doctype, access_type="read"):
 def get_perms_for(roles, perm_doctype="DocPerm"):
 	"""Get perms for given roles"""
 	filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
-	return frappe.db.get_all(perm_doctype, fields=["*"], filters=filters)
+	return frappe.get_all(perm_doctype, fields=["*"], filters=filters)
 
 
 def get_doctypes_with_custom_docperms():
 	"""Returns all the doctypes with Custom Docperms"""
 
-	doctypes = frappe.db.get_all("Custom DocPerm", fields=["parent"], distinct=1)
+	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
 	return [d.parent for d in doctypes]
-
-
-def can_set_user_permissions(doctype, docname=None):
-	# System Manager can always set user permissions
-	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
-		return True
-
-	meta = frappe.get_meta(doctype)
-
-	# check if current user has read permission for docname
-	if docname and not has_permission(doctype, "read", docname):
-		return False
-
-	# check if current user has a role that can set permission
-	if get_role_permissions(meta).set_user_permissions != 1:
-		return False
-
-	return True
-
-
-def set_user_permission_if_allowed(doctype, name, user, with_message=False):
-	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions != 1:
-		add_user_permission(doctype, name, user)
 
 
 def add_user_permission(
@@ -489,6 +485,7 @@ def add_user_permission(
 				for_value=name,
 				is_default=is_default,
 				applicable_for=applicable_for,
+				apply_to_all_doctypes=0 if applicable_for else 1,
 				hide_descendants=hide_descendants,
 			)
 		).insert(ignore_permissions=ignore_permissions)
@@ -505,7 +502,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 	filters = {"allow": doctype}
 	if user:
 		filters["user"] = user
-	user_permissions_for_doctype = frappe.db.get_all("User Permission", filters=filters)
+	user_permissions_for_doctype = frappe.get_all("User Permission", filters=filters)
 	for d in user_permissions_for_doctype:
 		frappe.delete_doc("User Permission", d.name)
 
@@ -619,7 +616,7 @@ def get_linked_doctypes(dt: str) -> list:
 def get_doc_name(doc):
 	if not doc:
 		return None
-	return doc if isinstance(doc, str) else doc.name
+	return doc if isinstance(doc, str) else str(doc.name)
 
 
 def allow_everything():
@@ -658,52 +655,74 @@ def push_perm_check_log(log):
 	frappe.flags.get("has_permission_check_logs").append(_(log))
 
 
-def has_child_table_permission(
+def has_child_permission(
 	child_doctype,
 	ptype="read",
 	child_doc=None,
-	verbose=False,
 	user=None,
 	raise_exception=True,
 	parent_doctype=None,
 ):
-	parent_doc = None
+	if isinstance(child_doc, str):
+		child_doc = frappe.db.get_value(
+			child_doctype,
+			child_doc,
+			("parent", "parenttype", "parentfield"),
+			as_dict=True,
+		)
 
 	if child_doc:
-		parent_doctype = child_doc.get("parenttype")
-		parent_doc = frappe.get_cached_doc(
-			{"doctype": parent_doctype, "docname": child_doc.get("parent")}
-		)
+		parent_doctype = child_doc.parenttype
 
-	if parent_doctype:
-		if not is_parent_valid(child_doctype, parent_doctype):
-			frappe.throw(
-				_("{0} is not a valid parent DocType for {1}").format(
-					frappe.bold(parent_doctype), frappe.bold(child_doctype)
-				),
-				title=_("Invalid Parent DocType"),
-			)
-	else:
-		frappe.throw(
-			_("Please specify a valid parent DocType for {0}").format(frappe.bold(child_doctype)),
-			title=_("Parent DocType Required"),
+	if not parent_doctype:
+		push_perm_check_log(
+			_("Please specify a valid parent DocType for {0}").format(frappe.bold(child_doctype))
 		)
+		return False
+
+	parent_meta = frappe.get_meta(parent_doctype)
+
+	if parent_meta.istable or not (
+		valid_parentfields := [
+			df.fieldname for df in parent_meta.get_table_fields() if df.options == child_doctype
+		]
+	):
+		push_perm_check_log(
+			_("{0} is not a valid parent DocType for {1}").format(
+				frappe.bold(parent_doctype), frappe.bold(child_doctype)
+			)
+		)
+		return False
+
+	if child_doc:
+		parentfield = child_doc.parentfield
+		if not parentfield:
+			push_perm_check_log(
+				_("Parentfield not specified in {0}: {1}").format(
+					frappe.bold(child_doctype), frappe.bold(child_doc.name)
+				)
+			)
+			return False
+
+		if parentfield not in valid_parentfields:
+			push_perm_check_log(
+				_("{0} is not a valid parentfield for {1}").format(
+					frappe.bold(parentfield), frappe.bold(child_doctype)
+				)
+			)
+			return False
+
+		permlevel = parent_meta.get_field(parentfield).permlevel
+		if permlevel > 0 and permlevel not in parent_meta.get_permlevel_access(ptype, user=user):
+			push_perm_check_log(
+				_("Insufficient Permission Level for {0}").format(frappe.bold(parent_doctype))
+			)
+			return False
 
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=parent_doc,
-		verbose=verbose,
+		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
 		user=user,
 		raise_exception=raise_exception,
 	)
-
-
-def is_parent_valid(child_doctype, parent_doctype):
-	from frappe.core.utils import find
-
-	parent_meta = frappe.get_meta(parent_doctype)
-	child_table_field_exists = find(
-		parent_meta.get_table_fields(), lambda d: d.options == child_doctype
-	)
-	return not parent_meta.istable and child_table_field_exists

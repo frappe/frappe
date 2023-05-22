@@ -1,14 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
 from contextlib import contextmanager
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 from frappe.app import make_form_dict
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
 
@@ -21,7 +21,7 @@ class CustomTestNote(Note):
 		return now_datetime() - self.creation
 
 
-class TestDocument(unittest.TestCase):
+class TestDocument(FrappeTestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])
@@ -101,6 +101,14 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
+	def test_text_editor_field(self):
+		try:
+			frappe.get_doc(
+				doctype="Activity Log", subject="test", message='<img src="test.png" />'
+			).insert()
+		except frappe.MandatoryError:
+			self.fail("Text Editor false positive mandatory error")
+
 	def test_conflict_validation(self):
 		d1 = self.test_insert()
 		d2 = frappe.get_doc(d1.doctype, d1.name)
@@ -154,6 +162,12 @@ class TestDocument(unittest.TestCase):
 		self.assertRaises(frappe.ValidationError, d.validate)
 		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
+
+	def test_db_set_no_query_on_new_docs(self):
+		user = frappe.new_doc("User")
+		user.db_set("user_type", "Magical Wizard")
+		with self.assertQueryCount(0):
+			user.db_set("user_type", "Magical Wizard")
 
 	def test_update_after_submit(self):
 		d = self.test_insert()
@@ -290,7 +304,9 @@ class TestDocument(unittest.TestCase):
 
 		@contextmanager
 		def customize_note(with_options=False):
-			options = "frappe.utils.now_datetime() - doc.creation" if with_options else ""
+			options = (
+				"frappe.utils.now_datetime() - frappe.utils.get_datetime(doc.creation)" if with_options else ""
+			)
 			custom_field = frappe.get_doc(
 				{
 					"doctype": "Custom Field",
@@ -307,6 +323,9 @@ class TestDocument(unittest.TestCase):
 				yield custom_field.insert(ignore_if_duplicate=True)
 			finally:
 				custom_field.delete()
+				# to truly delete the field
+				# creation is commited due to DDL
+				frappe.db.commit()
 
 		with patch_note():
 			doc = frappe.get_last_doc("Note")
@@ -362,6 +381,12 @@ class TestDocument(unittest.TestCase):
 		doc.set("user_emails", None)
 		self.assertEqual(doc.user_emails, [])
 
+		# setting a string value should fail
+		self.assertRaises(TypeError, doc.set, "user_emails", "fail")
+		# but not when loading from db
+		doc.flags.ignore_children = True
+		doc.update({"user_emails": "ok"})
+
 	def test_doc_events(self):
 		"""validate that all present doc events are correct methods"""
 
@@ -373,8 +398,58 @@ class TestDocument(unittest.TestCase):
 					except Exception as e:
 						self.fail(f"Invalid doc hook: {doctype}:{hook}\n{e}")
 
+	def test_realtime_notify(self):
+		todo = frappe.new_doc("ToDo")
+		todo.description = "this will trigger realtime update"
+		todo.notify_update = Mock()
+		todo.insert()
+		self.assertEqual(todo.notify_update.call_count, 1)
 
-class TestDocumentWebView(unittest.TestCase):
+		todo.reload()
+		todo.flags.notify_update = False
+		todo.description = "this won't trigger realtime update"
+		todo.save()
+		self.assertEqual(todo.notify_update.call_count, 1)
+
+	def test_error_on_saving_new_doc_with_name(self):
+		"""Trying to save a new doc with name should raise DoesNotExistError"""
+
+		doc = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "this should raise frappe.DoesNotExistError",
+				"name": "lets-trick-doc-save",
+			}
+		)
+
+		self.assertRaises(frappe.DoesNotExistError, doc.save)
+
+	def test_validate_from_to_dates(self):
+		doc = frappe.new_doc("Web Page")
+		doc.start_date = None
+		doc.end_date = None
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = "2020-01-01"
+		doc.end_date = None
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = None
+		doc.end_date = "2020-12-31"
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.start_date = "2020-01-01"
+		doc.end_date = "2020-12-31"
+		doc.validate_from_to_dates("start_date", "end_date")
+
+		doc.end_date = "2020-01-01"
+		doc.start_date = "2020-12-31"
+		self.assertRaises(
+			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
+		)
+
+
+class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):
 		frappe.set_user(user)
 		set_request(method="GET", path=path)
@@ -418,3 +493,21 @@ class TestDocumentWebView(unittest.TestCase):
 
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
+
+	def test_bulk_inserts(self):
+		from frappe.model.document import bulk_insert
+
+		doctype = "ToDo"
+		sent_todo = set()
+
+		def doc_generator():
+			for i in range(690):
+				doc = frappe.new_doc(doctype)
+				doc.name = doc.description = frappe.generate_hash()
+				sent_todo.add(doc.name)
+				yield doc
+
+		bulk_insert(doctype, doc_generator(), chunk_size=100)
+
+		all_todos = set(frappe.get_all("ToDo", pluck="name"))
+		self.assertEqual(sent_todo - all_todos, set(), "All docs should be inserted")

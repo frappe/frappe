@@ -129,9 +129,11 @@
   },
   {
    "depends_on": "eval: doc.request_structure == \"JSON\"",
+   "description": "To add dynamic values from the document, use jinja tags like\n\n<div>\n<pre><code>{ \"id\": \"{{ doc.name }}\" }</code>\n</pre>\n</div>",
    "fieldname": "webhook_json",
    "fieldtype": "Code",
-   "label": "JSON Request Body"
+   "label": "JSON Request Body",
+   "options": "JSON"
   },
   {
    "fieldname": "naming_series",
@@ -202,8 +204,13 @@
    "fieldtype": "Section Break"
   }
  ],
- "links": [],
- "modified": "2022-07-11 08:54:10.740512",
+ "links": [
+  {
+   "link_doctype": "Webhook Request Log",
+   "link_fieldname": "webhook"
+  }
+ ],
+ "modified": "2023-05-21 15:42:58.844826",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

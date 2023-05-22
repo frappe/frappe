@@ -1,14 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 from cryptography.fernet import Fernet
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
 
 
-class TestPassword(unittest.TestCase):
+class TestPassword(FrappeTestCase):
 	def setUp(self):
 		frappe.delete_doc("Email Account", "Test Email Account Password")
 		frappe.delete_doc("Email Account", "Test Email Account Password-new")

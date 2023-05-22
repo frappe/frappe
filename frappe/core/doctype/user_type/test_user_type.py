@@ -1,12 +1,11 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.installer import update_site_config
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestUserType(unittest.TestCase):
+class TestUserType(FrappeTestCase):
 	def setUp(self):
 		create_role()
 

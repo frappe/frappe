@@ -19,6 +19,12 @@ _SERVICES = {
 	"drive": ("drive", "v3"),
 	"indexing": ("indexing", "v3"),
 }
+_DOMAIN_CALLBACK_METHODS = {
+	"mail": "frappe.email.oauth.authorize_google_access",
+	"contacts": "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
+	"drive": "frappe.integrations.doctype.google_drive.google_drive.authorize_access",
+	"indexing": "frappe.website.doctype.website_settings.google_indexing.authorize_access",
+}
 
 
 class GoogleAuthenticationError(Exception):
@@ -53,7 +59,6 @@ class GoogleOAuth:
 		"""Returns a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
-		:param site_address: side address from which the request is being made
 		"""
 
 		data = {
@@ -96,10 +101,10 @@ class GoogleOAuth:
 	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
 		"""Returns google authentication url.
 
-		:param site_address: side address from which the request is being made (for redirect back to site)
-		:param state: [optional] dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
+		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
 
+		state.update({"domain": self.domain})
 		state = json.dumps(state)
 		callback_url = get_request_site_address(True) + CALLBACK_METHOD
 
@@ -175,13 +180,22 @@ def callback(state: str, code: str = None, error: str = None) -> None:
 	failure_query_param = state.pop("failure_query_param", "")
 
 	if not error:
-		state.update({"code": code})
-		frappe.get_attr(state.pop("method"))(**state)
+		if (domain := state.pop("domain")) in _DOMAIN_CALLBACK_METHODS:
+			state.update({"code": code})
+			frappe.get_attr(_DOMAIN_CALLBACK_METHODS[domain])(**state)
 
-		# GET request, hence using commit to persist changes
-		frappe.db.commit()  # nosemgrep
-
-	redirect = f"{redirect}?{failure_query_param if error else success_query_param}"
+			# GET request, hence using commit to persist changes
+			frappe.db.commit()  # nosemgrep
+		else:
+			return frappe.respond_as_web_page(
+				"Invalid Google Callback",
+				"The callback domain provided is not valid for Google Authentication",
+				http_status_code=400,
+				indicator_color="red",
+				width=640,
+			)
 
 	frappe.local.response["type"] = "redirect"
-	frappe.local.response["location"] = redirect
+	frappe.local.response[
+		"location"
+	] = f"{redirect}?{failure_query_param if error else success_query_param}"

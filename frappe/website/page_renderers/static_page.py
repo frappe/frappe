@@ -12,6 +12,8 @@ UNSUPPORTED_STATIC_PAGE_TYPES = ("html", "md", "js", "xml", "css", "txt", "py", 
 
 
 class StaticPage(BaseRenderer):
+	__slots__ = ("path", "file_path")
+
 	def __init__(self, path, http_status_code=None):
 		super().__init__(path=path, http_status_code=http_status_code)
 		self.set_file_path()
@@ -29,7 +31,7 @@ class StaticPage(BaseRenderer):
 		return self.is_valid_file_path() and self.file_path
 
 	def is_valid_file_path(self):
-		extension = self.path.rsplit(".", 1)[-1]
+		extension = self.path.rsplit(".", 1)[-1] if "." in self.path else ""
 		if extension in UNSUPPORTED_STATIC_PAGE_TYPES:
 			return False
 		return True

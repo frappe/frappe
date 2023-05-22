@@ -2,15 +2,19 @@ import ast
 import copy
 import glob
 import os
+import pathlib
 import shutil
 import unittest
 from io import StringIO
 from unittest.mock import patch
 
+import git
 import yaml
 
 import frappe
+from frappe.modules.patch_handler import get_all_patches
 from frappe.utils.boilerplate import (
+	PatchCreator,
 	_create_app_boilerplate,
 	_get_user_inputs,
 	github_workflow_template,
@@ -20,6 +24,7 @@ from frappe.utils.boilerplate import (
 class TestBoilerPlate(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		cls.default_hooks = frappe._dict(
 			{
 				"app_name": "test_app",
@@ -130,6 +135,9 @@ class TestBoilerPlate(unittest.TestCase):
 
 		self.check_parsable_python_files(new_app_dir)
 
+		app_repo = git.Repo(new_app_dir)
+		self.assertEqual(app_repo.active_branch.name, "develop")
+
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
 
@@ -179,3 +187,30 @@ class TestBoilerPlate(unittest.TestCase):
 					ast.parse(p.read())
 				except Exception as e:
 					self.fail(f"Can't parse python file in new app: {python_file}\n" + str(e))
+
+	def test_new_patch_util(self):
+		user_inputs = {
+			"app_name": "frappe",
+			"doctype": "User",
+			"docstring": "Delete all users",
+			"file_name": "",  # Accept default
+			"patch_folder_confirmation": "Y",
+		}
+
+		patches_txt = pathlib.Path(pathlib.Path(frappe.get_app_path("frappe", "patches.txt")))
+		original_patches = patches_txt.read_text()
+
+		with patch("sys.stdin", self.get_user_input_stream(user_inputs)):
+			patch_creator = PatchCreator()
+			patch_creator.fetch_user_inputs()
+			patch_creator.create_patch_file()
+
+		patches = get_all_patches()
+		expected_patch = "frappe.core.doctype.user.patches.delete_all_users"
+		self.assertIn(expected_patch, patches)
+
+		self.assertTrue(patch_creator.patch_file.exists())
+
+		# Cleanup
+		shutil.rmtree(patch_creator.patch_file.parents[0])
+		patches_txt.write_text(original_patches)

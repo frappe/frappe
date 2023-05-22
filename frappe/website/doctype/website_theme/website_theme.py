@@ -62,10 +62,6 @@ class WebsiteTheme(Document):
 	def generate_bootstrap_theme(self):
 		from subprocess import PIPE, Popen
 
-		self.theme_scss = frappe.render_template(
-			"frappe/website/doctype/website_theme/website_theme_template.scss", self.as_dict()
-		)
-
 		# create theme file in site public files folder
 		folder_path = abspath(frappe.utils.get_files_path("website_theme", is_private=False))
 		# create folder if not exist
@@ -75,7 +71,7 @@ class WebsiteTheme(Document):
 			self.delete_old_theme_files(folder_path)
 
 		# add a random suffix
-		suffix = frappe.generate_hash("Website Theme", 8) if self.custom else "style"
+		suffix = frappe.generate_hash(length=8) if self.custom else "style"
 		file_name = frappe.scrub(self.name) + "_" + suffix + ".css"
 		output_path = join_path(folder_path, file_name)
 
@@ -103,18 +99,8 @@ class WebsiteTheme(Document):
 			if fname.startswith(frappe.scrub(self.name) + "_") and fname.endswith(".css"):
 				os.remove(os.path.join(folder_path, fname))
 
-	def generate_theme_if_not_exist(self):
-		bench_path = frappe.utils.get_bench_path()
-		if self.theme_url:
-			theme_path = join_path(bench_path, "sites", self.theme_url[1:])
-			if not path_exists(theme_path):
-				self.generate_bootstrap_theme()
-		else:
-			self.generate_bootstrap_theme()
-
 	@frappe.whitelist()
 	def set_as_default(self):
-		self.generate_bootstrap_theme()
 		self.save()
 		website_settings = frappe.get_doc("Website Settings")
 		website_settings.website_theme = self.name
@@ -133,10 +119,11 @@ class WebsiteTheme(Document):
 
 
 def get_active_theme() -> Optional["WebsiteTheme"]:
-	if website_theme := frappe.db.get_single_value("Website Settings", "website_theme"):
+	if website_theme := frappe.get_website_settings("website_theme"):
 		try:
-			return frappe.get_doc("Website Theme", website_theme)
+			return frappe.get_cached_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			pass
 
 
@@ -191,5 +178,4 @@ def after_migrate():
 		return
 
 	doc = frappe.get_doc("Website Theme", website_theme)
-	doc.generate_bootstrap_theme()
-	doc.save()
+	doc.save()  # Just re-saving re-generates the theme.

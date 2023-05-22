@@ -33,7 +33,7 @@
 					<a href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
 					<div class="small">
 						{{ frappe.format_date(post.published_on) }}
-						{% if post.read_time %} &middot; {{ post.read_time }} min read {% endif %}
+						{% if post.read_time %} &middot; {{ post.read_time }} {{ _('min read') }} {% endif %}
 					</div>
 				</div>
 			</div>

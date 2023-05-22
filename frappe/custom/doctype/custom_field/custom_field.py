@@ -9,7 +9,7 @@ from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.query_builder.functions import IfNull
-from frappe.utils import cstr
+from frappe.utils import cstr, random_string
 
 
 class CustomField(Document):
@@ -18,11 +18,23 @@ class CustomField(Document):
 		self.name = self.dt + "-" + self.fieldname
 
 	def set_fieldname(self):
+		restricted = (
+			"name",
+			"parent",
+			"creation",
+			"modified",
+			"modified_by",
+			"parentfield",
+			"parenttype",
+			"file_list",
+			"flags",
+			"docstatus",
+		)
 		if not self.fieldname:
 			label = self.label
 			if not label:
 				if self.fieldtype in ["Section Break", "Column Break", "Tab Break"]:
-					label = self.fieldtype + "_" + str(self.idx)
+					label = self.fieldtype + "_" + str(random_string(5))
 				else:
 					frappe.throw(_("Label is mandatory"))
 
@@ -33,6 +45,9 @@ class CustomField(Document):
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
+
+		if self.fieldname in restricted:
+			self.fieldname = self.fieldname + "1"
 
 	def before_insert(self):
 		self.set_fieldname()
@@ -80,17 +95,15 @@ class CustomField(Document):
 		check_fieldname_conflicts(self)
 
 	def on_update(self):
-		if not frappe.flags.in_setup_wizard:
-			frappe.clear_cache(doctype=self.dt)
-
+		# validate field
 		if not self.flags.ignore_validate:
-			# validate field
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 			validate_fields_for_doctype(self.dt)
 
-		# update the schema
-		if not frappe.db.get_value("DocType", self.dt, "issingle") and not frappe.flags.in_setup_wizard:
+		# clear cache and update the schema
+		if not frappe.flags.in_create_custom_fields:
+			frappe.clear_cache(doctype=self.dt)
 			frappe.db.updatedb(self.dt)
 
 	def on_trash(self):
@@ -104,6 +117,20 @@ class CustomField(Document):
 
 		# delete property setter entries
 		frappe.db.delete("Property Setter", {"doc_type": self.dt, "field_name": self.fieldname})
+
+		# update doctype layouts
+		doctype_layouts = frappe.get_all(
+			"DocType Layout", filters={"document_type": self.dt}, pluck="name"
+		)
+
+		for layout in doctype_layouts:
+			layout_doc = frappe.get_doc("DocType Layout", layout)
+			for field in layout_doc.fields:
+				if field.fieldname == self.fieldname:
+					layout_doc.remove(field)
+					layout_doc.save()
+					break
+
 		frappe.clear_cache(doctype=self.dt)
 
 	def validate_insert_after(self, meta):
@@ -130,7 +157,7 @@ def get_fields_label(doctype=None):
 		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
 
 	return [
-		{"value": df.fieldname or "", "label": _(df.label or "")}
+		{"value": df.fieldname or "", "label": _(df.label) if df.label else ""}
 		for df in frappe.get_meta(doctype).get("fields")
 	]
 
@@ -169,38 +196,45 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`"""
 
-	if not ignore_validate and frappe.flags.in_setup_wizard:
-		ignore_validate = True
+	try:
+		frappe.flags.in_create_custom_fields = True
+		doctypes_to_update = set()
 
-	for doctypes, fields in custom_fields.items():
-		if isinstance(fields, dict):
-			# only one field
-			fields = [fields]
+		if frappe.flags.in_setup_wizard:
+			ignore_validate = True
 
-		if isinstance(doctypes, str):
-			# only one doctype
-			doctypes = (doctypes,)
+		for doctypes, fields in custom_fields.items():
+			if isinstance(fields, dict):
+				# only one field
+				fields = [fields]
 
-		for doctype in doctypes:
-			for df in fields:
-				field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
-				if not field:
-					try:
-						df["owner"] = "Administrator"
-						create_custom_field(doctype, df, ignore_validate=ignore_validate)
-					except frappe.exceptions.DuplicateEntryError:
-						pass
-				elif update:
-					custom_field = frappe.get_doc("Custom Field", field)
-					custom_field.flags.ignore_validate = ignore_validate
-					custom_field.update(df)
-					custom_field.save()
+			if isinstance(doctypes, str):
+				# only one doctype
+				doctypes = (doctypes,)
 
-		frappe.clear_cache(doctype=doctype)
-		frappe.db.updatedb(doctype)
+			for doctype in doctypes:
+				doctypes_to_update.add(doctype)
 
+				for df in fields:
+					field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
+					if not field:
+						try:
+							df = df.copy()
+							df["owner"] = "Administrator"
+							create_custom_field(doctype, df, ignore_validate=ignore_validate)
 
-@frappe.whitelist()
-def add_custom_field(doctype, df):
-	df = json.loads(df)
-	return create_custom_field(doctype, df)
+						except frappe.exceptions.DuplicateEntryError:
+							pass
+
+					elif update:
+						custom_field = frappe.get_doc("Custom Field", field)
+						custom_field.flags.ignore_validate = ignore_validate
+						custom_field.update(df)
+						custom_field.save()
+
+		for doctype in doctypes_to_update:
+			frappe.clear_cache(doctype=doctype)
+			frappe.db.updatedb(doctype)
+
+	finally:
+		frappe.flags.in_create_custom_fields = False

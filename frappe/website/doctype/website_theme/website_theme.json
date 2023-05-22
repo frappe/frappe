@@ -7,10 +7,10 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
+  "bootstrap_theme_section",
   "theme",
   "module",
   "custom",
-  "bootstrap_theme_section",
   "google_font",
   "font_size",
   "font_properties",
@@ -73,8 +73,8 @@
   {
    "collapsible": 1,
    "fieldname": "custom_js_section",
-   "fieldtype": "Section Break",
-   "label": "Custom JS"
+   "fieldtype": "Tab Break",
+   "label": "Script"
   },
   {
    "fieldname": "js",
@@ -84,7 +84,7 @@
   },
   {
    "fieldname": "bootstrap_theme_section",
-   "fieldtype": "Section Break",
+   "fieldtype": "Tab Break",
    "label": "Theme Configuration"
   },
   {
@@ -123,7 +123,7 @@
   },
   {
    "fieldname": "stylesheet_section",
-   "fieldtype": "Section Break",
+   "fieldtype": "Tab Break",
    "label": "Stylesheet"
   },
   {
@@ -181,10 +181,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-01-18 17:43:39.804765",
+ "modified": "2022-10-25 22:15:53.601571",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -206,5 +207,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

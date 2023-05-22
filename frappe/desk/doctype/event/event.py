@@ -6,6 +6,7 @@ import json
 
 import frappe
 from frappe import _
+from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 )
@@ -54,6 +55,12 @@ class Event(Document):
 
 		if self.sync_with_google_calendar and not self.google_calendar:
 			frappe.throw(_("Select Google Calendar to which event should be synced."))
+
+		if not self.sync_with_google_calendar:
+			self.add_video_conferencing = 0
+
+	def before_save(self):
+		self.set_participants_email()
 
 	def on_update(self):
 		self.sync_communication()
@@ -131,6 +138,22 @@ class Event(Document):
 		for participant in participants:
 			self.add_participant(participant["doctype"], participant["docname"])
 
+	def set_participants_email(self):
+		for participant in self.event_participants:
+			if participant.email:
+				continue
+
+			if participant.reference_doctype != "Contact":
+				participant_contact = get_default_contact(
+					participant.reference_doctype, participant.reference_docname
+				)
+			else:
+				participant_contact = participant.reference_docname
+
+			participant.email = (
+				frappe.get_value("Contact", participant_contact, "email_id") if participant_contact else None
+			)
+
 
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
@@ -205,7 +228,7 @@ def send_event_digest():
 
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False, filters=None):
+def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[frappe._dict]:
 	if not user:
 		user = frappe.session.user
 
@@ -283,8 +306,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 	)
 
 	# process recurring events
-	start = start.split(" ")[0]
-	end = end.split(" ")[0]
+	start = start.split(" ", 1)[0]
+	end = end.split(" ", 1)[0]
 	add_events = []
 	remove_events = []
 
@@ -292,7 +315,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 		new_event = e.copy()
 
 		enddate = (
-			add_days(date, int(date_diff(e.ends_on.split(" ")[0], e.starts_on.split(" ")[0])))
+			add_days(date, int(date_diff(e.ends_on.split(" ", 1)[0], e.starts_on.split(" ", 1)[0])))
 			if (e.starts_on and e.ends_on)
 			else date
 		)
@@ -314,8 +337,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 			repeat = "3000-01-01" if cstr(e.repeat_till) == "" else e.repeat_till
 
 			if e.repeat_on == "Yearly":
-				start_year = cint(start.split("-")[0])
-				end_year = cint(end.split("-")[0])
+				start_year = cint(start.split("-", 1)[0])
+				end_year = cint(end.split("-", 1)[0])
 
 				# creates a string with date (27) and month (07) eg: 07-27
 				event_start = "-".join(event_start.split("-")[1:])
@@ -334,12 +357,13 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 
 			if e.repeat_on == "Monthly":
 				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
-				date = start.split("-")[0] + "-" + start.split("-")[1] + "-" + event_start.split("-")[2]
+				year, month = start.split("-", maxsplit=2)[:2]
+				date = f"{year}-{month}-" + event_start.split("-", maxsplit=3)[2]
 
 				# last day of month issue, start from prev month!
 				try:
 					getdate(date)
-				except ValueError:
+				except Exception:
 					date = date.split("-")
 					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
 

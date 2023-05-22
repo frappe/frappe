@@ -1,6 +1,5 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
 from dataclasses import dataclass
 
 import frappe
@@ -12,9 +11,10 @@ from frappe.desk.like import toggle_like
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Cast_
 from frappe.share import add as share
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocumentFollow(unittest.TestCase):
+class TestDocumentFollow(FrappeTestCase):
 	def test_document_follow_version(self):
 		user = get_user()
 		event_doc = get_event()

@@ -1,13 +1,13 @@
 import os
-import unittest
 
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
 from frappe.desk.form.save import savedocs
 from frappe.model.delete_doc import delete_doc
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestFixtureImport(unittest.TestCase):
+class TestFixtureImport(FrappeTestCase):
 	def create_new_doctype(self, DocType: str) -> None:
 		file = frappe.get_app_path("frappe", "custom", "fixtures", f"{DocType}.json")
 

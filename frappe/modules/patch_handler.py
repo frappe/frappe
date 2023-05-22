@@ -53,7 +53,7 @@ class PatchType(Enum):
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
-	executed = set(frappe.get_all("Patch Log", fields="patch", pluck="patch"))
+	executed = set(frappe.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
 
 	frappe.flags.final_patches = []
 
@@ -65,8 +65,9 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 		except Exception:
 			if not skip_failing:
 				raise
-			else:
-				print("Failed to execute patch")
+
+			print("Failed to execute patch")
+			update_patch_log(patch, skipped=True)
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -152,9 +153,9 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 		return True
 
 
-def execute_patch(patchmodule, method=None, methodargs=None):
+def execute_patch(patchmodule: str, method=None, methodargs=None):
 	"""execute the patch"""
-	block_user(True)
+	_patch_mode(True)
 
 	if patchmodule.startswith("execute:"):
 		has_patch_file = False
@@ -162,7 +163,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		docstring = ""
 	else:
 		has_patch_file = True
-		patch = f"{patchmodule.split()[0]}.execute"
+		patch = f"{patchmodule.split(maxsplit=1)[0]}.execute"
 		_patch = frappe.get_attr(patch)
 		docstring = _patch.__doc__ or ""
 
@@ -173,8 +174,9 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		f"Executing {patchmodule or methodargs} in {frappe.local.site} ({frappe.db.cur_db_name}){docstring}"
 	)
 
-	start_time = time.time()
+	start_time = time.monotonic()
 	frappe.db.begin()
+	frappe.db.auto_commit_on_many_writes = 0
 	try:
 		if patchmodule:
 			if patchmodule.startswith("finally:"):
@@ -196,16 +198,25 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 	else:
 		frappe.db.commit()
-		end_time = time.time()
-		block_user(False)
+		end_time = time.monotonic()
+		_patch_mode(False)
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
 
 
-def update_patch_log(patchmodule):
+def update_patch_log(patchmodule, skipped=False):
 	"""update patch_file in patch log"""
-	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert(ignore_permissions=True)
+
+	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
+
+	if skipped:
+		traceback = frappe.get_traceback(with_context=True)
+		patch.skipped = 1
+		patch.traceback = traceback
+		print(traceback, end="\n\n")
+
+	patch.insert(ignore_permissions=True)
 
 
 def executed(patchmodule):
@@ -213,21 +224,10 @@ def executed(patchmodule):
 	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
 		patchmodule = patchmodule.replace("finally:", "")
-	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
+	return frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
 
 
-def block_user(block, msg=None):
+def _patch_mode(enable):
 	"""stop/start execution till patch is run"""
-	frappe.local.flags.in_patch = block
-	frappe.db.begin()
-	if not msg:
-		msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.db.set_global("__session_status", block and "stop" or None)
-	frappe.db.set_global("__session_status_message", block and msg or None)
+	frappe.local.flags.in_patch = enable
 	frappe.db.commit()
-
-
-def check_session_stopped():
-	if frappe.db.get_global("__session_status") == "stop":
-		frappe.msgprint(frappe.db.get_global("__session_status_message"))
-		raise frappe.SessionStopped("Session Stopped")

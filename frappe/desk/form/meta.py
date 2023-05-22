@@ -4,12 +4,14 @@ import io
 import os
 
 import frappe
+from frappe import _
 from frappe.build import scrub_html_template
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.translate import extract_messages_from_code, make_dict_from_messages
 from frappe.utils import get_html_format
+from frappe.utils.data import get_link_to_form
 
 ASSET_KEYS = (
 	"__js",
@@ -35,12 +37,10 @@ ASSET_KEYS = (
 def get_meta(doctype, cached=True):
 	# don't cache for developer mode as js files, templates may be edited
 	if cached and not frappe.conf.developer_mode:
-		meta = frappe.cache().hget("form_meta", doctype)
-		if meta:
-			meta = FormMeta(meta)
-		else:
+		meta = frappe.cache().hget("doctype_form_meta", doctype)
+		if not meta:
 			meta = FormMeta(doctype)
-			frappe.cache().hset("form_meta", doctype, meta.as_dict())
+			frappe.cache().hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
 
@@ -52,7 +52,7 @@ def get_meta(doctype, cached=True):
 
 class FormMeta(Meta):
 	def __init__(self, doctype):
-		super().__init__(doctype)
+		self.__dict__.update(frappe.get_meta(doctype).__dict__)
 		self.load_assets()
 
 	def load_assets(self):
@@ -134,7 +134,7 @@ class FormMeta(Meta):
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
 				with open(os.path.join(path, fname), encoding="utf-8") as f:
-					templates[fname.split(".")[0]] = scrub_html_template(f.read())
+					templates[fname.split(".", 1)[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
 
@@ -146,7 +146,7 @@ class FormMeta(Meta):
 		"""embed all require files"""
 		# custom script
 		client_scripts = (
-			frappe.db.get_all(
+			frappe.get_all(
 				"Client Script",
 				filters={"dt": self.name, "enabled": 1},
 				fields=["name", "script", "view"],
@@ -158,6 +158,9 @@ class FormMeta(Meta):
 		list_script = ""
 		form_script = ""
 		for script in client_scripts:
+			if not script.script:
+				continue
+
 			if script.view == "List":
 				list_script += f"""
 // {script.name}
@@ -165,7 +168,7 @@ class FormMeta(Meta):
 
 """
 
-			if script.view == "Form":
+			elif script.view == "Form":
 				form_script += f"""
 // {script.name}
 {script.script}
@@ -183,10 +186,32 @@ class FormMeta(Meta):
 		"""add search fields found in the doctypes indicated by link fields' options"""
 		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
 			if df.options:
-				search_fields = frappe.get_meta(df.options).search_fields
+				try:
+					search_fields = frappe.get_meta(df.options).search_fields
+				except frappe.DoesNotExistError:
+					self._show_missing_doctype_msg(df)
+
 				if search_fields:
 					search_fields = search_fields.split(",")
 					df.search_fields = [sf.strip() for sf in search_fields]
+
+	def _show_missing_doctype_msg(self, df):
+		# A link field is referring to non-existing doctype, this usually happens when
+		# customizations are removed or some custom app is removed but hasn't cleaned
+		# up after itself.
+		frappe.clear_last_message()
+
+		msg = _("Field {0} is referring to non-existing doctype {1}.").format(
+			frappe.bold(df.fieldname), frappe.bold(df.options)
+		)
+
+		if df.get("is_custom_field"):
+			custom_field_link = get_link_to_form("Custom Field", df.name)
+			msg += " " + _("Please delete the field from {0} or add the required doctype.").format(
+				custom_field_link
+			)
+
+		frappe.throw(msg, title=_("Missing DocType"))
 
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):
@@ -194,8 +219,7 @@ class FormMeta(Meta):
 				try:
 					df.linked_document_type = frappe.get_meta(df.options).document_type
 				except frappe.DoesNotExistError:
-					# edge case where options="[Select]"
-					pass
+					self._show_missing_doctype_msg(df)
 
 	def load_print_formats(self):
 		print_formats = frappe.db.sql(
@@ -225,7 +249,7 @@ class FormMeta(Meta):
 	def load_templates(self):
 		if not self.custom:
 			module = load_doctype_module(self.name)
-			app = module.__name__.split(".")[0]
+			app = module.__name__.split(".", 1)[0]
 			templates = {}
 			if hasattr(module, "form_grid_templates"):
 				for key, path in module.form_grid_templates.items():

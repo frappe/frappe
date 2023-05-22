@@ -1,5 +1,4 @@
 import hashlib
-import imghdr
 import mimetypes
 import os
 import re
@@ -7,6 +6,7 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
 
+import filetype
 import requests
 import requests.exceptions
 from PIL import Image
@@ -76,9 +76,11 @@ def get_extension(
 
 		mimetype = mimetypes.guess_type(filename + "." + extn)[0]
 
-	if mimetype is None or not mimetype.startswith("image/") and content:
-		# detect file extension by reading image header properties
-		extn = imghdr.what(filename + "." + (extn or ""), h=content)
+	if mimetype is None and extn is None and content:
+		# detect file extension by using filetype matchers
+		_type_info = filetype.match(content)
+		if _type_info:
+			extn = _type_info.extension
 
 	return extn
 
@@ -225,7 +227,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 	def _save_file(match):
 		data = match.group(1).split("data:")[1]
 		headers, content = data.split(",")
-		mtype = headers.split(";")[0]
+		mtype = headers.split(";", 1)[0]
 
 		if isinstance(content, str):
 			content = content.encode("utf-8")
@@ -237,7 +239,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
-			filename = safe_decode(filename).split(";")[0]
+			filename = safe_decode(filename).split(";", 1)[0]
 
 		else:
 			filename = get_random_filename(content_type=mtype)
@@ -327,7 +329,7 @@ def attach_files_to_document(doc: "File", event) -> None:
 			folder="Home/Attachments",
 		)
 		try:
-			file.insert()
+			file.insert(ignore_permissions=True)
 		except Exception:
 			doc.log_error("Error Attaching File")
 

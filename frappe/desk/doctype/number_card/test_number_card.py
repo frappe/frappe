@@ -1,8 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 # import frappe
-import unittest
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestNumberCard(unittest.TestCase):
+class TestNumberCard(FrappeTestCase):
 	pass

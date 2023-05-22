@@ -1,16 +1,15 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 import frappe.monitor
 from frappe.monitor import MONITOR_REDIS_KEY
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.utils.response import build_response
 
 
-class TestMonitor(unittest.TestCase):
+class TestMonitor(FrappeTestCase):
 	def setUp(self):
 		frappe.conf.monitor = 1
 		frappe.cache().delete_value(MONITOR_REDIS_KEY)
@@ -31,6 +30,20 @@ class TestMonitor(unittest.TestCase):
 		self.assertTrue(log.timestamp)
 		self.assertTrue(log.uuid)
 		self.assertTrue(log.request)
+		self.assertEqual(log.transaction_type, "request")
+		self.assertEqual(log.request["method"], "GET")
+
+	def test_no_response(self):
+		set_request(method="GET", path="/api/method/frappe.ping")
+
+		frappe.monitor.start()
+		frappe.monitor.stop(response=None)
+
+		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
+		self.assertEqual(len(logs), 1)
+
+		log = frappe.parse_json(logs[0].decode())
+		self.assertEqual(log.request["status_code"], 500)
 		self.assertEqual(log.transaction_type, "request")
 		self.assertEqual(log.request["method"], "GET")
 

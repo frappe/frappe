@@ -86,7 +86,6 @@ def main(
 			frappe.utils.scheduler.disable_scheduler()
 
 		set_test_email_config()
-		frappe.conf.update({"bench_id": "test_bench", "use_rq_auth": False})
 
 		if not frappe.flags.skip_before_tests:
 			if verbose:
@@ -143,18 +142,17 @@ def set_test_email_config():
 			"mail_server": "smtp.example.com",
 			"mail_login": "test@example.com",
 			"mail_password": "test",
-			"admin_password": "admin",
 		}
 	)
 
 
 class TimeLoggingTestResult(unittest.TextTestResult):
 	def startTest(self, test):
-		self._started_at = time.time()
+		self._started_at = time.monotonic()
 		super().startTest(test)
 
 	def addSuccess(self, test):
-		elapsed = time.time() - self._started_at
+		elapsed = time.monotonic() - self._started_at
 		name = self.getDescription(test)
 		if elapsed >= SLOW_TEST_THRESHOLD:
 			self.stream.write(f"\n{name} ({elapsed:.03}s)\n")

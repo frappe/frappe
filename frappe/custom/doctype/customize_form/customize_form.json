@@ -10,28 +10,36 @@
   "doc_type",
   "properties",
   "label",
-  "max_attachments",
   "search_fields",
   "column_break_5",
-  "allow_copy",
   "istable",
+  "is_calendar_and_gantt",
   "editable_grid",
   "quick_entry",
   "track_changes",
   "track_views",
   "allow_auto_repeat",
   "allow_import",
+  "queue_in_background",
   "fields_section_break",
+  "try_form_builder_html",
   "fields",
   "naming_section",
   "naming_rule",
   "autoname",
+  "form_settings_section",
+  "image_field",
+  "max_attachments",
+  "column_break_21",
+  "allow_copy",
+  "make_attachments_public",
   "view_settings_section",
   "title_field",
   "show_title_field_in_link",
-  "translate_link_fields",
-  "image_field",
+  "translated_doctype",
   "default_print_format",
+  "default_view",
+  "force_re_route_to_default_view",
   "column_break_29",
   "show_preview_popup",
   "email_settings_section",
@@ -315,9 +323,55 @@
   },
   {
    "default": "0",
-   "fieldname": "translate_link_fields",
+   "fieldname": "translated_doctype",
    "fieldtype": "Check",
    "label": "Translate Link Fields"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "form_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "make_attachments_public",
+   "fieldtype": "Check",
+   "label": "Make Attachments Public by Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "queue_in_background",
+   "fieldtype": "Check",
+   "label": "Queue in Background"
+  },
+  {
+   "fieldname": "default_view",
+   "fieldtype": "Select",
+   "label": "Default View"
+  },
+  {
+   "default": "0",
+   "depends_on": "default_view",
+   "fieldname": "force_re_route_to_default_view",
+   "fieldtype": "Check",
+   "label": "Force Re-route to Default View"
+  },
+  {
+   "default": "0",
+   "description": "Enables Calendar and Gantt views.",
+   "fieldname": "is_calendar_and_gantt",
+   "fieldtype": "Check",
+   "label": "Is Calendar and Gantt"
+  },
+  {
+   "fieldname": "try_form_builder_html",
+   "fieldtype": "HTML",
+   "label": "Try Form Builder HTML"
   }
  ],
  "hide_toolbar": 1,
@@ -326,7 +380,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-05-13 15:36:16.772277",
+ "modified": "2023-05-15 16:03:19.872532",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

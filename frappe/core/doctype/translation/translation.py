@@ -5,7 +5,7 @@ import json
 
 import frappe
 from frappe.model.document import Document
-from frappe.translate import get_translator_url
+from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY, get_translator_url
 from frappe.utils import is_html, strip_html_tags
 
 
@@ -39,7 +39,7 @@ def create_translations(translation_map, language):
 	# first create / update local user translations
 	for source_id, translation_dict in translation_map.items():
 		translation_dict = frappe._dict(translation_dict)
-		existing_doc_name = frappe.db.get_all(
+		existing_doc_name = frappe.get_all(
 			"Translation",
 			{
 				"source_text": translation_dict.source_text,
@@ -89,4 +89,5 @@ def create_translations(translation_map, language):
 
 
 def clear_user_translation_cache(lang):
-	frappe.cache().hdel("lang_user_translations", lang)
+	frappe.cache().hdel(USER_TRANSLATION_KEY, lang)
+	frappe.cache().hdel(MERGED_TRANSLATION_KEY, lang)

@@ -4,9 +4,24 @@ import pickle
 import re
 
 import redis
+from redis.commands.search import Search
 
 import frappe
 from frappe.utils import cstr
+
+
+class RedisearchWrapper(Search):
+	def sugadd(self, key, *suggestions, **kwargs):
+		return super().sugadd(self.client.make_key(key), *suggestions, **kwargs)
+
+	def suglen(self, key):
+		return super().suglen(self.client.make_key(key))
+
+	def sugdel(self, key, string):
+		return super().sugdel(self.client.make_key(key), string)
+
+	def sugget(self, key, *args, **kwargs):
+		return super().sugget(self.client.make_key(key), *args, **kwargs)
 
 
 class RedisWrapper(redis.Redis):
@@ -30,7 +45,7 @@ class RedisWrapper(redis.Redis):
 
 		return f"{frappe.conf.db_name}|{key}".encode()
 
-	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False, cache_locally=True):
+	def set_value(self, key, val, user=None, expires_in_sec=None, shared=False):
 		"""Sets cache value.
 
 		:param key: Cache key
@@ -40,7 +55,7 @@ class RedisWrapper(redis.Redis):
 		"""
 		key = self.make_key(key, user, shared)
 
-		if not expires_in_sec and cache_locally:
+		if not expires_in_sec:
 			frappe.local.cache[key] = val
 
 		try:
@@ -148,19 +163,26 @@ class RedisWrapper(redis.Redis):
 	def ltrim(self, key, start, stop):
 		return super().ltrim(self.make_key(key), start, stop)
 
-	def hset(self, name: str, key: str, value, shared: bool = False, cache_locally: bool = True):
+	def hset(
+		self,
+		name: str,
+		key: str,
+		value,
+		shared: bool = False,
+		*args,
+		**kwargs,
+	):
 		if key is None:
 			return
 
 		_name = self.make_key(name, shared=shared)
 
 		# set in local
-		if cache_locally:
-			frappe.local.cache.setdefault(_name, {})[key] = value
+		frappe.local.cache.setdefault(_name, {})[key] = value
 
 		# set in redis
 		try:
-			super().hset(_name, key, pickle.dumps(value))
+			super().hset(_name, key, pickle.dumps(value), *args, **kwargs)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -172,6 +194,10 @@ class RedisWrapper(redis.Redis):
 			return super().hexists(_name, key)
 		except redis.exceptions.ConnectionError:
 			return False
+
+	def exists(self, *names: str, user=None, shared=None) -> int:
+		names = [self.make_key(n, user=user, shared=shared) for n in names]
+		return super().exists(*names)
 
 	def hgetall(self, name):
 		value = super().hgetall(self.make_key(name))
@@ -194,7 +220,7 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			pass
 
-		if value:
+		if value is not None:
 			value = pickle.loads(value)
 			frappe.local.cache[_name][key] = value
 		elif generator:
@@ -248,3 +274,6 @@ class RedisWrapper(redis.Redis):
 	def smembers(self, name):
 		"""Return all members of the set"""
 		return super().smembers(self.make_key(name))
+
+	def ft(self, index_name="idx"):
+		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))

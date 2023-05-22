@@ -3,12 +3,12 @@
 
 import json
 import os
-import unittest
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestPackage(unittest.TestCase):
+class TestPackage(FrappeTestCase):
 	def test_package_release(self):
 		make_test_package()
 		make_test_module()

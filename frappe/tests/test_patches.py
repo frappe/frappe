@@ -1,9 +1,9 @@
-import unittest
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import frappe
 from frappe.modules import patch_handler
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_bench_path
 
 EMTPY_FILE = ""
@@ -49,7 +49,7 @@ app.module.patch4
 """
 
 
-class TestPatches(unittest.TestCase):
+class TestPatches(FrappeTestCase):
 	def test_patch_module_names(self):
 		frappe.flags.final_patches = []
 		frappe.flags.in_install = True
@@ -59,7 +59,7 @@ class TestPatches(unittest.TestCase):
 			else:
 				if patchmodule.startswith("finally:"):
 					patchmodule = patchmodule.split("finally:")[-1]
-				self.assertTrue(frappe.get_attr(patchmodule.split()[0] + ".execute"))
+				self.assertTrue(frappe.get_attr(patchmodule.split(maxsplit=1)[0] + ".execute"))
 
 		frappe.flags.in_install = False
 
@@ -79,7 +79,7 @@ class TestPatches(unittest.TestCase):
 		self.assertGreaterEqual(finished_patches, len(all_patches))
 
 
-class TestPatchReader(unittest.TestCase):
+class TestPatchReader(FrappeTestCase):
 	def get_patches(self):
 		return (
 			patch_handler.get_patches_from_app("frappe"),
@@ -149,7 +149,7 @@ def check_patch_files(app):
 
 	patch_dir = Path(frappe.get_app_path(app)) / "patches"
 
-	app_patches = [p.split()[0] for p in patch_handler.get_patches_from_app(app)]
+	app_patches = [p.split(maxsplit=1)[0] for p in patch_handler.get_patches_from_app(app)]
 
 	missing_patches = []
 

@@ -1,12 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import fmt_money
 
 
-class TestFmtMoney(unittest.TestCase):
+class TestFmtMoney(FrappeTestCase):
 	def test_standard(self):
 		frappe.db.set_default("number_format", "#,###.##")
 		self.assertEqual(fmt_money(100), "100.00")
@@ -104,5 +103,7 @@ class TestFmtMoney(unittest.TestCase):
 
 
 if __name__ == "__main__":
+	import unittest
+
 	frappe.connect()
 	unittest.main()

@@ -4,27 +4,26 @@
 """build query for doclistview and return results"""
 
 import json
-from io import StringIO
 
 import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.model import child_table_fields, default_fields, optional_fields
+from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
-from frappe.utils import add_user_info, cstr, format_duration
-from frappe.utils.caching import site_cache
+from frappe.model.utils import is_virtual_doctype
+from frappe.utils import add_user_info, format_duration
 
 
 @frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
-	# If virtual doctype get data from controller het_list method
+	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = compress(controller(args.doctype).get_list(args))
+		data = compress(controller.get_list(args))
 	else:
 		data = compress(execute(**args), args=args)
 	return data
@@ -37,7 +36,7 @@ def get_list():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller(args.doctype).get_list(args)
+		data = controller.get_list(args)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
@@ -52,7 +51,7 @@ def get_count():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller(args.doctype).get_count(args)
+		data = controller.get_count(args)
 	else:
 		distinct = "distinct " if args.distinct == "true" else ""
 		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
@@ -91,7 +90,7 @@ def validate_args(data):
 def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
-	for field in data.fields or []:
+	for field in list(data.fields or []):
 		fieldname = extract_fieldname(field)
 		if is_standard(fieldname):
 			continue
@@ -152,12 +151,8 @@ def setup_group_by(data):
 
 		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
 			data.fields.append(
-				"{aggregate_function}(`tab{aggregate_on_doctype}`.`{aggregate_on_field}`) AS _aggregate_column".format(
-					**data
-				)
+				f"{data.aggregate_function}(`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`) AS _aggregate_column"
 			)
-			if data.aggregate_on_field:
-				data.fields.append(f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`")
 		else:
 			raise_invalid_field(data.aggregate_on_field)
 
@@ -186,7 +181,7 @@ def extract_fieldname(field):
 	fieldname = field
 	for sep in (" as ", " AS "):
 		if sep in fieldname:
-			fieldname = fieldname.split(sep)[0]
+			fieldname = fieldname.split(sep, 1)[0]
 
 	# certain functions allowed, extract the fieldname from the function
 	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):
@@ -208,7 +203,7 @@ def update_wildcard_field_param(data):
 	if (isinstance(data.fields, str) and data.fields == "*") or (
 		isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
-		data.fields = frappe.db.get_table_columns(data.doctype)
+		data.fields = get_permitted_fields(data.doctype, parenttype=data.parenttype)
 		return True
 
 	return False
@@ -225,7 +220,7 @@ def parse_json(data):
 	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
 	if isinstance(data.get("fields"), str):
-		data["fields"] = json.loads(data["fields"])
+		data["fields"] = ["*"] if data["fields"] == "*" else json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
 	if isinstance(data.get("save_user_settings"), str):
@@ -272,7 +267,7 @@ def compress(data, args=None):
 		values.append(new_row)
 
 		# add user info for assignments (avatar)
-		if row._assign:
+		if row.get("_assign", ""):
 			for user in json.loads(row._assign):
 				add_user_info(user, user_info)
 
@@ -295,7 +290,7 @@ def save_report(name, doctype, report_settings):
 		if report.report_type != "Report Builder":
 			frappe.throw(_("Only reports of type Report Builder can be edited"))
 
-		if report.owner != frappe.session.user and not frappe.has_permission("Report", "write"):
+		if report.owner != frappe.session.user and not report.has_permission("write"):
 			frappe.throw(_("Insufficient Permissions for editing Report"), frappe.PermissionError)
 	else:
 		report = frappe.new_doc("Report")
@@ -324,7 +319,7 @@ def delete_report(name):
 	if report.report_type != "Report Builder":
 		frappe.throw(_("Only reports of type Report Builder can be deleted"))
 
-	if report.owner != frappe.session.user and not frappe.has_permission("Report", "delete"):
+	if report.owner != frappe.session.user and not report.has_permission("delete"):
 		frappe.throw(_("Insufficient Permissions for deleting Report"), frappe.PermissionError)
 
 	report.delete(ignore_permissions=True)
@@ -339,30 +334,21 @@ def delete_report(name):
 @frappe.read_only()
 def export_query():
 	"""export from report builder"""
-	title = frappe.form_dict.title
-	frappe.form_dict.pop("title", None)
+	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
-	doctype = form_params.doctype
-	add_totals_row = None
-	file_format_type = form_params["file_format_type"]
-	title = title or doctype
-
-	del form_params["doctype"]
-	del form_params["file_format_type"]
-
-	if "add_totals_row" in form_params and form_params["add_totals_row"] == "1":
-		add_totals_row = 1
-		del form_params["add_totals_row"]
+	doctype = form_params.pop("doctype")
+	file_format_type = form_params.pop("file_format_type")
+	title = form_params.pop("title", doctype)
+	csv_params = pop_csv_params(form_params)
+	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
-	if "selected_items" in form_params:
-		si = json.loads(frappe.form_dict.get("selected_items"))
-		form_params["filters"] = {"name": ("in", si)}
-		del form_params["selected_items"]
+	if selection := form_params.pop("selected_items", None):
+		form_params["filters"] = {"name": ("in", json.loads(selection))}
 
 	make_access_log(
 		doctype=doctype,
@@ -378,38 +364,24 @@ def export_query():
 		ret = append_totals_row(ret)
 
 	data = [[_("Sr")] + get_labels(db_query.fields, doctype)]
-	for i, row in enumerate(ret):
-		data.append([i + 1] + list(row))
-
+	data.extend([i + 1] + list(row) for i, row in enumerate(ret))
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-
-		# convert to csv
-		import csv
-
 		from frappe.utils.xlsxutils import handle_html
 
-		f = StringIO()
-		writer = csv.writer(f)
-		for r in data:
-			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r])
-
-		f.seek(0)
-		frappe.response["result"] = cstr(f.read())
-		frappe.response["type"] = "csv"
-		frappe.response["doctype"] = title
-
+		file_extension = "csv"
+		content = get_csv_bytes(
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			csv_params,
+		)
 	elif file_format_type == "Excel":
-
 		from frappe.utils.xlsxutils import make_xlsx
 
-		xlsx_file = make_xlsx(data, doctype)
+		file_extension = "xlsx"
+		content = make_xlsx(data, doctype).getvalue()
 
-		frappe.response["filename"] = title + ".xlsx"
-		frappe.response["filecontent"] = xlsx_file.getvalue()
-		frappe.response["type"] = "binary"
+	provide_binary_file(title, file_extension, content)
 
 
 def append_totals_row(data):
@@ -436,16 +408,12 @@ def get_labels(fields, doctype):
 	"""get column labels based on column names"""
 	labels = []
 	for key in fields:
-		key = key.split(" as ")[0]
-
-		if key.startswith(("count(", "sum(", "avg(")):
+		try:
+			parenttype, fieldname = parse_field(key)
+		except ValueError:
 			continue
 
-		if "." in key:
-			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
-		else:
-			parenttype = doctype
-			fieldname = fieldname.strip("`")
+		parenttype = parenttype or doctype
 
 		if parenttype == doctype and fieldname == "name":
 			label = _("ID", context="Label of name column in report")
@@ -464,17 +432,12 @@ def get_labels(fields, doctype):
 
 def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
-		key = field.split(" as ")[0]
-
-		if key.startswith(("count(", "sum(", "avg(")):
+		try:
+			parenttype, fieldname = parse_field(field)
+		except ValueError:
 			continue
 
-		if "." in key:
-			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
-		else:
-			parenttype = doctype
-			fieldname = field.strip("`")
-
+		parenttype = parenttype or doctype
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 
 		if df and df.fieldtype == "Duration":
@@ -485,6 +448,20 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 					duration_val = format_duration(val_in_seconds, df.hide_days)
 					data[i][index] = duration_val
 	return data
+
+
+def parse_field(field: str) -> tuple[str | None, str]:
+	"""Parse a field into parenttype and fieldname."""
+	key = field.split(" as ", 1)[0]
+
+	if key.startswith(("count(", "sum(", "avg(")):
+		raise ValueError
+
+	if "." in key:
+		table, column = key.split(".", 2)[:2]
+		return table[4:-1], column.strip("`")
+
+	return None, key.strip("`")
 
 
 @frappe.whitelist()
@@ -528,7 +505,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
-		data = controller(doctype).get_stats(args)
+		data = controller.get_stats(args)
 	else:
 		data = get_stats(stats, doctype, filters)
 
@@ -684,8 +661,7 @@ def build_match_conditions(doctype, user=None, as_condition=True):
 	)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
-	else:
-		return match_conditions
+	return match_conditions
 
 
 def get_filters_cond(
@@ -702,7 +678,8 @@ def get_filters_cond(
 			for f in filters:
 				if isinstance(f[1], str) and f[1][0] == "!":
 					flt.append([doctype, f[0], "!=", f[1][1:]])
-				elif isinstance(f[1], (list, tuple)) and f[1][0] in (
+				elif isinstance(f[1], (list, tuple)) and f[1][0].lower() in (
+					"=",
 					">",
 					"<",
 					">=",
@@ -713,6 +690,7 @@ def get_filters_cond(
 					"in",
 					"not in",
 					"between",
+					"is",
 				):
 
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
@@ -732,8 +710,3 @@ def get_filters_cond(
 	else:
 		cond = ""
 	return cond
-
-
-@site_cache(maxsize=128)
-def is_virtual_doctype(doctype):
-	return frappe.db.get_value("DocType", doctype, "is_virtual")

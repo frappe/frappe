@@ -5,12 +5,12 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			.html(__("Attach"))
 			.prependTo(me.input_area)
 			.on({
-				click: function() {
+				click: function () {
 					me.on_attach_click();
 				},
-				attach_doc_image: function() {
+				attach_doc_image: function () {
 					me.on_attach_doc_image();
-				}
+				},
 			});
 		this.$value = $(
 			`<div class="attached-file flex justify-between align-center">
@@ -19,10 +19,11 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<div>
-					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__('Reload File')}</a>
-					<a class="btn btn-xs btn-default" data-action="clear_attachment">${__('Clear')}</a>
+					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__("Reload File")}</a>
+					<a class="btn btn-xs btn-default" data-action="clear_attachment">${__("Clear")}</a>
 				</div>
-			</div>`)
+			</div>`
+		)
 			.prependTo(me.input_area)
 			.toggle(false);
 		this.input = this.$input.get(0);
@@ -34,13 +35,13 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	clear_attachment() {
 		let me = this;
-		if(this.frm) {
+		if (this.frm) {
 			me.parse_validate_and_set_in_model(null);
 			me.refresh();
 			me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
 				await me.parse_validate_and_set_in_model(null);
 				me.refresh();
-				me.frm.doc.docstatus == 1 ? me.frm.save('Update') : me.frm.save();
+				me.frm.doc.docstatus == 1 ? me.frm.save("Update") : me.frm.save();
 			});
 		} else {
 			this.dataurl = null;
@@ -61,24 +62,25 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	on_attach_doc_image() {
 		this.set_upload_options();
-		this.upload_options.restrictions.allowed_file_types = ['image/*'];
+		this.upload_options.restrictions.allowed_file_types = ["image/*"];
 		this.upload_options.restrictions.crop_image_aspect_ratio = 1;
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
 	set_upload_options() {
 		let options = {
 			allow_multiple: false,
-			on_success: file => {
+			on_success: (file) => {
 				this.on_upload_complete(file);
 				this.toggle_reload_button();
 			},
-			restrictions: {}
+			restrictions: {},
 		};
 
 		if (this.frm) {
 			options.doctype = this.frm.doctype;
 			options.docname = this.frm.docname;
 			options.fieldname = this.df.fieldname;
+			options.make_attachments_public = this.frm.meta.make_attachments_public;
 		}
 
 		if (this.df.options) {
@@ -88,8 +90,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 
 	set_input(value, dataurl) {
+		this.last_value = this.value;
 		this.value = value;
-		if(this.value) {
+		if (this.value) {
 			this.$input.toggle(false);
 			// value can also be using this format: FILENAME,DATA_URL
 			// Important: We have to be careful because normal filenames may also contain ","
@@ -97,9 +100,11 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			let filename;
 			if (file_url_parts) {
 				filename = file_url_parts[1];
-				dataurl = file_url_parts[2] + ':' + file_url_parts[3];
+				dataurl = file_url_parts[2] + ":" + file_url_parts[3];
 			}
-			this.$value.toggle(true).find(".attached-file-link")
+			this.$value
+				.toggle(true)
+				.find(".attached-file-link")
 				.html(filename || this.value)
 				.attr("href", dataurl || this.value);
 		} else {
@@ -113,16 +118,17 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 
 	async on_upload_complete(attachment) {
-		if(this.frm) {
+		if (this.frm) {
 			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
-			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
+			this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
 		}
 		this.set_value(attachment.file_url);
 	}
 
 	toggle_reload_button() {
-		this.$value.find('[data-action="reload_attachment"]')
+		this.$value
+			.find('[data-action="reload_attachment"]')
 			.toggle(this.file_uploader && this.file_uploader.uploader.files.length > 0);
 	}
 };

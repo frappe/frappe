@@ -193,8 +193,9 @@ class CustomizeForm(Document):
 		# docfield
 		for df in self.get("fields"):
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
-			if not meta_df or meta_df[0].get("is_custom_field"):
+			if not meta_df or not is_standard_or_system_generated_field(meta_df[0]):
 				continue
+
 			self.set_property_setters_for_docfield(meta, df, meta_df)
 
 		# action and links
@@ -350,12 +351,14 @@ class CustomizeForm(Document):
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
-			if df.get("is_custom_field"):
-				if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
-					self.add_custom_field(df, i)
-					self.flags.update_db = True
-				else:
-					self.update_in_custom_field(df, i)
+			if is_standard_or_system_generated_field(df):
+				continue
+
+			if not frappe.db.exists("Custom Field", {"dt": self.doc_type, "fieldname": df.fieldname}):
+				self.add_custom_field(df, i)
+				self.flags.update_db = True
+			else:
+				self.update_in_custom_field(df, i)
 
 		self.delete_custom_fields()
 
@@ -374,10 +377,13 @@ class CustomizeForm(Document):
 		d.insert()
 		df.fieldname = d.fieldname
 
+		if df.get("in_global_search"):
+			self.flags.rebuild_doctype_for_global_search = True
+
 	def update_in_custom_field(self, df, i):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
-		if not (meta_df and meta_df[0].get("is_custom_field")):
+		if not meta_df or is_standard_or_system_generated_field(meta_df[0]):
 			# not a custom field
 			return
 
@@ -387,6 +393,8 @@ class CustomizeForm(Document):
 			if df.get(prop) != custom_field.get(prop):
 				if prop == "fieldtype":
 					self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+				if prop == "in_global_search":
+					self.flags.rebuild_doctype_for_global_search = True
 
 				custom_field.set(prop, df.get(prop))
 				changed = True
@@ -411,7 +419,7 @@ class CustomizeForm(Document):
 		}
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
-			if df.get("is_custom_field"):
+			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
 
 	def make_property_setter(
@@ -556,6 +564,10 @@ def reset_customization(doctype):
 	frappe.clear_cache(doctype=doctype)
 
 
+def is_standard_or_system_generated_field(df):
+	return not df.get("is_custom_field") or df.get("is_system_generated")
+
+
 doctype_properties = {
 	"search_fields": "Data",
 	"title_field": "Data",
@@ -566,8 +578,10 @@ doctype_properties = {
 	"allow_copy": "Check",
 	"istable": "Check",
 	"quick_entry": "Check",
+	"queue_in_background": "Check",
 	"editable_grid": "Check",
 	"max_attachments": "Int",
+	"make_attachments_public": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
@@ -581,6 +595,10 @@ doctype_properties = {
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 	"translate_link_fields": "Check",
+	"is_calendar_and_gantt": "Check",
+	"default_view": "Select",
+	"force_re_route_to_default_view": "Check",
+	"translated_doctype": "Check",
 }
 
 docfield_properties = {

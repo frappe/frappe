@@ -1,9 +1,8 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestPrintStyle(unittest.TestCase):
+class TestPrintStyle(FrappeTestCase):
 	pass

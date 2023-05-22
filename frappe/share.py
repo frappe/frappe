@@ -13,7 +13,22 @@ from frappe.utils import cint
 
 
 @frappe.whitelist()
-def add(
+def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, notify=0):
+	"""Expose function without flags to the client-side"""
+	return add_docshare(
+		doctype,
+		name,
+		user=user,
+		read=read,
+		write=write,
+		submit=submit,
+		share=share,
+		everyone=everyone,
+		notify=notify,
+	)
+
+
+def add_docshare(
 	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
 ):
 	"""Share the given document with a user."""
@@ -66,21 +81,29 @@ def remove(doctype, name, user, flags=None):
 
 @frappe.whitelist()
 def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
+	"""Expose function without flags to the client-side"""
+	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
+
+
+def set_docshare_permission(doctype, name, user, permission_to, value=1, everyone=0, flags=None):
 	"""Set share permission."""
-	check_share_permission(doctype, name)
+	if not (flags or {}).get("ignore_share_permission"):
+		check_share_permission(doctype, name)
 
 	share_name = get_share_name(doctype, name, user, everyone)
 	value = int(value)
 
 	if not share_name:
 		if value:
-			share = add(doctype, name, user, everyone=everyone, **{permission_to: 1})
+			share = add_docshare(doctype, name, user, everyone=everyone, **{permission_to: 1}, flags=flags)
 		else:
 			# no share found, nothing to remove
-			share = {}
-			pass
+			share = None
+
 	else:
 		share = frappe.get_doc("DocShare", share_name)
+		if flags:
+			share.flags.update(flags)
 		share.flags.ignore_permissions = True
 		share.set(permission_to, value)
 
@@ -101,15 +124,15 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 @frappe.whitelist()
 def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.get_all(
+	return frappe.get_all(
 		"DocShare",
 		fields=[
-			"`name`",
-			"`user`",
-			"`read`",
-			"`write`",
-			"`submit`",
-			"`share`",
+			"name",
+			"user",
+			"read",
+			"write",
+			"submit",
+			"share",
 			"everyone",
 			"owner",
 			"creation",
@@ -137,7 +160,7 @@ def get_shared(doctype, user=None, rights=None):
 	if user != "Guest":
 		or_filters += [["everyone", "=", 1]]
 
-	shared_docs = frappe.db.get_all(
+	shared_docs = frappe.get_all(
 		"DocShare", fields=["share_name"], filters=filters, or_filters=or_filters
 	)
 

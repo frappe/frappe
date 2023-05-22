@@ -1,12 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.core.doctype.data_export.exporter import DataExporter
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDataExporter(unittest.TestCase):
+class TestDataExporter(FrappeTestCase):
 	def setUp(self):
 		self.doctype_name = "Test DocType for Export Tool"
 		self.doc_name = "Test Data for Export Tool"

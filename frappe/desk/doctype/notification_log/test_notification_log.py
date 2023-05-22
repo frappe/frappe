@@ -1,13 +1,12 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.core.doctype.user.user import get_system_users
 from frappe.desk.form.assign_to import add as assign_task
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestNotificationLog(unittest.TestCase):
+class TestNotificationLog(FrappeTestCase):
 	def test_assignment(self):
 		todo = get_todo()
 		user = get_user()
@@ -38,7 +37,7 @@ class TestNotificationLog(unittest.TestCase):
 
 
 def get_last_email_queue():
-	res = frappe.db.get_all("Email Queue", fields=["message"], order_by="creation desc", limit=1)
+	res = frappe.get_all("Email Queue", fields=["message"], order_by="creation desc", limit=1)
 	return res[0]
 
 

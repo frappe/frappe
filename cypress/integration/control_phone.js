@@ -1,4 +1,4 @@
-import doctype_with_phone from '../fixtures/doctype_with_phone';
+import doctype_with_phone from "../fixtures/doctype_with_phone";
 
 context("Control Phone", () => {
 	before(() => {
@@ -9,10 +9,12 @@ context("Control Phone", () => {
 	function get_dialog_with_phone() {
 		return cy.dialog({
 			title: "Phone",
-			fields: [{
-				"fieldname": "phone",
-				"fieldtype": "Phone",
-			}]
+			fields: [
+				{
+					fieldname: "phone",
+					fieldtype: "Phone",
+				},
+			],
 		});
 	}
 
@@ -27,18 +29,16 @@ context("Control Phone", () => {
 
 		let phone_number = "9312672712";
 		cy.get(".selected-phone > img").click().first();
-		cy.get_field("phone")
-			.first()
-			.click({multiple: true});
+		cy.get_field("phone").first().click({ multiple: true });
 		cy.get(".frappe-control[data-fieldname=phone]")
 			.findByRole("textbox")
 			.first()
-			.type(phone_number, {force: true});
+			.type(phone_number, { force: true });
 
 		cy.get_field("phone").first().should("have.value", phone_number);
-		cy.get_field("phone").first().blur({force: true});
+		cy.get_field("phone").first().blur({ force: true });
 		cy.wait(100);
-		cy.get("@dialog").then(dialog => {
+		cy.get("@dialog").then((dialog) => {
 			let value = dialog.get_value("phone");
 			expect(value).to.equal("+91-" + phone_number);
 		});
@@ -48,10 +48,12 @@ context("Control Phone", () => {
 		let search_text = "india";
 		cy.get(".selected-phone").click().first();
 		cy.get(".phone-picker").findByRole("searchbox").click().type(search_text);
-		cy.get(".phone-section .phone-wrapper:not(.hidden)").then(i => {
-			cy.get(`.phone-section .phone-wrapper[id*="${search_text.toLowerCase()}"]`).then(countries => {
-				expect(i.length).to.equal(countries.length);
-			});
+		cy.get(".phone-section .phone-wrapper:not(.hidden)").then((i) => {
+			cy.get(`.phone-section .phone-wrapper[id*="${search_text.toLowerCase()}"]`).then(
+				(countries) => {
+					expect(i.length).to.equal(countries.length);
+				}
+			);
 		});
 
 		cy.get(".phone-picker").findByRole("searchbox").clear().blur();

@@ -3,31 +3,31 @@
 
 import frappe
 from frappe import _
+from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.model.document import Document
 from frappe.utils import cint
+from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
-	pass
+	@frappe.whitelist()
+	def bulk_update(self):
+		self.check_permission("write")
+		limit = self.limit if self.limit and cint(self.limit) < 500 else 500
 
+		condition = ""
+		if self.condition:
+			if ";" in self.condition:
+				frappe.throw(_("; not allowed in condition"))
 
-@frappe.whitelist()
-def update(doctype, field, value, condition="", limit=500):
-	if not limit or cint(limit) > 500:
-		limit = 500
+			condition = f" where {self.condition}"
 
-	if condition:
-		condition = " where " + condition
-
-	if ";" in condition:
-		frappe.throw(_("; not allowed in condition"))
-
-	docnames = frappe.db.sql_list(
-		f"""select name from `tab{doctype}`{condition} limit {limit} offset 0"""
-	)
-	data = {}
-	data[field] = value
-	return submit_cancel_or_update_docs(doctype, docnames, "update", data)
+		docnames = frappe.db.sql_list(
+			f"""select name from `tab{self.document_type}`{condition} limit {limit} offset 0"""
+		)
+		return submit_cancel_or_update_docs(
+			self.document_type, docnames, "update", {self.field: self.update_value}
+		)
 
 
 @frappe.whitelist()
@@ -44,8 +44,12 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 		try:
 			message = ""
 			if action == "submit" and doc.docstatus.is_draft():
-				doc.submit()
-				message = _("Submitting {0}").format(doctype)
+				if doc.meta.queue_in_background and not is_scheduler_inactive():
+					queue_submission(doc, action)
+					message = _("Queuing {0} for Submission").format(doctype)
+				else:
+					doc.submit()
+					message = _("Submitting {0}").format(doctype)
 			elif action == "cancel" and doc.docstatus.is_submitted():
 				doc.cancel()
 				message = _("Cancelling {0}").format(doctype)

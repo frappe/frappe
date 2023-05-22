@@ -1,12 +1,14 @@
-frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends frappe.ui.form.ControlLink {
+frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
+	frappe.ui.form.ControlLink
+) {
 	make_input() {
 		super.make_input();
 
-		this.$input_area.addClass('form-control table-multiselect');
-		this.$input.removeClass('form-control');
+		this.$input_area.addClass("form-control table-multiselect");
+		this.$input.removeClass("form-control");
 
 		this.$input.on("awesomplete-selectcomplete", () => {
-			this.$input.val('').focus();
+			this.$input.val("").focus();
 		});
 
 		// used as an internal model to store values
@@ -14,40 +16,40 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 		// used as an internal model to filter awesomplete values
 		this._rows_list = [];
 
-		this.$input_area.on('click', (e) => {
+		this.$input_area.on("click", (e) => {
 			if (e.target === this.$input_area.get(0)) {
 				this.$input.focus();
 			}
 		});
 
-		this.$input_area.on('click', '.btn-remove', (e) => {
+		this.$input_area.on("click", ".btn-remove", (e) => {
 			const $target = $(e.currentTarget);
-			const $value = $target.closest('.tb-selected-value');
+			const $value = $target.closest(".tb-selected-value");
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			this.rows = this.rows.filter(row => row[link_field.fieldname] !== value);
+			this.rows = this.rows.filter((row) => row[link_field.fieldname] !== value);
 
-			this.parse_validate_and_set_in_model('');
+			this.parse_validate_and_set_in_model("");
 		});
-		this.$input_area.on('click', '.btn-link-to-form', (e) => {
+		this.$input_area.on("click", ".btn-link-to-form", (e) => {
 			const $target = $(e.currentTarget);
-			const $value = $target.closest('.tb-selected-value');
+			const $value = $target.closest(".tb-selected-value");
 
 			const value = decodeURIComponent($value.data().value);
 			const link_field = this.get_link_field();
-			frappe.set_route('Form', link_field.options, value);
+			frappe.set_route("Form", link_field.options, value);
 		});
-		this.$input.on('keydown', e => {
+		this.$input.on("keydown", (e) => {
 			// if backspace key pressed on empty input, delete last value
-			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === '') {
+			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
 				this.rows = this.rows.slice(0, this.rows.length - 1);
-				this.parse_validate_and_set_in_model('');
+				this.parse_validate_and_set_in_model("");
 			}
 		});
 	}
 	setup_buttons() {
-		this.$input_area.find('.link-btn').remove();
+		this.$input_area.find(".link-btn").remove();
 	}
 	parse(value, label) {
 		if (typeof value == "object" || !this.rows) {
@@ -58,22 +60,26 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 
 		if (value) {
 			if (this.frm) {
-				const new_row = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname);
+				const new_row = frappe.model.add_child(
+					this.frm.doc,
+					this.df.options,
+					this.df.fieldname
+				);
 				new_row[link_field.fieldname] = value;
 				this.rows = this.frm.doc[this.df.fieldname];
 			} else {
 				this.rows.push({
-					[link_field.fieldname]: value
+					[link_field.fieldname]: value,
 				});
 			}
 			frappe.utils.add_link_title(link_field.options, value, label);
 		}
-		this._rows_list = this.rows.map(row => row[link_field.fieldname]);
+		this._rows_list = this.rows.map((row) => row[link_field.fieldname]);
 		return this.rows;
 	}
 	get_model_value() {
 		let value = super.get_model_value();
-		return value ? value.filter(d => !d.__islocal) : value;
+		return value ? value.filter((d) => !d.__islocal) : value;
 	}
 	validate(value) {
 		const rows = (value || []).slice();
@@ -100,14 +106,18 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 		}
 
 		// duplicate value
-		if (all_rows_except_last.map(row => row[link_field.fieldname]).includes(link_value)) {
+		if (all_rows_except_last.map((row) => row[link_field.fieldname]).includes(link_value)) {
 			return all_rows_except_last;
 		}
 
-		const validate_promise = this.validate_link_and_fetch(this.df, this.get_options(),
-			this.docname, link_value);
+		const validate_promise = this.validate_link_and_fetch(
+			this.df,
+			this.get_options(),
+			this.docname,
+			link_value
+		);
 
-		return validate_promise.then(validated_value => {
+		return validate_promise.then((validated_value) => {
 			if (validated_value === link_value) {
 				return rows;
 			} else {
@@ -119,15 +129,13 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 	set_formatted_input(value) {
 		this.rows = value || [];
 		const link_field = this.get_link_field();
-		const values = this.rows.map(row => row[link_field.fieldname]);
+		const values = this.rows.map((row) => row[link_field.fieldname]);
 		this.set_pill_html(values);
 	}
 	set_pill_html(values) {
-		const html = values
-			.map(value => this.get_pill_html(value))
-			.join('');
+		const html = values.map((value) => this.get_pill_html(value)).join("");
 
-		this.$input_area.find('.tb-selected-value').remove();
+		this.$input_area.find(".tb-selected-value").remove();
 		this.$input_area.prepend(html);
 	}
 	get_pill_html(value) {
@@ -137,7 +145,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
 				<span class="btn-link-to-form">${__(pill_name)}</span>
-				<span class="btn-remove">${frappe.utils.icon('close')}</span>
+				<span class="btn-remove">${frappe.utils.icon("close")}</span>
 			</button>
 		`;
 	}
@@ -147,9 +155,9 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 	get_link_field() {
 		if (!this._link_field) {
 			const meta = frappe.get_meta(this.df.options);
-			this._link_field = meta.fields.find(df => df.fieldtype === 'Link');
+			this._link_field = meta.fields.find((df) => df.fieldtype === "Link");
 			if (!this._link_field) {
-				throw new Error('Table MultiSelect requires a Table with atleast one Link field');
+				throw new Error("Table MultiSelect requires a Table with atleast one Link field");
 			}
 		}
 		return this._link_field;
@@ -157,7 +165,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends f
 	custom_awesomplete_filter(awesomplete) {
 		let me = this;
 
-		awesomplete.filter = function(item) {
+		awesomplete.filter = function (item) {
 			if (in_list(me._rows_list, item.value)) {
 				return false;
 			}

@@ -1,8 +1,8 @@
-frappe.provide('frappe.file_manager');
+frappe.provide("frappe.file_manager");
 
-frappe.file_manager = function() {
+frappe.file_manager = (function () {
 	let files_to_move = [];
-	let	old_folder = null;
+	let old_folder = null;
 	let new_folder = null;
 
 	function cut(files, old_folder_) {
@@ -19,18 +19,20 @@ frappe.file_manager = function() {
 			}
 			new_folder = new_folder_;
 
-			frappe.call({
-				method: "frappe.core.api.file.move_file",
-				args: {
-					file_list: files_to_move,
-					new_parent: new_folder,
-					old_parent: old_folder
-				},
-				callback: r => {
-					reset();
-					resolve(r);
-				}
-			}).fail(reject);
+			frappe
+				.call({
+					method: "frappe.core.api.file.move_file",
+					args: {
+						file_list: files_to_move,
+						new_parent: new_folder,
+						old_parent: old_folder,
+					},
+					callback: (r) => {
+						reset();
+						resolve(r);
+					},
+				})
+				.fail(reject);
 		});
 	}
 
@@ -51,6 +53,6 @@ frappe.file_manager = function() {
 		},
 		get files_to_move() {
 			return files_to_move;
-		}
+		},
 	};
-}();
+})();

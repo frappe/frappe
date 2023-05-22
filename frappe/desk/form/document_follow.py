@@ -161,9 +161,14 @@ def get_document_followed_by_user(user):
 
 def get_version(doctype, doc_name, frequency, user):
 	timeline = []
-	filters = get_filters("docname", doc_name, frequency, user)
 	version = frappe.get_all(
-		"Version", filters=filters, fields=["ref_doctype", "data", "modified", "modified", "modified_by"]
+		"Version",
+		filters=[
+			["ref_doctype", "=", doctype],
+			["docname", "=", doc_name],
+			*_get_filters(frequency, user),
+		],
+		fields=["data", "modified", "modified_by"],
 	)
 	if version:
 		for v in version:
@@ -186,9 +191,14 @@ def get_comments(doctype, doc_name, frequency, user):
 	from frappe.core.utils import html2text
 
 	timeline = []
-	filters = get_filters("reference_name", doc_name, frequency, user)
 	comments = frappe.get_all(
-		"Comment", filters=filters, fields=["content", "modified", "modified_by", "comment_type"]
+		"Comment",
+		filters=[
+			["reference_doctype", "=", doctype],
+			["reference_name", "=", doc_name],
+			*_get_filters(frequency, user),
+		],
+		fields=["content", "modified", "modified_by", "comment_type"],
 	)
 	for comment in comments:
 		if comment.comment_type == "Like":
@@ -306,29 +316,27 @@ def send_weekly_updates():
 	send_document_follow_mails("Weekly")
 
 
-def get_filters(search_by, name, frequency, user):
-	filters = []
+def _get_filters(frequency, user):
+	filters = [
+		["modified_by", "!=", user],
+	]
 
 	if frequency == "Weekly":
-		filters = [
-			[search_by, "=", name],
+		filters += [
 			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(), -7)],
 			["modified", "<", frappe.utils.nowdate()],
-			["modified_by", "!=", user],
 		]
+
 	elif frequency == "Daily":
-		filters = [
-			[search_by, "=", name],
+		filters += [
 			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(), -1)],
 			["modified", "<", frappe.utils.nowdate()],
-			["modified_by", "!=", user],
 		]
+
 	elif frequency == "Hourly":
-		filters = [
-			[search_by, "=", name],
+		filters += [
 			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-1)],
 			["modified", "<", frappe.utils.now_datetime()],
-			["modified_by", "!=", user],
 		]
 
 	return filters

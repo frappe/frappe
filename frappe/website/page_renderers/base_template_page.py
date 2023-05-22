@@ -64,7 +64,9 @@ class BaseTemplatePage(BaseRenderer):
 			self.context.url_prefix += "/"
 
 		self.context.path = self.path
-		self.context.pathname = frappe.local.path if hasattr(frappe, "local") else self.path
+		self.context.pathname = (
+			getattr(frappe.local, "path", None) if hasattr(frappe, "local") else self.path
+		)
 
 	def update_website_context(self):
 		# apply context from hooks

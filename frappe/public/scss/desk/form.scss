@@ -1,6 +1,29 @@
 @import "../common/form.scss";
 @import '~cropperjs/dist/cropper.min';
 
+.tooltip-content {
+	position: absolute;
+	bottom: 100%;
+	left: 0;
+	z-index: 9999;
+	padding: 2px 6px;
+	border-radius: var(--border-radius-sm);
+	background-color: var(--bg-dark-gray);
+	color: var(--text-dark);
+	font-size: var(--text-xs);
+	opacity: 0;
+	cursor: copy;
+	transition: opacity 0.3s, transform 3s;
+	pointer-events: none;
+}
+
+.show-tooltip .frappe-control:hover .tooltip-content {
+	opacity: 1;
+	transform: translate3d(0,0,0);
+	pointer-events: auto;
+}
+
+
 .std-form-layout > .form-layout > .form-page {
 	border-radius: var(--border-radius-md);
 	box-shadow: var(--card-shadow);
@@ -47,6 +70,21 @@
 	}
 }
 
+.form-column {
+	.form-column-description {
+		margin-bottom: 10px;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		padding-left: 0;
+	}
+
+	.column-label {
+		font-weight: 600;
+		color: var(--heading-color);
+		cursor: pointer;
+	}
+}
+
 .empty-section {
 	display: none !important;
 	border: 0 !important;
@@ -59,6 +97,10 @@
 }
 
 .row.form-section.card-section.visible-section:last-child {
+	border-bottom: none;
+}
+
+.form-section.card-section.hide-border {
 	border-bottom: none;
 }
 
@@ -315,8 +357,13 @@
 }
 
 .form-tabs-list {
+	position: sticky;
+	background-color: var(--card-bg);
+	z-index: 5;
+	transition: 0.5s top;
 	padding-left: var(--padding-xs);
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: 2px solid var(--border-color);
+	border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
 
 	.form-tabs {
 		.nav-item {
@@ -334,6 +381,15 @@
 		}
 	}
 }
+.form-tab-content {
+	scroll-margin-top: calc(var(--navbar-height) + 52px);
+}
+.form-tabs-sticky-up {
+	top: calc(var(--navbar-height) - 1px);
+}
+.form-tabs-sticky-down {
+	top: calc(var(--navbar-height) + var(--page-head-height) - 1px);
+}
 
 .progress-area {
 	padding-top: var(--padding-md);
@@ -350,6 +406,21 @@
 	.progress-message {
 		font-feature-settings: "tnum" 1;
 		margin-top: 0px;
+	}
+}
+
+// handle 5 columns in form
+.form-column.col-sm-20 {
+	position: relative;
+	width: 100%;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+@media (min-width: map-get($grid-breakpoints, "sm")) {
+	.form-column.col-sm-20 {
+		flex: 0 0 20%;
+		max-width: 20%;
 	}
 }
 

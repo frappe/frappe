@@ -13,6 +13,6 @@
 				{{ frappe.utils.pretty_date(comment.creation) }}
 			</span>
 		</div>
-		<div class="content">{{ frappe.utils.strip_html(comment.content) | markdown }}</div>
+		<div id="{{ comment.name }}" class="content">{{ frappe.utils.strip_html(comment.content) | markdown }}</div>
 	</div>
 </div>

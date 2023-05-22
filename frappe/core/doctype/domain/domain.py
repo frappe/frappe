@@ -85,8 +85,8 @@ class Domain(Document):
 	def set_default_portal_role(self):
 		"""Set default portal role based on domain"""
 		if self.data.get("default_portal_role"):
-			frappe.db.set_value(
-				"Portal Settings", None, "default_role", self.data.get("default_portal_role")
+			frappe.db.set_single_value(
+				"Portal Settings", "default_role", self.data.get("default_portal_role")
 			)
 
 	def setup_properties(self):

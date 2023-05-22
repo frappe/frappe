@@ -2,6 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "creation": "2012-12-12 11:19:22",
+ "default_view": "File",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -64,8 +65,7 @@
    "fieldname": "is_home_folder",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Is Home Folder",
-   "search_index": 1
+   "label": "Is Home Folder"
   },
   {
    "default": "0",
@@ -125,8 +125,7 @@
    "in_standard_filter": 1,
    "label": "Attached To DocType",
    "options": "DocType",
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_10",
@@ -136,8 +135,7 @@
    "fieldname": "attached_to_name",
    "fieldtype": "Data",
    "label": "Attached To Name",
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
   },
   {
    "fieldname": "attached_to_field",
@@ -172,10 +170,11 @@
    "read_only": 1
   }
  ],
+ "force_re_route_to_default_view": 1,
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2020-06-28 12:21:30.772386",
+ "modified": "2022-09-13 15:50:15.508251",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",
@@ -210,6 +209,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "title_field": "file_name",
  "track_changes": 1
 }

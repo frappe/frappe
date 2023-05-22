@@ -16,15 +16,14 @@ def get_signed_params(params):
 	if not isinstance(params, str):
 		params = urlencode(params)
 
-	signature = hmac.new(params.encode(), digestmod=hashlib.md5)
-	signature.update(get_secret().encode())
-	return params + "&_signature=" + signature.hexdigest()
+	signature = _sign_message(params)
+	return params + "&_signature=" + signature
 
 
 def get_secret():
-	return frappe.local.conf.get("secret") or str(
-		frappe.db.get_value("User", "Administrator", "creation")
-	)
+	from frappe.utils.password import get_encryption_key
+
+	return frappe.local.conf.get("secret") or get_encryption_key()
 
 
 def verify_request():
@@ -33,24 +32,28 @@ def verify_request():
 		frappe.local.flags.signed_query_string or getattr(frappe.request, "query_string", None)
 	)
 
-	valid = False
-
 	signature_string = "&_signature="
 	if signature_string in query_string:
-		params, signature = query_string.split(signature_string)
+		params, given_signature = query_string.split(signature_string)
 
-		given_signature = hmac.new(params.encode("utf-8"), digestmod=hashlib.md5)
+		computed_signature = _sign_message(params)
+		valid_signature = hmac.compare_digest(given_signature, computed_signature)
+		valid_method = frappe.request.method == "GET"
+		valid_request_data = not (frappe.request.form or frappe.request.data)
 
-		given_signature.update(get_secret().encode())
-		valid = signature == given_signature.hexdigest()
+		if valid_signature and valid_method and valid_request_data:
+			return True
 
-	if not valid:
-		frappe.respond_as_web_page(
-			_("Invalid Link"),
-			_("This link is invalid or expired. Please make sure you have pasted correctly."),
-		)
+	frappe.respond_as_web_page(
+		_("Invalid Link"),
+		_("This link is invalid or expired. Please make sure you have pasted correctly."),
+	)
 
-	return valid
+	return False
+
+
+def _sign_message(message: str) -> str:
+	return hmac.new(get_secret().encode(), message.encode(), digestmod=hashlib.sha512).hexdigest()
 
 
 def get_url(cmd, params, nonce=None, secret=None):

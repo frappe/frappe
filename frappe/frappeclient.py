@@ -106,7 +106,9 @@ class FrappeClient:
 			headers=self.headers,
 		)
 
-	def get_list(self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=0):
+	def get_list(
+		self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=None
+	):
 		"""Returns list of records of a particular type"""
 		if not isinstance(fields, str):
 			fields = json.dumps(fields)
@@ -115,7 +117,7 @@ class FrappeClient:
 		}
 		if filters:
 			params["filters"] = json.dumps(filters)
-		if limit_page_length:
+		if limit_page_length is not None:
 			params["limit_start"] = limit_start
 			params["limit_page_length"] = limit_page_length
 		res = self.session.get(
@@ -286,7 +288,11 @@ class FrappeClient:
 
 			if doctype != "User" and not frappe.db.exists("User", doc.get("owner")):
 				frappe.get_doc(
-					{"doctype": "User", "email": doc.get("owner"), "first_name": doc.get("owner").split("@")[0]}
+					{
+						"doctype": "User",
+						"email": doc.get("owner"),
+						"first_name": doc.get("owner").split("@", 1)[0],
+					}
 				).insert()
 
 			if update:

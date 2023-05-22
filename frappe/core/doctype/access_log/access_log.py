@@ -8,7 +8,13 @@ from frappe.utils import cstr
 
 
 class AccessLog(Document):
-	pass
+	@staticmethod
+	def clear_old_logs(days=30):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Access Log")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()
@@ -35,7 +41,11 @@ def make_access_log(
 
 
 @frappe.write_only()
-@retry(stop=stop_after_attempt(3), retry=retry_if_exception_type(frappe.DuplicateEntryError))
+@retry(
+	stop=stop_after_attempt(3),
+	retry=retry_if_exception_type(frappe.DuplicateEntryError),
+	reraise=True,
+)
 def _make_access_log(
 	doctype=None,
 	document=None,

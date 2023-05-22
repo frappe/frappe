@@ -1,13 +1,12 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_datetime
 
 
-class TestScheduledJobType(unittest.TestCase):
+class TestScheduledJobType(FrappeTestCase):
 	def setUp(self):
 		frappe.db.rollback()
 		frappe.db.truncate("Scheduled Job Type")

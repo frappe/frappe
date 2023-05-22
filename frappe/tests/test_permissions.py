@@ -88,6 +88,11 @@ class TestPermissions(FrappeTestCase):
 		self.assertFalse(post.has_permission("read"))
 		self.assertRaises(frappe.PermissionError, post.save)
 
+		permitted_record = frappe.get_list("Blog Post", fields="*", limit=1)[0]
+		full_record = frappe.get_all("Blog Post", fields="*", limit=1)[0]
+		self.assertNotEqual(permitted_record, full_record)
+		self.assertSequenceSubset(post.meta.get_search_fields(), permitted_record)
+
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Blog Category", "-test-blog-category-1", "test2@example.com")
 
@@ -649,29 +654,40 @@ class TestPermissions(FrappeTestCase):
 		# reset the user
 		frappe.set_user(current_user)
 
-	def test_child_table_permissions(self):
-		frappe.set_user("test@example.com")
-		self.assertIsInstance(frappe.get_list("Has Role", parent_doctype="User", limit=1), list)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError,
-			".* is not a valid parent DocType for .*",
-			frappe.get_list,
-			doctype="Has Role",
-			parent_doctype="ToDo",
+	def test_child_permissions(self):
+		frappe.set_user("test3@example.com")
+		self.assertIsInstance(frappe.get_list("DefaultValue", parent_doctype="User", limit=1), list)
+
+		# frappe.get_list
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "DefaultValue")
+		self.assertRaises(frappe.PermissionError, frappe.get_list, "DefaultValue", parent_doctype="ToDo")
+		self.assertRaises(
+			frappe.PermissionError, frappe.get_list, "DefaultValue", parent_doctype="DefaultValue"
 		)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError,
-			"Please specify a valid parent DocType for .*",
-			frappe.get_list,
-			"Has Role",
-		)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError,
-			".* is not a valid parent DocType for .*",
-			frappe.get_list,
-			doctype="Has Role",
-			parent_doctype="Has Role",
-		)
+
+		# frappe.get_doc
+		user = frappe.get_doc("User", frappe.session.user)
+		doc = user.append("defaults")
+		doc.check_permission()
+
+		# false due to missing parentfield
+		doc = user.append("roles")
+		doc.parentfield = None
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
+		# false due to invalid parentfield
+		doc = user.append("roles")
+		doc.parentfield = "first_name"
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
+		# false by permlevel
+		doc = user.append("roles")
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
+
+		# false by user permission
+		user = frappe.get_doc("User", "Administrator")
+		doc = user.append("defaults")
+		self.assertRaises(frappe.PermissionError, doc.check_permission)
 
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only

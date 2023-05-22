@@ -2,8 +2,8 @@ import Block from "./block.js";
 export default class Shortcut extends Block {
 	static get toolbox() {
 		return {
-			title: 'Shortcut',
-			icon: frappe.utils.icon('shortcut', 'sm')
+			title: "Shortcut",
+			icon: frappe.utils.icon("shortcut", "sm"),
 		};
 	}
 
@@ -21,7 +21,7 @@ export default class Shortcut extends Block {
 			allow_delete: this.allow_customization,
 			allow_hiding: false,
 			allow_edit: true,
-			allow_resize: true
+			allow_resize: true,
 		};
 	}
 
@@ -35,33 +35,39 @@ export default class Shortcut extends Block {
 	}
 
 	remove_last_divider() {
-		let block = this.wrapper.closest('.ce-block');
-		let container_offset_right = $('.layout-main-section')[0].offsetWidth;
+		let block = this.wrapper.closest(".ce-block");
+		let container_offset_right = $(".layout-main-section")[0].offsetWidth;
 		let block_offset_right = block.offsetLeft + block.offsetWidth;
 
 		if (container_offset_right - block_offset_right <= 110) {
-			$(block).find('.divider').addClass('hidden');
+			$(block).find(".divider").addClass("hidden");
 		} else {
-			$(block).find('.divider').removeClass('hidden');
+			$(block).find(".divider").removeClass("hidden");
 		}
 	}
 
 	render() {
-		this.wrapper = document.createElement('div');
-		this.new('shortcut');
+		this.wrapper = document.createElement("div");
+		this.new("shortcut");
 
 		if (this.data && this.data.shortcut_name) {
-			let has_data = this.make('shortcut', this.data.shortcut_name);
+			let has_data = this.make("shortcut", this.data.shortcut_name);
 			if (!has_data) return;
 		}
 
 		if (!this.readOnly) {
-			$(this.wrapper).find('.widget').addClass('shortcut edit-mode');
+			$(this.wrapper).find(".widget").addClass("shortcut edit-mode");
 			this.add_settings_button();
 			this.add_new_block_button();
 		} else {
-			let $shortcut_icon = frappe.utils.icon('arrow-up-right', 'xs', '', 'stroke: grey', 'ml-2');
-			$(this.wrapper).find('.widget .widget-title').append($shortcut_icon);
+			let $shortcut_icon = frappe.utils.icon(
+				"arrow-up-right",
+				"xs",
+				"",
+				"stroke: grey",
+				"ml-2"
+			);
+			$(this.wrapper).find(".widget .widget-title").append($shortcut_icon);
 
 			$(this.wrapper).append($(`<div class="divider"></div>`));
 		}
@@ -78,9 +84,9 @@ export default class Shortcut extends Block {
 
 	save() {
 		return {
-			shortcut_name: this.wrapper.getAttribute('shortcut_name'),
+			shortcut_name: this.wrapper.getAttribute("shortcut_name"),
 			col: this.get_col(),
-			new: this.new_block_widget
+			new: this.new_block_widget,
 		};
 	}
 }

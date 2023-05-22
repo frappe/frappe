@@ -7,10 +7,10 @@ context("Control Markdown Editor", () => {
 	it("should allow inserting images by drag and drop", () => {
 		cy.visit("/app/web-page/new");
 		cy.fill_field("content_type", "Markdown", "Select");
-		cy.get_field("main_section_md", "Markdown Editor").attachFile(
-			"sample_image.jpg",
+		cy.get_field("main_section_md", "Markdown Editor").selectFile(
+			"cypress/fixtures/sample_image.jpg",
 			{
-				subjectType: "drag-n-drop"
+				action: "drag-drop",
 			}
 		);
 		cy.click_modal_primary_button("Upload");

@@ -3,7 +3,8 @@
 import base64
 import json
 import os
-import unittest
+import shutil
+import tempfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,7 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
+from frappe.core.doctype.file.utils import get_extension
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
@@ -84,7 +86,7 @@ class TestBase64File(FrappeTestCase):
 				"doctype": "File",
 				"file_name": "test_base64.txt",
 				"attached_to_doctype": self.attached_to_doctype,
-				"attached_to_docname": self.attached_to_docname,
+				"attached_to_name": self.attached_to_docname,
 				"content": self.test_content,
 				"decode": True,
 			}
@@ -239,7 +241,7 @@ class TestFile(FrappeTestCase):
 			pass
 
 	def delete_test_data(self):
-		test_file_data = frappe.db.get_all(
+		test_file_data = frappe.get_all(
 			"File",
 			pluck="name",
 			filters={"is_home_folder": 0, "is_attachments_folder": 0},
@@ -460,7 +462,7 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 
 		test_file.make_thumbnail()
-		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpeg"))
+		self.assertTrue(test_file.thumbnail_url.endswith("_small.jpg"))
 
 		# test local image
 		test_file.db_set("thumbnail_url", None)
@@ -510,12 +512,51 @@ class TestFile(FrappeTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_create_file_without_file_url(self):
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "logo",
+				"content": "frappe",
+			}
+		).insert()
+		assert test_file is not None
 
-class TestAttachment(unittest.TestCase):
+	def test_symlinked_files_folder(self):
+		files_dir = os.path.abspath(get_files_path())
+		with convert_to_symlink(files_dir):
+			file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "symlinked_folder_test.txt",
+					"content": "42",
+				}
+			)
+			file.save()
+			file.content = ""
+			file._content = ""
+			file.save().reload()
+			self.assertIn("42", file.get_content())
+
+
+@contextmanager
+def convert_to_symlink(directory):
+	"""Moves a directory to temp directory and symlinks original path for testing"""
+	try:
+		new_directory = shutil.move(directory, tempfile.mkdtemp())
+		os.symlink(new_directory, directory)
+		yield
+	finally:
+		os.unlink(directory)
+		shutil.move(new_directory, directory)
+
+
+class TestAttachment(FrappeTestCase):
 	test_doctype = "Test For Attachment"
 
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		frappe.get_doc(
 			doctype="DocType",
 			name=cls.test_doctype,
@@ -699,3 +740,10 @@ class TestFileOptimization(FrappeTestCase):
 			size_after_rollback = os.stat(image_path).st_size
 
 			self.assertEqual(size_before_optimization, size_after_rollback)
+
+	def test_image_header_guessing(self):
+		file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+		with open(file_path, "rb") as f:
+			file_content = f.read()
+
+		self.assertEqual(get_extension("", None, file_content), "jpg")

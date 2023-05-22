@@ -1,7 +1,7 @@
-frappe.provide('frappe.utils.utils');
+frappe.provide("frappe.utils.utils");
 
 frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.form.ControlData {
-	static horizontal = false
+	static horizontal = false;
 
 	async make() {
 		await frappe.require(this.required_libs);
@@ -16,7 +16,9 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.map_id = frappe.dom.get_unique_id();
 		this.map_area = $(
 			`<div class="map-wrapper border">
-				<div id="` + this.map_id + `" style="min-height: 400px; z-index: 1; max-width:100%"></div>
+				<div id="` +
+				this.map_id +
+				`" style="min-height: 400px; z-index: 1; max-width:100%"></div>
 			</div>`
 		);
 
@@ -27,18 +29,28 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		if (this.frm) {
 			this.make_map(value);
 		} else {
-			$(document).on('frappe.ui.Dialog:shown', () => {
-				this.make_map(value);
+			$(document).on("frappe.ui.Dialog:shown", () => {
+				this.make_map();
 			});
 		}
 	}
 
 	make_map(value) {
 		this.bind_leaflet_map();
-		this.bind_leaflet_draw_control();
-		this.bind_leaflet_event_listeners();
-		this.bind_leaflet_locate_control();
-		this.bind_leaflet_data(value);
+		if (this.disabled) {
+			this.map.dragging.disable();
+			this.map.touchZoom.disable();
+			this.map.doubleClickZoom.disable();
+			this.map.scrollWheelZoom.disable();
+			this.map.boxZoom.disable();
+			this.map.keyboard.disable();
+			this.map.zoomControl.remove();
+		} else {
+			this.bind_leaflet_draw_control();
+   		this.bind_leaflet_event_listeners();
+			this.bind_leaflet_locate_control();
+			this.bind_leaflet_data(value);
+		}
 	}
 
 	bind_leaflet_data(value) {
@@ -75,40 +87,41 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	bind_leaflet_map() {
 		var circleToGeoJSON = L.Circle.prototype.toGeoJSON;
 		L.Circle.include({
-			toGeoJSON: function() {
+			toGeoJSON: function () {
 				var feature = circleToGeoJSON.call(this);
 				feature.properties = {
-					point_type: 'circle',
-					radius: this.getRadius()
+					point_type: "circle",
+					radius: this.getRadius(),
 				};
 				return feature;
-			}
+			},
 		});
 
 		L.CircleMarker.include({
-			toGeoJSON: function() {
+			toGeoJSON: function () {
 				var feature = circleToGeoJSON.call(this);
 				feature.properties = {
-					point_type: 'circlemarker',
-					radius: this.getRadius()
+					point_type: "circlemarker",
+					radius: this.getRadius(),
 				};
 				return feature;
-			}
+			},
 		});
 
-		L.Icon.Default.imagePath = '/assets/frappe/images/leaflet/';
+		L.Icon.Default.imagePath = "/assets/frappe/images/leaflet/";
 		this.map = L.map(this.map_id);
 		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 
-		L.tileLayer(frappe.utils.map_defaults.tiles,
-			frappe.utils.map_defaults.options).addTo(this.map);
-
-		this.editableLayers = new L.FeatureGroup();
+		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
+			this.map
+		);
+    
+    this.editableLayers = new L.FeatureGroup();
 	}
 
 	bind_leaflet_locate_control() {
 		// To request location update and set location, sets current geolocation on load
-		this.locate_control = L.control.locate({position:'topright'});
+		this.locate_control = L.control.locate({ position: "topright" });
 		this.locate_control.addTo(this.map);
 	}
 
@@ -120,30 +133,30 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	get_leaflet_controls() {
 		return new L.Control.Draw({
-			position: 'topleft',
+			position: "topleft",
 			draw: {
 				polyline: {
 					shapeOptions: {
-						color: frappe.ui.color.get('blue'),
-						weight: 10
-					}
+						color: frappe.ui.color.get("blue"),
+						weight: 10,
+					},
 				},
 				polygon: {
 					allowIntersection: false, // Restricts shapes to simple polygons
 					drawError: {
-						color: frappe.ui.color.get('orange'), // Color the shape will turn when intersects
-						message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+						color: frappe.ui.color.get("orange"), // Color the shape will turn when intersects
+						message: "<strong>Oh snap!<strong> you can't draw that!", // Message that will show when intersect
 					},
 					shapeOptions: {
-						color: frappe.ui.color.get('blue')
-					}
+						color: frappe.ui.color.get("blue"),
+					},
 				},
 				circle: true,
 				rectangle: {
 					shapeOptions: {
-						clickable: false
-					}
-				}
+						clickable: false,
+					},
+				},
 			},
 			edit: {
 				featureGroup: this.editableLayers, //REQUIRED!!
@@ -156,14 +169,14 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.map.on('draw:created', (e) => {
 			var type = e.layerType,
 				layer = e.layer;
-			if (type === 'marker') {
-				layer.bindPopup('Marker');
+			if (type === "marker") {
+				layer.bindPopup("Marker");
 			}
 			this.editableLayers.addLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
 		});
 
-		this.map.on('draw:deleted draw:edited', (e) => {
+		this.map.on("draw:deleted draw:edited", (e) => {
 			var layer = e.layer;
 			this.editableLayers.removeLayer(layer);
 			this.set_value(JSON.stringify(this.editableLayers.toGeoJSON()));
@@ -174,7 +187,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		// https://gis.stackexchange.com/a/203773
 		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
 		if (source_layer instanceof L.LayerGroup) {
-			source_layer.eachLayer((layer)=>{
+			source_layer.eachLayer((layer) => {
 				this.add_non_group_layers(layer, target_group);
 			});
 		} else {
@@ -183,7 +196,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	}
 
 	clear_editable_layers() {
-		this.editableLayers.eachLayer((l)=>{
+		this.editableLayers.eachLayer((l) => {
 			this.editableLayers.removeLayer(l);
 		});
 	}

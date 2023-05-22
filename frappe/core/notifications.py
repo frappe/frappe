@@ -32,11 +32,10 @@ def get_things_todo(as_list=False):
 
 	if as_list:
 		return data
-	else:
-		return data[0][0]
+	return data[0][0]
 
 
-def get_todays_events(as_list=False):
+def get_todays_events(as_list: bool = False):
 	"""Returns a count of todays events in calendar"""
 	from frappe.desk.doctype.event.event import get_events
 	from frappe.utils import nowdate

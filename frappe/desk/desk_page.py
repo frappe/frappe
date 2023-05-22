@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.translate import send_translations
 
 
 @frappe.whitelist()
@@ -31,28 +30,4 @@ def getpage():
 	page = frappe.form_dict.get("name")
 	doc = get(page)
 
-	# load translations
-	if frappe.lang != "en":
-		send_translations(frappe.get_lang_dict("page", page))
-
 	frappe.response.docs.append(doc)
-
-
-def has_permission(page):
-	if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
-		return True
-
-	page_roles = [d.role for d in page.get("roles")]
-	if page_roles:
-		if frappe.session.user == "Guest" and "Guest" not in page_roles:
-			return False
-		elif not set(page_roles).intersection(set(frappe.get_roles())):
-			# check if roles match
-			return False
-
-	if not frappe.has_permission("Page", ptype="read", doc=page):
-		# check if there are any user_permissions
-		return False
-	else:
-		# hack for home pages! if no Has Roles, allow everyone to see!
-		return True

@@ -18,7 +18,7 @@
 	/* page number */
 	{% set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{% if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}
-		{{ render_margin_text(page_number_position, 'counter(page) " of " counter(pages)') }}
+	{{ render_margin_text(page_number_position, _('{0} of {1}').format('counter(page) "', '" counter(pages)')) }}
 	{% endif %}
 }
 

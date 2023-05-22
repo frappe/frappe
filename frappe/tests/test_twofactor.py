@@ -1,17 +1,18 @@
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import time
-import unittest
 
 import pyotp
 
 import frappe
 from frappe.auth import HTTPRequest, get_login_attempt_tracker, validate_ip_address
+from frappe.tests.utils import FrappeTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
 	authenticate_for_2factor,
 	confirm_otp_token,
 	get_cached_user_pass,
+	get_default,
 	get_otpsecret_for_,
 	get_verification_obj,
 	should_run_2fa,
@@ -22,7 +23,7 @@ from frappe.utils import cint, set_request
 from . import get_system_setting, update_system_settings
 
 
-class TestTwoFactor(unittest.TestCase):
+class TestTwoFactor(FrappeTestCase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.default_allowed_login_attempts = get_system_setting("allow_consecutive_login_attempts")
@@ -111,7 +112,7 @@ class TestTwoFactor(unittest.TestCase):
 	def test_get_otpsecret_for_user(self):
 		"""OTP secret should be set for user."""
 		self.assertTrue(get_otpsecret_for_(self.user))
-		self.assertTrue(frappe.db.get_default(self.user + "_otpsecret"))
+		self.assertTrue(get_default(self.user + "_otpsecret"))
 
 	def test_confirm_otp_token(self):
 		"""Ensure otp is confirmed"""

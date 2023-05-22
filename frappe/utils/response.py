@@ -159,6 +159,7 @@ def make_logs(response=None):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	from collections.abc import Iterable
+	from re import Match
 
 	if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
 		return str(obj)
@@ -179,7 +180,13 @@ def json_handler(obj):
 	elif isinstance(obj, Iterable):
 		return list(obj)
 
+	elif isinstance(obj, Match):
+		return obj.string
+
 	elif type(obj) == type or isinstance(obj, Exception):
+		return repr(obj)
+
+	elif callable(obj):
 		return repr(obj)
 
 	else:
@@ -217,16 +224,16 @@ def download_private_file(path: str) -> Response:
 	"""Checks permissions and sends back private file"""
 
 	can_access = False
-	files = frappe.get_all("File", filters={"file_url": path}, pluck="name")
+	files = frappe.get_all("File", filters={"file_url": path}, fields="*")
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
-	for fname in files:
-		file: "File" = frappe.get_doc("File", fname)
-		if can_access := file.is_downloadable():
+	for file_data in files:
+		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		if file.is_downloadable():
 			break
 
-	if not can_access:
+	else:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])

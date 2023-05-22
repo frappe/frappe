@@ -12,14 +12,14 @@ context("Client Script", () => {
 				dt: "ToDo",
 				view: "Form",
 				enabled: 1,
-				script: `console.log('todo form script')`
+				script: `console.log('todo form script')`,
 			},
 			true
 		);
 		cy.visit("/app/todo/new", {
 			onBeforeLoad(win) {
 				cy.spy(win.console, "log").as("consoleLog");
-			}
+			},
 		});
 		cy.get("@consoleLog").should("be.calledWith", "todo form script");
 	});
@@ -32,14 +32,14 @@ context("Client Script", () => {
 				dt: "ToDo",
 				view: "List",
 				enabled: 1,
-				script: `console.log('todo list script')`
+				script: `console.log('todo list script')`,
 			},
 			true
 		);
 		cy.visit("/app/todo", {
 			onBeforeLoad(win) {
 				cy.spy(win.console, "log").as("consoleLog");
-			}
+			},
 		});
 		cy.get("@consoleLog").should("be.calledWith", "todo list script");
 	});
@@ -52,19 +52,16 @@ context("Client Script", () => {
 				dt: "ToDo",
 				view: "List",
 				enabled: 0,
-				script: `console.log('todo disabled script')`
+				script: `console.log('todo disabled script')`,
 			},
 			true
 		);
 		cy.visit("/app/todo", {
 			onBeforeLoad(win) {
 				cy.spy(win.console, "log").as("consoleLog");
-			}
+			},
 		});
-		cy.get("@consoleLog").should(
-			"not.be.calledWith",
-			"todo disabled script"
-		);
+		cy.get("@consoleLog").should("not.be.calledWith", "todo disabled script");
 	});
 
 	it("should run multiple scripts", () => {
@@ -75,7 +72,7 @@ context("Client Script", () => {
 				dt: "ToDo",
 				view: "Form",
 				enabled: 1,
-				script: `console.log('todo form script 1')`
+				script: `console.log('todo form script 1')`,
 			},
 			true
 		);
@@ -86,14 +83,14 @@ context("Client Script", () => {
 				dt: "ToDo",
 				view: "Form",
 				enabled: 1,
-				script: `console.log('todo form script 2')`
+				script: `console.log('todo form script 2')`,
 			},
 			true
 		);
 		cy.visit("/app/todo/new", {
 			onBeforeLoad(win) {
 				cy.spy(win.console, "log").as("consoleLog");
-			}
+			},
 		});
 		cy.get("@consoleLog").should("be.calledWith", "todo form script 1");
 		cy.get("@consoleLog").should("be.calledWith", "todo form script 2");

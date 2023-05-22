@@ -5,22 +5,6 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import cint
-
-
-def _is_scheduler_enabled():
-	enable_scheduler = False
-	try:
-		frappe.connect()
-		enable_scheduler = (
-			cint(frappe.db.get_single_value("System Settings", "enable_scheduler")) and True or False
-		)
-	except Exception:
-		pass
-	finally:
-		frappe.db.close()
-
-	return enable_scheduler
 
 
 @click.command("trigger-scheduler-event", help="Trigger a scheduler event")
@@ -89,35 +73,40 @@ def disable_scheduler(context):
 
 @click.command("scheduler")
 @click.option("--site", help="site name")
-@click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable"]))
+@click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable", "status"]))
+@click.option(
+	"--format", "-f", default="text", type=click.Choice(["json", "text"]), help="Output format"
+)
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @pass_context
-def scheduler(context, state, site=None):
-	import frappe.utils.scheduler
-	from frappe.installer import update_site_config
+def scheduler(context, state: str, format: str, verbose: bool = False, site: str | None = None):
+	"""Control scheduler state."""
+	import frappe
+	from frappe.utils.scheduler import is_scheduler_inactive, toggle_scheduler
 
-	if not site:
-		site = get_site(context)
+	site = site or get_site(context)
 
-	try:
-		frappe.init(site=site)
+	output = {
+		"text": "Scheduler is {status} for site {site}",
+		"json": '{{"status": "{status}", "site": "{site}"}}',
+	}
 
-		if state == "pause":
-			update_site_config("pause_scheduler", 1)
-		elif state == "resume":
-			update_site_config("pause_scheduler", 0)
-		elif state == "disable":
-			frappe.connect()
-			frappe.utils.scheduler.disable_scheduler()
-			frappe.db.commit()
-		elif state == "enable":
-			frappe.connect()
-			frappe.utils.scheduler.enable_scheduler()
-			frappe.db.commit()
+	with frappe.init_site(site=site):
+		match state:
+			case "status":
+				frappe.connect()
+				status = "disabled" if is_scheduler_inactive(verbose=verbose) else "enabled"
+				return print(output[format].format(status=status, site=site))
+			case "pause" | "resume":
+				from frappe.installer import update_site_config
 
-		print(f"Scheduler {state}d for site {site}")
+				update_site_config("pause_scheduler", state == "pause")
+			case "enable" | "disable":
+				frappe.connect()
+				toggle_scheduler(state == "enable")
+				frappe.db.commit()
 
-	finally:
-		frappe.destroy()
+		print(output[format].format(status=f"{state}d", site=site))
 
 
 @click.command("set-maintenance-mode")
@@ -125,6 +114,7 @@ def scheduler(context, state, site=None):
 @click.argument("state", type=click.Choice(["on", "off"]))
 @pass_context
 def set_maintenance_mode(context, state, site=None):
+	"""Put the site in maintenance mode for upgrades."""
 	from frappe.installer import update_site_config
 
 	if not site:
@@ -187,21 +177,42 @@ def purge_jobs(site=None, queue=None, event=None):
 
 @click.command("schedule")
 def start_scheduler():
+	"""Start scheduler process which is responsible for enqueueing the scheduled job types."""
 	from frappe.utils.scheduler import start_scheduler
 
 	start_scheduler()
 
 
 @click.command("worker")
-@click.option("--queue", type=str)
+@click.option(
+	"--queue",
+	type=str,
+	help="Queue to consume from. Multiple queues can be specified using comma-separated string. If not specified all queues are consumed.",
+)
 @click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
 @click.option("-u", "--rq-username", default=None, help="Redis ACL user")
 @click.option("-p", "--rq-password", default=None, help="Redis ACL user password")
-def start_worker(queue, quiet=False, rq_username=None, rq_password=None):
-	"""Site is used to find redis credentals."""
+@click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
+@click.option(
+	"--strategy",
+	required=False,
+	type=click.Choice(["round_robin", "random"]),
+	help="Dequeuing strategy to use",
+)
+def start_worker(
+	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None
+):
+	"""Start a backgrond worker"""
 	from frappe.utils.background_jobs import start_worker
 
-	start_worker(queue, quiet=quiet, rq_username=rq_username, rq_password=rq_password)
+	start_worker(
+		queue,
+		quiet=quiet,
+		rq_username=rq_username,
+		rq_password=rq_password,
+		burst=burst,
+		strategy=strategy,
+	)
 
 
 @click.command("ready-for-migration")

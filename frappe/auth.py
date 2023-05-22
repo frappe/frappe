@@ -6,9 +6,8 @@ import frappe
 import frappe.database
 import frappe.utils
 import frappe.utils.user
-from frappe import _, conf
+from frappe import _
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.modules.patch_handler import check_session_stopped
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.translate import get_language
 from frappe.twofactor import (
@@ -21,6 +20,9 @@ from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.password import check_password
 from frappe.website.utils import get_home_page
 
+SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
+UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
+
 
 class HTTPRequest:
 	def __init__(self):
@@ -29,9 +31,6 @@ class HTTPRequest:
 
 		# load cookies
 		self.set_cookies()
-
-		# set frappe.local.db
-		self.connect()
 
 		# login and start/resume user session
 		self.set_session()
@@ -45,9 +44,6 @@ class HTTPRequest:
 		# write out latest cookies
 		frappe.local.cookie_manager.init_cookies()
 
-		# check session status
-		check_session_stopped()
-
 	@property
 	def domain(self):
 		if not getattr(self, "_domain", None):
@@ -59,7 +55,9 @@ class HTTPRequest:
 
 	def set_request_ip(self):
 		if frappe.get_request_header("X-Forwarded-For"):
-			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",")[0]).strip()
+			frappe.local.request_ip = (
+				frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]
+			).strip()
 
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
@@ -74,38 +72,24 @@ class HTTPRequest:
 		frappe.local.login_manager = LoginManager()
 
 	def validate_csrf_token(self):
-		if frappe.local.request and frappe.local.request.method in ("POST", "PUT", "DELETE"):
-			if not frappe.local.session:
-				return
-			if (
-				not frappe.local.session.data.csrf_token
-				or frappe.local.session.data.device == "mobile"
-				or frappe.conf.get("ignore_csrf", None)
-			):
-				# not via boot
-				return
+		if (
+			not frappe.request
+			or frappe.request.method not in UNSAFE_HTTP_METHODS
+			or frappe.conf.ignore_csrf
+			or not frappe.session
+			or not (saved_token := frappe.session.data.csrf_token)
+			or (
+				(frappe.get_request_header("X-Frappe-CSRF-Token") or frappe.form_dict.pop("csrf_token", None))
+				== saved_token
+			)
+		):
+			return
 
-			csrf_token = frappe.get_request_header("X-Frappe-CSRF-Token")
-			if not csrf_token and "csrf_token" in frappe.local.form_dict:
-				csrf_token = frappe.local.form_dict.csrf_token
-				del frappe.local.form_dict["csrf_token"]
-
-			if frappe.local.session.data.csrf_token != csrf_token:
-				frappe.local.flags.disable_traceback = True
-				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
+		frappe.flags.disable_traceback = True
+		frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
 	def set_lang(self):
 		frappe.local.lang = get_language()
-
-	def get_db_name(self):
-		"""get database name from conf"""
-		return conf.db_name
-
-	def connect(self):
-		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.get_db(
-			user=self.get_db_name(), password=getattr(conf, "db_password", "")
-		)
 
 
 class LoginManager:
@@ -140,6 +124,9 @@ class LoginManager:
 				self.set_user_info()
 
 	def login(self):
+		if frappe.get_system_settings("disable_user_pass_login"):
+			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
+
 		# clear cache
 		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
@@ -156,6 +143,7 @@ class LoginManager:
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
 				return False
+		frappe.form_dict.pop("pwd", None)
 		self.post_login()
 
 	def post_login(self):
@@ -225,14 +213,16 @@ class LoginManager:
 
 	def clear_active_sessions(self):
 		"""Clear other sessions of the current user if `deny_multiple_sessions` is not set"""
+		if frappe.session.user == "Guest":
+			return
+
 		if not (
 			cint(frappe.conf.get("deny_multiple_sessions"))
 			or cint(frappe.db.get_system_setting("deny_multiple_sessions"))
 		):
 			return
 
-		if frappe.session.user != "Guest":
-			clear_sessions(frappe.session.user, keep_current=True)
+		clear_sessions(frappe.session.user, keep_current=True)
 
 	def authenticate(self, user: str = None, pwd: str = None):
 		from frappe.core.doctype.user.user import User
@@ -242,10 +232,11 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 
+		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)
 
 		if not user:
-			self.fail("Invalid login credentials")
+			self.fail("Invalid login credentials", user=_raw_user_name)
 
 		# Current login flow uses cached credentials for authentication while checking OTP.
 		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
@@ -316,7 +307,7 @@ class LoginManager:
 
 		current_hour = int(now_datetime().strftime("%H"))
 
-		if login_before and current_hour > login_before:
+		if login_before and current_hour >= login_before:
 			frappe.throw(_("Login not allowed at this time"), frappe.AuthenticationError)
 
 		if login_after and current_hour < login_after:
@@ -364,10 +355,6 @@ class CookieManager:
 	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Lax"):
 		if not secure and hasattr(frappe.local, "request"):
 			secure = frappe.local.request.scheme == "https"
-
-		# Cordova does not work with Lax
-		if frappe.local.session.data.device == "mobile":
-			samesite = None
 
 		self.cookies[key] = {
 			"value": value,

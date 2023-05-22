@@ -1,31 +1,26 @@
 import os
 
+import click
+
 import frappe
 from frappe.database.db_manager import DbManager
 
-expected_settings_10_2_earlier = {
-	"innodb_file_format": "Barracuda",
-	"innodb_file_per_table": "ON",
-	"innodb_large_prefix": "ON",
-	"character_set_server": "utf8mb4",
-	"collation_server": "utf8mb4_unicode_ci",
-}
-
-expected_settings_10_3_later = {
+REQUIRED_MARIADB_CONFIG = {
 	"character_set_server": "utf8mb4",
 	"collation_server": "utf8mb4_unicode_ci",
 }
 
 
-def get_mariadb_versions():
+def get_mariadb_variables():
+	return frappe._dict(frappe.db.sql("show variables"))
+
+
+def get_mariadb_version(version_string: str = ""):
 	# MariaDB classifies their versions as Major (1st and 2nd number), and Minor (3rd number)
 	# Example: Version 10.3.13 is Major Version = 10.3, Minor Version = 13
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	version_string = mariadb_variables.get("version").split("-")[0]
-	versions = {}
-	versions["major"] = version_string.split(".")[0] + "." + version_string.split(".")[1]
-	versions["minor"] = version_string.split(".")[2]
-	return versions
+	version_string = version_string or get_mariadb_variables().get("version")
+	version = version_string.split("-", 1)[0]
+	return version.rsplit(".", 1)
 
 
 def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
@@ -63,29 +58,12 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	bootstrap_database(db_name, verbose, source_sql)
 
 
-def setup_help_database(help_db_name):
-	dbman = DbManager(get_root_connection(frappe.flags.root_login, frappe.flags.root_password))
-	dbman.drop_database(help_db_name)
-
-	# make database
-	if not help_db_name in dbman.get_database_list():
-		try:
-			dbman.create_user(help_db_name, help_db_name)
-		except Exception as e:
-			# user already exists
-			if e.args[0] != 1396:
-				raise
-		dbman.create_database(help_db_name)
-		dbman.grant_all_privileges(help_db_name, help_db_name)
-		dbman.flush_privileges()
-
-
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
+	dbman.drop_database(db_name)
 	dbman.delete_user(db_name, host="%")
 	dbman.delete_user(db_name)
-	dbman.drop_database(db_name)
 
 
 def bootstrap_database(db_name, verbose, source_sql=None):
@@ -125,34 +103,53 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 
 def check_database_settings():
-	versions = get_mariadb_versions()
-	if versions["major"] <= "10.2":
-		expected_variables = expected_settings_10_2_earlier
-	else:
-		expected_variables = expected_settings_10_3_later
 
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
+	check_compatible_versions()
+
 	# Check each expected value vs. actuals:
+	mariadb_variables = get_mariadb_variables()
 	result = True
-	for key, expected_value in expected_variables.items():
+	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
 		if mariadb_variables.get(key) != expected_value:
 			print(
 				"For key %s. Expected value %s, found value %s"
 				% (key, expected_value, mariadb_variables.get(key))
 			)
 			result = False
+
 	if not result:
-		site = frappe.local.site
-		msg = (
-			"Creation of your site - {x} failed because MariaDB is not properly {sep}"
-			"configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
-			"the Barracuda storage engine. {sep}{sep}"
-			"Please verify the settings above in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
-			"then run `bench new-site {x}` again.{sep2}"
-			""
-		).format(x=site, sep2="\n" * 2, sep="\n")
-		print_db_config(msg)
+		print(
+			(
+				"{sep2}Creation of your site - {site} failed because MariaDB is not properly {sep}"
+				"configured.{sep2}"
+				"Please verify the above settings in MariaDB's my.cnf.  Restart MariaDB.{sep}"
+				"And then run `bench new-site {site}` again.{sep2}"
+			).format(site=frappe.local.site, sep2="\n\n", sep="\n")
+		)
+
 	return result
+
+
+def check_compatible_versions():
+	try:
+		version = get_mariadb_version()
+		version_tuple = tuple(int(v) for v in version[0].split("."))
+
+		if version_tuple < (10, 6):
+			click.secho(
+				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by Frappe",
+				fg="yellow",
+			)
+		elif version_tuple >= (10, 9):
+			click.secho(
+				f"Warning: MariaDB version {version} is more than 10.8 which is not yet tested with Frappe Framework.",
+				fg="yellow",
+			)
+	except Exception:
+		click.secho(
+			"MariaDB version compatibility checks failed, make sure you're running a supported version.",
+			fg="yellow",
+		)
 
 
 def get_root_connection(root_login, root_password):
@@ -173,9 +170,3 @@ def get_root_connection(root_login, root_password):
 		)
 
 	return frappe.local.flags.root_connection
-
-
-def print_db_config(explanation):
-	print("=" * 80)
-	print(explanation)
-	print("=" * 80)

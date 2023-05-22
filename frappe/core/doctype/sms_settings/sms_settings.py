@@ -63,7 +63,7 @@ def send_sms(receiver_list, msg, sender_name="", success_msg=True):
 		"success_msg": success_msg,
 	}
 
-	if frappe.db.get_value("SMS Settings", None, "sms_gateway_url"):
+	if frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
 		send_via_gateway(arg)
 	else:
 		msgprint(_("Please Update SMS Settings"))

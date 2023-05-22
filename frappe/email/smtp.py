@@ -54,9 +54,7 @@ class SMTPServer:
 		use_tls=None,
 		use_ssl=None,
 		use_oauth=0,
-		refresh_token=None,
 		access_token=None,
-		service=None,
 	):
 		self.login = login
 		self.email_account = email_account
@@ -66,16 +64,12 @@ class SMTPServer:
 		self.use_tls = use_tls
 		self.use_ssl = use_ssl
 		self.use_oauth = use_oauth
-		self.refresh_token = refresh_token
 		self.access_token = access_token
-		self.service = service
 		self._session = None
 
 		if not self.server:
 			frappe.msgprint(
-				_(
-					"Email Account not setup. Please create a new Email Account from Setup > Email > Email Account"
-				),
+				_("Email Account not setup. Please create a new Email Account from Settings > Email Account"),
 				raise_exception=frappe.OutgoingEmailError,
 			)
 
@@ -112,9 +106,7 @@ class SMTPServer:
 			self.secure_session(_session)
 
 			if self.use_oauth:
-				Oauth(
-					_session, self.email_account, self.login, self.access_token, self.refresh_token, self.service
-				).connect()
+				Oauth(_session, self.email_account, self.login, self.access_token).connect()
 
 			elif self.password:
 				res = _session.login(str(self.login or ""), str(self.password or ""))

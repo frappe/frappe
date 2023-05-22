@@ -1,15 +1,15 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import io
-import unittest
 
 from PyPDF2 import PdfReader
 
 import frappe
 import frappe.utils.pdf as pdfgen
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestPdf(unittest.TestCase):
+class TestPdf(FrappeTestCase):
 	@property
 	def html(self):
 		return """<style>

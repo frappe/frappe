@@ -6,13 +6,7 @@
 *                 @frappe/frappe-review-team
 templates/        @surajshetty3416
 www/              @surajshetty3416
-patches/          @surajshetty3416 @gavindsouza
-event_streaming/  @ruchamahabal
+patches/          @surajshetty3416
 data_import*      @netchampfaris
 core/             @surajshetty3416
-database          @gavindsouza
-model             @gavindsouza
-pyproject.toml    @gavindsouza
-query_builder/    @gavindsouza
-commands/         @gavindsouza
 workspace         @shariquerik

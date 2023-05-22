@@ -2,12 +2,14 @@
 # License: MIT. See LICENSE
 
 
-def resolve_class(classes):
+def resolve_class(*classes):
+	if classes and len(classes) == 1:
+		classes = classes[0]
+
 	if classes is None:
 		return ""
-
-	if isinstance(classes, str):
-		return classes
+	if classes is False:
+		return ""
 
 	if isinstance(classes, (list, tuple)):
 		return " ".join(resolve_class(c) for c in classes).strip()
@@ -90,18 +92,36 @@ def web_blocks(blocks):
 def get_dom_id(seed=None):
 	from frappe import generate_hash
 
-	if not seed:
-		seed = "DOM"
-	return "id-" + generate_hash(seed, 12)
+	return "id-" + generate_hash(12)
 
 
-def include_script(path):
+def include_script(path, preload=True):
+	"""Get path of bundled script files.
+
+	If preload is specified the path will be added to preload headers so browsers can prefetch
+	assets."""
 	path = bundled_asset(path)
+
+	if preload:
+		import frappe
+
+		frappe.local.preload_assets["script"].append(path)
+
 	return f'<script type="text/javascript" src="{path}"></script>'
 
 
-def include_style(path, rtl=None):
+def include_style(path, rtl=None, preload=True):
+	"""Get path of bundled style files.
+
+	If preload is specified the path will be added to preload headers so browsers can prefetch
+	assets."""
 	path = bundled_asset(path)
+
+	if preload:
+		import frappe
+
+		frappe.local.preload_assets["style"].append(path)
+
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
 

@@ -12,40 +12,28 @@ from werkzeug.wrappers import Request, Response
 
 import frappe
 import frappe.api
-import frappe.auth
 import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe.middlewares import StaticDataMiddleware
-from frappe.utils import get_site_name, sanitize_html
+from frappe.utils import cint, get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
-local_manager = LocalManager([frappe.local])
+local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
-SAFE_HTTP_METHODS = ("GET", "HEAD", "OPTIONS")
-UNSAFE_HTTP_METHODS = ("POST", "PUT", "DELETE", "PATCH")
 
 
-class RequestContext:
-	def __init__(self, environ):
-		self.request = Request(environ)
-
-	def __enter__(self):
-		init_request(self.request)
-
-	def __exit__(self, type, value, traceback):
-		frappe.destroy()
-
-
+@local_manager.middleware
 @Request.application
-def application(request):
+def application(request: Request):
 	response = None
 
 	try:
@@ -53,9 +41,6 @@ def application(request):
 
 		init_request(request)
 
-		frappe.recorder.record()
-		frappe.monitor.start()
-		frappe.rate_limiter.apply()
 		frappe.api.validate_auth()
 
 		if request.method == "OPTIONS":
@@ -82,28 +67,40 @@ def application(request):
 	except HTTPException as e:
 		return e
 
-	except frappe.SessionStopped as e:
-		response = frappe.utils.response.handle_session_stopped()
-
 	except Exception as e:
 		response = handle_exception(e)
 
 	else:
-		rollback = after_request(rollback)
+		rollback = sync_database(rollback)
 
 	finally:
-		if request.method in ("POST", "PUT") and frappe.db and rollback:
+		# Important note:
+		# this function *must* always return a response, hence any exception thrown outside of
+		# try..catch block like this finally block needs to be handled appropriately.
+
+		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
 
-		frappe.rate_limiter.update()
-		frappe.monitor.stop(response)
-		frappe.recorder.dump()
+		try:
+			run_after_request_hooks(request, response)
+		except Exception as e:
+			# We can not handle exceptions safely here.
+			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
 		log_request(request, response)
 		process_response(response)
-		frappe.destroy()
+		if frappe.db:
+			frappe.db.close()
 
 	return response
+
+
+def run_after_request_hooks(request, response):
+	if not getattr(frappe.local, "initialised", False):
+		return
+
+	for after_request_task in frappe.get_hooks("after_request"):
+		frappe.call(after_request_task, response=response, request=request)
 
 
 def init_request(request):
@@ -111,24 +108,48 @@ def init_request(request):
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site=site, sites_path=_sites_path)
+	frappe.init(site=site, sites_path=_sites_path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
 		raise NotFound
 
-	if frappe.local.conf.get("maintenance_mode"):
+	if frappe.local.conf.maintenance_mode:
 		frappe.connect()
-		raise frappe.SessionStopped("Session Stopped")
+		if frappe.local.conf.allow_reads_during_maintenance:
+			setup_read_only_mode()
+		else:
+			raise frappe.SessionStopped("Session Stopped")
 	else:
 		frappe.connect(set_admin_as_user=False)
 
-	request.max_content_length = frappe.local.conf.get("max_file_size") or 10 * 1024 * 1024
+	request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 10 * 1024 * 1024
 
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
-		frappe.local.http_request = frappe.auth.HTTPRequest()
+		frappe.local.http_request = HTTPRequest()
+
+	for before_request_task in frappe.get_hooks("before_request"):
+		frappe.call(before_request_task)
+
+
+def setup_read_only_mode():
+	"""During maintenance_mode reads to DB can still be performed to reduce downtime. This
+	function sets up read only mode
+
+	- Setting global flag so other pages, desk and database can know that we are in read only mode.
+	- Setup read only database access either by:
+	    - Connecting to read replica if one exists
+	    - Or setting up read only SQL transactions.
+	"""
+	frappe.flags.read_only = True
+
+	# If replica is available then just connect replica, else setup read only transaction.
+	if frappe.conf.read_from_replica:
+		frappe.connect_replica()
+	else:
+		frappe.db.begin(read_only=True)
 
 
 def log_request(request, response):
@@ -159,35 +180,45 @@ def process_response(response):
 		response.headers.extend(frappe.local.rate_limiter.headers())
 
 	# CORS headers
-	if hasattr(frappe.local, "conf") and frappe.conf.allow_cors:
+	if hasattr(frappe.local, "conf"):
 		set_cors_headers(response)
 
 
 def set_cors_headers(response):
-	origin = frappe.request.headers.get("Origin")
-	allow_cors = frappe.conf.allow_cors
-	if not (origin and allow_cors):
+	if not (
+		(allowed_origins := frappe.conf.allow_cors)
+		and (request := frappe.local.request)
+		and (origin := request.headers.get("Origin"))
+	):
 		return
 
-	if allow_cors != "*":
-		if not isinstance(allow_cors, list):
-			allow_cors = [allow_cors]
+	if allowed_origins != "*":
+		if not isinstance(allowed_origins, list):
+			allowed_origins = [allowed_origins]
 
-		if origin not in allow_cors:
+		if origin not in allowed_origins:
 			return
 
-	response.headers.extend(
-		{
-			"Access-Control-Allow-Origin": origin,
-			"Access-Control-Allow-Credentials": "true",
-			"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-			"Access-Control-Allow-Headers": (
-				"Authorization,DNT,X-Mx-ReqToken,"
-				"Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,"
-				"Cache-Control,Content-Type"
-			),
-		}
-	)
+	cors_headers = {
+		"Access-Control-Allow-Credentials": "true",
+		"Access-Control-Allow-Origin": origin,
+		"Vary": "Origin",
+	}
+
+	# only required for preflight requests
+	if request.method == "OPTIONS":
+		cors_headers["Access-Control-Allow-Methods"] = request.headers.get(
+			"Access-Control-Request-Method"
+		)
+
+		if allowed_headers := request.headers.get("Access-Control-Request-Headers"):
+			cors_headers["Access-Control-Allow-Headers"] = allowed_headers
+
+		# allow browsers to cache preflight requests for upto a day
+		if not frappe.conf.developer_mode:
+			cors_headers["Access-Control-Max-Age"] = "86400"
+
+	response.headers.extend(cors_headers)
 
 
 def make_form_dict(request):
@@ -222,10 +253,19 @@ def handle_exception(e):
 		or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 	)
 
+	if not frappe.session.user:
+		# If session creation fails then user won't be unset. This causes a lot of code that
+		# assumes presence of this to fail. Session creation fails => guest or expired login
+		# usually.
+		frappe.session.user = "Guest"
+
 	if respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
+
+	elif isinstance(e, frappe.SessionStopped):
+		response = frappe.utils.response.handle_session_stopped()
 
 	elif (
 		http_status_code == 500
@@ -292,28 +332,28 @@ def handle_exception(e):
 	return response
 
 
-def after_request(rollback):
+def sync_database(rollback: bool) -> bool:
 	# if HTTP method would change server state, commit if necessary
-	if frappe.db and (
-		frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS
+	if (
+		frappe.db
+		and (frappe.local.flags.commit or frappe.local.request.method in UNSAFE_HTTP_METHODS)
+		and frappe.db.transaction_writes
 	):
-		if frappe.db.transaction_writes:
-			frappe.db.commit()
-			rollback = False
+		frappe.db.commit()
+		rollback = False
+	elif frappe.db:
+		frappe.db.rollback()
+		rollback = False
 
 	# update session
-	if getattr(frappe.local, "session_obj", None):
-		updated_in_db = frappe.local.session_obj.update()
-		if updated_in_db:
+	if session := getattr(frappe.local, "session_obj", None):
+		if session.update():
 			frappe.db.commit()
 			rollback = False
 
 	update_comments_in_parent_after_request()
 
 	return rollback
-
-
-application = local_manager.make_middleware(application)
 
 
 def serve(
@@ -349,6 +389,7 @@ def serve(
 		"0.0.0.0",
 		int(port),
 		application,
+		exclude_patterns=["test_*"],
 		use_reloader=False if in_test_env else not no_reload,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,

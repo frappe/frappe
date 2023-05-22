@@ -2,7 +2,7 @@ import frappe
 
 
 def execute():
-	for web_form_name in frappe.db.get_all("Web Form", pluck="name"):
+	for web_form_name in frappe.get_all("Web Form", pluck="name"):
 		web_form = frappe.get_doc("Web Form", web_form_name)
 		doctype_layout = frappe.get_doc(
 			dict(

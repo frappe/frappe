@@ -8,9 +8,12 @@
  "document_type": "Setup",
  "engine": "InnoDB",
  "field_order": [
-  "title",
   "published",
-  "route"
+  "title",
+  "description",
+  "column_break_4",
+  "route",
+  "preview_image"
  ],
  "fields": [
   {
@@ -35,6 +38,20 @@
    "label": "Route",
    "read_only": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preview_image",
+   "fieldtype": "Attach Image",
+   "label": "Preview Image"
   }
  ],
  "has_web_view": 1,
@@ -42,8 +59,15 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
- "links": [],
- "modified": "2020-09-29 10:48:36.886753",
+ "links": [
+  {
+   "group": "Posts",
+   "link_doctype": "Blog Post",
+   "link_fieldname": "blog_category"
+  }
+ ],
+ "make_attachments_public": 1,
+ "modified": "2022-10-18 15:43:39.789982",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Category",
@@ -57,7 +81,6 @@
    "read": 1,
    "report": 1,
    "role": "Website Manager",
-   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   },
@@ -71,6 +94,7 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "title",
  "track_changes": 1
 }

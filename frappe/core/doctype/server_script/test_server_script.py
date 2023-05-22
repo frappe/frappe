@@ -1,10 +1,10 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import requests
 
 import frappe
+from frappe.frappeclient import FrappeClient, FrappeException
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url
 
 scripts = [
@@ -86,10 +86,10 @@ frappe.db.add_index("Todo", ["color", "date"])
 ]
 
 
-class TestServerScript(unittest.TestCase):
+class TestServerScript(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
-		frappe.db.commit()
+		super().setUpClass()
 		frappe.db.truncate("Server Script")
 		frappe.get_doc("User", "Administrator").add_roles("Script Manager")
 		for script in scripts:
@@ -212,3 +212,74 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 """
 		script.save()
 		script.execute_method()
+
+	def test_scripts_all_the_way_down(self):
+		# why not
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_nested_scripts_1",
+			script_type="API",
+			api_method="test_nested_scripts_1",
+			script=f"""log("nothing")""",
+		)
+		script.insert()
+		script.execute_method()
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_nested_scripts_2",
+			script_type="API",
+			api_method="test_nested_scripts_2",
+			script=f"""frappe.call("test_nested_scripts_1")""",
+		)
+		script.insert()
+		script.execute_method()
+
+	def test_server_script_rate_limiting(self):
+		# why not
+		script1 = frappe.get_doc(
+			doctype="Server Script",
+			name="rate_limited_server_script",
+			script_type="API",
+			enable_rate_limit=1,
+			allow_guest=1,
+			rate_limit_count=5,
+			api_method="rate_limited_endpoint",
+			script="""frappe.flags = {"test": True}""",
+		)
+
+		script1.insert()
+
+		script2 = frappe.get_doc(
+			doctype="Server Script",
+			name="rate_limited_server_script2",
+			script_type="API",
+			enable_rate_limit=1,
+			allow_guest=1,
+			rate_limit_count=5,
+			api_method="rate_limited_endpoint2",
+			script="""frappe.flags = {"test": False}""",
+		)
+
+		script2.insert()
+
+		frappe.db.commit()
+
+		site = frappe.utils.get_site_url(frappe.local.site)
+		client = FrappeClient(site)
+
+		# Exhaust rate limti
+		for _ in range(5):
+			client.get_api(script1.api_method)
+
+		self.assertRaises(FrappeException, client.get_api, script1.api_method)
+
+		# Exhaust rate limti
+		for _ in range(5):
+			client.get_api(script2.api_method)
+
+		self.assertRaises(FrappeException, client.get_api, script2.api_method)
+
+		script1.delete()
+		script2.delete()
+		frappe.db.commit()

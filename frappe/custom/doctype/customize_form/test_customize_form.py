@@ -2,17 +2,17 @@
 # License: MIT. See LICENSE
 
 import json
-import unittest
 
 import frappe
 from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Custom Field", "Property Setter"]
 
 
-class TestCustomizeForm(unittest.TestCase):
+class TestCustomizeForm(FrappeTestCase):
 	def insert_custom_field(self):
 		frappe.delete_doc_if_exists("Custom Field", "Event-test_custom_field")
 		frappe.get_doc(
@@ -54,7 +54,7 @@ class TestCustomizeForm(unittest.TestCase):
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
-		self.assertEqual(len(d.get("fields")), 36)
+		self.assertEqual(len(d.get("fields")), 38)
 
 		d = self.get_customize_form("Event")
 		self.assertEqual(d.doc_type, "Event")
@@ -403,3 +403,25 @@ class TestCustomizeForm(unittest.TestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			d.run_method("save_customization")
+
+	def test_system_generated_fields(self):
+		doctype = "Event"
+		custom_field_name = "test_custom_field"
+
+		custom_field = frappe.get_doc("Custom Field", {"dt": doctype, "fieldname": custom_field_name})
+		custom_field.is_system_generated = 1
+		custom_field.save()
+
+		d = self.get_customize_form(doctype)
+		custom_field = d.getone("fields", {"fieldname": custom_field_name})
+		custom_field.description = "Test Description"
+		d.run_method("save_customization")
+
+		property_setter_filters = {
+			"doc_type": doctype,
+			"field_name": custom_field_name,
+			"property": "description",
+		}
+		self.assertEqual(
+			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
+		)

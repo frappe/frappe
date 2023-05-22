@@ -11,8 +11,8 @@
 
 	{%- for index in ['1', '2', '3', '4', '5', '6'] -%}
 
-	{%- set buttonid = 'id-' + frappe.utils.generate_hash('TabButton', 12) -%}
-	{%- set panelid = 'id-' + frappe.utils.generate_hash('TabPanel', 12) -%}
+	{%- set buttonid = 'id-' + frappe.utils.generate_hash(length=12) -%}
+	{%- set panelid = 'id-' + frappe.utils.generate_hash(length=12) -%}
 
 	{%- set tab = {
 		'title': values['tab_' + index + '_title'],

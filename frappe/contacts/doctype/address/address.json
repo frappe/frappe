@@ -152,7 +152,6 @@
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
- "name_case": "Title Case",
  "owner": "Administrator",
  "permissions": [
   {
@@ -205,7 +204,6 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   }

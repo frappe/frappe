@@ -61,7 +61,7 @@ def get_desktop_icons(user=None):
 
 		blocked_doctypes = [d.get("name") for d in blocked_doctypes]
 
-		standard_icons = frappe.db.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
+		standard_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 1})
 
 		standard_map = {}
 		for icon in standard_icons:
@@ -69,7 +69,7 @@ def get_desktop_icons(user=None):
 				icon.blocked = 1
 			standard_map[icon.module_name] = icon
 
-		user_icons = frappe.db.get_all(
+		user_icons = frappe.get_all(
 			"Desktop Icon", fields=fields, filters={"standard": 0, "owner": user}
 		)
 
@@ -430,7 +430,7 @@ def get_context(context):
 	context.user = frappe.session.user
 
 	if "System Manager" in frappe.get_roles():
-		context.users = frappe.db.get_all(
+		context.users = frappe.get_all(
 			"User",
 			filters={"user_type": "System User", "enabled": 1},
 			fields=["name", "first_name", "last_name"],
@@ -443,7 +443,7 @@ def get_module_icons(user=None):
 		frappe.only_for("System Manager")
 
 	if not user:
-		icons = frappe.db.get_all("Desktop Icon", fields="*", filters={"standard": 1}, order_by="idx")
+		icons = frappe.get_all("Desktop Icon", fields="*", filters={"standard": 1}, order_by="idx")
 	else:
 		frappe.cache().hdel("desktop_icons", user)
 		icons = get_user_icons(user)

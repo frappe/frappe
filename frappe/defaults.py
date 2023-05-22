@@ -6,8 +6,7 @@ from frappe.cache_manager import clear_defaults_cache, common_default_keys
 from frappe.desk.notifications import clear_notifications
 from frappe.query_builder import DocType
 
-# Note: DefaultValue records are identified by parenttype
-# __default, __global or 'User Permission'
+# Note: DefaultValue records are identified by parent (e.g. __default, __global)
 
 
 def set_user_default(key, value, user=None, parenttype=None):
@@ -26,15 +25,36 @@ def get_user_default(key, user=None):
 		if d and isinstance(d, (list, tuple)) and len(d) == 1:
 			# Use User Permission value when only when it has a single value
 			d = d[0]
-
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
+			user_permission_default = get_user_permission_default(key, user_defaults)
+			if not d:
+				# If no default value is found, use the User Permission value
+				d = user_permission_default
 
 	value = isinstance(d, (list, tuple)) and d[0] or d
 	if not_in_user_permission(key, value, user):
 		return
 
 	return value
+
+
+def get_user_permission_default(key, defaults):
+	permissions = get_user_permissions()
+	user_default = ""
+	if permissions.get(key):
+		# global default in user permission
+		for item in permissions.get(key):
+			doc = item.get("doc")
+			if defaults.get(key) == doc:
+				user_default = doc
+
+		for item in permissions.get(key):
+			if item.get("is_default"):
+				user_default = item.get("doc")
+				break
+
+	return user_default
 
 
 def get_user_default_as_list(key, user=None):
@@ -242,4 +262,6 @@ def get_defaults_for(parent="__default"):
 
 
 def _clear_cache(parent):
+	if frappe.flags.in_install:
+		return
 	frappe.clear_cache(user=parent if parent not in common_default_keys else None)

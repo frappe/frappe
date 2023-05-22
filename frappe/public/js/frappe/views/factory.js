@@ -1,8 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide('frappe.pages');
-frappe.provide('frappe.views');
+frappe.provide("frappe.pages");
+frappe.provide("frappe.views");
 
 frappe.views.Factory = class Factory {
 	constructor(opts) {
@@ -32,9 +32,9 @@ frappe.views.Factory = class Factory {
 	make_page(double_column, page_name) {
 		return frappe.make_page(double_column, page_name);
 	}
-}
+};
 
-frappe.make_page = function(double_column, page_name) {
+frappe.make_page = function (double_column, page_name) {
 	if (!page_name) {
 		page_name = frappe.get_route_str();
 	}
@@ -43,9 +43,9 @@ frappe.make_page = function(double_column, page_name) {
 
 	frappe.ui.make_app_page({
 		parent: page,
-		single_column: !double_column
+		single_column: !double_column,
 	});
 
 	frappe.container.change_to(page_name);
 	return page;
-}
+};

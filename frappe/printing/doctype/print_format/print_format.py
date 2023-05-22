@@ -13,7 +13,7 @@ from frappe.utils.weasyprint import download_pdf, get_html
 
 class PrintFormat(Document):
 	def onload(self):
-		templates = frappe.db.get_all(
+		templates = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
 			filters={"document_type": self.doc_type},
@@ -95,7 +95,7 @@ class PrintFormat(Document):
 	def export_doc(self):
 		from frappe.modules.utils import export_module_json
 
-		export_module_json(self, self.standard == "Yes", self.module)
+		return export_module_json(self, self.standard == "Yes", self.module)
 
 	def on_trash(self):
 		if self.doc_type:
@@ -109,13 +109,12 @@ def make_default(name):
 
 	print_format = frappe.get_doc("Print Format", name)
 
-	if (frappe.conf.get("developer_mode") or 0) == 1:
-		# developer mode, set it default in doctype
-		doctype = frappe.get_doc("DocType", print_format.doc_type)
+	doctype = frappe.get_doc("DocType", print_format.doc_type)
+	if doctype.custom:
 		doctype.default_print_format = name
 		doctype.save()
 	else:
-		# customization
+		# "Customize form"
 		frappe.make_property_setter(
 			{
 				"doctype_or_field": "DocType",

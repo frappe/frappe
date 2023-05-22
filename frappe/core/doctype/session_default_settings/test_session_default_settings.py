@@ -1,15 +1,14 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-import unittest
-
 import frappe
 from frappe.core.doctype.session_default_settings.session_default_settings import (
 	clear_session_defaults,
 	set_session_default_values,
 )
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestSessionDefaultSettings(unittest.TestCase):
+class TestSessionDefaultSettings(FrappeTestCase):
 	def test_set_session_default_settings(self):
 		frappe.set_user("Administrator")
 		settings = frappe.get_single("Session Default Settings")

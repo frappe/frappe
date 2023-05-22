@@ -62,12 +62,11 @@ def get_permission_query_conditions(user):
 
 
 def has_permission(doc, user):
-
-	user_roles = set(frappe.get_roles(user))
+	if user == "Administrator":
+		return True
 
 	permitted_roles = {permitted_role.role for permitted_role in doc.permitted_roles}
-
-	return user == "Administrator" or user_roles.intersection(permitted_roles)
+	return not permitted_roles.isdisjoint(frappe.get_roles(user))
 
 
 def process_workflow_actions(doc, state):
@@ -290,7 +289,7 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all(
 		"Workflow Transition",
-		fields=["allowed", "action", "state", "allow_self_approval", "next_state", "`condition`"],
+		fields=["allowed", "action", "state", "allow_self_approval", "next_state", "condition"],
 		filters=[["parent", "=", workflow_name], ["state", "=", state]],
 	)
 
@@ -444,7 +443,9 @@ def filter_allowed_users(users, doc, transition):
 
 	filtered_users = []
 	for user in users:
-		if has_approval_access(user, doc, transition) and has_permission(doctype=doc, user=user):
+		if has_approval_access(user, doc, transition) and has_permission(
+			doctype=doc, user=user, raise_exception=False
+		):
 			filtered_users.append(user)
 	return filtered_users
 

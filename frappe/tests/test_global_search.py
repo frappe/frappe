@@ -1,16 +1,15 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
 from frappe.test_runner import make_test_objects
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import global_search, now_datetime
 
 
-class TestGlobalSearch(unittest.TestCase):
+class TestGlobalSearch(FrappeTestCase):
 	def setUp(self):
 		update_global_search_doctypes()
 		global_search.setup_global_search_table()

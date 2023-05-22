@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import random
 import string
-import unittest
 from unittest.mock import patch
 
 import frappe
@@ -19,9 +18,10 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocType(unittest.TestCase):
+class TestDocType(FrappeTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -171,32 +171,6 @@ class TestDocType(unittest.TestCase):
 				condition = field.get(depends_on)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
-
-	def test_data_field_options(self):
-		doctype_name = "Test Data Fields"
-		valid_data_field_options = frappe.model.data_field_options + ("",)
-		invalid_data_field_options = ("Invalid Option 1", frappe.utils.random_string(5))
-
-		for field_option in valid_data_field_options + invalid_data_field_options:
-			test_doctype = frappe.get_doc(
-				{
-					"doctype": "DocType",
-					"name": doctype_name,
-					"module": "Core",
-					"custom": 1,
-					"fields": [
-						{"fieldname": f"{field_option}_field", "fieldtype": "Data", "options": field_option}
-					],
-				}
-			)
-
-			if field_option in invalid_data_field_options:
-				# assert that only data options in frappe.model.data_field_options are valid
-				self.assertRaises(frappe.ValidationError, test_doctype.insert)
-			else:
-				test_doctype.insert()
-				self.assertEqual(test_doctype.name, doctype_name)
-				test_doctype.delete()
 
 	def test_sync_field_order(self):
 		import os
@@ -543,7 +517,7 @@ class TestDocType(unittest.TestCase):
 
 		# check invalid doctype
 		doc.append("links", {"link_doctype": "User2", "link_fieldname": "first_name"})
-		self.assertRaises(frappe.DoesNotExistError, validate_links_table_fieldnames, doc)
+		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 		doc.links = []  # reset links table
 
 		# check invalid fieldname
@@ -552,13 +526,14 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(InvalidFieldNameError, validate_links_table_fieldnames, doc)
 
 	def test_create_virtual_doctype(self):
-		"""Test virtual DOcTYpe."""
+		"""Test virtual DocType."""
 		virtual_doc = new_doctype("Test Virtual Doctype")
 		virtual_doc.is_virtual = 1
-		virtual_doc.insert()
-		virtual_doc.save()
+		virtual_doc.insert(ignore_if_duplicate=True)
+		virtual_doc.reload()
 		doc = frappe.get_doc("DocType", "Test Virtual Doctype")
 
+		self.assertDictEqual(doc.as_dict(), virtual_doc.as_dict())
 		self.assertEqual(doc.is_virtual, 1)
 		self.assertFalse(frappe.db.table_exists("Test Virtual Doctype"))
 
@@ -670,6 +645,21 @@ class TestDocType(unittest.TestCase):
 
 		self.assertEqual(test_json.test_json_field["hello"], "world")
 
+	def test_no_delete_doc(self):
+		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_custom_field_deletion(self):
+		"""Custom child tables whose doctype doesn't exist should be auto deleted."""
+		doctype = new_doctype(custom=0).insert().name
+		child = new_doctype(custom=0, istable=1).insert().name
+
+		field = "abc"
+		create_custom_fields({doctype: [{"fieldname": field, "fieldtype": "Table", "options": child}]})
+
+		frappe.delete_doc("DocType", child)
+		self.assertFalse(frappe.get_meta(doctype).get_field(field))
+
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_delete_doctype_with_customization(self):
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
@@ -706,6 +696,28 @@ class TestDocType(unittest.TestCase):
 		# ensure meta - property setter
 		self.assertEqual(frappe.get_meta(doctype).get_field(field).default, "DELETETHIS")
 		frappe.delete_doc("DocType", doctype)
+
+	def test_not_in_list_view_for_not_allowed_mandatory_field(self):
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "cover_image",
+					"fieldtype": "Attach Image",
+					"label": "Cover Image",
+					"reqd": 1,  # mandatory
+				},
+				{
+					"fieldname": "book_name",
+					"fieldtype": "Data",
+					"label": "Book Name",
+					"reqd": 1,  # mandatory
+				},
+			],
+		).insert()
+
+		self.assertFalse(doctype.fields[0].in_list_view)
+		self.assertTrue(doctype.fields[1].in_list_view)
+		frappe.delete_doc("DocType", doctype.name)
 
 
 def new_doctype(
@@ -744,8 +756,7 @@ def new_doctype(
 		}
 	)
 
-	if fields:
-		for f in fields:
-			doc.append("fields", f)
+	if fields and len(fields) > 0:
+		doc.set("fields", fields)
 
 	return doc

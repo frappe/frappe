@@ -1,11 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 
-import unittest
+from unittest.mock import patch
 
 import frappe
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestClient(unittest.TestCase):
+class TestClient(FrappeTestCase):
 	def test_set_value(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")
@@ -16,12 +17,26 @@ class TestClient(unittest.TestCase):
 
 	def test_delete(self):
 		from frappe.client import delete
+		from frappe.desk.doctype.note.note import Note
 
-		todo = frappe.get_doc(dict(doctype="ToDo", description="description")).insert()
-		delete("ToDo", todo.name)
+		note = frappe.get_doc(
+			doctype="Note",
+			title=frappe.generate_hash(length=8),
+			content="test",
+			seen_by=[{"user": "Administrator"}],
+		).insert()
 
-		self.assertFalse(frappe.db.exists("ToDo", todo.name))
-		self.assertRaises(frappe.DoesNotExistError, delete, "ToDo", todo.name)
+		child_row_name = note.seen_by[0].name
+
+		with patch.object(Note, "save") as save:
+			delete("Note Seen By", child_row_name)
+			save.assert_called()
+
+		delete("Note", note.name)
+
+		self.assertFalse(frappe.db.exists("Note", note.name))
+		self.assertRaises(frappe.DoesNotExistError, delete, "Note", note.name)
+		self.assertRaises(frappe.DoesNotExistError, delete, "Note Seen By", child_row_name)
 
 	def test_http_valid_method_access(self):
 		from frappe.client import delete
@@ -139,7 +154,8 @@ class TestClient(unittest.TestCase):
 
 		self.assertEqual(get("ToDo", filters=filters).description, "test")
 		self.assertEqual(get("ToDo", filters=filters_json).description, "test")
-
+		self.assertEqual(get("System Settings", "", "").doctype, "System Settings")
+		self.assertEqual(get("ToDo", filters={}), get("ToDo", filters="{}"))
 		todo.delete()
 
 	def test_client_insert(self):
@@ -211,15 +227,18 @@ class TestClient(unittest.TestCase):
 				"parent": note1.name,
 				"parentfield": "seen_by",
 			},
+			{"doctype": "Note", "title": "not-a-random-title", "content": "test"},
 			{"doctype": "Note", "title": get_random_title(), "content": "test"},
 			{"doctype": "Note", "title": get_random_title(), "content": "test"},
+			{"doctype": "Note", "title": "another-note-title", "content": "test"},
 		]
 
 		# insert all docs
 		docs = insert_many(doc_list)
 
-		# make sure only 1 name is returned for the parent upon insertion of child docs
-		self.assertEqual(len(docs), 3)
+		self.assertEqual(len(docs), 7)
+		self.assertEqual(frappe.db.get_value("Note", docs[3], "title"), "not-a-random-title")
+		self.assertEqual(frappe.db.get_value("Note", docs[6], "title"), "another-note-title")
 		self.assertIn(note1.name, docs)
 
 		# cleanup

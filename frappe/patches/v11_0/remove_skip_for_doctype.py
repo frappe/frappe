@@ -60,7 +60,7 @@ def execute():
 					# Maintain sequence (name, user, allow, for_value, applicable_for, apply_to_all_doctypes, creation, modified)
 					new_user_permissions_list.append(
 						(
-							frappe.generate_hash("", 10),
+							frappe.generate_hash(length=10),
 							user_permission.user,
 							user_permission.allow,
 							user_permission.for_value,

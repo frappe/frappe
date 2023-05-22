@@ -113,6 +113,8 @@ class DocumentNamingSettings(Document):
 
 		option_string = "\n".join(options)
 
+		# Erase default first, it might not be in new options.
+		self.update_naming_series_property_setter(doctype, "default", "")
 		self.update_naming_series_property_setter(doctype, "options", option_string)
 		self.update_naming_series_property_setter(doctype, "default", default)
 
@@ -163,7 +165,7 @@ class DocumentNamingSettings(Document):
 	@frappe.whitelist()
 	def get_current(self):
 		"""get series current"""
-		if self.prefix:
+		if self.prefix is not None:
 			self.current_value = NamingSeries(self.prefix).get_current_value()
 		return self.current_value
 
@@ -171,7 +173,7 @@ class DocumentNamingSettings(Document):
 	def update_series_start(self):
 		frappe.only_for("System Manager")
 
-		if not self.prefix:
+		if self.prefix is None:
 			frappe.throw(_("Please select prefix first"))
 
 		naming_series = NamingSeries(self.prefix)
@@ -191,7 +193,7 @@ class DocumentNamingSettings(Document):
 	def create_version_log_for_change(self, series, old, new):
 		version = frappe.new_doc("Version")
 		version.ref_doctype = "Series"
-		version.docname = series
+		version.docname = series or ".#"
 		version.data = frappe.as_json({"changed": [["current", old, new]]})
 		version.flags.ignore_links = True  # series is not a "real" doctype
 		version.flags.ignore_permissions = True

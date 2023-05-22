@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+import shutil
 
 import frappe
 import frappe.model
@@ -47,8 +48,10 @@ def write_document_file(doc, record_module=None, create_init=True, folder_name=N
 	write_code_files(folder, fname, doc, doc_export)
 
 	# write the data file
-	with open(os.path.join(folder, fname + ".json"), "w+") as txtfile:
+	path = os.path.join(folder, f"{fname}.json")
+	with open(path, "w+") as txtfile:
 		txtfile.write(frappe.as_json(doc_export))
+	print(f"Wrote document file for {doc.doctype} {doc.name} at {path}")
 
 
 def strip_default_fields(doc, doc_export):
@@ -88,6 +91,21 @@ def get_module_name(doc):
 		module = frappe.db.get_value("DocType", doc.doctype, "module")
 
 	return module
+
+
+def delete_folder(module, dt, dn):
+	if frappe.db.get_value("Module Def", module, "custom"):
+		module_path = get_custom_module_path(module)
+	else:
+		module_path = get_module_path(module)
+
+	dt, dn = scrub_dt_dn(dt, dn)
+
+	# delete folder
+	folder = os.path.join(module_path, dt, dn)
+
+	if os.path.exists(folder):
+		shutil.rmtree(folder)
 
 
 def create_folder(module, dt, dn, create_init):

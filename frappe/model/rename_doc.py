@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
@@ -46,7 +47,7 @@ def update_document_title(
 
 	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
 	for obj in [docname, updated_title, updated_name]:
-		if not isinstance(obj, (str, type(None))):
+		if not isinstance(obj, (str, NoneType)):
 			frappe.throw(f"{obj=} must be of type str or None")
 
 	# handle bad API usages
@@ -196,14 +197,6 @@ def rename_doc(
 	if not merge:
 		rename_password(doctype, old, new)
 
-	# update user_permissions
-	DefaultValue = frappe.qb.DocType("DefaultValue")
-	frappe.qb.update(DefaultValue).set(DefaultValue.defvalue, new).where(
-		(DefaultValue.parenttype == "User Permission")
-		& (DefaultValue.defkey == doctype)
-		& (DefaultValue.defvalue == old)
-	).run()
-
 	if merge:
 		new_doc.add_comment("Edit", _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
 	else:
@@ -236,7 +229,7 @@ def update_assignments(old: str, new: str, doctype: str) -> None:
 
 	for user in common_assignments:
 		# delete todos linked to old doc
-		todos = frappe.db.get_all(
+		todos = frappe.get_all(
 			"ToDo",
 			{
 				"owner": user,
@@ -397,11 +390,6 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 	for fieldtype in fields_with_options:
 		update_options_for_fieldtype(fieldtype, old, new)
 
-	# change options where select options are hardcoded i.e. listed
-	select_fields = get_select_fields(old, new)
-	update_link_field_values(select_fields, old, new, doctype)
-	update_select_field_values(old, new)
-
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new)
 
@@ -409,7 +397,11 @@ def rename_doctype(doctype: str, old: str, new: str) -> None:
 def update_child_docs(old: str, new: str, meta: "Meta") -> None:
 	# update "parent"
 	for df in meta.get_table_fields():
-		frappe.qb.update(df.options).set("parent", new).where(Field("parent") == old).run()
+		(
+			frappe.qb.update(df.options)
+			.set("parent", new)
+			.where((Field("parent") == old) & (Field("parenttype") == meta.name))
+		).run()
 
 
 def update_link_field_values(link_fields: list[dict], old: str, new: str, doctype: str) -> None:
@@ -496,6 +488,9 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 
 	if frappe.conf.developer_mode:
 		for name in frappe.get_all("DocField", filters={"options": old}, pluck="parent"):
+			if name in (old, new):
+				continue
+
 			doctype = frappe.get_doc("DocType", name)
 			save = False
 			for f in doctype.fields:
@@ -504,11 +499,11 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 					save = True
 			if save:
 				doctype.save()
-	else:
-		DocField = frappe.qb.DocType("DocField")
-		frappe.qb.update(DocField).set(DocField.options, new).where(
-			(DocField.fieldtype == fieldtype) & (DocField.options == old)
-		).run()
+
+	DocField = frappe.qb.DocType("DocField")
+	frappe.qb.update(DocField).set(DocField.options, new).where(
+		(DocField.fieldtype == fieldtype) & (DocField.options == old)
+	).run()
 
 	frappe.qb.update(CustomField).set(CustomField.options, new).where(
 		(CustomField.fieldtype == fieldtype) & (CustomField.options == old)
@@ -534,7 +529,12 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 	standard_fields = (
 		frappe.qb.from_(df)
 		.select(df.parent, df.fieldname, st_issingle)
-		.where((df.parent != new) & (df.fieldtype == "Select") & (df.options.like(f"%{old}%")))
+		.where(
+			(df.parent != new)
+			& (df.fieldname != "fieldtype")
+			& (df.fieldtype == "Select")
+			& (df.options.like(f"%{old}%"))
+		)
 		.run(as_dict=True)
 	)
 

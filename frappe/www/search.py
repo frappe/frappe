@@ -1,4 +1,4 @@
-from jinja2 import utils
+import markupsafe
 
 import frappe
 from frappe import _
@@ -10,7 +10,7 @@ from frappe.utils.global_search import web_search
 def get_context(context):
 	context.no_cache = 1
 	if frappe.form_dict.q:
-		query = str(utils.escape(sanitize_html(frappe.form_dict.q)))
+		query = str(markupsafe.escape(sanitize_html(frappe.form_dict.q)))
 		context.title = _("Search Results for")
 		context.query = query
 		context.route = "/search"
@@ -20,7 +20,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_search_results(text, scope=None, start=0, as_html=False):
+def get_search_results(text: str, scope: str = None, start: int = 0, as_html: bool = False):
 	results = web_search(text, scope, start, limit=21)
 	out = frappe._dict()
 

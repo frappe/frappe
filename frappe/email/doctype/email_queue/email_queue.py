@@ -5,6 +5,7 @@ import json
 import quopri
 import smtplib
 import traceback
+from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTPUTF8
 
@@ -26,9 +27,12 @@ from frappe.utils import (
 	cstr,
 	get_hook_method,
 	get_string_between,
+	get_url,
 	nowdate,
+	sbool,
 	split_emails,
 )
+from frappe.utils.verified_command import get_signed_params
 
 
 class EmailQueue(Document):
@@ -37,7 +41,7 @@ class EmailQueue(Document):
 	def set_recipients(self, recipients):
 		self.set("recipients", [])
 		for r in recipients:
-			self.append("recipients", {"recipient": r, "status": "Not Sent"})
+			self.append("recipients", {"recipient": r.strip(), "status": "Not Sent"})
 
 	def on_trash(self):
 		self.prevent_email_queue_delete()
@@ -110,8 +114,11 @@ class EmailQueue(Document):
 		return self.status in ["Not Sent", "Partially Sent"]
 
 	def can_send_now(self):
-		hold_queue = cint(frappe.defaults.get_defaults().get("hold_queue")) == 1
-		if frappe.are_emails_muted() or not self.is_to_be_sent() or hold_queue:
+		if (
+			frappe.are_emails_muted()
+			or not self.is_to_be_sent()
+			or cint(frappe.db.get_default("suspend_email_queue")) == 1
+		):
 			return False
 
 		return True
@@ -196,7 +203,7 @@ class SendMailContext:
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
-		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_main_sent()]
+		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()]
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
@@ -206,7 +213,6 @@ class SendMailContext:
 		exceptions = [
 			smtplib.SMTPServerDisconnected,
 			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPRecipientsRefused,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
@@ -278,7 +284,9 @@ class SendMailContext:
 		if not message:
 			return ""
 
-		message = message.replace(self.message_placeholder("tracker"), self.get_tracker_str())
+		message = message.replace(
+			self.message_placeholder("tracker"), self.get_tracker_str(recipient_email)
+		)
 		message = message.replace(
 			self.message_placeholder("unsubscribe_url"), self.get_unsubscribe_str(recipient_email)
 		)
@@ -289,15 +297,25 @@ class SendMailContext:
 		message = self.include_attachments(message)
 		return message
 
-	def get_tracker_str(self):
-		tracker_url_html = '<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'
+	def get_tracker_str(self, recipient_email) -> str:
+		tracker_url = ""
+		if self.queue_doc.get("email_read_tracker_url"):
+			email_read_tracker_url = self.queue_doc.email_read_tracker_url
+			params = {
+				"recipient_email": recipient_email,
+				"reference_name": self.queue_doc.reference_name,
+				"reference_doctype": self.queue_doc.reference_doctype,
+			}
+			tracker_url = get_url(f"{email_read_tracker_url}?{get_signed_params(params)}")
 
-		message = ""
-		if frappe.conf.use_ssl and self.email_account_doc.track_email_status:
-			message = quopri.encodestring(
-				tracker_url_html.format(frappe.local.site, self.queue_doc.communication).encode()
-			).decode()
-		return message
+		elif frappe.conf.use_ssl and self.email_account_doc.track_email_status:
+			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
+
+		if tracker_url:
+			tracker_url_html = f'<img src="{tracker_url}"/>'
+			return quopri.encodestring(tracker_url_html.encode()).decode()
+
+		return ""
 
 	def get_unsubscribe_str(self, recipient_email: str) -> str:
 		unsubscribe_url = ""
@@ -359,6 +377,8 @@ class SendMailContext:
 @frappe.whitelist()
 def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
+	doc.check_permission()
+
 	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
 		doc.status = "Not Sent"
 		for d in doc.recipients:
@@ -371,7 +391,14 @@ def retry_sending(name):
 def send_now(name):
 	record = EmailQueue.find(name)
 	if record:
+		record.check_permission()
 		record.send()
+
+
+@frappe.whitelist()
+def toggle_sending(enable):
+	frappe.only_for("System Manager")
+	frappe.db.set_default("suspend_email_queue", 0 if sbool(enable) else 1)
 
 
 def on_doctype_update():
@@ -379,6 +406,8 @@ def on_doctype_update():
 	frappe.db.add_index(
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
+
+	frappe.db.add_index("Email Queue", ["message_id(140)"])
 
 
 def get_email_retry_limit():
@@ -418,6 +447,7 @@ class QueueBuilder:
 		header=None,
 		print_letterhead=False,
 		with_container=False,
+		email_read_tracker_url=None,
 	):
 		"""Add email to sending queue (Email Queue)
 
@@ -442,6 +472,7 @@ class QueueBuilder:
 		:param inline_images: List of inline images as {"filename", "filecontent"}. All src properties will be replaced with random Content-Id
 		:param header: Append header in email (boolean)
 		:param with_container: Wraps email inside styled container
+		:param email_read_tracker_url: A URL for tracking whether an email is read by the recipient.
 		"""
 
 		self._unsubscribe_method = unsubscribe_method
@@ -476,6 +507,7 @@ class QueueBuilder:
 		self.is_notification = is_notification
 		self.inline_images = inline_images
 		self.print_letterhead = print_letterhead
+		self.email_read_tracker_url = email_read_tracker_url
 
 	@property
 	def unsubscribe_method(self):
@@ -674,7 +706,10 @@ class QueueBuilder:
 			if not smtp_server_instance:
 				email_account = q.get_email_account()
 				smtp_server_instance = email_account.get_smtp_server()
-			q.send(smtp_server_instance=smtp_server_instance)
+
+			with suppress(Exception):
+				q.send(smtp_server_instance=smtp_server_instance)
+
 		smtp_server_instance.quit()
 
 	def as_dict(self, include_recipients=True):
@@ -701,7 +736,7 @@ class QueueBuilder:
 			"attachments": json.dumps(self.get_attachments()),
 			"message_id": get_string_between("<", mail.msg_root["Message-Id"], ">"),
 			"message": mail_to_string,
-			"sender": self.sender,
+			"sender": mail.sender,
 			"reference_doctype": self.reference_doctype,
 			"reference_name": self.reference_name,
 			"add_unsubscribe_link": self._add_unsubscribe_link,
@@ -713,6 +748,7 @@ class QueueBuilder:
 			"show_as_cc": ",".join(self.final_cc()),
 			"show_as_bcc": ",".join(self.bcc),
 			"email_account": email_account_name or None,
+			"email_read_tracker_url": self.email_read_tracker_url,
 		}
 
 		if include_recipients:

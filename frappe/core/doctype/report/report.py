@@ -57,17 +57,6 @@ class Report(Document):
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
-		self.delete_prepared_reports()
-
-	def delete_prepared_reports(self):
-		prepared_reports = frappe.get_all(
-			"Prepared Report", filters={"ref_report_doctype": self.name}, pluck="name"
-		)
-
-		for report in prepared_reports:
-			frappe.delete_doc(
-				"Prepared Report", report, ignore_missing=True, force=True, delete_permanently=True
-			)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
@@ -168,10 +157,18 @@ class Report(Document):
 			return self.get_columns(), loc["result"]
 
 	def get_data(
-		self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False
+		self,
+		filters=None,
+		limit=None,
+		user=None,
+		as_dict=False,
+		ignore_prepared_report=False,
+		are_default_filters=True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
-			columns, result = self.run_query_report(filters, user, ignore_prepared_report)
+			columns, result = self.run_query_report(
+				filters, user, ignore_prepared_report, are_default_filters
+			)
 		else:
 			columns, result = self.run_standard_report(filters, limit, user)
 
@@ -180,10 +177,16 @@ class Report(Document):
 
 		return columns, result
 
-	def run_query_report(self, filters, user, ignore_prepared_report=False):
+	def run_query_report(
+		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+	):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(
-			self.name, filters=filters, user=user, ignore_prepared_report=ignore_prepared_report
+			self.name,
+			filters=filters,
+			user=user,
+			ignore_prepared_report=ignore_prepared_report,
+			are_default_filters=are_default_filters,
 		)
 
 		for d in data.get("columns"):
@@ -337,16 +340,15 @@ class Report(Document):
 		return data
 
 	@frappe.whitelist()
-	def toggle_disable(self, disable):
+	def toggle_disable(self, disable: bool):
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
 
 
-@frappe.whitelist()
-def is_prepared_report_disabled(report):
-	return frappe.db.get_value("Report", report, "disable_prepared_report") or 0
+def is_prepared_report_enabled(report):
+	return cint(frappe.db.get_value("Report", report, "prepared_report")) or 0
 
 
 def get_report_module_dotted_path(module, report_name):

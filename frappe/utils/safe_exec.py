@@ -2,9 +2,13 @@ import copy
 import inspect
 import json
 import mimetypes
+import types
+from contextlib import contextmanager
+from functools import lru_cache
 
 import RestrictedPython.Guards
 from RestrictedPython import compile_restricted, safe_globals
+from RestrictedPython.transformer import RestrictingNodeTransformer
 
 import frappe
 import frappe.exceptions
@@ -42,6 +46,14 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
+class FrappeTransformer(RestrictingNodeTransformer):
+	def check_name(self, node, name, *args, **kwargs):
+		if name == "_dict":
+			return
+
+		return super().check_name(node, name, *args, **kwargs)
+
+
 def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
 	# server scripts can be disabled via site_config.json
 	# they are enabled by default
@@ -64,12 +76,22 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
 
-	# execute script compiled by RestrictedPython
-	frappe.flags.in_safe_exec = True
-	exec(compile_restricted(script), exec_globals, _locals)  # pylint: disable=exec-used
-	frappe.flags.in_safe_exec = False
+	with safe_exec_flags(), patched_qb():
+		# execute script compiled by RestrictedPython
+		exec(
+			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
+			exec_globals,
+			_locals,
+		)
 
 	return exec_globals, _locals
+
+
+@contextmanager
+def safe_exec_flags():
+	frappe.flags.in_safe_exec = True
+	yield
+	frappe.flags.in_safe_exec = False
 
 
 def get_safe_globals():
@@ -146,12 +168,13 @@ def get_safe_globals():
 			),
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
-			get_payment_gateway_controller=frappe.integrations.utils.get_payment_gateway_controller,
+			make_put_request=frappe.integrations.utils.make_put_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
 			sanitize_html=frappe.utils.sanitize_html,
 			log_error=frappe.log_error,
+			log=frappe.log,
 			db=NamespaceDict(
 				get_list=frappe.get_list,
 				get_all=frappe.get_all,
@@ -167,6 +190,7 @@ def get_safe_globals():
 				rollback=frappe.db.rollback,
 				add_index=frappe.db.add_index,
 			),
+			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
 		style=frappe._dict(border_color="#d1d8dd"),
@@ -254,6 +278,28 @@ def call_with_form_dict(function, kwargs):
 		return function()
 	finally:
 		frappe.local.form_dict = form_dict
+
+
+@contextmanager
+def patched_qb():
+	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
+	try:
+		if require_patching:
+			_terms = frappe.qb.terms
+			frappe.qb.terms = _flatten(frappe.qb.terms)
+		yield
+	finally:
+		if require_patching:
+			frappe.qb.terms = _terms
+
+
+@lru_cache
+def _flatten(module):
+	new_mod = NamespaceDict()
+	for name, obj in inspect.getmembers(module, lambda x: not inspect.ismodule(x)):
+		if not name.startswith("_"):
+			new_mod[name] = obj
+	return new_mod
 
 
 def get_python_builtins():
@@ -348,6 +394,10 @@ def _getattr(object, name, default=None):
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
+
+	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
+		raise SyntaxError(f"Reading {object} attributes is not allowed")
+
 	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
 
@@ -395,8 +445,8 @@ VALID_UTILS = (
 	"now_datetime",
 	"get_timestamp",
 	"get_eta",
-	"get_time_zone",
-	"convert_utc_to_user_timezone",
+	"get_system_timezone",
+	"convert_utc_to_system_timezone",
 	"now",
 	"nowdate",
 	"today",

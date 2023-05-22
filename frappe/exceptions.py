@@ -15,6 +15,10 @@ class ValidationError(Exception):
 	http_status_code = 417
 
 
+class FrappeTypeError(TypeError):
+	http_status_code = 417
+
+
 class AuthenticationError(Exception):
 	http_status_code = 401
 
@@ -236,6 +240,14 @@ class QueryDeadlockError(Exception):
 	pass
 
 
+class InReadOnlyMode(ValidationError):
+	http_status_code = 503  # temporarily not available
+
+
+class SessionBootFailed(ValidationError):
+	http_status_code = 500
+
+
 class TooManyWritesError(Exception):
 	pass
 
@@ -258,6 +270,10 @@ class InvalidDatabaseFile(ValidationError):
 
 
 class ExecutableNotFound(FileNotFoundError):
+	pass
+
+
+class InvalidRoundingMethod(FileNotFoundError):
 	pass
 
 

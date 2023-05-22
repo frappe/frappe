@@ -13,8 +13,8 @@ export default {
 			fieldtype: "Data",
 			in_list_view: 1,
 			label: "Title",
-			unique: 1
-		}
+			unique: 1,
+		},
 	],
 	links: [],
 	istable: 1,
@@ -24,7 +24,7 @@ export default {
 	naming_rule: "By fieldname",
 	owner: "Administrator",
 	permissions: [],
-	sort_field: 'modified',
-	sort_order: 'ASC',
-	track_changes: 1
+	sort_field: "modified",
+	sort_order: "ASC",
+	track_changes: 1,
 };

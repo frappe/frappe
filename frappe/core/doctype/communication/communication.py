@@ -5,7 +5,7 @@ from collections import Counter
 from email.utils import getaddresses
 from urllib.parse import unquote
 
-from parse import compile
+from bs4 import BeautifulSoup
 
 import frappe
 from frappe import _
@@ -19,6 +19,7 @@ from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
 from frappe.model.document import Document
 from frappe.utils import (
+	cstr,
 	parse_addr,
 	split_emails,
 	strip_html,
@@ -144,8 +145,8 @@ class Communication(Document, CommunicationEmailMixin):
 		if not self.content:
 			return
 
-		quill_parser = compile('<div class="ql-editor read-mode">{}</div>')
-		email_body = quill_parser.parse(self.content)
+		soup = BeautifulSoup(self.content, "html.parser")
+		email_body = soup.find("div", {"class": "ql-editor read-mode"})
 
 		if not email_body:
 			return
@@ -169,9 +170,13 @@ class Communication(Document, CommunicationEmailMixin):
 		if not signature:
 			return
 
-		_signature = quill_parser.parse(signature)[0] if "ql-editor" in signature else None
+		soup = BeautifulSoup(signature, "html.parser")
+		html_signature = soup.find("div", {"class": "ql-editor read-mode"})
+		_signature = None
+		if html_signature:
+			_signature = html_signature.renderContents()
 
-		if (_signature or signature) not in self.content:
+		if (cstr(_signature) or signature) not in self.content:
 			self.content = f'{self.content}</p><br><p class="signature">{signature}'
 
 	def before_save(self):
@@ -228,8 +233,10 @@ class Communication(Document, CommunicationEmailMixin):
 
 	def notify_change(self, action):
 		frappe.publish_realtime(
-			f"update_docinfo_for_{self.reference_doctype}_{self.reference_name}",
+			"docinfo_update",
 			{"doc": self.as_dict(), "key": "communications", "action": action},
+			doctype=self.reference_doctype,
+			docname=self.reference_name,
 			after_commit=True,
 		)
 
@@ -390,6 +397,7 @@ def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
+	frappe.db.add_index("Communication", ["message_id(140)"])
 
 
 def has_permission(doc, ptype, user):
@@ -480,28 +488,32 @@ def parse_email(communication, email_strings):
 	"""
 	Parse email to add timeline links.
 	When automatic email linking is enabled, an email from email_strings can contain
-	a doctype and docname ie in the format `admin+doctype+docname@example.com`,
+	a doctype and docname ie in the format `admin+doctype+docname@example.com` or `admin+doctype=docname@example.com`,
 	the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
-	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
+	if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
 		return
-
-	delimiter = "+"
 
 	for email_string in email_strings:
 		if email_string:
 			for email in email_string.split(","):
-				if delimiter in email:
-					email = email.split("@")[0]
-					email_local_parts = email.split(delimiter)
-					if not len(email_local_parts) == 3:
-						continue
-
+				email_username = email.split("@", 1)[0]
+				email_local_parts = email_username.split("+")
+				docname = doctype = None
+				if len(email_local_parts) == 3:
 					doctype = unquote(email_local_parts[1])
 					docname = unquote(email_local_parts[2])
 
-					if doctype and docname and frappe.db.exists(doctype, docname):
-						communication.add_link(doctype, docname)
+				elif len(email_local_parts) == 2:
+					document_parts = email_local_parts[1].split("=", 1)
+					if len(document_parts) != 2:
+						continue
+
+					doctype = unquote(document_parts[0])
+					docname = unquote(document_parts[1])
+
+				if doctype and docname and frappe.db.get_value(doctype, docname, ignore=True):
+					communication.add_link(doctype, docname)
 
 
 def get_email_without_link(email):
@@ -514,7 +526,7 @@ def get_email_without_link(email):
 
 	try:
 		_email = email.split("@")
-		email_id = _email[0].split("+")[0]
+		email_id = _email[0].split("+", 1)[0]
 		email_host = _email[1]
 	except IndexError:
 		return email
@@ -543,9 +555,6 @@ def update_parent_document_on_communication(doc):
 			parent.db_set("status", "Open")
 			parent.run_method("handle_hold_time", "Replied")
 			apply_assignment_rule(parent)
-		else:
-			# update the modified date for document
-			parent.update_modified()
 
 	update_first_response_time(parent, doc)
 	set_avg_response_time(parent, doc)

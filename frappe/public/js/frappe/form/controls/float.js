@@ -1,12 +1,12 @@
 frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlInt {
-
 	make_input() {
 		super.make_input();
-		const change_handler = e => {
+		const change_handler = (e) => {
 			if (this.change) this.change(e);
 			else {
 				let value = this.get_input_value();
 				this.parse_validate_and_set_in_model(value, e);
+				this.refresh();
 			}
 		};
 		// convert to number format on focusout since focus converts it to flt.
@@ -19,7 +19,7 @@ frappe.ui.form.ControlFloat = class ControlFloat extends frappe.ui.form.ControlI
 
 	format_for_input(value) {
 		var number_format;
-		if (this.df.fieldtype==="Float" && this.df.options && this.df.options.trim()) {
+		if (this.df.fieldtype === "Float" && this.df.options && this.df.options.trim()) {
 			number_format = this.get_number_format();
 		}
 		var formatted_value = format_number(value, number_format, this.get_precision());

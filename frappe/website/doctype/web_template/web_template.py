@@ -33,7 +33,7 @@ class WebTemplate(Document):
 
 	def on_update(self):
 		"""Clear cache for all Web Pages in which this template is used"""
-		routes = frappe.db.get_all(
+		routes = frappe.get_all(
 			"Web Page",
 			filters=[
 				["Web Page Block", "web_template", "=", self.name],

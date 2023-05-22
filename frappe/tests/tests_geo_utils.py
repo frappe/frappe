@@ -1,13 +1,12 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import unittest
-
 import frappe
 from frappe.geo.utils import get_coords
+from frappe.tests.utils import FrappeTestCase
 
 
-class TestGeoUtils(unittest.TestCase):
+class TestGeoUtils(FrappeTestCase):
 	def setUp(self):
 		self.todo = frappe.get_doc(
 			dict(doctype="ToDo", description="Test description", assigned_by="Administrator")
