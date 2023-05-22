@@ -33,7 +33,7 @@ def fetch_changelog_feed_items_from_source():
 
 	changelog_feed_items = []
 	for fn in frappe.get_hooks("get_changelog_feed"):
-		changelog_feed_items += frappe.get_attr(fn)()
+		changelog_feed_items += frappe.call(fn)
 
 	for changelog_feed_item in changelog_feed_items:
 		change_log_feed_item_dict = {
