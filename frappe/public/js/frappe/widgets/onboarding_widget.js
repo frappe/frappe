@@ -563,6 +563,7 @@ export default class OnboardingWidget extends Widget {
 			localStorage.setItem("dismissed-onboarding", JSON.stringify(dismissed));
 			this.delete(true, true);
 			this.widget.closest(".ce-block").hide();
+			frappe.telemetry.capture("dismissed_" + frappe.scrub(this.title), "frappe_onboarding");
 		});
 		dismiss.appendTo(this.action_area);
 	}
