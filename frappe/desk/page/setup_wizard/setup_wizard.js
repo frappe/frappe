@@ -122,8 +122,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_slide(id) {
 		if (id === this.slides.length) {
-			// show_slide called on last slide
-			this.action_on_complete();
 			return;
 		}
 		super.show_slide(id);
