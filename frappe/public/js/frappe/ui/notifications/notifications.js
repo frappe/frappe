@@ -463,7 +463,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 		if (changelog_feed_list.length) {
 			this.container.empty();
 			const get_changelog_feed_html = (changelog_feed_item) => {
-				const timestamp = frappe.datetime.comment_when(
+				const timestamp = frappe.datetime.prettyDate(
 					changelog_feed_item.creation_of_feed_item
 				);
 				const message_html = `<div class="message">
