@@ -35,7 +35,6 @@ def fetch_changelog_feed_items_from_source():
 	for fn in frappe.get_hooks("get_changelog_feed"):
 		changelog_feed_items += frappe.get_attr(fn)()
 
-	changelog_feed_items = sorted(changelog_feed_items, key=lambda x: x["creation"], reverse=True)
 	for changelog_feed_item in changelog_feed_items:
 		change_log_feed_item_dict = {
 			"doctype": "Changelog Feed",
@@ -58,7 +57,7 @@ def get_changelog_feed_items():
 		changelog_feed_items = frappe.get_list(
 			"Changelog Feed",
 			fields=["title", "app_name", "link", "creation_of_feed_item"],
-			order_by="modified desc",
+			order_by="creation_of_feed_item desc",
 			limit=10,
 		)
 		frappe.cache().set_value("changelog_feed", changelog_feed_items, expires_in_sec=24 * 60 * 60)
