@@ -438,6 +438,7 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		this.update_step_status(step, "is_complete", 1, callback);
+		this.activate_next_step(step);
 	}
 
 	skip_step(step) {
@@ -451,6 +452,16 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		this.update_step_status(step, "is_skipped", 1, callback);
+		this.activate_next_step(step);
+	}
+
+	activate_next_step(step) {
+		let current_step_index = this.steps.findIndex((s) => s == step);
+		let next_step = this.steps[current_step_index + 1];
+
+		if (!next_step) return;
+
+		this.show_step(next_step);
 	}
 
 	update_step_status(step, status, value, callback) {
