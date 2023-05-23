@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from typing import Optional
+
 from jinja2 import TemplateSyntaxError
 
 import frappe
@@ -100,36 +102,30 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 
 
 @frappe.whitelist()
-def get_default_address(doctype, name, sort_key="is_primary_address"):
+def get_default_address(
+	doctype: str, name: str | None, sort_key: str = "is_primary_address"
+) -> str | None:
 	"""Returns default Address name for the given doctype, name"""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
 		return None
 
-	out = frappe.db.sql(
-		""" SELECT
-			addr.name, addr.%s
-		FROM
-			`tabAddress` addr, `tabDynamic Link` dl
-		WHERE
-			dl.parent = addr.name and dl.link_doctype = %s and
-			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
-		"""
-		% (sort_key, "%s", "%s"),
-		(doctype, name),
-		as_dict=True,
+	addresses = frappe.get_all(
+		"Address",
+		filters=[
+			["Dynamic Link", "link_doctype", "=", doctype],
+			["Dynamic Link", "link_name", "=", name],
+			["disabled", "=", 0],
+		],
+		pluck="name",
+		order_by=f"{sort_key} DESC",
+		limit=1,
 	)
 
-	if out:
-		for contact in out:
-			if contact.get(sort_key):
-				return contact.name
-		return out[0].name
-	else:
-		return None
+	return addresses[0] if addresses else None
 
 
 @frappe.whitelist()
-def get_address_display(address_dict):
+def get_address_display(address_dict: dict | str | None) -> str | None:
 	if not address_dict:
 		return
 
@@ -217,8 +213,10 @@ def get_address_templates(address):
 
 def get_company_address(company):
 	ret = frappe._dict()
-	ret.company_address = get_default_address("Company", company)
-	ret.company_address_display = get_address_display(ret.company_address)
+
+	if company:
+		ret.company_address = get_default_address("Company", company)
+		ret.company_address_display = get_address_display(ret.company_address)
 
 	return ret
 
@@ -254,19 +252,23 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		"""select
 			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
 		from
-			`tabAddress`, `tabDynamic Link`
+			`tabAddress`
+		join `tabDynamic Link`
+			on (`tabDynamic Link`.parent = `tabAddress`.name and `tabDynamic Link`.parenttype = 'Address')
 		where
-			`tabDynamic Link`.parent = `tabAddress`.name and
-			`tabDynamic Link`.parenttype = 'Address' and
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
 			ifnull(`tabAddress`.disabled, 0) = 0 and
 			({search_condition})
 			{mcond} {condition}
 		order by
-			if(locate(%(_txt)s, `tabAddress`.name), locate(%(_txt)s, `tabAddress`.name), 99999),
+			case
+				when locate(%(_txt)s, `tabAddress`.name) != 0
+				then locate(%(_txt)s, `tabAddress`.name)
+				else 99999
+			end,
 			`tabAddress`.idx desc, `tabAddress`.name
-		limit %(start)s, %(page_len)s """.format(
+		limit %(page_len)s offset %(start)s""".format(
 			mcond=get_match_cond(doctype),
 			search_condition=search_condition,
 			condition=condition or "",

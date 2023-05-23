@@ -182,9 +182,9 @@ if TYPE_CHECKING:
 # end: static analysis hack
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False) -> None:
+def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
 	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
-	if getattr(local, "initialised", None):
+	if getattr(local, "initialised", None) and not force:
 		return
 
 	local.error_log = []
@@ -845,7 +845,7 @@ def only_for(roles: list[str] | tuple[str] | str, message=False):
 	if isinstance(roles, str):
 		roles = (roles,)
 
-	if not set(roles).intersection(get_roles()):
+	if set(roles).isdisjoint(get_roles()):
 		if not message:
 			raise PermissionError
 
@@ -912,17 +912,12 @@ def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
 		return False
 
-	if not user:
-		user = local.session.user
+	from frappe.permissions import get_role_permissions
 
-	import frappe.permissions
+	user = user or local.session.user
+	permissions = get_role_permissions(doctype, user=user)
 
-	permissions = frappe.permissions.get_role_permissions(doctype, user=user)
-
-	if permissions.get("select") and not permissions.get("read"):
-		return True
-	else:
-		return False
+	return permissions.get("select") and not permissions.get("read")
 
 
 def has_permission(
@@ -1274,7 +1269,7 @@ def reload_doc(
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
 
-@whitelist()
+@whitelist(methods=["POST", "PUT"])
 def rename_doc(
 	doctype: str,
 	old: str,

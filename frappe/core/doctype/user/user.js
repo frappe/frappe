@@ -114,9 +114,9 @@ frappe.ui.form.on("User", {
 			return;
 		}
 
-		function hasChanged(doc_attr, boot_attr) {
-			return (doc_attr || boot_attr) && doc_attr !== boot_attr;
-		}
+		const hasChanged = (doc_attr, boot_attr) => {
+			return doc_attr && boot_attr && doc_attr !== boot_attr;
+		};
 
 		if (
 			doc.name === frappe.session.user &&
@@ -219,7 +219,10 @@ frappe.ui.form.on("User", {
 				});
 			}
 
-			if (frappe.session.user == doc.name || frappe.user.has_role("System Manager")) {
+			if (
+				cint(frappe.boot.sysdefaults.enable_two_factor_auth) &&
+				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
+			) {
 				frm.add_custom_button(
 					__("Reset OTP Secret"),
 					function () {

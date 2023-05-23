@@ -76,7 +76,9 @@
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "telemetry_section",
+  "enable_telemetry"
  ],
  "fields": [
   {
@@ -208,7 +210,7 @@
    "label": "Security"
   },
   {
-   "default": "24:00",
+   "default": "60:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -510,7 +512,7 @@
    "label": "Disable Username/Password Login"
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "Allow users to log in without a password, using a login link sent to their email",
    "fieldname": "login_with_email_link",
    "fieldtype": "Check",
@@ -535,12 +537,24 @@
    "fieldname": "disable_document_sharing",
    "fieldtype": "Check",
    "label": "Disable Document Sharing"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "telemetry_section",
+   "fieldtype": "Section Break",
+   "label": "Telemetry"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_telemetry",
+   "fieldtype": "Check",
+   "label": "Allow Sending Usage Data for Improving Applications"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-03-14 11:30:56.465653",
+ "modified": "2023-04-23 11:14:59.302851",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

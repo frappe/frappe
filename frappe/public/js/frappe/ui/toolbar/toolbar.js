@@ -13,6 +13,9 @@ frappe.ui.toolbar.Toolbar = class {
 			})
 		);
 		$(".dropdown-toggle").dropdown();
+		$("#toolbar-user a[href]").click(function () {
+			$(this).closest(".dropdown-menu").prev().dropdown("toggle");
+		});
 
 		this.setup_awesomebar();
 		this.setup_notifications();
@@ -133,6 +136,12 @@ frappe.ui.toolbar.Toolbar = class {
 				frappe.utils.generate_tracking_url,
 				__("Generate Tracking URL")
 			);
+
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
 		}
 	}
 

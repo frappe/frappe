@@ -34,9 +34,7 @@ $.extend(frappe.perm, {
 
 	doctype_perm: {},
 
-	has_perm: (doctype, permlevel, ptype, doc) => {
-		if (!permlevel) permlevel = 0;
-
+	has_perm: (doctype, permlevel = 0, ptype = "read", doc) => {
 		const perms = frappe.perm.get_perm(doctype, doc);
 		return !!perms?.[permlevel]?.[ptype];
 	},
@@ -290,10 +288,9 @@ $.extend(frappe.perm, {
 		const allowed_docs = filtered_perms.map((perm) => perm.doc);
 
 		if (with_default_doc) {
-			const default_doc =
-				allowed_docs.length === 1
-					? allowed_docs
-					: filtered_perms.filter((perm) => perm.is_default).map((record) => record.doc);
+			const default_doc = filtered_perms
+				.filter((perm) => perm.is_default)
+				.map((record) => record.doc);
 
 			return {
 				allowed_records: allowed_docs,

@@ -158,7 +158,7 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		if (
-			sidebar_section.find("sidebar-item-container").length &&
+			sidebar_section.find(".sidebar-item-container").length &&
 			sidebar_section.find("> [item-is-hidden='0']").length == 0
 		) {
 			sidebar_section.addClass("hidden show-in-edit-mode");
@@ -246,6 +246,10 @@ frappe.views.Workspace = class Workspace {
 
 		this.update_selected_sidebar(this.current_page, false); //remove selected from old page
 		this.update_selected_sidebar(page, true); //add selected on new page
+
+		if (!frappe.router.current_route[0]) {
+			frappe.set_route(frappe.router.slug(page.public ? page.name : "private/" + page.name));
+		}
 
 		this.show_page(page);
 	}
@@ -394,6 +398,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
+				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
@@ -596,6 +601,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Update"),
 			primary_action: (values) => {
+				values.title = frappe.utils.escape_html(values.title);
 				let is_title_changed = values.title != old_item.title;
 				let is_section_changed = values.is_public != old_item.public;
 				if (
@@ -1142,6 +1148,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Create"),
 			primary_action: (values) => {
+				values.title = frappe.utils.escape_html(values.title);
 				if (!this.validate_page(values)) return;
 				d.hide();
 				this.initialize_editorjs_undo();
@@ -1340,6 +1347,12 @@ frappe.views.Workspace = class Workspace {
 			},
 			number_card: {
 				class: this.blocks["number_card"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
+			custom_block: {
+				class: this.blocks["custom_block"],
 				config: {
 					page_data: this.page_data || [],
 				},

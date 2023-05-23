@@ -11,7 +11,7 @@ import frappe
 from frappe import _, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
-from frappe.utils import cint, sanitize_html, strip_html
+from frappe.utils import cint, escape_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
 if TYPE_CHECKING:
@@ -27,12 +27,11 @@ def get_context(context):
 	"""Build context for print"""
 	if not ((frappe.form_dict.doctype and frappe.form_dict.name) or frappe.form_dict.doc):
 		return {
-			"body": sanitize_html(
-				"""<h1>Error</h1>
+			"body": f"""
+				<h1>Error</h1>
 				<p>Parameters doctype and name required</p>
-				<pre>%s</pre>"""
-				% repr(frappe.form_dict)
-			)
+				<pre>{escape_html(frappe.as_json(frappe.form_dict, indent=2))}</pre>
+				"""
 		}
 
 	if frappe.form_dict.doc:
@@ -209,8 +208,10 @@ def get_rendered_template(
 			"print_settings": print_settings,
 		}
 	)
-
-	html = template.render(args, filters={"len": len})
+	hook_func = frappe.get_hooks("pdf_body_html")
+	html = frappe.get_attr(hook_func[-1])(
+		jenv=jenv, template=template, print_format=print_format, args=args
+	)
 
 	if cint(trigger_print):
 		html += trigger_print_script
