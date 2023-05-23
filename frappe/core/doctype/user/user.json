@@ -92,7 +92,6 @@
   "generate_keys",
   "column_break_65",
   "api_secret",
-  "onboarding_tours_section",
   "onboarding_status",
   "connections_tab"
  ],
@@ -695,12 +694,6 @@
    "label": "Desk Settings"
   },
   {
-   "fieldname": "onboarding_tours_section",
-   "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Onboarding Tours"
-  },
-  {
    "default": "{}",
    "fieldname": "onboarding_status",
    "fieldtype": "JSON",
@@ -768,7 +761,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-05-18 12:41:36.765029",
+ "modified": "2023-05-22 09:29:35.277539",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
