@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-05-11 18:10:15.194034",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "form_tour",
+  "view",
+  "list_view",
+  "page_route"
+ ],
+ "fields": [
+  {
+   "fieldname": "form_tour",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Form Tour",
+   "options": "Form Tour",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "form_tour.view_name",
+   "fieldname": "view",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "View",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "form_tour.list_name",
+   "fieldname": "list_view",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "List View",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "form_tour.page_route",
+   "fieldname": "page_route",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Page Route",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-05-17 22:22:58.507769",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Form Tour Settings Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
