@@ -648,6 +648,7 @@ frappe.views.CommunicationComposer = class {
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
+				filter_thread_notify: 0,
 			},
 			btn,
 			callback(r) {

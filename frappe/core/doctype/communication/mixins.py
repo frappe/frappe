@@ -35,91 +35,106 @@ class CommunicationEmailMixin:
 		email_map = {parse_addr(email)[1]: email for email in self.get_all_email_addresses()}
 		return email_map.get(email, email)
 
-	def mail_recipients(self, is_inbound_mail_communcation=False):
+	def mail_recipients(self, is_inbound_mail_communcation=False, filter_thread_notify=True):
 		"""Build to(recipient) list to send an email."""
-		# Incase of inbound mail, recipients already received the mail, no need to send again.
-		if is_inbound_mail_communcation:
-			return []
 
 		if hasattr(self, "_final_recipients"):
 			return self._final_recipients
 
-		to = self.to_list()
-		self._final_recipients = list(filter(lambda id: id != "Administrator", to))
+		to_list = self.to_list()
+		if is_inbound_mail_communcation:
+			# If this doc is created through inbound mail, then add doc owner to recipient list
+			# remove all the thread_notify disabled users.
+			recipients = set()
+			if doc_owner := self.get_owner():
+				recipients.add(doc_owner)
+			recipients.update(self.get_assignees())
+
+			recipients = recipients - set(self.cc_list() + to_list + [self.sender_mailid])
+		else:
+			recipients = set(to_list)
+
+		if filter_thread_notify or is_inbound_mail_communcation:
+			recipients = recipients - set(self.filter_thread_notification_disbled_users(recipients))
+
+		self._final_recipients = list(
+			filter(lambda email: email and email not in frappe.STANDARD_USERS, recipients)
+		)
 		return self._final_recipients
 
-	def get_mail_recipients_with_displayname(self, is_inbound_mail_communcation=False):
+	def get_mail_recipients_with_displayname(
+		self, is_inbound_mail_communcation=False, filter_thread_notify=True
+	):
 		"""Build to(recipient) list to send an email including displayname in email."""
-		to_list = self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation)
+		to_list = self.mail_recipients(
+			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			filter_thread_notify=filter_thread_notify,
+		)
 		return [self.get_email_with_displayname(email) for email in to_list]
 
-	def mail_cc(self, is_inbound_mail_communcation=False, include_sender=False):
+	def mail_cc(
+		self, is_inbound_mail_communcation=False, include_sender=False, filter_thread_notify=True
+	):
 		"""Build cc list to send an email.
 
 		* if email copy is requested by sender, then add sender to CC.
-		* If this doc is created through inbound mail, then add doc owner to cc list
-		* remove all the thread_notify disabled users.
 		* Remove standard users from email list
 		"""
+		if is_inbound_mail_communcation:
+			return []
+
 		if hasattr(self, "_final_cc"):
 			return self._final_cc
 
-		cc = self.cc_list()
+		cc = set(self.cc_list())
+		cc = cc - set(self.to_list())
+
+		if filter_thread_notify:
+			cc = cc - set(self.filter_thread_notification_disbled_users(cc))
 
 		if include_sender:
 			sender = self.sender_mailid
-			# if user has selected send_me_a_copy, use their email as sender
 			if frappe.session.user not in frappe.STANDARD_USERS:
-				sender = frappe.db.get_value("User", frappe.session.user, "email")
-			cc.append(sender)
-
-		if is_inbound_mail_communcation:
-			# inform parent document owner incase communication is created through inbound mail
-			if doc_owner := self.get_owner():
-				cc.append(doc_owner)
-			cc = set(cc) - {self.sender_mailid}
-			cc.update(self.get_assignees())
-
-		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
-		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
-
-		# # Incase of inbound mail, to and cc already received the mail, no need to send again.
-		if is_inbound_mail_communcation:
-			cc = cc - set(self.cc_list() + self.to_list())
+				# if user has selected send_me_a_copy, add their email
+				sender = frappe.db.get_value("User", frappe.session.user, "email", cache=True)
+			cc.add(sender)
 
 		self._final_cc = [m for m in cc if m and m not in frappe.STANDARD_USERS]
 		return self._final_cc
 
-	def get_mail_cc_with_displayname(self, is_inbound_mail_communcation=False, include_sender=False):
+	def get_mail_cc_with_displayname(
+		self, is_inbound_mail_communcation=False, include_sender=False, filter_thread_notify=True
+	):
 		cc_list = self.mail_cc(
-			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender
+			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			include_sender=include_sender,
+			filter_thread_notify=filter_thread_notify,
 		)
 		return [self.get_email_with_displayname(email) for email in cc_list if email]
 
-	def mail_bcc(self, is_inbound_mail_communcation=False):
-		"""
-		* Thread_notify check
-		* Email unsubscribe list
-		* remove standard users.
-		"""
+	def mail_bcc(self, is_inbound_mail_communcation=False, filter_thread_notify=True):
+		if is_inbound_mail_communcation:
+			return []
+
 		if hasattr(self, "_final_bcc"):
 			return self._final_bcc
 
 		bcc = set(self.bcc_list())
-		if is_inbound_mail_communcation:
-			bcc = bcc - {self.sender_mailid}
-		bcc = bcc - set(self.filter_thread_notification_disbled_users(bcc))
-		bcc = bcc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
+		bcc = bcc - set(self.to_list() + self.cc_list())
 
-		# Incase of inbound mail, to and cc & bcc already received the mail, no need to send again.
-		if is_inbound_mail_communcation:
-			bcc = bcc - set(self.bcc_list() + self.to_list())
+		if filter_thread_notify:
+			bcc = bcc - set(self.filter_thread_notification_disbled_users(bcc))
 
-		self._final_bcc = [m for m in bcc if m not in frappe.STANDARD_USERS]
+		self._final_bcc = [m for m in bcc if m and m not in frappe.STANDARD_USERS]
 		return self._final_bcc
 
-	def get_mail_bcc_with_displayname(self, is_inbound_mail_communcation=False):
-		bcc_list = self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
+	def get_mail_bcc_with_displayname(
+		self, is_inbound_mail_communcation=False, filter_thread_notify=True
+	):
+		bcc_list = self.mail_bcc(
+			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			filter_thread_notify=filter_thread_notify,
+		)
 		return [self.get_email_with_displayname(email) for email in bcc_list if email]
 
 	def mail_sender(self):
@@ -200,15 +215,25 @@ class CommunicationEmailMixin:
 			return _("Leave this conversation")
 		return ""
 
-	def exclude_emails_list(self, is_inbound_mail_communcation=False, include_sender=False) -> list:
+	def exclude_emails_list(
+		self, is_inbound_mail_communcation=False, include_sender=False, filter_thread_notify=True
+	) -> list:
 		"""List of mail id's excluded while sending mail."""
 		all_ids = self.get_all_email_addresses(exclude_displayname=True)
 
 		final_ids = (
-			self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation)
-			+ self.mail_bcc(is_inbound_mail_communcation=is_inbound_mail_communcation)
+			self.mail_recipients(
+				is_inbound_mail_communcation=is_inbound_mail_communcation,
+				filter_thread_notify=filter_thread_notify,
+			)
+			+ self.mail_bcc(
+				is_inbound_mail_communcation=is_inbound_mail_communcation,
+				filter_thread_notify=filter_thread_notify,
+			)
 			+ self.mail_cc(
-				is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=include_sender
+				is_inbound_mail_communcation=is_inbound_mail_communcation,
+				include_sender=include_sender,
+				filter_thread_notify=filter_thread_notify,
 			)
 		)
 
@@ -224,8 +249,7 @@ class CommunicationEmailMixin:
 
 		if self.reference_doctype and self.reference_name:
 			return ToDo.get_owners(filters)
-		else:
-			return []
+		return []
 
 	@staticmethod
 	def filter_thread_notification_disbled_users(emails):
@@ -252,6 +276,7 @@ class CommunicationEmailMixin:
 		send_me_a_copy=None,
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
+		filter_thread_notify=True,
 	) -> dict:
 
 		outgoing_email_account = self.get_outgoing_email_account()
@@ -259,13 +284,17 @@ class CommunicationEmailMixin:
 			return {}
 
 		recipients = self.get_mail_recipients_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation
+			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			filter_thread_notify=filter_thread_notify,
 		)
 		cc = self.get_mail_cc_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=send_me_a_copy
+			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			include_sender=send_me_a_copy,
+			filter_thread_notify=filter_thread_notify,
 		)
 		bcc = self.get_mail_bcc_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation
+			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			filter_thread_notify=filter_thread_notify,
 		)
 
 		if not (recipients or cc):
@@ -301,6 +330,7 @@ class CommunicationEmailMixin:
 		send_me_a_copy=None,
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
+		filter_thread_notify=True,
 	):
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
@@ -308,5 +338,6 @@ class CommunicationEmailMixin:
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			filter_thread_notify=filter_thread_notify,
 		):
 			frappe.sendmail(**input_dict)
