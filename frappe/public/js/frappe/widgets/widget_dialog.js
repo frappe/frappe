@@ -701,6 +701,24 @@ class NumberCardDialog extends WidgetDialog {
 	}
 }
 
+class CustomBlockDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "custom_block_name",
+				label: "Custom Block Name",
+				options: "Custom HTML Block",
+				reqd: 1,
+			},
+		];
+	}
+}
+
 export default function get_dialog_constructor(type) {
 	const widget_map = {
 		chart: ChartDialog,
@@ -709,6 +727,7 @@ export default function get_dialog_constructor(type) {
 		onboarding: OnboardingDialog,
 		quick_list: QuickListDialog,
 		number_card: NumberCardDialog,
+		custom_block: CustomBlockDialog,
 	};
 
 	return widget_map[type] || WidgetDialog;

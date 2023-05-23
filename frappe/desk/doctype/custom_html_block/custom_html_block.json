@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "prompt",
+ "creation": "2023-05-17 13:58:37.311045",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "preview_section",
+  "preview",
+  "html_section",
+  "html_message",
+  "html",
+  "javascript_section",
+  "js_message",
+  "script",
+  "css_section",
+  "style",
+  "roles_section",
+  "roles"
+ ],
+ "fields": [
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:true;",
+   "fieldname": "html_section",
+   "fieldtype": "Section Break",
+   "label": "HTML"
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "Code",
+   "options": "HTML"
+  },
+  {
+   "fieldname": "preview_section",
+   "fieldtype": "Section Break",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "HTML"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:true;",
+   "fieldname": "javascript_section",
+   "fieldtype": "Section Break",
+   "label": "Javascript"
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "options": "JS"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:true;",
+   "fieldname": "css_section",
+   "fieldtype": "Section Break",
+   "label": "CSS"
+  },
+  {
+   "fieldname": "style",
+   "fieldtype": "Code",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "js_message",
+   "fieldtype": "HTML",
+   "label": "JS Message",
+   "options": "<p>To interact with above HTML you will have to use `root_element` as a parent selector.</p><p>For example:</p><pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// here root_element is provided by default\nlet some_class_element = root_element.querySelector('.some-class');\nsome_class_element.textContent = \"New content\";\n</code></pre>"
+  },
+  {
+   "fieldname": "html_message",
+   "fieldtype": "HTML",
+   "label": "HTML Message",
+   "options": "<p>You cannot use global class on elements. The css for those classes will not be applied on this HTML, you will have to rewrite styles again in CSS field</p><p>For Example:</p>\n<pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// style for class m-3 will not work\n<br>&lt;div class=\"m-3\"&gt;&lt;/div&gt;<br>\n<br>// You will have to add style of m-3 in CSS field below like\n<br>.m-3 {\n<br>    margin: 14px!important\n<br>}\n</code></pre>"
+  },
+  {
+   "fieldname": "roles_section",
+   "fieldtype": "Section Break",
+   "label": "Roles"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-05-17 17:17:04.232519",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Custom HTML Block",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Workspace Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

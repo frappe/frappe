@@ -212,7 +212,7 @@
    "label": "Security"
   },
   {
-   "default": "24:00",
+   "default": "60:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -563,7 +563,7 @@
    "default": "1",
    "fieldname": "enable_telemetry",
    "fieldtype": "Check",
-   "label": "Allow Sending Usage Data for Improving applications"
+   "label": "Allow Sending Usage Data for Improving Applications"
   }
  ],
  "icon": "fa fa-cog",
