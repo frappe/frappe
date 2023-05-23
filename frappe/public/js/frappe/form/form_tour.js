@@ -261,10 +261,10 @@ frappe.ui.form.FormTour = class FormTour {
 			allowClose: false,
 			overlayClickNext: false,
 			popover: {
-				title: __("Save"),
+				title: __("Save the document."),
 				description: "",
 				position: "left",
-				doneBtnText: __("Save"),
+				showButtons: false,
 			},
 			onNext: () => {
 				this.frm.save();
