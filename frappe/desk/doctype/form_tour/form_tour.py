@@ -14,7 +14,6 @@ class FormTour(Document):
 				if step.is_table_field and step.parent_fieldname:
 					parent_field_df = meta.get_field(step.parent_fieldname)
 					step.child_doctype = parent_field_df.options
-
 					field_df = frappe.get_meta(step.child_doctype).get_field(step.fieldname)
 					step.label = field_df.label
 					step.fieldtype = field_df.fieldtype
@@ -22,19 +21,8 @@ class FormTour(Document):
 					field_df = meta.get_field(step.fieldname)
 					step.label = field_df.label
 					step.fieldtype = field_df.fieldtype
-		elif self.reset_tours:
-			self.reset_tours = 0
-			for user in frappe.get_all("User"):
-				user_doc = frappe.get_doc("User", user.name)
-				onboarding_status = frappe.parse_json(user_doc.onboarding_status)
-				if self.name in onboarding_status:
-					del onboarding_status[self.name]
-					user_doc.onboarding_status = frappe.as_json(onboarding_status)
-					user_doc.save()
 
 	def on_update(self):
-		if frappe.conf.developer_mode and self.is_standard:
-			export_to_files([["Form Tour", self.name]], self.module)
 		if self.ui_tour:
 			form_tour_settings = frappe.get_doc("Form Tour Settings", "Form Tour Settings")
 			in_settings = False
@@ -59,3 +47,22 @@ class FormTour(Document):
 			child.save()
 			form_tour_settings.form_tours.insert(child_index, child)
 			form_tour_settings.save()
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files([["Form Tour", self.name]], self.module)
+
+	def on_trash(self):
+		if self.ui_tour:
+			form_tour_settings = frappe.get_doc("Form Tour Settings", "Form Tour Settings")
+			for tour in form_tour_settings.form_tours:
+				if tour.form_tour == self.name:
+					form_tour_settings.remove(tour);
+			form_tour_settings.save()
+		
+@frappe.whitelist()
+def reset_tour(tour_name):
+	for user in frappe.get_all("User"):
+		user_doc = frappe.get_doc("User", user.name)
+		onboarding_status = frappe.parse_json(user_doc.onboarding_status)
+		onboarding_status.pop(tour_name, None)
+		user_doc.onboarding_status = frappe.as_json(onboarding_status)
+		user_doc.save()

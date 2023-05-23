@@ -19,7 +19,6 @@
   "column_break_6",
   "ui_tour",
   "track_steps",
-  "reset_tours",
   "is_standard",
   "save_on_complete",
   "first_document",
@@ -112,14 +111,6 @@
    "label": "Page Route"
   },
   {
-   "default": "0",
-   "depends_on": "ui_tour",
-   "description": "Please check this if you want to reset this tour and show it to all users.",
-   "fieldname": "reset_tours",
-   "fieldtype": "Check",
-   "label": "Reset Tours"
-  },
-  {
    "depends_on": "eval:(doc.ui_tour && doc.view_name == \"List\" && doc.list_name == \"Dashboard\")",
    "fetch_from": ".",
    "fieldname": "dashboard_name",
@@ -188,7 +179,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-18 02:47:03.528693",
+ "modified": "2023-05-23 11:35:14.195031",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",
@@ -206,6 +197,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
   }
  ],
  "sort_field": "modified",
