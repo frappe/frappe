@@ -31,24 +31,23 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 					}
 					if (step.popover.closeBtnNode) {
 						step.popover.closeBtnNode.onclick = () => {
+							this.on_finish && this.on_finish();
+							!frappe.boot.user.onboarding_status[this.tour.name] &&
+								(frappe.boot.user.onboarding_status[this.tour.name] = {});
+							frappe.boot.user.onboarding_status[this.tour.name].is_complete = true;
 							if (!this.driver.hasNextStep()) {
-								this.on_finish && this.on_finish();
-								!frappe.boot.user.onboarding_status[this.tour.name] &&
-									(frappe.boot.user.onboarding_status[this.tour.name] = {});
 								frappe.boot.user.onboarding_status[
 									this.tour.name
-								].is_complete = true;
-								frappe.utils.debounce(
-									() =>
-										frappe.db.set_value(
-											"User",
-											frappe.boot.user.name,
-											"onboarding_status",
-											JSON.stringify(frappe.boot.user.onboarding_status)
-										),
-									1000
-								)();
+								].all_steps_completed = true;
 							}
+
+							frappe.call({
+								method: "frappe.desk.doctype.form_tour_settings.form_tour_settings.update_user_status",
+								args: {
+									value: JSON.stringify(frappe.boot.user.onboarding_status),
+									step: JSON.stringify(step.options.step_info),
+								},
+							});
 						};
 					}
 					clearInterval(wait_for_node);
@@ -87,16 +86,13 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 					frappe.boot.user.onboarding_status[this.tour.name].is_complete = true;
 				}
 				this.last_step_saved = step;
-				frappe.utils.debounce(
-					() =>
-						frappe.db.set_value(
-							"User",
-							frappe.boot.user.name,
-							"onboarding_status",
-							JSON.stringify(frappe.boot.user.onboarding_status)
-						),
-					1000
-				)();
+				frappe.call({
+					method: "frappe.desk.doctype.form_tour_settings.form_tour_settings.update_user_status",
+					args: {
+						value: JSON.stringify(frappe.boot.user.onboarding_status),
+						step: JSON.stringify(step),
+					},
+				});
 			};
 			const driver_step = this.get_step(step, on_next);
 			driver_step.element && this.driver_steps.push(driver_step);
@@ -250,13 +246,9 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 		}, 500);
 	}
 };
-// As of now Tours are only for desktop as it is annoying on mobile.
-// Also lot of elements are hidden on mobile so until we find a better way to do it.
-if (window.matchMedia("(max-device-width: 992px)").matches) return;
 
-frappe.router.on("change", () => {
+frappe.ui.init_onboarding_tour = () => {
 	let route = frappe.router.current_route;
-
 	if (route[0] === "") return;
 
 	let tour_name;
@@ -293,7 +285,7 @@ frappe.router.on("change", () => {
 	});
 	if (matching_tours.length == 0) return;
 	let current_tour = matching_tours.find(
-		(tour) => tour[0] == frappe.ui.currentTourInstance?.tour.name
+		(tour) => tour[0] == frappe.ui.currentTourInstance?.tour?.name
 	);
 	let next_tour = matching_tours.find((tour) => tour[0] == frappe.ui.next_form_tour);
 	if (current_tour) {
@@ -341,4 +333,10 @@ frappe.router.on("change", () => {
 			});
 		}
 	}, 100);
-});
+};
+// As of now Tours are only for desktop as it is annoying on mobile.
+// Also lot of elements are hidden on mobile so until we find a better way to do it.
+window.matchMedia("(min-device-width: 992px)").matches &&
+	frappe.router.on("change", () => {
+		frappe.ui.init_onboarding_tour();
+	});

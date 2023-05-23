@@ -68,8 +68,10 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
-	bootinfo.onboarding_tours = frappe.parse_json(
-		frappe.db.get_single_value("Form Tour Settings", "onboarding_tours") or "[]"
+	bootinfo.onboarding_tours = (
+		frappe.parse_json(frappe.db.get_single_value("Form Tour Settings", "onboarding_tours") or "[]")
+		if frappe.get_system_settings("enable_onboarding")
+		else "[]"
 	)
 	set_time_zone(bootinfo)
 
