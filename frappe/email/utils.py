@@ -31,10 +31,12 @@ def decode_sequence(encoded_sequence) -> str:
 	from frappe import safe_decode
 	decoded_string = ""
 	for chunk, encoding in encoded_sequence:
+		decoded_chunk = ""
 		if not isinstance(chunk, str):
 			detected_encoding = encoding if encoding is not None and encoding != 'unknown-8bit' else chardet.detect(chunk)["encoding"]
 			decoded_chunk = safe_decode(param=chunk, encoding=detected_encoding)
 		else:
 			decoded_chunk = safe_decode(param=chunk)
-		decoded_string += decoded_chunk
+		if isinstance(decoded_chunk, str):
+			decoded_string += decoded_chunk
 	return decoded_string
