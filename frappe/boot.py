@@ -71,7 +71,7 @@ def get_bootinfo():
 	bootinfo.onboarding_tours = (
 		frappe.parse_json(frappe.db.get_single_value("Form Tour Settings", "onboarding_tours") or "[]")
 		if frappe.get_system_settings("enable_onboarding")
-		else "[]"
+		else []
 	)
 	set_time_zone(bootinfo)
 

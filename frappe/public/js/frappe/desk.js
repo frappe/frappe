@@ -74,7 +74,11 @@ frappe.Application = class Application {
 
 		// page container
 		this.make_page_container();
-		if (!window.Cypress) {
+		if (
+			!window.Cypress &&
+			frappe.boot.onboarding_tours &&
+			frappe.boot.user.onboarding_status != null
+		) {
 			let pending_tours =
 				frappe.boot.onboarding_tours.findIndex((tour) => {
 					frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true;

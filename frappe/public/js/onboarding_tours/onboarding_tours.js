@@ -248,6 +248,9 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 };
 
 frappe.ui.init_onboarding_tour = () => {
+	typeof frappe.boot.onboarding_tours == "undefined" && frappe.boot.onboarding_tours == [];
+	typeof frappe.boot.user.onboarding_status == "undefined" &&
+		frappe.boot.user.onboarding_status == {};
 	let route = frappe.router.current_route;
 	if (route[0] === "") return;
 
@@ -313,7 +316,7 @@ frappe.ui.init_onboarding_tour = () => {
 		}
 	}
 	if (!tour_name) return;
-	if (frappe.ui.currentTourInstance) {
+	if (frappe.ui.currentTourInstance?.driver) {
 		frappe.ui.currentTourInstance.driver_steps = [];
 		frappe.ui.currentTourInstance.driver.reset(true);
 		frappe.ui.currentTourInstance.update_driver_steps();
