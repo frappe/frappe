@@ -8,21 +8,20 @@
  "include_name_field": 0,
  "is_standard": 1,
  "list_name": "",
- "modified": "2023-05-18 12:21:54.389743",
+ "modified": "2023-05-24 12:43:43.741781",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Main Workspace Tour",
  "new_document_form": 0,
  "owner": "Administrator",
  "page_name": "",
- "page_route": "[\"Workspaces\",\"Build\"]",
+ "page_route": "[\"Workspaces\",\"*\"]",
  "reference_doctype": "",
  "report_name": "",
- "reset_tours": 0,
  "save_on_complete": 0,
  "steps": [
   {
-   "description": "<h5 style=\"line-height:1.5;\">You can access different things like report, settings, documents (any doctypes), and modules. It saves you time by eliminating the need to navigate through menus.</h5>",
+   "description": "This is Awesomebar, it helps you to navigate anywhere in the system, find documents, reports, settings, create new records and many more things.",
    "element_selector": "#navbar-search",
    "fieldtype": "0",
    "has_next_condition": 0,
@@ -39,7 +38,7 @@
    "ui_tour": 1
   },
   {
-   "description": "<h5 style=\"line-height:1.5;\">Workspaces can be used to quickly access various modules and features. It organizes the available functionalities into logical groups.</h5>",
+   "description": "These are workspaces. Each module workspace provides insightful information and shortcuts on one page. \n\n<br><br>\n\nTip: You can build custom workspaces for your needs.",
    "element_selector": ".col-lg-2.layout-side-section",
    "fieldtype": "0",
    "has_next_condition": 0,
@@ -56,7 +55,7 @@
   },
   {
    "description": "<h5 style=\"line-height:1.5;\">Click to visit the Workspace</h5>",
-   "element_selector": ".desk-sidebar-item.standard-sidebar-item > [title=\"Tools\"]",
+   "element_selector": ".desk-sidebar-item.standard-sidebar-item > [title=\"Users\"]",
    "fieldtype": "0",
    "has_next_condition": 0,
    "hide_buttons": 1,
@@ -68,7 +67,7 @@
    "offset_y": 0,
    "popover_element": 0,
    "position": "Right",
-   "title": "Tools Workspace",
+   "title": "Users Workspace",
    "ui_tour": 1
   }
  ],
@@ -76,5 +75,5 @@
  "track_steps": 1,
  "ui_tour": 1,
  "view_name": "Workspaces",
- "workspace_name": "Build"
+ "workspace_name": ""
 }
