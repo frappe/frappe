@@ -12,7 +12,7 @@ import git
 import yaml
 
 import frappe
-from frappe.modules.patch_handler import get_all_patches
+from frappe.modules.patch_handler import get_all_patches, parse_as_configfile
 from frappe.utils.boilerplate import (
 	PatchCreator,
 	_create_app_boilerplate,
@@ -137,6 +137,11 @@ class TestBoilerPlate(unittest.TestCase):
 
 		app_repo = git.Repo(new_app_dir)
 		self.assertEqual(app_repo.active_branch.name, "develop")
+
+		patches_file = os.path.join(new_app_dir, app_name, "patches.txt")
+		self.assertTrue(os.path.exists(patches_file), msg=f"{patches_file} not found")
+
+		self.assertEqual(parse_as_configfile(patches_file), [])
 
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
