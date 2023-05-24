@@ -29,3 +29,4 @@ def update_user_status(value, step):
 	frappe.db.set_value(
 		"User", frappe.session.user, "onboarding_status", value, update_modified=False
 	)
+	frappe.cache().hdel("bootinfo", frappe.session.user)
