@@ -106,7 +106,7 @@
   {
    "depends_on": "is_ui_tour",
    "fieldname": "page_route",
-   "fieldtype": "JSON",
+   "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Page Route"
   },
@@ -179,7 +179,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-23 11:35:14.195031",
+ "modified": "2023-05-24 12:05:25.223405",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",

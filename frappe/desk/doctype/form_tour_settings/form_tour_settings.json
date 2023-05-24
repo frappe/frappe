@@ -20,7 +20,7 @@
   {
    "default": "\"[]\"",
    "fieldname": "onboarding_tours",
-   "fieldtype": "JSON",
+   "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Tours"
   }
@@ -28,7 +28,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-05-17 16:45:21.362524",
+ "modified": "2023-05-24 12:05:52.676242",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour Settings",
