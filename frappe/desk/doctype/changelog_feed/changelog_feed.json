@@ -27,7 +27,7 @@
   },
   {
    "fieldname": "link",
-   "fieldtype": "Data",
+   "fieldtype": "Long Text",
    "in_list_view": 1,
    "label": "Link",
    "reqd": 1
@@ -41,7 +41,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-22 10:04:52.980692",
+ "modified": "2023-05-24 15:26:39.211363",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Changelog Feed",
