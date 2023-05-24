@@ -696,7 +696,7 @@
   {
    "default": "{}",
    "fieldname": "onboarding_status",
-   "fieldtype": "JSON",
+   "fieldtype": "Long Text",
    "hidden": 1,
    "label": "Onboarding Status"
   }
@@ -761,7 +761,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-05-22 09:29:35.277539",
+ "modified": "2023-05-24 11:25:27.040415",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
