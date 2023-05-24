@@ -23,6 +23,7 @@ class FormTour(Document):
 					step.fieldtype = field_df.fieldtype
 
 	def on_update(self):
+		frappe.cache().delete_key("bootinfo")
 		if self.ui_tour:
 			form_tour_settings = frappe.get_doc("Form Tour Settings", "Form Tour Settings")
 			in_settings = False
@@ -55,9 +56,10 @@ class FormTour(Document):
 			form_tour_settings = frappe.get_doc("Form Tour Settings", "Form Tour Settings")
 			for tour in form_tour_settings.form_tours:
 				if tour.form_tour == self.name:
-					form_tour_settings.remove(tour);
+					form_tour_settings.remove(tour)
 			form_tour_settings.save()
-		
+
+
 @frappe.whitelist()
 def reset_tour(tour_name):
 	for user in frappe.get_all("User"):
