@@ -53,7 +53,7 @@ class PatchType(Enum):
 
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
-	executed = set(frappe.get_all("Patch Log", fields="patch", pluck="patch"))
+	executed = set(frappe.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
 
 	frappe.flags.final_patches = []
 
@@ -65,8 +65,9 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 		except Exception:
 			if not skip_failing:
 				raise
-			else:
-				print("Failed to execute patch")
+
+			print("Failed to execute patch")
+			update_patch_log(patch, skipped=True)
 
 	patches = get_all_patches(patch_type=patch_type)
 
@@ -100,38 +101,41 @@ def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[
 	        2. plain text file with each line representing a patch.
 	"""
 
-	patches_txt = frappe.get_pymodule_path(app, "patches.txt")
+	patches_file = frappe.get_pymodule_path(app, "patches.txt")
 
 	try:
-		# Attempt to parse as ini file with pre/post patches
-		# allow_no_value: patches are not key value pairs
-		# delimiters = '\n' to avoid treating default `:` and `=` in execute as k:v delimiter
-		parser = configparser.ConfigParser(allow_no_value=True, delimiters="\n")
-		# preserve case
-		parser.optionxform = str
-		parser.read(patches_txt)
-
-		# empty file
-		if not parser.sections():
-			return []
-
-		if not patch_type:
-			return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
-				patch for patch in parser[PatchType.post_model_sync.value]
-			]
-
-		if patch_type.value in parser.sections():
-			return [patch for patch in parser[patch_type.value]]
-		else:
-			frappe.throw(frappe._("Patch type {} not found in patches.txt").format(patch_type))
-
+		return parse_as_configfile(patches_file, patch_type)
 	except configparser.MissingSectionHeaderError:
 		# treat as old format with each line representing a single patch
 		# backward compatbility with old patches.txt format
 		if not patch_type or patch_type == PatchType.pre_model_sync:
-			return frappe.get_file_items(patches_txt)
+			return frappe.get_file_items(patches_file)
 
 	return []
+
+
+def parse_as_configfile(patches_file: str, patch_type: PatchType | None = None) -> list[str]:
+	# Attempt to parse as ini file with pre/post patches
+	# allow_no_value: patches are not key value pairs
+	# delimiters = '\n' to avoid treating default `:` and `=` in execute as k:v delimiter
+	parser = configparser.ConfigParser(allow_no_value=True, delimiters="\n")
+	# preserve case
+	parser.optionxform = str
+	parser.read(patches_file)
+
+	# empty file
+	if not parser.sections():
+		return []
+
+	if not patch_type:
+		return [patch for patch in parser[PatchType.pre_model_sync.value]] + [
+			patch for patch in parser[PatchType.post_model_sync.value]
+		]
+
+	if patch_type.value in parser.sections():
+		return [patch for patch in parser[patch_type.value]]
+	else:
+		frappe.throw(frappe._("Patch type {} not found in patches.txt").format(patch_type))
 
 
 def reload_doc(args):
@@ -204,9 +208,18 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 	return True
 
 
-def update_patch_log(patchmodule):
+def update_patch_log(patchmodule, skipped=False):
 	"""update patch_file in patch log"""
-	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert(ignore_permissions=True)
+
+	patch = frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule})
+
+	if skipped:
+		traceback = frappe.get_traceback(with_context=True)
+		patch.skipped = 1
+		patch.traceback = traceback
+		print(traceback, end="\n\n")
+
+	patch.insert(ignore_permissions=True)
 
 
 def executed(patchmodule):
@@ -214,7 +227,7 @@ def executed(patchmodule):
 	if patchmodule.startswith("finally:"):
 		# patches are saved without the finally: tag
 		patchmodule = patchmodule.replace("finally:", "")
-	return frappe.db.get_value("Patch Log", {"patch": patchmodule})
+	return frappe.db.get_value("Patch Log", {"patch": patchmodule, "skipped": 0})
 
 
 def _patch_mode(enable):

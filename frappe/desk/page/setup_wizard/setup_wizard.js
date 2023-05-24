@@ -122,8 +122,6 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_slide(id) {
 		if (id === this.slides.length) {
-			// show_slide called on last slide
-			this.action_on_complete();
 			return;
 		}
 		super.show_slide(id);
@@ -403,7 +401,7 @@ frappe.setup.slides_settings = [
 			},
 			{
 				fieldname: "enable_telemetry",
-				label: __("Allow Sending Usage Data for Improving applications"),
+				label: __("Allow Sending Usage Data for Improving Applications"),
 				fieldtype: "Check",
 				default: 1,
 			},
@@ -441,7 +439,7 @@ frappe.setup.slides_settings = [
 	{
 		// Profile slide
 		name: "user",
-		title: __("Let's setup your account"),
+		title: __("Let's set up your account"),
 		icon: "fa fa-user",
 		fields: [
 			{
@@ -490,12 +488,6 @@ frappe.setup.slides_settings = [
 			if (frappe.setup.data.email) {
 				let email = frappe.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
-				if (frappe.get_gravatar(email, 200)) {
-					let $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
-					$attach_user_image.find(".missing-image").toggle(false);
-					$attach_user_image.find("img").attr("src", frappe.get_gravatar(email, 200));
-					$attach_user_image.find(".img-container").toggle(true);
-				}
 			}
 		},
 	},
