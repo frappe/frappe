@@ -4,6 +4,7 @@
 import datetime
 import itertools
 import json
+import logging
 import random
 import re
 import string
@@ -105,6 +106,8 @@ class Database:
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.logger = frappe.logger("database")
+		self.logger.setLevel("INFO")
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -122,7 +125,7 @@ class Database:
 			if execution_timeout := get_query_execution_timeout():
 				self.set_execution_timeout(execution_timeout)
 		except Exception as e:
-			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
+			self.logger.warning(f"Couldn't set execution timeout {e}")
 
 	def set_execution_timeout(self, seconds: int):
 		"""Set session speicifc timeout on exeuction of statements.
@@ -285,7 +288,13 @@ class Database:
 			return self.convert_to_lists(self.last_result)
 		return self.last_result
 
-	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
+	def _log_query(
+		self,
+		mogrified_query: str,
+		debug: bool = False,
+		explain: bool = False,
+		unmogrified_query: str = "",
+	) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
@@ -303,6 +312,12 @@ class Database:
 			_query = _query or str(mogrified_query)
 			frappe.log(f"<<<< query\n{_query}\n>>>>")
 
+		if unmogrified_query and is_query_type(
+			unmogrified_query, ("alter", "drop", "select", "create", "truncate", "rename")
+		):
+			_query = _query or str(mogrified_query)
+			self.logger.info("DDL Query made:\n" + _query)
+
 		if frappe.flags.in_migrate:
 			_query = _query or str(mogrified_query)
 			self.log_touched_tables(_query)
@@ -314,7 +329,7 @@ class Database:
 		# like cursor._transformed_statement from the cursor object. We can also avoid setting
 		# mogrified_query if we don't need to log it.
 		mogrified_query = self.lazy_mogrify(query, values)
-		self._log_query(mogrified_query, debug, explain)
+		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
 		return mogrified_query
 
 	def mogrify(self, query: Query, values: QueryValues):
