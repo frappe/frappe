@@ -24,9 +24,7 @@ def update_user_status(value, step):
 	capture(
 		frappe.scrub(f"{step.parent}_{step.title}"),
 		app="frappe_ui_tours",
-		properties={
-			"is_completed": tour.is_completed
-		},
+		properties={"is_completed": tour.is_completed},
 	)
 	frappe.db.set_value(
 		"User", frappe.session.user, "onboarding_status", value, update_modified=False

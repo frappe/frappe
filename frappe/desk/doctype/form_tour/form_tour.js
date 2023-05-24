@@ -13,8 +13,8 @@ frappe.ui.form.on("Form Tour", {
 			if (frm.doc.reference_doctype) {
 				return {
 					filters: {
-						ref_doctype: frm.doc.reference_doctype
-					}
+						ref_doctype: frm.doc.reference_doctype,
+					},
 				};
 			}
 			return {};
@@ -39,11 +39,11 @@ frappe.ui.form.on("Form Tour", {
 		}
 		frm.doc.ui_tour && (frm.doc.page_route = JSON.stringify(await get_path(frm)));
 	},
-	disable_form: function(frm) {
+	disable_form: function (frm) {
 		frm.set_read_only();
 		frm.fields
-			.filter(field => field.has_input)
-			.forEach(field => {
+			.filter((field) => field.has_input)
+			.forEach((field) => {
 				frm.set_df_property(field.df.fieldname, "read_only", "1");
 			});
 		frm.disable_save();
@@ -52,8 +52,8 @@ frappe.ui.form.on("Form Tour", {
 	reference_doctype(frm) {
 		if (!frm.doc.reference_doctype) return;
 
-		frm.set_fields_as_options("fieldname", frm.doc.reference_doctype, df => !df.hidden).then(
-			options => {
+		frm.set_fields_as_options("fieldname", frm.doc.reference_doctype, (df) => !df.hidden).then(
+			(options) => {
 				frm.fields_dict.steps.grid.update_docfield_property(
 					"fieldname",
 					"options",
@@ -65,8 +65,8 @@ frappe.ui.form.on("Form Tour", {
 		frm.set_fields_as_options(
 			"parent_fieldname",
 			frm.doc.reference_doctype,
-			df => df.fieldtype == "Table" && !df.hidden
-		).then(options => {
+			(df) => df.fieldtype == "Table" && !df.hidden
+		).then((options) => {
 			frm.fields_dict.steps.grid.update_docfield_property(
 				"parent_fieldname",
 				"options",
@@ -80,32 +80,32 @@ frappe.ui.form.on("Form Tour", {
 					"Report",
 					{
 						filters: {
-							ref_doctype: frm.doc.reference_doctype
-						}
+							ref_doctype: frm.doc.reference_doctype,
+						},
 					},
 					{ fields: ["name"] }
 				)
-				.then(reports => {
-					if (reports.findIndex(r => r.name == frm.doc.report_name) == -1) {
+				.then((reports) => {
+					if (reports.findIndex((r) => r.name == frm.doc.report_name) == -1) {
 						frm.set_value("report_name", "");
 						frm.refresh_field("report_name");
 					}
 				});
 		}
-	}
+	},
 });
 
-add_custom_button = frm => {
+add_custom_button = (frm) => {
 	if (frm.doc.ui_tour) {
-		frm.add_custom_button(__("Reset"), function() {
+		frm.add_custom_button(__("Reset"), function () {
 			frappe.confirm(
 				__("This will reset this tour and show it to all users. Are you sure?"),
-				function() {
+				function () {
 					frappe.call({
 						method: "frappe.desk.doctype.form_tour.form_tour.reset_tour",
 						args: {
-							tour_name: frm.doc.name
-						}
+							tour_name: frm.doc.name,
+						},
 					});
 				},
 				delete frappe.boot.user.onboarding_status[frm.doc.name]
@@ -143,21 +143,23 @@ frappe.ui.form.on("Form Tour Step", {
 
 		const parent_fieldname_df = frappe
 			.get_meta(frm.doc.reference_doctype)
-			.fields.find(df => df.fieldname == child_row.parent_fieldname);
+			.fields.find((df) => df.fieldname == child_row.parent_fieldname);
 
-		frm.set_fields_as_options("fieldname", parent_fieldname_df.options, df => !df.hidden).then(
-			options => {
-				frm.fields_dict.steps.grid.update_docfield_property(
-					"fieldname",
-					"options",
-					[""].concat(options)
-				);
-				if (child_row.fieldname) {
-					frappe.model.set_value(cdt, cdn, "fieldname", child_row.fieldname);
-				}
+		frm.set_fields_as_options(
+			"fieldname",
+			parent_fieldname_df.options,
+			(df) => !df.hidden
+		).then((options) => {
+			frm.fields_dict.steps.grid.update_docfield_property(
+				"fieldname",
+				"options",
+				[""].concat(options)
+			);
+			if (child_row.fieldname) {
+				frappe.model.set_value(cdt, cdn, "fieldname", child_row.fieldname);
 			}
-		);
-	}
+		});
+	},
 });
 
 async function check_if_single(doctype) {
@@ -172,7 +174,7 @@ async function check_if_private_workspace(name) {
 async function get_first_document(doctype) {
 	let docname;
 
-	await frappe.db.get_list(doctype, { order_by: "creation" }).then(res => {
+	await frappe.db.get_list(doctype, { order_by: "creation" }).then((res) => {
 		if (Array.isArray(res) && res.length) docname = res[0].name;
 	});
 

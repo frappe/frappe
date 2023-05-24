@@ -82,7 +82,7 @@ frappe.Application = class Application {
 			if (pending_tours && frappe.boot.onboarding_tours.length > 0) {
 				frappe.require("onboarding_tours.bundle.js", () => {
 					frappe.utils.sleep(1000).then(() => {
-					frappe.ui.init_onboarding_tour();
+						frappe.ui.init_onboarding_tour();
 					});
 				});
 			}
