@@ -139,6 +139,12 @@ frappe.router = {
 		if (!frappe.app) return;
 
 		let sub_path = this.get_sub_path();
+		if (frappe.boot.setup_complete) {
+			!frappe.re_route["setup-wizard/0"] && (frappe.re_route["setup-wizard/0"] = "app");
+		} else {
+			frappe.re_route["setup-wizard/0"] && delete frappe.re_route["setup-wizard/0"];
+			frappe.set_route(["setup-wizard", "0"]);
+		}
 		if (this.re_route(sub_path)) return;
 
 		this.current_sub_path = sub_path;
