@@ -34,7 +34,7 @@ frappe.ui.form.on("Form Tour", {
 			frm.doc.reference_doctype
 		) {
 			frappe.throw(
-				"Referance Doctype and Dashboard Name both can't be used at the same time."
+				__("Referance Doctype and Dashboard Name both can't be used at the same time.")
 			);
 		}
 		frm.doc.ui_tour && (frm.doc.page_route = JSON.stringify(await get_path(frm)));
