@@ -70,10 +70,10 @@
    "label": "Is Standard"
   },
   {
+   "depends_on": "eval: doc.ui_tour && doc.is_standard",
    "fetch_from": "reference_doctype.module",
    "fieldname": "module",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "Module",
    "options": "Module Def",
    "read_only": 1
@@ -104,7 +104,6 @@
    "set_only_once": 1
   },
   {
-   "depends_on": "is_ui_tour",
    "fieldname": "page_route",
    "fieldtype": "Small Text",
    "hidden": 1,
@@ -179,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-24 12:05:25.223405",
+ "modified": "2023-05-25 11:30:44.396248",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Tour",

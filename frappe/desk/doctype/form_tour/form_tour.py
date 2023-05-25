@@ -8,6 +8,14 @@ from frappe.modules.export_file import export_to_files
 
 class FormTour(Document):
 	def before_save(self):
+		if self.is_standard and not self.module:
+			if self.workspace_name:
+				self.module = frappe.db.get_value("Workspace", self.workspace_name, "module")
+			elif self.dashboard_name:
+				dashboard_doctype = frappe.db.get_value("Dashboard", self.dashboard_name, "module")
+				self.module = frappe.db.get_value("DocType", dashboard_doctype, "module")
+			else:
+				self.module = "Desk"
 		if not self.ui_tour:
 			meta = frappe.get_meta(self.reference_doctype)
 			for step in self.steps:
