@@ -42,7 +42,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 							}
 
 							frappe.call({
-								method: "frappe.desk.doctype.form_tour_settings.form_tour_settings.update_user_status",
+								method: "frappe.desk.doctype.form_tour.form_tour.update_user_status",
 								args: {
 									value: JSON.stringify(frappe.boot.user.onboarding_status),
 									step: JSON.stringify(step.options.step_info),
@@ -87,7 +87,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 				}
 				this.last_step_saved = step;
 				frappe.call({
-					method: "frappe.desk.doctype.form_tour_settings.form_tour_settings.update_user_status",
+					method: "frappe.desk.doctype.form_tour.form_tour.update_user_status",
 					args: {
 						value: JSON.stringify(frappe.boot.user.onboarding_status),
 						step: JSON.stringify(step),
