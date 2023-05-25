@@ -291,3 +291,23 @@ def get_condensed_address(doc):
 
 def update_preferred_address(address, field):
 	frappe.db.set_value("Address", address, field, 0)
+
+
+def get_address_display_list(doctype: str, name: str) -> list[dict]:
+	if not frappe.has_permission("Address", "read"):
+		return []
+
+	address_list = frappe.get_list(
+		"Address",
+		filters=[
+			["Dynamic Link", "link_doctype", "=", doctype],
+			["Dynamic Link", "link_name", "=", name],
+			["Dynamic Link", "parenttype", "=", "Address"],
+		],
+		fields=["*"],
+		order_by="is_primary_address DESC, creation ASC",
+	)
+	for a in address_list:
+		a["display"] = get_address_display(a)
+
+	return address_list
