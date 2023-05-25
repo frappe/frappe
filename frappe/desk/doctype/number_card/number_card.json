@@ -82,6 +82,7 @@
   {
    "fieldname": "filters_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Filters Section"
   },
   {
@@ -140,9 +141,11 @@
   {
    "fieldname": "dynamic_filters_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Dynamic Filters Section"
   },
   {
+   "default": "Document Type",
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
@@ -192,15 +195,15 @@
   },
   {
    "description": "The document type selected is a child table, so the parent document type is required.",
-   "depends_on": "eval: doc.type === 'Document Type'",
    "fieldname": "parent_document_type",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Parent Document Type",
    "options": "DocType"
   }
  ],
  "links": [],
- "modified": "2022-06-12 15:34:38.210910",
+ "modified": "2023-05-25 15:18:03.197309",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

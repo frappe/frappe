@@ -6,31 +6,35 @@ frappe.ui.form.on("Number Card", {
 		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
 			frm.disable_form();
 		}
-		frm.set_df_property("filters_section", "hidden", 1);
-		frm.set_df_property("dynamic_filters_section", "hidden", 1);
-		frm.trigger("set_options");
-
-		if (!frm.doc.type) {
-			frm.set_value("type", "Document Type");
-		}
 
 		if (frm.doc.type == "Report" && frm.doc.report_name) {
 			frm.trigger("set_report_filters");
-		}
-
-		if (frm.doc.type == "Custom") {
-			if (!frappe.boot.developer_mode) {
-				frm.disable_form();
-			}
+		} else if (frm.doc.type == "Custom") {
 			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger("set_filters_description");
 			frm.trigger("set_method_description");
 			frm.trigger("render_filters_table");
+		} else {
+			frm.trigger("set_options");
 		}
-		frm.trigger("set_parent_document_type");
 
 		if (!frm.is_new()) {
 			frm.trigger("create_add_to_dashboard_button");
+		}
+	},
+
+	clear_filters: function (frm, with_section = false) {
+		if (frm.doc.type == "Report") {
+			frm.set_value("filters_json", "{}");
+			frm.set_value("dynamic_filters_json", "{}");
+		} else {
+			frm.set_value("filters_json", "[]");
+			frm.set_value("dynamic_filters_json", "[]");
+		}
+
+		if (with_section) {
+			frm.set_df_property("filters_section", "hidden", 1);
+			frm.set_df_property("dynamic_filters_section", "hidden", 1);
 		}
 	},
 
@@ -42,11 +46,7 @@ frappe.ui.form.on("Number Card", {
 				"frappe.desk.doctype.number_card.number_card.add_card_to_dashboard"
 			);
 
-			if (!frm.doc.name) {
-				frappe.msgprint(__("Please create Card first"));
-			} else {
-				dialog.show();
-			}
+			dialog.show();
 		});
 	},
 
@@ -109,6 +109,15 @@ frappe.ui.form.on("Number Card", {
 
 	type: function (frm) {
 		frm.trigger("set_filters_description");
+		frm.trigger("set_method_description");
+		frm.events.clear_filters(frm, (with_section = true));
+
+		frm.set_value("parent_document_type", "");
+		frm.set_value("document_type", "");
+		frm.set_value("report_name", "");
+		frm.set_value("aggregate_function_based_on", "");
+		frm.set_df_property("report_field", "options", []);
+
 		if (frm.doc.type == "Report") {
 			frm.set_query("report_name", () => {
 				return {
@@ -122,8 +131,7 @@ frappe.ui.form.on("Number Card", {
 
 	report_name: function (frm) {
 		frm.filters = [];
-		frm.set_value("filters_json", "{}");
-		frm.set_value("dynamic_filters_json", "{}");
+		frm.events.clear_filters(frm);
 		frm.set_df_property("report_field", "options", []);
 		frm.trigger("set_report_filters");
 	},
@@ -143,8 +151,7 @@ frappe.ui.form.on("Number Card", {
 				},
 			};
 		});
-		frm.set_value("filters_json", "[]");
-		frm.set_value("dynamic_filters_json", "[]");
+		frm.events.clear_filters(frm);
 		frm.set_value("aggregate_function_based_on", "");
 		frm.set_value("parent_document_type", "");
 		frm.trigger("set_options");
@@ -213,7 +220,7 @@ frappe.ui.form.on("Number Card", {
 				ignore_prepared_report: 1,
 			})
 			.then((data) => {
-				if (data.result.length) {
+				if (data.result?.length) {
 					frm.field_options = frappe.report_utils.get_field_options_from_report(
 						data.columns,
 						data
