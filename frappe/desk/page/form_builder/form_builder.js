@@ -21,7 +21,7 @@ function load_form_builder(wrapper) {
 	route = route.filter((a) => a);
 
 	if (route.length > 1 && route[1] === "new-doctype") {
-		new_doctype(route[2]);
+		frappe.pages["form-builder"].new_doctype(route[2]);
 	} else if (route.length > 1) {
 		let doctype = route[1];
 		let is_customize_form = route[2] === "customize";
@@ -47,11 +47,11 @@ function load_form_builder(wrapper) {
 			});
 		});
 	} else {
-		select_doctype();
+		frappe.pages["form-builder"].select_doctype();
 	}
 }
 
-function select_doctype() {
+frappe.pages["form-builder"].select_doctype = function () {
 	let d = new frappe.ui.Dialog({
 		title: __("Select DocType"),
 		fields: [
@@ -99,9 +99,9 @@ function select_doctype() {
 	});
 
 	d.show();
-}
+};
 
-function new_doctype(doctype) {
+frappe.pages["form-builder"].new_doctype = function (doctype) {
 	let non_developer = frappe.session.user !== "Administrator" || !frappe.boot.developer_mode;
 	let new_d = new frappe.ui.Dialog({
 		title: __("Create New DocType"),
@@ -208,4 +208,4 @@ function new_doctype(doctype) {
 		},
 	});
 	new_d.show();
-}
+};
