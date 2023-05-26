@@ -25,6 +25,10 @@ BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
+# less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
+# to allow table names like __Auth
+TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
+
 
 class Engine:
 	def get_query(
@@ -50,6 +54,7 @@ class Engine:
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
+			self.validate_doctype()
 			self.table = frappe.qb.DocType(table)
 
 		if update:
@@ -81,6 +86,10 @@ class Engine:
 			self.query = self.query.groupby(group_by)
 
 		return self.query
+
+	def validate_doctype(self):
+		if not TABLE_NAME_PATTERN.match(self.doctype):
+			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
 		# add fields
