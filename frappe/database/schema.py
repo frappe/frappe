@@ -205,7 +205,6 @@ class DbColumn:
 			self.default
 			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
 			and not cstr(self.default).startswith(":")
-			and column_def not in ("text", "longtext")
 		):
 			column_def += f" default {frappe.db.escape(self.default)}"
 
