@@ -1440,7 +1440,7 @@ Object.assign(frappe.utils, {
 		prepend && wrapper.prepend(button);
 	},
 
-	add_select_group_button(actions, btn_type, wrapper, prepend) {
+	add_select_group_button(wrapper, actions, btn_type, icon = "", prepend) {
 		// actions = [{
 		// 	label: "Action 1",
 		// 	description: "Description 1", (optional)
@@ -1456,7 +1456,8 @@ Object.assign(frappe.utils, {
 		let $select_group_button = $(`
 			<div class="btn-group select-group-btn">
 				<button type="button" class="btn ${btn_type} btn-sm selected-button">
-					${selected_action.label}
+					<span class="left-icon">${icon && frappe.utils.icon(icon, "xs")}</span>
+					<span class="label">${selected_action.label}</span>
 				</button>
 
 				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
@@ -1480,7 +1481,7 @@ Object.assign(frappe.utils, {
 				.appendTo($select_group_button.find(".dropdown-menu"))
 				.click((e) => {
 					selected_action = action;
-					$select_group_button.find(".selected-button").text(action.label);
+					$select_group_button.find(".selected-button .label").text(action.label);
 
 					$(e.currentTarget).find(".tick-icon").addClass("selected");
 					$(e.currentTarget).siblings().find(".tick-icon").removeClass("selected");
