@@ -56,7 +56,7 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				fieldtype: "Button",
-				label: frappe.utils.icon("down"),
+				label: frappe.utils.icon("down", "xs"),
 				fieldname: "option_toggle_button",
 				click: () => {
 					this.toggle_more_options();
@@ -182,7 +182,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
 		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
 
-		const label = frappe.utils.icon(show_options ? "up-line" : "down");
+		const label = frappe.utils.icon(show_options ? "up-line" : "down", "xs");
 		this.dialog.get_field("option_toggle_button").set_label(label);
 	}
 
