@@ -228,6 +228,24 @@ body.modal-open[style^="padding-right"] {
 	}
 }
 
+.modal [data-fieldname="email_template_section_break"] {
+	form {
+		display: flex;
+		align-items: center;
+
+		.frappe-control:first-child {
+			&[data-fieldname="email_template"] {
+				margin-right: 10px;
+			}
+			flex: 1;
+		}
+
+		.frappe-control:last-child {
+			margin-bottom: -8px;
+		}
+	}
+}
+
 // modal is xs (for grids)
 .modal .hidden-xs {
 	display: none !important;
