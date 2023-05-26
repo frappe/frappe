@@ -29,6 +29,11 @@ class Timestamp(Function):
 			super().__init__("TIMESTAMP", term, alias=alias)
 
 
+class Round(Function):
+	def __init__(self, term, decimal=0, **kwargs):
+		super().__init__("ROUND", term, decimal, **kwargs)
+
+
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
 Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})
