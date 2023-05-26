@@ -1,7 +1,10 @@
 frappe.listview_settings["DocType"] = {
 	onload: function (me) {
 		me.page.btn_primary.addClass("hidden");
+		this.setup_select_primary_button(me);
+	},
 
+	setup_select_primary_button: function (me) {
 		let actions = [
 			{
 				label: __("Add DocType"),
