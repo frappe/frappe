@@ -2,12 +2,14 @@
  "charts": [],
  "content": "[{\"type\":\"onboarding\",\"data\":{\"onboarding_name\":\"Website\",\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blog Post\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Blogger\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Page\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Web Form\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Website Settings\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports & Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Blog\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Web Site\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Portal\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge Base\",\"col\":4}}]",
  "creation": "2020-03-02 14:13:51.089373",
+ "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
  "icon": "website",
  "idx": 0,
+ "is_hidden": 0,
  "label": "Website",
  "links": [
   {
@@ -232,16 +234,18 @@
    "type": "Link"
   }
  ],
- "modified": "2022-01-13 17:49:41.527194",
+ "modified": "2023-05-24 14:47:23.879036",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
+ "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 28.0,
+ "sequence_id": 14.0,
  "shortcuts": [
   {
    "color": "Green",
