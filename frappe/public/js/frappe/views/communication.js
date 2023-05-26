@@ -322,7 +322,7 @@ frappe.views.CommunicationComposer = class {
 			},
 		];
 
-		frappe.utils.add_select_group_button(email_template_actions, "", clear_and_add_template);
+		frappe.utils.add_select_group_button(clear_and_add_template, email_template_actions);
 	}
 
 	setup_last_edited_communication() {
