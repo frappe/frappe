@@ -254,11 +254,17 @@ h2 {
 		display: none;
 	}
 
-	.dropdown-item .tick-icon {
-		visibility: hidden;
+	.dropdown-item {
+		.tick-icon {
+			visibility: hidden;
 
-		&.selected {
-			visibility: visible;
+			&.selected {
+				visibility: visible;
+			}
+		}
+
+		.item-label {
+			font-weight: 500;
 		}
 	}
 }

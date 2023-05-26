@@ -1472,8 +1472,8 @@ Object.assign(frappe.utils, {
 				<a class="dropdown-item flex">
 					<div class="tick-icon mr-2">${frappe.utils.icon("check", "xs")}</div>
 					<div>
-						<div class="text-bold">${action.label}</div>
-						<div class="text-muted small">${action.description || ""}</div>
+						<div class="item-label">${action.label}</div>
+						<div class="item-description text-muted small">${action.description || ""}</div>
 					</div>
 				</a>
 			</li>`)
