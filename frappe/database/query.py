@@ -135,9 +135,12 @@ class Engine:
 			self._apply_filter(field, value, operator, doctype)
 
 	def apply_dict_filters(self, filters: dict[str, str | int | list]):
-		for key in filters:
-			value = filters.get(key)
-			self._apply_filter(key, value)
+		for field, value in filters.items():
+			operator = "="
+			if isinstance(value, (list, tuple)):
+				operator, value = value
+
+			self._apply_filter(field, value, operator)
 
 	def _apply_filter(
 		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
@@ -168,15 +171,10 @@ class Engine:
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
 
-		if isinstance(_value, (list, tuple)):
-			_operator, _value = _value
-		elif isinstance(_value, bool):
+		if isinstance(_value, bool):
 			_value = int(_value)
 
-		if isinstance(_value, str) and has_function(_value):
-			_value = self.get_function_object(_value)
-
-		if isinstance(_value, (list, tuple)) and not _value:
+		elif not _value and isinstance(_value, (list, tuple)):
 			_value = ("",)
 
 		# Nested set
