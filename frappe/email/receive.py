@@ -536,6 +536,10 @@ class Email:
 		if content_type == "text/plain":
 			self.text_content += self.get_payload(part)
 
+			# attach txt file from received email as well aside from saving to text_content if it has filename
+			if part.get_filename():
+				self.get_attachment(part)
+
 		elif content_type == "text/html":
 			self.html_content += self.get_payload(part)
 
