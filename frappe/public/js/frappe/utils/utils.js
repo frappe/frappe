@@ -1481,8 +1481,8 @@ Object.assign(frappe.utils, {
 				.click((e) => {
 					selected_action = action;
 					$select_group_button.find(".selected-button").text(action.label);
-					$select_group_button.find(".tick-icon").addClass("selected");
 
+					$(e.currentTarget).find(".tick-icon").addClass("selected");
 					$(e.currentTarget).siblings().find(".tick-icon").removeClass("selected");
 				});
 		});
