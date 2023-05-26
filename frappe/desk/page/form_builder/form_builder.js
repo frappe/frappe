@@ -204,7 +204,7 @@ frappe.pages["form-builder"].new_doctype = function (doctype) {
 		secondary_action_label: __("Back"),
 		secondary_action() {
 			new_d.hide();
-			frappe.set_route("form-builder");
+			window.history.back();
 		},
 	});
 	new_d.show();
