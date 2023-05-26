@@ -14,6 +14,7 @@ from frappe.query_builder.functions import (
 	GroupConcat,
 	Match,
 	Round,
+	Truncate,
 	UnixTimestamp,
 )
 from frappe.query_builder.utils import db_type_is
@@ -163,6 +164,11 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 		query = frappe.qb.from_(note).select(Round(note.price, 3))
 		self.assertEqual("select round(`price`,3) from `tabnote`", str(query).lower())
 
+	def test_truncate(self):
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
+		self.assertEqual("select truncate(`price`,3) from `tabnote`", str(query).lower())
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(FrappeTestCase):
@@ -301,6 +307,11 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 
 		query = frappe.qb.from_(note).select(Round(note.price, 3))
 		self.assertEqual('select round("price",3) from "tabnote"', str(query).lower())
+
+	def test_truncate(self):
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
+		self.assertEqual('select truncate("price",3) from "tabnote"', str(query).lower())
 
 
 class TestBuilderBase:
