@@ -1,20 +1,93 @@
 {
  "charts": [],
- "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Note\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Auto Repeat\",\"col\":3}},{\"type\":\"spacer\",\"data\":{\"col\":12}},{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports & Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Event Streaming\",\"col\":4}}]",
+ "content": "[{\"id\":\"-P-RG1wVHg\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"sR-UFcO7II\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Import Data\",\"col\":3}},{\"id\":\"IkcVmgWb3z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ToDo\",\"col\":3}},{\"id\":\"6wir-jZFRE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"File\",\"col\":3}},{\"id\":\"45a1jzQkTm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assignment Rule\",\"col\":3}},{\"id\":\"LdZrgvxxo7\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"yNSSTIaDWZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Documents</b></span>\",\"col\":12}},{\"id\":\"0yceBIfhHM\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"42WbBA9rpj\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"7_U7_xCOos\",\"type\":\"card\",\"data\":{\"card_name\":\"Email\",\"col\":4}},{\"id\":\"SlYKJZj5r3\",\"type\":\"card\",\"data\":{\"card_name\":\"Automation\",\"col\":4}}]",
  "creation": "2020-03-02 14:53:24.980279",
+ "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
  "icon": "tool",
  "idx": 0,
+ "is_hidden": 0,
  "label": "Tools",
  "links": [
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Tools",
+   "label": "Email",
    "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Newsletter",
+   "link_count": 0,
+   "link_to": "Newsletter",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email Group",
+   "link_count": 0,
+   "link_to": "Email Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Automation",
+   "link_count": 3,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Assignment Rule",
+   "link_count": 0,
+   "link_to": "Assignment Rule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Milestone",
+   "link_count": 0,
+   "link_to": "Milestone",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Auto Repeat",
+   "link_count": 0,
+   "link_to": "Auto Repeat",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Tools",
+   "link_count": 4,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -63,12 +136,49 @@
    "type": "Link"
   },
   {
-   "dependencies": "",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Activity",
+   "label": "Data",
+   "link_count": 5,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Import Data",
    "link_count": 0,
-   "link_to": "activity",
+   "link_to": "Data Import",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Export Data",
+   "link_count": 0,
+   "link_to": "Data Export",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bulk Update",
+   "link_count": 0,
+   "link_to": "Bulk Update",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Download Backups",
+   "link_count": 0,
+   "link_to": "backups",
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
@@ -76,157 +186,37 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Email",
+   "label": "Deleted Documents",
    "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Newsletter",
-   "link_count": 0,
-   "link_to": "Newsletter",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Group",
-   "link_count": 0,
-   "link_to": "Email Group",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Automation",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Assignment Rule",
-   "link_count": 0,
-   "link_to": "Assignment Rule",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Milestone",
-   "link_count": 0,
-   "link_to": "Milestone",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Auto Repeat",
-   "link_count": 0,
-   "link_to": "Auto Repeat",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Streaming",
-   "link_count": 0,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Producer",
-   "link_count": 0,
-   "link_to": "Event Producer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Consumer",
-   "link_count": 0,
-   "link_to": "Event Consumer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Update Log",
-   "link_count": 0,
-   "link_to": "Event Update Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Event Sync Log",
-   "link_count": 0,
-   "link_to": "Event Sync Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "dependencies": "",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Document Type Mapping",
-   "link_count": 0,
-   "link_to": "Document Type Mapping",
+   "link_to": "Deleted Document",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2022-01-13 17:48:48.456763",
+ "modified": "2023-05-24 14:47:24.740856",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
+ "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 26.0,
+ "sequence_id": 17.0,
  "shortcuts": [
   {
-   "label": "ToDo",
-   "link_to": "ToDo",
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Import Data",
+   "link_to": "Data Import",
    "type": "DocType"
   },
   {
-   "label": "Note",
-   "link_to": "Note",
+   "label": "ToDo",
+   "link_to": "ToDo",
    "type": "DocType"
   },
   {
@@ -237,11 +227,6 @@
   {
    "label": "Assignment Rule",
    "link_to": "Assignment Rule",
-   "type": "DocType"
-  },
-  {
-   "label": "Auto Repeat",
-   "link_to": "Auto Repeat",
    "type": "DocType"
   }
  ],
