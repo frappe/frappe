@@ -34,6 +34,11 @@ class Round(Function):
 		super().__init__("ROUND", term, decimal, **kwargs)
 
 
+class Truncate(Function):
+	def __init__(self, term, decimal, **kwargs):
+		super().__init__("TRUNCATE", term, decimal, **kwargs)
+
+
 GroupConcat = ImportMapper({db_type_is.MARIADB: GROUP_CONCAT, db_type_is.POSTGRES: STRING_AGG})
 
 Match = ImportMapper({db_type_is.MARIADB: MATCH, db_type_is.POSTGRES: TO_TSVECTOR})
