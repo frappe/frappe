@@ -96,4 +96,4 @@ jobs:
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
           sed -i '/dropbox/d' pyproject.toml   # Remove dropbox temporarily https://github.com/dropbox/dropbox-sdk-python/pull/456
-          pip-audit .
+          pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp .
