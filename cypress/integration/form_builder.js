@@ -26,11 +26,11 @@ context("Form Builder", () => {
 		cy.get(".page-title").click();
 
 		cy.get(".frappe-control[data-fieldname='doctype'] input").click().as("input");
-		cy.get("@input").type("{rightArrow} Field", { delay: 200 });
+		cy.get("@input").type("{rightArrow}Web Form Field", { delay: 200 });
 		cy.wait("@search_link");
 		cy.get("@input").type("{enter}").blur();
 
-		cy.click_modal_primary_button("Change");
+		cy.click_modal_primary_button("Edit");
 
 		cy.get(".page-title .title-text").should("have.text", "Web Form Field");
 	});
