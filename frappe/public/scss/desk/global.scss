@@ -250,8 +250,14 @@ h2 {
 }
 
 .select-group-btn {
-	.dropdown-toggle-split::after {
-		display: none;
+	.dropdown-toggle-split {
+		padding-left: 0.375rem !important;
+		padding-right: 0.375rem !important;
+		min-width: 0 !important;
+
+		&::after {
+			display: none;
+		}
 	}
 
 	.dropdown-item {

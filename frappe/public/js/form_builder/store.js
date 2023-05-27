@@ -122,6 +122,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	function setup_breadcrumbs() {
+		!is_customize_form.value && frappe.model.init_doctype("DocType");
 		let breadcrumbs = `
 			<li><a href="/app/doctype">${__("DocType")}</a></li>
 			<li><a href="/app/doctype/${doctype.value}">${__(doctype.value)}</a></li>
