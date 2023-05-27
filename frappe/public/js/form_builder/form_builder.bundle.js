@@ -113,6 +113,9 @@ class FormBuilder {
 			this.go_to_doctype_btn.hide();
 			this.go_to_customize_form_btn.hide();
 
+			this.page.menu_btn_group.show();
+			let hide_menu = true;
+
 			// show customize form & Go to customize form btn
 			if (
 				this.store.doc &&
@@ -145,6 +148,10 @@ class FormBuilder {
 					: __("Go to {0} List", [__(this.doctype)]);
 
 				this.go_to_doctype_list_btn.text(label).show();
+			}
+
+			if (hide_menu && window.matchMedia("(min-device-width: 992px)").matches) {
+				this.page.menu_btn_group.hide();
 			}
 
 			// toggle preview btn text
