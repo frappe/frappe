@@ -222,8 +222,26 @@ body.modal-open[style^="padding-right"] {
 			margin-bottom: -24px;
 			button {
 				// same as form-control input
-				height: calc(1.5em + .75rem + 2px);
+				height: calc(1.5em + .7rem);
 			}
+		}
+	}
+}
+
+.modal [data-fieldname="email_template_section_break"] {
+	form {
+		display: flex;
+		align-items: center;
+
+		.frappe-control:first-child {
+			&[data-fieldname="email_template"] {
+				margin-right: 10px;
+			}
+			flex: 1;
+		}
+
+		.frappe-control:last-child {
+			margin-bottom: -8px;
 		}
 	}
 }
