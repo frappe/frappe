@@ -89,7 +89,7 @@ frappe.ui.click_toggle_like = function () {
 	return false;
 };
 
-frappe.ui.setup_like_popover = ($parent, selector, check_not_liked = true) => {
+frappe.ui.setup_like_popover = ($parent, selector) => {
 	if (frappe.dom.is_touchscreen()) {
 		return;
 	}
@@ -108,20 +108,6 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked = true) => {
 				let liked_by = target_element.parents(".liked-by").attr("data-liked-by");
 				liked_by = liked_by ? decodeURI(liked_by) : "[]";
 				liked_by = JSON.parse(liked_by);
-
-				const user = frappe.session.user;
-				// hack
-				if (check_not_liked) {
-					if (target_element.parents(".liked-by").find(".not-liked").length) {
-						if (liked_by.indexOf(user) !== -1) {
-							liked_by.splice(liked_by.indexOf(user), 1);
-						}
-					} else {
-						if (liked_by.indexOf(user) === -1) {
-							liked_by.push(user);
-						}
-					}
-				}
 
 				if (!liked_by.length) {
 					return "";
