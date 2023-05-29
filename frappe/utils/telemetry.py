@@ -57,3 +57,13 @@ def capture(event, app, **kwargs):
 	ph: Posthog = getattr(frappe.local, "posthog", None)
 	with suppress(Exception):
 		ph and ph.capture(distinct_id=frappe.local.site, event=f"{app}_{event}", **kwargs)
+
+
+def capture_doc(doc):
+	with suppress(Exception):
+		age = site_age()
+		if not age or age > 15:
+			return
+
+		if doc.get("__islocal") or not doc.get("name"):
+			capture("document_created", "frappe", properties={"doctype": doc.doctype})
