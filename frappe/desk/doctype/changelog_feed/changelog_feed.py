@@ -61,8 +61,6 @@ def get_changelog_feed_items():
 	changelog_feed_items = frappe.cache().get_value("changelog_feed")
 	if not changelog_feed_items or frappe.conf.developer_mode:
 
-		# running this here while dev instead of waiting for a whole day
-		# fetch_changelog_feed_items_from_source()
 		changelog_feed_items = frappe.get_list(
 			"Changelog Feed",
 			fields=["title", "app_name", "link", "creation_of_feed_item"],
