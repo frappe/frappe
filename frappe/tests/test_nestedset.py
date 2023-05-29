@@ -57,7 +57,7 @@ TEST_DOCTYPE = "Test Tree DocType"
 class NestedSetTestUtil:
 	def setup_test_doctype(self):
 		frappe.db.delete("DocType", TEST_DOCTYPE)
-		frappe.db.sql_ddl(f"drop table if exists `{TEST_DOCTYPE}`")
+		frappe.db.sql_ddl(f"drop table if exists `tab{TEST_DOCTYPE}`")
 
 		self.tree_doctype = new_doctype(TEST_DOCTYPE, is_tree=True, autoname="field:some_fieldname")
 		self.tree_doctype.insert()
@@ -260,3 +260,39 @@ class TestNestedSet(FrappeTestCase):
 		# root deletion without allow_root_deletion
 		root_node.delete()
 		self.assertFalse(frappe.db.exists(TEST_DOCTYPE, "Root Node"))
+
+	def test_desc_filters(self):
+
+		linked_doctype = (
+			new_doctype(
+				fields=[
+					{
+						"fieldname": "link_field",
+						"fieldtype": "Link",
+						"options": TEST_DOCTYPE,
+					}
+				]
+			)
+			.insert()
+			.name
+		)
+
+		record = "Child 1"
+
+		exclusive_filter = {"name": ("descendants of", record)}
+		inclusive_filter = {"name": ("descendants of (inclusive)", record)}
+		exclusive_link = {"link_field": ("descendants of", record)}
+		inclusive_link = {"link_field": ("descendants of (inclusive)", record)}
+
+		# db_query
+		self.assertNotIn(record, frappe.get_all(TEST_DOCTYPE, exclusive_filter, run=0))
+		self.assertIn(record, frappe.get_all(TEST_DOCTYPE, inclusive_filter, run=0))
+		self.assertNotIn(record, frappe.get_all(linked_doctype, exclusive_link, run=0))
+		self.assertIn(record, frappe.get_all(linked_doctype, inclusive_link, run=0))
+
+		# QB
+		self.assertNotIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=exclusive_filter)))
+		self.assertIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=inclusive_filter)))
+
+		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
+		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))

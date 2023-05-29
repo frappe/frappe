@@ -189,14 +189,18 @@ class Engine:
 		if _operator in OPERATOR_MAP["nested_set"]:
 			hierarchy = _operator
 			docname = _value
-			result = get_nested_set_hierarchy_result(self.doctype, docname, hierarchy)
+
+			_df = frappe.get_meta(self.doctype).get_field(field)
+			ref_doctype = _df.options if _df else self.doctype
+
+			nodes = get_nested_set_hierarchy_result(ref_doctype, docname, hierarchy)
 			operator_fn = (
 				OPERATOR_MAP["not in"]
 				if hierarchy in ("not ancestors of", "not descendants of")
 				else OPERATOR_MAP["in"]
 			)
-			if result:
-				self.query = self.query.where(operator_fn(_field, result))
+			if nodes:
+				self.query = self.query.where(operator_fn(_field, nodes))
 			else:
 				self.query = self.query.where(operator_fn(_field, ("",)))
 			return
@@ -512,13 +516,14 @@ def has_function(field):
 
 
 def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> list[str]:
+	"""Get matching nodes based on operator."""
 	table = frappe.qb.DocType(doctype)
 	try:
 		lft, rgt = frappe.qb.from_(table).select("lft", "rgt").where(table.name == name).run()[0]
 	except IndexError:
 		lft, rgt = None, None
 
-	if hierarchy in ("descendants of", "not descendants of"):
+	if hierarchy in ("descendants of", "not descendants of", "descendants of (inclusive)"):
 		result = (
 			frappe.qb.from_(table)
 			.select(table.name)
@@ -527,6 +532,8 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 			.orderby(table.lft, order=Order.asc)
 			.run(pluck=True)
 		)
+		if hierarchy == "descendants of (inclusive)":
+			result += [name]
 	else:
 		# Get ancestor elements of a DocType with a tree structure
 		result = (
