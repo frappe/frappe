@@ -1418,7 +1418,8 @@ frappe.ui.form.Form = class FrappeForm {
 			if ($(window.location.hash).length) {
 				frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
 			} else {
-				this.scroll_to_field(window.location.hash.replace("#", ""));
+				this.scroll_to_field(window.location.hash.replace("#", "")) &&
+					history.replaceState(null, null, " ");
 			}
 		}
 	}
@@ -1935,6 +1936,7 @@ frappe.ui.form.Form = class FrappeForm {
 		setTimeout(() => {
 			control_element.removeClass("highlight");
 		}, 2000);
+		return true;
 	}
 
 	setup_docinfo_change_listener() {
