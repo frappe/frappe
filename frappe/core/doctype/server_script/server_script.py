@@ -50,8 +50,9 @@ class ServerScript(Document):
 	def sync_scheduler_events(self):
 		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
 		if not self.disabled and self.event_frequency and self.script_type == "Scheduler Event":
+			cron_format = self.cron_format if self.event_frequency == "Cron" else None
 			setup_scheduler_events(
-				script_name=self.name, frequency=self.event_frequency, cron_format=self.cron_format
+				script_name=self.name, frequency=self.event_frequency, cron_format=cron_format
 			)
 
 	def clear_scheduled_events(self):
