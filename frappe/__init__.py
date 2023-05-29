@@ -17,7 +17,7 @@ import json
 import os
 import re
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypeAlias, overload
 
 import click
 from werkzeug.local import Local, release_local
@@ -171,7 +171,6 @@ lang = local("lang")
 if TYPE_CHECKING:
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
-	from frappe.model.base_document import BaseDocument, DocumentDict
 	from frappe.model.document import Document
 	from frappe.query_builder.builder import MariaDB, Postgres
 	from frappe.utils.redis_wrapper import RedisWrapper
@@ -1143,36 +1142,42 @@ def get_cached_value(
 	return values
 
 
-_BaseDocument = TypeVar("_BaseDocument", bound="BaseDocument")
-
-
-# Signatures for retrieval
+_SingleDocument: TypeAlias = "Document"
+_NewDocument: TypeAlias = "Document"
 
 
 @overload
-def get_doc(document: "_BaseDocument", /) -> "_BaseDocument":
+def get_doc(document: "Document", /) -> "Document":
 	pass
 
 
 @overload
-def get_doc(doctype: str, name: str | None, *, for_update: bool | None = None) -> "Document":
-	pass
-
-
-# Signatures for creation
-
-
-@overload
-def get_doc(doctype: str, name: str | None = None, **kwargs) -> "Document":
+def get_doc(doctype: str, /) -> _SingleDocument:
+	"""Retrieve Single DocType from DB, doctype must be positional argument."""
 	pass
 
 
 @overload
-def get_doc(document: "DocumentDict", /) -> "Document":
+def get_doc(doctype: str, name: str, /, for_update: bool | None = None) -> "Document":
+	"""Retrieve DocType from DB, doctype and name must be positional argument."""
 	pass
 
 
-def get_doc(*args, **kwargs) -> "Document":
+@overload
+def get_doc(**kwargs: dict) -> "_NewDocument":
+	"""Initialize document from kwargs.
+	Not recommended. Use `frappe.new_doc` instead."""
+	pass
+
+
+@overload
+def get_doc(documentdict: dict) -> "_NewDocument":
+	"""Create document from dict.
+	Not recommended. Use `frappe.new_doc` instead."""
+	pass
+
+
+def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.

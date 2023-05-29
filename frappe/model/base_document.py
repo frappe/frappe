@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-from typing import TypedDict
 
 import frappe
 from frappe import _, _dict
@@ -91,14 +90,6 @@ def import_controller(doctype):
 	return class_
 
 
-class DocumentDict(TypedDict, total=False):
-	"""'doctype' is used as DocType name, `name` is used as the document name
-	except for single types, in which case it should be absent form the dict"""
-
-	doctype: str
-	name: str
-
-
 class BaseDocument:
 	_reserved_keywords = {
 		"doctype",
@@ -114,12 +105,7 @@ class BaseDocument:
 		"dont_update_if_missing",
 	}
 
-	def __init__(self, d: DocumentDict):
-		"""
-		Uses 'doctype' and 'name' from `d` to initialize this, rest of keys is used as fields,
-		except those listed in `_reserved_keywords`
-		"""
-
+	def __init__(self, d):
 		if d.get("doctype"):
 			self.doctype = d["doctype"]
 
