@@ -52,7 +52,7 @@ class User(Document):
 	def onload(self):
 		from frappe.config import get_modules_from_all_apps
 
-		self.set_onload("all_modules", [m.get("module_name") for m in get_modules_from_all_apps()])
+		self.set_onload("all_modules", sorted(m.get("module_name") for m in get_modules_from_all_apps()))
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -282,6 +282,10 @@ class User(Document):
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
+			frappe.clear_last_message()
+			frappe.msgprint(
+				_("Please setup default outgoing Email Account from Settings > Email Account"), alert=True
+			)
 			# email server not set, don't send email
 			self.log_error("Unable to send new password notification")
 

@@ -341,3 +341,45 @@ def get_full_name(
 		full_name = company
 
 	return full_name
+
+
+def get_contact_display_list(doctype: str, name: str) -> list[dict]:
+	from frappe.contacts.doctype.address.address import get_condensed_address
+
+	if not frappe.has_permission("Contact", "read"):
+		return []
+
+	contact_list = frappe.get_list(
+		"Contact",
+		filters=[
+			["Dynamic Link", "link_doctype", "=", doctype],
+			["Dynamic Link", "link_name", "=", name],
+			["Dynamic Link", "parenttype", "=", "Contact"],
+		],
+		fields=["*"],
+		order_by="is_primary_contact DESC, creation ASC",
+	)
+
+	for contact in contact_list:
+		contact["email_ids"] = frappe.get_all(
+			"Contact Email",
+			filters={"parenttype": "Contact", "parent": contact.name, "is_primary": 0},
+			fields=["email_id"],
+		)
+
+		contact["phone_nos"] = frappe.get_all(
+			"Contact Phone",
+			filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary_phone": 0,
+				"is_primary_mobile_no": 0,
+			},
+			fields=["phone"],
+		)
+
+		if contact.address and frappe.has_permission("Address", "read"):
+			address = frappe.get_doc("Address", contact.address)
+			contact["address"] = get_condensed_address(address)
+
+	return contact_list

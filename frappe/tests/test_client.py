@@ -237,8 +237,8 @@ class TestClient(FrappeTestCase):
 		docs = insert_many(doc_list)
 
 		self.assertEqual(len(docs), 7)
-		self.assertEqual(docs[3], "not-a-random-title")
-		self.assertEqual(docs[6], "another-note-title")
+		self.assertEqual(frappe.db.get_value("Note", docs[3], "title"), "not-a-random-title")
+		self.assertEqual(frappe.db.get_value("Note", docs[6], "title"), "another-note-title")
 		self.assertIn(note1.name, docs)
 
 		# cleanup

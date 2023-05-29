@@ -77,9 +77,11 @@ def create_todo_records():
 
 
 @whitelist_for_tests
-def clear_notes():
+def prepare_webform_test():
 	for note in frappe.get_all("Note", pluck="name"):
 		frappe.delete_doc("Note", note, force=True)
+
+	frappe.delete_doc_if_exists("Web Form", "note")
 
 
 @whitelist_for_tests
@@ -534,12 +536,6 @@ def setup_default_view(view, force_reroute=None):
 				"doctype": "Property Setter",
 			}
 		).insert()
-
-
-@whitelist_for_tests
-def create_note():
-	if not frappe.db.exists("Note", "Routing Test"):
-		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
 
 
 @whitelist_for_tests

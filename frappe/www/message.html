@@ -28,7 +28,7 @@ html, body {
 	{% block message_body %}
 		<p>{{ message or "" }}</p>
 		{% if primary_action %}
-		<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
+		<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm btn-block'>
 			{{ primary_label or _("Home") }}</a></div>
 		{% endif %}
 	{% endblock %}
