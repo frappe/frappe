@@ -21,6 +21,11 @@ function render_custom_html_block(frm) {
 			let div = document.createElement("div");
 			div.innerHTML = frappe.dom.remove_script_and_style(frm.doc.html);
 
+			// link global desk css
+			let link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.href = frappe.assets.bundled_asset("desk.bundle.css");
+
 			// css
 			let style = document.createElement("style");
 			style.textContent = frm.doc.style;
@@ -36,6 +41,7 @@ function render_custom_html_block(frm) {
 			`;
 
 			this.attachShadow({ mode: "open" });
+			this.shadowRoot?.appendChild(link);
 			this.shadowRoot?.appendChild(div);
 			this.shadowRoot?.appendChild(style);
 			this.shadowRoot?.appendChild(script);
