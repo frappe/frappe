@@ -58,8 +58,10 @@ class ServerScript(Document):
 			)
 
 	def clear_scheduled_events(self):
-		"""Deletes existing scheduled jobs by Server Script if self.event_frequency has changed"""
-		if self.script_type == "Scheduler Event" and self.has_value_changed("event_frequency"):
+		"""Deletes existing scheduled jobs by Server Script if self.event_frequency or self.cron_format has changed"""
+		if self.script_type == "Scheduler Event" and (
+			self.has_value_changed("event_frequency") or self.has_value_changed("cron_format")
+		):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
 
