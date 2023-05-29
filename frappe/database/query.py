@@ -1,4 +1,3 @@
-import itertools
 import re
 from ast import literal_eval
 from types import BuiltinFunctionType
@@ -197,7 +196,6 @@ class Engine:
 				else OPERATOR_MAP["in"]
 			)
 			if result:
-				result = list(itertools.chain.from_iterable(result))
 				self.query = self.query.where(operator_fn(_field, result))
 			else:
 				self.query = self.query.where(operator_fn(_field, ("",)))
@@ -513,7 +511,7 @@ def has_function(field):
 			return True
 
 
-def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
+def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> list[str]:
 	table = frappe.qb.DocType(doctype)
 	try:
 		lft, rgt = frappe.qb.from_(table).select("lft", "rgt").where(table.name == name).run()[0]
@@ -527,7 +525,7 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
 			.where(table.lft > lft)
 			.where(table.rgt < rgt)
 			.orderby(table.lft, order=Order.asc)
-			.run()
+			.run(pluck=True)
 		)
 	else:
 		# Get ancestor elements of a DocType with a tree structure
@@ -537,6 +535,6 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
 			.where(table.lft < lft)
 			.where(table.rgt > rgt)
 			.orderby(table.lft, order=Order.desc)
-			.run()
+			.run(pluck=True)
 		)
 	return result
