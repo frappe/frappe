@@ -33,7 +33,7 @@
    "fieldname": "help_html",
    "fieldtype": "HTML",
    "label": "Help HTML",
-   "options": "<div class=\"well\">\n    Edit list of Series in the box. Rules:\n    <ul>\n        <li>Each Series Prefix on a new line.</li>\n        <li>Allowed special characters are \"/\" and \"-\"</li>\n        <li>\n            Optionally, set the number of digits in the series using dot (.)\n            followed by hashes (#). For example, \".####\" means that the series\n            will have four digits. Default is five digits.\n        </li>\n        <li>\n            You can also use variables in the series name by putting them\n            between (.) dots\n            <br>\n            Supported Variables:\n            <ul>\n                <li><code>.YYYY.</code> - Year in 4 digits</li>\n                <li><code>.YY.</code> - Year in 2 digits</li>\n                <li><code>.MM.</code> - Month</li>\n                <li><code>.DD.</code> - Day of month</li>\n                <li><code>.WW.</code> - Week of the year</li>\n                <li><code>.FY.</code> - Fiscal Year</li>\n                <li>\n                    <code>.{fieldname}.</code> - fieldname on the document e.g.\n                    <code>branch</code>\n                </li>\n                <li>\n                    <code>.M3.</code> - Month as Word(With first 3 letters) \n                </li>\n            </ul>\n        </li>\n    </ul>\n    Examples:\n    <ul>\n        <li>INV-</li>\n        <li>INV-10-</li>\n        <li>INVK-</li>\n        <li>INV-.YYYY.-.{branch}.-.MM.-.####</li>\n    </ul>\n</div>\n<br>\n"
+   "options": "<div class=\"well\">\n    Edit list of Series in the box. Rules:\n    <ul>\n        <li>Each Series Prefix on a new line.</li>\n        <li>Allowed special characters are \"/\" and \"-\"</li>\n        <li>\n            Optionally, set the number of digits in the series using dot (.)\n            followed by hashes (#). For example, \".####\" means that the series\n            will have four digits. Default is five digits.\n        </li>\n        <li>\n            You can also use variables in the series name by putting them\n            between (.) dots\n            <br>\n            Supported Variables:\n            <ul>\n                <li><code>.YYYY.</code> - Year in 4 digits</li>\n                <li><code>.YY.</code> - Year in 2 digits</li>\n                <li><code>.MM.</code> - Month</li>\n                <li><code>.DD.</code> - Day of month</li>\n                <li><code>.WW.</code> - Week of the year</li>\n                <li><code>.FY.</code> - Fiscal Year</li>\n                <li>\n                    <code>.{fieldname}.</code> - fieldname on the document e.g.\n                    <code>branch</code>\n                </li>\n                <li>\n                    <code>.Month.</code> - Month as Word(With first 3 letters) \n                </li>\n            </ul>\n        </li>\n    </ul>\n    Examples:\n    <ul>\n        <li>INV-</li>\n        <li>INV-10-</li>\n        <li>INVK-</li>\n        <li>INV-.YYYY.-.{branch}.-.MM.-.####</li>\n    </ul>\n</div>\n<br>\n"
   },
   {
    "default": "0",
@@ -111,7 +111,7 @@
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2023-05-06 17:27:14.406592",
+ "modified": "2023-05-29 19:49:55.475906",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",
