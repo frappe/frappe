@@ -730,18 +730,30 @@ class DatabaseQuery:
 				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
-			if f.operator.lower() in ("descendants of", "not descendants of"):
-				result = frappe.get_all(
-					ref_doctype, filters={"lft": [">", lft], "rgt": ["<", rgt]}, order_by="`lft` ASC"
+			if f.operator.lower() in (
+				"descendants of",
+				"not descendants of",
+				"descendants of (inclusive)",
+			):
+				nodes = frappe.get_all(
+					ref_doctype,
+					filters={"lft": [">", lft], "rgt": ["<", rgt]},
+					order_by="`lft` ASC",
+					pluck="name",
 				)
+				if f.operator.lower() == "descendants of (inclusive)":
+					nodes += [f.value]
 			else:
 				# Get ancestor elements of a DocType with a tree structure
-				result = frappe.get_all(
-					ref_doctype, filters={"lft": ["<", lft], "rgt": [">", rgt]}, order_by="`lft` DESC"
+				nodes = frappe.get_all(
+					ref_doctype,
+					filters={"lft": ["<", lft], "rgt": [">", rgt]},
+					order_by="`lft` DESC",
+					pluck="name",
 				)
 
 			fallback = "''"
-			value = [frappe.db.escape((cstr(v.name) or "").strip(), percent=False) for v in result]
+			value = [frappe.db.escape((cstr(v)).strip(), percent=False) for v in nodes]
 			if len(value):
 				value = f"({', '.join(value)})"
 			else:
