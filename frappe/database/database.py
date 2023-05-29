@@ -617,10 +617,10 @@ class Database:
 						return []
 
 			if as_dict:
-				return values and [values] or []
+				return [values] if values else []
 
 			if isinstance(fields, list):
-				return [map(values.get, fields)]
+				return [list(map(values.get, fields))]
 
 		else:
 			r = frappe.qb.get_query(
