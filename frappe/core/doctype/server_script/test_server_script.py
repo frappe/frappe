@@ -315,5 +315,6 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.assertEqual(cron_job.next_execution.month, 1)
 
 		cron_script.cron_format = "0 0 2 1 *"  # 2nd january
+		cron_script.save()
 		cron_job.reload()
 		self.assertEqual(cron_job.next_execution.day, 2)
