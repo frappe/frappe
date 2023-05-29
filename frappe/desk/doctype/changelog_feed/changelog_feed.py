@@ -1,6 +1,10 @@
 # Copyright (c) 2023, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from json import loads
+
+import requests
+
 import frappe
 from frappe.hooks import app_title
 from frappe.model.document import Document
@@ -11,20 +15,17 @@ class ChangelogFeed(Document):
 
 
 def get_feed(latest_date):
-	return [
-		{
-			"title": "Spid",
-			"creation": "2023-04-03 16:56:51.436456",
-			"app_name": app_title,
-			"link": "https://frappe.io/wiki",
-		},
-		{
-			"title": "Stable something something",
-			"creation": "2023-05-03 16:56:51.436456",
-			"app_name": "HRMS",
-			"link": "https://frappe.io/blog",
-		},
-	]
+	source_site = "https://frappe.io"
+
+	r = requests.get(f"{source_site}/api/method/fetch_fw_changelog")
+	response = loads(r.content)
+
+	changelog_posts = response["changelog_posts"]
+	for post in changelog_posts:
+		post["link"] = f"{source_site}/{post['route']}"
+		post["app_name"] = app_title
+
+	return changelog_posts
 
 
 def fetch_changelog_feed_items_from_source():
