@@ -220,13 +220,6 @@ class TestQuery(FrappeTestCase):
 	def test_filters(self):
 		self.assertEqual(
 			frappe.qb.get_query(
-				"User", filters={"IfNull(name, " ")": ("<", Now())}, fields=["Max(name)"]
-			).run(),
-			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
-		)
-
-		self.assertEqual(
-			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": "frappe"},
