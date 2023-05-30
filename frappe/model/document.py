@@ -12,7 +12,7 @@ from frappe import _, is_whitelisted, msgprint
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
-from frappe.model import optional_fields, table_fields
+from frappe.model import core_doctypes_list, optional_fields, table_fields
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
@@ -182,6 +182,21 @@ class Document(BaseDocument):
 				)
 				or []
 			)
+
+			if self.doctype not in core_doctypes_list:
+				for ch_df in frappe.get_meta(df.options).get_table_fields():
+					for ch in children:
+						ch[ch_df.fieldname] = (
+							frappe.db.get_values(
+								ch_df.options,
+								{"parent": ch.name, "parenttype": ch_df.parent, "parentfield": ch_df.fieldname},
+								"*",
+								as_dict=True,
+								order_by="idx asc",
+								for_update=self.flags.for_update,
+							)
+							or []
+						)
 
 			self.set(df.fieldname, children)
 
