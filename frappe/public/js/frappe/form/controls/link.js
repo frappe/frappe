@@ -391,7 +391,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("awesomplete-selectcomplete", function (e) {
 			let o = e.originalEvent;
-			if (o.text.value.indexOf("__link_option") !== -1) {
+			if (String(o.text.value).indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
 		});
