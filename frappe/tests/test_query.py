@@ -251,6 +251,17 @@ class TestQuery(FrappeTestCase):
 			),
 		)
 
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Invalid filter",
+			lambda: frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"permissions.role": "System Manager"},
+				validate_filters=True,
+			),
+		)
+
 		self.assertEqual(
 			frappe.qb.get_query(
 				"DocType",
