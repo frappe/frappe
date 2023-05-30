@@ -3,6 +3,7 @@
 import requests
 
 import frappe
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_site_url
@@ -283,3 +284,37 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script1.delete()
 		script2.delete()
 		frappe.db.commit()
+
+	def test_server_script_scheduled(self):
+		scheduled_script = frappe.get_doc(
+			doctype="Server Script",
+			name="scheduled_script_wo_cron",
+			script_type="Scheduler Event",
+			script="""frappe.flags = {"test": True}""",
+			event_frequency="Hourly",
+		).insert()
+
+		cron_script = frappe.get_doc(
+			doctype="Server Script",
+			name="scheduled_script_w_cron",
+			script_type="Scheduler Event",
+			script="""frappe.flags = {"test": True}""",
+			event_frequency="Cron",
+			cron_format="0 0 1 1 *",  # 1st january
+		).insert()
+
+		# Ensure that jobs remain in DB after migrate
+		sync_jobs()
+		self.assertTrue(frappe.db.exists("Scheduled Job Type", {"server_script": scheduled_script.name}))
+
+		cron_job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
+		self.assertTrue(cron_job_name)
+
+		cron_job = frappe.get_doc("Scheduled Job Type", cron_job_name)
+		self.assertEqual(cron_job.next_execution.day, 1)
+		self.assertEqual(cron_job.next_execution.month, 1)
+
+		cron_script.cron_format = "0 0 2 1 *"  # 2nd january
+		cron_script.save()
+		cron_job.reload()
+		self.assertEqual(cron_job.next_execution.day, 2)
