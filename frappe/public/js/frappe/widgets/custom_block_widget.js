@@ -27,44 +27,12 @@ export default class CustomBlockWidget extends Widget {
 		await this.get_custom_block_data();
 		this.body.empty();
 
-		this.random_id = "custom-block-" + frappe.utils.get_random(5).toLowerCase();
-
-		let me = this;
-
-		class CustomBlock extends HTMLElement {
-			constructor() {
-				super();
-
-				// html
-				let div = document.createElement("div");
-				div.innerHTML = frappe.dom.remove_script_and_style(me.custom_block_doc.html);
-
-				// css
-				let style = document.createElement("style");
-				style.textContent = me.custom_block_doc.style;
-
-				// js
-				let script = document.createElement("script");
-				script.textContent = `
-					(function() {
-						let cname = ${JSON.stringify(me.random_id)};
-						let root_element = document.querySelector(cname).shadowRoot;
-						${me.custom_block_doc.script}
-					})();
-				`;
-
-				this.attachShadow({ mode: "open" });
-				this.shadowRoot?.appendChild(div);
-				this.shadowRoot?.appendChild(style);
-				this.shadowRoot?.appendChild(script);
-			}
-		}
-
-		if (!customElements.get(this.random_id)) {
-			customElements.define(this.random_id, CustomBlock);
-		}
-
-		this.body.append(`<${this.random_id}></${this.random_id}>`);
+		frappe.create_shadow_element(
+			this.body[0],
+			this.custom_block_doc.html,
+			this.custom_block_doc.style,
+			this.custom_block_doc.script
+		);
 	}
 
 	async get_custom_block_data() {

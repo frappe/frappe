@@ -1991,7 +1991,8 @@ frappe.ui.form.Form = class FrappeForm {
 		return new Promise((resolve) => {
 			frappe.model.with_doctype(reference_doctype, () => {
 				frappe.get_meta(reference_doctype).fields.map((df) => {
-					filter_function(df) && options.push({ label: df.label, value: df.fieldname });
+					filter_function(df) &&
+						options.push({ label: df.label || df.fieldname, value: df.fieldname });
 				});
 				options &&
 					this.set_df_property(

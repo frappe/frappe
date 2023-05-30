@@ -83,7 +83,7 @@ frappe.ui.form.FormTour = class FormTour {
 			if (step.fieldtype == "Attach Image") this.handle_attach_image_steps(step);
 		});
 
-		if (this.tour.save_on_complete) {
+		if (this.tour.save_on_complete && this.frm.is_dirty()) {
 			this.add_step_to_save();
 		}
 	}
@@ -261,10 +261,10 @@ frappe.ui.form.FormTour = class FormTour {
 			allowClose: false,
 			overlayClickNext: false,
 			popover: {
-				title: __("Save"),
+				title: __("Save the document."),
 				description: "",
 				position: "left",
-				doneBtnText: __("Save"),
+				showButtons: false,
 			},
 			onNext: () => {
 				this.frm.save();

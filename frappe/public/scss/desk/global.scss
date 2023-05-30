@@ -249,6 +249,26 @@ h2 {
 	}
 }
 
+.select-group-btn {
+	.dropdown-toggle-split::after {
+		display: none;
+	}
+
+	.dropdown-item {
+		.tick-icon {
+			visibility: hidden;
+
+			&.selected {
+				visibility: visible;
+			}
+		}
+
+		.item-label {
+			font-weight: 500;
+		}
+	}
+}
+
 .btn-xs {
 	@extend .btn-sm;
 	line-height: 1.2;
