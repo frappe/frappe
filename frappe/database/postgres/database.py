@@ -394,6 +394,21 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			as_dict=1,
 		)
 
+	def get_column_type(self, doctype, column):
+		"""Returns column type from database."""
+		information_schema = frappe.qb.Schema("information_schema")
+		table = get_table_name(doctype)
+
+		return (
+			frappe.qb.from_(information_schema.columns)
+			.select(information_schema.columns.data_type)
+			.where(
+				(information_schema.columns.table_name == table)
+				& (information_schema.columns.column_name == column)
+			)
+			.run(pluck=True)[0]
+		)
+
 	def get_database_list(self):
 		return self.sql("SELECT datname FROM pg_database", pluck=True)
 

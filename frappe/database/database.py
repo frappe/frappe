@@ -617,10 +617,10 @@ class Database:
 						return []
 
 			if as_dict:
-				return values and [values] or []
+				return [values] if values else []
 
 			if isinstance(fields, list):
-				return [map(values.get, fields)]
+				return [list(map(values.get, fields))]
 
 		else:
 			r = frappe.qb.get_query(
@@ -1118,21 +1118,6 @@ class Database:
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
 		return column in self.get_table_columns(doctype)
-
-	def get_column_type(self, doctype, column):
-		"""Returns column type from database."""
-		information_schema = frappe.qb.Schema("information_schema")
-		table = get_table_name(doctype)
-
-		return (
-			frappe.qb.from_(information_schema.columns)
-			.select(information_schema.columns.column_type)
-			.where(
-				(information_schema.columns.table_name == table)
-				& (information_schema.columns.column_name == column)
-			)
-			.run(pluck=True)[0]
-		)
 
 	def has_index(self, table_name, index_name):
 		raise NotImplementedError

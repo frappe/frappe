@@ -282,19 +282,8 @@ def get_context(context):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
 
-			if recipient.cc and "{" in recipient.cc:
-				recipient.cc = frappe.render_template(recipient.cc, context)
-
-			if recipient.cc:
-				recipient.cc = recipient.cc.replace(",", "\n")
-				cc = cc + recipient.cc.split("\n")
-
-			if recipient.bcc and "{" in recipient.bcc:
-				recipient.bcc = frappe.render_template(recipient.bcc, context)
-
-			if recipient.bcc:
-				recipient.bcc = recipient.bcc.replace(",", "\n")
-				bcc = bcc + recipient.bcc.split("\n")
+			cc.extend(get_emails_from_template(recipient.cc, context))
+			bcc.extend(get_emails_from_template(recipient.bcc, context))
 
 			# For sending emails to specified role
 			if recipient.receiver_by_role:
@@ -485,3 +474,11 @@ def get_assignees(doc):
 	recipients = [d.allocated_to for d in assignees]
 
 	return recipients
+
+
+def get_emails_from_template(template, context):
+	if not template:
+		return ()
+
+	emails = frappe.render_template(template, context) if "{" in template else template
+	return filter(None, emails.replace(",", "\n").split("\n"))

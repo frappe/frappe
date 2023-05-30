@@ -24,7 +24,7 @@ export default {
 		},
 		{
 			divisor: 1.0e5,
-			symbol: __("Lakh", null, "Number system"),
+			symbol: __("L", null, "Number system"),
 		},
 		{
 			divisor: 1.0e3,

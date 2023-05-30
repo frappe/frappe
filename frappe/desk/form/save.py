@@ -9,12 +9,14 @@ from frappe.desk.form.load import run_onload
 from frappe.model.docstatus import DocStatus
 from frappe.monitor import add_data_to_monitor
 from frappe.utils.scheduler import is_scheduler_inactive
+from frappe.utils.telemetry import capture_doc
 
 
 @frappe.whitelist()
 def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
+	capture_doc(doc)
 	set_local_name(doc)
 
 	# action
