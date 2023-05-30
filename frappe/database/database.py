@@ -827,6 +827,7 @@ class Database:
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
+			validate_filters=True,
 		)
 		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
 			as_dict = True
@@ -855,6 +856,7 @@ class Database:
 				order_by=order_by,
 				distinct=distinct,
 				limit=limit,
+				validate_filters=True,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
@@ -915,7 +917,12 @@ class Database:
 			frappe.clear_document_cache(dt, dt)
 
 		else:
-			query = frappe.qb.get_query(table=dt, filters=dn, update=True)
+			query = frappe.qb.get_query(
+				table=dt,
+				filters=dn,
+				update=True,
+				validate_filters=True,
+			)
 
 			if isinstance(dn, str):
 				frappe.clear_document_cache(dt, dn)
@@ -1109,9 +1116,13 @@ class Database:
 			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
-		count = frappe.qb.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct).run(
-			debug=debug
-		)[0][0]
+		count = frappe.qb.get_query(
+			table=dt,
+			filters=filters,
+			fields=Count("*"),
+			distinct=distinct,
+			validate_filters=True,
+		).run(debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
@@ -1246,7 +1257,12 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = frappe.qb.get_query(table=doctype, filters=filters, delete=True)
+		query = frappe.qb.get_query(
+			table=doctype,
+			filters=filters,
+			delete=True,
+			validate_filters=True,
+		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 		return query.run(**kwargs)
