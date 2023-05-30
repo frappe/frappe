@@ -715,6 +715,11 @@ class CustomBlockDialog extends WidgetDialog {
 				label: "Custom Block Name",
 				options: "Custom HTML Block",
 				reqd: 1,
+				get_query: () => {
+					return {
+						query: "frappe.desk.doctype.custom_html_block.custom_html_block.get_custom_blocks_for_user",
+					};
+				},
 			},
 		];
 	}
