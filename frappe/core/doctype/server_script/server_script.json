@@ -9,6 +9,7 @@
   "script_type",
   "reference_doctype",
   "event_frequency",
+  "cron_format",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -95,13 +96,19 @@
    "fieldtype": "Select",
    "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
-   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long\nCron"
   },
   {
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
+  },
+  {
+   "depends_on": "eval:doc.event_frequency==='Cron'",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format"
   }
  ],
  "index_web_pages_for_search": 1,
