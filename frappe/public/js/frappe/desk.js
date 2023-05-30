@@ -82,11 +82,7 @@ frappe.Application = class Application {
 				frappe.boot.onboarding_tours.findIndex((tour) => {
 					frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true;
 				}) == -1;
-			if (
-				document.documentElement.clientWidth >= 992 &&
-				pending_tours &&
-				frappe.boot.onboarding_tours.length > 0
-			) {
+			if (pending_tours && frappe.boot.onboarding_tours.length > 0) {
 				frappe.require("onboarding_tours.bundle.js", () => {
 					frappe.utils.sleep(1000).then(() => {
 						frappe.ui.init_onboarding_tour();

@@ -346,7 +346,7 @@ frappe.ui.init_onboarding_tour = () => {
 };
 // As of now Tours are only for desktop as it is annoying on mobile.
 // Also lot of elements are hidden on mobile so until we find a better way to do it.
-document.documentElement.clientWidth >= 992 &&
+window.matchMedia("(min-device-width: 992px)").matches &&
 	frappe.router.on("change", () => {
 		frappe.ui.init_onboarding_tour();
 	});
