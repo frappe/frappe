@@ -87,7 +87,8 @@
   "api_key",
   "generate_keys",
   "column_break_65",
-  "api_secret"
+  "api_secret",
+  "onboarding_status"
  ],
  "fields": [
   {
@@ -660,6 +661,13 @@
    "fieldname": "follow_assigned_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that are assigned to you"
+  },
+  {
+   "default": "{}",
+   "fieldname": "onboarding_status",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Onboarding Status"
   }
  ],
  "icon": "fa fa-user",
@@ -722,7 +730,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2022-09-19 16:05:46.485242",
+ "modified": "2023-05-24 15:20:06.434506",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

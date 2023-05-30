@@ -123,7 +123,7 @@ frappe.ui.form.Control = class BaseControl {
 			status === "Read" &&
 			!this.only_input &&
 			is_null(value) &&
-			!in_list(["HTML", "Image", "Button"], this.df.fieldtype)
+			!in_list(["HTML", "Image", "Button", "Geolocation"], this.df.fieldtype)
 		) {
 			// eslint-disable-next-line
 			if (explain) console.log("By Hide Read-only, null fields: None"); // eslint-disable-line no-console

@@ -359,6 +359,50 @@ frappe.is_online = function () {
 	return true;
 };
 
+frappe.create_shadow_element = function (wrapper, html, css, js) {
+	let random_id = "custom-block-" + frappe.utils.get_random(5).toLowerCase();
+
+	class CustomBlock extends HTMLElement {
+		constructor() {
+			super();
+
+			// html
+			let div = document.createElement("div");
+			div.innerHTML = frappe.dom.remove_script_and_style(html);
+
+			// link global desk css
+			let link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.href = frappe.assets.bundled_asset("desk.bundle.css");
+
+			// css
+			let style = document.createElement("style");
+			style.textContent = css;
+
+			// javascript
+			let script = document.createElement("script");
+			script.textContent = `
+				(function() {
+					let cname = ${JSON.stringify(random_id)};
+					let root_element = document.querySelector(cname).shadowRoot;
+					${js}
+				})();
+			`;
+
+			this.attachShadow({ mode: "open" });
+			this.shadowRoot?.appendChild(link);
+			this.shadowRoot?.appendChild(div);
+			this.shadowRoot?.appendChild(style);
+			this.shadowRoot?.appendChild(script);
+		}
+	}
+
+	if (!customElements.get(random_id)) {
+		customElements.define(random_id, CustomBlock);
+	}
+	wrapper.innerHTML = `<${random_id}></${random_id}>`;
+};
+
 // bind online/offline events
 $(window).on("online", function () {
 	frappe.show_alert({

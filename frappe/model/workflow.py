@@ -102,6 +102,7 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 def apply_workflow(doc, action):
 	"""Allow workflow action on the current doc"""
 	doc = frappe.get_doc(frappe.parse_json(doc))
+	doc.load_from_db()
 	workflow = get_workflow(doc.doctype)
 	transitions = get_transitions(doc, workflow)
 	user = frappe.session.user
