@@ -248,6 +248,10 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 };
 
 frappe.ui.init_onboarding_tour = () => {
+	// As of now Tours are only for desktop as it is annoying on mobile.
+	// Also lot of elements are hidden on mobile so until we find a better way to do it.
+	if (!window.matchMedia("(min-device-width: 992px)").matches) return;
+
 	typeof frappe.boot.onboarding_tours == "undefined" && frappe.boot.onboarding_tours == [];
 	typeof frappe.boot.user.onboarding_status == "undefined" &&
 		frappe.boot.user.onboarding_status == {};
@@ -337,9 +341,7 @@ frappe.ui.init_onboarding_tour = () => {
 		}
 	}, 100);
 };
-// As of now Tours are only for desktop as it is annoying on mobile.
-// Also lot of elements are hidden on mobile so until we find a better way to do it.
-window.matchMedia("(min-device-width: 992px)").matches &&
-	frappe.router.on("change", () => {
-		frappe.ui.init_onboarding_tour();
-	});
+
+frappe.router.on("change", () => {
+	frappe.ui.init_onboarding_tour();
+});
