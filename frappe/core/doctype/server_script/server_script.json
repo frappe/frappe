@@ -103,41 +103,12 @@
    "fieldtype": "Link",
    "label": "Module (for export)",
    "options": "Module Def"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "depends_on": "eval:doc.script_type==='API'",
-   "fieldname": "rate_limiting_section",
-   "fieldtype": "Section Break",
-   "label": "Rate Limiting"
-  },
-  {
-   "default": "0",
-   "fieldname": "enable_rate_limit",
-   "fieldtype": "Check",
-   "label": "Enable Rate Limit"
-  },
-  {
-   "default": "5",
-   "depends_on": "enable_rate_limit",
-   "fieldname": "rate_limit_count",
-   "fieldtype": "Int",
-   "label": "Request Limit"
-  },
-  {
-   "default": "86400",
-   "depends_on": "enable_rate_limit",
-   "fieldname": "rate_limit_seconds",
-   "fieldtype": "Int",
-   "label": "Time Window (Seconds)"
   },
   {
    "depends_on": "eval:doc.event_frequency==='Cron'",
    "fieldname": "cron_format",
    "fieldtype": "Data",
    "label": "Cron Format"
->>>>>>> b00aac92ba (feat: Allow setting cron as Server Script frequency)
   }
  ],
  "index_web_pages_for_search": 1,
@@ -147,11 +118,7 @@
    "link_fieldname": "server_script"
   }
  ],
-<<<<<<< HEAD
  "modified": "2022-06-13 06:04:20.937969",
-=======
- "modified": "2023-05-27 16:33:16.595424",
->>>>>>> b00aac92ba (feat: Allow setting cron as Server Script frequency)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
