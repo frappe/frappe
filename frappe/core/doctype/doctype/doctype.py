@@ -1508,8 +1508,15 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		roles = [p.role for p in doc.get("permissions") or []] + default_roles
 
 		for role in list(set(roles)):
+<<<<<<< HEAD
 			if not frappe.db.exists("Role", role):
 				r = frappe.get_doc(dict(doctype="Role", role_name=role, desk_access=1))
+=======
+			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
+				r = frappe.new_doc("Role")
+				r.role_name = role
+				r.desk_access = 1
+>>>>>>> 66eb377492 (fix(role): Set desk properties (e.g. search_bar) to 1 for roles with desk access (#21162))
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
 	except frappe.DoesNotExistError as e:
