@@ -77,6 +77,10 @@ class MariaDBExceptionUtil:
 		return e.args[0] == ER.DATA_TOO_LONG
 
 	@staticmethod
+	def is_db_table_size_limit(e: pymysql.Error) -> bool:
+		return e.args[0] == ER.TOO_BIG_ROWSIZE
+
+	@staticmethod
 	def is_primary_key_violation(e: pymysql.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
