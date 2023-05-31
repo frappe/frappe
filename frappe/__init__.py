@@ -1049,18 +1049,26 @@ def reset_metadata_version():
 
 def new_doc(
 	doctype: str,
+	*,
 	parent_doc: Optional["Document"] = None,
 	parentfield: str | None = None,
 	as_dict: bool = False,
+	**kwargs,
 ) -> "Document":
 	"""Returns a new document of the given DocType with defaults set.
 
 	:param doctype: DocType of the new document.
 	:param parent_doc: [optional] add to parent document.
-	:param parentfield: [optional] add against this `parentfield`."""
+	:param parentfield: [optional] add against this `parentfield`.
+	:param as_dict: [optional] return as dictionary instead of Document.
+	:param kwargs: [optional] You can specify fields as field=value pairs in function call.
+	"""
+
 	from frappe.model.create_new import get_new_doc
 
-	return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+	new_doc = get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+
+	return new_doc.update(kwargs)
 
 
 def set_value(doctype, docname, fieldname, value=None):
