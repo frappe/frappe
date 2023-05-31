@@ -33,7 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, random_string
+from frappe.utils import cint, flt, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -1751,3 +1751,14 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
+
+
+@frappe.whitelist()
+def get_row_size_utilization(doctype: str) -> float:
+	"""Get row size utilization in percentage"""
+
+	frappe.has_permission("DocType", throw=True)
+	try:
+		return flt(frappe.db.get_row_size(doctype) / frappe.db.MAX_ROW_SIZE_LIMIT * 100, 2)
+	except Exception:
+		return 0.0

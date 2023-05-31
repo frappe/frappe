@@ -1283,6 +1283,10 @@ class Database:
 
 		return get_next_val(*args, **kwargs)
 
+	def get_row_size(self, doctype: str) -> int:
+		"""Get estimated max row size of any table in bytes."""
+		raise NotImplementedError
+
 
 def enqueue_jobs_after_commit():
 	from frappe.utils.background_jobs import (
