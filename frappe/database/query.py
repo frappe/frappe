@@ -50,6 +50,7 @@ class Engine:
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
+		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):
 			self.table = table
@@ -58,8 +59,6 @@ class Engine:
 			self.doctype = table
 			self.validate_doctype()
 			self.table = frappe.qb.DocType(table)
-
-		self.validate_filters = validate_filters
 
 		if update:
 			self.query = frappe.qb.update(self.table)
