@@ -44,7 +44,7 @@ def execute():
 			if field:
 				field.update(cf)
 			else:
-				df = frappe.new_doc("DocField", meta, "fields")
+				df = frappe.new_doc("DocField", parent_doc=meta, parentfield="fields")
 				df.update(cf)
 				meta.fields.append(df)
 			frappe.db.delete("Custom Field", {"name": cf.name})
