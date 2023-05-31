@@ -47,7 +47,7 @@
    "default": "1",
    "fieldname": "repeat_header_footer",
    "fieldtype": "Check",
-   "label": "Repeat Header and Footer in PDF"
+   "label": "Repeat Header and Footer"
   },
   {
    "fieldname": "column_break_4",
@@ -176,7 +176,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-09-17 12:59:14.783694",
+ "modified": "2023-05-30 14:55:25.740691",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
@@ -193,5 +193,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
