@@ -4,7 +4,6 @@
 import datetime
 import itertools
 import json
-import logging
 import random
 import re
 import string
@@ -107,7 +106,7 @@ class Database:
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
-		self.logger.setLevel("INFO")
+		self.logger.setLevel("WARNING")
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -316,7 +315,7 @@ class Database:
 			unmogrified_query, ("alter", "drop", "select", "create", "truncate", "rename")
 		):
 			_query = _query or str(mogrified_query)
-			self.logger.info("DDL Query made:\n" + _query)
+			self.logger.warning("DDL Query made to DB:\n" + _query)
 
 		if frappe.flags.in_migrate:
 			_query = _query or str(mogrified_query)
