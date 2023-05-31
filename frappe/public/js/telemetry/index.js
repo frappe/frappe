@@ -32,9 +32,9 @@ class TelemetryManager {
 		}
 	}
 
-	capture(event, app) {
+	capture(event, app, props) {
 		if (!this.enabled) return;
-		posthog.capture(`${app}_${event}`);
+		posthog.capture(`${app}_${event}`, props);
 	}
 
 	disable() {
@@ -49,7 +49,7 @@ class TelemetryManager {
 
 		if (!last || moment(now).diff(moment(last), "hours") > 12) {
 			localStorage.setItem(KEY, now.toISOString());
-			this.capture("heartbeat", "frappe");
+			this.capture("heartbeat", "frappe", { frappe_version: frappe.boot?.versions?.frappe });
 		}
 	}
 
