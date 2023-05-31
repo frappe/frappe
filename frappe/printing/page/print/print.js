@@ -90,8 +90,16 @@ frappe.ui.form.PrintView = class {
 		this.print_sel = this.add_sidebar_item({
 			fieldtype: "Select",
 			fieldname: "print_format",
+<<<<<<< HEAD
 			label: "Print Format",
 			options: [this.get_default_option_for_select(__("Select Print Format"))],
+=======
+			options: "Print Format",
+			label: __("Print Format"),
+			get_query: () => {
+				return { filters: { doc_type: this.frm.doctype } };
+			},
+>>>>>>> a13592a66a (fix: Warn users if "Repeat Header and Footer" is disabled)
 			change: () => this.refresh_print_format(),
 			default: __("Select Print Format"),
 		}).$input;
@@ -99,18 +107,24 @@ frappe.ui.form.PrintView = class {
 		this.language_sel = this.add_sidebar_item({
 			fieldtype: "Select",
 			fieldname: "language",
+<<<<<<< HEAD
 			placeholder: "Language",
 			options: [
 				this.get_default_option_for_select(__("Select Language")),
 				...this.get_language_options(),
 			],
 			default: __("Select Language"),
+=======
+			label: __("Language"),
+			options: "Language",
+>>>>>>> a13592a66a (fix: Warn users if "Repeat Header and Footer" is disabled)
 			change: () => {
 				this.set_user_lang();
 				this.preview();
 			},
 		}).$input;
 
+<<<<<<< HEAD
 		this.letterhead_selector_df = this.add_sidebar_item({
 			fieldtype: "Autocomplete",
 			fieldname: "letterhead",
@@ -123,6 +137,30 @@ frappe.ui.form.PrintView = class {
 				: __("Select Letterhead"),
 		});
 		this.letterhead_selector = this.letterhead_selector_df.$input;
+=======
+		let description = "";
+		if (!cint(this.print_settings.repeat_header_footer)) {
+			description =
+				"<div class='form-message yellow p-3 mt-3'>" +
+				__("Footer might not be visible as {0} option is disabled</div>", [
+					`<a href="/app/print-settings/Print Settings#repeat_header_footer">${__(
+						"Repeat Header and Footer"
+					)}</a>`,
+				]);
+		}
+		const print_view = this;
+		this.letterhead_selector = this.add_sidebar_item({
+			fieldtype: "Link",
+			fieldname: "letterhead",
+			options: "Letter Head",
+			label: __("Letter Head"),
+			description: description,
+			change: function () {
+				this.set_description(this.get_value() ? description : "");
+				print_view.preview();
+			},
+		}).$input;
+>>>>>>> a13592a66a (fix: Warn users if "Repeat Header and Footer" is disabled)
 		this.sidebar_dynamic_section = $(`<div class="dynamic-settings"></div>`).appendTo(
 			this.sidebar
 		);
