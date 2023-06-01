@@ -429,7 +429,7 @@ class BaseDocument(object):
 					return
 
 				frappe.msgprint(
-					_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)),
+					_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
 					title=_("Duplicate Name"),
 					indicator="red",
 				)
