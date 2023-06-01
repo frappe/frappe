@@ -58,8 +58,16 @@ def fetch_changelog_feed_items_from_source():
 @frappe.whitelist()
 def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
+
 	changelog_feed_items = frappe.cache().get_value("changelog_feed")
 	if not changelog_feed_items or frappe.conf.developer_mode:
+		latest_changelogs = frappe.get_list("Changelog Feed", limit=1, fields=["creation"])
+		if (
+			not latest_changelogs
+			or frappe.utils.time_diff_in_seconds(frappe.utils.now_datetime(), latest_changelogs[0].creation)
+			> 60
+		):
+			fetch_changelog_feed_items_from_source()
 
 		changelog_feed_items = frappe.get_list(
 			"Changelog Feed",
