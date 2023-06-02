@@ -315,7 +315,7 @@ class Database:
 			frappe.log(f"<<<< query\n{_query}\n>>>>")
 
 		if unmogrified_query and is_query_type(
-			unmogrified_query, ("alter", "drop", "select", "create", "truncate", "rename")
+			unmogrified_query, ("alter", "drop", "create", "truncate", "rename")
 		):
 			_query = _query or str(mogrified_query)
 			self.logger.info("DDL Query made:\n" + _query)
