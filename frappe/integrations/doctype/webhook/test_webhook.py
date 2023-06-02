@@ -206,3 +206,59 @@ class TestWebhook(FrappeTestCase):
 			enqueue_webhook(doc, wh)
 			log = frappe.get_last_doc("Webhook Request Log")
 			self.assertEqual(len(json.loads(log.response)["json"]), 3)
+
+	def test_webhook_with_dynamic_url_enabled(self):
+		wh_config = {
+			"doctype": "Webhook",
+			"webhook_doctype": "Note",
+			"webhook_docevent": "after_insert",
+			"enabled": 1,
+			"request_url": "https://httpbin.org/anything/{{ doc.doctype }}",
+			"is_dynamic_url": 1,
+			"request_method": "POST",
+			"request_structure": "JSON",
+			"webhook_json": "{}",
+			"meets_condition": "Yes",
+			"webhook_headers": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+				}
+			],
+		}
+
+		with get_test_webhook(wh_config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Test Webhook Note"
+			enqueue_webhook(doc, wh)
+			log = frappe.get_last_doc("Webhook Request Log")
+			self.assertEqual(json.loads(log.response)["url"], "https://httpbin.org/anything/Note")
+
+	def test_webhook_with_dynamic_url_disabled(self):
+		wh_config = {
+			"doctype": "Webhook",
+			"webhook_doctype": "Note",
+			"webhook_docevent": "after_insert",
+			"enabled": 1,
+			"request_url": "https://httpbin.org/anything/{{doc.doctype}}",
+			"is_dynamic_url": 0,
+			"request_method": "POST",
+			"request_structure": "JSON",
+			"webhook_json": "{}",
+			"meets_condition": "Yes",
+			"webhook_headers": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+				}
+			],
+		}
+
+		with get_test_webhook(wh_config) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Test Webhook Note"
+			enqueue_webhook(doc, wh)
+			log = frappe.get_last_doc("Webhook Request Log")
+			self.assertEqual(
+				json.loads(log.response)["url"], "https://httpbin.org/anything/{{doc.doctype}}"
+			)
