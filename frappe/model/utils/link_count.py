@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from collections import defaultdict
+
 import frappe
 
 ignore_doctypes = ("DocType", "Print Format", "Role", "Module Def", "Communication", "ToDo")
@@ -8,32 +10,29 @@ ignore_doctypes = ("DocType", "Print Format", "Role", "Module Def", "Communicati
 
 def notify_link_count(doctype, name):
 	"""updates link count for given document"""
-	if hasattr(frappe.local, "link_count"):
-		if (doctype, name) in frappe.local.link_count:
-			frappe.local.link_count[(doctype, name)] += 1
-		else:
-			frappe.local.link_count[(doctype, name)] = 1
+	if not hasattr(frappe.local, "_link_count"):
+		frappe.local._link_count = defaultdict(int)
+		frappe.db.after_commit.add(flush_local_link_count)
 
-	frappe.db.after_commit.add(flush_local_link_count)
+	frappe.local._link_count[(doctype, name)] += 1
 
 
 def flush_local_link_count():
 	"""flush from local before ending request"""
-	if not getattr(frappe.local, "link_count", None):
+	new_links = getattr(frappe.local, "_link_count", None)
+	if not new_links:
 		return
 
-	link_count = frappe.cache().get_value("_link_count")
-	if not link_count:
-		link_count = {}
+	link_count = frappe.cache().get_value("_link_count") or {}
 
-		for key, value in frappe.local.link_count.items():
-			if key in link_count:
-				link_count[key] += frappe.local.link_count[key]
-			else:
-				link_count[key] = frappe.local.link_count[key]
+	for key, value in new_links.items():
+		if key in link_count:
+			link_count[key] += value
+		else:
+			link_count[key] = value
 
 	frappe.cache().set_value("_link_count", link_count)
-	frappe.local.link_count = {}
+	new_links.clear()
 
 
 def update_link_count():
