@@ -9,6 +9,7 @@ from pypika.queries import QueryBuilder, Table
 import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -44,9 +45,12 @@ class Engine:
 		update: bool = False,
 		into: bool = False,
 		delete: bool = False,
+		*,
+		validate_filters: bool = False,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
+		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):
 			self.table = table
@@ -157,14 +161,16 @@ class Engine:
 		_value = value
 		_operator = operator
 
-		if isinstance(_field, Field):
+		if not isinstance(_field, str):
 			pass
-		elif dynamic_field := DynamicTableField.parse(field, self.doctype):
+		elif not self.validate_filters and (
+			dynamic_field := DynamicTableField.parse(field, self.doctype)
+		):
 			# apply implicit join if link field's field is referenced
 			self.query = dynamic_field.apply_join(self.query)
 			_field = dynamic_field.field
-		elif has_function(field):
-			_field = self.get_function_object(field)
+		elif self.validate_filters and SPECIAL_CHAR_PATTERN.search(_field):
+			frappe.throw(_("Invalid filter: {0}").format(_field))
 		elif not doctype or doctype == self.doctype:
 			_field = self.table[field]
 		elif doctype:
