@@ -593,6 +593,37 @@ class TestDB(FrappeTestCase):
 			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
 		)
 
+	def test_callbacks(self):
+
+		order_of_execution = []
+
+		def f(val):
+			nonlocal order_of_execution
+			order_of_execution.append(val)
+
+		frappe.db.before_commit.add(lambda: f(0))
+		frappe.db.before_commit.add(lambda: f(1))
+
+		frappe.db.after_commit.add(lambda: f(2))
+		frappe.db.after_commit.add(lambda: f(3))
+
+		frappe.db.before_rollback.add(lambda: f("IGNORED"))
+		frappe.db.before_rollback.add(lambda: f("IGNORED"))
+
+		frappe.db.commit()
+
+		frappe.db.after_commit.add(lambda: f("IGNORED"))
+		frappe.db.after_commit.add(lambda: f("IGNORED"))
+
+		frappe.db.before_rollback.add(lambda: f(4))
+		frappe.db.before_rollback.add(lambda: f(5))
+		frappe.db.after_rollback.add(lambda: f(6))
+		frappe.db.after_rollback.add(lambda: f(7))
+
+		frappe.db.rollback()
+
+		self.assertEqual(order_of_execution, list(range(0, 8)))
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(FrappeTestCase):
