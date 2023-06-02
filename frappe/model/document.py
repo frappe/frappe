@@ -1122,7 +1122,14 @@ class Document(BaseDocument):
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
 	def clear_cache(self):
+		# TODO: Remove this call after verifying,
+		# after commit call alone should be enough.
 		frappe.clear_document_cache(self.doctype, self.name)
+
+		# There's a possibility that another worker might read data after clearing cache and before
+		# changes are commited to DB, in which case stale doc can be read and stored in DB. So
+		# clear cache after commiting.
+		frappe.db.after_commit.add(lambda: frappe.clear_document_cache(self.doctype, self.name))
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
