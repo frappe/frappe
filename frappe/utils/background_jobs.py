@@ -113,6 +113,7 @@ def enqueue(
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
+
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
@@ -122,32 +123,25 @@ def enqueue(
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
-	if enqueue_after_commit:
-		if not frappe.flags.enqueue_after_commit:
-			frappe.flags.enqueue_after_commit = []
 
-		frappe.flags.enqueue_after_commit.append(
-			{
-				"queue": queue,
-				"is_async": is_async,
-				"timeout": timeout,
-				"queue_args": queue_args,
-				"job_id": job_id,
-			}
+	def enqueue_call():
+		return q.enqueue_call(
+			execute_job,
+			on_success=on_success,
+			on_failure=on_failure,
+			timeout=timeout,
+			kwargs=queue_args,
+			at_front=at_front,
+			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+			job_id=job_id,
 		)
-		return frappe.flags.enqueue_after_commit
 
-	return q.enqueue_call(
-		execute_job,
-		on_success=on_success,
-		on_failure=on_failure,
-		timeout=timeout,
-		kwargs=queue_args,
-		at_front=at_front,
-		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
-		job_id=job_id,
-	)
+	if enqueue_after_commit:
+		frappe.db.after_commit.add(enqueue_call)
+		return
+
+	return enqueue_call()
 
 
 def enqueue_doc(
