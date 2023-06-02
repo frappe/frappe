@@ -332,7 +332,13 @@ class User(Document):
 
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
-		self.send_login_mail(_("Password Reset"), "password_reset", {"link": link}, now=True, custom_template=reset_password_template)
+		self.send_login_mail(
+			_("Password Reset"),
+			"password_reset",
+			{"link": link},
+			now=True,
+			custom_template=reset_password_template,
+		)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
@@ -354,7 +360,7 @@ class User(Document):
 		self.send_login_mail(
 			subject,
 			"new_user",
-			   dict(
+			dict(
 				link=link,
 				site_url=get_url(),
 			),
@@ -386,6 +392,7 @@ class User(Document):
 
 		if custom_template:
 			from frappe.email.doctype.email_template.email_template import get_email_template
+
 			email_template = get_email_template(custom_template, args)
 			subject = email_template.get("subject")
 			content = email_template.get("message")
