@@ -987,7 +987,6 @@ class Database:
 		self.after_commit.run()
 
 		self.flush_realtime_log()
-		flush_local_link_count()
 
 	def rollback(self, *, save_point=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
