@@ -977,9 +977,6 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
-		for method in frappe.local.before_commit:
-			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
-
 		# Invalidated by a commit.
 		self.before_rollback.reset()
 		self.after_rollback.reset()
@@ -1018,9 +1015,6 @@ class Database:
 
 			frappe.local.realtime_log = []
 			frappe.flags.enqueue_after_commit = []
-
-	def add_before_commit(self, method, args=None, kwargs=None):
-		frappe.local.before_commit.append([method, args, kwargs])
 
 	@staticmethod
 	def flush_realtime_log():
