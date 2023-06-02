@@ -988,7 +988,6 @@ class Database:
 		self.after_commit.run()
 
 		self.flush_realtime_log()
-		enqueue_jobs_after_commit()
 		flush_local_link_count()
 
 	def rollback(self, *, save_point=None):
@@ -1007,7 +1006,6 @@ class Database:
 			self.after_rollback.run()
 
 			frappe.local.realtime_log = []
-			frappe.flags.enqueue_after_commit = []
 
 	@staticmethod
 	def flush_realtime_log():
@@ -1348,28 +1346,6 @@ class DBHooks:
 
 	def reset(self):
 		self._functions = deque()
-
-
-def enqueue_jobs_after_commit():
-	from frappe.utils.background_jobs import (
-		RQ_JOB_FAILURE_TTL,
-		RQ_RESULTS_TTL,
-		execute_job,
-		get_queue,
-	)
-
-	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
-		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
-			q.enqueue_call(
-				execute_job,
-				timeout=job.get("timeout"),
-				kwargs=job.get("queue_args"),
-				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
-				job_id=job.get("job_id"),
-			)
-		frappe.flags.enqueue_after_commit = []
 
 
 @contextmanager
