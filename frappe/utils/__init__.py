@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import traceback
+from collections import deque
 from collections.abc import (
 	Container,
 	Generator,
@@ -20,7 +21,7 @@ from collections.abc import (
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from gzip import GzipFile
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -1092,3 +1093,42 @@ def is_git_url(url: str) -> bool:
 	# modified to allow without the tailing .git from https://github.com/jonschlinkert/is-git-url.git
 	pattern = r"(?:git|ssh|https?|\w*@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$"
 	return bool(re.match(pattern, url))
+
+
+class CallbackManager:
+	"""Manage callbacks.
+
+	```
+	# Capture callacks
+	callbacks = CallbackManager()
+
+	# Put a function call in queue
+	callbacks.add(func)
+
+	# Run all pending functions in queue
+	callbacks.run()
+
+	# Reset queue
+	callbacks.reset()
+	```
+
+	Example usage: frappe.db.after_commit
+	"""
+
+	__slots__ = ("_functions",)
+
+	def __init__(self) -> None:
+		self._functions = deque()
+
+	def add(self, func: Callable) -> None:
+		"""Add a function to queue, functions are executed in order of addition."""
+		self._functions.append(func)
+
+	def run(self):
+		"""Run all functions in queue"""
+		while self._functions:
+			_func = self._functions.popleft()
+			_func()
+
+	def reset(self):
+		self._functions.clear()
