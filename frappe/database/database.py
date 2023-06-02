@@ -8,9 +8,10 @@ import random
 import re
 import string
 import traceback
+from collections import deque
 from contextlib import contextmanager, suppress
 from time import time
-from typing import Any, Iterable, Sequence
+from typing import Any, Callable, Iterable, Sequence
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue
@@ -107,6 +108,12 @@ class Database:
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
+
+		self.before_commit = DBHooks()
+		self.after_commit = DBHooks()
+		self.before_rollback = DBHooks()
+		self.after_rollback = DBHooks()
+
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -973,13 +980,44 @@ class Database:
 		for method in frappe.local.before_commit:
 			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
 
+		# Invalidated by a commit.
+		self.before_rollback.reset()
+		self.after_rollback.reset()
+
+		self.before_commit.run()
+
 		self.sql("commit")
 		self.begin()  # explicitly start a new transaction
+
+		self.after_commit.run()
 
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
+
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.before_commit.reset()
+			self.after_commit.reset()
+
+			self.before_rollback.run()
+
+			self.sql("rollback")
+			self.begin()
+
+			self.after_rollback.run()
+
+			for obj in dict.fromkeys(frappe.local.rollback_observers):
+				if hasattr(obj, "on_rollback"):
+					obj.on_rollback()
+			frappe.local.rollback_observers = []
+
+			frappe.local.realtime_log = []
+			frappe.flags.enqueue_after_commit = []
 
 	def add_before_commit(self, method, args=None, kwargs=None):
 		frappe.local.before_commit.append([method, args, kwargs])
@@ -1003,21 +1041,6 @@ class Database:
 
 	def release_savepoint(self, save_point):
 		self.sql(f"release savepoint {save_point}")
-
-	def rollback(self, *, save_point=None):
-		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
-		if save_point:
-			self.sql(f"rollback to savepoint {save_point}")
-		else:
-			self.sql("rollback")
-			self.begin()
-			for obj in dict.fromkeys(frappe.local.rollback_observers):
-				if hasattr(obj, "on_rollback"):
-					obj.on_rollback()
-			frappe.local.rollback_observers = []
-
-			frappe.local.realtime_log = []
-			frappe.flags.enqueue_after_commit = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -1302,6 +1325,42 @@ class Database:
 	def get_row_size(self, doctype: str) -> int:
 		"""Get estimated max row size of any table in bytes."""
 		raise NotImplementedError
+
+
+class DBHooks:
+	"""Hooks for database events.
+
+	Primarily used for doing things before/after commit/rollback.
+
+	hook_manager = DBHooks()
+
+	# Put a function call in queue
+	hook_manager.add(func)
+
+	# Run all pending functions in queue
+	hook_manager.run()
+
+	# Reset quue
+	hook_manager.reset()
+	"""
+
+	__slots__ = ("_functions",)
+
+	def __init__(self) -> None:
+		self._functions = deque()
+
+	def add(self, func: Callable) -> None:
+		"""Add a function to queue, functions are executed in order of addition."""
+		self._functions.append(func)
+
+	def run(self):
+		"""Run all functions in queue"""
+		while self._functions:
+			_func = self._functions.popleft()
+			_func()
+
+	def reset(self):
+		self._functions = deque()
 
 
 def enqueue_jobs_after_commit():
