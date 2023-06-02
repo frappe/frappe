@@ -190,7 +190,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
-	local.realtime_log = []
 	local.flags = _dict(
 		{
 			"currently_saving": [],

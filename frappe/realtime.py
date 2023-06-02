@@ -73,11 +73,27 @@ def publish_realtime(
 			room = get_site_room()
 
 	if after_commit:
+		if not hasattr(frappe.local, "_realtime_log"):
+			frappe.local._realtime_log = []
+			frappe.db.after_commit.add(flush_realtime_log)
+			frappe.db.after_rollback.add(clear_realtime_log)
+
 		params = [event, message, room]
-		if params not in frappe.local.realtime_log:
-			frappe.local.realtime_log.append(params)
+		if params not in frappe.local._realtime_log:
+			frappe.local._realtime_log.append(params)
 	else:
 		emit_via_redis(event, message, room)
+
+
+def flush_realtime_log():
+	for args in frappe.local._realtime_log:
+		frappe.realtime.emit_via_redis(*args)
+
+	frappe.local._realtime_log = []
+
+
+def clear_realtime_log():
+	frappe.local._realtime_log = []
 
 
 def emit_via_redis(event, message, room):
