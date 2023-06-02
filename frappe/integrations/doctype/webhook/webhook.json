@@ -1,13 +1,12 @@
 {
  "actions": [],
- "autoname": "naming_series:",
+ "autoname": "prompt",
  "creation": "2017-09-08 16:16:13.060641",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "sb_doc_events",
-  "naming_series",
   "webhook_doctype",
   "cb_doc_events",
   "webhook_docevent",
@@ -46,6 +45,7 @@
   {
    "fieldname": "webhook_doctype",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "DocType",
    "options": "DocType",
    "reqd": 1,
@@ -137,12 +137,6 @@
    "options": "JSON"
   },
   {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Naming Series",
-   "options": "\nHOOK-.####"
-  },
-  {
    "fieldname": "sb_security",
    "fieldtype": "Section Break",
    "label": "Webhook Security"
@@ -218,11 +212,11 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2023-05-22 16:30:10.740512",
+ "modified": "2023-06-02 17:25:12.598232",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
- "naming_rule": "By \"Naming Series\" field",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -241,6 +235,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "webhook_doctype",
  "track_changes": 1
 }
