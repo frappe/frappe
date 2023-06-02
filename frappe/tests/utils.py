@@ -110,7 +110,6 @@ def _restore_thread_locals(flags):
 	frappe.local.error_log = []
 	frappe.local.message_log = []
 	frappe.local.debug_log = []
-	frappe.local.realtime_log = []
 	frappe.local.conf = frappe._dict(frappe.get_site_config())
 	frappe.local.cache = {}
 	frappe.local.lang = "en"

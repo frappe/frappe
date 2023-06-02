@@ -986,8 +986,6 @@ class Database:
 
 		self.after_commit.run()
 
-		self.flush_realtime_log()
-
 	def rollback(self, *, save_point=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
@@ -1002,15 +1000,6 @@ class Database:
 			self.begin()
 
 			self.after_rollback.run()
-
-			frappe.local.realtime_log = []
-
-	@staticmethod
-	def flush_realtime_log():
-		for args in frappe.local.realtime_log:
-			frappe.realtime.emit_via_redis(*args)
-
-		frappe.local.realtime_log = []
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.
