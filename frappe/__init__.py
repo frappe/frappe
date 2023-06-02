@@ -207,7 +207,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"read_only": False,
 		}
 	)
-	local.rollback_observers = []
 	local.locked_documents = []
 	local.test_objects = {}
 

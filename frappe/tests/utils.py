@@ -101,7 +101,6 @@ def _commit_watcher():
 
 
 def _rollback_db():
-	frappe.local.rollback_observers = []
 	frappe.db.value_cache = {}
 	frappe.db.rollback()
 
