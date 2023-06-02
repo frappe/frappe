@@ -125,7 +125,6 @@ class Database:
 		self.cur_db_name = self.user
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
-		frappe.local.rollback_observers = []
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -988,7 +987,6 @@ class Database:
 
 		self.after_commit.run()
 
-		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
@@ -1007,11 +1005,6 @@ class Database:
 			self.begin()
 
 			self.after_rollback.run()
-
-			for obj in dict.fromkeys(frappe.local.rollback_observers):
-				if hasattr(obj, "on_rollback"):
-					obj.on_rollback()
-			frappe.local.rollback_observers = []
 
 			frappe.local.realtime_log = []
 			frappe.flags.enqueue_after_commit = []

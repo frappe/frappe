@@ -69,7 +69,7 @@ class File(Document):
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
-			frappe.local.rollback_observers.append(self)
+			frappe.db.after_rollback.add(self.on_rollback)
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -121,10 +121,16 @@ class File(Document):
 			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
 
 	def on_rollback(self):
+		rollback_flags = ("new_file", "original_content", "original_path")
+
+		def pop_rollback_flags():
+			for flag in rollback_flags:
+				self.flags.pop(flag, None)
+
 		# following condition is only executed when an insert has been rolledback
 		if self.flags.new_file:
 			self._delete_file_on_disk()
-			self.flags.pop("new_file")
+			pop_rollback_flags()
 			return
 
 		# if original_content flag is set, this rollback should revert the file to its original state
@@ -139,14 +145,14 @@ class File(Document):
 			with open(file_path, mode) as f:
 				f.write(self.flags.original_content)
 				os.fsync(f.fileno())
-				self.flags.pop("original_content")
+				pop_rollback_flags()
 
 		# used in case file path (File.file_url) has been changed
 		if self.flags.original_path:
 			target = self.flags.original_path["old"]
 			source = self.flags.original_path["new"]
 			shutil.move(source, target)
-			self.flags.pop("original_path")
+			pop_rollback_flags()
 
 	def get_name_based_on_parent_folder(self) -> str | None:
 		if self.folder:
@@ -218,7 +224,7 @@ class File(Document):
 		# Uses os.rename which is an atomic operation
 		shutil.move(source, target)
 		self.flags.original_path = {"old": source, "new": target}
-		frappe.local.rollback_observers.append(self)
+		frappe.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
 		update_existing_file_docs(self)
@@ -520,7 +526,7 @@ class File(Document):
 			f.write(self._content)
 			os.fsync(f.fileno())
 
-		frappe.local.rollback_observers.append(self)
+		frappe.db.after_rollback.add(self.on_rollback)
 
 		return file_path
 
