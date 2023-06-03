@@ -920,10 +920,8 @@ class Database:
 		if isinstance(dn, str):
 			frappe.clear_document_cache(dt, dn)
 		else:
-			# TODO: Fix this; doesn't work rn - gavin@frappe.io
-			# frappe.cache().hdel_keys(dt, "document_cache")
-			# Workaround: clear all document caches
-			frappe.cache().delete_value("document_cache")
+			# No way to guess which documents are modified, clear all of them
+			frappe.clear_document_cache(dt)
 
 		for column, value in to_update.items():
 			query = query.set(column, value)

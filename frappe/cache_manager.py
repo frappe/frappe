@@ -125,8 +125,9 @@ def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 	cache = frappe.cache()
 
-	for key in ("is_table", "doctype_modules", "document_cache"):
+	for key in ("is_table", "doctype_modules"):
 		cache.delete_value(key)
+	cache.delete_keys("document_cache")
 
 	def clear_single(dt):
 		for name in doctype_cache_keys:
