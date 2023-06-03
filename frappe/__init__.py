@@ -1116,7 +1116,6 @@ def get_document_cache_key(doctype: str, name: str):
 
 
 def clear_document_cache(doctype, name):
-	cache().hdel("last_modified", doctype)
 	cache().hdel("document_cache", get_document_cache_key(doctype, name))
 
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
