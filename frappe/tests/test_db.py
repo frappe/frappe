@@ -802,7 +802,7 @@ class TestDBSetValue(FrappeTestCase):
 			"description",
 			f"{self.todo1.description}-edit by `test_for_update`",
 		)
-		query = frappe.db.last_query
+		query = str(frappe.db.last_query)
 
 		if frappe.conf.db_type == "postgres":
 			from frappe.database.postgres.database import modify_query
