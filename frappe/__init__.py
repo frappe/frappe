@@ -1116,7 +1116,12 @@ def get_document_cache_key(doctype: str, name: str):
 
 
 def clear_document_cache(doctype, name):
-	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+	def clear_in_redis():
+		cache().hdel("document_cache", get_document_cache_key(doctype, name))
+
+	clear_in_redis()
+	if hasattr(db, "after_commit"):
+		db.after_commit.add(clear_in_redis)
 
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
