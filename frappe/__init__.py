@@ -1075,7 +1075,7 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
+	if (key := can_cache_doc(args)) and (doc := cache().get_value(key)):
 		return doc
 
 	# Not found in cache, fetch from DB
@@ -1091,7 +1091,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	cache().hset("document_cache", key, doc)
+	cache().set_value(key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1112,12 +1112,12 @@ def can_cache_doc(args) -> str | None:
 
 
 def get_document_cache_key(doctype: str, name: str):
-	return f"{doctype}::{name}"
+	return f"document_cache::{doctype}::{name}"
 
 
 def clear_document_cache(doctype, name):
 	def clear_in_redis():
-		cache().hdel("document_cache", get_document_cache_key(doctype, name))
+		cache().delete_value(get_document_cache_key(doctype, name))
 
 	clear_in_redis()
 	if hasattr(db, "after_commit"):
@@ -1206,7 +1206,7 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# Replace cache if stale one exists
-	if (key := can_cache_doc(args)) and cache().hexists("document_cache", key):
+	if (key := can_cache_doc(args)) and cache().exists(key):
 		_set_document_in_cache(key, doc)
 
 	return doc
