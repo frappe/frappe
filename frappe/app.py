@@ -19,7 +19,6 @@ import frappe.recorder
 import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
-from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
 from frappe.utils.error import make_error_snapshot
@@ -350,8 +349,6 @@ def sync_database(rollback: bool) -> bool:
 		if session.update():
 			frappe.db.commit()
 			rollback = False
-
-	update_comments_in_parent_after_request()
 
 	return rollback
 
