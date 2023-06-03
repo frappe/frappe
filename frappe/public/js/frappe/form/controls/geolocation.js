@@ -135,6 +135,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			})
 		);
 		this.add_non_group_layers(data_layers, this.editableLayers);
+<<<<<<< HEAD
 		try {
 			this.map.fitBounds(this.editableLayers.getBounds(), {
 				padding: [50, 50],
@@ -148,8 +149,10 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 >>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 			// suppress error if layer has a point.
 		}
+=======
+>>>>>>> 79aaf072bd (fix: fit and recenter map when section is expanded)
 		this.editableLayers.addTo(this.map);
-		this.map.invalidateSize();
+		this.fit_and_recenter_map();
 	}
 
 	bind_leaflet_map() {
@@ -330,5 +333,21 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.editableLayers.eachLayer((l) => {
 			this.editableLayers.removeLayer(l);
 		});
+	}
+
+	fit_and_recenter_map() {
+		// Spread map across the wrapper, recenter and zoom w.r.t bounds
+		try {
+			this.map.invalidateSize();
+			this.map.fitBounds(this.editableLayers.getBounds(), {
+				padding: [50, 50],
+			});
+		} catch (err) {
+			// suppress error if layer has a point.
+		}
+	}
+
+	on_section_collapse(hide) {
+		!hide && this.fit_and_recenter_map();
 	}
 };
