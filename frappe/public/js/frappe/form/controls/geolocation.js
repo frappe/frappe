@@ -60,21 +60,29 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.clear_editable_layers();
 
 		const data_layers = new L.FeatureGroup().addLayer(
-			L.geoJson(JSON.parse(value), {
-				pointToLayer: function (geoJsonPoint, latlng) {
-					if (geoJsonPoint.properties.point_type == "circle") {
-						return L.circle(latlng, { radius: geoJsonPoint.properties.radius });
-					} else if (geoJsonPoint.properties.point_type == "circlemarker") {
-						return L.circleMarker(latlng, { radius: geoJsonPoint.properties.radius });
-					} else {
-						return L.marker(latlng);
-					}
-				},
-			})
+			L.geoJson(JSON.parse(value), { pointToLayer: this.point_to_layer })
 		);
 		this.add_non_group_layers(data_layers, this.editableLayers);
 		this.editableLayers.addTo(this.map);
 		this.fit_and_recenter_map();
+	}
+
+	/**
+	 * Defines custom rules for how geoJSON data is rendered on the map.
+	 *
+	 * @param {Object} geoJsonPoint - The geoJSON object to be rendered on the map.
+	 * @param {Object} latlng - The latitude and longitude where the geoJSON data should be rendered on the map.
+	 * @returns {Object} - Returns the Leaflet layer object to be rendered on the map.
+	 */
+	point_to_layer(geoJsonPoint, latlng) {
+		// Custom rules for how geojson data is rendered on the map
+		if (geoJsonPoint.properties.point_type == "circle") {
+			return L.circle(latlng, { radius: geoJsonPoint.properties.radius });
+		} else if (geoJsonPoint.properties.point_type == "circlemarker") {
+			return L.circleMarker(latlng, { radius: geoJsonPoint.properties.radius });
+		} else {
+			return L.marker(latlng);
+		}
 	}
 
 	bind_leaflet_map() {
