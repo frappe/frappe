@@ -163,3 +163,50 @@ class TestRedisCache(FrappeAPITestCase):
 		calculate_area(radius=10)
 		# kwargs should hit cache too
 		self.assertEqual(function_call_count, 4)
+
+
+class TestDocumentCache(FrappeAPITestCase):
+	TEST_DOCTYPE = "User"
+	TEST_DOCNAME = "Administrator"
+	TEST_FIELD = "middle_name"
+
+	def setUp(self) -> None:
+		self.test_value = frappe.generate_hash()
+
+	def test_caching(self):
+		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		with self.assertQueryCount(0):
+			doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		doc.db_set(self.TEST_FIELD, self.test_value)
+		new_doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		self.assertIsNot(doc, new_doc)  # Shouldn't be same object from frappe.local
+		self.assertEqual(new_doc.get(self.TEST_FIELD), self.test_value)  # Cache invalidated and fetched
+		frappe.db.rollback()
+
+		doc_after_rollback = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		self.assertIsNot(new_doc, doc_after_rollback)
+		# Cache invalidated after rollback
+		self.assertNotEqual(doc_after_rollback.get(self.TEST_FIELD), self.test_value)
+
+		with self.assertQueryCount(0):
+			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+	def test_cache_invalidation_set_value(self):
+		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		frappe.db.set_value(
+			self.TEST_DOCTYPE,
+			{"name": ("like", "%Admin%")},
+			self.TEST_FIELD,
+			self.test_value,
+		)
+
+		new_doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		self.assertIsNot(doc, new_doc)
+		self.assertEqual(new_doc.get(self.TEST_FIELD), self.test_value)
+
+		with self.assertQueryCount(0):
+			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
