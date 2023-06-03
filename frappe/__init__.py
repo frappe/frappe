@@ -1125,6 +1125,7 @@ def clear_document_cache(doctype: str, name: str | None = None) -> None:
 	clear_in_redis()
 	if hasattr(db, "after_commit"):
 		db.after_commit.add(clear_in_redis)
+		db.after_rollback.add(clear_in_redis)
 
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
