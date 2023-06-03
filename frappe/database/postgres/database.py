@@ -107,6 +107,10 @@ class PostgresExceptionUtil:
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
 
+	@staticmethod
+	def is_db_table_size_limit(e) -> bool:
+		return False
+
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"

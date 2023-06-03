@@ -169,6 +169,10 @@ class TestDocument(FrappeTestCase):
 		with self.assertQueryCount(0):
 			user.db_set("user_type", "Magical Wizard")
 
+	def test_new_doc_with_fields(self):
+		user = frappe.new_doc("User", first_name="wizard")
+		self.assertEqual(user.first_name, "wizard")
+
 	def test_update_after_submit(self):
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"

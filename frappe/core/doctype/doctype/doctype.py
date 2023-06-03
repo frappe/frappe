@@ -33,7 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, random_string
+from frappe.utils import cint, flt, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -1679,7 +1679,9 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 
 		for role in list(set(roles)):
 			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
-				r = frappe.get_doc(dict(doctype="Role", role_name=role, desk_access=1))
+				r = frappe.new_doc("Role")
+				r.role_name = role
+				r.desk_access = 1
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
 	except frappe.DoesNotExistError as e:
@@ -1749,3 +1751,14 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
+
+
+@frappe.whitelist()
+def get_row_size_utilization(doctype: str) -> float:
+	"""Get row size utilization in percentage"""
+
+	frappe.has_permission("DocType", throw=True)
+	try:
+		return flt(frappe.db.get_row_size(doctype) / frappe.db.MAX_ROW_SIZE_LIMIT * 100, 2)
+	except Exception:
+		return 0.0

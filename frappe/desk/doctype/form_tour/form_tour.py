@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 
@@ -44,12 +45,15 @@ class FormTour(Document):
 
 @frappe.whitelist()
 def reset_tour(tour_name):
-	for user in frappe.get_all("User"):
-		user_doc = frappe.get_doc("User", user.name)
-		onboarding_status = frappe.parse_json(user_doc.onboarding_status)
+	for user in frappe.get_all("User", pluck="name"):
+		onboarding_status = frappe.parse_json(frappe.db.get_value("User", user, "onboarding_status"))
 		onboarding_status.pop(tour_name, None)
-		user_doc.onboarding_status = frappe.as_json(onboarding_status)
-		user_doc.save()
+		frappe.db.set_value(
+			"User", user, "onboarding_status", frappe.as_json(onboarding_status), update_modified=False
+		)
+		frappe.cache().hdel("bootinfo", user)
+
+	frappe.msgprint(_("Successfully reset onboarding status for all users."), alert=True)
 
 
 @frappe.whitelist()
