@@ -329,7 +329,16 @@ class User(Document):
 		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
 
 	def password_reset_mail(self, link):
-		self.send_login_mail(_("Password Reset"), "password_reset", {"link": link}, now=True)
+
+		reset_password_template = frappe.db.get_system_setting("reset_password_template")
+
+		self.send_login_mail(
+			_("Password Reset"),
+			"password_reset",
+			{"link": link},
+			now=True,
+			custom_template=reset_password_template,
+		)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
@@ -346,6 +355,8 @@ class User(Document):
 			else:
 				subject = _("Complete Registration")
 
+		welcome_email_template = frappe.db.get_system_setting("welcome_email_template")
+
 		self.send_login_mail(
 			subject,
 			"new_user",
@@ -353,9 +364,10 @@ class User(Document):
 				link=link,
 				site_url=get_url(),
 			),
+			custom_template=welcome_email_template,
 		)
 
-	def send_login_mail(self, subject, template, add_args, now=None):
+	def send_login_mail(self, subject, template, add_args, now=None, custom_template=None):
 		"""send mail with login details"""
 		from frappe.utils import get_url
 		from frappe.utils.user import get_user_fullname
@@ -378,11 +390,19 @@ class User(Document):
 			frappe.session.user not in STANDARD_USERS and get_formatted_email(frappe.session.user) or None
 		)
 
+		if custom_template:
+			from frappe.email.doctype.email_template.email_template import get_email_template
+
+			email_template = get_email_template(custom_template, args)
+			subject = email_template.get("subject")
+			content = email_template.get("message")
+
 		frappe.sendmail(
 			recipients=self.email,
 			sender=sender,
 			subject=subject,
-			template=template,
+			template=template if not custom_template else None,
+			content=content if custom_template else None,
 			args=args,
 			header=[subject, "green"],
 			delayed=(not now) if now is not None else self.flags.delay_emails,

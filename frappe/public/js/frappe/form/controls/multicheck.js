@@ -18,13 +18,11 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		this.$checkbox_area = $(`<div class="checkbox-options ${row}"></div>`).appendTo(
 			this.wrapper
 		);
-		this.refresh();
 	}
 
 	refresh() {
 		this.set_options();
 		this.bind_checkboxes();
-		this.refresh_input();
 		super.refresh();
 	}
 

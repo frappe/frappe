@@ -365,7 +365,13 @@ frappe.form.formatters = {
 		</div>`
 			: "";
 	},
+	Attach: format_attachment_url,
+	AttachImage: format_attachment_url,
 };
+
+function format_attachment_url(url) {
+	return url ? `<a href="${url}" target="_blank">${url}</a>` : "";
+}
 
 frappe.form.get_formatter = function (fieldtype) {
 	if (!fieldtype) fieldtype = "Data";
