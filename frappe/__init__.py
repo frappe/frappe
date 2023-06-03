@@ -1115,9 +1115,12 @@ def get_document_cache_key(doctype: str, name: str):
 	return f"document_cache::{doctype}::{name}"
 
 
-def clear_document_cache(doctype, name):
+def clear_document_cache(doctype: str, name: str | None = None) -> None:
 	def clear_in_redis():
-		cache().delete_value(get_document_cache_key(doctype, name))
+		if name is not None:
+			cache().delete_value(get_document_cache_key(doctype, name))
+		else:
+			cache().delete_keys(get_document_cache_key(doctype, ""))
 
 	clear_in_redis()
 	if hasattr(db, "after_commit"):
