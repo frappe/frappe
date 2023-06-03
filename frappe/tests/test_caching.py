@@ -210,3 +210,18 @@ class TestDocumentCache(FrappeAPITestCase):
 
 		with self.assertQueryCount(0):
 			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+
+class TestRedisWrapper(FrappeAPITestCase):
+	def test_delete_keys(self):
+
+		c = frappe.cache()
+
+		prefix = "test_del_"
+
+		for i in range(5):
+			c.set_value(f"{prefix}{i}", 1)
+
+		self.assertEqual(len(c.get_keys(prefix)), 5)
+		c.delete_keys(prefix)
+		self.assertEqual(len(c.get_keys(prefix)), 0)

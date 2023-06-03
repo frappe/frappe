@@ -127,20 +127,22 @@ class RedisWrapper(redis.Redis):
 
 	def delete_value(self, keys, user=None, make_keys=True, shared=False):
 		"""Delete value, list of values."""
+		if not keys:
+			return
+
 		if not isinstance(keys, (list, tuple)):
 			keys = (keys,)
 
+		if make_keys:
+			keys = [self.make_key(k, shared=shared, user=user) for k in keys]
+
 		for key in keys:
-			if make_keys:
-				key = self.make_key(key, shared=shared)
+			frappe.local.cache.pop(key, None)
 
-			if key in frappe.local.cache:
-				del frappe.local.cache[key]
-
-			try:
-				self.delete(key)
-			except redis.exceptions.ConnectionError:
-				pass
+		try:
+			self.delete(*keys)
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def lpush(self, key, value):
 		super().lpush(self.make_key(key), value)
