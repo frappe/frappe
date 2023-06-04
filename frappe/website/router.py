@@ -16,12 +16,11 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 	"""
 	Query Web Page with dynamic_route = 1 and evaluate if any of the routes match
 	"""
+	from frappe.website.doctype.web_page.web_page import get_dynamic_web_pages
+
 	rules, page_info = [], {}
 
-	# build rules from all web page with `dynamic_route = 1`
-	for d in frappe.get_all(
-		"Web Page", fields=["name", "route", "modified"], filters=dict(published=1, dynamic_route=1)
-	):
+	for d in get_dynamic_web_pages():
 		rules.append(Rule("/" + d.route, endpoint=d.name))
 		d.doctype = "Web Page"
 		page_info[d.name] = d
