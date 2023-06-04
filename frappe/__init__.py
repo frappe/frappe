@@ -14,8 +14,13 @@ import importlib
 import inspect
 import json
 import os
+<<<<<<< HEAD
 import sys
 import typing
+=======
+import re
+import unicodedata
+>>>>>>> 65a2cdcffc (fix(safe_eval): Normalize code passed before validating the code)
 import warnings
 
 import click
@@ -2084,6 +2089,7 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
+	code = unicodedata.normalize("NFKC", code)
 
 	UNSAFE_ATTRIBUTES = {
 		# Generator Attributes
