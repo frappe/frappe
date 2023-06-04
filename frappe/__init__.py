@@ -875,7 +875,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
 	import frappe.utils.caching
-	from frappe.website.page_renderers.document_page import clear_routing_cache
+	from frappe.website.router import clear_routing_cache
 
 	if doctype:
 		frappe.cache_manager.clear_doctype_cache(doctype)

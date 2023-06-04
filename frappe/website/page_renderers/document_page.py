@@ -100,10 +100,3 @@ def _find_matching_document_webview(route: str) -> tuple[str, str] | None:
 		except Exception as e:
 			if not frappe.db.is_missing_column(e):
 				raise e
-
-
-def clear_routing_cache():
-	from frappe.website.doctype.web_page.web_page import get_dynamic_web_pages
-
-	_find_matching_document_webview.clear_cache()
-	get_dynamic_web_pages.clear_cache()
