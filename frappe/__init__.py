@@ -14,13 +14,9 @@ import importlib
 import inspect
 import json
 import os
-<<<<<<< HEAD
 import sys
 import typing
-=======
-import re
 import unicodedata
->>>>>>> 65a2cdcffc (fix(safe_eval): Normalize code passed before validating the code)
 import warnings
 
 import click
