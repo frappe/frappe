@@ -16,6 +16,7 @@ import json
 import os
 import sys
 import typing
+import unicodedata
 import warnings
 
 import click
@@ -2084,6 +2085,7 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
+	code = unicodedata.normalize("NFKC", code)
 
 	UNSAFE_ATTRIBUTES = {
 		# Generator Attributes
