@@ -32,9 +32,10 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 
 def get_page_info_from_web_form(path):
 	"""Query published web forms and evaluate if the route matches"""
+	from frappe.website.doctype.web_form.web_form import get_published_web_forms
+
 	rules, page_info = [], {}
-	web_forms = frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
-	for d in web_forms:
+	for d in get_published_web_forms():
 		rules.append(Rule(f"/{d.route}", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/list", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/new", endpoint=d.name))
@@ -314,3 +315,13 @@ def get_doctypes_with_web_view():
 
 def get_start_folders():
 	return frappe.local.flags.web_pages_folders or ("www", "templates/pages")
+
+
+def clear_routing_cache():
+	from frappe.website.doctype.web_form.web_form import get_published_web_forms
+	from frappe.website.doctype.web_page.web_page import get_dynamic_web_pages
+	from frappe.website.page_renderers.document_page import _find_matching_document_webview
+
+	_find_matching_document_webview.clear_cache()
+	get_dynamic_web_pages.clear_cache()
+	get_published_web_forms.clear_cache()

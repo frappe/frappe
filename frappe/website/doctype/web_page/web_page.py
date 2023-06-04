@@ -31,10 +31,6 @@ class WebPage(WebsiteGenerator):
 		if not self.dynamic_route:
 			self.route = quoted(self.route)
 
-	def clear_cache(self):
-		super().clear_cache()
-		get_dynamic_web_pages.clear_cache()
-
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, "main_section", self.content_type)
 		context.source_content_type = self.content_type
