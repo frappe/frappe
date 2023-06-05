@@ -111,12 +111,14 @@ class SMTPServer:
 				Oauth(_session, self.email_account, self.login, self.access_token).connect()
 
 			elif self.password:
-				res = _session.login(str(self.login or ""), str(self.password or ""))
-
-				# check if logged correctly
-				if res[0] != 235:
-					frappe.msgprint(res[1], raise_exception=frappe.OutgoingEmailError)
-
+				try:
+					res = _session.login(str(self.login or ""), str(self.password or ""))
+					# check if logged correctly
+					if res[0] != 235:
+						frappe.msgprint(res[1], raise_exception=frappe.OutgoingEmailError)
+				except OSError as ex:
+					# Invalid mail Account or Password
+					frappe.throw(_("Invalid mail Account or Password"),exc=ex,title=_("Incorrect Configuration"))
 			self._session = _session
 			return self._session
 
