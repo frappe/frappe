@@ -10,64 +10,32 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	set_disp_area(value) {
 		// Create the elements for map area
-<<<<<<< HEAD
-<<<<<<< HEAD
-		super.make_wrapper();
-
-		let $input_wrapper = this.$wrapper.find(".control-input-wrapper");
-=======
-		if (!this.disp_area) return;
-		
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
-=======
 		if (!this.disp_area) {
 			return;
 		}
 
->>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 		this.map_id = frappe.dom.get_unique_id();
 		this.map_area = $(
 			`<div class="map-wrapper border">
 				<div id="${this.map_id}" style="min-height: 400px; z-index: 1; max-width:100%"></div>
 			</div>`
 		);
-<<<<<<< HEAD
-		this.map_area.prependTo($input_wrapper);
-		this.$wrapper.find(".control-input").addClass("hidden");
-=======
 
 		$(this.disp_area).html(this.map_area);
 		$(this.disp_area).removeClass("like-disabled-input");
 		$(this.disp_area).css("display", "block");
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
 
 		if (this.frm) {
 			this.make_map(value);
 		} else {
-<<<<<<< HEAD
 			$(document).on("frappe.ui.Dialog:shown", () => {
-				this.make_map();
-=======
-			$(document).on('frappe.ui.Dialog:shown', () => {
 				this.make_map(value);
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
 			});
 		}
 	}
 
 	make_map(value) {
 		this.bind_leaflet_map();
-<<<<<<< HEAD
-		this.bind_leaflet_draw_control();
-		this.bind_leaflet_event_listeners();
-		this.bind_leaflet_locate_control();
-<<<<<<< HEAD
-		this.bind_leaflet_refresh_button();
-		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
-=======
-		this.bind_leaflet_data(value);
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
-=======
 		if (this.disabled) {
 			this.map.dragging.disable();
 			this.map.touchZoom.disable();
@@ -82,7 +50,6 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			this.bind_leaflet_locate_control();
 			this.bind_leaflet_data(value);
 		}
->>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 	}
 
 	bind_leaflet_data(value) {
@@ -91,56 +58,11 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			return;
 		}
 		this.clear_editable_layers();
-<<<<<<< HEAD
-		if (value) {
-			var data_layers = new L.FeatureGroup().addLayer(
-				L.geoJson(JSON.parse(value), {
-					pointToLayer: function (geoJsonPoint, latlng) {
-						if (geoJsonPoint.properties.point_type == "circle") {
-							return L.circle(latlng, { radius: geoJsonPoint.properties.radius });
-						} else if (geoJsonPoint.properties.point_type == "circlemarker") {
-							return L.circleMarker(latlng, {
-								radius: geoJsonPoint.properties.radius,
-							});
-						} else {
-							return L.marker(latlng);
-						}
-					},
-				})
-			);
-			this.add_non_group_layers(data_layers, this.editableLayers);
-			try {
-				this.map.fitBounds(this.editableLayers.getBounds(), {
-					padding: [50, 50],
-				});
-			} catch (err) {
-				// suppress error if layer has a point.
-			}
-			this.editableLayers.addTo(this.map);
-		} else {
-			this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
-=======
 
 		const data_layers = new L.FeatureGroup().addLayer(
 			L.geoJson(JSON.parse(value), { pointToLayer: this.point_to_layer })
 		);
 		this.add_non_group_layers(data_layers, this.editableLayers);
-<<<<<<< HEAD
-		try {
-			this.map.fitBounds(this.editableLayers.getBounds(), {
-				padding: [50, 50],
-			});
-<<<<<<< HEAD
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
-		}
-		catch(err) {
-=======
-		} catch (err) {
->>>>>>> d6edc1530e (refactor: const instead of var, indentation)
-			// suppress error if layer has a point.
-		}
-=======
->>>>>>> 79aaf072bd (fix: fit and recenter map when section is expanded)
 		this.editableLayers.addTo(this.map);
 		this.fit_and_recenter_map();
 	}
@@ -191,21 +113,11 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.map = L.map(this.map_id);
 		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 
-<<<<<<< HEAD
 		L.tileLayer(frappe.utils.map_defaults.tiles, frappe.utils.map_defaults.options).addTo(
 			this.map
 		);
-<<<<<<< HEAD
-=======
-		L.tileLayer(frappe.utils.map_defaults.tiles,
-			frappe.utils.map_defaults.options).addTo(this.map);
 
 		this.editableLayers = new L.FeatureGroup();
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
-=======
-
-		this.editableLayers = new L.FeatureGroup();
->>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 	}
 
 	bind_leaflet_locate_control() {
@@ -222,17 +134,12 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			return;
 		}
 
-<<<<<<< HEAD
-		var options = {
-			position: "topleft",
-=======
 		this.map.addControl(this.get_leaflet_controls());
 	}
 
 	get_leaflet_controls() {
 		return new L.Control.Draw({
-			position: 'topleft',
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
+			position: "topleft",
 			draw: {
 				polyline: {
 					shapeOptions: {
@@ -259,34 +166,13 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			},
 			edit: {
 				featureGroup: this.editableLayers, //REQUIRED!!
-<<<<<<< HEAD
-<<<<<<< HEAD
 				remove: true,
 			},
-		};
-
-		// create control and add to map
-		this.drawControl = new L.Control.Draw(options);
-		this.map.addControl(this.drawControl);
-
-		this.map.on("draw:created", (e) => {
-=======
-				remove: true
-			}
-=======
-				remove: true,
-			},
->>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 		});
 	}
 
 	bind_leaflet_event_listeners() {
-<<<<<<< HEAD
-		this.map.on('draw:created', (e) => {
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
-=======
 		this.map.on("draw:created", (e) => {
->>>>>>> d6edc1530e (refactor: const instead of var, indentation)
 			var type = e.layerType,
 				layer = e.layer;
 			if (type === "marker") {
@@ -303,28 +189,6 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		});
 	}
 
-<<<<<<< HEAD
-	bind_leaflet_refresh_button() {
-		L.easyButton({
-			id: "refresh-map-" + this.df.fieldname,
-			position: "topright",
-			type: "replace",
-			leafletClasses: true,
-			states: [
-				{
-					stateName: "refresh-map",
-					onClick: function (button, map) {
-						map._onResize();
-					},
-					title: "Refresh map",
-					icon: "fa fa-refresh",
-				},
-			],
-		}).addTo(this.map);
-	}
-
-=======
->>>>>>> 5171d6edc9 (feat: read-only geolocation (GDE-86))
 	add_non_group_layers(source_layer, target_group) {
 		// https://gis.stackexchange.com/a/203773
 		// Would benefit from https://github.com/Leaflet/Leaflet/issues/4461
