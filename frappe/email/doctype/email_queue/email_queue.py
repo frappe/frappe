@@ -146,7 +146,7 @@ class EmailQueue(Document):
 				frappe.flags.sent_mail = message
 				return
 
-			if ctx.email_account_doc.append_emails_to_sent_folder and ctx.sent_to:
+			if ctx.email_account_doc.append_emails_to_sent_folder:
 				ctx.email_account_doc.append_email_to_sent_folder(message)
 
 	@staticmethod
@@ -223,25 +223,21 @@ class SendMailContext:
 		self.log_exception(exc_type, exc_val, exc_tb)
 
 		if exc_type in exceptions:
-			email_status = "Partially Sent" if self.sent_to else "Not Sent"
-			self.queue_doc.update_status(status=email_status, commit=True)
+			update_fields = {"status": "Partially Sent" if self.sent_to else "Not Sent"}
 		elif exc_type:
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
 			else:
-				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
-			self.queue_doc.update_status(**update_fields, commit=True)
+				update_fields = {"status": "Error"}
 		else:
-			email_status = self.is_mail_sent_to_all() and "Sent"
-			email_status = email_status or (self.sent_to and "Partially Sent") or "Not Sent"
-
 			update_fields = {
-				"status": email_status,
+				"status": "Sent",
 				"email_account": self.email_account_doc.name
 				if self.email_account_doc.is_exists_in_db()
 				else None,
 			}
-			self.queue_doc.update_status(**update_fields, commit=True)
+
+		self.queue_doc.update_status(**update_fields, commit=True)
 
 	def log_exception(self, exc_type, exc_val, exc_tb):
 		if exc_type:
@@ -260,9 +256,6 @@ class SendMailContext:
 		# Update recipient status
 		recipient.update_db(status="Sent", commit=True)
 		self.sent_to.append(recipient.recipient)
-
-	def is_mail_sent_to_all(self):
-		return sorted(self.sent_to) == sorted(rec.recipient for rec in self.queue_doc.recipients)
 
 	def get_message_object(self, message):
 		return Parser(policy=SMTPUTF8).parsestr(message)
@@ -362,7 +355,7 @@ def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
 	doc.check_permission()
 
-	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
+	if doc and doc.status == "Error":
 		doc.status = "Not Sent"
 		for d in doc.recipients:
 			if d.status != "Sent":
