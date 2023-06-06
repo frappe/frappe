@@ -95,7 +95,7 @@ frappe.ui.form.on("Form Tour", {
 	},
 });
 
-add_custom_button = (frm) => {
+let add_custom_button = (frm) => {
 	if (frm.doc.ui_tour) {
 		frm.add_custom_button(__("Reset"), function () {
 			frappe.confirm(
