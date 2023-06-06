@@ -23,7 +23,7 @@ login.bind_events = function () {
 			frappe.msgprint('{{ _("Both login and password required") }}');
 			return false;
 		}
-		login.call(args);
+		login.call(args, null, "/login");
 		return false;
 	});
 
@@ -166,11 +166,12 @@ login.signup = function () {
 
 
 // Login
-login.call = function (args, callback) {
+login.call = function (args, callback, url="/") {
 	login.set_status('{{ _("Verifying...") }}', 'blue');
 
 	return frappe.call({
 		type: "POST",
+		url: url,
 		args: args,
 		callback: callback,
 		freeze: true,

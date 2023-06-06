@@ -36,10 +36,10 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 	If no Authorization code get it from Google and then request for Refresh Token.
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
 	"""
+	contact = frappe.get_doc("Google Contacts", g_contact)
+	contact.check_permission("write")
 
-	oauth_code = (
-		frappe.db.get_value("Google Contacts", g_contact, "authorization_code") if not code else code
-	)
+	oauth_code = code or contact.get_password("authorization_code")
 	oauth_obj = GoogleOAuth("contacts")
 
 	if not oauth_code or reauthorize:
@@ -51,11 +51,9 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 		)
 
 	r = oauth_obj.authorize(oauth_code)
-	frappe.db.set_value(
-		"Google Contacts",
-		g_contact,
-		{"authorization_code": oauth_code, "refresh_token": r.get("refresh_token")},
-	)
+	contact.authorization_code = oauth_code
+	contact.refresh_token = r.get("refresh_token")
+	contact.save()
 
 
 def get_google_contacts_object(g_contact):

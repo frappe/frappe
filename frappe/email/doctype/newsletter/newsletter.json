@@ -29,6 +29,7 @@
   "message",
   "message_md",
   "message_html",
+  "campaign",
   "attachments",
   "send_unsubscribe_link",
   "send_webview_link",
@@ -237,6 +238,13 @@
    "label": "Total Views",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "campaign",
+   "fieldtype": "Link",
+   "label": "Campaign",
+   "options": "Marketing Campaign",
+   "reqd": 0
   }
  ],
  "has_web_view": 1,
@@ -245,7 +253,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2023-02-23 12:53:18.478018",
+ "modified": "2023-03-20 22:45:59.129630",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "format:GC-{email_id}",
  "creation": "2019-06-14 00:09:39.441961",
  "doctype": "DocType",
@@ -97,10 +98,12 @@
    "label": "Push to Google Contacts"
   }
  ],
- "modified": "2020-09-18 17:26:09.703215",
+ "links": [],
+ "modified": "2023-03-30 11:25:48.832384",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -116,17 +119,14 @@
   {
    "create": 1,
    "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
+   "if_owner": 1,
    "read": 1,
-   "report": 1,
    "role": "All",
-   "share": 1,
    "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

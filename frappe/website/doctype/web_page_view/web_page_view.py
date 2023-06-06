@@ -9,7 +9,13 @@ from frappe.model.document import Document
 
 
 class WebPageView(Document):
-	pass
+	@staticmethod
+	def clear_old_logs(days=180):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Web Page View")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist(allow_guest=True)
@@ -19,6 +25,8 @@ def make_view_log(
 	version=None,
 	user_tz=None,
 	source=None,
+	campaign=None,
+	medium=None,
 	visitor_id=None,
 ):
 	if not is_tracking_enabled():
@@ -55,6 +63,8 @@ def make_view_log(
 	view.user_agent = user_agent
 	view.is_unique = is_unique
 	view.source = source
+	view.campaign = campaign
+	view.medium = (medium or "").lower()
 	view.visitor_id = visitor_id
 
 	try:

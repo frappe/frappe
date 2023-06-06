@@ -91,7 +91,7 @@ frappe.ui.form.PrintView = class {
 			fieldtype: "Link",
 			fieldname: "print_format",
 			options: "Print Format",
-			placeholder: __("Print Format"),
+			label: __("Print Format"),
 			get_query: () => {
 				return { filters: { doc_type: this.frm.doctype } };
 			},
@@ -101,7 +101,7 @@ frappe.ui.form.PrintView = class {
 		this.language_selector = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "language",
-			placeholder: __("Language"),
+			label: __("Language"),
 			options: "Language",
 			change: () => {
 				this.set_user_lang();
@@ -109,12 +109,27 @@ frappe.ui.form.PrintView = class {
 			},
 		}).$input;
 
+		let description = "";
+		if (!cint(this.print_settings.repeat_header_footer)) {
+			description =
+				"<div class='form-message yellow p-3 mt-3'>" +
+				__("Footer might not be visible as {0} option is disabled</div>", [
+					`<a href="/app/print-settings/Print Settings">${__(
+						"Repeat Header and Footer"
+					)}</a>`,
+				]);
+		}
+		const print_view = this;
 		this.letterhead_selector = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "letterhead",
 			options: "Letter Head",
-			placeholder: __("Letter Head"),
-			change: () => this.preview(),
+			label: __("Letter Head"),
+			description: description,
+			change: function () {
+				this.set_description(this.get_value() ? description : "");
+				print_view.preview();
+			},
 		}).$input;
 		this.sidebar_dynamic_section = $(`<div class="dynamic-settings"></div>`).appendTo(
 			this.sidebar
@@ -347,7 +362,7 @@ frappe.ui.form.PrintView = class {
 	set_default_print_language() {
 		let print_format = this.get_print_format();
 		this.lang_code =
-			print_format.default_print_language || this.frm.doc.language || frappe.boot.lang;
+			this.frm.doc.language || print_format.default_print_language || frappe.boot.lang;
 		this.language_selector.val(this.lang_code);
 	}
 
@@ -657,7 +672,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	get_letterhead() {
-		return this.letterhead_selector.val();
+		return this.letterhead_selector.val() || __("No Letterhead");
 	}
 
 	get_no_preview_html() {

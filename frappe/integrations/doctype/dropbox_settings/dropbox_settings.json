@@ -1,8 +1,10 @@
 {
+ "actions": [],
  "creation": "2016-09-21 10:12:57.399174",
  "doctype": "DocType",
  "document_type": "System",
  "editable_grid": 1,
+ "engine": "InnoDB",
  "field_order": [
   "enabled",
   "send_notifications_to",
@@ -14,8 +16,7 @@
   "app_access_key",
   "app_secret_key",
   "allow_dropbox_access",
-  "dropbox_access_key",
-  "dropbox_access_secret",
+  "dropbox_refresh_token",
   "dropbox_access_token"
  ],
  "fields": [
@@ -82,17 +83,11 @@
    "label": "Allow Dropbox Access"
   },
   {
-   "fieldname": "dropbox_access_key",
+   "fieldname": "dropbox_refresh_token",
    "fieldtype": "Password",
    "hidden": 1,
-   "label": "Dropbox Access Key",
-   "read_only": 1
-  },
-  {
-   "fieldname": "dropbox_access_secret",
-   "fieldtype": "Password",
-   "hidden": 1,
-   "label": "Dropbox Access Secret",
+   "label": "Dropbox Refresh Token",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -104,7 +99,8 @@
  ],
  "in_create": 1,
  "issingle": 1,
- "modified": "2019-08-22 16:26:44.468391",
+ "links": [],
+ "modified": "2023-03-20 14:20:19.180611",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Dropbox Settings",
@@ -125,5 +121,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

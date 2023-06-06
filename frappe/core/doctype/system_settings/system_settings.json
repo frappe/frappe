@@ -13,14 +13,16 @@
   "time_zone",
   "enable_onboarding",
   "setup_complete",
+  "disable_document_sharing",
   "date_and_number_format",
   "date_format",
   "time_format",
   "number_format",
+  "first_day_of_the_week",
   "column_break_7",
   "float_precision",
   "currency_precision",
-  "first_day_of_the_week",
+  "rounding_method",
   "sec_backup_limit",
   "backup_limit",
   "encrypt_backup",
@@ -70,11 +72,15 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "welcome_email_template",
+  "reset_password_template",
   "prepared_report_section",
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "telemetry_section",
+  "enable_telemetry"
  ],
  "fields": [
   {
@@ -206,7 +212,7 @@
    "label": "Security"
   },
   {
-   "default": "24:00",
+   "default": "60:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -508,7 +514,7 @@
    "label": "Disable Username/Password Login"
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "Allow users to log in without a password, using a login link sent to their email",
    "fieldname": "login_with_email_link",
    "fieldtype": "Check",
@@ -520,12 +526,49 @@
    "fieldname": "login_with_email_link_expiry",
    "fieldtype": "Int",
    "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "default": "Banker's Rounding (legacy)",
+   "fieldname": "rounding_method",
+   "fieldtype": "Select",
+   "label": "Rounding Method",
+   "options": "Banker's Rounding (legacy)\nBanker's Rounding\nCommercial Rounding"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_document_sharing",
+   "fieldtype": "Check",
+   "label": "Disable Document Sharing"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "telemetry_section",
+   "fieldtype": "Section Break",
+   "label": "Telemetry"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_telemetry",
+   "fieldtype": "Check",
+   "label": "Allow Sending Usage Data for Improving Applications"
+  },
+  {
+   "fieldname": "welcome_email_template",
+   "fieldtype": "Link",
+   "label": "Welcome Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "reset_password_template",
+   "fieldtype": "Link",
+   "label": "Reset Password Template",
+   "options": "Email Template"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-12-20 21:45:37.651668",
+ "modified": "2023-05-25 13:02:54.808773",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

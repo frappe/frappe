@@ -21,7 +21,7 @@ from frappe.utils import (
 	add_to_date,
 	get_datetime,
 	get_request_site_address,
-	get_time_zone,
+	get_system_timezone,
 	get_weekdays,
 	now_datetime,
 )
@@ -111,6 +111,7 @@ def authorize_access(g_calendar, reauthorize=None):
 	"""
 	google_settings = frappe.get_doc("Google Settings")
 	google_calendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_calendar.check_permission("write")
 
 	redirect_uri = (
 		get_request_site_address(True)
@@ -403,7 +404,7 @@ def insert_event_in_google_calendar(doc, method=None):
 	event = {"summary": doc.subject, "description": doc.description, "google_calendar_event": 1}
 	event.update(
 		format_date_according_to_google_calendar(
-			doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)
+			doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on) if doc.ends_on else None
 		)
 	)
 
@@ -484,7 +485,7 @@ def update_event_in_google_calendar(doc, method=None):
 		)
 		event.update(
 			format_date_according_to_google_calendar(
-				doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)
+				doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on) if doc.ends_on else None
 			)
 		)
 
@@ -575,14 +576,14 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 			get_datetime(start.get("date"))
 			if start.get("date")
 			else parser.parse(start.get("dateTime"))
-			.astimezone(ZoneInfo(get_time_zone()))
+			.astimezone(ZoneInfo(get_system_timezone()))
 			.replace(tzinfo=None)
 		),
 		"ends_on": (
 			get_datetime(end.get("date"))
 			if end.get("date")
 			else parser.parse(end.get("dateTime"))
-			.astimezone(ZoneInfo(get_time_zone()))
+			.astimezone(ZoneInfo(get_system_timezone()))
 			.replace(tzinfo=None)
 		),
 		"all_day": 1 if start.get("date") else 0,
@@ -648,11 +649,11 @@ def format_date_according_to_google_calendar(all_day, starts_on, ends_on=None):
 	date_format = {
 		"start": {
 			"dateTime": starts_on.isoformat(),
-			"timeZone": get_time_zone(),
+			"timeZone": get_system_timezone(),
 		},
 		"end": {
 			"dateTime": ends_on.isoformat(),
-			"timeZone": get_time_zone(),
+			"timeZone": get_system_timezone(),
 		},
 	}
 

@@ -403,3 +403,25 @@ class TestCustomizeForm(FrappeTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			d.run_method("save_customization")
+
+	def test_system_generated_fields(self):
+		doctype = "Event"
+		custom_field_name = "test_custom_field"
+
+		custom_field = frappe.get_doc("Custom Field", {"dt": doctype, "fieldname": custom_field_name})
+		custom_field.is_system_generated = 1
+		custom_field.save()
+
+		d = self.get_customize_form(doctype)
+		custom_field = d.getone("fields", {"fieldname": custom_field_name})
+		custom_field.description = "Test Description"
+		d.run_method("save_customization")
+
+		property_setter_filters = {
+			"doc_type": doctype,
+			"field_name": custom_field_name,
+			"property": "description",
+		}
+		self.assertEqual(
+			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
+		)

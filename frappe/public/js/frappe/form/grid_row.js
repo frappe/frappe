@@ -40,7 +40,7 @@ export default class GridRow {
 			render_row = this.render_row();
 		}
 
-		if (!this.render_row) return;
+		if (!render_row) return;
 
 		this.set_data();
 		this.wrapper.appendTo(this.parent);
@@ -762,7 +762,8 @@ export default class GridRow {
 
 	show_search_row() {
 		// show or remove search columns based on grid rows
-		this.show_search = this.show_search && this.grid?.data?.length >= 20;
+		this.show_search =
+			this.show_search && (this.grid?.data?.length >= 20 || this.grid.filter_applied);
 		!this.show_search && this.wrapper.remove();
 		return this.show_search;
 	}
@@ -1295,7 +1296,7 @@ export default class GridRow {
 			.find(".grid-delete-row")
 			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
-		frappe.dom.freeze("", "dark");
+		frappe.dom.freeze("", "dark grid-form");
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if (

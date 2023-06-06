@@ -1440,6 +1440,67 @@ Object.assign(frappe.utils, {
 		prepend && wrapper.prepend(button);
 	},
 
+	add_select_group_button(wrapper, actions, btn_type, icon = "", prepend) {
+		// actions = [{
+		// 	label: "Action 1",
+		// 	description: "Description 1", (optional)
+		// 	action: () => {},
+		// },
+		// {
+		// 	label: "Action 2",
+		// 	description: "Description 2", (optional)
+		// 	action: () => {},
+		// }]
+		let selected_action = actions[0];
+
+		let $select_group_button = $(`
+			<div class="btn-group select-group-btn">
+				<button type="button" class="btn ${btn_type} btn-sm selected-button">
+					<span class="left-icon">${icon && frappe.utils.icon(icon, "xs")}</span>
+					<span class="label">${selected_action.label}</span>
+				</button>
+
+				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+					${frappe.utils.icon("down", "xs")}
+				</button>
+
+				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+			</div>
+		`);
+
+		actions.forEach((action) => {
+			$(`<li>
+				<a class="dropdown-item flex">
+					<div class="tick-icon mr-2">${frappe.utils.icon("check", "xs")}</div>
+					<div>
+						<div class="item-label">${action.label}</div>
+						<div class="item-description text-muted small">${action.description || ""}</div>
+					</div>
+				</a>
+			</li>`)
+				.appendTo($select_group_button.find(".dropdown-menu"))
+				.click((e) => {
+					selected_action = action;
+					$select_group_button.find(".selected-button .label").text(action.label);
+
+					$(e.currentTarget).find(".tick-icon").addClass("selected");
+					$(e.currentTarget).siblings().find(".tick-icon").removeClass("selected");
+				});
+		});
+
+		$select_group_button.find(".dropdown-menu li:first-child .tick-icon").addClass("selected");
+
+		$select_group_button.find(".selected-button").click((event) => {
+			event.stopPropagation();
+			selected_action.action && selected_action.action(event);
+		});
+
+		!prepend && $select_group_button.appendTo(wrapper);
+		prepend && wrapper.prepend($select_group_button);
+
+		return $select_group_button;
+	},
+
 	sleep(time) {
 		return new Promise((resolve) => setTimeout(resolve, time));
 	},
@@ -1609,5 +1670,66 @@ Object.assign(frappe.utils, {
 				},
 			});
 		},
+	},
+	generate_tracking_url() {
+		frappe.prompt(
+			[
+				{
+					fieldname: "url",
+					label: __("Web Page URL"),
+					fieldtype: "Data",
+					options: "URL",
+					reqd: 1,
+					default: localStorage.getItem("tracker_url:url"),
+				},
+				{
+					fieldname: "source",
+					label: __("Source"),
+					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:source"),
+				},
+				{
+					fieldname: "campaign",
+					label: __("Campaign"),
+					fieldtype: "Link",
+					ignore_link_validation: 1,
+					options: "Marketing Campaign",
+					default: localStorage.getItem("tracker_url:campaign"),
+				},
+				{
+					fieldname: "medium",
+					label: __("Medium"),
+					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:medium"),
+				},
+			],
+			function (data) {
+				let url = data.url;
+				localStorage.setItem("tracker_url:url", data.url);
+
+				if (data.source) {
+					url += "?source=" + data.source;
+					localStorage.setItem("tracker_url:source", data.source);
+				}
+				if (data.campaign) {
+					url += "&campaign=" + data.campaign;
+					localStorage.setItem("tracker_url:campaign", data.campaign);
+				}
+				if (data.medium) {
+					url += "&medium=" + data.medium.toLowerCase();
+					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+
+				frappe.utils.copy_to_clipboard(url);
+
+				frappe.msgprint(
+					__("Tracking URL generated and copied to clipboard") +
+						": <br>" +
+						`<a href="${url}">${url.bold()}</a>`,
+					__("Here's your tracking URL")
+				);
+			},
+			__("Generate Tracking URL")
+		);
 	},
 });

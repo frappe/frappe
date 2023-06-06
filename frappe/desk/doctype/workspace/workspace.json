@@ -31,6 +31,8 @@
   "links",
   "quick_lists_tab",
   "quick_lists",
+  "custom_blocks_tab",
+  "custom_blocks",
   "roles_tab",
   "roles"
  ],
@@ -194,11 +196,22 @@
    "fieldtype": "Table",
    "label": "Number Cards",
    "options": "Workspace Number Card"
+  },
+  {
+   "fieldname": "custom_blocks_tab",
+   "fieldtype": "Tab Break",
+   "label": "Custom Blocks"
+  },
+  {
+   "fieldname": "custom_blocks",
+   "fieldtype": "Table",
+   "label": "Custom Blocks",
+   "options": "Workspace Custom Block"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-02-15 01:16:56.035205",
+ "modified": "2023-05-17 14:52:38.110224",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -220,5 +233,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

@@ -29,8 +29,8 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
+from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils.deprecations import deprecated, deprecation_warning
@@ -105,6 +105,14 @@ class Database:
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.logger = frappe.logger("database")
+		self.logger.setLevel("WARNING")
+
+		self.before_commit = CallbackManager()
+		self.after_commit = CallbackManager()
+		self.before_rollback = CallbackManager()
+		self.after_rollback = CallbackManager()
+
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -116,13 +124,12 @@ class Database:
 		self.cur_db_name = self.user
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
-		frappe.local.rollback_observers = []
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
 				self.set_execution_timeout(execution_timeout)
 		except Exception as e:
-			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
+			self.logger.warning(f"Couldn't set execution timeout {e}")
 
 	def set_execution_timeout(self, seconds: int):
 		"""Set session speicifc timeout on exeuction of statements.
@@ -285,7 +292,13 @@ class Database:
 			return self.convert_to_lists(self.last_result)
 		return self.last_result
 
-	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
+	def _log_query(
+		self,
+		mogrified_query: str,
+		debug: bool = False,
+		explain: bool = False,
+		unmogrified_query: str = "",
+	) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
@@ -303,6 +316,12 @@ class Database:
 			_query = _query or str(mogrified_query)
 			frappe.log(f"<<<< query\n{_query}\n>>>>")
 
+		if unmogrified_query and is_query_type(
+			unmogrified_query, ("alter", "drop", "create", "truncate", "rename")
+		):
+			_query = _query or str(mogrified_query)
+			self.logger.warning("DDL Query made to DB:\n" + _query)
+
 		if frappe.flags.in_migrate:
 			_query = _query or str(mogrified_query)
 			self.log_touched_tables(_query)
@@ -314,7 +333,7 @@ class Database:
 		# like cursor._transformed_statement from the cursor object. We can also avoid setting
 		# mogrified_query if we don't need to log it.
 		mogrified_query = self.lazy_mogrify(query, values)
-		self._log_query(mogrified_query, debug, explain)
+		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
 		return mogrified_query
 
 	def mogrify(self, query: Query, values: QueryValues):
@@ -617,10 +636,10 @@ class Database:
 						return []
 
 			if as_dict:
-				return values and [values] or []
+				return [values] if values else []
 
 			if isinstance(fields, list):
-				return [map(values.get, fields)]
+				return [list(map(values.get, fields))]
 
 		else:
 			r = frappe.qb.get_query(
@@ -812,6 +831,7 @@ class Database:
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
+			validate_filters=True,
 		)
 		if isinstance(fields, str) and fields == "*":
 			as_dict = True
@@ -840,6 +860,7 @@ class Database:
 				order_by=order_by,
 				distinct=distinct,
 				limit=limit,
+				validate_filters=True,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
@@ -861,7 +882,7 @@ class Database:
 		**Warning:** this function will not call Document events and should be avoided in normal cases.
 
 		:param dt: DocType name.
-		:param dn: Document name.
+		:param dn: Document name for updating single record or filters for updating many records.
 		:param field: Property / field name or dictionary of values to be updated
 		:param value: Value to be updated.
 		:param modified: Use this as the `modified` timestamp.
@@ -889,15 +910,18 @@ class Database:
 			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified
 		)
 
-		query = frappe.qb.get_query(table=dt, filters=dn, update=True)
+		query = frappe.qb.get_query(
+			table=dt,
+			filters=dn,
+			update=True,
+			validate_filters=True,
+		)
 
 		if isinstance(dn, str):
 			frappe.clear_document_cache(dt, dn)
 		else:
-			# TODO: Fix this; doesn't work rn - gavin@frappe.io
-			# frappe.cache().hdel_keys(dt, "document_cache")
-			# Workaround: clear all document caches
-			frappe.cache().delete_value("document_cache")
+			# No way to guess which documents are modified, clear all of them
+			frappe.clear_document_cache(dt)
 
 		for column, value in to_update.items():
 			query = query.set(column, value)
@@ -949,26 +973,30 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
-		for method in frappe.local.before_commit:
-			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
+		self.before_rollback.reset()
+		self.after_rollback.reset()
+
+		self.before_commit.run()
 
 		self.sql("commit")
 		self.begin()  # explicitly start a new transaction
 
-		frappe.local.rollback_observers = []
-		self.flush_realtime_log()
-		enqueue_jobs_after_commit()
-		flush_local_link_count()
+		self.after_commit.run()
 
-	def add_before_commit(self, method, args=None, kwargs=None):
-		frappe.local.before_commit.append([method, args, kwargs])
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.before_commit.reset()
+			self.after_commit.reset()
 
-	@staticmethod
-	def flush_realtime_log():
-		for args in frappe.local.realtime_log:
-			frappe.realtime.emit_via_redis(*args)
+			self.before_rollback.run()
 
-		frappe.local.realtime_log = []
+			self.sql("rollback")
+			self.begin()
+
+			self.after_rollback.run()
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.
@@ -982,18 +1010,6 @@ class Database:
 
 	def release_savepoint(self, save_point):
 		self.sql(f"release savepoint {save_point}")
-
-	def rollback(self, *, save_point=None):
-		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
-		if save_point:
-			self.sql(f"rollback to savepoint {save_point}")
-		else:
-			self.sql("rollback")
-			self.begin()
-			for obj in dict.fromkeys(frappe.local.rollback_observers):
-				if hasattr(obj, "on_rollback"):
-					obj.on_rollback()
-			frappe.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -1054,9 +1070,13 @@ class Database:
 			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
-		count = frappe.qb.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct).run(
-			debug=debug
-		)[0][0]
+		count = frappe.qb.get_query(
+			table=dt,
+			filters=filters,
+			fields=Count("*"),
+			distinct=distinct,
+			validate_filters=True,
+		).run(debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
@@ -1115,21 +1135,6 @@ class Database:
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
 		return column in self.get_table_columns(doctype)
-
-	def get_column_type(self, doctype, column):
-		"""Returns column type from database."""
-		information_schema = frappe.qb.Schema("information_schema")
-		table = get_table_name(doctype)
-
-		return (
-			frappe.qb.from_(information_schema.columns)
-			.select(information_schema.columns.column_type)
-			.where(
-				(information_schema.columns.table_name == table)
-				& (information_schema.columns.column_name == column)
-			)
-			.run(pluck=True)[0]
-		)
 
 	def has_index(self, table_name, index_name):
 		raise NotImplementedError
@@ -1191,7 +1196,12 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = frappe.qb.get_query(table=doctype, filters=filters, delete=True)
+		query = frappe.qb.get_query(
+			table=doctype,
+			filters=filters,
+			delete=True,
+			validate_filters=True,
+		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 		return query.run(**kwargs)
@@ -1219,7 +1229,7 @@ class Database:
 			# multi_word_regex is designed to match following patterns
 			# `tabXxx Xxx` and "tabXxx Xxx"
 
-			# ([`"]?) Captures " or ` at the begining of the table name (if provided)
+			# ([`"]?) Captures " or ` at the beginning of the table name (if provided)
 			# \1 matches the first captured group (quote character) at the end of the table name
 			# multi word table name must have surrounding quotes.
 
@@ -1281,26 +1291,9 @@ class Database:
 
 		return get_next_val(*args, **kwargs)
 
-
-def enqueue_jobs_after_commit():
-	from frappe.utils.background_jobs import (
-		RQ_JOB_FAILURE_TTL,
-		RQ_RESULTS_TTL,
-		execute_job,
-		get_queue,
-	)
-
-	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
-		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
-			q.enqueue_call(
-				execute_job,
-				timeout=job.get("timeout"),
-				kwargs=job.get("queue_args"),
-				failure_ttl=RQ_JOB_FAILURE_TTL,
-				result_ttl=RQ_RESULTS_TTL,
-			)
-		frappe.flags.enqueue_after_commit = []
+	def get_row_size(self, doctype: str) -> int:
+		"""Get estimated max row size of any table in bytes."""
+		raise NotImplementedError
 
 
 @contextmanager

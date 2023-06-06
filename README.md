@@ -23,8 +23,8 @@
 	<a href="https://frappeframework.com/docs">
 		<img src="https://img.shields.io/badge/docs-%F0%9F%93%96-success.svg"/>
 	</a>
-	<a href="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml">
-		<img src="https://github.com/frappe/frappe/actions/workflows/server-mariadb-tests.yml/badge.svg">
+	<a href="https://github.com/frappe/frappe/actions/workflows/server-tests.yml">
+		<img src="https://github.com/frappe/frappe/actions/workflows/server-tests.yml/badge.svg">
 	</a>
 	<a href="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml">
 		<img src="https://github.com/frappe/frappe/actions/workflows/ui-tests.yml/badge.svg?branch=develop">
@@ -56,10 +56,15 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ## Installation
 
-* [Install via Docker](https://github.com/frappe/frappe_docker)
-* [Install via Frappe Bench](https://github.com/frappe/bench)
-* [Offical Documentation](https://frappeframework.com/docs/user/en/installation)
-* [Managed Hosting on Frappe Cloud](https://frappecloud.com/frappe/signup)
+### Production
+* [Managed Hosting on Frappe Cloud](https://frappecloud.com/)
+* [Easy install script using Docker images](https://github.com/frappe/bench/tree/develop#easy-install-script)
+* [Manual install using Docker images](https://github.com/frappe/frappe_docker)
+
+### Development
+* [Easy install script using Docker images](https://github.com/frappe/bench/tree/develop#easy-install-script)
+* [Development installlation on bare metal](https://frappeframework.com/docs/user/en/installation)
+
 
 ## Contributing
 

@@ -4,7 +4,24 @@
 frappe.ui.form.on("Document Naming Rule", {
 	refresh: function (frm) {
 		frm.trigger("document_type");
-		if (!frm.doc.__islocal) frm.trigger("add_update_counter_button");
+		frm.last_counter_value = frm.doc.counter;
+		frm.skip_before_save = false;
+	},
+	before_save: function (frm) {
+		if (frm.is_new() || frm.skip_before_save || frm.last_counter_value === frm.doc.counter)
+			return;
+
+		frappe.validated = false;
+		frappe.warn(
+			__("Are you sure?"),
+			__("Updating counter may lead to document name conflicts if not done properly"),
+			() => {
+				frm.skip_before_save = true;
+				frm.save();
+			},
+			__("Proceed"),
+			false
+		);
 	},
 	document_type: (frm) => {
 		// update the select field options with fieldnames
@@ -25,46 +42,5 @@ frappe.ui.form.on("Document Naming Rule", {
 				);
 			});
 		}
-	},
-	add_update_counter_button: (frm) => {
-		frm.add_custom_button(__("Update Counter"), function () {
-			const fields = [
-				{
-					fieldtype: "Data",
-					fieldname: "new_counter",
-					label: __("New Counter"),
-					default: frm.doc.counter,
-					reqd: 1,
-					description: __(
-						"Warning: Updating counter may lead to document name conflicts if not done properly"
-					),
-				},
-			];
-
-			let primary_action_label = __("Save");
-
-			let primary_action = (fields) => {
-				frappe.call({
-					method: "frappe.core.doctype.document_naming_rule.document_naming_rule.update_current",
-					args: {
-						name: frm.doc.name,
-						new_counter: fields.new_counter,
-					},
-					callback: function () {
-						frm.set_value("counter", fields.new_counter);
-						dialog.hide();
-					},
-				});
-			};
-
-			const dialog = new frappe.ui.Dialog({
-				title: __("Update Counter Value for Prefix: {0}", [frm.doc.prefix]),
-				fields,
-				primary_action_label,
-				primary_action,
-			});
-
-			dialog.show();
-		});
 	},
 });

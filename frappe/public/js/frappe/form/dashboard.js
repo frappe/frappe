@@ -69,6 +69,12 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.progress_area.body.empty();
 		this.progress_area.hide();
 
+		// clear heatmap
+		this.heatmap_area.hide();
+
+		// clear chart
+		this.chart_area.hide();
+
 		// clear links
 		this.links_area.body.find(".count, .open-notification").addClass("hidden");
 		this.links_area.hide();
@@ -478,27 +484,25 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	// heatmap
 	render_heatmap() {
-		if (!this.heatmap) {
-			this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
-				type: "heatmap",
-				start: new Date(moment().subtract(1, "year").toDate()),
-				count_label: "interactions",
-				discreteDomains: 1,
-				radius: 3,
-				data: {},
-			});
+		this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
+			type: "heatmap",
+			start: new Date(moment().subtract(1, "year").toDate()),
+			count_label: "interactions",
+			discreteDomains: 1,
+			radius: 3,
+			data: {},
+		});
 
-			// center the heatmap
-			this.heatmap_area.show();
-			this.heatmap_area.body.find("svg").css({ margin: "auto" });
+		// center the heatmap
+		this.heatmap_area.show();
+		this.heatmap_area.body.find("svg").css({ margin: "auto" });
 
-			// message
-			let heatmap_message = this.heatmap_area.body.find(".heatmap-message");
-			if (this.data.heatmap_message) {
-				heatmap_message.removeClass("hidden").html(this.data.heatmap_message);
-			} else {
-				heatmap_message.addClass("hidden");
-			}
+		// message
+		let heatmap_message = this.heatmap_area.body.find(".heatmap-message");
+		if (this.data.heatmap_message) {
+			heatmap_message.removeClass("hidden").html(this.data.heatmap_message);
+		} else {
+			heatmap_message.addClass("hidden");
 		}
 	}
 
@@ -567,7 +571,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.chart_area.show();
 		this.chart_area.body.empty();
 		$.extend(args, {
-			type: "line",
+			type: args.type || "line",
 			colors: args.colors || ["green"],
 			truncateLegends: 1,
 			axisOptions: {

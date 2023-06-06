@@ -53,7 +53,7 @@
 													<div class="static-area ellipsis">{{ __("Query") }}</div>
 												</div>
 												<div class="col grid-static-col col-xs-2">
-													<div class="static-area ellipsis text-right">{{ __("Duration (ms)") }}"</div>
+													<div class="static-area ellipsis text-right">{{ __("Duration (ms)") }}</div>
 												</div>
 												<div class="col grid-static-col col-xs-2">
 													<div class="static-area ellipsis text-right">{{ __("Exact Copies") }}</div>

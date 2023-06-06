@@ -12,15 +12,13 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cstr, dict_with_keys, strip_html
+from frappe.utils.caching import redis_cache
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
 	website = frappe._dict(no_cache=1)
-
-	def onload(self):
-		super().onload()
 
 	def validate(self):
 		super().validate()
@@ -153,10 +151,16 @@ def get_context(context):
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
 		):
-			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
-			if name:
-				context.in_view_mode = True
-				frappe.redirect(f"/{self.route}/{name}")
+			names = frappe.db.get_values(self.doc_type, {"owner": frappe.session.user}, pluck="name")
+			for name in names:
+				if self.condition:
+					doc = frappe.get_doc(self.doc_type, name)
+					if frappe.safe_eval(self.condition, None, {"doc": doc.as_dict()}):
+						context.in_view_mode = True
+						frappe.redirect(f"/{self.route}/{name}")
+				else:
+					context.in_view_mode = True
+					frappe.redirect(f"/{self.route}/{name}")
 
 		# Show new form when
 		# - User is Guest
@@ -387,6 +391,10 @@ def accept(web_form, data):
 
 	web_form = frappe.get_doc("Web Form", web_form)
 	doctype = web_form.doc_type
+	user = frappe.session.user
+
+	if web_form.anonymous and frappe.session.user != "Guest":
+		frappe.session.user = "Guest"
 
 	if data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
@@ -467,6 +475,9 @@ def accept(web_form, data):
 		for f in files_to_delete:
 			if f:
 				remove_file_by_url(f, doctype=doctype, name=doc.name)
+
+	if web_form.anonymous and frappe.session.user == "Guest" and user:
+		frappe.session.user = user
 
 	frappe.flags.web_form_doc = doc
 	return doc
@@ -626,3 +637,8 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 		raise frappe.PermissionError(
 			_("You don't have permission to access the {0} DocType.").format(doctype)
 		)
+
+
+@redis_cache(ttl=60 * 60)
+def get_published_web_forms() -> dict[str, str]:
+	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})

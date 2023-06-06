@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _, msgprint
-from frappe.utils import cint, get_url, now_datetime
+from frappe.utils import cint, cstr, get_url, now_datetime
 from frappe.utils.data import getdate
 from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -81,9 +81,9 @@ def get_unsubcribed_url(
 	reference_doctype, reference_name, email, unsubscribe_method, unsubscribe_params
 ):
 	params = {
-		"email": email.encode("utf-8"),
-		"doctype": reference_doctype.encode("utf-8"),
-		"name": reference_name.encode("utf-8"),
+		"email": cstr(email),
+		"doctype": cstr(reference_doctype),
+		"name": cstr(reference_name),
 	}
 	if unsubscribe_params:
 		params.update(unsubscribe_params)

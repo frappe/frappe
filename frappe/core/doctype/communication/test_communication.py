@@ -308,6 +308,7 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 				"recipients": recipients,
 				"cc": cc,
 				"bcc": bcc,
+				"sender": "sender@test.com",
 			}
 		).insert(ignore_permissions=True)
 
@@ -327,14 +328,26 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		comm.delete()
 
 	def test_cc(self):
-		to_list = ["to@test.com"]
-		cc_list = ["cc+1@test.com", "cc <cc+2@test.com>", "to@test.com"]
-		user = self.new_user(email="cc+1@test.com", thread_notify=0)
-		comm = self.new_communication(recipients=to_list, cc=cc_list)
-		res = comm.get_mail_cc_with_displayname()
-		self.assertCountEqual(res, ["cc <cc+2@test.com>"])
-		user.delete()
-		comm.delete()
+		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
+			if set_user_as:
+				frappe.set_user(set_user_as)
+
+			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
+			comm = self.new_communication(recipients=["to@test.com"], cc=cc_list)
+			res = comm.get_mail_cc_with_displayname(include_sender=include_sender)
+
+			frappe.set_user("Administrator")
+			user.delete()
+			comm.delete()
+
+			self.assertEqual(res, assertion)
+
+		# test filter_thread_notification_disbled_users and filter_mail_recipients
+		test(["cc <cc+2@test.com>"], cc_list=["cc+1@test.com", "cc <cc+2@test.com>", "to@test.com"])
+
+		# test include_sender
+		test(["sender@test.com"], include_sender=True, thread_notify=True)
+		test(["cc+1@test.com"], include_sender=True, thread_notify=True, set_user_as="cc+1@test.com")
 
 	def test_bcc(self):
 		bcc_list = [

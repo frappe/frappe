@@ -73,11 +73,27 @@ def publish_realtime(
 			room = get_site_room()
 
 	if after_commit:
+		if not hasattr(frappe.local, "_realtime_log"):
+			frappe.local._realtime_log = []
+			frappe.db.after_commit.add(flush_realtime_log)
+			frappe.db.after_rollback.add(clear_realtime_log)
+
 		params = [event, message, room]
-		if params not in frappe.local.realtime_log:
-			frappe.local.realtime_log.append(params)
+		if params not in frappe.local._realtime_log:
+			frappe.local._realtime_log.append(params)
 	else:
 		emit_via_redis(event, message, room)
+
+
+def flush_realtime_log():
+	for args in frappe.local._realtime_log:
+		frappe.realtime.emit_via_redis(*args)
+
+	frappe.local._realtime_log = []
+
+
+def clear_realtime_log():
+	frappe.local._realtime_log = []
 
 
 def emit_via_redis(event, message, room):
@@ -105,10 +121,8 @@ def get_redis_server():
 @frappe.whitelist(allow_guest=True)
 def can_subscribe_doc(doctype: str, docname: str) -> bool:
 	from frappe.exceptions import PermissionError
-	from frappe.sessions import Session
 
-	session = Session(None, resume=True).get_session_data()
-	if not frappe.has_permission(user=session.user, doctype=doctype, doc=docname, ptype="read"):
+	if not frappe.has_permission(doctype=doctype, doc=docname, ptype="read"):
 		raise PermissionError()
 
 	return True
@@ -118,7 +132,7 @@ def can_subscribe_doc(doctype: str, docname: str) -> bool:
 def can_subscribe_doctype(doctype: str) -> bool:
 	from frappe.exceptions import PermissionError
 
-	if not frappe.has_permission(user=frappe.session.user, doctype=doctype, ptype="read"):
+	if not frappe.has_permission(doctype=doctype, ptype="read"):
 		raise PermissionError()
 
 	return True
@@ -126,13 +140,9 @@ def can_subscribe_doctype(doctype: str) -> bool:
 
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
-	from frappe.sessions import Session
-
-	session = Session(None, resume=True).get_session_data()
-
 	return {
-		"user": session.user,
-		"user_type": session.user_type,
+		"user": frappe.session.user,
+		"user_type": frappe.session.data.user_type,
 	}
 
 

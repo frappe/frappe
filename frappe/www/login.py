@@ -121,6 +121,9 @@ def login_via_token(login_token: str):
 @rate_limit(limit=5, seconds=60 * 60)
 def send_login_link(email: str):
 
+	if not frappe.get_system_settings("login_with_email_link"):
+		return
+
 	expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
 	link = _generate_temporary_login_link(email, expiry)
 

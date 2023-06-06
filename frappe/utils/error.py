@@ -22,6 +22,7 @@ EXCLUDE_EXCEPTIONS = (
 	frappe.CSRFTokenError,  # CSRF covers OAuth too
 	frappe.SecurityException,
 	LDAPException,
+	frappe.InReadOnlyMode,
 )
 
 

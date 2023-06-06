@@ -5,6 +5,7 @@ import json
 import quopri
 import smtplib
 import traceback
+from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTPUTF8
 
@@ -202,7 +203,7 @@ class SendMailContext:
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
-		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_main_sent()]
+		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()]
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
@@ -212,7 +213,6 @@ class SendMailContext:
 		exceptions = [
 			smtplib.SMTPServerDisconnected,
 			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPRecipientsRefused,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
@@ -406,6 +406,8 @@ def on_doctype_update():
 	frappe.db.add_index(
 		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
 	)
+
+	frappe.db.add_index("Email Queue", ["message_id(140)"])
 
 
 def get_email_retry_limit():
@@ -704,7 +706,10 @@ class QueueBuilder:
 			if not smtp_server_instance:
 				email_account = q.get_email_account()
 				smtp_server_instance = email_account.get_smtp_server()
-			q.send(smtp_server_instance=smtp_server_instance)
+
+			with suppress(Exception):
+				q.send(smtp_server_instance=smtp_server_instance)
+
 		smtp_server_instance.quit()
 
 	def as_dict(self, include_recipients=True):

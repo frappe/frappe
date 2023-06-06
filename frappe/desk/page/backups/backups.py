@@ -4,13 +4,13 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cint, get_site_path, get_url
-from frappe.utils.data import convert_utc_to_user_timezone
+from frappe.utils.data import convert_utc_to_system_timezone
 
 
 def get_context(context):
 	def get_time(path):
 		dt = os.path.getmtime(path)
-		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime(
+		return convert_utc_to_system_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime(
 			"%a %b %d %H:%M %Y"
 		)
 

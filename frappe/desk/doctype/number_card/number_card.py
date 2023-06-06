@@ -132,7 +132,9 @@ def get_result(doc, filters, to_date=None):
 	if to_date:
 		filters.append([doc.document_type, "creation", "<", to_date])
 
-	res = frappe.db.get_list(doc.document_type, fields=fields, filters=filters)
+	res = frappe.get_list(
+		doc.document_type, fields=fields, filters=filters, parent_doctype=doc.parent_document_type
+	)
 	number = res[0]["result"] if res else 0
 
 	return cint(number)
@@ -200,7 +202,11 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 	if txt:
 		search_conditions = [numberCard[field].like(f"%{txt}%") for field in searchfields]
 
-	condition_query = frappe.qb.get_query(doctype, filters=filters)
+	condition_query = frappe.qb.get_query(
+		doctype,
+		filters=filters,
+		validate_filters=True,
+	)
 
 	return (
 		condition_query.select(numberCard.name, numberCard.label, numberCard.document_type)

@@ -162,14 +162,12 @@ execute:frappe.delete_doc("DocType", "Footer Item")
 execute:frappe.reload_doctype('user')
 execute:frappe.reload_doctype('docperm')
 frappe.patches.v13_0.replace_field_target_with_open_in_new_tab
-frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v13_0.add_switch_theme_to_navbar_settings
 frappe.patches.v13_0.update_icons_in_customized_desk_pages
 execute:frappe.db.set_default('desktop:home_page', 'space')
 execute:frappe.delete_doc_if_exists('Page', 'workspace')
 execute:frappe.delete_doc_if_exists('Page', 'dashboard', force=1)
 frappe.core.doctype.page.patches.drop_unused_pages
-execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.patches.v13_0.remove_chat
 frappe.patches.v13_0.rename_desk_page_to_workspace # 02.02.2021
 frappe.patches.v13_0.delete_package_publish_tool
@@ -184,6 +182,7 @@ frappe.patches.v13_0.encrypt_2fa_secrets
 frappe.patches.v13_0.reset_corrupt_defaults
 frappe.patches.v13_0.remove_share_for_std_users
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
+frappe.email.doctype.email_queue.patches.drop_search_index_on_message_id
 frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.transform_todo_schema
@@ -197,8 +196,11 @@ frappe.patches.v14_0.update_webforms
 frappe.patches.v14_0.delete_payment_gateways
 frappe.patches.v15_0.remove_event_streaming
 frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
+execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 
 [post_model_sync]
+execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
+frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
@@ -221,3 +223,7 @@ execute:frappe.delete_doc("Page", "activity", force=1)
 frappe.patches.v14_0.disable_email_accounts_with_oauth
 execute:frappe.delete_doc("Page", "translation-tool", force=1)
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
+frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
+frappe.patches.v15_0.remove_background_jobs_from_dropdown
+frappe.desk.doctype.form_tour.patches.introduce_ui_tours
+execute:frappe.delete_doc_if_exists("Workspace", "Customization")

@@ -76,6 +76,7 @@
   {
    "fieldname": "filter_values",
    "fieldtype": "HTML",
+   "hidden": 1,
    "label": "Filter Values"
   },
   {
@@ -103,7 +104,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-11-28 21:29:39.883803",
+ "modified": "2023-05-19 15:41:03.428589",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
@@ -148,6 +149,5 @@
    "title": "Completed"
   }
  ],
- "title_field": "report_name",
- "track_changes": 1
+ "title_field": "report_name"
 }

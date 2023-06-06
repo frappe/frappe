@@ -68,7 +68,7 @@
 							<h1 class="ellipsis">{{ _(title) }}</h1>
 						{% endif %}
 					</div>
-					<span class="indicator-pill orange hide">Not Saved</span>
+					<span class="indicator-pill orange hide">{{ _("Not Saved") }}</span>
 					<div class="web-form-actions">
 						{{ header_buttons() }}
 					</div>
@@ -137,11 +137,8 @@
 			{% if success_url %}
 				<div class="success_url_message">
 					<p>
-						<span>Click on this </span>
-						<a href="{{ success_url }}">{{_("URL")}}</a>
-						<span> if you are not redirected within </span>
-						<span class="time">5</span>
-						<span> seconds.</span>
+						{% set success_link = "<a href='{0}'>link</a>".format(success_url) %}
+						<span>{{ _("Click on this {0} if you are not redirected within 5 seconds").format(success_link) }} </span>
 					</p>
 				</div>
 			{% else %}

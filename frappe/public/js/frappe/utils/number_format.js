@@ -5,7 +5,7 @@ import "./datatype";
 
 if (!window.frappe) window.frappe = {};
 
-function flt(v, decimals, number_format) {
+function flt(v, decimals, number_format, rounding_method) {
 	if (v == null || v == "") return 0;
 
 	if (!(typeof v === "number" || String(parseFloat(v)) == v)) {
@@ -30,7 +30,7 @@ function flt(v, decimals, number_format) {
 	}
 
 	v = parseFloat(v);
-	if (decimals != null) return _round(v, decimals);
+	if (decimals != null) return _round(v, decimals, rounding_method);
 	return v;
 }
 
@@ -173,16 +173,60 @@ function get_number_format_info(format) {
 	return info;
 }
 
-function _round(num, precision) {
-	var is_negative = num < 0 ? true : false;
-	var d = cint(precision);
-	var m = Math.pow(10, d);
-	var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8); // Avoid rounding errors
-	var i = Math.floor(n),
-		f = n - i;
-	var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
-	r = d ? r / m : r;
-	return is_negative ? -r : r;
+function _round(num, precision, rounding_method) {
+	rounding_method =
+		rounding_method || frappe.boot.sysdefaults.rounding_method || "Banker's Rounding (legacy)";
+
+	let is_negative = num < 0 ? true : false;
+
+	if (rounding_method == "Banker's Rounding (legacy)") {
+		var d = cint(precision);
+		var m = Math.pow(10, d);
+		var n = +(d ? Math.abs(num) * m : Math.abs(num)).toFixed(8); // Avoid rounding errors
+		var i = Math.floor(n),
+			f = n - i;
+		var r = !precision && f == 0.5 ? (i % 2 == 0 ? i : i + 1) : Math.round(n);
+		r = d ? r / m : r;
+		return is_negative ? -r : r;
+	} else if (rounding_method == "Banker's Rounding") {
+		if (num == 0) return 0.0;
+		precision = cint(precision);
+
+		let multiplier = Math.pow(10, precision);
+		num = Math.abs(num) * multiplier;
+
+		let floor_num = Math.floor(num);
+		let decimal_part = num - floor_num;
+
+		// For explanation of this method read python flt implementation notes.
+		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
+
+		if (Math.abs(decimal_part - 0.5) < epsilon) {
+			num = floor_num % 2 == 0 ? floor_num : floor_num + 1;
+		} else {
+			num = Math.round(num);
+		}
+		num = num / multiplier;
+		return is_negative ? -num : num;
+	} else if (rounding_method == "Commercial Rounding") {
+		if (num == 0) return 0.0;
+
+		let digits = cint(precision);
+		let multiplier = Math.pow(10, digits);
+
+		num = num * multiplier;
+
+		// For explanation of this method read python flt implementation notes.
+		let epsilon = 2.0 ** (Math.log2(Math.abs(num)) - 52.0);
+		if (is_negative) {
+			epsilon = -1 * epsilon;
+		}
+
+		num = Math.round(num + epsilon);
+		return num / multiplier;
+	} else {
+		throw new Error(`Unknown rounding method ${rounding_method}`);
+	}
 }
 
 function roundNumber(num, precision) {

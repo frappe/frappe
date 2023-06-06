@@ -31,6 +31,7 @@ def get_monthly_results(
 				Function(aggregation, goal_field),
 			],
 			filters=filters,
+			validate_filters=True,
 		)
 		.groupby("month_year")
 		.run()
@@ -49,9 +50,8 @@ def get_monthly_goal_graph_data(
 	goal_doctype_link: str,
 	goal_field: str,
 	date_field: str,
-	filter_str: str = None,
 	aggregation: str = "sum",
-	filters: dict | None = None,
+	filters: str | dict | None = None,
 ) -> dict:
 	"""
 	Get month-wise graph data for a doctype based on aggregation values of a field in the goal doctype
@@ -65,17 +65,11 @@ def get_monthly_goal_graph_data(
 	:param goal_doctype: doctype the goal is based on
 	:param goal_doctype_link: doctype link field in goal_doctype
 	:param goal_field: field from which the goal is calculated
-	:param filter_str: [DEPRECATED] where clause condition. Use filters.
 	:param aggregation: a value like 'count', 'sum', 'avg'
 	:param filters: optional filters
 
 	:return: dict of graph data
 	"""
-	if isinstance(filter_str, str):
-		frappe.throw(
-			"String filters have been deprecated. Pass Dict filters instead.", exc=DeprecationWarning
-		)  # nosemgrep
-
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission()
 

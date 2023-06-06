@@ -132,6 +132,9 @@ frappe.socketio = {
 	doctype_subscribe: function (doctype) {
 		frappe.socketio.socket.emit("doctype_subscribe", doctype);
 	},
+	doctype_unsubscribe: function (doctype) {
+		frappe.socketio.socket.emit("doctype_unsubscribe", doctype);
+	},
 	doc_subscribe: function (doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
 			console.log("throttled");

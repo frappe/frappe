@@ -2,6 +2,9 @@
 // MIT License. See license.txt
 import DataTable from "frappe-datatable";
 
+// Expose DataTable globally to allow customizations.
+window.DataTable = DataTable;
+
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
@@ -539,7 +542,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						if (this.prepared_report) {
 							this.reset_report_view();
 						} else if (!this._no_refresh) {
-							this.refresh();
+							this.refresh(true);
 						}
 					}
 				};
@@ -595,10 +598,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page.clear_fields();
 	}
 
-	refresh() {
+	refresh(have_filters_changed) {
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
+
+		// for custom reports,
+		// are_default_filters is true if the filters haven't been modified and for all filters,
+		// the filter value is the default value or there's no default value for the filter and the current value is empty.
+		// are_default_filters is false otherwise.
+
+		let are_default_filters = this.filters
+			.map((filter) => {
+				return (
+					!have_filters_changed &&
+					(filter.default === filter.value || (!filter.default && !filter.value))
+				);
+			})
+			.every((res) => res === true);
+
 		this.show_loading_screen();
 
 		// only one refresh at a time
@@ -621,6 +639,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters: filters,
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
+					are_default_filters: are_default_filters,
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop("disabled", false),
@@ -632,6 +651,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				clearInterval(this.interval);
 
 				this.execution_time = data.execution_time || 0.1;
+
+				if (data.custom_filters) {
+					this.set_filters(data.custom_filters);
+					this.previous_filters = data.custom_filters;
+				}
 
 				if (data.prepared_report) {
 					this.prepared_report = true;
@@ -933,7 +957,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (this.report_settings.get_datatable_options) {
 				datatable_options = this.report_settings.get_datatable_options(datatable_options);
 			}
-			this.datatable = new DataTable(this.$report[0], datatable_options);
+			this.datatable = new window.DataTable(this.$report[0], datatable_options);
 		}
 
 		if (typeof this.report_settings.initial_depth == "number") {
@@ -1347,6 +1371,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: this.get_columns_for_print(print_settings, custom_format),
 			original_data: this.data,
 			report: this,
+			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 	}
 
@@ -1383,6 +1408,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: columns,
 			lang: frappe.boot.lang,
 			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
+			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 
 		let filter_values = [],
@@ -1400,9 +1426,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const applied_filters = this.get_filter_values();
 		return Object.keys(applied_filters)
 			.map((fieldname) => {
-				const label = frappe.query_report.get_filter(fieldname).df.label;
+				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
-				return `<h6>${__(label)}: ${value}</h6>`;
+				return `<h6>${__(docfield.label)}: ${frappe.format(value, docfield)}</h6>`;
 			})
 			.join("");
 	}
@@ -1712,6 +1738,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									reference_report: this.report_name,
 									report_name: values.report_name,
 									columns: this.get_visible_columns(),
+									filters: this.get_filter_values(),
 								},
 								callback: function (r) {
 									this.show_save = false;
