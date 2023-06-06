@@ -29,8 +29,8 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.model.utils.link_count import flush_local_link_count
 from frappe.query_builder.functions import Count
+from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils.deprecations import deprecated, deprecation_warning
@@ -107,6 +107,12 @@ class Database:
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
+
+		self.before_commit = CallbackManager()
+		self.after_commit = CallbackManager()
+		self.before_rollback = CallbackManager()
+		self.after_rollback = CallbackManager()
+
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -118,7 +124,6 @@ class Database:
 		self.cur_db_name = self.user
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
-		frappe.local.rollback_observers = []
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -915,10 +920,8 @@ class Database:
 		if isinstance(dn, str):
 			frappe.clear_document_cache(dt, dn)
 		else:
-			# TODO: Fix this; doesn't work rn - gavin@frappe.io
-			# frappe.cache().hdel_keys(dt, "document_cache")
-			# Workaround: clear all document caches
-			frappe.cache().delete_value("document_cache")
+			# No way to guess which documents are modified, clear all of them
+			frappe.clear_document_cache(dt)
 
 		for column, value in to_update.items():
 			query = query.set(column, value)
@@ -970,26 +973,30 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
-		for method in frappe.local.before_commit:
-			frappe.call(method[0], *(method[1] or []), **(method[2] or {}))
+		self.before_rollback.reset()
+		self.after_rollback.reset()
+
+		self.before_commit.run()
 
 		self.sql("commit")
 		self.begin()  # explicitly start a new transaction
 
-		frappe.local.rollback_observers = []
-		self.flush_realtime_log()
-		enqueue_jobs_after_commit()
-		flush_local_link_count()
+		self.after_commit.run()
 
-	def add_before_commit(self, method, args=None, kwargs=None):
-		frappe.local.before_commit.append([method, args, kwargs])
+	def rollback(self, *, save_point=None):
+		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
+		if save_point:
+			self.sql(f"rollback to savepoint {save_point}")
+		else:
+			self.before_commit.reset()
+			self.after_commit.reset()
 
-	@staticmethod
-	def flush_realtime_log():
-		for args in frappe.local.realtime_log:
-			frappe.realtime.emit_via_redis(*args)
+			self.before_rollback.run()
 
-		frappe.local.realtime_log = []
+			self.sql("rollback")
+			self.begin()
+
+			self.after_rollback.run()
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.
@@ -1003,21 +1010,6 @@ class Database:
 
 	def release_savepoint(self, save_point):
 		self.sql(f"release savepoint {save_point}")
-
-	def rollback(self, *, save_point=None):
-		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
-		if save_point:
-			self.sql(f"rollback to savepoint {save_point}")
-		else:
-			self.sql("rollback")
-			self.begin()
-			for obj in dict.fromkeys(frappe.local.rollback_observers):
-				if hasattr(obj, "on_rollback"):
-					obj.on_rollback()
-			frappe.local.rollback_observers = []
-
-			frappe.local.realtime_log = []
-			frappe.flags.enqueue_after_commit = []
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
@@ -1302,28 +1294,6 @@ class Database:
 	def get_row_size(self, doctype: str) -> int:
 		"""Get estimated max row size of any table in bytes."""
 		raise NotImplementedError
-
-
-def enqueue_jobs_after_commit():
-	from frappe.utils.background_jobs import (
-		RQ_JOB_FAILURE_TTL,
-		RQ_RESULTS_TTL,
-		execute_job,
-		get_queue,
-	)
-
-	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
-		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
-			q.enqueue_call(
-				execute_job,
-				timeout=job.get("timeout"),
-				kwargs=job.get("queue_args"),
-				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
-				job_id=job.get("job_id"),
-			)
-		frappe.flags.enqueue_after_commit = []
 
 
 @contextmanager

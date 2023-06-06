@@ -1200,7 +1200,6 @@ class Document(BaseDocument):
 		if notify:
 			self.notify_update()
 
-		self.clear_cache()
 		if commit:
 			frappe.db.commit()
 

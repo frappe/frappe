@@ -16,6 +16,7 @@ import inspect
 import json
 import os
 import re
+import unicodedata
 import warnings
 from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypeAlias, overload
 
@@ -190,7 +191,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
-	local.realtime_log = []
 	local.flags = _dict(
 		{
 			"currently_saving": [],
@@ -207,9 +207,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"read_only": False,
 		}
 	)
-	local.rollback_observers = []
 	local.locked_documents = []
-	local.before_commit = []
 	local.test_objects = {}
 
 	local.site = site
@@ -233,7 +231,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
-	local.link_count = {}
 
 	local.jenv = None
 	local.jloader = None
@@ -879,6 +876,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
 	import frappe.utils.caching
+	from frappe.website.router import clear_routing_cache
 
 	if doctype:
 		frappe.cache_manager.clear_doctype_cache(doctype)
@@ -906,6 +904,8 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 		del local.system_settings
 	if hasattr(local, "website_settings"):
 		del local.website_settings
+
+	clear_routing_cache()
 
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
@@ -1079,7 +1079,7 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
+	if (key := can_cache_doc(args)) and (doc := cache().get_value(key)):
 		return doc
 
 	# Not found in cache, fetch from DB
@@ -1095,7 +1095,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	cache().hset("document_cache", key, doc)
+	cache().set_value(key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1116,12 +1116,20 @@ def can_cache_doc(args) -> str | None:
 
 
 def get_document_cache_key(doctype: str, name: str):
-	return f"{doctype}::{name}"
+	return f"document_cache::{doctype}::{name}"
 
 
-def clear_document_cache(doctype, name):
-	cache().hdel("last_modified", doctype)
-	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+def clear_document_cache(doctype: str, name: str | None = None) -> None:
+	def clear_in_redis():
+		if name is not None:
+			cache().delete_value(get_document_cache_key(doctype, name))
+		else:
+			cache().delete_keys(get_document_cache_key(doctype, ""))
+
+	clear_in_redis()
+	if hasattr(db, "after_commit"):
+		db.after_commit.add(clear_in_redis)
+		db.after_rollback.add(clear_in_redis)
 
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
@@ -1206,7 +1214,7 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# Replace cache if stale one exists
-	if (key := can_cache_doc(args)) and cache().hexists("document_cache", key):
+	if (key := can_cache_doc(args)) and cache().exists(key):
 		_set_document_in_cache(key, doc)
 
 	return doc
@@ -2271,6 +2279,7 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
+	code = unicodedata.normalize("NFKC", code)
 
 	UNSAFE_ATTRIBUTES = {
 		# Generator Attributes

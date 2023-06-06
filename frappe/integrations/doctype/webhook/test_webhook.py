@@ -14,7 +14,10 @@ from frappe.tests.utils import FrappeTestCase
 
 @contextmanager
 def get_test_webhook(config):
-	wh = frappe.get_doc(config).insert()
+	wh = frappe.get_doc(config)
+	if not wh.name:
+		wh.name = frappe.generate_hash()
+	wh.insert()
 	wh.reload()
 	try:
 		yield wh
@@ -37,6 +40,7 @@ class TestWebhook(FrappeTestCase):
 	def create_sample_webhooks(cls):
 		samples_webhooks_data = [
 			{
+				"name": frappe.generate_hash(),
 				"webhook_doctype": "User",
 				"webhook_docevent": "after_insert",
 				"request_url": "https://httpbin.org/post",
@@ -44,6 +48,7 @@ class TestWebhook(FrappeTestCase):
 				"enabled": True,
 			},
 			{
+				"name": frappe.generate_hash(),
 				"webhook_doctype": "User",
 				"webhook_docevent": "after_insert",
 				"request_url": "https://httpbin.org/post",
