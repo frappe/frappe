@@ -123,12 +123,21 @@ def clear_defaults_cache(user=None):
 
 def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
+
+	_clear_doctype_cache_form_redis()
+	if hasattr(frappe.db, "after_commit"):
+		frappe.db.after_commit.add(_clear_doctype_cache_form_redis)
+		frappe.db.after_rollback.add(_clear_doctype_cache_form_redis)
+
+
+def _clear_doctype_cache_form_redis(doctype: str | None = None):
 	cache = frappe.cache()
 
-	for key in ("is_table", "doctype_modules", "document_cache"):
+	for key in ("is_table", "doctype_modules"):
 		cache.delete_value(key)
 
 	def clear_single(dt):
+		frappe.clear_document_cache(dt)
 		for name in doctype_cache_keys:
 			cache.hdel(name, dt)
 
@@ -155,6 +164,7 @@ def clear_doctype_cache(doctype=None):
 		# clear all
 		for name in doctype_cache_keys:
 			cache.delete_value(name)
+		cache.delete_keys("document_cache::")
 
 
 def clear_controller_cache(doctype=None):
