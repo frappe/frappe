@@ -61,6 +61,7 @@
    "options": "Not Sent\nSending\nSent\nPartially Sent\nError\nExpired"
   },
   {
+   "depends_on": "eval:doc.error",
    "fieldname": "error",
    "fieldtype": "Code",
    "label": "Error"
@@ -152,7 +153,7 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2023-06-05 12:15:17.850292",
+ "modified": "2023-06-07 02:21:28.769620",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Queue",

@@ -140,7 +140,9 @@ class EmailQueue(Document):
 					method(self, self.sender, recipient.recipient, message)
 				else:
 					if not frappe.flags.in_test:
-						ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
+						ctx.smtp_server.session.sendmail(
+							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
+						)
 					ctx.add_to_sent_list(recipient)
 
 			if frappe.flags.in_test:
@@ -217,19 +219,24 @@ class SendMailContext:
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
 		]
+		trace = "".join(traceback.format_tb(exc_tb)) if exc_tb else None
 
 		if not self.retain_smtp_session:
 			self.smtp_server.quit()
 
-		self.log_exception(exc_type, exc_val, exc_tb)
-
 		if exc_type in exceptions:
-			update_fields = {"status": "Partially Sent" if self.sent_to else "Not Sent"}
+			update_fields = {"status": "Partially Sent" if self.sent_to else "Not Sent", "error": trace}
 		elif exc_type:
+			update_fields = {"error": trace}
 			if self.queue_doc.retry < get_email_retry_limit():
-				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
+				update_fields.update(
+					{
+						"status": "Partially Sent" if self.sent_to else "Not Sent",
+						"retry": self.queue_doc.retry + 1,
+					}
+				)
 			else:
-				update_fields = {"status": "Error"}
+				update_fields.update({"status": "Error"})
 		else:
 			update_fields = {
 				"status": "Sent",
@@ -239,19 +246,6 @@ class SendMailContext:
 			}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
-
-	def log_exception(self, exc_type, exc_val, exc_tb):
-		if exc_type:
-			traceback_string = "".join(traceback.format_tb(exc_tb))
-			traceback_string += f"\n Queue Name: {self.queue_doc.name}"
-
-			self.queue_doc.log_error("Email sending failed", traceback_string)
-
-	@property
-	def smtp_session(self):
-		if frappe.flags.in_test:
-			return
-		return self.smtp_server.session
 
 	def add_to_sent_list(self, recipient):
 		# Update recipient status
