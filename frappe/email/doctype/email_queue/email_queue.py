@@ -142,7 +142,8 @@ class EmailQueue(Document):
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
 						)
-					ctx.add_to_sent_list(recipient)
+
+				ctx.add_to_sent_list(recipient)
 
 			if frappe.flags.in_test:
 				frappe.flags.sent_mail = message
@@ -239,9 +240,6 @@ class SendMailContext:
 		else:
 			update_fields = {
 				"status": "Sent",
-				"email_account": self.email_account_doc.name
-				if self.email_account_doc.is_exists_in_db()
-				else None,
 			}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
