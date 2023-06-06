@@ -51,12 +51,8 @@ dependencies = [
     "premailer~=3.8.0",
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
-<<<<<<< HEAD
     "pyasn1~=0.4.8",
-    "pyOpenSSL~=22.1.0",
-=======
     "pyOpenSSL~=23.0.0",
->>>>>>> 9f73b94a74 (build(deps): bump cryptography to 39.0.1 (#20042))
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
     "pypng~=0.20220715.0",
