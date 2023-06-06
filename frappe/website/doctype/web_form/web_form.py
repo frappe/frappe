@@ -153,10 +153,16 @@ def get_context(context):
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
 		):
-			name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
-			if name:
-				context.in_view_mode = True
-				frappe.redirect(f"/{self.route}/{name}")
+			names = frappe.db.get_values(self.doc_type, {"owner": frappe.session.user}, pluck="name")
+			for name in names:
+				if self.condition:
+					doc = frappe.get_doc(self.doc_type, name)
+					if frappe.safe_eval(self.condition, None, {"doc": doc.as_dict()}):
+						context.in_view_mode = True
+						frappe.redirect(f"/{self.route}/{name}")
+				else:
+					context.in_view_mode = True
+					frappe.redirect(f"/{self.route}/{name}")
 
 		# Show new form when
 		# - User is Guest

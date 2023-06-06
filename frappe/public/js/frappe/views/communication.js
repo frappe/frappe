@@ -778,7 +778,10 @@ frappe.views.CommunicationComposer = class {
 			this.content_set = true;
 		}
 
-		message += await this.get_signature(sender_email || null);
+		const signature = await this.get_signature(sender_email || "");
+		if (!this.content_set || !strip_html(message).includes(strip_html(signature))) {
+			message += signature;
+		}
 
 		if (this.is_a_reply && !this.reply_set) {
 			message += this.get_earlier_reply();

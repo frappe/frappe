@@ -207,6 +207,7 @@
    "read_only": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
    "label": "Role Profile",
@@ -730,7 +731,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-05-24 15:20:06.434506",
+ "modified": "2023-06-05 17:26:04.127555",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
