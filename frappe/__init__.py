@@ -152,6 +152,7 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 # local-globals
 
 db = local("db")
+cache = local("_redis_cache")
 qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
@@ -241,6 +242,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
+	local._redis_cache = _get_redis_cache()
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -348,17 +350,17 @@ def destroy():
 	release_local(local)
 
 
-redis_server = None
+_redis_cache_conn = None
 
 
-def cache() -> "RedisWrapper":
+def _get_redis_cache() -> "RedisWrapper":
 	"""Returns redis connection."""
-	global redis_server
-	if not redis_server:
+	global _redis_cache_conn
+	if not _redis_cache_conn:
 		from frappe.utils.redis_wrapper import RedisWrapper
 
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
-	return redis_server
+		_redis_cache_conn = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
+	return _redis_cache_conn
 
 
 def get_traceback(with_context: bool = False) -> str:
