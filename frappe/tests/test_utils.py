@@ -1159,6 +1159,7 @@ class TestRounding(FrappeTestCase):
 
 class TestTypingValidations(FrappeTestCase):
 	def test_validate_argument_types(self):
+		from frappe.core.doctype.doctype.doctype import DocType
 		from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
 
 		@validate_argument_types
@@ -1169,11 +1170,14 @@ class TestTypingValidations(FrappeTestCase):
 		def test_sequence(a: str, b: list[dict] | None = None, c: dict[str, int] | None = None):
 			return a, b, c
 
+		@validate_argument_types
+		def test_doctypes(a: DocType | dict):
+			return a
+
 		self.assertEqual(test_simple_types(True, 2.0, True), (1, 2.0, True))
 		self.assertEqual(test_simple_types(1, 2, 1), (1, 2.0, True))
 		self.assertEqual(test_simple_types(1.0, 2, 1), (1, 2.0, True))
 		self.assertEqual(test_simple_types(1, 2, "1"), (1, 2.0, True))
-
 		with self.assertRaises(FrappeTypeError):
 			test_simple_types(1, 2, "a")
 		with self.assertRaises(FrappeTypeError):
@@ -1184,6 +1188,11 @@ class TestTypingValidations(FrappeTestCase):
 		self.assertEqual(test_sequence("a", [{"a": 1}], None), ("a", [{"a": 1}], None))
 		self.assertEqual(test_sequence("a", None, {"a": 1}), ("a", None, {"a": 1}))
 		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": "1.0"}), ("a", [{"a": 1}], {"a": 1}))
-
 		with self.assertRaises(FrappeTypeError):
 			test_sequence("a", [{"a": 1}], True)
+
+		doctype = frappe.get_last_doc("DocType")
+		self.assertEqual(test_doctypes(doctype), doctype)
+		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
+		with self.assertRaises(FrappeTypeError):
+			test_doctypes("a")
