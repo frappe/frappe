@@ -147,8 +147,14 @@ class Newsletter(WebsiteGenerator):
 		"""Get list of pending recipients of the newsletter. These
 		recipients may not have receive the newsletter in the previous iteration.
 		"""
+<<<<<<< HEAD
 		success_recipients = set(self.get_success_recipients())
 		return [x for x in self.newsletter_recipients if x not in success_recipients]
+=======
+
+		queued_recipients = set(self.get_queued_recipients())
+		return [x for x in self.newsletter_recipients if x not in queued_recipients]
+>>>>>>> 2cb2934f96 (perf: query queued_recipients only once (#21277))
 
 	def queue_all(self):
 		"""Queue Newsletter to all the recipients generated from the `Email Group` table"""
