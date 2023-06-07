@@ -64,6 +64,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		}
 
 		setup_undo_redo();
+		setup_breadcrumbs();
 	}
 
 	function reset_changes() {
@@ -103,6 +104,16 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 	function clean_workflow_data() {
 		workflow.value.elements.forEach((el) => (el.selected = false));
+	}
+
+	function setup_breadcrumbs() {
+		let breadcrumbs = `
+			<li><a href="/app/workflow">${__("Workflow")}</a></li>
+			<li><a href="/app/workflow/${workflow_name.value}">${__(workflow_name.value)}</a></li>
+			<li class="disabled"><a href="#">${__("Workflow Builder")}</a></li>
+		`;
+		frappe.breadcrumbs.clear();
+		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
 	}
 
 	function get_state_df(data) {
