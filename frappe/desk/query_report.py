@@ -180,13 +180,26 @@ def get_script(report_name):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
-		script = "frappe.query_reports['%s']={}" % report_name
+		filters = json.dumps([prepare_filter(filter) for filter in report.filters])
+		script = "frappe.query_reports['%s']={ 'filters': %s}" % (report_name, filters)
 
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
 		"execution_time": frappe.cache().hget("report_execution_time", report_name) or 0,
 	}
+
+
+def prepare_filter(filter):
+    filter = {
+        "fieldname": filter.fieldname,
+        "label": filter.label,
+        "fieldtype": filter.fieldtype,
+        "width": "80",
+        "options": filter.options,
+        "reqd": 1
+    }
+    return filter
 
 
 @frappe.whitelist()
