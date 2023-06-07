@@ -69,7 +69,7 @@ def raise_type_error(
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
-	return PyTypeAdapter(type_)
+	return PyTypeAdapter(type_, config=FrappePydanticConfig)
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
