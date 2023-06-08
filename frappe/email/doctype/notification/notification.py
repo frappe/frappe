@@ -42,10 +42,10 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
-		frappe.cache().hdel("notifications", self.document_type)
+		frappe.cache.hdel("notifications", self.document_type)
 
 	def on_update(self):
-		frappe.cache().hdel("notifications", self.document_type)
+		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path:
 			# js
@@ -378,7 +378,7 @@ def get_context(context):
 			self.message = frappe.utils.md_to_html(self.message)
 
 	def on_trash(self):
-		frappe.cache().hdel("notifications", self.document_type)
+		frappe.cache.hdel("notifications", self.document_type)
 
 
 @frappe.whitelist()

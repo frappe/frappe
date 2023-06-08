@@ -176,7 +176,7 @@ class EmailAccount(Document):
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
-		if frappe.cache().get_value("workers:no-internet") == True:
+		if frappe.cache.get_value("workers:no-internet") == True:
 			return None
 
 		oauth_token = self.get_oauth_token()
@@ -253,7 +253,7 @@ class EmailAccount(Document):
 					if self.no_failed > 2:
 						self.handle_incoming_connect_error(description=description)
 				else:
-					frappe.cache().set_value("workers:no-internet", True)
+					frappe.cache.set_value("workers:no-internet", True)
 				return None
 			else:
 				raise
@@ -436,13 +436,13 @@ class EmailAccount(Document):
 			else:
 				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 		else:
-			frappe.cache().set_value("workers:no-internet", True)
+			frappe.cache.set_value("workers:no-internet", True)
 
 	def set_failed_attempts_count(self, value):
-		frappe.cache().set(f"{self.name}:email-account-failed-attempts", value)
+		frappe.cache.set(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
-		return cint(frappe.cache().get(f"{self.name}:email-account-failed-attempts"))
+		return cint(frappe.cache.get(f"{self.name}:email-account-failed-attempts"))
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -766,9 +766,9 @@ def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	from frappe.integrations.doctype.connected_app.connected_app import has_token
 
-	if frappe.cache().get_value("workers:no-internet") == True:
+	if frappe.cache.get_value("workers:no-internet") == True:
 		if test_internet():
-			frappe.cache().set_value("workers:no-internet", False)
+			frappe.cache.set_value("workers:no-internet", False)
 		return
 
 	doctype = frappe.qb.DocType("Email Account")

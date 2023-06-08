@@ -46,7 +46,7 @@ class TestWebsite(FrappeTestCase):
 		frappe.db.set_value("Portal Settings", None, "default_portal_home", "test-portal-home")
 
 		frappe.set_user("test-user-for-home-page@example.com")
-		frappe.cache().hdel("home_page", frappe.session.user)
+		frappe.cache.hdel("home_page", frappe.session.user)
 		self.assertEqual(get_home_page(), "test-portal-home")
 
 		frappe.db.set_value("Portal Settings", None, "default_portal_home", "")
@@ -210,7 +210,7 @@ class TestWebsite(FrappeTestCase):
 		self.assertEqual(response.headers.get("Location"), "/courses/data")
 
 		delattr(frappe.hooks, "website_redirects")
-		frappe.cache().delete_key("app_hooks")
+		frappe.cache.delete_key("app_hooks")
 
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks

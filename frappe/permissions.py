@@ -433,7 +433,7 @@ def get_roles(user=None, with_standard=True):
 			)
 			return roles + ["All", "Guest"]
 
-	roles = frappe.cache().hget("roles", user, get)
+	roles = frappe.cache.hget("roles", user, get)
 
 	# filter standard if required
 	if not with_standard:

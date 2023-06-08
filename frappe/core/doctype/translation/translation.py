@@ -89,5 +89,5 @@ def create_translations(translation_map, language):
 
 
 def clear_user_translation_cache(lang):
-	frappe.cache().hdel(USER_TRANSLATION_KEY, lang)
-	frappe.cache().hdel(MERGED_TRANSLATION_KEY, lang)
+	frappe.cache.hdel(USER_TRANSLATION_KEY, lang)
+	frappe.cache.hdel(MERGED_TRANSLATION_KEY, lang)

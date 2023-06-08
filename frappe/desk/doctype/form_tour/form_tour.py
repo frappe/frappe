@@ -34,13 +34,13 @@ class FormTour(Document):
 					step.fieldtype = field_df.fieldtype
 
 	def on_update(self):
-		frappe.cache().delete_key("bootinfo")
+		frappe.cache.delete_key("bootinfo")
 
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files([["Form Tour", self.name]], self.module)
 
 	def on_trash(self):
-		frappe.cache().delete_key("bootinfo")
+		frappe.cache.delete_key("bootinfo")
 
 
 @frappe.whitelist()
@@ -51,7 +51,7 @@ def reset_tour(tour_name):
 		frappe.db.set_value(
 			"User", user, "onboarding_status", frappe.as_json(onboarding_status), update_modified=False
 		)
-		frappe.cache().hdel("bootinfo", user)
+		frappe.cache.hdel("bootinfo", user)
 
 	frappe.msgprint(_("Successfully reset onboarding status for all users."), alert=True)
 
@@ -72,7 +72,7 @@ def update_user_status(value, step):
 		"User", frappe.session.user, "onboarding_status", value, update_modified=False
 	)
 
-	frappe.cache().hdel("bootinfo", frappe.session.user)
+	frappe.cache.hdel("bootinfo", frappe.session.user)
 
 
 def get_onboarding_ui_tours():

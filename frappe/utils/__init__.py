@@ -970,7 +970,7 @@ def get_assets_json():
 
 	if not hasattr(frappe.local, "assets_json"):
 		if not frappe.conf.developer_mode:
-			frappe.local.assets_json = frappe.cache().get_value(
+			frappe.local.assets_json = frappe.cache.get_value(
 				"assets_json",
 				_get_assets,
 				shared=True,

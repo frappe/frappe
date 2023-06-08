@@ -59,11 +59,11 @@ def get_meta(doctype, cached=True) -> "Meta":
 	if not cached:
 		return Meta(doctype)
 
-	if meta := frappe.cache().hget("doctype_meta", doctype):
+	if meta := frappe.cache.hget("doctype_meta", doctype):
 		return meta
 
 	meta = Meta(doctype)
-	frappe.cache().hset("doctype_meta", doctype, meta)
+	frappe.cache.hset("doctype_meta", doctype, meta)
 	return meta
 
 
@@ -814,7 +814,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 
 def trim_table(doctype, dry_run=True):
-	frappe.cache().hdel("table_columns", f"tab{doctype}")
+	frappe.cache.hdel("table_columns", f"tab{doctype}")
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
