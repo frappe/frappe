@@ -69,10 +69,12 @@ class TestFixtureImport(FrappeTestCase):
 
 		import_doc(path_to_exported_fixtures)
 
-		delete_doc("DocType", "temp_singles", delete_permanently=True)
-		os.remove(path_to_exported_fixtures)
-
 		data = frappe.db.get_single_value("temp_singles", "member_name")
 		truncate_query.run()
 
 		self.assertEqual(data, dummy_name_list[0])
+
+		delete_doc("DocType", "temp_singles", delete_permanently=True)
+		os.remove(path_to_exported_fixtures)
+
+		frappe.db.commit()

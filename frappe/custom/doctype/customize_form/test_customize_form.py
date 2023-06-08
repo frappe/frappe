@@ -425,3 +425,15 @@ class TestCustomizeForm(FrappeTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
 		)
+
+	def test_custom_field_order(self):
+		# shuffle fields
+		customize_form = self.get_customize_form(doctype="ToDo")
+		customize_form.fields.insert(0, customize_form.fields.pop())
+		customize_form.save_customization()
+
+		field_order_property = json.loads(
+			frappe.db.get_value("Property Setter", {"doc_type": "ToDo", "property": "field_order"}, "value")
+		)
+
+		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])

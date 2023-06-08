@@ -38,7 +38,6 @@ frappe.Application = class Application {
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.set_favicon();
-		this.setup_analytics();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
@@ -74,6 +73,23 @@ frappe.Application = class Application {
 
 		// page container
 		this.make_page_container();
+		if (
+			!window.Cypress &&
+			frappe.boot.onboarding_tours &&
+			frappe.boot.user.onboarding_status != null
+		) {
+			let pending_tours =
+				frappe.boot.onboarding_tours.findIndex((tour) => {
+					frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true;
+				}) == -1;
+			if (pending_tours && frappe.boot.onboarding_tours.length > 0) {
+				frappe.require("onboarding_tours.bundle.js", () => {
+					frappe.utils.sleep(1000).then(() => {
+						frappe.ui.init_onboarding_tour();
+					});
+				});
+			}
+		}
 		this.set_route();
 
 		// trigger app startup
@@ -493,18 +509,6 @@ frappe.Application = class Application {
 		frappe.call({
 			method: "frappe.utils.change_log.show_update_popup",
 		});
-	}
-
-	setup_analytics() {
-		if (window.mixpanel) {
-			window.mixpanel.identify(frappe.session.user);
-			window.mixpanel.people.set({
-				$first_name: frappe.boot.user.first_name,
-				$last_name: frappe.boot.user.last_name,
-				$created: frappe.boot.user.creation,
-				$email: frappe.session.user,
-			});
-		}
 	}
 
 	add_browser_class() {

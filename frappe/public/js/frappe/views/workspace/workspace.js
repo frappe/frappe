@@ -22,6 +22,7 @@ frappe.views.Workspace = class Workspace {
 		this.page = wrapper.page;
 		this.blocks = frappe.workspace_block.blocks;
 		this.is_read_only = true;
+		this.is_page_loaded = false;
 		this.pages = {};
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
@@ -248,10 +249,14 @@ frappe.views.Workspace = class Workspace {
 		this.update_selected_sidebar(page, true); //add selected on new page
 
 		if (!frappe.router.current_route[0]) {
+			this.is_page_loaded = true;
 			frappe.set_route(frappe.router.slug(page.public ? page.name : "private/" + page.name));
 		}
 
-		this.show_page(page);
+		if (!this.is_page_loaded) {
+			this.show_page(page);
+			this.is_page_loaded = false;
+		}
 	}
 
 	update_selected_sidebar(page, add) {
@@ -353,7 +358,7 @@ frappe.views.Workspace = class Workspace {
 			let current_page = pages.filter((p) => p.title == page.name)[0];
 			this.content = current_page && JSON.parse(current_page.content);
 
-			this.add_custom_cards_in_content();
+			this.content && this.add_custom_cards_in_content();
 
 			$(".item-anchor").addClass("disable-click");
 

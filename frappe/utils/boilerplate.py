@@ -138,7 +138,8 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
 
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"), "w") as f:
+		f.write(frappe.as_unicode(patches_template.format(**hooks)))
 
 	app_directory = os.path.join(dest, hooks.app_name)
 
@@ -631,3 +632,10 @@ jobs:
         env:
           TYPE: server
 """
+
+patches_template = """[pre_model_sync]
+# Patches added in this section will be executed before doctypes are migrated
+# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+
+[post_model_sync]
+# Patches added in this section will be executed after doctypes are migrated"""
