@@ -215,13 +215,14 @@ class TestDocumentCache(FrappeAPITestCase):
 class TestRedisWrapper(FrappeAPITestCase):
 	def test_delete_keys(self):
 
-		c = frappe.cache()
-
 		prefix = "test_del_"
 
 		for i in range(5):
-			c.set_value(f"{prefix}{i}", 1)
+			frappe.cache.set_value(f"{prefix}{i}", 1)
 
-		self.assertEqual(len(c.get_keys(prefix)), 5)
-		c.delete_keys(prefix)
-		self.assertEqual(len(c.get_keys(prefix)), 0)
+		self.assertEqual(len(frappe.cache.get_keys(prefix)), 5)
+		frappe.cache.delete_keys(prefix)
+		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
+
+	def test_backward_compat_cache(self):
+		self.assertEqual(frappe.cache, frappe.cache())

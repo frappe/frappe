@@ -34,6 +34,10 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return False
 
+	def __call__(self):
+		"""WARNING: Added for backward compatibility to support frappe.cache().method(...)"""
+		return self
+
 	def make_key(self, key, user=None, shared=False):
 		if shared:
 			return key

@@ -48,6 +48,7 @@ __title__ = "Frappe Framework"
 
 controllers = {}
 local = Local()
+cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
@@ -178,6 +179,7 @@ if TYPE_CHECKING:
 
 	db: MariaDBDatabase | PostgresDatabase
 	qb: MariaDB | Postgres
+	cache: RedisWrapper
 
 
 # end: static analysis hack
@@ -241,6 +243,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
+	setup_redis_cache_connection()
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -348,17 +351,14 @@ def destroy():
 	release_local(local)
 
 
-redis_server = None
+def setup_redis_cache_connection():
+	"""Defines `frappe.cache` as `RedisWrapper` instance"""
+	global cache
 
-
-def cache() -> "RedisWrapper":
-	"""Returns redis connection."""
-	global redis_server
-	if not redis_server:
+	if not cache:
 		from frappe.utils.redis_wrapper import RedisWrapper
 
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
-	return redis_server
+		cache = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
 
 
 def get_traceback(with_context: bool = False) -> str:
