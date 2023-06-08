@@ -131,7 +131,7 @@ frappe.report_utils = {
 						!frappe.query_reports[report_name].filter &&
 						r.filters
 					) {
-						return (frappe.query_reports[report_name].filters = r.filters)
+						return (frappe.query_reports[report_name].filters = r.filters);
 					}					
 					return (
 						frappe.query_reports[report_name] &&
