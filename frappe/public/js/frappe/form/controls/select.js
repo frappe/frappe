@@ -74,7 +74,7 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 		if (this.$input) {
 			var selected = this.$input.find(":selected").val();
 			this.$input.empty();
-			frappe.ui.form.add_options(this.$input, options || []);
+			frappe.ui.form.add_options(this.$input, options || [], this.df.sort_options);
 
 			if (value === undefined && selected) {
 				this.$input.val(selected);
@@ -102,15 +102,18 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 	}
 };
 
-frappe.ui.form.add_options = function (input, options_list) {
+frappe.ui.form.add_options = function (input, options_list, sort) {
 	let $select = $(input);
 	if (!Array.isArray(options_list)) {
 		return $select;
 	}
 
-	options_list
-		.map((raw_option) => parse_option(raw_option))
-		.sort((a, b) => a.label.localeCompare(b.label))
+	let options = options_list.map((raw_option) => parse_option(raw_option));
+	if (sort) {
+		options = options.sort((a, b) => a.label.localeCompare(b.label));
+	}
+
+	options
 		.map((option) =>
 			$("<option>")
 				.html(cstr(option.label))
@@ -128,8 +131,8 @@ frappe.ui.form.add_options = function (input, options_list) {
 
 // add <option> list to <select>
 (function ($) {
-	$.fn.add_options = function (options_list) {
-		return frappe.ui.form.add_options(this.get(0), options_list);
+	$.fn.add_options = function (options_list, sort) {
+		return frappe.ui.form.add_options(this.get(0), options_list, sort);
 	};
 	$.fn.set_working = function () {
 		this.prop("disabled", true);
