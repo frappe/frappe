@@ -179,6 +179,7 @@ if TYPE_CHECKING:
 
 	db: MariaDBDatabase | PostgresDatabase
 	qb: MariaDB | Postgres
+	cache: RedisWrapper
 
 
 # end: static analysis hack
@@ -350,7 +351,7 @@ def destroy():
 	release_local(local)
 
 
-def setup_redis_cache_connection() -> "RedisWrapper":
+def setup_redis_cache_connection():
 	"""Defines `frappe.cache` as `RedisWrapper` instance"""
 	global cache
 
