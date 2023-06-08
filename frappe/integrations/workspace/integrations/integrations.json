@@ -2,12 +2,14 @@
  "charts": [],
  "content": "[{\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"type\":\"card\",\"data\":{\"card_name\":\"Backup\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Google Services\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Authentication\",\"col\":4}},{\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
  "creation": "2020-03-02 15:16:18.714190",
+ "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
  "icon": "integration",
  "idx": 0,
+ "is_hidden": 0,
  "label": "Integrations",
  "links": [
   {
@@ -197,17 +199,18 @@
    "type": "Link"
   }
  ],
- "modified": "2022-07-23 18:00:28.805405",
+ "modified": "2023-05-24 14:58:55.910408",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 15.0,
+ "sequence_id": 20.0,
  "shortcuts": [],
  "title": "Integrations"
 }

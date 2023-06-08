@@ -1,4 +1,3 @@
-import itertools
 import re
 from ast import literal_eval
 from types import BuiltinFunctionType
@@ -10,6 +9,7 @@ from pypika.queries import QueryBuilder, Table
 import frappe
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
+from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.database.utils import DefaultOrderBy, get_doctype_name
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
@@ -24,6 +24,10 @@ WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
+
+# less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
+# to allow table names like __Auth
+TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 
 
 class Engine:
@@ -41,15 +45,19 @@ class Engine:
 		update: bool = False,
 		into: bool = False,
 		delete: bool = False,
+		*,
+		validate_filters: bool = False,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
+		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):
 			self.table = table
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
+			self.validate_doctype()
 			self.table = frappe.qb.DocType(table)
 
 		if update:
@@ -81,6 +89,10 @@ class Engine:
 			self.query = self.query.groupby(group_by)
 
 		return self.query
+
+	def validate_doctype(self):
+		if not TABLE_NAME_PATTERN.match(self.doctype):
+			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
 		# add fields
@@ -135,9 +147,12 @@ class Engine:
 			self._apply_filter(field, value, operator, doctype)
 
 	def apply_dict_filters(self, filters: dict[str, str | int | list]):
-		for key in filters:
-			value = filters.get(key)
-			self._apply_filter(key, value)
+		for field, value in filters.items():
+			operator = "="
+			if isinstance(value, (list, tuple)):
+				operator, value = value
+
+			self._apply_filter(field, value, operator)
 
 	def _apply_filter(
 		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
@@ -146,14 +161,16 @@ class Engine:
 		_value = value
 		_operator = operator
 
-		if isinstance(_field, Field):
+		if not isinstance(_field, str):
 			pass
-		elif dynamic_field := DynamicTableField.parse(field, self.doctype):
+		elif not self.validate_filters and (
+			dynamic_field := DynamicTableField.parse(field, self.doctype)
+		):
 			# apply implicit join if link field's field is referenced
 			self.query = dynamic_field.apply_join(self.query)
 			_field = dynamic_field.field
-		elif has_function(field):
-			_field = self.get_function_object(field)
+		elif self.validate_filters and SPECIAL_CHAR_PATTERN.search(_field):
+			frappe.throw(_("Invalid filter: {0}").format(_field))
 		elif not doctype or doctype == self.doctype:
 			_field = self.table[field]
 		elif doctype:
@@ -168,30 +185,28 @@ class Engine:
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
 
-		if isinstance(_value, (list, tuple)):
-			_operator, _value = _value
-		elif isinstance(_value, bool):
+		if isinstance(_value, bool):
 			_value = int(_value)
 
-		if isinstance(_value, str) and has_function(_value):
-			_value = self.get_function_object(_value)
-
-		if isinstance(_value, (list, tuple)) and not _value:
+		elif not _value and isinstance(_value, (list, tuple)):
 			_value = ("",)
 
 		# Nested set
 		if _operator in OPERATOR_MAP["nested_set"]:
 			hierarchy = _operator
 			docname = _value
-			result = get_nested_set_hierarchy_result(self.doctype, docname, hierarchy)
+
+			_df = frappe.get_meta(self.doctype).get_field(field)
+			ref_doctype = _df.options if _df else self.doctype
+
+			nodes = get_nested_set_hierarchy_result(ref_doctype, docname, hierarchy)
 			operator_fn = (
 				OPERATOR_MAP["not in"]
 				if hierarchy in ("not ancestors of", "not descendants of")
 				else OPERATOR_MAP["in"]
 			)
-			if result:
-				result = list(itertools.chain.from_iterable(result))
-				self.query = self.query.where(operator_fn(_field, result))
+			if nodes:
+				self.query = self.query.where(operator_fn(_field, nodes))
 			else:
 				self.query = self.query.where(operator_fn(_field, ("",)))
 			return
@@ -506,22 +521,25 @@ def has_function(field):
 			return True
 
 
-def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
+def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> list[str]:
+	"""Get matching nodes based on operator."""
 	table = frappe.qb.DocType(doctype)
 	try:
 		lft, rgt = frappe.qb.from_(table).select("lft", "rgt").where(table.name == name).run()[0]
 	except IndexError:
 		lft, rgt = None, None
 
-	if hierarchy in ("descendants of", "not descendants of"):
+	if hierarchy in ("descendants of", "not descendants of", "descendants of (inclusive)"):
 		result = (
 			frappe.qb.from_(table)
 			.select(table.name)
 			.where(table.lft > lft)
 			.where(table.rgt < rgt)
 			.orderby(table.lft, order=Order.asc)
-			.run()
+			.run(pluck=True)
 		)
+		if hierarchy == "descendants of (inclusive)":
+			result += [name]
 	else:
 		# Get ancestor elements of a DocType with a tree structure
 		result = (
@@ -530,6 +548,6 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str):
 			.where(table.lft < lft)
 			.where(table.rgt > rgt)
 			.orderby(table.lft, order=Order.desc)
-			.run()
+			.run(pluck=True)
 		)
 	return result

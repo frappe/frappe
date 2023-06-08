@@ -188,10 +188,10 @@ class LoginManager:
 			frappe.response["full_name"] = self.full_name
 
 		# redirect information
-		redirect_to = frappe.cache().hget("redirect_after_login", self.user)
+		redirect_to = frappe.cache.hget("redirect_after_login", self.user)
 		if redirect_to:
 			frappe.local.response["redirect_to"] = redirect_to
-			frappe.cache().hdel("redirect_after_login", self.user)
+			frappe.cache.hdel("redirect_after_login", self.user)
 
 		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
@@ -482,15 +482,15 @@ class LoginAttemptTracker:
 
 	@property
 	def login_failed_count(self):
-		return frappe.cache().hget("login_failed_count", self.user_name)
+		return frappe.cache.hget("login_failed_count", self.user_name)
 
 	@login_failed_count.setter
 	def login_failed_count(self, count):
-		frappe.cache().hset("login_failed_count", self.user_name, count)
+		frappe.cache.hset("login_failed_count", self.user_name, count)
 
 	@login_failed_count.deleter
 	def login_failed_count(self):
-		frappe.cache().hdel("login_failed_count", self.user_name)
+		frappe.cache.hdel("login_failed_count", self.user_name)
 
 	@property
 	def login_failed_time(self):
@@ -498,15 +498,15 @@ class LoginAttemptTracker:
 
 		For every user we track only First failed login attempt time within lock interval of time.
 		"""
-		return frappe.cache().hget("login_failed_time", self.user_name)
+		return frappe.cache.hget("login_failed_time", self.user_name)
 
 	@login_failed_time.setter
 	def login_failed_time(self, timestamp):
-		frappe.cache().hset("login_failed_time", self.user_name, timestamp)
+		frappe.cache.hset("login_failed_time", self.user_name, timestamp)
 
 	@login_failed_time.deleter
 	def login_failed_time(self):
-		frappe.cache().hdel("login_failed_time", self.user_name)
+		frappe.cache.hdel("login_failed_time", self.user_name)
 
 	def add_failure_attempt(self):
 		"""Log user failure attempts into the system.

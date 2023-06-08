@@ -96,7 +96,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 
 
 def get_cached_contacts(txt):
-	contacts = frappe.cache().hget("contacts", frappe.session.user) or []
+	contacts = frappe.cache.hget("contacts", frappe.session.user) or []
 
 	if not contacts:
 		return
@@ -113,9 +113,9 @@ def get_cached_contacts(txt):
 
 
 def update_contact_cache(contacts):
-	cached_contacts = frappe.cache().hget("contacts", frappe.session.user) or []
+	cached_contacts = frappe.cache.hget("contacts", frappe.session.user) or []
 
 	uncached_contacts = [d for d in contacts if d not in cached_contacts]
 	cached_contacts.extend(uncached_contacts)
 
-	frappe.cache().hset("contacts", frappe.session.user, cached_contacts)
+	frappe.cache.hset("contacts", frappe.session.user, cached_contacts)

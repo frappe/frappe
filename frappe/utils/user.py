@@ -59,7 +59,7 @@ class UserPermissions:
 			return user
 
 		if not frappe.flags.in_install_db and not frappe.flags.in_test:
-			user_doc = frappe.cache().hget("user_doc", self.name, get_user_doc)
+			user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
 			if user_doc:
 				self.doc = frappe.get_doc(user_doc)
 
@@ -186,7 +186,7 @@ class UserPermissions:
 				filters={"property": "allow_import", "value": "1"},
 			)
 
-		frappe.cache().hset("can_import", frappe.session.user, self.can_import)
+		frappe.cache.hset("can_import", frappe.session.user, self.can_import)
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -221,6 +221,7 @@ class UserPermissions:
 				"mute_sounds",
 				"send_me_a_copy",
 				"user_type",
+				"onboarding_status",
 			],
 			as_dict=True,
 		)
@@ -229,6 +230,7 @@ class UserPermissions:
 			self.build_permissions()
 
 		d.name = self.name
+		d.onboarding_status = frappe.parse_json(d.onboarding_status)
 		d.roles = self.get_roles()
 		d.defaults = self.get_defaults()
 		for key in (

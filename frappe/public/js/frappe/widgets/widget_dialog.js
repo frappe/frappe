@@ -358,6 +358,7 @@ class ShortcutDialog extends WidgetDialog {
 								query: "frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
 								filters: {
 									user: frappe.session.user,
+									include_single_doctypes: true,
 								},
 							};
 						};
@@ -714,6 +715,11 @@ class CustomBlockDialog extends WidgetDialog {
 				label: "Custom Block Name",
 				options: "Custom HTML Block",
 				reqd: 1,
+				get_query: () => {
+					return {
+						query: "frappe.desk.doctype.custom_html_block.custom_html_block.get_custom_blocks_for_user",
+					};
+				},
 			},
 		];
 	}

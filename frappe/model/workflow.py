@@ -26,12 +26,12 @@ class WorkflowPermissionError(frappe.ValidationError):
 
 
 def get_workflow_name(doctype):
-	workflow_name = frappe.cache().hget("workflow", doctype)
+	workflow_name = frappe.cache.hget("workflow", doctype)
 	if workflow_name is None:
 		workflow_name = frappe.db.get_value(
 			"Workflow", {"document_type": doctype, "is_active": 1}, "name"
 		)
-		frappe.cache().hset("workflow", doctype, workflow_name or "")
+		frappe.cache.hset("workflow", doctype, workflow_name or "")
 
 	return workflow_name
 
@@ -228,10 +228,10 @@ def send_email_alert(workflow_name):
 
 
 def get_workflow_field_value(workflow_name, field):
-	value = frappe.cache().hget("workflow_" + workflow_name, field)
+	value = frappe.cache.hget("workflow_" + workflow_name, field)
 	if value is None:
 		value = frappe.db.get_value("Workflow", workflow_name, field)
-		frappe.cache().hset("workflow_" + workflow_name, field, value)
+		frappe.cache.hset("workflow_" + workflow_name, field, value)
 	return value
 
 
