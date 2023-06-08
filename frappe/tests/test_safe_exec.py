@@ -121,6 +121,19 @@ class TestSafeExec(FrappeTestCase):
 		# dont Allow modifying _dict class
 		self.assertRaises(Exception, safe_exec, "_dict.x = 1")
 
+	def test_caching(self):
+		key = frappe.generate_hash()
+		outside_safe_exec = "outside_safe_exec"
+		inside_safe_exec = "inside_safe_exec"
+		frappe.cache.set_value(key, outside_safe_exec)
+
+		safe_exec(f'frappe.cache.set_value("{key}", "{inside_safe_exec}")')
+
+		self.assertEqual(frappe.cache.get_value(key), outside_safe_exec)
+
+		_gloabls, _ = safe_exec(f'frappe.flags.result = frappe.cache.get_value("{key}")')
+		self.assertEqual(_gloabls.frappe.flags.result, inside_safe_exec)
+
 
 class TestNoSafeExec(FrappeTestCase):
 	def test_safe_exec_disabled_by_default(self):

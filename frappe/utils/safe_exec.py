@@ -6,6 +6,7 @@ import mimetypes
 import types
 from contextlib import contextmanager
 from functools import lru_cache
+from typing import Any
 
 import RestrictedPython.Guards
 from RestrictedPython import compile_restricted, safe_globals
@@ -166,6 +167,12 @@ def get_safe_globals():
 		args=form_dict,
 		frappe=NamespaceDict(
 			call=call_whitelisted_function,
+			cache=NamespaceDict(
+				set_value=_RestrictedRedisWrapper.set_value,
+				get_value=_RestrictedRedisWrapper.get_value,
+				exists=_RestrictedRedisWrapper.exists,
+				delete_value=_RestrictedRedisWrapper.delete_value,
+			),
 			flags=frappe._dict(),
 			format=frappe.format_value,
 			format_value=frappe.format_value,
@@ -401,6 +408,31 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 		)
 
 	return False
+
+
+class _RestrictedRedisWrapper:
+	@classmethod
+	def set_value(cls, key: str, val: Any, *, expires_in_sec: int | None = None):
+		frappe.cache.set_value(cls._generate_redis_key(key), val, expires_in_sec=expires_in_sec)
+
+	@classmethod
+	def get_value(cls, key: str) -> Any:
+		return frappe.cache.get_value(cls._generate_redis_key(key))
+
+	@classmethod
+	def exists(cls, key: str) -> int:
+		return frappe.cache.exists(cls._generate_redis_key(key))
+
+	@classmethod
+	def delete_value(cls, keys: str | list[str]) -> None:
+		if isinstance(keys, str):
+			keys = [keys]
+		keys = [cls._generate_redis_key(k) for k in keys]
+		frappe.cache.delete_value(keys)
+
+	@classmethod
+	def _generate_redis_key(cls, key: str) -> str:
+		return f"server_script_context::{key}"
 
 
 def _getitem(obj, key):
