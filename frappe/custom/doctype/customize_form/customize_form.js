@@ -49,14 +49,6 @@ frappe.ui.form.on("Customize Form", {
 				grid_row.row.addClass("highlight");
 			}
 		});
-
-		$(frm.wrapper).on("grid-make-sortable", function (e, frm) {
-			frm.trigger("setup_sortable");
-		});
-
-		$(frm.wrapper).on("grid-move-row", function (e, frm) {
-			frm.trigger("setup_sortable");
-		});
 	},
 
 	doc_type: function (frm) {
@@ -71,7 +63,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.set_value("doc_type", "");
 						} else {
 							frm.refresh();
-							frm.trigger("setup_sortable");
+							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
 						}
 					}
@@ -87,23 +79,22 @@ frappe.ui.form.on("Customize Form", {
 		frm.trigger("setup_default_views");
 	},
 
-	setup_sortable: function (frm) {
+	add_customize_child_table_button: function (frm) {
 		frm.doc.fields.forEach(function (f) {
+<<<<<<< HEAD
 			if (!f.is_custom_field) {
 				f._sortable = false;
 			}
+=======
+			if (!in_list(["Table", "Table MultiSelect"], f.fieldtype)) return;
+>>>>>>> 19d211f1d2 ( feat: rearranging standard fields in customize form (#19822))
 
-			if (f.fieldtype == "Table") {
-				frm.add_custom_button(
-					f.options,
-					function () {
-						frm.set_value("doc_type", f.options);
-					},
-					__("Customize Child Table")
-				);
-			}
+			frm.add_custom_button(
+				f.options,
+				() => frm.set_value("doc_type", f.options),
+				__("Customize Child Table")
+			);
 		});
-		frm.fields_dict.fields.grid.refresh();
 	},
 
 	refresh: function (frm) {
