@@ -1007,7 +1007,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					href="${this.get_form_link(doc)}"
 					title="${escaped_subject}"
 					data-doctype="${this.doctype}"
-					data-name="${doc.name}">
+					data-name="${escaped_subject}">
 					${subject}
 				</a>
 			</span>
@@ -1029,7 +1029,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return `<span class="indicator-pill ${indicator[1]} filterable ellipsis"
 				data-filter='${indicator[2]}' title='${title}'>
 				<span class="ellipsis"> ${__(indicator[0])}</span>
-			<span>`;
+			</span>`;
 		}
 		return "";
 	}

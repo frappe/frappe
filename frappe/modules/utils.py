@@ -214,7 +214,7 @@ def export_doc(doctype, name, module=None):
 
 def get_doctype_module(doctype: str) -> str:
 	"""Returns **Module Def** name of given doctype."""
-	doctype_module_map = frappe.cache().get_value(
+	doctype_module_map = frappe.cache.get_value(
 		"doctype_modules",
 		generator=lambda: dict(frappe.qb.from_("DocType").select("name", "module").run()),
 	)

@@ -35,7 +35,7 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		meta = frappe.get_meta(self.doc_type)
+		meta = frappe.get_meta(self.doc_type, cached=False)
 
 		self.validate_doctype(meta)
 
@@ -172,7 +172,18 @@ class CustomizeForm(Document):
 		check_email_append_to(self)
 
 		if self.flags.update_db:
-			frappe.db.updatedb(self.doc_type)
+			try:
+				frappe.db.updatedb(self.doc_type)
+			except Exception as e:
+				if frappe.db.is_db_table_size_limit(e):
+					frappe.throw(
+						_("You have hit the row size limit on database table: {0}").format(
+							"<a href='https://docs.erpnext.com/docs/v14/user/manual/en/customize-erpnext/articles/maximum-number-of-fields-in-a-form'>"
+							"Maximum Number of Fields in a Form</a>"
+						),
+						title=_("Database Table Row Size Limit"),
+					)
+				raise
 
 		if not hasattr(self, "hide_success") or not self.hide_success:
 			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
@@ -181,7 +192,9 @@ class CustomizeForm(Document):
 
 		if self.flags.rebuild_doctype_for_global_search:
 			frappe.enqueue(
-				"frappe.utils.global_search.rebuild_for_doctype", now=True, doctype=self.doc_type
+				"frappe.utils.global_search.rebuild_for_doctype",
+				doctype=self.doc_type,
+				enqueue_after_commit=True,
 			)
 
 	def set_property_setters(self):
@@ -201,10 +214,38 @@ class CustomizeForm(Document):
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
+	def set_property_setter_for_field_order(self, meta):
+		new_order = [df.fieldname for df in self.fields]
+		existing_order = getattr(meta, "field_order", None)
+		default_order = [
+			fieldname for fieldname, df in meta._fields.items() if not getattr(df, "is_custom_field", False)
+		]
+
+		if new_order == default_order:
+			if existing_order:
+				delete_property_setter(self.doc_type, "field_order")
+
+			return
+
+		if existing_order and new_order == json.loads(existing_order):
+			return
+
+		frappe.make_property_setter(
+			{
+				"doctype": self.doc_type,
+				"doctype_or_field": "DocType",
+				"property": "field_order",
+				"value": json.dumps(new_order),
+			},
+			is_system_generated=False,
+		)
+
 	def set_property_setters_for_doctype(self, meta):
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
+
+		self.set_property_setter_for_field_order(meta)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
 		for prop, prop_type in docfield_properties.items():
@@ -525,6 +566,24 @@ class CustomizeForm(Document):
 			return
 
 		reset_customization(self.doc_type)
+		self.fetch_to_customize()
+
+	@frappe.whitelist()
+	def reset_layout(self):
+		if not self.doc_type:
+			return
+
+		property_setter = frappe.db.get_value(
+			"Property Setter",
+			filters={
+				"doc_type": self.doc_type,
+				"property": "field_order",
+				"is_system_generated": False,
+			},
+		)
+		if property_setter:
+			frappe.delete_doc("Property Setter", property_setter)
+
 		self.fetch_to_customize()
 
 	@classmethod

@@ -119,7 +119,7 @@ def generate_report_result(
 		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
-		"execution_time": frappe.cache().hget("report_execution_time", report.name) or 0,
+		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
 	}
 
 
@@ -170,7 +170,7 @@ def get_script(report_name):
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
-		"execution_time": frappe.cache().hget("report_execution_time", report_name) or 0,
+		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
 	}
 
 
@@ -298,7 +298,9 @@ def export_query():
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	data = run(report_name, form_params.filters, custom_columns=custom_columns)
+	data = run(
+		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
+	)
 	data = frappe._dict(data)
 	if not data.columns:
 		frappe.respond_as_web_page(

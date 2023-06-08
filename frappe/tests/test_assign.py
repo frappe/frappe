@@ -2,13 +2,22 @@
 # License: MIT. See LICENSE
 import frappe
 import frappe.desk.form.assign_to
-from frappe.automation.doctype.assignment_rule.test_assignment_rule import make_note
+from frappe.automation.doctype.assignment_rule.test_assignment_rule import (
+	TEST_DOCTYPE,
+	_make_test_record,
+	create_test_doctype,
+)
 from frappe.desk.form.load import get_assignments
 from frappe.desk.listview import get_group_by_count
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestAssign(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		create_test_doctype(TEST_DOCTYPE)
+
 	def test_assign(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 		if not frappe.db.exists("User", "test@example.com"):
@@ -18,7 +27,7 @@ class TestAssign(FrappeTestCase):
 
 		self.assertTrue("test@example.com" in [d.owner for d in added])
 
-		removed = frappe.desk.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
+		frappe.desk.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
 
 		# assignment is cleared
 		assignments = frappe.desk.form.assign_to.get(dict(doctype=todo.doctype, name=todo.name))
@@ -47,25 +56,27 @@ class TestAssign(FrappeTestCase):
 				}
 			).insert()
 
-		note = make_note()
+		note = _make_test_record()
 		assign(note, "test_assign1@example.com")
 
-		note = make_note(dict(public=1))
+		note = _make_test_record(public=1)
 		assign(note, "test_assign2@example.com")
 
-		note = make_note(dict(public=1))
+		note = _make_test_record(public=1)
 		assign(note, "test_assign2@example.com")
 
-		note = make_note()
+		note = _make_test_record()
 		assign(note, "test_assign2@example.com")
 
-		data = {d.name: d.count for d in get_group_by_count("Note", "[]", "assigned_to")}
+		data = {d.name: d.count for d in get_group_by_count(TEST_DOCTYPE, "[]", "assigned_to")}
 
 		self.assertTrue("test_assign1@example.com" in data)
 		self.assertEqual(data["test_assign1@example.com"], 1)
 		self.assertEqual(data["test_assign2@example.com"], 3)
 
-		data = {d.name: d.count for d in get_group_by_count("Note", '[{"public": 1}]', "assigned_to")}
+		data = {
+			d.name: d.count for d in get_group_by_count(TEST_DOCTYPE, '[{"public": 1}]', "assigned_to")
+		}
 
 		self.assertFalse("test_assign1@example.com" in data)
 		self.assertEqual(data["test_assign2@example.com"], 2)

@@ -22,6 +22,7 @@ frappe.views.Workspace = class Workspace {
 		this.page = wrapper.page;
 		this.blocks = frappe.workspace_block.blocks;
 		this.is_read_only = true;
+		this.is_page_loaded = false;
 		this.pages = {};
 		this.sorted_public_items = [];
 		this.sorted_private_items = [];
@@ -247,7 +248,15 @@ frappe.views.Workspace = class Workspace {
 		this.update_selected_sidebar(this.current_page, false); //remove selected from old page
 		this.update_selected_sidebar(page, true); //add selected on new page
 
-		this.show_page(page);
+		if (!frappe.router.current_route[0]) {
+			this.is_page_loaded = true;
+			frappe.set_route(frappe.router.slug(page.public ? page.name : "private/" + page.name));
+		}
+
+		if (!this.is_page_loaded) {
+			this.show_page(page);
+			this.is_page_loaded = false;
+		}
 	}
 
 	update_selected_sidebar(page, add) {
@@ -349,7 +358,7 @@ frappe.views.Workspace = class Workspace {
 			let current_page = pages.filter((p) => p.title == page.name)[0];
 			this.content = current_page && JSON.parse(current_page.content);
 
-			this.add_custom_cards_in_content();
+			this.content && this.add_custom_cards_in_content();
 
 			$(".item-anchor").addClass("disable-click");
 
@@ -394,6 +403,7 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
+				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
@@ -596,6 +606,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Update"),
 			primary_action: (values) => {
+				values.title = frappe.utils.escape_html(values.title);
 				let is_title_changed = values.title != old_item.title;
 				let is_section_changed = values.is_public != old_item.public;
 				if (
@@ -1142,6 +1153,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Create"),
 			primary_action: (values) => {
+				values.title = frappe.utils.escape_html(values.title);
 				if (!this.validate_page(values)) return;
 				d.hide();
 				this.initialize_editorjs_undo();
@@ -1340,6 +1352,12 @@ frappe.views.Workspace = class Workspace {
 			},
 			number_card: {
 				class: this.blocks["number_card"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
+			custom_block: {
+				class: this.blocks["custom_block"],
 				config: {
 					page_data: this.page_data || [],
 				},

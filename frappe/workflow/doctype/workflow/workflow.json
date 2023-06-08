@@ -17,7 +17,8 @@
   "states",
   "transition_rules",
   "transitions",
-  "workflow_state_field"
+  "workflow_state_field",
+  "workflow_data"
  ],
  "fields": [
   {
@@ -70,8 +71,7 @@
    "fieldname": "states",
    "fieldtype": "Table",
    "label": "Document States",
-   "options": "Workflow Document State",
-   "reqd": 1
+   "options": "Workflow Document State"
   },
   {
    "description": "Rules for how states are transitions, like next state and which role is allowed to change state etc.",
@@ -84,8 +84,7 @@
    "fieldname": "transitions",
    "fieldtype": "Table",
    "label": "Transitions",
-   "options": "Workflow Transition",
-   "reqd": 1
+   "options": "Workflow Transition"
   },
   {
    "default": "workflow_state",
@@ -94,12 +93,18 @@
    "fieldtype": "Data",
    "label": "Workflow State Field",
    "reqd": 1
+  },
+  {
+   "fieldname": "workflow_data",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Workflow Data"
   }
  ],
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2020-12-17 20:35:16.898040",
+ "modified": "2023-05-02 16:56:28.704844",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
@@ -119,5 +124,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

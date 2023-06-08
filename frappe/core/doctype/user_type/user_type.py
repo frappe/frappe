@@ -18,7 +18,7 @@ class UserType(Document):
 		super().clear_cache()
 
 		if not self.is_standard:
-			frappe.cache().delete_value("non_standard_user_types")
+			frappe.cache.delete_value("non_standard_user_types")
 
 	def on_update(self):
 		if self.is_standard:
@@ -290,7 +290,7 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 	if not frappe.db.table_exists("User Type") or frappe.flags.in_migrate:
 		return
 
-	user_types = frappe.cache().get_value(
+	user_types = frappe.cache.get_value(
 		"non_standard_user_types",
 		get_non_standard_user_types,
 	)

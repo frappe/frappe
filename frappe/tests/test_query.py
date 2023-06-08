@@ -220,13 +220,6 @@ class TestQuery(FrappeTestCase):
 	def test_filters(self):
 		self.assertEqual(
 			frappe.qb.get_query(
-				"User", filters={"IfNull(name, " ")": ("<", Now())}, fields=["Max(name)"]
-			).run(),
-			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
-		)
-
-		self.assertEqual(
-			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": "frappe"},
@@ -255,6 +248,17 @@ class TestQuery(FrappeTestCase):
 			).get_sql(),
 			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabDocPerm` ON `tabDocPerm`.`parent`=`tabDocType`.`name` AND `tabDocPerm`.`parenttype`='DocType' WHERE `tabDocPerm`.`role`='System Manager'".replace(
 				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Invalid filter",
+			lambda: frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"permissions.role": "System Manager"},
+				validate_filters=True,
 			),
 		)
 
@@ -419,3 +423,37 @@ class TestQuery(FrappeTestCase):
 
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
+
+	def test_child_field_syntax(self):
+		note1 = frappe.get_doc(
+			doctype="Note", title="Note 1", seen_by=[{"user": "Administrator"}]
+		).insert()
+		note2 = frappe.get_doc(
+			doctype="Note", title="Note 2", seen_by=[{"user": "Administrator"}, {"user": "Guest"}]
+		).insert()
+
+		result = frappe.qb.get_query(
+			"Note",
+			filters={"name": ["in", [note1.name, note2.name]]},
+			fields=["name", {"seen_by": ["*"]}],
+			order_by="title asc",
+		).run(as_dict=1)
+
+		self.assertTrue(isinstance(result[0].seen_by, list))
+		self.assertTrue(isinstance(result[1].seen_by, list))
+		self.assertEqual(len(result[0].seen_by), 1)
+		self.assertEqual(len(result[1].seen_by), 2)
+		self.assertEqual(result[0].seen_by[0].user, "Administrator")
+
+		result = frappe.qb.get_query(
+			"Note",
+			filters={"name": ["in", [note1.name, note2.name]]},
+			fields=["name", {"seen_by": ["user"]}],
+			order_by="title asc",
+		).run(as_dict=1)
+
+		self.assertEqual(len(result[0].seen_by[0].keys()), 1)
+		self.assertEqual(result[1].seen_by[1].user, "Guest")
+
+		note1.delete()
+		note2.delete()

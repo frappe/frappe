@@ -38,8 +38,8 @@ class RateLimiter:
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
-		self.key = frappe.cache().make_key(f"rate-limit-counter-{self.window_number}")
-		self.counter = cint(frappe.cache().get(self.key))
+		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
+		self.counter = cint(frappe.cache.get(self.key))
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
 
@@ -59,7 +59,7 @@ class RateLimiter:
 		self.end = datetime.utcnow()
 		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
-		pipeline = frappe.cache().pipeline()
+		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
@@ -137,11 +137,11 @@ def rate_limit(
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
-			value = frappe.cache().get(cache_key) or 0
+			value = frappe.cache.get(cache_key) or 0
 			if not value:
-				frappe.cache().setex(cache_key, seconds, 0)
+				frappe.cache.setex(cache_key, seconds, 0)
 
-			value = frappe.cache().incrby(cache_key, 1)
+			value = frappe.cache.incrby(cache_key, 1)
 			if value > _limit:
 				frappe.throw(
 					_("You hit the rate limit because of too many requests. Please try after sometime.")

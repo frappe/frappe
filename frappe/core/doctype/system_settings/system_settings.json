@@ -72,6 +72,8 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "welcome_email_template",
+  "reset_password_template",
   "prepared_report_section",
   "max_auto_email_report_per_user",
   "system_updates_section",
@@ -210,7 +212,7 @@
    "label": "Security"
   },
   {
-   "default": "24:00",
+   "default": "60:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -548,13 +550,25 @@
    "default": "1",
    "fieldname": "enable_telemetry",
    "fieldtype": "Check",
-   "label": "Allow Sending Usage Data for Improving applications"
+   "label": "Allow Sending Usage Data for Improving Applications"
+  },
+  {
+   "fieldname": "welcome_email_template",
+   "fieldtype": "Link",
+   "label": "Welcome Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "reset_password_template",
+   "fieldtype": "Link",
+   "label": "Reset Password Template",
+   "options": "Email Template"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-04-23 11:14:59.302851",
+ "modified": "2023-05-25 13:02:54.808773",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
