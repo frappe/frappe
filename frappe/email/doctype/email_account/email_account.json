@@ -508,7 +508,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing && doc.enable_incoming && doc.use_imap",
    "fieldname": "append_emails_to_sent_folder",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -616,7 +616,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-28 14:56:18.754804",
+ "modified": "2023-06-05 15:03:08.538819",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
