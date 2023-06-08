@@ -132,7 +132,7 @@ frappe.report_utils = {
 						r.filters
 					) {
 						return (frappe.query_reports[report_name].filters = r.filters);
-					}					
+					}
 					return (
 						frappe.query_reports[report_name] &&
 						frappe.query_reports[report_name].filters
