@@ -59,8 +59,12 @@ def fetch_changelog_feed_items_from_source():
 def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
 
+	# don't run in developer mode to avoid unnecessary requests
+	if frappe.conf.developer_mode:
+		return []
+
 	changelog_feed_items = frappe.cache().get_value("changelog_feed")
-	if not changelog_feed_items or frappe.conf.developer_mode:
+	if not changelog_feed_items:
 		latest_changelogs = frappe.get_list("Changelog Feed", limit=1, fields=["creation"])
 		if (
 			not latest_changelogs
