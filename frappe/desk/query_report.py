@@ -170,21 +170,9 @@ def get_script(report_name):
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
-		"execution_time": frappe.cache().hget("report_execution_time", report_name) or 0,
+		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
 		"filters": report.filters
 	}
-
-
-def prepare_filter(filter):
-    filter = {
-        "fieldname": filter.fieldname,
-        "label": filter.label,
-        "fieldtype": filter.fieldtype,
-        "width": "80",
-        "options": filter.options,
-        "reqd": 1
-    }
-    return filter
 
 
 @frappe.whitelist()
