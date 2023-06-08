@@ -123,20 +123,19 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, is_background_task: bool = False, smtp_server_instance: SMTPServer = None):
+	def send(self, smtp_server_instance: SMTPServer = None):
 		"""Send emails to recipients."""
 		if not self.can_send_now():
 			return
 
-		with SendMailContext(self, is_background_task, smtp_server_instance) as ctx:
+		with SendMailContext(self, smtp_server_instance) as ctx:
 			message = None
 			for recipient in self.recipients:
-				if not recipient.is_mail_to_be_sent():
+				if recipient.is_mail_sent():
 					continue
 
 				message = ctx.build_message(recipient.recipient)
-				method = get_hook_method("override_email_send")
-				if method:
+				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
 				else:
 					if not frappe.flags.in_test:
@@ -144,7 +143,7 @@ class EmailQueue(Document):
 							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
 						)
 
-				ctx.add_to_sent_list(recipient)
+				ctx.update_recipient_status_to_sent(recipient)
 
 			if frappe.flags.in_test:
 				frappe.flags.sent_mail = message
@@ -180,24 +179,22 @@ class EmailQueue(Document):
 
 
 @task(queue="short")
-def send_mail(email_queue_name, is_background_task=False, smtp_server_instance: SMTPServer = None):
+def send_mail(email_queue_name, smtp_server_instance: SMTPServer = None):
 	"""This is equivalent to EmailQueue.send.
 
 	This provides a way to make sending mail as a background job.
 	"""
 	record = EmailQueue.find(email_queue_name)
-	record.send(is_background_task=is_background_task, smtp_server_instance=smtp_server_instance)
+	record.send(smtp_server_instance=smtp_server_instance)
 
 
 class SendMailContext:
 	def __init__(
 		self,
 		queue_doc: Document,
-		is_background_task: bool = False,
 		smtp_server_instance: SMTPServer = None,
 	):
 		self.queue_doc: EmailQueue = queue_doc
-		self.is_background_task = is_background_task
 		self.email_account_doc = queue_doc.get_email_account()
 
 		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
@@ -206,7 +203,9 @@ class SendMailContext:
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
-		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()]
+		self.sent_to_atleast_one_recipient = any(
+			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
+		)
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
@@ -226,29 +225,29 @@ class SendMailContext:
 			self.smtp_server.quit()
 
 		if exc_type in exceptions:
-			update_fields = {"status": "Partially Sent" if self.sent_to else "Not Sent", "error": trace}
+			update_fields = {
+				"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent",
+				"error": trace,
+			}
 		elif exc_type:
 			update_fields = {"error": trace}
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields.update(
 					{
-						"status": "Partially Sent" if self.sent_to else "Not Sent",
+						"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent",
 						"retry": self.queue_doc.retry + 1,
 					}
 				)
 			else:
 				update_fields.update({"status": "Error"})
 		else:
-			update_fields = {
-				"status": "Sent",
-			}
+			update_fields = {"status": "Sent"}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
 
-	def add_to_sent_list(self, recipient):
-		# Update recipient status
+	def update_recipient_status_to_sent(self, recipient):
+		self.sent_to_atleast_one_recipient = True
 		recipient.update_db(status="Sent", commit=True)
-		self.sent_to.append(recipient.recipient)
 
 	def get_message_object(self, message):
 		return Parser(policy=SMTPUTF8).parsestr(message)
