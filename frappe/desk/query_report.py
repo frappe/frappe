@@ -191,9 +191,13 @@ def get_script(report_name):
 =======
 =======
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
+<<<<<<< HEAD
 >>>>>>> 48b9128904 (fix: remove redundant prepare_filter method)
 		"filters": report.filters
 >>>>>>> 0d729e5e47 (fix: New Dashboard Chart throws TypeError: format requires a mapping)
+=======
+		"filters": report.filters,
+>>>>>>> 428eaf6a16 (chore: linter fix)
 	}
 
 
