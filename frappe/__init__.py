@@ -48,6 +48,7 @@ __title__ = "Frappe Framework"
 
 controllers = {}
 local = Local()
+cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
@@ -152,7 +153,6 @@ def set_user_lang(user: str, user_language: str | None = None) -> None:
 # local-globals
 
 db = local("db")
-cache = local("_redis_cache")
 qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
@@ -242,7 +242,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
-	local._redis_cache = _get_redis_cache()
+	setup_redis_cache_connection()
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -350,17 +350,14 @@ def destroy():
 	release_local(local)
 
 
-_redis_cache_conn = None
+def setup_redis_cache_connection() -> "RedisWrapper":
+	"""Defines `frappe.cache` as `RedisWrapper` instance"""
+	global cache
 
-
-def _get_redis_cache() -> "RedisWrapper":
-	"""Returns redis connection."""
-	global _redis_cache_conn
-	if not _redis_cache_conn:
+	if not cache:
 		from frappe.utils.redis_wrapper import RedisWrapper
 
-		_redis_cache_conn = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
-	return _redis_cache_conn
+		cache = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
 
 
 def get_traceback(with_context: bool = False) -> str:
