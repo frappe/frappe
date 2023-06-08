@@ -162,7 +162,6 @@ def flush(from_test=False):
 				frappe.enqueue(
 					method=send_mail,
 					email_queue_name=row.name,
-					is_background_task=not from_test,
 					now=from_test,
 					job_name=job_name,
 					queue="short",
