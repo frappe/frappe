@@ -35,7 +35,7 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		meta = frappe.get_meta(self.doc_type)
+		meta = frappe.get_meta(self.doc_type, cached=False)
 
 		self.validate_doctype(meta)
 
@@ -566,6 +566,24 @@ class CustomizeForm(Document):
 			return
 
 		reset_customization(self.doc_type)
+		self.fetch_to_customize()
+
+	@frappe.whitelist()
+	def reset_layout(self):
+		if not self.doc_type:
+			return
+
+		property_setter = frappe.db.get_value(
+			"Property Setter",
+			filters={
+				"doc_type": self.doc_type,
+				"property": "field_order",
+				"is_system_generated": False,
+			},
+		)
+		if property_setter:
+			frappe.delete_doc("Property Setter", property_setter)
+
 		self.fetch_to_customize()
 
 	@classmethod
