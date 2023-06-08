@@ -302,7 +302,7 @@ class Database:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
-		if frappe.conf.allow_tests and frappe.cache().get_value("flag_print_sql"):
+		if frappe.conf.allow_tests and frappe.cache.get_value("flag_print_sql"):
 			_query = _query or str(mogrified_query)
 			print(_query)
 
@@ -419,7 +419,7 @@ class Database:
 	@staticmethod
 	def clear_db_table_cache(query):
 		if query and is_query_type(query, ("drop", "create")):
-			frappe.cache().delete_key("db_tables")
+			frappe.cache.delete_key("db_tables")
 
 	def get_description(self):
 		"""Returns result metadata."""
@@ -1067,7 +1067,7 @@ class Database:
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
-			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
+			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
 		count = frappe.qb.get_query(
@@ -1078,7 +1078,7 @@ class Database:
 			validate_filters=True,
 		).run(debug=debug)[0][0]
 		if not filters and cache:
-			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
+			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
 
 	@staticmethod
@@ -1109,7 +1109,7 @@ class Database:
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
-		columns = frappe.cache().hget("table_columns", table)
+		columns = frappe.cache.hget("table_columns", table)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
 
@@ -1121,7 +1121,7 @@ class Database:
 			)
 
 			if columns:
-				frappe.cache().hset("table_columns", table, columns)
+				frappe.cache.hset("table_columns", table, columns)
 
 		return columns
 

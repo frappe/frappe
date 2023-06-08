@@ -959,9 +959,7 @@ class Document(BaseDocument):
 					filters={"enabled": 1, "document_type": self.doctype},
 				)
 
-			self.flags.notifications = frappe.cache().hget(
-				"notifications", self.doctype, _get_notifications
-			)
+			self.flags.notifications = frappe.cache.hget("notifications", self.doctype, _get_notifications)
 
 		if not self.flags.notifications:
 			return

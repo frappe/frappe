@@ -100,7 +100,7 @@ def get_pages(app=None):
 
 		return pages
 
-	return frappe.cache().get_value("website_pages", lambda: _build(app))
+	return frappe.cache.get_value("website_pages", lambda: _build(app))
 
 
 def get_pages_from_path(start, app, app_path):
@@ -310,7 +310,7 @@ def get_doctypes_with_web_view():
 		]
 		return doctypes
 
-	return frappe.cache().get_value("doctypes_with_web_view", _get)
+	return frappe.cache.get_value("doctypes_with_web_view", _get)
 
 
 def get_start_folders():

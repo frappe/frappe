@@ -326,7 +326,7 @@ def get_system_timezone():
 	if frappe.local.flags.in_test:
 		return _get_system_timezone()
 
-	return frappe.cache().get_value("time_zone", _get_system_timezone)
+	return frappe.cache.get_value("time_zone", _get_system_timezone)
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):

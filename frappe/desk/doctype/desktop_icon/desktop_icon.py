@@ -28,7 +28,7 @@ def get_desktop_icons(user=None):
 	if not user:
 		user = frappe.session.user
 
-	user_icons = frappe.cache().hget("desktop_icons", user)
+	user_icons = frappe.cache.hget("desktop_icons", user)
 
 	if not user_icons:
 		fields = [
@@ -120,7 +120,7 @@ def get_desktop_icons(user=None):
 			if d.label:
 				d.label = _(d.label)
 
-		frappe.cache().hset("desktop_icons", user, user_icons)
+		frappe.cache.hset("desktop_icons", user, user_icons)
 
 	return user_icons
 
@@ -313,8 +313,8 @@ def get_all_icons():
 
 
 def clear_desktop_icons_cache(user=None):
-	frappe.cache().hdel("desktop_icons", user or frappe.session.user)
-	frappe.cache().hdel("bootinfo", user or frappe.session.user)
+	frappe.cache.hdel("desktop_icons", user or frappe.session.user)
+	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
 def get_user_copy(module_name, user=None):
@@ -445,7 +445,7 @@ def get_module_icons(user=None):
 	if not user:
 		icons = frappe.get_all("Desktop Icon", fields="*", filters={"standard": 1}, order_by="idx")
 	else:
-		frappe.cache().hdel("desktop_icons", user)
+		frappe.cache.hdel("desktop_icons", user)
 		icons = get_user_icons(user)
 
 	for icon in icons:

@@ -311,8 +311,8 @@ def validate_and_sanitize_search_inputs(fn):
 
 @frappe.whitelist()
 def get_names_for_mentions(search_term):
-	users_for_mentions = frappe.cache().get_value("users_for_mentions", get_users_for_mentions)
-	user_groups = frappe.cache().get_value("user_groups", get_user_groups)
+	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
+	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
 	filtered_mentions = []
 	for mention_data in users_for_mentions + user_groups:

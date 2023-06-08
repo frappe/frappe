@@ -1710,7 +1710,7 @@ def check_fieldname_conflicts(docfield):
 
 
 def clear_linked_doctype_cache():
-	frappe.cache().delete_value("linked_doctypes_without_ignore_user_permissions_enabled")
+	frappe.cache.delete_value("linked_doctypes_without_ignore_user_permissions_enabled")
 
 
 def check_email_append_to(doc):

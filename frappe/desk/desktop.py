@@ -62,10 +62,10 @@ class Workspace:
 
 			self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = (
-			frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
+			frappe.cache.get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		)
 		self.restricted_pages = (
-			frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
+			frappe.cache.get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 		)
 
 	def is_permitted(self):
@@ -88,16 +88,14 @@ class Workspace:
 			return True
 
 	def get_cached(self, cache_key, fallback_fn):
-		_cache = frappe.cache()
-
-		value = _cache.get_value(cache_key, user=frappe.session.user)
+		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
 		if value:
 			return value
 
 		value = fallback_fn()
 
 		# Expire every six hour
-		_cache.set_value(cache_key, value, frappe.session.user, 21600)
+		frappe.cache.set_value(cache_key, value, frappe.session.user, 21600)
 		return value
 
 	def get_can_read_items(self):
@@ -469,7 +467,7 @@ def get_workspace_sidebar_items():
 
 
 def get_table_with_counts():
-	counts = frappe.cache().get_value("information_schema:counts")
+	counts = frappe.cache.get_value("information_schema:counts")
 	if not counts:
 		counts = build_table_count_cache()
 
