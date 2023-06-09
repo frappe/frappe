@@ -165,6 +165,10 @@ onMounted(() => {
 				color: var(--text-muted);
 			}
 		}
+
+		:deep([data-is-user-generated="1"]) {
+			background-color: var(--yellow-highlight-color);
+		}
 	}
 
 	:deep(.preview) {
