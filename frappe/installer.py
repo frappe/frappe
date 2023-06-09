@@ -135,11 +135,6 @@ def install_db(
 	if not db_type:
 		db_type = frappe.conf.db_type
 
-	if not root_login and db_type == "mariadb":
-		root_login = "root"
-	elif not root_login and db_type == "postgres":
-		root_login = "postgres"
-
 	make_conf(
 		db_name,
 		site_config=site_config,
@@ -150,9 +145,7 @@ def install_db(
 	)
 	frappe.flags.in_install_db = True
 
-	frappe.flags.root_login = root_login
-	frappe.flags.root_password = root_password
-	setup_database(force, source_sql, verbose, no_mariadb_socket)
+	setup_database(force, source_sql, verbose, root_login, root_password, no_mariadb_socket)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 

@@ -23,11 +23,11 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
+def setup_database(force, source_sql, verbose, root_login, root_password, no_mariadb_socket=False):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_name = frappe.local.conf.db_name
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+	root_conn = get_root_connection(root_login, root_password)
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
 	if no_mariadb_socket:
@@ -153,23 +153,24 @@ def check_compatible_versions():
 
 
 def get_root_connection(root_login, root_password):
-	import getpass
-
-	if not frappe.local.flags.root_connection:
+	if not frappe.local.flags.root_db:
 		if not root_login:
-			root_login = "root"
+			root_login = frappe.conf.get("root_login") or "root"
 
 		if not root_password:
 			root_password = frappe.conf.get("root_password") or None
 
 		if not root_password:
-			root_password = getpass.getpass("MySQL root password: ")
+			from getpass import getpass
 
-		frappe.local.flags.root_connection = frappe.database.get_db(
+			root_password = getpass("MySQL root password: ")
+
+		frappe.local.flags.root_db = frappe.database.get_db(
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=root_login,
 			password=root_password,
+			dbname=None,
 		)
 
-	return frappe.local.flags.root_connection
+	return frappe.local.flags.root_db

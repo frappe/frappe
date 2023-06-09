@@ -83,7 +83,7 @@ class Database:
 		user,
 		password,
 		port,
-		cur_db_name=None,  # not sensible on mariadb root connection
+		cur_db_name,
 	):
 		self.setup_type_map()
 		self.host = host
