@@ -125,7 +125,7 @@ def get_parent_language(lang: str) -> str:
 def get_user_lang(user: str = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	user = user or frappe.session.user
-	lang = frappe.cache().hget("lang", user)
+	lang = frappe.cache.hget("lang", user)
 
 	if not lang:
 		# User.language => Session Defaults => frappe.local.lang => 'en'
@@ -136,7 +136,7 @@ def get_user_lang(user: str = None) -> str:
 			or "en"
 		)
 
-		frappe.cache().hset("lang", user, lang)
+		frappe.cache.hset("lang", user, lang)
 
 	return lang
 
@@ -168,9 +168,8 @@ def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 	:param name: name of the document for which assets are to be returned.
 	"""
 	fortype = fortype.lower()
-	cache = frappe.cache()
 	asset_key = fortype + ":" + (name or "-")
-	translation_assets = cache.hget("translation_assets", frappe.local.lang) or {}
+	translation_assets = frappe.cache.hget("translation_assets", frappe.local.lang) or {}
 
 	if asset_key not in translation_assets:
 		messages = []
@@ -210,7 +209,7 @@ def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
 		# remove untranslated
 		message_dict = {k: v for k, v in message_dict.items() if k != v}
 		translation_assets[asset_key] = message_dict
-		cache.hset("translation_assets", frappe.local.lang, translation_assets)
+		frappe.cache.hset("translation_assets", frappe.local.lang, translation_assets)
 
 	translation_map: dict = translation_assets[asset_key]
 
@@ -292,7 +291,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return all_translations
 
 	try:
-		return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
+		return frappe.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 	except Exception:
 		# People mistakenly call translation function on global variables
 		# where locals are not initalized, translations dont make much sense there
@@ -361,19 +360,18 @@ def get_user_translations(lang):
 			user_translations[key] = value
 		return user_translations
 
-	return frappe.cache().hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
+	return frappe.cache.hget(USER_TRANSLATION_KEY, lang, generator=_read_from_db)
 
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
-	cache = frappe.cache()
-	cache.delete_key("langinfo")
+	frappe.cache.delete_key("langinfo")
 
 	# clear translations saved in boot cache
-	cache.delete_key("bootinfo")
-	cache.delete_key("translation_assets")
-	cache.delete_key(USER_TRANSLATION_KEY)
-	cache.delete_key(MERGED_TRANSLATION_KEY)
+	frappe.cache.delete_key("bootinfo")
+	frappe.cache.delete_key("translation_assets")
+	frappe.cache.delete_key(USER_TRANSLATION_KEY)
+	frappe.cache.delete_key(MERGED_TRANSLATION_KEY)
 
 
 def get_messages_for_app(app, deduplicate=True):
@@ -1273,9 +1271,9 @@ def get_all_languages(with_language_name: bool = False) -> list:
 		frappe.connect()
 
 	if with_language_name:
-		return frappe.cache().get_value("languages_with_name", get_all_language_with_name)
+		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)
 	else:
-		return frappe.cache().get_value("languages", get_language_codes)
+		return frappe.cache.get_value("languages", get_language_codes)
 
 
 @frappe.whitelist(allow_guest=True)

@@ -340,7 +340,7 @@ def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 class DashboardChart(Document):
 	def on_update(self):
-		frappe.cache().delete_key(f"chart-data:{self.name}")
+		frappe.cache.delete_key(f"chart-data:{self.name}")
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[["Dashboard Chart", self.name]], record_module=self.module)
 

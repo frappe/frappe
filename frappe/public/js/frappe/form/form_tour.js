@@ -73,9 +73,31 @@ frappe.ui.form.FormTour = class FormTour {
 				if (!this.driver.hasNextStep()) {
 					this.on_finish && this.on_finish();
 				}
+				let field = this.get_next_step()?.options.element.fieldobj;
+				if (field?.tab && !field.tab.is_active()) {
+					field.tab.set_active();
+					this.driver.reset(true);
+					frappe.utils.sleep(200).then(() => {
+						this.start(step.idx);
+						this.driver.overlay.refresh();
+					});
+				}
+			};
+			const on_prev = () => {
+				if (!this.driver.hasPreviousStep()) return;
+				let field =
+					this.driver.steps[this.driver.currentStep - 1]?.options.element.fieldobj;
+				if (field?.tab && !field.tab.is_active()) {
+					field.tab.set_active();
+					this.driver.reset(true);
+					frappe.utils.sleep(200).then(() => {
+						this.start(step.idx - 2);
+						this.driver.overlay.refresh();
+					});
+				}
 			};
 
-			const driver_step = this.get_step(step, on_next);
+			const driver_step = this.get_step(step, on_next, on_prev);
 			this.driver_steps.push(driver_step);
 
 			if (step.fieldtype == "Table") this.handle_table_step(step);
@@ -83,7 +105,7 @@ frappe.ui.form.FormTour = class FormTour {
 			if (step.fieldtype == "Attach Image") this.handle_attach_image_steps(step);
 		});
 
-		if (this.tour.save_on_complete) {
+		if (this.tour.save_on_complete && this.frm.is_dirty()) {
 			this.add_step_to_save();
 		}
 	}
@@ -93,7 +115,7 @@ frappe.ui.form.FormTour = class FormTour {
 		return form.layout.evaluate_depends_on_value(step.next_step_condition || true);
 	}
 
-	get_step(step_info, on_next) {
+	get_step(step_info, on_next, on_prev) {
 		const { name, fieldname, title, description, position, is_table_field } = step_info;
 		let element = `.frappe-control[data-fieldname='${fieldname}']`;
 
@@ -113,6 +135,7 @@ frappe.ui.form.FormTour = class FormTour {
 			name,
 			popover: { title, description, position: frappe.router.slug(position || "Bottom") },
 			onNext: on_next,
+			onPrevious: on_prev,
 		};
 	}
 

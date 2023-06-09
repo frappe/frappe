@@ -273,13 +273,13 @@ def toggle_visible_pdf(soup):
 
 
 def get_wkhtmltopdf_version():
-	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
+	wkhtmltopdf_version = frappe.cache.hget("wkhtmltopdf_version", None)
 
 	if not wkhtmltopdf_version:
 		try:
 			res = subprocess.check_output(["wkhtmltopdf", "--version"])
 			wkhtmltopdf_version = res.decode("utf-8").split(" ")[1]
-			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
+			frappe.cache.hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
 		except Exception:
 			pass
 

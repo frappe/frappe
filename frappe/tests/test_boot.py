@@ -65,7 +65,7 @@ class TestBootData(FrappeTestCase):
 		).insert(ignore_permissions=True)
 
 		get_user_pages_or_reports("Report")
-		allowed_reports = frappe.cache().get_value("has_role:Report", user=frappe.session.user)
+		allowed_reports = frappe.cache.get_value("has_role:Report", user=frappe.session.user)
 
 		# Test user must not see admin user's report
 		self.assertNotIn("Test Admin Report", allowed_reports)

@@ -137,7 +137,7 @@ class Report(Document):
 		if execution_time > threshold and not self.prepared_report:
 			self.db_set("prepared_report", 1)
 
-		frappe.cache().hset("report_execution_time", self.name, execution_time)
+		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
 

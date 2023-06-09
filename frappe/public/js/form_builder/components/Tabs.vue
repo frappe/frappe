@@ -114,8 +114,6 @@ function delete_tab(with_children) {
 			class="tabs"
 			v-model="store.form.layout.tabs"
 			group="tabs"
-			filter="[data-has-std-field='true']"
-			:prevent-on-filter="false"
 			:animation="200"
 			:easing="store.get_animation"
 			item-key="id"
@@ -125,8 +123,7 @@ function delete_tab(with_children) {
 				<div
 					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
-					:data-is-custom="element.df.is_custom_field"
-					:data-has-std-field="store.has_standard_field(element)"
+					:data-is-user-generated="store.is_user_generated_field(element)"
 					@click.stop="activate_tab(element)"
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
@@ -174,8 +171,6 @@ function delete_tab(with_children) {
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
-				filter="[data-has-std-field='true']"
-				:prevent-on-filter="false"
 				:animation="200"
 				:easing="store.get_animation"
 				item-key="id"
@@ -185,8 +180,7 @@ function delete_tab(with_children) {
 					<Section
 						:tab="tab"
 						:section="element"
-						:data-is-custom="element.df.is_custom_field"
-						:data-has-std-field="store.has_standard_field(element)"
+						:data-is-user-generated="store.is_user_generated_field(element)"
 					/>
 				</template>
 			</draggable>

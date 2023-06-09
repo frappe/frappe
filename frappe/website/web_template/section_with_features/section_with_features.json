@@ -43,7 +43,7 @@
   },
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "URL",
    "reqd": 0
   },
@@ -55,7 +55,7 @@
   }
  ],
  "idx": 2,
- "modified": "2020-10-26 17:43:08.219285",
+ "modified": "2023-06-05 13:26:34.470232",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Section with Features",

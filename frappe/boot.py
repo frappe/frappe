@@ -149,10 +149,8 @@ def get_allowed_report_names(cache=False) -> set[str]:
 
 
 def get_user_pages_or_reports(parent, cache=False):
-	_cache = frappe.cache()
-
 	if cache:
-		has_role = _cache.get_value("has_role:" + parent, user=frappe.session.user)
+		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
 		if has_role:
 			return has_role
 
@@ -254,7 +252,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			has_role.pop(r, None)
 
 	# Expire every six hours
-	_cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
+	frappe.cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
 	return has_role
 
 

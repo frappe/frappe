@@ -220,13 +220,6 @@ class TestQuery(FrappeTestCase):
 	def test_filters(self):
 		self.assertEqual(
 			frappe.qb.get_query(
-				"User", filters={"IfNull(name, " ")": ("<", Now())}, fields=["Max(name)"]
-			).run(),
-			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
-		)
-
-		self.assertEqual(
-			frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
 				filters={"module.app_name": "frappe"},
@@ -255,6 +248,17 @@ class TestQuery(FrappeTestCase):
 			).get_sql(),
 			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabDocPerm` ON `tabDocPerm`.`parent`=`tabDocType`.`name` AND `tabDocPerm`.`parenttype`='DocType' WHERE `tabDocPerm`.`role`='System Manager'".replace(
 				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Invalid filter",
+			lambda: frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"permissions.role": "System Manager"},
+				validate_filters=True,
 			),
 		)
 

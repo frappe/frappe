@@ -3,13 +3,14 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Literal, NoReturn, Union
+from typing import Any, Callable, Literal, NoReturn
 from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
 from rq.exceptions import NoSuchJobError
+from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.worker import RandomWorker, RoundRobinWorker
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -21,10 +22,6 @@ from frappe.utils import cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
-
-if TYPE_CHECKING:
-	from rq.job import Job
-
 
 # TTL to keep RQ job logs in redis for.
 RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
@@ -54,21 +51,21 @@ redis_connection = None
 
 
 def enqueue(
-	method,
-	queue="default",
-	timeout=None,
-	on_success=None,
-	on_failure=None,
+	method: str | Callable,
+	queue: str = "default",
+	timeout: int | None = None,
 	event=None,
-	is_async=True,
-	job_name=None,
-	now=False,
-	enqueue_after_commit=False,
+	is_async: bool = True,
+	job_name: str | None = None,
+	now: bool = False,
+	enqueue_after_commit: bool = False,
 	*,
-	at_front=False,
-	job_id=None,
+	on_success: Callable = None,
+	on_failure: Callable = None,
+	at_front: bool = False,
+	job_id: str = None,
 	**kwargs,
-) -> Union["Job", Any]:
+) -> Job | Any:
 	"""
 	Enqueue method to be executed using a background worker
 
@@ -113,6 +110,7 @@ def enqueue(
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
+
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
@@ -122,32 +120,25 @@ def enqueue(
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
-	if enqueue_after_commit:
-		if not frappe.flags.enqueue_after_commit:
-			frappe.flags.enqueue_after_commit = []
 
-		frappe.flags.enqueue_after_commit.append(
-			{
-				"queue": queue,
-				"is_async": is_async,
-				"timeout": timeout,
-				"queue_args": queue_args,
-				"job_id": job_id,
-			}
+	def enqueue_call():
+		return q.enqueue_call(
+			execute_job,
+			on_success=on_success,
+			on_failure=on_failure,
+			timeout=timeout,
+			kwargs=queue_args,
+			at_front=at_front,
+			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+			job_id=job_id,
 		)
-		return frappe.flags.enqueue_after_commit
 
-	return q.enqueue_call(
-		execute_job,
-		on_success=on_success,
-		on_failure=on_failure,
-		timeout=timeout,
-		kwargs=queue_args,
-		at_front=at_front,
-		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
-		job_id=job_id,
-	)
+	if enqueue_after_commit:
+		frappe.db.after_commit.add(enqueue_call)
+		return
+
+	return enqueue_call()
 
 
 def enqueue_doc(
@@ -437,12 +428,15 @@ def create_job_id(job_id: str) -> str:
 	return f"{frappe.local.site}::{job_id}"
 
 
-def is_job_enqueued(job_id: str) -> str:
-	from rq.job import Job
+def is_job_enqueued(job_id: str) -> bool:
+	return get_job_status(job_id) in (JobStatus.QUEUED, JobStatus.STARTED)
 
+
+def get_job_status(job_id: str) -> JobStatus | None:
+	"""Get RQ job status, returns None if job is not found."""
 	try:
 		job = Job.fetch(create_job_id(job_id), connection=get_redis_conn())
 	except NoSuchJobError:
-		return False
+		return None
 
-	return job.get_status() in ("queued", "started")
+	return job.get_status()
