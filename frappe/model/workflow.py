@@ -210,7 +210,7 @@ def validate_workflow(doc):
 
 
 def get_workflow(doctype) -> "Workflow":
-	return frappe.get_doc("Workflow", get_workflow_name(doctype))
+	return frappe.get_cached_doc("Workflow", get_workflow_name(doctype))
 
 
 def has_approval_access(user, doc, transition):
