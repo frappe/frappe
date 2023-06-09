@@ -341,7 +341,7 @@ def parse_naming_series(
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
 		elif e == "Month":
-			part = today.strftime("%B")[:3:].upper()
+			part = today.strftime("%b").upper()
 		elif doc and doc.get(e):
 			part = doc.get(e)
 		else:
