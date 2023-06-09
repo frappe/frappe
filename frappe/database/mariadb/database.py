@@ -123,7 +123,7 @@ class MariaDBConnectionUtil:
 			"use_unicode": True,
 		}
 
-		if self.user not in (frappe.flags.root_login, "root"):
+		if not frappe.flags.get("mysql_root_connection"):
 			conn_settings["database"] = self.user
 
 		if self.port:
