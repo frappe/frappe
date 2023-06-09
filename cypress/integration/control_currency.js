@@ -60,7 +60,7 @@ context("Control Currency", () => {
 				.its("frappe")
 				.then((frappe) => {
 					frappe.boot.sysdefaults.currency = test_case.currency;
-					frappe.boot.sysdefaults.currency_precision = test_case.default_precision ?? 2;
+					frappe.boot.sysdefaults.currency_precision = test_case.default_precision || 2;
 				});
 
 			get_dialog_with_currency(test_case.df_options).as("dialog");
