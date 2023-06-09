@@ -3,8 +3,8 @@ import os
 import frappe
 
 
-def setup_database(force, source_sql=None, verbose=False):
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+def setup_database(force, source_sql, verbose, root_login, root_password):
+	root_conn = get_root_connection(root_login, root_password)
 	root_conn.commit()
 	root_conn.sql("end")
 	root_conn.sql(f"DROP DATABASE IF EXISTS `{frappe.conf.db_name}`")
@@ -78,10 +78,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 def get_root_connection(root_login=None, root_password=None):
 	if not frappe.local.flags.root_connection:
 		if not root_login:
-			root_login = frappe.conf.get("root_login") or None
-
-		if not root_login:
-			root_login = input("Enter postgres super user: ")
+			root_login = frappe.conf.get("root_login") or "postgres"
 
 		if not root_password:
 			root_password = frappe.conf.get("root_password") or None
@@ -103,9 +100,7 @@ def get_root_connection(root_login=None, root_password=None):
 
 
 def drop_user_and_database(db_name, root_login, root_password):
-	root_conn = get_root_connection(
-		frappe.flags.root_login or root_login, frappe.flags.root_password or root_password
-	)
+	root_conn = get_root_connection(root_login, root_password)
 	root_conn.commit()
 	root_conn.sql(
 		"SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = %s",
