@@ -66,6 +66,7 @@ class DbManager:
 			source = f"< {source}"
 
 		bin, args = get_command(
+			socket=frappe.db.socket,
 			host=frappe.db.host,
 			port=frappe.db.port,
 			user=user,

@@ -3,8 +3,8 @@ import os
 import frappe
 
 
-def setup_database(force, source_sql, verbose, root_login, root_password):
-	root_conn = get_root_connection(root_login, root_password)
+def setup_database(force, source_sql, verbose, socket, host, port, user, password):
+	root_conn = get_root_connection(socket, host, port, user, password)
 	root_conn.commit()
 	root_conn.sql("end")
 	root_conn.sql(f"DROP DATABASE IF EXISTS `{frappe.conf.db_name}`")
@@ -75,21 +75,21 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		)
 
 
-def get_root_connection(root_login=None, root_password=None):
+def get_root_connection(socket, host, port, user, password):
 	if not frappe.local.flags.root_connection:
-		if not root_login:
-			root_login = frappe.conf.get("root_login") or "postgres"
+		if not user:
+			user = frappe.conf.get("root_login") or "postgres"
 
-		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
+		if not password:
+			password = frappe.conf.get("root_password") or None
 
-		if not root_password:
+		if not password:
 			from getpass import getpass
 
 			root_password = getpass("Postgres super user password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
-			user=root_login, password=root_password
+			socket, host, port, user, password
 		)
 
 	return frappe.local.flags.root_connection

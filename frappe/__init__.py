@@ -267,7 +267,13 @@ def connect(
 	if site:
 		init(site)
 
-	local.db = get_db(user=db_name or local.conf.db_name)
+	local.db = get_db(
+		socket=local.conf.db_socket,
+		host=local.conf.db_host,
+		port=local.conf.db_port,
+		user=db_name or local.conf.db_name,
+		password=local.conf.db_password,
+	)
 	if set_admin_as_user:
 		set_user("Administrator")
 
@@ -277,13 +283,18 @@ def connect_replica():
 
 	user = local.conf.db_name
 	password = local.conf.db_password
-	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
 		user = local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		socket=None,
+		host=local.conf.replica_host,
+		port=local.conf.replica_db_port,
+		user=user,
+		password=password,
+	)
 
 	# swap db connections
 	local.primary_db = local.db

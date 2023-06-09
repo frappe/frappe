@@ -527,6 +527,7 @@ def _enter_console(extra_args=None):
 	frappe.init(site=site)
 	from frappe.database import get_command
 	bin, args = get_command(
+		socket=frappe.conf.db_socket,
 		host=frappe.conf.db_host,
 		port=frappe.conf.db_port,
 		user=frappe.conf.db_name,

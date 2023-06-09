@@ -8,52 +8,73 @@ from shutil import which
 
 from frappe.database.database import savepoint
 
-
-def setup_database(force, source_sql, verbose, root_login, root_password, no_mariadb_socket=False):
+def setup_database(force, source_sql=None, verbose=None, socket=None, host=None, port=None, user=None, password=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
 		import frappe.database.postgres.setup_db
 
-		return frappe.database.postgres.setup_db.setup_database(force, source_sql, root_login, root_password)
+		return frappe.database.postgres.setup_db.setup_database(
+			force, source_sql, verbose, socket, host, port, user, password
+		)
 	else:
 		import frappe.database.mariadb.setup_db
 
 		return frappe.database.mariadb.setup_db.setup_database(
-			force, source_sql, verbose, root_login, root_password, no_mariadb_socket=no_mariadb_socket
+			force, source_sql, verbose, socket, host, port, user, password
 		)
 
 
-def drop_user_and_database(db_name, root_login=None, root_password=None):
+def drop_user_and_database(db_name, socket=None, host=None, port=None, user=None, password=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
 		import frappe.database.postgres.setup_db
 
 		return frappe.database.postgres.setup_db.drop_user_and_database(
-			db_name, root_login, root_password
+			db_name, socket, host, user, password, port
 		)
 	else:
 		import frappe.database.mariadb.setup_db
 
 		return frappe.database.mariadb.setup_db.drop_user_and_database(
-			db_name, root_login, root_password
+			db_name, socket, host, user, password, port
 		)
 
 
-def get_db(host=None, user=None, password=None, port=None):
+def get_db(socket=None, host=None, port=None, user=None, password=None, cur_db_name=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
 		import frappe.database.postgres.database
 
-		return frappe.database.postgres.database.PostgresDatabase(host, user, password, port=port, cur_db_name=user)
+		return frappe.database.postgres.database.PostgresDatabase(
+			socket=socket,
+			host=host,
+			port=port,
+			user=user,
+			password=password,
+			cur_db_name=user,
+		)
 	else:
 		import frappe.database.mariadb.database
 
-		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port=port, cur_db_name=user)
+		# Defaults for MySQL
+		if not socket:
+			socket = os.environ.get('MYSQL_UNIX_PORT')
+		if not socket and not host:
+			host = '127.0.0.1'
+		return frappe.database.mariadb.database.MariaDBDatabase(
+			socket=socket,
+			host=host,
+			port=port,
+			user=user,
+			password=password,
+			cur_db_name=user,
+		)
 
-def get_command(host=None, port=None, user=None, password=None, db_name=None, extra=[], dump=False):
+
+def get_command(socket=None, host=None, port=None, user=None, password=None, db_name=None, extra=[], dump=False):
 	import frappe
 	from frappe.utils import make_esc
 
@@ -71,7 +92,11 @@ def get_command(host=None, port=None, user=None, password=None, db_name=None, ex
 			port = 5432
 
 		conn_string = str
-		if password:
+		if socket and password:
+			conn_string = f"postgresql://{user}:{password}@/{db_name}?host={socket}"
+		elif socket:
+			conn_string = f"postgresql://{user}@/{db_name}?host={socket}"
+		elif password:
 			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 		else:
 			conn_string = f"postgresql://{user}@{host}:{port}/{db_name}"
@@ -84,17 +109,20 @@ def get_command(host=None, port=None, user=None, password=None, db_name=None, ex
 		else:
 			bin = which("mysqldump")
 
-		if not host:
-			host = '127.0.0.1'
-		if not port:
-			from frappe.database.mariadb.database import MariaDBDatabase
-			port = MariaDBDatabase.default_port
+		if not socket:
+			if not host:
+				host = '127.0.0.1'
+			if not port:
+				from frappe.database.mariadb.database import MariaDBDatabase
+				port = MariaDBDatabase.default_port
 
-		command = [
-			f"--user={user}",
-			f"--host={host}",
-			f"--port={port}",
-		]
+		command = [f"--user={user}"]
+
+		if socket:
+			command.append(f"--socket={socket}")
+		else:
+			command.extend([f"--host={host}", f"--port={port}"])
+
 		if dump:
 			command.extend([
 				"--single-transaction",

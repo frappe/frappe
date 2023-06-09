@@ -34,10 +34,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 	"--db-root-password", "--mariadb-root-password", help="Root password for MariaDB or PostgreSQL"
 )
 @click.option(
-	"--no-mariadb-socket",
-	is_flag=True,
-	default=False,
-	help="Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket",
+	"--db-socket", "--mariadb-db-socket", help="Database socket for MariaDB or PostgreSQL"
 )
 @click.option("--admin-password", help="Administrator password for new site", default=None)
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
@@ -57,11 +54,11 @@ def new_site(
 	verbose=False,
 	source_sql=None,
 	force=None,
-	no_mariadb_socket=False,
 	install_app=None,
 	db_name=None,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	set_default=False,
@@ -84,9 +81,9 @@ def new_site(
 		install_apps=install_app,
 		source_sql=source_sql,
 		force=force,
-		no_mariadb_socket=no_mariadb_socket,
 		db_password=db_password,
 		db_type=db_type,
+		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
 	)
@@ -926,7 +923,14 @@ def _drop_site(
 			sys.exit(1)
 
 	click.secho("Dropping site database and user", fg="green")
-	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
+	drop_user_and_database(
+		frappe.conf.db_name,
+		socket=frappe.conf.db_socket,
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=db_root_username,
+		password=db_root_password,
+	)
 
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
