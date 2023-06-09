@@ -89,12 +89,10 @@ const NODE_PATHS = [].concat(
 	app_list.map((app) => path.resolve(get_app_path(app), "..")).filter(fs.existsSync)
 );
 
-execute()
-	.then(() => RUN_BUILD_COMMAND && run_build_command_for_apps(APPS))
-	.catch((e) => {
-		console.error(e);
-		process.exit(1);
-	});
+execute().catch((e) => {
+	console.error(e);
+	process.exit(1);
+});
 
 if (WATCH_MODE) {
 	// listen for open files in editor event
@@ -126,6 +124,10 @@ async function execute() {
 	}
 	for (const result of results) {
 		await write_assets_json(result.metafile);
+	}
+	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (!WATCH_MODE) {
+		process.exit(0);
 	}
 }
 
