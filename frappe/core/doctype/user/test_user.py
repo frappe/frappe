@@ -283,7 +283,7 @@ class TestUser(FrappeTestCase):
 
 		# Clear rate limit tracker to start fresh
 		key = f"rl:{data['cmd']}:{data['user']}"
-		frappe.cache().delete(key)
+		frappe.cache.delete(key)
 
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
@@ -330,7 +330,7 @@ class TestUser(FrappeTestCase):
 			sign_up(random_user, random_user_name, "/welcome"),
 			(1, "Please check your email for verification"),
 		)
-		self.assertEqual(frappe.cache().hget("redirect_after_login", random_user), "/welcome")
+		self.assertEqual(frappe.cache.hget("redirect_after_login", random_user), "/welcome")
 
 		# re-register
 		self.assertTupleEqual(

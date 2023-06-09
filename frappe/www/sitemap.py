@@ -69,4 +69,4 @@ def get_public_pages_from_doctypes():
 
 		return routes
 
-	return frappe.cache().get_value("sitemap_routes", get_sitemap_routes)
+	return frappe.cache.get_value("sitemap_routes", get_sitemap_routes)

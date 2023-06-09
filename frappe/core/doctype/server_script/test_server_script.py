@@ -104,10 +104,10 @@ class TestServerScript(FrappeTestCase):
 	def tearDownClass(cls):
 		frappe.db.commit()
 		frappe.db.truncate("Server Script")
-		frappe.cache().delete_value("server_script_map")
+		frappe.cache.delete_value("server_script_map")
 
 	def setUp(self):
-		frappe.cache().delete_value("server_script_map")
+		frappe.cache.delete_value("server_script_map")
 
 	def test_doctype_event(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="hello")).insert()
