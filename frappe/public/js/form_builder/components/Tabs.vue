@@ -123,6 +123,7 @@ function delete_tab(with_children) {
 				<div
 					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
+					:data-is-custom="element.df.is_custom_field"
 					@click.stop="activate_tab(element)"
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
@@ -179,6 +180,7 @@ function delete_tab(with_children) {
 					<Section
 						:tab="tab"
 						:section="element"
+						:data-is-custom="element.df.is_custom_field"
 					/>
 				</template>
 			</draggable>

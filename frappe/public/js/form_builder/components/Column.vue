@@ -157,6 +157,7 @@ function move_columns_to_section() {
 				<Field
 					:column="column"
 					:field="element"
+					:data-is-custom="element.df.is_custom_field"
 				/>
 			</template>
 		</draggable>

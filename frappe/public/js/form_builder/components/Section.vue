@@ -170,6 +170,7 @@ function move_sections_to_tab() {
 						<Column
 							:section="section"
 							:column="element"
+							:data-is-custom="element.df.is_custom_field"
 						/>
 					</template>
 				</draggable>
