@@ -162,7 +162,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_connection(self):
 		conn = psycopg2.connect(
 			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
-				self.host, self.user, self.user, self.password, self.port
+				self.host, self.cur_db_name, self.user, self.password, self.port
 			)
 		)
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
@@ -194,7 +194,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_size(self):
 		"""'Returns database size in MB"""
 		db_size = self.sql(
-			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.db_name, as_dict=True
+			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.cur_db_name, as_dict=True
 		)
 		return db_size[0].get("database_size")
 
@@ -214,7 +214,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
 				and table_schema='{}'""".format(
-					frappe.conf.db_name, frappe.conf.get("db_schema", "public")
+					self.cur_db_name, frappe.conf.get("db_schema", "public")
 				)
 			)
 		]

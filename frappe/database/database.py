@@ -86,12 +86,13 @@ class Database:
 		ac_name=None,
 		use_default=0,
 		port=None,
+		cur_db_name=None,
 	):
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or "127.0.0.1"
 		self.port = port or frappe.conf.db_port or ""
 		self.user = user or frappe.conf.db_name
-		self.db_name = frappe.conf.db_name
+		self.cur_db_name = cur_db_name or frappe.conf.db_name
 		self._conn = None
 
 		if ac_name:
@@ -121,7 +122,6 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self.cur_db_name = self.user
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
 
@@ -139,6 +139,7 @@ class Database:
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
+		self.cur_db_name = db_name
 
 	def get_connection(self):
 		"""Returns a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects"""
