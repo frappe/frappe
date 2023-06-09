@@ -165,17 +165,12 @@ onMounted(() => {
 				color: var(--text-muted);
 			}
 		}
-
-		:deep([data-has-std-field="false"]),
-		:deep([data-is-custom="1"]) {
-			background-color: var(--yellow-highlight-color);
-		}
 	}
 
 	:deep(.preview) {
 		--field-placeholder-color: var(--fg-bg-color);
 
-		.tab, .column, .field, [data-is-custom="1"] {
+		.tab, .column, .field {
 			background-color: var(--fg-color);
 		}
 
