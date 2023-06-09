@@ -114,9 +114,6 @@ class MariaDBConnectionUtil:
 		self.sql("set session max_statement_time = %s", int(seconds))
 
 	def get_connection_settings(self) -> dict:
-		assert (
-			self.password
-		), "without unix domain socket connection, mariadb db password is currently reqired"
 		conn_settings = {
 			"user": self.user,
 			"conv": self.CONVERSION_MAP,

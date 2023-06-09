@@ -160,9 +160,6 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
-		assert (
-			self.password
-		), "without unix domain socket connection, postgres db password is currently reqired"
 		conn_settings = {
 			"user": self.user,
 			"dbname": self.cur_db_name,

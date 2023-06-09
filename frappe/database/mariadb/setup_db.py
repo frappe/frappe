@@ -155,15 +155,11 @@ def check_compatible_versions():
 def get_root_db(root_login, root_password):
 	if not frappe.local.flags.root_db:
 		if not root_login:
-			root_login = frappe.conf.get("root_login") or "root"
+			root_login = frappe.conf.get("root_login") or os.getlogin()
 
 		if not root_password:
 			root_password = frappe.conf.get("root_password") or None
 
-		if not root_password:
-			from getpass import getpass
-
-			root_password = getpass("MySQL root password: ")
 
 		frappe.local.flags.root_db = frappe.database.get_db(
 			host=frappe.conf.db_host,
