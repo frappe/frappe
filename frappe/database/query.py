@@ -25,6 +25,10 @@ BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
 
+# less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
+# to allow table names like __Auth
+TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
+
 
 class Engine:
 	def get_query(
@@ -50,6 +54,7 @@ class Engine:
 			self.doctype = get_doctype_name(table.get_sql())
 		else:
 			self.doctype = table
+			self.validate_doctype()
 			self.table = frappe.qb.DocType(table)
 
 		if update:
@@ -81,6 +86,10 @@ class Engine:
 			self.query = self.query.groupby(group_by)
 
 		return self.query
+
+	def validate_doctype(self):
+		if not TABLE_NAME_PATTERN.match(self.doctype):
+			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
 		# add fields
@@ -135,9 +144,12 @@ class Engine:
 			self._apply_filter(field, value, operator, doctype)
 
 	def apply_dict_filters(self, filters: dict[str, str | int | list]):
-		for key in filters:
-			value = filters.get(key)
-			self._apply_filter(key, value)
+		for field, value in filters.items():
+			operator = "="
+			if isinstance(value, (list, tuple)):
+				operator, value = value
+
+			self._apply_filter(field, value, operator)
 
 	def _apply_filter(
 		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
@@ -168,15 +180,10 @@ class Engine:
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
 
-		if isinstance(_value, (list, tuple)):
-			_operator, _value = _value
-		elif isinstance(_value, bool):
+		if isinstance(_value, bool):
 			_value = int(_value)
 
-		if isinstance(_value, str) and has_function(_value):
-			_value = self.get_function_object(_value)
-
-		if isinstance(_value, (list, tuple)) and not _value:
+		elif not _value and isinstance(_value, (list, tuple)):
 			_value = ("",)
 
 		# Nested set
