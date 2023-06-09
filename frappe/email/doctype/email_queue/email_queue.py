@@ -28,6 +28,7 @@ from frappe.utils import (
 	get_hook_method,
 	get_string_between,
 	get_url,
+	now,
 	nowdate,
 	sbool,
 	split_emails,
@@ -175,6 +176,12 @@ class EmailQueue(Document):
 			.delete()
 			.where(email_recipient.modified < (Now() - Interval(days=days)))
 		).run()
+
+	@frappe.whitelist()
+	def retry_sending(self):
+		if self.status == "Error":
+			self.status = "Not Sent"
+			self.save(ignore_permissions=True)
 
 
 @task(queue="short")
@@ -342,16 +349,26 @@ class SendMailContext:
 
 
 @frappe.whitelist()
-def retry_sending(name):
-	doc = frappe.get_doc("Email Queue", name)
-	doc.check_permission()
+def bulk_retry(queues):
+	frappe.only_for("System Manager")
 
-	if doc and doc.status == "Error":
-		doc.status = "Not Sent"
-		for d in doc.recipients:
-			if d.status != "Sent":
-				d.status = "Not Sent"
-		doc.save(ignore_permissions=True)
+	if isinstance(queues, str):
+		queues = json.loads(queues)
+
+	if not queues:
+		return
+
+	frappe.msgprint(
+		_("Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."),
+		_("Processing..."),
+	)
+
+	email_queue = frappe.qb.DocType("Email Queue")
+	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(
+		email_queue.modified, now()
+	).set(email_queue.modified_by, frappe.session.user).where(
+		email_queue.name.isin(queues) & email_queue.status == "Error"
+	).run()
 
 
 @frappe.whitelist()
