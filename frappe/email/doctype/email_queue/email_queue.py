@@ -212,25 +212,11 @@ class SendMailContext:
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		exceptions = [
-			smtplib.SMTPServerDisconnected,
-			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPConnectError,
-			smtplib.SMTPHeloError,
-			JobTimeoutException,
-		]
-		trace = "".join(traceback.format_tb(exc_tb)) if exc_tb else None
-
 		if not self.retain_smtp_session:
 			self.smtp_server.quit()
 
-		if exc_type in exceptions:
-			update_fields = {
-				"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent",
-				"error": trace,
-			}
-		elif exc_type:
-			update_fields = {"error": trace}
+		if exc_type:
+			update_fields = {"error": "".join(traceback.format_tb(exc_tb))}
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields.update(
 					{
