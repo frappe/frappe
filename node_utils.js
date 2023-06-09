@@ -40,8 +40,18 @@ function get_conf() {
 
 async function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	const conf = get_conf();
-	const host = conf[kind] || conf.redis_async_broker_port;
-	const client = redis.createClient({ url: host, ...options });
+	const connStr = conf[kind] || conf.redis_async_broker_port;
+	let client;
+	// TODO: revise after https://github.com/redis/node-redis/issues/2530
+	// is solved for a more elegant implementation
+	if (connStr.startsWith("unix://")) {
+		client = redis.createClient({
+			socket: { path: connStr.replace("unix://", "") },
+			...options,
+		});
+	} else {
+		client = redis.createClient({ url: connStr, ...options });
+	}
 	await client.connect();
 	return client;
 }
