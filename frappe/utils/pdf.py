@@ -8,7 +8,7 @@ from distutils.version import LooseVersion
 
 import pdfkit
 from bs4 import BeautifulSoup
-from PyPDF2 import PdfReader, PdfWriter
+from pypdf import PdfReader, PdfWriter
 
 import frappe
 from frappe import _
