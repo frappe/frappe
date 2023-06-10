@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from frappe import get_conf
 
-REDIS_KEYS = ("redis_cache", "redis_queue", "redis_socketio")
+REDIS_KEYS = ("redis_cache", "redis_queue")
 
 
 def is_open(ip, port, timeout=10):

@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import os
 from contextlib import suppress
 
 import redis
@@ -109,12 +108,12 @@ def emit_via_redis(event, message, room):
 
 
 def get_redis_server():
-	"""returns redis_socketio connection."""
+	"""returns redis connection for sending realtime events."""
 	global redis_server
 	if not redis_server:
 		from redis import Redis
 
-		redis_server = Redis.from_url(frappe.conf.redis_socketio or "redis://localhost:12311")
+		redis_server = Redis.from_url(frappe.conf.redis_queue or "redis://localhost:12311")
 	return redis_server
 
 
