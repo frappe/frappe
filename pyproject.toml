@@ -31,7 +31,7 @@ dependencies = [
     "cairocffi==1.2.0",
     "chardet~=5.1.0",
     "croniter~=1.3.5",
-    "cryptography~=39.0.1",
+    "cryptography~=41.0.1",
     "email-reply-parser~=0.5.12",
     "git-url-parse~=1.2.2",
     "gitdb~=4.0.7",
@@ -51,8 +51,12 @@ dependencies = [
     "premailer~=3.8.0",
     "psutil~=5.9.1",
     "psycopg2-binary~=2.9.1",
+<<<<<<< HEAD
     "pyasn1~=0.4.8",
     "pyOpenSSL~=23.0.0",
+=======
+    "pyOpenSSL~=23.2.0",
+>>>>>>> ed3b764db9 (build(deps): bump cryptography and pyOpenSSL (#21307))
     "pycryptodome~=3.10.1",
     "pyotp~=2.6.0",
     "pypng~=0.20220715.0",
