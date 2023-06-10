@@ -24,31 +24,7 @@ whenever(() => meta_s.value || ctrl_s.value, () => {
 
 function setup_change_doctype_dialog() {
 	store.page.$title_area.on("click", () => {
-		let dialog = new frappe.ui.Dialog({
-			title: __("Change DocType"),
-			fields: [
-				{
-					label: __("Select DocType"),
-					fieldname: "doctype",
-					fieldtype: "Link",
-					options: "DocType",
-					default: store.doctype || null
-				},
-				{
-					label: __("Customize"),
-					fieldname: "customize",
-					fieldtype: "Check",
-					default: store.is_customize_form
-				}
-			],
-			primary_action_label: __("Change"),
-			primary_action({ doctype }) {
-				dialog.hide();
-				let customize = dialog.get_value("customize") ? "customize" : "";
-				frappe.set_route("form-builder", doctype, customize);
-			}
-		});
-		dialog.show();
+		frappe.pages["form-builder"].select_doctype();
 	});
 }
 
@@ -190,8 +166,7 @@ onMounted(() => {
 			}
 		}
 
-		:deep([data-has-std-field="false"]),
-		:deep([data-is-custom="1"]) {
+		:deep([data-is-user-generated="1"]) {
 			background-color: var(--yellow-highlight-color);
 		}
 	}
@@ -199,7 +174,7 @@ onMounted(() => {
 	:deep(.preview) {
 		--field-placeholder-color: var(--fg-bg-color);
 
-		.tab, .column, .field, [data-is-custom="1"] {
+		.tab, .column, .field {
 			background-color: var(--fg-color);
 		}
 

@@ -62,7 +62,7 @@ class Importer:
 
 	def before_import(self):
 		# set user lang for translations
-		frappe.cache().hdel("lang", frappe.session.user)
+		frappe.cache.hdel("lang", frappe.session.user)
 		frappe.set_user_lang(frappe.session.user)
 
 		# set flags
@@ -1207,7 +1207,7 @@ def get_df_for_column_header(doctype, header):
 	def build_fields_dict_for_doctype():
 		return build_fields_dict_for_column_matching(doctype)
 
-	df_by_labels_and_fieldname = frappe.cache().hget(
+	df_by_labels_and_fieldname = frappe.cache.hget(
 		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
 	)
 	return df_by_labels_and_fieldname.get(header)

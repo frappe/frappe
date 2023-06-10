@@ -14,7 +14,7 @@ class KanbanBoard(Document):
 
 	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
-		frappe.cache().delete_keys("_user_settings")
+		frappe.cache.delete_keys("_user_settings")
 
 	def before_insert(self):
 		for column in self.columns:

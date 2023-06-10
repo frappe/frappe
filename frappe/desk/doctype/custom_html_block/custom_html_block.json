@@ -6,10 +6,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "private",
   "preview_section",
   "preview",
   "html_section",
-  "html_message",
   "html",
   "javascript_section",
   "js_message",
@@ -72,12 +72,6 @@
    "options": "<p>To interact with above HTML you will have to use `root_element` as a parent selector.</p><p>For example:</p><pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// here root_element is provided by default\nlet some_class_element = root_element.querySelector('.some-class');\nsome_class_element.textContent = \"New content\";\n</code></pre>"
   },
   {
-   "fieldname": "html_message",
-   "fieldtype": "HTML",
-   "label": "HTML Message",
-   "options": "<p>You cannot use global class on elements. The css for those classes will not be applied on this HTML, you will have to rewrite styles again in CSS field</p><p>For Example:</p>\n<pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// style for class m-3 will not work\n<br>&lt;div class=\"m-3\"&gt;&lt;/div&gt;<br>\n<br>// You will have to add style of m-3 in CSS field below like\n<br>.m-3 {\n<br>    margin: 14px!important\n<br>}\n</code></pre>"
-  },
-  {
    "fieldname": "roles_section",
    "fieldtype": "Section Break",
    "label": "Roles"
@@ -87,11 +81,19 @@
    "fieldtype": "Table",
    "label": "Roles",
    "options": "Has Role"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.private || doc.__unsaved",
+   "fieldname": "private",
+   "fieldtype": "Check",
+   "label": "Private",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-17 17:17:04.232519",
+ "modified": "2023-05-30 14:33:31.994738",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom HTML Block",

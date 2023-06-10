@@ -52,7 +52,6 @@
 	{% endfor %}
 
 	{% include "templates/includes/app_analytics/google_analytics.html" %}
-	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
 		{% for sound in (sounds or []) %}
 		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>
