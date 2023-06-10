@@ -1,12 +1,17 @@
 const cookie = require("cookie");
 const request = require("superagent");
+const http = require("node:http");
 
 const { get_conf, get_redis_subscriber } = require("./node_utils");
 const conf = get_conf();
 const log = console.log; // eslint-disable-line
-const subscriber = get_redis_subscriber();
 
-const io = require("socket.io")(conf.socketio_port, {
+const uds = conf.socketio_uds;
+const port = conf.socketio_port;
+
+const server = http.createServer();
+
+const io = require("socket.io")(server, {
 	cors: {
 		// Should be fine since we are ensuring whether hostname and origin are same before adding setting listeners for s socket
 		origin: true,
@@ -180,23 +185,28 @@ io.on("connection", function (socket) {
 		);
 	});
 
-	socket.on("open_in_editor", (data) => {
+	socket.on("open_in_editor", async (data) => {
 		let s = get_redis_subscriber("redis_socketio");
-		s.publish("open_in_editor", JSON.stringify(data));
+		await s.publish("open_in_editor", JSON.stringify(data));
 	});
 });
 
-subscriber.on("message", function (_channel, message) {
-	message = JSON.parse(message);
+(async () => {
+	const subscriber = await get_redis_subscriber();
+	await subscriber.subscribe("events", (message) => {
+		message = JSON.parse(message);
 
-	if (message.room) {
-		io.to(message.room).emit(message.event, message.message);
-	} else {
-		io.emit(message.event, message.message);
-	}
+		if (message.room) {
+			io.to(message.room).emit(message.event, message.message);
+		} else {
+			io.emit(message.event, message.message);
+		}
+	});
+})();
+
+server.listen(uds || port, () => {
+	log("Listening on", uds || port);
 });
-
-subscriber.subscribe("events");
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
