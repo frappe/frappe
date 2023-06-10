@@ -191,11 +191,6 @@ def cleanup_page_name(title: str) -> str:
 	return name[:140]
 
 
-def get_shade(color, percent=None):
-	frappe.msgprint(_("get_shade method has been deprecated."))
-	return color
-
-
 def abs_url(path):
 	"""Deconstructs and Reconstructs a URL into an absolute URL or a URL relative from root '/'"""
 	if not path:

@@ -33,7 +33,6 @@ from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
-from frappe.utils.deprecations import deprecated, deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -874,7 +873,6 @@ class Database:
 		modified_by=None,
 		update_modified=True,
 		debug=False,
-		for_update=True,
 	):
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
@@ -890,21 +888,6 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
-
-		if _is_single_doctype := not (dn and dt != dn):
-			deprecation_warning(
-				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in version 15. Use db.set_single_value instead."
-			)
-			self.set_single_value(
-				doctype=dt,
-				fieldname=field,
-				value=val,
-				debug=debug,
-				update_modified=update_modified,
-				modified=modified,
-				modified_by=modified_by,
-			)
-			return
 
 		to_update = self._get_update_dict(
 			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified

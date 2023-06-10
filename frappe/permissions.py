@@ -48,7 +48,6 @@ def has_permission(
 	doctype,
 	ptype="read",
 	doc=None,
-	verbose=False,
 	user=None,
 	raise_exception=True,
 	*,
@@ -60,7 +59,6 @@ def has_permission(
 	:param doctype: DocType to check permission for
 	:param ptype: Permission Type to check
 	:param doc: Check User Permissions for specified document.
-	:param verbose: DEPRECATED, will be removed in a future release.
 	:param user: User to check permission for. Defaults to current user.
 	:param raise_exception:
 	        DOES NOT raise an exception.
