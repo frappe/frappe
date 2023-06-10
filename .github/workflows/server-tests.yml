@@ -136,6 +136,10 @@ jobs:
           BUILD_NUMBER: ${{ matrix.container }}
           TOTAL_BUILDS: 2
 
+      - name: Show bench output
+        if: ${{ always() }}
+        run: cat ~/frappe-bench/bench_start.log || true
+
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
