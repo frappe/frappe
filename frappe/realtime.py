@@ -8,8 +8,6 @@ import redis
 import frappe
 from frappe.utils.data import cstr
 
-redis_server = None
-
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
 	publish_realtime(
@@ -101,20 +99,11 @@ def emit_via_redis(event, message, room):
 	:param event: Event name, like `task_progress` etc.
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: name of the room"""
+	from frappe.utils.background_jobs import get_redis_conn
 
 	with suppress(redis.exceptions.ConnectionError):
-		r = get_redis_server()
+		r = get_redis_conn()
 		r.publish("events", frappe.as_json({"event": event, "message": message, "room": room}))
-
-
-def get_redis_server():
-	"""returns redis connection for sending realtime events."""
-	global redis_server
-	if not redis_server:
-		from redis import Redis
-
-		redis_server = Redis.from_url(frappe.conf.redis_queue or "redis://localhost:12311")
-	return redis_server
 
 
 @frappe.whitelist(allow_guest=True)
