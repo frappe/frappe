@@ -19,20 +19,20 @@ def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
 		_records = records
 
 	try:
-		frappe.cache().rpush(f"{queue_prefix}{doctype}", _records)
+		frappe.cache.rpush(f"{queue_prefix}{doctype}", _records)
 	except redis.exceptions.ConnectionError:
 		for record in records:
 			insert_record(record, doctype)
 
 
 def save_to_db():
-	queue_keys = frappe.cache().get_keys(queue_prefix)
+	queue_keys = frappe.cache.get_keys(queue_prefix)
 	for key in queue_keys:
 		record_count = 0
 		queue_key = get_key_name(key)
 		doctype = get_doctype_name(key)
-		while frappe.cache().llen(queue_key) > 0 and record_count <= 500:
-			records = frappe.cache().lpop(queue_key)
+		while frappe.cache.llen(queue_key) > 0 and record_count <= 500:
+			records = frappe.cache.lpop(queue_key)
 			records = json.loads(records.decode("utf-8"))
 			if isinstance(records, dict):
 				record_count += 1

@@ -29,7 +29,7 @@ class PathResolver:
 			request = frappe.local.request or request
 
 		# check if the request url is in 404 list
-		if request.url and can_cache() and frappe.cache().hget("website_404", request.url):
+		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
 			return self.path, NotFoundPage(self.path)
 
 		try:
@@ -110,7 +110,7 @@ def resolve_redirect(path, query_string=None):
 	if not redirects:
 		return
 
-	redirect_to = frappe.cache().hget("website_redirects", path)
+	redirect_to = frappe.cache.hget("website_redirects", path)
 
 	if redirect_to:
 		frappe.flags.redirect_location = redirect_to
@@ -130,7 +130,7 @@ def resolve_redirect(path, query_string=None):
 		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
-			frappe.cache().hset("website_redirects", path_to_match, redirect_to)
+			frappe.cache.hset("website_redirects", path_to_match, redirect_to)
 			raise frappe.Redirect
 
 
@@ -177,4 +177,4 @@ def get_website_rules():
 		# dont cache in development
 		return _get()
 
-	return frappe.cache().get_value("website_route_rules", _get)
+	return frappe.cache.get_value("website_route_rules", _get)

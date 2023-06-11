@@ -38,7 +38,7 @@ class EnergyPointLog(Document):
 				"energy_point_alert", message=alert_dict, user=self.user, after_commit=True
 			)
 
-		frappe.cache().hdel("energy_points", self.user)
+		frappe.cache.hdel("energy_points", self.user)
 
 		if self.type != "Review" and frappe.get_cached_value(
 			"Notification Settings", self.user, "energy_points_system_notifications"
@@ -222,9 +222,6 @@ def add_review_points(user, points):
 
 @frappe.whitelist()
 def get_energy_points(user):
-	# points = frappe.cache().hget('energy_points', user,
-	# 	lambda: get_user_energy_and_review_points(user))
-	# TODO: cache properly
 	points = get_user_energy_and_review_points(user)
 	return frappe._dict(points.get(user, {}))
 

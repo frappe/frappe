@@ -7,14 +7,14 @@ frappe.listview_settings["DocType"] = {
 	setup_select_primary_button: function (me) {
 		let actions = [
 			{
-				label: __("Add DocType"),
-				description: __("Create a new DocType"),
-				action: () => frappe.new_doc("DocType"),
-			},
-			{
 				label: __("Add DocType (Form Builder)"),
 				description: __("Use the form builder to create a new DocType"),
 				action: () => frappe.set_route("form-builder", "new-doctype"),
+			},
+			{
+				label: __("Add DocType"),
+				description: __("Create a new DocType"),
+				action: () => frappe.new_doc("DocType"),
 			},
 		];
 

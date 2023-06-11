@@ -24,7 +24,7 @@ class Role(Document):
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
 
 	def after_insert(self):
-		frappe.cache().hdel("roles", "Administrator")
+		frappe.cache.hdel("roles", "Administrator")
 
 	def validate(self):
 		if self.disabled:

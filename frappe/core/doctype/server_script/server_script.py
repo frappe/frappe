@@ -19,7 +19,7 @@ class ServerScript(Document):
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
-		frappe.cache().delete_value("server_script_map")
+		frappe.cache.delete_value("server_script_map")
 		self.sync_scheduler_events()
 
 	def on_trash(self):
@@ -168,11 +168,11 @@ class ServerScript(Document):
 					out.append([key, score])
 			return out
 
-		items = frappe.cache().get_value("server_script_autocompletion_items")
+		items = frappe.cache.get_value("server_script_autocompletion_items")
 		if not items:
 			items = get_keys(get_safe_globals())
 			items = [{"value": d[0], "score": d[1]} for d in items]
-			frappe.cache().set_value("server_script_autocompletion_items", items)
+			frappe.cache.set_value("server_script_autocompletion_items", items)
 		return items
 
 

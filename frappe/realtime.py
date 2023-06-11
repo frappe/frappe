@@ -1,15 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import os
 from contextlib import suppress
 
 import redis
 
 import frappe
 from frappe.utils.data import cstr
-
-redis_server = None
 
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
@@ -89,11 +86,12 @@ def flush_realtime_log():
 	for args in frappe.local._realtime_log:
 		frappe.realtime.emit_via_redis(*args)
 
-	frappe.local._realtime_log = []
+	clear_realtime_log()
 
 
 def clear_realtime_log():
-	frappe.local._realtime_log = []
+	if hasattr(frappe.local, "_realtime_log"):
+		del frappe.local._realtime_log
 
 
 def emit_via_redis(event, message, room):
@@ -102,20 +100,11 @@ def emit_via_redis(event, message, room):
 	:param event: Event name, like `task_progress` etc.
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: name of the room"""
+	from frappe.utils.background_jobs import get_redis_conn
 
 	with suppress(redis.exceptions.ConnectionError):
-		r = get_redis_server()
+		r = get_redis_conn()
 		r.publish("events", frappe.as_json({"event": event, "message": message, "room": room}))
-
-
-def get_redis_server():
-	"""returns redis_socketio connection."""
-	global redis_server
-	if not redis_server:
-		from redis import Redis
-
-		redis_server = Redis.from_url(frappe.conf.redis_socketio or "redis://localhost:12311")
-	return redis_server
 
 
 @frappe.whitelist(allow_guest=True)

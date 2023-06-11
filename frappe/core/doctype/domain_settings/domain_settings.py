@@ -73,7 +73,7 @@ def get_active_domains():
 		active_domains.append("")
 		return active_domains
 
-	return frappe.cache().get_value("active_domains", _get_active_domains)
+	return frappe.cache.get_value("active_domains", _get_active_domains)
 
 
 def get_active_modules():
@@ -87,4 +87,4 @@ def get_active_modules():
 				active_modules.append(m.name)
 		return active_modules
 
-	return frappe.cache().get_value("active_modules", _get_active_modules)
+	return frappe.cache.get_value("active_modules", _get_active_modules)

@@ -22,6 +22,7 @@
    "default": "0",
    "fieldname": "skipped",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Skipped",
    "read_only": 1
   },
@@ -36,7 +37,7 @@
  "icon": "fa fa-cog",
  "idx": 1,
  "links": [],
- "modified": "2023-05-10 19:27:10.883330",
+ "modified": "2023-06-07 00:00:01.369265",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Patch Log",
