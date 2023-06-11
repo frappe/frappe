@@ -86,11 +86,12 @@ def flush_realtime_log():
 	for args in frappe.local._realtime_log:
 		frappe.realtime.emit_via_redis(*args)
 
-	frappe.local._realtime_log = []
+	clear_realtime_log()
 
 
 def clear_realtime_log():
-	frappe.local._realtime_log = []
+	if hasattr(frappe.local, "_realtime_log"):
+		del frappe.local._realtime_log
 
 
 def emit_via_redis(event, message, room):
