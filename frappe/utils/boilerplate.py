@@ -582,7 +582,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 16
           check-latest: true
 
       - name: Cache pip
