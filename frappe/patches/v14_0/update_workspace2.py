@@ -70,7 +70,7 @@ def update_workspace(doc, seq, content):
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
 		doc.public = 0 if doc.for_user else 1
-		doc.title = doc.extends or doc.label
+		doc.title = doc.get("extends") or doc.get("label")
 		doc.extends = ""
 		doc.category = ""
 		doc.onboarding = ""
