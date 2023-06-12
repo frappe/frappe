@@ -56,6 +56,7 @@ DEFAULT_FIELD_LABELS = {
 
 
 def get_meta(doctype, cached=True) -> "Meta":
+<<<<<<< HEAD
 	if not cached:
 		return Meta(doctype)
 
@@ -64,6 +65,14 @@ def get_meta(doctype, cached=True) -> "Meta":
 
 	meta = Meta(doctype)
 	frappe.cache().hset("doctype_meta", doctype, meta)
+=======
+	cached = cached and isinstance(doctype, str)
+	if cached and (meta := frappe.cache.hget("doctype_meta", doctype)):
+		return meta
+
+	meta = Meta(doctype)
+	frappe.cache.hset("doctype_meta", meta.name, meta)
+>>>>>>> 8a30667a97 (fix: Fetch non-cached version of Meta on Customize Form. (#21269))
 	return meta
 
 
