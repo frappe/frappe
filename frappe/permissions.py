@@ -97,6 +97,7 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have access to this document").format(frappe.bold(user))
+				+ f": {_(doc.doctype)} - {doc.name}"
 			)
 	else:
 		if ptype == "submit" and not cint(meta.is_submittable):

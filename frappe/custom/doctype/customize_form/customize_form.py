@@ -578,12 +578,13 @@ class CustomizeForm(Document):
 			filters={
 				"doc_type": self.doc_type,
 				"property": "field_order",
-				"is_system_generated": False,
 			},
 		)
-		if property_setter:
-			frappe.delete_doc("Property Setter", property_setter)
 
+		if not property_setter:
+			return
+
+		frappe.delete_doc("Property Setter", property_setter)
 		self.fetch_to_customize()
 
 	@classmethod

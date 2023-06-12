@@ -171,6 +171,7 @@ def get_script(report_name):
 		"script": render_include(script),
 		"html_format": html_format,
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
+		"filters": report.filters,
 	}
 
 

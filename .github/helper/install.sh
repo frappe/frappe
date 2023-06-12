@@ -54,7 +54,7 @@ fi
 
 echo "Starting Bench..."
 
-bench start &> bench_start.log &
+bench start &> ~/frappe-bench/bench_start.log &
 
 if [ "$TYPE" == "server" ]
 then

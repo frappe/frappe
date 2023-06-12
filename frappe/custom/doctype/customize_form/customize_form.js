@@ -179,7 +179,7 @@ frappe.ui.form.on("Customize Form", {
 			() => {
 				return frm.call({
 					doc: frm.doc,
-					method: "reset_to_defaults",
+					method: "reset_layout",
 					callback: function (r) {
 						if (!r.exc) {
 							frappe.show_alert({
