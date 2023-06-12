@@ -573,18 +573,17 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		property_setter = frappe.db.get_value(
+		property_setters = frappe.get_all(
 			"Property Setter",
-			filters={
-				"doc_type": self.doc_type,
-				"property": "field_order",
-			},
+			filters={"doc_type": self.doc_type, "property": ("in", ("field_order", "insert_after"))},
+			pluck="name",
 		)
 
-		if not property_setter:
+		if not property_setters:
 			return
 
-		frappe.delete_doc("Property Setter", property_setter)
+		frappe.db.delete("Property Setter", {"name": ("in", property_setters)})
+		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
 	@classmethod
