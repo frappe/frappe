@@ -175,7 +175,6 @@ frappe.ui.form.on("Customize Form", {
 	reset_layout(frm) {
 		frappe.confirm(
 			__("Layout will be reset to standard layout, are you sure you want to do this?"),
-			null,
 			() => {
 				return frm.call({
 					doc: frm.doc,
