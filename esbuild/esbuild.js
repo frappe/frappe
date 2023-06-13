@@ -446,9 +446,9 @@ function run_build_command_for_apps(apps) {
 
 async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
-	let subscriber = get_redis_subscriber("redis_socketio");
+	let subscriber = get_redis_subscriber("redis_queue");
 	subscriber.on("error", (_) => {
-		log_warn("Cannot connect to redis_socketio for browser events");
+		log_warn("Cannot connect to redis_queue for browser events");
 	});
 
 	let payload = null;
@@ -482,9 +482,9 @@ async function notify_redis({ error, success, changed_files }) {
 }
 
 function open_in_editor() {
-	let subscriber = get_redis_subscriber("redis_socketio");
+	let subscriber = get_redis_subscriber("redis_queue");
 	subscriber.on("error", (_) => {
-		log_warn("Cannot connect to redis_socketio for open_in_editor events");
+		log_warn("Cannot connect to redis_queue for open_in_editor events");
 	});
 	subscriber.on("message", (event, file) => {
 		if (event === "open_in_editor") {
