@@ -712,7 +712,6 @@ def transform_database(context, table, engine, row_format, failfast):
 	help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt",
 )
 @click.option("--test", multiple=True, help="Specific test")
-@click.option("--ui-tests", is_flag=True, default=False, help="Run UI Tests")
 @click.option("--module", help="Run tests in a module")
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
