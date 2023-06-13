@@ -169,7 +169,7 @@ def status(*args, **kwargs):
 @do_not_record
 @administrator_only
 def start(*args, **kwargs):
-	frappe.cache().set_value(RECORDER_INTERCEPT_FLAG, 1)
+	frappe.cache().set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=60 * 60)
 
 
 @frappe.whitelist()

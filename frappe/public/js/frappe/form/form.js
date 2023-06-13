@@ -1413,8 +1413,13 @@ frappe.ui.form.Form = class FrappeForm {
 			if (selector.length) {
 				frappe.utils.scroll_to(selector);
 			}
-		} else if (window.location.hash && $(window.location.hash).length) {
-			frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+		} else if (window.location.hash) {
+			if ($(window.location.hash).length) {
+				frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+			} else {
+				this.scroll_to_field(window.location.hash.replace("#", "")) &&
+					history.replaceState(null, null, " ");
+			}
 		}
 	}
 
@@ -1923,11 +1928,12 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// highlight control inside field
-		let control_element = $el.find(".form-control");
+		let control_element = $el.closest(".frappe-control");
 		control_element.addClass("highlight");
 		setTimeout(() => {
 			control_element.removeClass("highlight");
 		}, 2000);
+		return true;
 	}
 
 	setup_docinfo_change_listener() {
