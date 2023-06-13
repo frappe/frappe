@@ -202,11 +202,13 @@ def get_versions(doc):
 
 @frappe.whitelist()
 def get_communications(doctype, name, start=0, limit=20):
+	from frappe.utils import cint
+
 	doc = frappe.get_doc(doctype, name)
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 
-	return _get_communications(doctype, name, start, limit)
+	return _get_communications(doctype, name, cint(start), cint(limit))
 
 
 def get_comments(
@@ -253,7 +255,7 @@ def get_point_logs(doctype, docname):
 	)
 
 
-def _get_communications(doctype, name, start=0, limit=100):
+def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
 		if c.communication_type == "Communication":
