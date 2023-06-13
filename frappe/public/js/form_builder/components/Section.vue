@@ -6,7 +6,7 @@ import { ref } from "vue";
 import { useStore } from "../store";
 import { section_boilerplate, move_children_to_parent, confirm_dialog } from "../utils";
 
-let props = defineProps(["tab", "section"]);
+const props = defineProps(["tab", "section"]);
 let store = useStore();
 
 let hovered = ref(false);

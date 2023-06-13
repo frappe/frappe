@@ -70,7 +70,7 @@ import { computed } from "vue";
 import draggable from "vuedraggable";
 
 // props
-let props = defineProps(["df"]);
+const props = defineProps(["df"]);
 
 // methods
 function remove_column(column) {

@@ -3,7 +3,7 @@ import { useStore } from "../../store";
 import { useSlots } from "vue";
 
 let store = useStore();
-let props = defineProps(["df", "value"]);
+const props = defineProps(["df", "value"]);
 let slots = useSlots();
 </script>
 

@@ -17,7 +17,7 @@
 import { ref } from "vue";
 
 // props
-let props = defineProps(["value", "button-label"]);
+const props = defineProps(["value", "button-label"]);
 
 // emits
 let emit = defineEmits(["change"]);
