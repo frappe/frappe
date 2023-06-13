@@ -39,7 +39,7 @@ def drop_user_and_database(db_name, root_login=None, root_password=None):
 		)
 
 
-def get_db(host=None, user=None, password=None, port=None):
+def get_db(host, port, user, password):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
