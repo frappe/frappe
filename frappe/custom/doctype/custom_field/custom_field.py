@@ -40,7 +40,7 @@ class CustomField(Document):
 
 			# remove special characters from fieldname
 			self.fieldname = "".join(
-				filter(lambda x: x.isdigit() or x.isalpha() or "_", cstr(label).replace(" ", "_"))
+				[c for c in cstr(label).replace(" ", "_") if c.isdigit() or c.isalpha() or c == "_"]
 			)
 
 		# fieldnames should be lowercase
