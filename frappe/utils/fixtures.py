@@ -5,6 +5,7 @@ import os
 
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
+from frappe.utils.deprecations import deprecation_warning
 
 
 def sync_fixtures(app=None):
@@ -61,6 +62,9 @@ def import_custom_scripts(app):
 
 		# not using get_app_path here as it scrubs the fname (will not work for dt name with > 1 word)
 		file_path = scripts_folder + os.path.sep + fname
+		deprecation_warning(
+			f"Importing client script {fname} from {scripts_folder} is deprecated and will be removed in version-15. Use client scripts as fixtures directly."
+		)
 
 		with open(file_path) as f:
 			script = f.read()
