@@ -3,6 +3,8 @@
 
 import os
 
+import click
+
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
 
@@ -52,26 +54,10 @@ def import_custom_scripts(app):
 		if not fname.endswith(".js"):
 			continue
 
-		doctype = fname.rsplit(".", 1)[0]
-		if not frappe.db.exists("DocType", doctype):
-			print(
-				f"Skipping custom script fixture syncing for the missing doctype {doctype} from the file {fname}"
-			)
-			continue
-
-		# not using get_app_path here as it scrubs the fname (will not work for dt name with > 1 word)
-		file_path = scripts_folder + os.path.sep + fname
-
-		with open(file_path) as f:
-			script = f.read()
-			if frappe.db.exists("Client Script", {"dt": doctype}):
-				client_script = frappe.get_doc("Client Script", {"dt": doctype})
-				client_script.script = script
-				client_script.save()
-			else:
-				client_script = frappe.new_doc("Client Script")
-				client_script.update({"__newname": doctype, "dt": doctype, "script": script})
-				client_script.insert()
+		click.secho(
+			f"Importing Client Script `{fname}` from `{scripts_folder}` is not supported. Convert the client script to fixture.",
+			fg="red",
+		)
 
 
 def export_fixtures(app=None):

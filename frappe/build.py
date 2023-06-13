@@ -227,8 +227,6 @@ def bundle(
 	mode,
 	apps=None,
 	hard_link=False,
-	make_copy=False,
-	restore=False,
 	verbose=False,
 	skip_frappe=False,
 	files=None,

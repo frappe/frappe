@@ -50,7 +50,7 @@ class TestAuth(FrappeTestCase):
 		frappe.local.response["http_status_code"] = None
 
 	def set_system_settings(self, k, v):
-		frappe.db.set_value("System Settings", "System Settings", k, v)
+		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
 		frappe.db.commit()
 
