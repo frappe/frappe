@@ -42,6 +42,7 @@ class CustomField(Document):
 			self.fieldname = "".join(
 				[c for c in cstr(label).replace(" ", "_") if c.isdigit() or c.isalpha() or c == "_"]
 			)
+			self.fieldname = f"custom_{self.fieldname}"
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
