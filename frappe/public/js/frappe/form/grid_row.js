@@ -966,7 +966,7 @@ export default class GridRow {
 				let input_in_focus = false;
 
 				$(col)
-					.find("input[type='Text']")
+					.find("input[type='text']")
 					.each(function () {
 						if ($(this).is(":focus")) {
 							input_in_focus = true;
