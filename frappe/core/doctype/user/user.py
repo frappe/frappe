@@ -28,6 +28,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+from frappe.utils.deprecations import deprecated
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -75,7 +76,7 @@ class User(Document):
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
-		self.validate_roles()
+		self.populate_role_profile_roles()
 		self.check_roles_added()
 		self.set_system_user()
 		self.set_full_name()
@@ -98,11 +99,15 @@ class User(Document):
 		):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
-	def validate_roles(self):
+	def populate_role_profile_roles(self):
 		if self.role_profile_name:
 			role_profile = frappe.get_doc("Role Profile", self.role_profile_name)
 			self.set("roles", [])
 			self.append_roles(*[role.role for role in role_profile.roles])
+
+	@deprecated
+	def validate_roles(self):
+		self.populate_role_profile_roles()
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
