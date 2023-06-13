@@ -89,13 +89,13 @@ class Database:
 		self.host = host
 		self.port = port
 		self.user = user
+		self.password = password
 		self.cur_db_name = cur_db_name
 		self._conn = None
 
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
