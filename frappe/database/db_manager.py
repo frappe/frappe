@@ -73,9 +73,9 @@ class DbManager:
 			pipe=pipe,
 			user=esc(user),
 			password=esc(password),
-			host=esc(frappe.db.host),
+			host=esc(frappe.conf.db_host),
 			target=esc(target),
 			source=source,
-			port=frappe.db.port,
+			port=frappe.conf.db_port,
 		)
 		os.system(command)
