@@ -198,7 +198,7 @@ class FormTimeline extends BaseTimeline {
 		return view_timeline_contents;
 	}
 
-	get_communication_timeline_contents() {
+	get_communication_timeline_contents(more_items) {
 		let communication_timeline_contents = [];
 		let icon_set = {
 			Email: "mail",
@@ -206,7 +206,8 @@ class FormTimeline extends BaseTimeline {
 			Meeting: "calendar",
 			Other: "dot-horizontal",
 		};
-		(this.doc_info.communications || []).forEach((communication) => {
+		let items = more_items ? more_items : this.doc_info.communications || [];
+		items.forEach((communication) => {
 			let medium = communication.communication_medium;
 			communication_timeline_contents.push({
 				icon: icon_set[medium],
@@ -219,7 +220,32 @@ class FormTimeline extends BaseTimeline {
 				name: communication.name,
 			});
 		});
+
+		if (communication_timeline_contents.length >= 20) {
+			communication_timeline_contents[
+				communication_timeline_contents.length - 1
+			].append_load_more = true;
+		}
+
 		return communication_timeline_contents;
+	}
+
+	async get_more_communication_timeline_contents() {
+		let more_items = [];
+		let response = await frappe.call({
+			method: "frappe.desk.form.load.get_communications",
+			args: {
+				doctype: this.doc_info.doctype,
+				name: this.doc_info.name,
+				start: this.doc_info.communications.length,
+				limit: 20,
+			},
+		});
+		if (response.message) {
+			this.doc_info.communications.push(...response.message);
+			more_items = this.get_communication_timeline_contents(response.message);
+		}
+		return more_items;
 	}
 
 	get_communication_timeline_content(doc, allow_reply = true) {
