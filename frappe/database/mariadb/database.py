@@ -114,10 +114,11 @@ class MariaDBConnectionUtil:
 		self.sql("set session max_statement_time = %s", int(seconds))
 
 	def get_connection_settings(self) -> dict:
+		assert (
+			self.password
+		), "without unix domain socket connection, mariadb db password is currently reqired"
 		conn_settings = {
-			"host": self.host,
 			"user": self.user,
-			"password": self.password,
 			"conv": self.CONVERSION_MAP,
 			"charset": "utf8mb4",
 			"use_unicode": True,
@@ -126,6 +127,10 @@ class MariaDBConnectionUtil:
 		if self.user not in (frappe.flags.root_login, "root"):
 			conn_settings["database"] = self.cur_db_name
 
+		if self.host:
+			conn_settings["host"] = self.host
+		if self.password:
+			conn_settings["password"] = self.password
 		if self.port:
 			conn_settings["port"] = int(self.port)
 

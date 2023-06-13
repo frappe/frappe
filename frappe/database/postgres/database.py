@@ -160,11 +160,21 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
-		conn = psycopg2.connect(
-			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
-				self.host, self.cur_db_name, self.user, self.password, self.port
-			)
-		)
+		assert (
+			self.password
+		), "without unix domain socket connection, postgres db password is currently reqired"
+		conn_settings = {
+			"user": self.user,
+			"dbname": self.cur_db_name,
+		}
+		if self.host:
+			conn_settings["host"] = self.host
+		if self.password:
+			conn_settings["password"] = self.password
+		if self.port:
+			conn_settings["port"] = self.port
+
+		conn = psycopg2.connect(**conn_settings)
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
