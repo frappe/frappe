@@ -90,6 +90,7 @@ class BaseTimeline {
 		timeline_item.attr({
 			"data-doctype": item.doctype,
 			"data-name": item.name,
+			"data-timestamp": item.creation,
 		});
 		if (item.icon) {
 			timeline_item.append(`
