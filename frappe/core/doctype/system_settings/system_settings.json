@@ -564,12 +564,38 @@
    "fieldname": "enable_telemetry",
    "fieldtype": "Check",
    "label": "Allow Sending Usage Data for Improving Applications"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "welcome_email_template",
+   "fieldtype": "Link",
+   "label": "Welcome Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "reset_password_template",
+   "fieldtype": "Link",
+   "label": "Reset Password Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "0",
+   "description": "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected.",
+   "fieldname": "force_web_capture_mode_for_uploads",
+   "fieldtype": "Check",
+   "label": "Force web capture mode for uploads"
+>>>>>>> 4ee5c015c3 (feat: setting for force web capture mode for camera uploads)
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-04-24 11:14:59.302851",
+=======
+ "modified": "2023-06-14 11:19:33.429196",
+>>>>>>> 4ee5c015c3 (feat: setting for force web capture mode for camera uploads)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
