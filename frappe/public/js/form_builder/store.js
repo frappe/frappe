@@ -105,7 +105,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 
 		setup_undo_redo();
-		setup_breadcrumbs();
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
