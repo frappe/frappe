@@ -20,7 +20,8 @@ function activate_tab(tab) {
 	nextTick(() => {
 		$(".tabs .tab.active")[0].scrollIntoView({
 			behavior: "smooth",
-			inline: "center"
+			inline: "center",
+			block: "nearest",
 		});
 	});
 }
