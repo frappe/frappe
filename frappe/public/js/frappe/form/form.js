@@ -77,9 +77,12 @@ frappe.ui.form.Form = class FrappeForm {
 		// wrapper
 		this.wrapper = this.parent;
 		this.$wrapper = $(this.wrapper);
+
+		let is_single_column = this.doctype === "DocType" ? true : this.meta.hide_toolbar;
+
 		frappe.ui.make_app_page({
 			parent: this.wrapper,
-			single_column: this.meta.hide_toolbar,
+			single_column: is_single_column,
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
