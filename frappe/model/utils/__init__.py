@@ -133,3 +133,11 @@ def is_virtual_doctype(doctype: str):
 	if frappe.db.has_column("DocType", "is_virtual"):
 		return frappe.db.get_value("DocType", doctype, "is_virtual")
 	return False
+
+
+@site_cache()
+def is_single_doctype(doctype: str):
+	try:
+		return frappe.db.get_value("DocType", doctype, "issingle")
+	except Exception:
+		return False
