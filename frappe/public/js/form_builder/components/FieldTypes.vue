@@ -67,7 +67,7 @@ function on_drag_end(evt) {
 
 <style lang="scss" scoped>
 .fields-container {
-	height: calc(100vh - 250px);
+	height: calc(100vh - 233px);
 	overflow-y: auto;
 	display: grid;
 	gap: 8px;
