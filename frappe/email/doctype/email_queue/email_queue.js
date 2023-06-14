@@ -17,13 +17,13 @@ frappe.ui.form.on("Email Queue", {
 				});
 			});
 		} else if (frm.doc.status == "Error") {
-			let button = frm.add_custom_button("Retry Sending", function () {
+			frm.add_custom_button("Retry Sending", function () {
 				frm.call({
 					method: "retry_sending",
+					doc: frm.doc,
 					args: {
 						name: frm.doc.name,
 					},
-					btn: button,
 					callback: function () {
 						frm.reload_doc();
 					},

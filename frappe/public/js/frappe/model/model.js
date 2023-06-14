@@ -633,8 +633,7 @@ $.extend(frappe.model, {
 	},
 
 	clear_table: function (doc, parentfield) {
-		for (var i = 0, l = (doc[parentfield] || []).length; i < l; i++) {
-			var d = doc[parentfield][i];
+		for (const d of doc[parentfield] || []) {
 			delete locals[d.doctype][d.name];
 		}
 		doc[parentfield] = [];

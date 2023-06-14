@@ -18,7 +18,6 @@ from click import secho
 
 import frappe
 from frappe.desk.utils import slug
-from frappe.utils.deprecations import deprecation_warning
 
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]

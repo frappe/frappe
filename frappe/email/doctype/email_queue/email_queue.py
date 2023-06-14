@@ -3,13 +3,10 @@
 
 import json
 import quopri
-import smtplib
 import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTPUTF8
-
-from rq.timeouts import JobTimeoutException
 
 import frappe
 from frappe import _, safe_encode, task
@@ -28,6 +25,7 @@ from frappe.utils import (
 	get_hook_method,
 	get_string_between,
 	get_url,
+	now,
 	nowdate,
 	sbool,
 	split_emails,
@@ -177,6 +175,12 @@ class EmailQueue(Document):
 			.where(email_recipient.modified < (Now() - Interval(days=days)))
 		).run()
 
+	@frappe.whitelist()
+	def retry_sending(self):
+		if self.status == "Error":
+			self.status = "Not Sent"
+			self.save(ignore_permissions=True)
+
 
 @task(queue="short")
 def send_mail(email_queue_name, smtp_server_instance: SMTPServer = None):
@@ -212,25 +216,11 @@ class SendMailContext:
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		exceptions = [
-			smtplib.SMTPServerDisconnected,
-			smtplib.SMTPAuthenticationError,
-			smtplib.SMTPConnectError,
-			smtplib.SMTPHeloError,
-			JobTimeoutException,
-		]
-		trace = "".join(traceback.format_tb(exc_tb)) if exc_tb else None
-
 		if not self.retain_smtp_session:
 			self.smtp_server.quit()
 
-		if exc_type in exceptions:
-			update_fields = {
-				"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent",
-				"error": trace,
-			}
-		elif exc_type:
-			update_fields = {"error": trace}
+		if exc_type:
+			update_fields = {"error": "".join(traceback.format_tb(exc_tb))}
 			if self.queue_doc.retry < get_email_retry_limit():
 				update_fields.update(
 					{
@@ -359,16 +349,26 @@ class SendMailContext:
 
 
 @frappe.whitelist()
-def retry_sending(name):
-	doc = frappe.get_doc("Email Queue", name)
-	doc.check_permission()
+def bulk_retry(queues):
+	frappe.only_for("System Manager")
 
-	if doc and doc.status == "Error":
-		doc.status = "Not Sent"
-		for d in doc.recipients:
-			if d.status != "Sent":
-				d.status = "Not Sent"
-		doc.save(ignore_permissions=True)
+	if isinstance(queues, str):
+		queues = json.loads(queues)
+
+	if not queues:
+		return
+
+	frappe.msgprint(
+		_("Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."),
+		_("Processing..."),
+	)
+
+	email_queue = frappe.qb.DocType("Email Queue")
+	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(
+		email_queue.modified, now()
+	).set(email_queue.modified_by, frappe.session.user).where(
+		email_queue.name.isin(queues) & email_queue.status == "Error"
+	).run()
 
 
 @frappe.whitelist()

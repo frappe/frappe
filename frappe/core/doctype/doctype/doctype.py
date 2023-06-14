@@ -337,7 +337,7 @@ class DocType(Document):
 			"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=self.name)
 		)
 		for p in parent_list:
-			frappe.db.set_value("DocType", p.parent, {}, for_update=False)
+			frappe.db.set_value("DocType", p.parent, {})
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""

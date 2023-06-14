@@ -43,20 +43,20 @@ class TestWebsite(FrappeTestCase):
 		frappe.db.set_value("Role", "home-page-test", "home_page", "")
 
 		# home page via portal settings
-		frappe.db.set_value("Portal Settings", None, "default_portal_home", "test-portal-home")
+		frappe.db.set_single_value("Portal Settings", "default_portal_home", "test-portal-home")
 
 		frappe.set_user("test-user-for-home-page@example.com")
 		frappe.cache.hdel("home_page", frappe.session.user)
 		self.assertEqual(get_home_page(), "test-portal-home")
 
-		frappe.db.set_value("Portal Settings", None, "default_portal_home", "")
+		frappe.db.set_single_value("Portal Settings", "default_portal_home", "")
 		clear_website_cache()
 
 		# home page via website settings
-		frappe.db.set_value("Website Settings", None, "home_page", "contact")
+		frappe.db.set_single_value("Website Settings", "home_page", "contact")
 		self.assertEqual(get_home_page(), "contact")
 
-		frappe.db.set_value("Website Settings", None, "home_page", None)
+		frappe.db.set_single_value("Website Settings", "home_page", None)
 		clear_website_cache()
 
 		# fallback homepage

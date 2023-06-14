@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import io
 
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 import frappe
 import frappe.utils.pdf as pdfgen
@@ -43,7 +43,7 @@ class TestPdf(FrappeTestCase):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})
 		reader = PdfReader(io.BytesIO(pdf))
-		self.assertTrue(reader.isEncrypted)
+		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
 	def test_pdf_generation_as_a_user(self):

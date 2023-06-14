@@ -34,12 +34,14 @@ ASSET_KEYS = (
 )
 
 
-def get_meta(doctype, cached=True):
+def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
-	if cached and not frappe.conf.developer_mode:
+	cached = cached and not frappe._dev_server
+	if cached:
 		meta = frappe.cache.hget("doctype_form_meta", doctype)
 		if not meta:
-			meta = FormMeta(doctype)
+			# Cache miss - explicitly get meta from DB to avoid
+			meta = FormMeta(doctype, cached=False)
 			frappe.cache.hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
@@ -51,8 +53,8 @@ def get_meta(doctype, cached=True):
 
 
 class FormMeta(Meta):
-	def __init__(self, doctype):
-		self.__dict__.update(frappe.get_meta(doctype).__dict__)
+	def __init__(self, doctype, *, cached=True):
+		self.__dict__.update(frappe.get_meta(doctype, cached=cached).__dict__)
 		self.load_assets()
 
 	def load_assets(self):

@@ -237,12 +237,19 @@ class File(Document):
 		):
 			return
 
-		frappe.db.set_value(
-			self.attached_to_doctype,
-			self.attached_to_name,
-			self.attached_to_field,
-			self.file_url,
-		)
+		if frappe.get_meta(self.attached_to_doctype).issingle:
+			frappe.db.set_single_value(
+				self.attached_to_doctype,
+				self.attached_to_field,
+				self.file_url,
+			)
+		else:
+			frappe.db.set_value(
+				self.attached_to_doctype,
+				self.attached_to_name,
+				self.attached_to_field,
+				self.file_url,
+			)
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
