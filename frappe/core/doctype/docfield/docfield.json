@@ -549,13 +549,8 @@
   {
    "depends_on": "eval:!in_list([\"Tab Break\", \"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
    "fieldname": "documentation_url",
-<<<<<<< HEAD
    "fieldtype": "Small Text",
    "label": "Documentation URL"
-=======
-   "fieldtype": "Data",
-   "label": "Documentation URL",
-   "options": "URL"
   },
   {
    "default": "0",
@@ -563,7 +558,6 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
->>>>>>> 49ccc0ab6e (feat: make option sorting configurable)
   }
  ],
  "idx": 1,
