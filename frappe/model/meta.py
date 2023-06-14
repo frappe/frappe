@@ -40,6 +40,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
+# nosemgrep
 DEFAULT_FIELD_LABELS = {
 	"name": lambda: _("ID"),
 	"creation": lambda: _("Created On"),

@@ -27,28 +27,24 @@ def test_password_strength(password, user_inputs=None):
 # see license for feedback code at https://github.com/sans-serif/python-zxcvbn/blob/master/LICENSE.txt
 # -------------------------------------------
 
-# Default feedback value
-default_feedback = {
-	"warning": "",
-	"suggestions": [
-		_("Use a few words, avoid common phrases."),
-		_("No need for symbols, digits, or uppercase letters."),
-	],
-}
-
 
 def get_feedback(score, sequence):
 	"""
 	Returns the feedback dictionary consisting of ("warning","suggestions") for the given sequences.
 	"""
-	global default_feedback
 	minimum_password_score = int(
 		frappe.db.get_single_value("System Settings", "minimum_password_score") or 2
 	)
 
 	# Starting feedback
 	if len(sequence) == 0:
-		return default_feedback
+		return {
+			"warning": "",
+			"suggestions": [
+				_("Use a few words, avoid common phrases."),
+				_("No need for symbols, digits, or uppercase letters."),
+			],
+		}
 
 	# No feedback if score is good or great
 	if score >= minimum_password_score:
