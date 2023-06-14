@@ -497,6 +497,7 @@ def delete_bulk(doctype, items):
 			undeleted_items.append(d)
 			frappe.db.rollback()
 	if undeleted_items and len(items) != len(undeleted_items):
+		frappe.clear_messages()
 		delete_bulk(doctype, undeleted_items)
 
 
