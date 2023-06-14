@@ -1125,7 +1125,9 @@ def migrate_translations(source_app, target_app):
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
 
-	strings_in_target_app_but_not_in_source_app = list(set(strings_in_target_app) - set(strings_in_source_app))
+	strings_in_target_app_but_not_in_source_app = list(
+		set(strings_in_target_app) - set(strings_in_source_app)
+	)
 
 	languages = frappe.translate.get_all_languages()
 
@@ -1144,10 +1146,10 @@ def migrate_translations(source_app, target_app):
 		target_csv = os.path.join(target_app_translations_dir, lang + ".csv")
 		temp_csv = os.path.join(source_app_translations_dir, "_temp.csv")
 
-		with open(source_csv, "r") as s, open(target_csv, "a+") as t, open(temp_csv, "a+") as temp:
-			source_reader = reader(s, lineterminator = "\n")
-			target_writer = writer(t, lineterminator = "\n")
-			temp_writer = writer(temp, lineterminator = "\n")
+		with open(source_csv) as s, open(target_csv, "a+") as t, open(temp_csv, "a+") as temp:
+			source_reader = reader(s, lineterminator="\n")
+			target_writer = writer(t, lineterminator="\n")
+			temp_writer = writer(temp, lineterminator="\n")
 
 			for row in source_reader:
 				if row[0] in strings_in_target_app_but_not_in_source_app:
