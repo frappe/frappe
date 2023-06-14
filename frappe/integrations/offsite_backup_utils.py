@@ -44,7 +44,7 @@ def get_recipients(doctype, email_field):
 	if not frappe.db:
 		frappe.connect()
 
-	return split_emails(frappe.db.get_value(doctype, None, email_field))
+	return split_emails(frappe.db.get_single_value(doctype, email_field))
 
 
 def get_latest_backup_file(with_files=False):

@@ -279,7 +279,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					raise_link_exists_exception(doc, linked_doctype, reference_docname)
 
 		else:
-			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
+			if frappe.db.get_single_value(link_dt, link_field) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
 
 
