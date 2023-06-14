@@ -76,7 +76,7 @@ frappe.ui.Capture = class {
 	show() {
 		this.build_dialog();
 
-		if (frappe.boot.sysdefaults.force_web_capture_mode_for_uploads) {
+		if (cint(frappe.boot.sysdefaults.force_web_capture_mode_for_uploads)) {
 			this.show_for_desktop();
 		}
 		else {
