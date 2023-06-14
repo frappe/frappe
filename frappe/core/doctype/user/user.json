@@ -16,12 +16,31 @@
   "column_break0",
   "full_name",
   "username",
-  "column_break_11",
   "language",
-  "time_zone",
   "send_welcome_email",
-  "unsubscribed",
+  "time_zone",
   "user_image",
+  "unsubscribed",
+  "customer_section_section",
+  "firm_name",
+  "business_name",
+  "gst_number",
+  "address",
+  "column_break_11",
+  "city_name",
+  "state",
+  "pin_code",
+  "contact_person_first_name",
+  "column_break_nc4gy",
+  "contact_person_last_name",
+  "contact_person_phone_no",
+  "contact_person_email",
+  "vendor_section_section",
+  "productservices",
+  "company_name",
+  "column_break_u48fu",
+  "company_website",
+  "type_of_vendor",
   "sb1",
   "role_profile_name",
   "roles_html",
@@ -606,6 +625,99 @@
    "fieldtype": "Link",
    "label": "Module Profile",
    "options": "Module Profile"
+  },
+  {
+   "fieldname": "customer_section_section",
+   "fieldtype": "Section Break",
+   "label": "Customer Section"
+  },
+  {
+   "fieldname": "firm_name",
+   "fieldtype": "Data",
+   "label": "Firm Name"
+  },
+  {
+   "fieldname": "business_name",
+   "fieldtype": "Data",
+   "label": "Business Name"
+  },
+  {
+   "fieldname": "gst_number",
+   "fieldtype": "Data",
+   "label": "GST Number"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Data",
+   "label": "Address"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "pin_code",
+   "fieldtype": "Int",
+   "label": "Pin Code"
+  },
+  {
+   "fieldname": "contact_person_first_name",
+   "fieldtype": "Data",
+   "label": "Contact Person First Name"
+  },
+  {
+   "fieldname": "contact_person_last_name",
+   "fieldtype": "Data",
+   "label": "Contact Person Last Name"
+  },
+  {
+   "fieldname": "contact_person_phone_no",
+   "fieldtype": "Int",
+   "label": "Contact Person Phone No"
+  },
+  {
+   "fieldname": "contact_person_email",
+   "fieldtype": "Data",
+   "label": "Contact Person Email"
+  },
+  {
+   "fieldname": "column_break_nc4gy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "city_name",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "vendor_section_section",
+   "fieldtype": "Section Break",
+   "label": "Vendor Section"
+  },
+  {
+   "fieldname": "productservices",
+   "fieldtype": "Data",
+   "label": "Product/Services"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
+  },
+  {
+   "fieldname": "company_website",
+   "fieldtype": "Data",
+   "label": "Company Website"
+  },
+  {
+   "fieldname": "type_of_vendor",
+   "fieldtype": "Data",
+   "label": "Type Of Vendor"
+  },
+  {
+   "fieldname": "column_break_u48fu",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-user",
@@ -668,7 +780,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2022-09-19 16:10:56.745069",
+ "modified": "2023-06-13 14:29:09.416174",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -701,7 +813,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
  "title_field": "full_name",
  "track_changes": 1
 }
