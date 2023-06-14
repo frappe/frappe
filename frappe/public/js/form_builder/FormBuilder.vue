@@ -62,9 +62,8 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .form-builder-container {
-	margin-bottom: -60px;
+	margin: -12px -20px -5px;
 	display: flex;
-	gap: 20px;
 
 	&.resizing {
 		user-select: none;
@@ -79,12 +78,20 @@ onMounted(() => {
 		flex: 1;
 	}
 
-	.form-sidebar,
+	.form-sidebar {
+		border-right: 1px solid var(--border-color);
+		border-bottom-left-radius: var(--border-radius);
+	}
+
 	.form-main {
 		border-radius: var(--border-radius);
 		box-shadow: var(--card-shadow);
 		background-color: var(--card-bg);
+		margin: 10px;
+	}
 
+	.form-sidebar,
+	.form-main {
 		:deep(.section-columns.has-one-column .field) {
 			input.form-control, .signature-field {
 				width: calc(50% - 19px);
