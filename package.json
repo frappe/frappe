@@ -56,7 +56,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
     "pinia": "^2.0.23",
-    "plyr": "^3.7.2",
+    "plyr": "^3.7.8",
     "popper.js": "^1.16.0",
     "postcss": "8",
     "quill": "2.0.0-dev.4",

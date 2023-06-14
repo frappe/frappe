@@ -2394,7 +2394,7 @@ pinia@^2.0.23:
     "@vue/devtools-api" "^6.5.0"
     vue-demi ">=0.14.5"
 
-plyr@^3.7.2:
+plyr@^3.7.8:
   version "3.7.8"
   resolved "https://registry.yarnpkg.com/plyr/-/plyr-3.7.8.tgz#b79bccc23687705b5d9a283b2a88c124bf7471ed"
   integrity sha512-yG/EHDobwbB/uP+4Bm6eUpJ93f8xxHjjk2dYcD1Oqpe1EcuQl5tzzw9Oq+uVAzd2lkM11qZfydSiyIpiB8pgdA==
