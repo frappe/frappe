@@ -489,6 +489,8 @@ def delete_bulk(doctype, items):
 					dict(progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d),
 					user=frappe.session.user,
 				)
+			# Commit after successful deletion
+			frappe.db.commit()
 		except Exception:
 			# rollback if any record failed to delete
 			# if not rollbacked, queries get committed on after_request method in app.py
@@ -497,9 +499,6 @@ def delete_bulk(doctype, items):
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
 		delete_bulk(doctype, undeleted_items)
-	else:
-		# Commit after successful deletion
-		frappe.db.commit()
 
 
 @frappe.whitelist()
