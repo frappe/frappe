@@ -384,8 +384,15 @@ frappe.ui.GroupBy = class {
 		const fields = this.report_view.meta.fields.filter((f) =>
 			['Select', 'Link', 'Data', 'Int', 'Check'].includes(f.fieldtype)
 		);
+<<<<<<< HEAD
 		const tag_field = {fieldname: '_user_tags', fieldtype: 'Data', label: __('Tags')};
 		this.group_by_fields[this.doctype] = fields.concat(tag_field);
+=======
+		const tag_field = { fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") };
+		this.group_by_fields[this.doctype] = fields
+			.concat(tag_field)
+			.sort((a, b) => __(a.label).localeCompare(__(b.label)));
+>>>>>>> 3e9a2d01e3 (fix: sort options in group by field)
 		this.all_fields[this.doctype] = this.report_view.meta.fields;
 
 		const standard_fields_filter = (df) =>
@@ -399,7 +406,8 @@ frappe.ui.GroupBy = class {
 			const cdt = df.options;
 			const child_table_fields = frappe.meta
 				.get_docfields(cdt)
-				.filter(standard_fields_filter);
+				.filter(standard_fields_filter)
+				.sort((a, b) => __(a.label).localeCompare(__(b.label)));
 			this.group_by_fields[cdt] = child_table_fields;
 			this.all_fields[cdt] = child_table_fields;
 		});
