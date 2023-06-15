@@ -122,7 +122,7 @@ class Report(Document):
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
 		# TODO: Do this via signal handler
-		threshold = 30
+		threshold = 15
 		res = []
 
 		start_time = time.monotonic()
