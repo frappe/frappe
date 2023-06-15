@@ -8,7 +8,7 @@ import frappe
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.website.utils import is_binary_file
 
-UNSUPPORTED_STATIC_PAGE_TYPES = ("html", "md", "js", "xml", "css", "txt", "py", "json")
+UNSUPPORTED_STATIC_PAGE_TYPES = ("html", "md", "js", "xml", "css", "txt", "py", "pyc", "json")
 
 
 class StaticPage(BaseRenderer):

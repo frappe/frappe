@@ -340,8 +340,9 @@ class TestWebsite(FrappeTestCase):
 		FILES_TO_SKIP = choices(list(WWW.glob("**/*.py*")), k=10)
 
 		for suffix in FILES_TO_SKIP:
-			content = get_response_content(suffix.relative_to(WWW))
-			self.assertIn("404", content)
+			path: str = suffix.relative_to(WWW).as_posix()
+			content = get_response_content(path)
+			self.assertIn("<title>Not Found</title>", content)
 
 	def test_metatags(self):
 		content = get_response_content("/_test/_test_metatags")
