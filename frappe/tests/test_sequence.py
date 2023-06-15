@@ -1,4 +1,5 @@
 import frappe
+from frappe.database.sequence import recreate_sequences
 from frappe.tests.utils import FrappeTestCase
 
 

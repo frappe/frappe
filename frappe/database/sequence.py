@@ -1,4 +1,6 @@
+import frappe
 from frappe import db, scrub
+from frappe.utils import cint
 
 
 def create_sequence(
@@ -82,3 +84,42 @@ def set_next_val(
 			"mariadb": f"SELECT SETVAL(`{scrub(doctype_name + slug)}`, {next_val}, {is_val_used})",
 		}
 	)
+
+
+def recreate_sequences() -> None:
+	"""Repair missing sequences for integer PK DocTypes"""
+
+	pk_doctypes = _get_doctypes_with_int_pk()
+
+	for doctype in pk_doctypes:
+		frappe.db.create_sequence(doctype, check_not_exists=True, cache=False)
+
+		next_val = _get_current_max_value(doctype) + 1
+
+		frappe.db.logger.warning(f"Setting DB next val of sequence {doctype} to {next_val}")
+		set_next_val(doctype, next_val)
+
+
+def _get_doctypes_with_int_pk() -> list[str]:
+	from frappe.model import log_types
+
+	def pk_type_is_int(doctype: str) -> bool:
+		if frappe.db.table_exists(doctype):
+			return "bigint" in frappe.db.get_column_type(doctype, "name")
+		return False
+
+	pk_doctypes = frappe.get_all("DocType", {"autoname": "autoincrement"}, pluck="name")
+
+	# These are implicitly assumed to be autoincrement
+	pk_doctypes += list(log_types)
+
+	return [d for d in pk_doctypes if pk_type_is_int(d)]
+
+
+def _get_current_max_value(doctype) -> int:
+	from frappe.query_builder.functions import Max
+
+	table = frappe.qb.DocType(doctype)
+	current_val = frappe.qb.from_(table).select(Max(table.name)).run(pluck=True)
+
+	return cint(current_val[0])
