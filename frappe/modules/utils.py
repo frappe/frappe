@@ -67,7 +67,9 @@ def export_customizations(
 		frappe.throw(_("Only allowed to export customizations in developer mode"))
 
 	custom = {
-		"custom_fields": frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}),
+		"custom_fields": frappe.get_all(
+			"Custom Field", fields="*", filters={"dt": doctype, "is_system_generated": 0}
+		),
 		"property_setters": frappe.get_all("Property Setter", fields="*", filters={"doc_type": doctype}),
 		"custom_perms": [],
 		"links": frappe.get_all("DocType Link", fields="*", filters={"parent": doctype}),
@@ -141,17 +143,27 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 				for d in data[key]:
 					_insert(d)
 
-			else:
-				for d in data[key]:
-					field = frappe.db.get_value("Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]})
-					if not field:
-						d["owner"] = "Administrator"
-						_insert(d)
-					else:
-						custom_field = frappe.get_doc("Custom Field", field)
-						custom_field.flags.ignore_validate = True
-						custom_field.update(d)
-						custom_field.db_update()
+				return
+
+			for d in data[key]:
+				if d.get("is_system_generated"):
+					continue
+
+				try:
+					custom_field = frappe.get_doc("Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]})
+				except frappe.DoesNotExistError:
+					frappe.clear_last_message()
+
+					d["owner"] = "Administrator"
+					_insert(d)
+					continue
+
+				if custom_field.is_system_generated:
+					continue
+
+				custom_field.flags.ignore_validate = True
+				custom_field.update(d)
+				custom_field.db_update()
 
 		for doc_type in doctypes:
 			# only sync the parent doctype and child doctype if there isn't any other child table json file
