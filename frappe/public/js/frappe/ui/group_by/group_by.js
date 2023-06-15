@@ -341,10 +341,17 @@ frappe.ui.GroupBy = class {
 				]
 			);
 
+<<<<<<< HEAD
 			if (this.aggregate_function === 'sum') {
 				docfield.label = __('Sum of {0}', [docfield.label]);
 			} else {
 				docfield.label = __('Average of {0}', [docfield.label]);
+=======
+			if (this.aggregate_function === "sum") {
+				docfield.label = __("Sum of {0}", [__(docfield.label)]);
+			} else {
+				docfield.label = __("Average of {0}", [__(docfield.label)]);
+>>>>>>> d35099320f (fix: make field label translatable)
 			}
 		}
 
