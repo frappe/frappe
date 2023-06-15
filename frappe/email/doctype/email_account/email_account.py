@@ -206,8 +206,8 @@ class EmailAccount(Document):
 		email_server = EmailServer(frappe._dict(args))
 		self.check_email_server_connection(email_server, in_receive)
 
-		if not in_receive and self.use_imap:
-			email_server.imap.logout()
+		if not in_receive:
+			email_server.logout()
 
 		# reset failed attempts count
 		self.set_failed_attempts_count(0)
