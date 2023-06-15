@@ -16,8 +16,9 @@ import inspect
 import json
 import os
 import re
+import unicodedata
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, overload
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypeAlias, overload
 
 import click
 from werkzeug.local import Local, release_local
@@ -47,6 +48,7 @@ __title__ = "Frappe Framework"
 
 controllers = {}
 local = Local()
+cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
@@ -177,6 +179,7 @@ if TYPE_CHECKING:
 
 	db: MariaDBDatabase | PostgresDatabase
 	qb: MariaDB | Postgres
+	cache: RedisWrapper
 
 
 # end: static analysis hack
@@ -190,7 +193,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
-	local.realtime_log = []
 	local.flags = _dict(
 		{
 			"currently_saving": [],
@@ -207,9 +209,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 			"read_only": False,
 		}
 	)
-	local.rollback_observers = []
 	local.locked_documents = []
-	local.before_commit = []
 	local.test_objects = {}
 
 	local.site = site
@@ -233,7 +233,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
-	local.link_count = {}
 
 	local.jenv = None
 	local.jloader = None
@@ -244,6 +243,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
+	setup_redis_cache_connection()
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
@@ -351,17 +351,14 @@ def destroy():
 	release_local(local)
 
 
-redis_server = None
+def setup_redis_cache_connection():
+	"""Defines `frappe.cache` as `RedisWrapper` instance"""
+	global cache
 
-
-def cache() -> "RedisWrapper":
-	"""Returns redis connection."""
-	global redis_server
-	if not redis_server:
+	if not cache:
 		from frappe.utils.redis_wrapper import RedisWrapper
 
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
-	return redis_server
+		cache = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -383,7 +380,7 @@ def errprint(msg: str) -> None:
 
 
 def print_sql(enable: bool = True) -> None:
-	return cache().set_value("flag_print_sql", enable)
+	return cache.set_value("flag_print_sql", enable)
 
 
 def log(msg: str) -> None:
@@ -879,6 +876,7 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	:param doctype: If doctype is given, only DocType cache is cleared."""
 	import frappe.cache_manager
 	import frappe.utils.caching
+	from frappe.website.router import clear_routing_cache
 
 	if doctype:
 		frappe.cache_manager.clear_doctype_cache(doctype)
@@ -907,6 +905,8 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	if hasattr(local, "website_settings"):
 		del local.website_settings
 
+	clear_routing_cache()
+
 
 def only_has_select_perm(doctype, user=None, ignore_permissions=False):
 	if ignore_permissions:
@@ -925,7 +925,6 @@ def has_permission(
 	ptype="read",
 	doc=None,
 	user=None,
-	verbose=False,
 	throw=False,
 	*,
 	parent_doctype=None,
@@ -938,7 +937,6 @@ def has_permission(
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
-	:param verbose: DEPRECATED, will be removed in a future release.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
 	"""
 	import frappe.permissions
@@ -1016,7 +1014,7 @@ def is_table(doctype: str) -> bool:
 	def get_tables():
 		return db.get_values("DocType", filters={"istable": 1}, order_by=None, pluck=True)
 
-	tables = cache().get_value("is_table", get_tables)
+	tables = cache.get_value("is_table", get_tables)
 	return doctype in tables
 
 
@@ -1043,24 +1041,32 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 def reset_metadata_version():
 	"""Reset `metadata_version` (Client (Javascript) build ID) hash."""
 	v = generate_hash()
-	cache().set_value("metadata_version", v)
+	cache.set_value("metadata_version", v)
 	return v
 
 
 def new_doc(
 	doctype: str,
+	*,
 	parent_doc: Optional["Document"] = None,
 	parentfield: str | None = None,
 	as_dict: bool = False,
+	**kwargs,
 ) -> "Document":
 	"""Returns a new document of the given DocType with defaults set.
 
 	:param doctype: DocType of the new document.
 	:param parent_doc: [optional] add to parent document.
-	:param parentfield: [optional] add against this `parentfield`."""
+	:param parentfield: [optional] add against this `parentfield`.
+	:param as_dict: [optional] return as dictionary instead of Document.
+	:param kwargs: [optional] You can specify fields as field=value pairs in function call.
+	"""
+
 	from frappe.model.create_new import get_new_doc
 
-	return get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+	new_doc = get_new_doc(doctype, parent_doc, parentfield, as_dict=as_dict)
+
+	return new_doc.update(kwargs)
 
 
 def set_value(doctype, docname, fieldname, value=None):
@@ -1071,7 +1077,7 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	if (key := can_cache_doc(args)) and (doc := cache().hget("document_cache", key)):
+	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
 		return doc
 
 	# Not found in cache, fetch from DB
@@ -1087,7 +1093,7 @@ def get_cached_doc(*args, **kwargs) -> "Document":
 
 
 def _set_document_in_cache(key: str, doc: "Document") -> None:
-	cache().hset("document_cache", key, doc)
+	cache.set_value(key, doc)
 
 
 def can_cache_doc(args) -> str | None:
@@ -1108,12 +1114,20 @@ def can_cache_doc(args) -> str | None:
 
 
 def get_document_cache_key(doctype: str, name: str):
-	return f"{doctype}::{name}"
+	return f"document_cache::{doctype}::{name}"
 
 
-def clear_document_cache(doctype, name):
-	cache().hdel("last_modified", doctype)
-	cache().hdel("document_cache", get_document_cache_key(doctype, name))
+def clear_document_cache(doctype: str, name: str | None = None) -> None:
+	def clear_in_redis():
+		if name is not None:
+			cache.delete_value(get_document_cache_key(doctype, name))
+		else:
+			cache.delete_keys(get_document_cache_key(doctype, ""))
+
+	clear_in_redis()
+	if hasattr(db, "after_commit"):
+		db.after_commit.add(clear_in_redis)
+		db.after_rollback.add(clear_in_redis)
 
 	if doctype == "System Settings" and hasattr(local, "system_settings"):
 		delattr(local, "system_settings")
@@ -1142,7 +1156,42 @@ def get_cached_value(
 	return values
 
 
-def get_doc(*args, **kwargs) -> "Document":
+_SingleDocument: TypeAlias = "Document"
+_NewDocument: TypeAlias = "Document"
+
+
+@overload
+def get_doc(document: "Document", /) -> "Document":
+	pass
+
+
+@overload
+def get_doc(doctype: str, /) -> _SingleDocument:
+	"""Retrieve Single DocType from DB, doctype must be positional argument."""
+	pass
+
+
+@overload
+def get_doc(doctype: str, name: str, /, for_update: bool | None = None) -> "Document":
+	"""Retrieve DocType from DB, doctype and name must be positional argument."""
+	pass
+
+
+@overload
+def get_doc(**kwargs: dict) -> "_NewDocument":
+	"""Initialize document from kwargs.
+	Not recommended. Use `frappe.new_doc` instead."""
+	pass
+
+
+@overload
+def get_doc(documentdict: dict) -> "_NewDocument":
+	"""Create document from dict.
+	Not recommended. Use `frappe.new_doc` instead."""
+	pass
+
+
+def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
 	:param arg1: DocType name as string **or** document JSON.
@@ -1163,7 +1212,7 @@ def get_doc(*args, **kwargs) -> "Document":
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# Replace cache if stale one exists
-	if (key := can_cache_doc(args)) and cache().hexists("document_cache", key):
+	if (key := can_cache_doc(args)) and cache.exists(key):
 		_set_document_in_cache(key, doc)
 
 	return doc
@@ -1377,7 +1426,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False):
+def get_installed_apps(*, _ensure_on_bench=False):
 	"""
 	Get list of installed apps in current site.
 
@@ -1385,8 +1434,6 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
 	:param ensure_on_bench: Only return apps that are present on bench.
 	"""
-	from frappe.utils.deprecations import deprecation_warning
-
 	if getattr(flags, "in_install_db", True):
 		return []
 
@@ -1395,22 +1442,9 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
-	if sort:
-		if not local.all_apps:
-			local.all_apps = cache().get_value("all_apps", get_all_apps)
-
-		deprecation_warning("`sort` argument is deprecated and will be removed in v15.")
-		installed = [app for app in local.all_apps if app in installed]
-
 	if _ensure_on_bench:
-		all_apps = cache().get_value("all_apps", get_all_apps)
+		all_apps = cache.get_value("all_apps", get_all_apps)
 		installed = [app for app in installed if app in all_apps]
-
-	if frappe_last:
-		deprecation_warning("`frappe_last` argument is deprecated and will be removed in v15.")
-		if "frappe" in installed:
-			installed.remove("frappe")
-		installed.append("frappe")
 
 	return installed
 
@@ -1474,7 +1508,7 @@ def get_hooks(
 		if conf.developer_mode:
 			hooks = _dict(_load_app_hooks())
 		else:
-			hooks = _dict(cache().get_value("app_hooks", _load_app_hooks))
+			hooks = _dict(cache.get_value("app_hooks", _load_app_hooks))
 
 	if hook:
 		return hooks.get(hook, ([] if default == "_KEEP_DEFAULT_LIST" else default))
@@ -1504,11 +1538,9 @@ def append_hook(target, key, value):
 
 def setup_module_map():
 	"""Rebuild map of all modules (internal)."""
-	_cache = cache()
-
 	if conf.db_name:
-		local.app_modules = _cache.get_value("app_modules")
-		local.module_app = _cache.get_value("module_app")
+		local.app_modules = cache.get_value("app_modules")
+		local.module_app = cache.get_value("module_app")
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
@@ -1520,8 +1552,8 @@ def setup_module_map():
 				local.app_modules[app].append(module)
 
 		if conf.db_name:
-			_cache.set_value("app_modules", local.app_modules)
-			_cache.set_value("module_app", local.module_app)
+			cache.set_value("app_modules", local.app_modules)
+			cache.set_value("module_app", local.module_app)
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
@@ -1810,7 +1842,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 	if indicator_color:
 		message["context"].update({"indicator_color": indicator_color})
 
-	cache().set_value(f"message_id:{message_id}", message, expires_in_sec=60)
+	cache.set_value(f"message_id:{message_id}", message, expires_in_sec=60)
 	location = f"/message?id={message_id}"
 
 	if not getattr(local, "is_ajax", False):
@@ -2228,6 +2260,7 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
+	code = unicodedata.normalize("NFKC", code)
 
 	UNSAFE_ATTRIBUTES = {
 		# Generator Attributes

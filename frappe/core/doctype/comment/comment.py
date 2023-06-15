@@ -152,16 +152,11 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 
 	except Exception as e:
 		if frappe.db.is_column_missing(e) and getattr(frappe.local, "request", None):
-			# missing column and in request, add column and update after commit
-			frappe.local._comments = getattr(frappe.local, "_comments", []) + [
-				(reference_doctype, reference_name, _comments)
-			]
-
+			pass
 		elif frappe.db.is_data_too_long(e):
 			raise frappe.DataTooLongException
-
 		else:
-			raise ImplicitCommitError
+			raise
 	else:
 		if frappe.flags.in_patch:
 			return
@@ -169,13 +164,3 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 		# Clear route cache
 		if route := frappe.get_cached_value(reference_doctype, reference_name, "route"):
 			clear_cache(route)
-
-
-def update_comments_in_parent_after_request():
-	"""update _comments in parent if _comments column is missing"""
-	if hasattr(frappe.local, "_comments"):
-		for (reference_doctype, reference_name, _comments) in frappe.local._comments:
-			add_column(reference_doctype, "_comments", "Text")
-			update_comments_in_parent(reference_doctype, reference_name, _comments)
-
-		frappe.db.commit()

@@ -56,14 +56,12 @@ DEFAULT_FIELD_LABELS = {
 
 
 def get_meta(doctype, cached=True) -> "Meta":
-	if not cached:
-		return Meta(doctype)
-
-	if meta := frappe.cache().hget("doctype_meta", doctype):
+	cached = cached and isinstance(doctype, str)
+	if cached and (meta := frappe.cache.hget("doctype_meta", doctype)):
 		return meta
 
 	meta = Meta(doctype)
-	frappe.cache().hset("doctype_meta", doctype, meta)
+	frappe.cache.hset("doctype_meta", meta.name, meta)
 	return meta
 
 
@@ -134,13 +132,10 @@ class Meta(Document):
 			self.init_field_caches()
 			return
 
-		has_custom_fields = self.add_custom_fields()
+		self.add_custom_fields()
 		self.apply_property_setters()
 		self.init_field_caches()
-
-		if has_custom_fields:
-			self.sort_fields()
-
+		self.sort_fields()
 		self.get_valid_columns()
 		self.set_custom_permissions()
 		self.add_custom_links_and_actions()
@@ -361,7 +356,6 @@ class Meta(Document):
 			return
 
 		self.extend("fields", custom_fields)
-		return True
 
 	def apply_property_setters(self):
 		"""
@@ -372,11 +366,11 @@ class Meta(Document):
 		if not frappe.db.table_exists("Property Setter"):
 			return
 
-		property_setters = frappe.db.sql(
-			"""select * from `tabProperty Setter` where
-			doc_type=%s""",
-			(self.name,),
-			as_dict=1,
+		property_setters = frappe.db.get_values(
+			"Property Setter",
+			filters={"doc_type": self.name},
+			fieldname="*",
+			as_dict=True,
 		)
 
 		if not property_setters:
@@ -452,14 +446,56 @@ class Meta(Document):
 			self._table_fields = self.get("fields", {"fieldtype": ["in", table_fields]})
 
 	def sort_fields(self):
-		"""Sort custom fields on the basis of insert_after"""
+		"""
+		Sort fields on the basis of following rules (priority descending):
+		- `field_order` property setter
+		- `insert_after` computed based on default order for standard fields
+		- `insert_after` property for custom fields
+		"""
 
-		field_order = []
+		if field_order := getattr(self, "field_order", []):
+			field_order = [fieldname for fieldname in json.loads(field_order) if fieldname in self._fields]
+
+			# all fields match, best case scenario
+			if len(field_order) == len(self.fields):
+				self._update_fields_based_on_order(field_order)
+				return
+
+			# if the first few standard fields are not in the field order, prepare to prepend them
+			if self.fields[0].fieldname not in field_order:
+				fields_to_prepend = []
+				standard_field_found = False
+
+				for fieldname, field in self._fields.items():
+					if getattr(field, "is_custom_field", False):
+						# all custom fields from here on
+						break
+
+					if fieldname in field_order:
+						standard_field_found = True
+						break
+
+					fields_to_prepend.append(fieldname)
+
+				if standard_field_found:
+					field_order = fields_to_prepend + field_order
+				else:
+					# worst case scenario, invalidate field_order
+					field_order = fields_to_prepend
+
+		existing_fields = set(field_order) if field_order else False
 		insert_after_map = {}
 
-		for field in self.fields:
+		for index, field in enumerate(self.fields):
+			if existing_fields and field.fieldname in existing_fields:
+				continue
+
 			if not getattr(field, "is_custom_field", False):
-				field_order.append(field.fieldname)
+				if existing_fields:
+					# compute insert_after from previous field
+					insert_after_map.setdefault(self.fields[index - 1].fieldname, []).append(field.fieldname)
+				else:
+					field_order.append(field.fieldname)
 
 			elif insert_after := getattr(field, "insert_after", None):
 				insert_after_map.setdefault(insert_after, []).append(field.fieldname)
@@ -471,6 +507,9 @@ class Meta(Document):
 		if insert_after_map:
 			_update_field_order_based_on_insert_after(field_order, insert_after_map)
 
+		self._update_fields_based_on_order(field_order)
+
+	def _update_fields_based_on_order(self, field_order):
 		sorted_fields = []
 
 		for idx, fieldname in enumerate(field_order, 1):
@@ -814,7 +853,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 
 def trim_table(doctype, dry_run=True):
-	frappe.cache().hdel("table_columns", f"tab{doctype}")
+	frappe.cache.hdel("table_columns", f"tab{doctype}")
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()

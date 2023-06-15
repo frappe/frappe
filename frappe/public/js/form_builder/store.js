@@ -64,6 +64,10 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 	}
 
+	function is_user_generated_field(field) {
+		return cint(field.df.is_custom_field && !field.df.is_system_generated);
+	}
+
 	async function fetch() {
 		await frappe.model.clear_doc("DocType", doctype.value);
 		await frappe.model.with_doctype(doctype.value);
@@ -101,6 +105,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 
 		setup_undo_redo();
+		setup_breadcrumbs();
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
@@ -118,6 +123,24 @@ export const useStore = defineStore("form-builder-store", () => {
 		ref_history.value = useDebouncedRefHistory(form, { deep: true, debounce: 100 });
 
 		undo_redo_keyboard_event;
+	}
+
+	function setup_breadcrumbs() {
+		!is_customize_form.value && frappe.model.init_doctype("DocType");
+		let breadcrumbs = `
+			<li><a href="/app/doctype">${__("DocType")}</a></li>
+			<li><a href="/app/doctype/${doctype.value}">${__(doctype.value)}</a></li>
+		`;
+		if (is_customize_form.value) {
+			breadcrumbs = `
+				<li><a href="/app/customize-form?doc_type=${doctype.value}">
+					${__("Customize Form")}
+				</a></li>
+			`;
+		}
+		breadcrumbs += `<li class="disabled"><a href="#">${__("Form Builder")}</a></li>`;
+		frappe.breadcrumbs.clear();
+		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
 	}
 
 	function reset_changes() {
@@ -301,6 +324,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		selected,
 		get_df,
 		has_standard_field,
+		is_user_generated_field,
 		fetch,
 		reset_changes,
 		validate_fields,

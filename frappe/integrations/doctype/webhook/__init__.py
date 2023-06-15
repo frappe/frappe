@@ -20,7 +20,7 @@ def run_webhooks(doc, method):
 	# TODO: remove this hazardous unnecessary cache in flags
 	if frappe.flags.webhooks is None:
 		# load webhooks from cache
-		webhooks = frappe.cache().get_value("webhooks")
+		webhooks = frappe.cache.get_value("webhooks")
 		if webhooks is None:
 			# query webhooks
 			webhooks_list = frappe.get_all(
@@ -33,7 +33,7 @@ def run_webhooks(doc, method):
 			webhooks = {}
 			for w in webhooks_list:
 				webhooks.setdefault(w.webhook_doctype, []).append(w)
-			frappe.cache().set_value("webhooks", webhooks)
+			frappe.cache.set_value("webhooks", webhooks)
 
 		frappe.flags.webhooks = webhooks
 

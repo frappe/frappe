@@ -85,8 +85,8 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		# we should just ignore it till database is back up again.
 		return
 
-	frappe.cache().hdel("session", sid)
-	frappe.cache().hdel("last_db_session_update", sid)
+	frappe.cache.hdel("session", sid)
+	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
 		table = DocType("Sessions")
 		user_details = (
@@ -139,17 +139,17 @@ def get():
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
 		# check if cache exists
-		bootinfo = frappe.cache().hget("bootinfo", frappe.session.user)
+		bootinfo = frappe.cache.hget("bootinfo", frappe.session.user)
 		if bootinfo:
 			bootinfo["from_cache"] = 1
-			bootinfo["user"]["recent"] = json.dumps(frappe.cache().hget("user_recent", frappe.session.user))
+			bootinfo["user"]["recent"] = json.dumps(frappe.cache.hget("user_recent", frappe.session.user))
 
 	if not bootinfo:
 		# if not create it
 		bootinfo = get_bootinfo()
-		frappe.cache().hset("bootinfo", frappe.session.user, bootinfo)
+		frappe.cache.hset("bootinfo", frappe.session.user, bootinfo)
 		try:
-			frappe.cache().ping()
+			frappe.cache.ping()
 		except redis.exceptions.ConnectionError:
 			message = _("Redis cache server not running. Please contact Administrator / Tech support")
 			if "messages" in bootinfo:
@@ -161,7 +161,7 @@ def get():
 		if frappe.local.request:
 			bootinfo["change_log"] = get_change_log()
 
-	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
+	bootinfo["metadata_version"] = frappe.cache.get_value("metadata_version")
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
@@ -276,7 +276,7 @@ class Session:
 		)
 
 		# also add to memcache
-		frappe.cache().hset("session", self.data.sid, self.data)
+		frappe.cache.hset("session", self.data.sid, self.data)
 
 	def resume(self):
 		"""non-login request: load a session"""
@@ -320,7 +320,7 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		data = frappe.cache().hget("session", self.sid)
+		data = frappe.cache.hget("session", self.sid)
 		if data:
 			data = frappe._dict(data)
 			session_data = data.get("data", {})
@@ -377,7 +377,7 @@ class Session:
 		self.data["data"]["lang"] = str(frappe.lang)
 
 		# update session in db
-		last_updated = frappe.cache().hget("last_db_session_update", self.sid)
+		last_updated = frappe.cache.hget("last_db_session_update", self.sid)
 		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
 		# database persistence is secondary, don't update it too often
@@ -397,11 +397,11 @@ class Session:
 			)
 
 			frappe.db.commit()
-			frappe.cache().hset("last_db_session_update", self.sid, now)
+			frappe.cache.hset("last_db_session_update", self.sid, now)
 
 			updated_in_db = True
 
-		frappe.cache().hset("session", self.sid, self.data)
+		frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
 

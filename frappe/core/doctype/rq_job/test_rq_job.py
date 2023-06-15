@@ -11,7 +11,7 @@ import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
-from frappe.utils.background_jobs import is_job_enqueued
+from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
 
 class TestRQJob(FrappeTestCase):
@@ -103,6 +103,26 @@ class TestRQJob(FrappeTestCase):
 		self.assertTrue(is_job_enqueued(job_id))
 		self.check_status(job, "finished")
 		self.assertFalse(is_job_enqueued(job_id))
+
+	@timeout(20)
+	def test_enqueue_after_commit(self):
+		job_id = frappe.generate_hash()
+
+		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.commit()
+		self.assertIsNotNone(get_job_status(job_id))
+
+		job_id = frappe.generate_hash()
+		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.rollback()
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.commit()
+		self.assertIsNone(get_job_status(job_id))
 
 
 def test_func(fail=False, sleep=0):

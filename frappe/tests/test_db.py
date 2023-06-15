@@ -192,7 +192,7 @@ class TestDB(FrappeTestCase):
 		# test
 		for inp in test_inputs:
 			fieldname = f"test_{inp['fieldtype'].lower()}"
-			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
+			frappe.db.set_single_value("Print Settings", fieldname, inp["value"])
 			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
 		# teardown
@@ -201,7 +201,7 @@ class TestDB(FrappeTestCase):
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
 		frappe.flags.touched_tables = set()
-		frappe.db.set_value("System Settings", "System Settings", "backup_limit", 5)
+		frappe.db.set_single_value("System Settings", "backup_limit", 5)
 		self.assertIn("tabSingles", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
@@ -593,6 +593,37 @@ class TestDB(FrappeTestCase):
 			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
 		)
 
+	def test_callbacks(self):
+
+		order_of_execution = []
+
+		def f(val):
+			nonlocal order_of_execution
+			order_of_execution.append(val)
+
+		frappe.db.before_commit.add(lambda: f(0))
+		frappe.db.before_commit.add(lambda: f(1))
+
+		frappe.db.after_commit.add(lambda: f(2))
+		frappe.db.after_commit.add(lambda: f(3))
+
+		frappe.db.before_rollback.add(lambda: f("IGNORED"))
+		frappe.db.before_rollback.add(lambda: f("IGNORED"))
+
+		frappe.db.commit()
+
+		frappe.db.after_commit.add(lambda: f("IGNORED"))
+		frappe.db.after_commit.add(lambda: f("IGNORED"))
+
+		frappe.db.before_rollback.add(lambda: f(4))
+		frappe.db.before_rollback.add(lambda: f(5))
+		frappe.db.after_rollback.add(lambda: f(6))
+		frappe.db.after_rollback.add(lambda: f(7))
+
+		frappe.db.rollback()
+
+		self.assertEqual(order_of_execution, list(range(0, 8)))
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(FrappeTestCase):
@@ -668,14 +699,12 @@ class TestDBSetValue(FrappeTestCase):
 		value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		changed_value = not value
 
-		frappe.db.set_value(
-			"System Settings", "System Settings", "deny_multiple_sessions", changed_value
-		)
+		frappe.db.set_single_value("System Settings", "deny_multiple_sessions", changed_value)
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
 
 		changed_value = not current_value
-		frappe.db.set_value("System Settings", None, "deny_multiple_sessions", changed_value)
+		frappe.db.set_single_value("System Settings", "deny_multiple_sessions", changed_value)
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
 
@@ -688,6 +717,11 @@ class TestDBSetValue(FrappeTestCase):
 		frappe.db.set_value("ToDo", self.todo1.name, "description", "test_set_value change 1")
 		updated_value = frappe.db.get_value("ToDo", self.todo1.name, "description")
 		self.assertEqual(updated_value, "test_set_value change 1")
+
+	@patch("frappe.db.set_single_value")
+	def test_set_single_value_with_set_value(self, single_set):
+		frappe.db.set_value("Contact Us Settings", None, "country", "India")
+		single_set.assert_called_once()
 
 	def test_update_single_row_multiple_columns(self):
 		description, status = "Upated by test_update_single_row_multiple_columns", "Closed"
@@ -765,21 +799,20 @@ class TestDBSetValue(FrappeTestCase):
 	def test_set_value(self):
 		self.todo1.reload()
 
-		with patch.object(Database, "sql") as sql_called:
-			frappe.db.set_value(
-				self.todo1.doctype,
-				self.todo1.name,
-				"description",
-				f"{self.todo1.description}-edit by `test_for_update`",
-			)
-			first_query = sql_called.call_args_list[0].args[0]
+		frappe.db.set_value(
+			self.todo1.doctype,
+			self.todo1.name,
+			"description",
+			f"{self.todo1.description}-edit by `test_for_update`",
+		)
+		query = str(frappe.db.last_query)
 
-			if frappe.conf.db_type == "postgres":
-				from frappe.database.postgres.database import modify_query
+		if frappe.conf.db_type == "postgres":
+			from frappe.database.postgres.database import modify_query
 
-				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in first_query)
-			if frappe.conf.db_type == "mariadb":
-				self.assertTrue("UPDATE `tabToDo` SET" in first_query)
+			self.assertTrue(modify_query("UPDATE `tabToDo` SET") in query)
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue("UPDATE `tabToDo` SET" in query)
 
 	def test_cleared_cache(self):
 		self.todo2.reload()

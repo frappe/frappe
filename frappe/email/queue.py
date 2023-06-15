@@ -154,7 +154,6 @@ def flush(from_test=False):
 				frappe.enqueue(
 					method=send_mail,
 					email_queue_name=row.name,
-					is_background_task=not from_test,
 					now=from_test,
 					job_name=job_name,
 					queue="short",
@@ -179,20 +178,4 @@ def get_queue():
 		limit 500""",
 		{"now": now_datetime()},
 		as_dict=True,
-	)
-
-
-def set_expiry_for_email_queue():
-	"""Mark emails as expire that has not sent for 7 days.
-	Called daily via scheduler.
-	"""
-
-	frappe.db.sql(
-		"""
-		UPDATE `tabEmail Queue`
-		SET `status`='Expired'
-		WHERE `modified` < (NOW() - INTERVAL '7' DAY)
-		AND `status`='Not Sent'
-		AND (`send_after` IS NULL OR `send_after` < %(now)s)""",
-		{"now": now_datetime()},
 	)

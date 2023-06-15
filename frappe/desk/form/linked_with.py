@@ -531,13 +531,13 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 	        {"Address": {"fieldname": "customer"}..}
 	"""
 	if without_ignore_user_permissions_enabled:
-		return frappe.cache().hget(
+		return frappe.cache.hget(
 			"linked_doctypes_without_ignore_user_permissions_enabled",
 			doctype,
 			lambda: _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled),
 		)
 	else:
-		return frappe.cache().hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
+		return frappe.cache.hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
 
 
 def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):

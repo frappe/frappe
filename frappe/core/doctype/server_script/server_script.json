@@ -9,6 +9,7 @@
   "script_type",
   "reference_doctype",
   "event_frequency",
+  "cron_format",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -99,7 +100,7 @@
    "fieldtype": "Select",
    "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
-   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long\nCron"
   },
   {
    "fieldname": "module",
@@ -124,14 +125,20 @@
    "depends_on": "enable_rate_limit",
    "fieldname": "rate_limit_count",
    "fieldtype": "Int",
-   "label": "Limit"
+   "label": "Request Limit"
   },
   {
    "default": "86400",
    "depends_on": "enable_rate_limit",
    "fieldname": "rate_limit_seconds",
    "fieldtype": "Int",
-   "label": "Seconds"
+   "label": "Time Window (Seconds)"
+  },
+  {
+   "depends_on": "eval:doc.event_frequency==='Cron'",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -141,7 +148,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2023-05-12 20:54:54.365266",
+ "modified": "2023-05-27 16:33:16.595424",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

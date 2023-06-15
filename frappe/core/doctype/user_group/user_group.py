@@ -9,7 +9,7 @@ from frappe.model.document import Document
 
 class UserGroup(Document):
 	def after_insert(self):
-		frappe.cache().delete_key("user_groups")
+		frappe.cache.delete_key("user_groups")
 
 	def on_trash(self):
-		frappe.cache().delete_key("user_groups")
+		frappe.cache.delete_key("user_groups")

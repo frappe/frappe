@@ -205,31 +205,6 @@ class TestEmail(FrappeTestCase):
 				self.assertTrue(verify_request())
 				break
 
-	def test_expired(self):
-		self.test_email_queue()
-		frappe.db.sql("UPDATE `tabEmail Queue` SET `modified`=(NOW() - INTERVAL '8' day)")
-
-		from frappe.email.queue import set_expiry_for_email_queue
-
-		set_expiry_for_email_queue()
-
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Expired'""", as_dict=1
-		)
-		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [
-			r.recipient
-			for r in frappe.db.sql(
-				"""select recipient from `tabEmail Queue Recipient`
-			where parent = %s""",
-				email_queue[0].name,
-				as_dict=1,
-			)
-		]
-		self.assertTrue("test@example.com" in queue_recipients)
-		self.assertTrue("test1@example.com" in queue_recipients)
-		self.assertEqual(len(queue_recipients), 2)
-
 	def test_sender(self):
 		def _patched_assertion(email_account, assertion):
 			with patch.object(QueueBuilder, "get_outgoing_email_account", return_value=email_account):
