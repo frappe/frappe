@@ -910,7 +910,7 @@ class InboundMail(Email):
 		}
 
 
-class TimerMixin:
+class POPTimerMixin:
 	def __init__(self, *args, **kwargs):
 		self.timeout = kwargs.pop("timeout", 0.0)
 		self.elapsed_time = 0.0
@@ -934,17 +934,17 @@ class TimerMixin:
 		return self._super.quit(self, *args, **kwargs)
 
 
-class Timed_POP3(TimerMixin, poplib.POP3):
+class Timed_POP3(POPTimerMixin, poplib.POP3):
 	_super = poplib.POP3
 
 
-class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
+class Timed_POP3_SSL(POPTimerMixin, poplib.POP3_SSL):
 	_super = poplib.POP3_SSL
 
 
-class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
-	_super = imaplib.IMAP4
+class Timed_IMAP4(imaplib.IMAP4):
+	pass
 
 
-class Timed_IMAP4_SSL(TimerMixin, imaplib.IMAP4_SSL):
-	_super = imaplib.IMAP4_SSL
+class Timed_IMAP4_SSL(imaplib.IMAP4_SSL):
+	pass
