@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import datetime
 import json
+import time
 
 import frappe
 import frappe.desk.query_report
@@ -121,10 +121,11 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
+		# TODO: Do this via signal handler
 		threshold = 30
 		res = []
 
-		start_time = datetime.datetime.now()
+		start_time = time.monotonic()
 
 		# The JOB
 		if self.is_standard == "Yes":
@@ -133,7 +134,7 @@ class Report(Document):
 			res = self.execute_script(filters)
 
 		# automatically set as prepared
-		execution_time = (datetime.datetime.now() - start_time).total_seconds()
+		execution_time = time.monotonic() - start_time
 		if execution_time > threshold and not self.prepared_report:
 			self.db_set("prepared_report", 1)
 
