@@ -324,9 +324,9 @@ frappe.ui.GroupBy = class {
 			);
 
 			if (this.aggregate_function === "sum") {
-				docfield.label = __("Sum of {0}", [docfield.label]);
+				docfield.label = __("Sum of {0}", [__(docfield.label)]);
 			} else {
-				docfield.label = __("Average of {0}", [docfield.label]);
+				docfield.label = __("Average of {0}", [__(docfield.label)]);
 			}
 		}
 
