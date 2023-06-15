@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
+import signal
 import time
 
 import frappe
@@ -14,6 +15,8 @@ from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+
+PREPARED_REPORT_THRESHOLD = 15
 
 
 class Report(Document):
@@ -120,10 +123,15 @@ class Report(Document):
 		return [columns, result]
 
 	def execute_script_report(self, filters):
-		# save the timestamp to automatically set to prepared
-		# TODO: Do this via signal handler
-		threshold = 15
+		def mark_as_prepared_report():
+			frappe.enqueue(enable_prepared_report, report=self.name)
+
 		res = []
+
+		if not self.prepared_report:
+			signal.signal(signal.SIGALRM, mark_as_prepared_report)
+			# Send signal after threshold to set prepared report
+			signal.alarm(PREPARED_REPORT_THRESHOLD)
 
 		start_time = time.monotonic()
 
@@ -133,11 +141,10 @@ class Report(Document):
 		else:
 			res = self.execute_script(filters)
 
-		# automatically set as prepared
-		execution_time = time.monotonic() - start_time
-		if execution_time > threshold and not self.prepared_report:
-			self.db_set("prepared_report", 1)
+		if not self.prepared_report:
+			signal.alarm(0)
 
+		execution_time = time.monotonic() - start_time
 		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
@@ -383,3 +390,7 @@ def get_group_by_column_label(args, meta):
 			function=sql_fn_map[args.aggregate_function], fieldlabel=aggregate_on_label
 		)
 	return label
+
+
+def enable_prepared_report(report: str):
+	frappe.db.set_value("Report", report, "prepared_report", 1)
