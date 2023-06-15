@@ -93,6 +93,11 @@
 		<path d="M2.49999 4L2.49998 9.5L7.99998 9.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
+	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-down-right">
+		<path d="M2.5 2.5L9.5 9.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M4 9.5h5.5v-5.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-expand">
 		<path d="M10 2L6.844 5.158M7.053 2h2.948v2.948M5.158 6.842L2 10m0-2.947V10h2.947" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
