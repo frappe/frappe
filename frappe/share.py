@@ -161,7 +161,7 @@ def get_shared(doctype, user=None, rights=None):
 		or_filters += [["everyone", "=", 1]]
 
 	shared_docs = frappe.get_all(
-		"DocShare", fields=["share_name"], filters=filters, or_filters=or_filters
+		"DocShare", fields=["share_name"], filters=filters, or_filters=or_filters, order_by=None
 	)
 
 	return [doc.share_name for doc in shared_docs]
