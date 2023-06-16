@@ -8,32 +8,20 @@ from frappe.desk.notifications import clear_notifications, delete_notification_c
 
 common_default_keys = ["__default", "__global"]
 
-<<<<<<< HEAD
-doctype_map_keys = (
-	"energy_point_rule_map",
-	"assignment_rule_map",
-	"milestone_tracker_map",
-	"event_consumer_document_type_map",
-)
-=======
 doctypes_for_mapping = {
 	"Energy Point Rule",
 	"Assignment Rule",
 	"Milestone Tracker",
+	"Event Consumer Document",
 	"Document Naming Rule",
 }
 
-<<<<<<< HEAD
-doctype_map_keys = tuple(f"{frappe.scrub(doctype)}_map" for doctype in doctypes_for_mapping)
->>>>>>> 78d30905ac (refactor: `get_doctype_map()` using single query and use generator for caching)
-=======
 
 def get_doctype_map_key(doctype):
 	return frappe.scrub(doctype) + "_map"
 
 
 doctype_map_keys = tuple(map(get_doctype_map_key, doctypes_for_mapping))
->>>>>>> 380a638f3c (chore: refactor duplicate code)
 
 bench_cache_keys = ("assets_json",)
 
