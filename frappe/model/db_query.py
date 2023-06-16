@@ -266,8 +266,13 @@ class DatabaseQuery:
 			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
 
 		# left join link tables
-		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+		for i, link in enumerate(self.link_tables):
+			if link.doctype == self.doctype:
+				table_alias = f"tab{link.doctype}{i}"
+				args.tables += f" {self.join} `tab{link.doctype}` as `{table_alias}` on (`{table_alias}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			else:
+				table_alias = f"tab{link.doctype}"
+				args.tables += f" {self.join} {table_alias} on (`{table_alias}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -288,6 +293,15 @@ class DatabaseQuery:
 			if field is None:
 				fields.append("NULL")
 				continue
+
+			if field.startswith("`tab") and 'as' in field.lower().split():					
+				linked_table = field.split('.', 1)[0]
+				if linked_table == f"`tab{self.doctype}`":																
+					for i, item in enumerate(self.link_tables):					
+						if item.table_name == linked_table:
+							linked_table_alias = f"{linked_table[:len(linked_table) - 1]}{i}`"						
+							field = field.replace(linked_table, linked_table_alias)				
+							break
 
 			stripped_field = field.strip().lower()
 
