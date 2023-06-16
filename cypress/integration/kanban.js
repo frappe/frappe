@@ -100,15 +100,15 @@ context("Kanban Board", () => {
 	it("Checks if Kanban Board edits are blocked for non-System Manager and non-owner of the Board", () => {
 		cy.switch_to_user("Administrator");
 
-		const noSystemManager = "nosysmanager@example.com";
+		const not_system_manager = "nosysmanager@example.com";
 		cy.call("frappe.tests.ui_test_helpers.create_test_user", {
-			username: noSystemManager,
+			username: not_system_manager,
 		});
-		cy.remove_role(noSystemManager, "System Manager");
+		cy.remove_role(not_system_manager, "System Manager");
 		cy.call("frappe.tests.ui_test_helpers.create_todo", { description: "Frappe User ToDo" });
 		cy.call("frappe.tests.ui_test_helpers.create_admin_kanban");
 
-		cy.switch_to_user(noSystemManager);
+		cy.switch_to_user(not_system_manager);
 
 		cy.visit("/app/todo/view/kanban/Admin Kanban");
 
@@ -125,7 +125,7 @@ context("Kanban Board", () => {
 		cy.get(".kanban .column-options").should("have.length", 0);
 
 		cy.switch_to_user("Administrator");
-		cy.call("frappe.client.delete", { doctype: "User", name: noSystemManager });
+		cy.call("frappe.client.delete", { doctype: "User", name: not_system_manager });
 	});
 
 	after(() => {
