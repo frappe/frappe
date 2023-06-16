@@ -89,7 +89,7 @@ execute()
 	.then(() => RUN_BUILD_COMMAND && run_build_command_for_apps(APPS))
 	.catch((e) => {
 		console.error(e);
-		throw e;
+		process.exit(1);
 	});
 
 if (WATCH_MODE) {
