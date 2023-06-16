@@ -80,7 +80,7 @@ def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
 	for df in bundle[0].fields:
 		if df.fieldtype in frappe.model.table_fields:
-			bundle.append(frappe.desk.form.meta.get_meta(df.options, not frappe.conf.developer_mode))
+			bundle.append(frappe.desk.form.meta.get_meta(df.options))
 	return bundle
 
 
@@ -202,11 +202,13 @@ def get_versions(doc):
 
 @frappe.whitelist()
 def get_communications(doctype, name, start=0, limit=20):
+	from frappe.utils import cint
+
 	doc = frappe.get_doc(doctype, name)
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 
-	return _get_communications(doctype, name, start, limit)
+	return _get_communications(doctype, name, cint(start), cint(limit))
 
 
 def get_comments(

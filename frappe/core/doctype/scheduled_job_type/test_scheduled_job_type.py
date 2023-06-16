@@ -18,7 +18,7 @@ class TestScheduledJobType(FrappeTestCase):
 		self.assertEqual(all_job.frequency, "All")
 
 		daily_job = frappe.get_doc(
-			"Scheduled Job Type", dict(method="frappe.email.queue.set_expiry_for_email_queue")
+			"Scheduled Job Type", dict(method="frappe.desk.notifications.clear_notifications")
 		)
 		self.assertEqual(daily_job.frequency, "Daily")
 
@@ -37,7 +37,7 @@ class TestScheduledJobType(FrappeTestCase):
 
 	def test_daily_job(self):
 		job = frappe.get_doc(
-			"Scheduled Job Type", dict(method="frappe.email.queue.set_expiry_for_email_queue")
+			"Scheduled Job Type", dict(method="frappe.desk.notifications.clear_notifications")
 		)
 		job.db_set("last_execution", "2019-01-01 00:00:00")
 		self.assertTrue(job.is_event_due(get_datetime("2019-01-02 00:00:06")))
