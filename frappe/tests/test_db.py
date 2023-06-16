@@ -718,6 +718,11 @@ class TestDBSetValue(FrappeTestCase):
 		updated_value = frappe.db.get_value("ToDo", self.todo1.name, "description")
 		self.assertEqual(updated_value, "test_set_value change 1")
 
+	@patch("frappe.db.set_single_value")
+	def test_set_single_value_with_set_value(self, single_set):
+		frappe.db.set_value("Contact Us Settings", None, "country", "India")
+		single_set.assert_called_once()
+
 	def test_update_single_row_multiple_columns(self):
 		description, status = "Upated by test_update_single_row_multiple_columns", "Closed"
 

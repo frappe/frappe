@@ -36,7 +36,7 @@ ASSET_KEYS = (
 
 def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
-	cached = cached and not frappe._dev_server
+	cached = cached and not frappe.conf.developer_mode
 	if cached:
 		meta = frappe.cache.hget("doctype_form_meta", doctype)
 		if not meta:
