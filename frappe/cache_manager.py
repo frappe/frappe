@@ -8,12 +8,20 @@ from frappe.desk.notifications import clear_notifications, delete_notification_c
 
 common_default_keys = ["__default", "__global"]
 
-doctype_map_keys = (
-	"energy_point_rule_map",
-	"assignment_rule_map",
-	"milestone_tracker_map",
-	"event_consumer_document_type_map",
-)
+doctypes_for_mapping = {
+	"Energy Point Rule",
+	"Assignment Rule",
+	"Milestone Tracker",
+	"Event Consumer Document",
+	"Document Naming Rule",
+}
+
+
+def get_doctype_map_key(doctype):
+	return frappe.scrub(doctype) + "_map"
+
+
+doctype_map_keys = tuple(map(get_doctype_map_key, doctypes_for_mapping))
 
 bench_cache_keys = ("assets_json",)
 
@@ -68,7 +76,7 @@ doctype_cache_keys = (
 	"notifications",
 	"workflow",
 	"data_import_column_header_map",
-) + doctype_map_keys
+)
 
 
 def clear_user_cache(user=None):
@@ -162,23 +170,11 @@ def clear_controller_cache(doctype=None):
 
 
 def get_doctype_map(doctype, name, filters=None, order_by=None):
-	cache = frappe.cache()
-	cache_key = frappe.scrub(doctype) + "_map"
-	doctype_map = cache.hget(cache_key, name)
-
-	if doctype_map is not None:
-		# cached, return
-		items = json.loads(doctype_map)
-	else:
-		# non cached, build cache
-		try:
-			items = frappe.get_all(doctype, filters=filters, order_by=order_by)
-			cache.hset(cache_key, name, json.dumps(items))
-		except frappe.db.TableMissingError:
-			# executed from inside patch, ignore
-			items = []
-
-	return items
+	return frappe.cache().hget(
+		get_doctype_map_key(doctype),
+		name,
+		lambda: frappe.get_all(doctype, filters=filters, order_by=order_by, ignore_ddl=True),
+	)
 
 
 def clear_doctype_map(doctype, name):
