@@ -792,10 +792,6 @@ Object.assign(frappe.utils, {
 		frappe.msgprint(__("Note: Changing the Page Name will break previous URL to this page."));
 	},
 
-	notify: function (subject, body, route, onclick) {
-		console.log("push notifications are evil and deprecated");
-	},
-
 	set_title: function (title) {
 		frappe._original_title = title;
 		if (frappe._title_prefix) {

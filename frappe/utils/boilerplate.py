@@ -558,10 +558,6 @@ jobs:
         image: redis:alpine
         ports:
           - 11000:6379
-      redis-socketio:
-        image: redis:alpine
-        ports:
-          - 12000:6379
       mariadb:
         image: mariadb:10.6
         env:

@@ -452,6 +452,13 @@ class TestDocument(FrappeTestCase):
 			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
 		)
 
+	def test_db_set_singles(self):
+		c = frappe.get_doc("Contact Us Settings")
+		key, val = "email_id", "admin1@example.com"
+		c.db_set(key, val)
+		changed_val = frappe.db.get_single_value(c.doctype, key)
+		self.assertEqual(val, changed_val)
+
 
 class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):

@@ -111,17 +111,17 @@ frappe.ui.form.on("Customize Form", {
 				);
 
 				frm.add_custom_button(
-					__("Reload"),
+					__("Set Permissions"),
 					function () {
-						frm.script_manager.trigger("doc_type");
+						frappe.set_route("permission-manager", frm.doc.doc_type);
 					},
 					__("Actions")
 				);
 
 				frm.add_custom_button(
-					__("Reset to defaults"),
+					__("Reload"),
 					function () {
-						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
+						frm.script_manager.trigger("doc_type");
 					},
 					__("Actions")
 				);
@@ -135,9 +135,9 @@ frappe.ui.form.on("Customize Form", {
 				);
 
 				frm.add_custom_button(
-					__("Set Permissions"),
+					__("Reset All Customizations"),
 					function () {
-						frappe.set_route("permission-manager", frm.doc.doc_type);
+						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
 					},
 					__("Actions")
 				);
@@ -175,7 +175,6 @@ frappe.ui.form.on("Customize Form", {
 	reset_layout(frm) {
 		frappe.confirm(
 			__("Layout will be reset to standard layout, are you sure you want to do this?"),
-			null,
 			() => {
 				return frm.call({
 					doc: frm.doc,

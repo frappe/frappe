@@ -47,9 +47,7 @@ def main(
 	force=False,
 	profile=False,
 	junit_xml_output=None,
-	ui_tests=False,
 	doctype_list_path=None,
-	skip_test_records=False,
 	failfast=False,
 	case=None,
 ):
@@ -59,11 +57,6 @@ def main(
 		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
 		with open(frappe.get_app_path(app, doctype_list_path)) as f:
 			doctype = f.read().strip().splitlines()
-
-	if ui_tests:
-		print(
-			"Selenium testing has been deprecated\nUse bench --site {site_name} run-ui-tests for Cypress tests"
-		)
 
 	xmloutput_fh = None
 	if junit_xml_output:
@@ -115,9 +108,7 @@ def main(
 				case=case,
 			)
 		else:
-			ret = run_all_tests(
-				app, verbose, profile, ui_tests, failfast=failfast, junit_xml_output=junit_xml_output
-			)
+			ret = run_all_tests(app, verbose, profile, failfast=failfast, junit_xml_output=junit_xml_output)
 
 		if not scheduler_disabled_by_user:
 			frappe.utils.scheduler.enable_scheduler()
@@ -159,9 +150,7 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 		super().addSuccess(test)
 
 
-def run_all_tests(
-	app=None, verbose=False, profile=False, ui_tests=False, failfast=False, junit_xml_output=False
-):
+def run_all_tests(app=None, verbose=False, profile=False, failfast=False, junit_xml_output=False):
 	import os
 
 	apps = [app] if app else frappe.get_installed_apps()
@@ -181,7 +170,7 @@ def run_all_tests(
 			for filename in files:
 				if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py":
 					# print filename[:-3]
-					_add_test(app, path, filename, verbose, test_suite, ui_tests)
+					_add_test(app, path, filename, verbose, test_suite)
 
 	if junit_xml_output:
 		runner = unittest_runner(verbosity=1 + cint(verbose), failfast=failfast)
@@ -316,7 +305,7 @@ def _run_unittest(
 	return out
 
 
-def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
+def _add_test(app, path, filename, verbose, test_suite=None):
 	import os
 
 	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
@@ -337,11 +326,6 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose, commit=True)
-
-	is_ui_test = True if hasattr(module, "TestDriver") else False
-
-	if is_ui_test != ui_tests:
-		return
 
 	if not test_suite:
 		test_suite = unittest.TestSuite()
