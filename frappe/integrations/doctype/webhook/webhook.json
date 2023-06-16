@@ -17,6 +17,7 @@
   "html_condition",
   "sb_webhook",
   "request_url",
+  "timeout",
   "is_dynamic_url",
   "cb_webhook",
   "request_method",
@@ -204,6 +205,14 @@
    "fieldname": "is_dynamic_url",
    "fieldtype": "Check",
    "label": "Is Dynamic URL?"
+  },
+  {
+   "default": "5",
+   "description": "The number of seconds until the request expires",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Request Timeout",
+   "reqd": 1
   }
  ],
  "links": [
@@ -212,7 +221,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2023-06-02 17:25:12.598232",
+ "modified": "2023-06-16 10:21:00.971833",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
