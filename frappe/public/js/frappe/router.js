@@ -436,11 +436,14 @@ frappe.router = {
 	},
 
 	make_url(params) {
-		let path_string = $.map(params, function (a) {
+		let path_string = $.map(params, function (a, i) {
 			if ($.isPlainObject(a)) {
 				frappe.route_options = a;
 				return null;
 			} else {
+				if (a.startsWith('?') && i == params.length - 1) {
+					return a;
+				}
 				return encodeURIComponent(String(a));
 			}
 		}).join("/");
