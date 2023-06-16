@@ -11,10 +11,16 @@ from frappe.website.utils import build_response, clear_website_cache, get_home_p
 class TestWebsite(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")
+		self._clearRequest()
 
 	def tearDown(self):
 		frappe.db.delete("Access Log")
 		frappe.set_user("Administrator")
+		self._clearRequest()
+
+	def _clearRequest(self):
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
 
 	def test_home_page(self):
 		frappe.set_user("Administrator")
