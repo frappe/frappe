@@ -374,6 +374,7 @@ Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 Cypress.Commands.add("switch_to_user", (user) => {
 	cy.call("logout");
 	cy.login(user);
+	cy.reload();
 });
 
 Cypress.Commands.add("add_role", (user, role) => {
