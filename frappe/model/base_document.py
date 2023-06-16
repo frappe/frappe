@@ -785,7 +785,8 @@ class BaseDocument:
 						df.fieldname != "amended_from"
 						and (is_submittable or self.meta.is_submittable)
 						and frappe.get_meta(doctype).is_submittable
-						and cint(frappe.db.get_value(doctype, docname, "docstatus")) == DocStatus.cancelled()
+						and cint(frappe.db.get_value(doctype, docname, "docstatus"), cache=True)
+						== DocStatus.cancelled()
 					):
 
 						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
