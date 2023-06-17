@@ -511,8 +511,8 @@ def _set_amended_name(doc):
 		"Amended Document Naming Settings", {"document_type": doc.doctype}, "action", cache=True
 	)
 	if not amend_naming_rule:
-		amend_naming_rule = frappe.db.get_value(
-			"Document Naming Settings", "Document Naming Settings", "default_amend_naming", cache=True
+		amend_naming_rule = frappe.db.get_single_value(
+			"Document Naming Settings", "default_amend_naming", cache=True
 		)
 
 	if amend_naming_rule == "Series Counter":
