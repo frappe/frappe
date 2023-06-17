@@ -1466,7 +1466,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 
 				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
-				if (visible_idx.length + 1 === this.data.length) {
+				// data.length will be +1 if add total row is enabled.
+				if (this.report_doc.add_total_row) {
 					visible_idx.push(visible_idx.length);
 				}
 
