@@ -60,7 +60,6 @@ frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
-frappe.patches.v10_0.migrate_passwords_passlib
 frappe.patches.v11_0.rename_standard_reply_to_email_template
 execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
 frappe.patches.v10_0.set_no_copy_to_workflow_state
@@ -183,7 +182,6 @@ frappe.patches.v13_0.reset_corrupt_defaults
 frappe.patches.v13_0.remove_share_for_std_users
 execute:frappe.reload_doc('custom', 'doctype', 'custom_field')
 frappe.email.doctype.email_queue.patches.drop_search_index_on_message_id
-frappe.patches.v14_0.update_workspace2 # 20.09.2021
 frappe.patches.v14_0.save_ratings_in_fraction #23-12-2021
 frappe.patches.v14_0.transform_todo_schema
 frappe.patches.v14_0.remove_post_and_post_comment
@@ -196,10 +194,12 @@ frappe.patches.v14_0.update_webforms
 frappe.patches.v14_0.delete_payment_gateways
 frappe.patches.v15_0.remove_event_streaming
 frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
+execute:frappe.reload_doc("desk", "doctype", "Form Tour")
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
+frappe.patches.v14_0.update_workspace2 # 06.06.2023
 frappe.patches.v14_0.drop_data_import_legacy
 frappe.patches.v14_0.copy_mail_data #08.03.21
 frappe.patches.v14_0.update_github_endpoints #08-11-2021
@@ -224,4 +224,6 @@ execute:frappe.delete_doc("Page", "translation-tool", force=1)
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
 frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
 frappe.patches.v15_0.remove_background_jobs_from_dropdown
+frappe.desk.doctype.form_tour.patches.introduce_ui_tours
+execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 execute:frappe.db.set_value("Document Naming Settings", None, "default_amend_naming", "Amend Counter")

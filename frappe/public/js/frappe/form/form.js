@@ -1414,8 +1414,13 @@ frappe.ui.form.Form = class FrappeForm {
 			if (selector.length) {
 				frappe.utils.scroll_to(selector);
 			}
-		} else if (window.location.hash && $(window.location.hash).length) {
-			frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+		} else if (window.location.hash) {
+			if ($(window.location.hash).length) {
+				frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+			} else {
+				this.scroll_to_field(window.location.hash.replace("#", "")) &&
+					history.replaceState(null, null, " ");
+			}
 		}
 	}
 
@@ -1926,11 +1931,12 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// highlight control inside field
-		let control_element = $el.find(".form-control");
+		let control_element = $el.closest(".frappe-control");
 		control_element.addClass("highlight");
 		setTimeout(() => {
 			control_element.removeClass("highlight");
 		}, 2000);
+		return true;
 	}
 
 	setup_docinfo_change_listener() {
@@ -1994,7 +2000,8 @@ frappe.ui.form.Form = class FrappeForm {
 		return new Promise((resolve) => {
 			frappe.model.with_doctype(reference_doctype, () => {
 				frappe.get_meta(reference_doctype).fields.map((df) => {
-					filter_function(df) && options.push({ label: df.label, value: df.fieldname });
+					filter_function(df) &&
+						options.push({ label: df.label || df.fieldname, value: df.fieldname });
 				});
 				options &&
 					this.set_df_property(
@@ -2107,19 +2114,3 @@ frappe.ui.form.Form = class FrappeForm {
 };
 
 frappe.validated = 0;
-// Proxy for frappe.validated
-Object.defineProperty(window, "validated", {
-	get: function () {
-		console.warn(
-			"Please use `frappe.validated` instead of `validated`. It will be deprecated soon."
-		); // eslint-disable-line
-		return frappe.validated;
-	},
-	set: function (value) {
-		console.warn(
-			"Please use `frappe.validated` instead of `validated`. It will be deprecated soon."
-		); // eslint-disable-line
-		frappe.validated = value;
-		return frappe.validated;
-	},
-});

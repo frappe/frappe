@@ -267,15 +267,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						r.results = me.merge_duplicates(r.results);
 
 						// show filter description in awesomplete
-						if (args.filters) {
-							let filter_string = me.get_filter_description(args.filters);
-							if (filter_string) {
-								r.results.push({
-									html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
-									value: "",
-									action: () => {},
-								});
-							}
+						let filter_string = me.df.filter_description
+							? me.df.filter_description
+							: args.filters
+							? me.get_filter_description(args.filters)
+							: null;
+						if (filter_string) {
+							r.results.push({
+								html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
+								value: "",
+								action: () => {},
+							});
 						}
 
 						if (!me.df.only_select) {

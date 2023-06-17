@@ -18,7 +18,6 @@ from click import secho
 
 import frappe
 from frappe.desk.utils import slug
-from frappe.utils.deprecations import deprecation_warning
 
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]
@@ -326,7 +325,7 @@ def get_system_timezone():
 	if frappe.local.flags.in_test:
 		return _get_system_timezone()
 
-	return frappe.cache().get_value("time_zone", _get_system_timezone)
+	return frappe.cache.get_value("time_zone", _get_system_timezone)
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
@@ -1766,6 +1765,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	        "fieldtype":
 	}
 	"""
+	from frappe.database.utils import NestedSetHierarchy
 	from frappe.model import child_table_fields, default_fields, optional_fields
 
 	if isinstance(f, dict):
@@ -1805,14 +1805,10 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		"not in",
 		"is",
 		"between",
-		"descendants of",
-		"ancestors of",
-		"not descendants of",
-		"not ancestors of",
 		"timespan",
 		"previous",
 		"next",
-	)
+	) + NestedSetHierarchy
 
 	if filters_config:
 		additional_operators = []

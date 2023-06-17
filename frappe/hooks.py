@@ -114,7 +114,6 @@ has_permission = {
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
-	"Note": "frappe.desk.doctype.note.note.has_permission",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.has_permission",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
@@ -135,7 +134,6 @@ jinja = {
 	"filters": [
 		"frappe.utils.data.global_date_format",
 		"frappe.utils.markdown",
-		"frappe.website.utils.get_shade",
 		"frappe.website.utils.abs_url",
 	],
 }
@@ -196,6 +194,14 @@ scheduler_events = {
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
 		],
+		# Hourly but offset by 30 minutes
+		# "30 * * * *": [
+		#
+		# ],
+		# Daily but offset by 45 minutes
+		"45 0 * * *": [
+			"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
@@ -216,7 +222,6 @@ scheduler_events = {
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
 	],
 	"daily": [
-		"frappe.email.queue.set_expiry_for_email_queue",
 		"frappe.desk.notifications.clear_notifications",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
@@ -228,7 +233,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
-		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",

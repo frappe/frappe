@@ -26,13 +26,13 @@ class TestEnergyPointLog(FrappeTestCase):
 		settings.save()
 
 	def setUp(self):
-		frappe.cache().delete_value("energy_point_rule_map")
+		frappe.cache.delete_value("energy_point_rule_map")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.delete("Energy Point Log")
 		frappe.db.delete("Energy Point Rule")
-		frappe.cache().delete_value("energy_point_rule_map")
+		frappe.cache.delete_value("energy_point_rule_map")
 
 	def test_user_energy_point(self):
 		frappe.set_user("test@example.com")

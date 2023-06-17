@@ -530,7 +530,7 @@ class BaseDocument:
 
 				if not ignore_if_duplicate:
 					frappe.msgprint(
-						_("{0} {1} already exists").format(self.doctype, frappe.bold(self.name)),
+						_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
 						title=_("Duplicate Name"),
 						indicator="red",
 					)
@@ -646,7 +646,10 @@ class BaseDocument:
 	def update_modified(self):
 		"""Update modified timestamp"""
 		self.set("modified", now())
-		frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
+		if getattr(self.meta, "issingle", False):
+			frappe.db.set_single_value(self.doctype, "modified", self.modified, update_modified=False)
+		else:
+			frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):

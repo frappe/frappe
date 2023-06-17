@@ -31,6 +31,10 @@
   "allow_incomplete",
   "section_break_2",
   "max_attachment_size",
+  "section_break_xzqr",
+  "condition",
+  "column_break_tjgl",
+  "condition_description",
   "section_break_3",
   "list_setting_message",
   "show_list",
@@ -280,10 +284,6 @@
    "label": "Form"
   },
   {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "section_break_1",
    "fieldtype": "Section Break"
   },
@@ -297,7 +297,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "collapsible": 1,
    "fieldname": "section_break_2",
    "fieldtype": "Section Break"
   },
@@ -374,13 +373,33 @@
    "fieldname": "anonymous",
    "fieldtype": "Check",
    "label": "Anonymous"
+  },
+  {
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Condition",
+   "max_height": "150px"
+  },
+  {
+   "fieldname": "section_break_xzqr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_tjgl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "condition_description",
+   "fieldtype": "HTML",
+   "label": "Condition Description",
+   "options": "<p>Multiple webforms can be created for a single doctype. Write a condition specific to this webform to display correct record after submission.</p><p>For Example:</p>\n<p>If you create a separate webform every year to capture feedback from employees add a \n field named year in doctype and add a condition <b>doc.year==\"2023\"</b></p>\n"
   }
  ],
  "has_web_view": 1,
  "icon": "icon-edit",
  "is_published_field": "published",
  "links": [],
- "modified": "2023-04-20 17:24:42.657731",
+ "modified": "2023-06-03 19:18:56.760479",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

@@ -358,6 +358,7 @@ class ShortcutDialog extends WidgetDialog {
 								query: "frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
 								filters: {
 									user: frappe.session.user,
+									include_single_doctypes: true,
 								},
 							};
 						};
@@ -701,6 +702,29 @@ class NumberCardDialog extends WidgetDialog {
 	}
 }
 
+class CustomBlockDialog extends WidgetDialog {
+	constructor(opts) {
+		super(opts);
+	}
+
+	get_fields() {
+		return [
+			{
+				fieldtype: "Link",
+				fieldname: "custom_block_name",
+				label: "Custom Block Name",
+				options: "Custom HTML Block",
+				reqd: 1,
+				get_query: () => {
+					return {
+						query: "frappe.desk.doctype.custom_html_block.custom_html_block.get_custom_blocks_for_user",
+					};
+				},
+			},
+		];
+	}
+}
+
 export default function get_dialog_constructor(type) {
 	const widget_map = {
 		chart: ChartDialog,
@@ -709,6 +733,7 @@ export default function get_dialog_constructor(type) {
 		onboarding: OnboardingDialog,
 		quick_list: QuickListDialog,
 		number_card: NumberCardDialog,
+		custom_block: CustomBlockDialog,
 	};
 
 	return widget_map[type] || WidgetDialog;
