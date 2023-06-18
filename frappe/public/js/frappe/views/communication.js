@@ -280,51 +280,53 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
+	add_template() {
+		const me = this;
+		const email_template = me.dialog.fields_dict.email_template.get_value();
+		if (!email_template) return;
+
+		function prepend_reply(reply) {
+			const content_field = me.dialog.fields_dict.content;
+			const subject_field = me.dialog.fields_dict.subject;
+
+			let content = content_field.get_value() || "";
+
+			content_field.set_value(`${reply.message}<br>${content}`);
+			subject_field.set_value(reply.subject);
+		}
+
+		frappe.call({
+			method: "frappe.email.doctype.email_template.email_template.get_email_template",
+			args: {
+				template_name: email_template,
+				doc: me.doc,
+				_lang: me.dialog.get_value("language_sel"),
+			},
+			callback(r) {
+				prepend_reply(r.message);
+			},
+		});
+	}
+
 	setup_email_template() {
 		const me = this;
 
 		const fields = this.dialog.fields_dict;
 		const clear_and_add_template = $(fields.clear_and_add_template.wrapper);
 
-		function add_template() {
-			const email_template = me.dialog.fields_dict.email_template.get_value();
-			if (!email_template) return;
-
-			function prepend_reply(reply) {
-				const content_field = me.dialog.fields_dict.content;
-				const subject_field = me.dialog.fields_dict.subject;
-
-				let content = content_field.get_value() || "";
-
-				content_field.set_value(`${reply.message}<br>${content}`);
-				subject_field.set_value(reply.subject);
-			}
-
-			frappe.call({
-				method: "frappe.email.doctype.email_template.email_template.get_email_template",
-				args: {
-					template_name: email_template,
-					doc: me.doc,
-					_lang: me.dialog.get_value("language_sel"),
-				},
-				callback(r) {
-					prepend_reply(r.message);
-				},
-			});
-		}
 
 		let email_template_actions = [
 			{
 				label: __("Add Template"),
 				description: __("Prepend the template to the email message"),
-				action: () => add_template(),
+				action: () => me.add_template(),
 			},
 			{
 				label: __("Clear & Add Template"),
 				description: __("Clear the email message and add the template"),
 				action: () => {
 					me.dialog.fields_dict.content.set_value("");
-					add_template();
+					me.add_template();
 				},
 			},
 		];
@@ -384,6 +386,7 @@ frappe.views.CommunicationComposer = class {
 		if (this.frm && !this.is_a_reply && !this.content_set) {
 			const email_template = this.frm.meta.default_email_template || "";
 			await this.dialog.set_value("email_template", email_template);
+			this.add_template();
 		}
 
 		for (const fieldname of ["email_template", "cc", "bcc"]) {
