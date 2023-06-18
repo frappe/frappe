@@ -82,6 +82,15 @@ export default class Section {
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	add_field(fieldobj) {
+		this.fields_list.push(fieldobj);
+		this.fields_dict[fieldobj.df.fieldname] = fieldobj;
+		fieldobj.section = this;
+	}
+
+>>>>>>> e94cdc0515 (fix: section fields_dict)
 	refresh(hide) {
 		if (!this.df) return;
 		// hide if explicitly hidden
