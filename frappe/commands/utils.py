@@ -387,13 +387,13 @@ def import_doc(context, path, force=False):
 @click.command("data-import")
 @click.option(
 	"--file",
- 	"file_path",
+	"file_path",
 	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 	required=True,
- 	help=(
+	help=(
 		"Path to import file (.csv, .xlsx)."
 		"Consider that relative paths will resolve from 'sites' directory"
-	)
+	),
 )
 @click.option("--doctype", type=str, required=True)
 @click.option(
@@ -415,9 +415,6 @@ def data_import(
 	from frappe.core.doctype.data_import.data_import import import_file
 
 	site = get_site(context)
-
-	if "~" in file_path:
-		file_path = os.path.expanduser(file_path)
 
 	frappe.init(site=site)
 	frappe.connect()
