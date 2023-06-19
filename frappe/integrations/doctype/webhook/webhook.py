@@ -26,6 +26,7 @@ class Webhook(Document):
 		self.validate_request_url()
 		self.validate_request_body()
 		self.validate_repeating_fields()
+		self.validate_secret()
 		self.preview_document = None
 
 	def on_update(self):
@@ -73,6 +74,13 @@ class Webhook(Document):
 
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
+
+	def validate_secret(self):
+		if self.enable_security and self.webhook_secret:
+			try:
+				self.get_password("webhook_secret", False).encode("utf8")
+			except Exception:
+				frappe.throw(_("Invalid Webhook Secret"))
 
 	@frappe.whitelist()
 	def generate_preview(self):
