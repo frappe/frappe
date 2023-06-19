@@ -576,7 +576,14 @@ class ImportFile:
 
 	def read_file(self, file_path: str):
 		extn = os.path.splitext(file_path)[1][1:]
-		file_content = frappe.read_file(file_path, True)
+
+		file_content = None
+
+		file_name = frappe.db.get_value("File", {"file_url": file_path})
+		if file_name:
+			file = frappe.get_doc("File", file_name)
+			file_content = file.get_content()
+
 		return file_content, extn
 
 	def read_content(self, content, extension):
