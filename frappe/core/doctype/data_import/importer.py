@@ -579,6 +579,10 @@ class ImportFile:
 
 		file_content = None
 
+		if self.console:
+			file_content = frappe.read_file(file_path, True)
+			return file_content, extn
+
 		file_name = frappe.db.get_value("File", {"file_url": file_path})
 		if file_name:
 			file = frappe.get_doc("File", file_name)
