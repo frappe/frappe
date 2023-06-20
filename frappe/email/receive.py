@@ -446,7 +446,6 @@ class Email:
 		self.raw_message = content
 		self.text_content = ""
 		self.html_content = ""
-		self.attachments = []
 		self.cid_map = {}
 		self.parse()
 		self.set_content_and_type()
@@ -605,39 +604,32 @@ class Email:
 			else:
 				fname = get_random_filename(content_type=content_type)
 
-			self.attachments.append(
-				{
+			cid = (cstr(part.get("Content-Id")) or fname).strip("><")
+			self.cid_map[cid] = {
 					"content_type": content_type,
 					"fname": fname,
 					"fcontent": fcontent,
 				}
-			)
-
-			cid = (cstr(part.get("Content-Id")) or "").strip("><")
-			if cid:
-				self.cid_map[fname] = cid
 
 	def save_attachments_in_doc(self, doc):
 		"""Save email attachments in given document."""
 		saved_attachments = []
 
-		for attachment in self.attachments:
+		for attachment in self.cid_map:
 			try:
 				_file = frappe.get_doc(
 					{
 						"doctype": "File",
-						"file_name": attachment["fname"],
+						"file_name": self.cid_map[attachment]["fname"],
 						"attached_to_doctype": doc.doctype,
 						"attached_to_name": doc.name,
 						"is_private": 1,
-						"content": attachment["fcontent"],
+						"content": self.cid_map[attachment]["fcontent"],
+						"cid": attachment
 					}
 				)
 				_file.save()
 				saved_attachments.append(_file)
-
-				if attachment["fname"] in self.cid_map:
-					self.cid_map[_file.name] = self.cid_map[attachment["fname"]]
 
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
@@ -740,8 +732,8 @@ class InboundMail(Email):
 		# replace inline images
 		content = self.content
 		for file in attachments:
-			if file.name in self.cid_map and self.cid_map[file.name]:
-				content = content.replace(f"cid:{self.cid_map[file.name]}", file.file_url)
+			if file.cid:
+				content = content.replace(f"cid:{file.cid}", file.file_url)
 		return content
 
 	def is_notification(self):
@@ -970,7 +962,7 @@ class InboundMail(Email):
 			"uid": self.uid,
 			"message_id": self.message_id,
 			"communication_date": self.date,
-			"has_attachment": 1 if self.attachments else 0,
+			"has_attachment": 1 if self.cid_map else 0,
 			"seen": self.seen_status or 0,
 		}
 
