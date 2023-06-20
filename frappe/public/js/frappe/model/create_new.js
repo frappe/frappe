@@ -163,7 +163,7 @@ $.extend(frappe.model, {
 
 				if (!user_default) {
 					user_default = frappe.defaults.get_user_default(df.fieldname);
-				} 
+				}
 				if (
 					!user_default &&
 					df.remember_last_selected_value &&

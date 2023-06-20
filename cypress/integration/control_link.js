@@ -133,8 +133,7 @@ context("Control Link", () => {
 			true
 		);
 
-		cy.clear_cache();
-		cy.wait(500);
+		cy.reload();
 
 		get_dialog_with_link().as("dialog");
 		cy.window()
@@ -177,7 +176,7 @@ context("Control Link", () => {
 			cy.intercept("POST", "/api/method/frappe.client.validate_link").as("validate_link");
 
 			cy.get(".frappe-control[data-fieldname=assigned_by] input").focus().as("input");
-			cy.get("@input").type(cy.config("testUser"), { delay: 100 }).blur();
+			cy.get("@input").clear().type(cy.config("testUser"), { delay: 300 }).blur();
 			cy.wait("@validate_link");
 			cy.get(".frappe-control[data-fieldname=assigned_by_full_name] .control-value").should(
 				"contain",
