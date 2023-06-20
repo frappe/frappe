@@ -60,7 +60,11 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		this.clear_editable_layers();
 
 		const data_layers = new L.FeatureGroup().addLayer(
-			L.geoJson(JSON.parse(value), { pointToLayer: this.point_to_layer })
+			L.geoJson(JSON.parse(value), {
+				pointToLayer: this.point_to_layer,
+				style: this.set_style,
+				onEachFeature: this.on_each_feature,
+			})
 		);
 		this.add_non_group_layers(data_layers, this.editableLayers);
 		this.editableLayers.addTo(this.map);
@@ -69,6 +73,8 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 
 	/**
 	 * Defines custom rules for how geoJSON data is rendered on the map.
+	 *
+	 * Can be inherited in custom map controllers.
 	 *
 	 * @param {Object} geoJsonPoint - The geoJSON object to be rendered on the map.
 	 * @param {Object} latlng - The latitude and longitude where the geoJSON data should be rendered on the map.
@@ -84,6 +90,28 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			return L.marker(latlng);
 		}
 	}
+
+	/**
+	 * Defines custom styles for how geoJSON Line and LineString data is rendered on the map.
+	 *
+	 * Can be inherited in custom map controllers.
+	 *
+	 * @param {Object} geoJsonFeature - The geoJSON object to be rendered on the map.
+	 * @returns {Object} - Returns the style object for the geoJSON object.
+	 */
+	set_style(geoJsonFeature) {
+		return {};
+	}
+
+	/**
+	 * Is called after each feature is rendered and styles, can be used to attache popups, tooltips and other events
+	 *
+	 * Can be inherited in custom map controllers.
+	 *
+	 * @param {Object} feature - The leaflet object representing a geojson feature.
+	 * @param {Object} layer - The leaflet layer object.
+	 */
+	on_each_feature(feature, layer) {}
 
 	bind_leaflet_map() {
 		const circleToGeoJSON = L.Circle.prototype.toGeoJSON;
