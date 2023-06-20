@@ -17,8 +17,35 @@ class ScheduledJobType(Document):
 	def autoname(self):
 		self.name = ".".join(self.method.split(".")[-2:])
 
+	@property
+	def effective_frequency(self):
+		return self.custom_frequency or self.frequency
+
+	@property
+	def effective_cron(self):
+		if self.custom_frequency == "Cron" and self.custom_cron_format:
+			return self.custom_cron_format
+		elif self.cron_format:
+			return self.cron_format
+
+		CRON_MAP = {
+			"Yearly": "0 0 1 1 *",
+			"Annual": "0 0 1 1 *",
+			"Monthly": "0 0 1 * *",
+			"Monthly Long": "0 0 1 * *",
+			"Weekly": "0 0 * * 0",
+			"Weekly Long": "0 0 * * 0",
+			"Daily": "0 0 * * *",
+			"Daily Long": "0 0 * * *",
+			"Hourly": "0 * * * *",
+			"Hourly Long": "0 * * * *",
+			"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
+		}
+
+		return CRON_MAP[self.effective_frequency]
+
 	def validate(self):
-		if self.frequency != "All":
+		if self.effective_frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
@@ -58,25 +85,8 @@ class ScheduledJobType(Document):
 		return self.get_next_execution()
 
 	def get_next_execution(self):
-		CRON_MAP = {
-			"Yearly": "0 0 1 1 *",
-			"Annual": "0 0 1 1 *",
-			"Monthly": "0 0 1 * *",
-			"Monthly Long": "0 0 1 * *",
-			"Weekly": "0 0 * * 0",
-			"Weekly Long": "0 0 * * 0",
-			"Daily": "0 0 * * *",
-			"Daily Long": "0 0 * * *",
-			"Hourly": "0 * * * *",
-			"Hourly Long": "0 * * * *",
-			"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
-		}
-
-		if not self.cron_format:
-			self.cron_format = CRON_MAP[self.frequency]
-
 		return croniter(
-			self.cron_format, get_datetime(self.last_execution or datetime(2000, 1, 1))
+			self.effective_cron, get_datetime(self.last_execution or datetime(2000, 1, 1))
 		).get_next(datetime)
 
 	def execute(self):
@@ -103,7 +113,7 @@ class ScheduledJobType(Document):
 	def update_scheduler_log(self, status):
 		if not self.create_log:
 			# self.get_next_execution will work properly iff self.last_execution is properly set
-			if self.frequency == "All" and status == "Start":
+			if self.effective_frequency == "All" and status == "Start":
 				self.db_set("last_execution", now_datetime(), update_modified=False)
 				frappe.db.commit()
 			return
@@ -119,7 +129,7 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
-		return "long" if ("Long" in self.frequency) else "default"
+		return "long" if ("Long" in self.effective_frequency) else "default"
 
 	def on_trash(self):
 		frappe.db.delete("Scheduled Job Log", {"scheduled_job_type": self.name})

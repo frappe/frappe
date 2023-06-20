@@ -14,9 +14,13 @@
   "stopped",
   "method",
   "server_script",
+  "create_log",
+  "frequency_section",
   "frequency",
   "cron_format",
-  "create_log",
+  "column_break_6bvj",
+  "custom_frequency",
+  "custom_cron_format",
   "status_section",
   "last_execution",
   "column_break_9",
@@ -55,7 +59,7 @@
    "depends_on": "eval:doc.frequency==='Cron'",
    "fieldname": "cron_format",
    "fieldtype": "Data",
-   "label": "Cron Format",
+   "label": "Standard Cron Format",
    "read_only": 1
   },
   {
@@ -63,7 +67,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Frequency",
+   "label": "Standard Frequency",
    "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
    "read_only": 1,
    "reqd": 1
@@ -91,6 +95,28 @@
   {
    "fieldname": "column_break_9",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.server_script",
+   "fieldname": "custom_frequency",
+   "fieldtype": "Select",
+   "label": "Custom Frequency",
+   "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual"
+  },
+  {
+   "depends_on": "eval:doc.custom_frequency==='Cron'",
+   "fieldname": "custom_cron_format",
+   "fieldtype": "Data",
+   "label": "Custom Cron Format"
+  },
+  {
+   "fieldname": "column_break_6bvj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "frequency_section",
+   "fieldtype": "Section Break",
+   "label": "Frequency"
   }
  ],
  "in_create": 1,
@@ -100,7 +126,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2022-06-28 02:55:12.470915",
+ "modified": "2023-06-20 18:34:59.280833",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
