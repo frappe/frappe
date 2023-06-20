@@ -386,7 +386,14 @@ def import_doc(context, path, force=False):
 
 @click.command("data-import")
 @click.option(
-	"--file", "file_path", type=click.Path(), required=True, help="Path to import file (.csv, .xlsx)"
+	"--file",
+	"file_path",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+	required=True,
+	help=(
+		"Path to import file (.csv, .xlsx)."
+		"Consider that relative paths will resolve from 'sites' directory"
+	),
 )
 @click.option("--doctype", type=str, required=True)
 @click.option(
