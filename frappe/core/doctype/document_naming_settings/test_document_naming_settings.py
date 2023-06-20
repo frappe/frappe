@@ -26,6 +26,7 @@ class TestNamingSeries(FrappeTestCase):
 					}
 				],
 				autoname="naming_series:",
+				is_submittable=1,
 			)
 			.insert()
 			.name
@@ -82,3 +83,36 @@ class TestNamingSeries(FrappeTestCase):
 			self.dns.update_series_start()
 
 			self.assertEqual(self.dns.get_current(), new_count, f"Incorrect update for {series}")
+
+	def test_amended_naming(self):
+		self.dns.amend_naming_override = []
+		self.dns.default_amend_naming = "Amend Counter"
+		self.dns.update_amendment_rule()
+
+		submittable_doc = frappe.get_doc(
+			dict(doctype=self.ns_doctype, some_fieldname="test doc with submit")
+		).submit()
+		submittable_doc.cancel()
+
+		amended_doc = frappe.get_doc(
+			dict(
+				doctype=self.ns_doctype,
+				some_fieldname="test doc with submit",
+				amended_from=submittable_doc.name,
+			)
+		).insert()
+
+		self.assertIn(submittable_doc.name, amended_doc.name)
+		amended_doc.delete()
+
+		self.dns.default_amend_naming = "Default Naming"
+		self.dns.update_amendment_rule()
+
+		new_amended_doc = frappe.get_doc(
+			dict(
+				doctype=self.ns_doctype,
+				some_fieldname="test doc with submit",
+				amended_from=submittable_doc.name,
+			)
+		).insert()
+		self.assertNotIn(submittable_doc.name, new_amended_doc.name)
