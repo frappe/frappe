@@ -105,7 +105,7 @@ class TestNamingSeries(FrappeTestCase):
 		self.assertIn(submittable_doc.name, amended_doc.name)
 		amended_doc.delete()
 
-		self.dns.default_amend_naming = "Series Counter"
+		self.dns.default_amend_naming = "Default Naming"
 		self.dns.update_amendment_rule()
 
 		new_amended_doc = frappe.get_doc(

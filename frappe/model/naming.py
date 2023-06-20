@@ -515,7 +515,7 @@ def _set_amended_name(doc):
 			"Document Naming Settings", "default_amend_naming", cache=True
 		)
 
-	if amend_naming_rule == "Series Counter":
+	if amend_naming_rule == "Default Naming":
 		return
 
 	am_id = 1

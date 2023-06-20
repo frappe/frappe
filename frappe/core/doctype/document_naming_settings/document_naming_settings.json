@@ -112,7 +112,7 @@
   },
   {
    "collapsible": 1,
-   "description": "Configure how amended documents will be named.<br>\n\nDefault behaviour is to follow an amend counter which adds a number to the end of the original name indicating the amended version. <br>\n\nSeries counter will make the amended document to follow the selected naming series.",
+   "description": "Configure how amended documents will be named.<br>\n\nDefault behaviour is to follow an amend counter which adds a number to the end of the original name indicating the amended version. <br>\n\nDefault Naming will make the amended document to behave same as new documents.",
    "fieldname": "amended_documents_section",
    "fieldtype": "Section Break",
    "label": "Amended Documents"
@@ -123,7 +123,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Default Amendment Naming",
-   "options": "Amend Counter\nSeries Counter",
+   "options": "Amend Counter\nDefault Naming",
    "reqd": 1
   },
   {

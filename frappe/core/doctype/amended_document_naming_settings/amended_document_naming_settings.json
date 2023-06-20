@@ -16,7 +16,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Action",
-   "options": "Amend Counter\nSeries Counter",
+   "options": "Amend Counter\nDefault Naming",
    "reqd": 1
   },
   {
