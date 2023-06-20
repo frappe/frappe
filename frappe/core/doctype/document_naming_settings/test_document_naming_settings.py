@@ -8,7 +8,7 @@ from frappe.core.doctype.document_naming_settings.document_naming_settings impor
 )
 from frappe.model.naming import NamingSeries, get_default_naming_series
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import cint
+from frappe.utils import cint, now_datetime
 
 
 class TestNamingSeries(FrappeTestCase):
@@ -51,6 +51,12 @@ class TestNamingSeries(FrappeTestCase):
 
 		self.dns.try_naming_series = "AXBZ-.{currency}.-"
 		serieses = self.dns.preview_series().split("\n")
+
+		self.dns.try_naming_series = "ABC-.Month.-.###"
+		serieses = self.dns.preview_series().split("\n")
+		current_month = now_datetime().strftime("%b").upper()
+		check_with = [f"ABC-{current_month}-001", f"ABC-{current_month}-002", f"ABC-{current_month}-003"]
+		self.assertEqual(check_with, serieses)
 
 	def test_get_transactions(self):
 
