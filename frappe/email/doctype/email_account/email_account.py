@@ -386,7 +386,7 @@ class EmailAccount(Document):
 			"from_site_config": {"default": True},
 			"no_smtp_authentication": {
 				"conf_names": ("disable_mail_smtp_authentication",),
-			    "default": 0,
+				"default": 0,
 			},
 		}
 
