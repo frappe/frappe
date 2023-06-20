@@ -21,8 +21,8 @@
   "update_series_start",
   "amended_documents_section",
   "default_amend_naming",
-  "update_amendment_naming",
-  "amend_naming_override"
+  "amend_naming_override",
+  "update_amendment_naming"
  ],
  "fields": [
   {
@@ -143,7 +143,7 @@
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2023-06-16 18:11:22.266719",
+ "modified": "2023-06-20 17:47:52.204139",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",
