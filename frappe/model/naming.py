@@ -239,13 +239,14 @@ def set_naming_from_document_naming_rule(doc):
 	if doc.doctype in IGNORED_DOCTYPES:
 		return
 
-	# ignore_ddl if naming is not yet bootstrapped
-	for d in frappe.get_all(
+	document_naming_rules = frappe.cache_manager.get_doctype_map(
 		"Document Naming Rule",
-		dict(document_type=doc.doctype, disabled=0),
+		doc.doctype,
+		filters={"document_type": doc.doctype, "disabled": 0},
 		order_by="priority desc",
-		ignore_ddl=True,
-	):
+	)
+
+	for d in document_naming_rules:
 		frappe.get_cached_doc("Document Naming Rule", d.name).apply(doc)
 		if doc.name:
 			break

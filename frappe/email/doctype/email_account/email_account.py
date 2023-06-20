@@ -384,6 +384,10 @@ class EmailAccount(Document):
 			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
 			"auth_method": {"conf_names": ("auth_method"), "default": "Basic"},
 			"from_site_config": {"default": True},
+			"no_smtp_authentication": {
+				"conf_names": ("disable_mail_smtp_authentication",),
+				"default": 0,
+			},
 		}
 
 		account_details = {}
