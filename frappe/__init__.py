@@ -1414,7 +1414,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 
 	if with_internal_apps:
-		for app in get_file_items(os.path.join(local.site_path, "apps.txt")):
+		for app in get_file_items(os.path.join(sites_path, "apps.txt")):
 			if app not in apps:
 				apps.append(app)
 
