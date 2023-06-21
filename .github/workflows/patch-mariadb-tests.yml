@@ -64,6 +64,7 @@ jobs:
       - name: Setup Python
         uses: "gabrielfalcao/pyenv-action@v14"
         with:
+          default: 3.10.11
           versions: 3.10.11, 3.7.16
 
       - name: Setup Node
