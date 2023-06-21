@@ -33,6 +33,7 @@
   "contact_person_first_name",
   "column_break_nc4gy",
   "contact_person_last_name",
+  "contact_person_full_name",
   "contact_person_phone_no",
   "contact_person_email",
   "vendor_section_section",
@@ -669,6 +670,8 @@
   {
    "fieldname": "contact_person_last_name",
    "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_standard_filter": 1,
    "label": "Contact Person Last Name"
   },
   {
@@ -718,6 +721,11 @@
   {
    "fieldname": "column_break_u48fu",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_person_full_name",
+   "fieldtype": "Data",
+   "label": "Contact Person Full Name"
   }
  ],
  "icon": "fa fa-user",
@@ -780,7 +788,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-06-13 14:29:09.416174",
+ "modified": "2023-06-21 11:31:50.098875",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

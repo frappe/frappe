@@ -87,6 +87,7 @@ class User(Document):
 		self.validate_roles()
 		self.validate_allowed_modules()
 		self.validate_user_image()
+		self.set_contact_person_full_name()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -143,6 +144,9 @@ class User(Document):
 
 	def set_full_name(self):
 		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
+
+	def set_contact_person_full_name(self):
+		self.contact_person_full_name = " ".join(filter(None, [self.contact_person_first_name, self.contact_person_last_name]))
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest

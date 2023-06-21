@@ -1,10 +1,6 @@
 {
  "category": "Modules",
- "charts": [
-  {
-   "chart_name": "Website Analytics"
-  }
- ],
+ "charts": [],
  "creation": "2020-03-02 14:13:51.089373",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
@@ -14,6 +10,7 @@
  "hide_custom": 0,
  "icon": "website",
  "idx": 0,
+ "is_default": 0,
  "is_standard": 1,
  "label": "Website",
  "links": [
@@ -218,7 +215,7 @@
    "type": "Link"
   }
  ],
- "modified": "2020-12-01 13:38:39.556588",
+ "modified": "2023-06-16 16:01:46.662552",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -259,6 +256,12 @@
   {
    "label": "Website Settings",
    "link_to": "Website Settings",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Website Item",
+   "link_to": "Website Item",
    "type": "DocType"
   }
  ]
