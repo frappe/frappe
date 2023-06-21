@@ -91,7 +91,7 @@ def update_document_title(
 			doc.rename(updated_name, merge=merge)
 
 	if title_updated:
-		if action_enqueued:
+		if action_enqueued and name_updated:
 			frappe.enqueue(
 				"frappe.client.set_value",
 				doctype=doc.doctype,
