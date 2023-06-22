@@ -14,7 +14,7 @@ from frappe.utils.telemetry import capture_doc
 def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
-	capture_doc(doc)
+	capture_doc(doc, action)
 	set_local_name(doc)
 
 	# action
@@ -40,6 +40,8 @@ def savedocs(doc, action):
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
 	doc = frappe.get_doc(doctype, name)
+	capture_doc(doc, "Cancel")
+
 	if workflow_state_fieldname and workflow_state:
 		doc.set(workflow_state_fieldname, workflow_state)
 	doc.cancel()
