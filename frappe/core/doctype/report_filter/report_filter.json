@@ -5,15 +5,18 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "fieldname",
   "label",
   "fieldtype",
+  "fieldname",
   "mandatory",
+  "wildcard_filter",
+  "column_break_urrx",
   "options",
-  "wildcard_filter"
+  "default"
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "fieldname",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -21,6 +24,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "label",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -28,6 +32,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "fieldtype",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -36,6 +41,7 @@
    "reqd": 1
   },
   {
+   "columns": 1,
    "default": "0",
    "fieldname": "mandatory",
    "fieldtype": "Check",
@@ -43,8 +49,10 @@
    "label": "Mandatory"
   },
   {
+   "columns": 2,
    "fieldname": "options",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
    "label": "Options"
   },
   {
@@ -53,12 +61,22 @@
    "fieldname": "wildcard_filter",
    "fieldtype": "Check",
    "label": "Wildcard Filter"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Small Text",
+   "label": "Default"
+  },
+  {
+   "columns": 2,
+   "fieldname": "column_break_urrx",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-12-05 19:20:00.503097",
+ "modified": "2023-06-15 11:37:35.961036",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report Filter",
@@ -67,5 +85,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
