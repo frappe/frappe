@@ -128,7 +128,7 @@ frappe.report_utils = {
 				return frappe.after_ajax(() => {
 					if (
 						frappe.query_reports[report_name] &&
-						!frappe.query_reports[report_name].filter &&
+						!frappe.query_reports[report_name].filters &&
 						r.filters
 					) {
 						return (frappe.query_reports[report_name].filters = r.filters);
