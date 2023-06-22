@@ -51,9 +51,11 @@ jobs:
 
       - name: Setup Python
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: "gabrielfalcao/pyenv-action@v10"
+        uses: actions/setup-python@v4
         with:
-          versions: 3.10:latest, 3.7:latest
+          python-version: |
+              3.7
+              3.10
 
       - name: Setup Node
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -108,7 +110,6 @@ jobs:
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           pip install frappe-bench
-          pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -127,23 +128,28 @@ jobs:
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
 
-          pyenv global $(pyenv versions | grep '3.7')
-          for version in $(seq 12 13)
-          do
-              echo "Updating to v$version"
-              branch_name="version-$version-hotfix"
-              git fetch --depth 1 upstream $branch_name:$branch_name
-              git checkout -q -f $branch_name
-              pip install -U frappe-bench
+          function update_to_version() {
+            version=$1
+            py=$2
 
-              rm -rf ~/frappe-bench/env
-              bench -v setup env
-              bench --site test_site migrate
-          done
+            branch_name="version-$version-hotfix"
+            echo "Updating to v$version"
+            git fetch --depth 1 upstream $branch_name:$branch_name
+            git checkout -q -f $branch_name
+
+            pgrep honcho | xargs kill
+            rm -rf ~/frappe-bench/env
+            bench -v setup env --python $py
+            bench start &> ~/frappe-bench/bench_start.log &
+
+            bench --site test_site migrate
+          }
+
+          update_to_version 12 python3.7
+          update_to_version 13 python3.7
 
           echo "Updating to last commit"
           git checkout -q -f "$GITHUB_SHA"
-          pyenv global $(pyenv versions | grep '3.10')
           rm -rf ~/frappe-bench/env
           bench -v setup env
           bench --site test_site migrate
