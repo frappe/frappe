@@ -304,6 +304,7 @@ app_publisher = "{app_publisher}"
 app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
+# required_apps = []
 
 # Includes in <head>
 # ------------------
