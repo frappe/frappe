@@ -50,12 +50,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
-<<<<<<< HEAD
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
-        uses: "gabrielfalcao/pyenv-action@v10"
-=======
         uses: actions/setup-python@v4
->>>>>>> 085eb41245 (ci: use multiple python version in patch test (#21443))
         with:
           python-version: |
               3.7
@@ -132,21 +128,6 @@ jobs:
           cd apps/frappe/
           git remote set-url upstream https://github.com/frappe/frappe.git
 
-<<<<<<< HEAD
-          pyenv global $(pyenv versions | grep '3.7')
-          for version in $(seq 12 13)
-          do
-              echo "Updating to v$version"
-              branch_name="version-$version-hotfix"
-              git fetch --depth 1 upstream $branch_name:$branch_name
-              git checkout -q -f $branch_name
-              pip install -U frappe-bench
-
-              rm -rf ~/frappe-bench/env
-              bench -v setup env
-              bench --site test_site migrate
-          done
-=======
           function update_to_version() {
             version=$1
             py=$2
@@ -167,12 +148,8 @@ jobs:
           update_to_version 12 python3.7
           update_to_version 13 python3.7
 
-          update_to_version 14 python3.10
->>>>>>> 085eb41245 (ci: use multiple python version in patch test (#21443))
-
           echo "Updating to last commit"
           git checkout -q -f "$GITHUB_SHA"
-          pyenv global $(pyenv versions | grep '3.10')
           rm -rf ~/frappe-bench/env
           bench -v setup env
           bench --site test_site migrate
