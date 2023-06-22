@@ -61,18 +61,12 @@ jobs:
               exit 1
           fi
 
-      - name: Setup PyEnv
-        run: |
-            curl https://pyenv.run | bash
-            echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-            echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-            echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-            exec "$SHELL"
-
-      - name: Setup Python versions
-        run: |
-            pyenv install 3.10
-            pyenv install 3.7
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: |
+              3.7
+              3.10
 
       - name: Setup Node
         uses: actions/setup-node@v3
