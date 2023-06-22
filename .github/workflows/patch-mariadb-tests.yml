@@ -68,6 +68,9 @@ jobs:
               3.7
               3.10
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
