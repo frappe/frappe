@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 
@@ -36,6 +37,16 @@ class ModuleOnboarding(Document):
 			return True
 
 		return False
+
+	@frappe.whitelist()
+	def reset_progress(self):
+		self.db_set("is_complete", 0)
+
+		for step in self.get_steps():
+			step.db_set("is_complete", 0)
+			step.db_set("is_skipped", 0)
+
+		frappe.msgprint(_("Module onboarding progress reset"), alert=True)
 
 	def before_export(self, doc):
 		doc.is_complete = 0
