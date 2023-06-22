@@ -40,6 +40,50 @@ jobs:
           TYPE: "server"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
+<<<<<<< HEAD
+=======
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    name: Patch
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    timeout-minutes: 60
+
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: travis
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Check for Merge Conflicts
+        run: |
+          if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}"
+              then echo "Found merge conflicts"
+              exit 1
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: |
+              3.7
+              3.10
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          check-latest: true
+>>>>>>> 085eb41245 (ci: use multiple python version in patch test (#21443))
 
       - name: Add to Hosts
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -83,8 +127,15 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+<<<<<<< HEAD
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+=======
+        run: |
+          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
+          pip install frappe-bench
+          bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
+>>>>>>> 085eb41245 (ci: use multiple python version in patch test (#21443))
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
@@ -103,4 +154,38 @@ jobs:
           cd ~/frappe-bench/
           wget https://frappeframework.com/files/v10-frappe.sql.gz
           bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
+<<<<<<< HEAD
+=======
+
+          source env/bin/activate
+          cd apps/frappe/
+          git remote set-url upstream https://github.com/frappe/frappe.git
+
+          function update_to_version() {
+            version=$1
+            py=$2
+
+            branch_name="version-$version-hotfix"
+            echo "Updating to v$version"
+            git fetch --depth 1 upstream $branch_name:$branch_name
+            git checkout -q -f $branch_name
+
+            pgrep honcho | xargs kill
+            rm -rf ~/frappe-bench/env
+            bench -v setup env --python $py
+            bench start &> ~/frappe-bench/bench_start.log &
+
+            bench --site test_site migrate
+          }
+
+          update_to_version 12 python3.7
+          update_to_version 13 python3.7
+
+          update_to_version 14 python3.10
+
+          echo "Updating to last commit"
+          rm -rf ~/frappe-bench/env
+          git checkout -q -f "$GITHUB_SHA"
+          bench -v setup env
+>>>>>>> 085eb41245 (ci: use multiple python version in patch test (#21443))
           bench --site test_site migrate
