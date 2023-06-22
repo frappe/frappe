@@ -672,4 +672,4 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	("Table", "Table MultiSelect"),
 )
 
-ALLOWED_OPTIONS_CHANGE = ("Read Only", "HTML", "Data","Select")
+ALLOWED_OPTIONS_CHANGE = ("Read Only", "HTML", "Data","Select","Link")

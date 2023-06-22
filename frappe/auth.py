@@ -186,6 +186,7 @@ class LoginManager:
 				frappe.local.response["message"] = "Logged In"
 				frappe.local.response["home_page"] = "/app"
 		frappe.local.response["email"] = frappe.local.session.user
+		frappe.local.response["sid"] = frappe.local.session.sid
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
