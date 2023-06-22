@@ -105,7 +105,6 @@ jobs:
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           pip install frappe-bench
-          pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -138,11 +137,11 @@ jobs:
             bench --site test_site migrate
           }
 
-          pyenv global $(pyenv versions | grep '3.7')
+          alias python=python3.7
           update_to_version 12
           update_to_version 13
 
-          pyenv global $(pyenv versions | grep '3.10')
+          alias python=python3.10
           update_to_version 14
 
           echo "Updating to last commit"
