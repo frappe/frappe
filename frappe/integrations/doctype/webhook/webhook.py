@@ -76,7 +76,7 @@ class Webhook(Document):
 			frappe.throw(_("Same Field is entered more than once"))
 
 	def validate_secret(self):
-		if self.enable_security and self.webhook_secret:
+		if self.enable_security:
 			try:
 				self.get_password("webhook_secret", False).encode("utf8")
 			except Exception:
