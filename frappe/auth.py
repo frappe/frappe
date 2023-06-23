@@ -149,6 +149,7 @@ class LoginManager:
 		self.post_login()
 		frappe.local.response["email"] = frappe.local.session.user
 		frappe.local.response["sid"] = frappe.local.session.sid
+		frappe.local.response["set_sid"] = 1
 
 	def post_login(self):
 		self.run_trigger("on_login")
