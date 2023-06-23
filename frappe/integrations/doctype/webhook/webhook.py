@@ -130,10 +130,10 @@ def enqueue_webhook(doc, webhook) -> None:
 		else:
 			request_url = webhook.request_url
 
-		r = None
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
-		log_request(webhook.name, doc.name, request_url, headers, data, r)
+		log_request(webhook.name, doc.name, request_url, headers, data)
+		return
 
 	for i in range(3):
 		try:
