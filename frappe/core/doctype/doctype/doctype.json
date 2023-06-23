@@ -647,7 +647,8 @@
    "collapsible": 1,
    "fieldname": "fields_section",
    "fieldtype": "Section Break",
-   "label": "Fields"
+   "label": "Fields",
+   "hidden": 1
   }
  ],
  "icon": "fa fa-bolt",
