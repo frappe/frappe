@@ -18,7 +18,16 @@
 			<img src={{image}}>
 		{% endif %}
 		<h2 class="text-center">{{description}}</h2>
-		<form id="payment-form">
+		<div class="accordion" id="accordionExample">
+        <div class="card payment-card m-4">
+            <div class="card-header collapsed" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true">
+				<span><i class="fa fa-credit-card" style="font-size:20px"></i></span>    
+                <span class="title">Credit / Debit / ATM Card</span>
+                <span class="accicon"><i class="fa fa-angle-down rotate-icon"></i></span>
+            </div>
+            <div id="collapseOne" class="collapse" data-parent="#accordionExample">
+                <div class="card-body">
+                    <form id="payment-form mt-0">
 			<div class="form-row row">
 				<div class="group col-12">
 					<div>
@@ -45,12 +54,53 @@
 			</div>
 
 			</div>
-			<button type="submit" class="submit" id="submit">{{_('Pay')}} {{amount}}</button>
+			<button type="submit" class="btn-outline-primary payment-btn submit pl-4 pr-4" id="submit">{{_('Pay')}} {{amount}}</button>
 			<div class="outcome text-center">
 				<div class="error" hidden>{{ _("An error occured during the payment process. Please contact us.") }}</div>
 				<div class="success" hidden>{{ _("Your payment has been successfully registered.") }}</div>
 			</div>
-		</form>
+					</form>
+                </div>
+            </div>
+        </div>
+        <div class="card payment-card m-4">
+            <div class="card-header collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">     
+                <span><i class="fa fa-google-wallet" style="font-size:20px"></i></span>
+				<span class="title">UPI</span>
+                <span class="accicon"><i class="fa fa-angle-down rotate-icon"></i></span>
+            </div>
+            <div id="collapseTwo" class="collapse" data-parent="#accordionExample">
+                <div class="card-body">
+                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+            </div>
+        </div>
+        <div class="card payment-card m-4">
+            <div class="card-header collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false">
+                <span><i class="fa fa-cc-paypal" style="font-size:20px"></i></span>
+				<span class="title">Payment Wallet</span>
+                <span class="accicon"><i class="fa fa-angle-down rotate-icon"></i></span>
+            </div>
+            <div id="collapseThree" class="collapse" data-parent="#accordionExample">
+                <div class="card-body">
+                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+            </div>
+        </div>
+		<div class="card payment-card m-4">
+            <div class="card-header collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false">
+				<span><i class="fa fa-bank" style="font-size:20px"></i></span>
+                <span class="title">Net Banking</span>
+                <span class="accicon"><i class="fa fa-angle-down rotate-icon"></i></span>
+            </div>
+            <div id="collapseFour" class="collapse" data-parent="#accordionExample">
+                <div class="card-body">
+                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+            </div>
+        </div>
+    </div>
+		
 	</div>
 </div>
 
