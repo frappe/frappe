@@ -10,8 +10,6 @@ from urllib.parse import urlparse
 
 import click
 import psutil
-from requests import head
-from requests.exceptions import HTTPError
 from semantic_version import Version
 
 import frappe
@@ -27,7 +25,7 @@ class AssetsNotDownloadedError(Exception):
 	pass
 
 
-class AssetsDontExistError(HTTPError):
+class AssetsDontExistError(Exception):
 	pass
 
 
@@ -78,6 +76,8 @@ def build_missing_files():
 
 
 def get_assets_link(frappe_head) -> str:
+	import requests
+
 	tag = getoutput(
 		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
 		r" refs/tags/,,' -e 's/\^{}//'" % frappe_head
@@ -89,7 +89,7 @@ def get_assets_link(frappe_head) -> str:
 	else:
 		url = f"http://assets.frappeframework.com/{frappe_head}.tar.gz"
 
-	if not head(url):
+	if not requests.head(url):
 		reference = f"Release {tag}" if tag else f"Commit {frappe_head}"
 		raise AssetsDontExistError(f"Assets for {reference} don't exist")
 

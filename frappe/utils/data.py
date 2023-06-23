@@ -2234,3 +2234,11 @@ def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "ema
 
 	url_parts[4] = urlencode(query)
 	return urlunparse(url_parts)
+
+
+# This is used in test to count memory overhead of default imports.
+def _get_rss_memory_usage():
+	import psutil
+
+	rss = psutil.Process().memory_info().rss // (1024 * 1024)
+	return rss
