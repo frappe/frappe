@@ -27,33 +27,87 @@
 {% macro render_sidebar_items(items) %}
 {%- if items | len > 0 -%}
 <ul class="list-unstyled">
-	{% for item in items -%}
-	{{ render_sidebar_item(item) }}
-	{%- endfor %}
+    {% for item in items -%}
+    {{ render_sidebar_item(item) }}
+    {%- endfor %}
 </ul>
 {%- endif -%}
 {% endmacro %}
-
 {% macro my_account() %}
 {% if frappe.user != 'Guest' %}
+<!-- <ul class="list-unstyled">
+    <li class="sidebar-item">
+        <a href="/me">{{ _("My Account") }}</a>
+    </li>
+</ul> -->
+{% endif %}
+{% endmacro %}
+{% macro my_order() %}
+{% if frappe.user != 'Guest' %}
 <ul class="list-unstyled">
-	<li class="sidebar-item">
-		<a href="/me">{{ _("My Account") }}</a>
-	</li>
+    <li class="sidebar-item">
+        <a href="/orders">{{ _("My Order") }}</a>
+    </li>
 </ul>
 {% endif %}
 {% endmacro %}
-
+{% macro support() %}
+{% if frappe.user != 'Guest' %}
+<ul class="list-unstyled">
+    <li class="sidebar-item">
+        <a href="/customer-support">{{ _("Support") }}</a>
+    </li>
+</ul>
+{% endif %}
+{% endmacro %}
+{% macro my_profile() %}
+{% if frappe.user != 'Guest' %}
+<ul class="list-unstyled">
+    <li class="sidebar-item">
+        {% set email, username = frappe.db.get_value("User", frappe.session.user, ["email", "username"]) %}
+        {% if username == "administrator" %}
+        <a href="/update-profile?name={{ username }}">{{ _("My Profile") }}</a>
+        {% else %}
+        <a href="/update-profile?name={{ email }}">{{ _("My Profile") }}</a>
+        {% endif %}
+        <!-- <a href="/update-profile">{{ _("My Profile") }}</a> -->
+    </li>
+</ul>
+{% endif %}
+{% endmacro %}
+{% macro address() %}
+{% if frappe.user != 'Guest' %}
+<ul class="list-unstyled">
+    <li class="sidebar-item">
+        <a href="/address">{{ _("Address") }}</a>
+    </li>
+</ul>
+{% endif %}
+{% endmacro %}
+{% macro change_password() %}
+{% if frappe.user != 'Guest' %}
+<ul class="list-unstyled">
+    <li class="sidebar-item">
+        <a class='' href="/update-password">{{ _("Change Password") }}</a>
+    </li>
+</ul>
+{% endif %}
+{% endmacro %}
 <div class="web-sidebar">
-	{% if sidebar_title %}
-	<li class="title">
-		{{ sidebar_title }}
-	</li>
-	{% endif %}
-	<div class="sidebar-items">
-		{{ render_sidebar_items(sidebar_items) }}
-		{{ my_account() }}
-	</div>
+    {% if sidebar_title %}
+    <li class="title">
+        {{ sidebar_title }}
+    </li>
+    {% endif %}
+    <div class="sidebar-items">
+        <!-- {  {{ render_sidebar_items(sidebar_items) }}{ my_account() }} -->
+        {{ my_account() }}
+        {{ my_order() }}
+        {{ support() }}
+        {{ my_profile() }}
+        {{ address() }}
+        {{ change_password() }}
+    </div>
 </div>
 
 <script>
