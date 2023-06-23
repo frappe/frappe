@@ -104,6 +104,20 @@ class TestRQJob(FrappeTestCase):
 		self.assertTrue(is_job_enqueued(job_id))
 		stop_job(job.id)
 
+	@timeout(20)
+	def test_memory_usage(self):
+		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
+		self.check_status(job, "finished")
+
+		rss = job.latest_result().return_value
+		msg = """Memory usage of simple background job increased. Potential root cause can be a newly added python module import. Check and move them to approriate file/function to avoid loading the module by default."""
+
+		# If this starts failing analyze memory usage using memray or some equivalent tool to find
+		# offending imports/function calls.
+		# Refer this PR: https://github.com/frappe/frappe/pull/21467
+		LAST_MEASURED_USAGE = 40
+		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
+
 
 def test_func(fail=False, sleep=0):
 	if fail:

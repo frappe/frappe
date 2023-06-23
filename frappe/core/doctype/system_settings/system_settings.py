@@ -5,14 +5,13 @@ import frappe
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
-from frappe.translate import set_default_language
-from frappe.twofactor import toggle_two_factor_auth
 from frappe.utils import cint, today
-from frappe.utils.momentjs import get_all_timezones
 
 
 class SystemSettings(Document):
 	def validate(self):
+		from frappe.twofactor import toggle_two_factor_auth
+
 		enable_password_policy = cint(self.enable_password_policy) and True or False
 		minimum_password_score = cint(getattr(self, "minimum_password_score", 0)) or 0
 		if enable_password_policy and minimum_password_score <= 0:
@@ -69,6 +68,8 @@ class SystemSettings(Document):
 			update_last_reset_password_date()
 
 	def set_defaults(self):
+		from frappe.translate import set_default_language
+
 		for df in self.meta.get("fields"):
 			if df.fieldtype not in no_value_fields and self.has_value_changed(df.fieldname):
 				frappe.db.set_default(df.fieldname, self.get(df.fieldname))
@@ -90,6 +91,8 @@ def update_last_reset_password_date():
 
 @frappe.whitelist()
 def load():
+	from frappe.utils.momentjs import get_all_timezones
+
 	if not "System Manager" in frappe.get_roles():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
