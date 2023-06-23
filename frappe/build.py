@@ -229,6 +229,7 @@ def bundle(
 	verbose=False,
 	skip_frappe=False,
 	files=None,
+	save_metafiles=False,
 ):
 	"""concat / minify js files"""
 	setup()
@@ -247,6 +248,9 @@ def bundle(
 		command += " --files {files}".format(files=",".join(files))
 
 	command += " --run-build-command"
+
+	if save_metafiles:
+		command += " --save-metafiles"
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
