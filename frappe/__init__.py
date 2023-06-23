@@ -2418,4 +2418,20 @@ def mock(type, size=1, locale="en"):
 	return squashify(results)
 
 
-from frappe.desk.search import validate_and_sanitize_search_inputs  # noqa
+def validate_and_sanitize_search_inputs(fn):
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		from frappe.desk.search import sanitize_searchfield
+		from frappe.utils import cint
+
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+		sanitize_searchfield(kwargs["searchfield"])
+		kwargs["start"] = cint(kwargs["start"])
+		kwargs["page_len"] = cint(kwargs["page_len"])
+
+		if kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
+			return []
+
+		return fn(**kwargs)
+
+	return wrapper

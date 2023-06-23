@@ -13,6 +13,10 @@ frappe.ui.form.on("Module Onboarding", {
 		if (!frappe.boot.developer_mode) {
 			frm.trigger("disable_form");
 		}
+
+		frm.add_custom_button(__("Reset"), () => {
+			frm.call("reset_progress");
+		});
 	},
 
 	disable_form: function (frm) {

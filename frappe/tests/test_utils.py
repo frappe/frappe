@@ -20,7 +20,7 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
-from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.tests.utils import FrappeTestCase, MockedRequestTestCase, change_settings
 from frappe.utils import (
 	ceil,
 	dict_to_str,
@@ -815,8 +815,14 @@ class TestLinkTitle(FrappeTestCase):
 		prop_setter.delete()
 
 
-class TestAppParser(FrappeTestCase):
+class TestAppParser(MockedRequestTestCase):
 	def test_app_name_parser(self):
+		self.responses.add(
+			"HEAD",
+			"https://api.github.com/repos/frappe/healthcare",
+			status=200,
+			json={},
+		)
 		bench_path = get_bench_path()
 		frappe_app = os.path.join(bench_path, "apps", "frappe")
 		self.assertEqual("frappe", parse_app_name(frappe_app))
@@ -1096,6 +1102,8 @@ class TestRounding(FrappeTestCase):
 		rounding_method = "Banker's Rounding"
 
 		self.assertEqual(rounded(0, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(rounded(5.551115123125783e-17, 2, rounding_method=rounding_method), 0.0)
+
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 0)
 		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
 
