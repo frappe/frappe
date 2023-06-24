@@ -31,6 +31,30 @@ _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
 
 
+# If gc.freeze is done then importing modules before forking allows us to share the memory
+if frappe._tune_gc:
+	import frappe.boot
+	import frappe.client
+	import frappe.core.doctype.user.user
+	import frappe.database.mariadb.database  # Load database related utils
+	import frappe.database.query
+	import frappe.desk.desktop  # workspace
+	import frappe.model.db_query
+	import frappe.query_builder
+	import frappe.utils.background_jobs  # Enqueue is very common
+	import frappe.utils.data  # common utils
+	import frappe.utils.jinja  # web page rendering
+	import frappe.utils.jinja_globals
+	import frappe.utils.redis_wrapper  # Exact redis_wrapper
+	import frappe.utils.safe_exec
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+	import frappe.website.router  # Website router
+	import frappe.website.website_generator  # web page doctypes
+
+# end: module pre-loading
+
+
 @local_manager.middleware
 @Request.application
 def application(request: Request):
