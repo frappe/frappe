@@ -406,5 +406,5 @@ def serve(
 # doesn't mutate `PyGC_Head`
 #
 # Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
-if bool(os.environ.get("FRAPPE_TUNE_GC", False)):
+if frappe._tune_gc:
 	gc.freeze()
