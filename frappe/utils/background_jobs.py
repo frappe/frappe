@@ -236,6 +236,7 @@ def start_worker(
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
 	if frappe._tune_gc:
+		gc.collect()
 		gc.freeze()
 
 	with frappe.init_site():

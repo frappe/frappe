@@ -407,4 +407,5 @@ def serve(
 #
 # Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
 if frappe._tune_gc:
+	gc.collect()  # clean up any garbage created so far before freeze
 	gc.freeze()
