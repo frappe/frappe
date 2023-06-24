@@ -7,8 +7,12 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
 
+<<<<<<< HEAD
 import requests
 import requests.exceptions
+=======
+import filetype
+>>>>>>> 71b44efcac (perf: defer many requests imports)
 from PIL import Image
 
 import frappe
@@ -114,6 +118,9 @@ def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 
 
 def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
+	import requests
+	import requests.exceptions
+
 	# download
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)

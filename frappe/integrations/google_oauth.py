@@ -2,7 +2,6 @@ import json
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from requests import get, post
 
 import frappe
 from frappe.utils import get_request_site_address
@@ -56,6 +55,8 @@ class GoogleOAuth:
 			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
+		import requests
+
 		"""Returns a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
@@ -73,13 +74,14 @@ class GoogleOAuth:
 		}
 
 		return handle_response(
-			post(self.OAUTH_URL, data=data).json(),
+			requests.post(self.OAUTH_URL, data=data).json(),
 			"Google Oauth Authorization Error",
 			"Something went wrong during the authorization.",
 		)
 
 	def refresh_access_token(self, refresh_token: str) -> dict[str, str | int]:
 		"""Refreshes google access token using refresh token"""
+		import requests
 
 		data = {
 			"client_id": self.google_settings.client_id,
@@ -92,7 +94,7 @@ class GoogleOAuth:
 		}
 
 		return handle_response(
-			post(self.OAUTH_URL, data=data).json(),
+			requests.post(self.OAUTH_URL, data=data).json(),
 			"Google Oauth Access Token Refresh Error",
 			"Something went wrong during the access token generation.",
 			raise_err=True,
@@ -158,7 +160,9 @@ def handle_response(
 
 
 def is_valid_access_token(access_token: str) -> bool:
-	response = get(
+	import requests
+
+	response = requests.get(
 		"https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token}
 	).json()
 
