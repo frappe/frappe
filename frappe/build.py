@@ -10,9 +10,12 @@ from tempfile import mkdtemp, mktemp
 from urllib.parse import urlparse
 
 import click
+<<<<<<< HEAD
 import psutil
 from requests import head
 from requests.exceptions import HTTPError
+=======
+>>>>>>> 4c08689744 (perf: defer psutil import)
 from semantic_version import Version
 
 import frappe
@@ -291,6 +294,8 @@ def get_node_env():
 
 
 def get_safe_max_old_space_size():
+	import psutil
+
 	safe_max_old_space_size = 0
 	try:
 		total_memory = psutil.virtual_memory().total / (1024 * 1024)
