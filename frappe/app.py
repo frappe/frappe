@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import gc
 import logging
 import os
 
@@ -394,3 +395,17 @@ def serve(
 		use_evalex=not in_test_env,
 		threaded=not no_threading,
 	)
+
+
+# Both Gunicorn and RQ use forking to spawn workers. In an ideal world, the fork should be sharing
+# most of the memory if there are no writes made to data because of Copy on Write, however,
+# python's GC is not CoW friendly and writes to data even if user-code doesn't. Specifically, the
+# generational GC which stores and mutates every python object: `PyGC_Head`
+#
+# Calling gc.freeze() moves all the objects imported so far into permanant generation and hence
+# doesn't mutate `PyGC_Head`
+#
+# Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
+if frappe._tune_gc:
+	gc.collect()  # clean up any garbage created so far before freeze
+	gc.freeze()

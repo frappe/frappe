@@ -3,6 +3,8 @@
 
 import json
 
+import requests
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -22,8 +24,6 @@ class SlackWebhookURL(Document):
 
 
 def send_slack_message(webhook_url, message, reference_doctype, reference_name):
-	import requests
-
 	data = {"text": message, "attachments": []}
 
 	slack_url, show_link = frappe.db.get_value(
