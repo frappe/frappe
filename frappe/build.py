@@ -9,7 +9,6 @@ from tempfile import mkdtemp, mktemp
 from urllib.parse import urlparse
 
 import click
-import psutil
 from semantic_version import Version
 
 import frappe
@@ -288,6 +287,8 @@ def get_node_env():
 
 
 def get_safe_max_old_space_size():
+	import psutil
+
 	safe_max_old_space_size = 0
 	try:
 		total_memory = psutil.virtual_memory().total / (1024 * 1024)
