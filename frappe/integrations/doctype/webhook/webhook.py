@@ -5,10 +5,9 @@ import base64
 import hashlib
 import hmac
 import json
+import typing
 from time import sleep
 from urllib.parse import urlparse
-
-import requests
 
 import frappe
 from frappe import _
@@ -17,6 +16,9 @@ from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
+
+if typing.TYPE_CHECKING:
+	import requests
 
 
 class Webhook(Document):
@@ -112,6 +114,8 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
+	import requests
+
 	webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 	headers = get_webhook_headers(doc, webhook)
 	data = get_webhook_data(doc, webhook)
@@ -154,7 +158,7 @@ def log_request(
 	url: str,
 	headers: dict,
 	data: dict,
-	res: requests.Response | None = None,
+	res: typing.Optional["requests.Response"] = None,
 ):
 	request_log = frappe.get_doc(
 		{
