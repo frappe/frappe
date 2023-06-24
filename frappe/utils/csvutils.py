@@ -4,8 +4,6 @@ import csv
 import json
 from io import StringIO
 
-import requests
-
 import frappe
 from frappe import _, msgprint
 from frappe.utils import cint, comma_or, cstr, flt
@@ -178,6 +176,8 @@ def getlink(doctype, name):
 
 
 def get_csv_content_from_google_sheets(url):
+	import requests
+
 	# https://docs.google.com/spreadsheets/d/{sheetid}}/edit#gid={gid}
 	validate_google_sheets_url(url)
 	# get gid, defaults to first sheet
