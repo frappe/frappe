@@ -7,7 +7,6 @@ import inspect
 import json
 import linecache
 import os
-import pydoc
 import sys
 import traceback
 
@@ -69,6 +68,8 @@ def make_error_snapshot(exception):
 
 
 def get_snapshot(exception, context=10):
+	import pydoc
+
 	"""
 	Return a dict describing a given traceback (based on cgitb.text)
 	"""
