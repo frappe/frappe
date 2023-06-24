@@ -5,8 +5,6 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
-from frappe.integrations.oauth2_logins import decoder_compat
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_url
 from frappe.utils.data import escape_html
@@ -85,7 +83,10 @@ def get_context(context):
 			)
 			context["social_login"] = True
 
-	context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
+	if cint(frappe.db.get_value("LDAP Settings", "LDAP Settings", "enabled")):
+		from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+
+		context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
 
 	login_label = [_("Email")]
 
