@@ -49,7 +49,8 @@ def fetch_changelog_feed_items_from_source():
 				"creation_of_feed_item": changelog_feed_item["creation"],
 			}
 			if not frappe.db.exists(change_log_feed_item_dict):
-				feed_doc = frappe.get_doc(change_log_feed_item_dict)
+				feed_doc = frappe.new_doc("Changelog Feed")
+				feed_doc.update(change_log_feed_item_dict)
 				feed_doc.insert()
 
 	frappe.cache().delete_value("changelog_feed")
