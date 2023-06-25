@@ -11,9 +11,9 @@ context("Folder Navigation", () => {
 		cy.click_filter_button();
 		cy.get(".filter-action-buttons > .text-muted").findByText("+ Add a Filter").click();
 		cy.get(".fieldname-select-area > .awesomplete > .form-control:last").type("Fol{enter}");
-		cy.get(
-			".filter-field > .form-group > .link-field > .awesomplete > .input-with-feedback"
-		).type("Home{enter}");
+		cy.get(".filter-field > .form-group > .link-field > .awesomplete > .input-with-feedback")
+			.first()
+			.type("Home{enter}");
 		cy.get(".filter-action-buttons > div > .btn-primary").findByText("Apply Filters").click();
 
 		//Adding folder (Test Folder)
@@ -24,6 +24,7 @@ context("Folder Navigation", () => {
 
 	it("Navigating the nested folders, checking if the URL formed is correct, checking if the added content in the child folder is correct", () => {
 		//Navigating inside the Attachments folder
+		cy.clear_filters();
 		cy.wait(500);
 		cy.get('[title="Attachments"] > span').click();
 
