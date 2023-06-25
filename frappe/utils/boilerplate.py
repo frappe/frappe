@@ -298,14 +298,13 @@ __version__ = '0.0.1'
 
 """
 
-hooks_template = """from . import __version__ as app_version
-
-app_name = "{app_name}"
+hooks_template = """app_name = "{app_name}"
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
+# required_apps = []
 
 # Includes in <head>
 # ------------------

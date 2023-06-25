@@ -34,6 +34,7 @@ ignore_values = {
 	"Print Style": ["disabled"],
 	"Module Onboarding": ["is_complete"],
 	"Onboarding Step": ["is_complete", "is_skipped"],
+	"Workspace": ["is_hidden"],
 }
 
 ignore_doctypes = [""]
