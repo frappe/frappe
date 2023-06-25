@@ -18,7 +18,8 @@
   "user",
   "seen",
   "system_notifications_section",
-  "energy_points_system_notifications"
+  "energy_points_system_notifications",
+  "whats_new_notifications"
  ],
  "fields": [
   {
@@ -105,12 +106,18 @@
    "fieldname": "enable_email_event_reminders",
    "fieldtype": "Check",
    "label": "Event Reminders"
+  },
+  {
+   "default": "1",
+   "fieldname": "whats_new_notifications",
+   "fieldtype": "Check",
+   "label": "What's New"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-24 14:45:31.931154",
+ "modified": "2023-06-25 11:02:58.776676",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
@@ -132,5 +139,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

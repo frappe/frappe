@@ -459,45 +459,63 @@ class ChangelogFeedView extends BaseNotificationsView {
 	}
 
 	render_changelog_feed_html(changelog_feed_list) {
-		let html = "";
-		if (changelog_feed_list.length) {
-			this.container.empty();
-			const get_changelog_feed_html = (changelog_feed_item) => {
-				const timestamp = frappe.datetime.prettyDate(
-					changelog_feed_item.creation_of_feed_item
-				);
-				const message_html = `<div class="message">
-					<div>${changelog_feed_item.title}</div>
-					<div class="notification-timestamp text-muted">
-					${changelog_feed_item.app_name} | ${timestamp}
+		frappe.db
+			.get_value("Notification Settings", frappe.session.user, "whats_new_notifications")
+			.then((r) => {
+				let html = "";
+				if (!r.message.whats_new_notifications) {
+					html = `
+					<div class="notification-null-state">
+						<div class="text-center">
+							<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
+							<div class="title">${__("What's New is disabled")}</div>
+							<div class="subtitle">
+								${__("Enable What's New in System Settings to see new features, improvements and bug fixes.")}
+							</div>
+						</div>
 					</div>
-				</div>`;
+				`;
+				} else if (changelog_feed_list.length) {
+					this.container.empty();
+					const get_changelog_feed_html = (changelog_feed_item) => {
+						const timestamp = frappe.datetime.prettyDate(
+							changelog_feed_item.creation_of_feed_item
+						);
+						const message_html = `<div class="message">
+							<div>${changelog_feed_item.title}</div>
+							<div class="notification-timestamp text-muted">
+							${changelog_feed_item.app_name} | ${timestamp}
+							</div>
+						</div>`;
 
-				const item_html = `<a class="recent-item notification-item"
-						href="${changelog_feed_item.link}?utm_source=frappe_desk"
-						data-name="${changelog_feed_item.title}"
-						target="_blank" rel="noopener noreferrer"
-					>
-					<div class="notification-body">
-						${message_html}
-					</div>
-					</div>
-				</a>`;
+						const item_html = `<a class="recent-item notification-item"
+								href="${changelog_feed_item.link}?utm_source=frappe_desk"
+								data-name="${changelog_feed_item.title}"
+								target="_blank" rel="noopener noreferrer"
+							>
+							<div class="notification-body">
+								${message_html}
+							</div>
+							</div>
+						</a>`;
 
-				return item_html;
-			};
-			html = changelog_feed_list.map(get_changelog_feed_html).join("");
-		} else {
-			html = `
-				<div class="notification-null-state">
-					<div class="text-center">
-					<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
-					<div class="title">${__("Nothing New")}</div>
-					<div class="subtitle">
-						${__("There is nothing new for you.")}
-				</div></div></div>
-			`;
-		}
-		this.container.html(html);
+						return item_html;
+					};
+					html = changelog_feed_list.map(get_changelog_feed_html).join("");
+				} else {
+					html = `
+						<div class="notification-null-state">
+							<div class="text-center">
+								<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
+								<div class="title">${__("Nothing New")}</div>
+								<div class="subtitle">
+									${__("There is nothing new to show you right now.")}
+								</div>
+							</div>
+						</div>
+					`;
+				}
+				this.container.html(html);
+			});
 	}
 }
