@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
-from rq import Connection, Queue, Worker
+from rq import Queue, Worker
 from rq.exceptions import NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
@@ -253,17 +253,16 @@ def start_worker(
 
 	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
 
-	with Connection(redis_connection):
-		logging_level = "INFO"
-		if quiet:
-			logging_level = "WARNING"
-		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(
-			logging_level=logging_level,
-			burst=burst,
-			date_format="%Y-%m-%d %H:%M:%S",
-			log_format="%(asctime)s,%(msecs)03d %(message)s",
-		)
+	logging_level = "INFO"
+	if quiet:
+		logging_level = "WARNING"
+	worker = WorkerKlass(queues, name=get_worker_name(queue_name), connection=redis_connection)
+	worker.work(
+		logging_level=logging_level,
+		burst=burst,
+		date_format="%Y-%m-%d %H:%M:%S",
+		log_format="%(asctime)s,%(msecs)03d %(message)s",
+	)
 
 
 def get_worker_name(queue):
