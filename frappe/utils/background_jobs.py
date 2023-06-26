@@ -14,6 +14,7 @@ from rq.exceptions import NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.worker import DequeueStrategy
+from rq.worker_pool import WorkerPool
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
@@ -237,9 +238,7 @@ def start_worker(
 	if not strategy:
 		strategy = DequeueStrategy.DEFAULT
 
-	if frappe._tune_gc:
-		gc.collect()
-		gc.freeze()
+	_freeze_gc()
 
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
@@ -265,6 +264,47 @@ def start_worker(
 		log_format="%(asctime)s,%(msecs)03d %(message)s",
 		dequeue_strategy=strategy,
 	)
+
+
+def start_worker_pool(
+	queue: str | None = None,
+	num_workers: int = 1,
+	quiet: bool = False,
+	burst: bool = False,
+) -> NoReturn:
+	"""Start worker pool with specified number of workers.
+
+	WARNING: This feature is considered "EXPERIMENTAL".
+	"""
+
+	_freeze_gc()
+
+	with frappe.init_site():
+		redis_connection = get_redis_conn()
+
+		if queue:
+			queue = [q.strip() for q in queue.split(",")]
+		queues = get_queue_list(queue, build_queue_name=True)
+
+	if os.environ.get("CI"):
+		setup_loghandlers("ERROR")
+
+	logging_level = "INFO"
+	if quiet:
+		logging_level = "WARNING"
+
+	pool = WorkerPool(
+		queues=queues,
+		connection=redis_connection,
+		num_workers=num_workers,
+	)
+	pool.start(logging_level=logging_level, burst=burst)
+
+
+def _freeze_gc():
+	if frappe._tune_gc:
+		gc.collect()
+		gc.freeze()
 
 
 def get_worker_name(queue):
