@@ -4,7 +4,7 @@ import { useStore } from "../../store";
 import { ref, useSlots } from "vue";
 
 let store = useStore();
-let props = defineProps(["df", "value"]);
+const props = defineProps(["df", "value"]);
 let slots = useSlots();
 let time_zone = ref("");
 let placeholder = ref("");

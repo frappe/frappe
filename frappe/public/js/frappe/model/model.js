@@ -836,9 +836,9 @@ $.extend(frappe.model, {
 			}
 
 			if (
-				(frm.doc.fields.find((i) => i.fieldname === "latitude") &&
-					frm.doc.fields.find((i) => i.fieldname === "longitude")) ||
-				frm.doc.fields.find(
+				(frm.doc.fields?.find((i) => i.fieldname === "latitude") &&
+					frm.doc.fields?.find((i) => i.fieldname === "longitude")) ||
+				frm.doc.fields?.find(
 					(i) => i.fieldname === "location" && i.fieldtype == "Geolocation"
 				)
 			) {

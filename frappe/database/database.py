@@ -17,7 +17,6 @@ from pypika.terms import Criterion, NullValue
 
 import frappe
 import frappe.defaults
-import frappe.model.meta
 from frappe import _
 from frappe.database.utils import (
 	DefaultOrderBy,

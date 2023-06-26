@@ -6,7 +6,7 @@ import { ref } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent, confirm_dialog } from "../utils";
 
-let props = defineProps(["section", "column"]);
+const props = defineProps(["section", "column"]);
 let store = useStore();
 
 let hovered = ref(false);
