@@ -615,46 +615,38 @@ class TestAttachmentsAccess(FrappeTestCase):
 		frappe.set_user("test4@example.com")
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 
-		frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_user_attachment.txt",
-				"attached_to_doctype": self.attached_to_doctype,
-				"attached_to_name": self.attached_to_docname,
-				"content": "Testing User",
-				"is_private": 1,
-			}
+		frappe.new_doc(
+			"File",
+			file_name="test_user_attachment.txt",
+			attached_to_doctype=self.attached_to_doctype,
+			attached_to_name=self.attached_to_docname,
+			content="Testing User",
+			is_private=1,
 		).insert()
 
-		frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_user_standalone.txt",
-				"content": "User Home",
-				"is_private": 1,
-			}
+		frappe.new_doc(
+			"File",
+			file_name="test_user_standalone.txt",
+			content="User Home",
+			is_private=1,
 		).insert()
 
 		frappe.set_user("test@example.com")
 
-		frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_sm_attachment.txt",
-				"attached_to_doctype": self.attached_to_doctype,
-				"attached_to_name": self.attached_to_docname,
-				"content": "Testing System Manager",
-				"is_private": 1,
-			}
+		frappe.new_doc(
+			"File",
+			file_name="test_sm_attachment.txt",
+			attached_to_doctype=self.attached_to_doctype,
+			attached_to_name=self.attached_to_docname,
+			content="Testing System Manager",
+			is_private=1,
 		).insert()
 
-		frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_sm_standalone.txt",
-				"content": "System Manager Home",
-				"is_private": 1,
-			}
+		frappe.new_doc(
+			"File",
+			file_name="test_sm_standalone.txt",
+			content="System Manager Home",
+			is_private=1,
 		).insert()
 
 		system_manager_files = [file.file_name for file in get_files_in_folder("Home")["files"]]
@@ -682,13 +674,11 @@ class TestAttachmentsAccess(FrappeTestCase):
 	def test_list_public_single_file(self):
 		"""Ensure that users are able to list public standalone files."""
 		frappe.set_user("test@example.com")
-		frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_public_single.txt",
-				"content": "Public single File",
-				"is_private": 0,
-			}
+		frappe.new_doc(
+			"File",
+			file_name="test_public_single.txt",
+			content="Public single File",
+			is_private=0,
 		).insert()
 
 		frappe.set_user("test4@example.com")
@@ -699,15 +689,13 @@ class TestAttachmentsAccess(FrappeTestCase):
 		"""Ensure that users are able to list public attachments."""
 		frappe.set_user("test@example.com")
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
-		frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_public_attachment.txt",
-				"attached_to_doctype": self.attached_to_doctype,
-				"attached_to_name": self.attached_to_docname,
-				"content": "Public Attachment",
-				"is_private": 0,
-			}
+		frappe.new_doc(
+			"File",
+			file_name="test_public_attachment.txt",
+			attached_to_doctype=self.attached_to_doctype,
+			attached_to_name=self.attached_to_docname,
+			content="Public Attachment",
+			is_private=0,
 		).insert()
 
 		frappe.set_user("test4@example.com")
