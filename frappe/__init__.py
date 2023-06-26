@@ -396,6 +396,14 @@ def log(msg: str) -> None:
 	debug_log.append(as_unicode(msg))
 
 
+def alert(
+	msg: str,
+	*,
+	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
+):
+	return msgprint(msg, indicator=indicator, alert=True)
+
+
 def msgprint(
 	msg: str,
 	title: str | None = None,
