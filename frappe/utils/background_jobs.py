@@ -4,16 +4,17 @@ import socket
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import Any, Callable, Literal, NoReturn
+from typing import Any, Callable, NoReturn
 from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
-from rq import Connection, Queue, Worker
+from rq import Queue, Worker
 from rq.exceptions import NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
-from rq.worker import RandomWorker, RoundRobinWorker
+from rq.worker import DequeueStrategy
+from rq.worker_pool import WorkerPool
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 import frappe
@@ -230,14 +231,14 @@ def start_worker(
 	rq_username: str | None = None,
 	rq_password: str | None = None,
 	burst: bool = False,
-	strategy: Literal["round_robin", "random"] | None = None,
+	strategy: DequeueStrategy | None = DequeueStrategy.DEFAULT,
 ) -> NoReturn | None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
-	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
-	if frappe._tune_gc:
-		gc.collect()
-		gc.freeze()
+	if not strategy:
+		strategy = DequeueStrategy.DEFAULT
+
+	_freeze_gc()
 
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
@@ -251,19 +252,59 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
-	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
+	logging_level = "INFO"
+	if quiet:
+		logging_level = "WARNING"
 
-	with Connection(redis_connection):
-		logging_level = "INFO"
-		if quiet:
-			logging_level = "WARNING"
-		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(
-			logging_level=logging_level,
-			burst=burst,
-			date_format="%Y-%m-%d %H:%M:%S",
-			log_format="%(asctime)s,%(msecs)03d %(message)s",
-		)
+	worker = Worker(queues, name=get_worker_name(queue_name), connection=redis_connection)
+	worker.work(
+		logging_level=logging_level,
+		burst=burst,
+		date_format="%Y-%m-%d %H:%M:%S",
+		log_format="%(asctime)s,%(msecs)03d %(message)s",
+		dequeue_strategy=strategy,
+	)
+
+
+def start_worker_pool(
+	queue: str | None = None,
+	num_workers: int = 1,
+	quiet: bool = False,
+	burst: bool = False,
+) -> NoReturn:
+	"""Start worker pool with specified number of workers.
+
+	WARNING: This feature is considered "EXPERIMENTAL".
+	"""
+
+	_freeze_gc()
+
+	with frappe.init_site():
+		redis_connection = get_redis_conn()
+
+		if queue:
+			queue = [q.strip() for q in queue.split(",")]
+		queues = get_queue_list(queue, build_queue_name=True)
+
+	if os.environ.get("CI"):
+		setup_loghandlers("ERROR")
+
+	logging_level = "INFO"
+	if quiet:
+		logging_level = "WARNING"
+
+	pool = WorkerPool(
+		queues=queues,
+		connection=redis_connection,
+		num_workers=num_workers,
+	)
+	pool.start(logging_level=logging_level, burst=burst)
+
+
+def _freeze_gc():
+	if frappe._tune_gc:
+		gc.collect()
+		gc.freeze()
 
 
 def get_worker_name(queue):
