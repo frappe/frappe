@@ -62,7 +62,7 @@ class Importer:
 
 	def before_import(self):
 		# set user lang for translations
-		frappe.cache().hdel("lang", frappe.session.user)
+		frappe.cache.hdel("lang", frappe.session.user)
 		frappe.set_user_lang(frappe.session.user)
 
 		# set flags
@@ -579,6 +579,10 @@ class ImportFile:
 
 		file_content = None
 
+		if self.console:
+			file_content = frappe.read_file(file_path, True)
+			return file_content, extn
+
 		file_name = frappe.db.get_value("File", {"file_url": file_path})
 		if file_name:
 			file = frappe.get_doc("File", file_name)
@@ -690,7 +694,7 @@ class Row:
 		df = col.df
 		if df.fieldtype == "Select":
 			select_options = get_select_options(df)
-			if select_options and value not in select_options:
+			if select_options and cstr(value) not in select_options:
 				options_string = ", ".join(frappe.bold(d) for d in select_options)
 				msg = _("Value must be one of {0}").format(options_string)
 				self.warnings.append(
@@ -1207,7 +1211,7 @@ def get_df_for_column_header(doctype, header):
 	def build_fields_dict_for_doctype():
 		return build_fields_dict_for_column_matching(doctype)
 
-	df_by_labels_and_fieldname = frappe.cache().hget(
+	df_by_labels_and_fieldname = frappe.cache.hget(
 		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
 	)
 	return df_by_labels_and_fieldname.get(header)

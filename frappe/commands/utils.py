@@ -13,10 +13,6 @@ from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
 
 find_executable = which  # backwards compatibility
-DATA_IMPORT_DEPRECATION = (
-	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
-	"Use `data-import` command instead to import data via 'Data Import'."
-)
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 
 
@@ -30,32 +26,25 @@ EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 	help="Copy the files instead of symlinking",
 	envvar="FRAPPE_HARD_LINK_ASSETS",
 )
-@click.option(
-	"--make-copy",
-	is_flag=True,
-	default=False,
-	help="[DEPRECATED] Copy the files instead of symlinking",
-)
-@click.option(
-	"--restore",
-	is_flag=True,
-	default=False,
-	help="[DEPRECATED] Copy the files instead of symlinking with force",
-)
 @click.option("--production", is_flag=True, default=False, help="Build assets in production mode")
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option(
 	"--force", is_flag=True, default=False, help="Force build assets instead of downloading available"
 )
+@click.option(
+	"--save-metafiles",
+	is_flag=True,
+	default=False,
+	help="Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
+)
 def build(
 	app=None,
 	apps=None,
 	hard_link=False,
-	make_copy=False,
-	restore=False,
 	production=False,
 	verbose=False,
 	force=False,
+	save_metafiles=False,
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
@@ -80,14 +69,14 @@ def build(
 		if production:
 			mode = "production"
 
-		if make_copy or restore:
-			hard_link = make_copy or restore
-			click.secho(
-				"bench build: --make-copy and --restore options are deprecated in favour of --hard-link",
-				fg="yellow",
-			)
-
-		bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+		bundle(
+			mode,
+			apps=apps,
+			hard_link=hard_link,
+			verbose=verbose,
+			skip_frappe=skip_frappe,
+			save_metafiles=save_metafiles,
+		)
 
 
 @click.command("watch")
@@ -409,37 +398,16 @@ def import_doc(context, path, force=False):
 		raise SiteNotSpecifiedError
 
 
-@click.command("import-csv", help=DATA_IMPORT_DEPRECATION)
-@click.argument("path")
-@click.option(
-	"--only-insert", default=False, is_flag=True, help="Do not overwrite existing records"
-)
-@click.option(
-	"--submit-after-import", default=False, is_flag=True, help="Submit document after importing it"
-)
-@click.option(
-	"--ignore-encoding-errors",
-	default=False,
-	is_flag=True,
-	help="Ignore encoding errors while coverting to unicode",
-)
-@click.option("--no-email", default=True, is_flag=True, help="Send email if applicable")
-@pass_context
-def import_csv(
-	context,
-	path,
-	only_insert=False,
-	submit_after_import=False,
-	ignore_encoding_errors=False,
-	no_email=True,
-):
-	click.secho(DATA_IMPORT_DEPRECATION, fg="yellow")
-	sys.exit(1)
-
-
 @click.command("data-import")
 @click.option(
-	"--file", "file_path", type=click.Path(), required=True, help="Path to import file (.csv, .xlsx)"
+	"--file",
+	"file_path",
+	type=click.Path(exists=True, dir_okay=False, resolve_path=True),
+	required=True,
+	help=(
+		"Path to import file (.csv, .xlsx)."
+		"Consider that relative paths will resolve from 'sites' directory"
+	),
 )
 @click.option("--doctype", type=str, required=True)
 @click.option(
@@ -765,7 +733,6 @@ def transform_database(context, table, engine, row_format, failfast):
 	help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt",
 )
 @click.option("--test", multiple=True, help="Specific test")
-@click.option("--ui-tests", is_flag=True, default=False, help="Run UI Tests")
 @click.option("--module", help="Run tests in a module")
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
@@ -788,7 +755,6 @@ def run_tests(
 	profile=False,
 	coverage=False,
 	junit_xml_output=False,
-	ui_tests=False,
 	doctype_list_path=None,
 	skip_test_records=False,
 	skip_before_tests=False,
@@ -827,7 +793,6 @@ def run_tests(
 			force=context.force,
 			profile=profile,
 			junit_xml_output=junit_xml_output,
-			ui_tests=ui_tests,
 			doctype_list_path=doctype_list_path,
 			failfast=failfast,
 			case=case,
@@ -1063,19 +1028,10 @@ def create_patch():
 	"-g", "--global", "global_", is_flag=True, default=False, help="Set value in bench config"
 )
 @click.option("-p", "--parse", is_flag=True, default=False, help="Evaluate as Python Object")
-@click.option("--as-dict", is_flag=True, default=False, help="Legacy: Evaluate as Python Object")
 @pass_context
-def set_config(context, key, value, global_=False, parse=False, as_dict=False):
+def set_config(context, key, value, global_=False, parse=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
-
-	if as_dict:
-		from frappe.utils.commands import warn
-
-		warn(
-			"--as-dict will be deprecated in v14. Use --parse instead", category=PendingDeprecationWarning
-		)
-		parse = as_dict
 
 	if parse:
 		import ast
@@ -1200,7 +1156,6 @@ commands = [
 	export_fixtures,
 	export_json,
 	get_version,
-	import_csv,
 	data_import,
 	import_doc,
 	make_app,

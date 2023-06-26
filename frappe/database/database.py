@@ -17,7 +17,6 @@ from pypika.terms import Criterion, NullValue
 
 import frappe
 import frappe.defaults
-import frappe.model.meta
 from frappe import _
 from frappe.database.utils import (
 	DefaultOrderBy,
@@ -33,7 +32,7 @@ from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
-from frappe.utils.deprecations import deprecated, deprecation_warning
+from frappe.utils.deprecations import deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -302,7 +301,7 @@ class Database:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
-		if frappe.conf.allow_tests and frappe.cache().get_value("flag_print_sql"):
+		if frappe.conf.allow_tests and frappe.cache.get_value("flag_print_sql"):
 			_query = _query or str(mogrified_query)
 			print(_query)
 
@@ -419,7 +418,7 @@ class Database:
 	@staticmethod
 	def clear_db_table_cache(query):
 		if query and is_query_type(query, ("drop", "create")):
-			frappe.cache().delete_key("db_tables")
+			frappe.cache.delete_key("db_tables")
 
 	def get_description(self):
 		"""Returns result metadata."""
@@ -874,7 +873,6 @@ class Database:
 		modified_by=None,
 		update_modified=True,
 		debug=False,
-		for_update=True,
 	):
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
@@ -890,10 +888,11 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
+		from frappe.model.utils import is_single_doctype
 
-		if _is_single_doctype := not (dn and dt != dn):
+		if (dn is None or dt == dn) and is_single_doctype(dt):
 			deprecation_warning(
-				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in version 15. Use db.set_single_value instead."
+				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead."
 			)
 			self.set_single_value(
 				doctype=dt,
@@ -1067,7 +1066,7 @@ class Database:
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Returns `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
-			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
+			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
 		count = frappe.qb.get_query(
@@ -1078,7 +1077,7 @@ class Database:
 			validate_filters=True,
 		).run(debug=debug)[0][0]
 		if not filters and cache:
-			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
+			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
 
 	@staticmethod
@@ -1109,7 +1108,7 @@ class Database:
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
-		columns = frappe.cache().hget("table_columns", table)
+		columns = frappe.cache.hget("table_columns", table)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
 
@@ -1121,7 +1120,7 @@ class Database:
 			)
 
 			if columns:
-				frappe.cache().hset("table_columns", table, columns)
+				frappe.cache.hset("table_columns", table, columns)
 
 		return columns
 

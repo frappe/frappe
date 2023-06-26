@@ -61,7 +61,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 
 		return doctypes
 
-	return frappe.cache().get_value("doctypes_with_global_search", _get)
+	return frappe.cache.get_value("doctypes_with_global_search", _get)
 
 
 def rebuild_for_doctype(doctype):
@@ -371,17 +371,17 @@ def sync_global_search():
 	:param flags:
 	:return:
 	"""
-	while frappe.cache().llen("global_search_queue") > 0:
+	while frappe.cache.llen("global_search_queue") > 0:
 		# rpop to follow FIFO
 		# Last one should override all previous contents of same document
-		value = json.loads(frappe.cache().rpop("global_search_queue").decode("utf-8"))
+		value = json.loads(frappe.cache.rpop("global_search_queue").decode("utf-8"))
 		sync_value(value)
 
 
 def sync_value_in_queue(value):
 	try:
 		# append to search queue if connected
-		frappe.cache().lpush("global_search_queue", json.dumps(value))
+		frappe.cache.lpush("global_search_queue", json.dumps(value))
 	except redis.exceptions.ConnectionError:
 		# not connected, sync directly
 		sync_value(value)

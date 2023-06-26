@@ -435,7 +435,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		to_query = not cached
 
 		if cached:
-			tables = frappe.cache().get_value("db_tables")
+			tables = frappe.cache.get_value("db_tables")
 			to_query = not tables
 
 		if to_query:
@@ -447,7 +447,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				.where(information_schema.tables.table_schema != "information_schema")
 				.run(pluck=True)
 			)
-			frappe.cache().set_value("db_tables", tables)
+			frappe.cache.set_value("db_tables", tables)
 
 		return tables
 

@@ -204,12 +204,11 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permlevel or permtype)
 
-	def has_permission(self, permtype="read", verbose=False) -> bool:
+	def has_permission(self, permtype="read") -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
 		:param permtype: `read`, `write`, `submit`, `cancel`, `delete`, etc.
-		:param verbose: DEPRECATED, will be removed in a future release.
 		"""
 
 		if self.flags.ignore_permissions:
@@ -959,9 +958,7 @@ class Document(BaseDocument):
 					filters={"enabled": 1, "document_type": self.doctype},
 				)
 
-			self.flags.notifications = frappe.cache().hget(
-				"notifications", self.doctype, _get_notifications
-			)
+			self.flags.notifications = frappe.cache.hget("notifications", self.doctype, _get_notifications)
 
 		if not self.flags.notifications:
 			return
@@ -1126,7 +1123,7 @@ class Document(BaseDocument):
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
-		if getattr(self.meta, "track_seen", False):
+		if getattr(self.meta, "track_seen", False) and not getattr(self.meta, "issingle", False):
 			frappe.db.set_value(
 				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
 			)
@@ -1185,15 +1182,25 @@ class Document(BaseDocument):
 		if self.name is None:
 			return
 
-		frappe.db.set_value(
-			self.doctype,
-			self.name,
-			fieldname,
-			value,
-			self.modified,
-			self.modified_by,
-			update_modified=update_modified,
-		)
+		if self.meta.issingle:
+			frappe.db.set_single_value(
+				self.doctype,
+				fieldname,
+				value,
+				modified=self.modified,
+				modified_by=self.modified_by,
+				update_modified=update_modified,
+			)
+		else:
+			frappe.db.set_value(
+				self.doctype,
+				self.name,
+				fieldname,
+				value,
+				self.modified,
+				self.modified_by,
+				update_modified=update_modified,
+			)
 
 		self.run_method("on_change")
 
@@ -1378,7 +1385,7 @@ class Document(BaseDocument):
 		if not user:
 			user = frappe.session.user
 
-		if self.meta.track_seen and not frappe.flags.read_only:
+		if self.meta.track_seen and not frappe.flags.read_only and not self.meta.issingle:
 			_seen = self.get("_seen") or []
 			_seen = frappe.parse_json(_seen)
 

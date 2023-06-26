@@ -49,14 +49,6 @@ frappe.ui.form.on("Customize Form", {
 				grid_row.row.addClass("highlight");
 			}
 		});
-
-		$(frm.wrapper).on("grid-make-sortable", function (e, frm) {
-			frm.trigger("setup_sortable");
-		});
-
-		$(frm.wrapper).on("grid-move-row", function (e, frm) {
-			frm.trigger("setup_sortable");
-		});
 	},
 
 	doc_type: function (frm) {
@@ -71,7 +63,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.set_value("doc_type", "");
 						} else {
 							frm.refresh();
-							frm.trigger("setup_sortable");
+							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
 						}
 					}
@@ -87,23 +79,16 @@ frappe.ui.form.on("Customize Form", {
 		frm.trigger("setup_default_views");
 	},
 
-	setup_sortable: function (frm) {
+	add_customize_child_table_button: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (!f.is_custom_field || f.is_system_generated) {
-				f._sortable = false;
-			}
+			if (!in_list(["Table", "Table MultiSelect"], f.fieldtype)) return;
 
-			if (f.fieldtype == "Table") {
-				frm.add_custom_button(
-					f.options,
-					function () {
-						frm.set_value("doc_type", f.options);
-					},
-					__("Customize Child Table")
-				);
-			}
+			frm.add_custom_button(
+				f.options,
+				() => frm.set_value("doc_type", f.options),
+				__("Customize Child Table")
+			);
 		});
-		frm.fields_dict.fields.grid.refresh();
 	},
 
 	refresh: function (frm) {
@@ -126,6 +111,14 @@ frappe.ui.form.on("Customize Form", {
 				);
 
 				frm.add_custom_button(
+					__("Set Permissions"),
+					function () {
+						frappe.set_route("permission-manager", frm.doc.doc_type);
+					},
+					__("Actions")
+				);
+
+				frm.add_custom_button(
 					__("Reload"),
 					function () {
 						frm.script_manager.trigger("doc_type");
@@ -134,17 +127,17 @@ frappe.ui.form.on("Customize Form", {
 				);
 
 				frm.add_custom_button(
-					__("Reset to defaults"),
-					function () {
-						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
+					__("Reset Layout"),
+					() => {
+						frm.trigger("reset_layout");
 					},
 					__("Actions")
 				);
 
 				frm.add_custom_button(
-					__("Set Permissions"),
+					__("Reset All Customizations"),
 					function () {
-						frappe.set_route("permission-manager", frm.doc.doc_type);
+						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
 					},
 					__("Actions")
 				);
@@ -177,6 +170,27 @@ frappe.ui.form.on("Customize Form", {
 		if (doc_type) {
 			setTimeout(() => frm.set_value("doc_type", doc_type, false, true), 1000);
 		}
+	},
+
+	reset_layout(frm) {
+		frappe.confirm(
+			__("Layout will be reset to standard layout, are you sure you want to do this?"),
+			() => {
+				return frm.call({
+					doc: frm.doc,
+					method: "reset_layout",
+					callback: function (r) {
+						if (!r.exc) {
+							frappe.show_alert({
+								message: __("Layout Reset"),
+								indicator: "green",
+							});
+							frappe.customize_form.clear_locals_and_refresh(frm);
+						}
+					},
+				});
+			}
+		);
 	},
 
 	setup_export(frm) {

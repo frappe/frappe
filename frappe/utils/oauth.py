@@ -5,8 +5,6 @@ import base64
 import json
 from typing import TYPE_CHECKING, Callable
 
-import jwt
-
 import frappe
 import frappe.utils
 from frappe import _
@@ -126,6 +124,9 @@ def login_via_oauth2_id_token(
 def get_info_via_oauth(
 	provider: str, code: str, decoder: Callable | None = None, id_token: bool = False
 ):
+
+	import jwt
+
 	flow = get_oauth2_flow(provider)
 	oauth2_providers = get_oauth2_providers()
 
@@ -210,7 +211,7 @@ def login_oauth_user(
 
 	if frappe.utils.cint(generate_login_token):
 		login_token = frappe.generate_hash(length=32)
-		frappe.cache().set_value(
+		frappe.cache.set_value(
 			f"login_token:{login_token}", frappe.local.session.sid, expires_in_sec=120
 		)
 

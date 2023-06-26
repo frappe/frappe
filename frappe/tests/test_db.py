@@ -192,7 +192,7 @@ class TestDB(FrappeTestCase):
 		# test
 		for inp in test_inputs:
 			fieldname = f"test_{inp['fieldtype'].lower()}"
-			frappe.db.set_value("Print Settings", "Print Settings", fieldname, inp["value"])
+			frappe.db.set_single_value("Print Settings", fieldname, inp["value"])
 			self.assertEqual(frappe.db.get_single_value("Print Settings", fieldname), inp["value"])
 
 		# teardown
@@ -201,7 +201,7 @@ class TestDB(FrappeTestCase):
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
 		frappe.flags.touched_tables = set()
-		frappe.db.set_value("System Settings", "System Settings", "backup_limit", 5)
+		frappe.db.set_single_value("System Settings", "backup_limit", 5)
 		self.assertIn("tabSingles", frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
@@ -699,14 +699,12 @@ class TestDBSetValue(FrappeTestCase):
 		value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		changed_value = not value
 
-		frappe.db.set_value(
-			"System Settings", "System Settings", "deny_multiple_sessions", changed_value
-		)
+		frappe.db.set_single_value("System Settings", "deny_multiple_sessions", changed_value)
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
 
 		changed_value = not current_value
-		frappe.db.set_value("System Settings", None, "deny_multiple_sessions", changed_value)
+		frappe.db.set_single_value("System Settings", "deny_multiple_sessions", changed_value)
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
 
@@ -719,6 +717,11 @@ class TestDBSetValue(FrappeTestCase):
 		frappe.db.set_value("ToDo", self.todo1.name, "description", "test_set_value change 1")
 		updated_value = frappe.db.get_value("ToDo", self.todo1.name, "description")
 		self.assertEqual(updated_value, "test_set_value change 1")
+
+	@patch("frappe.db.set_single_value")
+	def test_set_single_value_with_set_value(self, single_set):
+		frappe.db.set_value("Contact Us Settings", None, "country", "India")
+		single_set.assert_called_once()
 
 	def test_update_single_row_multiple_columns(self):
 		description, status = "Upated by test_update_single_row_multiple_columns", "Closed"

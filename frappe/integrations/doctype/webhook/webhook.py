@@ -29,7 +29,7 @@ class Webhook(Document):
 		self.preview_document = None
 
 	def on_update(self):
-		frappe.cache().delete_value("webhooks")
+		frappe.cache.delete_value("webhooks")
 
 	def validate_docevent(self):
 		if self.webhook_doctype:
@@ -129,7 +129,7 @@ def enqueue_webhook(doc, webhook) -> None:
 				url=request_url,
 				data=json.dumps(data, default=str),
 				headers=headers,
-				timeout=5,
+				timeout=webhook.timeout or 5,
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})

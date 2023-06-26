@@ -62,14 +62,16 @@ jobs:
           fi
 
       - name: Setup Python
-        uses: "gabrielfalcao/pyenv-action@v10"
+        uses: actions/setup-python@v4
         with:
-          versions: 3.10:latest, 3.7:latest
+          python-version: |
+              3.7
+              3.10
 
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
 
       - name: Add to Hosts
@@ -100,7 +102,6 @@ jobs:
         run: |
           bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           pip install frappe-bench
-          pyenv global $(pyenv versions | grep '3.10')
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
@@ -120,26 +121,39 @@ jobs:
 
           function update_to_version() {
             version=$1
+            py=$2
+
             branch_name="version-$version-hotfix"
             echo "Updating to v$version"
             git fetch --depth 1 upstream $branch_name:$branch_name
             git checkout -q -f $branch_name
-            pip install -U frappe-bench
 
+            pgrep honcho | xargs kill
             rm -rf ~/frappe-bench/env
-            bench -v setup env
+            bench -v setup env --python $py
+            bench start &> ~/frappe-bench/bench_start.log &
+
             bench --site test_site migrate
           }
 
-          pyenv global $(pyenv versions | grep '3.7')
-          update_to_version 12
-          update_to_version 13
+          update_to_version 12 python3.7
+          update_to_version 13 python3.7
 
-          pyenv global $(pyenv versions | grep '3.10')
-          update_to_version 14
+          update_to_version 14 python3.10
 
           echo "Updating to last commit"
-          git checkout -q -f "$GITHUB_SHA"
           rm -rf ~/frappe-bench/env
+          git checkout -q -f "$GITHUB_SHA"
           bench -v setup env
           bench --site test_site migrate
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done

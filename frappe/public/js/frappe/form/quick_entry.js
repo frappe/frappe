@@ -113,7 +113,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 			this.mandatory = [
 				{
 					fieldname: "__newname",
-					label: __("{0} Name", [this.meta.name]),
+					label: __("{0} Name", [__(this.meta.name)]),
 					reqd: 1,
 					fieldtype: "Data",
 				},

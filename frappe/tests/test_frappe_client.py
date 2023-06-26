@@ -107,7 +107,7 @@ class TestFrappeClient(FrappeTestCase):
 		self.assertEqual(
 			server.get_value("Website Settings", "title_prefix").get("title_prefix"), "test-prefix"
 		)
-		frappe.db.set_value("Website Settings", None, "title_prefix", "")
+		frappe.db.set_single_value("Website Settings", "title_prefix", "")
 
 	def test_update_doc(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)

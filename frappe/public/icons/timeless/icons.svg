@@ -84,13 +84,15 @@
 	</symbol>
 
 	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-up-right">
-		<path d="M2.5 9.5L9.5 2.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-		<path d="M9.50002 8V2.5H4.00002" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M2.5 9.5L9.5 2.5M9.50002 8V2.5H4.00002" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-down-left">
-		<path d="M9.5 2.5L2.5 9.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-		<path d="M2.49999 4L2.49998 9.5L7.99998 9.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M9.5 2.5L2.5 9.5M2.49999 4L2.49998 9.5L7.99998 9.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-down-right">
+		<path d="M2.5 2.5L9.5 9.5M4 9.5h5.5v-5.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-expand">

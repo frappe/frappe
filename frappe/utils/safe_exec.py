@@ -24,7 +24,7 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
 
@@ -197,7 +197,6 @@ def get_safe_globals():
 		get_toc=get_toc,
 		get_next_link=get_next_link,
 		_=frappe._,
-		get_shade=get_shade,
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,

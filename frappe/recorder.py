@@ -65,7 +65,7 @@ def get_current_stack_frames():
 
 def record(force=False):
 	if __debug__:
-		if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG) or force:
+		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder()
 
 
@@ -109,7 +109,7 @@ class Recorder:
 			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
 		}
-		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
+		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(
 			event="recorder-dump-event",
 			message=json.dumps(request_data, default=str),
@@ -121,7 +121,7 @@ class Recorder:
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
-		frappe.cache().hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
+		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 	def mark_duplicates(self):
 		counts = Counter([call["query"] for call in self.calls])
@@ -162,21 +162,21 @@ def administrator_only(function):
 @do_not_record
 @administrator_only
 def status(*args, **kwargs):
-	return bool(frappe.cache().get_value(RECORDER_INTERCEPT_FLAG))
+	return bool(frappe.cache.get_value(RECORDER_INTERCEPT_FLAG))
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def start(*args, **kwargs):
-	frappe.cache().set_value(RECORDER_INTERCEPT_FLAG, 1)
+	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=60 * 60)
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def stop(*args, **kwargs):
-	frappe.cache().delete_value(RECORDER_INTERCEPT_FLAG)
+	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
 
 
 @frappe.whitelist()
@@ -184,9 +184,9 @@ def stop(*args, **kwargs):
 @administrator_only
 def get(uuid=None, *args, **kwargs):
 	if uuid:
-		result = frappe.cache().hget(RECORDER_REQUEST_HASH, uuid)
+		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
 	else:
-		result = list(frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
+		result = list(frappe.cache.hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result
 
 
@@ -194,15 +194,15 @@ def get(uuid=None, *args, **kwargs):
 @do_not_record
 @administrator_only
 def export_data(*args, **kwargs):
-	return list(frappe.cache().hgetall(RECORDER_REQUEST_HASH).values())
+	return list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def delete(*args, **kwargs):
-	frappe.cache().delete_value(RECORDER_REQUEST_SPARSE_HASH)
-	frappe.cache().delete_value(RECORDER_REQUEST_HASH)
+	frappe.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
+	frappe.cache.delete_value(RECORDER_REQUEST_HASH)
 
 
 def record_queries(func: Callable):

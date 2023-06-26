@@ -123,8 +123,15 @@ def update(doctype, role, permlevel, ptype, value=None):
 	Returns:
 	        str: Refresh flag is permission is updated successfully
 	"""
+
+	def clear_cache():
+		frappe.clear_cache(doctype=doctype)
+
 	frappe.only_for("System Manager")
 	out = update_permission_property(doctype, role, permlevel, ptype, value)
+
+	frappe.db.after_commit.add(clear_cache)
+
 	return "refresh" if out else None
 
 

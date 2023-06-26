@@ -1,18 +1,14 @@
 # Copyright (c) 2015, Maxwell Morais and contributors
 # License: MIT. See LICENSE
 
-import cgitb
 import datetime
 import functools
 import inspect
 import json
 import linecache
 import os
-import pydoc
 import sys
 import traceback
-
-from ldap3.core.exceptions import LDAPException
 
 import frappe
 from frappe.utils import cstr, encode
@@ -21,16 +17,31 @@ EXCLUDE_EXCEPTIONS = (
 	frappe.AuthenticationError,
 	frappe.CSRFTokenError,  # CSRF covers OAuth too
 	frappe.SecurityException,
-	LDAPException,
 	frappe.InReadOnlyMode,
 )
+
+LDAP_BASE_EXCEPTION = "LDAPException"
+
+
+def _is_ldap_exception(e):
+	"""Check if exception is from LDAP library.
+
+	This is a hack but ensures that LDAP is not imported unless it's required. This is tested in
+	unittests in case the exception changes in future.
+	"""
+
+	for t in type(e).__mro__:
+		if t.__name__ == LDAP_BASE_EXCEPTION:
+			return True
+
+	return False
 
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
 		return
 
-	if isinstance(exception, EXCLUDE_EXCEPTIONS):
+	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
 		return
 
 	logger = frappe.logger(with_more_info=True)
@@ -57,6 +68,8 @@ def make_error_snapshot(exception):
 
 
 def get_snapshot(exception, context=10):
+	import pydoc
+
 	"""
 	Return a dict describing a given traceback (based on cgitb.text)
 	"""
@@ -103,7 +116,7 @@ def get_snapshot(exception, context=10):
 			finally:
 				lnum[0] += 1
 
-		vars = cgitb.scanvars(reader, frame, locals)
+		vars = _scanvars(reader, frame, locals)
 
 		# if it is a view, replace with generated code
 		# if file.endswith('html'):
@@ -123,7 +136,7 @@ def get_snapshot(exception, context=10):
 		for name, where, value in vars:
 			if name in f["dump"]:
 				continue
-			if value is not cgitb.__UNDEF__:
+			if value is not __UNDEF__:
 				if where == "global":
 					name = f"global {name:s}"
 				elif where != "local":
@@ -257,3 +270,56 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 		return wrapper_raise_error_on_no_output
 
 	return decorator_raise_error_on_no_output
+
+
+# Vendored from cgitb standard library reused under PSF License:
+# https://github.com/python/cpython/blob/main/LICENSE
+
+
+import keyword
+import tokenize
+
+__UNDEF__ = []  # a special sentinel object
+
+
+def _scanvars(reader, frame, locals):
+	"""Scan one logical line of Python and look up values of variables used."""
+	vars, lasttoken, parent, prefix, value = [], None, None, "", __UNDEF__
+	for ttype, token, start, end, line in tokenize.generate_tokens(reader):
+		if ttype == tokenize.NEWLINE:
+			break
+		if ttype == tokenize.NAME and token not in keyword.kwlist:
+			if lasttoken == ".":
+				if parent is not __UNDEF__:
+					value = getattr(parent, token, __UNDEF__)
+					vars.append((prefix + token, prefix, value))
+			else:
+				where, value = _lookup(token, frame, locals)
+				vars.append((token, where, value))
+		elif token == ".":
+			prefix += lasttoken + "."
+			parent = value
+		else:
+			parent, prefix = None, ""
+		lasttoken = token
+	return vars
+
+
+def _lookup(name, frame, locals):
+	"""Find the value for a given name in the given environment."""
+	if name in locals:
+		return "local", locals[name]
+	if name in frame.f_globals:
+		return "global", frame.f_globals[name]
+	if "__builtins__" in frame.f_globals:
+		builtins = frame.f_globals["__builtins__"]
+		if type(builtins) is type({}):  # noqa
+			if name in builtins:
+				return "builtin", builtins[name]
+		else:
+			if hasattr(builtins, name):
+				return "builtin", getattr(builtins, name)
+	return None, __UNDEF__
+
+
+# end: vendored code

@@ -18,7 +18,11 @@
   "update_series",
   "prefix",
   "current_value",
-  "update_series_start"
+  "update_series_start",
+  "amended_documents_section",
+  "default_amend_naming",
+  "amend_naming_override",
+  "update_amendment_naming"
  ],
  "fields": [
   {
@@ -105,13 +109,41 @@
    "fieldtype": "Text",
    "label": "Preview of generated names",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "description": "Configure how amended documents will be named.<br>\n\nDefault behaviour is to follow an amend counter which adds a number to the end of the original name indicating the amended version. <br>\n\nDefault Naming will make the amended document to behave same as new documents.",
+   "fieldname": "amended_documents_section",
+   "fieldtype": "Section Break",
+   "label": "Amended Documents"
+  },
+  {
+   "default": "Amend Counter",
+   "fieldname": "default_amend_naming",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Default Amendment Naming",
+   "options": "Amend Counter\nDefault Naming",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amend_naming_override",
+   "fieldtype": "Table",
+   "label": "Amendment Naming Override",
+   "options": "Amended Document Naming Settings"
+  },
+  {
+   "fieldname": "update_amendment_naming",
+   "fieldtype": "Button",
+   "label": "Update Amendment Naming",
+   "options": "update_amendment_rule"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2023-02-20 13:11:56.662100",
+ "modified": "2023-06-20 17:47:52.204139",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",

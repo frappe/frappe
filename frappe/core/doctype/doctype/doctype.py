@@ -337,7 +337,7 @@ class DocType(Document):
 			"DocField", "parent", dict(fieldtype=["in", frappe.model.table_fields], options=self.name)
 		)
 		for p in parent_list:
-			frappe.db.set_value("DocType", p.parent, {}, for_update=False)
+			frappe.db.set_value("DocType", p.parent, {})
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
@@ -1710,7 +1710,7 @@ def check_fieldname_conflicts(docfield):
 
 
 def clear_linked_doctype_cache():
-	frappe.cache().delete_value("linked_doctypes_without_ignore_user_permissions_enabled")
+	frappe.cache.delete_value("linked_doctypes_without_ignore_user_permissions_enabled")
 
 
 def check_email_append_to(doc):

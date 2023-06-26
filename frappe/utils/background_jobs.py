@@ -1,3 +1,4 @@
+import gc
 import os
 import socket
 import time
@@ -28,6 +29,9 @@ RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
 RQ_RESULTS_TTL = 10 * 60
 
 
+_redis_queue_conn = None
+
+
 @lru_cache
 def get_queues_timeout():
 	common_site_config = frappe.get_conf()
@@ -45,9 +49,6 @@ def get_queues_timeout():
 			for worker, config in custom_workers_config.items()
 		},
 	}
-
-
-redis_connection = None
 
 
 def enqueue(
@@ -234,6 +235,10 @@ def start_worker(
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
+	if frappe._tune_gc:
+		gc.collect()
+		gc.freeze()
+
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
@@ -360,7 +365,7 @@ def get_redis_conn(username=None, password=None):
 	elif not frappe.local.conf.redis_queue:
 		raise Exception("redis_queue missing in common_site_config.json")
 
-	global redis_connection
+	global _redis_queue_conn
 
 	cred = frappe._dict()
 	if frappe.conf.get("use_rq_auth"):
@@ -374,8 +379,14 @@ def get_redis_conn(username=None, password=None):
 	elif os.environ.get("RQ_ADMIN_PASWORD"):
 		cred["username"] = "default"
 		cred["password"] = os.environ.get("RQ_ADMIN_PASWORD")
+
 	try:
-		redis_connection = RedisQueue.get_connection(**cred)
+		if not cred:
+			if not _redis_queue_conn:
+				_redis_queue_conn = RedisQueue.get_connection()
+			return _redis_queue_conn
+		else:
+			return RedisQueue.get_connection(**cred)
 	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
 		log(
 			f'Wrong credentials used for {cred.username or "default user"}. '
@@ -386,8 +397,6 @@ def get_redis_conn(username=None, password=None):
 	except Exception:
 		log(f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}", colour="red")
 		raise
-
-	return redis_connection
 
 
 def get_queues() -> list[Queue]:
