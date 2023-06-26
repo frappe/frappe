@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { createApp, watch } from "vue";
 import PrintFormatBuilderComponent from "./PrintFormatBuilder.vue";
 
 class PrintFormatBuilder {
@@ -32,8 +32,8 @@ class PrintFormatBuilder {
 		SetVueGlobals(app);
 		this.$component = app.mount(this.$wrapper.get(0));
 
-		this.$component.$watch(
-			"$store.dirty",
+		watch(
+			() => this.$component.$store.dirty,
 			(dirty) => {
 				if (dirty.value) {
 					this.page.set_indicator("Not Saved", "orange");
@@ -48,9 +48,12 @@ class PrintFormatBuilder {
 			{ deep: true }
 		);
 
-		this.$component.$watch("show_preview", (value) => {
-			$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
-		});
+		watch(
+			() => this.$component.show_preview,
+			(value) => {
+				$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
+			}
+		);
 	}
 }
 

@@ -11,7 +11,6 @@ from frappe.utils.caching import site_cache
 
 from posthog import Posthog  # isort: skip
 
-
 POSTHOG_PROJECT_FIELD = "posthog_project_id"
 POSTHOG_HOST_FIELD = "posthog_host"
 

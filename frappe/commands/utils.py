@@ -31,6 +31,12 @@ EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 @click.option(
 	"--force", is_flag=True, default=False, help="Force build assets instead of downloading available"
 )
+@click.option(
+	"--save-metafiles",
+	is_flag=True,
+	default=False,
+	help="Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
+)
 def build(
 	app=None,
 	apps=None,
@@ -38,6 +44,7 @@ def build(
 	production=False,
 	verbose=False,
 	force=False,
+	save_metafiles=False,
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
@@ -62,7 +69,14 @@ def build(
 		if production:
 			mode = "production"
 
-		bundle(mode, apps=apps, hard_link=hard_link, verbose=verbose, skip_frappe=skip_frappe)
+		bundle(
+			mode,
+			apps=apps,
+			hard_link=hard_link,
+			verbose=verbose,
+			skip_frappe=skip_frappe,
+			save_metafiles=save_metafiles,
+		)
 
 
 @click.command("watch")
