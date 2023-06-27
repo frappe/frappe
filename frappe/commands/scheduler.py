@@ -215,6 +215,27 @@ def start_worker(
 	)
 
 
+@click.command("worker-pool")
+@click.option(
+	"--queue",
+	type=str,
+	help="Queue to consume from. Multiple queues can be specified using comma-separated string. If not specified all queues are consumed.",
+)
+@click.option("--num-workers", type=int, default=2, help="Number of workers to spawn in pool.")
+@click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
+@click.option("--burst", is_flag=True, default=False, help="Run Worker in Burst mode.")
+def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
+	"""Start a backgrond worker"""
+	from frappe.utils.background_jobs import start_worker_pool
+
+	start_worker_pool(
+		queue=queue,
+		quiet=quiet,
+		burst=burst,
+		num_workers=num_workers,
+	)
+
+
 @click.command("ready-for-migration")
 @click.option("--site", help="site name")
 @pass_context
@@ -251,5 +272,6 @@ commands = [
 	show_pending_jobs,
 	start_scheduler,
 	start_worker,
+	start_worker_pool,
 	trigger_scheduler_event,
 ]

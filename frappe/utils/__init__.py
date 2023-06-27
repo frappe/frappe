@@ -20,7 +20,6 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from gzip import GzipFile
 from typing import Any, Callable, Literal
 from urllib.parse import quote, urlparse
 
@@ -873,6 +872,8 @@ def gzip_compress(data, compresslevel=9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
+	from gzip import GzipFile
+
 	buf = io.BytesIO()
 	with GzipFile(fileobj=buf, mode="wb", compresslevel=compresslevel) as f:
 		f.write(data)
@@ -883,6 +884,8 @@ def gzip_decompress(data):
 	"""Decompress a gzip compressed string in one shot.
 	Return the decompressed string.
 	"""
+	from gzip import GzipFile
+
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
 

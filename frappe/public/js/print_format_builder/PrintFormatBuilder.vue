@@ -20,7 +20,7 @@ import { getStore } from "./store";
 import { computed, ref, onMounted, provide } from "vue";
 
 // props
-let props = defineProps(["print_format_name"]);
+const props = defineProps(["print_format_name"]);
 
 // variables
 let show_preview = ref(false);

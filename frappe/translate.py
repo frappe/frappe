@@ -17,8 +17,6 @@ import re
 from contextlib import contextmanager
 from csv import reader, writer
 
-from babel.messages.extract import extract_python
-from babel.messages.jslexer import Token, tokenize, unquote_string
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -737,6 +735,7 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
 	"""Extracts translatable strings from Python code using babel."""
+	from babel.messages.extract import extract_python
 
 	messages = []
 
@@ -809,6 +808,8 @@ def extract_javascript(code, keywords=("__",), options=None):
 	                * `template_string` -- set to false to disable ES6
 	                                       template string support.
 	"""
+	from babel.messages.jslexer import Token, tokenize, unquote_string
+
 	if options is None:
 		options = {}
 
