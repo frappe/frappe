@@ -732,7 +732,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 	"""
 
 	if not methods:
-		methods = ["GET", "POST", "PUT", "DELETE"]
+		methods = ["GET", "POST", "PUT", "DELETE", "HEAD"]
 
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types
