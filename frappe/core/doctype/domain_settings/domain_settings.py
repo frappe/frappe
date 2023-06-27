@@ -88,3 +88,15 @@ def get_active_modules():
 		return active_modules
 
 	return frappe.cache.get_value("active_modules", _get_active_modules)
+
+
+@frappe.whitelist()
+def set_onboarding_data(primary_domain, domains, workspaces):
+	if frappe.session.user != "Administrator":
+		frappe.throw(frappe._("Only Administrator can set Onboarding Data."))
+
+	ds = frappe.get_doc("Domain Settings");
+	ds.primary_domain = primary_domain;
+	ds.active_workspace_domains = domains;
+	ds.workspace_data = workspaces;
+	ds.save();

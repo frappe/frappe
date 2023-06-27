@@ -7,7 +7,10 @@
  "field_order": [
   "active_domains_sb",
   "domains_html",
-  "active_domains"
+  "active_domains",
+  "primary_domain",
+  "active_workspace_domains",
+  "workspace_data"
  ],
  "fields": [
   {
@@ -27,11 +30,29 @@
    "label": "Active Domains",
    "options": "Has Domain",
    "read_only": 1
+  },
+  {
+   "fieldname": "workspace_data",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Workspace Data"
+  },
+  {
+   "fieldname": "primary_domain",
+   "fieldtype": "Small Text",
+   "label": "Primary Domain",
+   "read_only": 1
+  },
+  {
+   "fieldname": "active_workspace_domains",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Active Workspace Domains"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-08-03 12:20:53.256607",
+ "modified": "2023-06-27 15:53:15.922650",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Domain Settings",

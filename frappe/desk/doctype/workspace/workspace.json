@@ -20,6 +20,9 @@
   "hide_custom",
   "public",
   "is_hidden",
+  "description",
+  "default_enabled",
+  "depends_on",
   "content",
   "number_cards_tab",
   "number_cards",
@@ -207,11 +210,28 @@
    "fieldtype": "Table",
    "label": "Custom Blocks",
    "options": "Workspace Custom Block"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "default": "0",
+   "fieldname": "default_enabled",
+   "fieldtype": "Check",
+   "label": "Enabled by default"
+  },
+  {
+   "description": "Add \" <b>Workspace {name_of_workspace} \"</b> separated by new line. This will enable all specified workspaces.",
+   "fieldname": "depends_on",
+   "fieldtype": "Text",
+   "label": "Depends On"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-06-08 14:52:38.110224",
+ "modified": "2023-06-28 02:37:22.465356",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

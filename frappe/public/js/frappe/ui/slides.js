@@ -13,6 +13,13 @@ frappe.ui.Slide = class Slide {
 		this.$wrapper = $('<div class="slide-wrapper hidden"></div>')
 			.attr({ "data-slide-id": this.id, "data-slide-name": this.name })
 			.appendTo(this.parent);
+		this.cards_state = {
+			card_list: [],
+			card_progress: {},
+			module_list: [],
+			active_cards: [],
+			appendLocationId: "#before-form",
+		};
 	}
 
 	// Make has to be called manually, to account for on-demand use cases
@@ -22,7 +29,9 @@ frappe.ui.Slide = class Slide {
 		this.$body = $(`<div class="slide-body">
 			<div class="content text-center">
 				<h1 class="title slide-title">${__(this.title)}</h1>
+				<p class="slide-desc">${__(this.desc || "")}</p>
 			</div>
+			<div id="before-form"></div>
 			<div class="form-wrapper">
 				<div class="form"></div>
 				<div class="add-more text-center" style="margin-top: 5px;">
@@ -31,8 +40,8 @@ frappe.ui.Slide = class Slide {
 					</button>
 				</div>
 			</div>
+			<div id="after-form"></div>
 		</div>`).appendTo(this.$wrapper);
-
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
 		this.$primary_btn = this.slides_footer.find(".primary");
@@ -51,13 +60,17 @@ frappe.ui.Slide = class Slide {
 	refresh() {
 		this.render_parent_dots();
 		if (!this.done) {
+			if (this.before_form_render) this.before_form_render(this);
 			this.setup_form();
+			this.setup_cards(); // cards will empty the div and append the cards;
+			if (this.after_form_render) this.after_form_render(this);
 		} else {
 			this.setup_done_state();
 		}
 	}
 
 	setup_form() {
+		if (!this.fields) return;
 		this.form = new frappe.ui.FieldGroup({
 			fields: this.get_atomic_fields(),
 			body: this.$form[0],
@@ -72,6 +85,70 @@ frappe.ui.Slide = class Slide {
 		this.set_reqd_fields();
 	}
 
+	handle_card(card) {
+		const id = frappe.utils.get_random(10);
+		const active_cards = this.cards_state.active_cards;
+		const waitForElement = setInterval(() => {
+			if ($(`#${id}`).length) {
+				waitForElement && clearInterval(waitForElement);
+				$(`#${id} .slide-card-btn`).on("click", (e) => {
+					e.preventDefault();
+					card.button?.on_click && card.button.on_click(this, card);
+				});
+			}
+		}, 100);
+		return {
+			id,
+			isActive: (active_cards?.findIndex(
+				(a) => a.name == card.name && a.type == card.type
+			) != -1) ? " active" : ""
+			}
+	}
+
+	setup_cards() {
+		if (!this.cards) return;
+		this.cards_wrapper = this.$body.find(this.cards_state.appendLocationId);
+		this.cards_wrapper.empty().append(
+			`<div class="slide-cards" id="slide-cards">
+			${this.cards.map((card) => {
+				let {id, isActive} = this.handle_card(card);
+				return `
+					<div class="slide-card${isActive}" style="filter: hue-rotate(${card.hue_change}deg);" id="${id}">
+						<div class="slide-card-header">
+							<h5 class="header-title">${card.label}</h5>
+							<span class="primary-tag">
+								${card.name == frappe.setup.data.primary_domain?.name ? "( Primary )" : ""}
+								<span class="fa fa-check-circle icon-show"></span>
+							</span>
+						</div>
+						<div class="slide-card-body">
+							<p class="slide-card-desc">${card.description}</p>
+							<ul class="slide-card-features">
+								${
+									card.features.length > 0
+									? card.features.map((feature, i) => {
+									if (i > 2) return "";
+									return `
+									<li class="slide-card-feature">
+										<i class="fa fa-check" aria-hidden="true"></i>
+										<span>${feature}</span>
+										</li>
+										`;
+												})
+												.join("") +
+										`<li class="slide-card-feature">
+									<i class="fa fa-check" aria-hidden="true"></i>
+										<span>Many more...</span>
+										</li>`
+										: ""
+								}
+							</ul>
+						</div>
+						<button class="slide-card-btn">${isActive ? card.button.active_label || __("Disable") : card.button.label || __("Enable")}</button>
+					</div>`}).join("")}
+			</div>
+		`);
+	}
 	setup_done_state() {}
 
 	// Form methods
@@ -106,6 +183,7 @@ frappe.ui.Slide = class Slide {
 	}
 
 	set_values(ignore_errors) {
+		if (!this.form) return true;
 		this.values = this.form.get_values(ignore_errors, true);
 		if (this.values === null) {
 			return false;
