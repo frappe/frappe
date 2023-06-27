@@ -18,6 +18,12 @@ def safe_block_eval(script: str, _globals=None, _locals=None, output_var=None, *
 	        any: The result of the evaluation of the code.
 	"""
 
+	if not script:
+		return
+
+	if not isinstance(script, str):
+		raise TypeError(f"safe_block_eval: Code must be a string, got {type(script)}")
+
 	output_var = output_var or "evaluated_code_output_" + frappe.generate_hash(length=5)
 	_locals = _locals or {}
 	script = _wrap_in_function(script, output_var=output_var, local_vars=_locals)
@@ -69,6 +75,12 @@ def _wrap_in_function(
 def validate(code_string: str, fieldname: str):
 	"""Validate a block of code by first wrapping it in a function and then compiling it."""
 	from frappe.utils import validate_python_code
+
+	if not code_string:
+		return
+
+	if not isinstance(code_string, str):
+		raise TypeError(f"Code must be a string, got {type(code_string)}")
 
 	code_string = _wrap_in_function(code_string)
 	return validate_python_code(code_string, fieldname=fieldname, is_expression=False)
