@@ -9,12 +9,14 @@ import sys
 from collections import OrderedDict
 from contextlib import suppress
 from shutil import which
+from textwrap import dedent
 
 import click
 
 import frappe
 from frappe.defaults import _clear_cache
 from frappe.utils import cint, is_git_url
+from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
@@ -62,6 +64,8 @@ def _new_site(
 		sys.exit(1)
 
 	frappe.init(site=site)
+
+	required_services_running()
 
 	if not db_name:
 		import hashlib
@@ -878,3 +882,28 @@ def validate_database_sql(path, _raise=True):
 
 	if _raise and (missing_table or empty_file):
 		raise frappe.InvalidDatabaseFile
+
+
+def required_services_running():
+	"""Ensure that all required services are running before we attempt to create a new site."""
+	service_status = check_connection(redis_services=["redis_cache", "redis_queue"])
+	are_services_running = all(service_status.values())
+
+	if not are_services_running:
+		for service in service_status:
+			if not service_status.get(service, True):
+				print(f"Service {service} is not running.")
+		print(BENCH_START_MESSAGE)
+		raise SystemExit(1)
+
+
+BENCH_START_MESSAGE = dedent(
+	"""
+	Cannot create a new site without the services running.
+	If you are running bench in development mode, make sure that bench is running:
+
+	$ bench start
+
+	Otherwise check supervisorctl status, server logs and ensure that all the required services are running.
+	"""
+)
