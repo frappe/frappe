@@ -145,6 +145,23 @@ class TestNotification(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, notification.save)
 		notification.delete()
 
+	def test_multiline_condition(self):
+		frappe.set_user("Administrator")
+		notification = frappe.new_doc("Notification")
+		notification.subject = "test"
+		notification.document_type = "ToDo"
+		notification.send_alert_on = "New"
+		notification.message = "test"
+
+		recipent = frappe.new_doc("Notification Recipient")
+		recipent.receiver_by_document_field = "owner"
+
+		notification.recipents = recipent
+		notification.condition = "if 1 == 1:\n\treturn True\nelse:\n\treturn False"
+
+		notification.save()
+		notification.delete()
+
 	def test_value_changed(self):
 		event = frappe.new_doc("Event")
 		event.subject = "test"

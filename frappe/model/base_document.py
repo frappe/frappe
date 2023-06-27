@@ -942,6 +942,11 @@ class BaseDocument:
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
 
+			elif language == "PythonBlock":
+				from frappe.utils.safe_block_eval import validate
+
+				validate(code_string, fieldname=field.label)
+
 	def _sync_autoname_field(self):
 		"""Keep autoname field in sync with `name`"""
 		autoname = self.meta.autoname or ""
