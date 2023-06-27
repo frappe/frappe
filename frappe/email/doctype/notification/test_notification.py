@@ -133,7 +133,7 @@ class TestNotification(FrappeTestCase):
 		notification = frappe.new_doc("Notification")
 		notification.subject = "test"
 		notification.document_type = "ToDo"
-		notification.send_alert_on = "New"
+		notification.event = "New"
 		notification.message = "test"
 
 		recipent = frappe.new_doc("Notification Recipient")
@@ -150,7 +150,7 @@ class TestNotification(FrappeTestCase):
 		notification = frappe.new_doc("Notification")
 		notification.subject = "test"
 		notification.document_type = "ToDo"
-		notification.send_alert_on = "New"
+		notification.event = "New"
 		notification.message = "test"
 
 		recipent = frappe.new_doc("Notification Recipient")
