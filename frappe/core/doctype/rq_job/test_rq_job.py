@@ -97,6 +97,17 @@ class TestRQJob(FrappeTestCase):
 		self.assertIn("quitting", cstr(stderr))
 
 	@timeout(20)
+	def test_multi_queue_burst_consumption_worker_pool(self):
+		for _ in range(3):
+			for q in ["default", "short"]:
+				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
+
+		_, stderr = execute_in_shell(
+			"bench worker-pool --queue short,default --burst --num-workers=4", check_exit_code=True
+		)
+		self.assertIn("quitting", cstr(stderr))
+
+	@timeout(20)
 	def test_job_id_dedup(self):
 		job_id = "test_dedup"
 		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
