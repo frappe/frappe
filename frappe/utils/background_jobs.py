@@ -423,9 +423,7 @@ def get_redis_conn(username=None, password=None):
 
 	try:
 		if not cred:
-			if not _redis_queue_conn:
-				_redis_queue_conn = RedisQueue.get_connection()
-			return _redis_queue_conn
+			return get_redis_connection_without_auth()
 		else:
 			return RedisQueue.get_connection(**cred)
 	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
@@ -438,6 +436,14 @@ def get_redis_conn(username=None, password=None):
 	except Exception:
 		log(f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}", colour="red")
 		raise
+
+
+def get_redis_connection_without_auth():
+	global _redis_queue_conn
+
+	if not _redis_queue_conn:
+		_redis_queue_conn = RedisQueue.get_connection()
+	return _redis_queue_conn
 
 
 def get_queues() -> list[Queue]:
