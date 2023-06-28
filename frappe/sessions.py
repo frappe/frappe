@@ -19,8 +19,7 @@ import frappe.utils
 from frappe import _
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import DocType, Order
-from frappe.query_builder.functions import Now
-from frappe.query_builder.utils import PseudoColumn
+from frappe.query_builder.functions import UnixTimestamp
 from frappe.utils import cint, cstr, get_assets_json
 
 
@@ -121,6 +120,7 @@ def clear_all_sessions(reason=None):
 
 def get_expired_sessions():
 	"""Returns list of expired sessions"""
+<<<<<<< HEAD
 	sessions = DocType("Sessions")
 
 	expired = []
@@ -140,6 +140,17 @@ def get_expired_sessions():
 		)
 
 	return expired
+=======
+
+	sessions = frappe.qb.DocType("Sessions")
+	now = frappe.utils.now()
+
+	return (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where((UnixTimestamp(now) - UnixTimestamp(sessions.lastupdate)) > get_expiry_period_for_query())
+	).run(pluck=True)
+>>>>>>> 60efb7c2ff (fix: incorrect session expiry datediff)
 
 
 def clear_expired_sessions():
@@ -359,6 +370,7 @@ class Session:
 
 	def get_session_data_from_db(self):
 		sessions = DocType("Sessions")
+<<<<<<< HEAD
 
 		self.device = (
 			frappe.db.get_value(
@@ -379,10 +391,22 @@ class Session:
 			fieldname=["user", "sessiondata"],
 			order_by=None,
 		)
+=======
+		now = frappe.utils.now()
+>>>>>>> 60efb7c2ff (fix: incorrect session expiry datediff)
 
-		if rec:
-			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or "{}"))
-			data.user = rec[0][0]
+		record = (
+			frappe.qb.from_(sessions)
+			.select(sessions.user, sessions.sessiondata)
+			.where(sessions.sid == self.sid)
+			.where(
+				(UnixTimestamp(now) - UnixTimestamp(sessions.lastupdate)) < get_expiry_period_for_query()
+			)
+		).run()
+
+		if record:
+			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data.user = record[0][0]
 		else:
 			self._delete_session()
 			data = None
