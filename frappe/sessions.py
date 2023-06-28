@@ -373,6 +373,8 @@ class Session:
 
 		now = frappe.utils.now()
 
+		Sessions = frappe.qb.DocType("Sessions")
+
 		self.data["data"]["last_updated"] = now
 		self.data["data"]["lang"] = str(frappe.lang)
 
@@ -384,17 +386,14 @@ class Session:
 		updated_in_db = False
 		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
 			# update sessions table
-			frappe.db.sql(
-				"""update `tabSessions` set sessiondata=%s,
-				lastupdate=%s where sid=%s""",
-				(str(self.data["data"]), now, self.data["sid"]),
-			)
+			(
+				frappe.qb.update(Sessions)
+				.where(Sessions.sid == self.data["sid"])
+				.set(Sessions.sessiondata, str(self.data["data"]))
+				.set(Sessions.lastupdate, now)
+			).run()
 
-			# update last active in user table
-			frappe.db.sql(
-				"""update `tabUser` set last_active=%(now)s where name=%(name)s""",
-				{"now": now, "name": frappe.session.user},
-			)
+			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
 			frappe.db.commit()
 			frappe.cache.hset("last_db_session_update", self.sid, now)
