@@ -18,7 +18,7 @@ import frappe.translate
 import frappe.utils
 from frappe import _
 from frappe.cache_manager import clear_user_cache
-from frappe.query_builder import DocType, Order
+from frappe.query_builder import Order
 from frappe.query_builder.functions import UnixTimestamp
 from frappe.utils import cint, cstr, get_assets_json
 
@@ -61,7 +61,7 @@ def get_sessions_to_clear(user=None, keep_current=False):
 		simultaneous_sessions = frappe.db.get_value("User", user, "simultaneous_sessions") or 1
 		offset = simultaneous_sessions - 1
 
-	session = DocType("Sessions")
+	session = frappe.qb.DocType("Sessions")
 	session_id = frappe.qb.from_(session).where(session.user == user)
 	if keep_current:
 		session_id = session_id.where(session.sid != frappe.session.sid)
@@ -87,7 +87,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache.hdel("session", sid)
 	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
-		table = DocType("Sessions")
+		table = frappe.qb.DocType("Sessions")
 		user_details = (
 			frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
 		)
@@ -264,14 +264,17 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
-		frappe.db.sql(
-			"""insert into `tabSessions`
-			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`)
-			values (%s , %s, NOW(), %s, 'Active')""",
-			(str(self.data["data"]), self.data["user"], self.data["sid"]),
-		)
 
-		# also add to memcache
+		Sessions = frappe.qb.DocType("Sessions")
+		now = frappe.utils.now()
+
+		(
+			frappe.qb.into(Sessions)
+			.columns(
+				Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status
+			)
+			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
+		).run()
 		frappe.cache.hset("session", self.data.sid, self.data)
 
 	def resume(self):
@@ -334,7 +337,7 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		sessions = DocType("Sessions")
+		sessions = frappe.qb.DocType("Sessions")
 		now = frappe.utils.now()
 
 		record = (
