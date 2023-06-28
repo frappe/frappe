@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import gc
 import logging
 import os
 
@@ -21,13 +22,37 @@ from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
-from frappe.utils.error import make_error_snapshot
+from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
 local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
+
+
+# If gc.freeze is done then importing modules before forking allows us to share the memory
+if frappe._tune_gc:
+	import frappe.boot
+	import frappe.client
+	import frappe.core.doctype.user.user
+	import frappe.database.mariadb.database  # Load database related utils
+	import frappe.database.query
+	import frappe.desk.desktop  # workspace
+	import frappe.model.db_query
+	import frappe.query_builder
+	import frappe.utils.background_jobs  # Enqueue is very common
+	import frappe.utils.data  # common utils
+	import frappe.utils.jinja  # web page rendering
+	import frappe.utils.jinja_globals
+	import frappe.utils.redis_wrapper  # Exact redis_wrapper
+	import frappe.utils.safe_exec
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+	import frappe.website.router  # Website router
+	import frappe.website.website_generator  # web page doctypes
+
+# end: module pre-loading
 
 
 @local_manager.middleware
@@ -321,7 +346,7 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
-		make_error_snapshot(e)
+		log_error_snapshot(e)
 
 	if return_as_message:
 		response = get_response("message", http_status_code=http_status_code)
@@ -394,3 +419,17 @@ def serve(
 		use_evalex=not in_test_env,
 		threaded=not no_threading,
 	)
+
+
+# Both Gunicorn and RQ use forking to spawn workers. In an ideal world, the fork should be sharing
+# most of the memory if there are no writes made to data because of Copy on Write, however,
+# python's GC is not CoW friendly and writes to data even if user-code doesn't. Specifically, the
+# generational GC which stores and mutates every python object: `PyGC_Head`
+#
+# Calling gc.freeze() moves all the objects imported so far into permanant generation and hence
+# doesn't mutate `PyGC_Head`
+#
+# Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
+if frappe._tune_gc:
+	gc.collect()  # clean up any garbage created so far before freeze
+	gc.freeze()

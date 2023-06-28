@@ -15,7 +15,6 @@ def execute():
 		"Email Queue": get_current_setting("clear_email_queue_after") or 30,
 		# child table on email queue
 		"Email Queue Recipient": get_current_setting("clear_email_queue_after") or 30,
-		"Error Snapshot": get_current_setting("clear_error_log_after") or 90,
 		# newly added
 		"Scheduled Job Log": 90,
 	}
