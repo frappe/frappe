@@ -394,8 +394,8 @@ def validate_queue(queue, default_queue_list=None):
 
 
 @retry(
-	retry=retry_if_exception_type(BusyLoadingError) | retry_if_exception_type(ConnectionError),
-	stop=stop_after_attempt(10),
+	retry=retry_if_exception_type((BusyLoadingError, ConnectionError)),
+	stop=stop_after_attempt(5),
 	wait=wait_fixed(1),
 	reraise=True,
 )
