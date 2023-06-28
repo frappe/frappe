@@ -41,7 +41,7 @@ from .utils.lazy_loader import lazy_import
 # Lazy imports
 faker = lazy_import("faker")
 
-__version__ = "13.57.2"
+__version__ = "13.57.3"
 
 __title__ = "Frappe Framework"
 
