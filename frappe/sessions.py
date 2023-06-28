@@ -19,8 +19,8 @@ import frappe.utils
 from frappe import _
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
-from frappe.query_builder.functions import UnixTimestamp
 from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils.data import add_to_date
 
 
 @frappe.whitelist()
@@ -112,12 +112,10 @@ def get_expired_sessions():
 	"""Returns list of expired sessions"""
 
 	sessions = frappe.qb.DocType("Sessions")
-	now = frappe.utils.now()
-
 	return (
 		frappe.qb.from_(sessions)
 		.select(sessions.sid)
-		.where((UnixTimestamp(now) - UnixTimestamp(sessions.lastupdate)) > get_expiry_period_for_query())
+		.where(sessions.lastupdate < get_expired_threshold())
 	).run(pluck=True)
 
 
@@ -228,7 +226,7 @@ class Session:
 			sid = frappe.generate_hash()
 
 		self.data.user = self.user
-		self.data.sid = sid
+		self.sid = self.data.sid = sid
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
@@ -338,15 +336,12 @@ class Session:
 
 	def get_session_data_from_db(self):
 		sessions = frappe.qb.DocType("Sessions")
-		now = frappe.utils.now()
 
 		record = (
 			frappe.qb.from_(sessions)
 			.select(sessions.user, sessions.sessiondata)
 			.where(sessions.sid == self.sid)
-			.where(
-				(UnixTimestamp(now) - UnixTimestamp(sessions.lastupdate)) < get_expiry_period_for_query()
-			)
+			.where(sessions.lastupdate > get_expired_threshold())
 		).run()
 
 		if record:
@@ -418,6 +413,15 @@ def get_expiry_in_seconds(expiry=None):
 
 	parts = expiry.split(":")
 	return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
+
+
+def get_expired_threshold():
+	"""Get cutoff time before which all sessions are considered expired."""
+
+	now = frappe.utils.now()
+	expiry_in_seconds = get_expiry_in_seconds()
+
+	return add_to_date(now, seconds=-expiry_in_seconds, as_string=True)
 
 
 def get_expiry_period():
