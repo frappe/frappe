@@ -18,7 +18,7 @@ import frappe.translate
 import frappe.utils
 from frappe import _
 from frappe.cache_manager import clear_user_cache
-from frappe.query_builder import DocType, Order
+from frappe.query_builder import Order
 from frappe.query_builder.functions import UnixTimestamp
 from frappe.utils import cint, cstr, get_assets_json
 
@@ -69,10 +69,15 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		simultaneous_sessions = frappe.db.get_value("User", user, "simultaneous_sessions") or 1
 		offset = simultaneous_sessions - 1
 
+<<<<<<< HEAD
 	session = DocType("Sessions")
 	session_id = frappe.qb.from_(session).where(
 		(session.user == user) & (session.device.isin(device))
 	)
+=======
+	session = frappe.qb.DocType("Sessions")
+	session_id = frappe.qb.from_(session).where(session.user == user)
+>>>>>>> d353662b53 (fix: Session insert using system time)
 	if keep_current:
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
@@ -97,7 +102,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache().hdel("session", sid)
 	frappe.cache().hdel("last_db_session_update", sid)
 	if sid and not user:
-		table = DocType("Sessions")
+		table = frappe.qb.DocType("Sessions")
 		user_details = (
 			frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
 		)
@@ -298,6 +303,7 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
+<<<<<<< HEAD
 		frappe.db.sql(
 			"""insert into `tabSessions`
 			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`, `device`)
@@ -307,6 +313,20 @@ class Session:
 
 		# also add to memcache
 		frappe.cache().hset("session", self.data.sid, self.data)
+=======
+
+		Sessions = frappe.qb.DocType("Sessions")
+		now = frappe.utils.now()
+
+		(
+			frappe.qb.into(Sessions)
+			.columns(
+				Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status
+			)
+			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
+		).run()
+		frappe.cache.hset("session", self.data.sid, self.data)
+>>>>>>> d353662b53 (fix: Session insert using system time)
 
 	def resume(self):
 		"""non-login request: load a session"""
@@ -369,6 +389,7 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
+<<<<<<< HEAD
 		sessions = DocType("Sessions")
 <<<<<<< HEAD
 
@@ -392,6 +413,9 @@ class Session:
 			order_by=None,
 		)
 =======
+=======
+		sessions = frappe.qb.DocType("Sessions")
+>>>>>>> d353662b53 (fix: Session insert using system time)
 		now = frappe.utils.now()
 >>>>>>> 60efb7c2ff (fix: incorrect session expiry datediff)
 
