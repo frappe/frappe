@@ -153,11 +153,6 @@
 				position: relative;
 				width: 100%;
 			}
-
-			@include broken-img(
-				$height: 175px,
-				$border-radius: 0
-			);
 		}
 
 		.image-title {
