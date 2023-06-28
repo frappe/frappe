@@ -342,9 +342,9 @@ frappe.ui.GroupBy = class {
 			);
 
 			if (this.aggregate_function === 'sum') {
-				docfield.label = __('Sum of {0}', [docfield.label]);
+				docfield.label = __('Sum of {0}', [__(docfield.label)]);
 			} else {
-				docfield.label = __('Average of {0}', [docfield.label]);
+				docfield.label = __('Average of {0}', [__(docfield.label)]);
 			}
 		}
 
@@ -384,8 +384,10 @@ frappe.ui.GroupBy = class {
 		const fields = this.report_view.meta.fields.filter((f) =>
 			['Select', 'Link', 'Data', 'Int', 'Check'].includes(f.fieldtype)
 		);
-		const tag_field = {fieldname: '_user_tags', fieldtype: 'Data', label: __('Tags')};
-		this.group_by_fields[this.doctype] = fields.concat(tag_field);
+		const tag_field = { fieldname: '_user_tags', fieldtype: 'Data', label: __('Tags') };
+		this.group_by_fields[this.doctype] = fields
+			.concat(tag_field)
+			.sort((a, b) => __(a.label).localeCompare(__(b.label)));
 		this.all_fields[this.doctype] = this.report_view.meta.fields;
 
 		const standard_fields_filter = (df) =>
@@ -399,7 +401,8 @@ frappe.ui.GroupBy = class {
 			const cdt = df.options;
 			const child_table_fields = frappe.meta
 				.get_docfields(cdt)
-				.filter(standard_fields_filter);
+				.filter(standard_fields_filter)
+				.sort((a, b) => __(a.label).localeCompare(__(b.label)));
 			this.group_by_fields[cdt] = child_table_fields;
 			this.all_fields[cdt] = child_table_fields;
 		});
