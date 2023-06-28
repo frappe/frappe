@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 import functools
+import gc
 import importlib
 import inspect
 import json
@@ -57,6 +58,7 @@ re._MAXCACHE = (
 	50  # reduced from default 512 given we are already maintaining this on parent worker
 )
 
+_tune_gc = bool(os.environ.get("FRAPPE_TUNE_GC", False))
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
@@ -2211,41 +2213,6 @@ def logger(
 	)
 
 
-def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
-	"""Log error to Error Log"""
-	# Parameter ALERT:
-	# the title and message may be swapped
-	# the better API for this is log_error(title, message), and used in many cases this way
-	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
-
-	traceback = None
-	if message:
-		if "\n" in title:  # traceback sent as title
-			traceback, title = title, message
-		else:
-			traceback = message
-
-	title = title or "Error"
-	traceback = as_unicode(traceback or get_traceback(with_context=True))
-
-	if not db:
-		print(f"Failed to log error in db: {title}")
-		return
-
-	error_log = get_doc(
-		doctype="Error Log",
-		error=traceback,
-		method=title,
-		reference_doctype=reference_doctype,
-		reference_name=reference_name,
-	)
-
-	if flags.read_only:
-		error_log.deferred_insert()
-	else:
-		return error_log.insert(ignore_permissions=True)
-
-
 def get_desk_link(doctype, name):
 	html = (
 		'<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
@@ -2435,3 +2402,15 @@ def validate_and_sanitize_search_inputs(fn):
 		return fn(**kwargs)
 
 	return wrapper
+
+
+from frappe.utils.error import log_error  # noqa: backward compatibility
+
+if _tune_gc:
+	# generational GC gets triggered after certain allocs (g0) which is 700 by default.
+	# This number is quite small for frappe where a single query can potentially create 700+
+	# objects easily.
+	# Bump this number higher, this will make GC less aggressive but that improves performance of
+	# everything else.
+	g0, g1, g2 = gc.get_threshold()  # defaults are 700, 10, 10.
+	gc.set_threshold(g0 * 10, g1 * 2, g2 * 2)
