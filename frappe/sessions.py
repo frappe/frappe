@@ -19,8 +19,8 @@ import frappe.utils
 from frappe import _
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
-from frappe.query_builder.functions import UnixTimestamp
 from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils.data import add_to_date
 
 
 @frappe.whitelist()
@@ -148,12 +148,10 @@ def get_expired_sessions():
 =======
 
 	sessions = frappe.qb.DocType("Sessions")
-	now = frappe.utils.now()
-
 	return (
 		frappe.qb.from_(sessions)
 		.select(sessions.sid)
-		.where((UnixTimestamp(now) - UnixTimestamp(sessions.lastupdate)) > get_expiry_period_for_query())
+		.where(sessions.lastupdate < get_expired_threshold())
 	).run(pluck=True)
 >>>>>>> 60efb7c2ff (fix: incorrect session expiry datediff)
 
@@ -266,7 +264,7 @@ class Session:
 			sid = frappe.generate_hash()
 
 		self.data.user = self.user
-		self.data.sid = sid
+		self.sid = self.data.sid = sid
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
@@ -415,17 +413,18 @@ class Session:
 =======
 =======
 		sessions = frappe.qb.DocType("Sessions")
+<<<<<<< HEAD
 >>>>>>> d353662b53 (fix: Session insert using system time)
 		now = frappe.utils.now()
 >>>>>>> 60efb7c2ff (fix: incorrect session expiry datediff)
+=======
+>>>>>>> 0e1236b6be (refactor: Simplify expiry queries.)
 
 		record = (
 			frappe.qb.from_(sessions)
 			.select(sessions.user, sessions.sessiondata)
 			.where(sessions.sid == self.sid)
-			.where(
-				(UnixTimestamp(now) - UnixTimestamp(sessions.lastupdate)) < get_expiry_period_for_query()
-			)
+			.where(sessions.lastupdate > get_expired_threshold())
 		).run()
 
 		if record:
@@ -498,6 +497,7 @@ def get_expiry_in_seconds(expiry=None, device=None):
 	return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 
+<<<<<<< HEAD
 def get_expiry_period(device="desktop"):
 	if device == "mobile":
 		key = "session_expiry_mobile"
@@ -507,6 +507,19 @@ def get_expiry_period(device="desktop"):
 		default = "06:00:00"
 
 	exp_sec = frappe.defaults.get_global_default(key) or default
+=======
+def get_expired_threshold():
+	"""Get cutoff time before which all sessions are considered expired."""
+
+	now = frappe.utils.now()
+	expiry_in_seconds = get_expiry_in_seconds()
+
+	return add_to_date(now, seconds=-expiry_in_seconds, as_string=True)
+
+
+def get_expiry_period():
+	exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
+>>>>>>> 0e1236b6be (refactor: Simplify expiry queries.)
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:
