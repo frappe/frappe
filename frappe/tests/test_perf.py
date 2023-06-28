@@ -108,10 +108,14 @@ class TestPerformance(FrappeTestCase):
 			f"Possible performance regression in basic /api/Resource list  requests",
 		)
 
-	@unittest.skip("Not implemented")
 	def test_homepage_resolver(self):
-		paths = ["/", "/app"]
+		paths = ["/", "/app", "/contact"]
 		for path in paths:
 			PathResolver(path).resolve()
 			with self.assertQueryCount(1):
 				PathResolver(path).resolve()
+
+	def test_get_list_single_query(self):
+		frappe.get_list("User")
+		with self.assertQueryCount(1):
+			frappe.get_list("User")

@@ -117,6 +117,9 @@ class DatabaseQuery:
 	) -> list:
 
 		if not ignore_permissions:
+			ignore_permissions = frappe.session.user == "Administrator"
+
+		if not ignore_permissions:
 			self.check_read_permission(self.doctype, parent_doctype=parent_doctype)
 
 		# filters and fields swappable
