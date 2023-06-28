@@ -417,8 +417,8 @@ class Session:
 			# update sessions table
 			frappe.db.sql(
 				"""update `tabSessions` set sessiondata=%s,
-				lastupdate=NOW() where sid=%s""",
-				(str(self.data["data"]), self.data["sid"]),
+				lastupdate=%s where sid=%s""",
+				(str(self.data["data"]), now, self.data["sid"]),
 			)
 
 			# update last active in user table
