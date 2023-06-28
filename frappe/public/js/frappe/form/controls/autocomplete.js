@@ -182,7 +182,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			}
 			return o;
 		});
-		
+
 		return options;
 	}
 
