@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 
-let props = defineProps(["df"]);
+const props = defineProps(["df"]);
 
 let quill = ref(null);
 let quill_control = ref(null);

@@ -93,6 +93,19 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.db.sql = orig_sql
 
 
+class MockedRequestTestCase(FrappeTestCase):
+	def setUp(self):
+		import responses
+
+		self.responses = responses.RequestsMock()
+		self.responses.start()
+
+		self.addCleanup(self.responses.stop)
+		self.addCleanup(self.responses.reset)
+
+		return super().setUp()
+
+
 def _commit_watcher():
 	import traceback
 

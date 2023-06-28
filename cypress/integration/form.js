@@ -59,11 +59,13 @@ context("Form", () => {
 			.blur();
 		cy.click_listview_row_item_with_text("Test Form Contact 3");
 
+		cy.scrollTo(0);
 		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
 		cy.get(".prev-doc").should("be.visible").click();
 		cy.get(".msgprint-dialog .modal-body").contains("No further records").should("be.visible");
 		cy.hide_dialog();
 
+		cy.scrollTo(0);
 		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
 		cy.get(".next-doc").should("be.visible").click();
 		cy.get(".msgprint-dialog .modal-body").contains("No further records").should("be.visible");
