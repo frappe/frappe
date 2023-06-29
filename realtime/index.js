@@ -1,4 +1,3 @@
-const cookie = require("cookie");
 const request = require("superagent");
 const { Server } = require("socket.io");
 
@@ -6,6 +5,8 @@ const { get_conf, get_redis_subscriber } = require("../node_utils");
 const conf = get_conf();
 const log = console.log; // eslint-disable-line
 const subscriber = get_redis_subscriber();
+
+const { get_hostname, get_url } = require("./utils");
 
 const io = new Server(conf.socketio_port, {
 	cors: {
@@ -15,43 +16,11 @@ const io = new Server(conf.socketio_port, {
 	},
 });
 
-io.use((socket, next) => {
-	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
-		next(new Error("Invalid origin"));
-		return;
-	}
+// load and register middlewares
+const authenticate = require("./middlewares/authenticate");
+io.use(authenticate);
 
-	if (!socket.request.headers.cookie) {
-		next(new Error("No cookie transmitted."));
-		return;
-	}
-
-	let cookies = cookie.parse(socket.request.headers.cookie);
-
-	if (!cookies.sid) {
-		next(new Error("No sid transmitted."));
-		return;
-	}
-
-	request
-		.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
-		.type("form")
-		.query({
-			sid: cookies.sid,
-		})
-		.then((res) => {
-			socket.user = res.body.message.user;
-			socket.user_type = res.body.message.user_type;
-			socket.sid = cookies.sid;
-			socket.subscribed_documents = [];
-			next();
-		})
-		.catch((e) => {
-			next(new Error(`Unauthorized: ${e}`));
-		});
-});
-
-// on socket connection
+// load and register handler
 io.on("connection", function (socket) {
 	socket.join(get_user_room(socket, socket.user));
 	socket.join(get_website_room(socket));
@@ -204,21 +173,6 @@ function get_site_name(socket) {
 		socket.site_name = get_hostname(socket.request.headers.host);
 	}
 	return socket.site_name;
-}
-
-function get_hostname(url) {
-	if (!url) return undefined;
-	if (url.indexOf("://") > -1) {
-		url = url.split("/")[2];
-	}
-	return url.match(/:/g) ? url.slice(0, url.indexOf(":")) : url;
-}
-
-function get_url(socket, path) {
-	if (!path) {
-		path = "";
-	}
-	return socket.request.headers.origin + path;
 }
 
 function can_subscribe_doc(args) {
