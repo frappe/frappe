@@ -271,7 +271,6 @@ function send_users(args) {
 	if (!(args && args.doctype && args.docname)) {
 		return;
 	}
-
 	const open_doc_room = get_open_doc_room(args.socket, args.doctype, args.docname);
 
 	const clients = Array.from(io.sockets.adapter.rooms.get(open_doc_room) || []);
@@ -282,6 +281,9 @@ function send_users(args) {
 			users.push(sock.user);
 		}
 	});
+
+	// dont send update to self. meaningless.
+	if (users.length == 1 && users[0] == args.socket.user) return;
 
 	// notify
 	io.to(open_doc_room).emit("doc_viewers", {
