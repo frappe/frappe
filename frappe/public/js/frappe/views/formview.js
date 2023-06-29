@@ -47,11 +47,6 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			$(document).on("page-change", function () {
 				frappe.ui.form.close_grid_form();
 			});
-
-			frappe.realtime.on("doc_viewers", function (data) {
-				// set users that currently viewing the form
-				frappe.ui.form.FormViewers.set_users(data, "viewers");
-			});
 		}
 		this.initialized = true;
 	}

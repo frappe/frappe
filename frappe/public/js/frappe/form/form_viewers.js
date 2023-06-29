@@ -3,6 +3,7 @@ frappe.ui.form.FormViewers = class FormViewers {
 		this.frm = frm;
 		this.parent = parent;
 		this.parent.tooltip({ title: __("Currently Viewing") });
+		this.setup_events();
 	}
 
 	refresh() {
@@ -19,27 +20,36 @@ frappe.ui.form.FormViewers = class FormViewers {
 		});
 		this.parent.empty().append(avatar_group);
 	}
-};
 
-frappe.ui.form.FormViewers.set_users = function (data, type) {
-	const doctype = data.doctype;
-	const docname = data.docname;
-	const docinfo = frappe.model.get_docinfo(doctype, docname);
+	setup_events() {
+		if (!this.initialized) {
+			let me = this;
+			frappe.realtime.on("doc_viewers", function (data) {
+				me.update_users(data);
+			});
+		}
+		this.initialized = true;
+	}
 
-	const past_users = ((docinfo && docinfo[type]) || {}).past || [];
-	const users = data.users || [];
-	const new_users = users.filter((user) => !past_users.includes(user));
+	async update_users({ doctype, docname, users }) {
+		const docinfo = frappe.model.get_docinfo(doctype, docname);
+		const docinfo_key = "viewers";
 
-	if (new_users.length === 0) return;
+		const past_users = ((docinfo && docinfo[docinfo_key]) || {}).past || [];
+		users = users || [];
+		const new_users = users.filter((user) => !past_users.includes(user));
 
-	const set_and_refresh = () => {
+		if (new_users.length === 0) return;
+
+		await this.fetch_user_info(users);
+
 		const info = {
 			past: past_users.concat(new_users),
 			new: new_users,
 			current: users,
 		};
 
-		frappe.model.set_docinfo(doctype, docname, type, info);
+		frappe.model.set_docinfo(doctype, docname, docinfo_key, info);
 
 		if (
 			cur_frm &&
@@ -48,24 +58,20 @@ frappe.ui.form.FormViewers.set_users = function (data, type) {
 			cur_frm.doc.name == docname &&
 			cur_frm.viewers
 		) {
-			cur_frm.viewers.refresh(true, type);
+			cur_frm.viewers.refresh(true);
 		}
-	};
-
-	let unknown_users = [];
-	for (let user of users) {
-		if (!frappe.boot.user_info[user]) unknown_users.push(user);
 	}
 
-	if (unknown_users.length === 0) {
-		set_and_refresh();
-	} else {
-		// load additional user info
-		frappe
-			.xcall("frappe.desk.form.load.get_user_info_for_viewers", { users: unknown_users })
-			.then((data) => {
-				Object.assign(frappe.boot.user_info, data);
-				set_and_refresh();
-			});
+	async fetch_user_info(users) {
+		let unknown_users = [];
+		for (let user of users) {
+			if (!frappe.boot.user_info[user]) unknown_users.push(user);
+		}
+		if (!unknown_users) return;
+
+		const data = await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
+			users: unknown_users,
+		});
+		Object.assign(frappe.boot.user_info, data);
 	}
 };
