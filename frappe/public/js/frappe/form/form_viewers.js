@@ -14,8 +14,7 @@ frappe.ui.form.FormViewers = class FormViewers {
 			this.parent.empty();
 			return;
 		}
-		let currently_viewing = this.active_users.filter((user) => user != frappe.session.user);
-		let avatar_group = frappe.avatar_group(currently_viewing, 5, {
+		let avatar_group = frappe.avatar_group(this.active_users, 5, {
 			align: "left",
 			overlap: true,
 		});
@@ -31,9 +30,13 @@ frappe.ui.form.FormViewers = class FormViewers {
 	}
 
 	async update_users({ doctype, docname, users = [] }) {
-		// TODO: Do symmetric differenc here, user can be removed or added
-		const new_users = users.filter((user) => !this.past_users.includes(user));
-		if (new_users.length === 0) return;
+		users = users.filter((u) => u != frappe.session.user);
+
+		const added_users = users.filter((user) => !this.past_users.includes(user));
+		const removed_users = this.past_users.filter((user) => !users.includes(user));
+		const changed_users = [...added_users, ...removed_users];
+
+		if (changed_users.length === 0) return;
 
 		await this.fetch_user_info(users);
 
