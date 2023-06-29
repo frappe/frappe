@@ -111,8 +111,7 @@ io.on("connection", function (socket) {
 	});
 
 	socket.on("open_in_editor", (data) => {
-		let s = get_redis_subscriber("redis_queue");
-		s.publish("open_in_editor", JSON.stringify(data));
+		subscriber.publish("open_in_editor", JSON.stringify(data));
 	});
 });
 
