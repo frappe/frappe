@@ -52,7 +52,6 @@ frappe.socketio = {
 		});
 
 		frappe.socketio.setup_listeners();
-		frappe.socketio.setup_reconnect();
 
 		$(document).on("form-load form-rename", function (e, frm) {
 			if (!frm.doc || frm.is_new()) {
@@ -173,30 +172,6 @@ frappe.socketio = {
 		});
 		frappe.socketio.socket.on("task_progress", function (data) {
 			frappe.socketio.process_response(data, "progress");
-		});
-	},
-	setup_reconnect: function () {
-		// subscribe again to open_tasks
-		frappe.socketio.socket.on("connect", function () {
-			// wait for 5 seconds before subscribing again
-			// because it takes more time to start python server than nodejs server
-			// and we use validation requests to python server for subscribing
-			setTimeout(function () {
-				$.each(frappe.socketio.open_tasks, function (task_id, opts) {
-					frappe.socketio.subscribe(task_id, opts);
-				});
-
-				// re-connect open docs
-				$.each(frappe.socketio.open_docs, function (d) {
-					if (locals[d.doctype] && locals[d.doctype][d.name]) {
-						frappe.socketio.doc_subscribe(d.doctype, d.name);
-					}
-				});
-
-				if (cur_frm && cur_frm.doc && !cur_frm.is_new()) {
-					frappe.socketio.doc_open(cur_frm.doc.doctype, cur_frm.doc.name);
-				}
-			}, 5000);
 		});
 	},
 	process_response: function (data, method) {
