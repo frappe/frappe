@@ -95,14 +95,6 @@ class RealTimeClient {
 			me.doc_close(frm.doctype, frm.docname);
 		});
 
-		$(document).on("form-typing", function (e, frm) {
-			me.form_typing(frm.doctype, frm.docname);
-		});
-
-		$(document).on("form-stopped-typing", function (e, frm) {
-			me.form_stopped_typing(frm.doctype, frm.docname);
-		});
-
 		window.addEventListener("beforeunload", () => {
 			if (!cur_frm || !cur_frm.doc || cur_frm.is_new()) {
 				return;
