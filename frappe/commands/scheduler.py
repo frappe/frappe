@@ -240,14 +240,14 @@ def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 @click.option("--site", help="site name")
 @pass_context
 def ready_for_migration(context, site=None):
-	from frappe.utils.doctor import get_pending_jobs
+	from frappe.utils.doctor import any_job_pending
 
 	if not site:
 		site = get_site(context)
 
 	try:
 		frappe.init(site=site)
-		pending_jobs = get_pending_jobs(site=site)
+		pending_jobs = any_job_pending(site=site)
 
 		if pending_jobs:
 			print(f"NOT READY for migration: site {site} has pending background jobs")
