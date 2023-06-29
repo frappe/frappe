@@ -4,7 +4,6 @@ const { Server } = require("socket.io");
 const { get_conf, get_redis_subscriber } = require("../node_utils");
 const conf = get_conf();
 const log = console.log; // eslint-disable-line
-const subscriber = get_redis_subscriber();
 
 const { get_hostname, get_url } = require("./utils");
 
@@ -114,18 +113,6 @@ io.on("connection", function (socket) {
 		subscriber.publish("open_in_editor", JSON.stringify(data));
 	});
 });
-
-subscriber.on("message", function (_channel, message) {
-	message = JSON.parse(message);
-
-	if (message.room) {
-		io.to(message.room).emit(message.event, message.message);
-	} else {
-		io.emit(message.event, message.message);
-	}
-});
-
-subscriber.subscribe("events");
 
 function get_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":doc:" + doctype + "/" + docname;
@@ -259,3 +246,17 @@ function user_disconnected(socket) {
 		notify_subscribed_doc_users({ socket, doctype, docname });
 	});
 }
+
+const subscriber = get_redis_subscriber();
+
+subscriber.on("message", function (_channel, message) {
+	message = JSON.parse(message);
+
+	if (message.room) {
+		io.to(message.room).emit(message.event, message.message);
+	} else {
+		io.emit(message.event, message.message);
+	}
+});
+
+subscriber.subscribe("events");
