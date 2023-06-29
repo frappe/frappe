@@ -162,36 +162,10 @@ frappe.socketio = {
 		});
 	},
 	doc_open: function (doctype, docname) {
-		// notify that the user has opened this doc, if not already notified
-		if (
-			!frappe.socketio.last_doc ||
-			frappe.socketio.last_doc[0] != doctype ||
-			frappe.socketio.last_doc[1] != docname
-		) {
-			frappe.socketio.socket.emit("doc_open", doctype, docname);
-
-			frappe.socketio.last_doc &&
-				frappe.socketio.doc_close(
-					frappe.socketio.last_doc[0],
-					frappe.socketio.last_doc[1]
-				);
-		}
-		frappe.socketio.last_doc = [doctype, docname];
+		frappe.socketio.socket.emit("doc_open", doctype, docname);
 	},
 	doc_close: function (doctype, docname) {
-		// notify that the user has closed this doc
 		frappe.socketio.socket.emit("doc_close", doctype, docname);
-
-		// if the doc is closed the user has also stopped typing
-		frappe.socketio.socket.emit("doc_typing_stopped", doctype, docname);
-	},
-	form_typing: function (doctype, docname) {
-		// notifiy that the user is typing on the doc
-		frappe.socketio.socket.emit("doc_typing", doctype, docname);
-	},
-	form_stopped_typing: function (doctype, docname) {
-		// notifiy that the user has stopped typing
-		frappe.socketio.socket.emit("doc_typing_stopped", doctype, docname);
 	},
 	setup_listeners: function () {
 		frappe.socketio.socket.on("task_status_change", function (data) {
