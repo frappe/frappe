@@ -53,7 +53,7 @@ frappe.ui.form.FormViewers = class FormViewers {
 		for (let user of users) {
 			if (!frappe.boot.user_info[user]) unknown_users.push(user);
 		}
-		if (!unknown_users) return;
+		if (!unknown_users.length) return;
 
 		const data = await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
 			users: unknown_users,
