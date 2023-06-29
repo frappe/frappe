@@ -42,6 +42,7 @@ io.use((socket, next) => {
 			socket.user = res.body.message.user;
 			socket.user_type = res.body.message.user_type;
 			socket.sid = cookies.sid;
+			socket.subscribed_documents = [];
 			next();
 		})
 		.catch((e) => {
@@ -93,14 +94,14 @@ io.on("connection", function (socket) {
 			doctype,
 			docname,
 			callback: () => {
-				var room = get_doc_room(socket, doctype, docname);
+				let room = get_doc_room(socket, doctype, docname);
 				socket.join(room);
 			},
 		});
 	});
 
 	socket.on("doc_unsubscribe", function (doctype, docname) {
-		var room = get_doc_room(socket, doctype, docname);
+		let room = get_doc_room(socket, doctype, docname);
 		socket.leave(room);
 	});
 
@@ -110,11 +111,12 @@ io.on("connection", function (socket) {
 			doctype,
 			docname,
 			callback: () => {
-				var room = get_open_doc_room(socket, doctype, docname);
+				let room = get_open_doc_room(socket, doctype, docname);
 				socket.join(room);
+				socket.subscribed_documents.push([doctype, docname]);
 
 				// show who is currently viewing the form
-				send_users({
+				notify_subscribed_doc_users({
 					socket: socket,
 					doctype: doctype,
 					docname: docname,
@@ -125,16 +127,17 @@ io.on("connection", function (socket) {
 
 	socket.on("doc_close", function (doctype, docname) {
 		// remove this user from the list of 'who is currently viewing the form'
-		var room = get_open_doc_room(socket, doctype, docname);
+		let room = get_open_doc_room(socket, doctype, docname);
 		socket.leave(room);
-		send_users(
-			{
-				socket: socket,
-				doctype: doctype,
-				docname: docname,
-			},
-			"view"
-		);
+		socket.subscribed_documents = socket.subscribed_documents.filter(([dt, dn]) => {
+			!(dt == doctype && dn == docname);
+		});
+
+		notify_subscribed_doc_users({
+			socket: socket,
+			doctype: doctype,
+			docname: docname,
+		});
 	});
 
 	socket.on("open_in_editor", (data) => {
@@ -267,7 +270,7 @@ function can_subscribe_doctype(args) {
 		});
 }
 
-function send_users(args) {
+function notify_subscribed_doc_users(args) {
 	if (!(args && args.doctype && args.docname)) {
 		return;
 	}
@@ -290,5 +293,15 @@ function send_users(args) {
 		doctype: args.doctype,
 		docname: args.docname,
 		users: Array.from(new Set(users)),
+	});
+}
+
+io.sockets.on("connection", function (socket) {
+	socket.on("disconnect", () => user_disconnected(socket));
+});
+
+function user_disconnected(socket) {
+	socket.subscribed_documents.forEach(([doctype, docname]) => {
+		notify_subscribed_doc_users({ socket, doctype, docname });
 	});
 }

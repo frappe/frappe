@@ -91,16 +91,7 @@ class RealTimeClient {
 				return;
 			}
 
-			// me.doc_unsubscribe(frm.doctype, frm.docname);
 			me.doc_close(frm.doctype, frm.docname);
-		});
-
-		window.addEventListener("beforeunload", () => {
-			if (!cur_frm || !cur_frm.doc || cur_frm.is_new()) {
-				return;
-			}
-
-			me.doc_close(cur_frm.doctype, cur_frm.docname);
 		});
 	}
 
