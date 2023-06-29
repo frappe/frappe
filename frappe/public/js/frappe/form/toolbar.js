@@ -13,7 +13,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	refresh() {
 		this.make_menu();
-		this.make_viewers();
 		this.set_title();
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
@@ -270,18 +269,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.make_navigation();
 			this.make_menu_items();
 		}
-	}
-
-	make_viewers() {
-		if (this.frm.viewers) {
-			return;
-		}
-		this.frm.viewers = new frappe.ui.form.FormViewers({
-			frm: this.frm,
-			parent: $('<div class="form-viewers d-flex"></div>').prependTo(
-				this.frm.page.page_actions
-			),
-		});
 	}
 
 	make_navigation() {

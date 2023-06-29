@@ -24,6 +24,7 @@ frappe.ui.form.FormViewers = class FormViewers {
 	setup_events() {
 		if (!this.initialized) {
 			let me = this;
+			frappe.realtime.off("doc_viewers");
 			frappe.realtime.on("doc_viewers", function (data) {
 				me.update_users(data);
 			});
@@ -52,13 +53,13 @@ frappe.ui.form.FormViewers = class FormViewers {
 		frappe.model.set_docinfo(doctype, docname, docinfo_key, info);
 
 		if (
-			cur_frm &&
-			cur_frm.doc &&
-			cur_frm.doc.doctype === doctype &&
-			cur_frm.doc.name == docname &&
-			cur_frm.viewers
+			this.frm &&
+			this.frm.doc &&
+			this.frm.doc.doctype === doctype &&
+			this.frm.doc.name == docname &&
+			this.frm.viewers
 		) {
-			cur_frm.viewers.refresh(true);
+			this.frm.viewers.refresh(true);
 		}
 	}
 
