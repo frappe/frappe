@@ -3,17 +3,18 @@ frappe.ui.form.FormViewers = class FormViewers {
 		this.frm = frm;
 		this.parent = parent;
 		this.parent.tooltip({ title: __("Currently Viewing") });
+
+		this.past_users = []; // Remember last users to compute changes
+		this.active_users = []; // current users viewing this form
 		this.setup_events();
 	}
 
 	refresh() {
-		let users = this.frm.get_docinfo()["viewers"];
-		if (!users || !users.current || !users.current.length) {
+		if (!this.active_users.length) {
 			this.parent.empty();
 			return;
 		}
-
-		let currently_viewing = users.current.filter((user) => user != frappe.session.user);
+		let currently_viewing = this.active_users.filter((user) => user != frappe.session.user);
 		let avatar_group = frappe.avatar_group(currently_viewing, 5, {
 			align: "left",
 			overlap: true,
@@ -22,44 +23,25 @@ frappe.ui.form.FormViewers = class FormViewers {
 	}
 
 	setup_events() {
-		if (!this.initialized) {
-			let me = this;
-			frappe.realtime.off("doc_viewers");
-			frappe.realtime.on("doc_viewers", function (data) {
-				me.update_users(data);
-			});
-		}
-		this.initialized = true;
+		let me = this;
+		frappe.realtime.off("doc_viewers");
+		frappe.realtime.on("doc_viewers", function (data) {
+			me.update_users(data);
+		});
 	}
 
-	async update_users({ doctype, docname, users }) {
-		const docinfo = frappe.model.get_docinfo(doctype, docname);
-		const docinfo_key = "viewers";
-
-		const past_users = ((docinfo && docinfo[docinfo_key]) || {}).past || [];
-		users = users || [];
-		const new_users = users.filter((user) => !past_users.includes(user));
-
+	async update_users({ doctype, docname, users = [] }) {
+		// TODO: Do symmetric differenc here, user can be removed or added
+		const new_users = users.filter((user) => !this.past_users.includes(user));
 		if (new_users.length === 0) return;
 
 		await this.fetch_user_info(users);
 
-		const info = {
-			past: past_users.concat(new_users),
-			new: new_users,
-			current: users,
-		};
+		this.active_users = users;
+		this.past_users = users;
 
-		frappe.model.set_docinfo(doctype, docname, docinfo_key, info);
-
-		if (
-			this.frm &&
-			this.frm.doc &&
-			this.frm.doc.doctype === doctype &&
-			this.frm.doc.name == docname &&
-			this.frm.viewers
-		) {
-			this.frm.viewers.refresh(true);
+		if (this.frm?.doc?.doctype === doctype && this.frm?.doc?.name == docname) {
+			this.refresh();
 		}
 	}
 
