@@ -1,6 +1,6 @@
 const cookie = require("cookie");
 const request = require("superagent");
-const { get_hostname, get_url } = require("../utils");
+const { get_url } = require("../utils");
 
 const { get_conf } = require("../../node_utils");
 const conf = get_conf();
@@ -40,7 +40,6 @@ function authenticate_with_frappe(socket, next) {
 			socket.user = res.body.message.user;
 			socket.user_type = res.body.message.user_type;
 			socket.sid = cookies.sid;
-			socket.subscribed_documents = [];
 			next();
 		})
 		.catch((e) => {
@@ -65,6 +64,14 @@ function get_site_name(socket) {
 		socket.site_name = get_hostname(socket.request.headers.host);
 	}
 	return socket.site_name;
+}
+
+function get_hostname(url) {
+	if (!url) return undefined;
+	if (url.indexOf("://") > -1) {
+		url = url.split("/")[2];
+	}
+	return url.match(/:/g) ? url.slice(0, url.indexOf(":")) : url;
 }
 
 module.exports = authenticate_with_frappe;

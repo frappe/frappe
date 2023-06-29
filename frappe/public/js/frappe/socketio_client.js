@@ -6,7 +6,6 @@ class RealTimeClient {
 	constructor() {
 		this.open_tasks = {};
 		this.open_docs = new Set();
-		this.emit_queue = [];
 	}
 
 	on(event, callback) {
@@ -96,9 +95,9 @@ class RealTimeClient {
 	}
 
 	get_host(port = 3000) {
-		var host = window.location.origin;
+		let host = window.location.origin;
 		if (window.dev_server) {
-			var parts = host.split(":");
+			let parts = host.split(":");
 			port = frappe.boot.socketio_port || port.toString() || "3000";
 			if (parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
@@ -171,7 +170,7 @@ class RealTimeClient {
 		}
 
 		// success
-		var opts = this.open_tasks[data.task_id];
+		let opts = this.open_tasks[data.task_id];
 		if (opts[method]) {
 			opts[method](data);
 		}
