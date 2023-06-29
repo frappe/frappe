@@ -66,6 +66,7 @@ def enqueue(
 	on_failure: Callable = None,
 	at_front: bool = False,
 	job_id: str = None,
+	deduplicate=False,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -79,10 +80,25 @@ def enqueue(
 	:param job_name: [DEPRECATED] can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param now: if now=True, the method is executed via frappe.call
 	:param kwargs: keyword arguments to be passed to the method
+	:param deduplicate: do not re-queue job if it's already queued, requires job_id.
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
+
+	if deduplicate:
+		if not job_id:
+			frappe.throw(_("`job_id` paramater is required for deduplication."))
+		job = get_job(job_id)
+		if job and job.get_status() in (JobStatus.QUEUED, JobStatus.STARTED):
+			frappe.logger().debug(f"Not queueing job {job.id} because it is in queue already")
+			return
+		elif job:
+			# delete job to avoid argument issues related to job args
+			# https://github.com/rq/rq/issues/793
+			job.delete()
+
+		# If job exists and is completed then delete it before re-queue
 
 	# namespace job ids to sites
 	job_id = create_job_id(job_id)
@@ -492,9 +508,13 @@ def is_job_enqueued(job_id: str) -> bool:
 
 def get_job_status(job_id: str) -> JobStatus | None:
 	"""Get RQ job status, returns None if job is not found."""
+	job = get_job(job_id)
+	if job:
+		return job.get_status()
+
+
+def get_job(job_id: str) -> Job:
 	try:
-		job = Job.fetch(create_job_id(job_id), connection=get_redis_conn())
+		return Job.fetch(create_job_id(job_id), connection=get_redis_conn())
 	except NoSuchJobError:
 		return None
-
-	return job.get_status()
