@@ -10,6 +10,7 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
+	create_job_id,
 	execute_job,
 	generate_qname,
 	get_redis_conn,
@@ -54,11 +55,12 @@ class TestBackgroundJobs(FrappeTestCase):
 
 	def test_enqueue_call(self):
 		with patch.object(Queue, "enqueue_call") as mock_enqueue_call:
-			frappe.enqueue(
+			job = frappe.enqueue(
 				"frappe.handler.ping",
 				queue="short",
 				timeout=300,
 				kwargs={"site": frappe.local.site},
+				job_id="test",
 			)
 
 			mock_enqueue_call.assert_called_once_with(
@@ -78,7 +80,7 @@ class TestBackgroundJobs(FrappeTestCase):
 				at_front=False,
 				failure_ttl=RQ_JOB_FAILURE_TTL,
 				result_ttl=RQ_RESULTS_TTL,
-				job_id=None,
+				job_id=create_job_id("test"),
 			)
 
 	def test_job_hooks(self):

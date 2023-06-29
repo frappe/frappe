@@ -99,8 +99,7 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_count(args) -> int:
-		# Can not be implemented efficiently due to site filtering hence ignored.
-		return 0
+		return len(RQJob.get_matching_job_ids(args))
 
 	# None of these methods apply to virtual job doctype, overriden for sanity.
 	@staticmethod
