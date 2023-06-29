@@ -84,9 +84,8 @@ def enqueue(
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
 
-	if job_id:
-		# namespace job ids to sites
-		job_id = create_job_id(job_id)
+	# namespace job ids to sites
+	job_id = create_job_id(job_id)
 
 	if job_name:
 		deprecation_warning("Using enqueue with `job_name` is deprecated, use `job_id` instead.")
@@ -481,6 +480,9 @@ def test_job(s):
 
 def create_job_id(job_id: str) -> str:
 	"""Generate unique job id for deduplication"""
+
+	if not job_id:
+		job_id = str(uuid4())
 	return f"{frappe.local.site}::{job_id}"
 
 
