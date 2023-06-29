@@ -1,45 +1,61 @@
 import { io } from "socket.io-client";
 
-class SocketIOCient {
+frappe.provide("frappe.realtime");
+
+class RealTimeClient {
 	constructor() {
 		this.open_tasks = {};
 		this.open_docs = [];
 		this.emit_queue = [];
 	}
 
-	init(port = 3000) {
+	on(event, callback) {
+		if (this.socket) {
+			this.socket.on(event, callback);
+		}
+	}
+
+	off(event, callback) {
+		if (this.socket) {
+			this.socket.off(event, callback);
+		}
+	}
+
+	init(port = 9000) {
 		if (frappe.boot.disable_async) {
 			return;
 		}
 
-		if (frappe.socketio.socket) {
+		if (this.socket) {
 			return;
 		}
 
+		let me = this;
+
 		// Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {
+			this.socket = io.connect(this.get_host(port), {
 				secure: true,
 				withCredentials: true,
 				reconnectionAttempts: 3,
 			});
 		} else if (window.location.protocol == "http:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {
+			this.socket = io.connect(this.get_host(port), {
 				withCredentials: true,
 				reconnectionAttempts: 3,
 			});
 		}
 
-		if (!frappe.socketio.socket) {
-			console.log("Unable to connect to " + frappe.socketio.get_host(port));
+		if (!this.socket) {
+			console.log("Unable to connect to " + this.get_host(port));
 			return;
 		}
 
-		frappe.socketio.socket.on("msgprint", function (message) {
+		this.socket.on("msgprint", function (message) {
 			frappe.msgprint(message);
 		});
 
-		frappe.socketio.socket.on("progress", function (data) {
+		this.socket.on("progress", function (data) {
 			if (data.progress) {
 				data.percent = (flt(data.progress[0]) / data.progress[1]) * 100;
 			}
@@ -54,30 +70,29 @@ class SocketIOCient {
 			}
 		});
 
-		frappe.socketio.setup_listeners();
+		this.setup_listeners();
 
 		$(document).on("form-load form-rename", function (e, frm) {
 			if (!frm.doc || frm.is_new()) {
 				return;
 			}
 
-			for (var i = 0, l = frappe.socketio.open_docs.length; i < l; i++) {
-				var d = frappe.socketio.open_docs[i];
+			for (var i = 0, l = me.open_docs.length; i < l; i++) {
+				var d = me.open_docs[i];
 				if (frm.doctype == d.doctype && frm.docname == d.name) {
 					// already subscribed
 					return false;
 				}
 			}
 
-			frappe.socketio.doc_subscribe(frm.doctype, frm.docname);
+			me.doc_subscribe(frm.doctype, frm.docname);
 		});
 
 		$(document).on("form-refresh", function (e, frm) {
 			if (!frm.doc || frm.is_new()) {
 				return;
 			}
-
-			frappe.socketio.doc_open(frm.doctype, frm.docname);
+			me.doc_open(frm.doctype, frm.docname);
 		});
 
 		$(document).on("form-unload", function (e, frm) {
@@ -85,16 +100,16 @@ class SocketIOCient {
 				return;
 			}
 
-			// frappe.socketio.doc_unsubscribe(frm.doctype, frm.docname);
-			frappe.socketio.doc_close(frm.doctype, frm.docname);
+			// me.doc_unsubscribe(frm.doctype, frm.docname);
+			me.doc_close(frm.doctype, frm.docname);
 		});
 
 		$(document).on("form-typing", function (e, frm) {
-			frappe.socketio.form_typing(frm.doctype, frm.docname);
+			me.form_typing(frm.doctype, frm.docname);
 		});
 
 		$(document).on("form-stopped-typing", function (e, frm) {
-			frappe.socketio.form_stopped_typing(frm.doctype, frm.docname);
+			me.form_stopped_typing(frm.doctype, frm.docname);
 		});
 
 		window.addEventListener("beforeunload", () => {
@@ -102,7 +117,7 @@ class SocketIOCient {
 				return;
 			}
 
-			frappe.socketio.doc_close(cur_frm.doctype, cur_frm.docname);
+			me.doc_close(cur_frm.doctype, cur_frm.docname);
 		});
 	}
 
@@ -122,22 +137,22 @@ class SocketIOCient {
 	subscribe(task_id, opts) {
 		// TODO DEPRECATE
 
-		frappe.socketio.socket.emit("task_subscribe", task_id);
-		frappe.socketio.socket.emit("progress_subscribe", task_id);
+		this.socket.emit("task_subscribe", task_id);
+		this.socket.emit("progress_subscribe", task_id);
 
-		frappe.socketio.open_tasks[task_id] = opts;
+		this.open_tasks[task_id] = opts;
 	}
 	task_subscribe(task_id) {
-		frappe.socketio.socket.emit("task_subscribe", task_id);
+		this.socket.emit("task_subscribe", task_id);
 	}
 	task_unsubscribe(task_id) {
-		frappe.socketio.socket.emit("task_unsubscribe", task_id);
+		this.socket.emit("task_unsubscribe", task_id);
 	}
 	doctype_subscribe(doctype) {
-		frappe.socketio.socket.emit("doctype_subscribe", doctype);
+		this.socket.emit("doctype_subscribe", doctype);
 	}
 	doctype_unsubscribe(doctype) {
-		frappe.socketio.socket.emit("doctype_unsubscribe", doctype);
+		this.socket.emit("doctype_unsubscribe", doctype);
 	}
 	doc_subscribe(doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
@@ -152,12 +167,12 @@ class SocketIOCient {
 			frappe.flags.doc_subscribe = false;
 		}, 1000);
 
-		frappe.socketio.socket.emit("doc_subscribe", doctype, docname);
-		frappe.socketio.open_docs.push({ doctype: doctype, docname: docname });
+		this.socket.emit("doc_subscribe", doctype, docname);
+		this.open_docs.push({ doctype: doctype, docname: docname });
 	}
 	doc_unsubscribe(doctype, docname) {
-		frappe.socketio.socket.emit("doc_unsubscribe", doctype, docname);
-		frappe.socketio.open_docs = $.filter(frappe.socketio.open_docs, function (d) {
+		this.socket.emit("doc_unsubscribe", doctype, docname);
+		this.open_docs = $.filter(frappe.socketio.open_docs, function (d) {
 			if (d.doctype === doctype && d.name === docname) {
 				return null;
 			} else {
@@ -166,17 +181,17 @@ class SocketIOCient {
 		});
 	}
 	doc_open(doctype, docname) {
-		frappe.socketio.socket.emit("doc_open", doctype, docname);
+		this.socket.emit("doc_open", doctype, docname);
 	}
 	doc_close(doctype, docname) {
-		frappe.socketio.socket.emit("doc_close", doctype, docname);
+		this.socket.emit("doc_close", doctype, docname);
 	}
 	setup_listeners() {
-		frappe.socketio.socket.on("task_status_change", function (data) {
-			frappe.socketio.process_response(data, data.status.toLowerCase());
+		this.socket.on("task_status_change", function (data) {
+			this.process_response(data, data.status.toLowerCase());
 		});
-		frappe.socketio.socket.on("task_progress", function (data) {
-			frappe.socketio.process_response(data, "progress");
+		this.socket.on("task_progress", function (data) {
+			this.process_response(data, "progress");
 		});
 	}
 	process_response(data, method) {
@@ -185,7 +200,7 @@ class SocketIOCient {
 		}
 
 		// success
-		var opts = frappe.socketio.open_tasks[data.task_id];
+		var opts = this.open_tasks[data.task_id];
 		if (opts[method]) {
 			opts[method](data);
 		}
@@ -206,21 +221,15 @@ class SocketIOCient {
 			opts.error(data);
 		}
 	}
+
+	publish(event, message) {
+		if (this.socket) {
+			this.socket.emit(event, message);
+		}
+	}
 }
 
-frappe.socketio = new SocketIOCient();
+frappe.realtime = new RealTimeClient();
 
-frappe.provide("frappe.realtime");
-frappe.realtime.on = function (event, callback) {
-	frappe.socketio.socket && frappe.socketio.socket.on(event, callback);
-};
-
-frappe.realtime.off = function (event, callback) {
-	frappe.socketio.socket && frappe.socketio.socket.off(event, callback);
-};
-
-frappe.realtime.publish = function (event, message) {
-	if (frappe.socketio.socket) {
-		frappe.socketio.socket.emit(event, message);
-	}
-};
+// backward compatbility
+frappe.socketio = frappe.realtime;
