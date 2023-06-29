@@ -56,7 +56,6 @@ function get_site_name(socket) {
 		conf.default_site &&
 		["localhost", "127.0.0.1"].indexOf(get_hostname(socket.request.headers.host)) !== -1
 	) {
-		// from currentsite.txt since host is localhost
 		socket.site_name = conf.default_site;
 	} else if (socket.request.headers.origin) {
 		socket.site_name = get_hostname(socket.request.headers.origin);

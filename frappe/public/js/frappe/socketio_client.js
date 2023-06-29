@@ -10,6 +10,7 @@ class RealTimeClient {
 
 	on(event, callback) {
 		if (this.socket) {
+			this.connect();
 			this.socket.on(event, callback);
 		}
 	}
@@ -20,7 +21,19 @@ class RealTimeClient {
 		}
 	}
 
-	init(port = 9000) {
+	connect() {
+		if (this.lazy_connect) {
+			this.socket.connect();
+			this.lazy_connect = false;
+		}
+	}
+
+	emit(event, ...args) {
+		this.connect();
+		this.socket.emit(event, ...args);
+	}
+
+	init(port = 9000, lazy_connect = false) {
 		if (frappe.boot.disable_async) {
 			return;
 		}
@@ -28,7 +41,7 @@ class RealTimeClient {
 		if (this.socket) {
 			return;
 		}
-
+		this.lazy_connect = lazy_connect;
 		let me = this;
 
 		// Enable secure option when using HTTPS
@@ -37,11 +50,13 @@ class RealTimeClient {
 				secure: true,
 				withCredentials: true,
 				reconnectionAttempts: 3,
+				autoConnect: !lazy_connect,
 			});
 		} else if (window.location.protocol == "http:") {
 			this.socket = io(this.get_host(port), {
 				withCredentials: true,
 				reconnectionAttempts: 3,
+				autoConnect: !lazy_connect,
 			});
 		}
 
@@ -108,24 +123,22 @@ class RealTimeClient {
 	}
 
 	subscribe(task_id, opts) {
-		// TODO DEPRECATE
-
-		this.socket.emit("task_subscribe", task_id);
-		this.socket.emit("progress_subscribe", task_id);
+		this.emit("task_subscribe", task_id);
+		this.emit("progress_subscribe", task_id);
 
 		this.open_tasks[task_id] = opts;
 	}
 	task_subscribe(task_id) {
-		this.socket.emit("task_subscribe", task_id);
+		this.emit("task_subscribe", task_id);
 	}
 	task_unsubscribe(task_id) {
-		this.socket.emit("task_unsubscribe", task_id);
+		this.emit("task_unsubscribe", task_id);
 	}
 	doctype_subscribe(doctype) {
-		this.socket.emit("doctype_subscribe", doctype);
+		this.emit("doctype_subscribe", doctype);
 	}
 	doctype_unsubscribe(doctype) {
-		this.socket.emit("doctype_unsubscribe", doctype);
+		this.emit("doctype_unsubscribe", doctype);
 	}
 	doc_subscribe(doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
@@ -143,18 +156,18 @@ class RealTimeClient {
 			frappe.flags.doc_subscribe = false;
 		}, 1000);
 
-		this.socket.emit("doc_subscribe", doctype, docname);
+		this.emit("doc_subscribe", doctype, docname);
 		this.open_docs.add(`${doctype}:${docname}`);
 	}
 	doc_unsubscribe(doctype, docname) {
-		this.socket.emit("doc_unsubscribe", doctype, docname);
+		this.emit("doc_unsubscribe", doctype, docname);
 		return this.open_docs.delete(`${doctype}:${docname}`);
 	}
 	doc_open(doctype, docname) {
-		this.socket.emit("doc_open", doctype, docname);
+		this.emit("doc_open", doctype, docname);
 	}
 	doc_close(doctype, docname) {
-		this.socket.emit("doc_close", doctype, docname);
+		this.emit("doc_close", doctype, docname);
 	}
 	setup_listeners() {
 		this.socket.on("task_status_change", function (data) {
@@ -194,7 +207,7 @@ class RealTimeClient {
 
 	publish(event, message) {
 		if (this.socket) {
-			this.socket.emit(event, message);
+			this.emit(event, message);
 		}
 	}
 }

@@ -108,7 +108,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		let rename_document = () => {
-			if (input_name != docname) frappe.socketio.doctype_subscribe(doctype, input_name);
+			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
 				.xcall("frappe.model.rename_doc.update_document_title", {
 					doctype,

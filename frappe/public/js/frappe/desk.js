@@ -31,7 +31,7 @@ frappe.Application = class Application {
 	}
 
 	startup() {
-		frappe.socketio.init();
+		frappe.realtime.init();
 		frappe.model.init();
 
 		this.load_bootinfo();

@@ -1362,7 +1362,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
 			return;
 		}
-		frappe.socketio.doctype_subscribe(this.doctype);
+		frappe.realtime.doctype_subscribe(this.doctype);
 		frappe.realtime.off("list_update");
 		frappe.realtime.on("list_update", (data) => {
 			if (data?.doctype !== this.doctype) {
@@ -1385,7 +1385,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	disable_realtime_updates() {
-		frappe.socketio.doctype_unsubscribe(this.doctype);
+		frappe.realtime.doctype_unsubscribe(this.doctype);
 		this.realtime_events_setup = false;
 	}
 
