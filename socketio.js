@@ -114,24 +114,11 @@ io.on("connection", function (socket) {
 				socket.join(room);
 
 				// show who is currently viewing the form
-				send_users(
-					{
-						socket: socket,
-						doctype: doctype,
-						docname: docname,
-					},
-					"view"
-				);
-
-				// show who is currently typing on the form
-				send_users(
-					{
-						socket: socket,
-						doctype: doctype,
-						docname: docname,
-					},
-					"type"
-				);
+				send_users({
+					socket: socket,
+					doctype: doctype,
+					docname: docname,
+				});
 			},
 		});
 	});
@@ -147,36 +134,6 @@ io.on("connection", function (socket) {
 				docname: docname,
 			},
 			"view"
-		);
-	});
-
-	socket.on("doc_typing", function (doctype, docname) {
-		// show users that are currently typing on the form
-		const room = get_typing_room(socket, doctype, docname);
-		socket.join(room);
-
-		send_users(
-			{
-				socket: socket,
-				doctype: doctype,
-				docname: docname,
-			},
-			"type"
-		);
-	});
-
-	socket.on("doc_typing_stopped", function (doctype, docname) {
-		// remove this user from the list of users currently typing on the form'
-		const room = get_typing_room(socket, doctype, docname);
-		socket.leave(room);
-
-		send_users(
-			{
-				socket: socket,
-				doctype: doctype,
-				docname: docname,
-			},
-			"type"
 		);
 	});
 
@@ -204,10 +161,6 @@ function get_doc_room(socket, doctype, docname) {
 
 function get_open_doc_room(socket, doctype, docname) {
 	return get_site_name(socket) + ":open_doc:" + doctype + "/" + docname;
-}
-
-function get_typing_room(socket, doctype, docname) {
-	return get_site_name(socket) + ":typing:" + doctype + "/" + docname;
 }
 
 function get_user_room(socket, user) {
@@ -314,19 +267,14 @@ function can_subscribe_doctype(args) {
 		});
 }
 
-function send_users(args, action) {
+function send_users(args) {
 	if (!(args && args.doctype && args.docname)) {
 		return;
 	}
 
 	const open_doc_room = get_open_doc_room(args.socket, args.doctype, args.docname);
 
-	const room =
-		action == "view"
-			? open_doc_room
-			: get_typing_room(args.socket, args.doctype, args.docname);
-
-	const clients = Array.from(io.sockets.adapter.rooms.get(room) || []);
+	const clients = Array.from(io.sockets.adapter.rooms.get(open_doc_room) || []);
 
 	let users = [];
 	io.sockets.sockets.forEach((sock) => {
@@ -335,10 +283,8 @@ function send_users(args, action) {
 		}
 	});
 
-	const emit_event = action == "view" ? "doc_viewers" : "doc_typers";
-
 	// notify
-	io.to(open_doc_room).emit(emit_event, {
+	io.to(open_doc_room).emit("doc_viewers", {
 		doctype: args.doctype,
 		docname: args.docname,
 		users: Array.from(new Set(users)),
