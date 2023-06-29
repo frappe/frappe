@@ -5,7 +5,7 @@ frappe.provide("frappe.realtime");
 class RealTimeClient {
 	constructor() {
 		this.open_tasks = {};
-		this.open_docs = [];
+		this.open_docs = new Set();
 		this.emit_queue = [];
 	}
 
@@ -76,15 +76,6 @@ class RealTimeClient {
 			if (!frm.doc || frm.is_new()) {
 				return;
 			}
-
-			for (var i = 0, l = me.open_docs.length; i < l; i++) {
-				var d = me.open_docs[i];
-				if (frm.doctype == d.doctype && frm.docname == d.name) {
-					// already subscribed
-					return false;
-				}
-			}
-
 			me.doc_subscribe(frm.doctype, frm.docname);
 		});
 
@@ -159,6 +150,9 @@ class RealTimeClient {
 			console.log("throttled");
 			return;
 		}
+		if (this.open_docs.has(`${doctype}:${docname}`)) {
+			return;
+		}
 
 		frappe.flags.doc_subscribe = true;
 
@@ -168,17 +162,11 @@ class RealTimeClient {
 		}, 1000);
 
 		this.socket.emit("doc_subscribe", doctype, docname);
-		this.open_docs.push({ doctype: doctype, docname: docname });
+		this.open_docs.add(`${doctype}:${docname}`);
 	}
 	doc_unsubscribe(doctype, docname) {
 		this.socket.emit("doc_unsubscribe", doctype, docname);
-		this.open_docs = $.filter(frappe.socketio.open_docs, function (d) {
-			if (d.doctype === doctype && d.name === docname) {
-				return null;
-			} else {
-				return d;
-			}
-		});
+		return this.open_docs.delete(`${doctype}:${docname}`);
 	}
 	doc_open(doctype, docname) {
 		this.socket.emit("doc_open", doctype, docname);
