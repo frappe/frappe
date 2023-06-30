@@ -52,10 +52,8 @@ def get_sites(site_arg: str) -> list[str]:
 		return [site_arg]
 	elif os.environ.get("FRAPPE_SITE"):
 		return [os.environ.get("FRAPPE_SITE")]
-	elif os.path.exists("currentsite.txt"):
-		with open("currentsite.txt") as f:
-			if site := f.read().strip():
-				return [site]
+	elif default_site := frappe.get_conf().default_site:
+		return [default_site]
 	return []
 
 
