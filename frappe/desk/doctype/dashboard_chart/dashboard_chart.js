@@ -48,7 +48,6 @@ frappe.ui.form.on("Dashboard Chart", {
 		frm.set_df_property("dynamic_filters_section", "hidden", 1);
 
 		frm.trigger("set_parent_document_type");
-		frm.trigger("set_time_series");
 		frm.set_query("document_type", function () {
 			return {
 				filters: {

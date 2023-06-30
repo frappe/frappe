@@ -103,7 +103,7 @@ export default class ChartWidget extends Widget {
 				this.action_area.empty();
 				this.prepare_chart_actions();
 
-				if (this.chart_doc.timeseries && this.chart_doc.chart_type !== "Custom") {
+				if (this.chart_doc.timeseries) {
 					this.render_time_series_filters();
 				}
 			}
