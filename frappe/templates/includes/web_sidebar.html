@@ -93,6 +93,15 @@
 </ul>
 {% endif %}
 {% endmacro %}
+{% macro statement() %}
+{% if frappe.user != 'Guest' %}
+<ul class="list-unstyled">
+    <li class="sidebar-item">
+        <a class='' href="/statement">{{ _("Statements") }}</a>
+    </li>
+</ul>
+{% endif %}
+{% endmacro %}
 <div class="web-sidebar">
     {% if sidebar_title %}
     <li class="title">
@@ -107,6 +116,7 @@
         {{ my_profile() }}
         {{ address() }}
         {{ change_password() }}
+        {{ statement() }}
     </div>
 </div>
 
