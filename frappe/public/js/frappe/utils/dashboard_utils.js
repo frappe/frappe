@@ -202,14 +202,14 @@ frappe.dashboard_utils = {
 	},
 
 	get_all_filters(doc) {
-		let filters = doc.filters_json ? JSON.parse(doc.filters_json) : [];
+		let filters = doc.filters_json ? JSON.parse(doc.filters_json) : null;
 		let dynamic_filters = doc.dynamic_filters_json ? JSON.parse(doc.dynamic_filters_json) : [];
 
 		if (!Object.keys(dynamic_filters).length) {
 			return filters;
 		}
 
-		if ($.isArray(dynamic_filters)) {
+		if (Array.isArray(dynamic_filters)) {
 			dynamic_filters.forEach((f) => {
 				try {
 					f[3] = eval(f[3]);
