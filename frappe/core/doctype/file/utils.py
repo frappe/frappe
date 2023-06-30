@@ -318,6 +318,28 @@ def attach_files_to_document(doc: "File", event) -> None:
 		):
 			return
 
+		unattached_file = frappe.db.exists(
+			"File",
+			{
+				"file_url": value,
+				"attached_to_name": None,
+				"attached_to_doctype": None,
+				"attached_to_field": None,
+			},
+		)
+
+		if unattached_file:
+			frappe.db.set_value(
+				"File",
+				unattached_file,
+				field={
+					"attached_to_name": doc.name,
+					"attached_to_doctype": doc.doctype,
+					"attached_to_field": df.fieldname,
+				},
+			)
+			return
+
 		file: "File" = frappe.get_doc(
 			doctype="File",
 			file_url=value,
