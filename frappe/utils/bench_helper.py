@@ -4,6 +4,7 @@ import os
 import traceback
 import warnings
 from pathlib import Path
+from textwrap import dedent
 
 import click
 
@@ -54,6 +55,17 @@ def get_sites(site_arg: str) -> list[str]:
 		return [os.environ.get("FRAPPE_SITE")]
 	elif default_site := frappe.get_conf().default_site:
 		return [default_site]
+	# This is not supported, just added here for warning.
+	elif (site := frappe.read_file("currentsite.txt")) and site.strip():
+		click.secho(
+			dedent(
+				f"""
+			WARNING: currentsite.txt is not supported anymore for setting default site. Use following command to set it as default site.
+			$ bench use {site}"""
+			),
+			fg="red",
+		)
+
 	return []
 
 
