@@ -711,8 +711,13 @@ def has_permission(doc, ptype=None, user=None):
 	if ptype == "create":
 		has_access = frappe.has_permission("File", "create", user=user)
 
+<<<<<<< HEAD
 	if not doc.is_private or doc.owner in [user, "Guest"] or user == "Administrator":
 		has_access = True
+=======
+	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+		return True
+>>>>>>> d4c30c29f6 (fix: don't show guest's private files to other guests)
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
