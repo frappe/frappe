@@ -14,9 +14,6 @@ from frappe.utils.background_jobs import enqueue, is_job_enqueued
 
 
 class ScheduledJobType(Document):
-	def autoname(self):
-		self.name = ".".join(self.method.split(".")[-2:])
-
 	def validate(self):
 		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
