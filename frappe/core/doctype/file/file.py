@@ -724,7 +724,7 @@ def has_permission(doc, ptype=None, user=None):
 	if ptype == "create":
 		return frappe.has_permission("File", "create", user=user)
 
-	if not doc.is_private or doc.owner == user or user == "Administrator":
+	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
 		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
