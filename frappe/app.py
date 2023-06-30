@@ -22,7 +22,7 @@ from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
-from frappe.utils.error import make_error_snapshot
+from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
 local_manager = LocalManager(frappe.local)
@@ -346,7 +346,7 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
-		make_error_snapshot(e)
+		log_error_snapshot(e)
 
 	if return_as_message:
 		response = get_response("message", http_status_code=http_status_code)
