@@ -238,7 +238,7 @@ export default class NumberCardWidget extends Widget {
 				color_class = "green-stat";
 			} else {
 				caret_html = `<span class="indicator-pill-round red">
-						${frappe.utils.icon("arrow-down-left", "xs")}
+						${frappe.utils.icon("arrow-down-right", "xs")}
 					</span>`;
 				color_class = "red-stat";
 			}

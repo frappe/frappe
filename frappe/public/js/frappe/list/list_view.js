@@ -456,22 +456,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_no_result_message() {
 		let help_link = this.get_documentation_link();
 		let filters = this.filter_area && this.filter_area.get();
-		let no_result_message =
-			filters && filters.length
-				? __("No {0} found", [__(this.doctype)])
-				: __("You haven't created a {0} yet", [__(this.doctype)]);
-		let new_button_label =
-			filters && filters.length
-				? __(
-						"Create a new {0}",
-						[__(this.doctype)],
-						"Create a new document from list view"
-				  )
-				: __(
-						"Create your first {0}",
-						[__(this.doctype)],
-						"Create a new document from list view"
-				  );
+
+		let has_filters_set = filters && filters.length;
+		let no_result_message = has_filters_set
+			? __("No {0} found with matching filters. Clear filters to see all {0}.", [
+					__(this.doctype),
+			  ])
+			: __("You haven't created a {0} yet", [__(this.doctype)]);
+		let new_button_label = has_filters_set
+			? __("Create a new {0}", [__(this.doctype)], "Create a new document from list view")
+			: __(
+					"Create your first {0}",
+					[__(this.doctype)],
+					"Create a new document from list view"
+			  );
 		let empty_state_image =
 			this.settings.empty_state_image ||
 			"/assets/frappe/images/ui-states/list-empty-state.svg";
@@ -713,7 +711,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_column_html(col, doc) {
-		if (col.type === "Status") {
+		if (col.type === "Status" || col.df?.options == "Workflow State") {
 			return `
 				<div class="list-row-col hidden-xs ellipsis">
 					${this.get_indicator_html(doc)}

@@ -376,6 +376,7 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		// timeout to avoid abrupt hide
 		setTimeout(frappe.hide_progress, 500);
 	}
+	frappe.cur_progress.$wrapper.css("z-index", 2000);
 	return dialog;
 };
 

@@ -16,7 +16,7 @@
     "url": "https://github.com/frappe/frappe/issues"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=18"
   },
   "homepage": "https://frappeframework.com",
   "dependencies": {
@@ -56,7 +56,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
     "pinia": "^2.0.23",
-    "plyr": "^3.7.2",
+    "plyr": "^3.7.8",
     "popper.js": "^1.16.0",
     "postcss": "8",
     "quill": "2.0.0-dev.4",
@@ -72,7 +72,7 @@
     "sortablejs": "1.9.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "3.2.39",
+    "vue": "^3.3.0",
     "vue-router": "^4.1.5",
     "vuedraggable": "^4.1.0",
     "vuex": "4.0.2",

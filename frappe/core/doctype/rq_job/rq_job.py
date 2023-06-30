@@ -63,23 +63,15 @@ class RQJob(Document):
 
 		order_desc = "desc" in args.get("order_by", "")
 
-		matched_job_ids = RQJob.get_matching_job_ids(args)
+		matched_job_ids = RQJob.get_matching_job_ids(args)[start : start + page_length]
 
-		jobs = []
-		for job_ids in create_batch(matched_job_ids, 100):
-			jobs.extend(
-				serialize_job(job)
-				for job in Job.fetch_many(job_ids=job_ids, connection=get_redis_conn())
-				if job and for_current_site(job)
-			)
-			if len(jobs) > start + page_length:
-				# we have fetched enough. This is inefficient but because of site filtering TINA
-				break
+		conn = get_redis_conn()
+		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn)]
 
-		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)[start : start + page_length]
+		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)
 
 	@staticmethod
-	def get_matching_job_ids(args):
+	def get_matching_job_ids(args) -> list[str]:
 		filters = make_filter_dict(args.get("filters"))
 
 		queues = _eval_filters(filters.get("queue"), QUEUES)
@@ -92,7 +84,7 @@ class RQJob(Document):
 			for status in statuses:
 				matched_job_ids.extend(fetch_job_ids(queue, status))
 
-		return matched_job_ids
+		return filter_current_site_jobs(matched_job_ids)
 
 	@check_permissions
 	def delete(self):
@@ -107,8 +99,7 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_count(args) -> int:
-		# Can not be implemented efficiently due to site filtering hence ignored.
-		return 0
+		return len(RQJob.get_matching_job_ids(args))
 
 	# None of these methods apply to virtual job doctype, overriden for sanity.
 	@staticmethod
@@ -155,6 +146,12 @@ def for_current_site(job: Job) -> bool:
 	return job.kwargs.get("site") == frappe.local.site
 
 
+def filter_current_site_jobs(job_ids: list[str]) -> list[str]:
+	site = frappe.local.site
+
+	return [j for j in job_ids if j.startswith(site)]
+
+
 def _eval_filters(filter, values: list[str]) -> list[str]:
 	if filter:
 		operator, operand = filter
@@ -186,10 +183,13 @@ def remove_failed_jobs():
 	frappe.only_for("System Manager")
 	for queue in get_queues():
 		fail_registry = queue.failed_job_registry
-		for job_ids in create_batch(fail_registry.get_job_ids(), 100):
-			for job in Job.fetch_many(job_ids=job_ids, connection=get_redis_conn()):
-				if job and for_current_site(job):
-					fail_registry.remove(job, delete_job=True)
+		failed_jobs = filter_current_site_jobs(fail_registry.get_job_ids())
+
+		# Delete in batches to avoid loading too many things in memory
+		conn = get_redis_conn()
+		for job_ids in create_batch(failed_jobs, 100):
+			for job in Job.fetch_many(job_ids=job_ids, connection=conn):
+				job and fail_registry.remove(job, delete_job=True)
 
 
 def get_all_queued_jobs():

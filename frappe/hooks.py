@@ -108,6 +108,7 @@ permission_query_conditions = {
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
+	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -213,7 +214,6 @@ scheduler_events = {
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
-		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",

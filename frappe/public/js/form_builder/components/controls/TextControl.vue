@@ -5,7 +5,7 @@ import { useSlots, ref, computed, watch } from "vue";
 import { computedAsync } from "@vueuse/core";
 
 let store = useStore();
-let props = defineProps(["df", "value", "modelValue"]);
+const props = defineProps(["df", "value", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 

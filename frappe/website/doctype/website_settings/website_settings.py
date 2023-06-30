@@ -5,7 +5,6 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.model.document import Document
 from frappe.utils import encode, get_request_site_address
 from frappe.website.utils import get_boot_data
@@ -100,6 +99,8 @@ class WebsiteSettings(Document):
 		frappe.clear_cache()
 
 	def get_access_token(self):
+		from frappe.integrations.google_oauth import GoogleOAuth
+
 		if not self.indexing_refresh_token:
 			button_label = frappe.bold(_("Allow API Indexing Access"))
 			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))

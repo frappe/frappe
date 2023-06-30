@@ -100,10 +100,10 @@ def emit_via_redis(event, message, room):
 	:param event: Event name, like `task_progress` etc.
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: name of the room"""
-	from frappe.utils.background_jobs import get_redis_conn
+	from frappe.utils.background_jobs import get_redis_connection_without_auth
 
 	with suppress(redis.exceptions.ConnectionError):
-		r = get_redis_conn()
+		r = get_redis_connection_without_auth()
 		r.publish("events", frappe.as_json({"event": event, "message": message, "room": room}))
 
 

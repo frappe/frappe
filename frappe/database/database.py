@@ -17,7 +17,6 @@ from pypika.terms import Criterion, NullValue
 
 import frappe
 import frappe.defaults
-import frappe.model.meta
 from frappe import _
 from frappe.database.utils import (
 	DefaultOrderBy,
@@ -33,6 +32,7 @@ from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
+from frappe.utils.deprecations import deprecation_warning
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -888,6 +888,22 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
+		from frappe.model.utils import is_single_doctype
+
+		if (dn is None or dt == dn) and is_single_doctype(dt):
+			deprecation_warning(
+				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead."
+			)
+			self.set_single_value(
+				doctype=dt,
+				fieldname=field,
+				value=val,
+				debug=debug,
+				update_modified=update_modified,
+				modified=modified,
+				modified_by=modified_by,
+			)
+			return
 
 		to_update = self._get_update_dict(
 			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified

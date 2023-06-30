@@ -151,7 +151,8 @@ def set_new_name(doc):
 
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
-		return
+		if doc.name:
+			return
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
@@ -506,6 +507,17 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 
 def _set_amended_name(doc):
+	amend_naming_rule = frappe.db.get_value(
+		"Amended Document Naming Settings", {"document_type": doc.doctype}, "action", cache=True
+	)
+	if not amend_naming_rule:
+		amend_naming_rule = frappe.db.get_single_value(
+			"Document Naming Settings", "default_amend_naming", cache=True
+		)
+
+	if amend_naming_rule == "Default Naming":
+		return
+
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):

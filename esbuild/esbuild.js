@@ -60,6 +60,11 @@ const argv = yargs
 		type: "boolean",
 		description: "Run build command for apps",
 	})
+	.option("save-metafiles", {
+		type: "boolean",
+		description:
+			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
+	})
 	.example("node esbuild --apps frappe,erpnext", "Run build only for frappe and erpnext")
 	.example(
 		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
@@ -89,7 +94,7 @@ execute()
 	.then(() => RUN_BUILD_COMMAND && run_build_command_for_apps(APPS))
 	.catch((e) => {
 		console.error(e);
-		throw e;
+		process.exit(1);
 	});
 
 if (WATCH_MODE) {
@@ -401,6 +406,13 @@ async function write_assets_json(metafile) {
 
 	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();
+	if (argv["save-metafiles"]) {
+		// use current timestamp in readable formate as a suffix for filename
+		let current_timestamp = new Date().getTime();
+		const metafile_name = `meta-${current_timestamp}.json`;
+		await fs.promises.writeFile(`${metafile_name}`, JSON.stringify(metafile));
+		log(`Saved metafile as ${metafile_name}`);
+	}
 	return {
 		new_assets_json,
 		prev_assets_json,
