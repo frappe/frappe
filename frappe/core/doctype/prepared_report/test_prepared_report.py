@@ -5,7 +5,7 @@ import time
 
 import frappe
 from frappe.desk.query_report import generate_report_result, get_report_doc
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 
 
 class TestPreparedReport(FrappeTestCase):
@@ -16,7 +16,18 @@ class TestPreparedReport(FrappeTestCase):
 
 		frappe.db.commit()
 
-	def create_prepared_report(self, commit=False):
+	@timeout(seconds=20)
+	def wait_for_completion(self, report, status="Completed"):
+		frappe.db.commit()  # Flush changes first
+		while True:
+			frappe.db.rollback()  # read new data
+			report.reload()
+			if report.status == status:
+				break
+			# Cheap blocking behaviour
+			time.sleep(0.5)
+
+	def create_prepared_report(self, commit=True):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Prepared Report",
@@ -30,23 +41,21 @@ class TestPreparedReport(FrappeTestCase):
 		return doc
 
 	def test_queueing(self):
-		doc_ = self.create_prepared_report()
-		self.assertEqual("Queued", doc_.status)
-		self.assertTrue(doc_.queued_at)
+		doc = self.create_prepared_report()
+		self.assertEqual("Queued", doc.status)
+		self.assertTrue(doc.queued_at)
 
-		frappe.db.commit()
-		time.sleep(5)
+		self.wait_for_completion(doc)
 
-		doc_ = frappe.get_last_doc("Prepared Report")
-		self.assertEqual("Completed", doc_.status)
-		self.assertTrue(doc_.job_id)
-		self.assertTrue(doc_.report_end_time)
+		doc = frappe.get_last_doc("Prepared Report")
+		self.assertTrue(doc.job_id)
+		self.assertTrue(doc.report_end_time)
 
 	def test_prepared_data(self):
-		doc_ = self.create_prepared_report(commit=True)
-		time.sleep(5)
+		doc = self.create_prepared_report()
+		self.wait_for_completion(doc)
 
-		prepared_data = json.loads(doc_.get_prepared_data().decode("utf-8"))
+		prepared_data = json.loads(doc.get_prepared_data().decode("utf-8"))
 		generated_data = generate_report_result(get_report_doc("Database Storage Usage By Tables"))
 		self.assertEqual(len(prepared_data["columns"]), len(generated_data["columns"]))
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
