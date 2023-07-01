@@ -75,7 +75,7 @@ frappe.call = function (opts) {
 	var callback = function (data, response_text) {
 		if (data.task_id) {
 			// async call, subscribe
-			frappe.socketio.subscribe(data.task_id, opts);
+			frappe.realtime.subscribe(data.task_id, opts);
 
 			if (opts.queued) {
 				opts.queued(data);

@@ -104,7 +104,12 @@ def emit_via_redis(event, message, room):
 
 	with suppress(redis.exceptions.ConnectionError):
 		r = get_redis_connection_without_auth()
-		r.publish("events", frappe.as_json({"event": event, "message": message, "room": room}))
+		r.publish(
+			"events",
+			frappe.as_json(
+				{"event": event, "message": message, "room": room, "namespace": frappe.local.site}
+			),
+		)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -136,24 +141,24 @@ def get_user_info():
 
 
 def get_doctype_room(doctype):
-	return f"{frappe.local.site}:doctype:{doctype}"
+	return f"doctype:{doctype}"
 
 
 def get_doc_room(doctype, docname):
-	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
+	return f"doc:{doctype}/{cstr(docname)}"
 
 
 def get_user_room(user):
-	return f"{frappe.local.site}:user:{user}"
+	return f"user:{user}"
 
 
 def get_site_room():
-	return f"{frappe.local.site}:all"
+	return "all"
 
 
 def get_task_progress_room(task_id):
-	return f"{frappe.local.site}:task_progress:{task_id}"
+	return f"task_progress:{task_id}"
 
 
 def get_website_room():
-	return f"{frappe.local.site}:website"
+	return "website"
