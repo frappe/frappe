@@ -621,3 +621,24 @@ def add_remove_role(action, user, role):
 		user_doc.remove_roles(role)
 	else:
 		user_doc.add_roles(role)
+
+
+@whitelist_for_tests
+def publish_realtime(
+	event=None,
+	message=None,
+	room=None,
+	user=None,
+	doctype=None,
+	docname=None,
+	task_id=None,
+):
+	frappe.publish_realtime(
+		event=event,
+		message=message,
+		room=room,
+		user=user,
+		doctype=doctype,
+		docname=docname,
+		task_id=task_id,
+	)
