@@ -160,18 +160,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
-		assert (
-			self.password
-		), "without unix domain socket connection, postgres db password is currently reqired"
 		conn_settings = {
 			"user": self.user,
 			"dbname": self.cur_db_name,
 		}
-		if self.host:
-			conn_settings["host"] = self.host
+		# libpg defaults to default socket if not specified
+		if self.host or self.socket:
+			conn_settings["host"] = self.host or self.socket
 		if self.password:
 			conn_settings["password"] = self.password
-		if self.port:
+		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
 		conn = psycopg2.connect(**conn_settings)

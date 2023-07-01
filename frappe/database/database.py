@@ -79,6 +79,7 @@ class Database:
 
 	def __init__(
 		self,
+		socket,
 		host,
 		user,
 		password,
@@ -86,6 +87,7 @@ class Database:
 		cur_db_name,
 	):
 		self.setup_type_map()
+		self.socket = socket
 		self.host = host
 		self.port = port
 		self.user = user

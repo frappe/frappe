@@ -27,6 +27,9 @@ def is_open(scheme, hostname, port, path, timeout=10):
 def check_database():
 	config = get_conf()
 	db_type = config.get("db_type", "mariadb")
+	db_socket = config.get("db_socket")
+	if db_socket:
+		return {db_type: is_open("unix", None, None, db_socket)}
 	db_host = config.get("db_host", "localhost")
 	db_port = config.get("db_port", 3306 if db_type == "mariadb" else 5432)
 	return {db_type: is_open("other", db_host, db_port, None)}
