@@ -545,15 +545,19 @@ frappe.setup.utils = {
 
 		slide.get_input("timezone").empty().add_options(data.all_timezones);
 
-		// set values if present
-		if (frappe.wizard.values.country) {
-			country_field.set_input(frappe.wizard.values.country);
-		} else if (data.default_country) {
-			country_field.set_input(data.default_country);
-		}
-
 		slide.get_field("currency").set_input(frappe.wizard.values.currency);
 		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+
+		// set values if present
+		let country =
+			frappe.wizard.values.country ||
+			data.default_country ||
+			guess_country(frappe.setup.data.regional_data.country_info);
+
+		if (country) {
+			country_field.set_input(country);
+			$(country_field.input).change();
+		}
 	},
 
 	bind_language_events: function (slide) {
@@ -630,3 +634,16 @@ frappe.setup.utils = {
 		});
 	},
 };
+
+function guess_country(country_info) {
+	try {
+		const system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+		for ([country, info] of Object.entries(country_info)) {
+			let possible_timezones = (info.timezones || []).filter((t) => t == system_timezone);
+			if (possible_timezones.length) return country;
+		}
+	} catch (e) {
+		console.log("Could not guess country", e);
+	}
+}
