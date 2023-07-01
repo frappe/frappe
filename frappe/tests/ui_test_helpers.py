@@ -642,3 +642,19 @@ def publish_realtime(
 		docname=docname,
 		task_id=task_id,
 	)
+
+
+@whitelist_for_tests
+def publish_progress(duration=3, title=None, doctype=None, docname=None):
+	# This should consider session user and only show it to current user.
+	frappe.enqueue(slow_task, duration=duration, title=title, doctype=doctype, docname=docname)
+
+
+def slow_task(duration, title, doctype, docname):
+	import time
+
+	steps = 10
+
+	for i in range(steps + 1):
+		frappe.publish_progress(i * 10, title=title, doctype=doctype, docname=docname)
+		time.sleep(int(duration) / steps)
