@@ -25,7 +25,8 @@
    "fieldtype": "Data",
    "label": "Report Name",
    "read_only": 1,
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "default": "Queued",
@@ -36,7 +37,8 @@
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Error\nQueued\nCompleted\nStarted",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_4",
@@ -104,10 +106,14 @@
  "in_create": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2022-05-03 21:29:39.883803",
 =======
  "modified": "2023-07-01 17:18:40.183106",
 >>>>>>> f72643781d (feat: "Started" status in prepared reports)
+=======
+ "modified": "2023-07-01 18:29:12.700239",
+>>>>>>> e342f7bd9c (perf: index status and report names)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
