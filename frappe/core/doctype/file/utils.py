@@ -294,7 +294,7 @@ def update_existing_file_docs(doc: "File") -> None:
 	).run()
 
 
-def attach_files_to_document(doc: "File", event) -> None:
+def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
 	Goes through every Attach and Attach Image field and attaches
 	the file url to the document if it is not already attached.
