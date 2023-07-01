@@ -28,11 +28,11 @@ test_content1 = "Hello"
 test_content2 = "Hello World"
 
 
-def make_test_doc():
+def make_test_doc(ignore_permissions=False):
 	d = frappe.new_doc("ToDo")
 	d.description = "Test"
 	d.assigned_by = frappe.session.user
-	d.save()
+	d.save(ignore_permissions)
 	return d.doctype, d.name
 
 
@@ -789,14 +789,13 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		frappe.delete_doc("DocType", "Test For Attachment")
 
 	def test_attach_unattached_guest_file(self):
-		frappe.set_user("Guest")
-
+		"""Ensure that unattached files are attached on doc update."""
 		f = frappe.new_doc(
 			"File",
 			file_name="test_private_guest_attachment.txt",
 			content="Guest Home",
 			is_private=1,
-		).insert()
+		).insert(ignore_permissions=True)
 
 		d = frappe.new_doc("Test For Attachment")
 		d.title = "Test for attachment on update"
@@ -818,30 +817,31 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		)
 
 	def test_list_private_guest_single_file(self):
-		"""Ensure that guests are not able to list private standalone guest files."""
+		"""Ensure that guests are not able to read private standalone guest files."""
 		frappe.set_user("Guest")
-		frappe.new_doc(
+
+		file = frappe.new_doc(
 			"File",
 			file_name="test_private_guest_single_txt",
 			content="Private single File",
 			is_private=1,
-		).insert()
+		).insert(ignore_permissions=True)
 
-		files = [file.file_name for file in get_files_in_folder("Home")["files"]]
-		self.assertNotIn("test_private_guest_single_txt.txt", files)
+		self.assertFalse(file.is_downloadable())
 
 	def test_list_private_guest_attachment(self):
-		"""Ensure that guests are not able to list private guest attachments."""
+		"""Ensure that guests are not able to read private guest attachments."""
 		frappe.set_user("Guest")
-		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
-		frappe.new_doc(
+
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc(ignore_permissions=True)
+
+		file = frappe.new_doc(
 			"File",
 			file_name="test_private_guest_attachment.txt",
 			attached_to_doctype=self.attached_to_doctype,
 			attached_to_name=self.attached_to_docname,
 			content="Private Attachment",
 			is_private=1,
-		).insert()
+		).insert(ignore_permissions=True)
 
-		files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
-		self.assertNotIn("test_private_guest_attachment.txt", files)
+		self.assertFalse(file.is_downloadable())
