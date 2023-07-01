@@ -767,3 +767,81 @@ class TestFileOptimization(FrappeTestCase):
 			size_after_rollback = os.stat(image_path).st_size
 
 			self.assertEqual(size_before_optimization, size_after_rollback)
+
+
+class TestGuestFileAndAttachments(FrappeTestCase):
+	def setUp(self) -> None:
+		frappe.db.delete("File", {"is_folder": 0})
+		frappe.get_doc(
+			doctype="DocType",
+			name="Test For Attachment",
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	def tearDown(self) -> None:
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		frappe.delete_doc("DocType", "Test For Attachment")
+
+	def test_attach_unattached_guest_file(self):
+		frappe.set_user("Guest")
+
+		f = frappe.new_doc(
+			"File",
+			file_name="test_private_guest_attachment.txt",
+			content="Guest Home",
+			is_private=1,
+		).insert()
+
+		d = frappe.new_doc("Test For Attachment")
+		d.title = "Test for attachment on update"
+		d.attachment = f.file_url
+		d.assigned_by = frappe.session.user
+		d.save()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_name": "test_private_guest_attachment.txt",
+					"file_url": f.file_url,
+					"attached_to_doctype": "Test For Attachment",
+					"attached_to_name": d.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_list_private_guest_single_file(self):
+		"""Ensure that guests are not able to list private standalone guest files."""
+		frappe.set_user("Guest")
+		frappe.new_doc(
+			"File",
+			file_name="test_private_guest_single_txt",
+			content="Private single File",
+			is_private=1,
+		).insert()
+
+		files = [file.file_name for file in get_files_in_folder("Home")["files"]]
+		self.assertNotIn("test_private_guest_single_txt.txt", files)
+
+	def test_list_private_guest_attachment(self):
+		"""Ensure that guests are not able to list private guest attachments."""
+		frappe.set_user("Guest")
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+		frappe.new_doc(
+			"File",
+			file_name="test_private_guest_attachment.txt",
+			attached_to_doctype=self.attached_to_doctype,
+			attached_to_name=self.attached_to_docname,
+			content="Private Attachment",
+			is_private=1,
+		).insert()
+
+		files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
+		self.assertNotIn("test_private_guest_attachment.txt", files)
