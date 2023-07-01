@@ -196,9 +196,9 @@ scheduler_events = {
 			"frappe.email.doctype.email_account.email_account.pull",
 		],
 		# Hourly but offset by 30 minutes
-		# "30 * * * *": [
-		#
-		# ],
+		"30 * * * *": [
+			"frappe.core.doctype.prepared_report.prepared_report.expire_stalled_report",
+		],
 		# Daily but offset by 45 minutes
 		"45 0 * * *": [
 			"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
