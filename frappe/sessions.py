@@ -18,10 +18,9 @@ import frappe.translate
 import frappe.utils
 from frappe import _
 from frappe.cache_manager import clear_user_cache
-from frappe.query_builder import DocType, Order
-from frappe.query_builder.functions import Now
-from frappe.query_builder.utils import PseudoColumn
+from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils.data import add_to_date
 
 
 @frappe.whitelist()
@@ -62,7 +61,7 @@ def get_sessions_to_clear(user=None, keep_current=False):
 		simultaneous_sessions = frappe.db.get_value("User", user, "simultaneous_sessions") or 1
 		offset = simultaneous_sessions - 1
 
-	session = DocType("Sessions")
+	session = frappe.qb.DocType("Sessions")
 	session_id = frappe.qb.from_(session).where(session.user == user)
 	if keep_current:
 		session_id = session_id.where(session.sid != frappe.session.sid)
@@ -88,7 +87,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache.hdel("session", sid)
 	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
-		table = DocType("Sessions")
+		table = frappe.qb.DocType("Sessions")
 		user_details = (
 			frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
 		)
@@ -112,17 +111,12 @@ def clear_all_sessions(reason=None):
 def get_expired_sessions():
 	"""Returns list of expired sessions"""
 
-	sessions = DocType("Sessions")
-
-	return frappe.db.get_values(
-		sessions,
-		filters=(
-			PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})") > get_expiry_period_for_query()
-		),
-		fieldname="sid",
-		order_by=None,
-		pluck=True,
-	)
+	sessions = frappe.qb.DocType("Sessions")
+	return (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.lastupdate < get_expired_threshold())
+	).run(pluck=True)
 
 
 def clear_expired_sessions():
@@ -232,7 +226,7 @@ class Session:
 			sid = frappe.generate_hash()
 
 		self.data.user = self.user
-		self.data.sid = sid
+		self.sid = self.data.sid = sid
 		self.data.data.user = self.user
 		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
@@ -268,14 +262,17 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
-		frappe.db.sql(
-			"""insert into `tabSessions`
-			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`)
-			values (%s , %s, NOW(), %s, 'Active')""",
-			(str(self.data["data"]), self.data["user"], self.data["sid"]),
-		)
 
-		# also add to memcache
+		Sessions = frappe.qb.DocType("Sessions")
+		now = frappe.utils.now()
+
+		(
+			frappe.qb.into(Sessions)
+			.columns(
+				Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status
+			)
+			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
+		).run()
 		frappe.cache.hset("session", self.data.sid, self.data)
 
 	def resume(self):
@@ -338,20 +335,18 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		sessions = DocType("Sessions")
-		rec = frappe.db.get_values(
-			sessions,
-			filters=(sessions.sid == self.sid)
-			& (
-				PseudoColumn(f"({Now()} - {sessions.lastupdate.get_sql()})") < get_expiry_period_for_query()
-			),
-			fieldname=["user", "sessiondata"],
-			order_by=None,
-		)
+		sessions = frappe.qb.DocType("Sessions")
 
-		if rec:
-			data = frappe._dict(frappe.safe_eval(rec and rec[0][1] or "{}"))
-			data.user = rec[0][0]
+		record = (
+			frappe.qb.from_(sessions)
+			.select(sessions.user, sessions.sessiondata)
+			.where(sessions.sid == self.sid)
+			.where(sessions.lastupdate > get_expired_threshold())
+		).run()
+
+		if record:
+			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data.user = record[0][0]
 		else:
 			self._delete_session()
 			data = None
@@ -373,6 +368,8 @@ class Session:
 
 		now = frappe.utils.now()
 
+		Sessions = frappe.qb.DocType("Sessions")
+
 		self.data["data"]["last_updated"] = now
 		self.data["data"]["lang"] = str(frappe.lang)
 
@@ -384,17 +381,14 @@ class Session:
 		updated_in_db = False
 		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
 			# update sessions table
-			frappe.db.sql(
-				"""update `tabSessions` set sessiondata=%s,
-				lastupdate=NOW() where sid=%s""",
-				(str(self.data["data"]), self.data["sid"]),
-			)
+			(
+				frappe.qb.update(Sessions)
+				.where(Sessions.sid == self.data["sid"])
+				.set(Sessions.sessiondata, str(self.data["data"]))
+				.set(Sessions.lastupdate, now)
+			).run()
 
-			# update last active in user table
-			frappe.db.sql(
-				"""update `tabUser` set last_active=%(now)s where name=%(name)s""",
-				{"now": now, "name": frappe.session.user},
-			)
+			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
 			frappe.db.commit()
 			frappe.cache.hset("last_db_session_update", self.sid, now)
@@ -419,6 +413,15 @@ def get_expiry_in_seconds(expiry=None):
 
 	parts = expiry.split(":")
 	return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
+
+
+def get_expired_threshold():
+	"""Get cutoff time before which all sessions are considered expired."""
+
+	now = frappe.utils.now()
+	expiry_in_seconds = get_expiry_in_seconds()
+
+	return add_to_date(now, seconds=-expiry_in_seconds, as_string=True)
 
 
 def get_expiry_period():
