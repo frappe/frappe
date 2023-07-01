@@ -186,7 +186,11 @@ class BaseTestCommands(FrappeTestCase):
 
 		if not os.path.exists(os.path.join(TEST_SITE, "site_config.json")):
 			cls.execute(
-				"bench new-site {test_site} --admin-password {admin_password} --db-type" " {db_type}",
+				"bench new-site {test_site} "
+				"--admin-password {admin_password} "
+				"--mariadb-root-username {root_login} "
+				"--mariadb-root-password {root_password} "
+				"--db-type {db_type}",
 				cmd_config,
 			)
 
@@ -441,12 +445,13 @@ class TestCommands(BaseTestCommands):
 		self.execute(
 			f"bench new-site {site} --force --verbose "
 			f"--admin-password {frappe.conf.admin_password} "
+			f"--mariadb-root-username {frappe.conf.root_login} "
 			f"--mariadb-root-password {frappe.conf.root_password} "
 			f"--db-type {frappe.conf.db_type} "
 		)
 		self.assertEqual(self.returncode, 0)
 
-		self.execute(f"bench drop-site {site} --force --root-password {frappe.conf.root_password}")
+		self.execute(f"bench drop-site {site} --force --root-login {frappe.conf.root_login} --root-password {frappe.conf.root_password}")
 		self.assertEqual(self.returncode, 0)
 
 		bench_path = get_bench_path()
@@ -466,6 +471,7 @@ class TestCommands(BaseTestCommands):
 			self.execute(
 				f"bench new-site {TEST_SITE} --verbose "
 				f"--admin-password {frappe.conf.admin_password} "
+				f"--mariadb-root-username {frappe.conf.root_login} "
 				f"--mariadb-root-password {frappe.conf.root_password} "
 				f"--db-type {frappe.conf.db_type} "
 			)

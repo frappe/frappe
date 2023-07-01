@@ -27,13 +27,16 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option(
 	"--db-root-username",
 	"--mariadb-root-username",
-	help='Root username for MariaDB or PostgreSQL, Default is "root"',
+	help="Root username for MariaDB or PostgreSQL. Default is current user.",
 )
 @click.option(
 	"--db-root-password", "--mariadb-root-password", help="Root password for MariaDB or PostgreSQL"
 )
 @click.option(
-	"--db-socket", "--mariadb-db-socket", help="Database socket for MariaDB or PostgreSQL"
+	"--db-socket",
+	"--mariadb-db-socket",
+	envvar="MYSQL_UNIX_PORT",
+	help="Database socket for MariaDB or PostgreSQL",
 )
 @click.option("--admin-password", help="Administrator password for new site", default=None)
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
@@ -869,7 +872,7 @@ def uninstall(context, app, dry_run, yes, no_backup, force):
 	"--db-root-username",
 	"--mariadb-root-username",
 	"--root-login",
-	help='Root username for MariaDB or PostgreSQL, Default is "root"',
+	help="Root username for MariaDB or PostgreSQL. Default is current user.",
 )
 @click.option(
 	"--db-root-password",
