@@ -65,6 +65,13 @@ context("Realtime updates", () => {
 			cy.get("@callback").should("be.called");
 		});
 	});
+
+	it("Progress bar", { scrollBehavior: false }, () => {
+		const title = "RealTime Progress";
+		cy.call("frappe.tests.ui_test_helpers.publish_progress", { title }).then(() => {
+			cy.contains(title).should("be.visible");
+		});
+	});
 });
 
 function publish_realtime(args) {
