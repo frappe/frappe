@@ -236,9 +236,6 @@ class Session:
 					"session_expiry": get_expiry_period(),
 					"full_name": self.full_name,
 					"user_type": self.user_type,
-					"session_country": get_geo_ip_country(frappe.local.request_ip)
-					if frappe.local.request_ip
-					else None,
 				}
 			)
 
