@@ -16,8 +16,12 @@ from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
-from frappe.utils import gzip_compress, gzip_decompress
+from frappe.utils import add_to_date, gzip_compress, gzip_decompress, now
 from frappe.utils.background_jobs import enqueue
+
+# If prepared report runs for longer than this time it's automatically considered as failed
+FAILURE_THRESHOLD = 60 * 60
+REPORT_TIMEOUT = 25 * 60
 
 
 class PreparedReport(Document):
@@ -56,7 +60,7 @@ class PreparedReport(Document):
 			generate_report,
 			queue="long",
 			prepared_report=self.name,
-			timeout=1500,
+			timeout=REPORT_TIMEOUT,
 			enqueue_after_commit=True,
 		)
 
@@ -160,6 +164,21 @@ def get_completed_prepared_report(filters, user, report_name):
 			"owner": user,
 			"report_name": report_name,
 		},
+	)
+
+
+def expire_stalled_report():
+	frappe.db.set_value(
+		"Prepared Report",
+		{
+			"status": "Started",
+			"modified": ("<", add_to_date(now(), seconds=-FAILURE_THRESHOLD, as_datetime=True)),
+		},
+		{
+			"status": "Failed",
+			"error_message": frappe._("Report timed out."),
+		},
+		update_modified=False,
 	)
 
 
