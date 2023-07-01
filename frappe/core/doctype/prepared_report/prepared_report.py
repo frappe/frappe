@@ -58,7 +58,7 @@ class PreparedReport(Document):
 
 
 def generate_report(prepared_report):
-	update_job_id(prepared_report, get_current_job().id)
+	update_job_id(prepared_report)
 
 	instance = frappe.get_doc("Prepared Report", prepared_report)
 	report = frappe.get_doc("Report", instance.report_name)
@@ -95,8 +95,18 @@ def generate_report(prepared_report):
 	)
 
 
-def update_job_id(prepared_report, job_id):
-	frappe.db.set_value("Prepared Report", prepared_report, "job_id", job_id, update_modified=False)
+def update_job_id(prepared_report):
+	job = get_current_job()
+
+	frappe.db.set_value(
+		"Prepared Report",
+		prepared_report,
+		{
+			"job_id": job and job.id,
+			"status": "Started",
+		},
+	)
+
 	frappe.db.commit()
 
 
@@ -132,7 +142,7 @@ def get_reports_in_queued_state(report_name, filters):
 		filters={
 			"report_name": report_name,
 			"filters": process_filters_for_prepared_report(filters),
-			"status": "Queued",
+			"status": ("in", ("Queued", "Started")),
 			"owner": frappe.session.user,
 		},
 	)
