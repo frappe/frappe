@@ -3,6 +3,11 @@
 
 
 import json
+<<<<<<< HEAD
+=======
+from contextlib import suppress
+from typing import Any
+>>>>>>> 5850176066 (fix: Stop running prepared reports when report is deleted)
 
 from rq import get_current_job
 
@@ -36,6 +41,15 @@ class PreparedReport(Document):
 
 	def before_insert(self):
 		self.status = "Queued"
+
+	def on_trash(self):
+		# If job is running then send stop signal.
+		if self.status != "Started":
+			return
+
+		with suppress(Exception):
+			job = frappe.get_doc("RQ Job", self.job_id)
+			job.stop_job()
 
 	def after_insert(self):
 		enqueue(

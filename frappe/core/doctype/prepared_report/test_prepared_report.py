@@ -6,6 +6,8 @@ from contextlib import contextmanager
 
 import frappe
 from frappe.desk.query_report import generate_report_result, get_report_doc
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase, timeout
 
 
@@ -25,7 +27,6 @@ class TestPreparedReport(FrappeTestCase):
 			report.reload()
 			if report.status == status:
 				break
-			# Cheap blocking behaviour
 			time.sleep(0.5)
 
 	def create_prepared_report(self, report=None, commit=True):
@@ -62,13 +63,17 @@ class TestPreparedReport(FrappeTestCase):
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
 
-	def test_start_status(self):
-		if frappe.db.db_type == "postgres":
-			return
-
-		with test_report(report_type="Query Report", query="select sleep(5)") as report:
+	@run_only_if(db_type_is.MARIADB)
+	def test_start_status_and_kill_jobs(self):
+		with test_report(report_type="Query Report", query="select sleep(10)") as report:
 			doc = self.create_prepared_report(report.name)
 			self.wait_for_status(doc, "Started")
+			job_id = doc.job_id
+
+			doc.delete()
+			time.sleep(1)
+			job = frappe.get_doc("RQ Job", job_id)
+			self.assertEqual(job.status, "stopped")
 
 
 @contextmanager
@@ -81,6 +86,7 @@ def test_report(**args):
 		if not report.ref_doctype:
 			report.ref_doctype = "ToDo"
 		report.insert()
+		frappe.db.commit()
 		yield report
 	finally:
 		report.delete()
