@@ -31,6 +31,7 @@
   "column_break_13",
   "sender",
   "frequency",
+  "send_email_at",
   "format",
   "section_break_15",
   "description"
@@ -207,10 +208,16 @@
    "fieldtype": "Link",
    "label": "Sender",
    "options": "Email Account"
+  },
+  {
+   "default": "0:0:0",
+   "fieldname": "send_email_at",
+   "fieldtype": "Time",
+   "label": "Send Email At"
   }
  ],
  "links": [],
- "modified": "2022-09-08 15:31:55.031023",
+ "modified": "2023-07-01 11:51:57.633111",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Auto Email Report",

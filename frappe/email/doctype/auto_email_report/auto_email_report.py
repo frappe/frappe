@@ -21,6 +21,8 @@ from frappe.utils import (
 	now_datetime,
 	today,
 	validate_email_address,
+	getdate,
+	get_datetime,
 )
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
@@ -190,7 +192,7 @@ class AutoEmailReport(Document):
 		self.filters[self.from_date_field] = from_date
 		self.filters[self.to_date_field] = to_date
 
-	def send(self):
+	def send(self, **args):
 		if self.filter_meta and not self.filters:
 			frappe.throw(_("Please set filters value in Report Filter table."))
 
@@ -219,6 +221,26 @@ class AutoEmailReport(Document):
 
 	def dynamic_date_filters_set(self):
 		return self.dynamic_date_period and self.from_date_field and self.to_date_field
+
+	def get_send_at_datetime(self):
+		if self.send_email_at:
+			return get_datetime(getdate()) + self.send_email_at
+		
+	def enqueue_send(self):
+		enqueue_at = self.get_send_at_datetime()
+		if not enqueue_at or enqueue_at < get_datetime():
+			self.send()
+
+		frappe.enqueue_doc(
+			self.doctype,
+			self.name,
+			"send",
+			queue="long",
+			timeout=3000,
+			now=frappe.flags.in_test,
+			enqueue_at = enqueue_at
+		)
+
 
 
 @frappe.whitelist()
@@ -264,10 +286,9 @@ def send_daily():
 			if auto_email_report.day_of_week != current_day:
 				continue
 		try:
-			auto_email_report.send()
+			auto_email_report.enqueue_send()
 		except Exception as e:
 			auto_email_report.log_error(f"Failed to send {auto_email_report.name} Auto Email Report")
-
 
 def send_monthly():
 	"""Check reports to be sent monthly"""

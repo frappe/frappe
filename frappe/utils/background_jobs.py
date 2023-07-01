@@ -138,9 +138,11 @@ def enqueue(
 		"kwargs": kwargs,
 	}
 
+	def get_queue_arg(key):
+		return (queue_args or {}).get('kwargs',{}).get(key)
+
 	def enqueue_call():
-		return q.enqueue_call(
-			execute_job,
+		args = dict(
 			on_success=on_success,
 			on_failure=on_failure,
 			timeout=timeout,
@@ -150,6 +152,16 @@ def enqueue(
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			job_id=job_id,
 		)
+
+		enqueue_in = get_queue_arg('enqueue_in')
+		if enqueue_in:
+			return q.enqueue_in(enqueue_in, execute_job, **args)
+
+		enqueue_at = get_queue_arg('enqueue_at')
+		if enqueue_at:
+			return q.enqueue_at(enqueue_at, execute_job, **args)
+				
+		return q.enqueue_call(execute_job, **args)
 
 	if enqueue_after_commit:
 		frappe.db.after_commit.add(enqueue_call)
@@ -278,6 +290,7 @@ def start_worker(
 		date_format="%Y-%m-%d %H:%M:%S",
 		log_format="%(asctime)s,%(msecs)03d %(message)s",
 		dequeue_strategy=strategy,
+		with_scheduler=True # ok? https://python-rq.org/docs/scheduling/#safe-importing-of-the-worker-module
 	)
 
 
