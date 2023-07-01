@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const redis = require("redis");
+const redis = require("@redis/client");
 const bench_path = path.resolve(__dirname, "..", "..");
 
 function get_conf() {
@@ -45,7 +45,9 @@ function get_conf() {
 function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	const conf = get_conf();
 	const host = conf[kind];
-	return redis.createClient({ url: host, ...options });
+	const client = redis.createClient({ legacyMode: true, url: host, ...options });
+	client.connect();
+	return client;
 }
 
 module.exports = {
