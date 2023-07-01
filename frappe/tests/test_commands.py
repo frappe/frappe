@@ -441,12 +441,13 @@ class TestCommands(BaseTestCommands):
 		self.execute(
 			f"bench new-site {site} --force --verbose "
 			f"--admin-password {frappe.conf.admin_password} "
+			f"--mariadb-root-username {frappe.conf.root_login} "
 			f"--mariadb-root-password {frappe.conf.root_password} "
 			f"--db-type {frappe.conf.db_type or 'mariadb'} "
 		)
 		self.assertEqual(self.returncode, 0)
 
-		self.execute(f"bench drop-site {site} --force --root-password {frappe.conf.root_password}")
+		self.execute(f"bench drop-site {site} --force --root-login {frappe.conf.root_login} --root-password {frappe.conf.root_password}")
 		self.assertEqual(self.returncode, 0)
 
 		bench_path = get_bench_path()
@@ -466,6 +467,7 @@ class TestCommands(BaseTestCommands):
 			self.execute(
 				f"bench new-site {TEST_SITE} --verbose "
 				f"--admin-password {frappe.conf.admin_password} "
+				f"--mariadb-root-username {frappe.conf.root_login} "
 				f"--mariadb-root-password {frappe.conf.root_password} "
 				f"--db-type {frappe.conf.db_type or 'mariadb'} "
 			)
