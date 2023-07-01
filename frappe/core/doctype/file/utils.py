@@ -294,8 +294,9 @@ def update_existing_file_docs(doc: "File") -> None:
 
 def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
-	Goes through every Attach and Attach Image field and attaches
-	the file url to the document if it is not already attached.
+	Goes through every file linked with the Attach and Attach Image field and attaches
+	the file to the document if not already attached. If no file is found, a new file
+	is created.
 	"""
 
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
