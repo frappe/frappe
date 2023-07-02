@@ -105,12 +105,35 @@ def maintain_locals():
 			frappe.local.flags.update(pre_flags)
 
 
-def pass_test_context(f):
+def profile_test(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
-		return f(CLI_CONTEXT, *args, **kwargs)
+		return f(*args, **kwargs)
 
 	return decorated_function
+
+
+def with_site_test(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		return f(TEST_SITE, CLI_CONTEXT, *args, **kwargs)
+
+	return decorated_function
+
+
+def with_each_site_test(finalizer=lambda id: id, accumulator=None):
+	def _with_each_site_test(f):
+		@wraps(f)
+		def decorated_function(*args, **kwargs):
+			if accumulator:
+				kwargs.update(accumulator)
+			return f(TEST_SITE, CLI_CONTEXT, *args, **kwargs)
+
+			accumulator and finalizer(frappe._dict(accumulator))
+
+		return decorated_function
+
+	return _with_each_site_test
 
 
 @contextmanager
@@ -118,12 +141,16 @@ def cli(cmd: Command, args: list | None = None):
 	with maintain_locals():
 		global _result
 
-		patch_ctx = patch("frappe.commands.pass_context", pass_test_context)
+		patch_profile = patch("frappe.commands.profile", profile_test)
+		patch_with_site = patch("frappe.commands.with_site", with_site_test)
+		patch_with_each_site = patch("frappe.commands.with_each_site", with_each_site_test)
 		_module = cmd.callback.__module__
 		_cmd = cmd.callback.__qualname__
 
 		__module = importlib.import_module(_module)
-		patch_ctx.start()
+		patch_profile.start()
+		patch_with_site.start()
+		patch_with_each_site.start()
 		importlib.reload(__module)
 		click_cmd = getattr(__module, _cmd)
 
@@ -132,7 +159,9 @@ def cli(cmd: Command, args: list | None = None):
 			_result.command = str(cmd)
 			yield _result
 		finally:
-			patch_ctx.stop()
+			patch_profile.stop()
+			patch_with_site.stop()
+			patch_with_each_site.stop()
 			__module = importlib.import_module(_module)
 			importlib.reload(__module)
 			importlib.invalidate_caches()

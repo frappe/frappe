@@ -181,7 +181,9 @@ class AppNotInstalledError(ValidationError):
 
 
 class IncorrectSitePath(NotFound):
-	pass
+	def __init__(self, site, *args, **kwargs):
+		self.site = site
+		super(NotFound, self).__init__(*args, **kwargs)
 
 
 class ImplicitCommitError(ValidationError):

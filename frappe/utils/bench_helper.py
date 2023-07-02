@@ -40,7 +40,7 @@ def load_site_defaults(ctx, param, value):
 
 	if site == "all":
 		ctx.params["sites"] = frappe.utils.get_sites()
-		site = ctx.params.sites[0] if 0 < len(ctx.params.sites) else None
+		site = ctx.params["sites"][0] if 0 < len(ctx.params["sites"]) else None
 
 	# This is not supported, just added here for warning.
 	if (currentsite := frappe.read_file("currentsite.txt")) and currentsite.strip():
@@ -54,13 +54,20 @@ def load_site_defaults(ctx, param, value):
 		)
 
 	if site is not None:
-		frappe.init(site=site)
-		ctx.default_map = frappe.conf
-		# TODO: compat layer; clean up after full migration
 		ctx.params["sites"] = [site]
+		try:
+			frappe.init(site=site)
+		except frappe.exceptions.IncorrectSitePath as e:
+			return e
+		else:
+			ctx.default_map = dict(frappe.local.conf)
+		finally:
+			frappe.destroy()
+
+	if site is None:
+		return frappe.exceptions.SiteNotSpecifiedError()
 
 	return site
-
 
 
 @click.option("--site", callback=load_site_defaults)

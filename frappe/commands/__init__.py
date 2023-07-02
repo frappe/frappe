@@ -17,23 +17,59 @@ import frappe.utils
 click.disable_unicode_literals_warning = True
 
 
-def pass_context(f):
+def with_site(f):
+	@wraps(f)
+	def _func(ctx, *args, **kwargs):
+		site = ctx.obj.get("site")
+		if isinstance(site, frappe.exceptions.SiteNotSpecifiedError):
+			click.secho(site, fg="yellow")
+			ctx.exit(1)
+		if isinstance(site, frappe.exceptions.IncorrectSitePath):
+			click.secho(f"Site {site.site} does not exist!", fg="yellow")
+			ctx.exit(1)
+		with frappe.init_site(site) as local:
+			ret = f(local.site, frappe._dict(ctx.obj), *args, **kwargs)
+
+		return ret
+
+	return click.pass_context(_func)
+
+
+def with_each_site(finalizer=lambda id: id, accumulator=None):
+	def _with_each_site(f):
+		@wraps(f)
+		def _func(ctx, *args, **kwargs):
+			res = []
+			for site in ctx.obj["sites"]:
+				if accumulator:
+					kwargs.update(accumulator)
+
+				try:
+					with frappe.init_site(site) as local:
+						ret = f(local.site, frappe._dict(ctx.obj), *args, **kwargs)
+				except frappe.exceptions.IncorrectSitePath as e:
+					click.secho(f"Site {e.site} does not exist!", fg="yellow")
+					ctx.exit(1)
+
+				if accumulator and ret:
+					accumulator.update(ret)
+
+			accumulator and finalizer(frappe._dict(accumulator))
+
+		return click.pass_context(_func)
+
+	return _with_each_site
+
+
+def profile(f):
 	@wraps(f)
 	def _func(ctx, *args, **kwargs):
 		profile = ctx.obj["profile"]
 		if profile:
 			pr = cProfile.Profile()
 			pr.enable()
-
-		try:
-			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
-		except frappe.exceptions.SiteNotSpecifiedError as e:
-			click.secho(str(e), fg="yellow")
-			sys.exit(1)
-		except frappe.exceptions.IncorrectSitePath:
-			site = ctx.obj.get("sites", "")[0]
-			click.secho(f"Site {site} does not exist!", fg="yellow")
-			sys.exit(1)
+			ctx.obj["pr"]
+		ret = f(*args, **kwargs)
 
 		if profile:
 			pr.disable()
@@ -48,16 +84,6 @@ def pass_context(f):
 		return ret
 
 	return click.pass_context(_func)
-
-
-def get_site(context, raise_err=True):
-	try:
-		site = context.sites[0]
-		return site
-	except (IndexError, TypeError):
-		if raise_err:
-			raise frappe.SiteNotSpecifiedError
-		return None
 
 
 def popen(command, *args, **kwargs):

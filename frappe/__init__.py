@@ -318,7 +318,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				click.secho(f"{local.site}/site_config.json is invalid", fg="red")
 				print(error)
 		elif local.site and not local.flags.new_site:
-			raise IncorrectSitePath(f"{local.site} does not exist")
+			raise IncorrectSitePath(local.site, f"Site {local.site} does not exist!")
 
 	return _dict(config)
 
