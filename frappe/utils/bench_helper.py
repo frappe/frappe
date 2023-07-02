@@ -35,28 +35,15 @@ def get_app_group(app: str) -> click.Group:
 		return click.group(name=app, commands=app_commands)(app_group)
 
 
-@click.option("--site")
-@click.option("--profile", is_flag=True, default=False, help="Profile")
-@click.option("--verbose", is_flag=True, default=False, help="Verbose")
-@click.option("--force", is_flag=True, default=False, help="Force")
-@click.pass_context
-def app_group(ctx, site=False, force=False, verbose=False, profile=False):
-	ctx.obj = {"sites": get_sites(site), "force": force, "verbose": verbose, "profile": profile}
-	if ctx.info_name == "frappe":
-		ctx.info_name = ""
+def load_site_defaults(ctx, param, value):
+	site = value or os.environ.get("FRAPPE_SITE") or frappe.get_conf().default_site
 
+	if site == "all":
+		ctx.params["sites"] = frappe.utils.get_sites()
+		site = ctx.params.sites[0] if 0 < len(ctx.params.sites) else None
 
-def get_sites(site_arg: str) -> list[str]:
-	if site_arg == "all":
-		return frappe.utils.get_sites()
-	elif site_arg:
-		return [site_arg]
-	elif os.environ.get("FRAPPE_SITE"):
-		return [os.environ.get("FRAPPE_SITE")]
-	elif default_site := frappe.get_conf().default_site:
-		return [default_site]
 	# This is not supported, just added here for warning.
-	elif (site := frappe.read_file("currentsite.txt")) and site.strip():
+	if (currentsite := frappe.read_file("currentsite.txt")) and currentsite.strip():
 		click.secho(
 			dedent(
 				f"""
@@ -66,7 +53,31 @@ def get_sites(site_arg: str) -> list[str]:
 			fg="red",
 		)
 
-	return []
+	if site is not None:
+		frappe.init(site=site)
+		ctx.default_map = frappe.conf
+		# TODO: compat layer; clean up after full migration
+		ctx.params["sites"] = [site]
+
+	return site
+
+
+
+@click.option("--site", callback=load_site_defaults)
+@click.option("--profile", is_flag=True, default=False, help="Profile")
+@click.option("--verbose", is_flag=True, default=False, help="Verbose")
+@click.option("--force", is_flag=True, default=False, help="Force")
+@click.pass_context
+def app_group(ctx, site, sites=None, force=False, verbose=False, profile=False):
+	ctx.obj = {
+		"site": site,
+		"sites": sites or [],
+		"force": force,
+		"verbose": verbose,
+		"profile": profile,
+	}
+	if ctx.info_name == "frappe":
+		ctx.info_name = ""
 
 
 def get_app_commands(app: str) -> dict:
