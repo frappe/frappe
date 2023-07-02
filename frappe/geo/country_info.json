@@ -669,7 +669,7 @@
   "currency_fraction_units": 100,
   "isd": "+242"
  },
- "Congo, Democratic Republic of the": {
+ "Congo, The Democratic Republic of the": {
   "code": "cd",
   "number_format": "#,###.##",
   "currency": "CDF",
@@ -2632,7 +2632,7 @@
   ],
   "isd": "+992"
  },
- "Tanzania, United Republic of": {
+ "Tanzania": {
   "code": "tz",
   "currency": "TZS",
   "currency_name": "Tanzanian Shilling",
@@ -2913,7 +2913,7 @@
   "currency_fraction_units": 100,
   "isd": "+58"
  },
- "Viet Nam": {
+ "Vietnam": {
   "code": "vn",
   "currency": "VND",
   "currency_name": "Dong",
