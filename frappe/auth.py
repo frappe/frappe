@@ -349,8 +349,6 @@ class CookieManager:
 		expires = datetime.datetime.now() + datetime.timedelta(days=3)
 		if frappe.session.sid:
 			self.set_cookie("sid", frappe.session.sid, expires=expires, httponly=True)
-		if frappe.session.session_country:
-			self.set_cookie("country", frappe.session.session_country)
 
 	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Lax"):
 		if not secure and hasattr(frappe.local, "request"):
