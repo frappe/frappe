@@ -149,7 +149,7 @@ def flush(from_test=False):
 				now=from_test,
 				job_id=f"email_queue_sendmail_{row.name}",
 				queue="short",
-				dedupicate=True,
+				deduplicate=True,
 			)
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
