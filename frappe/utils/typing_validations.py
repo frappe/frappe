@@ -3,9 +3,6 @@ from inspect import _empty, isclass, signature
 from types import EllipsisType
 from typing import Callable, ForwardRef, TypeVar, Union
 
-from pydantic import TypeAdapter as PyTypeAdapter
-from pydantic import ValidationError as PyValidationError
-
 from frappe.exceptions import FrappeTypeError
 
 SLACK_DICT = {
@@ -69,6 +66,8 @@ def raise_type_error(
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
+	from pydantic import TypeAdapter as PyTypeAdapter
+
 	return PyTypeAdapter(type_, config=FrappePydanticConfig)
 
 
@@ -80,6 +79,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	"""
 	if not (args or kwargs) or not func.__annotations__:
 		return args, kwargs
+
+	from pydantic import ValidationError as PyValidationError
 
 	annotations = func.__annotations__
 	new_args, new_kwargs = list(args), kwargs
