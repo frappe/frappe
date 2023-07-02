@@ -1,10 +1,12 @@
 name: UI
 
 on:
-  pull_request:
   workflow_dispatch:
   push:
     branches: [ develop ]
+  workflow_run:
+    workflows: ["Linters"]
+    types: [ completed ]
 
 concurrency:
   group: ui-develop-${{ github.event_name }}-${{ github.event.number }}

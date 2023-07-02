@@ -1,8 +1,10 @@
 name: Patch (MariaDB)
 
 on:
-  pull_request:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Linters"]
+    types: [ completed ]
 
 concurrency:
   group: patch-mariadb-develop-${{ github.event_name }}-${{ github.event.number }}
