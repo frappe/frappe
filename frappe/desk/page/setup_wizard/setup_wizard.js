@@ -97,10 +97,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	handle_enter_press(e) {
 		if (e.which === frappe.ui.keyCode.ENTER) {
-			var $target = $(e.target);
-			if ($target.hasClass("prev-btn")) {
+			let $target = $(e.target);
+			if ($target.hasClass("prev-btn") || $target.hasClass("next-btn")) {
 				$target.trigger("click");
 			} else {
+				// hitting enter on autocomplete field shouldn't trigger next slide.
+				if ($target.data().fieldtype == "Autocomplete") return;
+
 				this.container.find(".next-btn").trigger("click");
 				e.preventDefault();
 			}
