@@ -423,6 +423,21 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 
+	def test_root_login_defaults(self):
+		self.execute(
+			"bench new-site {site} --force --verbose " f"--admin-password {frappe.conf.admin_password} "
+			# # defaults we'll test:
+			# #  - root_login is set and defaulted from `frappe.conf`
+			# f"--mariadb-root-username {frappe.conf.root_login} "
+			# #  - root_password is set and defaulted from `frappe.conf`
+			# f"--mariadb-root-password {frappe.conf.root_password} "
+			# #  - only specify if it's not the default we want to test
+			f"--db-type {frappe.conf.db_type} "
+			if frappe.conf.db_type != "mariadb"
+			else ""
+		)
+		self.assertEqual(self.returncode, 0)
+
 	@skipIf(
 		not (
 			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
