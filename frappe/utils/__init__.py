@@ -12,11 +12,6 @@ import traceback
 from collections.abc import Generator, Iterable, MutableMapping, MutableSequence, Sequence
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-<<<<<<< HEAD
-from gzip import GzipFile
-=======
-from typing import Any, Callable, Literal
->>>>>>> 8a37d6d278 (perf: reduce memory usage of background processes (#21467))
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
