@@ -3,7 +3,6 @@ import frappe
 
 def execute():
 	country_info_map = {
-		"Taiwan": "Taiwan, Province of China",
 		"Tanzania": "Tanzania, United Republic of",
 		"Vietnam": "Viet Nam",
 		"Congo, The Democratic Republic of the": "Congo, Democratic Republic of the",
