@@ -170,6 +170,7 @@ def get_boot_data():
 			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_system_timezone(),
 		},
 		"assets_json": get_assets_json(),
+		"sitename": frappe.local.site,
 	}
 
 

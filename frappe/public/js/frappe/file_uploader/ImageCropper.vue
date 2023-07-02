@@ -43,7 +43,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import Cropper from "cropperjs";
 
 // props
-let props = defineProps({
+const props = defineProps({
 	file: Object,
 	fixed_aspect_ratio: Number,
 });

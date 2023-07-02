@@ -4,7 +4,7 @@ import { ref, computed } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
 
-let props = defineProps(["column", "field"]);
+const props = defineProps(["column", "field"]);
 let store = useStore();
 
 let hovered = ref(false);

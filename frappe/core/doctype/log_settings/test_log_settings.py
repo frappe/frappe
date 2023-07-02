@@ -62,7 +62,6 @@ class TestLogSettings(FrappeTestCase):
 			"Activity Log",
 			"Email Queue",
 			"Route History",
-			"Error Snapshot",
 			"Scheduled Job Log",
 		]
 

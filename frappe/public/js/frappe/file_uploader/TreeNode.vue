@@ -35,7 +35,7 @@ import TreeNode from "./TreeNode.vue";
 import { computed } from "vue";
 
 // props
-let props = defineProps({
+const props = defineProps({
 	node: Object,
 	selected_node: Object,
 });
