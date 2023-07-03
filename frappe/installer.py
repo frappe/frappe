@@ -42,10 +42,10 @@ def _new_site(
 	install_apps=None,
 	source_sql=None,
 	force=False,
-	no_mariadb_socket=False,
 	reinstall=False,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 ):
@@ -55,10 +55,6 @@ def _new_site(
 
 	if not force and os.path.exists(site):
 		print(f"Site {site} already exists")
-		sys.exit(1)
-
-	if no_mariadb_socket and not db_type == "mariadb":
-		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
 	frappe.init(site=site)
@@ -88,9 +84,9 @@ def _new_site(
 			reinstall=reinstall,
 			db_password=db_password,
 			db_type=db_type,
+			db_socket=db_socket,
 			db_host=db_host,
 			db_port=db_port,
-			no_mariadb_socket=no_mariadb_socket,
 		)
 
 		apps_to_install = (
@@ -125,9 +121,9 @@ def install_db(
 	reinstall=False,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
-	no_mariadb_socket=False,
 ):
 	import frappe.database
 	from frappe.database import setup_database
@@ -137,15 +133,25 @@ def install_db(
 
 	make_conf(
 		db_name,
+		db_password,
 		site_config=site_config,
-		db_password=db_password,
 		db_type=db_type,
+		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
 	)
 	frappe.flags.in_install_db = True
 
-	setup_database(force, source_sql, verbose, root_login, root_password, no_mariadb_socket)
+	setup_database(
+		force,
+		source_sql,
+		verbose,
+		socket=db_socket,
+		host=db_host,
+		port=db_port,
+		user=root_login,
+		password=root_password,
+	)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 
@@ -510,11 +516,23 @@ def init_singles():
 
 
 def make_conf(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_socket=None,
+	db_host=None,
+	db_port=None,
 ):
 	site = frappe.local.site
 	make_site_config(
-		db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port
+		db_name,
+		db_password,
+		site_config=site_config,
+		db_type=db_type,
+		db_socket=db_socket,
+		db_host=db_host,
+		db_port=db_port
 	)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
@@ -522,7 +540,13 @@ def make_conf(
 
 
 def make_site_config(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_socket=None,
+	db_host=None,
+	db_port=None,
 ):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
@@ -533,6 +557,9 @@ def make_site_config(
 
 			if db_type:
 				site_config["db_type"] = db_type
+
+			if db_socket:
+				site_config["db_socket"] = db_socket
 
 			if db_host:
 				site_config["db_host"] = db_host
