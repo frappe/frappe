@@ -115,9 +115,7 @@ class MariaDBConnectionUtil:
 
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
-			"host": self.host,
 			"user": self.user,
-			"password": self.password,
 			"conv": self.CONVERSION_MAP,
 			"charset": "utf8mb4",
 			"use_unicode": True,
@@ -126,7 +124,15 @@ class MariaDBConnectionUtil:
 		if self.cur_db_name:
 			conn_settings["database"] = self.cur_db_name
 
-		if self.port:
+		if self.socket:
+			conn_settings["unix_socket"] = self.socket
+		else:
+			conn_settings["host"] = self.host
+
+		if self.password:
+			conn_settings["password"] = self.password
+
+		if not self.socket and self.port:
 			conn_settings["port"] = int(self.port)
 
 		if frappe.conf.local_infile:

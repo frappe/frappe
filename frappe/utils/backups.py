@@ -44,6 +44,7 @@ class BackupGenerator:
 		backup_path_db=None,
 		backup_path_files=None,
 		backup_path_private_files=None,
+		db_socket=None,
 		db_host=None,
 		db_port=None,
 		db_type=None,
@@ -56,6 +57,7 @@ class BackupGenerator:
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
+		self.db_socket = db_socket
 		self.db_host = db_host
 		self.db_port = db_port
 		self.db_name = db_name
@@ -418,6 +420,7 @@ class BackupGenerator:
 		from frappe.database import get_command
 
 		bin, args, bin_name = get_command(
+			socket=self.db_socket,
 			host=self.db_host,
 			port=self.db_port,
 			user=self.user,
@@ -483,6 +486,7 @@ def fetch_latest_backups(partial=False):
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
+		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
@@ -547,6 +551,7 @@ def new_backup(
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
+		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
