@@ -74,6 +74,9 @@ class TestPerformance(FrappeTestCase):
 	def test_get_value_limits(self):
 		# check both dict and list style filters
 		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
+
+		# Warm up code
+		frappe.db.get_values("User", filters=filters[0], limit=1)
 		for filter in filters:
 			with self.assertRowsRead(1):
 				self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))

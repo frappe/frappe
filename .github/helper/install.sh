@@ -54,8 +54,6 @@ fi
 
 echo "Starting Bench..."
 
-export FRAPPE_TUNE_GC=True
-
 bench start &> ~/frappe-bench/bench_start.log &
 
 if [ "$TYPE" == "server" ]

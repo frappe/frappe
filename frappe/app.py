@@ -33,12 +33,17 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
 if frappe._tune_gc:
+	import bleach
+	import pydantic
+
 	import frappe.boot
 	import frappe.client
+	import frappe.core.doctype.file.file
 	import frappe.core.doctype.user.user
 	import frappe.database.mariadb.database  # Load database related utils
 	import frappe.database.query
 	import frappe.desk.desktop  # workspace
+	import frappe.desk.form.save
 	import frappe.model.db_query
 	import frappe.query_builder
 	import frappe.utils.background_jobs  # Enqueue is very common
