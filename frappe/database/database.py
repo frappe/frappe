@@ -87,8 +87,8 @@ class Database:
 		port=None,
 	):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host or "127.0.0.1"
-		self.port = port or frappe.conf.db_port or ""
+		self.host = host or frappe.conf.db_host
+		self.port = port or frappe.conf.db_port
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
 		self._conn = None
