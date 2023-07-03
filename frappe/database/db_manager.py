@@ -70,8 +70,7 @@ class DbManager:
 
 		command = (
 			"{pipe} mysql -u {user} -p{password} -h{host} "
-			+ ("-P{port}" if frappe.db.port else "")
-			+ " {target} {source}"
+			+ "-P{port} {target} {source}"
 		)
 		command = command.format(
 			pipe=pipe,
