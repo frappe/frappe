@@ -1,6 +1,6 @@
 <!-- Used as Attach & Attach Image Control -->
 <script setup>
-let props = defineProps(["df"]);
+const props = defineProps(["df"]);
 </script>
 
 <template>

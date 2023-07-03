@@ -1,10 +1,7 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
-
 import frappe
-from frappe.desk.notifications import clear_notifications, delete_notification_count_for
 
 common_default_keys = ["__default", "__global"]
 
@@ -79,6 +76,8 @@ doctype_cache_keys = (
 
 
 def clear_user_cache(user=None):
+	from frappe.desk.notifications import clear_notifications
+
 	# this will automatically reload the global cache
 	# so it is important to clear this first
 	clear_notifications(user)
@@ -128,6 +127,8 @@ def clear_doctype_cache(doctype=None):
 
 
 def _clear_doctype_cache_form_redis(doctype: str | None = None):
+	from frappe.desk.notifications import delete_notification_count_for
+
 	for key in ("is_table", "doctype_modules"):
 		frappe.cache.delete_value(key)
 

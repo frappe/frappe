@@ -631,7 +631,7 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 		if title_field and show_title_field_in_link:
 			return json.dumps(link_options, default=str)
 		else:
-			return "\n".join([doc.value for doc in link_options])
+			return "\n".join([str(doc.value) for doc in link_options])
 
 	else:
 		raise frappe.PermissionError(

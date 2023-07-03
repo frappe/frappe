@@ -5,7 +5,6 @@ import json
 import os
 import subprocess  # nosec
 
-import requests
 from semantic_version import Version
 
 import frappe
@@ -231,6 +230,7 @@ def check_release_on_github(app: str):
 	                organization name, if the application exists, otherwise None.
 	"""
 
+	import requests
 	from giturlparse import parse
 	from giturlparse.parser import ParserError
 

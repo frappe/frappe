@@ -5,11 +5,11 @@ removed without any warning.
 """
 from contextlib import suppress
 
-from posthog import Posthog
-
 import frappe
 from frappe.utils import getdate
 from frappe.utils.caching import site_cache
+
+from posthog import Posthog  # isort: skip
 
 POSTHOG_PROJECT_FIELD = "posthog_project_id"
 POSTHOG_HOST_FIELD = "posthog_host"
@@ -59,11 +59,13 @@ def capture(event, app, **kwargs):
 		ph and ph.capture(distinct_id=frappe.local.site, event=f"{app}_{event}", **kwargs)
 
 
-def capture_doc(doc):
+def capture_doc(doc, action):
 	with suppress(Exception):
 		age = site_age()
 		if not age or age > 15:
 			return
 
 		if doc.get("__islocal") or not doc.get("name"):
-			capture("document_created", "frappe", properties={"doctype": doc.doctype})
+			capture("document_created", "frappe", properties={"doctype": doc.doctype, "action": "Insert"})
+		else:
+			capture("document_modified", "frappe", properties={"doctype": doc.doctype, "action": action})

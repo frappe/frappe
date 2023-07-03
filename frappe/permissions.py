@@ -118,17 +118,24 @@ def has_permission(
 
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "submit", "email", "print"):
-			shared = frappe.share.get_shared(
-				doctype, user, ["read" if ptype in ("email", "print") else ptype]
-			)
+
+			rights = ["read" if ptype in ("email", "print") else ptype]
 
 			if doc:
 				doc_name = get_doc_name(doc)
-				if doc_name in shared:
+				shared = frappe.share.get_shared(
+					doctype,
+					user,
+					rights=rights,
+					filters=[["share_name", "=", doc_name]],
+					limit=1,
+				)
+
+				if shared:
 					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
-			elif shared:
+			elif frappe.share.get_shared(doctype, user, rights=rights, limit=1):
 				# if atleast one shared doc of that type, then return True
 				# this is used in db_query to check if permission on DocType
 				return True
@@ -532,7 +539,7 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 
 	out = setup_custom_perms(doctype)
 
-	name = frappe.get_value("Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel))
+	name = frappe.db.get_value("Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel))
 	table = DocType("Custom DocPerm")
 	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 

@@ -9,7 +9,6 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
-from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 from frappe.exceptions import SiteNotSpecifiedError
 
 
@@ -701,9 +700,12 @@ def _use(site, sites_path="."):
 
 
 def use(site, sites_path="."):
+	from frappe.installer import update_site_config
+
 	if os.path.exists(os.path.join(sites_path, site)):
-		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
-			sitefile.write(site)
+		sites_path = os.getcwd()
+		conifg = os.path.join(sites_path, "common_site_config.json")
+		update_site_config("default_site", site, validate=False, site_config_path=conifg)
 		print(f"Current Site set to {site}")
 	else:
 		print(f"Site {site} does not exist")
@@ -1199,11 +1201,12 @@ def build_search_index(context):
 
 
 @click.command("clear-log-table")
-@click.option("--doctype", required=True, type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--doctype", required=True, type=str, help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
 @pass_context
 def clear_log_table(context, doctype, days, no_backup):
+
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
 	table and replaces current table with new smaller table.
@@ -1211,6 +1214,7 @@ def clear_log_table(context, doctype, days, no_backup):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
+	from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
 
