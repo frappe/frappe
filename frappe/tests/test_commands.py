@@ -442,7 +442,7 @@ class TestCommands(BaseTestCommands):
 			f"bench new-site {site} --force --verbose "
 			f"--admin-password {frappe.conf.admin_password} "
 			f"--mariadb-root-password {frappe.conf.root_password} "
-			f"--db-type {frappe.conf.db_type or 'mariadb'} "
+			f"--db-type {frappe.conf.db_type} "
 		)
 		self.assertEqual(self.returncode, 0)
 
@@ -467,7 +467,7 @@ class TestCommands(BaseTestCommands):
 				f"bench new-site {TEST_SITE} --verbose "
 				f"--admin-password {frappe.conf.admin_password} "
 				f"--mariadb-root-password {frappe.conf.root_password} "
-				f"--db-type {frappe.conf.db_type or 'mariadb'} "
+				f"--db-type {frappe.conf.db_type} "
 			)
 
 		app_name = "frappe"
