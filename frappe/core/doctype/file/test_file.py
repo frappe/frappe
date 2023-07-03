@@ -802,17 +802,23 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 
 	def test_attach_unattached_guest_file(self):
 		"""Ensure that unattached files are attached on doc update."""
-		f = frappe.new_doc(
-			"File",
-			file_name="test_private_guest_attachment.txt",
-			content="Guest Home",
-			is_private=1,
+		f = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_guest_attachment.txt",
+				"content": "Guest Home",
+				"is_private": 1,
+			}
 		).insert(ignore_permissions=True)
 
-		d = frappe.new_doc("Test For Attachment")
-		d.title = "Test for attachment on update"
-		d.attachment = f.file_url
-		d.assigned_by = frappe.session.user
+		d = frappe.get_doc(
+			{
+				"doctype": "Test For Attachment",
+				"title": "Test for attachment on update",
+				"attachment": f.file_url,
+				"assigned_by": frappe.session.user,
+			}
+		)
 		d.save()
 
 		self.assertTrue(
@@ -832,11 +838,13 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 		"""Ensure that guests are not able to read private standalone guest files."""
 		frappe.set_user("Guest")
 
-		file = frappe.new_doc(
-			"File",
-			file_name="test_private_guest_single_txt",
-			content="Private single File",
-			is_private=1,
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_guest_single_txt",
+				"content": "Private single File",
+				"is_private": 1,
+			}
 		).insert(ignore_permissions=True)
 
 		self.assertFalse(file.is_downloadable())
@@ -847,13 +855,15 @@ class TestGuestFileAndAttachments(FrappeTestCase):
 
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc(ignore_permissions=True)
 
-		file = frappe.new_doc(
-			"File",
-			file_name="test_private_guest_attachment.txt",
-			attached_to_doctype=self.attached_to_doctype,
-			attached_to_name=self.attached_to_docname,
-			content="Private Attachment",
-			is_private=1,
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_guest_attachment.txt",
+				"attached_to_doctype": self.attached_to_doctype,
+				"attached_to_name": self.attached_to_docname,
+				"content": "Private Attachment",
+				"is_private": 1,
+			}
 		).insert(ignore_permissions=True)
 
 		self.assertFalse(file.is_downloadable())
