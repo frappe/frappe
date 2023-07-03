@@ -613,9 +613,14 @@ def console(context, autoreload=False):
 	register(_console_cleanup)
 
 	terminal = InteractiveShellEmbed()
+
 	if autoreload:
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")
+
+	python_startup = os.environ.get("PYTHONSTARTUP", False)
+	if python_startup and frappe.conf.developer_mode:
+		terminal.safe_execfile(python_startup, terminal.user_ns, raise_exceptions=True)
 
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
