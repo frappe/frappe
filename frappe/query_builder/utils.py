@@ -31,7 +31,7 @@ class ImportMapper:
 		self.func_map = func_map
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
-		db = db_type_is(frappe.conf.db_type or "mariadb")
+		db = db_type_is(frappe.conf.db_type)
 		return self.func_map[db](*args, **kwds)
 
 
