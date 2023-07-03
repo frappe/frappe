@@ -11,6 +11,10 @@ class SiteNotSpecifiedError(Exception):
 		super(Exception, self).__init__(self.message)
 
 
+class UrlSchemeNotSupported(Exception):
+	pass
+
+
 class ValidationError(Exception):
 	http_status_code = 417
 
