@@ -72,11 +72,6 @@ class BackupGenerator:
 		self.exclude_doctypes = exclude_doctypes
 		self.partial = False
 
-		if not self.db_type:
-			self.db_type = "mariadb"
-
-		self.db_port = self.db_port or frappe.db.default_port
-
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
 		self.verbose = verbose
@@ -430,7 +425,7 @@ class BackupGenerator:
 				args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					[f"--ignore-table='{frappe.conf.db_name}.{table}'" for table in self.backup_excludes]
+					[f"--ignore-table='{self.db_name}.{table}'" for table in self.backup_excludes]
 				)
 
 			cmd_string = (
