@@ -353,9 +353,9 @@ frappe.form.formatters = {
 		const formatted_values = rows.map((row) => {
 			const value = row[link_field.fieldname];
 			return (
-				`<span style="white-space: nowrap;">` +
-				frappe.format(value, link_field, options, row) +
-				`</span>`
+				`<span class="text-nowrap">
+					${frappe.format(value, link_field, options, row)}
+				</span>`
 			);
 		});
 		return formatted_values.join(", ");
