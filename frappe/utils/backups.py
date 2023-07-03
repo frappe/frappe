@@ -72,6 +72,10 @@ class BackupGenerator:
 		self.exclude_doctypes = exclude_doctypes
 		self.partial = False
 
+		self.db_host = self.db_host or "localhost"
+		self.db_type = self.db_type or "mariadb"
+		self.db_port = self.db_port or frappe.db.default_port
+
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
 		self.verbose = verbose
