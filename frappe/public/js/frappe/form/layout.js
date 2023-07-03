@@ -194,7 +194,7 @@ frappe.ui.form.Layout = class Layout {
 			this.fields_list.splice(idx, 1, fieldobj);
 			this.fields_dict[fieldname] = fieldobj;
 			this.sections.forEach((section) => section.replace_field(fieldname, fieldobj));
-			prev_fieldobj.tab.replace_field(fieldobj);
+			prev_fieldobj.tab?.replace_field(fieldobj);
 			this.refresh_fields([df]);
 		}
 	}
