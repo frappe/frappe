@@ -402,6 +402,8 @@ def get_qr_svg_code(totp_uri):
 
 def qrcode_as_png(user, totp_uri):
 	"""Save temporary Qrcode to server."""
+	from pyqrcode import create as qrcreate
+
 	folder = create_barcode_folder()
 	png_file_name = f"{frappe.generate_hash(length=20)}.png"
 	_file = frappe.get_doc(
