@@ -76,6 +76,7 @@ def _make_access_log(
 
 	if frappe.flags.read_only:
 		access_log.deferred_insert()
+		return
 	else:
 		access_log.db_insert()
 
