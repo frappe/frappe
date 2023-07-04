@@ -155,7 +155,6 @@ class FormTimeline extends BaseTimeline {
 
 	prepare_timeline_contents() {
 		this.timeline_items.push(...this.get_communication_timeline_contents());
-		this.timeline_items.push(...this.get_auto_messages_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
 		if (!this.only_communication) {
 			this.timeline_items.push(...this.get_view_timeline_contents());
@@ -198,7 +197,39 @@ class FormTimeline extends BaseTimeline {
 		return view_timeline_contents;
 	}
 
-	get_communication_timeline_contents(more_items) {
+	get_communication_timeline_contents(more_communications, more_automated_messages) {
+		let email_communications =
+			this.get_email_communication_timeline_contents(more_communications);
+		let automated_messages = this.get_auto_messages_timeline_contents(more_automated_messages);
+		let all_communications = email_communications.concat(automated_messages);
+
+		if (all_communications.length > 20) {
+			all_communications.pop();
+
+			if (more_communications || more_automated_messages) {
+				all_communications.forEach((message) => {
+					if (message.communication_type == "Automated Message") {
+						this.doc_info.automated_messages.push(message);
+					} else {
+						this.doc_info.communications.push(message);
+					}
+				});
+			}
+
+			let last_communication_time =
+				all_communications[all_communications.length - 1].creation;
+			let load_more_button = {
+				creation: last_communication_time,
+				content: __("Load More Communications", null, "Form timeline"),
+				name: "load-more",
+			};
+			all_communications.push(load_more_button);
+		}
+
+		return all_communications;
+	}
+
+	get_email_communication_timeline_contents(more_items) {
 		let communication_timeline_contents = [];
 		let icon_set = {
 			Email: "mail",
@@ -221,29 +252,36 @@ class FormTimeline extends BaseTimeline {
 			});
 		});
 
-		if (communication_timeline_contents.length >= 20) {
-			communication_timeline_contents[
-				communication_timeline_contents.length - 1
-			].append_load_more = true;
-		}
-
 		return communication_timeline_contents;
 	}
 
 	async get_more_communication_timeline_contents() {
 		let more_items = [];
+		let start =
+			this.doc_info.communications.length + this.doc_info.automated_messages.length - 1;
 		let response = await frappe.call({
 			method: "frappe.desk.form.load.get_communications",
 			args: {
 				doctype: this.doc_info.doctype,
 				name: this.doc_info.name,
-				start: this.doc_info.communications.length,
-				limit: 20,
+				start: start,
+				limit: 21,
 			},
 		});
 		if (response.message) {
-			this.doc_info.communications.push(...response.message);
-			more_items = this.get_communication_timeline_contents(response.message);
+			let email_communications = [];
+			let automated_messages = [];
+			response.message.forEach((message) => {
+				if (message.communication_type == "Automated Message") {
+					automated_messages.push(message);
+				} else {
+					email_communications.push(message);
+				}
+			});
+			more_items = this.get_communication_timeline_contents(
+				email_communications,
+				automated_messages
+			);
 		}
 		return more_items;
 	}
@@ -279,9 +317,10 @@ class FormTimeline extends BaseTimeline {
 		doc._doc_status_indicator = indicator_color;
 	}
 
-	get_auto_messages_timeline_contents() {
+	get_auto_messages_timeline_contents(more_items) {
 		let auto_messages_timeline_contents = [];
-		(this.doc_info.automated_messages || []).forEach((message) => {
+		let items = more_items ? more_items : this.doc_info.automated_messages || [];
+		items.forEach((message) => {
 			auto_messages_timeline_contents.push({
 				icon: "notification",
 				icon_size: "sm",
