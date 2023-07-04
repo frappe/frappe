@@ -1,3 +1,4 @@
+import gc
 import os
 import socket
 import time
@@ -236,6 +237,10 @@ def start_worker(
 ) -> NoReturn | None:
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
+
+	if frappe._tune_gc:
+		gc.collect()
+		gc.freeze()
 
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
