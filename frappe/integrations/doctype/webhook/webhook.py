@@ -126,7 +126,7 @@ def enqueue_webhook(doc, webhook) -> None:
 		data = get_webhook_data(doc, webhook)
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
-		log_request(webhook.name, doc.name, request_url, headers, data)
+		log_request(webhook.name, doc.name, webhook.request_url, headers, data)
 		return
 
 	for i in range(3):
