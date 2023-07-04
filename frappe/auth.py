@@ -254,7 +254,7 @@ class LoginManager:
 			self.fail("Invalid login credentials", user=user.name)
 		elif not (user.name == "Administrator" or user.enabled):
 			tracker and tracker.add_failure_attempt()
-			self.fail("User disabled or missing", user=user.name)
+			self.fail("Unable to log you in , Please contact bonatra support", user=user.name)
 		else:
 			tracker and tracker.add_success_attempt()
 		self.user = user.name
