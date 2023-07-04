@@ -653,5 +653,5 @@ $(document).on("page-change", function () {
 frappe.ready(function () {
 	frappe.show_language_picker();
 	frappe.setup_videos();
-	frappe.socketio.init(window.socketio_port);
+	frappe.realtime.init(window.socketio_port, true); // lazy connection
 });

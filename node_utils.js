@@ -31,10 +31,6 @@ function get_conf() {
 	if (process.env.FRAPPE_SITE) {
 		conf.default_site = process.env.FRAPPE_SITE;
 	}
-	if (fs.existsSync("sites/currentsite.txt")) {
-		conf.default_site = fs.readFileSync("sites/currentsite.txt").toString().trim();
-	}
-
 	return conf;
 }
 

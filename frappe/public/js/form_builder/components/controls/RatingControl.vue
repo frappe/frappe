@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 
-let props = defineProps(["df"]);
+const props = defineProps(["df"]);
 
 let rating = ref(null);
 let rating_control = ref(null);
