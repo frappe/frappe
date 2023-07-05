@@ -1330,6 +1330,18 @@ def validate_fields(meta):
 		check_image_field(meta)
 
 
+<<<<<<< HEAD
+=======
+def get_fields_not_allowed_in_list_view(meta) -> list[str]:
+	not_allowed_in_list_view = list(copy.copy(no_value_fields))
+	not_allowed_in_list_view.append("Attach Image")
+	if meta.istable:
+		not_allowed_in_list_view.remove("Button")
+		not_allowed_in_list_view.remove("HTML")
+	return not_allowed_in_list_view
+
+
+>>>>>>> bcf837cbb5 (feat: Add ability to use HTML fields in grids)
 def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
