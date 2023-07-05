@@ -1081,8 +1081,6 @@ class Document(BaseDocument):
 		- `on_cancel` for **Cancel**
 		- `update_after_submit` for **Update after Submit**"""
 
-		doc_before_save = self.get_doc_before_save()
-
 		if self._action == "save":
 			self.run_method("on_update")
 		elif self._action == "submit":
