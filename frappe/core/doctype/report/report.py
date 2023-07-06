@@ -49,9 +49,9 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
-	def before_export(self):
-		self.letterhead = None
-		self.prepared_report = 0
+	def before_export(self, doc):
+		doc.letterhead = None
+		doc.prepared_report = 0
 
 	def on_trash(self):
 		if (
