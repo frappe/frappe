@@ -301,7 +301,11 @@ def get_code_files_via_hooks(hook, name):
 		if not isinstance(files, list):
 			files = [files]
 
-		for file in files:
+		generic_files = code_hook.get("*", [])
+		if not isinstance(generic_files, list):
+			generic_files = [generic_files]
+
+		for file in (files + generic_files):
 			path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
 			code_files.append(path)
 
