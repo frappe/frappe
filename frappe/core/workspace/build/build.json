@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"5nnLaQeoFa\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"pYALX3MwBW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":3}},{\"id\":\"XC78DuYB65\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Report\",\"col\":3}},{\"id\":\"XPm50Ppq3J\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":3}},{\"id\":\"yoU6nWiT83\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":3}},{\"id\":\"5UgFESBY0N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Print Format Builder\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"tOCrOgLW1G\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Elements</b></span>\",\"col\":12}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"cJ6CVsa8qW\",\"type\":\"card\",\"data\":{\"card_name\":\"Models\",\"col\":4}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
+ "content": "[{\"id\":\"5nnLaQeoFa\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"pYALX3MwBW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":3}},{\"id\":\"XC78DuYB65\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Report\",\"col\":3}},{\"id\":\"XPm50Ppq3J\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":3}},{\"id\":\"yoU6nWiT83\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":3}},{\"id\":\"5UgFESBY0N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Print Format Builder\",\"col\":3}},{\"id\":\"0gE0s-S70E\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learn Frappe Framework\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"tOCrOgLW1G\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Elements</b></span>\",\"col\":12}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"cJ6CVsa8qW\",\"type\":\"card\",\"data\":{\"card_name\":\"Models\",\"col\":4}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
  "creation": "2021-01-02 10:51:16.579957",
  "custom_blocks": [],
  "docstatus": 0,
@@ -323,7 +323,7 @@
    "type": "Link"
   }
  ],
- "modified": "2023-06-28 10:30:17.228167",
+ "modified": "2023-07-04 14:34:09.420325",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
@@ -342,6 +342,13 @@
    "label": "Print Format Builder",
    "link_to": "print-format-builder",
    "type": "Page"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Learn Frappe Framework",
+   "type": "URL",
+   "url": "https://frappe.school/courses/frappe-framework-course?utm_source=in_app"
   },
   {
    "color": "Grey",

@@ -31,10 +31,9 @@ def check_redis(redis_services=None):
 	config = get_conf()
 	services = redis_services or REDIS_KEYS
 	status = {}
-	for conn in services:
-		redis_url = urlparse(config.get(conn)).netloc
-		redis_host, redis_port = redis_url.split(":")
-		status[conn] = is_open(redis_host, redis_port)
+	for srv in services:
+		url = urlparse(config[srv])
+		status[srv] = is_open(url.hostname, url.port)
 	return status
 
 

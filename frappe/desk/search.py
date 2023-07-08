@@ -245,16 +245,17 @@ def search_widget(
 def get_std_fields_list(meta, key):
 	# get additional search fields
 	sflist = ["name"]
-	if meta.search_fields:
-		for d in meta.search_fields.split(","):
-			if d.strip() not in sflist:
-				sflist.append(d.strip())
 
 	if meta.title_field and meta.title_field not in sflist:
 		sflist.append(meta.title_field)
 
 	if key not in sflist:
 		sflist.append(key)
+
+	if meta.search_fields:
+		for d in meta.search_fields.split(","):
+			if d.strip() not in sflist:
+				sflist.append(d.strip())
 
 	return sflist
 
