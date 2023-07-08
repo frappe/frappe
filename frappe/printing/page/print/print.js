@@ -606,6 +606,9 @@ frappe.ui.form.PrintView = class {
 				print_format: print_format.name,
 				letterhead: this.get_letterhead(),
 			});
+			if (this.lang_code ? "&_lang=" + this.lang_code : "") {
+				params.append("_lang", this.lang_code)
+			}
 			let w = window.open(`/api/method/frappe.utils.weasyprint.download_pdf?${params}`);
 			if (!w) {
 				frappe.msgprint(__("Please enable pop-ups"));
