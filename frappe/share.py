@@ -141,7 +141,7 @@ def get_users(doctype, name):
 	)
 
 
-def get_shared(doctype, user=None, rights=None):
+def get_shared(doctype, user=None, rights=None, *, filters=None, limit=None):
 	"""Get list of shared document names for given user and DocType.
 
 	:param doctype: DocType of which shared names are queried.
@@ -154,14 +154,22 @@ def get_shared(doctype, user=None, rights=None):
 	if not rights:
 		rights = ["read"]
 
-	filters = [[right, "=", 1] for right in rights]
-	filters += [["share_doctype", "=", doctype]]
+	share_filters = [[right, "=", 1] for right in rights]
+	share_filters += [["share_doctype", "=", doctype]]
+	if filters:
+		share_filters += filters
+
 	or_filters = [["user", "=", user]]
 	if user != "Guest":
 		or_filters += [["everyone", "=", 1]]
 
 	shared_docs = frappe.get_all(
-		"DocShare", fields=["share_name"], filters=filters, or_filters=or_filters, order_by=None
+		"DocShare",
+		fields=["share_name"],
+		filters=share_filters,
+		or_filters=or_filters,
+		order_by=None,
+		limit_page_length=limit,
 	)
 
 	return [doc.share_name for doc in shared_docs]

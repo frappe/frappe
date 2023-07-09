@@ -21,7 +21,6 @@ from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_p
 from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
-from frappe.translate import get_lang_dict, get_messages_for_boot, get_translated_doctypes
 from frappe.utils import add_user_info, cstr, get_system_timezone
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -29,6 +28,8 @@ from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabl
 
 def get_bootinfo():
 	"""build and return boot info"""
+	from frappe.translate import get_lang_dict, get_translated_doctypes
+
 	frappe.set_user_lang(frappe.session.user)
 	bootinfo = frappe._dict()
 	hooks = frappe.get_hooks()
@@ -259,6 +260,8 @@ def get_user_pages_or_reports(parent, cache=False):
 
 
 def load_translations(bootinfo):
+	from frappe.translate import get_messages_for_boot
+
 	bootinfo["lang"] = frappe.lang
 	bootinfo["__messages"] = get_messages_for_boot()
 

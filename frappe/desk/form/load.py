@@ -95,7 +95,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
 
-	all_communications = _get_communications(doc.doctype, doc.name)
+	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
 		msg for msg in all_communications if msg["communication_type"] == "Automated Message"
 	]

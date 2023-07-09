@@ -115,6 +115,11 @@ frappe.ui.form.Control = class BaseControl {
 		}
 
 		let value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
+
+		if (in_list(["Date", "Datetime"], this.df.fieldtype) && value) {
+			value = frappe.datetime.str_to_user(value);
+		}
+
 		value = this.get_parsed_value(value);
 
 		// hide if no value
