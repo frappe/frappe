@@ -4,9 +4,31 @@ frappe.ui.form.FormViewers = class FormViewers {
 		this.parent = parent;
 		this.parent.tooltip({ title: __("Currently Viewing") });
 
-		this.past_users = []; // Remember last users to compute changes
-		this.active_users = []; // current users viewing this form
+		this._past_users = {};
+		this._active_users = {};
 		this.setup_events();
+	}
+
+	get past_users() {
+		return this._past_users[this.frm?.doc?.name] || [];
+	}
+
+	set past_users(users) {
+		const docname = this.frm?.doc?.name;
+		if (!docname) return;
+
+		this._past_users[docname] = users;
+	}
+
+	get active_users() {
+		return this._active_users[this.frm?.doc?.name] || [];
+	}
+
+	set active_users(users) {
+		const docname = this.frm?.doc?.name;
+		if (!docname) return;
+
+		this._active_users[docname] = users;
 	}
 
 	refresh() {
