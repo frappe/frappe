@@ -207,19 +207,21 @@ class AutoEmailReport(Document):
 		if not self.format == "HTML":
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
-		frappe.sendmail(
-			recipients=self.email_to.split(),
-			sender=formataddr((self.sender, self.sender_email)) if self.sender else "",
-			subject=self.name,
-			message=message,
-			attachments=attachments,
-			reference_doctype=self.doctype,
-			reference_name=self.name,
-		)
+		email_content = {
+			"recipients":self.email_to.split(),
+			"subject":self.name,
+			"message":message,
+			"attachments":attachments,
+			"reference_doctype":self.doctype,
+			"reference_name":self.name,
+		}
+		frappe.enqueue(send_email,email = email_content,queue="long")
 
 	def dynamic_date_filters_set(self):
 		return self.dynamic_date_period and self.from_date_field and self.to_date_field
 
+def send_email(email):
+	frappe.sendmail(**email)
 
 @frappe.whitelist()
 def download(name):
