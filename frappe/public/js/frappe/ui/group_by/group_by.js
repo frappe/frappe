@@ -382,7 +382,7 @@ frappe.ui.GroupBy = class {
 			const child_table_fields = frappe.meta
 				.get_docfields(cdt)
 				.filter(standard_fields_filter)
-				.sort((a, b) => __(a.label).localeCompare(__(b.label)));
+				.sort((a, b) => __(cstr(a.label)).localeCompare(__(cstr(b.label))));
 			this.group_by_fields[cdt] = child_table_fields;
 			this.all_fields[cdt] = child_table_fields;
 		});
