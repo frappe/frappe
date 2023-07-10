@@ -203,7 +203,7 @@ frappe.ui.form.Layout = class Layout {
 		!this.section && this.make_section();
 		!this.column && this.make_column();
 
-		const parent = this.column.form.get(0);
+		const parent = this.column.wrapper.get(0);
 		const fieldobj = this.init_field(df, parent, render);
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
@@ -223,11 +223,7 @@ frappe.ui.form.Layout = class Layout {
 		const fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
-<<<<<<< HEAD
-			parent: this.column.wrapper.get(0),
-=======
 			parent: parent,
->>>>>>> 60231c7f35 (fix: replace field replacing correct dom element)
 			frm: this.frm,
 			render_input: render,
 			doc: this.doc,
