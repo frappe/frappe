@@ -27,6 +27,7 @@ class FormBuilder {
 	}
 
 	setup_page_actions() {
+		this.preview_btn?.remove();
 		this.preview_btn = this.page.add_button(__("Show Preview"), () => {
 			this.store.frm.layout.tabs.find((tab) => tab.label === "Form").set_active();
 			this.store.preview = !this.store.preview;
