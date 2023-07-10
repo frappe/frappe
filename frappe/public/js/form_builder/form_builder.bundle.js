@@ -38,7 +38,7 @@ class FormBuilder {
 			this.read_only = true;
 		});
 
-		this.reset_changes_btn = this.page.add_button(__("Reset Changes"), () => {
+		this.reset_changes_btn = this.page.add_button(__("Reset Form Changes"), () => {
 			this.store.reset_changes();
 		});
 	}
@@ -74,6 +74,7 @@ class FormBuilder {
 		watchEffect(() => {
 			if (this.store.dirty) {
 				this.reset_changes_btn.show();
+				this.frm.form_dirty = this.frm.doc.__unsaved;
 				this.frm.dirty();
 			} else {
 				this.reset_changes_btn.hide();
