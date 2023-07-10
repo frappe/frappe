@@ -92,6 +92,8 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		nextTick(() => {
 			dirty.value = false;
+			frm.value.doc.__unsaved = 0;
+			frm.value.page.clear_indicator();
 			read_only.value =
 				!is_customize_form.value && !frappe.boot.developer_mode && !doc.value.custom;
 			preview.value = false;
