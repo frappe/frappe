@@ -22,6 +22,7 @@ class FormBuilder {
 
 		this.setup_page_actions();
 		!refresh && this.setup_app();
+		refresh && this.update_store();
 		this.watch_changes();
 	}
 
@@ -86,15 +87,20 @@ class FormBuilder {
 
 		// create a store
 		this.store = useStore();
-		this.store.doctype = this.doctype;
-		this.store.is_customize_form = this.customize;
-		this.store.page = this.page;
+		this.update_store();
 
 		// register global components
 		registerGlobalComponents(app);
 
 		// mount the app
 		this.$form_builder = app.mount(this.$wrapper.get(0));
+	}
+
+	update_store() {
+		this.store.doctype = this.doctype;
+		this.store.is_customize_form = this.customize;
+		this.store.page = this.page;
+		this.store.frm = this.frm;
 	}
 
 	watch_changes() {
