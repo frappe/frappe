@@ -3,7 +3,6 @@ import os
 import click
 
 import frappe
-from frappe.installer import update_site_config
 from frappe.utils.redis_queue import RedisQueue
 
 
@@ -23,6 +22,8 @@ def create_rq_users(set_admin_password=False, use_rq_auth=False):
 	acl config file will be used by redis server while starting the server
 	and app config is used by app while connecting to redis server.
 	"""
+	from frappe.installer import update_site_config
+
 	acl_file_path = os.path.abspath("../config/redis_queue.acl")
 
 	with frappe.init_site():
