@@ -3,7 +3,7 @@ import Sidebar from "./components/Sidebar.vue"
 import Tabs from "./components/Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "./store";
-import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
+import { onClickOutside } from "@vueuse/core";
 
 let store = useStore();
 
@@ -14,19 +14,6 @@ let should_render = computed(() => {
 let container = ref(null);
 onClickOutside(container, () => store.form.selected_field = null);
 
-// cmd/ctrl + s to save the form
-const { meta_s, ctrl_s } = useMagicKeys();
-whenever(() => meta_s.value || ctrl_s.value, () => {
-	if (store.dirty) {
-		store.save_changes();
-	}
-});
-
-function setup_change_doctype_dialog() {
-	store.page.$title_area.on("click", () => {
-		frappe.pages["form-builder"].select_doctype();
-	});
-}
 
 watch(
 	() => store.form.layout,
@@ -34,10 +21,7 @@ watch(
 	{ deep: true }
 );
 
-onMounted(() => {
-	store.fetch();
-	setup_change_doctype_dialog();
-});
+onMounted(() => store.fetch());
 </script>
 
 <template>
