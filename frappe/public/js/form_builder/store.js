@@ -119,24 +119,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		undo_redo_keyboard_event;
 	}
 
-	function setup_breadcrumbs() {
-		!is_customize_form.value && frappe.model.init_doctype("DocType");
-		let breadcrumbs = `
-			<li><a href="/app/doctype">${__("DocType")}</a></li>
-			<li><a href="/app/doctype/${doctype.value}">${__(doctype.value)}</a></li>
-		`;
-		if (is_customize_form.value) {
-			breadcrumbs = `
-				<li><a href="/app/customize-form?doc_type=${doctype.value}">
-					${__("Customize Form")}
-				</a></li>
-			`;
-		}
-		breadcrumbs += `<li class="disabled"><a href="#">${__("Form Builder")}</a></li>`;
-		frappe.breadcrumbs.clear();
-		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
-	}
-
 	function validate_fields(fields, is_table) {
 		fields = scrub_field_names(fields);
 
