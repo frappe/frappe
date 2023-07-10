@@ -13,6 +13,15 @@ frappe.ui.form.on("DocType", {
 			frm.refresh_fields();
 		}
 	},
+	after_save: function (frm) {
+		if (
+			frappe.form_builder &&
+			frappe.form_builder.doctype === frm.doc.name &&
+			frappe.form_builder.store
+		) {
+			frappe.form_builder.store.fetch();
+		}
+	},
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {
