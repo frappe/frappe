@@ -5,7 +5,6 @@ from base64 import b32encode, b64encode
 from io import BytesIO
 
 import pyotp
-from pyqrcode import create as qrcreate
 
 import frappe
 import frappe.defaults
@@ -387,6 +386,8 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 
 def get_qr_svg_code(totp_uri):
 	"""Get SVG code to display Qrcode for OTP."""
+	from pyqrcode import create as qrcreate
+
 	url = qrcreate(totp_uri)
 	svg = ""
 	stream = BytesIO()
@@ -401,6 +402,8 @@ def get_qr_svg_code(totp_uri):
 
 def qrcode_as_png(user, totp_uri):
 	"""Save temporary Qrcode to server."""
+	from pyqrcode import create as qrcreate
+
 	folder = create_barcode_folder()
 	png_file_name = f"{frappe.generate_hash(length=20)}.png"
 	_file = frappe.get_doc(
