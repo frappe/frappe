@@ -23,15 +23,22 @@ class TestAssign(FrappeTestCase):
 		if not frappe.db.exists("User", "test@example.com"):
 			frappe.get_doc({"doctype": "User", "email": "test@example.com", "first_name": "Test"}).insert()
 
-		added = assign(todo, "test@example.com")
+		self._test_basic_assign_on_document(todo)
+
+	def _test_basic_assign_on_document(self, doc):
+		added = assign(doc, "test@example.com")
 
 		self.assertTrue("test@example.com" in [d.owner for d in added])
 
-		frappe.desk.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
+		frappe.desk.form.assign_to.remove(doc.doctype, doc.name, "test@example.com")
 
 		# assignment is cleared
-		assignments = frappe.desk.form.assign_to.get(dict(doctype=todo.doctype, name=todo.name))
+		assignments = frappe.desk.form.assign_to.get(dict(doctype=doc.doctype, name=doc.name))
 		self.assertEqual(len(assignments), 0)
+
+	def test_assign_single(self):
+		c = frappe.get_doc("Contact Us Settings")
+		self._test_basic_assign_on_document(c)
 
 	def test_assignment_count(self):
 		frappe.db.delete("ToDo")

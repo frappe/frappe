@@ -13,7 +13,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	refresh() {
 		this.make_menu();
-		this.make_viewers();
 		this.set_title();
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
@@ -109,6 +108,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		let rename_document = () => {
+			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
 				.xcall("frappe.model.rename_doc.update_document_title", {
 					doctype,
@@ -129,9 +129,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 					};
 
 					// handle document renaming queued action
-					if (input_name && new_docname == docname) {
-						frappe.socketio.doc_subscribe(doctype, input_name);
-						frappe.realtime.on("doc_update", (data) => {
+					if (input_name != docname) {
+						frappe.realtime.on("list_update", (data) => {
 							if (data.doctype == doctype && data.name == input_name) {
 								reload_form(input_name);
 								frappe.show_alert({
@@ -270,18 +269,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.make_navigation();
 			this.make_menu_items();
 		}
-	}
-
-	make_viewers() {
-		if (this.frm.viewers) {
-			return;
-		}
-		this.frm.viewers = new frappe.ui.form.FormViewers({
-			frm: this.frm,
-			parent: $('<div class="form-viewers d-flex"></div>').prependTo(
-				this.frm.page.page_actions
-			),
-		});
 	}
 
 	make_navigation() {

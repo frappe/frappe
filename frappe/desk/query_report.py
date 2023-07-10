@@ -171,6 +171,7 @@ def get_script(report_name):
 		"script": render_include(script),
 		"html_format": html_format,
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
+		"filters": report.filters,
 	}
 
 
@@ -347,6 +348,13 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 		datetime.time,
 		datetime.timedelta,
 	)
+
+	if len(visible_idx) == len(data.result):
+		# It's not possible to have same length and different content.
+		ignore_visible_idx = True
+	else:
+		# Note: converted for faster lookups
+		visible_idx = set(visible_idx)
 
 	result = [[]]
 	column_widths = []

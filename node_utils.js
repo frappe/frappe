@@ -31,14 +31,10 @@ function get_conf() {
 	if (process.env.FRAPPE_SITE) {
 		conf.default_site = process.env.FRAPPE_SITE;
 	}
-	if (fs.existsSync("sites/currentsite.txt")) {
-		conf.default_site = fs.readFileSync("sites/currentsite.txt").toString().trim();
-	}
-
 	return conf;
 }
 
-function get_redis_subscriber(kind = "redis_socketio", options = {}) {
+function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	const conf = get_conf();
 	const host = conf[kind] || conf.redis_async_broker_port;
 	return redis.createClient({ url: host, ...options });

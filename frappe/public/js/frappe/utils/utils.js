@@ -340,9 +340,21 @@ Object.assign(frappe.utils, {
 			scroll_top = 0;
 		}
 
+		const highlight = () => {
+			if (highlight_element) {
+				$(element).addClass("highlight");
+				document.addEventListener(
+					"click",
+					function () {
+						$(element).removeClass("highlight");
+					},
+					{ once: true }
+				);
+			}
+		};
 		// already there
 		if (scroll_top == element_to_be_scrolled.scrollTop()) {
-			return;
+			return highlight();
 		}
 
 		if (animate) {
@@ -352,16 +364,7 @@ Object.assign(frappe.utils, {
 				})
 				.promise()
 				.then(() => {
-					if (highlight_element) {
-						$(element).addClass("highlight");
-						document.addEventListener(
-							"click",
-							function () {
-								$(element).removeClass("highlight");
-							},
-							{ once: true }
-						);
-					}
+					highlight();
 					callback && callback();
 				});
 		} else {
@@ -787,10 +790,6 @@ Object.assign(frappe.utils, {
 
 	warn_page_name_change: function () {
 		frappe.msgprint(__("Note: Changing the Page Name will break previous URL to this page."));
-	},
-
-	notify: function (subject, body, route, onclick) {
-		console.log("push notifications are evil and deprecated");
 	},
 
 	set_title: function (title) {

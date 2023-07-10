@@ -298,14 +298,13 @@ __version__ = '0.0.1'
 
 """
 
-hooks_template = """from . import __version__ as app_version
-
-app_name = "{app_name}"
+hooks_template = """app_name = "{app_name}"
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
+# required_apps = []
 
 # Includes in <head>
 # ------------------
@@ -371,6 +370,22 @@ app_license = "{app_license}"
 
 # before_uninstall = "{app_name}.uninstall.before_uninstall"
 # after_uninstall = "{app_name}.uninstall.after_uninstall"
+
+# Integration Setup
+# ------------------
+# To set up dependencies/integrations with other apps
+# Name of the app being installed is passed as an argument
+
+# before_app_install = "{app_name}.utils.before_app_install"
+# after_app_install = "{app_name}.utils.after_app_install"
+
+# Integration Cleanup
+# -------------------
+# To clean up dependencies/integrations with other apps
+# Name of the app being uninstalled is passed as an argument
+
+# before_app_uninstall = "{app_name}.utils.before_app_uninstall"
+# after_app_uninstall = "{app_name}.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
@@ -558,10 +573,6 @@ jobs:
         image: redis:alpine
         ports:
           - 11000:6379
-      redis-socketio:
-        image: redis:alpine
-        ports:
-          - 12000:6379
       mariadb:
         image: mariadb:10.6
         env:
@@ -582,7 +593,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
 
       - name: Cache pip

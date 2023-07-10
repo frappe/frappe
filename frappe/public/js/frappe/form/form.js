@@ -93,6 +93,11 @@ frappe.ui.form.Form = class FrappeForm {
 			page: this.page,
 		});
 
+		this.viewers = new frappe.ui.form.FormViewers({
+			frm: this,
+			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.page.page_actions),
+		});
+
 		// navigate records keyboard shortcuts
 		this.add_form_keyboard_shortcuts();
 
@@ -709,6 +714,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 			this.toolbar.refresh();
 		}
+		this.viewers.refresh();
 
 		this.dashboard.refresh();
 		frappe.breadcrumbs.update();
@@ -1414,8 +1420,13 @@ frappe.ui.form.Form = class FrappeForm {
 			if (selector.length) {
 				frappe.utils.scroll_to(selector);
 			}
-		} else if (window.location.hash && $(window.location.hash).length) {
-			frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+		} else if (window.location.hash) {
+			if ($(window.location.hash).length) {
+				frappe.utils.scroll_to(window.location.hash, true, 200, null, null, true);
+			} else {
+				this.scroll_to_field(window.location.hash.replace("#", "")) &&
+					history.replaceState(null, null, " ");
+			}
 		}
 	}
 
@@ -1926,11 +1937,12 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// highlight control inside field
-		let control_element = $el.find(".form-control");
+		let control_element = $el.closest(".frappe-control");
 		control_element.addClass("highlight");
 		setTimeout(() => {
 			control_element.removeClass("highlight");
 		}, 2000);
+		return true;
 	}
 
 	setup_docinfo_change_listener() {
@@ -1938,7 +1950,7 @@ frappe.ui.form.Form = class FrappeForm {
 		let docname = this.docname;
 
 		if (this.doc && !this.is_new()) {
-			frappe.socketio.doc_subscribe(doctype, docname);
+			frappe.realtime.doc_subscribe(doctype, docname);
 		}
 		frappe.realtime.off("docinfo_update");
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
@@ -2108,19 +2120,3 @@ frappe.ui.form.Form = class FrappeForm {
 };
 
 frappe.validated = 0;
-// Proxy for frappe.validated
-Object.defineProperty(window, "validated", {
-	get: function () {
-		console.warn(
-			"Please use `frappe.validated` instead of `validated`. It will be deprecated soon."
-		); // eslint-disable-line
-		return frappe.validated;
-	},
-	set: function (value) {
-		console.warn(
-			"Please use `frappe.validated` instead of `validated`. It will be deprecated soon."
-		); // eslint-disable-line
-		frappe.validated = value;
-		return frappe.validated;
-	},
-});

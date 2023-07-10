@@ -1,15 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-import os
 from contextlib import suppress
 
 import redis
 
 import frappe
 from frappe.utils.data import cstr
-
-redis_server = None
 
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
@@ -89,11 +86,12 @@ def flush_realtime_log():
 	for args in frappe.local._realtime_log:
 		frappe.realtime.emit_via_redis(*args)
 
-	frappe.local._realtime_log = []
+	clear_realtime_log()
 
 
 def clear_realtime_log():
-	frappe.local._realtime_log = []
+	if hasattr(frappe.local, "_realtime_log"):
+		del frappe.local._realtime_log
 
 
 def emit_via_redis(event, message, room):
@@ -102,20 +100,16 @@ def emit_via_redis(event, message, room):
 	:param event: Event name, like `task_progress` etc.
 	:param message: JSON message object. For async must contain `task_id`
 	:param room: name of the room"""
+	from frappe.utils.background_jobs import get_redis_connection_without_auth
 
 	with suppress(redis.exceptions.ConnectionError):
-		r = get_redis_server()
-		r.publish("events", frappe.as_json({"event": event, "message": message, "room": room}))
-
-
-def get_redis_server():
-	"""returns redis_socketio connection."""
-	global redis_server
-	if not redis_server:
-		from redis import Redis
-
-		redis_server = Redis.from_url(frappe.conf.redis_socketio or "redis://localhost:12311")
-	return redis_server
+		r = get_redis_connection_without_auth()
+		r.publish(
+			"events",
+			frappe.as_json(
+				{"event": event, "message": message, "room": room, "namespace": frappe.local.site}
+			),
+		)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -147,24 +141,24 @@ def get_user_info():
 
 
 def get_doctype_room(doctype):
-	return f"{frappe.local.site}:doctype:{doctype}"
+	return f"doctype:{doctype}"
 
 
 def get_doc_room(doctype, docname):
-	return f"{frappe.local.site}:doc:{doctype}/{cstr(docname)}"
+	return f"doc:{doctype}/{cstr(docname)}"
 
 
 def get_user_room(user):
-	return f"{frappe.local.site}:user:{user}"
+	return f"user:{user}"
 
 
 def get_site_room():
-	return f"{frappe.local.site}:all"
+	return "all"
 
 
 def get_task_progress_room(task_id):
-	return f"{frappe.local.site}:task_progress:{task_id}"
+	return f"task_progress:{task_id}"
 
 
 def get_website_room():
-	return f"{frappe.local.site}:website"
+	return "website"

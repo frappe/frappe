@@ -76,6 +76,9 @@ export default class Tab {
 	add_field(fieldobj) {
 		fieldobj.tab = this;
 	}
+	replace_field(fieldobj) {
+		fieldobj.tab = this;
+	}
 
 	set_active() {
 		this.tab_link.find(".nav-link").tab("show");

@@ -9,7 +9,6 @@ from frappe.build import scrub_html_template
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
-from frappe.translate import extract_messages_from_code, make_dict_from_messages
 from frappe.utils import get_html_format
 from frappe.utils.data import get_link_to_form
 
@@ -34,12 +33,14 @@ ASSET_KEYS = (
 )
 
 
-def get_meta(doctype, cached=True):
+def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
-	if cached and not frappe.conf.developer_mode:
+	cached = cached and not frappe.conf.developer_mode
+	if cached:
 		meta = frappe.cache.hget("doctype_form_meta", doctype)
 		if not meta:
-			meta = FormMeta(doctype)
+			# Cache miss - explicitly get meta from DB to avoid
+			meta = FormMeta(doctype, cached=False)
 			frappe.cache.hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
@@ -51,8 +52,8 @@ def get_meta(doctype, cached=True):
 
 
 class FormMeta(Meta):
-	def __init__(self, doctype):
-		self.__dict__.update(frappe.get_meta(doctype).__dict__)
+	def __init__(self, doctype, *, cached=True):
+		self.__dict__.update(frappe.get_meta(doctype, cached=cached).__dict__)
 		self.load_assets()
 
 	def load_assets(self):
@@ -258,6 +259,8 @@ class FormMeta(Meta):
 				self.set("__form_grid_templates", templates)
 
 	def set_translations(self, lang):
+		from frappe.translate import extract_messages_from_code, make_dict_from_messages
+
 		self.set("__messages", frappe.get_lang_dict("doctype", self.name))
 
 		# set translations for grid templates

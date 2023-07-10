@@ -64,8 +64,10 @@ class NamingSeries:
 				exc=InvalidNamingSeriesError,
 			)
 
-	def generate_next_name(self, doc: "Document") -> str:
-		self.validate()
+	def generate_next_name(self, doc: "Document", *, ignore_validate=False) -> str:
+		if not ignore_validate:
+			self.validate()
+
 		parts = self.series.split(".")
 		return parse_naming_series(parts, doc=doc)
 
@@ -151,7 +153,8 @@ def set_new_name(doc):
 
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
-		return
+		if doc.name:
+			return
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
@@ -263,7 +266,7 @@ def set_name_by_naming_series(doc):
 	doc.name = make_autoname(doc.naming_series + ".#####", "", doc)
 
 
-def make_autoname(key="", doctype="", doc=""):
+def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	"""
 	     Creates an autoname from the given key:
 
@@ -285,7 +288,7 @@ def make_autoname(key="", doctype="", doc=""):
 		return frappe.generate_hash(length=10)
 
 	series = NamingSeries(key)
-	return series.generate_next_name(doc)
+	return series.generate_next_name(doc, ignore_validate=ignore_validate)
 
 
 def parse_naming_series(
@@ -506,6 +509,17 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 
 def _set_amended_name(doc):
+	amend_naming_rule = frappe.db.get_value(
+		"Amended Document Naming Settings", {"document_type": doc.doctype}, "action", cache=True
+	)
+	if not amend_naming_rule:
+		amend_naming_rule = frappe.db.get_single_value(
+			"Document Naming Settings", "default_amend_naming", cache=True
+		)
+
+	if amend_naming_rule == "Default Naming":
+		return
+
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):

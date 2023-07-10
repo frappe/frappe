@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 import functools
+import gc
 import importlib
 import inspect
 import json
@@ -57,6 +58,7 @@ re._MAXCACHE = (
 	50  # reduced from default 512 given we are already maintaining this on parent worker
 )
 
+_tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
@@ -925,7 +927,6 @@ def has_permission(
 	ptype="read",
 	doc=None,
 	user=None,
-	verbose=False,
 	throw=False,
 	*,
 	parent_doctype=None,
@@ -938,7 +939,6 @@ def has_permission(
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user.
-	:param verbose: DEPRECATED, will be removed in a future release.
 	:param parent_doctype: Required when checking permission for a child DocType (unless doc is specified).
 	"""
 	import frappe.permissions
@@ -1428,7 +1428,7 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False):
+def get_installed_apps(*, _ensure_on_bench=False):
 	"""
 	Get list of installed apps in current site.
 
@@ -1436,8 +1436,6 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
 	:param ensure_on_bench: Only return apps that are present on bench.
 	"""
-	from frappe.utils.deprecations import deprecation_warning
-
 	if getattr(flags, "in_install_db", True):
 		return []
 
@@ -1446,22 +1444,9 @@ def get_installed_apps(sort=False, frappe_last=False, *, _ensure_on_bench=False)
 
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 
-	if sort:
-		if not local.all_apps:
-			local.all_apps = cache.get_value("all_apps", get_all_apps)
-
-		deprecation_warning("`sort` argument is deprecated and will be removed in v15.")
-		installed = [app for app in local.all_apps if app in installed]
-
 	if _ensure_on_bench:
 		all_apps = cache.get_value("all_apps", get_all_apps)
 		installed = [app for app in installed if app in all_apps]
-
-	if frappe_last:
-		deprecation_warning("`frappe_last` argument is deprecated and will be removed in v15.")
-		if "frappe" in installed:
-			installed.remove("frappe")
-		installed.append("frappe")
 
 	return installed
 
@@ -2228,41 +2213,6 @@ def logger(
 	)
 
 
-def log_error(title=None, message=None, reference_doctype=None, reference_name=None):
-	"""Log error to Error Log"""
-	# Parameter ALERT:
-	# the title and message may be swapped
-	# the better API for this is log_error(title, message), and used in many cases this way
-	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
-
-	traceback = None
-	if message:
-		if "\n" in title:  # traceback sent as title
-			traceback, title = title, message
-		else:
-			traceback = message
-
-	title = title or "Error"
-	traceback = as_unicode(traceback or get_traceback(with_context=True))
-
-	if not db:
-		print(f"Failed to log error in db: {title}")
-		return
-
-	error_log = get_doc(
-		doctype="Error Log",
-		error=traceback,
-		method=title,
-		reference_doctype=reference_doctype,
-		reference_name=reference_name,
-	)
-
-	if flags.read_only:
-		error_log.deferred_insert()
-	else:
-		return error_log.insert(ignore_permissions=True)
-
-
 def get_desk_link(doctype, name):
 	html = (
 		'<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
@@ -2435,4 +2385,32 @@ def mock(type, size=1, locale="en"):
 	return squashify(results)
 
 
-from frappe.desk.search import validate_and_sanitize_search_inputs  # noqa
+def validate_and_sanitize_search_inputs(fn):
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		from frappe.desk.search import sanitize_searchfield
+		from frappe.utils import cint
+
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+		sanitize_searchfield(kwargs["searchfield"])
+		kwargs["start"] = cint(kwargs["start"])
+		kwargs["page_len"] = cint(kwargs["page_len"])
+
+		if kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
+			return []
+
+		return fn(**kwargs)
+
+	return wrapper
+
+
+from frappe.utils.error import log_error  # noqa: backward compatibility
+
+if _tune_gc:
+	# generational GC gets triggered after certain allocs (g0) which is 700 by default.
+	# This number is quite small for frappe where a single query can potentially create 700+
+	# objects easily.
+	# Bump this number higher, this will make GC less aggressive but that improves performance of
+	# everything else.
+	g0, g1, g2 = gc.get_threshold()  # defaults are 700, 10, 10.
+	gc.set_threshold(g0 * 10, g1 * 2, g2 * 2)

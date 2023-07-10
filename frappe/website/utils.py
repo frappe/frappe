@@ -12,7 +12,7 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, get_assets_json, get_system_timezone, md_to_html
+from frappe.utils import cint, cstr, get_assets_json, get_system_timezone, md_to_html
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -170,6 +170,7 @@ def get_boot_data():
 			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_system_timezone(),
 		},
 		"assets_json": get_assets_json(),
+		"sitename": frappe.local.site,
 	}
 
 
@@ -189,11 +190,6 @@ def cleanup_page_name(title: str) -> str:
 	# replace repeating hyphens
 	name = CLEANUP_PATTERN_3.sub(r"\1", name)
 	return name[:140]
-
-
-def get_shade(color, percent=None):
-	frappe.msgprint(_("get_shade method has been deprecated."))
-	return color
 
 
 def abs_url(path):
@@ -529,14 +525,14 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
-	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
+	response.headers["X-Page-Name"] = cstr(path.encode("ascii", errors="xmlcharrefreplace"))
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
 	add_preload_for_bundled_assets(response)
 
 	if headers:
 		for key, val in headers.items():
-			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
+			response.headers[key] = cstr(val.encode("ascii", errors="xmlcharrefreplace"))
 
 	return response
 
@@ -544,12 +540,10 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 def set_content_type(response, data, path):
 	if isinstance(data, dict):
 		response.mimetype = "application/json"
-		response.charset = "utf-8"
 		data = json.dumps(data)
 		return data
 
 	response.mimetype = "text/html"
-	response.charset = "utf-8"
 
 	# ignore paths ending with .com to avoid unnecessary download
 	# https://bugs.python.org/issue22347

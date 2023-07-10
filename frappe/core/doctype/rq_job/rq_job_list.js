@@ -15,7 +15,6 @@ frappe.listview_settings["RQ Job"] = {
 		);
 
 		if (listview.list_view_settings) {
-			listview.list_view_settings.disable_count = 1;
 			listview.list_view_settings.disable_sidebar_stats = 1;
 		}
 
@@ -57,6 +56,6 @@ frappe.listview_settings["RQ Job"] = {
 			}
 
 			listview.refresh();
-		}, 5000);
+		}, 15000);
 	},
 };

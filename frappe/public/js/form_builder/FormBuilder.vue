@@ -166,8 +166,7 @@ onMounted(() => {
 			}
 		}
 
-		:deep([data-has-std-field="false"]),
-		:deep([data-is-custom="1"]) {
+		:deep([data-is-user-generated="1"]) {
 			background-color: var(--yellow-highlight-color);
 		}
 	}
@@ -175,7 +174,7 @@ onMounted(() => {
 	:deep(.preview) {
 		--field-placeholder-color: var(--fg-bg-color);
 
-		.tab, .column, .field, [data-is-custom="1"] {
+		.tab, .column, .field {
 			background-color: var(--fg-color);
 		}
 

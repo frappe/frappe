@@ -31,7 +31,6 @@ execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('core', 'doctype', 'report_column')
 execute:frappe.reload_doc('core', 'doctype', 'report_filter')
 execute:frappe.reload_doc('core', 'doctype', 'report') #2020-08-25
-execute:frappe.reload_doc('core', 'doctype', 'error_snapshot')
 execute:frappe.get_doc("User", "Guest").save()
 execute:frappe.delete_doc("DocType", "Control Panel", force=1)
 execute:frappe.delete_doc("DocType", "Tag")
@@ -42,7 +41,6 @@ execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'
 execute:frappe.db.sql("delete from tabSessions where user is null")
 execute:frappe.delete_doc("DocType", "Backup Manager")
 execute:frappe.permissions.reset_perms("Web Page")
-execute:frappe.permissions.reset_perms("Error Snapshot")
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
 execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
@@ -60,7 +58,6 @@ frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
-frappe.patches.v10_0.migrate_passwords_passlib
 frappe.patches.v11_0.rename_standard_reply_to_email_template
 execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
 frappe.patches.v10_0.set_no_copy_to_workflow_state
@@ -227,3 +224,5 @@ frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
 frappe.patches.v15_0.remove_background_jobs_from_dropdown
 frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
+execute:frappe.db.set_single_value("Document Naming Settings", "default_amend_naming", "Amend Counter")
+execute:frappe.delete_doc_if_exists("DocType", "Error Snapshot")
