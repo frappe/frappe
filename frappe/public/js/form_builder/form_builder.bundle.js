@@ -5,9 +5,10 @@ import FormBuilderComponent from "./FormBuilder.vue";
 import { registerGlobalComponents } from "./globals.js";
 
 class FormBuilder {
-	constructor({ wrapper, page, doctype, customize }) {
+	constructor({ wrapper, frm, doctype, customize }) {
 		this.$wrapper = $(wrapper);
-		this.page = page;
+		this.frm = frm;
+		this.page = frm.page;
 		this.doctype = doctype;
 		this.customize = customize;
 		this.read_only = false;
@@ -99,10 +100,9 @@ class FormBuilder {
 	watch_changes() {
 		watchEffect(() => {
 			if (this.store.dirty) {
-				this.page.set_indicator(__("Not Saved"), "orange");
 				this.reset_changes_btn.show();
+				this.frm.dirty();
 			} else {
-				this.page.clear_indicator();
 				this.reset_changes_btn.hide();
 			}
 
