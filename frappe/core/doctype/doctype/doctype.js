@@ -7,7 +7,7 @@ frappe.ui.form.on("DocType", {
 		if (form_builder?.store) {
 			let fields = form_builder.store.update_fields();
 
-			if (!fields.length) {
+			if (!fields?.length && frm.is_dirty()) {
 				frappe.throw(__("Error occurred while saving the form."));
 			}
 			frm.refresh_fields();
