@@ -283,9 +283,11 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	function is_df_updated(df, new_df) {
-		delete df.name;
-		delete new_df.name;
-		return JSON.stringify(df) != JSON.stringify(new_df);
+		let df_copy = JSON.parse(JSON.stringify(df));
+		let new_df_copy = JSON.parse(JSON.stringify(new_df));
+		delete df_copy.name;
+		delete new_df_copy.name;
+		return JSON.stringify(df_copy) != JSON.stringify(new_df_copy);
 	}
 
 	function get_layout() {
