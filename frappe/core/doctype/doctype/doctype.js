@@ -146,7 +146,7 @@ function render_form_builder(frm) {
 	frappe.require("form_builder.bundle.js").then(() => {
 		frappe.form_builder = new frappe.ui.FormBuilder({
 			wrapper: $(frm.fields_dict["form_builder"].wrapper),
-			page: frm.page,
+			frm: frm,
 			doctype: frm.doc.name,
 			customize: false,
 		});

@@ -5,6 +5,7 @@ import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
 	let doctype = ref("");
+	let frm = ref(null);
 	let doc = ref(null);
 	let docfields = ref([]);
 	let custom_docfields = ref([]);
@@ -310,6 +311,7 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	return {
 		doctype,
+		frm,
 		doc,
 		form,
 		dirty,
