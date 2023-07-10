@@ -5,7 +5,11 @@ frappe.ui.form.on("DocType", {
 	before_save: function (frm) {
 		let form_builder = frappe.form_builder;
 		if (form_builder?.store) {
-			form_builder.store.update_fields();
+			let fields = form_builder.store.update_fields();
+
+			if (!fields.length) {
+				frappe.throw(__("Error occurred while saving the form."));
+			}
 			frm.refresh_fields();
 		}
 	},
