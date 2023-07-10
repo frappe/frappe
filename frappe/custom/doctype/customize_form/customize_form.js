@@ -65,6 +65,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.refresh();
 							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
+							render_form_builder(frm);
 						}
 					}
 					localStorage["customize_doctype"] = frm.doc.doc_type;
@@ -457,6 +458,32 @@ function render_form_builder_message(frm) {
 		`;
 
 		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
+	}
+}
+
+function render_form_builder(frm) {
+	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) {
+		frappe.form_builder.setup_page_actions();
+		frappe.form_builder.store.fetch();
+		return;
+	}
+
+	if (frappe.form_builder) {
+		frappe.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
+		frappe.form_builder.frm = frm;
+		frappe.form_builder.doctype = frm.doc.name;
+		frappe.form_builder.customize = true;
+		frappe.form_builder.init(true);
+		frappe.form_builder.store.fetch();
+	} else {
+		frappe.require("form_builder.bundle.js").then(() => {
+			frappe.form_builder = new frappe.ui.FormBuilder({
+				wrapper: $(frm.fields_dict["form_builder"].wrapper),
+				frm: frm,
+				doctype: frm.doc.name,
+				customize: true,
+			});
+		});
 	}
 }
 
