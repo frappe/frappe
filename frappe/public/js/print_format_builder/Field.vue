@@ -79,7 +79,7 @@ import ConfigureColumnsVue from "./ConfigureColumns.vue";
 import { createApp, ref, nextTick, watch } from "vue";
 
 // props
-let props = defineProps(["df"]);
+const props = defineProps(["df"]);
 
 // variables
 let editing = ref(false);

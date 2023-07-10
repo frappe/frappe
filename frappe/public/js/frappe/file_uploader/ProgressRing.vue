@@ -44,7 +44,7 @@
 import { computed, ref } from "vue";
 
 // props
-let props = defineProps({
+const props = defineProps({
 	primary: String,
 	secondary: String,
 	radius: Number,
