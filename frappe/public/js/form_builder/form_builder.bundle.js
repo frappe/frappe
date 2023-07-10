@@ -1,7 +1,7 @@
 import { createApp, watchEffect } from "vue";
 import { createPinia } from "pinia";
 import { useStore } from "./store";
-import FormBuilderComponent from "./components/FormBuilder.vue";
+import FormBuilderComponent from "./FormBuilder.vue";
 import { registerGlobalComponents } from "./globals.js";
 
 class FormBuilder {
@@ -17,7 +17,7 @@ class FormBuilder {
 
 	init(refresh) {
 		// set page title
-		this.page.set_title(__("Form Builder: {0}", [this.doctype]));
+		this.page.set_title(__(this.doctype));
 
 		this.setup_page_actions();
 		!refresh && this.setup_app();
@@ -57,10 +57,10 @@ class FormBuilder {
 			}
 		);
 
-		this.customize_form_btn = this.page.add_menu_item(__("Switch to Customize Form"), () => {
+		this.customize_form_btn = this.page.add_menu_item(__("Switch to Customize"), () => {
 			frappe.set_route("form-builder", this.doctype, "customize");
 		});
-		this.doctype_form_btn = this.page.add_menu_item(__("Switch to DocType Form"), () => {
+		this.doctype_form_btn = this.page.add_menu_item(__("Switch to DocType"), () => {
 			frappe.set_route("form-builder", this.doctype);
 		});
 
@@ -106,21 +106,39 @@ class FormBuilder {
 				this.reset_changes_btn.hide();
 			}
 
-			// toggle doctype / customize form btn based on url
-			this.customize_form_btn.toggle(!this.store.is_customize_form);
-			this.doctype_form_btn.toggle(this.store.is_customize_form);
+			// hide all buttons
+			this.go_to_doctype_list_btn.hide();
+			this.customize_form_btn.hide();
+			this.doctype_form_btn.hide();
+			this.go_to_doctype_btn.hide();
+			this.go_to_customize_form_btn.hide();
 
-			// hide customize form & Go to customize form btn
+			this.page.menu_btn_group.show();
+			let hide_menu = true;
+
+			// show customize form & Go to customize form btn
 			if (
 				this.store.doc &&
-				(this.store.doc.custom ||
-					this.store.doc.issingle ||
-					in_list(frappe.model.core_doctypes_list, this.doctype))
+				!this.store.doc.custom &&
+				!this.store.doc.issingle &&
+				!this.store.is_customize_form &&
+				!in_list(frappe.model.core_doctypes_list, this.doctype)
 			) {
-				this.customize_form_btn.hide();
-				if (this.doctype != "Customize Form") {
-					this.go_to_customize_form_btn.hide();
-				}
+				this.customize_form_btn.show();
+				this.go_to_customize_form_btn.show();
+				hide_menu = false;
+			}
+
+			// show doctype form & Go to doctype form btn
+			if (
+				this.store.doc &&
+				!this.store.doc.custom &&
+				!this.store.doc.issingle &&
+				this.store.is_customize_form
+			) {
+				this.doctype_form_btn.show();
+				this.go_to_doctype_btn.show();
+				hide_menu = false;
 			}
 
 			// show Go to {0} List or Go to {0} button
@@ -129,7 +147,11 @@ class FormBuilder {
 					? __("Go to {0}", [__(this.doctype)])
 					: __("Go to {0} List", [__(this.doctype)]);
 
-				this.go_to_doctype_list_btn.text(label);
+				this.go_to_doctype_list_btn.text(label).show();
+			}
+
+			if (hide_menu && window.matchMedia("(min-device-width: 992px)").matches) {
+				this.page.menu_btn_group.hide();
 			}
 
 			// toggle preview btn text

@@ -6,7 +6,7 @@ import { ref } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent, confirm_dialog } from "../utils";
 
-let props = defineProps(["section", "column"]);
+const props = defineProps(["section", "column"]);
 let store = useStore();
 
 let hovered = ref(false);
@@ -148,8 +148,6 @@ function move_columns_to_section() {
 			:style="{ backgroundColor: column.fields.length ? '' : 'var(--field-placeholder-color)' }"
 			v-model="column.fields"
 			group="fields"
-			filter="[data-is-custom='0']"
-			:prevent-on-filter="false"
 			:animation="200"
 			:easing="store.get_animation"
 			item-key="id"
@@ -159,7 +157,7 @@ function move_columns_to_section() {
 				<Field
 					:column="column"
 					:field="element"
-					:data-is-custom="element.df.is_custom_field"
+					:data-is-user-generated="store.is_user_generated_field(element)"
 				/>
 			</template>
 		</draggable>

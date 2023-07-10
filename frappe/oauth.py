@@ -331,6 +331,8 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		userinfo = get_userinfo(user)
 
+		id_token["exp"] = id_token.get("iat") + token.get("expires_in")
+
 		if userinfo.get("iss"):
 			id_token["iss"] = userinfo.get("iss")
 
@@ -363,6 +365,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def get_jwt_bearer_token(self, token, token_handler, request):
 		now = datetime.datetime.now()
+
 		id_token = dict(
 			aud=token.client_id,
 			iat=round(now.timestamp()),

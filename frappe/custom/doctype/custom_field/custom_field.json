@@ -21,6 +21,7 @@
   "hide_seconds",
   "hide_days",
   "options",
+  "sort_options",
   "fetch_from",
   "fetch_if_empty",
   "options_help",
@@ -126,7 +127,8 @@
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
    "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
-   "reqd": 1
+   "reqd": 1,
+   "sort_options": 1
   },
   {
    "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
@@ -435,13 +437,20 @@
    "fieldtype": "Check",
    "label": "Is System Generated",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.fieldtype === 'Select'",
+   "fieldname": "sort_options",
+   "fieldtype": "Check",
+   "label": "Sort Options"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-06-13 06:39:03.319667",
+ "modified": "2023-06-08 19:05:51.737234",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

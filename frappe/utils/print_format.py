@@ -1,6 +1,6 @@
 import os
 
-from PyPDF2 import PdfWriter
+from pypdf import PdfWriter
 
 import frappe
 from frappe import _
@@ -108,7 +108,7 @@ def download_multi_pdf(
 		frappe.local.response.filename = f"{name}.pdf"
 
 	frappe.local.response.filecontent = read_multi_pdf(output)
-	frappe.local.response.type = "download"
+	frappe.local.response.type = "pdf"
 
 
 def read_multi_pdf(output):

@@ -34,3 +34,9 @@ c0c5b2ebdddbe8898ce2d5e5365f4931ff73b6bf
 
 # db.get_all -> get_all
 2eec621e95564c359ad22da79501a855c1f32b03
+
+# minor formatting fix in `user.py`
+f223bc02490902dfcc32892058f13f343d51fbaf
+
+# frappe.cache() -> frappe.cache
+fa6dc03cc87ad74e11609e7373078366fdcb3e1b

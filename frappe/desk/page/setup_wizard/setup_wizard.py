@@ -325,8 +325,8 @@ def load_country():
 @frappe.whitelist()
 def load_user_details():
 	return {
-		"full_name": frappe.cache().hget("full_name", "signup"),
-		"email": frappe.cache().hget("email", "signup"),
+		"full_name": frappe.cache.hget("full_name", "signup"),
+		"email": frappe.cache.hget("email", "signup"),
 	}
 
 

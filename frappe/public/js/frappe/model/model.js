@@ -633,8 +633,7 @@ $.extend(frappe.model, {
 	},
 
 	clear_table: function (doc, parentfield) {
-		for (var i = 0, l = (doc[parentfield] || []).length; i < l; i++) {
-			var d = doc[parentfield][i];
+		for (const d of doc[parentfield] || []) {
 			delete locals[d.doctype][d.name];
 		}
 		doc[parentfield] = [];
@@ -791,7 +790,7 @@ $.extend(frappe.model, {
 	get_all_docs: function (doc) {
 		var all = [doc];
 		for (var key in doc) {
-			if ($.isArray(doc[key])) {
+			if ($.isArray(doc[key]) && !key.startsWith("_")) {
 				var children = doc[key];
 				for (var i = 0, l = children.length; i < l; i++) {
 					all.push(children[i]);
@@ -837,9 +836,9 @@ $.extend(frappe.model, {
 			}
 
 			if (
-				(frm.doc.fields.find((i) => i.fieldname === "latitude") &&
-					frm.doc.fields.find((i) => i.fieldname === "longitude")) ||
-				frm.doc.fields.find(
+				(frm.doc.fields?.find((i) => i.fieldname === "latitude") &&
+					frm.doc.fields?.find((i) => i.fieldname === "longitude")) ||
+				frm.doc.fields?.find(
 					(i) => i.fieldname === "location" && i.fieldtype == "Geolocation"
 				)
 			) {

@@ -9,9 +9,6 @@ from tempfile import mkdtemp, mktemp
 from urllib.parse import urlparse
 
 import click
-import psutil
-from requests import head
-from requests.exceptions import HTTPError
 from semantic_version import Version
 
 import frappe
@@ -27,7 +24,7 @@ class AssetsNotDownloadedError(Exception):
 	pass
 
 
-class AssetsDontExistError(HTTPError):
+class AssetsDontExistError(Exception):
 	pass
 
 
@@ -78,6 +75,8 @@ def build_missing_files():
 
 
 def get_assets_link(frappe_head) -> str:
+	import requests
+
 	tag = getoutput(
 		r"cd ../apps/frappe && git show-ref --tags -d | grep %s | sed -e 's,.*"
 		r" refs/tags/,,' -e 's/\^{}//'" % frappe_head
@@ -89,7 +88,7 @@ def get_assets_link(frappe_head) -> str:
 	else:
 		url = f"http://assets.frappeframework.com/{frappe_head}.tar.gz"
 
-	if not head(url):
+	if not requests.head(url):
 		reference = f"Release {tag}" if tag else f"Commit {frappe_head}"
 		raise AssetsDontExistError(f"Assets for {reference} don't exist")
 
@@ -227,11 +226,10 @@ def bundle(
 	mode,
 	apps=None,
 	hard_link=False,
-	make_copy=False,
-	restore=False,
 	verbose=False,
 	skip_frappe=False,
 	files=None,
+	save_metafiles=False,
 ):
 	"""concat / minify js files"""
 	setup()
@@ -250,6 +248,9 @@ def bundle(
 		command += " --files {files}".format(files=",".join(files))
 
 	command += " --run-build-command"
+
+	if save_metafiles:
+		command += " --save-metafiles"
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_path("frappe", "..")
@@ -277,8 +278,8 @@ def watch(apps=None):
 def check_node_executable():
 	node_version = Version(subprocess.getoutput("node -v")[1:])
 	warn = "⚠️ "
-	if node_version.major < 14:
-		click.echo(f"{warn} Please update your node version to 14")
+	if node_version.major < 18:
+		click.echo(f"{warn} Please update your node version to 18")
 	if not shutil.which("yarn"):
 		click.echo(f"{warn} Please install yarn using below command and try again.\nnpm install -g yarn")
 	click.echo()
@@ -290,6 +291,8 @@ def get_node_env():
 
 
 def get_safe_max_old_space_size():
+	import psutil
+
 	safe_max_old_space_size = 0
 	try:
 		total_memory = psutil.virtual_memory().total / (1024 * 1024)

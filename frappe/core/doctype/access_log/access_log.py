@@ -59,7 +59,7 @@ def _make_access_log(
 	user = frappe.session.user
 	in_request = frappe.request and frappe.request.method == "GET"
 
-	frappe.get_doc(
+	access_log = frappe.get_doc(
 		{
 			"doctype": "Access Log",
 			"user": user,
@@ -72,7 +72,13 @@ def _make_access_log(
 			"filters": cstr(filters) or None,
 			"columns": columns,
 		}
-	).db_insert()
+	)
+
+	if frappe.flags.read_only:
+		access_log.deferred_insert()
+		return
+	else:
+		access_log.db_insert()
 
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
 	# dont commit in test mode. It must be tempting to put this block along with the in_request in the

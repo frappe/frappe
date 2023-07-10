@@ -1,11 +1,7 @@
 from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
 from types import EllipsisType
-from typing import Any, Callable, ForwardRef, TypeVar, Union
-
-from pydantic.config import BaseConfig
-from pydantic.error_wrappers import ValidationError as PyValidationError
-from pydantic.tools import NameFactory, _generate_parsing_type_name
+from typing import Callable, ForwardRef, TypeVar, Union
 
 from frappe.exceptions import FrappeTypeError
 
@@ -69,29 +65,10 @@ def raise_type_error(
 
 
 @lru_cache(maxsize=2048)
-def _get_parsing_type(
-	type_: Any, *, type_name: NameFactory | None = None, config: type[BaseConfig] = None
-) -> Any:
-	# Note: this is a copy of pydantic.tools._get_parsing_type with the addition of allowing a config argument
-	from pydantic.main import create_model
+def TypeAdapter(type_):
+	from pydantic import TypeAdapter as PyTypeAdapter
 
-	if type_name is None:
-		type_name = _generate_parsing_type_name
-	if not isinstance(type_name, str):
-		type_name = type_name(type_)
-	return create_model(type_name, __root__=(type_, ...), __config__=config)
-
-
-def parse_obj_as(
-	type_: type[T],
-	obj: Any,
-	*,
-	type_name: NameFactory | None = None,
-	config: type[BaseConfig] | None = None,
-) -> T:
-	# Note: This is a copy of pydantic.tools.parse_obj_as with the addition of allowing a config argument
-	model_type = _get_parsing_type(type_, type_name=type_name, config=config)  # type: ignore[arg-type]
-	return model_type(__root__=obj).__root__
+	return PyTypeAdapter(type_, config=FrappePydanticConfig)
 
 
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
@@ -102,6 +79,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	"""
 	if not (args or kwargs) or not func.__annotations__:
 		return args, kwargs
+
+	from pydantic import ValidationError as PyValidationError
 
 	annotations = func.__annotations__
 	new_args, new_kwargs = list(args), kwargs
@@ -157,9 +136,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 
 		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
 		try:
-			current_arg_value_after = parse_obj_as(
-				current_arg_type, current_arg_value, type_name=current_arg, config=FrappePydanticConfig
-			)
+			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
 		except (TypeError, PyValidationError) as e:
 			raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
 

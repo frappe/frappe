@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from frappe import get_conf
 
-REDIS_KEYS = ("redis_cache", "redis_queue", "redis_socketio")
+REDIS_KEYS = ("redis_cache", "redis_queue")
 
 
 def is_open(ip, port, timeout=10):
@@ -31,10 +31,9 @@ def check_redis(redis_services=None):
 	config = get_conf()
 	services = redis_services or REDIS_KEYS
 	status = {}
-	for conn in services:
-		redis_url = urlparse(config.get(conn)).netloc
-		redis_host, redis_port = redis_url.split(":")
-		status[conn] = is_open(redis_host, redis_port)
+	for srv in services:
+		url = urlparse(config[srv])
+		status[srv] = is_open(url.hostname, url.port)
 	return status
 
 

@@ -3,6 +3,8 @@
 
 import os
 
+import click
+
 import frappe
 from frappe.core.doctype.data_import.data_import import export_json, import_doc
 
@@ -17,29 +19,45 @@ def sync_fixtures(app=None):
 	frappe.flags.in_fixtures = True
 
 	for app in apps:
-		fixtures_path = frappe.get_app_path(app, "fixtures")
-		if os.path.exists(fixtures_path):
-			import_doc(fixtures_path)
-
+		import_fixtures(app)
 		import_custom_scripts(app)
 
 	frappe.flags.in_fixtures = False
 
 
+def import_fixtures(app):
+	fixtures_path = frappe.get_app_path(app, "fixtures")
+	if not os.path.exists(fixtures_path):
+		return
+
+	fixture_files = os.listdir(fixtures_path)
+
+	for fname in fixture_files:
+		if not fname.endswith(".json"):
+			continue
+
+		file_path = frappe.get_app_path(app, "fixtures", fname)
+		try:
+			import_doc(file_path)
+		except (ImportError, frappe.DoesNotExistError) as e:
+			# fixture syncing for missing doctypes
+			print(f"Skipping fixture syncing from the file {fname}. Reason: {e}")
+
+
 def import_custom_scripts(app):
 	"""Import custom scripts from `[app]/fixtures/custom_scripts`"""
-	if os.path.exists(frappe.get_app_path(app, "fixtures", "custom_scripts")):
-		for fname in os.listdir(frappe.get_app_path(app, "fixtures", "custom_scripts")):
-			if fname.endswith(".js"):
-				with open(frappe.get_app_path(app, "fixtures", "custom_scripts") + os.path.sep + fname) as f:
-					doctype = fname.rsplit(".", 1)[0]
-					script = f.read()
-					if frappe.db.exists("Client Script", {"dt": doctype}):
-						custom_script = frappe.get_doc("Client Script", {"dt": doctype})
-						custom_script.script = script
-						custom_script.save()
-					else:
-						frappe.get_doc({"doctype": "Client Script", "dt": doctype, "script": script}).insert()
+	scripts_folder = frappe.get_app_path(app, "fixtures", "custom_scripts")
+	if not os.path.exists(scripts_folder):
+		return
+
+	for fname in os.listdir(scripts_folder):
+		if not fname.endswith(".js"):
+			continue
+
+		click.secho(
+			f"Importing Client Script `{fname}` from `{scripts_folder}` is not supported. Convert the client script to fixture.",
+			fg="red",
+		)
 
 
 def export_fixtures(app=None):

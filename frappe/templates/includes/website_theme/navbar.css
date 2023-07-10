@@ -3,7 +3,7 @@
 	background-repeat: repeat-x;
 	background-image: none;
 	border: none;
-	border-bottom: 1px solid {{ get_shade(theme.top_bar_color, 10) }};
+	border-bottom: 1px solid {{ theme.top_bar_color }};
 	padding-top: 15px;
 	padding-bottom: 15px;
 }
@@ -34,7 +34,7 @@
 .navbar .nav > .open > a:hover,
 .navbar .nav > .open > a:focus,
 .navbar .nav > .open > a:active {
-	color: {{ get_shade(theme.top_bar_text_color, 15) }};
+	color: {{ theme.top_bar_text_color }};
 	background-color: transparent;
     -webkit-box-shadow: none;
        -moz-box-shadow: none;

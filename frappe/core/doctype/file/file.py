@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -69,7 +70,7 @@ class File(Document):
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
-			frappe.local.rollback_observers.append(self)
+			frappe.db.after_rollback.add(self.on_rollback)
 
 	def after_insert(self):
 		if not self.is_folder:
@@ -121,10 +122,16 @@ class File(Document):
 			self.add_comment_in_reference_doc("Attachment Removed", _("Removed {0}").format(self.file_name))
 
 	def on_rollback(self):
+		rollback_flags = ("new_file", "original_content", "original_path")
+
+		def pop_rollback_flags():
+			for flag in rollback_flags:
+				self.flags.pop(flag, None)
+
 		# following condition is only executed when an insert has been rolledback
 		if self.flags.new_file:
 			self._delete_file_on_disk()
-			self.flags.pop("new_file")
+			pop_rollback_flags()
 			return
 
 		# if original_content flag is set, this rollback should revert the file to its original state
@@ -139,14 +146,14 @@ class File(Document):
 			with open(file_path, mode) as f:
 				f.write(self.flags.original_content)
 				os.fsync(f.fileno())
-				self.flags.pop("original_content")
+				pop_rollback_flags()
 
 		# used in case file path (File.file_url) has been changed
 		if self.flags.original_path:
 			target = self.flags.original_path["old"]
 			source = self.flags.original_path["new"]
 			shutil.move(source, target)
-			self.flags.pop("original_path")
+			pop_rollback_flags()
 
 	def get_name_based_on_parent_folder(self) -> str | None:
 		if self.folder:
@@ -218,7 +225,7 @@ class File(Document):
 		# Uses os.rename which is an atomic operation
 		shutil.move(source, target)
 		self.flags.original_path = {"old": source, "new": target}
-		frappe.local.rollback_observers.append(self)
+		frappe.db.after_rollback.add(self.on_rollback)
 
 		self.file_url = updated_file_url
 		update_existing_file_docs(self)
@@ -230,12 +237,19 @@ class File(Document):
 		):
 			return
 
-		frappe.db.set_value(
-			self.attached_to_doctype,
-			self.attached_to_name,
-			self.attached_to_field,
-			self.file_url,
-		)
+		if frappe.get_meta(self.attached_to_doctype).issingle:
+			frappe.db.set_single_value(
+				self.attached_to_doctype,
+				self.attached_to_field,
+				self.file_url,
+			)
+		else:
+			frappe.db.set_value(
+				self.attached_to_doctype,
+				self.attached_to_name,
+				self.attached_to_field,
+				self.file_url,
+			)
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
@@ -520,7 +534,7 @@ class File(Document):
 			f.write(self._content)
 			os.fsync(f.fileno())
 
-		frappe.local.rollback_observers.append(self)
+		frappe.db.after_rollback.add(self.on_rollback)
 
 		return file_path
 
@@ -638,7 +652,9 @@ class File(Document):
 
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
-		file_url = quote(frappe.safe_encode(self.file_url)) if self.file_url else self.file_name
+		file_url = (
+			quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
+		)
 		file_name = self.file_name or self.file_url
 
 		self.add_comment_in_reference_doc(
@@ -703,40 +719,39 @@ def on_doctype_update():
 
 
 def has_permission(doc, ptype=None, user=None):
-	has_access = False
 	user = user or frappe.session.user
 
 	if ptype == "create":
-		has_access = frappe.has_permission("File", "create", user=user)
+		return frappe.has_permission("File", "create", user=user)
 
-	if not doc.is_private or doc.owner in [user, "Guest"] or user == "Administrator":
-		has_access = True
+	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
 		attached_to_name = doc.attached_to_name
 
-		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
-			if ptype in ["write", "create", "delete"]:
-				has_access = ref_doc.has_permission("write")
+		if ptype in ["write", "create", "delete"]:
+			return ref_doc.has_permission("write")
+		else:
+			return ref_doc.has_permission("read")
 
-				if ptype == "delete" and not has_access:
-					frappe.throw(
-						_(
-							"Cannot delete file as it belongs to {0} {1} for which you do not have permissions"
-						).format(doc.attached_to_doctype, doc.attached_to_name),
-						frappe.PermissionError,
-					)
-			else:
-				has_access = ref_doc.has_permission("read")
-		except frappe.DoesNotExistError:
-			# if parent doc is not created before file is created
-			# we cannot check its permission so we will use file's permission
-			pass
+	return False
 
-	return has_access
+
+def get_permission_query_conditions(user: str = None) -> str:
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
+	return f"""
+		(`tabFile`.`is_private` = 0)
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {user !r})
+		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
+	"""
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility

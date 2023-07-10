@@ -169,6 +169,10 @@ class TestDocument(FrappeTestCase):
 		with self.assertQueryCount(0):
 			user.db_set("user_type", "Magical Wizard")
 
+	def test_new_doc_with_fields(self):
+		user = frappe.new_doc("User", first_name="wizard")
+		self.assertEqual(user.first_name, "wizard")
+
 	def test_update_after_submit(self):
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"
@@ -447,6 +451,13 @@ class TestDocument(FrappeTestCase):
 		self.assertRaises(
 			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
 		)
+
+	def test_db_set_singles(self):
+		c = frappe.get_doc("Contact Us Settings")
+		key, val = "email_id", "admin1@example.com"
+		c.db_set(key, val)
+		changed_val = frappe.db.get_single_value(c.doctype, key)
+		self.assertEqual(val, changed_val)
 
 
 class TestDocumentWebView(FrappeTestCase):

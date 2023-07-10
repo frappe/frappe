@@ -372,12 +372,10 @@ class AutoRepeat(Document):
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {"doc": new_doc})
 
-		recipients = self.recipients.split("\n")
-
 		frappe.sendmail(
 			reference_doctype=new_doc.doctype,
 			reference_name=new_doc.name,
-			recipients=recipients,
+			recipients=self.recipients,
 			subject=subject,
 			content=message,
 			attachments=attachments,

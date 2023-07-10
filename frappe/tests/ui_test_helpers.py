@@ -77,9 +77,11 @@ def create_todo_records():
 
 
 @whitelist_for_tests
-def clear_notes():
+def prepare_webform_test():
 	for note in frappe.get_all("Note", pluck="name"):
 		frappe.delete_doc("Note", note, force=True)
+
+	frappe.delete_doc_if_exists("Web Form", "note")
 
 
 @whitelist_for_tests
@@ -537,12 +539,6 @@ def setup_default_view(view, force_reroute=None):
 
 
 @whitelist_for_tests
-def create_note():
-	if not frappe.db.exists("Note", "Routing Test"):
-		frappe.get_doc({"doctype": "Note", "title": "Routing Test"}).insert()
-
-
-@whitelist_for_tests
 def create_kanban():
 	if not frappe.db.exists("Custom Field", "Note-kanban"):
 		frappe.get_doc(
@@ -625,3 +621,40 @@ def add_remove_role(action, user, role):
 		user_doc.remove_roles(role)
 	else:
 		user_doc.add_roles(role)
+
+
+@whitelist_for_tests
+def publish_realtime(
+	event=None,
+	message=None,
+	room=None,
+	user=None,
+	doctype=None,
+	docname=None,
+	task_id=None,
+):
+	frappe.publish_realtime(
+		event=event,
+		message=message,
+		room=room,
+		user=user,
+		doctype=doctype,
+		docname=docname,
+		task_id=task_id,
+	)
+
+
+@whitelist_for_tests
+def publish_progress(duration=3, title=None, doctype=None, docname=None):
+	# This should consider session user and only show it to current user.
+	frappe.enqueue(slow_task, duration=duration, title=title, doctype=doctype, docname=docname)
+
+
+def slow_task(duration, title, doctype, docname):
+	import time
+
+	steps = 10
+
+	for i in range(steps + 1):
+		frappe.publish_progress(i * 10, title=title, doctype=doctype, docname=docname)
+		time.sleep(int(duration) / steps)

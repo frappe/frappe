@@ -1371,6 +1371,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: this.get_columns_for_print(print_settings, custom_format),
 			original_data: this.data,
 			report: this,
+			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 	}
 
@@ -1407,6 +1408,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: columns,
 			lang: frappe.boot.lang,
 			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
+			can_use_smaller_font: this.report_doc.is_standard === "Yes" && custom_format ? 0 : 1,
 		});
 
 		let filter_values = [],
@@ -1958,12 +1960,3 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return this.get_filter_values;
 	}
 };
-
-Object.defineProperty(frappe, "query_report_filters_by_name", {
-	get() {
-		console.warn(
-			"[Query Report] frappe.query_report_filters_by_name is deprecated. Please use the new api: frappe.query_report.get_filter_value(fieldname) and frappe.query_report.set_filter_value(fieldname, value)"
-		);
-		return null;
-	},
-});

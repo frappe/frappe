@@ -106,7 +106,7 @@ frappe.ui.Slide = class Slide {
 	}
 
 	set_values(ignore_errors) {
-		this.values = this.form.get_values(ignore_errors);
+		this.values = this.form.get_values(ignore_errors, true);
 		if (this.values === null) {
 			return false;
 		}

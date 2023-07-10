@@ -2,7 +2,7 @@
 import { get_table_columns } from "../../utils";
 import { computedAsync } from "@vueuse/core";
 
-let props = defineProps(["df"]);
+const props = defineProps(["df"]);
 
 let table_columns = computedAsync(async () => {
 	let doctype = props.df.options;

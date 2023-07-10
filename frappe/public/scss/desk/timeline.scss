@@ -95,6 +95,11 @@ $threshold: 34;
 		.timeline-badge {
 			@include timeline-badge(var(--timeline-item-icon-size))
 		}
+		.timeline-load-more {
+			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
+			width: var(--timeline-content-max-width);
+			text-align: center;
+		}
 
 		.timeline-message-box {
 			.content {

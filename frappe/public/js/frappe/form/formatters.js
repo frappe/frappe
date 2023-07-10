@@ -103,8 +103,15 @@ frappe.form.formatters = {
 	},
 	Currency: function (value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
-		var precision =
-			docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
+
+		let precision;
+		if (typeof docfield.precision == "number") {
+			precision = docfield.precision;
+		} else {
+			precision = cint(
+				docfield.precision || frappe.boot.sysdefaults.currency_precision || 2
+			);
+		}
 
 		// If you change anything below, it's going to hurt a company in UAE, a bit.
 		if (precision > 2) {
@@ -345,7 +352,9 @@ frappe.form.formatters = {
 		const link_field = meta.fields.find((df) => df.fieldtype === "Link");
 		const formatted_values = rows.map((row) => {
 			const value = row[link_field.fieldname];
-			return frappe.format(value, link_field, options, row);
+			return `<span class="text-nowrap">
+				${frappe.format(value, link_field, options, row)}
+			</span>`;
 		});
 		return formatted_values.join(", ");
 	},
@@ -365,7 +374,13 @@ frappe.form.formatters = {
 		</div>`
 			: "";
 	},
+	Attach: format_attachment_url,
+	AttachImage: format_attachment_url,
 };
+
+function format_attachment_url(url) {
+	return url ? `<a href="${url}" target="_blank">${url}</a>` : "";
+}
 
 frappe.form.get_formatter = function (fieldtype) {
 	if (!fieldtype) fieldtype = "Data";

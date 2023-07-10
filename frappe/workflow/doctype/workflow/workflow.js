@@ -5,6 +5,41 @@ frappe.ui.form.on("Workflow", {
 		frm.set_query("document_type", { issingle: 0, istable: 0 });
 	},
 	refresh: function (frm) {
+		frm.layout.message.empty();
+		let title, note;
+		let workflow_builder_url = "/app/workflow-builder";
+		msg = __(
+			"Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
+		);
+
+		if (frm.is_new()) {
+			title = __("Create your workflow visually using the Workflow Builder.");
+		} else {
+			title = __("Edit your workflow visually using the Workflow Builder.");
+			note = __(
+				"NOTE: Avoid making changes to the states & transitions. It will not be reflected in the Workflow Builder."
+			);
+			workflow_builder_url += "/" + frm.doc.name;
+		}
+
+		let message = `
+		<div class="flex">
+			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="510" src="/assets/frappe/images/workflow-builder.gif"></div>
+			<div>
+				<p style="font-size: var(--text-xl)">${title}</p>
+				<p>${msg}</p>
+				<p class="mb-3">${note || ""}</p>
+				<div>
+					<a class="btn btn-primary btn-sm" href="${workflow_builder_url}">
+						${__("Workflow Builder")} ${frappe.utils.icon("right", "xs")}
+					</a>
+				</div>
+			</div>
+		</div>
+		`;
+
+		frm.layout.show_message(message);
+
 		if (frm.doc.document_type) {
 			frm.add_custom_button(__("Go to {0} List", [frm.doc.document_type]), () => {
 				frappe.set_route("List", frm.doc.document_type);
@@ -25,6 +60,15 @@ frappe.ui.form.on("Workflow", {
 		});
 	},
 	validate: (frm) => {
+		if (frm.doc.is_active && (!frm.doc.states.length || !frm.doc.transitions.length)) {
+			let message = "Workflow must have atleast one state and transition";
+			frappe.throw({
+				message: __(message),
+				title: __("Missing Values Required"),
+				indicator: "orange",
+			});
+		}
+
 		if (frm.ignore_warning) {
 			return;
 		}

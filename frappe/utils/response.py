@@ -68,7 +68,6 @@ def build_response(response_type=None):
 def as_csv():
 	response = Response()
 	response.mimetype = "text/csv"
-	response.charset = "utf-8"
 	response.headers["Content-Disposition"] = (
 		'attachment; filename="%s.csv"' % frappe.response["doctype"].replace(" ", "_")
 	).encode("utf-8")
@@ -79,7 +78,6 @@ def as_csv():
 def as_txt():
 	response = Response()
 	response.mimetype = "text"
-	response.charset = "utf-8"
 	response.headers["Content-Disposition"] = (
 		'attachment; filename="%s.txt"' % frappe.response["doctype"].replace(" ", "_")
 	).encode("utf-8")
@@ -109,7 +107,6 @@ def as_json():
 		del frappe.local.response["http_status_code"]
 
 	response.mimetype = "application/json"
-	response.charset = "utf-8"
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(",", ":"))
 	return response
 
@@ -224,16 +221,16 @@ def download_private_file(path: str) -> Response:
 	"""Checks permissions and sends back private file"""
 
 	can_access = False
-	files = frappe.get_all("File", filters={"file_url": path}, pluck="name")
+	files = frappe.get_all("File", filters={"file_url": path}, fields="*")
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
-	for fname in files:
-		file: "File" = frappe.get_doc("File", fname)
-		if can_access := file.is_downloadable():
+	for file_data in files:
+		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		if file.is_downloadable():
 			break
 
-	if not can_access:
+	else:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])

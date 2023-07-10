@@ -93,7 +93,7 @@ def get_sidebar_items():
 			as_dict=True,
 		)
 
-	return frappe.cache().get_value("knowledge_base:category_sidebar", _get)
+	return frappe.cache.get_value("knowledge_base:category_sidebar", _get)
 
 
 def clear_cache():
@@ -105,8 +105,8 @@ def clear_cache():
 
 
 def clear_website_cache(path=None):
-	frappe.cache().delete_value("knowledge_base:category_sidebar")
-	frappe.cache().delete_value("knowledge_base:faq")
+	frappe.cache.delete_value("knowledge_base:category_sidebar")
+	frappe.cache.delete_value("knowledge_base:faq")
 
 
 @frappe.whitelist(allow_guest=True)

@@ -49,19 +49,14 @@ frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 				};
 				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
 				frappe.setup.run_event("after_load");
-				let route = frappe.get_route();
-				if (route) {
-					frappe.wizard.show_slide(route[1]);
-				}
+				frappe.wizard.show_slide(cint(frappe.get_route()[1]));
 			},
 		});
 	});
 };
 
 frappe.pages["setup-wizard"].on_page_show = function () {
-	if (frappe.get_route()[1]) {
-		frappe.wizard && frappe.wizard.show_slide(frappe.get_route()[1]);
-	}
+	frappe.wizard && frappe.wizard.show_slide(cint(frappe.get_route()[1]));
 };
 
 frappe.setup.on("before_load", function () {
@@ -102,10 +97,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	handle_enter_press(e) {
 		if (e.which === frappe.ui.keyCode.ENTER) {
-			var $target = $(e.target);
-			if ($target.hasClass("prev-btn")) {
+			let $target = $(e.target);
+			if ($target.hasClass("prev-btn") || $target.hasClass("next-btn")) {
 				$target.trigger("click");
 			} else {
+				// hitting enter on autocomplete field shouldn't trigger next slide.
+				if ($target.data().fieldtype == "Autocomplete") return;
+
 				this.container.find(".next-btn").trigger("click");
 				e.preventDefault();
 			}
@@ -122,12 +120,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_slide(id) {
 		if (id === this.slides.length) {
-			// show_slide called on last slide
-			this.action_on_complete();
 			return;
 		}
 		super.show_slide(id);
-		frappe.set_route(this.page_name, id + "");
+		frappe.set_route(this.page_name, cstr(id));
 	}
 
 	show_hide_prev_next(id) {
@@ -403,7 +399,7 @@ frappe.setup.slides_settings = [
 			},
 			{
 				fieldname: "enable_telemetry",
-				label: __("Allow Sending Usage Data for Improving applications"),
+				label: __("Allow Sending Usage Data for Improving Applications"),
 				fieldtype: "Check",
 				default: 1,
 			},
@@ -441,7 +437,7 @@ frappe.setup.slides_settings = [
 	{
 		// Profile slide
 		name: "user",
-		title: __("Let's setup your account"),
+		title: __("Let's set up your account"),
 		icon: "fa fa-user",
 		fields: [
 			{
@@ -490,12 +486,6 @@ frappe.setup.slides_settings = [
 			if (frappe.setup.data.email) {
 				let email = frappe.setup.data.email;
 				slide.form.fields_dict.email.set_input(email);
-				if (frappe.get_gravatar(email, 200)) {
-					let $attach_user_image = slide.form.fields_dict.attach_user_image.$wrapper;
-					$attach_user_image.find(".missing-image").toggle(false);
-					$attach_user_image.find("img").attr("src", frappe.get_gravatar(email, 200));
-					$attach_user_image.find(".img-container").toggle(true);
-				}
 			}
 		},
 	},
@@ -558,15 +548,19 @@ frappe.setup.utils = {
 
 		slide.get_input("timezone").empty().add_options(data.all_timezones);
 
-		// set values if present
-		if (frappe.wizard.values.country) {
-			country_field.set_input(frappe.wizard.values.country);
-		} else if (data.default_country) {
-			country_field.set_input(data.default_country);
-		}
-
 		slide.get_field("currency").set_input(frappe.wizard.values.currency);
 		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+
+		// set values if present
+		let country =
+			frappe.wizard.values.country ||
+			data.default_country ||
+			guess_country(frappe.setup.data.regional_data.country_info);
+
+		if (country) {
+			country_field.set_input(country);
+			$(country_field.input).change();
+		}
 	},
 
 	bind_language_events: function (slide) {
@@ -643,3 +637,16 @@ frappe.setup.utils = {
 		});
 	},
 };
+
+function guess_country(country_info) {
+	try {
+		const system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+		for ([country, info] of Object.entries(country_info)) {
+			let possible_timezones = (info.timezones || []).filter((t) => t == system_timezone);
+			if (possible_timezones.length) return country;
+		}
+	} catch (e) {
+		console.log("Could not guess country", e);
+	}
+}

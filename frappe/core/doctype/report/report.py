@@ -49,6 +49,10 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
+	def before_export(self, doc):
+		doc.letterhead = None
+		doc.prepared_report = 0
+
 	def on_trash(self):
 		if (
 			self.is_standard == "Yes"
@@ -121,7 +125,7 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 30
+		threshold = 15
 		res = []
 
 		start_time = datetime.datetime.now()
@@ -135,9 +139,9 @@ class Report(Document):
 		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 		if execution_time > threshold and not self.prepared_report:
-			self.db_set("prepared_report", 1)
+			frappe.enqueue(enable_prepared_report, report=self.name)
 
-		frappe.cache().hset("report_execution_time", self.name, execution_time)
+		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
 
@@ -157,10 +161,18 @@ class Report(Document):
 			return self.get_columns(), loc["result"]
 
 	def get_data(
-		self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False
+		self,
+		filters=None,
+		limit=None,
+		user=None,
+		as_dict=False,
+		ignore_prepared_report=False,
+		are_default_filters=True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
-			columns, result = self.run_query_report(filters, user, ignore_prepared_report)
+			columns, result = self.run_query_report(
+				filters, user, ignore_prepared_report, are_default_filters
+			)
 		else:
 			columns, result = self.run_standard_report(filters, limit, user)
 
@@ -169,10 +181,16 @@ class Report(Document):
 
 		return columns, result
 
-	def run_query_report(self, filters=None, user=None, ignore_prepared_report=False):
+	def run_query_report(
+		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+	):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(
-			self.name, filters=filters, user=user, ignore_prepared_report=ignore_prepared_report
+			self.name,
+			filters=filters,
+			user=user,
+			ignore_prepared_report=ignore_prepared_report,
+			are_default_filters=are_default_filters,
 		)
 
 		for d in data.get("columns"):
@@ -368,3 +386,7 @@ def get_group_by_column_label(args, meta):
 			function=sql_fn_map[args.aggregate_function], fieldlabel=aggregate_on_label
 		)
 	return label
+
+
+def enable_prepared_report(report: str):
+	frappe.db.set_value("Report", report, "prepared_report", 1)

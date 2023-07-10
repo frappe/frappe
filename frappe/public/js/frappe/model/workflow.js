@@ -36,11 +36,13 @@ frappe.workflow = {
 		frappe.workflow.setup(doc.doctype);
 		return frappe.xcall("frappe.model.workflow.get_transitions", { doc: doc });
 	},
-	get_document_state: function (doctype, state) {
+	get_document_state_roles: function (doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.get_children(frappe.workflow.workflows[doctype], "states", {
-			state: state,
-		})[0];
+		let workflow_states =
+			frappe.get_children(frappe.workflow.workflows[doctype], "states", { state: state }) ||
+			[];
+		let allow_edit_list = workflow_states.map((d) => d.allow_edit);
+		return allow_edit_list;
 	},
 	is_self_approval_enabled: function (doctype) {
 		return frappe.workflow.workflows[doctype].allow_self_approval;
@@ -55,14 +57,13 @@ frappe.workflow = {
 			var state =
 				doc[state_fieldname] || frappe.workflow.get_default_state(doctype, doc.docstatus);
 
-			var allow_edit = state
-				? frappe.workflow.get_document_state(doctype, state) &&
-				  frappe.workflow.get_document_state(doctype, state).allow_edit
+			let allow_edit_roles = state
+				? frappe.workflow.get_document_state_roles(doctype, state)
 				: null;
-
-			if (!frappe.user_roles.includes(allow_edit)) {
-				return true;
-			}
+			let has_common_role = frappe.user_roles.some((role) =>
+				allow_edit_roles.includes(role)
+			);
+			return !has_common_role;
 		}
 		return false;
 	},

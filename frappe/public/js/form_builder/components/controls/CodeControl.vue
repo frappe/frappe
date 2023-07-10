@@ -4,7 +4,7 @@ import { computed, onMounted, ref, useSlots, watch } from "vue";
 import { useStore } from "../../store";
 
 let store = useStore();
-let props = defineProps(["df", "modelValue"]);
+const props = defineProps(["df", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 

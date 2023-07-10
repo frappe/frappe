@@ -1,13 +1,12 @@
 {
  "actions": [],
- "autoname": "naming_series:",
+ "autoname": "prompt",
  "creation": "2017-09-08 16:16:13.060641",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "sb_doc_events",
-  "naming_series",
   "webhook_doctype",
   "cb_doc_events",
   "webhook_docevent",
@@ -18,8 +17,10 @@
   "html_condition",
   "sb_webhook",
   "request_url",
-  "request_method",
+  "timeout",
+  "is_dynamic_url",
   "cb_webhook",
+  "request_method",
   "request_structure",
   "sb_security",
   "enable_security",
@@ -45,6 +46,7 @@
   {
    "fieldname": "webhook_doctype",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "DocType",
    "options": "DocType",
    "reqd": 1,
@@ -129,15 +131,11 @@
   },
   {
    "depends_on": "eval: doc.request_structure == \"JSON\"",
+   "description": "To add dynamic values from the document, use jinja tags like\n\n<div>\n<pre><code>{ \"id\": \"{{ doc.name }}\" }</code>\n</pre>\n</div>",
    "fieldname": "webhook_json",
    "fieldtype": "Code",
-   "label": "JSON Request Body"
-  },
-  {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Naming Series",
-   "options": "\nHOOK-.####"
+   "label": "JSON Request Body",
+   "options": "JSON"
   },
   {
    "fieldname": "sb_security",
@@ -200,14 +198,34 @@
   {
    "fieldname": "section_break_28",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "On checking this option, URL will be treated like a jinja template string",
+   "fieldname": "is_dynamic_url",
+   "fieldtype": "Check",
+   "label": "Is Dynamic URL?"
+  },
+  {
+   "default": "5",
+   "description": "The number of seconds until the request expires",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Request Timeout",
+   "reqd": 1
   }
  ],
- "links": [],
- "modified": "2022-07-11 08:54:10.740512",
+ "links": [
+  {
+   "link_doctype": "Webhook Request Log",
+   "link_fieldname": "webhook"
+  }
+ ],
+ "modified": "2023-06-16 10:21:00.971833",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
- "naming_rule": "By \"Naming Series\" field",
+ "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
@@ -226,6 +244,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "webhook_doctype",
  "track_changes": 1
 }

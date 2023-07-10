@@ -21,7 +21,7 @@ class NotFoundPage(TemplatePage):
 
 	def render(self):
 		if self.can_cache_404():
-			frappe.cache().hset("website_404", self.request_url, True)
+			frappe.cache.hset("website_404", self.request_url, True)
 		return super().render()
 
 	def can_cache_404(self):

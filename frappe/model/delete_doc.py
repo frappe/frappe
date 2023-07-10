@@ -328,6 +328,13 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				):
 					reference_doctype = refdoc.parenttype if meta.istable else df.parent
 					reference_docname = refdoc.parent if meta.istable else refdoc.name
+
+					if reference_doctype in frappe.get_hooks("ignore_links_on_delete") or (
+						reference_doctype in ignore_linked_doctypes and method == "Cancel"
+					):
+						# don't check for communication and todo!
+						continue
+
 					at_position = f"at Row: {refdoc.idx}" if meta.istable else ""
 
 					raise_link_exists_exception(doc, reference_doctype, reference_docname, at_position)
