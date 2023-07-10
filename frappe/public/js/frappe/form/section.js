@@ -82,6 +82,16 @@ export default class Section {
 		}
 	}
 
+	replace_field(fieldname, fieldobj) {
+		if (this.fields_dict[fieldname]?.df) {
+			const olfldobj = this.fields_dict[fieldname];
+			const idx = this.fields_list.findIndex((e) => e == olfldobj);
+			this.fields_list.splice(idx, 1, fieldobj);
+			this.fields_dict[fieldname] = fieldobj;
+			fieldobj.section = this;
+		}
+	}
+
 	refresh(hide) {
 		if (!this.df) return;
 		// hide if explicitly hidden
