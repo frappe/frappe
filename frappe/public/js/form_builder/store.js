@@ -142,6 +142,10 @@ export const useStore = defineStore("form-builder-store", () => {
 	function validate_fields(fields, is_table) {
 		fields = scrub_field_names(fields);
 
+		if (!fields.length) {
+			frappe.throw(__("DocType must have atleast one field"));
+		}
+
 		let not_allowed_in_list_view = ["Attach Image", ...frappe.model.no_value_type];
 		if (is_table) {
 			not_allowed_in_list_view = not_allowed_in_list_view.filter((f) => f != "Button");
