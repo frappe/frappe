@@ -82,8 +82,6 @@ export default class Section {
 		}
 	}
 
-<<<<<<< HEAD
-=======
 	replace_field(fieldname, fieldobj) {
 		if (this.fields_dict[fieldname]?.df) {
 			const olfldobj = this.fields_dict[fieldname];
@@ -94,13 +92,6 @@ export default class Section {
 		}
 	}
 
-	add_field(fieldobj) {
-		this.fields_list.push(fieldobj);
-		this.fields_dict[fieldobj.df.fieldname] = fieldobj;
-		fieldobj.section = this;
-	}
-
->>>>>>> c415e2781a (fix: replace_field)
 	refresh(hide) {
 		if (!this.df) return;
 		// hide if explicitly hidden
