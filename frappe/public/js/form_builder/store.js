@@ -69,7 +69,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		return cint(field.df.is_custom_field && !field.df.is_system_generated);
 	}
 
-	async function fetch(reset) {
+	async function fetch() {
 		doc.value = frm.value.doc;
 		if (doctype.value.startsWith("new-doctype-")) {
 			doc.value.fields = [get_df("Data", "", __("Title"))];
@@ -92,10 +92,8 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		nextTick(() => {
 			dirty.value = false;
-			if (!reset || !frm.value.form_dirty) {
-				frm.value.doc.__unsaved = 0;
-				frm.value.page.clear_indicator();
-			}
+			frm.value.doc.__unsaved = 0;
+			frm.value.page.clear_indicator();
 			read_only.value =
 				!is_customize_form.value && !frappe.boot.developer_mode && !doc.value.custom;
 			preview.value = false;
@@ -137,10 +135,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		breadcrumbs += `<li class="disabled"><a href="#">${__("Form Builder")}</a></li>`;
 		frappe.breadcrumbs.clear();
 		frappe.breadcrumbs.$breadcrumbs.append(breadcrumbs);
-	}
-
-	function reset_changes() {
-		fetch(true);
 	}
 
 	function validate_fields(fields, is_table) {
@@ -334,7 +328,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		has_standard_field,
 		is_user_generated_field,
 		fetch,
-		reset_changes,
 		validate_fields,
 		update_fields,
 		get_updated_fields,
