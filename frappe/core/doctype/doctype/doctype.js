@@ -2,6 +2,13 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on("DocType", {
+	before_save: function (frm) {
+		let form_builder = frappe.form_builder;
+		if (form_builder?.store) {
+			form_builder.store.update_fields();
+			frm.refresh_fields();
+		}
+	},
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {

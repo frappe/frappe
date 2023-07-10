@@ -202,11 +202,8 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 	}
 
-	async function save_changes() {
-		if (!dirty.value) {
-			frappe.show_alert({ message: __("No changes to save"), indicator: "orange" });
-			return;
-		}
+	function update_fields() {
+		if (!dirty.value && !frm.value.is_new()) return;
 
 		frappe.dom.freeze(__("Saving..."));
 
@@ -216,14 +213,12 @@ export const useStore = defineStore("form-builder-store", () => {
 				_doc.doc_type = doctype.value;
 				_doc.fields = get_updated_fields();
 				validate_fields(_doc.fields, _doc.istable);
-				await frappe.call({ method: "save_customization", doc: _doc });
 			} else {
-				doc.value.fields = get_updated_fields();
-				validate_fields(doc.value.fields, doc.value.istable);
-				await frappe.call("frappe.client.save", { doc: doc.value });
-				frappe.toast("Fields Table Updated");
+				let fields = get_updated_fields();
+				validate_fields(fields, doc.value.istable);
+				doc.value.fields = fields;
+				return fields;
 			}
-			fetch();
 		} catch (e) {
 			console.error(e);
 		} finally {
@@ -244,6 +239,9 @@ export const useStore = defineStore("form-builder-store", () => {
 			) {
 				idx++;
 				tab.df.idx = idx;
+				if (tab.df.__unsaved) {
+					tab.df.name = "new-docfield-" + idx;
+				}
 				fields.push(tab.df);
 			}
 
@@ -257,6 +255,9 @@ export const useStore = defineStore("form-builder-store", () => {
 				if ((j == 0 && is_df_updated(section.df, get_df("Section Break"))) || j > 0) {
 					idx++;
 					section.df.idx = idx;
+					if (section.df.__unsaved) {
+						section.df.name = "new-docfield-" + idx;
+					}
 					fields.push(section.df);
 				}
 
@@ -269,12 +270,18 @@ export const useStore = defineStore("form-builder-store", () => {
 					) {
 						idx++;
 						column.df.idx = idx;
+						if (column.df.__unsaved) {
+							column.df.name = "new-docfield-" + idx;
+						}
 						fields.push(column.df);
 					}
 
 					column.fields.forEach((field) => {
 						idx++;
 						field.df.idx = idx;
+						if (field.df.__unsaved) {
+							field.df.name = "new-docfield-" + idx;
+						}
 						fields.push(field.df);
 						section.has_fields = true;
 					});
@@ -321,7 +328,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		fetch,
 		reset_changes,
 		validate_fields,
-		save_changes,
+		update_fields,
 		get_updated_fields,
 		is_df_updated,
 		get_layout,
