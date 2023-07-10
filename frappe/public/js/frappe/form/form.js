@@ -160,12 +160,14 @@ frappe.ui.form.Form = class FrappeForm {
 			action: () => this.undo_manager.undo(),
 			page: this.page,
 			description: __("Undo last action"),
+			condition: () => !this.is_form_builder(),
 		});
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+z",
 			action: () => this.undo_manager.redo(),
 			page: this.page,
 			description: __("Redo last action"),
+			condition: () => !this.is_form_builder(),
 		});
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+y",
@@ -1362,6 +1364,10 @@ frappe.ui.form.Form = class FrappeForm {
 
 	is_new() {
 		return this.doc.__islocal;
+	}
+
+	is_form_builder() {
+		return this.doctype === "DocType" && this.get_active_tab().label == "Form";
 	}
 
 	get_perm(permlevel, access_type) {
