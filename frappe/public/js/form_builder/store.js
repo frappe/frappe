@@ -243,7 +243,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			) {
 				idx++;
 				tab.df.idx = idx;
-				if (tab.df.__unsaved) {
+				if (tab.df.__unsaved && tab.df.__islocal) {
 					tab.df.name = "new-docfield-" + idx;
 				}
 				fields.push(tab.df);
@@ -259,7 +259,7 @@ export const useStore = defineStore("form-builder-store", () => {
 				if ((j == 0 && is_df_updated(section.df, get_df("Section Break"))) || j > 0) {
 					idx++;
 					section.df.idx = idx;
-					if (section.df.__unsaved) {
+					if (section.df.__unsaved && section.df.__islocal) {
 						section.df.name = "new-docfield-" + idx;
 					}
 					fields.push(section.df);
@@ -274,7 +274,7 @@ export const useStore = defineStore("form-builder-store", () => {
 					) {
 						idx++;
 						column.df.idx = idx;
-						if (column.df.__unsaved) {
+						if (column.df.__unsaved && column.df.__islocal) {
 							column.df.name = "new-docfield-" + idx;
 						}
 						fields.push(column.df);
@@ -283,7 +283,7 @@ export const useStore = defineStore("form-builder-store", () => {
 					column.fields.forEach((field) => {
 						idx++;
 						field.df.idx = idx;
-						if (field.df.__unsaved) {
+						if (field.df.__unsaved && field.df.__islocal) {
 							field.df.name = "new-docfield-" + idx;
 						}
 						fields.push(field.df);
