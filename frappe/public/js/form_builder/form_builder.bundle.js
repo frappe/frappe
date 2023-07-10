@@ -28,6 +28,7 @@ class FormBuilder {
 
 	setup_page_actions() {
 		this.preview_btn = this.page.add_button(__("Show Preview"), () => {
+			this.store.frm.layout.tabs.find((tab) => tab.label === "Form").set_active();
 			this.store.preview = !this.store.preview;
 
 			if (this.store.read_only && !this.read_only) {
@@ -36,6 +37,9 @@ class FormBuilder {
 
 			this.store.read_only = this.store.preview;
 			this.read_only = true;
+
+			// toggle preview btn text
+			this.preview_btn.text(this.store.preview ? __("Hide Preview") : __("Show Preview"));
 		});
 	}
 
@@ -74,8 +78,6 @@ class FormBuilder {
 				this.page.clear_indicator();
 			}
 
-			// toggle preview btn text
-			this.preview_btn.text(this.store.preview ? __("Hide Preview") : __("Show Preview"));
 			if (this.store.read_only) {
 				let message = this.store.preview ? __("Preview Mode") : __("Read Only");
 				this.page.set_indicator(message, "orange");
