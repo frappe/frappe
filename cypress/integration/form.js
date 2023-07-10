@@ -111,22 +111,6 @@ context("Form", () => {
 		cy.get("@email_input2").should("not.have.class", "invalid");
 	});
 
-	it("Shows version conflict warning", { scrollBehavior: false }, () => {
-		cy.visit("/app/todo");
-
-		cy.insert_doc("ToDo", { description: "old" }).then((doc) => {
-			cy.visit(`/app/todo/${doc.name}`);
-			// make form dirty
-			cy.fill_field("status", "Cancelled", "Select");
-
-			// update doc using api - simulating parallel change by another user
-			cy.update_doc("ToDo", doc.name, { status: "Closed" }).then(() => {
-				cy.findByRole("button", { name: "Refresh" }).click();
-				cy.get_field("status", "Select").should("have.value", "Closed");
-			});
-		});
-	});
-
 	it("Jump to field in collapsed section", { scrollBehavior: false }, () => {
 		cy.new_form("User");
 

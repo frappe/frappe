@@ -49,6 +49,10 @@ class Report(Document):
 	def on_update(self):
 		self.export_doc()
 
+	def before_export(self, doc):
+		doc.letterhead = None
+		doc.prepared_report = 0
+
 	def on_trash(self):
 		if (
 			self.is_standard == "Yes"
@@ -121,7 +125,7 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 30
+		threshold = 15
 		res = []
 
 		start_time = datetime.datetime.now()
