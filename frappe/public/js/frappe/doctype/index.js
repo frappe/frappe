@@ -134,8 +134,6 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 
 			setTimeout(() => (this.frm.__from_autoname = false), 500);
 		}
-
-		this.frm.set_df_property("fields", "reqd", this.frm.doc.autoname !== "Prompt");
 	}
 
 	setup_fetch_from_fields(doc, doctype, docname) {
