@@ -143,14 +143,25 @@ function render_form_builder_message(frm) {
 }
 
 function render_form_builder(frm) {
-	frappe.require("form_builder.bundle.js").then(() => {
-		frappe.form_builder = new frappe.ui.FormBuilder({
-			wrapper: $(frm.fields_dict["form_builder"].wrapper),
-			frm: frm,
-			doctype: frm.doc.name,
-			customize: false,
+	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) return;
+
+	if (frappe.form_builder) {
+		frappe.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
+		frappe.form_builder.frm = frm;
+		frappe.form_builder.doctype = frm.doc.name;
+		frappe.form_builder.customize = false;
+		frappe.form_builder.init(true);
+		frappe.form_builder.store.fetch();
+	} else {
+		frappe.require("form_builder.bundle.js").then(() => {
+			frappe.form_builder = new frappe.ui.FormBuilder({
+				wrapper: $(frm.fields_dict["form_builder"].wrapper),
+				frm: frm,
+				doctype: frm.doc.name,
+				customize: false,
+			});
 		});
-	});
+	}
 }
 
 extend_cscript(cur_frm.cscript, new frappe.model.DocTypeController({ frm: cur_frm }));
