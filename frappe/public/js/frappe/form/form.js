@@ -1367,7 +1367,10 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	is_form_builder() {
-		return this.doctype === "DocType" && this.get_active_tab().label == "Form";
+		return (
+			in_list(["DocType", "Customize Form"], this.doctype) &&
+			this.get_active_tab().label == "Form"
+		);
 	}
 
 	get_perm(permlevel, access_type) {
