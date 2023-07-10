@@ -26,7 +26,7 @@ class FormBuilder {
 		this.watch_changes();
 	}
 
-	async setup_page_actions() {
+	setup_page_actions() {
 		this.preview_btn = this.page.add_button(__("Show Preview"), () => {
 			this.store.preview = !this.store.preview;
 
@@ -36,10 +36,6 @@ class FormBuilder {
 
 			this.store.read_only = this.store.preview;
 			this.read_only = true;
-		});
-
-		this.reset_changes_btn = this.page.add_button(__("Reset Form Changes"), () => {
-			this.store.reset_changes();
 		});
 	}
 
@@ -73,11 +69,9 @@ class FormBuilder {
 	watch_changes() {
 		watchEffect(() => {
 			if (this.store.dirty) {
-				this.reset_changes_btn.show();
-				this.frm.form_dirty = this.frm.doc.__unsaved;
 				this.frm.dirty();
 			} else {
-				this.reset_changes_btn.hide();
+				this.page.clear_indicator();
 			}
 
 			// toggle preview btn text
