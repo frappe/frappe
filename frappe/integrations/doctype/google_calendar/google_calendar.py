@@ -481,7 +481,7 @@ def update_event_in_google_calendar(doc, method=None):
 		event["description"] = doc.description
 		event["recurrence"] = repeat_on_to_google_calendar_recurrence_rule(doc)
 		event["status"] = (
-			"cancelled" if doc.event_type == "Cancelled" or doc.status == "Closed" else event.get("status")
+			"cancelled" if doc.status == "Cancelled" or doc.status == "Closed" else event.get("status")
 		)
 		event.update(
 			format_date_according_to_google_calendar(
