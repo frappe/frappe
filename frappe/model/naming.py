@@ -64,8 +64,10 @@ class NamingSeries:
 				exc=InvalidNamingSeriesError,
 			)
 
-	def generate_next_name(self, doc: "Document") -> str:
-		self.validate()
+	def generate_next_name(self, doc: "Document", *, ignore_validate=False) -> str:
+		if not ignore_validate:
+			self.validate()
+
 		parts = self.series.split(".")
 		return parse_naming_series(parts, doc=doc)
 
@@ -263,7 +265,7 @@ def set_name_by_naming_series(doc):
 	doc.name = make_autoname(doc.naming_series + ".#####", "", doc)
 
 
-def make_autoname(key="", doctype="", doc=""):
+def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	"""
 	     Creates an autoname from the given key:
 
@@ -285,7 +287,7 @@ def make_autoname(key="", doctype="", doc=""):
 		return frappe.generate_hash(length=10)
 
 	series = NamingSeries(key)
-	return series.generate_next_name(doc)
+	return series.generate_next_name(doc, ignore_validate=ignore_validate)
 
 
 def parse_naming_series(
