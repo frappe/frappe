@@ -1,7 +1,7 @@
 frappe.ready(() => {
 	setup_socket_io();
-
 	add_color_to_avatars();
+	//make_comment_editor();
 
 	$(".search-field").keyup((e) => {
 		search_topic(e);
@@ -123,6 +123,7 @@ const update_message = (data) => {
 	reply_card.find(".reply-edit-card").addClass("hide");
 	reply_card.find(".reply-text").html(data.reply);
 	reply_card.find(".reply-actions").addClass("hide");
+	reply_card.find(".dropdown").removeClass("hide");
 };
 
 const post_message_cleanup = () => {
@@ -274,6 +275,7 @@ const perform_action = (e) => {
 		reply_card.find(".reply-edit-card").removeClass("hide");
 		reply_card.find(".reply-body").addClass("hide");
 		reply_card.find(".reply-actions").removeClass("hide");
+		reply_card.find(".dropdown").addClass("hide");
 	} else if (action === "delete") {
 		frappe.call({
 			method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
@@ -307,4 +309,34 @@ const hide_actions_on_conditions = (template, owner) => {
 
 const delete_message = (data) => {
 	$(`[data-reply=${data.reply_name}]`).addClass("hide");
+};
+
+const make_comment_editor = (e) => {
+	this.comment_editor = new frappe.ui.FieldGroup({
+		fields: [
+			{
+				fieldname: "comment_editor",
+				fieldtype: "Text Editor",
+				enable_mentions: true,
+				theme: "bubble",
+				placeholder: __("Type your reply here..."),
+				get_toolbar_options() {
+				return [
+					["bold", "italic", "underline", "strike"],
+					["blockquote", "code-block"],
+					[{ direction: "rtl" }],
+					["link", "image"],
+					[{ list: "ordered" }, { list: "bullet" }],
+					[{ align: [] }],
+					["clean"],
+				];
+			}
+			},
+		],
+		body: $(".discussions-comment").get(0),
+	});
+	this.comment_editor.make();
+	$(".discussions-comment .form-section:last").removeClass("empty-section");
+	$(".discussions-comment .frappe-control").removeClass("hide-control");
+	$(".discussions-comment .form-column").addClass("p-0");
 };

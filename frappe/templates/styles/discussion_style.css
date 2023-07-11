@@ -22,7 +22,6 @@
 }
 
 .discussions-header {
-	margin: 2.5rem 0 1.25rem;
 	display: flex;
 	align-items: center;
 }
@@ -68,7 +67,12 @@
 }
 
 .reply-card {
-	margin-bottom: 1.5rem;
+	padding: 1.25rem 0;
+	border-bottom: 1px solid var(--gray-200);
+}
+
+.reply-card:last-of-type {
+	border-bottom: none;
 }
 
 .reply-card .dropdown {
@@ -88,19 +92,10 @@
 
 .discussion-on-page {
 	flex-direction: column;
-	padding: 1.5rem;
 }
 
 .submit-discussion {
 	cursor: pointer;
-}
-
-.reply-body {
-	background: var(--bg-color);
-	padding: 1rem;
-	border-radius: var(--border-radius);
-	font-size: var(--text-md);
-	color: var(--text-color);
 }
 
 .reply-actions {
@@ -265,6 +260,6 @@
 	margin-bottom: 0;
 }
 
-.reply-body .dropdown-menu {
+.reply-header .dropdown-menu {
 	min-width: 7rem;
 }
