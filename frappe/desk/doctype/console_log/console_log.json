@@ -6,8 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "script",
-  "output"
+  "script"
  ],
  "fields": [
   {
@@ -16,20 +15,15 @@
    "in_list_view": 1,
    "label": "Script",
    "read_only": 1
-  },
-  {
-   "fieldname": "output",
-   "fieldtype": "Code",
-   "label": "Output",
-   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-18 20:07:57.587344",
+ "modified": "2023-07-05 22:16:02.823955",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -48,5 +42,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
