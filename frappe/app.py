@@ -22,7 +22,7 @@ from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
-from frappe.utils.error import make_error_snapshot
+from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
 local_manager = LocalManager(frappe.local)
@@ -33,12 +33,17 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
 if frappe._tune_gc:
+	import bleach
+	import pydantic
+
 	import frappe.boot
 	import frappe.client
+	import frappe.core.doctype.file.file
 	import frappe.core.doctype.user.user
 	import frappe.database.mariadb.database  # Load database related utils
 	import frappe.database.query
 	import frappe.desk.desktop  # workspace
+	import frappe.desk.form.save
 	import frappe.model.db_query
 	import frappe.query_builder
 	import frappe.utils.background_jobs  # Enqueue is very common
@@ -346,7 +351,7 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
-		make_error_snapshot(e)
+		log_error_snapshot(e)
 
 	if return_as_message:
 		response = get_response("message", http_status_code=http_status_code)

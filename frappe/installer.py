@@ -617,7 +617,6 @@ def make_site_dirs():
 		os.path.join("public", "files"),
 		os.path.join("private", "backups"),
 		os.path.join("private", "files"),
-		"error-snapshots",
 		"locks",
 		"logs",
 	]:

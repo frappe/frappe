@@ -99,6 +99,23 @@ class BaseTimeline {
 		// timeline_badge, icon, icon_size,
 		// hide_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
+
+		if (item.name == "load-more") {
+			timeline_item.append(
+				`<div class="timeline-load-more">
+					<button class="btn btn-default btn-sm btn-load-more">
+						<span>${item.content}</span>
+					</button>
+				</div>`
+			);
+			timeline_item.find(".btn-load-more").on("click", async () => {
+				let more_items = await this.get_more_communication_timeline_contents();
+				timeline_item.remove();
+				this.add_timeline_items_based_on_creation(more_items);
+			});
+			return timeline_item;
+		}
+
 		timeline_item.attr({
 			"data-doctype": item.doctype,
 			"data-name": item.name,
@@ -127,22 +144,6 @@ class BaseTimeline {
 		if (item.id) {
 			timeline_content.attr("id", item.id);
 		}
-
-		if (item.append_load_more) {
-			timeline_item.append(
-				`<div class="timeline-load-more">
-					<button class="btn btn-default btn-sm btn-load-more"><span>${__(
-						"Load More Communications"
-					)}</span></button>
-				</div>`
-			);
-		}
-
-		timeline_item.find(".btn-load-more").on("click", async () => {
-			let more_items = await this.get_more_communication_timeline_contents();
-			timeline_item.find(".timeline-load-more").remove();
-			this.add_timeline_items_based_on_creation(more_items);
-		});
 
 		return timeline_item;
 	}

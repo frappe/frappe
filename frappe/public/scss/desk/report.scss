@@ -100,11 +100,11 @@
 
 .group-by-button {
 	margin: 5px;
-	max-width: 125px;
 }
 
 .group-by-button.btn-primary-light {
 	color: var(--text-on-blue);
+	outline: 1px solid var(--bg-dark-blue);
 }
 
 .group-by-icon.active {
