@@ -65,7 +65,6 @@ frappe.ui.form.on("Customize Form", {
 							frm.refresh();
 							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
-							render_form_builder(frm);
 						}
 					}
 					localStorage["customize_doctype"] = frm.doc.doc_type;
@@ -148,6 +147,8 @@ frappe.ui.form.on("Customize Form", {
 					["queue_in_background"],
 					frappe.get_meta(frm.doc.doc_type).is_submittable || 0
 				);
+
+				render_form_builder(frm);
 			});
 		}
 
