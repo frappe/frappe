@@ -334,37 +334,6 @@ frappe.ui.form.on("DocType State", {
 	},
 });
 
-frappe.customize_form.validate_fieldnames = async function (frm) {
-	for (let i = 0; i < frm.doc.fields.length; i++) {
-		let field = frm.doc.fields[i];
-
-		let fieldname = field.label && frappe.model.scrub(field.label).toLowerCase();
-		if (
-			field.label &&
-			!field.fieldname &&
-			in_list(frappe.model.restricted_fields, fieldname)
-		) {
-			let message = __(
-				"For field <b>{0}</b> in row <b>{1}</b>, fieldname <b>{2}</b> is restricted it will be renamed as <b>{2}1</b>. Do you want to continue?",
-				[field.label, field.idx, fieldname]
-			);
-			await pause_to_confirm(message);
-		}
-	}
-
-	function pause_to_confirm(message) {
-		return new Promise((resolve) => {
-			frappe.confirm(
-				message,
-				() => resolve(),
-				() => {
-					frm.page.btn_primary.prop("disabled", false);
-				}
-			);
-		});
-	}
-};
-
 frappe.customize_form.save_customization = function (frm) {
 	if (frm.doc.doc_type) {
 		return frm.call({
@@ -384,8 +353,7 @@ frappe.customize_form.save_customization = function (frm) {
 };
 
 frappe.customize_form.set_primary_action = function (frm) {
-	frm.page.set_primary_action(__("Update"), async () => {
-		await this.validate_fieldnames(frm);
+	frm.page.set_primary_action(__("Update"), () => {
 		this.save_customization(frm);
 	});
 };
