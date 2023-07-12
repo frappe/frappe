@@ -206,6 +206,9 @@ export const useStore = defineStore("form-builder-store", () => {
 	function get_updated_fields() {
 		let fields = [];
 		let idx = 0;
+		let new_field_name = is_customize_form.value
+			? "new-customize-form-field-"
+			: "new-docfield-";
 
 		let layout_fields = JSON.parse(JSON.stringify(form.value.layout.tabs));
 
@@ -217,7 +220,7 @@ export const useStore = defineStore("form-builder-store", () => {
 				idx++;
 				tab.df.idx = idx;
 				if (tab.df.__unsaved && tab.df.__islocal) {
-					tab.df.name = "new-docfield-" + idx;
+					tab.df.name = new_field_name + idx;
 				}
 				fields.push(tab.df);
 			}
@@ -233,7 +236,7 @@ export const useStore = defineStore("form-builder-store", () => {
 					idx++;
 					section.df.idx = idx;
 					if (section.df.__unsaved && section.df.__islocal) {
-						section.df.name = "new-docfield-" + idx;
+						section.df.name = new_field_name + idx;
 					}
 					fields.push(section.df);
 				}
@@ -248,7 +251,7 @@ export const useStore = defineStore("form-builder-store", () => {
 						idx++;
 						column.df.idx = idx;
 						if (column.df.__unsaved && column.df.__islocal) {
-							column.df.name = "new-docfield-" + idx;
+							column.df.name = new_field_name + idx;
 						}
 						fields.push(column.df);
 					}
@@ -257,7 +260,7 @@ export const useStore = defineStore("form-builder-store", () => {
 						idx++;
 						field.df.idx = idx;
 						if (field.df.__unsaved && field.df.__islocal) {
-							field.df.name = "new-docfield-" + idx;
+							field.df.name = new_field_name + idx;
 						}
 						fields.push(field.df);
 						section.has_fields = true;
