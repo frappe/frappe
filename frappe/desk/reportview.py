@@ -406,7 +406,7 @@ def export_query():
 
 		xlsx_file = make_xlsx(data, doctype)
 
-		frappe.response["filename"] = title + ".xlsx"
+		frappe.response["filename"] = _(title) + ".xlsx"
 		frappe.response["filecontent"] = xlsx_file.getvalue()
 		frappe.response["type"] = "binary"
 
