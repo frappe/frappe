@@ -1221,7 +1221,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			return Object.assign(column, {
 				id: column.fieldname,
-				name: __(column.label, null, `Column of report '${this.report_name}'`), // context has to match context in   get_messages_from_report in translate.py
+				// The column label should have already been translated in the
+				// backend. Translating it again would cause unexpected behaviour.
+				name: column.label,
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
