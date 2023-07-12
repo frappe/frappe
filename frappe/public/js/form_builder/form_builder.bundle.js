@@ -73,7 +73,7 @@ class FormBuilder {
 
 	watch_changes() {
 		watchEffect(() => {
-			if (this.store.dirty) {
+			if (this.store.dirty || this.frm.is_dirty()) {
 				this.frm.dirty();
 			} else {
 				this.page.clear_indicator();
