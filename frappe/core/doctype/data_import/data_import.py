@@ -7,10 +7,13 @@ import frappe
 from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.importer import Importer
+from frappe.model import core_doctypes_list
 from frappe.model.document import Document
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
 from frappe.utils.csvutils import validate_google_sheets_url
+
+BLOCKED_DOCTYPES = set(core_doctypes_list) - {"User", "Role"}
 
 
 class DataImport(Document):
@@ -24,9 +27,14 @@ class DataImport(Document):
 			self.template_options = ""
 			self.template_warnings = ""
 
+		self.validate_doctype()
 		self.validate_import_file()
 		self.validate_google_sheets_url()
 		self.set_payload_count()
+
+	def validate_doctype(self):
+		if self.reference_doctype in BLOCKED_DOCTYPES:
+			frappe.throw(_("Importing {0} is not allowed.").format(self.reference_doctype))
 
 	def validate_import_file(self):
 		if self.import_file:
