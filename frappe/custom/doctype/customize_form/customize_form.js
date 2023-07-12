@@ -352,8 +352,21 @@ frappe.customize_form.save_customization = function (frm) {
 	}
 };
 
+frappe.customize_form.update_fields_from_form_builder = function (frm) {
+	let form_builder = frappe.form_builder;
+	if (form_builder?.store) {
+		let fields = form_builder.store.update_fields();
+
+		if (!fields?.length && frm.is_dirty()) {
+			frappe.throw(__("Error occurred while saving the form."));
+		}
+		frm.refresh_fields();
+	}
+};
+
 frappe.customize_form.set_primary_action = function (frm) {
 	frm.page.set_primary_action(__("Update"), () => {
+		this.update_fields_from_form_builder(frm);
 		this.save_customization(frm);
 	});
 };
