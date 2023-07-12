@@ -192,17 +192,10 @@ export const useStore = defineStore("form-builder-store", () => {
 		frappe.dom.freeze(__("Saving..."));
 
 		try {
-			if (is_customize_form.value) {
-				let _doc = frappe.get_doc("Customize Form");
-				_doc.doc_type = doctype.value;
-				_doc.fields = get_updated_fields();
-				validate_fields(_doc.fields, _doc.istable);
-			} else {
-				let fields = get_updated_fields();
-				validate_fields(fields, doc.value.istable);
-				doc.value.fields = fields;
-				return fields;
-			}
+			let fields = get_updated_fields();
+			validate_fields(fields, doc.value.istable);
+			doc.value.fields = fields;
+			return fields;
 		} catch (e) {
 			console.error(e);
 		} finally {
