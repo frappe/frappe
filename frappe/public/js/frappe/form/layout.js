@@ -365,7 +365,10 @@ frappe.ui.form.Layout = class Layout {
 			const section = $(this).removeClass("empty-section visible-section");
 			if (section.find(".frappe-control:not(.hide-control)").length) {
 				section.addClass("visible-section");
-			} else {
+			} else if (
+				section.parent().hasClass("tab-pane") ||
+				section.parent().hasClass("form-page")
+			) {
 				// nothing visible, hide the section
 				section.addClass("empty-section");
 			}
