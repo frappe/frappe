@@ -181,11 +181,6 @@
 							color: transparent;
 							position: relative;
 						}
-
-						@include broken-img(
-							$height: 125px,
-							$top: -4px,
-						)
 					}
 
 					.kanban-card-body {

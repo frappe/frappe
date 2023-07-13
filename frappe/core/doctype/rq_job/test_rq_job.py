@@ -108,12 +108,26 @@ class TestRQJob(FrappeTestCase):
 		self.assertIn("quitting", cstr(stderr))
 
 	@timeout(20)
-	def test_job_id_dedup(self):
+	def test_job_id_manual_dedup(self):
 		job_id = "test_dedup"
 		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
 		self.assertTrue(is_job_enqueued(job_id))
 		self.check_status(job, "finished")
 		self.assertFalse(is_job_enqueued(job_id))
+
+	@timeout(20)
+	def test_auto_job_dedup(self):
+		job_id = "test_dedup"
+		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
+		job2 = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id, deduplicate=True)
+		self.assertIsNone(job2)
+		self.check_status(job1, "finished")  # wait
+
+		# Failed jobs last longer, subsequent job should still pass with same ID.
+		job3 = frappe.enqueue(self.BG_JOB, fail=True, job_id=job_id, deduplicate=True)
+		self.check_status(job3, "failed")
+		job4 = frappe.enqueue(self.BG_JOB, sleep=1, job_id=job_id, deduplicate=True)
+		self.check_status(job4, "finished")
 
 	@timeout(20)
 	def test_enqueue_after_commit(self):

@@ -294,10 +294,11 @@ def update_existing_file_docs(doc: "File") -> None:
 	).run()
 
 
-def attach_files_to_document(doc: "File", event) -> None:
+def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
-	Goes through every Attach and Attach Image field and attaches
-	the file url to the document if it is not already attached.
+	Goes through every file linked with the Attach and Attach Image field and attaches
+	the file to the document if not already attached. If no file is found, a new file
+	is created.
 	"""
 
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
@@ -307,7 +308,7 @@ def attach_files_to_document(doc: "File", event) -> None:
 		# we dont want the update to fail if file cannot be attached for some reason
 		value = doc.get(df.fieldname)
 		if not (value or "").startswith(("/files", "/private/files")):
-			return
+			continue
 
 		if frappe.db.exists(
 			"File",
@@ -318,7 +319,29 @@ def attach_files_to_document(doc: "File", event) -> None:
 				"attached_to_field": df.fieldname,
 			},
 		):
-			return
+			continue
+
+		unattached_file = frappe.db.exists(
+			"File",
+			{
+				"file_url": value,
+				"attached_to_name": None,
+				"attached_to_doctype": None,
+				"attached_to_field": None,
+			},
+		)
+
+		if unattached_file:
+			frappe.db.set_value(
+				"File",
+				unattached_file,
+				field={
+					"attached_to_name": doc.name,
+					"attached_to_doctype": doc.doctype,
+					"attached_to_field": df.fieldname,
+				},
+			)
+			continue
 
 		file: "File" = frappe.get_doc(
 			doctype="File",

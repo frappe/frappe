@@ -120,13 +120,13 @@ def clear_defaults_cache(user=None):
 def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 
-	_clear_doctype_cache_form_redis()
+	_clear_doctype_cache_from_redis(doctype)
 	if hasattr(frappe.db, "after_commit"):
-		frappe.db.after_commit.add(_clear_doctype_cache_form_redis)
-		frappe.db.after_rollback.add(_clear_doctype_cache_form_redis)
+		frappe.db.after_commit.add(lambda: _clear_doctype_cache_from_redis(doctype))
+		frappe.db.after_rollback.add(lambda: _clear_doctype_cache_from_redis(doctype))
 
 
-def _clear_doctype_cache_form_redis(doctype: str | None = None):
+def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	from frappe.desk.notifications import delete_notification_count_for
 
 	for key in ("is_table", "doctype_modules"):

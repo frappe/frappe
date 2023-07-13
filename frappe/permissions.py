@@ -93,10 +93,10 @@ def has_permission(
 			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype).get(ptype)
 		if not perm:
-			push_perm_check_log(
-				_("User {0} does not have access to this document").format(frappe.bold(user))
-				+ f": {_(doc.doctype)} - {doc.name}"
-			)
+			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
+			if frappe.has_permission(doc.doctype):
+				msg += f": {_(doc.doctype)} - {doc.name}"
+			push_perm_check_log(msg)
 	else:
 		if ptype == "submit" and not cint(meta.is_submittable):
 			push_perm_check_log(_("Document Type is not submittable"))
@@ -118,17 +118,24 @@ def has_permission(
 
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "submit", "email", "print"):
-			shared = frappe.share.get_shared(
-				doctype, user, ["read" if ptype in ("email", "print") else ptype]
-			)
+
+			rights = ["read" if ptype in ("email", "print") else ptype]
 
 			if doc:
 				doc_name = get_doc_name(doc)
-				if doc_name in shared:
+				shared = frappe.share.get_shared(
+					doctype,
+					user,
+					rights=rights,
+					filters=[["share_name", "=", doc_name]],
+					limit=1,
+				)
+
+				if shared:
 					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
-			elif shared:
+			elif frappe.share.get_shared(doctype, user, rights=rights, limit=1):
 				# if atleast one shared doc of that type, then return True
 				# this is used in db_query to check if permission on DocType
 				return True

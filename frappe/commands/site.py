@@ -700,9 +700,12 @@ def _use(site, sites_path="."):
 
 
 def use(site, sites_path="."):
+	from frappe.installer import update_site_config
+
 	if os.path.exists(os.path.join(sites_path, site)):
-		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
-			sitefile.write(site)
+		sites_path = os.getcwd()
+		conifg = os.path.join(sites_path, "common_site_config.json")
+		update_site_config("default_site", site, validate=False, site_config_path=conifg)
 		print(f"Current Site set to {site}")
 	else:
 		print(f"Site {site} does not exist")

@@ -29,11 +29,11 @@ test_content1 = "Hello"
 test_content2 = "Hello World"
 
 
-def make_test_doc():
+def make_test_doc(ignore_permissions=False):
 	d = frappe.new_doc("ToDo")
 	d.description = "Test"
 	d.assigned_by = frappe.session.user
-	d.save()
+	d.save(ignore_permissions)
 	return d.doctype, d.name
 
 
@@ -785,3 +785,81 @@ class TestFileOptimization(FrappeTestCase):
 			file_content = f.read()
 
 		self.assertEqual(get_extension("", None, file_content), "jpg")
+
+
+class TestGuestFileAndAttachments(FrappeTestCase):
+	def setUp(self) -> None:
+		frappe.db.delete("File", {"is_folder": 0})
+		frappe.get_doc(
+			doctype="DocType",
+			name="Test For Attachment",
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	def tearDown(self) -> None:
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		frappe.delete_doc("DocType", "Test For Attachment")
+
+	def test_attach_unattached_guest_file(self):
+		"""Ensure that unattached files are attached on doc update."""
+		f = frappe.new_doc(
+			"File",
+			file_name="test_private_guest_attachment.txt",
+			content="Guest Home",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+		d = frappe.new_doc("Test For Attachment")
+		d.title = "Test for attachment on update"
+		d.attachment = f.file_url
+		d.assigned_by = frappe.session.user
+		d.save()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_name": "test_private_guest_attachment.txt",
+					"file_url": f.file_url,
+					"attached_to_doctype": "Test For Attachment",
+					"attached_to_name": d.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_list_private_guest_single_file(self):
+		"""Ensure that guests are not able to read private standalone guest files."""
+		frappe.set_user("Guest")
+
+		file = frappe.new_doc(
+			"File",
+			file_name="test_private_guest_single_txt",
+			content="Private single File",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(file.is_downloadable())
+
+	def test_list_private_guest_attachment(self):
+		"""Ensure that guests are not able to read private guest attachments."""
+		frappe.set_user("Guest")
+
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc(ignore_permissions=True)
+
+		file = frappe.new_doc(
+			"File",
+			file_name="test_private_guest_attachment.txt",
+			attached_to_doctype=self.attached_to_doctype,
+			attached_to_name=self.attached_to_docname,
+			content="Private Attachment",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(file.is_downloadable())
