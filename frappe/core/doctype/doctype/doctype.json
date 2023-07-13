@@ -647,8 +647,7 @@
    "collapsible": 1,
    "fieldname": "fields_section",
    "fieldtype": "Section Break",
-   "label": "Fields",
-   "hidden": 1
+   "label": "Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -731,7 +730,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-06-14 20:44:15.361716",
+ "modified": "2023-07-12 13:56:26.185637",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
