@@ -10,7 +10,6 @@ frappe.ui.form.on("DocType", {
 			if (!fields?.length && frm.is_dirty()) {
 				frappe.throw(__("Error occurred while saving the form."));
 			}
-			frm.refresh_fields();
 		}
 	},
 	after_save: function (frm) {
