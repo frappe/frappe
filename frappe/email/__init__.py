@@ -35,7 +35,7 @@ def get_contact_list(txt, page_length=20):
 		{"txt": "%" + txt + "%", "page_length": page_length},
 		as_dict=True,
 	)
-	out = filter(None, out)
+	out = list(filter(None, out))
 
 	update_contact_cache(out)
 
