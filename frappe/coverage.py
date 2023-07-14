@@ -42,6 +42,9 @@ FRAPPE_EXCLUSIONS = [
 	"*frappe/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
+	# ignore integrations
+	"*/google_calendar/*",
+	"*/dropbox_settings/*",
 ] + TESTED_VIA_CLI
 
 
