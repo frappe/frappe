@@ -441,12 +441,13 @@ export default class Grid {
 			if (d.name === undefined) {
 				d.name = "row " + d.idx;
 			}
+			let grid_row;
 			if (this.grid_rows[ri] && !append_row) {
-				var grid_row = this.grid_rows[ri];
+				grid_row = this.grid_rows[ri];
 				grid_row.doc = d;
 				grid_row.refresh();
 			} else {
-				var grid_row = new GridRow({
+				grid_row = new GridRow({
 					parent: $rows,
 					parent_df: this.df,
 					docfields: this.docfields,
