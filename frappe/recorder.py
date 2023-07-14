@@ -7,7 +7,7 @@ import json
 import re
 import time
 from collections import Counter
-from typing import Callable
+from collections.abc import Callable
 
 import sqlparse
 

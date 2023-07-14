@@ -11,6 +11,7 @@ import sys
 import traceback
 from collections import deque
 from collections.abc import (
+	Callable,
 	Container,
 	Generator,
 	Iterable,
@@ -20,7 +21,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
