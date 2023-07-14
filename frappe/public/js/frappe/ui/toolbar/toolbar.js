@@ -82,7 +82,7 @@ frappe.ui.toolbar.Toolbar = class {
 			var breadcrumbs = route.split("/");
 
 			var links = [];
-			for (var i = 0; i < breadcrumbs.length; i++) {
+			for (let i = 0; i < breadcrumbs.length; i++) {
 				var r = route.split("/", i + 1);
 				var key = r.join("/");
 				var help_links = frappe.help.help_links[key] || [];
@@ -95,7 +95,7 @@ frappe.ui.toolbar.Toolbar = class {
 				$help_links.next().show();
 			}
 
-			for (var i = 0; i < links.length; i++) {
+			for (let i = 0; i < links.length; i++) {
 				var link = links[i];
 				var url = link.url;
 				$("<a>", {

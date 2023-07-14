@@ -304,7 +304,7 @@ frappe.request.call = function (opts) {
 					data = JSON.parse(data);
 				}
 				if (data.responseText) {
-					var xhr = data;
+					var xhr = data; // eslint-disable-line
 					data = JSON.parse(data.responseText);
 				}
 			} catch (e) {

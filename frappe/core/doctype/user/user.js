@@ -271,7 +271,7 @@ frappe.ui.form.on("User", {
 
 		if (frappe.route_flags.unsaved === 1) {
 			delete frappe.route_flags.unsaved;
-			for (var i = 0; i < frm.doc.user_emails.length; i++) {
+			for (let i = 0; i < frm.doc.user_emails.length; i++) {
 				frm.doc.user_emails[i].idx = frm.doc.user_emails[i].idx + 1;
 			}
 			frm.dirty();
@@ -308,7 +308,7 @@ frappe.ui.form.on("User", {
 						enable_incoming: 1,
 					};
 					frappe.model.with_doctype("Email Account", function (doc) {
-						var doc = frappe.model.get_new_doc("Email Account");
+						doc = frappe.model.get_new_doc("Email Account");
 						frappe.route_flags.linked_user = frm.doc.name;
 						frappe.route_flags.delete_user_from_locals = true;
 						frappe.set_route("Form", "Email Account", doc.name);
