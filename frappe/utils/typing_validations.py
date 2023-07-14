@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
 from types import EllipsisType
-from typing import Callable, ForwardRef, TypeVar, Union
+from typing import ForwardRef, TypeVar, Union
 
 from frappe.exceptions import FrappeTypeError
 

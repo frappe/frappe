@@ -1,6 +1,6 @@
 const request = require("superagent");
 const { get_url } = require("../utils");
-const log = console.log; // eslint-disable-line
+const log = console.log;
 
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";

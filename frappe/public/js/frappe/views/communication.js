@@ -609,7 +609,7 @@ frappe.views.CommunicationComposer = class {
 			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch((e) => {
 				if (e) {
 					// silently fail
-					console.log(e); // eslint-disable-line
+					console.log(e);
 					console.warn(
 						"[Communication] IndexedDB is full. Cannot save message as draft"
 					); // eslint-disable-line
@@ -628,10 +628,10 @@ frappe.views.CommunicationComposer = class {
 			localforage.removeItem(this.frm.doctype + this.frm.docname).catch((e) => {
 				if (e) {
 					// silently fail
-					console.log(e); // eslint-disable-line
+					console.log(e);
 					console.warn(
 						"[Communication] IndexedDB is full. Cannot save message as draft"
-					); // eslint-disable-line
+					);
 				}
 			});
 		}
@@ -701,7 +701,7 @@ frappe.views.CommunicationComposer = class {
 						try {
 							me.success(r);
 						} catch (e) {
-							console.log(e); // eslint-disable-line
+							console.log(e);
 						}
 					}
 				} else {
@@ -714,7 +714,7 @@ frappe.views.CommunicationComposer = class {
 						try {
 							me.error(r);
 						} catch (e) {
-							console.log(e); // eslint-disable-line
+							console.log(e);
 						}
 					}
 				}

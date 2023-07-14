@@ -111,14 +111,15 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 frappe.msgprint = function (msg, title, is_minimizable) {
 	if (!msg) return;
 
+	let data;
 	if ($.isPlainObject(msg)) {
-		var data = msg;
+		data = msg;
 	} else {
 		// passed as JSON
 		if (typeof msg === "string" && msg.substr(0, 1) === "{") {
-			var data = JSON.parse(msg);
+			data = JSON.parse(msg);
 		} else {
-			var data = { message: msg, title: title };
+			data = { message: msg, title: title };
 		}
 	}
 

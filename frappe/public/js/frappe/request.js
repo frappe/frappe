@@ -294,8 +294,8 @@ frappe.request.call = function (opts) {
 					status_code_handler(data, xhr);
 				}
 			} catch (e) {
-				console.log("Unable to handle success response", data); // eslint-disable-line
-				console.error(e); // eslint-disable-line
+				console.log("Unable to handle success response", data);
+				console.error(e);
 			}
 		})
 		.always(function (data, textStatus, xhr) {
@@ -304,7 +304,7 @@ frappe.request.call = function (opts) {
 					data = JSON.parse(data);
 				}
 				if (data.responseText) {
-					var xhr = data;
+					var xhr = data; // eslint-disable-line
 					data = JSON.parse(data.responseText);
 				}
 			} catch (e) {
@@ -348,8 +348,8 @@ frappe.request.call = function (opts) {
 				// if not handled by error handler!
 				opts.error_callback && opts.error_callback(xhr);
 			} catch (e) {
-				console.log("Unable to handle failed response"); // eslint-disable-line
-				console.error(e); // eslint-disable-line
+				console.log("Unable to handle failed response");
+				console.error(e);
 			}
 		});
 };
@@ -366,7 +366,6 @@ frappe.request.is_fresh = function (args, threshold) {
 			new Date() - past_request.timestamp < threshold &&
 			frappe.utils.deep_equal(args, past_request.args)
 		) {
-			// eslint-disable-next-line no-console
 			console.log("throttled");
 			return true;
 		}

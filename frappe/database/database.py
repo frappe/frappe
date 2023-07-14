@@ -8,9 +8,10 @@ import random
 import re
 import string
 import traceback
+from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue

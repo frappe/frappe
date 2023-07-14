@@ -240,7 +240,6 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_page(df) {
-		// eslint-disable-line no-unused-vars
 		let me = this;
 		let head = $(`
 			<div class="form-clickable-section text-center">
