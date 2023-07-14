@@ -27,6 +27,7 @@ from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
 
 
@@ -69,6 +70,28 @@ class TestPerformance(FrappeTestCase):
 		get_controller("User")
 		with self.assertQueryCount(0):
 			get_controller("User")
+
+	def test_get_value_limits(self):
+		# check both dict and list style filters
+		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
+
+		# Warm up code, becase get_list uses meta.
+		frappe.db.get_values("User", filters=filters[1], limit=1)
+		for filter in filters:
+			with self.assertRowsRead(1):
+				self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))
+			with self.assertRowsRead(2):
+				self.assertEqual(2, len(frappe.db.get_values("User", filters=filter, limit=2)))
+
+			self.assertEqual(
+				len(frappe.db.get_values("User", filters=filter)), frappe.db.count("User", filter)
+			)
+
+			with self.assertRowsRead(1):
+				frappe.db.get_value("User", filters=filter)
+
+			with self.assertRowsRead(1):
+				frappe.db.exists("User", filter)
 
 	def test_db_value_cache(self):
 		"""Link validation if repeated should just use db.value_cache, hence no extra queries"""

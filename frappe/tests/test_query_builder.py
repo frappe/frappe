@@ -13,6 +13,8 @@ from frappe.query_builder.functions import (
 	Date,
 	GroupConcat,
 	Match,
+	Round,
+	Truncate,
 	UnixTimestamp,
 )
 from frappe.query_builder.utils import db_type_is
@@ -153,6 +155,20 @@ class TestCustomFunctionsMariaDB(FrappeTestCase):
 			"SELECT `tabred`.`other`,CONCAT(`tabNote`.`name`,'') FROM `tabred`,`tabNote`",
 		)
 
+	def test_round(self):
+		note = frappe.qb.DocType("Note")
+
+		query = frappe.qb.from_(note).select(Round(note.price))
+		self.assertEqual("select round(`price`,0) from `tabnote`", str(query).lower())
+
+		query = frappe.qb.from_(note).select(Round(note.price, 3))
+		self.assertEqual("select round(`price`,3) from `tabnote`", str(query).lower())
+
+	def test_truncate(self):
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
+		self.assertEqual("select truncate(`price`,3) from `tabnote`", str(query).lower())
+
 
 @run_only_if(db_type_is.POSTGRES)
 class TestCustomFunctionsPostgres(FrappeTestCase):
@@ -282,6 +298,20 @@ class TestCustomFunctionsPostgres(FrappeTestCase):
 			frappe.qb.from_("red").from_(note).select("other", Cast_(note.name, "varchar")).get_sql(),
 			'SELECT "tabred"."other",CAST("tabNote"."name" AS VARCHAR) FROM "tabred","tabNote"',
 		)
+
+	def test_round(self):
+		note = frappe.qb.DocType("Note")
+
+		query = frappe.qb.from_(note).select(Round(note.price))
+		self.assertEqual('select round("price",0) from "tabnote"', str(query).lower())
+
+		query = frappe.qb.from_(note).select(Round(note.price, 3))
+		self.assertEqual('select round("price",3) from "tabnote"', str(query).lower())
+
+	def test_truncate(self):
+		note = frappe.qb.DocType("Note")
+		query = frappe.qb.from_(note).select(Truncate(note.price, 3))
+		self.assertEqual('select truncate("price",3) from "tabnote"', str(query).lower())
 
 
 class TestBuilderBase:

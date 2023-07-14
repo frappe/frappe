@@ -5,28 +5,15 @@ from frappe import _
 
 
 def execute():
-	frappe.reload_doc("desk", "doctype", "workspace", force=True)
-
-	child_tables = frappe.get_all(
-		"DocField",
-		pluck="options",
-		filters={"fieldtype": ["in", frappe.model.table_fields], "parent": "Workspace"},
-	)
-
-	for child_table in child_tables:
-		if child_table != "Has Role":
-			frappe.reload_doc("desk", "doctype", child_table, force=True)
-
-	for seq, workspace in enumerate(frappe.get_all("Workspace", order_by="name asc")):
+	for seq, workspace in enumerate(frappe.get_all("Workspace")):
 		doc = frappe.get_doc("Workspace", workspace.name)
 		content = create_content(doc)
 		update_workspace(doc, seq, content)
-	frappe.db.commit()
 
 
 def create_content(doc):
 	content = []
-	if doc.onboarding:
+	if doc.get("onboarding"):
 		content.append({"type": "onboarding", "data": {"onboarding_name": doc.onboarding, "col": 12}})
 	if doc.charts:
 		invalid_links = []
@@ -44,7 +31,7 @@ def create_content(doc):
 		content.append(
 			{
 				"type": "header",
-				"data": {"text": doc.shortcuts_label or _("Your Shortcuts"), "level": 4, "col": 12},
+				"data": {"text": doc.get("shortcuts_label") or _("Your Shortcuts"), "level": 4, "col": 12},
 			}
 		)
 		for s in doc.shortcuts:
@@ -60,7 +47,7 @@ def create_content(doc):
 		content.append(
 			{
 				"type": "header",
-				"data": {"text": doc.cards_label or _("Reports & Masters"), "level": 4, "col": 12},
+				"data": {"text": doc.get("cards_label") or _("Reports & Masters"), "level": 4, "col": 12},
 			}
 		)
 		for l in doc.links:
@@ -74,11 +61,16 @@ def create_content(doc):
 
 
 def update_workspace(doc, seq, content):
-	if not doc.title and not doc.content and not doc.is_standard and not doc.public:
+	if (
+		not doc.title
+		and (not doc.content or doc.content == "[]")
+		and not doc.get("is_standard")
+		and not doc.public
+	):
 		doc.sequence_id = seq + 1
 		doc.content = json.dumps(content)
 		doc.public = 0 if doc.for_user else 1
-		doc.title = doc.extends or doc.label
+		doc.title = doc.get("extends") or doc.get("label")
 		doc.extends = ""
 		doc.category = ""
 		doc.onboarding = ""

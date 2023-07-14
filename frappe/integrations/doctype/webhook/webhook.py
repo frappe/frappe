@@ -26,6 +26,7 @@ class Webhook(Document):
 		self.validate_request_url()
 		self.validate_request_body()
 		self.validate_repeating_fields()
+		self.validate_secret()
 		self.preview_document = None
 
 	def on_update(self):
@@ -74,6 +75,13 @@ class Webhook(Document):
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
+	def validate_secret(self):
+		if self.enable_security:
+			try:
+				self.get_password("webhook_secret", False).encode("utf8")
+			except Exception:
+				frappe.throw(_("Invalid Webhook Secret"))
+
 	@frappe.whitelist()
 	def generate_preview(self):
 		# This function doesn't need to do anything specific as virtual fields
@@ -112,10 +120,14 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
-	webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
-	headers = get_webhook_headers(doc, webhook)
-	data = get_webhook_data(doc, webhook)
-	r = None
+	try:
+		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
+		headers = get_webhook_headers(doc, webhook)
+		data = get_webhook_data(doc, webhook)
+	except Exception as e:
+		frappe.logger().debug({"enqueue_webhook_error": e})
+		log_request(webhook.name, doc.name, webhook.request_url, headers, data)
+		return
 
 	for i in range(3):
 		try:

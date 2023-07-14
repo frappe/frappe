@@ -1,12 +1,19 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import time
+from unittest.mock import patch
+
+import requests
 
 import frappe
-import frappe.utils
 from frappe.auth import LoginAttemptTracker
 from frappe.frappeclient import AuthError, FrappeClient
+from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
+from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_site_url, now
+from frappe.utils.data import add_to_date
+from frappe.www.login import _generate_temporary_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -23,9 +30,7 @@ class TestAuth(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.HOST_NAME = frappe.get_site_config().host_name or frappe.utils.get_site_url(
-			frappe.local.site
-		)
+		cls.HOST_NAME = frappe.get_site_config().host_name or get_site_url(frappe.local.site)
 		cls.test_user_email = "test_auth@test.com"
 		cls.test_user_name = "test_auth_user"
 		cls.test_user_mobile = "+911234567890"
@@ -42,6 +47,9 @@ class TestAuth(FrappeTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.delete_doc("User", cls.test_user_email, force=True)
+		frappe.local.request_ip = None
+		frappe.form_dict.email = None
+		frappe.local.response["http_status_code"] = None
 
 	def set_system_settings(self, k, v):
 		frappe.db.set_value("System Settings", "System Settings", k, v)
@@ -123,6 +131,32 @@ class TestAuth(FrappeTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+	def test_login_with_email_link(self):
+
+		user = self.test_user_email
+
+		# Logs in
+		res = requests.get(_generate_temporary_login_link(user, 10))
+		self.assertEqual(res.status_code, 200)
+		self.assertTrue(res.cookies.get("sid"))
+		self.assertNotEqual(res.cookies.get("sid"), "Guest")
+
+		# Random incorrect URL
+		res = requests.get(_generate_temporary_login_link(user, 10) + "aa")
+		self.assertEqual(res.cookies.get("sid"), "Guest")
+
+		# POST doesn't work
+		res = requests.post(_generate_temporary_login_link(user, 10))
+		self.assertEqual(res.status_code, 403)
+
+		# Rate limiting
+		for _ in range(6):
+			res = requests.get(_generate_temporary_login_link(user, 10))
+			if res.status_code == 417:
+				break
+		else:
+			self.fail("Rate limting not working")
+
 
 class TestLoginAttemptTracker(FrappeTestCase):
 	def test_account_lock(self):
@@ -165,3 +199,27 @@ class TestLoginAttemptTracker(FrappeTestCase):
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())
+
+
+class TestSessionExpirty(FrappeAPITestCase):
+	def test_session_expires(self):
+		sid = self.sid  # triggers login for test case login
+		s: Session = frappe.local.session_obj
+
+		expiry_in = get_expiry_in_seconds()
+		session_created = now()
+
+		# Try with 1% increments of times, it should always work
+		for step in range(0, 100, 1):
+			seconds_elapsed = expiry_in * step / 100
+
+			time_now = add_to_date(session_created, seconds=seconds_elapsed, as_string=True)
+			with patch("frappe.utils.now", return_value=time_now):
+				data = s.get_session_data_from_db()
+				self.assertEqual(data.user, "Administrator")
+
+		# 1% higher should immediately expire
+		time_now = add_to_date(session_created, seconds=expiry_in * 1.01, as_string=True)
+		with patch("frappe.utils.now", return_value=time_now):
+			self.assertIn(sid, get_expired_sessions())
+			self.assertFalse(s.get_session_data_from_db())

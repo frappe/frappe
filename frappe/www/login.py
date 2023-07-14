@@ -5,9 +5,8 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
-from frappe.integrations.oauth2_logins import decoder_compat
-from frappe.utils import cint
+from frappe.rate_limiter import rate_limit
+from frappe.utils import cint, get_url
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
@@ -84,7 +83,10 @@ def get_context(context):
 			)
 			context["social_login"] = True
 
-	context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
+	if cint(frappe.db.get_value("LDAP Settings", "LDAP Settings", "enabled")):
+		from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+
+		context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
 
 	login_label = [_("Email")]
 
@@ -95,6 +97,8 @@ def get_context(context):
 		login_label.append(_("Username"))
 
 	context["login_label"] = f" {_('or')} ".join(login_label)
+
+	context["login_with_email_link"] = frappe.get_system_settings("login_with_email_link")
 
 	return context
 
@@ -112,3 +116,61 @@ def login_via_token(login_token: str):
 	redirect_post_login(
 		desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
 	)
+
+
+@frappe.whitelist(allow_guest=True)
+@rate_limit(limit=5, seconds=60 * 60)
+def send_login_link(email: str):
+
+	expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
+	link = _generate_temporary_login_link(email, expiry)
+
+	app_name = (
+		frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
+	)
+
+	subject = _("Login To {0}").format(app_name)
+
+	frappe.sendmail(
+		subject=subject,
+		recipients=email,
+		template="login_with_email_link",
+		args={"link": link, "minutes": expiry, "app_name": app_name},
+		now=True,
+	)
+
+
+def _generate_temporary_login_link(email: str, expiry: int):
+	assert isinstance(email, str)
+
+	if not frappe.db.exists("User", email):
+		frappe.throw(
+			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
+		)
+	key = frappe.generate_hash()
+	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+
+	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])
+@rate_limit(limit=5, seconds=60 * 60)
+def login_via_key(key: str):
+	cache_key = f"one_time_login_key:{key}"
+	email = frappe.cache().get_value(cache_key)
+
+	if email:
+		frappe.cache().delete_value(cache_key)
+
+		frappe.local.login_manager.login_as(email)
+
+		redirect_post_login(
+			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
+		)
+	else:
+		frappe.respond_as_web_page(
+			_("Not Permitted"),
+			_("The link you trying to login is invalid or expired."),
+			http_status_code=403,
+			indicator_color="red",
+		)

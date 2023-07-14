@@ -536,6 +536,10 @@ class Email:
 		if content_type == "text/plain":
 			self.text_content += self.get_payload(part)
 
+			# attach txt file from received email as well aside from saving to text_content if it has filename
+			if part.get_filename():
+				self.get_attachment(part)
+
 		elif content_type == "text/html":
 			self.html_content += self.get_payload(part)
 
@@ -722,6 +726,9 @@ class InboundMail(Email):
 		communication = frappe.get_doc(data)
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions=True)
+
+		# Communication might have been modified by some hooks, reload before saving
+		communication.reload()
 
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)

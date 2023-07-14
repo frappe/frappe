@@ -56,13 +56,13 @@
   },
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "URL",
    "reqd": 0
   }
  ],
  "idx": 0,
- "modified": "2022-03-21 15:39:39.044104",
+ "modified": "2023-06-05 13:26:34.470232",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Section with Testimonials",

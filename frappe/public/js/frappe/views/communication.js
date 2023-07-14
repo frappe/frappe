@@ -56,7 +56,7 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				fieldtype: "Button",
-				label: frappe.utils.icon("down"),
+				label: frappe.utils.icon("down", "xs"),
 				fieldname: "option_toggle_button",
 				click: () => {
 					this.toggle_more_options();
@@ -78,10 +78,20 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "bcc",
 			},
 			{
+				fieldtype: "Section Break",
+				fieldname: "email_template_section_break",
+				hidden: 1,
+			},
+			{
 				label: __("Email Template"),
 				fieldtype: "Link",
 				options: "Email Template",
 				fieldname: "email_template",
+			},
+			{
+				fieldtype: "HTML",
+				label: __("Clear & Add template"),
+				fieldname: "clear_and_add_template",
 			},
 			{ fieldtype: "Section Break" },
 			{
@@ -175,8 +185,9 @@ frappe.views.CommunicationComposer = class {
 	toggle_more_options(show_options) {
 		show_options = show_options || this.dialog.fields_dict.more_options.df.hidden;
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
+		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
 
-		const label = frappe.utils.icon(show_options ? "up-line" : "down");
+		const label = frappe.utils.icon(show_options ? "up-line" : "down", "xs");
 		this.dialog.get_field("option_toggle_button").set_label(label);
 	}
 
@@ -272,13 +283,14 @@ frappe.views.CommunicationComposer = class {
 	setup_email_template() {
 		const me = this;
 
-		this.dialog.fields_dict["email_template"].df.onchange = () => {
+		const fields = this.dialog.fields_dict;
+		const clear_and_add_template = $(fields.clear_and_add_template.wrapper);
+
+		function add_template() {
 			const email_template = me.dialog.fields_dict.email_template.get_value();
 			if (!email_template) return;
 
 			function prepend_reply(reply) {
-				if (me.reply_added === email_template) return;
-
 				const content_field = me.dialog.fields_dict.content;
 				const subject_field = me.dialog.fields_dict.subject;
 
@@ -286,8 +298,6 @@ frappe.views.CommunicationComposer = class {
 
 				content_field.set_value(`${reply.message}<br>${content}`);
 				subject_field.set_value(reply.subject);
-
-				me.reply_added = email_template;
 			}
 
 			frappe.call({
@@ -301,7 +311,25 @@ frappe.views.CommunicationComposer = class {
 					prepend_reply(r.message);
 				},
 			});
-		};
+		}
+
+		let email_template_actions = [
+			{
+				label: __("Add Template"),
+				description: __("Prepend the template to the email message"),
+				action: () => add_template(),
+			},
+			{
+				label: __("Clear & Add Template"),
+				description: __("Clear the email message and add the template"),
+				action: () => {
+					me.dialog.fields_dict.content.set_value("");
+					add_template();
+				},
+			},
+		];
+
+		frappe.utils.add_select_group_button(clear_and_add_template, email_template_actions);
 	}
 
 	setup_last_edited_communication() {
@@ -750,7 +778,10 @@ frappe.views.CommunicationComposer = class {
 			this.content_set = true;
 		}
 
-		message += await this.get_signature(sender_email || null);
+		const signature = await this.get_signature(sender_email || "");
+		if (!this.content_set || !strip_html(message).includes(strip_html(signature))) {
+			message += signature;
+		}
 
 		if (this.is_a_reply && !this.reply_set) {
 			message += this.get_earlier_reply();

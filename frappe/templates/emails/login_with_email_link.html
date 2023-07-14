@@ -1,0 +1,41 @@
+{% macro table(content, table_class) %}
+<table class="{{ table_class or '' }}" cellpadding="0" cellspacing="0" width="100%" align="center">
+	<tbody>
+		<tr>
+			<td align="center">
+				{{ content }}
+			</td>
+		</tr>
+	</tbody>
+</table>
+{% endmacro %}
+
+{% macro body() %}
+<table width="100%" cellspacing="0" cellpadding="0">
+	<tbody>
+		<tr>
+			<td align="center">
+				<div class="email-header-title">
+					{{ _('Click on the button to log in to {0}').format(app_name) }}
+				</div>
+				<div>{{ _('The link will expire in {0} minutes').format(minutes) }}</div>
+			</td>
+		</tr>
+		<tr>
+			<td align="center">
+				<div class="btn btn-primary" style="margin-top: 30px;">
+					<a href="{{ link or '#'}}" style="color: #fff; text-decoration: none;">
+						{{ _('Log In To {0}').format(app_name) }}
+					</a>
+				</div>
+			</td>
+		</tr>
+	</tbody>
+</table>
+{% endmacro %}
+
+<div class="body-table with-container">
+	<div class="body-content">
+		{{ table(table(body(), 'email-body'), 'email-container') }}
+	</div>
+</div>

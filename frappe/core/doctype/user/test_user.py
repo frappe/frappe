@@ -438,8 +438,8 @@ class TestUser(FrappeTestCase):
 		getdoc("User", "Administrator")
 		doc = frappe.response.docs[0]
 		self.assertListEqual(
-			doc.get("__onload").get("all_modules", []),
-			[m.get("module_name") for m in get_modules_from_all_apps()],
+			sorted(doc.get("__onload").get("all_modules", [])),
+			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
 	def test_reset_password_link_expiry(self):

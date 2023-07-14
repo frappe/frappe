@@ -54,6 +54,7 @@ if [ "$TYPE" == "server" ]; then
 fi
 
 echo "Starting Bench..."
+export FRAPPE_TUNE_GC=True
 
 bench start &> bench_start.log &
 bench --site test_site reinstall --yes

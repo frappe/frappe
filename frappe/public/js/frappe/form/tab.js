@@ -78,6 +78,9 @@ export default class Tab {
 	hide() {
 		this.parent.hide();
 	}
+	replace_field(fieldobj) {
+		fieldobj.tab = this;
+	}
 
 	set_active() {
 		this.parent.find(".nav-link").tab("show");

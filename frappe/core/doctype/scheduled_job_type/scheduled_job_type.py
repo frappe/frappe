@@ -10,7 +10,7 @@ from croniter import croniter
 import frappe
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
-from frappe.utils.background_jobs import enqueue, get_jobs
+from frappe.utils.background_jobs import enqueue, is_job_enqueued
 
 
 class ScheduledJobType(Document):
@@ -36,9 +36,13 @@ class ScheduledJobType(Document):
 						"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
 						queue=self.get_queue_name(),
 						job_type=self.method,
+						job_id=self.rq_job_id,
 					)
 					return True
-
+				else:
+					frappe.logger("scheduler").error(
+						f"Skipped queueing {self.method} because it was found in queue for {frappe.local.site}"
+					)
 		return False
 
 	def is_event_due(self, current_time=None):
@@ -46,9 +50,13 @@ class ScheduledJobType(Document):
 		# if the next scheduled event is before NOW, then its due!
 		return self.get_next_execution() <= (current_time or now_datetime())
 
-	def is_job_in_queue(self):
-		queued_jobs = get_jobs(site=frappe.local.site, key="job_type")[frappe.local.site]
-		return self.method in queued_jobs
+	def is_job_in_queue(self) -> bool:
+		return is_job_enqueued(self.rq_job_id)
+
+	@property
+	def rq_job_id(self):
+		"""Unique ID created to deduplicate jobs with single RQ call."""
+		return f"scheduled_job::{self.method}"
 
 	@property
 	def next_execution(self):
