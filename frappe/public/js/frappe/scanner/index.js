@@ -37,7 +37,7 @@ frappe.ui.Scanner = class Scanner {
 						try {
 							this.options.on_scan(decodedResult);
 						} catch (error) {
-							console.error(error); // eslint-disable-line
+							console.error(error);
 						}
 					}
 					if (!this.options.multiple) {
@@ -46,14 +46,13 @@ frappe.ui.Scanner = class Scanner {
 					}
 				},
 				(errorMessage) => {
-					// eslint-disable-line
 					// parse error, ignore it.
 				}
 			)
 			.catch((err) => {
 				this.is_alive = false;
 				this.hide_dialog();
-				console.error(err); // eslint-disable-line
+				console.error(err);
 			});
 		this.is_alive = true;
 	}

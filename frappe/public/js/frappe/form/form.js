@@ -747,7 +747,7 @@ frappe.ui.form.Form = class FrappeForm {
 				me.show_success_action();
 			})
 			.catch((e) => {
-				console.error(e); // eslint-disable-line
+				console.error(e);
 			});
 	}
 
