@@ -817,14 +817,14 @@ def read_only():
 
 			# frappe.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
-			switchd_connection = False
+			switched_connection = False
 			if conf.read_from_replica:
-				switchd_connection = connect_replica()
+				switched_connection = connect_replica()
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
-				if switchd_connection and local and hasattr(local, "primary_db"):
+				if switched_connection and local and hasattr(local, "primary_db"):
 					local.db.close()
 					local.db = local.primary_db
 
