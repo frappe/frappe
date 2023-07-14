@@ -3,7 +3,8 @@
 import hashlib
 import json
 import time
-from typing import Any, Generator, Iterable
+from collections.abc import Generator, Iterable
+from typing import Any
 
 from werkzeug.exceptions import NotFound
 
