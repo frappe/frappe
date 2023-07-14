@@ -1,7 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-/* eslint-disable no-console */
-
 import hljs from "./syntax_highlight";
 
 frappe.provide("website");

@@ -84,7 +84,6 @@ frappe.search.utils = {
 				out.label = match[0].bold();
 				out.value = match[0];
 			} else {
-				// eslint-disable-next-line
 				console.log("Illegal match", match);
 			}
 			out.index = 80;

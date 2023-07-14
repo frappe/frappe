@@ -13,15 +13,15 @@ sass.render(
 	},
 	function (err, result) {
 		if (err) {
-			console.error(err.formatted); // eslint-disable-line
+			console.error(err.formatted);
 			return;
 		}
 
 		fs.writeFile(output_path, result.css, function (err) {
 			if (!err) {
-				console.log(output_path); // eslint-disable-line
+				console.log(output_path);
 			} else {
-				console.error(err); // eslint-disable-line
+				console.error(err);
 			}
 		});
 	}

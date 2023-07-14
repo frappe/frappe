@@ -1084,8 +1084,8 @@ Object.assign(frappe.utils, {
 			let expression_function = new Function(...variable_names, code);
 			return expression_function(...variables);
 		} catch (error) {
-			console.log("Error evaluating the following expression:"); // eslint-disable-line no-console
-			console.error(code); // eslint-disable-line no-console
+			console.log("Error evaluating the following expression:");
+			console.error(code);
 			throw error;
 		}
 	},
@@ -1557,8 +1557,8 @@ Object.assign(frappe.utils, {
 					return title;
 				});
 		} catch (error) {
-			console.log("Error while fetching link title."); // eslint-disable-line
-			console.log(error); // eslint-disable-line
+			console.log("Error while fetching link title.");
+			console.log(error);
 			return Promise.resolve(name);
 		}
 	},
