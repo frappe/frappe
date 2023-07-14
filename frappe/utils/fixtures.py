@@ -81,9 +81,20 @@ def export_fixtures(app=None):
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 
+			filename = frappe.scrub(fixture)
+			if(prefix):
+				filename = prefix + "_" + filename
+			if(fixture_auto_order):
+				num_fixtures_as_str = str(len(fixtures)) # e.g. "14"
+				# lets index start at 1 instead of 0
+				file_index = str(index+1) # e.g. one of 1,...,14
+				# This introduces leading zeros, to make sure all index-prefixes have the same numer of characters
+				# because we want 05 to appear before 14
+				filled_file_index = file_index.zfill(len(num_fixtures_as_str)) # e.g. in one of 01,...,14
+				filename = filled_file_index + '_' + filename
 			export_json(
 				fixture,
-				frappe.get_app_path(app, "fixtures", ((str(index+1).zfill(len(str(len(fixtures)))) + "_") if fixture_auto_order else "") + (prefix + "_" if prefix else "") + frappe.scrub(fixture) + ".json"),
+				frappe.get_app_path(app, "fixtures", filename + ".json"),
 				filters=filters,
 				or_filters=or_filters,
 				order_by="idx asc, creation asc",
