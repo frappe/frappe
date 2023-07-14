@@ -53,10 +53,12 @@ repos:
     hooks:
       - id: eslint
         types_or: [javascript]
+        args: ['--quiet']
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
                 frappe/public/dist/.*|
+                cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
                 frappe/www/website_script.js|
