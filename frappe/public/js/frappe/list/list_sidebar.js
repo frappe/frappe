@@ -34,7 +34,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		) {
 			this.sidebar.find(".list-tags").remove();
 		} else {
-			this.sidebar.find(".list-stats").on("click", (e) => {
+			this.sidebar.find(".list-stats").on("show.bs.dropdown", (e) => {
 				this.reload_stats();
 			});
 		}
