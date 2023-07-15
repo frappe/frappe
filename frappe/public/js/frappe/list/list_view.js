@@ -587,9 +587,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</div>
 		`);
 		this.setup_new_doc_event();
-		if (this.list_view_settings && !this.list_view_settings.disable_sidebar_stats) {
-			this.list_sidebar && this.list_sidebar.reload_stats();
-		}
 		this.toggle_paging && this.$paging_area.toggle(true);
 	}
 
