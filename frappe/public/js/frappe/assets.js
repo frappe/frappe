@@ -29,7 +29,7 @@ frappe.assets = {
 
 		if (localStorage._last_load) {
 			var not_updated_since = new Date() - new Date(localStorage._last_load);
-			if (not_updated_since < 10000 || not_updated_since > 86400000) {
+			if (not_updated_since > 86400000) {
 				frappe.assets.clear_local_storage();
 			}
 		} else {
