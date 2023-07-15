@@ -342,8 +342,7 @@ def parse_naming_series(
 		elif doc and (e.startswith("{") or doc.get(e, _sentinel) is not _sentinel):
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
-		elif has_custom_parser(e):
-			method = frappe.get_hooks("naming_series_variables", {}).get(e)
+		elif method := has_custom_parser(e):
 			part = frappe.get_attr(method[0])(doc, e)
 		else:
 			part = e
