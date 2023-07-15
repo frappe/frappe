@@ -10,7 +10,7 @@ REDIS_KEYS = ("redis_cache", "redis_queue")
 def is_open(scheme, hostname, port, timeout=10):
 	if scheme in ["redis", "postgres", "mariadb"]:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		conn = (hostname, port)
+		conn = (hostname, int(port))
 	else:
 		raise UrlSchemeNotSupported(scheme)
 
