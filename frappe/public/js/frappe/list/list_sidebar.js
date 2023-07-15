@@ -32,7 +32,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
 			this.sidebar.find('.list-tags').remove();
 		} else {
-			this.sidebar.find('.list-stats').on('click', (e) => {
+			this.sidebar.find(".list-stats").on("show.bs.dropdown", (e) => {
 				this.reload_stats();
 			});
 		}
