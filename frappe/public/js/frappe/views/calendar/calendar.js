@@ -263,6 +263,12 @@ frappe.views.Calendar = class Calendar {
 			defaultView: defaults.defaultView,
 			weekends: defaults.weekends,
 			nowIndicator: true,
+			buttonText: {
+				today: __("Today"),
+				month: __("Month"),
+				week: __("Week"),
+				day: __("Day"),
+			},
 			events: function (start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",

@@ -469,7 +469,7 @@ def database(context, extra_args):
 	if not site:
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	if not frappe.conf.db_type or frappe.conf.db_type == "mariadb":
+	if frappe.conf.db_type == "mariadb":
 		_mariadb(extra_args=extra_args)
 	elif frappe.conf.db_type == "postgres":
 		_psql(extra_args=extra_args)
@@ -505,19 +505,17 @@ def postgres(context, extra_args):
 
 
 def _mariadb(extra_args=None):
-	from frappe.database.mariadb.database import MariaDBDatabase
-
 	mysql = which("mysql")
 	command = [
 		mysql,
 		"--port",
-		str(frappe.conf.db_port or MariaDBDatabase.default_port),
+		str(frappe.conf.db_port),
 		"-u",
 		frappe.conf.db_name,
 		f"-p{frappe.conf.db_password}",
 		frappe.conf.db_name,
 		"-h",
-		frappe.conf.db_host or "localhost",
+		frappe.conf.db_host,
 		"--pager=less -SFX",
 		"--safe-updates",
 		"-A",
@@ -530,8 +528,8 @@ def _mariadb(extra_args=None):
 def _psql(extra_args=None):
 	psql = which("psql")
 
-	host = frappe.conf.db_host or "127.0.0.1"
-	port = frappe.conf.db_port or "5432"
+	host = frappe.conf.db_host
+	port = frappe.conf.db_port
 	env = os.environ.copy()
 	env["PGPASSWORD"] = frappe.conf.db_password
 	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
@@ -666,7 +664,7 @@ def transform_database(context, table, engine, row_format, failfast):
 	skipped = 0
 	frappe.init(site=site)
 
-	if frappe.conf.db_type and frappe.conf.db_type != "mariadb":
+	if frappe.conf.db_type != "mariadb":
 		click.secho("This command only has support for MariaDB databases at this point", fg="yellow")
 		sys.exit(1)
 

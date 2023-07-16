@@ -481,7 +481,7 @@ Object.assign(frappe.utils, {
 				break;
 			case "url":
 				regExp =
-					/^((([A-Za-z0-9.+-]+:(?:\/\/)?)(?:[-;:&=\+\,\w]@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/i;
+					/^((([A-Za-z0-9.+-]+:(?:\/\/)?)(?:[-;:&=\+\,\w]@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/i; // eslint-disable-line
 				break;
 			case "dateIso":
 				regExp = /^(\d{4})\D?(0[1-9]|1[0-2])\D?([12]\d|0[1-9]|3[01])$/;
@@ -952,11 +952,11 @@ Object.assign(frappe.utils, {
 			return "";
 		} else if (values.length > 0) {
 			if (column.column.fieldtype == "Percent" || type === "mean") {
-				return values.reduce((a, b) => a + flt(b)) / values.length;
+				return values.reduce((a, b) => flt(a) + flt(b)) / values.length;
 			} else if (column.column.fieldtype == "Int") {
-				return values.reduce((a, b) => a + cint(b));
+				return values.reduce((a, b) => cint(a) + cint(b));
 			} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
-				return values.reduce((a, b) => a + flt(b));
+				return values.reduce((a, b) => flt(a) + flt(b));
 			} else {
 				return null;
 			}
@@ -1084,8 +1084,8 @@ Object.assign(frappe.utils, {
 			let expression_function = new Function(...variable_names, code);
 			return expression_function(...variables);
 		} catch (error) {
-			console.log("Error evaluating the following expression:"); // eslint-disable-line no-console
-			console.error(code); // eslint-disable-line no-console
+			console.log("Error evaluating the following expression:");
+			console.error(code);
 			throw error;
 		}
 	},
@@ -1557,8 +1557,8 @@ Object.assign(frappe.utils, {
 					return title;
 				});
 		} catch (error) {
-			console.log("Error while fetching link title."); // eslint-disable-line
-			console.log(error); // eslint-disable-line
+			console.log("Error while fetching link title.");
+			console.log(error);
 			return Promise.resolve(name);
 		}
 	},

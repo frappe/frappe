@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from enum import Enum
 from importlib import import_module
-from typing import Any, Callable, get_type_hints
+from typing import Any, get_type_hints
 
 from pypika.queries import Column, QueryBuilder
 from pypika.terms import PseudoColumn
@@ -31,7 +32,7 @@ class ImportMapper:
 		self.func_map = func_map
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
-		db = db_type_is(frappe.conf.db_type or "mariadb")
+		db = db_type_is(frappe.conf.db_type)
 		return self.func_map[db](*args, **kwds)
 
 

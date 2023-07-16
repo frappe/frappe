@@ -8,7 +8,7 @@ frappe.defaults = {
 		if (!d && frappe.defaults.is_a_user_permission_key(key)) {
 			d = defaults[frappe.model.scrub(key)];
 			// Check for default user permission values
-			user_default = this.get_user_permission_default(key, defaults);
+			let user_default = this.get_user_permission_default(key, defaults);
 			if (user_default) d = user_default;
 		}
 		if ($.isArray(d)) d = d[0];
@@ -129,5 +129,13 @@ frappe.defaults = {
 				this._user_permissions = Object.assign({}, r.message);
 			}
 		});
+	},
+
+	load_user_permission_from_boot: function () {
+		if (frappe.boot.user.user_permissions) {
+			this._user_permissions = Object.assign({}, frappe.boot.user.user_permissions);
+		} else {
+			frappe.defaults.update_user_permissions();
+		}
 	},
 };

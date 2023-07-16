@@ -11,13 +11,13 @@ frappe.ui.Tree = class {
 		icon_set,
 		toolbar,
 		expandable,
-		with_skeleton = 1, // eslint-disable-line
+		with_skeleton = 1,
 
 		args,
 		method,
 		get_label,
 		on_render,
-		on_click, // eslint-disable-line
+		on_click,
 	}) {
 		$.extend(this, arguments[0]);
 		if (root_value == null) {
@@ -79,14 +79,7 @@ frappe.ui.Tree = class {
 	setup_treenode_class() {
 		let tree = this;
 		this.TreeNode = class {
-			constructor({
-				parent,
-				label,
-				parent_label,
-				expandable,
-				is_root,
-				data, // eslint-disable-line
-			}) {
+			constructor({ parent, label, parent_label, expandable, is_root, data }) {
 				$.extend(this, arguments[0]);
 				this.loaded = 0;
 				this.expanded = 0;

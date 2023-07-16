@@ -1,4 +1,3 @@
-/* eslint-disable */
 import Quill from "quill";
 import Keys from "./constants/keys";
 import "./blots/mention";

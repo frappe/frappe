@@ -12,6 +12,8 @@ from frappe.contacts.doctype.contact.contact import (
 	get_contacts_linked_from,
 	get_contacts_linking_to,
 )
+from frappe.core.doctype.communication.email import make
+from frappe.desk.form import assign_to
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
@@ -372,14 +374,14 @@ class AutoRepeat(Document):
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {"doc": new_doc})
 
-		frappe.sendmail(
-			reference_doctype=new_doc.doctype,
-			reference_name=new_doc.name,
+		make(
+			doctype=new_doc.doctype,
+			name=new_doc.name,
 			recipients=self.recipients,
 			subject=subject,
 			content=message,
 			attachments=attachments,
-			expose_recipients="header",
+			send_email=1,
 		)
 
 	@frappe.whitelist()
