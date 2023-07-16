@@ -32,7 +32,7 @@ frappe.assets = {
 			// Evict cache every 2 days
 			// Evict cache if page is reloaded within 10 seconds. Which could be user trying to
 			// refresh if things feel broken.
-			if ((not_updated_since < 10000 && is_reload()) || not_updated_since > 2 * 86400000) {
+			if ((not_updated_since < 5000 && is_reload()) || not_updated_since > 2 * 86400000) {
 				frappe.assets.clear_local_storage();
 			}
 		} else {
