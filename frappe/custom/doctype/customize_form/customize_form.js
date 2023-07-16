@@ -357,8 +357,9 @@ frappe.customize_form.update_fields_from_form_builder = function (frm) {
 	if (form_builder?.store) {
 		let fields = form_builder.store.update_fields();
 
-		if (!fields?.length && frm.is_dirty()) {
-			frappe.throw(__("Error occurred while saving the form."));
+		// if fields is a string, it means there is an error
+		if (typeof fields === "string") {
+			frappe.throw(fields);
 		}
 		frm.refresh_fields();
 	}

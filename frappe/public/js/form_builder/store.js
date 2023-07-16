@@ -121,9 +121,14 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	function validate_fields(fields, is_table) {
 		fields = scrub_field_names(fields);
+		let error_message = "";
 
-		if (!fields.length) {
-			frappe.throw(__("DocType must have atleast one field"));
+		let has_fields = fields.some((df) => {
+			return !["Section Break", "Tab Break", "Column Break"].includes(df.fieldtype);
+		});
+
+		if (!has_fields) {
+			error_message = __("DocType must have atleast one field");
 		}
 
 		let not_allowed_in_list_view = ["Attach Image", ...frappe.model.no_value_type];
@@ -144,46 +149,43 @@ export const useStore = defineStore("form-builder-store", () => {
 			// check if fieldname already exist
 			let duplicate = fields.filter((f) => f.fieldname == df.fieldname);
 			if (duplicate.length > 1) {
-				frappe.throw(__("Fieldname {0} appears multiple times", get_field_data(df)));
+				error_message = __("Fieldname {0} appears multiple times", get_field_data(df));
 			}
 
 			// Link & Table fields should always have options set
 			if (in_list(["Link", ...frappe.model.table_fields], df.fieldtype) && !df.options) {
-				frappe.throw(
-					__("Options is required for field {0} of type {1}", get_field_data(df))
+				error_message = __(
+					"Options is required for field {0} of type {1}",
+					get_field_data(df)
 				);
 			}
 
 			// Do not allow if field is hidden & required but doesn't have default value
 			if (df.hidden && df.reqd && !df.default) {
-				frappe.throw(
-					__(
-						"{0} cannot be hidden and mandatory without any default value",
-						get_field_data(df)
-					)
+				error_message = __(
+					"{0} cannot be hidden and mandatory without any default value",
+					get_field_data(df)
 				);
 			}
 
 			// In List View is not allowed for some fieldtypes
 			if (df.in_list_view && in_list(not_allowed_in_list_view, df.fieldtype)) {
-				frappe.throw(
-					__(
-						"'In List View' is not allowed for field {0} of type {1}",
-						get_field_data(df)
-					)
+				error_message = __(
+					"'In List View' is not allowed for field {0} of type {1}",
+					get_field_data(df)
 				);
 			}
 
 			// In Global Search is not allowed for no_value_type fields
 			if (df.in_global_search && in_list(frappe.model.no_value_type, df.fieldtype)) {
-				frappe.throw(
-					__(
-						"'In Global Search' is not allowed for field {0} of type {1}",
-						get_field_data(df)
-					)
+				error_message = __(
+					"'In Global Search' is not allowed for field {0} of type {1}",
+					get_field_data(df)
 				);
 			}
 		});
+
+		return error_message;
 	}
 
 	function update_fields() {
@@ -193,7 +195,8 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		try {
 			let fields = get_updated_fields();
-			validate_fields(fields, doc.value.istable);
+			let has_error = validate_fields(fields, doc.value.istable);
+			if (has_error) return has_error;
 			doc.value.fields = fields;
 			return fields;
 		} catch (e) {
