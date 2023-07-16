@@ -130,4 +130,12 @@ frappe.defaults = {
 			}
 		});
 	},
+
+	load_user_permission_from_boot: function () {
+		if (frappe.boot.user.user_permissions) {
+			this._user_permissions = Object.assign({}, frappe.boot.user.user_permissions);
+		} else {
+			frappe.defaults.update_user_permissions();
+		}
+	},
 };
