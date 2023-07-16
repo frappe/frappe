@@ -375,6 +375,19 @@ class TestNaming(FrappeTestCase):
 		name = parse_naming_series(series, doc=webhook)
 		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
 
+	def test_custom_parser(self):
+		# check naming with custom parser
+		todo = frappe.new_doc("ToDo")
+		series = "TODO-.PM.-.####"
+		name = parse_naming_series(series, doc=todo)
+		expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
+		self.assertEqual(name, expected_name)
+
+
+def parse_naming_series_variable(doc, variable):
+	if variable == "PM":
+		return nowdate().split("-")[1]
+
 
 def make_invalid_todo():
 	frappe.get_doc({"doctype": "ToDo", "description": "Test"}).insert(set_name="ToDo")
