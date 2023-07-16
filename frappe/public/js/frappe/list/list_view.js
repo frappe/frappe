@@ -1556,12 +1556,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.get_filters_for_args().forEach((filter) => {
 			if (filter[2] === "=") {
-				search_params.append(filter[1], encodeURIComponent(filter[3]));
+				search_params.append(filter[1], filter[3]);
 			} else {
-				search_params.append(
-					filter[1],
-					encodeURIComponent(JSON.stringify([filter[2], filter[3]]))
-				);
+				search_params.append(filter[1], JSON.stringify([filter[2], filter[3]]));
 			}
 		});
 		return search_params;
