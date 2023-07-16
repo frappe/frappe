@@ -7,8 +7,9 @@ frappe.ui.form.on("DocType", {
 		if (form_builder?.store) {
 			let fields = form_builder.store.update_fields();
 
-			if (!fields?.length && frm.is_dirty()) {
-				frappe.throw(__("Error occurred while saving the form."));
+			// if fields is a string, it means there is an error
+			if (typeof fields === "string") {
+				frappe.throw(fields);
 			}
 		}
 	},
