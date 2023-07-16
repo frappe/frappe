@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.contacts.doctype.contact.contact import get_full_name
+from frappe.email import get_contact_list
 from frappe.tests.utils import FrappeTestCase
 
 test_dependencies = ["Contact", "Salutation"]
@@ -43,6 +44,17 @@ class TestContact(FrappeTestCase):
 			get_full_name(first="John", middle="Jane", last="Doe", company="Doe Pvt Ltd"),
 			"John Jane Doe",
 		)
+
+	def test_get_contact_list(self):
+		# First time from database
+		results = get_contact_list("_Test Supplier")
+		self.assertEqual(results[0].label, "test_contact@example.com")
+		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
+
+		# Second time from cache
+		results = get_contact_list("_Test Supplier")
+		self.assertEqual(results[0].label, "test_contact@example.com")
+		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
 
 
 def create_contact(name, salutation, emails=None, phones=None, save=True):
