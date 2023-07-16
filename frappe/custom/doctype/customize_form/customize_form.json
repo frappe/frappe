@@ -176,11 +176,10 @@
    "options": "ASC\nDESC"
   },
   {
+   "collapsible": 1,
    "depends_on": "doc_type",
-   "description": "Customize Label, Print Hide, Default etc.",
    "fieldname": "fields_section_break",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "label": "Fields"
   },
   {
@@ -393,7 +392,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-07-10 19:20:26.149909",
+ "modified": "2023-07-16 13:25:46.201184",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
