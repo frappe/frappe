@@ -3,7 +3,7 @@ import Sidebar from "./components/Sidebar.vue"
 import Tabs from "./components/Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "./store";
-import { onClickOutside, useMagicKeys, whenever } from "@vueuse/core";
+import { onClickOutside } from "@vueuse/core";
 
 let store = useStore();
 
@@ -14,19 +14,6 @@ let should_render = computed(() => {
 let container = ref(null);
 onClickOutside(container, () => store.form.selected_field = null);
 
-// cmd/ctrl + s to save the form
-const { meta_s, ctrl_s } = useMagicKeys();
-whenever(() => meta_s.value || ctrl_s.value, () => {
-	if (store.dirty) {
-		store.save_changes();
-	}
-});
-
-function setup_change_doctype_dialog() {
-	store.page.$title_area.on("click", () => {
-		frappe.pages["form-builder"].select_doctype();
-	});
-}
 
 watch(
 	() => store.form.layout,
@@ -34,10 +21,7 @@ watch(
 	{ deep: true }
 );
 
-onMounted(() => {
-	store.fetch();
-	setup_change_doctype_dialog();
-});
+onMounted(() => store.fetch());
 </script>
 
 <template>
@@ -62,9 +46,8 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .form-builder-container {
-	margin-bottom: -60px;
+	margin: -12px -20px -5px;
 	display: flex;
-	gap: 20px;
 
 	&.resizing {
 		user-select: none;
@@ -79,12 +62,20 @@ onMounted(() => {
 		flex: 1;
 	}
 
-	.form-sidebar,
+	.form-sidebar {
+		border-right: 1px solid var(--border-color);
+		border-bottom-left-radius: var(--border-radius);
+	}
+
 	.form-main {
 		border-radius: var(--border-radius);
 		box-shadow: var(--card-shadow);
 		background-color: var(--card-bg);
+		margin: 10px;
+	}
 
+	.form-sidebar,
+	.form-main {
 		:deep(.section-columns.has-one-column .field) {
 			input.form-control, .signature-field {
 				width: calc(50% - 19px);
