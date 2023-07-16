@@ -277,7 +277,7 @@ frappe.Application = class Application {
 	}
 
 	load_user_permissions() {
-		frappe.defaults.update_user_permissions();
+		frappe.defaults.load_user_permission_from_boot();
 
 		frappe.realtime.on(
 			"update_user_permissions",
