@@ -1,11 +1,8 @@
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import { useStore } from "../store";
-import { useVueFlow } from "@vue-flow/core";
 
 let store = useStore();
-
-let { nodes } = useVueFlow();
 
 let title = ref("Workflow Details");
 
@@ -36,17 +33,6 @@ let properties = computed(() => {
 			if (df.fieldname == "doc_status") {
 				df.options = ["Draft", "Submitted", "Cancelled"];
 				df.description = "";
-			}
-			if (df.fieldname == "state") {
-				let filter = nodes.value
-					.filter(state => state.type == "state")
-					.map(node => node.data.state);
-				if (doc.value.state) {
-					filter = filter.filter(state => state !== doc.value.state);
-				}
-				df.filters = {
-					name: ["not in", filter]
-				};
 			}
 			if (df.fieldname == "update_field") {
 				df.options = store.workflow_doc_fields;
