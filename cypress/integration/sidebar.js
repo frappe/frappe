@@ -27,60 +27,70 @@ context("Sidebar", () => {
 	});
 
 	it("Verify attachment visibility config", () => {
-		verify_attachment_visibility("doctype/Blog Post", true);
+		cy.call("frappe.tests.ui_test_helpers.create_todo", {
+			description: "Sidebar Attachment ToDo",
+		}).then((todo) => {
+			verify_attachment_visibility(`todo/${todo.message.name}`, true);
+		});
 		verify_attachment_visibility("blog-post/test-blog-attachment-post", false);
 	});
 
 	it('Test for checking "Assigned To" counter value, adding filter and adding & removing an assignment', () => {
-		cy.visit("/app/doctype");
-		cy.click_sidebar_button("Assigned To");
+		cy.call("frappe.tests.ui_test_helpers.create_todo", {
+			description: "Sidebar Attachment ToDo",
+		}).then((todo) => {
+			let todo_name = todo.message.name;
+			cy.visit("/app/todo");
+			cy.click_sidebar_button("Assigned To");
 
-		//To check if no filter is available in "Assigned To" dropdown
-		cy.get(".empty-state").should("contain", "No filters found");
+			//To check if no filter is available in "Assigned To" dropdown
+			cy.get(".empty-state").should("contain", "No filters found");
 
-		//Assigning a doctype to a user
-		cy.visit("/app/doctype/ToDo");
-		cy.get(".form-assignments > .flex > .text-muted").click();
-		cy.get_field("assign_to_me", "Check").click();
-		cy.get(".modal-footer > .standard-actions > .btn-primary").click();
-		cy.visit("/app/doctype");
-		cy.click_sidebar_button("Assigned To");
+			//Assigning a doctype to a user
+			cy.visit(`/app/todo/${todo_name}`);
+			cy.get(".form-assignments > .flex > .text-muted").click();
+			cy.get_field("assign_to_me", "Check").click();
+			cy.get(".modal-footer > .standard-actions > .btn-primary").click();
+			cy.visit("/app/todo");
+			cy.click_sidebar_button("Assigned To");
 
-		//To check if filter is added in "Assigned To" dropdown after assignment
-		cy.get(".group-by-field.show > .dropdown-menu > .group-by-item > .dropdown-item").should(
-			"contain",
-			"1"
-		);
+			//To check if filter is added in "Assigned To" dropdown after assignment
+			cy.get(
+				".group-by-field.show > .dropdown-menu > .group-by-item > .dropdown-item"
+			).should("contain", "1");
 
-		//To check if there is no filter added to the listview
-		cy.get(".filter-button").should("contain", "Filter");
+			//To check if there is no filter added to the listview
+			cy.get(".filter-button").should("contain", "Filter");
 
-		//To add a filter to display data into the listview
-		cy.get(".group-by-field.show > .dropdown-menu > .group-by-item > .dropdown-item").click();
+			//To add a filter to display data into the listview
+			cy.get(
+				".group-by-field.show > .dropdown-menu > .group-by-item > .dropdown-item"
+			).click();
 
-		//To check if filter is applied
-		cy.click_filter_button().should("contain", "1 filter");
-		cy.get(".fieldname-select-area > .awesomplete > .form-control").should(
-			"have.value",
-			"Assigned To"
-		);
-		cy.get(".condition").should("have.value", "like");
-		cy.get(".filter-field > .form-group > .input-with-feedback").should(
-			"have.value",
-			`%${cy.config("testUser")}%`
-		);
-		cy.click_filter_button();
+			//To check if filter is applied
+			cy.click_filter_button().should("contain", "1 filter");
+			cy.get(".fieldname-select-area > .awesomplete > .form-control").should(
+				"have.value",
+				"Assigned To"
+			);
+			cy.get(".condition").should("have.value", "like");
+			cy.get(".filter-field > .form-group > .input-with-feedback").should(
+				"have.value",
+				`%${cy.config("testUser")}%`
+			);
+			cy.click_filter_button();
 
-		//To remove the applied filter
-		cy.clear_filters();
+			//To remove the applied filter
+			cy.clear_filters();
 
-		//To remove the assignment
-		cy.visit("/app/doctype/ToDo");
-		cy.get(".assignments > .avatar-group > .avatar > .avatar-frame").click();
-		cy.get(".remove-btn").click({ force: true });
-		cy.hide_dialog();
-		cy.visit("/app/doctype");
-		cy.click_sidebar_button("Assigned To");
-		cy.get(".empty-state").should("contain", "No filters found");
+			//To remove the assignment
+			cy.visit(`/app/todo/${todo_name}`);
+			cy.get(".assignments > .avatar-group > .avatar > .avatar-frame").click();
+			cy.get(".remove-btn").click({ force: true });
+			cy.hide_dialog();
+			cy.visit("/app/todo");
+			cy.click_sidebar_button("Assigned To");
+			cy.get(".empty-state").should("contain", "No filters found");
+		});
 	});
 });
