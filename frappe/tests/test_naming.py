@@ -14,7 +14,7 @@ from frappe.model.naming import (
 	parse_naming_series,
 	revert_series_if_last,
 )
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, patch_hooks
 from frappe.utils import now_datetime, nowdate, nowtime
 
 
@@ -378,22 +378,17 @@ class TestNaming(FrappeTestCase):
 		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
 
 	def test_custom_parser(self):
-		from frappe.tests.test_website import patched_get_hooks
-
 		# check naming with custom parser
 		todo = frappe.new_doc("ToDo")
 		series = "TODO-.PM.-.####"
 
 		frappe.clear_cache()
-		with patch.object(
-			frappe,
-			"get_hooks",
-			patched_get_hooks(
-				"naming_series_variables",
-				{
+		with patch_hooks(
+			{
+				"naming_series_variables": {
 					"PM": ["frappe.tests.test_naming.parse_naming_series_variable"],
 				},
-			),
+			},
 		):
 			name = parse_naming_series(series, doc=todo)
 			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
