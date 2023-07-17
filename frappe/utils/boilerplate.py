@@ -106,11 +106,8 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(frappe.as_unicode(init_template))
 
-	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
-		f.write(frappe.as_unicode(manifest_template.format(**hooks)))
-
-	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
-		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
+	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
+		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
@@ -131,9 +128,6 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	# So escaping them before setting variables in setup.py and hooks.py
 	for key in ("app_publisher", "app_description", "app_license"):
 		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
-
-	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
@@ -279,33 +273,40 @@ class PatchCreator:
 		init_py.touch()
 
 
-manifest_template = """include MANIFEST.in
-include requirements.txt
-include *.json
-include *.md
-include *.py
-include *.txt
-recursive-include {app_name} *.css
-recursive-include {app_name} *.csv
-recursive-include {app_name} *.html
-recursive-include {app_name} *.ico
-recursive-include {app_name} *.js
-recursive-include {app_name} *.json
-recursive-include {app_name} *.md
-recursive-include {app_name} *.png
-recursive-include {app_name} *.py
-recursive-include {app_name} *.svg
-recursive-include {app_name} *.txt
-recursive-exclude {app_name} *.pyc"""
-
 init_template = """
 __version__ = '0.0.1'
 
 """
 
+<<<<<<< HEAD
 hooks_template = """from . import __version__ as app_version
 
 app_name = "{app_name}"
+=======
+pyproject_template = """[project]
+name = "{app_name}"
+authors = [
+    {{ name = "{app_publisher}", email = "{app_email}"}}
+]
+description = "{app_description}"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # "frappe~=15.0.0" # Installed and managed by bench.
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+# These dependencies are only installed when developer mode is enabled
+[tool.bench.dev-dependencies]
+# package_name = "~=1.1.0"
+"""
+
+hooks_template = """app_name = "{app_name}"
+>>>>>>> 8436f775a5 (feat(DX): PEP517 compatible build in new apps (#21704))
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
@@ -522,6 +523,7 @@ app_license = "{app_license}"
 # ]
 """
 
+<<<<<<< HEAD
 desktop_template = """from frappe import _
 
 def get_data():
@@ -555,6 +557,8 @@ setup(
 )
 """
 
+=======
+>>>>>>> 8436f775a5 (feat(DX): PEP517 compatible build in new apps (#21704))
 gitignore_template = """.DS_Store
 *.pyc
 *.egg-info
