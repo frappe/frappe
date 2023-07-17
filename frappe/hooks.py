@@ -432,7 +432,3 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 ]
-
-naming_series_variables = {
-	"PM": "frappe.tests.test_naming.parse_naming_series_variable",
-}
