@@ -1,6 +1,8 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.naming import (
@@ -376,12 +378,26 @@ class TestNaming(FrappeTestCase):
 		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
 
 	def test_custom_parser(self):
+		from frappe.tests.test_website import patched_get_hooks
+
 		# check naming with custom parser
 		todo = frappe.new_doc("ToDo")
 		series = "TODO-.PM.-.####"
-		name = parse_naming_series(series, doc=todo)
-		expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
-		self.assertEqual(name, expected_name)
+
+		frappe.clear_cache()
+		with patch.object(
+			frappe,
+			"get_hooks",
+			patched_get_hooks(
+				"naming_series_variables",
+				{
+					"PM": ["frappe.tests.test_naming.parse_naming_series_variable"],
+				},
+			),
+		):
+			name = parse_naming_series(series, doc=todo)
+			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
+			self.assertEqual(name, expected_name)
 
 
 def parse_naming_series_variable(doc, variable):

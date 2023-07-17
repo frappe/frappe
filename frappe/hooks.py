@@ -429,7 +429,3 @@ extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 ]
-
-naming_series_variables = {
-	"PM": "frappe.tests.test_naming.parse_naming_series_variable",
-}
