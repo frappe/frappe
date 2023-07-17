@@ -122,9 +122,14 @@ def get_diff(old, new, for_child=False):
 			if old_value != new_value:
 				out.changed.append((df.fieldname, old_value, new_value))
 
-	# docstatus
-	if not for_child and old.docstatus != new.docstatus:
-		out.changed.append(["docstatus", old.docstatus, new.docstatus])
+	# name & docstatus
+	if not for_child:
+		for key in ("name", "docstatus"):
+			old_value = getattr(old, key)
+			new_value = getattr(new, key)
+
+			if old_value != new_value:
+				out.changed.append([key, old_value, new_value])
 
 	if any((out.changed, out.added, out.removed, out.row_changed)):
 		return out
