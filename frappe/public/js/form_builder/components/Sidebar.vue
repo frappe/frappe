@@ -77,7 +77,7 @@ watch(
 	opacity: 0;
 	background-color: var(--bg-gray);
 	transition: opacity 0.2s ease;
-	z-index: 10;
+	z-index: 4;
 	cursor: col-resize;
 
 	&:hover, &.resizing {

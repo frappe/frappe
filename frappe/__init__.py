@@ -19,7 +19,8 @@ import os
 import re
 import unicodedata
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, TypeAlias, overload
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
 import click
 from werkzeug.local import Local, release_local
@@ -243,7 +244,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.preload_assets = {"style": [], "script": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
-	local.qb = get_query_builder(local.conf.db_type or "mariadb")
+	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
 	setup_module_map()
@@ -274,8 +275,11 @@ def connect(
 		set_user("Administrator")
 
 
-def connect_replica():
+def connect_replica() -> bool:
 	from frappe.database import get_db
+
+	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
+		return False
 
 	user = local.conf.db_name
 	password = local.conf.db_password
@@ -290,6 +294,8 @@ def connect_replica():
 	# swap db connections
 	local.primary_db = local.db
 	local.db = local.replica_db
+
+	return True
 
 
 def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
@@ -319,6 +325,27 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				print(error)
 		elif local.site and not local.flags.new_site:
 			raise IncorrectSitePath(f"{local.site} does not exist")
+
+	# Generalized env variable overrides and defaults
+	def db_default_ports(db_type):
+		from frappe.database.mariadb.database import MariaDBDatabase
+
+		return {
+			"mariadb": MariaDBDatabase.default_port,  # 3306
+			"postgres": 5432,
+		}[db_type]
+
+	config["redis_queue"] = (
+		os.environ.get("FRAPPE_REDIS_QUEUE") or config.get("redis_queue") or "redis://127.0.0.1:11311"
+	)
+	config["redis_cache"] = (
+		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
+	)
+	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
+	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
+	config["db_port"] = (
+		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
+	)
 
 	return _dict(config)
 
@@ -360,7 +387,7 @@ def setup_redis_cache_connection():
 	if not cache:
 		from frappe.utils.redis_wrapper import RedisWrapper
 
-		cache = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
+		cache = RedisWrapper.from_url(conf.get("redis_cache"))
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -788,13 +815,17 @@ def is_whitelisted(method):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
+
+			# frappe.read_only could be called from nested functions, in such cases don't swap the
+			# connection again.
+			switched_connection = False
 			if conf.read_from_replica:
-				connect_replica()
+				switched_connection = connect_replica()
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			finally:
-				if local and hasattr(local, "primary_db"):
+				if switched_connection and local and hasattr(local, "primary_db"):
 					local.db.close()
 					local.db = local.primary_db
 

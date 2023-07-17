@@ -96,7 +96,7 @@ frappe.provide("frappe.views");
 							});
 						},
 						function (err) {
-							console.error(err); // eslint-disable-line
+							console.error(err);
 						}
 					);
 			},

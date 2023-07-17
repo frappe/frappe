@@ -275,7 +275,7 @@ frappe.ui.init_onboarding_tour = () => {
 		frappe.boot.onboarding_tours &&
 			frappe.boot.onboarding_tours.forEach((tour) => {
 				let tour_route = tour[1];
-				length = Math.min(route.length, tour_route.length);
+				let length = Math.min(route.length, tour_route.length);
 				if (length >= 1 && route[0] != tour_route[0]) return;
 				if (length >= 2 && tour_route[1] != "*" && route[1] != tour_route[1]) return;
 				if (

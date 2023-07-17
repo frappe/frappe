@@ -3,7 +3,7 @@ const { Server } = require("socket.io");
 const { get_conf, get_redis_subscriber } = require("../node_utils");
 const conf = get_conf();
 
-let io = new Server(conf.socketio_port, {
+let io = new Server({
 	cors: {
 		// Should be fine since we are ensuring whether hostname and origin are same before adding setting listeners for s socket
 		origin: true,
@@ -52,3 +52,7 @@ subscriber.on("message", function (_channel, message) {
 
 subscriber.subscribe("events");
 // =======================
+
+let port = conf.socketio_port;
+io.listen(port);
+console.log("Realtime service listening on: ", port);

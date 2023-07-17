@@ -602,7 +602,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	async get_filtered_parents_for_child_search() {
 		const parent_search_args = this.get_args_for_search();
 		parent_search_args.filter_fields = ["name"];
-		// eslint-disable-next-line no-unused-vars
 		const [response, _] = await this.perform_search(parent_search_args);
 
 		let parent_names = [];

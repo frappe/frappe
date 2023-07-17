@@ -2,8 +2,8 @@ import copy
 import datetime
 import signal
 import unittest
+from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Sequence
 
 import frappe
 from frappe.model.base_document import BaseDocument

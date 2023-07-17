@@ -25,9 +25,6 @@
   "beta",
   "is_virtual",
   "queue_in_background",
-  "fields_section_break",
-  "try_form_builder_html",
-  "fields",
   "sb1",
   "naming_rule",
   "autoname",
@@ -35,6 +32,32 @@
   "column_break_15",
   "description",
   "documentation",
+  "sb2",
+  "permissions",
+  "restrict_to_domain",
+  "read_only",
+  "in_create",
+  "actions_section",
+  "actions",
+  "links_section",
+  "links",
+  "document_states_section",
+  "states",
+  "web_view",
+  "has_web_view",
+  "allow_guest_to_view",
+  "index_web_pages_for_search",
+  "route",
+  "is_published_field",
+  "website_search_field",
+  "advanced",
+  "engine",
+  "migration_hash",
+  "form_builder_tab",
+  "form_builder",
+  "fields_section",
+  "fields",
+  "settings_tab",
   "form_settings_section",
   "image_field",
   "timeline_field",
@@ -68,28 +91,7 @@
   "column_break_51",
   "email_append_to",
   "sender_field",
-  "subject_field",
-  "sb2",
-  "permissions",
-  "restrict_to_domain",
-  "read_only",
-  "in_create",
-  "actions_section",
-  "actions",
-  "links_section",
-  "links",
-  "document_states_section",
-  "states",
-  "web_view",
-  "has_web_view",
-  "allow_guest_to_view",
-  "index_web_pages_for_search",
-  "route",
-  "is_published_field",
-  "website_search_field",
-  "advanced",
-  "engine",
-  "migration_hash"
+  "subject_field"
  ],
  "fields": [
   {
@@ -194,12 +196,6 @@
    "fieldname": "beta",
    "fieldtype": "Check",
    "label": "Beta"
-  },
-  {
-   "fieldname": "fields_section_break",
-   "fieldtype": "Section Break",
-   "label": "Fields",
-   "oldfieldtype": "Section Break"
   },
   {
    "fieldname": "fields",
@@ -633,9 +629,25 @@
    "label": "Is Calendar and Gantt"
   },
   {
-   "fieldname": "try_form_builder_html",
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "form_builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "form_builder",
    "fieldtype": "HTML",
-   "label": "Try Form Builder HTML"
+   "label": "Form Builder"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -718,7 +730,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-05-15 14:07:51.526257",
+ "modified": "2023-07-12 13:56:26.185637",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
