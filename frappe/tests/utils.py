@@ -4,6 +4,7 @@ import signal
 import unittest
 from contextlib import contextmanager
 from typing import Sequence
+from unittest.mock import patch
 
 import frappe
 from frappe.model.base_document import BaseDocument
@@ -196,3 +197,16 @@ def timeout(seconds=30, error_message="Test timed out."):
 		return wrapper
 
 	return decorator
+
+
+@contextmanager
+def patch_hooks(overridden_hoooks):
+	get_hooks = frappe.get_hooks
+
+	def patched_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if hook in overridden_hoooks:
+			return overridden_hoooks[hook]
+		return get_hooks(hook, default, app_name)
+
+	with patch.object(frappe, "get_hooks", patched_hooks):
+		yield
