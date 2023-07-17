@@ -106,6 +106,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(frappe.as_unicode(init_template))
 
+	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
+		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
+
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
 			frappe.as_unicode(
@@ -268,6 +271,28 @@ class PatchCreator:
 init_template = """
 __version__ = '0.0.1'
 
+"""
+
+pyproject_template = """[project]
+name = "{app_name}"
+authors = [
+    {{ name = "{app_publisher}", email = "{app_email}"}}
+]
+description = "{app_description}"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # "frappe~=15.0.0" # Installed and managed by bench.
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+# These dependencies are only installed when developer mode is enabled
+[tool.bench.dev-dependencies]
+# package_name = "~=1.1.0"
 """
 
 hooks_template = """app_name = "{app_name}"
