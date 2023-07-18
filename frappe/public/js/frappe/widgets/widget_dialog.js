@@ -381,23 +381,29 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "link_to",
 				label: "Link To",
 				options: "type",
-				onchange: () => {
+				onchange: async () => {
 					const doctype = this.dialog.get_value("link_to");
 					if (doctype && this.dialog.get_value("type") == "DocType") {
-						frappe.model.with_doctype(doctype, () => {
+						frappe.model.with_doctype(doctype, async () => {
 							let meta = frappe.get_meta(doctype);
-
+				
 							if (doctype && frappe.boot.single_types.includes(doctype)) {
 								this.hide_filters();
 							} else if (doctype) {
 								this.setup_filter(doctype);
 								this.show_filters();
 							}
-
+				
 							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === "Tree") views.push("Tree");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
+							const response = await frappe.db.get_value("Kanban Board", { reference_doctype: doctype }, "name");
+
+							if (response && response.message.name) {
+								views.push("Kanban");
+							}
+							
 							this.dialog.set_df_property("doc_view", "options", views.join("\n"));
 						});
 					} else {
@@ -426,13 +432,40 @@ class ShortcutDialog extends WidgetDialog {
 				),
 				default: "List",
 				depends_on: (state) => {
-					if (this.dialog) {
+					if (this.dialog && this.dialog.get_value("link_to")) {
 						let doctype = this.dialog.get_value("link_to");
 						let is_single = frappe.boot.single_types.includes(doctype);
 						return state.type == "DocType" && !is_single;
 					}
 
 					return false;
+				},
+				onchange: () => {
+					if (this.dialog.get_value("doc_view") == "Kanban") {
+						this.dialog.fields_dict.kanban_board.get_query = () => {
+							return {
+								filters: {
+									reference_doctype: this.dialog.get_value("link_to"),
+								},
+							};
+						};
+					} else {
+						this.dialog.fields_dict.link_to.get_query = null;
+					}
+				}
+			},
+			{
+				fieldtype: "Link",
+				fieldname: "kanban_board",
+				label: "Kanban Board",
+				options: "Kanban Board",
+				depends_on: () => {
+					let doc_view = this.dialog?.get_value("doc_view");
+					return doc_view == "Kanban";
+				},
+				mandatory_depends_on: () => {
+					let doc_view = this.dialog?.get_value("doc_view");
+					return doc_view == "Kanban";
 				},
 			},
 			{
