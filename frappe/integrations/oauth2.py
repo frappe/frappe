@@ -101,6 +101,10 @@ def authorize(**kwargs):
 				frappe.local.response["type"] = "redirect"
 				frappe.local.response["location"] = success_url
 			else:
+				if "openid" in scopes:
+					scopes.remove("openid")
+					scopes.extend(["First Name", "Last Name", "Email", "Password", "User Image", "Roles"])
+
 				# Show Allow/Deny screen.
 				response_html_params = frappe._dict(
 					{
