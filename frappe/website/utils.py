@@ -358,8 +358,22 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 def clear_cache(path=None):
 	"""Clear website caches
 	:param path: (optional) for the given path"""
+<<<<<<< HEAD
 	for key in ("website_generator_routes", "website_pages", "website_full_index", "sitemap_routes"):
 		frappe.cache().delete_value(key)
+=======
+	from frappe.website.router import clear_routing_cache
+
+	for key in (
+		"website_generator_routes",
+		"website_pages",
+		"website_full_index",
+		"sitemap_routes",
+		"languages_with_name",
+		"languages",
+	):
+		frappe.cache.delete_value(key)
+>>>>>>> 588bbd9d1c (fix: include languages when clearing website cache)
 
 	frappe.cache().delete_value("website_404")
 	if path:
