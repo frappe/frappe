@@ -234,6 +234,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.data = this.frm.meta.__dashboard || {};
 		if (!this.data.transactions) this.data.transactions = [];
 		if (!this.data.internal_links) this.data.internal_links = {};
+		this.internal_links_doctypes_to_skip = [];
 		this.filter_permissions();
 	}
 
@@ -354,10 +355,21 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			names = $link.attr("data-names") || [];
 
 		if (this.data.internal_links[doctype]) {
-			if (names.length) {
-				frappe.route_options = { name: ["in", names] };
+			if (
+				this.internal_links_doctypes_to_skip &&
+				this.internal_links_doctypes_to_skip.includes(doctype) &&
+				this.data.fieldname
+			) {
+				frappe.route_options = this.get_document_filter(doctype);
+				if (show_open && frappe.ui.notifications) {
+					frappe.ui.notifications.show_open_count_list(doctype);
+				}
 			} else {
-				return false;
+				if (names.length) {
+					frappe.route_options = { name: ["in", names] };
+				} else {
+					return false;
+				}
 			}
 		} else if (this.data.fieldname) {
 			frappe.route_options = this.get_document_filter(doctype);
@@ -417,11 +429,37 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 				// update badges
 				$.each(r.message.count, function (i, d) {
-					me.frm.dashboard.set_badge_count(d.name, cint(d.open_count), cint(d.count));
+					if (
+						me.data.internal_links &&
+						Object.keys(me.data.internal_links).includes(d.name)
+					) {
+						if (cint(d.open_count) || cint(d.count)) {
+							me.internal_links_doctypes_to_skip.push(d.name);
+							me.frm.dashboard.set_badge_count(
+								d.name,
+								cint(d.open_count),
+								cint(d.count),
+								null,
+								true
+							);
+						}
+					} else {
+						me.frm.dashboard.set_badge_count(
+							d.name,
+							cint(d.open_count),
+							cint(d.count)
+						);
+					}
 				});
 
 				// update from internal links
 				$.each(me.data.internal_links, (doctype, link) => {
+					if (
+						me.internal_links_doctypes_to_skip &&
+						me.internal_links_doctypes_to_skip.includes(doctype)
+					)
+						return;
+
 					let names = [];
 					if (typeof link === "string" || link instanceof String) {
 						// get internal links in parent document
@@ -448,7 +486,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 	}
 
-	set_badge_count(doctype, open_count, count, names) {
+	set_badge_count(doctype, open_count, count, names, skip_internal_link_doctype) {
 		let $link = $(this.transactions_area).find(
 			'.document-link[data-doctype="' + doctype + '"]'
 		);
@@ -467,7 +505,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				.text(count > 99 ? "99+" : count);
 		}
 
-		if (this.data.internal_links[doctype]) {
+		if (this.data.internal_links[doctype] && !skip_internal_link_doctype) {
 			if (names && names.length) {
 				$link.attr("data-names", names ? names.join(",") : "");
 			} else {
