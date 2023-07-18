@@ -269,7 +269,9 @@ def get_open_count(doctype, name, items=None):
 
 	out = []
 	for d in items:
-		if d in links.get("internal_links", {}):
+		if d in links.get("internal_links", {}) and not links.get("non_standard_fieldnames", {}).get(
+			d, {}
+		):
 			continue
 
 		filters = get_filters_for(d)
