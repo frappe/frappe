@@ -35,6 +35,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	}
 
 	make_map(value) {
+		this.customize_draw_controls();
 		this.bind_leaflet_map();
 		if (this.disabled) {
 			this.map.dragging.disable();
@@ -113,7 +114,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 	 */
 	on_each_feature(feature, layer) {}
 
-	bind_leaflet_map() {
+	customize_draw_controls() {
 		const circleToGeoJSON = L.Circle.prototype.toGeoJSON;
 		L.Circle.include({
 			toGeoJSON: function () {
@@ -138,6 +139,9 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 		});
 
 		L.Icon.Default.imagePath = "/assets/frappe/images/leaflet/";
+	}
+
+	bind_leaflet_map() {
 		this.map = L.map(this.map_id);
 		this.map.setView(frappe.utils.map_defaults.center, frappe.utils.map_defaults.zoom);
 
