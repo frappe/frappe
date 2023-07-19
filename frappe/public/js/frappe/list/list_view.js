@@ -24,6 +24,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	constructor(opts) {
 		super(opts);
 		this.show();
+		this.debounced_refresh = frappe.utils.debounce(
+			this.process_document_refreshes.bind(this),
+			2000
+		);
 	}
 
 	has_permissions() {
@@ -1370,7 +1374,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.pending_document_refreshes.push(data);
-			frappe.utils.debounce(this.process_document_refreshes.bind(this), 1000)();
+			this.debounced_refresh();
 		});
 		this.realtime_events_setup = true;
 	}
