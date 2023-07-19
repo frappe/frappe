@@ -86,10 +86,42 @@ def post_process():
 
 
 def mark_duplicates(request):
-	counts = Counter([call["query"] for call in request["calls"]])
+	exact_duplicates = Counter([call["query"] for call in request["calls"]])
+
+	for sql_call in request["calls"]:
+		sql_call["normalized_query"] = normalize_query(sql_call["query"])
+
+	normalized_duplicates = Counter([call["normalized_query"] for call in request["calls"]])
+
 	for index, call in enumerate(request["calls"]):
 		call["index"] = index
-		call["exact_copies"] = counts[call["query"]]
+		call["exact_copies"] = exact_duplicates[call["query"]]
+		call["normalized_copies"] = normalized_duplicates[call["normalized_query"]]
+
+
+def normalize_query(query: str) -> str:
+	"""Attempt to normalize query by removing variables.
+	This gives a different view of similar duplicate queries.
+
+	Example:
+	        These two are distinct queries:
+	                `select * from user where name = 'x'`
+	                `select * from user where name = 'z'`
+
+	        But their "normalized" form would be same:
+	                `select * from user where name = ?`
+	"""
+
+	try:
+		q = sqlparse.parse(query)[0]
+		for token in q.flatten():
+			if "Token.Literal" in str(token.ttype):
+				token.value = "?"
+		return str(q)
+	except Exception as e:
+		print("Failed to normalize query ", e)
+
+	return query
 
 
 def record(force=False):
