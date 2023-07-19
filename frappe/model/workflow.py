@@ -228,11 +228,15 @@ def send_email_alert(workflow_name):
 
 
 def get_workflow_field_value(workflow_name, field):
+<<<<<<< HEAD
 	value = frappe.cache().hget("workflow_" + workflow_name, field)
 	if value is None:
 		value = frappe.db.get_value("Workflow", workflow_name, field)
 		frappe.cache().hset("workflow_" + workflow_name, field, value)
 	return value
+=======
+	return frappe.get_cached_value("Workflow", workflow_name, field)
+>>>>>>> 892c5e30a2 (refactor: Simpler workflow caching)
 
 
 @frappe.whitelist()
