@@ -138,7 +138,7 @@ frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.f
 			},
 		});
 
-		L.Icon.Default.imagePath = "/assets/frappe/images/leaflet/";
+		L.Icon.Default.imagePath = frappe.utils.map_defaults.image_path;
 	}
 
 	bind_leaflet_map() {

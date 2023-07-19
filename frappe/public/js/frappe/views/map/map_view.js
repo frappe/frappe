@@ -32,7 +32,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 
 		this.$result.html(`<div id="${this.map_id}" class="map-view-container"></div>`);
 
-		L.Icon.Default.imagePath = "/assets/frappe/images/leaflet/";
+		L.Icon.Default.imagePath = frappe.utils.map_defaults.image_path;
 		this.map = L.map(this.map_id).setView(
 			frappe.utils.map_defaults.center,
 			frappe.utils.map_defaults.zoom
