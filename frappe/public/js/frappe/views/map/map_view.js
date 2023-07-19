@@ -1,7 +1,7 @@
 /**
  * frappe.views.MapView
  */
-frappe.provide("frappe.utils.utils");
+frappe.provide("frappe.utils");
 frappe.provide("frappe.views");
 
 frappe.views.MapView = class MapView extends frappe.views.ListView {

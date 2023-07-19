@@ -1,4 +1,4 @@
-frappe.provide("frappe.utils.utils");
+frappe.provide("frappe.utils");
 
 frappe.ui.form.ControlGeolocation = class ControlGeolocation extends frappe.ui.form.ControlData {
 	static horizontal = false;
