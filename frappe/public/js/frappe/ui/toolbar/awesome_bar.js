@@ -127,7 +127,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 		});
 		frappe.search.utils.setup_recent();
-		frappe.tags.utils.fetch_tags();
 	}
 
 	add_help() {

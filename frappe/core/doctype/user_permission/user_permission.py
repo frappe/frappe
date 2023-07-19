@@ -60,6 +60,10 @@ class UserPermission(Document):
 			frappe.throw(_("{0} has already assigned default value for {1}.").format(ref_link, self.allow))
 
 
+def send_user_permissions(bootinfo):
+	bootinfo.user["user_permissions"] = get_user_permissions()
+
+
 @frappe.whitelist()
 def get_user_permissions(user=None):
 	"""Get all users permissions for the user as a dict of doctype"""
