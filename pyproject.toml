@@ -20,7 +20,7 @@ dependencies = [
     "PyPDF2~=2.1.0",
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
-    "PyYAML~=6.0",
+    "PyYAML~=6.0.1",
     "RestrictedPython~=6.0",
     "WeasyPrint==52.5",
     "Werkzeug~=2.2.2",

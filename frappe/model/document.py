@@ -1211,9 +1211,12 @@ class Document(BaseDocument):
 		):
 			return
 
-		version = frappe.new_doc("Version")
+		doc_to_compare = self._doc_before_save
+		if not doc_to_compare and (amended_from := self.get("amended_from")):
+			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
-		if is_useful_diff := version.update_version_info(self._doc_before_save, self):
+		version = frappe.new_doc("Version")
+		if is_useful_diff := version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
 
 			if not frappe.flags.in_migrate:

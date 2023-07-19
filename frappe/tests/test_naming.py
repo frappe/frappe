@@ -1,6 +1,8 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.naming import (
@@ -12,7 +14,7 @@ from frappe.model.naming import (
 	parse_naming_series,
 	revert_series_if_last,
 )
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, patch_hooks
 from frappe.utils import now_datetime, nowdate, nowtime
 
 
@@ -377,6 +379,28 @@ class TestNaming(FrappeTestCase):
 
 		name = parse_naming_series(series, doc=webhook)
 		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
+
+	def test_custom_parser(self):
+		# check naming with custom parser
+		todo = frappe.new_doc("ToDo")
+		series = "TODO-.PM.-.####"
+
+		frappe.clear_cache()
+		with patch_hooks(
+			{
+				"naming_series_variables": {
+					"PM": ["frappe.tests.test_naming.parse_naming_series_variable"],
+				},
+			},
+		):
+			name = parse_naming_series(series, doc=todo)
+			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
+			self.assertEqual(name, expected_name)
+
+
+def parse_naming_series_variable(doc, variable):
+	if variable == "PM":
+		return nowdate().split("-")[1]
 
 
 def make_invalid_todo():

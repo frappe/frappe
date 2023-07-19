@@ -583,9 +583,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</div>
 		`);
 		this.setup_new_doc_event();
-		if (this.list_view_settings && !this.list_view_settings.disable_sidebar_stats) {
-			this.list_sidebar && this.list_sidebar.reload_stats();
-		}
 		this.toggle_paging && this.$paging_area.toggle(true);
 	}
 
@@ -708,9 +705,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_column_html(col, doc) {
 		if (col.type === "Status" || col.df?.options == "Workflow State") {
+			let show_workflow_state = col.df?.options == "Workflow State";
 			return `
 				<div class="list-row-col hidden-xs ellipsis">
-					${this.get_indicator_html(doc)}
+					${this.get_indicator_html(doc, show_workflow_state)}
 				</div>
 			`;
 		}
@@ -1007,8 +1005,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return subject_html;
 	}
 
-	get_indicator_html(doc) {
-		const indicator = frappe.get_indicator(doc, this.doctype);
+	get_indicator_html(doc, show_workflow_state) {
+		const indicator = frappe.get_indicator(doc, this.doctype, show_workflow_state);
 		// sequence is important
 		const docstatus_description = [
 			__("Document is in draft state"),

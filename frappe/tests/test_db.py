@@ -913,3 +913,34 @@ class TestTransactionManagement(FrappeTestCase):
 
 		frappe.db.commit()
 		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+
+# Treat same DB as replica for tests, a separate connection will be opened
+class TestReplicaConnections(FrappeTestCase):
+	def test_switching_to_replica(self):
+		with patch.dict(frappe.local.conf, {"read_from_replica": 1, "replica_host": "localhost"}):
+
+			def db_id():
+				return id(frappe.local.db)
+
+			write_connection = db_id()
+			read_only_connection = None
+
+			@frappe.read_only()
+			def outer():
+				nonlocal read_only_connection
+				read_only_connection = db_id()
+
+				# A new connection should be opened
+				self.assertNotEqual(read_only_connection, write_connection)
+				inner()
+				# calling nested read only function shouldn't change connection
+				self.assertEqual(read_only_connection, db_id())
+
+			@frappe.read_only()
+			def inner():
+				# calling nested read only function shouldn't change connection
+				self.assertEqual(read_only_connection, db_id())
+
+			outer()
+			self.assertEqual(write_connection, db_id())

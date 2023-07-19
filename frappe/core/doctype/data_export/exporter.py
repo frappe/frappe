@@ -427,7 +427,7 @@ class DataExporter:
 		os.remove(filename)
 
 		# write out response as a xlsx type
-		frappe.response["filename"] = self.doctype + ".xlsx"
+		frappe.response["filename"] = _(self.doctype) + ".xlsx"
 		frappe.response["filecontent"] = xlsx_file.getvalue()
 		frappe.response["type"] = "binary"
 
