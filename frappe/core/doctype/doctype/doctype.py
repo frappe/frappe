@@ -110,6 +110,7 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+		self.enable_indexing_for_dashboard_links()
 
 		if not self.istable:
 			validate_permissions(self)
@@ -211,6 +212,12 @@ class DocType(Document):
 		for d in self.fields:
 			if d.translatable and not supports_translation(d.fieldtype):
 				d.translatable = 0
+
+	def enable_indexing_for_dashboard_links(self):
+		"""Enable indexing for outgoing links used in dashboard"""
+		for d in self.fields:
+			if d.fieldtype == "Link" and frappe.db.exists("DocType Link", {"parent": d.options, "link_doctype": self.name, "link_fieldname": d.fieldname}):
+				d.search_index = 1
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
