@@ -12,6 +12,8 @@
   "address_type",
   "address_line1",
   "address_line2",
+  "apartment_address",
+  "landmark",
   "city",
   "county",
   "state",
@@ -143,12 +145,22 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "Dynamic Link"
+  },
+  {
+   "fieldname": "apartment_address",
+   "fieldtype": "Data",
+   "label": "Apartment Address"
+  },
+  {
+   "fieldname": "landmark",
+   "fieldtype": "Data",
+   "label": "Landmark"
   }
  ],
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2020-10-21 16:14:37.284830",
+ "modified": "2023-07-18 17:49:56.017482",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
