@@ -58,6 +58,10 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 	queue = ", ".join(queue_names)
 	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
 
+	current_job = worker.get_current_job_id()
+	if current_job and not current_job.startswith(frappe.local.site):
+		current_job = None
+
 	return frappe._dict(
 		name=worker.pid,
 		queue=queue,
@@ -65,7 +69,7 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 		worker_name=worker.name,
 		status=worker.get_state(),
 		pid=worker.pid,
-		current_job_id=worker.get_current_job_id(),
+		current_job_id=current_job,
 		last_heartbeat=convert_utc_to_system_timezone(worker.last_heartbeat),
 		birth_date=convert_utc_to_system_timezone(worker.birth_date),
 		successful_job_count=worker.successful_job_count,
