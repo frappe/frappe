@@ -1,5 +1,7 @@
+import os
+
 import frappe
-from frappe import _
+from frappe import _, scrub
 from frappe.utils import add_to_date, now
 
 UI_TEST_USER = "frappe@example.com"
@@ -301,21 +303,34 @@ def update_webform_to_multistep():
 
 
 @whitelist_for_tests
-def update_child_table(name):
+def update_child_table(name, doctype_to_link_name=None, doctype_to_link_fieldname=None):
 	doc = frappe.get_doc("DocType", name)
 	if len(doc.fields) == 1:
 		doc.append(
 			"fields",
 			{
-				"fieldname": "doctype_to_link",
+				"fieldname": doctype_to_link_fieldname or "doctype_to_link",
 				"fieldtype": "Link",
 				"in_list_view": 1,
-				"label": "Doctype to Link",
-				"options": "Doctype to Link",
+				"label": doctype_to_link_name or "Doctype to Link",
+				"options": doctype_to_link_name or "Doctype to Link",
 			},
 		)
 
 		doc.save()
+
+
+@whitelist_for_tests
+def create_dashboard_py_for_doctype(name, dashboard):
+	scrubbed_name = scrub(name)
+	target_file = os.path.join(
+		frappe.get_pymodule_path("frappe"),
+		"custom/doctype",
+		scrubbed_name,
+		scrubbed_name + "_dashboard.py",
+	)
+	with open(target_file, "w+") as t:
+		t.write(dashboard)
 
 
 @whitelist_for_tests
