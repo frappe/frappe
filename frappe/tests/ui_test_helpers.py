@@ -321,11 +321,12 @@ def update_child_table(name, doctype_to_link_name=None, doctype_to_link_fieldnam
 
 
 @whitelist_for_tests
-def create_dashboard_py_for_doctype(name, dashboard):
+def create_dashboard_py_for_doctype(name, module, dashboard):
 	scrubbed_name = scrub(name)
 	target_file = os.path.join(
 		frappe.get_pymodule_path("frappe"),
-		"custom/doctype",
+		module,
+		"doctype",
 		scrubbed_name,
 		scrubbed_name + "_dashboard.py",
 	)
