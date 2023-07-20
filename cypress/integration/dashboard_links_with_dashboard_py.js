@@ -57,20 +57,6 @@ context("Dashboard links with dashboard.py", () => {
 	});
 
 	afterEach(() => {
-		cy.visit("/app/doctype-b-with-child-table-with-link-to-doctype-a");
-		cy.clear_filters();
-		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
-		cy.findByRole("button", { name: "Actions" }).click();
-		cy.get('.actions-btn-group [data-label="Delete"]').click();
-		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
-
-		cy.visit("/app/doctype-a-with-child-table-with-link-to-doctype-b");
-		cy.clear_filters();
-		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
-		cy.findByRole("button", { name: "Actions" }).click();
-		cy.get('.actions-btn-group [data-label="Delete"]').click();
-		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
-
 		cy.remove_doc("DocType", child_table_with_link_to_doctype_a_name);
 		cy.remove_doc("DocType", child_table_with_link_to_doctype_b_name);
 		cy.remove_doc("DocType", doctype_a_with_child_table_with_link_to_doctype_b_name);
@@ -137,6 +123,10 @@ context("Dashboard links with dashboard.py", () => {
 		cy.get('[data-doctype="Doctype B With Child Table With Link To Doctype A"]')
 			.contains("Doctype B With Child Table With Link To Doctype A")
 			.click();
+
+		//Deleting docs
+		cy.remove_doc("Doctype A With Child Table With Link To Doctype B", "Mars");
+		cy.remove_doc("Doctype B With Child Table With Link To Doctype A", "Earth");
 	});
 
 	it("Adds a new doctype_a_with_child_table_with_link_to_doctype_b and a new doctype_b_with_child_table_with_link_to_doctype_a with a link to the previous doc, checks for the counter on the doctype_a_with_child_table_with_link_to_doctype_b's dashboard and deletes the created docs", () => {
@@ -197,5 +187,9 @@ context("Dashboard links with dashboard.py", () => {
 		cy.get('[data-doctype="Doctype B With Child Table With Link To Doctype A"]')
 			.contains("Doctype B With Child Table With Link To Doctype A")
 			.click();
+
+		//Deleting docs
+		cy.remove_doc("Doctype B With Child Table With Link To Doctype A", "Pluto");
+		cy.remove_doc("Doctype A With Child Table With Link To Doctype B", "Neptune");
 	});
 });
