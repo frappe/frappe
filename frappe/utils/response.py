@@ -29,9 +29,7 @@ if TYPE_CHECKING:
 
 def report_error(status_code):
 	"""Build error. Show traceback in developer mode"""
-	allow_traceback = (
-		cint(frappe.db.get_system_setting("allow_error_traceback")) if frappe.db else True
-	)
+	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 	if (
 		allow_traceback
 		and (status_code != 404 or frappe.conf.logging)

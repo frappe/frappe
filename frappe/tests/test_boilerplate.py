@@ -56,9 +56,8 @@ class TestBoilerPlate(unittest.TestCase):
 		cls.git_folder = ".git"
 
 		cls.root_paths = [
-			"requirements.txt",
 			"README.md",
-			"setup.py",
+			"pyproject.toml",
 			"license.txt",
 			cls.git_folder,
 			cls.gitignore_file,

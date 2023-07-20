@@ -24,6 +24,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	constructor(opts) {
 		super(opts);
 		this.show();
+		this.debounced_refresh = frappe.utils.debounce(
+			this.process_document_refreshes.bind(this),
+			2000
+		);
 	}
 
 	has_permissions() {
@@ -1377,7 +1381,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.pending_document_refreshes.push(data);
-			frappe.utils.debounce(this.process_document_refreshes.bind(this), 1000)();
+			this.debounced_refresh();
 		});
 		this.realtime_events_setup = true;
 	}
@@ -1556,12 +1560,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.get_filters_for_args().forEach((filter) => {
 			if (filter[2] === "=") {
-				search_params.append(filter[1], encodeURIComponent(filter[3]));
+				search_params.append(filter[1], filter[3]);
 			} else {
-				search_params.append(
-					filter[1],
-					encodeURIComponent(JSON.stringify([filter[2], filter[3]]))
-				);
+				search_params.append(filter[1], JSON.stringify([filter[2], filter[3]]));
 			}
 		});
 		return search_params;

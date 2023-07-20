@@ -44,8 +44,6 @@ function show_toggle_sending_button(list_view) {
 }
 
 function add_bulk_retry_button_to_actions(list_view) {
-	if (!has_common(frappe.user_roles, ["Administrator", "System Manager"])) return;
-
 	list_view.page.add_actions_menu_item(__("Retry Sending"), () => {
 		frappe.call({
 			method: "frappe.email.doctype.email_queue.email_queue.bulk_retry",

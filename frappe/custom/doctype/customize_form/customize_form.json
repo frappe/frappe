@@ -21,12 +21,20 @@
   "allow_auto_repeat",
   "allow_import",
   "queue_in_background",
-  "fields_section_break",
-  "try_form_builder_html",
-  "fields",
   "naming_section",
   "naming_rule",
   "autoname",
+  "document_actions_section",
+  "actions",
+  "document_links_section",
+  "links",
+  "document_states_section",
+  "states",
+  "form_tab",
+  "form_builder",
+  "fields_section_break",
+  "fields",
+  "settings_tab",
   "form_settings_section",
   "image_field",
   "max_attachments",
@@ -48,12 +56,6 @@
   "email_append_to",
   "sender_field",
   "subject_field",
-  "document_actions_section",
-  "actions",
-  "document_links_section",
-  "links",
-  "document_states_section",
-  "states",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -174,8 +176,8 @@
    "options": "ASC\nDESC"
   },
   {
+   "collapsible": 1,
    "depends_on": "doc_type",
-   "description": "Customize Label, Print Hide, Default etc.",
    "fieldname": "fields_section_break",
    "fieldtype": "Section Break",
    "label": "Fields"
@@ -369,9 +371,19 @@
    "label": "Is Calendar and Gantt"
   },
   {
-   "fieldname": "try_form_builder_html",
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "form_builder",
    "fieldtype": "HTML",
-   "label": "Try Form Builder HTML"
+   "label": "Form Builder"
+  },
+  {
+   "fieldname": "form_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
   }
  ],
  "hide_toolbar": 1,
@@ -380,7 +392,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-05-15 16:03:19.872532",
+ "modified": "2023-07-16 13:25:46.201184",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
