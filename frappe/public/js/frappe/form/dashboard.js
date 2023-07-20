@@ -250,7 +250,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.data = this.frm.meta.__dashboard || {};
 		if (!this.data.transactions) this.data.transactions = [];
 		if (!this.data.internal_links) this.data.internal_links = {};
-		this.both_internal_and_external_link_doctypes_with_external_links_found = [];
+		this.doctypes_in_both_external_and_internal_links_and_external_links_found = [];
 		this.filter_permissions();
 	}
 
@@ -372,8 +372,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		if (this.data.internal_links[doctype]) {
 			if (
-				this.both_internal_and_external_link_doctypes_with_external_links_found &&
-				this.both_internal_and_external_link_doctypes_with_external_links_found.includes(
+				this.doctypes_in_both_external_and_internal_links_and_external_links_found &&
+				this.doctypes_in_both_external_and_internal_links_and_external_links_found.includes(
 					doctype
 				) &&
 				this.data.fieldname
@@ -483,7 +483,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 					cint(external_links_doctype_data.open_count),
 					cint(external_links_doctype_data.count)
 				);
-				me.both_internal_and_external_link_doctypes_with_external_links_found.push(
+				me.doctypes_in_both_external_and_internal_links_and_external_links_found.push(
 					doctype
 				);
 			} else if (
