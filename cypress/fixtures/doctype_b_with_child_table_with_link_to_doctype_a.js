@@ -3,7 +3,6 @@ export default {
 	allow_rename: 1,
 	autoname: "field:title",
 	creation: "2023-07-19 20:26:12.108640",
-	custom: 1,
 	default_view: "List",
 	doctype: "DocType",
 	editable_grid: 1,
