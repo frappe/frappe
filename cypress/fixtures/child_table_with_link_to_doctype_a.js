@@ -3,6 +3,7 @@ export default {
 	allow_rename: 1,
 	autoname: "field:title",
 	creation: "2023-07-19 20:24:03.882049",
+	custom: 1,
 	doctype: "DocType",
 	editable_grid: 1,
 	engine: "InnoDB",
