@@ -217,4 +217,76 @@ context("Dashboard links", () => {
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
 		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
 	});
+
+	it("Adds a new doctype_a_with_child_table_with_link_to_doctype_b and a new doctype_b_with_child_table_with_link_to_doctype_a with a link to the previous doc, checks for the counter on the doctype_a_with_child_table_with_link_to_doctype_b's dashboard and deletes the created docs", () => {
+		//Adding a new Doctype A With Child Table With Link To Doctype B
+		cy.visit("/app/doctype-a-with-child-table-with-link-to-doctype-b");
+		cy.clear_filters();
+		cy.findByRole("button", {
+			name: "Add Doctype A With Child Table With Link To Doctype B",
+		}).should("be.visible");
+		cy.findByRole("button", {
+			name: "Add Doctype A With Child Table With Link To Doctype B",
+		}).click();
+		cy.get(
+			'[data-doctype="Doctype A With Child Table With Link To Doctype B"][data-fieldname="title"]'
+		).type("Neptune");
+		cy.get('.frappe-control[data-fieldname="child_table"]').as("table");
+		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").find('[data-idx="1"]').as("row1");
+		cy.get("@row1").find(".btn-open-row").click();
+		cy.get("@row1").find(".form-in-grid").as("row1-form_in_grid");
+		cy.fill_table_field("child_table", "1", "title", "Neptune");
+		cy.get("@row1-form_in_grid").find(".grid-collapse-row").click();
+		cy.findByRole("button", { name: "Save" }).click();
+
+		//Adding a new Doctype B With Child Table With Link To Doctype A with a link to the previous doc
+		cy.visit("/app/doctype-b-with-child-table-with-link-to-doctype-a");
+		cy.clear_filters();
+		cy.findByRole("button", {
+			name: "Add Doctype B With Child Table With Link To Doctype A",
+		}).should("be.visible");
+		cy.findByRole("button", {
+			name: "Add Doctype B With Child Table With Link To Doctype A",
+		}).click();
+		cy.get(
+			'[data-doctype="Doctype B With Child Table With Link To Doctype A"][data-fieldname="title"]'
+		).type("Pluto");
+		cy.get('.frappe-control[data-fieldname="child_table"]').as("table");
+		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
+		cy.get("@table").find('[data-idx="1"]').as("row1");
+		cy.get("@row1").find(".btn-open-row").click();
+		cy.get("@row1").find(".form-in-grid").as("row1-form_in_grid");
+		cy.fill_table_field("child_table", "1", "title", "Pluto");
+		cy.fill_table_field(
+			"child_table",
+			"1",
+			"doctype_a_with_child_table_with_link_to_doctype_b",
+			"Neptune"
+		);
+		cy.get("@row1-form_in_grid").find(".grid-collapse-row").click();
+		cy.findByRole("button", { name: "Save" }).click();
+
+		//To check if the counter for Doctype B With Child Table With Link To Doctype A is 1
+		cy.visit(`/app/doctype-a-with-child-table-with-link-to-doctype-b/Neptune`);
+		cy.get(".form-tabs > .nav-item").eq(1).click();
+		cy.get(
+			'[data-doctype="Doctype B With Child Table With Link To Doctype A"] > .count'
+		).should("contain", "1");
+		cy.get('[data-doctype="Doctype B With Child Table With Link To Doctype A"]')
+			.contains("Doctype B With Child Table With Link To Doctype A")
+			.click();
+
+		//Deleting the newly created docs
+		cy.visit("/app/doctype-a-with-child-table-with-link-to-doctype-b");
+		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
+		cy.findByRole("button", { name: "Actions" }).click();
+		cy.get('.actions-btn-group [data-label="Delete"]').click();
+		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
+		cy.visit("/app/doctype-b-with-child-table-with-link-to-doctype-a");
+		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
+		cy.findByRole("button", { name: "Actions" }).click();
+		cy.get('.actions-btn-group [data-label="Delete"]').click();
+		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
+	});
 });
