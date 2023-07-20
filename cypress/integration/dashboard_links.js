@@ -45,7 +45,7 @@ context("Dashboard links", () => {
 						frappe.call("frappe.tests.ui_test_helpers.update_child_table", {
 							name: child_table_with_link_to_doctype_a_name,
 							doctype_to_link_name:
-								"Doctype A With Child Table With Link To Doctype B",
+								doctype_a_with_child_table_with_link_to_doctype_b_name,
 							doctype_to_link_fieldname:
 								"doctype_a_with_child_table_with_link_to_doctype_b",
 						}),
@@ -63,7 +63,7 @@ context("Dashboard links", () => {
 						frappe.call("frappe.tests.ui_test_helpers.update_child_table", {
 							name: child_table_with_link_to_doctype_b_name,
 							doctype_to_link_name:
-								"Doctype B With Child Table With Link To Doctype A",
+								doctype_b_with_child_table_with_link_to_doctype_a_name,
 							doctype_to_link_fieldname:
 								"doctype_b_with_child_table_with_link_to_doctype_a",
 						}),
