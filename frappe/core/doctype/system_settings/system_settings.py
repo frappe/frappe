@@ -42,6 +42,7 @@ class SystemSettings(Document):
 			frappe.flags.update_last_reset_password_date = True
 
 		self.validate_user_pass_login()
+		self.validate_backup_limit()
 
 	def validate_user_pass_login(self):
 		if not self.disable_user_pass_login:
@@ -59,6 +60,11 @@ class SystemSettings(Document):
 					"Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 				)
 			)
+
+	def validate_backup_limit(self):
+		if not self.backup_limit or self.backup_limit < 1:
+			frappe.msgprint(_("Number of backups must be greater than zero."), alert=True)
+			self.backup_limit = 1
 
 	def on_update(self):
 		self.set_defaults()
