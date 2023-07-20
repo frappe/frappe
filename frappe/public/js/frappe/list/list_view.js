@@ -545,7 +545,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (toggle) {
 			this.page.show_actions_menu();
 			this.page.clear_primary_action();
-			this.toggle_workflow_actions();
 		} else {
 			this.page.hide_actions_menu();
 			this.set_primary_action();
@@ -1313,6 +1312,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			this.update_checkbox($target);
 		});
+
+		let me = this;
+		this.page.actions_btn_group.on("show.bs.dropdown", () => {
+			me.toggle_workflow_actions();
+		});
 	}
 
 	setup_like() {
@@ -1697,7 +1701,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	toggle_workflow_actions() {
 		if (!frappe.model.has_workflow(this.doctype)) return;
+
+		Object.keys(this.workflow_action_items).forEach((key) => {
+			this.workflow_action_items[key].addClass("disabled");
+		});
 		const checked_items = this.get_checked_items();
+
 		frappe
 			.xcall("frappe.model.workflow.get_common_transition_actions", {
 				docs: checked_items,
@@ -1705,6 +1714,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 			.then((actions) => {
 				Object.keys(this.workflow_action_items).forEach((key) => {
+					this.workflow_action_items[key].removeClass("disabled");
 					this.workflow_action_items[key].toggle(actions.includes(key));
 				});
 			});
