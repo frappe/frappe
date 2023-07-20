@@ -48,7 +48,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			body_html: this.stats_area_row,
 		});
 
-		this.transactions_area = $(`<div class="transactions"></div`);
+		this.transactions_area = $(`<div class="transactions"></div>`);
 
 		this.links_area = this.make_section({
 			label: __("Connections"),
@@ -205,6 +205,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			show = true;
 		}
 
+		this._fetched_counts = false;
+
 		if (this.data.heatmap) {
 			this.render_heatmap();
 			show = true;
@@ -227,7 +229,21 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				$(el).removeClass("hidden");
 			}
 		});
-		!this.frm.is_new() && this.set_open_count();
+		this.observe_link_render();
+	}
+
+	observe_link_render() {
+		let me = this;
+		let element = this.links_area.wrapper[0];
+
+		new IntersectionObserver((entries, observer) => {
+			entries.forEach((entry) => {
+				if (entry.intersectionRatio > 0) {
+					me.set_open_count();
+					observer.disconnect(); // only required for first load.
+				}
+			});
+		}).observe(element);
 	}
 
 	init_data() {
@@ -387,7 +403,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	set_open_count() {
-		if (!this.data || !this.data.transactions || !this.data.fieldname) {
+		if (
+			!this.data ||
+			!this.data.transactions ||
+			!this.data.fieldname ||
+			this.frm.is_new() ||
+			this._fetched_counts
+		) {
 			return;
 		}
 
@@ -443,6 +465,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				});
 
 				me.frm.dashboard_data = r.message;
+				me._fetched_counts = true;
 				me.frm.trigger("dashboard_update");
 			},
 		});
