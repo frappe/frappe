@@ -54,6 +54,7 @@ context("Dashboard links", () => {
 							"frappe.tests.ui_test_helpers.create_dashboard_py_for_doctype",
 							{
 								name: doctype_a_with_child_table_with_link_to_doctype_b_name,
+								module: "custom",
 								dashboard:
 									doctype_a_with_child_table_with_link_to_doctype_b_dashboard,
 							}
