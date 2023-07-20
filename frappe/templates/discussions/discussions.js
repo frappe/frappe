@@ -1,8 +1,12 @@
 frappe.ready(() => {
 	setup_socket_io();
 	add_color_to_avatars();
-	//make_comment_editor();
+	this.single_thread = $(".is-single-thread").length;
 
+	if (this.single_thread)	{
+		make_comment_editor();
+	}
+	
 	$(".search-field").keyup((e) => {
 		search_topic(e);
 	});
@@ -19,6 +23,10 @@ frappe.ready(() => {
 		if ($(e.currentTarget).attr("aria-expanded") == "true") {
 			e.stopPropagation();
 		}
+		setTimeout(() => {
+			if (!$(".discussions-comment:visible").find(".ql-editor").length)
+				make_comment_editor();
+		}, 0);
 	});
 
 	$(document).on("keydown", ".comment-field", (e) => {
@@ -85,7 +93,6 @@ const publish_message = (data) => {
 	const doctype = decodeURIComponent($(".discussions-parent").attr("data-doctype"));
 	const docname = decodeURIComponent($(".discussions-parent").attr("data-docname"));
 	const topic = data.topic_info;
-	const single_thread = $(".is-single-thread").length;
 	const first_topic = !$(".reply-card").length;
 	const document_match_found =
 		doctype == topic.reference_doctype && docname == topic.reference_docname;
@@ -100,14 +107,14 @@ const publish_message = (data) => {
 		$(data.template).insertBefore(
 			`.discussion-on-page[data-topic=${topic.name}] .discussion-form`
 		);
-	} else if (!first_topic && !single_thread && document_match_found) {
+	} else if (!first_topic && !this.single_thread && document_match_found) {
 		$(data.sidebar).insertBefore($(`.discussions-sidebar .sidebar-parent`).first());
 		$(`#discussion-group`).prepend(data.new_topic_template);
 		if (topic.owner == frappe.session.user) {
 			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-parent").first().click();
 		}
-	} else if (single_thread && document_match_found) {
+	} else if (this.single_thread && document_match_found) {
 		$(data.template).insertBefore(`.discussion-form`);
 		$(".discussion-on-page").attr("data-topic", topic.name);
 	} else if (topic.owner == frappe.session.user && document_match_found) {
@@ -128,10 +135,10 @@ const update_message = (data) => {
 
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
-	$(".discussion-form .comment-field").val("");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
 	$(".cancel-comment").addClass("hide");
+	this.comment_editor.set_value("comment_editor", "");
 };
 
 const update_reply_count = (topic) => {
@@ -194,10 +201,9 @@ const submit_discussion = (e) => {
 	const target = $(e.currentTarget);
 	const reply_name = target.closest(".reply-card").data("reply");
 	const title = $(".topic-title:visible").length ? $(".topic-title:visible").val().trim() : "";
-	let reply = reply_name ? target.closest(".reply-card") : target.closest(".discussion-form");
-	reply = reply.find(".comment-field").val().trim();
+	reply = this.comment_editor.get_value("comment_editor");
 
-	if (reply) {
+	if (strip_html(reply).trim() != "" || reply.includes("img")) {
 		let doctype = target.closest(".discussions-parent").attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
@@ -312,6 +318,8 @@ const delete_message = (data) => {
 };
 
 const make_comment_editor = (e) => {
+	console.log("make_comment_editor")
+	console.log($(".discussions-comment:visible"))
 	this.comment_editor = new frappe.ui.FieldGroup({
 		fields: [
 			{
@@ -333,7 +341,7 @@ const make_comment_editor = (e) => {
 			}
 			},
 		],
-		body: $(".discussions-comment").get(0),
+		body: $(".discussions-comment:visible"),
 	});
 	this.comment_editor.make();
 	$(".discussions-comment .form-section:last").removeClass("empty-section");

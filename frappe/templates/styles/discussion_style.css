@@ -73,6 +73,7 @@
 
 .reply-card:last-of-type {
 	border-bottom: none;
+	padding-bottom: 0;
 }
 
 .reply-card .dropdown {
@@ -132,9 +133,16 @@
 	align-items: center;
 }
 
+.discussions-section-title {
+	font-size: var(--text-2xl);
+	font-weight: 600;
+	color: var(--text-color);
+	flex-grow: 1;
+}
+
 .discussion-heading {
 	font-weight: 600;
-	font-size: var(--text-3xl);
+	font-size: var(--text-lg);
 	line-height: 146%;
 	letter-spacing: -0.0175em;
 	color: var(--text-color);
@@ -174,6 +182,7 @@
 }
 
 .back-button {
+	display: flex;
 	margin-right: 1rem;
 	cursor: pointer;
 }
@@ -214,7 +223,7 @@
 .sidebar-parent {
 	display: flex;
 	align-items: center;
-	padding: 1.25rem;
+	padding: 1.25rem 0;
 	cursor: pointer;
 }
 
@@ -238,7 +247,7 @@
 .reply-section-header {
 	display: flex;
 	align-items: center;
-	margin-bottom: 2.5rem;
+	margin-top: 1.5rem;
 }
 
 .reply-header {
@@ -262,4 +271,8 @@
 
 .reply-header .dropdown-menu {
 	min-width: 7rem;
+}
+
+.discussions-parent .ql-editor {
+	border-radius: var(--border-radius-md);
 }

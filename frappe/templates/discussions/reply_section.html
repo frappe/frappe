@@ -9,13 +9,15 @@
 	{% if not single_thread %}
 	<div class="reply-section-header">
 		<div class="back-button">
-			<svg class="icon icon-md mr-0">
+			<svg class="icon icon-sm mr-0">
 				<use class="" href="#icon-left"></use>
 			</svg>
 		</div>
 
 		{% if topic and topic.title %}
-		<div class="discussion-heading p-0">{{ topic.title }}</div>
+		<div class="discussion-heading p-0">
+			{{ topic.title }}
+		</div>
 		{% endif %}
 	</div>
 	{% endif %}
