@@ -234,7 +234,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.data = this.frm.meta.__dashboard || {};
 		if (!this.data.transactions) this.data.transactions = [];
 		if (!this.data.internal_links) this.data.internal_links = {};
-		this.internal_links_doctypes_to_skip = [];
+		this.both_internal_and_external_link_doctypes_with_external_links_found = [];
 		this.filter_permissions();
 	}
 
@@ -356,8 +356,10 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		if (this.data.internal_links[doctype]) {
 			if (
-				this.internal_links_doctypes_to_skip &&
-				this.internal_links_doctypes_to_skip.includes(doctype) &&
+				this.both_internal_and_external_link_doctypes_with_external_links_found &&
+				this.both_internal_and_external_link_doctypes_with_external_links_found.includes(
+					doctype
+				) &&
 				this.data.fieldname
 			) {
 				frappe.route_options = this.get_document_filter(doctype);
@@ -427,58 +429,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 					me.update_heatmap(r.message.timeline_data);
 				}
 
-				// update badges
-				$.each(r.message.count, function (i, d) {
-					if (
-						me.data.internal_links &&
-						Object.keys(me.data.internal_links).includes(d.name)
-					) {
-						if (cint(d.open_count) || cint(d.count)) {
-							me.internal_links_doctypes_to_skip.push(d.name);
-							me.frm.dashboard.set_badge_count(
-								d.name,
-								cint(d.open_count),
-								cint(d.count),
-								null,
-								true
-							);
-						}
-					} else {
-						me.frm.dashboard.set_badge_count(
-							d.name,
-							cint(d.open_count),
-							cint(d.count)
-						);
-					}
-				});
-
-				// update from internal links
-				$.each(me.data.internal_links, (doctype, link) => {
-					if (
-						me.internal_links_doctypes_to_skip &&
-						me.internal_links_doctypes_to_skip.includes(doctype)
-					)
-						return;
-
-					let names = [];
-					if (typeof link === "string" || link instanceof String) {
-						// get internal links in parent document
-						let value = me.frm.doc[link];
-						if (value && !names.includes(value)) {
-							names.push(value);
-						}
-					} else if (Array.isArray(link)) {
-						// get internal links in child documents
-						let [table_fieldname, link_fieldname] = link;
-						(me.frm.doc[table_fieldname] || []).forEach((d) => {
-							let value = d[link_fieldname];
-							if (value && !names.includes(value)) {
-								names.push(value);
-							}
-						});
-					}
-					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
-				});
+				me.update_badges(items, r.message.count);
 
 				me.frm.dashboard_data = r.message;
 				me.frm.trigger("dashboard_update");
@@ -486,11 +437,101 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 	}
 
-	set_badge_count(doctype, open_count, count, names, skip_internal_link_doctype) {
+	update_badges(doctypes, external_links_doctypes_data) {
+		let me = this;
+
+		doctypes.forEach(function (doctype) {
+			const external_links_doctype_data = external_links_doctypes_data.find(
+				(d) => d.name === doctype
+			);
+
+			if (
+				me.data.internal_links &&
+				Object.keys(me.data.internal_links).includes(doctype) &&
+				external_links_doctype_data &&
+				(cint(external_links_doctype_data.open_count) ||
+					cint(external_links_doctype_data.count))
+			) {
+				// doctype is both in internal and external links in the dashboard definition
+				// found external links and setting badge count
+				// not checking internal links
+				me.frm.dashboard.set_badge_count_for_external_link(
+					doctype,
+					cint(external_links_doctype_data.open_count),
+					cint(external_links_doctype_data.count)
+				);
+				me.both_internal_and_external_link_doctypes_with_external_links_found.push(
+					doctype
+				);
+			} else if (
+				me.data.internal_links &&
+				Object.keys(me.data.internal_links).includes(doctype)
+			) {
+				// doctype is only in internal links in the dashboard definition or
+				// doctype is both in internal and external links in the dashboard definition
+				// checking internal links
+				// may or may not find internal links but setting badge count
+				const link = me.data.internal_links[doctype];
+				let names = [];
+				if (typeof link === "string" || link instanceof String) {
+					// get internal links in parent document
+					let value = me.frm.doc[link];
+					if (value && !names.includes(value)) {
+						names.push(value);
+					}
+				} else if (Array.isArray(link)) {
+					// get internal links in child documents
+					let [table_fieldname, link_fieldname] = link;
+					(me.frm.doc[table_fieldname] || []).forEach((d) => {
+						let value = d[link_fieldname];
+						if (value && !names.includes(value)) {
+							names.push(value);
+						}
+					});
+				}
+				me.frm.dashboard.set_badge_count_for_internal_link(
+					doctype,
+					0,
+					names.length,
+					names
+				);
+			} else {
+				// doctype is only in external links in the dashboard definition
+				// may or may not have found external links but setting badge count
+				me.frm.dashboard.set_badge_count_for_external_link(
+					doctype,
+					cint(external_links_doctype_data.open_count),
+					cint(external_links_doctype_data.count)
+				);
+			}
+		});
+	}
+
+	set_badge_count_for_external_link(doctype, open_count, count) {
 		let $link = $(this.transactions_area).find(
 			'.document-link[data-doctype="' + doctype + '"]'
 		);
 
+		this.set_badge_count_common(open_count, count, $link);
+	}
+
+	set_badge_count_for_internal_link(doctype, open_count, count, names) {
+		let $link = $(this.transactions_area).find(
+			'.document-link[data-doctype="' + doctype + '"]'
+		);
+
+		this.set_badge_count_common(open_count, count, $link);
+
+		if (this.data.internal_links[doctype]) {
+			if (names && names.length) {
+				$link.attr("data-names", names ? names.join(",") : "");
+			} else {
+				$link.find("a").attr("disabled", true);
+			}
+		}
+	}
+
+	set_badge_count_common(open_count, count, $link) {
 		if (open_count) {
 			$link
 				.find(".open-notification")
@@ -503,14 +544,6 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				.find(".count")
 				.removeClass("hidden")
 				.text(count > 99 ? "99+" : count);
-		}
-
-		if (this.data.internal_links[doctype] && !skip_internal_link_doctype) {
-			if (names && names.length) {
-				$link.attr("data-names", names ? names.join(",") : "");
-			} else {
-				$link.find("a").attr("disabled", true);
-			}
 		}
 	}
 
