@@ -6,6 +6,7 @@ from types import NoneType
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.functions import Function
 
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | NoneType
@@ -25,8 +26,6 @@ def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
 
 
-<<<<<<< HEAD
-=======
 def is_pypika_function_object(field: str) -> bool:
 	return getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
 
@@ -39,7 +38,6 @@ def get_doctype_name(table_name: str) -> str:
 	return table_name
 
 
->>>>>>> 95d8a0f919 (fix: allow Table instance)
 class LazyString:
 	def _setup(self) -> None:
 		raise NotImplementedError

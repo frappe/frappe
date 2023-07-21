@@ -1,8 +1,55 @@
+import itertools
+
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Field
-from frappe.query_builder.functions import Abs, Count, Max, Timestamp
+from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
+
+
+def create_tree_docs():
+	records = [
+		{
+			"some_fieldname": "Root Node",
+			"parent_test_tree_doctype": None,
+			"is_group": 1,
+		},
+		{
+			"some_fieldname": "Parent 1",
+			"parent_test_tree_doctype": "Root Node",
+			"is_group": 1,
+		},
+		{
+			"some_fieldname": "Parent 2",
+			"parent_test_tree_doctype": "Root Node",
+			"is_group": 1,
+		},
+		{
+			"some_fieldname": "Child 1",
+			"parent_test_tree_doctype": "Parent 1",
+			"is_group": 0,
+		},
+		{
+			"some_fieldname": "Child 2",
+			"parent_test_tree_doctype": "Parent 1",
+			"is_group": 0,
+		},
+		{
+			"some_fieldname": "Child 3",
+			"parent_test_tree_doctype": "Parent 2",
+			"is_group": 0,
+		},
+	]
+
+	tree_doctype = new_doctype("Test Tree DocType", is_tree=True, autoname="field:some_fieldname")
+	tree_doctype.insert()
+
+	for record in records:
+		d = frappe.new_doc("Test Tree DocType")
+		d.update(record)
+		d.insert()
 
 
 class TestQuery(FrappeTestCase):
@@ -17,13 +64,10 @@ class TestQuery(FrappeTestCase):
 					["DocType", "parent", "=", "something"],
 				],
 			).get_sql(),
-<<<<<<< HEAD
-			"SELECT * FROM `tabDocType` LEFT JOIN `tabBOM Update Log` ON `tabBOM Update Log`.`parent`=`tabDocType`.`name` WHERE `tabBOM Update Log`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
-=======
 			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' WHERE `tabDocField`.`name` LIKE 'f%' AND `tabDocType`.`parent`='something'",
->>>>>>> 726fcfdb79 (refactor: qb.engine)
 		)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_string_fields(self):
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="name, email", filters={"name": "Administrator"}).get_sql(),
@@ -32,15 +76,9 @@ class TestQuery(FrappeTestCase):
 			.where(Field("name") == "Administrator")
 			.get_sql(),
 		)
-
 		self.assertEqual(
-<<<<<<< HEAD
-			frappe.qb.engine.get_query(
-				"User", fields=["name, email"], filters={"name": "Administrator"}
-=======
 			frappe.qb.get_query(
 				"User", fields=["`name`, `email`"], filters={"name": "Administrator"}
->>>>>>> 726fcfdb79 (refactor: qb.engine)
 			).get_sql(),
 			frappe.qb.from_("User")
 			.select(Field("name"), Field("email"))
@@ -48,8 +86,6 @@ class TestQuery(FrappeTestCase):
 			.get_sql(),
 		)
 
-<<<<<<< HEAD
-=======
 		self.assertEqual(
 			frappe.qb.get_query(
 				"User", fields=["`tabUser`.`name`", "`tabUser`.`email`"], filters={"name": "Administrator"}
@@ -104,7 +140,6 @@ class TestQuery(FrappeTestCase):
 			.run(),
 		)
 
->>>>>>> 726fcfdb79 (refactor: qb.engine)
 	def test_functions_fields(self):
 		self.assertEqual(
 			frappe.qb.get_query("User", fields="Count(name)", filters={}).get_sql(),
@@ -180,18 +215,9 @@ class TestQuery(FrappeTestCase):
 			.select(Count(Field("name")).as_("count"), user_doctype.email.as_("id"))
 			.get_sql(),
 		)
-<<<<<<< HEAD
-=======
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_filters(self):
-		self.assertEqual(
-			frappe.qb.get_query(
-				"User", filters={"IfNull(name, " ")": ("<", Now())}, fields=["Max(name)"]
-			).run(),
-			frappe.qb.from_("User").select(Max(Field("name"))).where(Ifnull("name", "") < Now()).run(),
-		)
-
 		self.assertEqual(
 			frappe.qb.get_query(
 				"DocType",
@@ -222,6 +248,17 @@ class TestQuery(FrappeTestCase):
 			).get_sql(),
 			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabDocPerm` ON `tabDocPerm`.`parent`=`tabDocType`.`name` AND `tabDocPerm`.`parenttype`='DocType' WHERE `tabDocPerm`.`role`='System Manager'".replace(
 				"`", '"' if frappe.db.db_type == "postgres" else "`"
+			),
+		)
+
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Invalid filter",
+			lambda: frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"permissions.role": "System Manager"},
+				validate_filters=True,
 			),
 		)
 
@@ -386,4 +423,37 @@ class TestQuery(FrappeTestCase):
 
 		frappe.db.sql("delete from `tabDocType` where `name` = 'Test Tree DocType'")
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
->>>>>>> 726fcfdb79 (refactor: qb.engine)
+
+	def test_child_field_syntax(self):
+		note1 = frappe.get_doc(
+			doctype="Note", title="Note 1", seen_by=[{"user": "Administrator"}]
+		).insert()
+		note2 = frappe.get_doc(
+			doctype="Note", title="Note 2", seen_by=[{"user": "Administrator"}, {"user": "Guest"}]
+		).insert()
+
+		result = frappe.qb.get_query(
+			"Note",
+			filters={"name": ["in", [note1.name, note2.name]]},
+			fields=["name", {"seen_by": ["*"]}],
+			order_by="title asc",
+		).run(as_dict=1)
+
+		self.assertTrue(isinstance(result[0].seen_by, list))
+		self.assertTrue(isinstance(result[1].seen_by, list))
+		self.assertEqual(len(result[0].seen_by), 1)
+		self.assertEqual(len(result[1].seen_by), 2)
+		self.assertEqual(result[0].seen_by[0].user, "Administrator")
+
+		result = frappe.qb.get_query(
+			"Note",
+			filters={"name": ["in", [note1.name, note2.name]]},
+			fields=["name", {"seen_by": ["user"]}],
+			order_by="title asc",
+		).run(as_dict=1)
+
+		self.assertEqual(len(result[0].seen_by[0].keys()), 1)
+		self.assertEqual(result[1].seen_by[1].user, "Guest")
+
+		note1.delete()
+		note2.delete()

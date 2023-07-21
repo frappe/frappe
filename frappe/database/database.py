@@ -310,7 +310,7 @@ class Database:
 
 		if frappe.conf.logging == 2:
 			_query = _query or str(mogrified_query)
-			frappe.log(f"<<<< query\n{_query}\n>>>>")
+			frappe.log(f"#### query\n{_query}\n####")
 
 		if unmogrified_query and is_query_type(
 			unmogrified_query, ("alter", "drop", "create", "truncate", "rename")
@@ -819,17 +819,11 @@ class Database:
 		distinct=False,
 		limit=None,
 	):
-<<<<<<< HEAD
-		field_objects = []
-		query = frappe.qb.engine.get_query(
-=======
 		query = frappe.qb.get_query(
->>>>>>> 726fcfdb79 (refactor: qb.engine)
 			table=doctype,
 			filters=filters,
 			order_by=order_by,
 			for_update=for_update,
-			field_objects=field_objects,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
@@ -854,28 +848,14 @@ class Database:
 		as_dict=False,
 	):
 		if names := list(filter(None, names)):
-<<<<<<< HEAD
-			return self.get_all(
-=======
 			return frappe.qb.get_query(
->>>>>>> 726fcfdb79 (refactor: qb.engine)
 				doctype,
 				fields=field,
 				filters=names,
 				order_by=order_by,
-<<<<<<< HEAD
-				pluck=pluck,
-				debug=debug,
-				as_list=not as_dict,
-				run=run,
-				distinct=distinct,
-				limit_page_length=limit,
-			)
-=======
 				distinct=distinct,
 				limit=limit,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
->>>>>>> a0f6a5ff46 (fix: move pluck to run)
 		return {}
 
 	@deprecated
@@ -934,13 +914,6 @@ class Database:
 			).run(debug=debug)
 			frappe.clear_document_cache(dt, dt)
 
-<<<<<<< HEAD
-=======
-		query = frappe.qb.get_query(table=dt, filters=dn, update=True)
-
-		if isinstance(dn, str):
-			frappe.clear_document_cache(dt, dn)
->>>>>>> 35c2654f00 (chore: indentation fix)
 		else:
 			query = frappe.qb.get_query(table=dt, filters=dn, update=True)
 
@@ -1136,16 +1109,9 @@ class Database:
 			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
-<<<<<<< HEAD
-		query = frappe.qb.engine.get_query(
-			table=dt, filters=filters, fields=Count("*"), distinct=distinct
-		)
-		count = query.run(debug=debug)[0][0]
-=======
 		count = frappe.qb.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct).run(
 			debug=debug
 		)[0][0]
->>>>>>> 726fcfdb79 (refactor: qb.engine)
 		if not filters and cache:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
