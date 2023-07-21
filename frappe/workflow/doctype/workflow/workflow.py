@@ -17,7 +17,6 @@ class Workflow(Document):
 	def on_update(self):
 		self.update_doc_status()
 		frappe.clear_cache(doctype=self.document_type)
-		frappe.cache().delete_key("workflow_" + self.name)  # clear cache created in model/workflow.py
 
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)
