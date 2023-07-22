@@ -408,6 +408,7 @@ $.extend(frappe, {
 								.attr("value", language_doc.language_code)
 								.text(language_doc.language_name)
 						);
+<<<<<<< HEAD
 				});
 				$("#language-switcher").removeClass('hide');
 				language = language || (language_codes.includes(navigator.language) ? navigator.language : 'en');
@@ -418,6 +419,18 @@ $.extend(frappe, {
 					frappe.call("frappe.translate.set_preferred_language_cookie", {
 						"preferred_language": lang
 					}).then(() => {
+=======
+					});
+					$("#language-switcher").removeClass("hide");
+					language =
+						language ||
+						(language_codes.includes(navigator.language) ? navigator.language : "en");
+					language_switcher.val(language);
+					document.documentElement.lang = language;
+					language_switcher.change(() => {
+						const lang = language_switcher.val();
+						document.cookie = `preferred_language=${lang}`;
+>>>>>>> d2becc7f1d (fix: no API call required to set cookie in browser)
 						window.location.reload();
 					});
 				});
