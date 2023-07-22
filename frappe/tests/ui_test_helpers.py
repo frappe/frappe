@@ -1,7 +1,5 @@
-import os
-
 import frappe
-from frappe import _, scrub
+from frappe import _
 from frappe.utils import add_to_date, now
 
 UI_TEST_USER = "frappe@example.com"
