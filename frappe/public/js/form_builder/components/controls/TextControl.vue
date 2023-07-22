@@ -1,10 +1,8 @@
 <!-- Used as Text, Small Text & Long Text Control -->
 <script setup>
-import { useStore } from "../../store";
 import { useSlots, computed } from "vue";
 
-let store = useStore();
-const props = defineProps(["df", "value", "modelValue"]);
+const props = defineProps(["df", "value", "read_only", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
@@ -39,7 +37,7 @@ let height = computed(() => {
 			class="form-control"
 			type="text"
 			:value="value"
-			:disabled="store.read_only || df.read_only"
+			:disabled="read_only || df.read_only"
 			@input="event => $emit('update:modelValue', event.target.value)"
 		/>
 

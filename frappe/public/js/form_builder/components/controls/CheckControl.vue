@@ -1,9 +1,7 @@
 <script setup>
-import { useStore } from "../../store";
 import { useSlots } from "vue";
 
-let store = useStore();
-const props = defineProps(["df", "value"]);
+const props = defineProps(["df", "value", "read_only"]);
 let slots = useSlots();
 </script>
 
@@ -21,7 +19,7 @@ let slots = useSlots();
 			<input
 				type="checkbox"
 				:checked="value"
-				:disabled="store.read_only || df.read_only"
+				:disabled="read_only"
 				@change="event => $emit('update:modelValue', event.target.checked)"
 			/>
 			<span class="label-area" :class="{ reqd: df.reqd }">{{ df.label }}</span>
