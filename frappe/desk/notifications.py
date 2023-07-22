@@ -306,7 +306,7 @@ def get_internal_links(doc, link, link_doctype):
 
 	if isinstance(link, str):
 		# get internal links in parent document
-		value = doc.link
+		value = doc.get(link)
 		if value and value not in names:
 			names.append(value)
 	elif isinstance(link, list):
