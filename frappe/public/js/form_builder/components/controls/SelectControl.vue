@@ -1,9 +1,7 @@
 <script setup>
-import { useStore } from "../../store";
 import { useSlots, onMounted, ref, computed, watch } from "vue";
 
-let store = useStore();
-const props = defineProps(["df", "modelValue", "no_label"]);
+const props = defineProps(["df", "read_only", "modelValue", "no_label"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
@@ -48,7 +46,7 @@ let select_control = computed(() => {
 			fieldtype: "Select",
 			hidden: 0,
 			options: get_options(),
-			read_only: Boolean(slots.label) || store.read_only,
+			read_only: Boolean(slots.label) || props.read_only,
 			change: () => {
 				if (update_control.value) {
 					content.value = select_control.value.get_value();
