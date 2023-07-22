@@ -339,6 +339,8 @@ def get_external_links(doctype, name, links):
 			)
 		)
 		data["open_count"] = total
+	else:
+		data["open_count"] = 0
 
 	total = len(
 		frappe.get_all(
