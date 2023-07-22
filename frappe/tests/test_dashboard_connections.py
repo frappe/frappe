@@ -270,7 +270,7 @@ def get_data():
 	"""
 	target_file = os.path.join(
 		frappe.get_pymodule_path("frappe"),
-		"Custom",
+		"custom",
 		"doctype",
 		scrubbed_name,
 		scrubbed_name + "_dashboard.py",
