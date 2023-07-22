@@ -18,6 +18,10 @@ let docfield_df = computed(() => {
 			return false;
 		}
 
+		if (df.fieldname === "fetch_from") {
+			df.fieldtype = "Fetch From";
+		}
+
 		if (
 			in_list(["fetch_from", "fetch_if_empty"], df.fieldname) &&
 			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
