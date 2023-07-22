@@ -17,7 +17,6 @@ query. This test can be written like this.
 
 """
 import time
-import unittest
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -29,6 +28,8 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
+
+TEST_USER = "test@example.com"
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -144,3 +145,16 @@ class TestPerformance(FrappeTestCase):
 		from frappe.utils import get_build_version
 
 		self.assertEqual(get_build_version(), get_build_version())
+
+	def test_get_list_single_query(self):
+		"""get_list should only perform single query."""
+
+		user = frappe.get_doc("User", TEST_USER)
+
+		frappe.set_user(TEST_USER)
+		# Give full read access, no share/user perm check should be done.
+		user.add_roles("System Manager")
+
+		frappe.get_list("User")
+		with self.assertQueryCount(1):
+			frappe.get_list("User")
