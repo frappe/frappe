@@ -5,7 +5,7 @@ import { ref, computed, watch } from "vue";
 import { computedAsync } from "@vueuse/core";
 
 let store = useStore();
-const props = defineProps(["df", "value", "modelValue"]);
+const props = defineProps(["df", "value", "read_only", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 
 let doctype = ref("");
@@ -76,10 +76,11 @@ watch([() => doctype.value, () => fieldname.value], ([doctype_value, fieldname_v
 </script>
 
 <template>
-	<SelectControl :df="doctype_df" :value="doctype" v-model="doctype" />
+	<SelectControl :df="doctype_df" :value="doctype" :read_only="read_only" v-model="doctype" />
 	<SelectControl
 		v-if="doctype"
 		:df="field_df"
+		:read_only="read_only"
 		:value="fieldname"
 		v-model="fieldname"
 		:no_label="true"

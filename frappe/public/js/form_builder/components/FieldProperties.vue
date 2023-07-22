@@ -73,6 +73,7 @@ let docfield_df = computed(() => {
 					:is="df.fieldtype.replace(' ', '') + 'Control'"
 					:args="args"
 					:df="df"
+					:read_only="store.read_only"
 					:value="store.form.selected_field[df.fieldname]"
 					v-model="store.form.selected_field[df.fieldname]"
 					:data-fieldname="df.fieldname"
