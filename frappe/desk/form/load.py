@@ -110,7 +110,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
-			"total_comments": len(json.loads(doc.get("_comments") or "[]")),
 			"versions": get_versions(doc),
 			"assignments": get_assignments(doc.doctype, doc.name),
 			"permissions": get_doc_permissions(doc),
