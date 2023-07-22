@@ -122,9 +122,9 @@ def delete_test_data():
 		"Doctype B With Child Table With Link To Doctype A",
 	]
 	for doctype in doctypes:
-		frappe.db.delete(doctype)
-	for doctype in doctypes:
-		frappe.delete_doc("DocType", doctype, force=True)
+		if frappe.db.table_exists(doctype):
+			frappe.db.delete(doctype)
+			frappe.delete_doc("DocType", doctype, force=True)
 
 
 def create_child_table_with_link_to_doctype_a():
