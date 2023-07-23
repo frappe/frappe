@@ -649,6 +649,44 @@ class TestDocType(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
 
 	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_export_types(self):
+		"""Export python types."""
+		import ast
+
+		from frappe.types.exporter import TypeExporter
+
+		def validate(code):
+			ast.parse(code)
+
+		doctype = new_doctype(custom=0).insert()
+
+		exporter = TypeExporter(doctype)
+		code = exporter.controller_path.read_text()
+		validate(code)
+
+		# regenerate and verify and file is same word to word.
+		exporter.export_types()
+		new_code = exporter.controller_path.read_text()
+		validate(new_code)
+
+		self.assertEqual(code, new_code)
+
+		# Add fields and save
+
+		fieldname = "test_type"
+		doctype.append("fields", {"fieldname": fieldname, "fieldtype": "Int"})
+		doctype.save()
+
+		new_field_code = exporter.controller_path.read_text()
+		validate(new_field_code)
+
+		self.assertIn(fieldname, new_field_code)
+		self.assertIn("Int", new_field_code)
+
+		doctype.delete()
+		frappe.db.commit()
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_custom_field_deletion(self):
 		"""Custom child tables whose doctype doesn't exist should be auto deleted."""
 		doctype = new_doctype(custom=0).insert().name
