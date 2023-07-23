@@ -12,6 +12,22 @@ from frappe.utils import cstr
 
 
 class UserPermission(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		allow: DF.Link
+		applicable_for: DF.Link | None
+		apply_to_all_doctypes: DF.Check
+		for_value: DF.DynamicLink
+		hide_descendants: DF.Check
+		is_default: DF.Check
+		user: DF.Link
+	# end: auto-generated types
 	def validate(self):
 		self.validate_user_permission()
 		self.validate_default_permission()

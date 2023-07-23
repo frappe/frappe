@@ -23,6 +23,26 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class WorkflowAction(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_action_permitted_role.workflow_action_permitted_role import (
+			WorkflowActionPermittedRole,
+		)
+
+		completed_by: DF.Link | None
+		completed_by_role: DF.Link | None
+		permitted_roles: DF.TableMultiSelect[WorkflowActionPermittedRole] | None
+		reference_doctype: DF.Link | None
+		reference_name: DF.DynamicLink | None
+		status: DF.Literal["Open", "Completed"]
+		user: DF.Link | None
+		workflow_state: DF.Data | None
+	# end: auto-generated types
 	pass
 
 

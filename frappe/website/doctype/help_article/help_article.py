@@ -9,6 +9,25 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class HelpArticle(WebsiteGenerator):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		author: DF.Data | None
+		category: DF.Link
+		content: DF.TextEditor
+		helpful: DF.Int
+		level: DF.Literal["Beginner", "Intermediate", "Expert"]
+		likes: DF.Int
+		not_helpful: DF.Int
+		published: DF.Check
+		route: DF.Data | None
+		title: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		self.set_route()
 

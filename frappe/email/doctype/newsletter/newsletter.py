@@ -15,6 +15,41 @@ from .exceptions import NewsletterAlreadySentError, NewsletterNotSavedError, NoR
 
 
 class Newsletter(WebsiteGenerator):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.email.doctype.newsletter_attachment.newsletter_attachment import NewsletterAttachment
+		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import (
+			NewsletterEmailGroup,
+		)
+		from frappe.types import DF
+
+		attachments: DF.Table[NewsletterAttachment]
+		campaign: DF.Link | None
+		content_type: DF.Literal["Rich Text", "Markdown", "HTML"]
+		email_group: DF.Table[NewsletterEmailGroup]
+		email_sent: DF.Check
+		email_sent_at: DF.Datetime | None
+		message: DF.TextEditor | None
+		message_html: DF.HTMLEditor | None
+		message_md: DF.MarkdownEditor | None
+		published: DF.Check
+		route: DF.Data | None
+		schedule_send: DF.Datetime | None
+		schedule_sending: DF.Check
+		scheduled_to_send: DF.Int
+		send_from: DF.Data | None
+		send_unsubscribe_link: DF.Check
+		send_webview_link: DF.Check
+		sender_email: DF.Data
+		sender_name: DF.Data | None
+		subject: DF.SmallText
+		total_recipients: DF.Int
+		total_views: DF.Int
+	# end: auto-generated types
 	def validate(self):
 		self.route = f"newsletters/{self.name}"
 		self.validate_sender_address()

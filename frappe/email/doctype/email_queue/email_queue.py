@@ -34,6 +34,35 @@ from frappe.utils.verified_command import get_signed_params
 
 
 class EmailQueue(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.email.doctype.email_queue_recipient.email_queue_recipient import EmailQueueRecipient
+		from frappe.types import DF
+
+		add_unsubscribe_link: DF.Check
+		attachments: DF.Code | None
+		communication: DF.Link | None
+		email_account: DF.Link | None
+		error: DF.Code | None
+		expose_recipients: DF.Data | None
+		message: DF.Code | None
+		message_id: DF.SmallText | None
+		priority: DF.Int
+		recipients: DF.Table[EmailQueueRecipient]
+		reference_doctype: DF.Link | None
+		reference_name: DF.Data | None
+		retry: DF.Int
+		send_after: DF.Datetime | None
+		sender: DF.Data | None
+		show_as_cc: DF.SmallText | None
+		status: DF.Literal["Not Sent", "Sending", "Sent", "Partially Sent", "Error"]
+		unsubscribe_method: DF.Data | None
+		unsubscribe_param: DF.Data | None
+	# end: auto-generated types
 	DOCTYPE = "Email Queue"
 
 	def set_recipients(self, recipients):

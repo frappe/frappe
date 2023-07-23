@@ -9,6 +9,20 @@ from frappe.model.document import Document
 
 
 class ModuleDef(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		app_name: DF.Literal
+		custom: DF.Check
+		module_name: DF.Data
+		package: DF.Link | None
+		restrict_to_domain: DF.Link | None
+	# end: auto-generated types
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
 		add in `modules.txt` of app if missing."""

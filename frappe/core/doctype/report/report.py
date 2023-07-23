@@ -17,6 +17,35 @@ from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 
 
 class Report(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.core.doctype.report_column.report_column import ReportColumn
+		from frappe.core.doctype.report_filter.report_filter import ReportFilter
+		from frappe.types import DF
+
+		add_total_row: DF.Check
+		columns: DF.Table[ReportColumn]
+		disabled: DF.Check
+		filters: DF.Table[ReportFilter]
+		is_standard: DF.Literal["No", "Yes"]
+		javascript: DF.Code | None
+		json: DF.Code | None
+		letter_head: DF.Link | None
+		module: DF.Link | None
+		prepared_report: DF.Check
+		query: DF.Code | None
+		ref_doctype: DF.Link
+		reference_report: DF.Data | None
+		report_name: DF.Data
+		report_script: DF.Code | None
+		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
+		roles: DF.Table[HasRole]
+	# end: auto-generated types
 	def validate(self):
 		"""only administrator can save standard report"""
 		if not self.module:

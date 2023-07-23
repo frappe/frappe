@@ -9,6 +9,18 @@ from frappe.model.document import Document
 
 
 class PatchLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		patch: DF.Code | None
+		skipped: DF.Check
+		traceback: DF.Code | None
+	# end: auto-generated types
 	@frappe.whitelist()
 	def rerun_patch(self):
 		from frappe.modules.patch_handler import run_single

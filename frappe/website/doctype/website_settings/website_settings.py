@@ -11,6 +11,59 @@ from frappe.website.utils import get_boot_data
 
 
 class WebsiteSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.top_bar_item.top_bar_item import TopBarItem
+		from frappe.website.doctype.website_route_redirect.website_route_redirect import (
+			WebsiteRouteRedirect,
+		)
+
+		address: DF.SmallText | None
+		app_logo: DF.AttachImage | None
+		app_name: DF.Data | None
+		auto_account_deletion: DF.Int
+		banner_html: DF.Code | None
+		banner_image: DF.AttachImage | None
+		brand_html: DF.Code | None
+		call_to_action: DF.Data | None
+		call_to_action_url: DF.Data | None
+		copyright: DF.Data | None
+		disable_signup: DF.Check
+		enable_google_indexing: DF.Check
+		enable_view_tracking: DF.Check
+		favicon: DF.Attach | None
+		footer_items: DF.Table[TopBarItem]
+		footer_logo: DF.AttachImage | None
+		footer_powered: DF.SmallText | None
+		footer_template: DF.Link | None
+		footer_template_values: DF.Code | None
+		google_analytics_anonymize_ip: DF.Check
+		google_analytics_id: DF.Data | None
+		head_html: DF.Code | None
+		hide_footer_signup: DF.Check
+		hide_login: DF.Check
+		home_page: DF.Data | None
+		indexing_authorization_code: DF.Data | None
+		indexing_refresh_token: DF.Data | None
+		navbar_search: DF.Check
+		navbar_template: DF.Link | None
+		navbar_template_values: DF.Code | None
+		robots_txt: DF.Code | None
+		route_redirects: DF.Table[WebsiteRouteRedirect]
+		show_account_deletion_link: DF.Check
+		show_language_picker: DF.Check
+		splash_image: DF.AttachImage | None
+		subdomain: DF.SmallText | None
+		title_prefix: DF.Data | None
+		top_bar_items: DF.Table[TopBarItem]
+		website_theme: DF.Link | None
+		website_theme_image_link: DF.Code | None
+	# end: auto-generated types
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
