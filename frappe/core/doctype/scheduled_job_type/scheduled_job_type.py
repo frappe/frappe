@@ -69,7 +69,7 @@ class ScheduledJobType(Document):
 			"Daily Long": "0 0 * * *",
 			"Hourly": "0 * * * *",
 			"Hourly Long": "0 * * * *",
-			"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
+			"All": f"*/{(frappe.get_conf().scheduler_interval or 240) // 60} * * * *",
 		}
 
 		if not self.cron_format:
