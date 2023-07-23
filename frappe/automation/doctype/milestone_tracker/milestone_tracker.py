@@ -8,6 +8,18 @@ from frappe.model.document import Document
 
 
 class MilestoneTracker(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		disabled: DF.Check
+		document_type: DF.Link
+		track_field: DF.Literal
+	# end: auto-generated types
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
 

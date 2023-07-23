@@ -14,6 +14,22 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class PersonalDataDeletionRequest(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.personal_data_deletion_step.personal_data_deletion_step import (
+			PersonalDataDeletionStep,
+		)
+
+		anonymization_matrix: DF.Code | None
+		deletion_steps: DF.Table[PersonalDataDeletionStep]
+		email: DF.Data
+		status: DF.Literal["Pending Verification", "Pending Approval", "On Hold", "Deleted"]
+	# end: auto-generated types
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 

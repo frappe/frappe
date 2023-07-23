@@ -8,6 +8,28 @@ from frappe.model.document import Document
 
 
 class Workflow(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_document_state.workflow_document_state import (
+			WorkflowDocumentState,
+		)
+		from frappe.workflow.doctype.workflow_transition.workflow_transition import WorkflowTransition
+
+		document_type: DF.Link
+		is_active: DF.Check
+		override_status: DF.Check
+		send_email_alert: DF.Check
+		states: DF.Table[WorkflowDocumentState]
+		transitions: DF.Table[WorkflowTransition]
+		workflow_data: DF.JSON | None
+		workflow_name: DF.Data
+		workflow_state_field: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		self.set_active()
 		self.create_custom_field_for_workflow_state()
