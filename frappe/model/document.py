@@ -19,6 +19,7 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
+from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
@@ -80,6 +81,15 @@ def get_doc(*args, **kwargs):
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+
+	doctype: DF.Data
+	name: DF.Data | None
+	flags: frappe._dict[str, Any]
+	owner: DF.Link
+	creation: DF.Datetime
+	modified: DF.Datetime
+	modified_by: DF.Link
+	idx: DF.Int
 
 	def __init__(self, *args, **kwargs):
 		"""Constructor.

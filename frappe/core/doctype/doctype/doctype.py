@@ -409,6 +409,7 @@ class DocType(Document):
 			self.export_doc()
 			self.make_controller_template()
 			self.set_base_class_for_controller()
+			self.export_types_to_controller()
 
 		# update index
 		if not self.custom:
@@ -718,6 +719,18 @@ class DocType(Document):
 				os.makedirs(templates_path)
 			make_boilerplate("templates/controller.html", self.as_dict())
 			make_boilerplate("templates/controller_row.html", self.as_dict())
+
+	def export_types_to_controller(self):
+		from frappe.modules.utils import get_module_app
+		from frappe.types.exporter import TypeExporter
+
+		try:
+			app = get_module_app(self.module)
+		except frappe.DoesNotExistError:
+			return
+
+		if any(frappe.get_hooks("export_python_type_annotations", app_name=app)):
+			TypeExporter(self).export_types()
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
