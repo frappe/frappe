@@ -7,6 +7,21 @@ from frappe.query_builder.utils import DocType
 
 
 class CustomHTMLBlock(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.types import DF
+
+		html: DF.Code | None
+		private: DF.Check
+		roles: DF.Table[HasRole]
+		script: DF.Code | None
+		style: DF.Code | None
+	# end: auto-generated types
 	pass
 
 

@@ -8,6 +8,21 @@ from frappe.utils import cint
 
 
 class RolePermissionforPageandReport(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.types import DF
+
+		enable_prepared_report: DF.Check
+		page: DF.Link | None
+		report: DF.Link | None
+		roles: DF.Table[HasRole]
+		set_role_for: DF.Literal["", "Page", "Report"]
+	# end: auto-generated types
 	@frappe.whitelist()
 	def set_report_page_data(self):
 		self.set_custom_roles()

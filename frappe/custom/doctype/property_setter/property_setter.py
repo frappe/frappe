@@ -9,6 +9,27 @@ not_allowed_fieldtype_change = ["naming_series"]
 
 
 class PropertySetter(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		default_value: DF.Data | None
+		doc_type: DF.Link
+		doctype_or_field: DF.Literal[
+			"", "DocField", "DocType", "DocType Link", "DocType Action", "DocType State"
+		]
+		field_name: DF.Data | None
+		is_system_generated: DF.Check
+		module: DF.Link | None
+		property: DF.Data
+		property_type: DF.Data | None
+		row_name: DF.Data | None
+		value: DF.SmallText | None
+	# end: auto-generated types
 	def autoname(self):
 		self.name = "{doctype}-{field}-{property}".format(
 			doctype=self.doc_type, field=self.field_name or self.row_name or "main", property=self.property

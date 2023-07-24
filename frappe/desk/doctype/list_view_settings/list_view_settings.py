@@ -6,6 +6,21 @@ from frappe.model.document import Document
 
 
 class ListViewSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		disable_auto_refresh: DF.Check
+		disable_comment_count: DF.Check
+		disable_count: DF.Check
+		disable_sidebar_stats: DF.Check
+		fields: DF.Code | None
+		total_fields: DF.Literal["", "4", "5", "6", "7", "8", "9", "10"]
+	# end: auto-generated types
 	pass
 
 

@@ -86,6 +86,94 @@ form_grid_templates = {"fields": "templates/form_grid/fields.html"}
 
 
 class DocType(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.docfield.docfield import DocField
+		from frappe.core.doctype.docperm.docperm import DocPerm
+		from frappe.core.doctype.doctype_action.doctype_action import DocTypeAction
+		from frappe.core.doctype.doctype_link.doctype_link import DocTypeLink
+		from frappe.core.doctype.doctype_state.doctype_state import DocTypeState
+		from frappe.types import DF
+
+		actions: DF.Table[DocTypeAction]
+		allow_auto_repeat: DF.Check
+		allow_copy: DF.Check
+		allow_events_in_timeline: DF.Check
+		allow_guest_to_view: DF.Check
+		allow_import: DF.Check
+		allow_rename: DF.Check
+		autoname: DF.Data | None
+		beta: DF.Check
+		color: DF.Data | None
+		custom: DF.Check
+		default_email_template: DF.Link | None
+		default_print_format: DF.Data | None
+		default_view: DF.Literal
+		description: DF.SmallText | None
+		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
+		documentation: DF.Data | None
+		editable_grid: DF.Check
+		email_append_to: DF.Check
+		engine: DF.Literal["InnoDB", "MyISAM"]
+		fields: DF.Table[DocField]
+		force_re_route_to_default_view: DF.Check
+		has_web_view: DF.Check
+		hide_toolbar: DF.Check
+		icon: DF.Data | None
+		image_field: DF.Data | None
+		in_create: DF.Check
+		index_web_pages_for_search: DF.Check
+		is_calendar_and_gantt: DF.Check
+		is_published_field: DF.Data | None
+		is_submittable: DF.Check
+		is_tree: DF.Check
+		is_virtual: DF.Check
+		issingle: DF.Check
+		istable: DF.Check
+		links: DF.Table[DocTypeLink]
+		make_attachments_public: DF.Check
+		max_attachments: DF.Int
+		migration_hash: DF.Data | None
+		module: DF.Link
+		naming_rule: DF.Literal[
+			"",
+			"Set by user",
+			"Autoincrement",
+			"By fieldname",
+			'By "Naming Series" field',
+			"Expression",
+			"Expression (old style)",
+			"Random",
+			"By script",
+		]
+		nsm_parent_field: DF.Data | None
+		permissions: DF.Table[DocPerm]
+		queue_in_background: DF.Check
+		quick_entry: DF.Check
+		read_only: DF.Check
+		restrict_to_domain: DF.Link | None
+		route: DF.Data | None
+		search_fields: DF.Data | None
+		sender_field: DF.Data | None
+		show_name_in_global_search: DF.Check
+		show_preview_popup: DF.Check
+		show_title_field_in_link: DF.Check
+		sort_field: DF.Data | None
+		sort_order: DF.Literal["ASC", "DESC"]
+		states: DF.Table[DocTypeState]
+		subject_field: DF.Data | None
+		timeline_field: DF.Data | None
+		title_field: DF.Data | None
+		track_changes: DF.Check
+		track_seen: DF.Check
+		track_views: DF.Check
+		translated_doctype: DF.Check
+		website_search_field: DF.Data | None
+	# end: auto-generated types
 	def validate(self):
 		"""Validate DocType before saving.
 
@@ -409,6 +497,7 @@ class DocType(Document):
 			self.export_doc()
 			self.make_controller_template()
 			self.set_base_class_for_controller()
+			self.export_types_to_controller()
 
 		# update index
 		if not self.custom:
@@ -718,6 +807,18 @@ class DocType(Document):
 				os.makedirs(templates_path)
 			make_boilerplate("templates/controller.html", self.as_dict())
 			make_boilerplate("templates/controller_row.html", self.as_dict())
+
+	def export_types_to_controller(self):
+		from frappe.modules.utils import get_module_app
+		from frappe.types.exporter import TypeExporter
+
+		try:
+			app = get_module_app(self.module)
+		except frappe.DoesNotExistError:
+			return
+
+		if any(frappe.get_hooks("export_python_type_annotations", app_name=app)):
+			TypeExporter(self).export_types()
 
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""

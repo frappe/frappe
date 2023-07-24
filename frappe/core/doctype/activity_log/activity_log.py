@@ -10,6 +10,29 @@ from frappe.utils import get_fullname, now
 
 
 class ActivityLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		communication_date: DF.Datetime | None
+		content: DF.TextEditor | None
+		full_name: DF.Data | None
+		link_doctype: DF.Link | None
+		link_name: DF.DynamicLink | None
+		operation: DF.Literal["", "Login", "Logout"]
+		reference_doctype: DF.Link | None
+		reference_name: DF.DynamicLink | None
+		reference_owner: DF.ReadOnly | None
+		status: DF.Literal["", "Success", "Failed", "Linked", "Closed"]
+		subject: DF.SmallText
+		timeline_doctype: DF.Link | None
+		timeline_name: DF.DynamicLink | None
+		user: DF.Link | None
+	# end: auto-generated types
 	def before_insert(self):
 		self.full_name = get_fullname(self.user)
 		self.date = now()

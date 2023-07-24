@@ -17,6 +17,26 @@ BLOCKED_DOCTYPES = set(core_doctypes_list) - {"User", "Role"}
 
 
 class DataImport(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		google_sheets_url: DF.Data | None
+		import_file: DF.Attach | None
+		import_type: DF.Literal["", "Insert New Records", "Update Existing Records"]
+		mute_emails: DF.Check
+		payload_count: DF.Int
+		reference_doctype: DF.Link
+		show_failed_logs: DF.Check
+		status: DF.Literal["Pending", "Success", "Partial Success", "Error"]
+		submit_after_import: DF.Check
+		template_options: DF.Code | None
+		template_warnings: DF.Code | None
+	# end: auto-generated types
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
 		if (

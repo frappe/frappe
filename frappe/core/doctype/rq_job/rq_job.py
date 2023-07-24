@@ -39,6 +39,27 @@ def check_permissions(method):
 
 
 class RQJob(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		arguments: DF.Code | None
+		ended_at: DF.Datetime | None
+		exc_info: DF.Code | None
+		job_id: DF.Data | None
+		job_name: DF.Data | None
+		queue: DF.Literal["default", "short", "long"]
+		started_at: DF.Datetime | None
+		status: DF.Literal[
+			"queued", "started", "finished", "failed", "deferred", "scheduled", "canceled"
+		]
+		time_taken: DF.Duration | None
+		timeout: DF.Duration | None
+	# end: auto-generated types
 	def load_from_db(self):
 		try:
 			job = Job.fetch(self.name, connection=get_redis_conn())
