@@ -36,12 +36,6 @@ then
   echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
 fi
 
-echo "Fixing Up Common Site Config..."
-
-echo "TODO: remove when merged: https://github.com/frappe/bench/pull/1466"
-
-sed -i 's/localhost/127.0.0.1/g' sites/common_site_config.json
-
 echo "Setting Up Procfile..."
 
 sed -i 's/^watch:/# watch:/g' Procfile
