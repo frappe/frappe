@@ -50,6 +50,68 @@ def cache_email_account(cache_name):
 
 
 class EmailAccount(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.email.doctype.imap_folder.imap_folder import IMAPFolder
+		from frappe.types import DF
+
+		add_signature: DF.Check
+		always_use_account_email_id_as_sender: DF.Check
+		always_use_account_name_as_sender_name: DF.Check
+		append_emails_to_sent_folder: DF.Check
+		append_to: DF.Link | None
+		ascii_encode_password: DF.Check
+		attachment_limit: DF.Int
+		auth_method: DF.Literal["Basic", "OAuth"]
+		auto_reply_message: DF.TextEditor | None
+		awaiting_password: DF.Check
+		brand_logo: DF.AttachImage | None
+		connected_app: DF.Link | None
+		connected_user: DF.Link | None
+		create_contact: DF.Check
+		default_incoming: DF.Check
+		default_outgoing: DF.Check
+		domain: DF.Link | None
+		email_account_name: DF.Data | None
+		email_id: DF.Data
+		email_server: DF.Data | None
+		email_sync_option: DF.Literal["ALL", "UNSEEN"]
+		enable_auto_reply: DF.Check
+		enable_automatic_linking: DF.Check
+		enable_incoming: DF.Check
+		enable_outgoing: DF.Check
+		footer: DF.TextEditor | None
+		imap_folder: DF.Table[IMAPFolder]
+		incoming_port: DF.Data | None
+		initial_sync_count: DF.Literal["100", "250", "500"]
+		login_id: DF.Data | None
+		login_id_is_different: DF.Check
+		no_failed: DF.Int
+		no_smtp_authentication: DF.Check
+		notify_if_unreplied: DF.Check
+		password: DF.Password | None
+		send_notification_to: DF.SmallText | None
+		send_unsubscribe_message: DF.Check
+		service: DF.Literal[
+			"", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
+		]
+		signature: DF.TextEditor | None
+		smtp_port: DF.Data | None
+		smtp_server: DF.Data | None
+		track_email_status: DF.Check
+		uidnext: DF.Int
+		uidvalidity: DF.Data | None
+		unreplied_for_mins: DF.Int
+		use_imap: DF.Check
+		use_ssl: DF.Check
+		use_ssl_for_outgoing: DF.Check
+		use_starttls: DF.Check
+		use_tls: DF.Check
+	# end: auto-generated types
 	DOCTYPE = "Email Account"
 
 	def autoname(self):
@@ -176,7 +238,7 @@ class EmailAccount(Document):
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
 		"""Returns logged in POP3/IMAP connection object."""
-		if frappe.cache().get_value("workers:no-internet") == True:
+		if frappe.cache.get_value("workers:no-internet") == True:
 			return None
 
 		oauth_token = self.get_oauth_token()
@@ -253,7 +315,7 @@ class EmailAccount(Document):
 					if self.no_failed > 2:
 						self.handle_incoming_connect_error(description=description)
 				else:
-					frappe.cache().set_value("workers:no-internet", True)
+					frappe.cache.set_value("workers:no-internet", True)
 				return None
 			else:
 				raise
@@ -384,6 +446,10 @@ class EmailAccount(Document):
 			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
 			"auth_method": {"conf_names": ("auth_method"), "default": "Basic"},
 			"from_site_config": {"default": True},
+			"no_smtp_authentication": {
+				"conf_names": ("disable_mail_smtp_authentication",),
+				"default": 0,
+			},
 		}
 
 		account_details = {}
@@ -436,13 +502,13 @@ class EmailAccount(Document):
 			else:
 				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 		else:
-			frappe.cache().set_value("workers:no-internet", True)
+			frappe.cache.set_value("workers:no-internet", True)
 
 	def set_failed_attempts_count(self, value):
-		frappe.cache().set(f"{self.name}:email-account-failed-attempts", value)
+		frappe.cache.set(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
-		return cint(frappe.cache().get(f"{self.name}:email-account-failed-attempts"))
+		return cint(frappe.cache.get(f"{self.name}:email-account-failed-attempts"))
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
@@ -648,21 +714,16 @@ class EmailAccount(Document):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 	def append_email_to_sent_folder(self, message):
-		email_server = None
-		try:
-			email_server = self.get_incoming_server(in_receive=True)
-		except Exception:
-			self.log_error("Email Connection Error")
-
-		if not email_server:
+		if not (self.enable_incoming and self.use_imap):
+			# don't try appending if enable incoming and imap is not set
 			return
 
-		if email_server.imap:
-			try:
-				message = safe_encode(message)
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
-			except Exception:
-				self.log_error("Unable to add to Sent folder")
+		try:
+			email_server = self.get_incoming_server(in_receive=True)
+			message = safe_encode(message)
+			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
+		except Exception:
+			self.log_error("Unable to add to Sent folder")
 
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
@@ -766,9 +827,9 @@ def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	from frappe.integrations.doctype.connected_app.connected_app import has_token
 
-	if frappe.cache().get_value("workers:no-internet") == True:
+	if frappe.cache.get_value("workers:no-internet") == True:
 		if test_internet():
-			frappe.cache().set_value("workers:no-internet", False)
+			frappe.cache.set_value("workers:no-internet", False)
 		return
 
 	doctype = frappe.qb.DocType("Email Account")

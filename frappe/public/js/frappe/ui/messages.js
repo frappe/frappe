@@ -111,14 +111,15 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 frappe.msgprint = function (msg, title, is_minimizable) {
 	if (!msg) return;
 
+	let data;
 	if ($.isPlainObject(msg)) {
-		var data = msg;
+		data = msg;
 	} else {
 		// passed as JSON
 		if (typeof msg === "string" && msg.substr(0, 1) === "{") {
-			var data = JSON.parse(msg);
+			data = JSON.parse(msg);
 		} else {
-			var data = { message: msg, title: title };
+			data = { message: msg, title: title };
 		}
 	}
 
@@ -376,6 +377,7 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		// timeout to avoid abrupt hide
 		setTimeout(frappe.hide_progress, 500);
 	}
+	frappe.cur_progress.$wrapper.css("z-index", 2000);
 	return dialog;
 };
 
@@ -458,13 +460,3 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 
 	return div;
 };
-
-// Proxy for frappe.show_alert
-Object.defineProperty(window, "show_alert", {
-	get: function () {
-		console.warn(
-			"Please use `frappe.show_alert` instead of `show_alert`. It will be deprecated soon."
-		);
-		return frappe.show_alert;
-	},
-});

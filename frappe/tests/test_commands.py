@@ -20,9 +20,11 @@ from unittest.mock import patch
 import click
 from click import Command
 from click.testing import CliRunner, Result
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 # imports - module imports
 import frappe
+import frappe.commands.scheduler
 import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
@@ -440,7 +442,7 @@ class TestCommands(BaseTestCommands):
 			f"bench new-site {site} --force --verbose "
 			f"--admin-password {frappe.conf.admin_password} "
 			f"--mariadb-root-password {frappe.conf.root_password} "
-			f"--db-type {frappe.conf.db_type or 'mariadb'} "
+			f"--db-type {frappe.conf.db_type} "
 		)
 		self.assertEqual(self.returncode, 0)
 
@@ -465,7 +467,7 @@ class TestCommands(BaseTestCommands):
 				f"bench new-site {TEST_SITE} --verbose "
 				f"--admin-password {frappe.conf.admin_password} "
 				f"--mariadb-root-password {frappe.conf.root_password} "
-				f"--db-type {frappe.conf.db_type or 'mariadb'} "
+				f"--db-type {frappe.conf.db_type} "
 			)
 
 		app_name = "frappe"
@@ -533,8 +535,8 @@ class TestBackups(BaseTestCommands):
 			frappe.conf.db_name,
 			frappe.conf.db_name,
 			frappe.conf.db_password + "INCORRECT PASSWORD",
-			db_host=frappe.db.host,
-			db_port=frappe.db.port,
+			db_host=frappe.conf.db_host,
+			db_port=frappe.conf.db_port,
 			db_type=frappe.conf.db_type,
 		)
 		with self.assertRaises(Exception):
@@ -758,6 +760,19 @@ class TestBenchBuild(BaseTestCommands):
 			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
 			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
 		)
+
+
+class TestSchedulerUtils(BaseTestCommands):
+	# Retry just in case there are stuck queued jobs
+	@retry(
+		retry=retry_if_exception_type(AssertionError),
+		stop=stop_after_attempt(3),
+		wait=wait_fixed(3),
+		reraise=True,
+	)
+	def test_ready_for_migrate(self):
+		with cli(frappe.commands.scheduler.ready_for_migration) as result:
+			self.assertEqual(result.exit_code, 0)
 
 
 class TestCommandUtils(FrappeTestCase):

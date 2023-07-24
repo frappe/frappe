@@ -325,8 +325,8 @@ def load_country():
 @frappe.whitelist()
 def load_user_details():
 	return {
-		"full_name": frappe.cache().hget("full_name", "signup"),
-		"email": frappe.cache().hget("email", "signup"),
+		"full_name": frappe.cache.hget("full_name", "signup"),
+		"email": frappe.cache.hget("email", "signup"),
 	}
 
 
@@ -377,7 +377,7 @@ def email_setup_wizard_exception(traceback, args):
 		traceback=traceback,
 		args="\n".join(pretty_args),
 		user=frappe.session.user,
-		headers=frappe.request.headers,
+		headers=frappe.request.headers if frappe.request else "[no request]",
 	)
 
 	frappe.sendmail(

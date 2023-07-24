@@ -1,7 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from collections.abc import Sequence
 from datetime import timedelta
-from typing import Optional, Sequence
+from typing import Optional
 
 import frappe
 import frappe.defaults
@@ -28,6 +29,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+from frappe.utils.deprecations import deprecated
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -35,6 +37,80 @@ from frappe.website.utils import is_signup_disabled
 
 
 class User(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.block_module.block_module import BlockModule
+		from frappe.core.doctype.defaultvalue.defaultvalue import DefaultValue
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.core.doctype.user_email.user_email import UserEmail
+		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
+		from frappe.types import DF
+
+		allowed_in_mentions: DF.Check
+		api_key: DF.Data | None
+		api_secret: DF.Password | None
+		banner_image: DF.AttachImage | None
+		bio: DF.Text | None
+		birth_date: DF.Date | None
+		block_modules: DF.Table[BlockModule]
+		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
+		defaults: DF.Table[DefaultValue]
+		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
+		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
+		document_follow_notify: DF.Check
+		email: DF.Data
+		email_signature: DF.SmallText | None
+		enabled: DF.Check
+		first_name: DF.Data
+		follow_assigned_documents: DF.Check
+		follow_commented_documents: DF.Check
+		follow_created_documents: DF.Check
+		follow_liked_documents: DF.Check
+		follow_shared_documents: DF.Check
+		full_name: DF.Data | None
+		gender: DF.Link | None
+		home_settings: DF.Code | None
+		interest: DF.SmallText | None
+		language: DF.Link | None
+		last_active: DF.Datetime | None
+		last_ip: DF.ReadOnly | None
+		last_known_versions: DF.Text | None
+		last_login: DF.ReadOnly | None
+		last_name: DF.Data | None
+		last_password_reset_date: DF.Date | None
+		last_reset_password_key_generated_on: DF.Datetime | None
+		location: DF.Data | None
+		login_after: DF.Int
+		login_before: DF.Int
+		logout_all_sessions: DF.Check
+		middle_name: DF.Data | None
+		mobile_no: DF.Data | None
+		module_profile: DF.Link | None
+		mute_sounds: DF.Check
+		new_password: DF.Password | None
+		onboarding_status: DF.SmallText | None
+		phone: DF.Data | None
+		redirect_url: DF.SmallText | None
+		reset_password_key: DF.Data | None
+		restrict_ip: DF.SmallText | None
+		role_profile_name: DF.Link | None
+		roles: DF.Table[HasRole]
+		send_me_a_copy: DF.Check
+		send_welcome_email: DF.Check
+		simultaneous_sessions: DF.Int
+		social_logins: DF.Table[UserSocialLogin]
+		thread_notify: DF.Check
+		time_zone: DF.Literal
+		unsubscribed: DF.Check
+		user_emails: DF.Table[UserEmail]
+		user_image: DF.AttachImage | None
+		user_type: DF.Link | None
+		username: DF.Data | None
+	# end: auto-generated types
 	__new_password = None
 
 	def __setup__(self):
@@ -60,8 +136,8 @@ class User(Document):
 
 	def after_insert(self):
 		create_notification_settings(self.name)
-		frappe.cache().delete_key("users_for_mentions")
-		frappe.cache().delete_key("enabled_users")
+		frappe.cache.delete_key("users_for_mentions")
+		frappe.cache.delete_key("enabled_users")
 
 	def validate(self):
 		# clear new password
@@ -75,6 +151,7 @@ class User(Document):
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
+		self.populate_role_profile_roles()
 		self.check_roles_added()
 		self.set_system_user()
 		self.set_full_name()
@@ -85,7 +162,6 @@ class User(Document):
 		self.remove_disabled_roles()
 		self.validate_user_email_inbox()
 		ask_pass_update()
-		self.validate_roles()
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
@@ -98,11 +174,15 @@ class User(Document):
 		):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
-	def validate_roles(self):
+	def populate_role_profile_roles(self):
 		if self.role_profile_name:
 			role_profile = frappe.get_doc("Role Profile", self.role_profile_name)
 			self.set("roles", [])
 			self.append_roles(*[role.role for role in role_profile.roles])
+
+	@deprecated
+	def validate_roles(self):
+		self.populate_role_profile_roles()
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
@@ -143,10 +223,10 @@ class User(Document):
 			frappe.defaults.set_default("time_zone", self.time_zone, self.name)
 
 		if self.has_value_changed("enabled"):
-			frappe.cache().delete_key("users_for_mentions")
-			frappe.cache().delete_key("enabled_users")
+			frappe.cache.delete_key("users_for_mentions")
+			frappe.cache.delete_key("enabled_users")
 		elif self.has_value_changed("allow_in_mentions") or self.has_value_changed("user_type"):
-			frappe.cache().delete_key("users_for_mentions")
+			frappe.cache.delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -462,9 +542,9 @@ class User(Document):
 		frappe.delete_doc("Notification Settings", self.name, ignore_permissions=True)
 
 		if self.get("allow_in_mentions"):
-			frappe.cache().delete_key("users_for_mentions")
+			frappe.cache.delete_key("users_for_mentions")
 
-		frappe.cache().delete_key("enabled_users")
+		frappe.cache.delete_key("enabled_users")
 
 		# delete user permissions
 		frappe.db.delete("User Permission", {"user": self.name})
@@ -760,10 +840,10 @@ def update_password(
 	user_doc, redirect_url = reset_user_data(user)
 
 	# get redirect url from cache
-	redirect_to = frappe.cache().hget("redirect_after_login", user)
+	redirect_to = frappe.cache.hget("redirect_after_login", user)
 	if redirect_to:
 		redirect_url = redirect_to
-		frappe.cache().hdel("redirect_after_login", user)
+		frappe.cache.hdel("redirect_after_login", user)
 
 	frappe.local.login_manager.login_as(user)
 
@@ -921,7 +1001,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 			user.add_roles(default_role)
 
 		if redirect_to:
-			frappe.cache().hset("redirect_after_login", user.name, redirect_to)
+			frappe.cache.hset("redirect_after_login", user.name, redirect_to)
 
 		if user.flags.email_sent:
 			return 1, _("Please check your email for verification")
@@ -1234,4 +1314,4 @@ def get_enabled_users():
 		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
 		return enabled_users
 
-	return frappe.cache().get_value("enabled_users", _get_enabled_users)
+	return frappe.cache.get_value("enabled_users", _get_enabled_users)

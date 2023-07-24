@@ -34,6 +34,10 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return False
 
+	def __call__(self):
+		"""WARNING: Added for backward compatibility to support frappe.cache().method(...)"""
+		return self
+
 	def make_key(self, key, user=None, shared=False):
 		if shared:
 			return key
@@ -247,7 +251,7 @@ class RedisWrapper(redis.Redis):
 
 	def hdel_keys(self, name_starts_with, key):
 		"""Delete hash names with wildcard `*` and key"""
-		for name in frappe.cache().get_keys(name_starts_with):
+		for name in self.get_keys(name_starts_with):
 			name = name.split("|", 1)[1]
 			self.hdel(name, key)
 

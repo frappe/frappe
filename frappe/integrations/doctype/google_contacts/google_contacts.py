@@ -13,6 +13,23 @@ from frappe.model.document import Document
 
 
 class GoogleContacts(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		authorization_code: DF.Password | None
+		email_id: DF.Data
+		enable: DF.Check
+		last_sync_on: DF.Datetime | None
+		next_sync_token: DF.Password | None
+		pull_from_google_contacts: DF.Check
+		push_to_google_contacts: DF.Check
+		refresh_token: DF.Password | None
+	# end: auto-generated types
 	def validate(self):
 		if not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))

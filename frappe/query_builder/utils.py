@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from enum import Enum
 from importlib import import_module
-from typing import Any, Callable, get_type_hints
+from typing import Any, get_type_hints
 
 from pypika.queries import Column, QueryBuilder
 from pypika.terms import PseudoColumn
@@ -31,7 +32,7 @@ class ImportMapper:
 		self.func_map = func_map
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
-		db = db_type_is(frappe.conf.db_type or "mariadb")
+		db = db_type_is(frappe.conf.db_type)
 		return self.func_map[db](*args, **kwds)
 
 
@@ -106,27 +107,28 @@ def patch_query_execute():
 	def prepare_query(query):
 		import inspect
 
-		from frappe.utils.safe_exec import check_safe_sql_query
-
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
-		if frappe.flags.in_safe_exec and not check_safe_sql_query(query, throw=False):
-			callstack = inspect.stack()
-			if len(callstack) >= 3 and ".py" in callstack[2].filename:
-				# ignore any query builder methods called from python files
-				# assumption is that those functions are whitelisted already.
+		if frappe.flags.in_safe_exec:
+			from frappe.utils.safe_exec import check_safe_sql_query
 
-				# since query objects are patched everywhere any query.run()
-				# will have callstack like this:
-				# frame0: this function prepare_query()
-				# frame1: execute_query()
-				# frame2: frame that called `query.run()`
-				#
-				# if frame2 is server script <serverscript> is set as the filename
-				# it shouldn't be allowed.
-				pass
-			else:
-				raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
+			if not check_safe_sql_query(query, throw=False):
+				callstack = inspect.stack()
+				if len(callstack) >= 3 and ".py" in callstack[2].filename:
+					# ignore any query builder methods called from python files
+					# assumption is that those functions are whitelisted already.
+
+					# since query objects are patched everywhere any query.run()
+					# will have callstack like this:
+					# frame0: this function prepare_query()
+					# frame1: execute_query()
+					# frame2: frame that called `query.run()`
+					#
+					# if frame2 is server script <serverscript> is set as the filename
+					# it shouldn't be allowed.
+					pass
+				else:
+					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 		return query, param_collector.get_parameters()
 
 	builder_class = frappe.qb._BuilderClasss

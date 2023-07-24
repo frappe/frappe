@@ -26,7 +26,6 @@ frappe.widget.make_widget = (opts) => {
 	if (widget_class) {
 		return new widget_class(opts);
 	} else {
-		// eslint-disable-next-line
 		console.warn("Invalid Widget Name: " + opts.widget_type);
 	}
 };

@@ -11,7 +11,6 @@ import frappe.share
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
-from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
@@ -28,10 +27,11 @@ def getdoc(doctype, name, user=None):
 	if not (doctype and name):
 		raise Exception("doctype and name required!")
 
-	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
+	try:
+		doc = frappe.get_doc(doctype, name)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
 		return []
-
-	doc = frappe.get_doc(doctype, name)
 
 	if not doc.has_permission("read"):
 		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
@@ -80,7 +80,7 @@ def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
 	for df in bundle[0].fields:
 		if df.fieldtype in frappe.model.table_fields:
-			bundle.append(frappe.desk.form.meta.get_meta(df.options, not frappe.conf.developer_mode))
+			bundle.append(frappe.desk.form.meta.get_meta(df.options))
 	return bundle
 
 
@@ -91,7 +91,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
 
-	all_communications = _get_communications(doc.doctype, doc.name)
+	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
 		msg for msg in all_communications if msg["communication_type"] == "Automated Message"
 	]
@@ -110,7 +110,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
-			"total_comments": len(json.loads(doc.get("_comments") or "[]")),
 			"versions": get_versions(doc),
 			"assignments": get_assignments(doc.doctype, doc.name),
 			"permissions": get_doc_permissions(doc),
@@ -202,11 +201,13 @@ def get_versions(doc):
 
 @frappe.whitelist()
 def get_communications(doctype, name, start=0, limit=20):
+	from frappe.utils import cint
+
 	doc = frappe.get_doc(doctype, name)
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 
-	return _get_communications(doctype, name, start, limit)
+	return _get_communications(doctype, name, cint(start), cint(limit))
 
 
 def get_comments(

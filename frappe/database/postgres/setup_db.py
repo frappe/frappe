@@ -54,7 +54,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	_command = (
 		f"psql {frappe.conf.db_name} "
-		f"-h {frappe.conf.db_host or 'localhost'} -p {str(frappe.conf.db_port or '5432')} "
+		f"-h {frappe.conf.db_host} -p {str(frappe.conf.db_port)} "
 		f"-U {frappe.conf.db_name}"
 	)
 
@@ -92,7 +92,10 @@ def get_root_connection(root_login=None, root_password=None):
 			root_password = getpass("Postgres super user password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
-			user=root_login, password=root_password
+			host=frappe.conf.db_host,
+			port=frappe.conf.db_port,
+			user=root_login,
+			password=root_password,
 		)
 
 	return frappe.local.flags.root_connection

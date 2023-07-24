@@ -17,6 +17,35 @@ from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 
 
 class Report(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.core.doctype.report_column.report_column import ReportColumn
+		from frappe.core.doctype.report_filter.report_filter import ReportFilter
+		from frappe.types import DF
+
+		add_total_row: DF.Check
+		columns: DF.Table[ReportColumn]
+		disabled: DF.Check
+		filters: DF.Table[ReportFilter]
+		is_standard: DF.Literal["No", "Yes"]
+		javascript: DF.Code | None
+		json: DF.Code | None
+		letter_head: DF.Link | None
+		module: DF.Link | None
+		prepared_report: DF.Check
+		query: DF.Code | None
+		ref_doctype: DF.Link
+		reference_report: DF.Data | None
+		report_name: DF.Data
+		report_script: DF.Code | None
+		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
+		roles: DF.Table[HasRole]
+	# end: auto-generated types
 	def validate(self):
 		"""only administrator can save standard report"""
 		if not self.module:
@@ -48,6 +77,10 @@ class Report(Document):
 
 	def on_update(self):
 		self.export_doc()
+
+	def before_export(self, doc):
+		doc.letterhead = None
+		doc.prepared_report = 0
 
 	def on_trash(self):
 		if (
@@ -121,7 +154,7 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 30
+		threshold = 15
 		res = []
 
 		start_time = datetime.datetime.now()
@@ -135,9 +168,9 @@ class Report(Document):
 		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 		if execution_time > threshold and not self.prepared_report:
-			self.db_set("prepared_report", 1)
+			frappe.enqueue(enable_prepared_report, report=self.name)
 
-		frappe.cache().hset("report_execution_time", self.name, execution_time)
+		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
 
@@ -382,3 +415,7 @@ def get_group_by_column_label(args, meta):
 			function=sql_fn_map[args.aggregate_function], fieldlabel=aggregate_on_label
 		)
 	return label
+
+
+def enable_prepared_report(report: str):
+	frappe.db.set_value("Report", report, "prepared_report", 1)

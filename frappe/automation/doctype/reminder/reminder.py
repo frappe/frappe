@@ -9,6 +9,21 @@ from frappe.utils.data import add_to_date, get_datetime, now_datetime
 
 
 class Reminder(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		description: DF.SmallText
+		notified: DF.Check
+		remind_at: DF.Datetime
+		reminder_docname: DF.DynamicLink | None
+		reminder_doctype: DF.Link | None
+		user: DF.Link
+	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=30):
 		from frappe.query_builder import Interval

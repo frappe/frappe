@@ -3,7 +3,6 @@
 
 import frappe
 from frappe.cache_manager import clear_defaults_cache, common_default_keys
-from frappe.desk.notifications import clear_notifications
 from frappe.query_builder import DocType
 
 # Note: DefaultValue records are identified by parent (e.g. __default, __global)
@@ -230,7 +229,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 
 def get_defaults_for(parent="__default"):
 	"""get all defaults"""
-	defaults = frappe.cache().hget("defaults", parent)
+	defaults = frappe.cache.hget("defaults", parent)
 
 	if defaults is None:
 		# sort descending because first default must get precedence
@@ -256,7 +255,7 @@ def get_defaults_for(parent="__default"):
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 
-		frappe.cache().hset("defaults", parent, defaults)
+		frappe.cache.hset("defaults", parent, defaults)
 
 	return defaults
 

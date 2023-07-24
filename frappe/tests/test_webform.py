@@ -80,4 +80,4 @@ def set_webform_hook(key, value):
 			delattr(hooks, hook)
 
 	setattr(hooks, key, value)
-	frappe.cache().delete_key("app_hooks")
+	frappe.cache.delete_key("app_hooks")

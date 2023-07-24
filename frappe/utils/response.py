@@ -29,9 +29,7 @@ if TYPE_CHECKING:
 
 def report_error(status_code):
 	"""Build error. Show traceback in developer mode"""
-	allow_traceback = (
-		cint(frappe.db.get_system_setting("allow_error_traceback")) if frappe.db else True
-	)
+	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 	if (
 		allow_traceback
 		and (status_code != 404 or frappe.conf.logging)
@@ -68,7 +66,6 @@ def build_response(response_type=None):
 def as_csv():
 	response = Response()
 	response.mimetype = "text/csv"
-	response.charset = "utf-8"
 	response.headers["Content-Disposition"] = (
 		'attachment; filename="%s.csv"' % frappe.response["doctype"].replace(" ", "_")
 	).encode("utf-8")
@@ -79,7 +76,6 @@ def as_csv():
 def as_txt():
 	response = Response()
 	response.mimetype = "text"
-	response.charset = "utf-8"
 	response.headers["Content-Disposition"] = (
 		'attachment; filename="%s.txt"' % frappe.response["doctype"].replace(" ", "_")
 	).encode("utf-8")
@@ -109,7 +105,6 @@ def as_json():
 		del frappe.local.response["http_status_code"]
 
 	response.mimetype = "application/json"
-	response.charset = "utf-8"
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(",", ":"))
 	return response
 
@@ -223,7 +218,6 @@ def download_backup(path):
 def download_private_file(path: str) -> Response:
 	"""Checks permissions and sends back private file"""
 
-	can_access = False
 	files = frappe.get_all("File", filters={"file_url": path}, fields="*")
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents

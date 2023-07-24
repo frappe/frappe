@@ -50,14 +50,15 @@ frappe.ui.misc.about = function () {
 			var $wrap = $("#about-app-versions").empty();
 			$.each(Object.keys(versions).sort(), function (i, key) {
 				var v = versions[key];
+				let text;
 				if (v.branch) {
-					var text = $.format("<p><b>{0}:</b> v{1} ({2})<br></p>", [
+					text = $.format("<p><b>{0}:</b> v{1} ({2})<br></p>", [
 						v.title,
 						v.branch_version || v.version,
 						v.branch,
 					]);
 				} else {
-					var text = $.format("<p><b>{0}:</b> v{1}<br></p>", [v.title, v.version]);
+					text = $.format("<p><b>{0}:</b> v{1}<br></p>", [v.title, v.version]);
 				}
 				$(text).appendTo($wrap);
 			});

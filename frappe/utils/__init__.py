@@ -11,6 +11,7 @@ import sys
 import traceback
 from collections import deque
 from collections.abc import (
+	Callable,
 	Container,
 	Generator,
 	Iterable,
@@ -20,8 +21,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from gzip import GzipFile
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -873,6 +873,8 @@ def gzip_compress(data, compresslevel=9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
+	from gzip import GzipFile
+
 	buf = io.BytesIO()
 	with GzipFile(fileobj=buf, mode="wb", compresslevel=compresslevel) as f:
 		f.write(data)
@@ -883,6 +885,8 @@ def gzip_decompress(data):
 	"""Decompress a gzip compressed string in one shot.
 	Return the decompressed string.
 	"""
+	from gzip import GzipFile
+
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
 
@@ -951,7 +955,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, ".build")))
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
@@ -970,7 +974,7 @@ def get_assets_json():
 
 	if not hasattr(frappe.local, "assets_json"):
 		if not frappe.conf.developer_mode:
-			frappe.local.assets_json = frappe.cache().get_value(
+			frappe.local.assets_json = frappe.cache.get_value(
 				"assets_json",
 				_get_assets,
 				shared=True,

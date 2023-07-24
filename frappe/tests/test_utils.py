@@ -20,7 +20,7 @@ from PIL import Image
 import frappe
 from frappe.installer import parse_app_name
 from frappe.model.document import Document
-from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.tests.utils import FrappeTestCase, MockedRequestTestCase, change_settings
 from frappe.utils import (
 	ceil,
 	dict_to_str,
@@ -815,8 +815,14 @@ class TestLinkTitle(FrappeTestCase):
 		prop_setter.delete()
 
 
-class TestAppParser(FrappeTestCase):
+class TestAppParser(MockedRequestTestCase):
 	def test_app_name_parser(self):
+		self.responses.add(
+			"HEAD",
+			"https://api.github.com/repos/frappe/healthcare",
+			status=200,
+			json={},
+		)
 		bench_path = get_bench_path()
 		frappe_app = os.path.join(bench_path, "apps", "frappe")
 		self.assertEqual("frappe", parse_app_name(frappe_app))
@@ -1096,6 +1102,8 @@ class TestRounding(FrappeTestCase):
 		rounding_method = "Banker's Rounding"
 
 		self.assertEqual(rounded(0, 0, rounding_method=rounding_method), 0)
+		self.assertEqual(rounded(5.551115123125783e-17, 2, rounding_method=rounding_method), 0.0)
+
 		self.assertEqual(flt("0.5", 0, rounding_method=rounding_method), 0)
 		self.assertEqual(flt("0.3", rounding_method=rounding_method), 0.3)
 
@@ -1155,3 +1163,44 @@ class TestRounding(FrappeTestCase):
 
 	def test_default_rounding(self):
 		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
+
+
+class TestTypingValidations(FrappeTestCase):
+	def test_validate_argument_types(self):
+		from frappe.core.doctype.doctype.doctype import DocType
+		from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
+
+		@validate_argument_types
+		def test_simple_types(a: int, b: float, c: bool):
+			return a, b, c
+
+		@validate_argument_types
+		def test_sequence(a: str, b: list[dict] | None = None, c: dict[str, int] | None = None):
+			return a, b, c
+
+		@validate_argument_types
+		def test_doctypes(a: DocType | dict):
+			return a
+
+		self.assertEqual(test_simple_types(True, 2.0, True), (1, 2.0, True))
+		self.assertEqual(test_simple_types(1, 2, 1), (1, 2.0, True))
+		self.assertEqual(test_simple_types(1.0, 2, 1), (1, 2.0, True))
+		self.assertEqual(test_simple_types(1, 2, "1"), (1, 2.0, True))
+		with self.assertRaises(FrappeTypeError):
+			test_simple_types(1, 2, "a")
+		with self.assertRaises(FrappeTypeError):
+			test_simple_types(1, 2, None)
+
+		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": 1}), ("a", [{"a": 1}], {"a": 1}))
+		self.assertEqual(test_sequence("a", None, None), ("a", None, None))
+		self.assertEqual(test_sequence("a", [{"a": 1}], None), ("a", [{"a": 1}], None))
+		self.assertEqual(test_sequence("a", None, {"a": 1}), ("a", None, {"a": 1}))
+		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": "1.0"}), ("a", [{"a": 1}], {"a": 1}))
+		with self.assertRaises(FrappeTypeError):
+			test_sequence("a", [{"a": 1}], True)
+
+		doctype = frappe.get_last_doc("DocType")
+		self.assertEqual(test_doctypes(doctype), doctype)
+		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
+		with self.assertRaises(FrappeTypeError):
+			test_doctypes("a")

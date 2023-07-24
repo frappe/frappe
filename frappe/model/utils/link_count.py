@@ -23,7 +23,7 @@ def flush_local_link_count():
 	if not new_links:
 		return
 
-	link_count = frappe.cache().get_value("_link_count") or {}
+	link_count = frappe.cache.get_value("_link_count") or {}
 
 	for key, value in new_links.items():
 		if key in link_count:
@@ -31,13 +31,13 @@ def flush_local_link_count():
 		else:
 			link_count[key] = value
 
-	frappe.cache().set_value("_link_count", link_count)
+	frappe.cache.set_value("_link_count", link_count)
 	new_links.clear()
 
 
 def update_link_count():
 	"""increment link count in the `idx` column for the given document"""
-	link_count = frappe.cache().get_value("_link_count")
+	link_count = frappe.cache.get_value("_link_count")
 
 	if link_count:
 		for (doctype, name), count in link_count.items():
@@ -50,4 +50,4 @@ def update_link_count():
 					if not frappe.db.is_table_missing(e):  # table not found, single
 						raise e
 	# reset the count
-	frappe.cache().delete_value("_link_count")
+	frappe.cache.delete_value("_link_count")

@@ -126,6 +126,13 @@ frappe.report_utils = {
 			.then((r) => {
 				frappe.dom.eval(r.script || "");
 				return frappe.after_ajax(() => {
+					if (
+						frappe.query_reports[report_name] &&
+						!frappe.query_reports[report_name].filters &&
+						r.filters
+					) {
+						return (frappe.query_reports[report_name].filters = r.filters);
+					}
 					return (
 						frappe.query_reports[report_name] &&
 						frappe.query_reports[report_name].filters
@@ -228,7 +235,7 @@ frappe.report_utils = {
 			const is_query_report = frappe.get_route()[0] === "query-report";
 			const report = is_query_report ? frappe.query_report : cur_list;
 			const columns = report.columns.filter((col) => col.hidden !== 1);
-			PREVIEW_DATA = [
+			let PREVIEW_DATA = [
 				columns.map((col) => __(is_query_report ? col.label : col.name)),
 				...report.data
 					.slice(0, 3)

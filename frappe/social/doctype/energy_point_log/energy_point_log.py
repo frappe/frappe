@@ -19,6 +19,25 @@ from frappe.utils import cint, get_fullname, get_link_to_form, getdate
 
 
 class EnergyPointLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		points: DF.Int
+		reason: DF.Text | None
+		reference_doctype: DF.Link | None
+		reference_name: DF.Data | None
+		revert_of: DF.Link | None
+		reverted: DF.Check
+		rule: DF.Link | None
+		seen: DF.Check
+		type: DF.Literal["Auto", "Appreciation", "Criticism", "Review", "Revert"]
+		user: DF.Link
+	# end: auto-generated types
 	def validate(self):
 		self.map_milestone_reference()
 		if self.type in ["Appreciation", "Criticism"] and self.user == self.owner:
@@ -38,7 +57,7 @@ class EnergyPointLog(Document):
 				"energy_point_alert", message=alert_dict, user=self.user, after_commit=True
 			)
 
-		frappe.cache().hdel("energy_points", self.user)
+		frappe.cache.hdel("energy_points", self.user)
 
 		if self.type != "Review" and frappe.get_cached_value(
 			"Notification Settings", self.user, "energy_points_system_notifications"
@@ -222,9 +241,6 @@ def add_review_points(user, points):
 
 @frappe.whitelist()
 def get_energy_points(user):
-	# points = frappe.cache().hget('energy_points', user,
-	# 	lambda: get_user_energy_and_review_points(user))
-	# TODO: cache properly
 	points = get_user_energy_and_review_points(user)
 	return frappe._dict(points.get(user, {}))
 

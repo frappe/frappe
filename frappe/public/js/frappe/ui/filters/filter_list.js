@@ -303,7 +303,6 @@ frappe.ui.FilterGroup = class {
 	}
 
 	get_filter_area_template() {
-		/* eslint-disable indent */
 		return $(`
 			<div class="filter-area">
 				<div class="filter-edit-area">
@@ -330,7 +329,6 @@ frappe.ui.FilterGroup = class {
 					</div>
 				</div>
 			</div>`);
-		/* eslint-disable indent */
 	}
 
 	get_filters_as_object() {

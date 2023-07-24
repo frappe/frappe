@@ -1,6 +1,6 @@
 <!-- Used as Button & Heading Control -->
 <script setup>
-let props = defineProps(["df", "value"]);
+const props = defineProps(["df", "value"]);
 </script>
 
 <template>

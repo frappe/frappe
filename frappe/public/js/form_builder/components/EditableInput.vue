@@ -3,7 +3,7 @@ import { ref, nextTick, computed } from "vue";
 import { useStore } from "../store";
 let store = useStore();
 
-let props = defineProps({
+const props = defineProps({
 	text: {
 		type: String
 	},
@@ -46,7 +46,7 @@ function focus_on_label() {
 			:disabled="store.read_only"
 			type="text"
 			:placeholder="placeholder"
-			v-model="text"
+			:value="text"
 			:style="{ width: hidden_span_width }"
 			@input="event => $emit('update:modelValue', event.target.value)"
 			@keydown.enter="editing = false"

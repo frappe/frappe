@@ -18,6 +18,29 @@ os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 
 class ConnectedApp(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.integrations.doctype.oauth_scope.oauth_scope import OAuthScope
+		from frappe.integrations.doctype.query_parameters.query_parameters import QueryParameters
+		from frappe.types import DF
+
+		authorization_uri: DF.SmallText | None
+		client_id: DF.Data | None
+		client_secret: DF.Password | None
+		introspection_uri: DF.Data | None
+		openid_configuration: DF.Data | None
+		provider_name: DF.Data
+		query_parameters: DF.Table[QueryParameters]
+		redirect_uri: DF.Data | None
+		revocation_uri: DF.Data | None
+		scopes: DF.Table[OAuthScope]
+		token_uri: DF.Data | None
+		userinfo_uri: DF.Data | None
+	# end: auto-generated types
 	"""Connect to a remote oAuth Server. Retrieve and store user's access token
 	in a Token Cache.
 	"""

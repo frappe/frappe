@@ -24,6 +24,36 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class BlogPost(WebsiteGenerator):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		blog_category: DF.Link
+		blog_intro: DF.SmallText | None
+		blogger: DF.Link
+		content: DF.TextEditor | None
+		content_html: DF.HTMLEditor | None
+		content_md: DF.MarkdownEditor | None
+		content_type: DF.Literal["Markdown", "Rich Text", "HTML"]
+		disable_comments: DF.Check
+		disable_likes: DF.Check
+		email_sent: DF.Check
+		enable_email_notification: DF.Check
+		featured: DF.Check
+		hide_cta: DF.Check
+		meta_description: DF.SmallText | None
+		meta_image: DF.AttachImage | None
+		meta_title: DF.Data | None
+		published: DF.Check
+		published_on: DF.Date | None
+		read_time: DF.Int
+		route: DF.Data | None
+		title: DF.Data
+	# end: auto-generated types
 	@frappe.whitelist()
 	def make_route(self):
 		if not self.route:

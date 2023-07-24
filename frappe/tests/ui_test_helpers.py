@@ -582,7 +582,7 @@ def create_kanban():
 
 @whitelist_for_tests
 def create_todo(description):
-	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
 
 
 @whitelist_for_tests
@@ -621,3 +621,40 @@ def add_remove_role(action, user, role):
 		user_doc.remove_roles(role)
 	else:
 		user_doc.add_roles(role)
+
+
+@whitelist_for_tests
+def publish_realtime(
+	event=None,
+	message=None,
+	room=None,
+	user=None,
+	doctype=None,
+	docname=None,
+	task_id=None,
+):
+	frappe.publish_realtime(
+		event=event,
+		message=message,
+		room=room,
+		user=user,
+		doctype=doctype,
+		docname=docname,
+		task_id=task_id,
+	)
+
+
+@whitelist_for_tests
+def publish_progress(duration=3, title=None, doctype=None, docname=None):
+	# This should consider session user and only show it to current user.
+	frappe.enqueue(slow_task, duration=duration, title=title, doctype=doctype, docname=docname)
+
+
+def slow_task(duration, title, doctype, docname):
+	import time
+
+	steps = 10
+
+	for i in range(steps + 1):
+		frappe.publish_progress(i * 10, title=title, doctype=doctype, docname=docname)
+		time.sleep(int(duration) / steps)

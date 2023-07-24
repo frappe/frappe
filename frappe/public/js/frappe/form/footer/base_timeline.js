@@ -82,14 +82,44 @@ class BaseTimeline {
 		items.forEach((item) => this.add_timeline_item(item, append_at_the_end));
 	}
 
+	add_timeline_items_based_on_creation(items) {
+		items.forEach((item) => {
+			this.timeline_items_wrapper.find(".timeline-item").each((i, el) => {
+				let creation = $(el).attr("data-timestamp");
+				if (creation && new Date(creation) < new Date(item.creation)) {
+					$(el).before(this.get_timeline_item(item));
+					return false;
+				}
+			});
+		});
+	}
+
 	get_timeline_item(item) {
 		// item can have content*, creation*,
 		// timeline_badge, icon, icon_size,
 		// hide_timestamp, is_card
 		const timeline_item = $(`<div class="timeline-item">`);
+
+		if (item.name == "load-more") {
+			timeline_item.append(
+				`<div class="timeline-load-more">
+					<button class="btn btn-default btn-sm btn-load-more">
+						<span>${item.content}</span>
+					</button>
+				</div>`
+			);
+			timeline_item.find(".btn-load-more").on("click", async () => {
+				let more_items = await this.get_more_communication_timeline_contents();
+				timeline_item.remove();
+				this.add_timeline_items_based_on_creation(more_items);
+			});
+			return timeline_item;
+		}
+
 		timeline_item.attr({
 			"data-doctype": item.doctype,
 			"data-name": item.name,
+			"data-timestamp": item.creation,
 		});
 		if (item.icon) {
 			timeline_item.append(`
@@ -114,6 +144,7 @@ class BaseTimeline {
 		if (item.id) {
 			timeline_content.attr("id", item.id);
 		}
+
 		return timeline_item;
 	}
 }

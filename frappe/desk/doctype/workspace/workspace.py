@@ -14,6 +14,42 @@ from frappe.modules.export_file import delete_folder, export_to_files
 
 
 class Workspace(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.desk.doctype.workspace_chart.workspace_chart import WorkspaceChart
+		from frappe.desk.doctype.workspace_custom_block.workspace_custom_block import (
+			WorkspaceCustomBlock,
+		)
+		from frappe.desk.doctype.workspace_link.workspace_link import WorkspaceLink
+		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
+		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
+		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
+		from frappe.types import DF
+
+		charts: DF.Table[WorkspaceChart]
+		content: DF.LongText | None
+		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		for_user: DF.Data | None
+		hide_custom: DF.Check
+		is_hidden: DF.Check
+		label: DF.Data
+		links: DF.Table[WorkspaceLink]
+		module: DF.Link | None
+		number_cards: DF.Table[WorkspaceNumberCard]
+		parent_page: DF.Data | None
+		public: DF.Check
+		quick_lists: DF.Table[WorkspaceQuickList]
+		restrict_to_domain: DF.Link | None
+		roles: DF.Table[HasRole]
+		sequence_id: DF.Float
+		shortcuts: DF.Table[WorkspaceShortcut]
+		title: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))

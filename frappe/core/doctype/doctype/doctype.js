@@ -2,6 +2,26 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on("DocType", {
+	before_save: function (frm) {
+		let form_builder = frappe.form_builder;
+		if (form_builder?.store) {
+			let fields = form_builder.store.update_fields();
+
+			// if fields is a string, it means there is an error
+			if (typeof fields === "string") {
+				frappe.throw(fields);
+			}
+		}
+	},
+	after_save: function (frm) {
+		if (
+			frappe.form_builder &&
+			frappe.form_builder.doctype === frm.doc.name &&
+			frappe.form_builder.store
+		) {
+			frappe.form_builder.store.fetch();
+		}
+	},
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {
@@ -20,8 +40,6 @@ frappe.ui.form.on("DocType", {
 			frm.toggle_enable("is_virtual", 0);
 			frm.toggle_enable("beta", 0);
 		}
-
-		render_form_builder_message(frm);
 
 		if (!frm.is_new() && !frm.doc.istable) {
 			if (frm.doc.issingle) {
@@ -72,6 +90,8 @@ frappe.ui.form.on("DocType", {
 		frm.cscript.autoname(frm);
 		frm.cscript.set_naming_rule_description(frm);
 		frm.trigger("setup_default_views");
+
+		render_form_builder(frm);
 	},
 
 	istable: (frm) => {
@@ -139,6 +159,32 @@ function render_form_builder_message(frm) {
 		`;
 
 		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
+	}
+}
+
+function render_form_builder(frm) {
+	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) {
+		frappe.form_builder.setup_page_actions();
+		frappe.form_builder.store.fetch();
+		return;
+	}
+
+	if (frappe.form_builder) {
+		frappe.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
+		frappe.form_builder.frm = frm;
+		frappe.form_builder.doctype = frm.doc.name;
+		frappe.form_builder.customize = false;
+		frappe.form_builder.init(true);
+		frappe.form_builder.store.fetch();
+	} else {
+		frappe.require("form_builder.bundle.js").then(() => {
+			frappe.form_builder = new frappe.ui.FormBuilder({
+				wrapper: $(frm.fields_dict["form_builder"].wrapper),
+				frm: frm,
+				doctype: frm.doc.name,
+				customize: false,
+			});
+		});
 	}
 }
 

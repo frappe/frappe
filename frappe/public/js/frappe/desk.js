@@ -31,7 +31,7 @@ frappe.Application = class Application {
 	}
 
 	startup() {
-		frappe.socketio.init();
+		frappe.realtime.init();
 		frappe.model.init();
 
 		this.load_bootinfo();
@@ -151,27 +151,6 @@ frappe.Application = class Application {
 
 		// REDESIGN-TODO: Fix preview popovers
 		this.link_preview = new frappe.ui.LinkPreview();
-
-		if (!frappe.boot.developer_mode) {
-			if (frappe.user.has_role("System Manager")) {
-				setInterval(function () {
-					frappe.call({
-						method: "frappe.core.doctype.log_settings.log_settings.has_unseen_error_log",
-						args: {
-							user: frappe.session.user,
-						},
-						callback: function (r) {
-							if (r.message && r.message.show_alert) {
-								frappe.show_alert({
-									indicator: "red",
-									message: r.message.message,
-								});
-							}
-						},
-					});
-				}, 600000); // check every 10 minutes
-			}
-		}
 	}
 
 	set_route() {
@@ -298,7 +277,7 @@ frappe.Application = class Application {
 	}
 
 	load_user_permissions() {
-		frappe.defaults.update_user_permissions();
+		frappe.defaults.load_user_permission_from_boot();
 
 		frappe.realtime.on(
 			"update_user_permissions",
@@ -330,58 +309,6 @@ frappe.Application = class Application {
 			.replace("mm", "%m")
 			.replace("yyyy", "%Y");
 		frappe.boot.user.last_selected_values = {};
-
-		// Proxy for user globals
-		Object.defineProperties(window, {
-			user: {
-				get: function () {
-					console.warn(
-						"Please use `frappe.session.user` instead of `user`. It will be deprecated soon."
-					);
-					return frappe.session.user;
-				},
-			},
-			user_fullname: {
-				get: function () {
-					console.warn(
-						"Please use `frappe.session.user_fullname` instead of `user_fullname`. It will be deprecated soon."
-					);
-					return frappe.session.user;
-				},
-			},
-			user_email: {
-				get: function () {
-					console.warn(
-						"Please use `frappe.session.user_email` instead of `user_email`. It will be deprecated soon."
-					);
-					return frappe.session.user_email;
-				},
-			},
-			user_defaults: {
-				get: function () {
-					console.warn(
-						"Please use `frappe.user_defaults` instead of `user_defaults`. It will be deprecated soon."
-					);
-					return frappe.user_defaults;
-				},
-			},
-			roles: {
-				get: function () {
-					console.warn(
-						"Please use `frappe.user_roles` instead of `roles`. It will be deprecated soon."
-					);
-					return frappe.user_roles;
-				},
-			},
-			sys_defaults: {
-				get: function () {
-					console.warn(
-						"Please use `frappe.sys_defaults` instead of `sys_defaults`. It will be deprecated soon."
-					);
-					return frappe.user_roles;
-				},
-			},
-		});
 	}
 	sync_pages() {
 		// clear cached pages if timestamp is not found

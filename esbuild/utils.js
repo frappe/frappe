@@ -94,16 +94,16 @@ function get_cli_arg(name) {
 
 function log_error(message, badge = "ERROR") {
 	badge = chalk.white.bgRed(` ${badge} `);
-	console.error(`${badge} ${message}`); // eslint-disable-line no-console
+	console.error(`${badge} ${message}`);
 }
 
 function log_warn(message, badge = "WARN") {
 	badge = chalk.black.bgYellowBright(` ${badge} `);
-	console.warn(`${badge} ${message}`); // eslint-disable-line no-console
+	console.warn(`${badge} ${message}`);
 }
 
 function log(...args) {
-	console.log(...args); // eslint-disable-line no-console
+	console.log(...args);
 }
 
 function get_redis_subscriber(kind) {

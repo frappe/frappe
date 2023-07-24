@@ -10,6 +10,43 @@ from frappe.utils import cstr, has_gravatar
 
 
 class Contact(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.contacts.doctype.contact_email.contact_email import ContactEmail
+		from frappe.contacts.doctype.contact_phone.contact_phone import ContactPhone
+		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
+		from frappe.types import DF
+
+		address: DF.Link | None
+		company_name: DF.Data | None
+		department: DF.Data | None
+		designation: DF.Data | None
+		email_id: DF.Data | None
+		email_ids: DF.Table[ContactEmail]
+		first_name: DF.Data | None
+		full_name: DF.Data | None
+		gender: DF.Link | None
+		google_contacts: DF.Link | None
+		google_contacts_id: DF.Data | None
+		image: DF.AttachImage | None
+		is_primary_contact: DF.Check
+		last_name: DF.Data | None
+		links: DF.Table[DynamicLink]
+		middle_name: DF.Data | None
+		mobile_no: DF.Data | None
+		phone: DF.Data | None
+		phone_nos: DF.Table[ContactPhone]
+		pulled_from_google_contacts: DF.Check
+		salutation: DF.Link | None
+		status: DF.Literal["Passive", "Open", "Replied"]
+		sync_with_google_contacts: DF.Check
+		unsubscribed: DF.Check
+		user: DF.Link | None
+	# end: auto-generated types
 	def autoname(self):
 		self.name = self._get_full_name()
 

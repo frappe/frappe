@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -29,6 +30,31 @@ URL_PREFIXES = ("http://", "https://")
 
 
 class File(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		attached_to_doctype: DF.Link | None
+		attached_to_field: DF.Data | None
+		attached_to_name: DF.Data | None
+		content_hash: DF.Data | None
+		file_name: DF.Data | None
+		file_size: DF.Int
+		file_url: DF.Code | None
+		folder: DF.Link | None
+		is_attachments_folder: DF.Check
+		is_folder: DF.Check
+		is_home_folder: DF.Check
+		is_private: DF.Check
+		old_parent: DF.Data | None
+		thumbnail_url: DF.SmallText | None
+		uploaded_to_dropbox: DF.Check
+		uploaded_to_google_drive: DF.Check
+	# end: auto-generated types
 	no_feed_on_delete = True
 
 	def __init__(self, *args, **kwargs):
@@ -236,12 +262,19 @@ class File(Document):
 		):
 			return
 
-		frappe.db.set_value(
-			self.attached_to_doctype,
-			self.attached_to_name,
-			self.attached_to_field,
-			self.file_url,
-		)
+		if frappe.get_meta(self.attached_to_doctype).issingle:
+			frappe.db.set_single_value(
+				self.attached_to_doctype,
+				self.attached_to_field,
+				self.file_url,
+			)
+		else:
+			frappe.db.set_value(
+				self.attached_to_doctype,
+				self.attached_to_name,
+				self.attached_to_field,
+				self.file_url,
+			)
 
 	def fetch_attached_to_field(self, old_file_url):
 		if self.attached_to_field:
@@ -711,40 +744,39 @@ def on_doctype_update():
 
 
 def has_permission(doc, ptype=None, user=None):
-	has_access = False
 	user = user or frappe.session.user
 
 	if ptype == "create":
-		has_access = frappe.has_permission("File", "create", user=user)
+		return frappe.has_permission("File", "create", user=user)
 
-	if not doc.is_private or doc.owner in [user, "Guest"] or user == "Administrator":
-		has_access = True
+	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
 		attached_to_name = doc.attached_to_name
 
-		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
-			if ptype in ["write", "create", "delete"]:
-				has_access = ref_doc.has_permission("write")
+		if ptype in ["write", "create", "delete"]:
+			return ref_doc.has_permission("write")
+		else:
+			return ref_doc.has_permission("read")
 
-				if ptype == "delete" and not has_access:
-					frappe.throw(
-						_(
-							"Cannot delete file as it belongs to {0} {1} for which you do not have permissions"
-						).format(doc.attached_to_doctype, doc.attached_to_name),
-						frappe.PermissionError,
-					)
-			else:
-				has_access = ref_doc.has_permission("read")
-		except frappe.DoesNotExistError:
-			# if parent doc is not created before file is created
-			# we cannot check its permission so we will use file's permission
-			pass
+	return False
 
-	return has_access
+
+def get_permission_query_conditions(user: str = None) -> str:
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
+	return f"""
+		(`tabFile`.`is_private` = 0)
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {user !r})
+		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
+	"""
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility

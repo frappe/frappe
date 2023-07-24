@@ -132,7 +132,6 @@ def return_unsubscribed_page(email, doctype, name):
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	from frappe.email.doctype.email_queue.email_queue import send_mail
-	from frappe.utils.background_jobs import get_jobs
 
 	# To avoid running jobs inside unit tests
 	if frappe.are_emails_muted():
@@ -142,25 +141,16 @@ def flush(from_test=False):
 	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
-	try:
-		queued_jobs = set(get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site])
-	except Exception:
-		queued_jobs = set()
-
 	for row in get_queue():
 		try:
-			job_name = f"email_queue_sendmail_{row.name}"
-			if job_name not in queued_jobs:
-				frappe.enqueue(
-					method=send_mail,
-					email_queue_name=row.name,
-					is_background_task=not from_test,
-					now=from_test,
-					job_name=job_name,
-					queue="short",
-				)
-			else:
-				frappe.logger().debug(f"Not queueing job {job_name} because it is in queue already")
+			frappe.enqueue(
+				method=send_mail,
+				email_queue_name=row.name,
+				now=from_test,
+				job_id=f"email_queue_sendmail_{row.name}",
+				queue="short",
+				deduplicate=True,
+			)
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
 
@@ -179,20 +169,4 @@ def get_queue():
 		limit 500""",
 		{"now": now_datetime()},
 		as_dict=True,
-	)
-
-
-def set_expiry_for_email_queue():
-	"""Mark emails as expire that has not sent for 7 days.
-	Called daily via scheduler.
-	"""
-
-	frappe.db.sql(
-		"""
-		UPDATE `tabEmail Queue`
-		SET `status`='Expired'
-		WHERE `modified` < (NOW() - INTERVAL '7' DAY)
-		AND `status`='Not Sent'
-		AND (`send_after` IS NULL OR `send_after` < %(now)s)""",
-		{"now": now_datetime()},
 	)

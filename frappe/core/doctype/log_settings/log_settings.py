@@ -14,7 +14,6 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Error Log": 30,
 	"Activity Log": 90,
 	"Email Queue": 30,
-	"Error Snapshot": 30,
 	"Scheduled Job Log": 90,
 	"Route History": 90,
 	"Submission Queue": 30,
@@ -44,12 +43,23 @@ def _supports_log_clearing(doctype: str) -> bool:
 
 
 class LogSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.logs_to_clear.logs_to_clear import LogsToClear
+		from frappe.types import DF
+
+		logs_to_clear: DF.Table[LogsToClear]
+	# end: auto-generated types
 	def validate(self):
-		self._remove_unsupported_doctypes()
+		self.remove_unsupported_doctypes()
 		self._deduplicate_entries()
 		self.add_default_logtypes()
 
-	def _remove_unsupported_doctypes(self):
+	def remove_unsupported_doctypes(self):
 		for entry in list(self.logs_to_clear):
 			if _supports_log_clearing(entry.ref_doctype):
 				continue
@@ -114,6 +124,7 @@ class LogSettings(Document):
 
 def run_log_clean_up():
 	doc = frappe.get_doc("Log Settings")
+	doc.remove_unsupported_doctypes()
 	doc.add_default_logtypes()
 	doc.save()
 	doc.clear_logs()
@@ -156,7 +167,6 @@ LOG_DOCTYPES = [
 	"Route History",
 	"Email Queue",
 	"Email Queue Recipient",
-	"Error Snapshot",
 	"Error Log",
 ]
 

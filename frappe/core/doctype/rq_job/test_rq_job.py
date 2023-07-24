@@ -97,12 +97,37 @@ class TestRQJob(FrappeTestCase):
 		self.assertIn("quitting", cstr(stderr))
 
 	@timeout(20)
-	def test_job_id_dedup(self):
+	def test_multi_queue_burst_consumption_worker_pool(self):
+		for _ in range(3):
+			for q in ["default", "short"]:
+				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
+
+		_, stderr = execute_in_shell(
+			"bench worker-pool --queue short,default --burst --num-workers=4", check_exit_code=True
+		)
+		self.assertIn("quitting", cstr(stderr))
+
+	@timeout(20)
+	def test_job_id_manual_dedup(self):
 		job_id = "test_dedup"
 		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
 		self.assertTrue(is_job_enqueued(job_id))
 		self.check_status(job, "finished")
 		self.assertFalse(is_job_enqueued(job_id))
+
+	@timeout(20)
+	def test_auto_job_dedup(self):
+		job_id = "test_dedup"
+		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
+		job2 = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id, deduplicate=True)
+		self.assertIsNone(job2)
+		self.check_status(job1, "finished")  # wait
+
+		# Failed jobs last longer, subsequent job should still pass with same ID.
+		job3 = frappe.enqueue(self.BG_JOB, fail=True, job_id=job_id, deduplicate=True)
+		self.check_status(job3, "failed")
+		job4 = frappe.enqueue(self.BG_JOB, sleep=1, job_id=job_id, deduplicate=True)
+		self.check_status(job4, "finished")
 
 	@timeout(20)
 	def test_enqueue_after_commit(self):
@@ -123,6 +148,20 @@ class TestRQJob(FrappeTestCase):
 
 		frappe.db.commit()
 		self.assertIsNone(get_job_status(job_id))
+
+	@timeout(20)
+	def test_memory_usage(self):
+		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
+		self.check_status(job, "finished")
+
+		rss = job.latest_result().return_value
+		msg = """Memory usage of simple background job increased. Potential root cause can be a newly added python module import. Check and move them to approriate file/function to avoid loading the module by default."""
+
+		# If this starts failing analyze memory usage using memray or some equivalent tool to find
+		# offending imports/function calls.
+		# Refer this PR: https://github.com/frappe/frappe/pull/21467
+		LAST_MEASURED_USAGE = 40
+		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 
 def test_func(fail=False, sleep=0):

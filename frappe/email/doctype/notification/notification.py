@@ -18,6 +18,52 @@ from frappe.utils.safe_exec import get_safe_globals
 
 
 class Notification(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.email.doctype.notification_recipient.notification_recipient import (
+			NotificationRecipient,
+		)
+		from frappe.types import DF
+
+		attach_print: DF.Check
+		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
+		condition: DF.Code | None
+		date_changed: DF.Literal
+		days_in_advance: DF.Int
+		document_type: DF.Link
+		enabled: DF.Check
+		event: DF.Literal[
+			"",
+			"New",
+			"Save",
+			"Submit",
+			"Cancel",
+			"Days After",
+			"Days Before",
+			"Value Change",
+			"Method",
+			"Custom",
+		]
+		is_standard: DF.Check
+		message: DF.Code | None
+		method: DF.Data | None
+		module: DF.Link | None
+		print_format: DF.Link | None
+		property_value: DF.Data | None
+		recipients: DF.Table[NotificationRecipient]
+		send_system_notification: DF.Check
+		send_to_all_assignees: DF.Check
+		sender: DF.Link | None
+		sender_email: DF.Data | None
+		set_property_after_alert: DF.Literal
+		slack_webhook_url: DF.Link | None
+		subject: DF.Data | None
+		value_changed: DF.Literal
+	# end: auto-generated types
 	def onload(self):
 		"""load message"""
 		if self.is_standard:
@@ -42,10 +88,10 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
-		frappe.cache().hdel("notifications", self.document_type)
+		frappe.cache.hdel("notifications", self.document_type)
 
 	def on_update(self):
-		frappe.cache().hdel("notifications", self.document_type)
+		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path:
 			# js
@@ -378,7 +424,7 @@ def get_context(context):
 			self.message = frappe.utils.md_to_html(self.message)
 
 	def on_trash(self):
-		frappe.cache().hdel("notifications", self.document_type)
+		frappe.cache.hdel("notifications", self.document_type)
 
 
 @frappe.whitelist()

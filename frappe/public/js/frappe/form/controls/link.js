@@ -267,15 +267,17 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						r.results = me.merge_duplicates(r.results);
 
 						// show filter description in awesomplete
-						if (args.filters) {
-							let filter_string = me.get_filter_description(args.filters);
-							if (filter_string) {
-								r.results.push({
-									html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
-									value: "",
-									action: () => {},
-								});
-							}
+						let filter_string = me.df.filter_description
+							? me.df.filter_description
+							: args.filters
+							? me.get_filter_description(args.filters)
+							: null;
+						if (filter_string) {
+							r.results.push({
+								html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
+								value: "",
+								action: () => {},
+							});
 						}
 
 						if (!me.df.only_select) {
@@ -589,13 +591,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			let field_value = "";
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
 				if (value) field_value = response[source_field];
-				frappe.model.set_value(
-					df.parent,
-					docname,
-					target_field,
-					field_value,
-					df.fieldtype
-				);
+				let target_df = frappe.meta.get_docfield(df.parent, target_field);
+				let target_value = frappe.model.get_value(df.parent, docname, target_field);
+				if (target_df?.fetch_if_empty && target_value) {
+					continue;
+				} else {
+					frappe.model.set_value(
+						df.parent,
+						docname,
+						target_field,
+						field_value,
+						df.fieldtype
+					);
+				}
 			}
 		}
 

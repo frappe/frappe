@@ -3,8 +3,9 @@ name: Server
 on:
   pull_request:
   workflow_dispatch:
-  push:
-    branches: [ develop ]
+  schedule:
+    # Run everday at midnight UTC / 5:30 IST
+    - cron: "0 0 * * *"
 
 concurrency:
   group: server-develop-${{ github.event_name }}-${{ github.event.number }}
@@ -90,7 +91,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
 
       - name: Add to Hosts
@@ -135,6 +136,10 @@ jobs:
           CI_BUILD_ID: ${{ github.run_id }}
           BUILD_NUMBER: ${{ matrix.container }}
           TOTAL_BUILDS: 2
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: cat ~/frappe-bench/bench_start.log || true
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
