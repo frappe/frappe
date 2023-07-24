@@ -1361,8 +1361,6 @@ class Document(BaseDocument):
 		comment_type="Comment",
 		text=None,
 		comment_email=None,
-		link_doctype=None,
-		link_name=None,
 		comment_by=None,
 	):
 		"""Add a comment to this document.
@@ -1378,8 +1376,6 @@ class Document(BaseDocument):
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
 				"content": text or comment_type,
-				"link_doctype": link_doctype,
-				"link_name": link_name,
 			}
 		).insert(ignore_permissions=True)
 		return out
