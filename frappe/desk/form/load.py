@@ -70,7 +70,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 
 	frappe.response["user_settings"] = get_user_settings(parent_dt or doctype)
 
-	if cached_timestamp and docs[0].modified == cached_timestamp:
+	if cached_timestamp and str(docs[0].modified) == cached_timestamp:
 		return "use_cache"
 
 	frappe.response.docs.extend(docs)
