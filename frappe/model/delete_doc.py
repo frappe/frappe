@@ -255,7 +255,9 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			if frappe.get_meta(link_dt).istable:
 				fields.extend(["parent", "parenttype"])
 
-			for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
+			for item in frappe.db.get_values(
+				link_dt, {link_field: doc.name}, fields, as_dict=True, order_by=None
+			):
 				# available only in child table cases
 				item_parent = getattr(item, "parent", None)
 				linked_doctype = item.parenttype if item_parent else link_dt
@@ -279,7 +281,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					raise_link_exists_exception(doc, linked_doctype, reference_docname)
 
 		else:
-			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
+			if frappe.db.get_single_value(link_dt, link_field, cache=False) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
 
 
