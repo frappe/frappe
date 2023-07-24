@@ -16,15 +16,15 @@ def get_contact_list(txt, page_length=20) -> list[dict]:
 	if cached_contacts := get_cached_contacts(txt):
 		return cached_contacts[:page_length]
 
-	fields = ["name", "first_name", "middle_name", "last_name", "company_name"]
+	search_condition = ("like", f"%{txt}%")
+	fields = ["name", "first_name", "middle_name", "last_name", "company_name", "email_id"]
 	contacts = frappe.get_list(
 		"Contact",
-		fields=fields + ["`tabContact Email`.email_id"],
-		filters=[
-			["Contact Email", "email_id", "is", "set"],
-		],
-		or_filters=[[field, "like", f"%{txt}%"] for field in fields]
-		+ [["Contact Email", "email_id", "like", f"%{txt}%"]],
+		fields=fields,
+		filters={
+			"email_id": ("is", "set"),
+		},
+		or_filters={field: search_condition for field in fields},
 		limit_page_length=page_length,
 	)
 
