@@ -327,3 +327,16 @@ def get_contacts_linked_from(doctype, docname, fields=None):
 		return []
 
 	return frappe.get_list("Contact", fields=fields, filters={"name": ("in", contact_names)})
+
+
+def get_full_name(
+	first: str | None = None,
+	middle: str | None = None,
+	last: str | None = None,
+	company: str | None = None,
+) -> str:
+	full_name = " ".join(filter(None, [cstr(f).strip() for f in [first, middle, last]]))
+	if not full_name and company:
+		full_name = company
+
+	return full_name
