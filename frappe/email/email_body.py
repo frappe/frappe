@@ -405,7 +405,9 @@ def inline_style_in_html(html):
 	css_files = [path.lstrip("/") for path in css_files]
 	css_files = [css_file for css_file in css_files if os.path.exists(os.path.abspath(css_file))]
 
-	p = Premailer(html=html, external_styles=css_files, strip_important=False)
+	p = Premailer(
+		html=html, external_styles=css_files, strip_important=False, allow_loading_external_files=True
+	)
 
 	return p.transform()
 
