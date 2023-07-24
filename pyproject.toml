@@ -28,7 +28,7 @@ dependencies = [
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
-    "bleach~=3.3.0",
+    "bleach[css]~=6.0.0",
     "cairocffi==1.5.1",
     "chardet~=5.1.0",
     "croniter~=1.3.15",
