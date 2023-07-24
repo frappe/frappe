@@ -1080,14 +1080,6 @@ def get_all_languages(with_language_name=False):
 		return frappe.cache().get_value("languages", get_language_codes)
 
 
-<<<<<<< HEAD
-@frappe.whitelist(allow_guest=True)
-def set_preferred_language_cookie(preferred_language):
-	frappe.local.cookie_manager.set_cookie("preferred_language", preferred_language)
-
-
-=======
->>>>>>> d2becc7f1d (fix: no API call required to set cookie in browser)
 def get_preferred_language_cookie():
 	return frappe.request.cookies.get("preferred_language")
 
