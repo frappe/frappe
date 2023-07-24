@@ -83,7 +83,7 @@ watch(() => props.df.options, () => {
 </script>
 
 <template>
-	<div v-if="slots.label" class="control" :class="{ editable: slots.label }">
+	<div v-if="slots.label" class="control frappe-control" :class="{ editable: slots.label }">
 		<!-- label -->
 		<div class="field-controls">
 			<slot name="label" />
