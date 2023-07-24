@@ -238,6 +238,11 @@ def check_permission_and_not_submitted(doc):
 		)
 
 
+IGNORE_LINK_FIELDS = {
+	"amended_from",  # Amended documents are always cancelled
+}
+
+
 def check_if_doc_is_linked(doc, method="Delete"):
 	"""
 	Raises excption if the given doc(dt, dn) is linked in another record.
@@ -249,6 +254,9 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
+
+		if link_field in IGNORE_LINK_FIELDS:
+			continue
 
 		if not issingle:
 			fields = ["name", "docstatus"]
