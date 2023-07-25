@@ -27,26 +27,28 @@ export default class NumberCardWidget extends Widget {
 		this.make_card();
 	}
 
-	make_card() {
-		frappe.model.with_doc("Number Card", this.number_card_name || this.name).then((card) => {
-			if (!card) {
-				if (this.document_type) {
-					frappe.run_serially([
-						() => this.create_number_card(),
-						() => this.render_card(),
-					]);
+	async make_card() {
+		await frappe.model
+			.with_doc("Number Card", this.number_card_name || this.name)
+			.then((card) => {
+				if (!card) {
+					if (this.document_type) {
+						frappe.run_serially([
+							() => this.create_number_card(),
+							() => this.render_card(),
+						]);
+					} else {
+						// widget doesn't exist so delete
+						this.delete(false);
+						return;
+					}
 				} else {
-					// widget doesn't exist so delete
-					this.delete(false);
-					return;
+					this.card_doc = card;
+					this.render_card();
 				}
-			} else {
-				this.card_doc = card;
-				this.render_card();
-			}
 
-			this.set_events();
-		});
+				this.set_events();
+			});
 	}
 
 	create_number_card() {
@@ -64,7 +66,11 @@ export default class NumberCardWidget extends Widget {
 
 	set_events() {
 		$(this.body).click(() => {
-			if (this.in_customize_mode || this.card_doc.type == "Custom") return;
+			if (this.in_customize_mode || this.card_doc.type == "Custom") {
+				this.set_route_for_custom_card();
+				return;
+			}
+
 			this.set_route();
 		});
 	}
@@ -85,6 +91,25 @@ export default class NumberCardWidget extends Widget {
 					[`${filter[0]}.${filter[1]}`]: [filter[2], filter[3]],
 				});
 			}, {});
+		}
+
+		frappe.set_route(route);
+	}
+
+	set_route_for_custom_card() {
+		if (!this.data.route && !this.data.route_options) return;
+
+		let route = this.data.route;
+		const is_document_type = route.is_document_type || 0;
+
+		if (this.data.route_options) frappe.route_options = this.data.route_options;
+
+		if (typeof route == "object" && !Array.isArray(route)) {
+			route = frappe.utils.generate_route({
+				name: route.name,
+				type: is_document_type ? "doctype" : "report",
+				is_query_report: !is_document_type,
+			});
 		}
 
 		frappe.set_route(route);
@@ -162,6 +187,7 @@ export default class NumberCardWidget extends Widget {
 
 	get_number() {
 		return frappe.xcall(this.settings.method, this.settings.args).then((res) => {
+			this.data = res;
 			return this.settings.get_number(res);
 		});
 	}
