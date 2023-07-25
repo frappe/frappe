@@ -4137,7 +4137,7 @@ No changes in document,दस्तावेज़ में कोई बदल
 by Role,भूमिका द्वारा,
 Document is only editable by users with role,दस्तावेज़ केवल भूमिका वाले उपयोगकर्ताओं द्वारा संपादन योग्य है,
 {0}: Other permission rules may also apply,{0}: अन्य अनुमति नियम भी लागू हो सकते हैं,
-{0} Page Views,{0} पृष्ठ दृश्य,
+{0} Web page views,{0} पृष्ठ दृश्य,
 Expand,विस्तार,
 Collapse,ढहने,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","अमान्य बियरर टोकन, कृपया उपसर्ग &#39;बियरर&#39; के साथ एक मान्य एक्सेस टोकन प्रदान करें।",
