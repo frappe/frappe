@@ -42,6 +42,7 @@ const subscriber = get_redis_subscriber();
 (async () => {
 	await subscriber.connect();
 	subscriber.subscribe("events", (message) => {
+		message = JSON.parse(message);
 		let namespace = "/" + message.namespace;
 		if (message.room) {
 			io.of(namespace).to(message.room).emit(message.event, message.message);
