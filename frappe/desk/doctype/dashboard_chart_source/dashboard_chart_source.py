@@ -21,6 +21,18 @@ def get_config(name):
 
 
 class DashboardChartSource(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		module: DF.Link
+		source_name: DF.Data
+		timeseries: DF.Check
+	# end: auto-generated types
 	def on_update(self):
 		export_to_files(
 			record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True

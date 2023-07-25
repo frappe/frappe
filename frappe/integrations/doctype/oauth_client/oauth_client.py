@@ -7,6 +7,25 @@ from frappe.model.document import Document
 
 
 class OAuthClient(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		app_name: DF.Data
+		client_id: DF.Data | None
+		client_secret: DF.Data | None
+		default_redirect_uri: DF.Data
+		grant_type: DF.Literal["Authorization Code", "Implicit"]
+		redirect_uris: DF.Text | None
+		response_type: DF.Literal["Code", "Token"]
+		scopes: DF.Text
+		skip_authorization: DF.Check
+		user: DF.Link | None
+	# end: auto-generated types
 	def validate(self):
 		self.client_id = self.name
 		if not self.client_secret:

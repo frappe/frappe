@@ -11,6 +11,28 @@ exclude_from_linked_with = True
 
 
 class ToDo(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		allocated_to: DF.Link | None
+		assigned_by: DF.Link | None
+		assigned_by_full_name: DF.ReadOnly | None
+		assignment_rule: DF.Link | None
+		color: DF.Color | None
+		date: DF.Date | None
+		description: DF.TextEditor
+		priority: DF.Literal["High", "Medium", "Low"]
+		reference_name: DF.DynamicLink | None
+		reference_type: DF.Link | None
+		role: DF.Link | None
+		sender: DF.Data | None
+		status: DF.Literal["Open", "Closed", "Cancelled"]
+	# end: auto-generated types
 	DocType = "ToDo"
 
 	def validate(self):

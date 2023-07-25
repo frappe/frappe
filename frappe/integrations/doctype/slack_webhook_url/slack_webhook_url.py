@@ -20,6 +20,18 @@ error_messages = {
 
 
 class SlackWebhookURL(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		show_document_link: DF.Check
+		webhook_name: DF.Data
+		webhook_url: DF.Data
+	# end: auto-generated types
 	pass
 
 

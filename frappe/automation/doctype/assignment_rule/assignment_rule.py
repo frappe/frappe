@@ -12,6 +12,32 @@ from frappe.model.document import Document
 
 
 class AssignmentRule(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.automation.doctype.assignment_rule_day.assignment_rule_day import AssignmentRuleDay
+		from frappe.automation.doctype.assignment_rule_user.assignment_rule_user import (
+			AssignmentRuleUser,
+		)
+		from frappe.types import DF
+
+		assign_condition: DF.Code
+		assignment_days: DF.Table[AssignmentRuleDay]
+		close_condition: DF.Code | None
+		description: DF.SmallText
+		disabled: DF.Check
+		document_type: DF.Link
+		due_date_based_on: DF.Literal
+		field: DF.Literal
+		last_user: DF.Link | None
+		priority: DF.Int
+		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field"]
+		unassign_condition: DF.Code | None
+		users: DF.TableMultiSelect[AssignmentRuleUser] | None
+	# end: auto-generated types
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()

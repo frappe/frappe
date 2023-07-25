@@ -1,10 +1,8 @@
 <!-- Used as Link Control -->
 <script setup>
 import { onMounted, ref, useSlots, computed, watch } from "vue";
-import { useStore } from "../../store";
 
-let store = useStore();
-const props = defineProps(["args", "df", "modelValue"]);
+const props = defineProps(["args", "df", "read_only", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
@@ -39,7 +37,7 @@ onMounted(() => {
 			df: {
 				...props.df,
 				hidden: 0,
-				read_only: Boolean(slots.label) || store.read_only,
+				read_only: Boolean(slots.label) || props.read_only,
 				change: () => {
 					if (update_control.value) {
 						content.value = link_control.value.get_value();

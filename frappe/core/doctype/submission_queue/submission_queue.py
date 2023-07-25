@@ -15,6 +15,23 @@ from frappe.utils.data import cint
 
 
 class SubmissionQueue(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		created_at: DF.Datetime | None
+		ended_at: DF.Datetime | None
+		enqueued_by: DF.Data | None
+		exception: DF.LongText | None
+		job_id: DF.Link | None
+		ref_docname: DF.DynamicLink | None
+		ref_doctype: DF.Link | None
+		status: DF.Literal["Queued", "Finished", "Failed"]
+	# end: auto-generated types
 	@property
 	def created_at(self):
 		return self.creation

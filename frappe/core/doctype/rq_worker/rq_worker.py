@@ -13,6 +13,27 @@ from frappe.utils.background_jobs import get_workers
 
 
 class RQWorker(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		birth_date: DF.Datetime | None
+		current_job_id: DF.Link | None
+		failed_job_count: DF.Int
+		last_heartbeat: DF.Datetime | None
+		pid: DF.Data | None
+		queue: DF.Data | None
+		queue_type: DF.Literal["default", "long", "short"]
+		status: DF.Data | None
+		successful_job_count: DF.Int
+		total_working_time: DF.Duration | None
+		utilization_percent: DF.Percent
+		worker_name: DF.Data | None
+	# end: auto-generated types
 	def load_from_db(self):
 
 		all_workers = get_workers()
@@ -58,6 +79,10 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 	queue = ", ".join(queue_names)
 	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
 
+	current_job = worker.get_current_job_id()
+	if current_job and not current_job.startswith(frappe.local.site):
+		current_job = None
+
 	return frappe._dict(
 		name=worker.pid,
 		queue=queue,
@@ -65,7 +90,7 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 		worker_name=worker.name,
 		status=worker.get_state(),
 		pid=worker.pid,
-		current_job_id=worker.get_current_job_id(),
+		current_job_id=current_job,
 		last_heartbeat=convert_utc_to_system_timezone(worker.last_heartbeat),
 		birth_date=convert_utc_to_system_timezone(worker.birth_date),
 		successful_job_count=worker.successful_job_count,

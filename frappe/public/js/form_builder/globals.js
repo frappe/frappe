@@ -12,6 +12,7 @@ import SignatureControl from "./components/controls/SignatureControl.vue";
 import TableControl from "./components/controls/TableControl.vue";
 import TextControl from "./components/controls/TextControl.vue";
 import TextEditorControl from "./components/controls/TextEditorControl.vue";
+import FetchFromControl from "./components/controls/FetchFromControl.vue";
 
 export function registerGlobalComponents(app) {
 	app.component("AttachControl", AttachControl)
@@ -52,5 +53,6 @@ export function registerGlobalComponents(app) {
 		.component("TableMultiSelectControl", DataControl)
 		.component("TextControl", TextControl)
 		.component("TextEditorControl", TextEditorControl)
-		.component("TimeControl", DataControl);
+		.component("TimeControl", DataControl)
+		.component("FetchFromControl", FetchFromControl);
 }

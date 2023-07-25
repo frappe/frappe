@@ -7,6 +7,20 @@ from frappe.model.document import Document
 
 
 class NavbarSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.navbar_item.navbar_item import NavbarItem
+		from frappe.types import DF
+
+		app_logo: DF.AttachImage | None
+		help_dropdown: DF.Table[NavbarItem]
+		logo_width: DF.Int
+		settings_dropdown: DF.Table[NavbarItem]
+	# end: auto-generated types
 	def validate(self):
 		self.validate_standard_navbar_items()
 

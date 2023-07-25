@@ -11,6 +11,33 @@ from frappe.utils.user import UserPermissions
 
 
 class DesktopIcon(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		_doctype: DF.Link | None
+		_report: DF.Link | None
+		app: DF.Data | None
+		blocked: DF.Check
+		category: DF.Data | None
+		color: DF.Data | None
+		custom: DF.Check
+		description: DF.SmallText | None
+		force_show: DF.Check
+		hidden: DF.Check
+		icon: DF.Data | None
+		idx: DF.Int
+		label: DF.Data | None
+		link: DF.SmallText | None
+		module_name: DF.Data | None
+		reverse: DF.Check
+		standard: DF.Check
+		type: DF.Literal["module", "list", "link", "page", "query-report"]
+	# end: auto-generated types
 	def validate(self):
 		if not self.label:
 			self.label = self.module_name

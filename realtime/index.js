@@ -27,7 +27,8 @@ function on_connection(socket) {
 	frappe_handlers(realtime, socket);
 
 	// ESBUild "open in editor" on error
-	socket.on("open_in_editor", (data) => {
+	socket.on("open_in_editor", async (data) => {
+		await subscriber.connect();
 		subscriber.publish("open_in_editor", JSON.stringify(data));
 	});
 }
@@ -38,19 +39,19 @@ realtime.on("connection", on_connection);
 // Consume events sent from python via redis pub-sub channel.
 const subscriber = get_redis_subscriber();
 
-subscriber.on("message", function (_channel, message) {
-	message = JSON.parse(message);
-
-	let namespace = "/" + message.namespace;
-	if (message.room) {
-		io.of(namespace).to(message.room).emit(message.event, message.message);
-	} else {
-		// publish to ALL sites only used for things like build event.
-		realtime.emit(message.event, message.message);
-	}
-});
-
-subscriber.subscribe("events");
+(async () => {
+	await subscriber.connect();
+	subscriber.subscribe("events", (message) => {
+		message = JSON.parse(message);
+		let namespace = "/" + message.namespace;
+		if (message.room) {
+			io.of(namespace).to(message.room).emit(message.event, message.message);
+		} else {
+			// publish to ALL sites only used for things like build event.
+			realtime.emit(message.event, message.message);
+		}
+	});
+})();
 // =======================
 
 let port = conf.socketio_port;
