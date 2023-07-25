@@ -19,7 +19,6 @@ EMOJI_PATTERN = re.compile(
 
 def clean_html(html):
 	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
 
 	if not isinstance(html, str):
 		return html
@@ -45,7 +44,6 @@ def clean_html(html):
 			"tr",
 		},
 		attributes=[],
-		css_sanitizer=CSSSanitizer(allowed_css_properties=["color", "border", "border-color"]),
 		strip=True,
 		strip_comments=True,
 	)
