@@ -16,6 +16,10 @@ class Language(Document):
 	def before_rename(self, old, new, merge=False):
 		validate_with_regex(new, "Name")
 
+	def on_update(self):
+		frappe.cache().delete_value("languages_with_name")
+		frappe.cache().delete_value("languages")
+
 
 def validate_with_regex(name, label):
 	pattern = re.compile("^[a-zA-Z]+[-_]*[a-zA-Z]+$")
