@@ -366,7 +366,7 @@ def clear_cache(path=None):
 		"languages_with_name",
 		"languages",
 	):
-		frappe.cache.delete_value(key)
+		frappe.cache().delete_value(key)
 
 	frappe.cache().delete_value("website_404")
 	if path:
