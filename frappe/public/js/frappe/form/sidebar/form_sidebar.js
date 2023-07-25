@@ -5,6 +5,7 @@ import "./review";
 import "./document_follow";
 import "./user_image";
 import "./form_sidebar_users";
+import { get_user_link, get_user_message } from "../footer/version_timeline_content_builder";
 
 frappe.ui.form.Sidebar = class {
 	constructor(opts) {
@@ -79,33 +80,31 @@ frappe.ui.form.Sidebar = class {
 				frappe.utils.get_page_view_count(route).then((res) => {
 					this.sidebar
 						.find(".pageview-count")
-						.html(__("{0} Page Views", [String(res.message).bold()]));
+						.html(__("{0} Web page views", [String(res.message).bold()]));
 				});
 			}
 
 			this.sidebar
 				.find(".modified-by")
 				.html(
-					__(
-						"{0} edited this {1}",
-						[
-							frappe.user.full_name(this.frm.doc.modified_by).bold(),
-							"<br>" + comment_when(this.frm.doc.modified),
-						],
-						"For example, 'Jon Doe edited this 5 minutes ago'."
-					)
+					get_user_message(
+						this.frm.doc.modified_by,
+						__("You last edited this", null),
+						__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
+					) +
+						" · " +
+						comment_when(this.frm.doc.modified)
 				);
 			this.sidebar
 				.find(".created-by")
 				.html(
-					__(
-						"{0} created this {1}",
-						[
-							frappe.user.full_name(this.frm.doc.owner).bold(),
-							"<br>" + comment_when(this.frm.doc.creation),
-						],
-						"For example, 'Jon Doe created this 5 minutes ago'."
-					)
+					get_user_message(
+						this.frm.doc.owner,
+						__("You created this", null),
+						__("{0} created this", [get_user_link(this.frm.doc.owner)])
+					) +
+						" · " +
+						comment_when(this.frm.doc.creation)
 				);
 
 			this.refresh_like();
