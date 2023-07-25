@@ -275,22 +275,31 @@ const back_to_sidebar = () => {
 
 const perform_action = (e) => {
 	const action = $(e.target).data().action;
-	const reply_card = $(e.target).closest(".reply-card");
 
 	if (action === "edit") {
-		reply_card.find(".reply-edit-card").removeClass("hide");
-		reply_card.find(".reply-body").addClass("hide");
-		reply_card.find(".reply-actions").removeClass("hide");
-		reply_card.find(".dropdown").addClass("hide");
+		edit_reply(e);
 	} else if (action === "delete") {
-		frappe.call({
-			method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
-			args: {
-				reply_name: $(e.target).closest(".reply-card").data("reply"),
-			},
-		});
+		delete_reply(e);
 	}
 };
+
+const edit_reply = (e) => {
+	const reply_card = $(e.target).closest(".reply-card");
+	reply_card.find(".reply-edit-card").removeClass("hide");
+	reply_card.find(".reply-body").addClass("hide");
+	reply_card.find(".reply-actions").removeClass("hide");
+	reply_card.find(".dropdown").addClass("hide");
+	make_comment_editor();
+};
+
+const delete_reply = (e) => {
+	frappe.call({
+		method: "frappe.website.doctype.discussion_reply.discussion_reply.delete_message",
+		args: {
+			reply_name: $(e.target).closest(".reply-card").data("reply"),
+		},
+	});
+}
 
 const dismiss_reply = (e) => {
 	const reply_card = $(e.currentTarget).closest(".reply-card");
@@ -317,7 +326,7 @@ const delete_message = (data) => {
 	$(`[data-reply=${data.reply_name}]`).addClass("hide");
 };
 
-const make_comment_editor = (e) => {
+const make_comment_editor = () => {
 	console.log("make_comment_editor")
 	console.log($(".discussions-comment:visible"))
 	this.comment_editor = new frappe.ui.FieldGroup({
