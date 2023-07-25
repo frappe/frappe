@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe import get_hooks
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
@@ -66,17 +67,6 @@ class TestWebsite(FrappeTestCase):
 		frappe.set_user("Guest")
 		self.assertEqual(get_home_page(), "login")
 		frappe.set_user("Administrator")
-
-		from frappe import get_hooks
-
-		def patched_get_hooks(hook, value):
-			def wrapper(*args, **kwargs):
-				return_value = get_hooks(*args, **kwargs)
-				if args[0] == hook:
-					return_value = value
-				return return_value
-
-			return wrapper
 
 		# test homepage via hooks
 		clear_website_cache()
@@ -393,6 +383,16 @@ class TestWebsite(FrappeTestCase):
 			)
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")
+
+
+def patched_get_hooks(hook, value):
+	def wrapper(*args, **kwargs):
+		return_value = get_hooks(*args, **kwargs)
+		if args[0] == hook:
+			return_value = value
+		return return_value
+
+	return wrapper
 
 
 class CustomPageRenderer:

@@ -4,6 +4,9 @@ import frappe
 def execute():
 	frappe.reload_doctype("Comment")
 
+	if not frappe.db.table_exists("Feedback"):
+		return
+
 	if frappe.db.count("Feedback") > 20000:
 		frappe.db.auto_commit_on_many_writes = True
 

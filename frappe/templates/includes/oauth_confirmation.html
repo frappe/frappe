@@ -1,22 +1,19 @@
 {% if not error %}
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">{{ _("{} wants to access the following details from your account").format(client_id) }}</h3>
+    <div class="panel-title h3">{{ _(client_id) }}</div>
+    <p class="panel-subtitle">{{ _("wants to access the following details from your account") }}</p>
   </div>
   <div class="panel-body">
-      <ul class="list-group">
+      <ul>
       {% for dtl in details %}
-        <li class="list-group-item">{{ dtl.title() }}</li>
+        <li>{{ dtl.title() }}</li>
       {% endfor %}
       </ul>
-    <ul class="list-inline">
-      <li>
-        <button id="allow" class="btn btn-sm btn-primary">{{ _("Allow") }}</button>
-      </li>
-      <li>
-        <button id="deny" class="btn btn-sm btn-light">{{ _("Deny") }}</button>
-      </li>
-    </ul>
+    <div class="action-buttons d-flex">
+      <button id="deny" class="btn btn-sm btn-light btn-block mr-3">{{ _("Deny") }}</button>
+      <button id="allow" class="btn btn-sm btn-primary btn-block">{{ _("Allow") }}</button>
+    </div>
   </div>
 </div>
 <script type="text/javascript">

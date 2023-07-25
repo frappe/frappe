@@ -745,9 +745,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				);
 			});
 
-			const part1 = __("This report was generated {0}.", [
-				frappe.datetime.comment_when(doc.report_end_time),
-			]);
+			let pretty_diff = frappe.datetime.comment_when(doc.report_end_time);
+			const days_old = frappe.datetime.get_day_diff(
+				frappe.datetime.now_datetime(),
+				doc.report_end_time
+			);
+			if (days_old > 1) {
+				pretty_diff = `<span style="color:var(--red-600)">${pretty_diff}</span>`;
+			}
+			const part1 = __("This report was generated {0}.", [pretty_diff]);
 			const part2 = __("To get the updated report, click on {0}.", [__("Rebuild")]);
 			const part3 = __("See all past reports.");
 
@@ -1221,7 +1227,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			return Object.assign(column, {
 				id: column.fieldname,
-				name: __(column.label, null, `Column of report '${this.report_name}'`), // context has to match context in   get_messages_from_report in translate.py
+				// The column label should have already been translated in the
+				// backend. Translating it again would cause unexpected behaviour.
+				name: column.label,
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,

@@ -80,24 +80,30 @@ def get_diff(old, new, for_child=False):
 		updater_reference=updater_reference,
 	)
 
+	if not for_child:
+		amended_from = new.get("amended_from")
+		old_row_name_field = "_amended_from" if (amended_from and amended_from == old.name) else "name"
+
 	for df in new.meta.fields:
 		if df.fieldtype in no_value_fields and df.fieldtype not in table_fields:
 			continue
 
 		old_value, new_value = old.get(df.fieldname), new.get(df.fieldname)
 
-		if df.fieldtype in table_fields:
-			# make maps
-			old_row_by_name, new_row_by_name = {}, {}
+		if not for_child and df.fieldtype in table_fields:
+			old_rows_by_name = {}
 			for d in old_value:
-				old_row_by_name[d.name] = d
-			for d in new_value:
-				new_row_by_name[d.name] = d
+				old_rows_by_name[d.name] = d
+
+			found_rows = set()
 
 			# check rows for additions, changes
 			for i, d in enumerate(new_value):
-				if d.name in old_row_by_name:
-					diff = get_diff(old_row_by_name[d.name], d, for_child=True)
+				old_row_name = getattr(d, old_row_name_field, None)
+				if old_row_name and old_row_name in old_rows_by_name:
+					found_rows.add(old_row_name)
+
+					diff = get_diff(old_rows_by_name[old_row_name], d, for_child=True)
 					if diff and diff.changed:
 						out.row_changed.append((df.fieldname, i, d.name, diff.changed))
 				else:
@@ -105,7 +111,7 @@ def get_diff(old, new, for_child=False):
 
 			# check for deletions
 			for d in old_value:
-				if not d.name in new_row_by_name:
+				if d.name not in found_rows:
 					out.removed.append([df.fieldname, d.as_dict()])
 
 		elif old_value != new_value:
@@ -116,9 +122,14 @@ def get_diff(old, new, for_child=False):
 			if old_value != new_value:
 				out.changed.append((df.fieldname, old_value, new_value))
 
-	# docstatus
-	if not for_child and old.docstatus != new.docstatus:
-		out.changed.append(["docstatus", old.docstatus, new.docstatus])
+	# name & docstatus
+	if not for_child:
+		for key in ("name", "docstatus"):
+			old_value = getattr(old, key)
+			new_value = getattr(new, key)
+
+			if old_value != new_value:
+				out.changed.append([key, old_value, new_value])
 
 	if any((out.changed, out.added, out.removed, out.row_changed)):
 		return out

@@ -53,7 +53,7 @@
    "label": "Don't Override Status"
   },
   {
-   "default": "1",
+   "default": "0",
    "description": "Emails will be sent with next possible workflow actions",
    "fieldname": "send_email_alert",
    "fieldtype": "Check",

@@ -55,8 +55,11 @@
 												<div class="col grid-static-col col-xs-2">
 													<div class="static-area ellipsis text-right">{{ __("Duration (ms)") }}</div>
 												</div>
-												<div class="col grid-static-col col-xs-2">
+												<div class="col grid-static-col col-xs-1">
 													<div class="static-area ellipsis text-right">{{ __("Exact Copies") }}</div>
+												</div>
+												<div class="col grid-static-col col-xs-1">
+													<div class="static-area ellipsis text-right">{{ __("Normalized Copies") }}</div>
 												</div>
 											</div>
 										</div>
@@ -72,8 +75,11 @@
 													<div class="col grid-static-col col-xs-2">
 														<div class="static-area ellipsis text-right">{{ call.duration }}</div>
 													</div>
-													<div class="col grid-static-col col-xs-2">
+													<div class="col grid-static-col col-xs-1">
 														<div class="static-area ellipsis text-right">{{ call.exact_copies }}</div>
+													</div>
+													<div class="col grid-static-col col-xs-1">
+														<div class="static-area ellipsis text-right">{{ call.normalized_copies }}</div>
 													</div>
 													<div class="col col-xs-1"><a class="close btn-open-row">
 														<span class="octicon" :class="showing == call.index? 'octicon-triangle-up' : 'octicon-triangle-down'"></span></a>
@@ -99,6 +105,12 @@
 																							<div class="control-value like-disabled-input for-description"><pre>{{ call.query }}</pre></div>
 																						</div>
 																					</div>
+																					<div class="frappe-control">
+																						<div class="form-group">
+																							<div class="clearfix"><label class="control-label">{{ __("Normalized Query") }}</label></div>
+																							<div class="control-value like-disabled-input for-description"><pre>{{ call.normalized_query }}</pre></div>
+																						</div>
+																					</div>
 																					<div class="frappe-control input-max-width">
 																						<div class="form-group">
 																							<div class="clearfix"><label class="control-label">{{ __("Duration (ms)") }}</label></div>
@@ -109,6 +121,13 @@
 																						<div class="form-group">
 																							<div class="clearfix"><label class="control-label">{{ __("Exact Copies") }}</label></div>
 																							<div class="control-value like-disabled-input">{{ call.exact_copies }}</div>
+																						</div>
+																					</div>
+																					<div class="frappe-control input-max-width">
+																						<div class="form-group">
+																							<div
+																								class="clearfix"><label class="control-label">{{ __("Normalized Copies") }}</label></div>
+																							<div class="control-value like-disabled-input">{{ call.normalized_copies }}</div>
 																						</div>
 																					</div>
 																					<div class="frappe-control">

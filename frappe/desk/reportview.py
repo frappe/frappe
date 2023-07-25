@@ -406,7 +406,7 @@ def export_query():
 
 		xlsx_file = make_xlsx(data, doctype)
 
-		frappe.response["filename"] = title + ".xlsx"
+		frappe.response["filename"] = _(title) + ".xlsx"
 		frappe.response["filecontent"] = xlsx_file.getvalue()
 		frappe.response["type"] = "binary"
 
@@ -542,47 +542,47 @@ def get_stats(stats, doctype, filters=None):
 
 	if filters is None:
 		filters = []
-	tags = json.loads(stats)
+	columns = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)
-	stats = {}
+	results = {}
 
 	try:
-		columns = frappe.db.get_table_columns(doctype)
+		db_columns = frappe.db.get_table_columns(doctype)
 	except (frappe.db.InternalError, frappe.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
 		# raised if its a virtual doctype
-		columns = []
+		db_columns = []
 
-	for tag in tags:
-		if tag not in columns:
+	for column in columns:
+		if column not in db_columns:
 			continue
 		try:
 			tag_count = frappe.get_list(
 				doctype,
-				fields=[tag, "count(*)"],
-				filters=filters + [[tag, "!=", ""]],
-				group_by=tag,
+				fields=[column, "count(*)"],
+				filters=filters + [[column, "!=", ""]],
+				group_by=column,
 				as_list=True,
 				distinct=1,
 			)
 
-			if tag == "_user_tags":
-				stats[tag] = scrub_user_tags(tag_count)
+			if column == "_user_tags":
+				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[tag, "count(*)"],
-					filters=filters + [[tag, "in", ("", ",")]],
+					fields=[column, "count(*)"],
+					filters=filters + [[column, "in", ("", ",")]],
 					as_list=True,
-					group_by=tag,
-					order_by=tag,
+					group_by=column,
+					order_by=column,
 				)
 
 				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
 
-				stats[tag].append([_("No Tags"), no_tag_count])
+				results[column].append([_("No Tags"), no_tag_count])
 			else:
-				stats[tag] = tag_count
+				results[column] = tag_count
 
 		except frappe.db.SQLError:
 			pass
@@ -590,7 +590,7 @@ def get_stats(stats, doctype, filters=None):
 			# raised when _user_tags column is added on the fly
 			pass
 
-	return stats
+	return results
 
 
 @frappe.whitelist()
