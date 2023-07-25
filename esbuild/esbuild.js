@@ -431,7 +431,6 @@ async function update_assets_json_in_cache() {
 	}
 	client.del("assets_json", (err) => {
 		client.unref();
-		resolve();
 	});
 }
 
