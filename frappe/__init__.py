@@ -2446,3 +2446,6 @@ if _tune_gc:
 	# everything else.
 	g0, g1, g2 = gc.get_threshold()  # defaults are 700, 10, 10.
 	gc.set_threshold(g0 * 10, g1 * 2, g2 * 2)
+
+# Remove references to pattern that are pre-compiled and loaded to global scopes.
+re.purge()
