@@ -8,6 +8,8 @@
  "field_order": [
   "file_name",
   "is_private",
+  "column_break_7jmm",
+  "file_type",
   "preview",
   "preview_html",
   "section_break_5",
@@ -168,13 +170,25 @@
    "fieldtype": "Check",
    "label": "Uploaded To Google Drive",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_7jmm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "File Type",
+   "read_only": 1
   }
  ],
  "force_re_route_to_default_view": 1,
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2023-05-02 15:42:14.274901",
+ "modified": "2023-07-26 14:03:49.456951",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",

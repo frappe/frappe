@@ -44,6 +44,7 @@ class File(Document):
 		content_hash: DF.Data | None
 		file_name: DF.Data | None
 		file_size: DF.Int
+		file_type: DF.Data | None
 		file_url: DF.Code | None
 		folder: DF.Link | None
 		is_attachments_folder: DF.Check
@@ -86,6 +87,7 @@ class File(Document):
 		self.set_folder_name()
 		self.set_file_name()
 		self.validate_attachment_limit()
+		self.set_file_type()
 
 		if self.is_folder:
 			return
@@ -329,6 +331,15 @@ class File(Document):
 
 		elif not self.is_home_folder:
 			self.folder = "Home"
+
+	def set_file_type(self):
+		if self.is_folder:
+			return
+
+		file_name = self.file_name.split("?")[0]
+		file_extension = file_name.split(".")[-1].upper() if file_name.split(".")[-1] else None
+		if file_extension:
+			self.file_type = file_extension
 
 	def validate_file_on_disk(self):
 		"""Validates existence file"""
