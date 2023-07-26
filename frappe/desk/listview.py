@@ -40,7 +40,6 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 			doctype,
 			filters=current_filters,
 			fields=["name"],
-			validate_filters=True,
 		)
 
 		return (

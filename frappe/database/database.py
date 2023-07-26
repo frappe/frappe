@@ -830,8 +830,7 @@ class Database:
 			for_update=for_update,
 			fields=fields,
 			distinct=distinct,
-			limit=limit,
-			validate_filters=True,
+			limit=limit
 		)
 		if isinstance(fields, str) and fields == "*":
 			as_dict = True
@@ -859,8 +858,7 @@ class Database:
 				filters=names,
 				order_by=order_by,
 				distinct=distinct,
-				limit=limit,
-				validate_filters=True,
+				limit=limit
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
@@ -913,8 +911,7 @@ class Database:
 		query = frappe.qb.get_query(
 			table=dt,
 			filters=dn,
-			update=True,
-			validate_filters=True,
+			update=True
 		)
 
 		if isinstance(dn, str):
@@ -1075,7 +1072,6 @@ class Database:
 			filters=filters,
 			fields=Count("*"),
 			distinct=distinct,
-			validate_filters=True,
 		).run(debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache.set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
@@ -1200,7 +1196,6 @@ class Database:
 			table=doctype,
 			filters=filters,
 			delete=True,
-			validate_filters=True,
 		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug

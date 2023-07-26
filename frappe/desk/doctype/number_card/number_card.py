@@ -232,8 +232,7 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 	condition_query = frappe.qb.get_query(
 		doctype,
-		filters=filters,
-		validate_filters=True,
+		filters=filters
 	)
 
 	return (

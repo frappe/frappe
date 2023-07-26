@@ -253,12 +253,21 @@ class TestQuery(FrappeTestCase):
 
 		self.assertRaisesRegex(
 			frappe.ValidationError,
-			"Invalid filter",
+			"Invalid fieldname",
 			lambda: frappe.qb.get_query(
 				"DocType",
 				fields=["name"],
-				filters={"permissions.role": "System Manager"},
-				validate_filters=True,
+				filters={"asdf.test": "System Manager"},
+			),
+		)
+
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Invalid fieldname",
+			lambda: frappe.qb.get_query(
+				"DocType",
+				fields=["name"],
+				filters={"user #": "System Manager"},
 			),
 		)
 

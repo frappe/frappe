@@ -30,8 +30,7 @@ def get_monthly_results(
 				DateFormat(Table[date_col], date_format).as_("month_year"),
 				Function(aggregation, goal_field),
 			],
-			filters=filters,
-			validate_filters=True,
+			filters=filters
 		)
 		.groupby("month_year")
 		.run()
