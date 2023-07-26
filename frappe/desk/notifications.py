@@ -245,12 +245,11 @@ def get_filters_for(doctype):
 @frappe.whitelist()
 @frappe.read_only()
 def get_open_count(doctype, name, items=None):
-	"""Get open count for given transactions and filters
+	"""Get count for internal and external links for given transactions
 
 	:param doctype: Reference DocType
 	:param name: Reference Name
-	:param transactions: List of transactions (json/dict)
-	:param filters: optional filters (json/list)"""
+	:param items: Optional list of transactions (json/dict)"""
 
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {"count": []}
@@ -291,7 +290,7 @@ def get_open_count(doctype, name, items=None):
 			out["external_links_found"].append(external_links_data_for_d)
 
 	out = {
-		"links_count_data": out,
+		"count": out,
 	}
 
 	if not meta.custom:

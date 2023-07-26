@@ -47,7 +47,7 @@ class TestDashboardConnections(FrappeTestCase):
 		mars.insert()
 
 		expected_open_count = {
-			"links_count_data": {
+			"count": {
 				"external_links_found": [],
 				"internal_links_found": [
 					{
@@ -92,7 +92,7 @@ class TestDashboardConnections(FrappeTestCase):
 		pluto.insert()
 
 		expected_open_count = {
-			"links_count_data": {
+			"count": {
 				"external_links_found": [
 					{"doctype": "Doctype B With Child Table With Link To Doctype A", "open_count": 0, "count": 1}
 				],
