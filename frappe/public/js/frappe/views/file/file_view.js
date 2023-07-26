@@ -320,6 +320,9 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					<span>${__("Size")}</span>
 				</div>
 				<div class="list-row-col ellipsis hidden-xs">
+					<span>${__("Type")}</span>
+				</div>
+				<div class="list-row-col ellipsis hidden-xs">
 					<span>${__("Created")}</span>
 				</div>`
 			: "";
@@ -369,6 +372,9 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			</div>
 			<div class="list-row-col ellipsis hidden-xs text-muted">
 				<span>${file_size}</span>
+			</div>
+			<div class="list-row-col ellipsis hidden-xs text-muted">
+				<span>${file.file_type || ""}</span>
 			</div>
 			<div class="list-row-col ellipsis hidden-xs text-muted">
 				<span>${this.get_creation_date(file)}</span>
