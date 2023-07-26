@@ -262,14 +262,20 @@ class DatabaseQuery:
 		# query dict
 		args.tables = self.tables[0]
 
+		condition_on_join = (
+			lambda table: f" AND {t}"
+			if (t := " AND ".join(cond for cond in self.conditions if table in cond))
+			else ""
+		)
+
 		# left join parent, child tables
 		for child in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name} {condition_on_join(child)})"
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}` {condition_on_join(link.doctype)})"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
