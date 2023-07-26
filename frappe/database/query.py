@@ -24,6 +24,7 @@ WORDS_PATTERN = re.compile(r"\w+")
 BRACKETS_PATTERN = re.compile(r"\(.*?\)|$")
 SQL_FUNCTIONS = [sql_function.value for sql_function in SqlFunctions]
 COMMA_PATTERN = re.compile(r",\s*(?![^()]*\))")
+ALPHANUMERIC = re.compile(r"^[a-zA-Z0-9_]+$")
 
 # less restrictive version of frappe.core.doctype.doctype.doctype.START_WITH_LETTERS_PATTERN
 # to allow table names like __Auth
@@ -45,12 +46,9 @@ class Engine:
 		update: bool = False,
 		into: bool = False,
 		delete: bool = False,
-		*,
-		validate_filters: bool = False,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
-		self.validate_filters = validate_filters
 
 		if isinstance(table, Table):
 			self.table = table
@@ -127,7 +125,7 @@ class Engine:
 
 		elif isinstance(filters, (list, tuple)):
 			if all(isinstance(d, (str, int)) for d in filters) and len(filters) > 0:
-				self.apply_dict_filters({"name": ("in", filters)})
+				self.apply_dict_filters({"name": ["in", filters]})
 			else:
 				for filter in filters:
 					if isinstance(filter, (str, int, Criterion, dict)):
@@ -138,10 +136,10 @@ class Engine:
 	def apply_list_filters(self, filter: list):
 		if len(filter) == 2:
 			field, value = filter
-			self._apply_filter(field, value)
+			self._apply_filter(field, value, "=", self.doctype)
 		elif len(filter) == 3:
 			field, operator, value = filter
-			self._apply_filter(field, value, operator)
+			self._apply_filter(field, value, operator, self.doctype)
 		elif len(filter) == 4:
 			doctype, field, operator, value = filter
 			self._apply_filter(field, value, operator, doctype)
@@ -152,32 +150,29 @@ class Engine:
 			if isinstance(value, (list, tuple)):
 				operator, value = value
 
-			self._apply_filter(field, value, operator)
+			self._apply_filter(field, value, operator, self.doctype)
 
 	def _apply_filter(
-		self, field: str, value: str | int | list | None, operator: str = "=", doctype: str | None = None
+		self, field: str, value: str | int | list | None, operator: str, doctype: str
 	):
 		_field = field
 		_value = value
 		_operator = operator
 
 		if not isinstance(_field, str):
-			pass
-		elif not self.validate_filters and (
-			dynamic_field := DynamicTableField.parse(field, self.doctype)
-		):
+			return
+
+		if dynamic_field := DynamicTableField.parse(field, self.doctype):
 			# apply implicit join if link field's field is referenced
 			self.query = dynamic_field.apply_join(self.query)
 			_field = dynamic_field.field
-		elif self.validate_filters and SPECIAL_CHAR_PATTERN.search(_field):
-			frappe.throw(_("Invalid filter: {0}").format(_field))
-		elif not doctype or doctype == self.doctype:
-			_field = self.table[field]
-		elif doctype:
-			_field = frappe.qb.DocType(doctype)[field]
+		elif validate_fieldname(_field, doctype):
+			_field = frappe.qb.DocType(doctype)[_field]
+		else:
+			frappe.throw(f"Invalid fieldname: {_field}")
 
 		# apply implicit join if child table is referenced
-		if doctype and doctype != self.doctype:
+		if doctype != self.doctype:
 			meta = frappe.get_meta(doctype)
 			table = frappe.qb.DocType(doctype)
 			if meta.istable and not self.query.is_joined(table):
@@ -388,6 +383,11 @@ class DynamicTableField:
 		self.alias = alias
 		self.parent_doctype = parent_doctype
 
+		if not field_exists(self.fieldname, self.doctype):
+			frappe.throw(f"Invalid fieldname: {self.fieldname}")
+		if self.alias and not ALPHANUMERIC.match(self.alias):
+			frappe.throw(f"Invalid alias: {self.alias}")
+
 	def __str__(self) -> str:
 		table_name = f"`tab{self.doctype}`"
 		fieldname = f"`{self.fieldname}`"
@@ -403,6 +403,7 @@ class DynamicTableField:
 			alias = None
 			if " as " in field:
 				field, alias = field.split(" as ")
+				alias = alias.strip()
 			if field.startswith("`tab") or field.startswith('"tab'):
 				_, child_doctype, child_field = re.search(r'([`"])tab(.+?)\1.\1(.+)\1', field).groups()
 				if child_doctype == doctype:
@@ -411,6 +412,8 @@ class DynamicTableField:
 			else:
 				linked_fieldname, fieldname = field.split(".")
 				linked_field = frappe.get_meta(doctype).get_field(linked_fieldname)
+				if not linked_field:
+					return
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
 					return LinkTableField(linked_doctype, fieldname, doctype, linked_fieldname, alias=alias)
@@ -429,10 +432,7 @@ class ChildTableField(DynamicTableField):
 		parent_doctype: str,
 		alias: str | None = None,
 	) -> None:
-		self.doctype = doctype
-		self.fieldname = fieldname
-		self.alias = alias
-		self.parent_doctype = parent_doctype
+		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
@@ -551,3 +551,44 @@ def get_nested_set_hierarchy_result(doctype: str, name: str, hierarchy: str) -> 
 			.run(pluck=True)
 		)
 	return result
+
+def validate_fieldname(fieldname, doctype):
+	'''
+	Validate fieldname for possible SQL injections. Only tries to validate if special characters are present.
+	'''
+	if not SPECIAL_CHAR_PATTERN.search(fieldname):
+		return True
+
+	return field_exists(fieldname, doctype)
+
+
+def field_exists(fieldname, doctype):
+	from frappe.model import default_fields, child_table_fields
+
+	if doctype == 'Singles':
+		return fieldname in ['doctype', 'field', 'value']
+
+	if fieldname in (default_fields + child_table_fields):
+		return True
+
+	DocField = frappe.qb.DocType('DocField')
+	model_field_exists = (
+		frappe.qb.from_(DocField)
+		.select("fieldname")
+		.where((DocField.parent == doctype) & (DocField.fieldname == fieldname))
+		.run(pluck=True)
+	)
+	if model_field_exists:
+		return True
+
+	CustomField = frappe.qb.DocType('Custom Field')
+	custom_field_exists = (
+		frappe.qb.from_(CustomField)
+		.select("fieldname")
+		.where((CustomField.dt == doctype) & (CustomField.fieldname == fieldname))
+		.run(pluck=True)
+	)
+	if custom_field_exists:
+		return True
+
+	return False
