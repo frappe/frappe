@@ -704,6 +704,11 @@ class TestDBQuery(FrappeTestCase):
 		self.assertTrue({"name": "Prepared Report"} in res)
 		self.assertFalse({"name": "Property Setter"} in res)
 
+		frappe.db.set_value("DocType", "Property Setter", "autoname", None, update_modified=False)
+
+		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
+		self.assertFalse({"name": "Property Setter"} in res)
+
 	def test_set_field_tables(self):
 		# Tests _in_standard_sql_methods method in test_set_field_tables
 		# The following query will break if the above method is broken
