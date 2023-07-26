@@ -440,7 +440,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 					me.update_heatmap(r.message.timeline_data);
 				}
 
-				me.update_badges(r.message.links_count_data);
+				me.update_badges(r.message.count);
 
 				me.frm.dashboard_data = r.message;
 				me._fetched_counts = true;
@@ -449,12 +449,12 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 	}
 
-	update_badges(links_count_data) {
+	update_badges(count) {
 		let me = this;
 
-		this.internal_links_found = links_count_data.internal_links_found;
+		this.internal_links_found = count.internal_links_found;
 
-		$.each(links_count_data.internal_links_found, function (i, d) {
+		$.each(count.internal_links_found, function (i, d) {
 			me.frm.dashboard.set_badge_count_for_internal_link(
 				d.doctype,
 				cint(d.open_count),
@@ -463,7 +463,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			);
 		});
 
-		$.each(links_count_data.external_links_found, function (i, d) {
+		$.each(count.external_links_found, function (i, d) {
 			me.frm.dashboard.set_badge_count_for_external_link(
 				d.doctype,
 				cint(d.open_count),
