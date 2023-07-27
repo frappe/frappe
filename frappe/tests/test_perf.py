@@ -158,3 +158,8 @@ class TestPerformance(FrappeTestCase):
 		frappe.get_list("User")
 		with self.assertQueryCount(1):
 			frappe.get_list("User")
+
+	def test_no_ifnull_checks(self):
+		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()
+		self.assertNotIn("coalesce", query)
+		self.assertNotIn("ifnull", query)
