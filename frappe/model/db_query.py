@@ -803,14 +803,19 @@ class DatabaseQuery:
 			elif f.operator.lower() == "is":
 				if f.value == "set":
 					f.operator = "!="
+					# Value can technically be null, but comparing with null will always be falsy
+					# Not using coalesce here is faster because indexes can be used.
+					# null != '' -> null ~ falsy
+					# '' != '' -> false
+					can_be_null = False
 				elif f.value == "not set":
 					f.operator = "="
+					fallback = "''"
+					can_be_null = True
 
 				value = ""
-				fallback = "''"
-				can_be_null = True
 
-				if "ifnull" not in column_name.lower():
+				if can_be_null and "ifnull" not in column_name.lower():
 					column_name = f"ifnull({column_name}, {fallback})"
 
 			elif df and df.fieldtype == "Date":
