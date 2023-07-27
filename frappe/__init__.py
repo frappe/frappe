@@ -2078,6 +2078,7 @@ def attach_print(
 	lang=None,
 	print_letterhead=True,
 	password=None,
+	letterhead=None,
 ):
 	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
@@ -2090,6 +2091,7 @@ def attach_print(
 		style=style,
 		doc=doc,
 		no_letterhead=not print_letterhead,
+		letterhead=letterhead,
 		password=password,
 	)
 
