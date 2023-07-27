@@ -155,20 +155,21 @@ class Engine:
 	def _apply_filter(
 		self, field: str, value: str | int | list | None, operator: str, doctype: str
 	):
-		_field = field
-		_value = value
-		_operator = operator
-
-		if not isinstance(_field, str):
-			return
-
-		if dynamic_field := DynamicTableField.parse(field, self.doctype):
-			# apply implicit join if link field's field is referenced
-			self.query = dynamic_field.apply_join(self.query)
-			_field = dynamic_field.field
-		elif validate_fieldname(_field, doctype):
-			_field = frappe.qb.DocType(doctype)[_field]
+		if isinstance(field, str):
+			if dynamic_field := DynamicTableField.parse(field, self.doctype):
+				# apply implicit join if link/child field's field is referenced
+				self.query = dynamic_field.apply_join(self.query)
+				_field = dynamic_field.field
+			elif validate_fieldname(field, doctype):
+				_field = frappe.qb.DocType(doctype)[field]
+			else:
+				_field = None
+		elif isinstance(field, Field):
+			_field = field
 		else:
+			_field = None
+
+		if not _field:
 			frappe.throw(f"Invalid fieldname: {_field}")
 
 		# apply implicit join if child table is referenced
@@ -179,6 +180,9 @@ class Engine:
 				self.query = self.query.left_join(table).on(
 					(table.parent == self.table.name) & (table.parenttype == self.doctype)
 				)
+
+		_value = value
+		_operator = operator
 
 		if isinstance(_value, bool):
 			_value = int(_value)
