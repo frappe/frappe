@@ -4,6 +4,7 @@
 import gc
 import logging
 import os
+import re
 
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.local import LocalManager
@@ -427,6 +428,9 @@ def serve(
 		threaded=not no_threading,
 	)
 
+
+# Remove references to pattern that are pre-compiled and loaded to global scopes.
+re.purge()
 
 # Both Gunicorn and RQ use forking to spawn workers. In an ideal world, the fork should be sharing
 # most of the memory if there are no writes made to data because of Copy on Write, however,
