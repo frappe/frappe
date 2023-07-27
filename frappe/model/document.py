@@ -1108,7 +1108,15 @@ class Document(BaseDocument):
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
+<<<<<<< HEAD
 		if getattr(self.meta, "track_seen", False):
+=======
+		if (
+			getattr(self.meta, "track_seen", False)
+			and not getattr(self.meta, "issingle", False)
+			and not self.is_new()
+		):
+>>>>>>> c40faddac7 (perf: skip reset_seen for new doc (#21832))
 			frappe.db.set_value(
 				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
 			)
