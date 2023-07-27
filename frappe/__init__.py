@@ -53,12 +53,8 @@ local = Local()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _qb_patched = {}
-re._MAXCACHE = (
-	50  # reduced from default 512 given we are already maintaining this on parent worker
-)
-
+_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
 if _dev_server:
@@ -2450,3 +2446,6 @@ if _tune_gc:
 	# everything else.
 	g0, g1, g2 = gc.get_threshold()  # defaults are 700, 10, 10.
 	gc.set_threshold(g0 * 10, g1 * 2, g2 * 2)
+
+# Remove references to pattern that are pre-compiled and loaded to global scopes.
+re.purge()
