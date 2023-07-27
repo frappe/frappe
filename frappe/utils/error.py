@@ -3,6 +3,9 @@
 
 import functools
 import inspect
+import re
+from collections import Counter
+from contextlib import suppress
 
 import frappe
 
@@ -126,3 +129,33 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 		return wrapper_raise_error_on_no_output
 
 	return decorator_raise_error_on_no_output
+
+
+def guess_exception_source(exception: str) -> str | None:
+	"""Attempts to guess source of error based on traceback.
+
+	E.g.
+
+	- For unhandled exception last python file from apps folder is responsible.
+	- For frappe.throws the exception source is possibly present after skipping frappe.throw frames
+	- For server script the file name is `<serverscript>`
+
+	"""
+	with suppress(Exception):
+		installed_apps = frappe.get_installed_apps()
+		app_priority = {app: installed_apps.index(app) for app in installed_apps}
+
+		APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
+		SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
+
+		apps = Counter()
+		for line in reversed(exception.splitlines()):
+			if SERVER_SCRIPT_FRAME.match(line):
+				return "Server Script"
+
+			if matches := APP_NAME_REGEX.match(line):
+				app_name = matches.group("app_name")
+				apps[app_name] += app_priority.get(app_name, 0)
+
+		if probably_source := apps.most_common(1):
+			return f"{probably_source[0][0]} (app)"
