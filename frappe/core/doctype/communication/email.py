@@ -223,21 +223,32 @@ def add_attachments(name, attachments):
 	# loop through attachments
 	for a in attachments:
 		if isinstance(a, str):
-			attach = frappe.db.get_value(
-				"File", {"name": a}, ["file_name", "file_url", "is_private"], as_dict=1
-			)
-			# save attachments to new doc
-			_file = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_url": attach.file_url,
-					"attached_to_doctype": "Communication",
-					"attached_to_name": name,
-					"folder": "Home/Attachments",
-					"is_private": attach.is_private,
-				}
-			)
-			_file.save(ignore_permissions=True)
+			attach = frappe.db.get_value("File", {"name": a}, ["file_url", "is_private"], as_dict=1)
+			file_args = {
+				"file_url": attach.file_url,
+				"is_private": attach.is_private,
+			}
+		elif isinstance(a, dict) and "fcontent" in a and "fname" in a:
+			# dict returned by frappe.attach_print()
+			file_args = {
+				"file_name": a["fname"],
+				"content": a["fcontent"],
+				"is_private": 1,
+			}
+		else:
+			continue
+
+		file_args.update(
+			{
+				"attached_to_doctype": "Communication",
+				"attached_to_name": name,
+				"folder": "Home/Attachments",
+			}
+		)
+
+		_file = frappe.new_doc("File")
+		_file.update(file_args)
+		_file.save(ignore_permissions=True)
 
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
