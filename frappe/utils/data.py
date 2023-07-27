@@ -1358,7 +1358,7 @@ def money_in_words(
 	elif main == "0":
 		out = _(in_words(fraction, in_million).title()) + " " + fraction_currency
 	else:
-		out = _(main_currency) + " " + _(in_words(main, in_million).title())
+		out = _(main_currency, context="Currency") + " " + _(in_words(main, in_million).title())
 		if cint(fraction):
 			out = (
 				out
