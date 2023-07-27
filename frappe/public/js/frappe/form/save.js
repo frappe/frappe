@@ -157,7 +157,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				let meta = frappe.get_meta(doc.doctype);
 				if (meta.istable) {
 					const table_field = frappe.meta.docfield_map[doc.parenttype][doc.parentfield];
-					
 					const table_label = __(
 						table_field.label || frappe.unscrub(table_field.fieldname)
 					).bold();
