@@ -10,7 +10,6 @@ frappe.ui.form.on("System Console", {
 			description: __("Execute Console script"),
 			ignore_inputs: true,
 		});
-		frm.set_value("type", "Python");
 	},
 
 	refresh: function (frm) {
