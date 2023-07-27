@@ -156,7 +156,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			if (error_fields.length) {
 				let meta = frappe.get_meta(doc.doctype);
 				if (meta.istable) {
-					const table_label = __(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold();
+					const table_field = frappe.meta.docfield_map[doc.parenttype][doc.parentfield];
+					const table_label = __(
+						table_field.label || frappe.unscrub(table_field.fieldname)
+					).bold();
 					var message = __('Mandatory fields required in table {0}, Row {1}', [table_label, doc.idx]);
 				} else {
 					var message = __('Mandatory fields required in {0}', [__(doc.doctype)]);
