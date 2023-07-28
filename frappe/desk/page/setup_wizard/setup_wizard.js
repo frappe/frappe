@@ -640,8 +640,11 @@ frappe.setup.utils = {
 
 function guess_country(country_info) {
 	try {
-		const system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+		let system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		// https://github.com/eggert/tz/blob/main/backward add more when encountered.
+		if (system_timezone == "Asia/Calcutta") {
+			system_timezone = "Asia/Kolkata";
+		}
 		for (let [country, info] of Object.entries(country_info)) {
 			let possible_timezones = (info.timezones || []).filter((t) => t == system_timezone);
 			if (possible_timezones.length) return country;
