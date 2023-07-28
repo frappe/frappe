@@ -493,11 +493,3 @@ class TestMisc(FrappeTestCase):
 
 		DocType = Table("DocType")
 		self.assertEqual(DocType.get_sql(), "DocType")
-
-	def test_error_on_query_class(self):
-		import frappe.query_builder.utils
-
-		frappe.query_builder.utils.get_type_hints = lambda x: {"return": None}
-
-		with self.assertRaises(frappe.query_builder.utils.BuilderIdentificationFailed):
-			frappe.query_builder.utils.patch_query_execute()

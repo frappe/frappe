@@ -310,7 +310,7 @@ class Database:
 
 		if frappe.conf.logging == 2:
 			_query = _query or str(mogrified_query)
-			frappe.log(f"<<<< query\n{_query}\n>>>>")
+			frappe.log(f"#### query\n{_query}\n####")
 
 		if unmogrified_query and is_query_type(
 			unmogrified_query, ("alter", "drop", "create", "truncate", "rename")
@@ -673,7 +673,7 @@ class Database:
 				return [list(map(values.get, fields))]
 
 		else:
-			r = frappe.qb.engine.get_query(
+			r = frappe.qb.get_query(
 				"Singles",
 				filters={"field": ("in", tuple(fields)), "doctype": doctype},
 				fields=["field", "value"],
@@ -706,7 +706,7 @@ class Database:
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		queried_result = frappe.qb.engine.get_query(
+		queried_result = frappe.qb.get_query(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
@@ -779,7 +779,7 @@ class Database:
 		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = frappe.qb.engine.get_query(
+		val = frappe.qb.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
@@ -819,16 +819,15 @@ class Database:
 		distinct=False,
 		limit=None,
 	):
-		field_objects = []
-		query = frappe.qb.engine.get_query(
+		query = frappe.qb.get_query(
 			table=doctype,
 			filters=filters,
-			orderby=order_by,
+			order_by=order_by,
 			for_update=for_update,
-			field_objects=field_objects,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
+			validate_filters=True,
 		)
 		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
 			as_dict = True
@@ -850,18 +849,15 @@ class Database:
 		as_dict=False,
 	):
 		if names := list(filter(None, names)):
-			return self.get_all(
+			return frappe.qb.get_query(
 				doctype,
 				fields=field,
 				filters=names,
 				order_by=order_by,
-				pluck=pluck,
-				debug=debug,
-				as_list=not as_dict,
-				run=run,
 				distinct=distinct,
-				limit_page_length=limit,
-			)
+				limit=limit,
+				validate_filters=True,
+			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
 	@deprecated
@@ -921,7 +917,12 @@ class Database:
 			frappe.clear_document_cache(dt, dt)
 
 		else:
-			query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
+			query = frappe.qb.get_query(
+				table=dt,
+				filters=dn,
+				update=True,
+				validate_filters=True,
+			)
 
 			if isinstance(dn, str):
 				frappe.clear_document_cache(dt, dn)
@@ -1115,10 +1116,13 @@ class Database:
 			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
-		query = frappe.qb.engine.get_query(
-			table=dt, filters=filters, fields=Count("*"), distinct=distinct
-		)
-		count = query.run(debug=debug)[0][0]
+		count = frappe.qb.get_query(
+			table=dt,
+			filters=filters,
+			fields=Count("*"),
+			distinct=distinct,
+			validate_filters=True,
+		).run(debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
@@ -1253,7 +1257,12 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = frappe.qb.engine.build_conditions(table=doctype, filters=filters).delete()
+		query = frappe.qb.get_query(
+			table=doctype,
+			filters=filters,
+			delete=True,
+			validate_filters=True,
+		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 		return query.run(**kwargs)
