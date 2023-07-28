@@ -41,9 +41,9 @@
 	background-image: url(/assets/frappe/icons/timeless/search.svg);
 	background-repeat: no-repeat;
 	text-indent: 1.5rem;
-	background-position: 1rem 0.65rem;
+	background-position: 1rem 0.45rem;
 	font-size: var(--text-md);
-	padding: 0.5rem 1rem;
+	padding: 0.3rem 1rem;
 	border: 1px solid var(--dark-border-color);
 	border-radius: var(--border-radius-md);
 	margin-right: 0.5rem;
@@ -84,7 +84,6 @@
 	color: var(--text-color);
 	font-size: var(--text-lg);
 	font-weight: 600;
-	margin-bottom: 0.5rem;
 }
 
 .discussion-on-page .topic-title {
@@ -201,7 +200,7 @@
 }
 
 .empty-state {
-	background: var(--control-bg);
+	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-lg);
 	padding: 2rem;
 	display: flex;
@@ -275,4 +274,38 @@
 
 .discussions-parent .ql-editor {
 	border-radius: var(--border-radius-md);
+}
+
+.mention {
+	display: inline-block;
+	height: auto;
+	width: auto;
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--border-color);
+	padding: 2px 5px;
+	font-size: var(--text-sm);
+	background-color: var(--fg-color);
+}
+
+.mention a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.ql-editor.read-mode .mention {
+	background-color: var(--control-bg);
+}
+
+.ql-editor.read-mode .mention a {
+	color: inherit;
+	background-color: inherit;
+}
+
+.discussion-form .form-group {
+	margin-bottom: 0;
+}
+
+.discussions-parent .ql-editor.ql-blank::before {
+	color: var(--gray-600);
+	font-style: normal;
 }

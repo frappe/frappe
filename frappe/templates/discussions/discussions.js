@@ -4,7 +4,7 @@ frappe.ready(() => {
 	this.single_thread = $(".is-single-thread").length;
 
 	if (this.single_thread)	{
-		make_comment_editor();
+		make_comment_editor($(".discussion-form .discussions-comment"));
 	}
 	
 	$(".search-field").keyup((e) => {
@@ -19,17 +19,22 @@ frappe.ready(() => {
 		login_from_discussion(e);
 	});
 
-	$(".sidebar-parent").click((e) => {
+	$("#discussion-modal .close").click((e) => {
+		$("#discussion-modal .discussions-comment").html("");
+	})
+
+	$(document).on("click", ".sidebar-parent", (e) => {
 		if ($(e.currentTarget).attr("aria-expanded") == "true") {
 			e.stopPropagation();
 		}
 		setTimeout(() => {
-			if (!$(".discussions-comment:visible").find(".ql-editor").length)
-				make_comment_editor();
+			let element = $(".discussion-form:visible .discussions-comment");
+			if (!element.find(".ql-editor").length)
+				make_comment_editor(element);
 		}, 0);
 	});
 
-	$(document).on("keydown", ".comment-field", (e) => {
+	$(document).on("keydown", ".discussions-comment", (e) => {
 		if (
 			(e.ctrlKey || e.metaKey) &&
 			(e.keyCode == 13 || e.which == 13) &&
@@ -72,36 +77,48 @@ frappe.ready(() => {
 const show_new_topic_modal = (e) => {
 	e.preventDefault();
 	$("#discussion-modal").modal("show");
+	make_comment_editor($("#discussion-modal .discussions-comment"));
 	let topic = $(e.currentTarget).attr("data-topic");
 	$("#submit-discussion").attr("data-topic", topic ? topic : "");
 };
 
 const setup_socket_io = () => {
 	frappe.realtime.init(window.socketio_port || "9000");
+
 	frappe.realtime.on("publish_message", (data) => {
 		publish_message(data);
 	});
+
 	frappe.realtime.on("update_message", (data) => {
 		update_message(data);
 	});
+
 	frappe.realtime.socket.on("delete_message", (data) => {
 		delete_message(data);
 	});
 };
 
 const publish_message = (data) => {
-	const doctype = decodeURIComponent($(".discussions-parent").attr("data-doctype"));
-	const docname = decodeURIComponent($(".discussions-parent").attr("data-docname"));
-	const topic = data.topic_info;
-	const first_topic = !$(".reply-card").length;
-	const document_match_found =
-		doctype == topic.reference_doctype && docname == topic.reference_docname;
-
 	post_message_cleanup();
+	data = enhance_template(data);
+	insert_message(data)
+};
+
+const enhance_template = (data) => {
 	data.template = hide_actions_on_conditions(data.template, data.reply_owner);
 	data.template = style_avatar_frame(data.template);
 	data.sidebar = style_avatar_frame(data.sidebar);
 	data.new_topic_template = style_avatar_frame(data.new_topic_template);
+	return data;
+};
+
+const insert_message = (data) => {
+	const topic = data.topic_info;
+	const first_topic = !$(".reply-card").length;
+	const doctype = decodeURIComponent($(".discussions-parent").attr("data-doctype"));
+	const docname = decodeURIComponent($(".discussions-parent").attr("data-docname"));
+	const document_match_found =
+		doctype == topic.reference_doctype && docname == topic.reference_docname;
 
 	if ($(`.discussion-on-page[data-topic=${topic.name}]`).length) {
 		$(data.template).insertBefore(
@@ -113,6 +130,9 @@ const publish_message = (data) => {
 		if (topic.owner == frappe.session.user) {
 			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-parent").first().click();
+			setTimeout(() => {
+				make_comment_editor($(".discussion-form:visible .discussions-comment"));
+			}, 1000);
 		}
 	} else if (this.single_thread && document_match_found) {
 		$(data.template).insertBefore(`.discussion-form`);
@@ -129,16 +149,19 @@ const update_message = (data) => {
 	reply_card.find(".reply-body").removeClass("hide");
 	reply_card.find(".reply-edit-card").addClass("hide");
 	reply_card.find(".reply-text").html(data.reply);
+	reply_card.find(".comment-content").html(data.reply);
 	reply_card.find(".reply-actions").addClass("hide");
 	reply_card.find(".dropdown").removeClass("hide");
+	reply_card.find(".discussions-comment").html("");
 };
 
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
+	$("#discussion-modal .discussions-comment").html("");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
 	$(".cancel-comment").addClass("hide");
-	this.comment_editor.set_value("comment_editor", "");
+	this.comment_editor && this.comment_editor.set_value("comment_editor", "");
 };
 
 const update_reply_count = (topic) => {
@@ -286,10 +309,10 @@ const perform_action = (e) => {
 const edit_reply = (e) => {
 	const reply_card = $(e.target).closest(".reply-card");
 	reply_card.find(".reply-edit-card").removeClass("hide");
-	reply_card.find(".reply-body").addClass("hide");
+	reply_card.find(".reply-body").addClass("hide	");
 	reply_card.find(".reply-actions").removeClass("hide");
 	reply_card.find(".dropdown").addClass("hide");
-	make_comment_editor();
+	make_comment_editor(reply_card.find(".discussions-comment"));
 };
 
 const delete_reply = (e) => {
@@ -306,6 +329,8 @@ const dismiss_reply = (e) => {
 	reply_card.find(".reply-edit-card").addClass("hide");
 	reply_card.find(".reply-body").removeClass("hide");
 	reply_card.find(".reply-actions").addClass("hide");
+	reply_card.find(".dropdown").removeClass("hide");
+	reply_card.find(".discussions-comment").html("");
 };
 
 const adjust_comment_box = (e) => {
@@ -318,7 +343,7 @@ const adjust_comment_box = (e) => {
 
 const hide_actions_on_conditions = (template, owner) => {
 	let $template = $(template);
-	frappe.session.user != owner && $template.find(".dropdown").addClass("hide");
+	frappe.session.user != owner && $template.find(".dropdown").remove();
 	return $template.prop("outerHTML");
 };
 
@@ -326,9 +351,7 @@ const delete_message = (data) => {
 	$(`[data-reply=${data.reply_name}]`).addClass("hide");
 };
 
-const make_comment_editor = () => {
-	console.log("make_comment_editor")
-	console.log($(".discussions-comment:visible"))
+const make_comment_editor = (element) => {
 	this.comment_editor = new frappe.ui.FieldGroup({
 		fields: [
 			{
@@ -337,6 +360,7 @@ const make_comment_editor = () => {
 				enable_mentions: true,
 				theme: "bubble",
 				placeholder: __("Type your reply here..."),
+				default: element.siblings(".comment-content").html(),
 				get_toolbar_options() {
 				return [
 					["bold", "italic", "underline", "strike"],
@@ -350,10 +374,10 @@ const make_comment_editor = () => {
 			}
 			},
 		],
-		body: $(".discussions-comment:visible"),
+		body: element,
 	});
 	this.comment_editor.make();
-	$(".discussions-comment .form-section:last").removeClass("empty-section");
-	$(".discussions-comment .frappe-control").removeClass("hide-control");
-	$(".discussions-comment .form-column").addClass("p-0");
+	element.find(".form-section:last").removeClass("empty-section");
+	element.find(".frappe-control").removeClass("hide-control");
+	element.find(".form-column").addClass("p-0");
 };
