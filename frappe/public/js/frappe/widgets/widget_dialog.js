@@ -381,28 +381,25 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "link_to",
 				label: "Link To",
 				options: "type",
-				onchange: async () => {
+				onchange: () => {
 					const doctype = this.dialog.get_value("link_to");
 					if (doctype && this.dialog.get_value("type") == "DocType") {
 						frappe.model.with_doctype(doctype, async () => {
 							let meta = frappe.get_meta(doctype);
-				
+
 							if (doctype && frappe.boot.single_types.includes(doctype)) {
 								this.hide_filters();
 							} else if (doctype) {
 								this.setup_filter(doctype);
 								this.show_filters();
 							}
-				
+
 							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === "Tree") views.push("Tree");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
 							const response = await frappe.db.get_value("Kanban Board", { reference_doctype: doctype }, "name");
-
-							if (response && response.message.name) {
-								views.push("Kanban");
-							}
+							if (response?.message?.name) views.push("Kanban");
 							
 							this.dialog.set_df_property("doc_view", "options", views.join("\n"));
 						});
@@ -432,10 +429,10 @@ class ShortcutDialog extends WidgetDialog {
 				),
 				default: "List",
 				depends_on: (state) => {
-					if (this.dialog && this.dialog.get_value("link_to")) {
+					if (this.dialog) {
 						let doctype = this.dialog.get_value("link_to");
 						let is_single = frappe.boot.single_types.includes(doctype);
-						return state.type == "DocType" && !is_single;
+						return doctype && state.type == "DocType" && !is_single;
 					}
 
 					return false;
