@@ -97,7 +97,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_route_for_custom_card() {
-		if (!this.data.route && !this.data.route_options) return;
+		if (!this.data.route) return;
 
 		let route = this.data.route;
 		const is_document_type = route.is_document_type || 0;
