@@ -101,7 +101,14 @@ frappe.ui.form.on("Number Card", {
 <code>
 {
 	"value": value,
-	"fieldtype": "Currency"
+	"fieldtype": "Currency",
+	"route_options": {"from_date": "2023-05-23"},
+	"route": {
+		"name": "Permitted Documents For User",
+		"is_document_type": 0
+	}
+	// or
+	"route": ["query-report", "Permitted Documents For User"]
 }
 </code></pre>`);
 		}
