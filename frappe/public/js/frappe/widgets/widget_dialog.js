@@ -398,9 +398,13 @@ class ShortcutDialog extends WidgetDialog {
 							if (meta.is_tree === "Tree") views.push("Tree");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
-							const response = await frappe.db.get_value("Kanban Board", { reference_doctype: doctype }, "name");
+							const response = await frappe.db.get_value(
+								"Kanban Board",
+								{ reference_doctype: doctype },
+								"name"
+							);
 							if (response?.message?.name) views.push("Kanban");
-							
+
 							this.dialog.set_df_property("doc_view", "options", views.join("\n"));
 						});
 					} else {
@@ -449,7 +453,7 @@ class ShortcutDialog extends WidgetDialog {
 					} else {
 						this.dialog.fields_dict.link_to.get_query = null;
 					}
-				}
+				},
 			},
 			{
 				fieldtype: "Link",
