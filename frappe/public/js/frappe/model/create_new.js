@@ -309,6 +309,10 @@ $.extend(frappe.model, {
 		newdoc.lft = null;
 		newdoc.rgt = null;
 
+		if (from_amend && parent_doc) {
+			newdoc._amended_from = doc.name;
+		}
+
 		return newdoc;
 	},
 

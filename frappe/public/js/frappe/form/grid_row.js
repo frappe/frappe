@@ -123,7 +123,7 @@ export default class GridRow {
 					])
 					.catch((e) => {
 						// aborted
-						console.trace(e); // eslint-disable-line
+						console.trace(e);
 					});
 			} else {
 				let data = null;

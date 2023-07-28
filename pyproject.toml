@@ -21,14 +21,14 @@ dependencies = [
     "pypdf~=3.9.1",
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
-    "PyYAML~=6.0",
+    "PyYAML~=6.0.1",
     "RestrictedPython~=6.0",
     "WeasyPrint==59.0",
     "Werkzeug~=2.3.4",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
-    "bleach~=3.3.0",
+    "bleach[css]~=6.0.0",
     "cairocffi==1.5.1",
     "chardet~=5.1.0",
     "croniter~=1.3.15",
@@ -48,7 +48,7 @@ dependencies = [
     "passlib~=1.7.4",
     "pdfkit~=1.0.0",
     "phonenumbers==8.13.13",
-    "premailer~=3.8.0",
+    "premailer~=3.10.0",
     "psutil~=5.9.5",
     "psycopg2-binary~=2.9.1",
     "pyOpenSSL~=23.2.0",
@@ -74,7 +74,7 @@ dependencies = [
     "markdownify~=0.11.6",
 
     # integration dependencies
-    "boto3~=1.18.49",
+    "boto3~=1.28.10",
     "dropbox~=11.36.0",
     "google-api-python-client~=2.2.0",
     "google-auth-oauthlib~=0.4.4",
@@ -105,4 +105,4 @@ pyngrok = "~=6.0.0"
 unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=3.0.0"
 hypothesis = "~=6.77.0"
-responses = "~=0.23.1"
+responses = "==0.23.1"

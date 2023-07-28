@@ -642,7 +642,7 @@ function guess_country(country_info) {
 	try {
 		const system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-		for ([country, info] of Object.entries(country_info)) {
+		for (let [country, info] of Object.entries(country_info)) {
 			let possible_timezones = (info.timezones || []).filter((t) => t == system_timezone);
 			if (possible_timezones.length) return country;
 		}

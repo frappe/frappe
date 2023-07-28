@@ -133,7 +133,7 @@ def install_db(
 	from frappe.database import setup_database
 
 	if not db_type:
-		db_type = frappe.conf.db_type or "mariadb"
+		db_type = frappe.conf.db_type
 
 	if not root_login and db_type == "mariadb":
 		root_login = "root"
@@ -772,7 +772,7 @@ def is_downgrade(sql_file_path, verbose=False):
 
 	# This function is only tested with mariadb
 	# TODO: Add postgres support
-	if frappe.conf.db_type not in (None, "mariadb"):
+	if frappe.conf.db_type != "mariadb":
 		return False
 
 	from semantic_version import Version
@@ -824,7 +824,7 @@ def is_partial(sql_file_path):
 def partial_restore(sql_file_path, verbose=False):
 	sql_file = extract_sql_from_archive(sql_file_path)
 
-	if frappe.conf.db_type in (None, "mariadb"):
+	if frappe.conf.db_type == "mariadb":
 		from frappe.database.mariadb.setup_db import import_db_from_sql
 	elif frappe.conf.db_type == "postgres":
 		import warnings

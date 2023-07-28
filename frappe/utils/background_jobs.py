@@ -3,8 +3,9 @@ import os
 import socket
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Any, Callable, NoReturn
+from typing import Any, NoReturn
 from uuid import uuid4
 
 import redis

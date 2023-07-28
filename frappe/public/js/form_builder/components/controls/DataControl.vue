@@ -1,10 +1,8 @@
 <!-- Used as Autocomplete, Barcode, Color, Currency, Data, Date, Duration, Link, Dynamic Link, Float, Int, Password, Percent, Time, Read Only, HTML Control -->
 <script setup>
-import { useStore } from "../../store";
 import { ref, useSlots } from "vue";
 
-let store = useStore();
-const props = defineProps(["df", "value"]);
+const props = defineProps(["df", "value", "read_only"]);
 let slots = useSlots();
 let time_zone = ref("");
 let placeholder = ref("");
@@ -34,7 +32,7 @@ if (props.df.fieldtype === "Icon") {
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div v-else class="label" :class="{ reqd: df.reqd }">{{ df.label }}</div>
+		<div v-else class="control-label label" :class="{ reqd: df.reqd }">{{ df.label }}</div>
 
 		<!-- data input -->
 		<input
@@ -50,7 +48,7 @@ if (props.df.fieldtype === "Icon") {
 			class="form-control"
 			type="text"
 			:value="value"
-			:disabled="store.read_only || df.read_only"
+			:disabled="read_only"
 			@input="event => $emit('update:modelValue', event.target.value)"
 		/>
 		<input

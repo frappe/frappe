@@ -8,9 +8,10 @@ import random
 import re
 import string
 import traceback
+from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 from pypika.terms import Criterion, NullValue
@@ -87,8 +88,8 @@ class Database:
 		port=None,
 	):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host or "127.0.0.1"
-		self.port = port or frappe.conf.db_port or ""
+		self.host = host or frappe.conf.db_host
+		self.port = port or frappe.conf.db_port
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
 		self._conn = None

@@ -69,6 +69,8 @@ class DatabaseQuery:
 		self.flags = frappe._dict()
 		self.reference_doctype = None
 		self.permission_map = {}
+		self.shared = []
+		self._fetch_shared_documents = False
 
 	@property
 	def doctype_meta(self):
@@ -813,14 +815,19 @@ class DatabaseQuery:
 			elif f.operator.lower() == "is":
 				if f.value == "set":
 					f.operator = "!="
+					# Value can technically be null, but comparing with null will always be falsy
+					# Not using coalesce here is faster because indexes can be used.
+					# null != '' -> null ~ falsy
+					# '' != '' -> false
+					can_be_null = False
 				elif f.value == "not set":
 					f.operator = "="
+					fallback = "''"
+					can_be_null = True
 
 				value = ""
-				fallback = "''"
-				can_be_null = True
 
-				if "ifnull" not in column_name.lower():
+				if can_be_null and "ifnull" not in column_name.lower():
 					column_name = f"ifnull({column_name}, {fallback})"
 
 			elif df and df.fieldtype == "Date":
@@ -895,8 +902,6 @@ class DatabaseQuery:
 			self.extract_tables()
 
 		role_permissions = frappe.permissions.get_role_permissions(self.doctype_meta, user=self.user)
-		self.shared = frappe.share.get_shared(self.doctype, self.user)
-
 		if (
 			not self.doctype_meta.istable
 			and not (role_permissions.get("select") or role_permissions.get("read"))
@@ -904,6 +909,7 @@ class DatabaseQuery:
 			and not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
 		):
 			only_if_shared = True
+			self.shared = frappe.share.get_shared(self.doctype, self.user)
 			if not self.shared:
 				frappe.throw(_("No permission to read {0}").format(_(self.doctype)), frappe.PermissionError)
 			else:
@@ -912,6 +918,7 @@ class DatabaseQuery:
 		else:
 			# skip user perm check if owner constraint is required
 			if requires_owner_constraint(role_permissions):
+				self._fetch_shared_documents = True
 				self.match_conditions.append(
 					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
 				)
@@ -921,6 +928,14 @@ class DatabaseQuery:
 				# get user permissions
 				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions)
+
+			# Only when full read access is not present fetch shared docuemnts.
+			# This is done to avoid extra query.
+			# Only following cases can require explicit addition of shared documents.
+			#    1. DocType has if_owner constraint and hence can't see shared documents
+			#    2. DocType has user permissions and hence can't see shared documents
+			if self._fetch_shared_documents:
+				self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if as_condition:
 			conditions = ""
@@ -1000,9 +1015,11 @@ class DatabaseQuery:
 					match_filters[df.get("options")] = docs
 
 		if match_conditions:
+			self._fetch_shared_documents = True
 			self.match_conditions.append(" and ".join(match_conditions))
 
 		if match_filters:
+			self._fetch_shared_documents = True
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):

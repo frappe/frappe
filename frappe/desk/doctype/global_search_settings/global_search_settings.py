@@ -7,6 +7,17 @@ from frappe.model.document import Document
 
 
 class GlobalSearchSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.global_search_doctype.global_search_doctype import GlobalSearchDocType
+		from frappe.types import DF
+
+		allowed_in_global_search: DF.Table[GlobalSearchDocType]
+	# end: auto-generated types
 	def validate(self):
 		dts, core_dts, repeated_dts = [], [], []
 
