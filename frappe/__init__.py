@@ -248,6 +248,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
+	local.qb.engine = _dict(get_query=get_query)  # for backward compatiblity
 	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
