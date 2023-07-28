@@ -18,6 +18,8 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -756,6 +758,19 @@ class TestDocType(FrappeTestCase):
 		self.assertFalse(doctype.fields[0].in_list_view)
 		self.assertTrue(doctype.fields[1].in_list_view)
 		frappe.delete_doc("DocType", doctype.name)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_aria_tables(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		dt = new_doctype(engine="ARIA").insert()
+
+		table_info = frappe.db.sql(f"show table status where name = 'tab{dt.name}'", as_dict=1)[0]
+
+		self.assertEqual(table_info.Engine.upper(), "ARIA")
+
+		dt.delete()
+		frappe.db.commit()
 
 
 def new_doctype(

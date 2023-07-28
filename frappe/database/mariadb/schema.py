@@ -49,6 +49,12 @@ class MariaDBTable(DBTable):
 
 		additional_definitions = ",\n".join(additional_definitions)
 
+		engine_params = ""
+		if engine == "ARIA":
+			engine_params += "TRANSACTIONAL=1"
+		else:
+			engine_params += "ROW_FORMAT=DYNAMIC"
+
 		# create table
 		query = f"""create table `{self.table_name}` (
 			{name_column},
@@ -60,7 +66,7 @@ class MariaDBTable(DBTable):
 			idx int(8) not null default '0',
 			{additional_definitions})
 			ENGINE={engine}
-			ROW_FORMAT=DYNAMIC
+			{engine_params}
 			CHARACTER SET=utf8mb4
 			COLLATE=utf8mb4_unicode_ci"""
 

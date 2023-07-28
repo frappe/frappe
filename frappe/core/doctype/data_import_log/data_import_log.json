@@ -3,7 +3,7 @@
  "creation": "2021-12-25 16:12:20.205889",
  "doctype": "DocType",
  "editable_grid": 1,
- "engine": "MyISAM",
+ "engine": "ARIA",
  "field_order": [
   "data_import",
   "row_indexes",

@@ -457,7 +457,7 @@
    "fieldname": "engine",
    "fieldtype": "Select",
    "label": "Database Engine",
-   "options": "InnoDB\nMyISAM"
+   "options": "InnoDB\nMyISAM\nARIA"
   },
   {
    "default": "0",

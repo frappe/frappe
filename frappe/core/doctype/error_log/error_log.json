@@ -3,7 +3,7 @@
  "creation": "2013-01-16 13:09:40",
  "doctype": "DocType",
  "document_type": "System",
- "engine": "MyISAM",
+ "engine": "ARIA",
  "field_order": [
   "seen",
   "reference_doctype",

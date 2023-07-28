@@ -118,7 +118,7 @@ class DocType(Document):
 		documentation: DF.Data | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
-		engine: DF.Literal["InnoDB", "MyISAM"]
+		engine: DF.Literal["InnoDB", "MyISAM", "ARIA"]
 		fields: DF.Table[DocField]
 		force_re_route_to_default_view: DF.Check
 		has_web_view: DF.Check

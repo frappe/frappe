@@ -279,7 +279,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				published int(1) not null default 0,
 				unique `doctype_name` (doctype, name))
 				COLLATE=utf8mb4_unicode_ci
-				ENGINE=MyISAM
+				ENGINE=ARIA TRANSACTIONAL=1
 				CHARACTER SET=utf8mb4""".format(
 					self.VARCHAR_LEN
 				)

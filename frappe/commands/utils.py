@@ -645,7 +645,7 @@ def console(context, autoreload=False):
 @click.option(
 	"--engine",
 	default=None,
-	type=click.Choice(["InnoDB", "MyISAM"]),
+	type=click.Choice(["InnoDB", "MyISAM", "ARIA"]),
 	help="Choice of storage engine for said table(s)",
 )
 @click.option(
@@ -695,6 +695,8 @@ def transform_database(context, table, engine, row_format, failfast):
 		values_to_set = ""
 		if engine:
 			values_to_set += f" ENGINE={engine}"
+		if engine == "ARIA":
+			values_to_set += " TRANSACTIONAL=1"  # crash safe
 		if row_format:
 			values_to_set += f" ROW_FORMAT={row_format}"
 
