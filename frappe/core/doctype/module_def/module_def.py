@@ -10,77 +10,79 @@ from frappe.model.document import Document
 
 
 class ModuleDef(Document):
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
 
-	from typing import TYPE_CHECKING
+    from typing import TYPE_CHECKING
 
-	if TYPE_CHECKING:
-		from frappe.types import DF
+    if TYPE_CHECKING:
+        from frappe.types import DF
 
-		app_name: DF.Literal
-		custom: DF.Check
-		module_name: DF.Data
-		package: DF.Link | None
-		restrict_to_domain: DF.Link | None
-	# end: auto-generated types
-	def on_update(self):
-		"""If in `developer_mode`, create folder for module and
-		add in `modules.txt` of app if missing."""
-		frappe.clear_cache()
-		if not self.custom and frappe.conf.get("developer_mode"):
-			self.create_modules_folder()
-			self.add_to_modules_txt()
+        app_name: DF.Literal
+        custom: DF.Check
+        module_name: DF.Data
+        package: DF.Link | None
+        restrict_to_domain: DF.Link | None
 
-	def create_modules_folder(self):
-		"""Creates a folder `[app]/[module]` and adds `__init__.py`"""
-		module_path = frappe.get_app_path(self.app_name, self.name)
-		if not os.path.exists(module_path):
-			os.mkdir(module_path)
-			with open(os.path.join(module_path, "__init__.py"), "w") as f:
-				f.write("")
+    # end: auto-generated types
+    def on_update(self):
+        """If in `developer_mode`, create folder for module and
+        add in `modules.txt` of app if missing."""
+        frappe.clear_cache()
+        if not self.custom and frappe.conf.get("developer_mode"):
+            self.create_modules_folder()
+            self.add_to_modules_txt()
 
-	def add_to_modules_txt(self):
-		"""Adds to `[app]/modules.txt`"""
-		modules = None
-		if not frappe.local.module_app.get(frappe.scrub(self.name)):
-			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
-				content = f.read()
-				if not self.name in content.splitlines():
-					modules = list(filter(None, content.splitlines()))
-					modules.append(self.name)
+    def create_modules_folder(self):
+        """Creates a folder `[app]/[module]` and adds `__init__.py`"""
+        module_path = frappe.get_app_path(self.app_name, self.name)
+        if not os.path.exists(module_path):
+            os.mkdir(module_path)
+            with open(os.path.join(module_path, "__init__.py"), "w") as f:
+                f.write("")
 
-			if modules:
-				with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
-					f.write("\n".join(modules))
+    def add_to_modules_txt(self):
+        """Adds to `[app]/modules.txt`"""
+        modules = None
+        if not frappe.local.module_app.get(frappe.scrub(self.name)):
+            with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
+                content = f.read()
+                if not self.name in content.splitlines():
+                    modules = list(filter(None, content.splitlines()))
+                    modules.append(self.name)
 
-				frappe.clear_cache()
-				frappe.setup_module_map()
+            if modules:
+                with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
+                    f.write("\n".join(modules))
 
-	def on_trash(self):
-		"""Delete module name from modules.txt"""
+                frappe.clear_cache()
+                frappe.setup_module_map()
 
-		if not frappe.conf.get("developer_mode") or frappe.flags.in_uninstall or self.custom:
-			return
+    def on_trash(self):
+        """Delete module name from modules.txt"""
 
-		modules = None
-		if frappe.local.module_app.get(frappe.scrub(self.name)):
-			module_path = frappe.get_app_path(self.app_name, self.name)
-			shutil.rmtree(module_path)
-			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
-				content = f.read()
-				if self.name in content.splitlines():
-					modules = list(filter(None, content.splitlines()))
-					modules.remove(self.name)
+        if not frappe.conf.get("developer_mode") or frappe.flags.in_uninstall or self.custom:
+            return
 
-			if modules:
-				with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
-					f.write("\n".join(modules))
+        modules = None
+        if frappe.local.module_app.get(frappe.scrub(self.name)):
+            module_path = frappe.get_app_path(self.app_name, self.name)
+            if os.path.exists(module_path):
+                shutil.rmtree(module_path)
+            with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
+                content = f.read()
+                if self.name in content.splitlines():
+                    modules = list(filter(None, content.splitlines()))
+                    modules.remove(self.name)
 
-				frappe.clear_cache()
-				frappe.setup_module_map()
+            if modules:
+                with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
+                    f.write("\n".join(modules))
+
+                frappe.clear_cache()
+                frappe.setup_module_map()
 
 
 @frappe.whitelist()
 def get_installed_apps():
-	return json.dumps(frappe.get_installed_apps())
+    return json.dumps(frappe.get_installed_apps())
