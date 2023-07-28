@@ -3,7 +3,7 @@
 
 import json
 import os
-import shutil
+from frappe.modules.export_file import delete_folder
 
 import frappe
 from frappe.model.document import Document
@@ -66,9 +66,7 @@ class ModuleDef(Document):
 
         modules = None
         if frappe.local.module_app.get(frappe.scrub(self.name)):
-            module_path = frappe.get_app_path(self.app_name, self.name)
-            if os.path.exists(module_path):
-                shutil.rmtree(module_path)
+            delete_folder(self.module_name,"Module Def",self.name)
             with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
                 content = f.read()
                 if self.name in content.splitlines():
