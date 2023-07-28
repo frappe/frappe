@@ -18,7 +18,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import cstr, get_bench_id
+from frappe.utils import cint, cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.redis_queue import RedisQueue
 
@@ -254,6 +254,7 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
+	set_niceness()
 	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
 
 	with Connection(redis_connection):
@@ -448,3 +449,24 @@ def is_job_enqueued(job_id: str) -> str:
 		return False
 
 	return job.get_status() in ("queued", "started")
+
+
+BACKGROUND_PROCESS_NICENESS = 10
+
+
+def set_niceness():
+	"""Background processes should have slightly lower priority than web processes.
+
+	Calling this function increments the niceness of process by configured value or default.
+	Note: This function should be called only once in process' lifetime.
+	"""
+
+	conf = frappe.get_conf()
+	nice_increment = BACKGROUND_PROCESS_NICENESS
+
+	configured_niceness = conf.get("background_process_niceness")
+
+	if configured_niceness is not None:
+		nice_increment = cint(configured_niceness)
+
+	os.nice(nice_increment)
