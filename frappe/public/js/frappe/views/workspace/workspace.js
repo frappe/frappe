@@ -1210,6 +1210,7 @@ frappe.views.Workspace = class Workspace {
 
 						this.make_sidebar();
 						this.show_sidebar_actions();
+						localStorage.setItem("new_workspace", JSON.stringify(new_page));
 					});
 			},
 		});
