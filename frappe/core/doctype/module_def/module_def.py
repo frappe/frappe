@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 
 import frappe
 from frappe.model.document import Document
@@ -64,6 +65,8 @@ class ModuleDef(Document):
 
 		modules = None
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
+			module_path = frappe.get_app_path(self.app_name, self.name)
+			shutil.rmtree(module_path)
 			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
 				content = f.read()
 				if self.name in content.splitlines():
