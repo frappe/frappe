@@ -108,15 +108,15 @@ def delete_doc(
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 
-				if not ignore_on_trash:
-					doc.run_method("on_trash")
-					doc.flags.in_delete = True
-					doc.run_method("on_change")
-
 				# check if links exist
 				if not force:
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
+
+				if not ignore_on_trash:
+					doc.run_method("on_trash")
+					doc.flags.in_delete = True
+					doc.run_method("on_change")
 
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
