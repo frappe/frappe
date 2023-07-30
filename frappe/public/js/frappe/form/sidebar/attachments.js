@@ -1,9 +1,12 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
 frappe.ui.form.Attachments = class Attachments {
 	constructor(opts) {
 		$.extend(this, opts);
+
+		this.attachments_page_length = 10; // show n attachments initially
+		this.show_all_attachments = false;
+
 		this.make();
 	}
 	make() {
@@ -40,8 +43,6 @@ frappe.ui.form.Attachments = class Attachments {
 		return false;
 	}
 	refresh() {
-		var me = this;
-
 		if (this.frm.doc.__islocal) {
 			this.parent.toggle(false);
 			return;
@@ -55,20 +56,8 @@ frappe.ui.form.Attachments = class Attachments {
 
 		// add attachment objects
 		var attachments = this.get_attachments();
-		if (attachments.length) {
-			let exists = {};
-			let unique_attachments = attachments.filter((attachment) => {
-				return Object.prototype.hasOwnProperty.call(exists, attachment.file_name)
-					? false
-					: (exists[attachment.file_name] = true);
-			});
-			unique_attachments.forEach((attachment) => {
-				me.add_attachment(attachment);
-			});
-		} else {
-			this.attachments_label.removeClass("has-attachments");
-			this.parent.find(".explore-btn").toggle(false); // hide explore icon button
-		}
+		this.render_attachments(attachments);
+		this.setup_show_all_button(attachments);
 	}
 
 	setup_expanded_explore_button(max_reached) {
@@ -86,8 +75,57 @@ frappe.ui.form.Attachments = class Attachments {
 		});
 	}
 
+	setup_show_all_button(attachments) {
+		// show button if there is more to show and user has not clicked on "Show All"
+		let is_slicable = attachments.length > this.attachments_page_length;
+		let show = !this.show_all_attachments && is_slicable;
+
+		let show_all_btn = this.parent.find(".show-all-btn");
+		if (!show) {
+			show_all_btn.addClass("hidden");
+			return;
+		}
+
+		show_all_btn.removeClass("hidden");
+		show_all_btn.click(() => {
+			show_all_btn.addClass("hidden");
+			this.show_all_attachments = true;
+			this.refresh();
+		});
+	}
+
 	get_attachments() {
 		return this.frm.get_docinfo().attachments || [];
+	}
+
+	render_attachments(attachments) {
+		var me = this;
+		let attachments_to_render = attachments;
+
+		let is_slicable = attachments.length > this.attachments_page_length;
+		if (!this.show_all_attachments && is_slicable) {
+			// render last n attachments as they are at the top
+			let start = attachments.length - this.attachments_page_length;
+			attachments_to_render = attachments.slice(start, attachments.length);
+		}
+
+		if (attachments_to_render.length) {
+			let exists = {};
+			let unique_attachments = attachments_to_render.filter((attachment) => {
+				return Object.prototype.hasOwnProperty.call(exists, attachment.file_name)
+					? false
+					: (exists[attachment.file_name] = true);
+			});
+			unique_attachments.forEach((attachment) => {
+				me.add_attachment(attachment);
+			});
+		}
+
+		if (!attachments.length) {
+			// If no attachments in totality
+			this.attachments_label.removeClass("has-attachments");
+			this.parent.find(".explore-btn").toggle(false); // hide explore icon button
+		}
 	}
 
 	add_attachment(attachment) {

@@ -400,6 +400,15 @@ body[data-route^="Module"] .main-menu {
 	margin-bottom: var(--margin-md);
 }
 
+.show-all-btn {
+	margin-top: var(--margin-md);
+	text-align: center;
+
+	.btn {
+		justify-content: center;
+	}
+}
+
 .shares,
 .followed-by {
 	max-width: 100%;
