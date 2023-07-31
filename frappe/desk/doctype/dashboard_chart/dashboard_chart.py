@@ -331,7 +331,7 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
+def get_charts_for_user(filters):
 	or_filters = {"owner": frappe.session.user, "is_public": 1}
 	return frappe.db.get_list(
 		"Dashboard Chart", fields=["name"], filters=filters, or_filters=or_filters, as_list=1

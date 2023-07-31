@@ -217,7 +217,7 @@ def create_number_card(args):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
+def get_cards_for_user(doctype, txt, filters):
 	meta = frappe.get_meta(doctype)
 	searchfields = meta.get_search_fields()
 	search_conditions = []

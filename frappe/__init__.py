@@ -2421,12 +2421,25 @@ def validate_and_sanitize_search_inputs(fn):
 		from frappe.desk.search import sanitize_searchfield
 		from frappe.utils import cint
 
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
-		sanitize_searchfield(kwargs["searchfield"])
-		kwargs["start"] = cint(kwargs["start"])
-		kwargs["page_len"] = cint(kwargs["page_len"])
+		if args:
+			from frappe.utils.deprecations import deprecation_warning
 
-		if kwargs["doctype"] and not db.exists("DocType", kwargs["doctype"]):
+			deprecation_warning(
+				"Passing positional arguments in search queries is not deprecated and will be removed",
+				stacklevel=2,  # decorator
+			)
+			# No one should really be using it this way, kept for backward compatibility
+			kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+
+		sanitize_searchfield(kwargs.get("searchfield"))
+		if kwargs.get("start") is not None:
+			kwargs["start"] = cint(kwargs["start"])
+		if kwargs.get("page_len") is not None:
+			kwargs["page_len"] = cint(kwargs["page_len"])
+		if kwargs.get("page_length") is not None:
+			kwargs["page_length"] = cint(kwargs["page_length"])
+
+		if (doctype := kwargs.get("doctype")) and not db.exists("DocType", doctype):
 			return []
 
 		return fn(**kwargs)

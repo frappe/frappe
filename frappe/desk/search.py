@@ -81,15 +81,17 @@ def search_widget(
 	if query and query.split(maxsplit=1)[0].lower() != "select":
 		# by method
 		try:
-			is_whitelisted(frappe.get_attr(query))
+			method = frappe.get_attr(query)
+			is_whitelisted(method)
 			frappe.response["values"] = frappe.call(
-				query,
-				doctype,
-				txt,
-				searchfield,
-				start,
-				page_length,
-				filters,
+				method,
+				doctype=doctype,
+				txt=txt,
+				searchfield=searchfield,
+				start=start,
+				page_length=page_length,
+				page_len=page_length,  # backward compatbility
+				filters=filters,
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
 			)

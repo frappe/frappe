@@ -154,7 +154,7 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
+def get_applicable_for_doctype_list(doctype, txt, start, page_len):
 	linked_doctypes_map = get_linked_doctypes(doctype, True)
 
 	linked_doctypes = []

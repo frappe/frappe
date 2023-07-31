@@ -72,7 +72,7 @@ def relink(name, reference_doctype=None, reference_name=None):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
+def get_communication_doctype(txt):
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
 	user_perms.build_permissions()
 	can_read = user_perms.can_read

@@ -123,7 +123,7 @@ def get_users(role):
 # searches for active employees
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def role_query(doctype, txt, searchfield, start, page_len, filters):
+def role_query(txt, start, page_len, filters):
 	report_filters = [["Role", "name", "like", f"%{txt}%"], ["Role", "is_custom", "=", 0]]
 	if filters and isinstance(filters, list):
 		report_filters.extend(filters)
