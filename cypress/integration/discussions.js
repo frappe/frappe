@@ -24,8 +24,9 @@ context("Discussions", () => {
 			.should("have.value", "Discussion from tests");
 
 		// Enter comment
-		cy.get(".modal .discussions-comment")
-			.type("This is a discussion from the cypress ui tests.")
+		cy.get(".modal .discussions-comment").type(
+			"This is a discussion from the cypress ui tests."
+		);
 
 		// Submit
 		cy.get(".modal .submit-discussion").click();
@@ -44,10 +45,9 @@ context("Discussions", () => {
 	};
 
 	const reply_through_comment_box = () => {
-		cy.get(".discussion-form:visible .discussions-comment")
-			.type(
-				"This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page."
-			)
+		cy.get(".discussion-form:visible .discussions-comment").type(
+			"This is a discussion from the cypress ui tests. \n\nThis comment was entered through the commentbox on the page."
+		);
 
 		cy.get(".discussion-form:visible .submit-discussion").click();
 		cy.wait(3000);
@@ -67,8 +67,9 @@ context("Discussions", () => {
 		cy.get(".discussions-sidebar").should("have.length", 0);
 		cy.get(".reply").should("have.length", 0);
 
-		cy.get(".discussion-form:visible .discussions-comment")
-			.type("This comment is being made on a single thread discussion.")
+		cy.get(".discussion-form:visible .discussions-comment").type(
+			"This comment is being made on a single thread discussion."
+		);
 
 		cy.get(".discussion-form:visible .submit-discussion").click();
 		cy.wait(3000);

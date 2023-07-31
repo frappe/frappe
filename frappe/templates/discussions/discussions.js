@@ -3,10 +3,10 @@ frappe.ready(() => {
 	add_color_to_avatars();
 	this.single_thread = $(".is-single-thread").length;
 
-	if (this.single_thread)	{
+	if (this.single_thread) {
 		make_comment_editor($(".discussion-form .discussions-comment"));
 	}
-	
+
 	$(".search-field").keyup((e) => {
 		search_topic(e);
 	});
@@ -21,7 +21,7 @@ frappe.ready(() => {
 
 	$("#discussion-modal .close").click((e) => {
 		$("#discussion-modal .discussions-comment").html("");
-	})
+	});
 
 	$(document).on("click", ".sidebar-parent", (e) => {
 		if ($(e.currentTarget).attr("aria-expanded") == "true") {
@@ -29,8 +29,7 @@ frappe.ready(() => {
 		}
 		setTimeout(() => {
 			let element = $(".discussion-form:visible .discussions-comment");
-			if (!element.find(".ql-editor").length)
-				make_comment_editor(element);
+			if (!element.find(".ql-editor").length) make_comment_editor(element);
 		}, 0);
 	});
 
@@ -93,7 +92,7 @@ const setup_socket_io = () => {
 const publish_message = (data) => {
 	post_message_cleanup();
 	data = enhance_template(data);
-	insert_message(data)
+	insert_message(data);
 };
 
 const enhance_template = (data) => {
@@ -308,7 +307,7 @@ const delete_reply = (e) => {
 			reply_name: $(e.target).closest(".reply-card").data("reply"),
 		},
 	});
-}
+};
 
 const dismiss_reply = (e) => {
 	const reply_card = $(e.currentTarget).closest(".reply-card");
@@ -340,16 +339,16 @@ const make_comment_editor = (element) => {
 				placeholder: __("Type your reply here..."),
 				default: element.siblings(".comment-content").html(),
 				get_toolbar_options() {
-				return [
-					["bold", "italic", "underline", "strike"],
-					["blockquote", "code-block"],
-					[{ direction: "rtl" }],
-					["link", "image"],
-					[{ list: "ordered" }, { list: "bullet" }],
-					[{ align: [] }],
-					["clean"],
-				];
-			}
+					return [
+						["bold", "italic", "underline", "strike"],
+						["blockquote", "code-block"],
+						[{ direction: "rtl" }],
+						["link", "image"],
+						[{ list: "ordered" }, { list: "bullet" }],
+						[{ align: [] }],
+						["clean"],
+					];
+				},
 			},
 		],
 		body: element,

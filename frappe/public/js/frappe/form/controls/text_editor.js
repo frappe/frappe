@@ -198,7 +198,9 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	get_quill_options() {
 		return {
 			modules: {
-				toolbar: Object.keys(this.df).includes("get_toolbar_options") ? this.df.get_toolbar_options() : this.get_toolbar_options(),
+				toolbar: Object.keys(this.df).includes("get_toolbar_options")
+					? this.df.get_toolbar_options()
+					: this.get_toolbar_options(),
 				table: true,
 				imageResize: {},
 				magicUrl: true,
