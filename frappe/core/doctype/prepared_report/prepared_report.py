@@ -11,7 +11,12 @@ from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
-from frappe.utils import gzip_compress, gzip_decompress
+from frappe.utils import (
+	get_date_range_in_monthly_ranges,
+	gzip_compress,
+	gzip_decompress,
+	month_diff,
+)
 from frappe.utils.background_jobs import enqueue
 
 
@@ -38,13 +43,7 @@ class PreparedReport(Document):
 		self.status = "Queued"
 
 	def after_insert(self):
-		enqueue(
-			generate_report,
-			queue="long",
-			prepared_report=self.name,
-			timeout=1500,
-			enqueue_after_commit=True,
-		)
+		generate_report(self.name)
 
 	def get_prepared_data(self, with_file_name=False):
 		if attachments := get_attachments(self.doctype, self.name):
@@ -56,13 +55,35 @@ class PreparedReport(Document):
 			return gzip_decompress(attached_file.get_content())
 
 
-def generate_report(prepared_report):
-	update_job_id(prepared_report, get_current_job().id)
+def generate_report(prepared_report_name):
+	prepared_report_instance = frappe.get_doc("Prepared Report", prepared_report_name)
+	report = frappe.get_doc("Report", prepared_report_instance.report_name)
 
-	instance = frappe.get_doc("Prepared Report", prepared_report)
-	report = frappe.get_doc("Report", instance.report_name)
+	filters_month_diff = month_diff(
+		prepared_report_instance.filters.to_date, prepared_report_instance.filters.from_date
+	)
 
-	add_data_to_monitor(report=instance.report_name)
+	if report.name == "Item-wise Purchase Register" and filters_month_diff > 1:
+		generate_report_monthwise_chunked(prepared_report_instance, report)
+	else:
+		generate_report_default(prepared_report_instance, report)
+
+
+def generate_report_default(prepared_report_instance, report):
+	enqueue(
+		generate_report_default_helper,
+		queue="long",
+		prepared_report_instance=prepared_report_instance,
+		report=report,
+		timeout=1500,
+		enqueue_after_commit=True,
+	)
+
+
+def generate_report_default_helper(prepared_report_instance, report):
+	update_job_id(prepared_report_instance.name, get_current_job().id)
+
+	add_data_to_monitor(report=prepared_report_instance.report_name)
 
 	try:
 		report.custom_columns = []
@@ -76,22 +97,72 @@ def generate_report(prepared_report):
 				if data:
 					report.custom_columns = data["columns"]
 
-		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
-		create_json_gz_file(result, instance.doctype, instance.name)
+		result = generate_report_result(
+			report=report, filters=prepared_report_instance.filters, user=prepared_report_instance.owner
+		)
+		create_json_gz_file(result, prepared_report_instance.doctype, prepared_report_instance.name)
 
-		instance.status = "Completed"
+		prepared_report_instance.status = "Completed"
 	except Exception:
-		instance.status = "Error"
-		instance.error_message = frappe.get_traceback()
+		prepared_report_instance.status = "Error"
+		prepared_report_instance.error_message = frappe.get_traceback()
 
-	instance.report_end_time = frappe.utils.now()
-	instance.save(ignore_permissions=True)
+	prepared_report_instance.report_end_time = frappe.utils.now()
+	prepared_report_instance.save(ignore_permissions=True)
 
 	frappe.publish_realtime(
 		"report_generated",
-		{"report_name": instance.report_name, "name": instance.name},
+		{"report_name": prepared_report_instance.report_name, "name": prepared_report_instance.name},
 		user=frappe.session.user,
 	)
+
+
+def generate_report_monthwise_chunked(prepared_report_instance, report):
+	update_job_id(prepared_report_instance.name, get_current_job().id)
+
+	add_data_to_monitor(report=prepared_report_instance.report_name)
+
+	try:
+		report.custom_columns = []
+
+		if report.report_type == "Custom Report":
+			custom_report_doc = report
+			reference_report = custom_report_doc.reference_report
+			report = frappe.get_doc("Report", reference_report)
+			if custom_report_doc.json:
+				data = json.loads(custom_report_doc.json)
+				if data:
+					report.custom_columns = data["columns"]
+
+		monthly_ranges = get_date_range_in_monthly_ranges(
+			prepared_report_instance.filters.from_date, prepared_report_instance.filters.to_date
+		)
+
+		for i, monthly_range in enumerate(monthly_ranges, 1):
+			prepared_report_chunk_name = prepared_report_instance.name + "_chunk_" + str(i)
+			# create new filters
+			make_prepared_report(prepared_report_chunk_name, filters=None)
+			enqueue(
+				generate_report_monthwise_chunked_helper,
+				queue="long",
+				prepared_report_instance=prepared_report_instance,
+				report=report,
+				timeout=1500,
+				enqueue_after_commit=True,
+			)
+
+		result = generate_report_result(
+			report=report, filters=prepared_report_instance.filters, user=prepared_report_instance.owner
+		)
+		create_json_gz_file(result, prepared_report_instance.doctype, prepared_report_instance.name)
+
+	except Exception:
+		prepared_report_instance.status = "Error"
+		prepared_report_instance.error_message = frappe.get_traceback()
+
+
+def generate_report_monthwise_chunked_helper(prepared_report_instance, report):
+	pass
 
 
 def update_job_id(prepared_report, job_id):

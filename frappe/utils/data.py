@@ -477,6 +477,32 @@ def get_last_day(dt):
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
 
+def get_date_range_in_monthly_ranges(from_date, to_date):
+	"""
+	Divides a date range into its corresponding monthly date ranges
+	Example: get_date_range_in_monthly_ranges('2020-02-15', '2020-04-23') will result in
+	[['2020-02-15', '2020-02-29'], ['2020-03-01', '2020-03-31'], ['2020-04-01', '2020-04-23']]
+	"""
+	from_date = getdate(from_date)
+	to_date = getdate(to_date)
+
+	result = []
+
+	while True:
+		if from_date.month == 12:
+			next_month = from_date.replace(year=from_date.year + 1, month=1, day=1)
+		else:
+			next_month = from_date.replace(month=from_date.month + 1, day=1)
+		if next_month > to_date:
+			break
+		result.append([get_date_str(from_date), get_date_str(get_last_day(from_date))])
+		from_date = next_month
+
+	result.append([get_date_str(from_date), get_date_str(to_date)])
+
+	return result
+
+
 def get_quarter_ending(date):
 	date = getdate(date)
 
