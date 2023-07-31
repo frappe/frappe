@@ -154,9 +154,7 @@ class DocType(Document):
 			controller = Document
 
 		available_objects = {x for x in dir(controller) if isinstance(x, str)}
-		property_set = {
-			x for x in available_objects if isinstance(getattr(controller, x, None), property)
-		}
+		property_set = {x for x in available_objects if is_a_property(getattr(controller, x, None))}
 		method_set = {
 			x for x in available_objects if x not in property_set and callable(getattr(controller, x, None))
 		}
@@ -1693,13 +1691,18 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			raise
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	from functools import cached_property
+
+	return isinstance(x, (property, cached_property))
+
+
 def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
 	doc = frappe.get_doc({"doctype": docfield.dt})
 	available_objects = [x for x in dir(doc) if isinstance(x, str)]
-	property_list = [
-		x for x in available_objects if isinstance(getattr(type(doc), x, None), property)
-	]
+	property_list = [x for x in available_objects if is_a_property(getattr(type(doc), x, None))]
 	method_list = [
 		x for x in available_objects if x not in property_list and callable(getattr(doc, x))
 	]
