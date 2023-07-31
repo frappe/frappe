@@ -1,24 +1,5 @@
-.modal .comment-field {
-	height: 300px;
-	resize: none;
-}
-
-.discussion-on-page .comment-field {
-	padding: 1rem;
-}
-
-.modal .cancel-comment {
-	display: none;
-}
-
 .modal .comment-footer div:first-child {
 	display: none;
-}
-
-.cancel-comment {
-	font-size: var(--text-sm);
-	margin-right: 0.5rem;
-	cursor: pointer;
 }
 
 .discussions-header {

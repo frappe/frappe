@@ -49,10 +49,6 @@ frappe.ready(() => {
 		submit_discussion(e);
 	});
 
-	$(document).on("click", ".cancel-comment", () => {
-		clear_comment_box();
-	});
-
 	$(document).on("click", ".sidebar-parent", () => {
 		hide_sidebar();
 	});
@@ -67,10 +63,6 @@ frappe.ready(() => {
 
 	$(document).on("click", ".reply-card .dropdown-menu", (e) => {
 		perform_action(e);
-	});
-
-	$(document).on("input", ".discussion-on-page .comment-field", (e) => {
-		adjust_comment_box(e);
 	});
 });
 
@@ -160,7 +152,6 @@ const post_message_cleanup = () => {
 	$("#discussion-modal .discussions-comment").html("");
 	$("#discussion-modal").modal("hide");
 	$("#no-discussions").addClass("hide");
-	$(".cancel-comment").addClass("hide");
 	this.comment_editor && this.comment_editor.set_value("comment_editor", "");
 };
 
@@ -276,11 +267,6 @@ const style_avatar_frame = (template) => {
 	return $template.prop("outerHTML");
 };
 
-const clear_comment_box = () => {
-	$(".discussion-form .comment-field").val("");
-	$(".cancel-comment").removeClass("show").addClass("hide");
-};
-
 const hide_sidebar = () => {
 	$(".discussions-sidebar").addClass("hide");
 	$("#discussion-group").removeClass("hide");
@@ -331,14 +317,6 @@ const dismiss_reply = (e) => {
 	reply_card.find(".reply-actions").addClass("hide");
 	reply_card.find(".dropdown").removeClass("hide");
 	reply_card.find(".discussions-comment").html("");
-};
-
-const adjust_comment_box = (e) => {
-	if ($(e.currentTarget).val()) {
-		$(".cancel-comment").removeClass("hide").addClass("show");
-	} else {
-		$(".cancel-comment").removeClass("show").addClass("hide");
-	}
 };
 
 const hide_actions_on_conditions = (template, owner) => {
