@@ -330,8 +330,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 def read_sql(query, *args, **kwargs):
 	"""a wrapper for frappe.db.sql to allow reads"""
 	query = str(query)
-	if frappe.flags.in_safe_exec:
-		check_safe_sql_query(query)
+	check_safe_sql_query(query)
 	return frappe.db.sql(query, *args, **kwargs)
 
 
