@@ -415,6 +415,7 @@ body {
 				padding: 8px;
 				font-size: var(--text-md);
 				max-width: 350px;
+				text-decoration: none;
 
 				&.pending {
 					.step-index.step-pending {
