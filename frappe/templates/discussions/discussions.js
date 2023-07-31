@@ -214,7 +214,7 @@ const submit_discussion = (e) => {
 	const target = $(e.currentTarget);
 	const reply_name = target.closest(".reply-card").data("reply");
 	const title = $(".topic-title:visible").length ? $(".topic-title:visible").val().trim() : "";
-	reply = this.comment_editor.get_value("comment_editor");
+	let reply = this.comment_editor.get_value("comment_editor");
 
 	if (strip_html(reply).trim() != "" || reply.includes("img")) {
 		let doctype = target.closest(".discussions-parent").attr("data-doctype");
