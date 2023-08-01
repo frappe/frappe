@@ -133,10 +133,14 @@ def as_binary():
 
 def make_logs(response=None):
 	"""make strings for msgprint and errprint"""
+	from frappe.utils.error import guess_exception_source
+
 	if not response:
 		response = frappe.local.response
 
 	if frappe.error_log:
+		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
+			response["_exc_source"] = source
 		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
