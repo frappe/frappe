@@ -32,7 +32,7 @@ Cypress.Commands.add("login", (email, password) => {
 		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
-		password = Cypress.env("adminPassword");
+		password = "admin" /* Cypress.env("adminPassword") */;
 	}
 	return cy.request({
 		url: "/api/method/login",
