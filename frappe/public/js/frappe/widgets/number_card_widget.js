@@ -99,20 +99,9 @@ export default class NumberCardWidget extends Widget {
 	set_route_for_custom_card() {
 		if (!this.data.route) return;
 
-		let route = this.data.route;
-		const is_document_type = route.is_document_type || 0;
-
 		if (this.data.route_options) frappe.route_options = this.data.route_options;
 
-		if (typeof route == "object" && !Array.isArray(route)) {
-			route = frappe.utils.generate_route({
-				name: route.name,
-				type: is_document_type ? "doctype" : "report",
-				is_query_report: !is_document_type,
-			});
-		}
-
-		frappe.set_route(route);
+		frappe.set_route(this.data.route);
 	}
 
 	set_doc_args() {
