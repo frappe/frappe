@@ -60,9 +60,15 @@ class TestDashboardConnections(FrappeTestCase):
 			}
 		}
 
-		self.assertEqual(
-			get_open_count("Doctype A With Child Table With Link To Doctype B", "Mars"), expected_open_count
-		)
+		with patch.object(
+			mars.meta,
+			"get_dashboard_data",
+			return_value=get_dashboard_for_doctype_a_with_child_table_with_link_to_doctype_b(),
+		):
+			self.assertEqual(
+				get_open_count("Doctype A With Child Table With Link To Doctype B", "Mars"),
+				expected_open_count,
+			)
 
 	def test_external_link_count(self):
 		saturn = frappe.get_doc(
@@ -99,17 +105,22 @@ class TestDashboardConnections(FrappeTestCase):
 				"internal_links_found": [],
 			}
 		}
-		self.assertEqual(
-			get_open_count("Doctype A With Child Table With Link To Doctype B", "Saturn"),
-			expected_open_count,
-		)
+
+		with patch.object(
+			saturn.meta,
+			"get_dashboard_data",
+			return_value=get_dashboard_for_doctype_a_with_child_table_with_link_to_doctype_b(),
+		):
+			self.assertEqual(
+				get_open_count("Doctype A With Child Table With Link To Doctype B", "Saturn"),
+				expected_open_count,
+			)
 
 
 def create_test_data():
 	create_child_table_with_link_to_doctype_a()
 	create_child_table_with_link_to_doctype_b()
 	create_doctype_a_with_child_table_with_link_to_doctype_b()
-	create_dashboard_py_for_doctype_a_with_child_table_with_link_to_doctype_b()
 	create_doctype_b_with_child_table_with_link_to_doctype_a()
 	add_links_in_child_tables()
 
@@ -251,26 +262,24 @@ def create_doctype_b_with_child_table_with_link_to_doctype_a():
 	).insert(ignore_if_duplicate=True)
 
 
-def create_dashboard_py_for_doctype_a_with_child_table_with_link_to_doctype_b():
-	scrubbed_name = "doctype_a_with_child_table_with_link_to_doctype_b"
-	dashboard = """
-def get_data():
-	return {
+def get_dashboard_for_doctype_a_with_child_table_with_link_to_doctype_b():
+	dashboard = frappe._dict()
+
+	data = {
 		"fieldname": "doctype_a_with_child_table_with_link_to_doctype_b",
 		"internal_links": {
-			"Doctype B With Child Table With Link To Doctype A": ["child_table", "doctype_b_with_child_table_with_link_to_doctype_a"],
+			"Doctype B With Child Table With Link To Doctype A": [
+				"child_table",
+				"doctype_b_with_child_table_with_link_to_doctype_a",
+			],
 		},
 		"transactions": [
 			{"label": "Reference", "items": ["Doctype B With Child Table With Link To Doctype A"]},
 		],
 	}
-	"""
-	target_file = os.path.join(
-		frappe.get_pymodule_path("frappe"),
-		"custom",
-		"doctype",
-		scrubbed_name,
-		scrubbed_name + "_dashboard.py",
-	)
-	with open(target_file, "w+") as t:
-		t.write(dashboard)
+
+	dashboard.fieldname = data["fieldname"]
+	dashboard.internal_links = data["internal_links"]
+	dashboard.transactions = data["transactions"]
+
+	return dashboard
