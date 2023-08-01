@@ -1,15 +1,25 @@
+from collections.abc import Callable
 from enum import Enum
 from importlib import import_module
-from typing import Any, Callable, get_type_hints
+from typing import Any, get_type_hints
 
-from pypika import Query
-from pypika.queries import Column
+from pypika.queries import Column, QueryBuilder
 from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.query_builder.terms import NamedParameterWrapper
 
 from .builder import MariaDB, Postgres
+
+
+class PseudoColumnMapper(PseudoColumn):
+	def __init__(self, name: str) -> None:
+		super().__init__(name)
+
+	def get_sql(self, **kwargs):
+		if frappe.db.db_type == "postgres":
+			self.name = self.name.replace("`", '"')
+		return self.name
 
 
 class db_type_is(Enum):
@@ -45,10 +55,10 @@ def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
 	return picks[db]
 
 
-def get_qb_engine():
+def get_query(*args, **kwargs) -> QueryBuilder:
 	from frappe.database.query import Engine
 
-	return Engine()
+	return Engine().get_query(*args, **kwargs)
 
 
 def get_attr(method_string):
@@ -72,8 +82,27 @@ def patch_query_execute():
 	"""
 
 	def execute_query(query, *args, **kwargs):
+		child_queries = query._child_queries if isinstance(query._child_queries, list) else []
 		query, params = prepare_query(query)
-		return frappe.db.sql(query, params, *args, **kwargs)  # nosemgrep
+		result = frappe.db.sql(query, params, *args, **kwargs)  # nosemgrep
+		execute_child_queries(child_queries, result)
+		return result
+
+	def execute_child_queries(queries, result):
+		if not result or not isinstance(result[0], dict) or not result[0].name:
+			return
+		parent_names = [d.name for d in result]
+		for child_query in queries:
+			data = child_query.get_query(parent_names).run(as_dict=1)
+			for row in result:
+				row[child_query.fieldname] = []
+				for d in data:
+					if str(d.parent) == str(row.name) and d.parentfield == child_query.fieldname:
+						if "parent" not in child_query.fields:
+							del d["parent"]
+						if "parentfield" not in child_query.fields:
+							del d["parentfield"]
+						row[child_query.fieldname].append(d)
 
 	def prepare_query(query):
 		import inspect
@@ -102,8 +131,7 @@ def patch_query_execute():
 					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 		return query, param_collector.get_parameters()
 
-	query_class = get_attr(str(frappe.qb).split("'")[1])
-	builder_class = get_type_hints(query_class._builder).get("return")
+	builder_class = frappe.qb._BuilderClasss
 
 	if not builder_class:
 		raise BuilderIdentificationFailed

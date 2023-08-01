@@ -33,6 +33,7 @@
   "apply_strict_user_permissions",
   "column_break_21",
   "allow_guests_to_upload_files",
+  "force_web_capture_mode_for_uploads",
   "security",
   "session_expiry",
   "session_expiry_mobile",
@@ -564,12 +565,19 @@
    "fieldname": "enable_telemetry",
    "fieldtype": "Check",
    "label": "Allow Sending Usage Data for Improving Applications"
+  },
+  {
+   "default": "0",
+   "description": "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected.",
+   "fieldname": "force_web_capture_mode_for_uploads",
+   "fieldtype": "Check",
+   "label": "Force Web Capture Mode for Uploads"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-04-24 11:14:59.302851",
+ "modified": "2023-07-30 17:34:08.292152",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

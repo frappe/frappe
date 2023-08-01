@@ -6,6 +6,7 @@ from types import NoneType
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
+from frappe.query_builder.functions import Function
 
 Query = str | MariaDB | Postgres
 QueryValues = tuple | list | dict | NoneType
@@ -23,6 +24,18 @@ NestedSetHierarchy = (
 
 def is_query_type(query: str, query_type: str | tuple[str]) -> bool:
 	return query.lstrip().split(maxsplit=1)[0].lower().startswith(query_type)
+
+
+def is_pypika_function_object(field: str) -> bool:
+	return getattr(field, "__module__", None) == "pypika.functions" or isinstance(field, Function)
+
+
+def get_doctype_name(table_name: str) -> str:
+	if table_name.startswith(("tab", "`tab", '"tab')):
+		table_name = table_name.replace("tab", "", 1)
+	table_name = table_name.replace("`", "")
+	table_name = table_name.replace('"', "")
+	return table_name
 
 
 class LazyString:

@@ -7,7 +7,7 @@ from frappe.query_builder.terms import ParameterizedFunction, ParameterizedValue
 from frappe.query_builder.utils import (
 	Column,
 	DocType,
-	get_qb_engine,
+	get_query,
 	get_query_builder,
 	patch_query_aggregation,
 	patch_query_execute,

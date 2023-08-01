@@ -524,7 +524,7 @@ class TestDB(FrappeTestCase):
 		self.assertEqual((frappe.db.count("Note")), 2)
 
 		# simple filters
-		self.assertEqual((frappe.db.count("Note", ["title", "=", "note1"])), 1)
+		self.assertEqual((frappe.db.count("Note", [["title", "=", "note1"]])), 1)
 
 		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
 

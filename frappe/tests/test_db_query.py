@@ -267,9 +267,7 @@ class TestReportview(FrappeTestCase):
 			)
 
 	def test_none_filter(self):
-		query = frappe.qb.engine.get_query(
-			"DocType", fields="name", filters={"restrict_to_domain": None}
-		)
+		query = frappe.qb.get_query("DocType", fields="name", filters={"restrict_to_domain": None})
 		sql = str(query).replace("`", "").replace('"', "")
 		condition = "restrict_to_domain IS NULL"
 		self.assertIn(condition, sql)
@@ -706,6 +704,11 @@ class TestReportview(FrappeTestCase):
 		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
 		self.assertTrue({"name": "DocField"} in res)
 		self.assertTrue({"name": "Prepared Report"} in res)
+		self.assertFalse({"name": "Property Setter"} in res)
+
+		frappe.db.set_value("DocType", "Property Setter", "autoname", None, update_modified=False)
+
+		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
 		self.assertFalse({"name": "Property Setter"} in res)
 
 	def test_set_field_tables(self):
