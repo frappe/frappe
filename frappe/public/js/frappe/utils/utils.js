@@ -1203,6 +1203,7 @@ Object.assign(frappe.utils, {
 			attribution:
 				'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
 		},
+		image_path: "/assets/frappe/images/leaflet/",
 	},
 
 	icon(icon_name, size = "sm", icon_class = "", icon_style = "", svg_class = "") {
@@ -1291,6 +1292,9 @@ Object.assign(frappe.utils, {
 							break;
 						case "Kanban":
 							route = `${doctype_slug}/view/kanban`;
+							if (item.kanban_board) {
+								route += `/${item.kanban_board}`;
+							}
 							break;
 						default:
 							route = doctype_slug;

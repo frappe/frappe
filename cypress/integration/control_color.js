@@ -26,7 +26,7 @@ context("Control Color", () => {
 
 		//Checking if the css attribute is correct
 		cy.get(".color-map").should("have.css", "color", "rgb(79, 157, 217)");
-		cy.get(".hue-map").should("have.css", "color", "rgb(0, 144, 255)");
+		cy.get(".hue-map").should("have.css", "color", "rgb(0, 145, 255)");
 
 		//Checking if the correct color is being selected
 		cy.get("@dialog").then((dialog) => {
