@@ -53,8 +53,8 @@ def optimize_image(
 
 	image = Image.open(io.BytesIO(content))
 	width, height = image.size
-	max_height = min(max_height, height * 0.8)
-	max_width = min(max_width, width * 0.8)
+	max_height = max(min(max_height, height * 0.8), 200)
+	max_width = max(min(max_width, width * 0.8), 200)
 	image_format = content_type.split("/")[1]
 	size = max_width, max_height
 	image.thumbnail(size, Image.Resampling.LANCZOS)
