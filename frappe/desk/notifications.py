@@ -245,12 +245,11 @@ def get_filters_for(doctype):
 @frappe.whitelist()
 @frappe.read_only()
 def get_open_count(doctype, name, items=None):
-	"""Get open count for given transactions and filters
+	"""Get count for internal and external links for given transactions
 
 	:param doctype: Reference DocType
 	:param name: Reference Name
-	:param transactions: List of transactions (json/dict)
-	:param filters: optional filters (json/list)"""
+	:param items: Optional list of transactions (json/dict)"""
 
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {"count": []}
@@ -269,30 +268,26 @@ def get_open_count(doctype, name, items=None):
 	if not isinstance(items, list):
 		items = json.loads(items)
 
-	out = []
+	out = {
+		"external_links_found": [],
+		"internal_links_found": [],
+	}
+
 	for d in items:
-		if d in links.get("internal_links", {}):
-			continue
-
-		filters = get_filters_for(d)
-		fieldname = links.get("non_standard_fieldnames", {}).get(d, links.get("fieldname"))
-		data = {"name": d}
-		if filters:
-			# get the fieldname for the current document
-			# we only need open documents related to the current document
-			filters[fieldname] = name
-			total = len(
-				frappe.get_all(d, fields="name", filters=filters, limit=100, distinct=True, ignore_ifnull=True)
-			)
-			data["open_count"] = total
-
-		total = len(
-			frappe.get_all(
-				d, fields="name", filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True
-			)
-		)
-		data["count"] = total
-		out.append(data)
+		internal_link_for_doctype = links.get("internal_links", {}).get(d)
+		if internal_link_for_doctype:
+			internal_links_data_for_d = get_internal_links(doc, internal_link_for_doctype, d)
+			if internal_links_data_for_d["count"]:
+				out["internal_links_found"].append(internal_links_data_for_d)
+			else:
+				try:
+					external_links_data_for_d = get_external_links(d, name, links)
+					out["external_links_found"].append(external_links_data_for_d)
+				except Exception as e:
+					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
+		else:
+			external_links_data_for_d = get_external_links(d, name, links)
+			out["external_links_found"].append(external_links_data_for_d)
 
 	out = {
 		"count": out,
@@ -304,6 +299,58 @@ def get_open_count(doctype, name, items=None):
 			out["timeline_data"] = module.get_timeline_data(doctype, name)
 
 	return out
+
+
+def get_internal_links(doc, link, link_doctype):
+	names = []
+	data = {"doctype": link_doctype}
+
+	if isinstance(link, str):
+		# get internal links in parent document
+		value = doc.get(link)
+		if value and value not in names:
+			names.append(value)
+	elif isinstance(link, list):
+		# get internal links in child documents
+		table_fieldname, link_fieldname = link
+		for row in doc.get(table_fieldname):
+			value = row.get(link_fieldname)
+			if value and value not in names:
+				names.append(value)
+
+	data["open_count"] = 0
+	data["count"] = len(names)
+	data["names"] = names
+
+	return data
+
+
+def get_external_links(doctype, name, links):
+	filters = get_filters_for(doctype)
+	fieldname = links.get("non_standard_fieldnames", {}).get(doctype, links.get("fieldname"))
+	data = {"doctype": doctype}
+
+	if filters:
+		# get the fieldname for the current document
+		# we only need open documents related to the current document
+		filters[fieldname] = name
+		total = len(
+			frappe.get_all(
+				doctype, fields="name", filters=filters, limit=100, distinct=True, ignore_ifnull=True
+			)
+		)
+		data["open_count"] = total
+	else:
+		data["open_count"] = 0
+
+	total = len(
+		frappe.get_all(
+			doctype, fields="name", filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True
+		)
+	)
+	data["count"] = total
+
+	return data
 
 
 def notify_mentions(ref_doctype, ref_name, content):
