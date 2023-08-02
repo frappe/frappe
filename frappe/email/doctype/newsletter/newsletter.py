@@ -411,7 +411,9 @@ def send_scheduled_email():
 
 
 @frappe.whitelist(allow_guest=True)
-def newsletter_email_read(recipient_email, reference_doctype, reference_name):
+def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None):
+	if not (recipient_email and reference_name):
+		return
 	verify_request()
 	try:
 		doc = frappe.get_cached_doc("Newsletter", reference_name)

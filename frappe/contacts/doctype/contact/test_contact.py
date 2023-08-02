@@ -49,11 +49,13 @@ class TestContact(FrappeTestCase):
 		# First time from database
 		results = get_contact_list("_Test Supplier")
 		self.assertEqual(results[0].label, "test_contact@example.com")
+		self.assertEqual(results[0].value, "test_contact@example.com")
 		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
 
 		# Second time from cache
 		results = get_contact_list("_Test Supplier")
 		self.assertEqual(results[0].label, "test_contact@example.com")
+		self.assertEqual(results[0].value, "test_contact@example.com")
 		self.assertEqual(results[0].description, "_Test Contact For _Test Supplier")
 
 

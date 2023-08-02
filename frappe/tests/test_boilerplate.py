@@ -111,6 +111,9 @@ class TestBoilerPlate(unittest.TestCase):
 	def test_valid_ci_yaml(self):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_create_app(self):
 		app_name = "test_app"
 
@@ -142,6 +145,9 @@ class TestBoilerPlate(unittest.TestCase):
 
 		self.assertEqual(parse_as_configfile(patches_file), [])
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
 
@@ -192,6 +198,9 @@ class TestBoilerPlate(unittest.TestCase):
 				except Exception as e:
 					self.fail(f"Can't parse python file in new app: {python_file}\n" + str(e))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_new_patch_util(self):
 		user_inputs = {
 			"app_name": "frappe",
