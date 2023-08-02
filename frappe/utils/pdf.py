@@ -169,6 +169,8 @@ def read_options_from_html(html):
 		"page-size",
 		"header-spacing",
 		"orientation",
+		"page-width",
+		"page-height",
 	):
 		try:
 			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
