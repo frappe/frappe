@@ -38,6 +38,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.parent = parent;
 		this.doctype_layout = frappe.get_doc('DocType Layout', doctype_layout_name);
 		this.setup_meta(doctype);
+		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
 
 		this.beforeUnloadListener = (event) => {
 			event.preventDefault();
@@ -440,7 +441,7 @@ frappe.ui.form.Form = class FrappeForm {
 	check_reload() {
 		if(this.doc && (!this.doc.__unsaved) && this.doc.__last_sync_on &&
 			(new Date() - this.doc.__last_sync_on) > (this.refresh_if_stale_for * 1000)) {
-			this.reload_doc();
+			this.debounced_reload_doc();
 			return true;
 		}
 	}
@@ -976,7 +977,7 @@ frappe.ui.form.Form = class FrappeForm {
 					+ '<a class="btn btn-xs btn-primary pull-right" onclick="cur_frm.reload_doc()">'
 					+ __("Refresh") + '</a>', "alert-warning");
 			} else {
-				this.reload_doc();
+				this.debounced_reload_doc();
 			}
 		}
 	}
