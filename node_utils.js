@@ -1,7 +1,13 @@
 const fs = require("fs");
 const path = require("path");
-const redis = require("redis");
+const redis = require("@redis/client");
 const bench_path = path.resolve(__dirname, "..", "..");
+
+const dns = require("dns");
+
+// Since node17, node resolves to ipv6 unless system is configured otherwise.
+// In Frappe context using ipv4 - 127.0.0.1 is fine.
+dns.setDefaultResultOrder("ipv4first");
 
 function get_conf() {
 	// defaults

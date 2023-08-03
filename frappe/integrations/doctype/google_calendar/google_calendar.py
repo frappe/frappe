@@ -65,6 +65,24 @@ framework_days = {
 
 
 class GoogleCalendar(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		authorization_code: DF.Password | None
+		calendar_name: DF.Data
+		enable: DF.Check
+		google_calendar_id: DF.Data | None
+		next_sync_token: DF.Password | None
+		pull_from_google_calendar: DF.Check
+		push_to_google_calendar: DF.Check
+		refresh_token: DF.Password | None
+		user: DF.Link
+	# end: auto-generated types
 	def validate(self):
 		google_settings = frappe.get_single("Google Settings")
 		if not google_settings.enable:

@@ -10,6 +10,20 @@ from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		condition: DF.SmallText | None
+		document_type: DF.Link
+		field: DF.Literal
+		limit: DF.Int
+		update_value: DF.SmallText
+	# end: auto-generated types
 	@frappe.whitelist()
 	def bulk_update(self):
 		self.check_permission("write")

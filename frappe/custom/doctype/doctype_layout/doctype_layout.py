@@ -12,6 +12,20 @@ if TYPE_CHECKING:
 
 
 class DocTypeLayout(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.custom.doctype.doctype_layout_field.doctype_layout_field import DocTypeLayoutField
+		from frappe.types import DF
+
+		client_script: DF.Code | None
+		document_type: DF.Link
+		fields: DF.Table[DocTypeLayoutField]
+		route: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		if not self.route:
 			self.route = slug(self.name)

@@ -12,6 +12,26 @@ from frappe.utils import cint, cstr, get_system_timezone
 
 
 class TokenCache(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.integrations.doctype.oauth_scope.oauth_scope import OAuthScope
+		from frappe.types import DF
+
+		access_token: DF.Password | None
+		connected_app: DF.Link | None
+		expires_in: DF.Int
+		provider_name: DF.Data | None
+		refresh_token: DF.Password | None
+		scopes: DF.Table[OAuthScope]
+		state: DF.Data | None
+		success_uri: DF.Data | None
+		token_type: DF.Data | None
+		user: DF.Link | None
+	# end: auto-generated types
 	def get_auth_header(self):
 		if self.access_token:
 			headers = {"Authorization": "Bearer " + self.get_password("access_token")}

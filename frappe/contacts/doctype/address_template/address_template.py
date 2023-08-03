@@ -8,6 +8,18 @@ from frappe.utils.jinja import validate_template
 
 
 class AddressTemplate(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		country: DF.Link
+		is_default: DF.Check
+		template: DF.Code | None
+	# end: auto-generated types
 	def validate(self):
 		validate_template(self.template)
 

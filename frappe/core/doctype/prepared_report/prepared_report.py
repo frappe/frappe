@@ -22,6 +22,23 @@ REPORT_TIMEOUT = 25 * 60
 
 
 class PreparedReport(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		error_message: DF.Text | None
+		filters: DF.SmallText | None
+		job_id: DF.Link | None
+		queued_at: DF.Datetime | None
+		queued_by: DF.Data | None
+		report_end_time: DF.Datetime | None
+		report_name: DF.Data
+		status: DF.Literal["Error", "Queued", "Completed", "Started"]
+	# end: auto-generated types
 	@property
 	def queued_by(self):
 		return self.owner

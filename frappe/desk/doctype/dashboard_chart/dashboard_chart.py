@@ -339,6 +339,48 @@ def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
 
 
 class DashboardChart(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.desk.doctype.dashboard_chart_field.dashboard_chart_field import DashboardChartField
+		from frappe.types import DF
+
+		aggregate_function_based_on: DF.Literal
+		based_on: DF.Literal
+		chart_name: DF.Data
+		chart_type: DF.Literal["Count", "Sum", "Average", "Group By", "Custom", "Report"]
+		color: DF.Color | None
+		custom_options: DF.Code | None
+		document_type: DF.Link | None
+		dynamic_filters_json: DF.Code | None
+		filters_json: DF.Code
+		from_date: DF.Date | None
+		group_by_based_on: DF.Literal
+		group_by_type: DF.Literal["Count", "Sum", "Average"]
+		heatmap_year: DF.Literal
+		is_public: DF.Check
+		is_standard: DF.Check
+		last_synced_on: DF.Datetime | None
+		module: DF.Link | None
+		number_of_groups: DF.Int
+		parent_document_type: DF.Link | None
+		report_name: DF.Link | None
+		roles: DF.Table[HasRole]
+		source: DF.Link | None
+		time_interval: DF.Literal["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"]
+		timeseries: DF.Check
+		timespan: DF.Literal["Last Year", "Last Quarter", "Last Month", "Last Week", "Select Date Range"]
+		to_date: DF.Date | None
+		type: DF.Literal["Line", "Bar", "Percentage", "Pie", "Donut", "Heatmap"]
+		use_report_chart: DF.Check
+		value_based_on: DF.Literal
+		x_field: DF.Literal
+		y_axis: DF.Table[DashboardChartField]
+	# end: auto-generated types
 	def on_update(self):
 		frappe.cache.delete_key(f"chart-data:{self.name}")
 		if frappe.conf.developer_mode and self.is_standard:

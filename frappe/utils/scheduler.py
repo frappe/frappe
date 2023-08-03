@@ -16,7 +16,7 @@ from typing import NoReturn
 # imports - module imports
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
-from frappe.utils.background_jobs import get_jobs
+from frappe.utils.background_jobs import set_niceness
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -35,6 +35,7 @@ def start_scheduler() -> NoReturn:
 	Specify scheduler_interval in seconds in common_site_config.json"""
 
 	tick = cint(frappe.get_conf().scheduler_tick_interval) or 60
+	set_niceness()
 
 	while True:
 		time.sleep(tick)
@@ -83,9 +84,9 @@ def enqueue_events_for_site(site: str) -> None:
 def enqueue_events(site: str) -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		for job_type in frappe.get_all("Scheduled Job Type", ("name", "method"), {"stopped": 0}):
-			job_type = frappe.get_cached_doc("Scheduled Job Type", job_type.name)
-			if _enqueued := job_type.enqueue():
+		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
+			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
+			if job_type.enqueue():
 				enqueued_jobs.append(job_type.method)
 
 		return enqueued_jobs

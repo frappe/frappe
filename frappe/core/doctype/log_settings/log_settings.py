@@ -43,6 +43,17 @@ def _supports_log_clearing(doctype: str) -> bool:
 
 
 class LogSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.logs_to_clear.logs_to_clear import LogsToClear
+		from frappe.types import DF
+
+		logs_to_clear: DF.Table[LogsToClear]
+	# end: auto-generated types
 	def validate(self):
 		self.remove_unsupported_doctypes()
 		self._deduplicate_entries()

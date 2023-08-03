@@ -53,12 +53,8 @@ local = Local()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
 
-_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _qb_patched = {}
-re._MAXCACHE = (
-	50  # reduced from default 512 given we are already maintaining this on parent worker
-)
-
+_dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
 _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 
 if _dev_server:
@@ -270,7 +266,12 @@ def connect(
 	if site:
 		init(site)
 
-	local.db = get_db(user=db_name or local.conf.db_name)
+	local.db = get_db(
+		host=local.conf.db_host,
+		port=local.conf.db_port,
+		user=db_name or local.conf.db_name,
+		password=None,
+	)
 	if set_admin_as_user:
 		set_user("Administrator")
 
@@ -1459,13 +1460,11 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(*, _ensure_on_bench=False):
+def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
 	"""
 	Get list of installed apps in current site.
 
-	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
-	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
-	:param ensure_on_bench: Only return apps that are present on bench.
+	:param _ensure_on_bench: Only return apps that are present on bench.
 	"""
 	if getattr(flags, "in_install_db", True):
 		return []
@@ -2445,3 +2444,6 @@ if _tune_gc:
 	# everything else.
 	g0, g1, g2 = gc.get_threshold()  # defaults are 700, 10, 10.
 	gc.set_threshold(g0 * 10, g1 * 2, g2 * 2)
+
+# Remove references to pattern that are pre-compiled and loaded to global scopes.
+re.purge()

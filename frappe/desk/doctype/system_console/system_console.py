@@ -9,6 +9,20 @@ from frappe.utils.safe_exec import read_sql, safe_exec
 
 
 class SystemConsole(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		commit: DF.Check
+		console: DF.Code | None
+		output: DF.Code | None
+		show_processlist: DF.Check
+		type: DF.Literal["Python", "SQL"]
+	# end: auto-generated types
 	def run(self):
 		frappe.only_for("System Manager")
 		try:
@@ -19,6 +33,7 @@ class SystemConsole(Document):
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
 		except Exception:
+			self.commit = False
 			self.output = frappe.get_traceback()
 
 		if self.commit:
