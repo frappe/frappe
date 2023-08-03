@@ -399,6 +399,7 @@ class Document(BaseDocument):
 					"attached_to_name": self.name,
 					"attached_to_doctype": self.doctype,
 					"folder": "Home/Attachments",
+					"is_private": attach_item.is_private,
 				}
 			)
 			_file.save()
