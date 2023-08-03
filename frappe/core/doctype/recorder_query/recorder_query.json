@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2023-08-01 17:04:12.173774",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "query",
+  "duration",
+  "exact_copies",
+  "column_break_qmju",
+  "normalized_query",
+  "normalized_copies"
+ ],
+ "fields": [
+  {
+   "fieldname": "query",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Query",
+   "length": 2,
+   "reqd": 1
+  },
+  {
+   "fieldname": "normalized_query",
+   "fieldtype": "Data",
+   "label": "Normalized Query"
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Duration",
+   "reqd": 1
+  },
+  {
+   "fieldname": "exact_copies",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Exact Copies",
+   "reqd": 1
+  },
+  {
+   "fieldname": "normalized_copies",
+   "fieldtype": "Int",
+   "label": "Normalized Copies"
+  },
+  {
+   "fieldname": "column_break_qmju",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-08-02 17:23:43.670793",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Recorder Query",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
