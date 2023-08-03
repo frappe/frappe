@@ -80,6 +80,7 @@
    "in_list_view": 1,
    "label": "File Size",
    "length": 20,
+   "options": "File Size",
    "read_only": 1
   },
   {
@@ -174,7 +175,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2023-05-02 15:42:14.274901",
+ "modified": "2023-08-02 09:43:51.178011",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",

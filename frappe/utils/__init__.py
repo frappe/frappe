@@ -509,7 +509,9 @@ def get_files_path(*path, **kwargs):
 
 
 def get_bench_path():
-	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), "..", "..", ".."))
+	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
+		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
+	)
 
 
 def get_bench_id():

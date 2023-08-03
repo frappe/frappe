@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import os
 import re
+import unittest
 from typing import TYPE_CHECKING
 
 import frappe
@@ -36,6 +37,9 @@ class TestPrintFormat(FrappeTestCase):
 		print_html = self.test_print_user("Classic")
 		self.assertTrue("/* classic format: for-test */" in print_html)
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_export_doc(self):
 		doc: "PrintFormat" = frappe.get_doc("Print Format", test_records[0]["name"])
 

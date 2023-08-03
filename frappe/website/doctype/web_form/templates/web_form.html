@@ -14,6 +14,7 @@
 {% endblock %}
 
 {% macro header_buttons() %}
+	{% block header_buttons %}
 	{% if allow_edit and in_view_mode %}
 		<!-- edit button -->
 		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
@@ -26,9 +27,11 @@
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
 		</a>
 	{% endif %}
+	{% endblock %}
 {% endmacro %}
 
 {% macro action_buttons() %}
+	{% block actions_buttons %}
 	<div class="left-area"></div>
 	<div class="center-area paging"></div>
 	<div class="right-area">
@@ -41,6 +44,7 @@
 			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
 		{% endif %}
 	</div>
+	{% endblock %}
 {% endmacro %}
 
 {% block page_content %}
