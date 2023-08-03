@@ -70,7 +70,7 @@
 						<div class="mt-1">{{ __('Google Drive') }}</div>
 					</button>
 				</div>
-				<div class="text-muted text-medium">
+				<div class="text-muted text-medium text-center">
 					{{ upload_notes }}
 				</div>
 			</div>
