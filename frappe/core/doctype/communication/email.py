@@ -60,7 +60,7 @@ def make(
 	:param send_email: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
-	:param attachments: List of attachments as list of files or JSON string.
+	:param attachments: List of File names or dicts with keys "fname" and "fcontent"
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
 	"""
@@ -219,7 +219,11 @@ def set_incoming_outgoing_accounts(doc):
 
 
 def add_attachments(name, attachments):
-	"""Add attachments to the given Communication"""
+	"""Add attachments to the given Communication
+
+	:param name: Communication name
+	:param attachments: List of File names or dicts with keys "fname" and "fcontent"
+	"""
 	# loop through attachments
 	for a in attachments:
 		if isinstance(a, str):
