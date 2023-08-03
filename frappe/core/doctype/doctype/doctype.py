@@ -923,7 +923,7 @@ class DocType(Document):
 		self.nsm_parent_field = parent_field_name
 
 	def validate_child_table(self):
-		if not self.get("istable") or self.is_new() or self.get("is_virtual"):
+		if not self.get("istable") or self.is_new():
 			# if the doctype is not a child table then return
 			# if the doctype is a new doctype and also a child table then
 			# don't move forward as it will be handled via schema
@@ -1524,13 +1524,21 @@ def validate_fields(meta):
 			return
 
 		doctype = docfield.options
-		meta = frappe.get_meta(doctype)
+		child_doctype_meta = frappe.get_meta(doctype)
 
-		if not meta.istable:
+		if not child_doctype_meta.istable:
 			frappe.throw(
 				_("Option {0} for field {1} is not a child table").format(
 					frappe.bold(doctype), frappe.bold(docfield.fieldname)
 				),
+				title=_("Invalid Option"),
+			)
+
+		if not (meta.is_virtual == child_doctype_meta.is_virtual):
+			frappe.throw(
+				_(
+					"Option {0} for field {1} - Either both or none of the parent and child doctypes should be virtual"
+				).format(frappe.bold(doctype), frappe.bold(docfield.fieldname)),
 				title=_("Invalid Option"),
 			)
 
