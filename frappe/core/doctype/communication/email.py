@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 import frappe
@@ -217,11 +218,11 @@ def set_incoming_outgoing_accounts(doc):
 		doc.db_set("email_account", doc.outgoing_email_account.name)
 
 
-def add_attachments(name, attachments):
+def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 	"""Add attachments to the given Communication
 
 	:param name: Communication name
-	:param attachments: List of File names or dicts with keys "fname" and "fcontent"
+	:param attachments: File names or dicts with keys "fname" and "fcontent"
 	"""
 	# loop through attachments
 	for a in attachments:
