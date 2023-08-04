@@ -184,12 +184,12 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	if doctype in log_types:
 		site_map = autoincremented_site_status_map[frappe.local.site]
 		if site_map.get(doctype) is None:
-			site_map[doctype] = (
-				frappe.db.sql(
-					f"""select data_type FROM information_schema.columns where column_name = 'name' and table_name = 'tab{doctype}'""",
-				)[0][0]
-				== "bigint"
-			)
+			query = f"""select data_type FROM information_schema.columns where column_name = 'name' and table_name = 'tab{doctype}'"""
+			values = ()
+			if frappe.db.db_type == "mariadb":
+				query += " and table_schema = %s"
+				values = (frappe.db.db_name,)
+			site_map[doctype] = frappe.db.sql(query, values)[0][0] == "bigint"
 
 		return bool(site_map[doctype])
 	else:
