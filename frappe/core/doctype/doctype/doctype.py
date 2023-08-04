@@ -940,22 +940,6 @@ class DocType(Document):
 		)
 		self.nsm_parent_field = parent_field_name
 
-	def validate_child_table(self):
-		if not self.get("istable") or self.is_new() or self.get("is_virtual"):
-			# if the doctype is not a child table then return
-			# if the doctype is a new doctype and also a child table then
-			# don't move forward as it will be handled via schema
-			return
-
-		self.add_child_table_fields()
-
-	def add_child_table_fields(self):
-		from frappe.database.schema import add_column
-
-		add_column(self.name, "parent", "Data")
-		add_column(self.name, "parenttype", "Data")
-		add_column(self.name, "parentfield", "Data")
-
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
