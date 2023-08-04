@@ -3,7 +3,13 @@
 
 import datetime
 import re
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Callable, Optional
+=======
+from collections import defaultdict
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Optional
+>>>>>>> c4230f8760 (fix: autoincr status per doctype (#21918))
 
 import frappe
 from frappe import _
@@ -18,7 +24,8 @@ if TYPE_CHECKING:
 
 # NOTE: This is used to keep track of status of sites
 # whether `log_types` have autoincremented naming set for the site or not.
-autoincremented_site_status_map = {}
+# Structure: {"sitename": {"doctype": 1}}
+autoincremented_site_status_map = defaultdict(dict)
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
 BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
@@ -178,22 +185,17 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	"""Checks if the doctype has autoincrement autoname set"""
 
 	if doctype in log_types:
-		if autoincremented_site_status_map.get(frappe.local.site) is None:
-			if (
+		site_map = autoincremented_site_status_map[frappe.local.site]
+		if site_map.get(doctype) is None:
+			site_map[doctype] = (
 				frappe.db.sql(
-					f"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tab{doctype}'"""
+					f"""select data_type FROM information_schema.columns where column_name = 'name' and table_name = 'tab{doctype}' and table_schema = %s""",
+					frappe.db.db_name
 				)[0][0]
 				== "bigint"
-			):
-				autoincremented_site_status_map[frappe.local.site] = 1
-				return True
-			else:
-				autoincremented_site_status_map[frappe.local.site] = 0
+			)
 
-		elif autoincremented_site_status_map[frappe.local.site]:
-			return True
-
+		return bool(site_map[doctype])
 	else:
 		if not meta:
 			meta = frappe.get_meta(doctype)
