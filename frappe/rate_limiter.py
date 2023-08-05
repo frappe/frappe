@@ -111,11 +111,8 @@ def rate_limit(
 		@wraps(fun)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
-			if (
-				methods != "ALL"
-				and frappe.request
-				and frappe.request.method
-				and frappe.request.method.upper() not in methods
+			if not frappe.request or (
+				methods != "ALL" and frappe.request.method and frappe.request.method.upper() not in methods
 			):
 				return frappe.call(fun, **frappe.form_dict or kwargs)
 
