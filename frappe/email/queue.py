@@ -88,11 +88,6 @@ def get_unsubcribed_url(
 	if unsubscribe_params:
 		params.update(unsubscribe_params)
 
-	query_string = get_signed_params(params)
-
-	# for test
-	frappe.local.flags.signed_query_string = query_string
-
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
 
 
