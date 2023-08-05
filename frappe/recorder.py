@@ -274,3 +274,14 @@ def record_queries(func: Callable):
 		return ret
 
 	return wrapped
+
+
+@frappe.whitelist()
+@do_not_record
+@administrator_only
+def import_data(**args):
+	file_doc = frappe.get_doc("File", {"file_url": args.get("file")})
+	file_content = json.loads(file_doc.get_content())
+	for request in file_content:
+		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
+		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
