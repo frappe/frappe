@@ -10,7 +10,13 @@
   "exact_copies",
   "column_break_qmju",
   "normalized_query",
-  "normalized_copies"
+  "normalized_copies",
+  "section_break_dygy",
+  "stack_html",
+  "stack",
+  "section_break_kvkb",
+  "sql_explain_html",
+  "explain_result"
  ],
  "fields": [
   {
@@ -48,13 +54,43 @@
   {
    "fieldname": "column_break_qmju",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_dygy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "stack",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "stack_html",
+   "fieldtype": "HTML",
+   "label": "Stack Trace"
+  },
+  {
+   "fieldname": "section_break_kvkb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "explain_result",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "sql_explain_html",
+   "fieldtype": "HTML",
+   "label": "SQL Explain"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-08-02 17:23:43.670793",
+ "modified": "2023-08-05 14:25:34.794204",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder Query",
