@@ -352,18 +352,6 @@ def get_assignments(dt, dn):
 	)
 
 
-@frappe.whitelist()
-def get_badge_info(doctypes, filters):
-	filters = json.loads(filters)
-	doctypes = json.loads(doctypes)
-	filters["docstatus"] = ["!=", 2]
-	out = {}
-	for doctype in doctypes:
-		out[doctype] = frappe.db.get_value(doctype, filters, "count(*)")
-
-	return out
-
-
 def run_onload(doc):
 	doc.set("__onload", frappe._dict())
 	doc.run_method("onload")
