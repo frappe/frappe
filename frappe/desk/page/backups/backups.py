@@ -82,10 +82,10 @@ def delete_downloadable_backups():
 def schedule_files_backup(user_email):
 	from frappe.utils.background_jobs import enqueue, get_jobs
 
+	frappe.only_for("System Manager")
+
 	queued_jobs = get_jobs(site=frappe.local.site, queue="long")
 	method = "frappe.desk.page.backups.backups.backup_files_and_notify_user"
-
-	frappe.only_for("System Manager")
 
 	if method not in queued_jobs[frappe.local.site]:
 		enqueue(
