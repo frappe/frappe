@@ -11,7 +11,6 @@ from six.moves.urllib.parse import quote
 import frappe
 import frappe.defaults
 import frappe.desk.form.meta
-import frappe.share
 import frappe.utils
 from frappe import _
 from frappe.desk.form.document_follow import is_document_followed
@@ -95,6 +94,8 @@ def get_meta_bundle(doctype):
 
 @frappe.whitelist()
 def get_docinfo(doc=None, doctype=None, name=None):
+	from frappe.share import _get_users as get_docshares
+
 	if not doc:
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
@@ -119,7 +120,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"assignment_logs": get_comments(doc.doctype, doc.name, "assignment"),
 		"permissions": get_doc_permissions(doc),
-		"shared": frappe.share.get_users(doc.doctype, doc.name),
+		"shared": get_docshares(doc),
 		"info_logs": get_comments(doc.doctype, doc.name, comment_type=["Info", "Edit", "Label"]),
 		"share_logs": get_comments(doc.doctype, doc.name, "share"),
 		"like_logs": get_comments(doc.doctype, doc.name, "Like"),
