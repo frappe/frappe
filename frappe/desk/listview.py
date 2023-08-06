@@ -3,6 +3,14 @@
 from __future__ import unicode_literals
 
 import frappe
+<<<<<<< HEAD
+=======
+from frappe.model import is_default_field
+from frappe.query_builder import Order
+from frappe.query_builder.functions import Count
+from frappe.query_builder.terms import SubQuery
+from frappe.query_builder.utils import DocType
+>>>>>>> 5fce1a57c0 (fix: validate fieldname in get_group_by_count (#21932))
 
 
 @frappe.whitelist()
@@ -60,3 +68,34 @@ def get_group_by_count(doctype, current_filters, field):
 			order_by="count desc",
 			limit=50,
 		)
+<<<<<<< HEAD
+=======
+
+		return (
+			frappe.qb.from_(ToDo)
+			.from_(User)
+			.select(ToDo.allocated_to.as_("name"), count)
+			.where(
+				(ToDo.status != "Cancelled")
+				& (ToDo.allocated_to == User.name)
+				& (User.user_type == "System User")
+				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
+			)
+			.groupby(ToDo.allocated_to)
+			.orderby(count, order=Order.desc)
+			.limit(50)
+			.run(as_dict=True)
+		)
+
+	if not frappe.get_meta(doctype).has_field(field) and not is_default_field(field):
+		raise ValueError("Field does not belong to doctype")
+
+	return frappe.get_list(
+		doctype,
+		filters=current_filters,
+		group_by=f"`tab{doctype}`.{field}",
+		fields=["count(*) as count", f"`{field}` as name"],
+		order_by="count desc",
+		limit=50,
+	)
+>>>>>>> 5fce1a57c0 (fix: validate fieldname in get_group_by_count (#21932))
