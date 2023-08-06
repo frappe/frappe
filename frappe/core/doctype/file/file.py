@@ -589,6 +589,50 @@ class File(Document):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
+<<<<<<< HEAD
+=======
+	@frappe.whitelist()
+	def optimize_file(self):
+		if self.is_folder:
+			raise TypeError("Folders cannot be optimized")
+
+		content_type = mimetypes.guess_type(self.file_name)[0]
+		is_local_image = content_type.startswith("image/") and self.file_size > 0
+		is_svg = content_type == "image/svg+xml"
+
+		if not is_local_image:
+			raise NotImplementedError("Only local image files can be optimized")
+
+		if is_svg:
+			raise TypeError("Optimization of SVG images is not supported")
+
+		original_content = self.get_content()
+		optimized_content = optimize_image(
+			content=original_content,
+			content_type=content_type,
+		)
+
+		self.save_file(content=optimized_content, overwrite=True)
+		self.save()
+
+	@staticmethod
+	def zip_files(files):
+		zip_file = io.BytesIO()
+		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
+		for _file in files:
+			if isinstance(_file, str):
+				_file = frappe.get_doc("File", _file)
+			if not isinstance(_file, File):
+				continue
+			if _file.is_folder:
+				continue
+			if not has_permission(_file, "read"):
+				continue
+			zf.writestr(_file.file_name, _file.get_content())
+		zf.close()
+		return zip_file.getvalue()
+
+>>>>>>> 4fae798ad1 (fix: check file permission before zipping (#21934))
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
