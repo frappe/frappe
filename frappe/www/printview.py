@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import contextlib
 import copy
 import json
 import os
@@ -205,12 +206,34 @@ def get_rendered_template(
 		}
 	)
 
-	html = template.render(args, filters={"len": len})
+	try:
+		html = template.render(args, filters={"len": len})
+	except Exception as e:
+		frappe.throw(
+			_("Error in print format on line {0}: {1}").format(
+				_guess_template_error_line_number(template), e
+			),
+			exc=frappe.PrintFormatError,
+			title=_("Print Format Error"),
+		)
 
 	if cint(trigger_print):
 		html += trigger_print_script
 
 	return html
+
+
+def _guess_template_error_line_number(template) -> int | None:
+	"""Guess line on which exception occured from current traceback."""
+	with contextlib.suppress(Exception):
+		import sys
+		import traceback
+
+		_, _, tb = sys.exc_info()
+
+		for frame in reversed(traceback.extract_tb(tb)):
+			if template.filename in frame.filename:
+				return frame.lineno
 
 
 def set_link_titles(doc):
