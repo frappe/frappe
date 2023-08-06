@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import contextlib
 import io
 import os
 import re
@@ -23,60 +22,6 @@ PDF_CONTENT_ERRORS = [
 	"RemoteHostClosedError",
 ]
 
-<<<<<<< HEAD
-=======
-logger = frappe.logger("wkhtmltopdf", max_size=100000, file_count=3)
-logger.setLevel("INFO")
-
-
-def pdf_header_html(soup, head, content, styles, html_id, css):
-	return frappe.render_template(
-		"templates/print_formats/pdf_header_footer.html",
-		{
-			"head": head,
-			"content": content,
-			"styles": styles,
-			"html_id": html_id,
-			"css": css,
-			"lang": frappe.local.lang,
-			"layout_direction": "rtl" if is_rtl() else "ltr",
-		},
-	)
-
-
-def pdf_body_html(template, args, **kwargs):
-	try:
-		return template.render(args, filters={"len": len})
-	except Exception as e:
-		# Guess line number ?
-		frappe.throw(
-			_("Error in print format on line {0}: {1}").format(
-				_guess_template_error_line_number(template), e
-			),
-			exc=frappe.PrintFormatError,
-			title=_("Print Format Error"),
-		)
-
-
-def _guess_template_error_line_number(template) -> int | None:
-	"""Guess line on which exception occured from current traceback."""
-	with contextlib.suppress(Exception):
-		import sys
-		import traceback
-
-		_, _, tb = sys.exc_info()
-
-		for frame in reversed(traceback.extract_tb(tb)):
-			if template.filename in frame.filename:
-				return frame.lineno
-
-
-def pdf_footer_html(soup, head, content, styles, html_id, css):
-	return pdf_header_html(
-		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css
-	)
-
->>>>>>> a2b2998684 (fix(DX): Wrap print format errors (#21944))
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
 	html = scrub_urls(html)
