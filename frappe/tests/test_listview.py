@@ -67,8 +67,6 @@ class TestListView(unittest.TestCase):
 			for d in get_group_by_count("Note", '[["Note Seen By","user","=","Administrator"]]', "owner")
 		}
 		self.assertEqual(data["Administrator"], 1)
-<<<<<<< HEAD
-=======
 
 	def test_get_group_by_invalid_field(self):
 		self.assertRaises(
@@ -78,19 +76,3 @@ class TestListView(unittest.TestCase):
 			'[["Note Seen By","user","=","Administrator"]]',
 			"invalid_field",
 		)
-
-	def test_list_view_comment_count(self):
-		frappe.form_dict.doctype = "DocType"
-		frappe.form_dict.limit = "1"
-		frappe.form_dict.fields = [
-			"`tabDocType`.`name`",
-		]
-
-		for with_comment_count in (1, True, "1"):
-			frappe.form_dict.with_comment_count = with_comment_count
-			self.assertEqual(len(get()["values"][0]), 2)
-
-		for with_comment_count in (0, False, "0", None):
-			frappe.form_dict.with_comment_count = with_comment_count
-			self.assertEqual(len(get()["values"][0]), 1)
->>>>>>> 5fce1a57c0 (fix: validate fieldname in get_group_by_count (#21932))
