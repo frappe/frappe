@@ -1024,10 +1024,15 @@ class Document(BaseDocument):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
 
-	def delete(self, ignore_permissions=False):
+	def delete(self, ignore_permissions=False, *, force=False, delete_permanently=False):
 		"""Delete document."""
-		frappe.delete_doc(
-			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
+		return frappe.delete_doc(
+			self.doctype,
+			self.name,
+			ignore_permissions=ignore_permissions,
+			flags=self.flags,
+			force=force,
+			delete_permanently=delete_permanently,
 		)
 
 	def run_before_save_methods(self):
