@@ -5,6 +5,7 @@
 import copy
 import json
 import re
+from collections import Counter
 from datetime import datetime
 
 import frappe
@@ -61,6 +62,8 @@ class DatabaseQuery:
 		self.doctype = doctype
 		self.tables = []
 		self.link_tables = []
+		self.linked_table_aliases = {}
+		self.linked_table_counter = Counter()
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -80,7 +83,7 @@ class DatabaseQuery:
 
 	@property
 	def query_tables(self):
-		return self.tables + [d.table_name for d in self.link_tables]
+		return self.tables + [d.table_alias for d in self.link_tables]
 
 	def execute(
 		self,
@@ -269,7 +272,7 @@ class DatabaseQuery:
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -358,8 +361,10 @@ class DatabaseQuery:
 					continue
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
-					self.append_link_table(linked_doctype, linked_fieldname)
-				field = f"`tab{linked_doctype}`.`{fieldname}`"
+					linked_table = self.append_link_table(linked_doctype, linked_fieldname)
+					field = f"{linked_table.table_alias}.`{fieldname}`"
+				else:
+					field = f"`tab{linked_doctype}`.`{fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
 				self.fields[self.fields.index(original_field)] = field
@@ -469,11 +474,19 @@ class DatabaseQuery:
 
 				table_name = field.split(".", 1)[0]
 
+				# Check if table_name is a linked_table alias
+				for linked_table in self.link_tables:
+					if linked_table.table_alias == table_name:
+						table_name = linked_table.table_name
+						break
+
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.query_tables:
+				if (
+					table_name not in self.query_tables and table_name not in self.linked_table_aliases.values()
+				):
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -482,14 +495,21 @@ class DatabaseQuery:
 		self.check_read_permission(doctype)
 
 	def append_link_table(self, doctype, fieldname):
-		for d in self.link_tables:
-			if d.doctype == doctype and d.fieldname == fieldname:
-				return
+		for linked_table in self.link_tables:
+			if linked_table.doctype == doctype and linked_table.fieldname == fieldname:
+				return linked_table
 
 		self.check_read_permission(doctype)
-		self.link_tables.append(
-			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
+		self.linked_table_counter.update((doctype,))
+		linked_table = frappe._dict(
+			doctype=doctype,
+			fieldname=fieldname,
+			table_name=f"`tab{doctype}`",
+			table_alias=f"`tab{doctype}_{self.linked_table_counter[doctype]}`",
 		)
+		self.linked_table_aliases[linked_table.table_alias.replace("`", "")] = linked_table.table_name
+		self.link_tables.append(linked_table)
+		return linked_table
 
 	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
 		if self.flags.ignore_permissions:
@@ -653,7 +673,12 @@ class DatabaseQuery:
 			# handle child / joined table fields
 			elif "." in field:
 				table, column = column.split(".", 1)
-				ch_doctype = table.replace("`", "").replace("tab", "", 1)
+				ch_doctype = table
+
+				if ch_doctype in self.linked_table_aliases:
+					ch_doctype = self.linked_table_aliases[ch_doctype]
+
+				ch_doctype = ch_doctype.replace("`", "").replace("tab", "", 1)
 
 				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
@@ -815,14 +840,19 @@ class DatabaseQuery:
 			elif f.operator.lower() == "is":
 				if f.value == "set":
 					f.operator = "!="
+					# Value can technically be null, but comparing with null will always be falsy
+					# Not using coalesce here is faster because indexes can be used.
+					# null != '' -> null ~ falsy
+					# '' != '' -> false
+					can_be_null = False
 				elif f.value == "not set":
 					f.operator = "="
+					fallback = "''"
+					can_be_null = True
 
 				value = ""
-				fallback = "''"
-				can_be_null = True
 
-				if "ifnull" not in column_name.lower():
+				if can_be_null and "ifnull" not in column_name.lower():
 					column_name = f"ifnull({column_name}, {fallback})"
 
 			elif df and df.fieldtype == "Date":

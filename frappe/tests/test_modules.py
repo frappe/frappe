@@ -1,5 +1,6 @@
 import os
 import shutil
+import unittest
 
 import frappe
 from frappe import scrub
@@ -82,6 +83,9 @@ class TestUtils(FrappeTestCase):
 		doc = frappe.get_last_doc("DocType")
 		self.assertIsNone(export_module_json(doc=doc, is_standard=True, module=doc.module))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_export_module_json(self):
 		doc = frappe.get_last_doc("DocType", {"issingle": 0, "custom": 0})
 		export_doc_path = os.path.join(
@@ -107,12 +111,18 @@ class TestUtils(FrappeTestCase):
 
 		self.assertTrue(last_modified_after > last_modified_before)
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_export_customizations(self):
 		file_path = export_customizations(module="Custom", doctype="Note")
 		self.addCleanup(delete_file, path=file_path)
 		self.assertTrue(file_path.endswith("/custom/custom/note.json"))
 		self.assertTrue(os.path.exists(file_path))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_sync_customizations(self):
 		custom_field = frappe.get_doc(
 			"Custom Field", {"dt": "Note", "fieldname": "test_export_customizations_field"}
@@ -157,6 +167,9 @@ class TestUtils(FrappeTestCase):
 		)
 		self.assertTrue(frappe.db.get_value("DocType", "Note", "migration_hash"))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_export_doc(self):
 		exported_doc_path = frappe.get_app_path(
 			"frappe", "desk", "note", self.note.name, f"{self.note.name}.json"
@@ -166,6 +179,9 @@ class TestUtils(FrappeTestCase):
 		self.addCleanup(delete_path, path=folder_path)
 		self.assertTrue(os.path.exists(exported_doc_path))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_make_boilerplate(self):
 		scrubbed = frappe.scrub(self.doctype.name)
 		self.assertFalse(

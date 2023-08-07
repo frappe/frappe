@@ -103,7 +103,7 @@ def authorize(**kwargs):
 			else:
 				if "openid" in scopes:
 					scopes.remove("openid")
-					scopes.extend(["First Name", "Last Name", "Email", "Password", "User Image", "Roles"])
+					scopes.extend(["Full Name", "Email", "User Image", "Roles"])
 
 				# Show Allow/Deny screen.
 				response_html_params = frappe._dict(

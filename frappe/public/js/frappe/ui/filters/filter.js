@@ -52,6 +52,7 @@ frappe.ui.Filter = class {
 			"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+			Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
 		};
 	}
 

@@ -9,6 +9,7 @@ let io = new Server({
 		origin: true,
 		credentials: true,
 	},
+	cleanupEmptyChildNamespaces: true,
 });
 
 // Multitenancy implementation.
