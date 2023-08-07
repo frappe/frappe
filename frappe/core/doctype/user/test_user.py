@@ -362,7 +362,7 @@ class TestUser(unittest.TestCase):
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
 		# used by rate limiter when calling reset_password
-		frappe.local.request_ip = "127.0.0.1"
+		frappe.local.request_ip = "127.0.0.69"
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 6)
 
 		frappe.set_user("testpassword@example.com")
