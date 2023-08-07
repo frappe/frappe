@@ -18,6 +18,7 @@
   "request_headers",
   "section_break_sgro",
   "form_dict",
+  "section_break_9jhm",
   "sql_queries"
  ],
  "fields": [
@@ -25,11 +26,13 @@
    "fieldname": "path",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Path"
   },
   {
    "fieldname": "cmd",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "CMD"
   },
   {
@@ -79,14 +82,20 @@
   },
   {
    "fieldname": "method",
-   "fieldtype": "Data",
-   "label": "Method"
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Method",
+   "options": "GET\nPOST"
   },
   {
    "fieldname": "sql_queries",
    "fieldtype": "Table",
    "label": "SQL Queries",
    "options": "Recorder Query"
+  },
+  {
+   "fieldname": "section_break_9jhm",
+   "fieldtype": "Section Break"
   }
  ],
  "hide_toolbar": 1,
@@ -94,7 +103,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2023-08-05 14:45:04.358260",
+ "modified": "2023-08-07 14:47:10.047280",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder Request",
@@ -110,7 +119,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "duration",
  "sort_order": "DESC",
  "states": [],
  "title_field": "path"

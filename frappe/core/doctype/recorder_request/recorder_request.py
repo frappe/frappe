@@ -7,6 +7,7 @@ import re
 import frappe
 from frappe.model.document import Document
 from frappe.recorder import get
+from frappe.utils import cint, compare, make_filter_dict
 
 
 class RecorderRequest(Document):
@@ -22,7 +23,7 @@ class RecorderRequest(Document):
 		cmd: DF.Data | None
 		duration: DF.Float
 		form_dict: DF.Code | None
-		method: DF.Data | None
+		method: DF.Literal["GET", "POST"]
 		number_of_queries: DF.Int
 		path: DF.Data | None
 		request_headers: DF.Code | None
@@ -44,12 +45,18 @@ class RecorderRequest(Document):
 
 	@staticmethod
 	def get_list(args):
-		requests = [serialize_request(request) for request in get()]
-		return requests
+		start = cint(args.get("start")) or 0
+		page_length = cint(args.get("page_length")) or 20
+		requests = RecorderRequest.get_filtered_requests(args)[start : start + page_length]
+		if args.get("order_by"):
+			sort_key, sort_order = args.get("order_by").split(".")[1].split(" ")
+			sort_key = sort_key.replace("`", "")
+			return sorted(requests, key=lambda r: r[sort_key], reverse=bool(sort_order == "desc"))
+		return sorted(requests, key=lambda r: r.duration, reverse=1)
 
 	@staticmethod
 	def get_count(args):
-		pass
+		return len(RecorderRequest.get_filtered_requests(args))
 
 	@staticmethod
 	def get_stats(args):
@@ -58,6 +65,21 @@ class RecorderRequest(Document):
 	@staticmethod
 	def delete(args):
 		pass
+
+	@staticmethod
+	def get_filtered_requests(args):
+		filters = make_filter_dict(args.get("filters"))
+		requests = [serialize_request(request) for request in get()]
+		filtered_requests = []
+		for request in requests:
+			filter_flag = 1
+			for field in filters:
+				operator = "in" if filters[field][0] == "like" else filters[field][0]
+				if not compare(request[field], operator, filters[field][1]):
+					filter_flag = 0
+			if filter_flag:
+				filtered_requests.append(request)
+		return filtered_requests
 
 
 def serialize_request(request):
