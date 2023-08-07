@@ -1039,7 +1039,7 @@ class Document(BaseDocument):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False, force=False):
+	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""
 		return frappe.delete_doc(
 			self.doctype,
@@ -1047,6 +1047,7 @@ class Document(BaseDocument):
 			ignore_permissions=ignore_permissions,
 			flags=self.flags,
 			force=force,
+			delete_permanently=delete_permanently,
 		)
 
 	def run_before_save_methods(self):
