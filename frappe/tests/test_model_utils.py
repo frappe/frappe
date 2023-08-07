@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from random import choice
 
 import frappe
-from frappe.model import core_doctypes_list, get_permitted_fields
+from frappe.model import core_doctypes_list, get_permitted_fields, is_default_field
 from frappe.model.utils import get_fetch_values
 from frappe.tests.utils import FrappeTestCase
 
@@ -65,6 +65,16 @@ class TestModelUtils(FrappeTestCase):
 			self.assertEqual(
 				get_permitted_fields("Installed Application", parenttype="Installed Applications"), []
 			)
+
+	def test_is_default_field(self):
+		self.assertTrue(is_default_field("doctype"))
+		self.assertTrue(is_default_field("name"))
+		self.assertTrue(is_default_field("owner"))
+
+		self.assertFalse(is_default_field({}))
+		self.assertFalse(is_default_field("qwerty1234"))
+		self.assertFalse(is_default_field(True))
+		self.assertFalse(is_default_field(42))
 
 
 @contextmanager

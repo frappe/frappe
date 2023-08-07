@@ -46,12 +46,15 @@ def strip_exif_data(content, content_type):
 
 
 def optimize_image(
-	content, content_type, max_width=1920, max_height=1080, optimize=True, quality=85
+	content, content_type, max_width=1024, max_height=768, optimize=True, quality=85
 ):
 	if content_type == "image/svg+xml":
 		return content
 
 	image = Image.open(io.BytesIO(content))
+	width, height = image.size
+	max_height = max(min(max_height, height * 0.8), 200)
+	max_width = max(min(max_width, width * 0.8), 200)
 	image_format = content_type.split("/")[1]
 	size = max_width, max_height
 	image.thumbnail(size, Image.Resampling.LANCZOS)

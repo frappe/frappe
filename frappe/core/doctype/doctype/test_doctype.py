@@ -1,7 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import os
 import random
 import string
+import unittest
 from unittest.mock import patch
 
 import frappe
@@ -172,6 +174,9 @@ class TestDocType(FrappeTestCase):
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_sync_field_order(self):
 		import os
 
@@ -648,6 +653,9 @@ class TestDocType(FrappeTestCase):
 	def test_no_delete_doc(self):
 		self.assertRaises(frappe.ValidationError, frappe.delete_doc, "DocType", "Address")
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_export_types(self):
 		"""Export python types."""
@@ -686,6 +694,9 @@ class TestDocType(FrappeTestCase):
 		doctype.delete()
 		frappe.db.commit()
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_custom_field_deletion(self):
 		"""Custom child tables whose doctype doesn't exist should be auto deleted."""
@@ -698,6 +709,9 @@ class TestDocType(FrappeTestCase):
 		frappe.delete_doc("DocType", child)
 		self.assertFalse(frappe.get_meta(doctype).get_field(field))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	@patch.dict(frappe.conf, {"developer_mode": 1})
 	def test_delete_doctype_with_customization(self):
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
