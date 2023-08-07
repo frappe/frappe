@@ -17,6 +17,7 @@ class RecorderQuery(Document):
 		duration: DF.Float
 		exact_copies: DF.Int
 		explain_result: DF.Text | None
+		index: DF.Int
 		normalized_copies: DF.Int
 		normalized_query: DF.Data | None
 		parent: DF.Data
