@@ -29,6 +29,8 @@ def delete_doc(
 	ignore_on_trash=False,
 	ignore_missing=True,
 	delete_permanently=False,
+	*,
+	doc=None,
 ):
 	"""
 	Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
@@ -62,19 +64,20 @@ def delete_doc(
 		# delete passwords
 		delete_all_passwords_for(doctype, name)
 
-		doc = None
 		if doctype == "DocType":
 			if for_reload:
 
 				try:
-					doc = frappe.get_doc(doctype, name)
+					if doc is None:
+						doc = frappe.get_doc(doctype, name)
 				except frappe.DoesNotExistError:
 					pass
 				else:
 					doc.run_method("before_reload")
 
 			else:
-				doc = frappe.get_doc(doctype, name)
+				if doc is None:
+					doc = frappe.get_doc(doctype, name)
 				if not (doc.custom or frappe.conf.developer_mode or frappe.flags.in_patch or force):
 					frappe.throw(_("Standard DocType can not be deleted."))
 
@@ -102,7 +105,8 @@ def delete_doc(
 					pass
 
 		else:
-			doc = frappe.get_doc(doctype, name)
+			if doc is None:
+				doc = frappe.get_doc(doctype, name)
 
 			if not for_reload:
 				update_flags(doc, flags, ignore_permissions)

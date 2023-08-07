@@ -1047,6 +1047,7 @@ class Document(BaseDocument):
 			ignore_permissions=ignore_permissions,
 			flags=self.flags,
 			force=force,
+			doc=self,
 		)
 
 	def run_before_save_methods(self):

@@ -1290,6 +1290,8 @@ def delete_doc(
 	ignore_on_trash: bool = False,
 	ignore_missing: bool = True,
 	delete_permanently: bool = False,
+	*,
+	doc=None
 ):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
@@ -1313,6 +1315,7 @@ def delete_doc(
 		ignore_on_trash,
 		ignore_missing,
 		delete_permanently,
+		doc=doc
 	)
 
 
