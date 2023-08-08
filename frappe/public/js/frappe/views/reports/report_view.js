@@ -1345,15 +1345,81 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_filters_html_for_print() {
 		const filters = this.filter_area.get();
 
-		return filters
-			.map((f) => {
-				const [doctype, fieldname, condition, value] = f;
-				if (condition !== "=") return "";
-				const label = frappe.meta.get_label(doctype, fieldname);
-				const docfield = frappe.meta.get_docfield(doctype, fieldname);
-				return `<h6>${__(label)}: ${frappe.format(value, docfield)}</h6>`;
-			})
-			.join("");
+		return (
+			`<h5>${__("Filters:")}</h5>` +
+			filters
+				.map((f) => {
+					const [doctype, fieldname, condition, value] = f;
+					const docfield = frappe.meta.get_docfield(doctype, fieldname);
+					const label = `<b>${__(frappe.meta.get_label(doctype, fieldname))}</b>`;
+					switch (condition) {
+						case "=":
+							return __("{0} is equal to {1}", [
+								label,
+								frappe.format(value, docfield),
+							]);
+						case "!=":
+							return __("{0} is not equal to {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case ">":
+							return __("{0} is greater than {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case "<":
+							return __("{0} is less than {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case ">=":
+							return __("{0} is greater than or equal to {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case "<=":
+							return __("{0} is less than or equal to {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case "Between":
+							return __("{0} is between {1} and {2}", [
+								__(label),
+								frappe.format(value[0], docfield),
+								frappe.format(value[1], docfield),
+							]);
+						case "Timespan":
+							return __("{0} is within {1}", [__(label), __(value)]);
+						case "in":
+							return __("{0} is one of {1}", [
+								__(label),
+								frappe.utils.comma_or(
+									value.map((v) => frappe.format(v, docfield))
+								),
+							]);
+						case "not in":
+							return __("{0} is not one of {1}", [
+								__(label),
+								frappe.utils.comma_or(
+									value.map((v) => frappe.format(v, docfield))
+								),
+							]);
+						case "like":
+							return __("{0} is like {1}", [__(label), value]);
+						case "not like":
+							return __("{0} is not like {1}", [__(label), value]);
+						case "is":
+							return value === "set"
+								? __("{0} is set", [__(label)])
+								: __("{0} is not set", [__(label)]);
+						default:
+							return null;
+					}
+				})
+				.filter(Boolean)
+				.join("<br>")
+		);
 	}
 
 	get_columns_totals(data) {
