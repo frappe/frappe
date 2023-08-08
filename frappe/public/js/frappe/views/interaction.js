@@ -49,7 +49,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		let me = this;
 		let interaction_docs = Object.keys(get_doc_mappings());
 
-		let fields = [
+		return [
 			{
 				label: __("Reference"),
 				fieldtype: "Select",
@@ -95,8 +95,6 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				fieldname: "select_attachments",
 			},
 		];
-
-		return fields;
 	}
 
 	get_event_categories() {
@@ -336,7 +334,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 };
 
 function get_doc_mappings() {
-	const doc_map = {
+	return {
 		Event: {
 			field_map: {
 				interaction_type: "doctype",
@@ -362,6 +360,4 @@ function get_doc_mappings() {
 			hidden_fields: ["public", "category"],
 		},
 	};
-
-	return doc_map;
 }

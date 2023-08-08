@@ -168,7 +168,7 @@ def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 
 @frappe.whitelist()
 def get_reports_in_queued_state(report_name, filters):
-	reports = frappe.get_all(
+	return frappe.get_all(
 		"Prepared Report",
 		filters={
 			"report_name": report_name,
@@ -177,7 +177,6 @@ def get_reports_in_queued_state(report_name, filters):
 			"owner": frappe.session.user,
 		},
 	)
-	return reports
 
 
 def get_completed_prepared_report(filters, user, report_name):

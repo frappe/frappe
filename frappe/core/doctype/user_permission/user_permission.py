@@ -144,12 +144,10 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 	user_permissions = get_user_permissions(user).get(allow, [])
 	if not user_permissions:
 		return None
-	has_same_user_permission = find(
+	return find(
 		user_permissions,
 		lambda perm: perm["doc"] == for_value and perm.get("applicable_for") == applicable_for,
 	)
-
-	return has_same_user_permission
 
 
 @frappe.whitelist()

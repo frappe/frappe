@@ -1259,11 +1259,7 @@ def get_messages(language, start=0, page_length=100, search_text=""):
 	from frappe.frappeclient import FrappeClient
 
 	translator = FrappeClient(get_translator_url())
-	translated_dict = translator.post_api(
-		"translator.api.get_strings_for_translation", params=locals()
-	)
-
-	return translated_dict
+	return translator.post_api("translator.api.get_strings_for_translation", params=locals())
 
 
 @frappe.whitelist()
@@ -1291,10 +1287,10 @@ def get_contribution_status(message_id):
 
 	doc = frappe.get_doc("Translation", message_id)
 	translator = FrappeClient(get_translator_url())
-	contributed_translation = translator.get_api(
-		"translator.api.get_contribution_status", params={"translation_id": doc.contribution_docname}
+	return translator.get_api(
+		"translator.api.get_contribution_status",
+		params={"translation_id": doc.contribution_docname},
 	)
-	return contributed_translation
 
 
 def get_translator_url():

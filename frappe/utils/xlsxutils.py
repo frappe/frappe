@@ -70,9 +70,7 @@ def handle_html(data):
 
 	value = ", ".join(value.split("  \n"))
 	value = " ".join(value.split("\n"))
-	value = ", ".join(value.split("# "))
-
-	return value
+	return ", ".join(value.split("# "))
 
 
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):

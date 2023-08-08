@@ -935,8 +935,7 @@ def get_html_for_route(route):
 
 	set_request(method="GET", path=route)
 	response = get_response()
-	html = frappe.safe_decode(response.get_data())
-	return html
+	return frappe.safe_decode(response.get_data())
 
 
 def get_file_size(path, format=False):

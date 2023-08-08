@@ -482,14 +482,13 @@ def get_common_email_args(doc):
 		subject = _("Workflow Action") + f" on {doctype}: {docname}"
 		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
 
-	common_args = {
+	return {
 		"template": "workflow_action",
 		"header": "Workflow Action",
 		"attachments": [frappe.attach_print(doctype, docname, file_name=docname, doc=doc)],
 		"subject": subject,
 		"message": response,
 	}
-	return common_args
 
 
 def get_email_template(doc):

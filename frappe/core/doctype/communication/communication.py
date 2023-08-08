@@ -309,12 +309,14 @@ class Communication(Document, CommunicationEmailMixin):
 		return self._get_emails_list(self.bcc, exclude_displayname=exclude_displayname)
 
 	def get_attachments(self):
-		attachments = frappe.get_all(
+		return frappe.get_all(
 			"File",
 			fields=["name", "file_name", "file_url", "is_private"],
-			filters={"attached_to_name": self.name, "attached_to_doctype": self.DOCTYPE},
+			filters={
+				"attached_to_name": self.name,
+				"attached_to_doctype": self.DOCTYPE,
+			},
 		)
-		return attachments
 
 	def notify_change(self, action):
 		frappe.publish_realtime(

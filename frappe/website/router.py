@@ -266,8 +266,7 @@ def get_base_template(path=None):
 	for pattern in patterns_desc:
 		if re.match(pattern, path):
 			templates = base_template_map[pattern]
-			base_template = templates[-1]
-			return base_template
+			return templates[-1]
 
 
 def setup_index(page_info):

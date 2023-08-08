@@ -233,14 +233,11 @@ def get_next_link(route, url_prefix=None, app=None):
 
 	if next_item:
 		if next_item.route and next_item.title:
-			html = (
+			return (
 				'<p class="btn-next-wrapper">'
 				+ frappe._("Next")
 				+ ': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>'
 			).format(**next_item)
-
-			return html
-
 	return ""
 
 

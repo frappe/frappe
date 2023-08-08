@@ -321,7 +321,7 @@ def get_communication_data(
 		fields=fields, conditions=conditions
 	)
 
-	communications = frappe.db.sql(
+	return frappe.db.sql(
 		"""
 		SELECT *
 		FROM (({part1}) UNION ({part2})) AS combined
@@ -332,11 +332,14 @@ def get_communication_data(
 	""".format(
 			part1=part1, part2=part2, group_by=(group_by or "")
 		),
-		dict(doctype=doctype, name=name, start=frappe.utils.cint(start), limit=limit),
+		dict(
+			doctype=doctype,
+			name=name,
+			start=frappe.utils.cint(start),
+			limit=limit,
+		),
 		as_dict=as_dict,
 	)
-
-	return communications
 
 
 def get_assignments(dt, dn):

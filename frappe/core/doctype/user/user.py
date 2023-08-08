@@ -1102,7 +1102,7 @@ def get_system_users(exclude_users=None, limit=None):
 
 	exclude_users += list(STANDARD_USERS)
 
-	system_users = frappe.db.sql_list(
+	return frappe.db.sql_list(
 		"""select name from `tabUser`
 		where enabled=1 and user_type != 'Website User'
 		and name not in ({}) {}""".format(
@@ -1110,8 +1110,6 @@ def get_system_users(exclude_users=None, limit=None):
 		),
 		exclude_users,
 	)
-
-	return system_users
 
 
 def get_active_users():

@@ -60,8 +60,7 @@ def get_permission_query_conditions(for_user):
 def get_title(doctype, docname, title_field=None):
 	if not title_field:
 		title_field = frappe.get_meta(doctype).get_title_field()
-	title = docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
-	return title
+	return docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
 
 
 def get_title_html(title):

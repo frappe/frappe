@@ -9,8 +9,7 @@ from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
 
 def get_workers():
 	with Connection(get_redis_conn()):
-		workers = Worker.all()
-		return workers
+		return Worker.all()
 
 
 def purge_pending_jobs(event=None, site=None, queue=None):
