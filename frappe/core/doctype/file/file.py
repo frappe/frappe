@@ -326,7 +326,7 @@ class File(Document):
 		if self.is_folder:
 			return
 
-		file_type = mimetypes.guess_type(self.file_name)[0]
+		file_type = mimetypes.guess_type(self.file_url)[0]
 		if not file_type:
 			return
 
