@@ -151,7 +151,7 @@ $.extend(frappe.model, {
 				) {
 					if (data.modified !== cur_frm.doc.modified && !frappe.ui.form.is_saving) {
 						if (!cur_frm.is_dirty()) {
-							cur_frm.reload_doc();
+							cur_frm.debounced_reload_doc();
 						} else {
 							doc.__needs_refresh = true;
 							cur_frm.show_conflict_message();

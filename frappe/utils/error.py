@@ -157,5 +157,5 @@ def guess_exception_source(exception: str) -> str | None:
 				app_name = matches.group("app_name")
 				apps[app_name] += app_priority.get(app_name, 0)
 
-		if probably_source := apps.most_common(1):
+		if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
 			return f"{probably_source[0][0]} (app)"

@@ -247,7 +247,7 @@ def safe_enqueue(function, **kwargs):
 	Accepts frappe.enqueue params like job_name, queue, timeout, etc.
 	in addition to params to be passed to function
 
-	:param function: whitelised function or API Method set in Server Script
+	:param function: whitelisted function or API Method set in Server Script
 	"""
 
 	return enqueue("frappe.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)

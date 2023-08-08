@@ -20,6 +20,10 @@ class TestBlogPost(FrappeTestCase):
 	def setUp(self):
 		reset_customization("Blog Post")
 
+	def tearDown(self):
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
 	def test_generator_view(self):
 		pages = frappe.get_all(
 			"Blog Post", fields=["name", "route"], filters={"published": 1, "route": ("!=", "")}, limit=1
@@ -159,17 +163,10 @@ class TestBlogPost(FrappeTestCase):
 
 		from frappe.templates.includes.likes.likes import like
 
-		frappe.form_dict.reference_doctype = "Blog Post"
-		frappe.form_dict.reference_name = test_blog.name
-		frappe.form_dict.like = True
-		frappe.local.request_ip = "127.0.0.1"
-
-		liked = like()
+		liked = like("Blog Post", test_blog.name, True)
 		self.assertEqual(liked, True)
 
-		frappe.form_dict.like = False
-
-		disliked = like()
+		disliked = like("Blog Post", test_blog.name, False)
 		self.assertEqual(disliked, False)
 
 		frappe.db.delete("Comment", {"comment_type": "Like", "reference_doctype": "Blog Post"})
