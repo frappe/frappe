@@ -63,7 +63,7 @@ class RecorderRequest(Document):
 		pass
 
 	@staticmethod
-	def delete(args):
+	def delete(self):
 		pass
 
 	@staticmethod
