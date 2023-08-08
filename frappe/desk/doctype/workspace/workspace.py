@@ -31,9 +31,9 @@ class Workspace(Document):
 	def clear_cache(self):
 		super().clear_cache()
 		if self.for_user:
-			frappe.cache.hdel("bootinfo", self.for_user)
+			frappe.cache().hdel("bootinfo", self.for_user)
 		else:
-			frappe.cache.delete_key("bootinfo")
+			frappe.cache().delete_key("bootinfo")
 
 	def on_update(self):
 		if disable_saving_as_public():
