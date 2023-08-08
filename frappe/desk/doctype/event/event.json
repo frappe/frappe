@@ -75,7 +75,7 @@
    "label": "Event Type",
    "oldfieldname": "event_type",
    "oldfieldtype": "Select",
-   "options": "Private\nPublic\nCancelled",
+   "options": "Private\nPublic",
    "reqd": 1,
    "search_index": 1
   },
@@ -223,7 +223,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Open\nCompleted\nClosed"
+   "options": "Open\nCompleted\nClosed\nCancelled"
   },
   {
    "collapsible": 1,
@@ -295,7 +295,7 @@
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2022-08-12 19:24:34.794098",
+ "modified": "2023-06-23 10:33:15.685368",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

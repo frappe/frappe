@@ -3,8 +3,9 @@ name: Server
 on:
   pull_request:
   workflow_dispatch:
-  push:
-    branches: [ develop ]
+  schedule:
+    # Run everday at midnight UTC / 5:30 IST
+    - cron: "0 0 * * *"
 
 concurrency:
   group: server-develop-${{ github.event_name }}-${{ github.event.number }}

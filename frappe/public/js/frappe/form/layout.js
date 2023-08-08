@@ -240,7 +240,6 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	make_page(df) {
-		// eslint-disable-line no-unused-vars
 		let me = this;
 		let head = $(`
 			<div class="form-clickable-section text-center">
@@ -365,7 +364,10 @@ frappe.ui.form.Layout = class Layout {
 			const section = $(this).removeClass("empty-section visible-section");
 			if (section.find(".frappe-control:not(.hide-control)").length) {
 				section.addClass("visible-section");
-			} else {
+			} else if (
+				section.parent().hasClass("tab-pane") ||
+				section.parent().hasClass("form-page")
+			) {
 				// nothing visible, hide the section
 				section.addClass("empty-section");
 			}

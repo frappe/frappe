@@ -6,6 +6,23 @@ from frappe.model.document import Document
 
 
 class Note(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.note_seen_by.note_seen_by import NoteSeenBy
+		from frappe.types import DF
+
+		content: DF.TextEditor | None
+		expire_notification_on: DF.Date | None
+		notify_on_every_login: DF.Check
+		notify_on_login: DF.Check
+		public: DF.Check
+		seen_by: DF.Table[NoteSeenBy]
+		title: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		if self.notify_on_login and not self.expire_notification_on:
 			# expire this notification in a week (default)

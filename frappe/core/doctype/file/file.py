@@ -30,6 +30,31 @@ URL_PREFIXES = ("http://", "https://")
 
 
 class File(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		attached_to_doctype: DF.Link | None
+		attached_to_field: DF.Data | None
+		attached_to_name: DF.Data | None
+		content_hash: DF.Data | None
+		file_name: DF.Data | None
+		file_size: DF.Int
+		file_url: DF.Code | None
+		folder: DF.Link | None
+		is_attachments_folder: DF.Check
+		is_folder: DF.Check
+		is_home_folder: DF.Check
+		is_private: DF.Check
+		old_parent: DF.Data | None
+		thumbnail_url: DF.SmallText | None
+		uploaded_to_dropbox: DF.Check
+		uploaded_to_google_drive: DF.Check
+	# end: auto-generated types
 	no_feed_on_delete = True
 
 	def __init__(self, *args, **kwargs):
@@ -708,6 +733,8 @@ class File(Document):
 			if not isinstance(_file, File):
 				continue
 			if _file.is_folder:
+				continue
+			if not has_permission(_file, "read"):
 				continue
 			zf.writestr(_file.file_name, _file.get_content())
 		zf.close()

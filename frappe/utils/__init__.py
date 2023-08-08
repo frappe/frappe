@@ -11,6 +11,7 @@ import sys
 import traceback
 from collections import deque
 from collections.abc import (
+	Callable,
 	Container,
 	Generator,
 	Iterable,
@@ -20,7 +21,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -508,7 +509,9 @@ def get_files_path(*path, **kwargs):
 
 
 def get_bench_path():
-	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), "..", "..", ".."))
+	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
+		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
+	)
 
 
 def get_bench_id():
@@ -954,7 +957,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, ".build")))
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback

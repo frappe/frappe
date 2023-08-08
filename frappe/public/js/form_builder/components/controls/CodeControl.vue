@@ -1,10 +1,8 @@
 <!-- Used as Code, HTML Editor, Markdown Editor & JSON Control -->
 <script setup>
 import { computed, onMounted, ref, useSlots, watch } from "vue";
-import { useStore } from "../../store";
 
-let store = useStore();
-const props = defineProps(["df", "modelValue"]);
+const props = defineProps(["df", "read_only", "modelValue"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
@@ -25,7 +23,7 @@ onMounted(() => {
 				...props.df,
 				fieldtype: "Code",
 				hidden: 0,
-				read_only: store.read_only,
+				read_only: props.read_only,
 				change: () => {
 					if (update_control.value) {
 						content.value = code_control.value.get_value();
@@ -34,7 +32,7 @@ onMounted(() => {
 				}
 			},
 			value: content.value,
-			disabled: Boolean(slots.label) || store.read_only,
+			disabled: Boolean(slots.label) || props.read_only,
 			render_input: true,
 			only_input: Boolean(slots.label),
 		});

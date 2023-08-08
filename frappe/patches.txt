@@ -226,3 +226,4 @@ frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 execute:frappe.db.set_single_value("Document Naming Settings", "default_amend_naming", "Amend Counter")
 execute:frappe.delete_doc_if_exists("DocType", "Error Snapshot")
+frappe.patches.v15_0.move_event_cancelled_to_status

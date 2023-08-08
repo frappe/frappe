@@ -11,6 +11,24 @@ from frappe.model.document import Document
 
 
 class NotificationLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		attached_file: DF.Code | None
+		document_name: DF.Data | None
+		document_type: DF.Link | None
+		email_content: DF.TextEditor | None
+		for_user: DF.Link | None
+		from_user: DF.Link | None
+		read: DF.Check
+		subject: DF.Text | None
+		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
+	# end: auto-generated types
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)

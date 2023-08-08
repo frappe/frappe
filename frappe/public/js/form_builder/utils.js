@@ -61,8 +61,6 @@ export function create_layout(fields) {
 		if (df.fieldname) {
 			// make a copy to avoid mutation bugs
 			df = JSON.parse(JSON.stringify(df));
-		} else {
-			continue;
 		}
 
 		if (df.fieldtype === "Tab Break") {
@@ -71,7 +69,7 @@ export function create_layout(fields) {
 			set_section(df);
 		} else if (df.fieldtype === "Column Break") {
 			set_column(df);
-		} else if (df.name) {
+		} else {
 			if (!column) set_column();
 
 			let field = { df: df };

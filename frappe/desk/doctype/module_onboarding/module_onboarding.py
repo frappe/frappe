@@ -8,6 +8,25 @@ from frappe.modules.export_file import export_to_files
 
 
 class ModuleOnboarding(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.onboarding_permission.onboarding_permission import OnboardingPermission
+		from frappe.desk.doctype.onboarding_step_map.onboarding_step_map import OnboardingStepMap
+		from frappe.types import DF
+
+		allow_roles: DF.TableMultiSelect[OnboardingPermission]
+		documentation_url: DF.Data
+		is_complete: DF.Check
+		module: DF.Link
+		steps: DF.Table[OnboardingStepMap]
+		subtitle: DF.Data
+		success_message: DF.Data
+		title: DF.Data
+	# end: auto-generated types
 	def on_update(self):
 		if frappe.conf.developer_mode:
 			export_to_files(record_list=[["Module Onboarding", self.name]], record_module=self.module)

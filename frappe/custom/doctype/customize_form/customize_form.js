@@ -100,8 +100,6 @@ frappe.ui.form.on("Customize Form", {
 				frm.page.set_title(__("Customize Form - {0}", [frm.doc.doc_type]));
 				frappe.customize_form.set_primary_action(frm);
 
-				render_form_builder_message(frm);
-
 				frm.add_custom_button(
 					__("Go to {0} List", [__(frm.doc.doc_type)]),
 					function () {
@@ -149,6 +147,8 @@ frappe.ui.form.on("Customize Form", {
 					["queue_in_background"],
 					frappe.get_meta(frm.doc.doc_type).is_submittable || 0
 				);
+
+				render_form_builder(frm);
 			});
 		}
 
@@ -334,37 +334,6 @@ frappe.ui.form.on("DocType State", {
 	},
 });
 
-frappe.customize_form.validate_fieldnames = async function (frm) {
-	for (let i = 0; i < frm.doc.fields.length; i++) {
-		let field = frm.doc.fields[i];
-
-		let fieldname = field.label && frappe.model.scrub(field.label).toLowerCase();
-		if (
-			field.label &&
-			!field.fieldname &&
-			in_list(frappe.model.restricted_fields, fieldname)
-		) {
-			let message = __(
-				"For field <b>{0}</b> in row <b>{1}</b>, fieldname <b>{2}</b> is restricted it will be renamed as <b>{2}1</b>. Do you want to continue?",
-				[field.label, field.idx, fieldname]
-			);
-			await pause_to_confirm(message);
-		}
-	}
-
-	function pause_to_confirm(message) {
-		return new Promise((resolve) => {
-			frappe.confirm(
-				message,
-				() => resolve(),
-				() => {
-					frm.page.btn_primary.prop("disabled", false);
-				}
-			);
-		});
-	}
-};
-
 frappe.customize_form.save_customization = function (frm) {
 	if (frm.doc.doc_type) {
 		return frm.call({
@@ -383,9 +352,22 @@ frappe.customize_form.save_customization = function (frm) {
 	}
 };
 
+frappe.customize_form.update_fields_from_form_builder = function (frm) {
+	let form_builder = frappe.form_builder;
+	if (form_builder?.store) {
+		let fields = form_builder.store.update_fields();
+
+		// if fields is a string, it means there is an error
+		if (typeof fields === "string") {
+			frappe.throw(fields);
+		}
+		frm.refresh_fields();
+	}
+};
+
 frappe.customize_form.set_primary_action = function (frm) {
-	frm.page.set_primary_action(__("Update"), async () => {
-		await this.validate_fieldnames(frm);
+	frm.page.set_primary_action(__("Update"), () => {
+		this.update_fields_from_form_builder(frm);
 		this.save_customization(frm);
 	});
 };
@@ -433,30 +415,29 @@ frappe.customize_form.clear_locals_and_refresh = function (frm) {
 	frm.refresh();
 };
 
-function render_form_builder_message(frm) {
-	$(frm.fields_dict["try_form_builder_html"].wrapper).empty();
-	if (!frm.is_new() && frm.fields_dict["try_form_builder_html"]) {
-		let title = __("Use Form Builder to visually customize your form layout");
-		let msg = __(
-			"You can drag and drop fields to create your form layout, add tabs, sections and columns to organize your form and update field properties all from one screen."
-		);
+function render_form_builder(frm) {
+	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.doc_type) {
+		frappe.form_builder.setup_page_actions();
+		frappe.form_builder.store.fetch();
+		return;
+	}
 
-		let message = `
-		<div class="flex form-message blue p-3">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="275" src="/assets/frappe/images/form-builder.gif"></div>
-			<div>
-				<p style="font-size: var(--text-lg)">${title}</p>
-				<p>${msg}</p>
-				<div>
-					<a class="btn btn-primary btn-sm" href="/app/form-builder/${frm.doc.doc_type}/customize">
-						${__("Form Builder")} ${frappe.utils.icon("right", "xs")}
-					</a>
-				</div>
-			</div>
-		</div>
-		`;
-
-		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
+	if (frappe.form_builder) {
+		frappe.form_builder.wrapper = $(frm.fields_dict["form_builder"].wrapper);
+		frappe.form_builder.frm = frm;
+		frappe.form_builder.doctype = frm.doc.doc_type;
+		frappe.form_builder.customize = true;
+		frappe.form_builder.init(true);
+		frappe.form_builder.store.fetch();
+	} else {
+		frappe.require("form_builder.bundle.js").then(() => {
+			frappe.form_builder = new frappe.ui.FormBuilder({
+				wrapper: $(frm.fields_dict["form_builder"].wrapper),
+				frm: frm,
+				doctype: frm.doc.doc_type,
+				customize: true,
+			});
+		});
 	}
 }
 

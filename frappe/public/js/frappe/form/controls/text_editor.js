@@ -198,14 +198,18 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	get_quill_options() {
 		return {
 			modules: {
-				toolbar: this.get_toolbar_options(),
+				toolbar: Object.keys(this.df).includes("get_toolbar_options")
+					? this.df.get_toolbar_options()
+					: this.get_toolbar_options(),
 				table: true,
 				imageResize: {},
 				magicUrl: true,
 				mention: this.get_mention_options(),
 			},
-			theme: "snow",
+			theme: this.df.theme || "snow",
 			readOnly: this.disabled,
+			bounds: this.quill_container[0],
+			placeholder: this.df.placeholder || "",
 		};
 	}
 

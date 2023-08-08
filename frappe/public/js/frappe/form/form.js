@@ -41,6 +41,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.doctype_layout = frappe.get_doc("DocType Layout", doctype_layout_name);
 		this.undo_manager = new UndoManager({ frm: this });
 		this.setup_meta(doctype);
+		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
 
 		this.beforeUnloadListener = (event) => {
 			event.preventDefault();
@@ -77,9 +78,12 @@ frappe.ui.form.Form = class FrappeForm {
 		// wrapper
 		this.wrapper = this.parent;
 		this.$wrapper = $(this.wrapper);
+
+		let is_single_column = this.doctype === "DocType" ? true : this.meta.hide_toolbar;
+
 		frappe.ui.make_app_page({
 			parent: this.wrapper,
-			single_column: this.meta.hide_toolbar,
+			single_column: is_single_column,
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
@@ -157,12 +161,14 @@ frappe.ui.form.Form = class FrappeForm {
 			action: () => this.undo_manager.undo(),
 			page: this.page,
 			description: __("Undo last action"),
+			condition: () => !this.is_form_builder(),
 		});
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+z",
 			action: () => this.undo_manager.redo(),
 			page: this.page,
 			description: __("Redo last action"),
+			condition: () => !this.is_form_builder(),
 		});
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+y",
@@ -538,7 +544,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.doc.__last_sync_on &&
 			new Date() - this.doc.__last_sync_on > this.refresh_if_stale_for * 1000
 		) {
-			this.reload_doc();
+			this.debounced_reload_doc();
 			return true;
 		}
 	}
@@ -747,7 +753,7 @@ frappe.ui.form.Form = class FrappeForm {
 				me.show_success_action();
 			})
 			.catch((e) => {
-				console.error(e); // eslint-disable-line
+				console.error(e);
 			});
 	}
 
@@ -1127,7 +1133,7 @@ frappe.ui.form.Form = class FrappeForm {
 					"alert-warning"
 				);
 			} else {
-				this.reload_doc();
+				this.debounced_reload_doc();
 			}
 		}
 	}
@@ -1359,6 +1365,13 @@ frappe.ui.form.Form = class FrappeForm {
 
 	is_new() {
 		return this.doc.__islocal;
+	}
+
+	is_form_builder() {
+		return (
+			in_list(["DocType", "Customize Form"], this.doctype) &&
+			this.get_active_tab().label == "Form"
+		);
 	}
 
 	get_perm(permlevel, access_type) {

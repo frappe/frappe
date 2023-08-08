@@ -8,6 +8,25 @@ from frappe.utils import cstr
 
 
 class AccessLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		columns: DF.HTMLEditor | None
+		export_from: DF.Data | None
+		file_type: DF.Data | None
+		filters: DF.Code | None
+		method: DF.Data | None
+		page: DF.HTMLEditor | None
+		reference_document: DF.Data | None
+		report_name: DF.Data | None
+		timestamp: DF.Datetime | None
+		user: DF.Link | None
+	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=30):
 		from frappe.query_builder import Interval

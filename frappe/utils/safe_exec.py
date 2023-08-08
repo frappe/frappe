@@ -247,7 +247,7 @@ def safe_enqueue(function, **kwargs):
 	Accepts frappe.enqueue params like job_name, queue, timeout, etc.
 	in addition to params to be passed to function
 
-	:param function: whitelised function or API Method set in Server Script
+	:param function: whitelisted function or API Method set in Server Script
 	"""
 
 	return enqueue("frappe.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)
@@ -330,8 +330,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 def read_sql(query, *args, **kwargs):
 	"""a wrapper for frappe.db.sql to allow reads"""
 	query = str(query)
-	if frappe.flags.in_safe_exec:
-		check_safe_sql_query(query)
+	check_safe_sql_query(query)
 	return frappe.db.sql(query, *args, **kwargs)
 
 

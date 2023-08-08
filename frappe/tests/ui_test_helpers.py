@@ -582,7 +582,7 @@ def create_kanban():
 
 @whitelist_for_tests
 def create_todo(description):
-	frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
 
 
 @whitelist_for_tests

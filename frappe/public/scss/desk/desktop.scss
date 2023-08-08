@@ -341,7 +341,7 @@ body {
 	&.onboarding-widget-box {
 		margin-bottom: var(--margin-2xl);
 		padding: var(--padding-lg) !important;
-		background-color: var(--bg-color);
+		background-color: var(--bg-light-gray);
 		box-shadow: var(--card-shadow) ;
 
 		&.edit-mode:hover {
@@ -415,6 +415,7 @@ body {
 				padding: 8px;
 				font-size: var(--text-md);
 				max-width: 350px;
+				text-decoration: none;
 
 				&.pending {
 					.step-index.step-pending {
@@ -462,7 +463,7 @@ body {
 					height: 20px;
 					width: 20px;
 					color: var(--text-on-light-gray);
-					background-color: var(--fg-color);
+					background-color: var(--bg-light-gray);
 
 					margin-right: var(--margin-sm);
 					border-radius: var(--border-radius-full);
