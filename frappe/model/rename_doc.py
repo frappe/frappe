@@ -443,7 +443,7 @@ def update_link_field_values(link_fields: list[dict], old: str, new: str, doctyp
 			if parent == new and doctype == "DocType":
 				parent = old
 
-			frappe.db.set_value(parent, {docfield: old}, docfield, new, update_modified=False)
+			frappe.db.bulk_update(parent, {docfield: old}, docfield, new)
 
 		# update cached link_fields as per new
 		if doctype == "DocType" and field["parent"] == old:

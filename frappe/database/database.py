@@ -874,6 +874,7 @@ class Database:
 		modified_by=None,
 		update_modified=True,
 		debug=False,
+		limit=None,
 	):
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
@@ -888,6 +889,7 @@ class Database:
 		:param modified_by: Set this user as `modified_by`.
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
+		:param limit: Limit the number of rows to be updated.
 		"""
 		from frappe.model.utils import is_single_doctype
 
@@ -915,6 +917,7 @@ class Database:
 			filters=dn,
 			update=True,
 			validate_filters=True,
+			limit=limit,
 		)
 
 		if isinstance(dn, str):
@@ -1275,6 +1278,49 @@ class Database:
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
 			query.insert(*value_chunk).run()
+
+	def bulk_update(
+		self,
+		dt,
+		dn,
+		field,
+		val=None,
+		modified=None,
+		modified_by=None,
+		update_modified=False,
+		debug=False,
+		chunk_size=100_000,
+	):
+		"""
+		Extention of `set_value` method to update multiple records at a time in a performant way.
+
+		:param dt: DocType name.
+		:param dn: Document name for updating single record or filters for updating many records.
+		:param field: Property / field name or dictionary of values to be updated
+		:param value: Value to be updated.
+		:param modified: Use this as the `modified` timestamp.
+		:param modified_by: Set this user as `modified_by`.
+		:param update_modified: default False. Set as true, if you want to update the timestamp.
+		:param debug: Print the query in the developer / js console.
+		:param chunk_size: Number of records to be updated in one query.
+		"""
+
+		to_update = self._get_update_dict(
+			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified
+		)
+
+		while self.exists(dt, dn):
+			self.set_value(
+				dt,
+				dn,
+				to_update,
+				modified=modified,
+				modified_by=modified_by,
+				update_modified=update_modified,
+				debug=debug,
+				limit=chunk_size,
+			)
+			self.commit()
 
 	def create_sequence(self, *args, **kwargs):
 		from frappe.database.sequence import create_sequence
