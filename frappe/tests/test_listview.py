@@ -67,3 +67,12 @@ class TestListView(unittest.TestCase):
 			for d in get_group_by_count("Note", '[["Note Seen By","user","=","Administrator"]]', "owner")
 		}
 		self.assertEqual(data["Administrator"], 1)
+
+	def test_get_group_by_invalid_field(self):
+		self.assertRaises(
+			ValueError,
+			get_group_by_count,
+			"Note",
+			'[["Note Seen By","user","=","Administrator"]]',
+			"invalid_field",
+		)

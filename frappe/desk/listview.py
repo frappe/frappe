@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.model import is_default_field
 
 
 @frappe.whitelist()
@@ -52,7 +53,10 @@ def get_group_by_count(doctype, current_filters, field):
 			as_dict=True,
 		)
 	else:
-		return frappe.db.get_list(
+		if not frappe.get_meta(doctype).has_field(field) and not is_default_field(field):
+			raise ValueError("Field does not belong to doctype")
+
+		return frappe.get_list(
 			doctype,
 			filters=current_filters,
 			group_by="`tab{0}`.{1}".format(doctype, field),
