@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 import frappe.utils
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.notifications import get_open_count
 from frappe.tests.utils import FrappeTestCase
 
@@ -139,36 +140,24 @@ def delete_test_data():
 
 
 def create_child_table_with_link_to_doctype_a():
-	frappe.get_doc(
-		{
-			"doctype": "DocType",
-			"name": "Child Table With Link To Doctype A",
-			"module": "Custom",
-			"autoname": "field:title",
-			"fields": [
-				{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}
-			],
-			"istable": 1,
-			"naming_rule": "By fieldname",
-			"permissions": [{"role": "System Manager"}],
-		}
+	new_doctype(
+		"Child Table With Link To Doctype A",
+		istable=1,
+		fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
 	).insert(ignore_if_duplicate=True)
 
 
 def create_child_table_with_link_to_doctype_b():
-	frappe.get_doc(
-		{
-			"doctype": "DocType",
-			"name": "Child Table With Link To Doctype B",
-			"module": "Custom",
-			"autoname": "field:title",
-			"fields": [
-				{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}
-			],
-			"istable": 1,
-			"naming_rule": "By fieldname",
-			"permissions": [{"role": "System Manager"}],
-		}
+	new_doctype(
+		"Child Table With Link To Doctype B",
+		istable=1,
+		fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
 	).insert(ignore_if_duplicate=True)
 
 
@@ -207,58 +196,50 @@ def add_links_in_child_tables():
 
 
 def create_doctype_a_with_child_table_with_link_to_doctype_b():
-	frappe.get_doc(
-		{
-			"doctype": "DocType",
-			"name": "Doctype A With Child Table With Link To Doctype B",
-			"module": "Custom",
-			"autoname": "field:title",
-			"fields": [
-				{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
-				{
-					"fieldname": "child_table",
-					"fieldtype": "Table",
-					"label": "Child Table",
-					"options": "Child Table With Link To Doctype B",
-				},
-				{
-					"fieldname": "connections_tab",
-					"fieldtype": "Tab Break",
-					"label": "Connections",
-					"show_dashboard": 1,
-				},
-			],
-			"naming_rule": "By fieldname",
-			"permissions": [{"role": "System Manager"}],
-		}
+	new_doctype(
+		"Doctype A With Child Table With Link To Doctype B",
+		fields=[
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
+			{
+				"fieldname": "child_table",
+				"fieldtype": "Table",
+				"label": "Child Table",
+				"options": "Child Table With Link To Doctype B",
+			},
+			{
+				"fieldname": "connections_tab",
+				"fieldtype": "Tab Break",
+				"label": "Connections",
+				"show_dashboard": 1,
+			},
+		],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
 	).insert(ignore_if_duplicate=True)
 
 
 def create_doctype_b_with_child_table_with_link_to_doctype_a():
-	frappe.get_doc(
-		{
-			"doctype": "DocType",
-			"name": "Doctype B With Child Table With Link To Doctype A",
-			"module": "Custom",
-			"autoname": "field:title",
-			"fields": [
-				{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
-				{
-					"fieldname": "child_table",
-					"fieldtype": "Table",
-					"label": "Child Table",
-					"options": "Child Table With Link To Doctype A",
-				},
-				{
-					"fieldname": "connections_tab",
-					"fieldtype": "Tab Break",
-					"label": "Connections",
-					"show_dashboard": 1,
-				},
-			],
-			"naming_rule": "By fieldname",
-			"permissions": [{"role": "System Manager"}],
-		}
+	new_doctype(
+		"Doctype B With Child Table With Link To Doctype A",
+		fields=[
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
+			{
+				"fieldname": "child_table",
+				"fieldtype": "Table",
+				"label": "Child Table",
+				"options": "Child Table With Link To Doctype A",
+			},
+			{
+				"fieldname": "connections_tab",
+				"fieldtype": "Tab Break",
+				"label": "Connections",
+				"show_dashboard": 1,
+			},
+		],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
 	).insert(ignore_if_duplicate=True)
 
 
