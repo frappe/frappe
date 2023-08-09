@@ -223,3 +223,7 @@ def get_permitted_fields(
 		return meta_fields + permitted_fields + optional_meta_fields
 
 	return []
+
+
+def is_default_field(fieldname: str) -> bool:
+	return fieldname in default_fields

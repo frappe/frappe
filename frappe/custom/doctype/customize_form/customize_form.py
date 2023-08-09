@@ -181,7 +181,9 @@ class CustomizeForm(Document):
 
 		if self.flags.rebuild_doctype_for_global_search:
 			frappe.enqueue(
-				"frappe.utils.global_search.rebuild_for_doctype", now=True, doctype=self.doc_type
+				"frappe.utils.global_search.rebuild_for_doctype",
+				doctype=self.doc_type,
+				enqueue_after_commit=True,
 			)
 
 	def set_property_setters(self):

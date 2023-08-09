@@ -695,6 +695,8 @@ class File(Document):
 				continue
 			if _file.is_folder:
 				continue
+			if not has_permission(_file, "read"):
+				continue
 			zf.writestr(_file.file_name, _file.get_content())
 		zf.close()
 		return zip_file.getvalue()

@@ -143,9 +143,9 @@ def get_completed_prepared_report(filters, user, report_name):
 def delete_prepared_reports(reports):
 	reports = frappe.parse_json(reports)
 	for report in reports:
-		frappe.delete_doc(
-			"Prepared Report", report["name"], ignore_permissions=True, delete_permanently=True
-		)
+		prepared_report = frappe.get_doc("Prepared Report", report["name"])
+		if prepared_report.has_permission():
+			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
 def process_filters_for_prepared_report(filters):

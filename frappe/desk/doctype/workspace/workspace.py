@@ -28,6 +28,13 @@ class Workspace(Document):
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
 
+	def clear_cache(self):
+		super().clear_cache()
+		if self.for_user:
+			frappe.cache().hdel("bootinfo", self.for_user)
+		else:
+			frappe.cache().delete_key("bootinfo")
+
 	def on_update(self):
 		if disable_saving_as_public():
 			return

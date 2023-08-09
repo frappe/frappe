@@ -130,7 +130,7 @@ frappe.ui.form.Sidebar = class {
 				callback: function (res) {
 					me.sidebar
 						.find(".auto-repeat-status")
-						.html(__("Repeats {0}", [res.message.frequency]));
+						.html(__("Repeats {0}", [__(res.message.frequency)]));
 					me.sidebar.find(".auto-repeat-status").on("click", function () {
 						frappe.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
 					});
