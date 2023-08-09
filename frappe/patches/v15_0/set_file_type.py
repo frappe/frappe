@@ -8,10 +8,7 @@ def execute():
 	files = frappe.db.get_all(
 		"File",
 		fields=["name", "file_url"],
-		filters={
-			"is_folder": 0,
-			"file_type": ("is", "not set")
-		},
+		filters={"is_folder": 0, "file_type": ("is", "not set")},
 	)
 
 	frappe.db.auto_commit_on_many_writes = 1
@@ -20,9 +17,7 @@ def execute():
 		# File URL could be relative to site's public folder or a web URL
 		file_extension = get_file_extension(file.file_url)
 		if file_extension:
-			frappe.db.set_value(
-				"File", file.name, "file_type", file_extension, update_modified=False
-			)
+			frappe.db.set_value("File", file.name, "file_type", file_extension, update_modified=False)
 
 	frappe.db.auto_commit_on_many_writes = 0
 
