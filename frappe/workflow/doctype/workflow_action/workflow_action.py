@@ -461,13 +461,12 @@ def filter_allowed_users(users, doc, transition):
 	"""
 	from frappe.permissions import has_permission
 
-	filtered_users = []
-	for user in users:
-		if has_approval_access(user, doc, transition) and has_permission(
-			doctype=doc, user=user, raise_exception=False
-		):
-			filtered_users.append(user)
-	return filtered_users
+	return [
+		user
+		for user in users
+		if has_approval_access(user, doc, transition)
+		and has_permission(doctype=doc, user=user, raise_exception=False)
+	]
 
 
 def get_common_email_args(doc):

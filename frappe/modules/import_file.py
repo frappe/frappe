@@ -42,14 +42,17 @@ ignore_doctypes = [""]
 
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
 	if type(module) is list:
-		out = []
-		for m in module:
-			out.append(
-				import_file(
-					m[0], m[1], m[2], force=force, pre_process=pre_process, reset_permissions=reset_permissions
-				)
+		return [
+			import_file(
+				m[0],
+				m[1],
+				m[2],
+				force=force,
+				pre_process=pre_process,
+				reset_permissions=reset_permissions,
 			)
-		return out
+			for m in module
+		]
 	else:
 		return import_file(
 			module, dt, dn, force=force, pre_process=pre_process, reset_permissions=reset_permissions

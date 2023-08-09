@@ -105,12 +105,8 @@ def get_permitted_charts(dashboard_name):
 
 @frappe.whitelist()
 def get_permitted_cards(dashboard_name):
-	permitted_cards = []
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
-	for card in dashboard.cards:
-		if frappe.has_permission("Number Card", doc=card.card):
-			permitted_cards.append(card)
-	return permitted_cards
+	return [card for card in dashboard.cards if frappe.has_permission("Number Card", doc=card.card)]
 
 
 def get_non_standard_charts_in_dashboard(dashboard):

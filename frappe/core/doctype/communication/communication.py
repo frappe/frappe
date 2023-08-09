@@ -553,9 +553,7 @@ def get_emails(email_strings: list[str]) -> list[str]:
 	for email_string in email_strings:
 		if email_string:
 			result = getaddresses([email_string])
-			for email in result:
-				email_addrs.append(email[1])
-
+			email_addrs.extend(email[1] for email in result)
 	return email_addrs
 
 

@@ -462,10 +462,7 @@ def get_messages_from_doctype(name):
 			messages.append(d.options)
 
 	# translations of roles
-	for d in meta.get("permissions"):
-		if d.role:
-			messages.append(d.role)
-
+	messages.extend(d.role for d in meta.get("permissions") if d.role)
 	messages = [message for message in messages if message]
 	messages = [("DocType: " + name, message) for message in messages if is_translatable(message)]
 
@@ -579,10 +576,11 @@ def get_messages_from_custom_fields(app_name):
 				continue
 			messages.append(("Custom Field - {}: {}".format(prop, cf["name"]), cf[prop]))
 		if cf["fieldtype"] == "Selection" and cf.get("options"):
-			for option in cf["options"].split("\n"):
-				if option and "icon" not in option and is_translatable(option):
-					messages.append(("Custom Field - Description: " + cf["name"], option))
-
+			messages.extend(
+				("Custom Field - Description: " + cf["name"], option)
+				for option in cf["options"].split("\n")
+				if option and "icon" not in option and is_translatable(option)
+			)
 	return messages
 
 
@@ -1199,12 +1197,9 @@ def send_translations(translation_dict):
 
 
 def deduplicate_messages(messages):
-	ret = []
 	op = operator.itemgetter(1)
 	messages = sorted(messages, key=op)
-	for k, g in itertools.groupby(messages, op):
-		ret.append(next(g))
-	return ret
+	return [next(g) for k, g in itertools.groupby(messages, op)]
 
 
 @frappe.whitelist()

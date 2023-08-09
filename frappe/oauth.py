@@ -149,11 +149,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			filters={"client": client_id, "validity": "Valid"},
 		)
 
-		checkcodes = []
-		for vcode in validcodes:
-			checkcodes.append(vcode["name"])
-
-		if code in checkcodes:
+		if code in [vcode["name"] for vcode in validcodes]:
 			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, "scopes").split(
 				get_url_delimiter()
 			)

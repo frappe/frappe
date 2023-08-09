@@ -230,10 +230,11 @@ def get_all_tests(app):
 			# in /doctype/doctype/boilerplate/
 			continue
 
-		for filename in files:
-			if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py":
-				test_file_list.append([path, filename])
-
+		test_file_list.extend(
+			[path, filename]
+			for filename in files
+			if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py"
+		)
 	return test_file_list
 
 

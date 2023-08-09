@@ -77,9 +77,11 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 
 def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
-	for df in bundle[0].fields:
-		if df.fieldtype in frappe.model.table_fields:
-			bundle.append(frappe.desk.form.meta.get_meta(df.options))
+	bundle.extend(
+		frappe.desk.form.meta.get_meta(df.options)
+		for df in bundle[0].fields
+		if df.fieldtype in frappe.model.table_fields
+	)
 	return bundle
 
 

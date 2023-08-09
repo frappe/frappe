@@ -140,9 +140,7 @@ def sync_contacts_from_google_contacts(g_contact):
 				).format(account.name, err.resp.status)
 			)
 
-		for contact in contacts.get("connections", []):
-			results.append(contact)
-
+		results.extend(contact for contact in contacts.get("connections", []))
 		if not contacts.get("nextPageToken"):
 			if contacts.get("nextSyncToken"):
 				frappe.db.set_value(

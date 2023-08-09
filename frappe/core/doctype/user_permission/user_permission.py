@@ -169,11 +169,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 
 	linked_doctypes.sort()
 
-	return_list = []
-	for doctype in linked_doctypes[start:page_len]:
-		return_list.append([doctype])
-
-	return return_list
+	return [[doctype] for doctype in linked_doctypes[start:page_len]]
 
 
 def get_permitted_documents(doctype):

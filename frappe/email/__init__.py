@@ -94,11 +94,9 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
 
-	out = []
-	for dt in com_doctypes:
-		if txt.lower().replace("%", "") in dt.lower() and dt in can_read:
-			out.append([dt])
-	return out
+	return [
+		[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read
+	]
 
 
 def get_cached_contacts(txt):

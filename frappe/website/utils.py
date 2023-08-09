@@ -562,15 +562,9 @@ def set_content_type(response, data, path):
 
 
 def add_preload_for_bundled_assets(response):
+	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
 
-	links = []
-
-	for css in frappe.local.preload_assets["style"]:
-		links.append(f"<{css}>; rel=preload; as=style")
-
-	for js in frappe.local.preload_assets["script"]:
-		links.append(f"<{js}>; rel=preload; as=script")
-
+	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
 	if links:
 		response.headers["Link"] = ",".join(links)
 

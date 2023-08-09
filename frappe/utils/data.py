@@ -1651,10 +1651,9 @@ def get_link_to_report(
 		conditions = []
 		for k, v in filters.items():
 			if isinstance(v, list):
-				for value in v:
-					conditions.append(
-						str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
-					)
+				conditions.extend(
+					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]') for value in v
+				)
 			else:
 				conditions.append(str(k) + "=" + str(v))
 
@@ -1795,9 +1794,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 	) + NestedSetHierarchy
 
 	if filters_config:
-		additional_operators = []
-		for key in filters_config:
-			additional_operators.append(key.lower())
+		additional_operators = [key.lower() for key in filters_config]
 		valid_operators = tuple(set(valid_operators + tuple(additional_operators)))
 
 	if f.operator.lower() not in valid_operators:
