@@ -1,16 +1,13 @@
 # Copyright (c) 2023, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import json
-import re
-
 import frappe
 from frappe.model.document import Document
 from frappe.recorder import get as get_recorder_data
 from frappe.utils import cint, compare, make_filter_dict
 
 
-class RecorderRequest(Document):
+class Recorder(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -43,7 +40,7 @@ class RecorderRequest(Document):
 	def get_list(args):
 		start = cint(args.get("start")) or 0
 		page_length = cint(args.get("page_length")) or 20
-		requests = RecorderRequest.get_filtered_requests(args)[start : start + page_length]
+		requests = Recorder.get_filtered_requests(args)[start : start + page_length]
 		if args.get("order_by"):
 			sort_key, sort_order = args.get("order_by").split(".")[1].split(" ")
 			sort_key = sort_key.replace("`", "")
@@ -52,7 +49,7 @@ class RecorderRequest(Document):
 
 	@staticmethod
 	def get_count(args):
-		return len(RecorderRequest.get_filtered_requests(args))
+		return len(Recorder.get_filtered_requests(args))
 
 	@staticmethod
 	def get_filtered_requests(args):

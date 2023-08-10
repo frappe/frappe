@@ -2,11 +2,11 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
-	let d = locals[cdt][cdn];
-	let stack = JSON.parse(d.stack);
+	let row = frappe.get_doc(cdt, cdn);
+	let stack = JSON.parse(row.stack);
 	render_html_field(stack, "stack_html", "Stack Trace");
 
-	let explain_result = JSON.parse(d.explain_result);
+	let explain_result = JSON.parse(row.explain_result);
 	render_html_field(explain_result, "sql_explain_html", "SQL Explain");
 
 	function render_html_field(parsed_json, fieldname, label) {
@@ -19,7 +19,7 @@ frappe.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
 		}
 
 		let field_wrapper =
-			frm.fields_dict[d.parentfield].grid.grid_rows_by_docname[cdn].grid_form.fields_dict[
+			frm.fields_dict[row.parentfield].grid.grid_rows_by_docname[cdn].grid_form.fields_dict[
 				fieldname
 			].wrapper;
 		$(html).appendTo(field_wrapper);

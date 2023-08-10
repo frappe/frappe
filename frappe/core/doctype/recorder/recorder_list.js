@@ -1,4 +1,4 @@
-frappe.listview_settings["Recorder Request"] = {
+frappe.listview_settings["Recorder"] = {
 	hide_name_column: true,
 
 	onload(listview) {
@@ -64,7 +64,7 @@ frappe.listview_settings["Recorder Request"] = {
 			if (!listview.enabled) return;
 
 			const route = frappe.get_route() || [];
-			if (route[0] != "List" || "Recorder Request" != route[1]) {
+			if (route[0] != "List" || "Recorder" != route[1]) {
 				return;
 			}
 

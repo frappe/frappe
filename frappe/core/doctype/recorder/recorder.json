@@ -103,10 +103,10 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2023-08-10 11:04:16.513833",
+ "modified": "2023-08-10 12:01:03.456643",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Recorder Request",
+ "name": "Recorder",
  "owner": "Administrator",
  "permissions": [
   {
@@ -115,7 +115,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Administrator",
    "share": 1
   }
  ],
