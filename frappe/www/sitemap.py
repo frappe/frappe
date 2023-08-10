@@ -14,19 +14,19 @@ base_template_path = "www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
-	links = []
+	links = [
+		{"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()}
+		for route, page in get_pages().items()
+		if page.sitemap
+	]
 
-	for route, page in get_pages().items():
-		if page.sitemap:
-			links.append({"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()})
-
-	for route, data in get_public_pages_from_doctypes().items():
-		links.append(
-			{
-				"loc": get_url(quote((route or "").encode("utf-8"))),
-				"lastmod": f"{data['modified']:%Y-%m-%d}",
-			}
-		)
+	links.extend(
+		{
+			"loc": get_url(quote((route or "").encode("utf-8"))),
+			"lastmod": f"{data['modified']:%Y-%m-%d}",
+		}
+		for route, data in get_public_pages_from_doctypes().items()
+	)
 
 	return {"links": links}
 

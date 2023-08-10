@@ -45,8 +45,6 @@ class Comment(Document):
 		]
 		content: DF.HTMLEditor | None
 		ip_address: DF.Data | None
-		link_doctype: DF.Link | None
-		link_name: DF.DynamicLink | None
 		published: DF.Check
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None

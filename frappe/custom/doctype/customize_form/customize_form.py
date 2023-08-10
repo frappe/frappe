@@ -600,11 +600,8 @@ class CustomizeForm(Document):
 				),
 				as_dict=True,
 			)
-			links = []
 			label = df.label
-			for doc in docs:
-				links.append(frappe.utils.get_link_to_form(self.doc_type, doc.name))
-			links_str = ", ".join(links)
+			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
 			if docs:
 				frappe.throw(

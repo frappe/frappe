@@ -242,9 +242,7 @@ class FormMeta(Meta):
 			workflow = frappe.get_doc("Workflow", workflow_name)
 			workflow_docs.append(workflow)
 
-			for d in workflow.get("states"):
-				workflow_docs.append(frappe.get_doc("Workflow State", d.state))
-
+			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
 		self.set("__workflow_docs", workflow_docs)
 
 	def load_templates(self):

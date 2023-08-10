@@ -286,8 +286,7 @@ def check_node_executable():
 
 
 def get_node_env():
-	node_env = {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
-	return node_env
+	return {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
 
 
 def get_safe_max_old_space_size():

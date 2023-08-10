@@ -193,9 +193,7 @@ class UserType(Document):
 		doctypes.append("File")
 
 		for doctype in ["select_doctypes", "custom_select_doctypes"]:
-			for dt in self.get(doctype):
-				doctypes.append(dt.document_type)
-
+			doctypes.extend(dt.document_type for dt in self.get(doctype))
 		for perm in frappe.get_all(
 			"Custom DocPerm", filters={"role": self.role, "parent": ["not in", doctypes]}
 		):
