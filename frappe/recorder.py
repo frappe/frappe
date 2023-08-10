@@ -193,6 +193,7 @@ def _unpatch():
 
 
 def do_not_record(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if hasattr(frappe.local, "_recorder"):
 			del frappe.local._recorder
@@ -203,6 +204,7 @@ def do_not_record(function):
 
 
 def administrator_only(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator is allowed to use Recorder"))
@@ -279,9 +281,10 @@ def record_queries(func: Callable):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def import_data(**args):
-	file_doc = frappe.get_doc("File", {"file_url": args.get("file")})
+def import_data(file: str) -> None:
+	file_doc = frappe.get_doc("File", {"file_url": file})
 	file_content = json.loads(file_doc.get_content())
 	for request in file_content:
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
 		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+	file_doc.delete()
