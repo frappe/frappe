@@ -54,7 +54,7 @@ class User(Document):
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
 		banner_image: DF.AttachImage | None
-		bio: DF.Text | None
+		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check

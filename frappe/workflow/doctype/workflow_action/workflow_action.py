@@ -36,7 +36,7 @@ class WorkflowAction(Document):
 
 		completed_by: DF.Link | None
 		completed_by_role: DF.Link | None
-		permitted_roles: DF.TableMultiSelect[WorkflowActionPermittedRole] | None
+		permitted_roles: DF.TableMultiSelect[WorkflowActionPermittedRole]
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		status: DF.Literal["Open", "Completed"]
