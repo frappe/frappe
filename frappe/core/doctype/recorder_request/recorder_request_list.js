@@ -52,16 +52,31 @@ frappe.listview_settings["Recorder Request"] = {
 				},
 			});
 		});
+
+		setInterval(() => {
+			if (listview.list_view_settings.disable_auto_refresh) {
+				return;
+			}
+			if (!listview.recorder_enabled) return;
+
+			const route = frappe.get_route() || [];
+			if (route[0] != "List" || "Recorder Request" != route[1]) {
+				return;
+			}
+
+			listview.refresh();
+		}, 5000);
 	},
 
 	refresh(listview) {
-		this.update_primary_action(listview);
+		this.setup_recorder_controls(listview);
 		this.update_indicators(listview);
 	},
 
-	update_primary_action(listview) {
+	setup_recorder_controls(listview) {
 		frappe.xcall("frappe.recorder.status").then((status) => {
 			if (status) {
+				listview.recorder_enabled = true;
 				listview.page.set_primary_action(__("Stop"), () => {
 					frappe.call({
 						method: "frappe.recorder.stop",
@@ -71,6 +86,7 @@ frappe.listview_settings["Recorder Request"] = {
 					});
 				});
 			} else {
+				listview.recorder_enabled = false;
 				listview.page.set_primary_action(__("Start"), () => {
 					frappe.call({
 						method: "frappe.recorder.start",
@@ -84,12 +100,10 @@ frappe.listview_settings["Recorder Request"] = {
 	},
 
 	update_indicators(listview) {
-		frappe.xcall("frappe.recorder.status").then((status) => {
-			if (status) {
-				listview.page.set_indicator(__("Active"), "green");
-			} else {
-				listview.page.set_indicator(__("Inactive"), "red");
-			}
-		});
+		if (listview.recorder_enabled) {
+			listview.page.set_indicator(__("Active"), "green");
+		} else {
+			listview.page.set_indicator(__("Inactive"), "red");
+		}
 	},
 };
