@@ -35,6 +35,7 @@ app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
 ]
+app_include_icons = ["public/icons/timeless/icons.html"]
 
 doctype_js = {
 	"Web Page": "public/js/frappe/utils/web_template.js",

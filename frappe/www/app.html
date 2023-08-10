@@ -25,7 +25,12 @@
 		{%- endfor -%}
 	</head>
 	<body>
-		{% include "public/icons/timeless/icons.svg" %}
+		<svg id="frappe-symbols" aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" class="d-block" xmlns="http://www.w3.org/2000/svg">
+			{% for include in include_icons %}
+			{% include (include)" %}
+			{% endfor %}
+		</svg>
+
 		{% include "templates/includes/splash_screen.html" %}
 		<div class="main-section">
 			<header></header>
