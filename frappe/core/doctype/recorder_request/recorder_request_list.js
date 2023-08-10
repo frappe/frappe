@@ -57,7 +57,7 @@ frappe.listview_settings["Recorder Request"] = {
 			if (listview.list_view_settings.disable_auto_refresh) {
 				return;
 			}
-			if (!listview.recorder_enabled) return;
+			if (!listview.enabled) return;
 
 			const route = frappe.get_route() || [];
 			if (route[0] != "List" || "Recorder Request" != route[1]) {
@@ -69,38 +69,35 @@ frappe.listview_settings["Recorder Request"] = {
 	},
 
 	refresh(listview) {
+		this.fetch_recorder_status(listview).then(() => this.refresh_controls(listview));
+	},
+
+	refresh_controls(listview) {
 		this.setup_recorder_controls(listview);
 		this.update_indicators(listview);
 	},
 
+	fetch_recorder_status(listview) {
+		return frappe.xcall("frappe.recorder.status").then((status) => {
+			listview.enabled = Boolean(status);
+		});
+	},
+
 	setup_recorder_controls(listview) {
-		frappe.xcall("frappe.recorder.status").then((status) => {
-			if (status) {
-				listview.recorder_enabled = true;
-				listview.page.set_primary_action(__("Stop"), () => {
-					frappe.call({
-						method: "frappe.recorder.stop",
-						callback: function () {
-							listview.refresh();
-						},
-					});
-				});
-			} else {
-				listview.recorder_enabled = false;
-				listview.page.set_primary_action(__("Start"), () => {
-					frappe.call({
-						method: "frappe.recorder.start",
-						callback: function () {
-							listview.refresh();
-						},
-					});
-				});
-			}
+		listview.page.set_primary_action(listview.enabled ? __("Stop") : __("start"), () => {
+			frappe.call({
+				method: listview.enabled ? "frappe.recorder.stop" : "frappe.recorder.start",
+				callback: function () {
+					listview.refresh();
+				},
+			});
+			listview.enabled = !listview.enabled;
+			this.refresh_controls(listview);
 		});
 	},
 
 	update_indicators(listview) {
-		if (listview.recorder_enabled) {
+		if (listview.enabled) {
 			listview.page.set_indicator(__("Active"), "green");
 		} else {
 			listview.page.set_indicator(__("Inactive"), "red");
