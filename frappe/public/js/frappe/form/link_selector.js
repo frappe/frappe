@@ -146,9 +146,11 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 						});
 				}
 
+				var more_btn = me.dialog.fields_dict.more.$wrapper;
 				if (r.values.length < 20) {
-					var more_btn = me.dialog.fields_dict.more.$wrapper;
 					more_btn.hide();
+				} else {
+					more_btn.show();
 				}
 			},
 			this.dialog.get_primary_btn()
