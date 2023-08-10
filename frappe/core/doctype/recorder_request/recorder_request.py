@@ -23,7 +23,7 @@ class RecorderRequest(Document):
 		cmd: DF.Data | None
 		duration: DF.Float
 		form_dict: DF.Code | None
-		method: DF.Literal["GET", "POST"]
+		method: DF.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 		number_of_queries: DF.Int
 		path: DF.Data | None
 		request_headers: DF.Code | None

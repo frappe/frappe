@@ -85,7 +85,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Method",
-   "options": "GET\nPOST"
+   "options": "GET\nPOST\nPUT\nDELETE\nPATCH\nHEAD\nOPTIONS"
   },
   {
    "fieldname": "sql_queries",
@@ -103,7 +103,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2023-08-07 14:47:10.047280",
+ "modified": "2023-08-10 11:04:16.513833",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder Request",
