@@ -427,25 +427,20 @@ class Document(BaseDocument):
 			# hack for docperm :(
 			return
 
-		if rows:
-			# select rows that do not match the ones in the document
-			deleted_rows = frappe.db.sql(
-				"""select name from `tab{}` where parent=%s
-				and parenttype=%s and parentfield=%s
-				and name not in ({})""".format(
-					df.options, ",".join(["%s"] * len(rows))
-				),
-				[self.name, self.doctype, fieldname] + rows,
-			)
-			if len(deleted_rows) > 0:
-				# delete rows that do not match the ones in the document
-				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
+		# delete rows that do not match the ones in the document
+		tbl = frappe.qb.DocType(df.options)
+		qry = (
+			frappe.qb.from_(tbl)
+			.where(tbl.parent == self.name)
+			.where(tbl.parenttype == self.doctype)
+			.where(tbl.parentfield == fieldname)
+			.delete()
+		)
 
-		else:
-			# no rows found, delete all rows
-			frappe.db.delete(
-				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
-			)
+		if rows:
+			qry = qry.where(tbl.name.notin(rows))
+
+		qry.run()
 
 	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
