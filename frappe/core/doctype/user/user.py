@@ -1010,7 +1010,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60, methods=["POST"])
+@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60)
 def reset_password(user: str) -> str:
 	if user == "Administrator":
 		return "not allowed"
@@ -1042,7 +1042,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	conditions = []
 
 	user_type_condition = "and user_type != 'Website User'"
-	if filters and filters.get("ignore_user_type"):
+	if filters and filters.get("ignore_user_type") and frappe.session.data.user_type == "System User":
 		user_type_condition = ""
 		filters.pop("ignore_user_type")
 

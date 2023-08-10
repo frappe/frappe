@@ -14,15 +14,9 @@ test_dependencies = ["Web Form"]
 class TestWebForm(FrappeTestCase):
 	def setUp(self):
 		frappe.conf.disable_website_cache = True
-		frappe.local.path = None
 
 	def tearDown(self):
 		frappe.conf.disable_website_cache = False
-		frappe.local.path = None
-		frappe.local.request_ip = None
-		frappe.form_dict.web_form = None
-		frappe.form_dict.data = None
-		frappe.form_dict.docname = None
 
 	def test_accept(self):
 		frappe.set_user("Administrator")
@@ -33,10 +27,6 @@ class TestWebForm(FrappeTestCase):
 			"description": "_Test Event Description",
 			"starts_on": "2014-09-09",
 		}
-
-		frappe.form_dict.web_form = "manage-events"
-		frappe.form_dict.data = json.dumps(doc)
-		frappe.local.request_ip = "127.0.0.1"
 
 		accept(web_form="manage-events", data=json.dumps(doc))
 
@@ -58,11 +48,7 @@ class TestWebForm(FrappeTestCase):
 			frappe.db.get_value("Event", self.event_name, "description"), doc.get("description")
 		)
 
-		frappe.form_dict.web_form = "manage-events"
-		frappe.form_dict.docname = self.event_name
-		frappe.form_dict.data = json.dumps(doc)
-
-		accept(web_form="manage-events", docname=self.event_name, data=json.dumps(doc))
+		accept("manage-events", json.dumps(doc))
 
 		self.assertEqual(
 			frappe.db.get_value("Event", self.event_name, "description"), doc.get("description")

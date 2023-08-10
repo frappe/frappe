@@ -15,5 +15,6 @@ class ConsoleLog(Document):
 		from frappe.types import DF
 
 		script: DF.Code | None
+		type: DF.Data | None
 	# end: auto-generated types
 	pass

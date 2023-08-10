@@ -63,7 +63,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ### Development
 * [Easy install script using Docker images](https://github.com/frappe/bench/tree/develop#easy-install-script)
-* [Development installlation on bare metal](https://frappeframework.com/docs/user/en/installation)
+* [Development installation on bare metal](https://frappeframework.com/docs/user/en/installation)
 
 
 ## Contributing
