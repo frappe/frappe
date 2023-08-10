@@ -97,6 +97,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 		const docname = this.frm.doc.name;
 		const title_field = this.frm.meta.title_field || "";
 		const doctype = this.frm.doctype;
+		let queue;
+		if (this.frm.__rename_queue) {
+			queue = this.frm.__rename_queue;
+		}
 
 		if (input_name) {
 			const warning = __("This cannot be undone");
@@ -118,6 +122,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 					merge,
 					freeze: true,
 					freeze_message: __("Updating related fields..."),
+					queue,
 				})
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
