@@ -126,13 +126,16 @@ class DocField(Document):
 		if self.fieldtype == "Table MultiSelect":
 			table_doctype = self.options
 
-			link_doctype = frappe.db.get_value(
+			return frappe.db.get_value(
 				"DocField",
-				{"fieldtype": "Link", "parenttype": "DocType", "parent": table_doctype, "in_list_view": 1},
+				{
+					"fieldtype": "Link",
+					"parenttype": "DocType",
+					"parent": table_doctype,
+					"in_list_view": 1,
+				},
 				"options",
 			)
-
-			return link_doctype
 
 	def get_select_options(self):
 		if self.fieldtype == "Select":

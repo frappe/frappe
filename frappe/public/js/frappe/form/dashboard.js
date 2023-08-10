@@ -175,10 +175,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	make_progress_chart(title) {
 		this.progress_area.show();
-		let progress_chart = $(
-			'<div class="progress-chart" title="' + (title || "") + '"></div>'
-		).appendTo(this.progress_area.body);
-		return progress_chart;
+		return $('<div class="progress-chart" title="' + (title || "") + '"></div>').appendTo(
+			this.progress_area.body
+		);
 	}
 
 	refresh() {
@@ -562,7 +561,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				.addClass("indicator-column");
 		}
 
-		let indicator = $(
+		return $(
 			'<div class="col-sm-' +
 				colspan +
 				' indicator-column"><span class="indicator ' +
@@ -571,8 +570,6 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				label +
 				"</span></div>"
 		).appendTo(this.stats_area_row);
-
-		return indicator;
 	}
 
 	// graphs

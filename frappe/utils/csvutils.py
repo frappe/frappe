@@ -53,9 +53,7 @@ def read_csv_content(fcontent):
 			)
 
 	fcontent = fcontent.encode("utf-8")
-	content = []
-	for line in fcontent.splitlines(True):
-		content.append(frappe.safe_decode(line))
+	content = [frappe.safe_decode(line) for line in fcontent.splitlines(True)]
 
 	try:
 		rows = []

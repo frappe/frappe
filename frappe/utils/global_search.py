@@ -208,10 +208,10 @@ def get_children_data(doctype, meta):
 
 
 def insert_values_for_multiple_docs(all_contents):
-	values = []
-	for content in all_contents:
-		values.append("({doctype}, {name}, {content}, {published}, {title}, {route})".format(**content))
-
+	values = [
+		"({doctype}, {name}, {content}, {published}, {title}, {route})".format(**content)
+		for content in all_contents
+	]
 	batch_size = 50000
 	for i in range(0, len(values), batch_size):
 		batch_values = values[i : i + batch_size]
@@ -249,19 +249,21 @@ def update_global_search(doc):
 	):
 		return
 
-	content = []
-	for field in doc.meta.get_global_search_fields():
-		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields:
-			content.append(get_formatted_value(doc.get(field.fieldname), field))
+	content = [
+		get_formatted_value(doc.get(field.fieldname), field)
+		for field in doc.meta.get_global_search_fields()
+		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields
+	]
 
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
 			if d.parent == doc.name:
-				for field in d.meta.get_global_search_fields():
-					if d.get(field.fieldname):
-						content.append(get_formatted_value(d.get(field.fieldname), field))
-
+				content.extend(
+					get_formatted_value(d.get(field.fieldname), field)
+					for field in d.meta.get_global_search_fields()
+					if d.get(field.fieldname)
+				)
 	if content:
 		published = 0
 		if hasattr(doc, "is_website_published") and doc.meta.allow_guest_to_view:

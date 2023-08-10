@@ -141,17 +141,20 @@ class AssignmentRule(Document):
 
 	def get_user_load_balancing(self):
 		"""Assign to the user with least number of open assignments"""
-		counts = []
-		for d in self.users:
-			counts.append(
-				dict(
-					user=d.user,
-					count=frappe.db.count(
-						"ToDo", dict(reference_type=self.document_type, allocated_to=d.user, status="Open")
+		counts = [
+			dict(
+				user=d.user,
+				count=frappe.db.count(
+					"ToDo",
+					dict(
+						reference_type=self.document_type,
+						allocated_to=d.user,
+						status="Open",
 					),
-				)
+				),
 			)
-
+			for d in self.users
+		]
 		# sort by dict value
 		sorted_counts = sorted(counts, key=lambda k: k["count"])
 

@@ -136,8 +136,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_filters() {
-		const filters = frappe.dashboard_utils.get_all_filters(this.card_doc);
-		return filters;
+		return frappe.dashboard_utils.get_all_filters(this.card_doc);
 	}
 
 	render_card() {

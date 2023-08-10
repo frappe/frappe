@@ -235,9 +235,7 @@ def get_filters_for(doctype):
 	"""get open filters for doctype"""
 	config = get_notification_config()
 	doctype_config = config.get("for_doctype").get(doctype, {})
-	filters = doctype_config if not isinstance(doctype_config, str) else None
-
-	return filters
+	return None if isinstance(doctype_config, str) else doctype_config
 
 
 @frappe.whitelist()

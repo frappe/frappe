@@ -76,10 +76,7 @@ class PostgresTable(DBTable):
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
-		query = []
-
-		for col in self.add_column:
-			query.append(f"ADD COLUMN `{col.fieldname}` {col.get_definition()}")
+		query = [f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column]
 
 		for col in self.change_type:
 			using_clause = ""
