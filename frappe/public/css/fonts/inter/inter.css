@@ -1,11 +1,21 @@
 @font-face {
-	font-family: 'Inter';
+	font-family: 'Inter V';
+	font-weight: 100 900;
 	font-display: swap;
-	font-style:  normal;
-	font-weight: 100;
-	src: url("/assets/frappe/css/fonts/inter/inter_thin.woff2") format("woff2"),
-			url("/assets/frappe/css/fonts/inter/inter_thin.woff") format("woff");
-}
+	font-style: normal;
+	src: url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2-variations'),
+	  url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2');
+	src: url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2') tech('variations');
+  }
+  @font-face {
+	font-family: 'Inter V';
+	font-weight: 100 900;
+	font-display: swap;
+	font-style: italic;
+	src: url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2-variations'),
+	  url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2');
+	src: url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2') tech('variations');
+  }
 @font-face {
 	font-family: 'Inter';
 	font-display: swap;
