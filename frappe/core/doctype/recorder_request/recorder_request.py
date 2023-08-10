@@ -34,6 +34,8 @@ class RecorderRequest(Document):
 
 	def load_from_db(self):
 		request_data = get_recorder_data(self.name)
+		if not request_data:
+			raise frappe.DoesNotExistError
 		request = serialize_request(request_data)
 		super(Document, self).__init__(request)
 
