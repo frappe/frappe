@@ -5,6 +5,10 @@ frappe.listview_settings["Recorder Request"] = {
 		listview.page.sidebar.remove();
 		if (!has_common(frappe.user_roles, ["Administrator", "System Manager"])) return;
 
+		if (listview.list_view_settings) {
+			listview.list_view_settings.disable_comment_count = true;
+		}
+
 		listview.page.add_button(__("Clear"), () => {
 			frappe.call({
 				method: "frappe.recorder.delete",
