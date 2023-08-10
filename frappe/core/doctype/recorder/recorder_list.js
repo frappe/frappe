@@ -88,7 +88,7 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	setup_recorder_controls(listview) {
-		listview.page.set_primary_action(listview.enabled ? __("Stop") : __("start"), () => {
+		listview.page.set_primary_action(listview.enabled ? __("Stop") : __("Start"), () => {
 			frappe.call({
 				method: listview.enabled ? "frappe.recorder.stop" : "frappe.recorder.start",
 				callback: function () {
