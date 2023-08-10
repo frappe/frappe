@@ -287,4 +287,4 @@ def import_data(file: str) -> None:
 	for request in file_content:
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
 		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
-	file_doc.delete()
+	file_doc.delete(delete_permanently=True)
