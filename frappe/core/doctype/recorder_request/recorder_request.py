@@ -86,6 +86,8 @@ def serialize_request(request):
 		request_headers=frappe.as_json(request.get("headers"), indent=4),
 		form_dict=frappe.as_json(request.get("form_dict"), indent=4),
 		sql_queries=request.get("calls"),
+		modified=request.get("time"),
+		creation=request.get("time"),
 	)
 
 	return request
