@@ -44,7 +44,7 @@ non_nullable_types = {
 	"Rating",
 	"Select",
 	"Table",
-	"TableMultiSelect",
+	"Table MultiSelect",
 }
 
 
