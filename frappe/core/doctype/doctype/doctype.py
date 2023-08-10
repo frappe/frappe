@@ -923,7 +923,7 @@ class DocType(Document):
 		self.nsm_parent_field = parent_field_name
 
 	def validate_child_table(self):
-		if not self.get("istable") or self.is_new():
+		if not self.get("istable") or self.is_new() or self.get("is_virtual"):
 			# if the doctype is not a child table then return
 			# if the doctype is a new doctype and also a child table then
 			# don't move forward as it will be handled via schema

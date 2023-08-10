@@ -6,7 +6,7 @@ import re
 
 import frappe
 from frappe.model.document import Document
-from frappe.recorder import get
+from frappe.recorder import get as get_recorder_data
 from frappe.utils import cint, compare, make_filter_dict
 
 
@@ -32,16 +32,10 @@ class RecorderRequest(Document):
 		time_in_queries: DF.Float
 	# end: auto-generated types
 
-	def db_insert(self, *args, **kwargs):
-		pass
-
 	def load_from_db(self):
-		request_data = get(self.name)
+		request_data = get_recorder_data(self.name)
 		request = serialize_request(request_data)
 		super(Document, self).__init__(request)
-
-	def db_update(self):
-		pass
 
 	@staticmethod
 	def get_list(args):
@@ -59,6 +53,12 @@ class RecorderRequest(Document):
 		return len(RecorderRequest.get_filtered_requests(args))
 
 	@staticmethod
+	def get_filtered_requests(args):
+		filters = make_filter_dict(args.get("filters"))
+		requests = [serialize_request(request) for request in get_recorder_data()]
+		return [req for req in requests if _evaluate_filters(req, filters)]
+
+	@staticmethod
 	def get_stats(args):
 		pass
 
@@ -66,20 +66,11 @@ class RecorderRequest(Document):
 	def delete(self):
 		pass
 
-	@staticmethod
-	def get_filtered_requests(args):
-		filters = make_filter_dict(args.get("filters"))
-		requests = [serialize_request(request) for request in get()]
-		filtered_requests = []
-		for request in requests:
-			filter_flag = 1
-			for field in filters:
-				operator = "in" if filters[field][0] == "like" else filters[field][0]
-				if not compare(request[field], operator, filters[field][1]):
-					filter_flag = 0
-			if filter_flag:
-				filtered_requests.append(request)
-		return filtered_requests
+	def db_insert(self, *args, **kwargs):
+		pass
+
+	def db_update(self):
+		pass
 
 
 def serialize_request(request):
@@ -98,3 +89,20 @@ def serialize_request(request):
 	)
 
 	return request
+
+
+def _evaluate_filters(row, filters) -> bool:
+	for field in filters:
+		value = row[field]
+		operand = filters[field][1]
+		operator = filters[field][0]
+
+		if operator == "like":
+			operator = "in"  # python equivalent.
+			operand = operand.strip("%")
+			# Swap because like is "reverse IN"
+			value, operand = operand, value
+
+		if not compare(value, operator, operand):
+			return False
+	return True
