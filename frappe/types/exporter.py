@@ -44,7 +44,7 @@ non_nullable_types = {
 	"Rating",
 	"Select",
 	"Table",
-	"TableMultiSelect",
+	"Table MultiSelect",
 }
 
 
@@ -155,7 +155,7 @@ class TypeExporter:
 	def _is_nullable(self, field) -> bool:
 		"""If value can be `None`"""
 
-		if field.fieldtype.replace(" ", "") in non_nullable_types:
+		if field.fieldtype in non_nullable_types:
 			return False
 
 		return not bool(field.reqd)
