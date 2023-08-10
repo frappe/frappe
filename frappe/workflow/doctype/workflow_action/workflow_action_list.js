@@ -11,7 +11,6 @@ frappe.listview_settings["Workflow Action"] = {
 		}
 		docname = docname.match(/[%'"]/) ? encodeURIComponent(docname) : docname;
 
-		const link = "/app/" + frappe.router.slug(doctype) + "/" + docname;
-		return link;
+		return "/app/" + frappe.router.slug(doctype) + "/" + docname;
 	},
 };

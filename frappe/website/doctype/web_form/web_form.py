@@ -96,11 +96,12 @@ class WebForm(WebsiteGenerator):
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
 
-		missing = []
 		meta = frappe.get_meta(self.doc_type)
-		for df in self.web_form_fields:
-			if df.fieldname and (df.fieldtype not in no_value_fields and not meta.has_field(df.fieldname)):
-				missing.append(df.fieldname)
+		missing = [
+			df.fieldname
+			for df in self.web_form_fields
+			if df.fieldname and (df.fieldtype not in no_value_fields and not meta.has_field(df.fieldname))
+		]
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
@@ -387,11 +388,7 @@ def get_context(context):
 
 	def validate_mandatory(self, doc):
 		"""Validate mandatory web form fields"""
-		missing = []
-		for f in self.web_form_fields:
-			if f.reqd and doc.get(f.fieldname) in (None, [], ""):
-				missing.append(f)
-
+		missing = [f for f in self.web_form_fields if f.reqd and doc.get(f.fieldname) in (None, [], "")]
 		if missing:
 			frappe.throw(
 				_("Mandatory Information missing:")

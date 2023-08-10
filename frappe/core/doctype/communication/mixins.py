@@ -189,9 +189,7 @@ class CommunicationEmailMixin:
 			}
 			final_attachments.append(d)
 
-		for a in self.get_attachments() or []:
-			final_attachments.append({"fid": a["name"]})
-
+		final_attachments.extend({"fid": a["name"]} for a in self.get_attachments() or [])
 		return final_attachments
 
 	def get_unsubscribe_message(self):

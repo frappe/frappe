@@ -70,9 +70,7 @@ def handle_html(data):
 
 	value = ", ".join(value.split("  \n"))
 	value = " ".join(value.split("\n"))
-	value = ", ".join(value.split("# "))
-
-	return value
+	return ", ".join(value.split("# "))
 
 
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
@@ -90,10 +88,7 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 	wb1 = load_workbook(filename=filename, read_only=True, data_only=True)
 	ws1 = wb1.active
 	for row in ws1.iter_rows():
-		tmp_list = []
-		for cell in row:
-			tmp_list.append(cell.value)
-		rows.append(tmp_list)
+		rows.append([cell.value for cell in row])
 	return rows
 
 
@@ -101,10 +96,7 @@ def read_xls_file_from_attached_file(content):
 	book = xlrd.open_workbook(file_contents=content)
 	sheets = book.sheets()
 	sheet = sheets[0]
-	rows = []
-	for i in range(sheet.nrows):
-		rows.append(sheet.row_values(i))
-	return rows
+	return [sheet.row_values(i) for i in range(sheet.nrows)]
 
 
 def build_xlsx_response(data, filename):

@@ -54,7 +54,7 @@ class User(Document):
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
 		banner_image: DF.AttachImage | None
-		bio: DF.Text | None
+		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
@@ -569,10 +569,7 @@ class User(Document):
 		tables = frappe.db.get_tables()
 		for tab in tables:
 			desc = frappe.db.get_table_columns_description(tab)
-			has_fields = []
-			for d in desc:
-				if d.get("name") in ["owner", "modified_by"]:
-					has_fields.append(d.get("name"))
+			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 			for field in has_fields:
 				frappe.db.sql(
 					"""UPDATE `%s`
@@ -1102,7 +1099,7 @@ def get_system_users(exclude_users=None, limit=None):
 
 	exclude_users += list(STANDARD_USERS)
 
-	system_users = frappe.db.sql_list(
+	return frappe.db.sql_list(
 		"""select name from `tabUser`
 		where enabled=1 and user_type != 'Website User'
 		and name not in ({}) {}""".format(
@@ -1110,8 +1107,6 @@ def get_system_users(exclude_users=None, limit=None):
 		),
 		exclude_users,
 	)
-
-	return system_users
 
 
 def get_active_users():

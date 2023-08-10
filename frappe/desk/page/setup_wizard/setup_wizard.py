@@ -129,18 +129,20 @@ def get_stages_hooks(args):
 
 
 def get_setup_complete_hooks(args):
-	stages = []
-	for method in frappe.get_hooks("setup_wizard_complete"):
-		stages.append(
-			{
-				"status": "Executing method",
-				"fail_msg": "Failed to execute method",
-				"tasks": [
-					{"fn": frappe.get_attr(method), "args": args, "fail_msg": "Failed to execute method"}
-				],
-			}
-		)
-	return stages
+	return [
+		{
+			"status": "Executing method",
+			"fail_msg": "Failed to execute method",
+			"tasks": [
+				{
+					"fn": frappe.get_attr(method),
+					"args": args,
+					"fail_msg": "Failed to execute method",
+				}
+			],
+		}
+		for method in frappe.get_hooks("setup_wizard_complete")
+	]
 
 
 def handle_setup_exception(args):
@@ -339,8 +341,7 @@ def prettify_args(args):
 			args[key] = f"Image Attached: '{filename}' of size {size} MB"
 
 	pretty_args = []
-	for key in sorted(args):
-		pretty_args.append(f"{key} = {args[key]}")
+	pretty_args.extend(f"{key} = {args[key]}" for key in sorted(args))
 	return pretty_args
 
 

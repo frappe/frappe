@@ -197,5 +197,4 @@ class TestFormLoad(FrappeTestCase):
 def get_blog(blog_name):
 	frappe.response.docs = []
 	getdoc("Blog Post", blog_name)
-	doc = frappe.response.docs[0]
-	return doc
+	return frappe.response.docs[0]

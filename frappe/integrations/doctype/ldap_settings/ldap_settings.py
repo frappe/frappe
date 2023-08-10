@@ -300,10 +300,7 @@ class LDAPSettings(Document):
 			)  # Build search query
 
 		if len(conn.entries) >= 1:
-			fetch_ldap_groups = []
-			for group in conn.entries:
-				fetch_ldap_groups.append(group["cn"].value)
-
+			fetch_ldap_groups = [group["cn"].value for group in conn.entries]
 		return fetch_ldap_groups
 
 	def authenticate(self, username: str, password: str):

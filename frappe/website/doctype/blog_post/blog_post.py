@@ -175,17 +175,24 @@ class BlogPost(WebsiteGenerator):
 
 		url = frappe.local.site + "/" + self.route
 
-		social_links = [
+		return [
 			{
 				"icon": "twitter",
 				"link": "https://twitter.com/intent/tweet?text=" + self.title + "&url=" + url,
 			},
-			{"icon": "facebook", "link": "https://www.facebook.com/sharer.php?u=" + url},
-			{"icon": "linkedin", "link": "https://www.linkedin.com/sharing/share-offsite/?url=" + url},
-			{"icon": "envelope", "link": "mailto:?subject=" + self.title + "&body=" + url},
+			{
+				"icon": "facebook",
+				"link": "https://www.facebook.com/sharer.php?u=" + url,
+			},
+			{
+				"icon": "linkedin",
+				"link": "https://www.linkedin.com/sharing/share-offsite/?url=" + url,
+			},
+			{
+				"icon": "envelope",
+				"link": "mailto:?subject=" + self.title + "&body=" + url,
+			},
 		]
-
-		return social_links
 
 	def load_comments(self, context):
 		context.comment_list = get_comment_list(self.doctype, self.name)
