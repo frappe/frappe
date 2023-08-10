@@ -41,10 +41,20 @@ class Recorder(Document):
 		start = cint(args.get("start")) or 0
 		page_length = cint(args.get("page_length")) or 20
 		requests = Recorder.get_filtered_requests(args)[start : start + page_length]
-		if args.get("order_by"):
-			sort_key, sort_order = args.get("order_by").split(".")[1].split(" ")
+
+		if order_by_statment := args.get("order_by"):
+			if "." in order_by_statment:
+				order_by_statment = order_by_statment.split(".")[1]
+
+			if " " in order_by_statment:
+				sort_key, sort_order = order_by_statment.split(" ")
+			else:
+				sort_key = order_by_statment
+				sort_order = "desc"
+
 			sort_key = sort_key.replace("`", "")
-			return sorted(requests, key=lambda r: r[sort_key], reverse=bool(sort_order == "desc"))
+			return sorted(requests, key=lambda r: r.get(sort_key) or 0, reverse=bool(sort_order == "desc"))
+
 		return sorted(requests, key=lambda r: r.duration, reverse=1)
 
 	@staticmethod
