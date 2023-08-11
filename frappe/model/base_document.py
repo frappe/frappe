@@ -227,7 +227,7 @@ class BaseDocument:
 		if key in self.__dict__:
 			del self.__dict__[key]
 
-	def append(self, key: str, value: D | dict | None = None):
+	def append(self, key: str, value: D | dict | None = None) -> D:
 		"""Append an item to a child table.
 
 		Example:
