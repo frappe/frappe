@@ -4,10 +4,10 @@
 frappe.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
 	let row = frappe.get_doc(cdt, cdn);
 	let stack = JSON.parse(row.stack);
-	render_html_field(stack, "stack_html", "Stack Trace");
+	render_html_field(stack, "stack_html", __("Stack Trace"));
 
 	let explain_result = JSON.parse(row.explain_result);
-	render_html_field(explain_result, "sql_explain_html", "SQL Explain");
+	render_html_field(explain_result, "sql_explain_html", __("SQL Explain"));
 
 	function render_html_field(parsed_json, fieldname, label) {
 		let html =
@@ -26,22 +26,33 @@ frappe.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
 	}
 
 	function create_html_table(table_content, html) {
-		html +=
-			"<div class='control-value like-disabled-input for-description' style='overflow:auto; padding:0px'>";
-		html += "<table class='table table-striped' style='margin:0px'><thead><tr>";
-		Object.keys(table_content[0]).forEach((key) => {
-			html += "<th>" + key + "</th>";
-		});
-		html += "</tr></thead><tbody>";
-
-		for (let row in table_content) {
-			html += "<tr>";
-			Object.values(table_content[row]).forEach((value) => {
-				html += "<td>" + value + "</td>";
-			});
-			html += "</tr>";
-		}
-		html += "</tbody></table></div>";
+		html += `
+			<div class='control-value like-disabled-input for-description'
+				style='overflow:auto; padding:0px'>
+				<table class='table table-striped' style='margin:0px'>
+					<thead>
+						<tr>
+							${Object.keys(table_content[0])
+								.map((key) => `<th>${key}<th>`)
+								.join("")}
+						</tr>
+					</thead>
+					<tbody>
+						${table_content
+							.map((content) => {
+								return `
+									<tr>
+										${Object.values(content)
+											.map((key) => `<td>${key}<td>`)
+											.join("")}
+									</tr>
+								`;
+							})
+							.join("")}
+					</tbody>
+				</table>
+			</div>
+		`;
 		return html;
 	}
 });
