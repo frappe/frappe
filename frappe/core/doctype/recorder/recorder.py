@@ -108,12 +108,6 @@ def _evaluate_filters(row, filters) -> bool:
 		operand = filters[field][1]
 		operator = filters[field][0]
 
-		if operator == "like":
-			operator = "in"  # python equivalent.
-			operand = operand.strip("%")
-			# Swap because like is "reverse IN"
-			value, operand = operand, value
-
 		if not compare(value, operator, operand):
 			return False
 	return True
