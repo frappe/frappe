@@ -107,3 +107,19 @@ unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=3.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "if TYPE_CHECKING",
+    "if typing.TYPE_CHECKING",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+    ]
