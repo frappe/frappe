@@ -4,7 +4,7 @@ import hashlib
 import json
 import time
 from collections.abc import Generator, Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from werkzeug.exceptions import NotFound
 
@@ -23,6 +23,9 @@ from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.docfield.docfield import DocField
 
 
 def get_doc(*args, **kwargs):
@@ -409,13 +412,13 @@ class Document(BaseDocument):
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 
-	def update_child_table(self, fieldname, df=None):
+	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
 		rows = []
-		if not df:
-			df = self.meta.get_field(fieldname)
+		df: "DocField" = df or self.meta.get_field(fieldname)
 
 		for d in self.get(df.fieldname):
+			d: Document
 			d.db_update()
 			rows.append(d.name)
 

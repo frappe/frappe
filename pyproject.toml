@@ -69,6 +69,7 @@ dependencies = [
     "tenacity~=8.2.2",
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.0.4",
+    "typing_extensions", # included by Pydantic, adding here since it's now being directly used in code
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.11.6",
