@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.recorder import get as get_recorder_data
-from frappe.utils import cint, compare, make_filter_dict
+from frappe.utils import cint, evaluate_filters, make_filter_dict
 
 
 class Recorder(Document):
@@ -47,7 +47,7 @@ class Recorder(Document):
 				order_by_statment = order_by_statment.split(".")[1]
 
 			if " " in order_by_statment:
-				sort_key, sort_order = order_by_statment.split(" ")
+				sort_key, sort_order = order_by_statment.split(" ", 1)
 			else:
 				sort_key = order_by_statment
 				sort_order = "desc"
@@ -63,9 +63,9 @@ class Recorder(Document):
 
 	@staticmethod
 	def get_filtered_requests(args):
-		filters = make_filter_dict(args.get("filters"))
+		filters = args.get("filters")
 		requests = [serialize_request(request) for request in get_recorder_data()]
-		return [req for req in requests if _evaluate_filters(req, filters)]
+		return [req for req in requests if evaluate_filters(req, filters)]
 
 	@staticmethod
 	def get_stats(args):
@@ -100,20 +100,3 @@ def serialize_request(request):
 	)
 
 	return request
-
-
-def _evaluate_filters(row, filters) -> bool:
-	for field in filters:
-		value = row[field]
-		operand = filters[field][1]
-		operator = filters[field][0]
-
-		if operator == "like":
-			operator = "in"  # python equivalent.
-			operand = operand.strip("%")
-			# Swap because like is "reverse IN"
-			value, operand = operand, value
-
-		if not compare(value, operator, operand):
-			return False
-	return True

@@ -1692,6 +1692,20 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 	return get_url(uri=f"/app/query-report/{quoted(name)}?{filters}")
 
 
+def sql_like(value: str, pattern: str) -> bool:
+	if not isinstance(pattern, str) and isinstance(value, str):
+		return False
+	if pattern.startswith("%") and pattern.endswith("%"):
+		return pattern.strip("%") in value
+	elif pattern.startswith("%"):
+		return value.endswith(pattern.lstrip("%"))
+	elif pattern.endswith("%"):
+		return value.startswith(pattern.rstrip("%"))
+	else:
+		# assume default as wrapped in '%'
+		return pattern in value
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -1707,6 +1721,8 @@ operator_map = {
 	"<=": operator.le,
 	"not None": lambda a, b: a is not None,
 	"None": lambda a, b: a is None,
+	"like": sql_like,
+	"not like": lambda a, b: not sql_like(a, b),
 }
 
 
@@ -1812,7 +1828,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 					break
 
 	try:
-		df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+		df = frappe.get_meta(f.doctype).get_field(f.fieldname) if f.doctype else None
 	except frappe.exceptions.DoesNotExistError:
 		df = None
 

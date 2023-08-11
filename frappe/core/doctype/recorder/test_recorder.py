@@ -15,6 +15,9 @@ class TestRecorder(FrappeTestCase):
 	def setUp(self):
 		self.start_recoder()
 
+	def tearDown(self) -> None:
+		frappe.recorder.stop()
+
 	def start_recoder(self):
 		frappe.recorder.stop()
 		frappe.recorder.delete()
