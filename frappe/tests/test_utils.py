@@ -772,6 +772,7 @@ class TestTBSanitization(FrappeTestCase):
 		try:
 			password = "42"
 			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
+			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
