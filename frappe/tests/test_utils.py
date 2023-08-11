@@ -174,32 +174,21 @@ class TestFilters(FrappeTestCase):
 		)
 
 	def test_like_not_like(self):
-		doc = {"doctype": "User", "username": "test_abc"}
-		self.assertTrue(
-			evaluate_filters(
-				doc,
-				[["username", "like", "test"]],
-			)
-		)
-		self.assertFalse(
-			evaluate_filters(
-				doc,
-				[["username", "like", "user1"]],
-			)
-		)
+		doc = {"doctype": "User", "username": "test_abc", "prefix": "startswith", "suffix": "endswith"}
 
-		self.assertFalse(
-			evaluate_filters(
-				doc,
-				[["username", "not like", "test"]],
-			)
-		)
-		self.assertTrue(
-			evaluate_filters(
-				doc,
-				[["username", "not like", "user1"]],
-			)
-		)
+		test_cases = [
+			([["username", "like", "test"]], True),
+			([["username", "like", "user1"]], False),
+			([["username", "not like", "test"]], False),
+			([["username", "not like", "user1"]], True),
+			([["prefix", "like", "start%"]], True),
+			([["prefix", "not like", "end%"]], True),
+			([["suffix", "like", "%with"]], True),
+			([["suffix", "not like", "%end"]], True),
+		]
+
+		for filter, expected_result in test_cases:
+			self.assertEqual(evaluate_filters(doc, filter), expected_result)
 
 
 class TestMoney(FrappeTestCase):
