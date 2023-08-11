@@ -85,7 +85,7 @@ class PostgresTable(DBTable):
 				# involving the old values of the row
 				# read more https://www.postgresql.org/docs/9.1/sql-altertable.html
 				using_clause = f"USING {col.fieldname}::timestamp without time zone"
-			elif col.fieldtype in ("Check"):
+			elif col.fieldtype == "Check":
 				using_clause = f"USING {col.fieldname}::smallint"
 
 			query.append(

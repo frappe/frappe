@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+from typing import TYPE_CHECKING, TypeVar
 
 import frappe
 from frappe import _, _dict
@@ -20,6 +21,12 @@ from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.utils import cast_fieldtype, cint, compare, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
+
+D = TypeVar("D", bound="Document")
+
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
@@ -220,7 +227,7 @@ class BaseDocument:
 		if key in self.__dict__:
 			del self.__dict__[key]
 
-	def append(self, key, value=None):
+	def append(self, key: str, value: D | dict | None = None) -> D:
 		"""Append an item to a child table.
 
 		Example:
@@ -236,13 +243,13 @@ class BaseDocument:
 		if (table := self.__dict__.get(key)) is None:
 			self.__dict__[key] = table = []
 
-		value = self._init_child(value, key)
-		table.append(value)
+		ret_value = self._init_child(value, key)
+		table.append(ret_value)
 
 		# reference parent document
-		value.parent_doc = self
+		ret_value.parent_doc = self
 
-		return value
+		return ret_value
 
 	def extend(self, key, value):
 		try:
@@ -302,7 +309,7 @@ class BaseDocument:
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
-	) -> dict:
+	) -> _dict:
 		d = _dict()
 		permitted_fields = get_permitted_fields(
 			doctype=self.doctype, parenttype=getattr(self, "parenttype", None)

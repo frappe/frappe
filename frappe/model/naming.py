@@ -551,7 +551,7 @@ def _prompt_autoname(autoname, doc):
 		frappe.throw(_("Please set the document name"))
 
 
-def _format_autoname(autoname, doc):
+def _format_autoname(autoname: str, doc):
 	"""
 	Generate autoname by replacing all instances of braced params (fields, date params ('DD', 'MM', 'YY'), series)
 	Independent of remaining string or separators.
