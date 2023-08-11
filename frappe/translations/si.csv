@@ -4137,7 +4137,7 @@ No changes in document,ලේඛනයේ කිසිදු වෙනසක් 
 by Role,භූමිකාව,
 Document is only editable by users with role,ලේඛනය සංස්කරණය කළ හැක්කේ භූමිකාව ඇති පරිශීලකයින්ට පමණි,
 {0}: Other permission rules may also apply,{0}: වෙනත් අවසර නීති ද අදාළ විය හැකිය,
-{0} Page Views,Views 0} පිටු දසුන්,
+{0} Web page views,Views 0} පිටු දසුන්,
 Expand,පුළුල් කරන්න,
 Collapse,බිඳ වැටීම,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","වලංගු නොවන දරන්නා ටෝකනය, කරුණාකර &#39;දරන්නා&#39; උපසර්ගය සමඟ වලංගු ප්‍රවේශ ටෝකනයක් ලබා දෙන්න.",
