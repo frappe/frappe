@@ -60,7 +60,7 @@ Dashboard,Nadzorna ploča,
 Last Name,Prezime,
 Sorry! You are not permitted to view this page.,Niste autorizovani za prikaz ove stranice.
 Success Message,Poruka o uspjehu,
-{0} created this {1},{1} {0} je kreirao/la ovo.
+{0} created this,{0} je kreirao/la ovo.
 Online,Na mreži,
 Folder {0} does not exist,Folder {0} ne postoji,
 Subject,Naslov,
@@ -289,7 +289,7 @@ Closed,Zatvoreno,
 User '{0}' already has the role '{1}',Korisnik '{0}' već sarži rolu  '{1}'
 Create a new {0},Kreirajte {0}
 Loading...,Učitavanje ...
-{0} edited this {1},{1} {0} je izmijenio/la ovo,
+{0} last edited this,{0} je izmijenio/la ovo,
 Error Log,Log grešaka,
 Description,Opis,
 Newsletter,Newsletter,

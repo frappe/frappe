@@ -524,7 +524,7 @@ def scheduled_backup(
 	"""this function is called from scheduler
 	deletes backups older than 7 days
 	takes backup"""
-	odb = new_backup(
+	return new_backup(
 		older_than=older_than,
 		ignore_files=ignore_files,
 		backup_path=backup_path,
@@ -539,7 +539,6 @@ def scheduled_backup(
 		force=force,
 		verbose=verbose,
 	)
-	return odb
 
 
 def new_backup(
@@ -621,8 +620,7 @@ def is_file_old(file_path, older_than=24):
 
 
 def get_backup_path():
-	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
-	return backup_path
+	return frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 
 
 @frappe.whitelist()

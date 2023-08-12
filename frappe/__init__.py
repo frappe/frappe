@@ -523,11 +523,7 @@ def clear_messages():
 
 
 def get_message_log():
-	log = []
-	for msg_out in local.message_log:
-		log.append(json.loads(msg_out))
-
-	return log
+	return [json.loads(msg_out) for msg_out in local.message_log]
 
 
 def clear_last_message():

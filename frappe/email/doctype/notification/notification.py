@@ -517,9 +517,7 @@ def get_assignees(doc):
 		fields=["allocated_to"],
 	)
 
-	recipients = [d.allocated_to for d in assignees]
-
-	return recipients
+	return [d.allocated_to for d in assignees]
 
 
 def get_emails_from_template(template, context):

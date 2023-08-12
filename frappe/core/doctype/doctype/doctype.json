@@ -538,7 +538,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Is Virtual"

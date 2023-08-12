@@ -242,7 +242,7 @@ class TestAutoRepeat(FrappeTestCase):
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)
-	doc = frappe.get_doc(
+	return frappe.get_doc(
 		{
 			"doctype": "Auto Repeat",
 			"reference_doctype": args.reference_doctype or "ToDo",
@@ -258,8 +258,6 @@ def make_auto_repeat(**args):
 			"repeat_on_days": args.days or [],
 		}
 	).insert(ignore_permissions=True)
-
-	return doc
 
 
 def create_submittable_doctype(doctype, submit_perms=1):

@@ -120,9 +120,10 @@ class DataExporter:
 		self.column_start_end = {}
 
 		if self.all_doctypes:
-			self.child_doctypes = []
-			for df in frappe.get_meta(self.doctype).get_table_fields():
-				self.child_doctypes.append(dict(doctype=df.options, parentfield=df.fieldname))
+			self.child_doctypes = [
+				dict(doctype=df.options, parentfield=df.fieldname)
+				for df in frappe.get_meta(self.doctype).get_table_fields()
+			]
 
 	def build_response(self):
 		self.writer = UnicodeWriter()

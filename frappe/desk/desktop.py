@@ -493,11 +493,15 @@ def get_custom_doctype_list(module):
 		order_by="name",
 	)
 
-	out = []
-	for d in doctypes:
-		out.append({"type": "Link", "link_type": "doctype", "link_to": d.name, "label": _(d.name)})
-
-	return out
+	return [
+		{
+			"type": "Link",
+			"link_type": "doctype",
+			"link_to": d.name,
+			"label": _(d.name),
+		}
+		for d in doctypes
+	]
 
 
 def get_custom_report_list(module):
@@ -509,23 +513,20 @@ def get_custom_report_list(module):
 		order_by="name",
 	)
 
-	out = []
-	for r in reports:
-		out.append(
-			{
-				"type": "Link",
-				"link_type": "report",
-				"doctype": r.ref_doctype,
-				"dependencies": r.ref_doctype,
-				"is_query_report": 1
-				if r.report_type in ("Query Report", "Script Report", "Custom Report")
-				else 0,
-				"label": _(r.name),
-				"link_to": r.name,
-			}
-		)
-
-	return out
+	return [
+		{
+			"type": "Link",
+			"link_type": "report",
+			"doctype": r.ref_doctype,
+			"dependencies": r.ref_doctype,
+			"is_query_report": 1
+			if r.report_type in ("Query Report", "Script Report", "Custom Report")
+			else 0,
+			"label": _(r.name),
+			"link_to": r.name,
+		}
+		for r in reports
+	]
 
 
 def save_new_widget(doc, page, blocks, new_widgets):

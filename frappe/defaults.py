@@ -71,9 +71,7 @@ def get_user_default_as_list(key, user=None):
 	d = list(filter(None, (not isinstance(d, (list, tuple))) and [d] or d))
 
 	# filter default values if not found in user permission
-	values = [value for value in d if not not_in_user_permission(key, value)]
-
-	return values
+	return [value for value in d if not not_in_user_permission(key, value)]
 
 
 def is_a_user_permission_key(key):

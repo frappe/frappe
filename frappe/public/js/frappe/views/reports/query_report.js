@@ -732,8 +732,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_query_params() {
 		const query_string = frappe.utils.get_query_string(frappe.get_route_str());
-		const query_params = frappe.utils.get_query_params(query_string);
-		return query_params;
+		return frappe.utils.get_query_params(query_string);
 	}
 
 	add_prepared_report_buttons(doc) {
@@ -1292,7 +1291,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		raise && this.toggle_message(false);
 
-		const filters = this.filters
+		return this.filters
 			.filter((f) => f.get_value())
 			.map((f) => {
 				var v = f.get_value();
@@ -1310,7 +1309,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				Object.assign(acc, f);
 				return acc;
 			}, {});
-		return filters;
 	}
 
 	get_filter(fieldname) {

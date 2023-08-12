@@ -107,6 +107,8 @@ frappe.ui.form.on("Dashboard Chart", {
 		// set timeseries based on chart type
 		if (["Count", "Average", "Sum"].includes(frm.doc.chart_type)) {
 			frm.set_value("timeseries", 1);
+		} else if (frm.doc.chart_type == "Custom") {
+			return;
 		} else {
 			frm.set_value("timeseries", 0);
 		}

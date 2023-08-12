@@ -173,6 +173,23 @@ class TestFilters(FrappeTestCase):
 			)
 		)
 
+	def test_like_not_like(self):
+		doc = {"doctype": "User", "username": "test_abc", "prefix": "startswith", "suffix": "endswith"}
+
+		test_cases = [
+			([["username", "like", "test"]], True),
+			([["username", "like", "user1"]], False),
+			([["username", "not like", "test"]], False),
+			([["username", "not like", "user1"]], True),
+			([["prefix", "like", "start%"]], True),
+			([["prefix", "not like", "end%"]], True),
+			([["suffix", "like", "%with"]], True),
+			([["suffix", "not like", "%end"]], True),
+		]
+
+		for filter, expected_result in test_cases:
+			self.assertEqual(evaluate_filters(doc, filter), expected_result)
+
 
 class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
@@ -1004,6 +1021,7 @@ class TestTBSanitization(FrappeTestCase):
 		try:
 			password = "42"
 			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
+			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)

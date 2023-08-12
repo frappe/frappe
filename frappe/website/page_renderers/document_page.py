@@ -48,8 +48,7 @@ class DocumentPage(BaseTemplatePage):
 		self.init_context()
 		self.update_context()
 		self.post_process_context()
-		html = frappe.get_template(self.template_path).render(self.context)
-		return html
+		return frappe.get_template(self.template_path).render(self.context)
 
 	def update_context(self):
 		self.context.doc = self.doc

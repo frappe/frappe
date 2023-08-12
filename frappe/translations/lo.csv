@@ -4137,7 +4137,7 @@ No changes in document,ບໍ່ມີການປ່ຽນແປງໃນເອ
 by Role,ໂດຍບົດບາດ,
 Document is only editable by users with role,ເອກະສານສາມາດດັດແກ້ໄດ້ໂດຍຜູ້ໃຊ້ທີ່ມີບົດບາດ,
 {0}: Other permission rules may also apply,{0}: ກົດລະບຽບການອະນຸຍາດອື່ນໆອາດຈະ ນຳ ໃຊ້ໄດ້,
-{0} Page Views,{0} ໜ້າ ວິວ,
+{0} Web page views,{0} ໜ້າ ວິວ,
 Expand,ຂະຫຍາຍ,
 Collapse,ຍຸບລົງ,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","ເຄື່ອງ ໝາຍ ໃສ່ເຄື່ອງ ໝາຍ ຜູ້ທີ່ບໍ່ຖືກຕ້ອງ, ກະລຸນາໃຫ້ລະຫັດການເຂົ້າເຖິງທີ່ຖືກຕ້ອງກັບ ຄຳ ນຳ ໜ້າ &#39;Bearer&#39;.",

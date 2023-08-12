@@ -51,8 +51,7 @@ class TestActivityLog(FrappeTestCase):
 		)
 
 		name = names[0]
-		auth_log = frappe.get_doc("Activity Log", name)
-		return auth_log
+		return frappe.get_doc("Activity Log", name)
 
 	def test_brute_security(self):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})

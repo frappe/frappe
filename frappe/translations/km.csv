@@ -4137,7 +4137,7 @@ No changes in document,គ្មានការផ្លាស់ប្តូរ
 by Role,ដោយតួនាទី,
 Document is only editable by users with role,ឯកសារអាចកែសម្រួលបានដោយអ្នកប្រើប្រាស់ដែលមានតួនាទីប៉ុណ្ណោះ,
 {0}: Other permission rules may also apply,{0}៖ ច្បាប់អនុញ្ញាតផ្សេងទៀតអាចត្រូវបានអនុវត្ត,
-{0} Page Views,{0} ការមើលទំព័រ,
+{0} Web page views,{0} ការមើលទំព័រ,
 Expand,ពង្រីក,
 Collapse,វេញ,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.",និមិត្តសញ្ញាអ្នកកាន់មិនត្រឹមត្រូវសូមផ្តល់និមិត្តសញ្ញាចូលប្រើត្រឹមត្រូវដោយប្រើបុព្វបទ &#39;អ្នកកាន់&#39; ។,
