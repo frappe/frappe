@@ -388,6 +388,9 @@ def _getattr(object, name, default=None):
 		# Traceback Attributes
 		"tb_frame",
 		"tb_next",
+		# Format Attributes
+		"format",
+		"format_map",
 	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
