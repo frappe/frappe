@@ -25,8 +25,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Query",
-   "length": 2,
-   "reqd": 1
+   "length": 2
   },
   {
    "fieldname": "normalized_query",
@@ -37,15 +36,13 @@
    "fieldname": "duration",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Duration",
-   "reqd": 1
+   "label": "Duration"
   },
   {
    "fieldname": "exact_copies",
    "fieldtype": "Int",
    "in_list_view": 1,
-   "label": "Exact Copies",
-   "reqd": 1
+   "label": "Exact Copies"
   },
   {
    "fieldname": "normalized_copies",
