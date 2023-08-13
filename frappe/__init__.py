@@ -2278,24 +2278,9 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 
-	from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES
+	from frappe.utils.safe_exec import safe_eval
 
-	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
-	code = unicodedata.normalize("NFKC", code)
-
-	for attribute in UNSAFE_ATTRIBUTES:
-		if attribute in code:
-			throw(f'Illegal rule {bold(code)}. Cannot use "{attribute}"')
-
-	if "__" in code:
-		throw(f'Illegal rule {bold(code)}. Cannot use "__"')
-
-	if not eval_globals:
-		eval_globals = {}
-
-	eval_globals["__builtins__"] = {}
-	eval_globals.update(whitelisted_globals)
-	return eval(code, eval_globals, eval_locals)
+	return safe_eval(code, eval_globals, eval_locals)
 
 
 def get_website_settings(key):
