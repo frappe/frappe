@@ -32,6 +32,9 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
 
 
+ARGUMENT_NOT_SET = object()
+
+
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
 
@@ -90,7 +93,14 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	import unicodedata
 
-	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
+	whitelisted_globals = {
+		"int": int,
+		"float": float,
+		"long": int,
+		"round": round,
+		# RestrictedPython specific overrides
+		"_getattr_": _get_attr_for_eval,
+	}
 	code = unicodedata.normalize("NFKC", code)
 
 	for attribute in UNSAFE_ATTRIBUTES:
@@ -244,7 +254,7 @@ def get_safe_globals():
 	# default writer allows write access
 	out._write_ = _write
 	out._getitem_ = _getitem
-	out._getattr_ = _getattr
+	out._getattr_ = _getattr_for_safe_exec
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter
@@ -423,19 +433,33 @@ UNSAFE_ATTRIBUTES = {
 }
 
 
-def _getattr(object, name, default=None):
+def _getattr_for_safe_exec(object, name, default=None):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
 	# 1. it does not start with an underscore (safer_getattr)
 	# 2. it is not an UNSAFE_ATTRIBUTES
+	_validate_attribute_read(object, name)
 
+	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+
+
+def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):
+	_validate_attribute_read(object, name)
+
+	# Use vanilla getattr to raise correct attribute error. Safe exec has been supressing attribute
+	# error which is bad for DX/UX in general.
+	return getattr(object, name) if default is ARGUMENT_NOT_SET else getattr(object, name, default)
+
+
+def _validate_attribute_read(object, name):
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
 	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
-	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+	if name.startswith("_"):
+		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
 
 
 def _write(obj):
