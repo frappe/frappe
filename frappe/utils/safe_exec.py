@@ -87,6 +87,32 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 	return exec_globals, _locals
 
 
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	import unicodedata
+
+	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
+	code = unicodedata.normalize("NFKC", code)
+
+	for attribute in UNSAFE_ATTRIBUTES:
+		if attribute in code:
+			frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "{attribute}"')
+
+	if "__" in code:
+		frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "__"')
+
+	if not eval_globals:
+		eval_globals = {}
+
+	eval_globals["__builtins__"] = {}
+	eval_globals.update(whitelisted_globals)
+
+	return eval(
+		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
+		eval_globals,
+		eval_locals,
+	)
+
+
 @contextmanager
 def safe_exec_flags():
 	frappe.flags.in_safe_exec = True
