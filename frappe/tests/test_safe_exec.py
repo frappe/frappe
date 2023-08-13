@@ -18,8 +18,31 @@ class TestSafeExec(FrappeTestCase):
 		self.assertEqual(_locals["out"], 1)
 
 	def test_safe_eval(self):
-		self.assertEqual(frappe.safe_eval("1+1"), 2)
+
+		TEST_CASES = {
+			"1+1": 2,
+			'"abc" in "abl"': False,
+			'"a" in "abl"': True,
+			'"a" in ("a", "b")': True,
+			'"a" in {"a", "b"}': True,
+			'"a" in {"a": 1, "b": 2}': True,
+			'"a" in ["a" ,"b"]': True,
+		}
+
+		for code, result in TEST_CASES.items():
+			self.assertEqual(frappe.safe_eval(code), result)
+
 		self.assertRaises(AttributeError, frappe.safe_eval, "frappe.utils.os.path", get_safe_globals())
+
+		# Doc/dict objects
+		user = frappe.new_doc("User")
+		user.user_type = "System User"
+		user.enabled = 1
+		self.assertTrue(frappe.safe_eval("user_type == 'System User'", eval_locals=user.as_dict()))
+		self.assertEqual(
+			"System User Test", frappe.safe_eval("user_type + ' Test'", eval_locals=user.as_dict())
+		)
+		self.assertEqual(1, frappe.safe_eval("int(enabled)", eval_locals=user.as_dict()))
 
 	def test_sql(self):
 		_locals = dict(out=None)
