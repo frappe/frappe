@@ -1,16 +1,26 @@
-frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDate {
-	set_formatted_input(value) {
-		super.set_formatted_input(value);
+frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDatetime {
+	date_to_value(obj) {
+		return obj.toISOString().substring(11, 19);
 	}
+
+	value_to_date(value) {
+		if (!value) return new Date();
+		const time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
+		return frappe.datetime.moment_to_date_obj(moment(value, time_format));
+		// return frappe.datetime.str_to_obj(`1970-01-01T${value}`);
+	}
+
 	make_input() {
 		this.timepicker_only = true;
 		super.make_input();
 	}
+
 	make_picker() {
 		this.set_time_options();
 		this.set_datepicker();
 		this.refresh();
 	}
+
 	set_time_options() {
 		let sysdefaults = frappe.boot.sysdefaults;
 
@@ -42,18 +52,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			todayButton: true,
 		};
 	}
-	set_input(value) {
-		super.set_input(value);
-		if (
-			value &&
-			((this.last_value && this.last_value !== this.value) ||
-				!this.datepicker.selectedDates.length)
-		) {
-			let time_format = frappe.sys_defaults.time_format || "HH:mm:ss";
-			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
-			this.datepicker.selectDate(date_obj);
-		}
-	}
+
 	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data("datepicker");
@@ -70,32 +69,34 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			$tp.$secondsText.prev().css("display", "none");
 		}
 	}
-	set_description() {
-		const { description } = this.df;
-		const { time_zone } = frappe.sys_defaults;
-		if (!frappe.datetime.is_system_time_zone()) {
-			if (!description) {
-				this.df.description = time_zone;
-			} else if (!description.includes(time_zone)) {
-				this.df.description += "<br>" + time_zone;
-			}
-		}
-		super.set_description();
+
+	get_user_time_zone() {
+		return frappe.boot.time_zone?.system || frappe.sys_defaults.time_zone;
 	}
+
 	parse(value) {
-		if (value) {
-			if (value == "Invalid date") {
-				value = "";
-			}
-			return frappe.datetime.user_to_str(value, true);
+		let parsed = typeof value === "string" ? value.trim() : "";
+
+		if (["today", "now"].includes(parsed.toLowerCase())) {
+			parsed = frappe.datetime.now_time(false);
+		} else if (parsed) {
+			parsed = frappe.datetime.user_to_str(parsed, true);
 		}
+
+		if (parsed === "Invalid date") {
+			console.warn("Invalid time", value); // eslint-disable-line
+			parsed = "";
+		}
+
+		return parsed;
 	}
+
 	format_for_input(value) {
-		if (value) {
-			return frappe.datetime.str_to_user(value, true);
-		}
-		return "";
+		if (!value) return "";
+		// value = frappe.datetime.convert_to_user_tz(value, true);
+		return frappe.datetime.str_to_user(value, true);
 	}
+
 	validate(value) {
 		if (value && !frappe.datetime.validate(value)) {
 			let sysdefaults = frappe.sys_defaults;
