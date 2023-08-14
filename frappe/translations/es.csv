@@ -3027,6 +3027,10 @@ zoom-out,Alejar,
 {0} Calendar,{0} Calendario,
 {0} Chart,{0} Gráfico,
 {0} Dashboard,{0} Panel de control,
+<<<<<<< HEAD
+=======
+{0} if you are not redirected within {1} seconds,{0} si no es redirigido en {1} segundos,
+>>>>>>> d6dfe6f0fe (fix(Web Form): redirect countdown (#22032))
 {0} List,Lista {0},
 {0} Modules,{0} Módulos,
 {0} Report,{0} Informe,

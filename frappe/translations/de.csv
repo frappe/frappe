@@ -3034,6 +3034,10 @@ zoom-out,verkleinern,
 {0} Calendar,{0} Kalender,
 {0} Chart,{0} Diagramm,
 {0} Dashboard,{0}-Dashboard,
+<<<<<<< HEAD
+=======
+{0} if you are not redirected within {1} seconds,"{0}, falls Sie nicht innerhalb von {1} Sekunden weitergeleitet werden",
+>>>>>>> d6dfe6f0fe (fix(Web Form): redirect countdown (#22032))
 {0} List,{0} Liste,
 {0} Modules,{0} Module,
 {0} Report,{0} Bericht(e),
