@@ -54,7 +54,7 @@ class TelemetryManager {
 	}
 
 	register_pageview_handler() {
-		if (this.site_age && this.site_age > 5) {
+		if (this.site_age && this.site_age > 6) {
 			return;
 		}
 

@@ -30,7 +30,7 @@ def add_bootinfo(bootinfo):
 def site_age():
 	try:
 		est_creation = frappe.db.get_value("User", "Administrator", "creation")
-		return (getdate() - getdate(est_creation)).days
+		return (getdate() - getdate(est_creation)).days + 1
 	except Exception:
 		pass
 
