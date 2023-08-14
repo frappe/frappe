@@ -1,0 +1,57 @@
+:root {
+	--font-stack: "Inter V", "Inter", "-apple-system", "BlinkMacSystemFont","Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+	// font size
+	--text-tiny: 11px;
+	--text-xs: 12px;
+	--text-sm: 13px;
+	--text-md: 13px;
+	--text-base: 14px;
+	--text-lg: 16px;
+	--text-xl: 18px;
+	--text-2xl: 20px;
+	--text-3xl: 24px;
+	--text-4xl: 26px;
+	--text-5xl: 28px;
+	--text-6xl: 32px;
+	--text-7xl: 40px;
+	--text-8xl: 44px;
+	--text-9xl: 48px;
+	--text-10xl: 52px;
+	--text-11xl: 56px;
+	--text-12xl: 64px;
+
+	// font weight
+	--weight-regular: 420;
+	--weight-medium: 500;
+	--weight-semibold: 600;
+	--weight-bold: 700;
+	--weight-black: 800;
+
+	// line height TODO: better names
+	--text-line-height-3xl: 115%;
+	--text-line-height-4xl: 160%;
+	--text-line-height-7xl: 140%;
+	--text-line-height-12xl: 130%;
+	--text-line-height-14xl: 120%;
+
+	--para-line-height-2-xs: 160%;
+	--para-line-height-sm: 150%;
+	--para-line-height-2xl: 148%;
+	--para-line-height-3xl: 140%;
+
+	// letter spacing
+	--text-letter-spacing-tiny: 0.5px;
+	--text-letter-spacing-xs: 0.005em;
+	--text-letter-spacing-sm: 0.01em;
+	--text-letter-spacing-base: 0.015em;
+	--text-letter-spacing-md  : 0.02em;
+	--text-letter-spacing-lg: 0.09em;
+
+
+	// font color
+	--text-muted: var(--gray-700);
+	--text-light: var(--gray-600);
+	--text-dark: var(--fg-color);
+	--text-color: var(--gray-800);
+	--heading-color: var(--gray-900);
+}
