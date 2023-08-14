@@ -1540,7 +1540,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			})
 			.filter(Boolean);
 
-		if (this.raw_data.add_total_row) {
+		if (this.raw_data.add_total_row && !this.report_settings.tree) {
 			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 				row[cell.column.id] = cell.content;
 				row.is_total_row = true;
