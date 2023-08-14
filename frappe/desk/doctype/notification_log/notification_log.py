@@ -186,9 +186,12 @@ def mark_all_as_read():
 
 
 @frappe.whitelist()
-def mark_as_read(docname):
+def mark_as_read(docname: str):
+	if frappe.flags.read_only:
+		return
+
 	if docname:
-		frappe.db.set_value("Notification Log", docname, "read", 1, update_modified=False)
+		frappe.db.set_value("Notification Log", str(docname), "read", 1, update_modified=False)
 
 
 @frappe.whitelist()
