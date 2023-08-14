@@ -109,7 +109,17 @@ def search_widget(
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(
-			doctype, txt, standard_queries[doctype][0], searchfield, start, page_length, filters
+			doctype,
+			txt,
+			standard_queries[doctype][0],
+			searchfield,
+			start,
+			page_length,
+			filters,
+			filter_fields,
+			as_dict,
+			reference_doctype,
+			ignore_user_permissions,
 		)
 	else:
 		meta = frappe.get_meta(doctype)
