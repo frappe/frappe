@@ -105,3 +105,10 @@ class TestSafeExec(FrappeTestCase):
 
 		# RestrictedPython
 		safe_exec("my_dict = _dict()")
+
+	def test_write_wrapper(self):
+		# Allow modifying _dict instance
+		safe_exec("_dict().x = 1")
+
+		# dont Allow modifying _dict class
+		self.assertRaises(Exception, safe_exec, "_dict.x = 1")
