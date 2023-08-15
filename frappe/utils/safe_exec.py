@@ -444,7 +444,20 @@ def _validate_attribute_read(object, name):
 
 def _write(obj):
 	# guard function for RestrictedPython
-	# allow writing to any object
+	if isinstance(
+		obj,
+		(
+			types.ModuleType,
+			types.CodeType,
+			types.TracebackType,
+			types.FrameType,
+			type,
+			types.FunctionType,  # covers lambda
+			types.MethodType,
+			types.BuiltinFunctionType,  # covers methods
+		),
+	):
+		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj
 
 
