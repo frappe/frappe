@@ -64,6 +64,8 @@ def update_document_title(
 	)
 	name_updated = updated_name and (updated_name != doc.name)
 
+	queue = kwargs.get("queue") or "default"
+
 	if name_updated:
 		if enqueue and not is_scheduler_inactive():
 			current_name = doc.name
@@ -85,7 +87,7 @@ def update_document_title(
 				save_point=True,
 			)
 
-			doc.queue_action("rename", name=transformed_name, merge=merge)
+			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue)
 		else:
 			doc.rename(updated_name, merge=merge)
 
