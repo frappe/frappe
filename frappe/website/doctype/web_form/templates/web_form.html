@@ -141,8 +141,8 @@
 			{% if success_url %}
 				<div class="success_url_message">
 					<p>
-						{% set success_link = "<a href='{0}'>link</a>".format(success_url) %}
-						<span>{{ _("Click on this {0} if you are not redirected within 5 seconds").format(success_link) }} </span>
+						{% set success_link = '<a href="{0}">{1}</a>'.format(success_url, _("Click here")) %}
+						{{ _("{0} if you are not redirected within {1} seconds").format(success_link, '<span class="time">5</span>') }}
 					</p>
 				</div>
 			{% else %}

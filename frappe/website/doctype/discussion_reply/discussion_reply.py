@@ -15,7 +15,7 @@ class DiscussionReply(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		reply: DF.LongText | None
+		reply: DF.TextEditor | None
 		topic: DF.Link | None
 	# end: auto-generated types
 	def on_update(self):

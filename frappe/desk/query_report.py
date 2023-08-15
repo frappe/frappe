@@ -464,9 +464,7 @@ def get_data_for_custom_field(doctype, field):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
 
-	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
-
-	return value_map
+	return frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
 
 
 def get_data_for_custom_report(columns):

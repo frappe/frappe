@@ -11,26 +11,24 @@ Object.assign(frappe.energy_points, {
 	},
 	format_form_log(log) {
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
-		const formatted_log = `<span>
-			<!--${this.get_points(log.points)}&nbsp;-->
-			<a href="/app/energy-point-log/${log.name}">${this.get_form_log_message(log)}</a>
-			${log.reason ? separator + log.reason : ""}
-		</span>`;
-		return formatted_log;
+		return `<span>
+  			<!--${this.get_points(log.points)}&nbsp;-->
+  			<a href="/app/energy-point-log/${log.name}">${this.get_form_log_message(log)}</a>
+  			${log.reason ? separator + log.reason : ""}
+  		</span>`;
 	},
 	format_history_log(log) {
 		// redundant code to honor readability and to avoid confusion
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
 		const route = frappe.utils.get_form_link(log.reference_doctype, log.reference_name);
-		const formatted_log = `<div class="flex">
-			<span class="${log.points >= 0 ? "green" : "red"} mr-2">
-				${this.get_points(log.points)}
-			</span>
-			<a href="${route}" class="text-muted">${this.get_history_log_message(log)}</a>
-			${log.reason ? separator + log.reason : ""}
-			${separator + frappe.datetime.comment_when(log.creation)}
-		</div>`;
-		return formatted_log;
+		return `<div class="flex">
+  			<span class="${log.points >= 0 ? "green" : "red"} mr-2">
+  				${this.get_points(log.points)}
+  			</span>
+  			<a href="${route}" class="text-muted">${this.get_history_log_message(log)}</a>
+  			${log.reason ? separator + log.reason : ""}
+  			${separator + frappe.datetime.comment_when(log.creation)}
+  		</div>`;
 	},
 	get_history_log_message(log) {
 		const owner_name = frappe.user.full_name(log.owner).bold();

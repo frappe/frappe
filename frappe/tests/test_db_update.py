@@ -176,12 +176,10 @@ def get_other_fields_meta(meta):
 
 	optional_fields_map = {field: ("Text", 0) for field in optional_fields}
 	fields = dict(default_fields_map, **optional_fields_map, **child_table_fields_map)
-	field_map = [
+	return [
 		frappe._dict({"fieldname": field, "fieldtype": _type, "length": _length})
 		for field, (_type, _length) in fields.items()
 	]
-
-	return field_map
 
 
 def get_table_column(doctype, fieldname):

@@ -233,14 +233,11 @@ def get_next_link(route, url_prefix=None, app=None):
 
 	if next_item:
 		if next_item.route and next_item.title:
-			html = (
+			return (
 				'<p class="btn-next-wrapper">'
 				+ frappe._("Next")
 				+ ': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>'
 			).format(**next_item)
-
-			return html
-
 	return ""
 
 
@@ -565,15 +562,9 @@ def set_content_type(response, data, path):
 
 
 def add_preload_for_bundled_assets(response):
+	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
 
-	links = []
-
-	for css in frappe.local.preload_assets["style"]:
-		links.append(f"<{css}>; rel=preload; as=style")
-
-	for js in frappe.local.preload_assets["script"]:
-		links.append(f"<{js}>; rel=preload; as=script")
-
+	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
 	if links:
 		response.headers["Link"] = ",".join(links)
 

@@ -144,10 +144,7 @@ class WebsiteTheme(Document):
 		from frappe.utils.change_log import get_versions
 
 		apps = get_versions()
-		out = []
-		for app, values in apps.items():
-			out.append({"name": app, "title": values["title"]})
-		return out
+		return [{"name": app, "title": values["title"]} for app, values in apps.items()]
 
 
 def get_active_theme() -> Optional["WebsiteTheme"]:

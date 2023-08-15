@@ -1542,11 +1542,20 @@ def validate_fields(meta):
 			return
 
 		doctype = docfield.options
-		meta = frappe.get_meta(doctype)
+		child_doctype_meta = frappe.get_meta(doctype)
 
-		if not meta.istable:
+		if not child_doctype_meta.istable:
 			frappe.throw(
 				_("Option {0} for field {1} is not a child table").format(
+					frappe.bold(doctype), frappe.bold(docfield.fieldname)
+				),
+				title=_("Invalid Option"),
+			)
+
+		if not (meta.is_virtual == child_doctype_meta.is_virtual):
+			error_msg = " should be virtual." if meta.is_virtual else " cannot be virtual."
+			frappe.throw(
+				_("Child Table {0} for field {1}" + error_msg).format(
 					frappe.bold(doctype), frappe.bold(docfield.fieldname)
 				),
 				title=_("Invalid Option"),

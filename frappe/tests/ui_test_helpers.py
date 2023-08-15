@@ -414,7 +414,7 @@ def create_blog_post():
 		}
 	).insert(ignore_if_duplicate=True)
 
-	doc = frappe.get_doc(
+	return frappe.get_doc(
 		{
 			"name": "test-blog-attachment-post",
 			"doctype": "Blog Post",
@@ -424,8 +424,6 @@ def create_blog_post():
 			"content_type": "Rich Text",
 		},
 	).insert(ignore_if_duplicate=True)
-
-	return doc
 
 
 @whitelist_for_tests

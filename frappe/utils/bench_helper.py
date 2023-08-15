@@ -71,13 +71,13 @@ def get_sites(site_arg: str) -> list[str]:
 
 def get_app_commands(app: str) -> dict:
 	ret = {}
-	app_path = Path("..", "apps", app, app)
-
-	if not ((app_path / "commands.py").exists() or (app_path / "commands" / "__init__.py").exists()):
-		return ret
-
 	try:
 		app_command_module = importlib.import_module(f"{app}.commands")
+	except ModuleNotFoundError as e:
+		if e.name == f"{app}.commands":
+			return ret
+		traceback.print_exc()
+		return ret
 	except Exception:
 		traceback.print_exc()
 		return ret

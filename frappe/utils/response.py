@@ -173,9 +173,7 @@ def json_handler(obj):
 		return str(obj)
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
-		doc = obj.as_dict(no_nulls=True)
-		return doc
-
+		return obj.as_dict(no_nulls=True)
 	elif isinstance(obj, Iterable):
 		return list(obj)
 

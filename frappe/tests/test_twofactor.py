@@ -205,8 +205,7 @@ def create_http_request():
 	frappe.form_dict["usr"] = "test@example.com"
 	frappe.form_dict["pwd"] = "Eastern_43A1W"
 	frappe.local.form_dict["cmd"] = "login"
-	http_requests = HTTPRequest()
-	return http_requests
+	return HTTPRequest()
 
 
 def enable_2fa(bypass_two_factor_auth=0, bypass_restrict_ip_check=0):

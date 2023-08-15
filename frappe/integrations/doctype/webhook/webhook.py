@@ -104,10 +104,7 @@ class Webhook(Document):
 
 	def validate_repeating_fields(self):
 		"""Error when Same Field is entered multiple times in webhook_data"""
-		webhook_data = []
-		for entry in self.webhook_data:
-			webhook_data.append(entry.fieldname)
-
+		webhook_data = [entry.fieldname for entry in self.webhook_data]
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
