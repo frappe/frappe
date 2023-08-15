@@ -300,27 +300,40 @@ def _getitem(obj, key):
 	return obj[key]
 
 
+UNSAFE_ATTRIBUTES = {
+	# Generator Attributes
+	"gi_frame",
+	"gi_code",
+	"gi_yieldfrom",
+	# Coroutine Attributes
+	"cr_frame",
+	"cr_code",
+	"cr_origin",
+	"cr_await",
+	# Async Generator Attributes
+	"ag_code",
+	"ag_frame",
+	# Traceback Attributes
+	"tb_frame",
+	"tb_next",
+	# Format Attributes
+	"format",
+	"format_map",
+	# Frame attributes
+	"f_back",
+	"f_builtins",
+	"f_code",
+	"f_globals",
+	"f_locals",
+	"f_trace",
+}
+
+
 def _getattr(object, name, default=None):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
 	# 1. it does not start with an underscore (safer_getattr)
 	# 2. it is not an UNSAFE_ATTRIBUTES
-
-	UNSAFE_ATTRIBUTES = {
-		# Generator Attributes
-		"gi_frame",
-		"gi_code",
-		# Coroutine Attributes
-		"cr_frame",
-		"cr_code",
-		"cr_origin",
-		# Async Generator Attributes
-		"ag_code",
-		"ag_frame",
-		# Traceback Attributes
-		"tb_frame",
-		"tb_next",
-	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError("{name} is an unsafe attribute".format(name=name))

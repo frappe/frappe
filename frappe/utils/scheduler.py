@@ -12,6 +12,7 @@ from __future__ import print_function, unicode_literals
 
 # imports - standard imports
 import os
+import random
 import time
 
 # imports - module imports
@@ -44,6 +45,9 @@ def enqueue_events_for_all_sites():
 
 	with frappe.init_site():
 		sites = get_sites()
+
+	# Sites are sorted in alphabetical order, shuffle to randomize priorities
+	random.shuffle(sites)
 
 	for site in sites:
 		try:
