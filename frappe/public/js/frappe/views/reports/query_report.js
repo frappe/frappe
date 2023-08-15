@@ -175,12 +175,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_card_button_to_toolbar() {
+		if (!frappe.model.can_create("Number Card")) return;
 		this.page.add_inner_button(__("Create Card"), () => {
 			this.add_card_to_dashboard();
 		});
 	}
 
 	add_chart_buttons_to_toolbar(show) {
+		if (!frappe.model.can_create("Dashboard Chart")) return;
 		if (show) {
 			this.create_chart_button && this.create_chart_button.remove();
 			this.create_chart_button = this.page.add_button(__("Set Chart"), () => {
@@ -1534,7 +1536,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			})
 			.filter(Boolean);
 
-		if (this.raw_data.add_total_row) {
+		if (this.raw_data.add_total_row && !this.report_settings.tree) {
 			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 				row[cell.column.id] = cell.content;
 				row.is_total_row = true;
