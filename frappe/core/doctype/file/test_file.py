@@ -28,11 +28,11 @@ test_content1 = "Hello"
 test_content2 = "Hello World"
 
 
-def make_test_doc():
+def make_test_doc(ignore_permissions=False):
 	d = frappe.new_doc("ToDo")
 	d.description = "Test"
 	d.assigned_by = frappe.session.user
-	d.save()
+	d.save(ignore_permissions)
 	return d.doctype, d.name
 
 
@@ -600,25 +600,27 @@ class TestAttachmentsAccess(FrappeTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
 
-	def test_attachments_access(self):
+	def test_list_private_attachments(self):
 		frappe.set_user("test4@example.com")
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 
 		frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": "test_user.txt",
+				"file_name": "test_user_attachment.txt",
 				"attached_to_doctype": self.attached_to_doctype,
 				"attached_to_name": self.attached_to_docname,
 				"content": "Testing User",
+				"is_private": 1,
 			}
 		).insert()
 
 		frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": "test_user_home.txt",
+				"file_name": "test_user_standalone.txt",
 				"content": "User Home",
+				"is_private": 1,
 			}
 		).insert()
 
@@ -627,18 +629,20 @@ class TestAttachmentsAccess(FrappeTestCase):
 		frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": "test_system_manager.txt",
+				"file_name": "test_sm_attachment.txt",
 				"attached_to_doctype": self.attached_to_doctype,
 				"attached_to_name": self.attached_to_docname,
 				"content": "Testing System Manager",
+				"is_private": 1,
 			}
 		).insert()
 
 		frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": "test_sm_home.txt",
+				"file_name": "test_sm_standalone.txt",
 				"content": "System Manager Home",
+				"is_private": 1,
 			}
 		).insert()
 
@@ -653,15 +657,51 @@ class TestAttachmentsAccess(FrappeTestCase):
 			file.file_name for file in get_files_in_folder("Home/Attachments")["files"]
 		]
 
-		self.assertIn("test_sm_home.txt", system_manager_files)
-		self.assertNotIn("test_sm_home.txt", user_files)
-		self.assertIn("test_user_home.txt", system_manager_files)
-		self.assertIn("test_user_home.txt", user_files)
+		self.assertIn("test_sm_standalone.txt", system_manager_files)
+		self.assertNotIn("test_sm_standalone.txt", user_files)
 
-		self.assertIn("test_system_manager.txt", system_manager_attachments_files)
-		self.assertNotIn("test_system_manager.txt", user_attachments_files)
-		self.assertIn("test_user.txt", system_manager_attachments_files)
-		self.assertIn("test_user.txt", user_attachments_files)
+		self.assertIn("test_user_standalone.txt", user_files)
+		self.assertNotIn("test_user_standalone.txt", system_manager_files)
+
+		self.assertIn("test_sm_attachment.txt", system_manager_attachments_files)
+		self.assertIn("test_sm_attachment.txt", user_attachments_files)
+		self.assertIn("test_user_attachment.txt", system_manager_attachments_files)
+		self.assertIn("test_user_attachment.txt", user_attachments_files)
+
+	def test_list_public_single_file(self):
+		"""Ensure that users are able to list public standalone files."""
+		frappe.set_user("test@example.com")
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_public_single.txt",
+				"content": "Public single File",
+				"is_private": 0,
+			}
+		).insert()
+
+		frappe.set_user("test4@example.com")
+		files = [file.file_name for file in get_files_in_folder("Home")["files"]]
+		self.assertIn("test_public_single.txt", files)
+
+	def test_list_public_attachment(self):
+		"""Ensure that users are able to list public attachments."""
+		frappe.set_user("test@example.com")
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+		frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_public_attachment.txt",
+				"attached_to_doctype": self.attached_to_doctype,
+				"attached_to_name": self.attached_to_docname,
+				"content": "Public Attachment",
+				"is_private": 0,
+			}
+		).insert()
+
+		frappe.set_user("test4@example.com")
+		files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
+		self.assertIn("test_public_attachment.txt", files)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
@@ -739,3 +779,91 @@ class TestFileOptimization(FrappeTestCase):
 			size_after_rollback = os.stat(image_path).st_size
 
 			self.assertEqual(size_before_optimization, size_after_rollback)
+
+
+class TestGuestFileAndAttachments(FrappeTestCase):
+	def setUp(self) -> None:
+		frappe.db.delete("File", {"is_folder": 0})
+		frappe.get_doc(
+			doctype="DocType",
+			name="Test For Attachment",
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
+			],
+		).insert(ignore_if_duplicate=True)
+
+	def tearDown(self) -> None:
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		frappe.delete_doc("DocType", "Test For Attachment")
+
+	def test_attach_unattached_guest_file(self):
+		"""Ensure that unattached files are attached on doc update."""
+		f = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_guest_attachment.txt",
+				"content": "Guest Home",
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		d = frappe.get_doc(
+			{
+				"doctype": "Test For Attachment",
+				"title": "Test for attachment on update",
+				"attachment": f.file_url,
+				"assigned_by": frappe.session.user,
+			}
+		)
+		d.save()
+
+		self.assertTrue(
+			frappe.db.exists(
+				"File",
+				{
+					"file_name": "test_private_guest_attachment.txt",
+					"file_url": f.file_url,
+					"attached_to_doctype": "Test For Attachment",
+					"attached_to_name": d.name,
+					"attached_to_field": "attachment",
+				},
+			)
+		)
+
+	def test_list_private_guest_single_file(self):
+		"""Ensure that guests are not able to read private standalone guest files."""
+		frappe.set_user("Guest")
+
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_guest_single_txt",
+				"content": "Private single File",
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(file.is_downloadable())
+
+	def test_list_private_guest_attachment(self):
+		"""Ensure that guests are not able to read private guest attachments."""
+		frappe.set_user("Guest")
+
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc(ignore_permissions=True)
+
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_private_guest_attachment.txt",
+				"attached_to_doctype": self.attached_to_doctype,
+				"attached_to_name": self.attached_to_docname,
+				"content": "Private Attachment",
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(file.is_downloadable())
