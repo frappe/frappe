@@ -12,6 +12,7 @@ from frappe import _
 from frappe.model import log_types
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr, now_datetime
+from frappe.utils.caching import redis_cache
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -177,12 +178,7 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	"""Checks if the doctype has autoincrement autoname set"""
 
 	if doctype in log_types:
-		query = f"""select data_type FROM information_schema.columns where column_name = 'name' and table_name = 'tab{doctype}'"""
-		values = ()
-		if frappe.db.db_type == "mariadb":
-			query += " and table_schema = %s"
-			values = (frappe.db.db_name,)
-		return frappe.db.sql(query, values)[0][0] == "bigint"
+		return _implicitly_auto_incremented(doctype)
 	else:
 		if not meta:
 			meta = frappe.get_meta(doctype)
@@ -191,6 +187,16 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 			return True
 
 	return False
+
+
+@redis_cache
+def _implicitly_auto_incremented(doctype) -> bool:
+	query = f"""select data_type FROM information_schema.columns where column_name = 'name' and table_name = 'tab{doctype}'"""
+	values = ()
+	if frappe.db.db_type == "mariadb":
+		query += " and table_schema = %s"
+		values = (frappe.db.db_name,)
+	return frappe.db.sql(query, values)[0][0] == "bigint"
 
 
 def set_name_from_naming_options(autoname, doc):
