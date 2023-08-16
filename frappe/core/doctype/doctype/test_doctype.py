@@ -567,20 +567,10 @@ class TestDocType(FrappeTestCase):
 				"options": "Test Virtual DocType as Child Table",
 			},
 		)
+		self.assertRaises(frappe.exceptions.ValidationError, parent_doc.insert)
+		parent_doc.is_virtual = 1
 		parent_doc.insert(ignore_permissions=True)
-
-		# create entry for parent doctype
-		parent_doc_entry = frappe.get_doc(
-			{"doctype": "Test Parent Virtual DocType", "some_fieldname": "Test"}
-		)
-		parent_doc_entry.insert(ignore_permissions=True)
-
-		# update the parent doc (should not abort because of any DB query to a virtual child table, as there is none)
-		parent_doc_entry.some_fieldname = "Test update"
-		parent_doc_entry.save(ignore_permissions=True)
-
-		# delete the parent doc (should not abort because of any DB query to a virtual child table, as there is none)
-		parent_doc_entry.delete()
+		self.assertFalse(frappe.db.table_exists("Test Parent Virtual DocType"))
 
 	def test_default_fieldname(self):
 		fields = [
@@ -777,6 +767,7 @@ def new_doctype(
 	unique: bool = False,
 	depends_on: str = "",
 	fields: list[dict] | None = None,
+	custom: bool = True,
 	**kwargs,
 ):
 	if not name:
@@ -787,7 +778,7 @@ def new_doctype(
 		{
 			"doctype": "DocType",
 			"module": "Core",
-			"custom": 1,
+			"custom": custom,
 			"fields": [
 				{
 					"label": "Some Field",

@@ -4137,7 +4137,7 @@ No changes in document,নথিতে কোনও পরিবর্তন ন
 by Role,ভূমিকা দ্বারা,
 Document is only editable by users with role,দস্তাবেজটি ভূমিকা সহ ব্যবহারকারীরা কেবল সম্পাদনযোগ্য,
 {0}: Other permission rules may also apply,{0}: অন্যান্য অনুমতি বিধিগুলিও প্রয়োগ হতে পারে,
-{0} Page Views,Views 0} পৃষ্ঠা দর্শন,
+{0} Web page views,Views 0} পৃষ্ঠা দর্শন,
 Expand,বিস্তৃত করা,
 Collapse,সঙ্কুচিত,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","অবৈধ বেয়ারার টোকেন, অনুগ্রহ করে &#39;বহনকারী&#39; উপসর্গ সহ একটি বৈধ অ্যাক্সেস টোকেন সরবরাহ করুন।",

@@ -462,10 +462,7 @@ def get_messages_from_doctype(name):
 			messages.append(d.options)
 
 	# translations of roles
-	for d in meta.get("permissions"):
-		if d.role:
-			messages.append(d.role)
-
+	messages.extend(d.role for d in meta.get("permissions") if d.role)
 	messages = [message for message in messages if message]
 	messages = [("DocType: " + name, message) for message in messages if is_translatable(message)]
 
@@ -579,10 +576,11 @@ def get_messages_from_custom_fields(app_name):
 				continue
 			messages.append(("Custom Field - {}: {}".format(prop, cf["name"]), cf[prop]))
 		if cf["fieldtype"] == "Selection" and cf.get("options"):
-			for option in cf["options"].split("\n"):
-				if option and "icon" not in option and is_translatable(option):
-					messages.append(("Custom Field - Description: " + cf["name"], option))
-
+			messages.extend(
+				("Custom Field - Description: " + cf["name"], option)
+				for option in cf["options"].split("\n")
+				if option and "icon" not in option and is_translatable(option)
+			)
 	return messages
 
 
@@ -1199,12 +1197,9 @@ def send_translations(translation_dict):
 
 
 def deduplicate_messages(messages):
-	ret = []
 	op = operator.itemgetter(1)
 	messages = sorted(messages, key=op)
-	for k, g in itertools.groupby(messages, op):
-		ret.append(next(g))
-	return ret
+	return [next(g) for k, g in itertools.groupby(messages, op)]
 
 
 @frappe.whitelist()
@@ -1259,11 +1254,7 @@ def get_messages(language, start=0, page_length=100, search_text=""):
 	from frappe.frappeclient import FrappeClient
 
 	translator = FrappeClient(get_translator_url())
-	translated_dict = translator.post_api(
-		"translator.api.get_strings_for_translation", params=locals()
-	)
-
-	return translated_dict
+	return translator.post_api("translator.api.get_strings_for_translation", params=locals())
 
 
 @frappe.whitelist()
@@ -1291,10 +1282,10 @@ def get_contribution_status(message_id):
 
 	doc = frappe.get_doc("Translation", message_id)
 	translator = FrappeClient(get_translator_url())
-	contributed_translation = translator.get_api(
-		"translator.api.get_contribution_status", params={"translation_id": doc.contribution_docname}
+	return translator.get_api(
+		"translator.api.get_contribution_status",
+		params={"translation_id": doc.contribution_docname},
 	)
-	return contributed_translation
 
 
 def get_translator_url():

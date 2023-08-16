@@ -3,9 +3,11 @@ frappe.ready(() => {
 	add_color_to_avatars();
 
 	this.single_thread = $(".is-single-thread").length;
-	if (this.single_thread) {
-		make_comment_editor($(".discussion-form .discussions-comment"));
-	}
+	frappe.require("controls.bundle.js", () => {
+		if (this.single_thread) {
+			make_comment_editor($(".discussion-form .discussions-comment"));
+		}
+	});
 
 	$(".search-field").keyup((e) => {
 		search_topic(e);

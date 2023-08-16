@@ -417,8 +417,7 @@ class EmailAccount(Document):
 
 	@classmethod
 	def find_default_incoming(cls):
-		doc = cls.find_one_by_filters(enable_incoming=1, default_incoming=1)
-		return doc
+		return cls.find_one_by_filters(enable_incoming=1, default_incoming=1)
 
 	@classmethod
 	def get_account_details_from_site_config(cls):
@@ -628,8 +627,7 @@ class EmailAccount(Document):
 	def get_unreplied_notification_emails(self):
 		"""Return list of emails listed"""
 		self.send_notification_to = self.send_notification_to.replace(",", "\n")
-		out = [e.strip() for e in self.send_notification_to.split("\n") if e.strip()]
-		return out
+		return [e.strip() for e in self.send_notification_to.split("\n") if e.strip()]
 
 	def on_trash(self):
 		"""Clear communications where email account is linked"""
@@ -736,22 +734,22 @@ def get_append_to(
 	doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None
 ):
 	txt = txt if txt else ""
-	email_append_to_list = []
 
-	# Set Email Append To DocTypes via DocType
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
-	for dt in frappe.get_all("DocType", filters=filters, fields=["name", "email_append_to"]):
-		email_append_to_list.append(dt.name)
-
+	# Set Email Append To DocTypes via DocType
+	email_append_to_list = [
+		dt.name for dt in frappe.get_all("DocType", filters=filters, fields=["name", "email_append_to"])
+	]
 	# Set Email Append To DocTypes set via Customize Form
-	for dt in frappe.get_list(
-		"Property Setter", filters={"property": "email_append_to", "value": 1}, fields=["doc_type"]
-	):
-		email_append_to_list.append(dt.doc_type)
-
-	email_append_to = [[d] for d in set(email_append_to_list) if txt in d]
-
-	return email_append_to
+	email_append_to_list.extend(
+		dt.doc_type
+		for dt in frappe.get_list(
+			"Property Setter",
+			filters={"property": "email_append_to", "value": 1},
+			fields=["doc_type"],
+		)
+	)
+	return [[d] for d in set(email_append_to_list) if txt in d]
 
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
@@ -889,8 +887,7 @@ def get_max_email_uid(email_account):
 	if not result:
 		return 1
 	else:
-		max_uid = cint(result[0].get("uid", 0)) + 1
-		return max_uid
+		return cint(result[0].get("uid", 0)) + 1
 
 
 def setup_user_email_inbox(

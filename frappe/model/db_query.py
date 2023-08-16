@@ -376,9 +376,7 @@ class DatabaseQuery:
 
 			if isinstance(filters, dict):
 				fdict = filters
-				filters = []
-				for key, value in fdict.items():
-					filters.append(make_filter_tuple(self.doctype, key, value))
+				filters = [make_filter_tuple(self.doctype, key, value) for key, value in fdict.items()]
 			setattr(self, filter_name, filters)
 
 	def sanitize_fields(self):
@@ -564,10 +562,7 @@ class DatabaseQuery:
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			for f in optional_fields:
-				if f in fld and not f in self.columns:
-					to_remove.append(fld)
-
+			to_remove.extend(fld for f in optional_fields if f in fld and f not in self.columns)
 		for fld in to_remove:
 			del self.fields[self.fields.index(fld)]
 
@@ -577,10 +572,9 @@ class DatabaseQuery:
 			if isinstance(each, str):
 				each = [each]
 
-			for element in each:
-				if element in optional_fields and element not in self.columns:
-					to_remove.append(each)
-
+			to_remove.extend(
+				each for element in each if element in optional_fields and element not in self.columns
+			)
 		for each in to_remove:
 			if isinstance(self.filters, dict):
 				del self.filters[each]

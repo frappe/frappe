@@ -121,7 +121,6 @@ class FullTextSearch:
 		ix = self.get_index()
 
 		results = None
-		out = []
 
 		search_fields = self.get_fields_to_search()
 		fieldboosts = {}
@@ -143,10 +142,7 @@ class FullTextSearch:
 				filter_scoped = Prefix(self.id, scope)
 			results = searcher.search(query, limit=limit, filter=filter_scoped)
 
-			for r in results:
-				out.append(self.parse_result(r))
-
-		return out
+			return [self.parse_result(r) for r in results]
 
 
 class FuzzyTermExtended(FuzzyTerm):

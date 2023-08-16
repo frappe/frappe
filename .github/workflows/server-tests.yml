@@ -147,6 +147,22 @@ jobs:
           name: coverage-${{ matrix.db }}-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
 
+  # This is required because github still doesn't understand knowingly skipped tests
+  faux-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+
+    strategy:
+      matrix:
+       db: ["mariadb", "postgres"]
+       container: [1, 2]
+
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"
+
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
