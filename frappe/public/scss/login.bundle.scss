@@ -25,7 +25,6 @@ body {
 			padding-top: 45px;
 			padding-bottom: 45px;
 			background-color: #fff;
-			box-shadow: var(--shadow-base);
 		}
 	}
 
@@ -89,7 +88,7 @@ body {
 
 			.field-icon {
 				left: 9px;
-				top: 8px;
+				top: 5px;
 				position: absolute;
 				z-index: 2;
 			}
@@ -100,11 +99,17 @@ body {
 
 				input {
 					padding-left: 35px;
+					&:autofill, &:-webkit-autofill {
+						-webkit-background-clip: text;
+    					-webkit-text-fill-color: var(--text-color);
+						-webkit-box-shadow: 0 0 0 30px var(--gray-200) inset !important;
+						transition: background-color 5000s ease-in-out 0s;
+					  }
 				}
 
 				.toggle-password {
 					right: 9px;
-					top: 9px;
+					top: 5px;
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
@@ -113,7 +118,7 @@ body {
 			}
 
 			.btn-login-option {
-				font-size: var(--text-md);
+				font-size: var(--text-base);
 				font-weight: 500;
 				color: var(--text-gray-700);
 				background: var(--gray-100);
@@ -140,7 +145,7 @@ body {
 
 			.social-logins {
 				margin-top: var(--margin-md);
-				font-size: var(--text-md);
+				font-size: var(--text-base);
 
 				.social-login-buttons {
 					margin-top: var(--margin-md);
@@ -175,7 +180,6 @@ body {
 
 		img {
 			max-height: 42px;
-			margin-bottom: var(--margin-lg, 30px);
 		}
 
 		h4 {
@@ -188,10 +192,10 @@ body {
 	.sign-up-message {
 		margin-top: 2rem;
 		color: var(--text-light);
-		font-size: var(--text-md);
+		font-size: var(--text-base);
 
 		a {
-			font-size: var(--text-md);
+			font-size: var(--text-base);
 			color: var(--primary);
 		}
 	}
