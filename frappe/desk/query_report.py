@@ -201,7 +201,7 @@ def run(
 	if sbool(are_default_filters) and report.custom_filters:
 		filters = report.custom_filters
 
-	if report.prepared_report and not ignore_prepared_report and not custom_columns:
+	if report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns:
 		if filters:
 			if isinstance(filters, str):
 				filters = json.loads(filters)
