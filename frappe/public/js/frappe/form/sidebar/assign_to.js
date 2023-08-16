@@ -318,7 +318,7 @@ frappe.ui.form.AssignmentDialog = class {
 		if (assignment === frappe.session.user) {
 			btn_group.append(`
 				<button type="button" class="btn btn-default complete-btn" title="${__("Done")}">
-					${frappe.utils.icon("tick")}
+					${frappe.utils.icon("tick", "xs")}
 				</button>
 			`);
 			btn_group.find(".complete-btn").click(() => {

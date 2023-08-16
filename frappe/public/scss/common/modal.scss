@@ -263,10 +263,11 @@ body.modal-open[style^="padding-right"] {
 	@extend .row;
 	.btn-group {
 		opacity: 0;
-		transition: opacity .77s ease-in-out;
+		transition: opacity .3s ease-in-out;
 
 		button {
 			display: inline-flex;
+			align-items: center;
 		}
 	}
 	.assignee {
