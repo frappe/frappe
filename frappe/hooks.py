@@ -147,12 +147,17 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.core.doctype.file.utils.attach_files_to_document",
+<<<<<<< HEAD
 <<<<<<< HEAD
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 =======
 >>>>>>> 88cbba5f21 (fix: run assignment rule on change)
+=======
+			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
+>>>>>>> 63aded91f9 (Revert "fix: run assignment rule on change")
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
@@ -172,8 +177,6 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone",
-			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 		],
 	},
 	"Event": {
