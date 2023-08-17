@@ -11,6 +11,12 @@
 	stroke: var(--icon-stroke);
 }
 
+.es-icon {
+	@extend .icon;
+	fill: var(--icon-stroke);
+	stroke: var(--icon-fill);
+}
+
 /* like icon */
 use.like-icon {
 	cursor: pointer;
@@ -35,8 +41,9 @@ use.like-icon {
 
 .liked {
 	use.like-icon {
+		--icon-stroke: var(--red-500);
 		stroke: none;
-		fill: var(--red-500);
+		fill: var(--icon-stroke);
 	}
 }
 
