@@ -1681,7 +1681,7 @@ Report End Time,報告結束時間
 {0} comments,{0}評論
 Label and Type,標籤和類型
 forward,轉發
-{0} edited this {1},{0}編輯此{1}
+{0} last edited this,{0}編輯此
 New Folder,新建文件夾
 Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,使用這個帳戶提到發件人使用此帳戶發送的所有電子郵件的電子郵件地址。
 Toggle Charts,切換圖表
@@ -1771,7 +1771,7 @@ Show Totals,顯示總計
 Relapses,復發
 Preferred Shipping Address,偏好的送貨地址
 With Letter head,隨著信頭
-{0} created this {1},{0}新增此{1}
+{0} created this,{0}新增此
 "If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.",如果選中此選項，將導入包含有效數據的行，並將無效行轉儲到新文件中以供稍後導入。
 Document is only editable by users of role,文件只有通過編輯角色的用戶
 "The task {0}, that you assigned to {1}, has been closed by {2}.",任務{0}，您分配給{1}，已被關閉{2}。

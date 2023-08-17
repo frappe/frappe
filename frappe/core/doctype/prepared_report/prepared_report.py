@@ -168,7 +168,7 @@ def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 
 @frappe.whitelist()
 def get_reports_in_queued_state(report_name, filters):
-	reports = frappe.get_all(
+	return frappe.get_all(
 		"Prepared Report",
 		filters={
 			"report_name": report_name,
@@ -177,7 +177,6 @@ def get_reports_in_queued_state(report_name, filters):
 			"owner": frappe.session.user,
 		},
 	)
-	return reports
 
 
 def get_completed_prepared_report(filters, user, report_name):
@@ -211,9 +210,9 @@ def expire_stalled_report():
 def delete_prepared_reports(reports):
 	reports = frappe.parse_json(reports)
 	for report in reports:
-		frappe.delete_doc(
-			"Prepared Report", report["name"], ignore_permissions=True, delete_permanently=True
-		)
+		prepared_report = frappe.get_doc("Prepared Report", report["name"])
+		if prepared_report.has_permission():
+			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
 def create_json_gz_file(data, dt, dn):

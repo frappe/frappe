@@ -186,7 +186,7 @@ class WebsiteAnalytics:
 			unique_count += data.get("unique_count")
 			total_count += data.get("count")
 
-		report_summary = [
+		return [
 			{
 				"value": total_count,
 				"label": "Total Page Views",
@@ -198,4 +198,3 @@ class WebsiteAnalytics:
 				"datatype": "Int",
 			},
 		]
-		return report_summary

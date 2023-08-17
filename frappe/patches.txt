@@ -193,6 +193,7 @@ frappe.patches.v14_0.delete_payment_gateways
 frappe.patches.v15_0.remove_event_streaming
 frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
+execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 
 [post_model_sync]
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
@@ -227,3 +228,4 @@ execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 execute:frappe.db.set_single_value("Document Naming Settings", "default_amend_naming", "Amend Counter")
 execute:frappe.delete_doc_if_exists("DocType", "Error Snapshot")
 frappe.patches.v15_0.move_event_cancelled_to_status
+frappe.patches.v15_0.set_file_type

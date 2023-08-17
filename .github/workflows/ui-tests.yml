@@ -167,6 +167,18 @@ jobs:
         if: ${{ always() }}
         run: cat ~/frappe-bench/bench_start.log || true
 
+  faux-test:
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build != 'strawberry' && github.repository_owner == 'frappe' }}
+    name: UI Tests (Cypress)
+    strategy:
+      matrix:
+       container: [1, 2, 3]
+
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"
 
   coverage:
     name: Coverage Wrap Up

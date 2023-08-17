@@ -31,8 +31,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	has_permissions() {
-		const can_read = frappe.perm.has_perm(this.doctype, 0, "read");
-		return can_read;
+		return frappe.perm.has_perm(this.doctype, 0, "read");
 	}
 
 	show() {
@@ -992,26 +991,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const seen = this.get_seen_class(doc);
 
-		let subject_html = `
-			<span class="level-item select-like">
-				<input class="list-row-checkbox" type="checkbox"
-					data-name="${escape(doc.name)}">
-				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
-					${this.get_like_html(doc)}
-				</span>
-			</span>
-			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
-				<a class="ellipsis"
-					href="${this.get_form_link(doc)}"
-					title="${escaped_subject}"
-					data-doctype="${this.doctype}"
-					data-name="${escaped_subject}">
-					${subject}
-				</a>
-			</span>
-		`;
-
-		return subject_html;
+		return `
+  			<span class="level-item select-like">
+  				<input class="list-row-checkbox" type="checkbox"
+  					data-name="${escape(doc.name)}">
+  				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
+  					${this.get_like_html(doc)}
+  				</span>
+  			</span>
+  			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
+  				<a class="ellipsis"
+  					href="${this.get_form_link(doc)}"
+  					title="${escaped_subject}"
+  					data-doctype="${this.doctype}"
+  					data-name="${escaped_subject}">
+  					${subject}
+  				</a>
+  			</span>
+  		`;
 	}
 
 	get_indicator_html(doc, show_workflow_state) {

@@ -290,10 +290,11 @@ class Report(Document):
 			columns = params.get("fields")
 		else:
 			columns = [["name", self.ref_doctype]]
-			for df in frappe.get_meta(self.ref_doctype).fields:
-				if df.in_list_view:
-					columns.append([df.fieldname, self.ref_doctype])
-
+			columns.extend(
+				[df.fieldname, self.ref_doctype]
+				for df in frappe.get_meta(self.ref_doctype).fields
+				if df.in_list_view
+			)
 		return columns
 
 	def get_standard_report_filters(self, params, filters):
@@ -411,9 +412,7 @@ def get_group_by_column_label(args, meta):
 	else:
 		sql_fn_map = {"avg": "Average", "sum": "Sum"}
 		aggregate_on_label = meta.get_label(args.aggregate_on)
-		label = _("{function} of {fieldlabel}").format(
-			function=sql_fn_map[args.aggregate_function], fieldlabel=aggregate_on_label
-		)
+		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
 	return label
 
 

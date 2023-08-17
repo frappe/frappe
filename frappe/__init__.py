@@ -523,11 +523,7 @@ def clear_messages():
 
 
 def get_message_log():
-	log = []
-	for msg_out in local.message_log:
-		log.append(json.loads(msg_out))
-
-	return log
+	return [json.loads(msg_out) for msg_out in local.message_log]
 
 
 def clear_last_message():
@@ -1460,13 +1456,11 @@ def get_all_apps(with_internal_apps=True, sites_path=None):
 
 
 @request_cache
-def get_installed_apps(*, _ensure_on_bench=False):
+def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
 	"""
 	Get list of installed apps in current site.
 
-	:param sort: [DEPRECATED] Sort installed apps based on the sequence in sites/apps.txt
-	:param frappe_last: [DEPRECATED] Keep frappe last. Do not use this, reverse the app list instead.
-	:param ensure_on_bench: Only return apps that are present on bench.
+	:param _ensure_on_bench: Only return apps that are present on bench.
 	"""
 	if getattr(flags, "in_install_db", True):
 		return []
@@ -2258,27 +2252,11 @@ def bold(text):
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
+
+	from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES
+
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
 	code = unicodedata.normalize("NFKC", code)
-
-	UNSAFE_ATTRIBUTES = {
-		# Generator Attributes
-		"gi_frame",
-		"gi_code",
-		# Coroutine Attributes
-		"cr_frame",
-		"cr_code",
-		"cr_origin",
-		# Async Generator Attributes
-		"ag_code",
-		"ag_frame",
-		# Traceback Attributes
-		"tb_frame",
-		"tb_next",
-		# Format Attributes
-		"format",
-		"format_map",
-	}
 
 	for attribute in UNSAFE_ATTRIBUTES:
 		if attribute in code:

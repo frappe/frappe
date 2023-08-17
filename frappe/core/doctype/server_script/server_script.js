@@ -68,7 +68,7 @@ else:
 <pre><code>
 # generate dynamic conditions and set it in the conditions variable
 tenant_id = frappe.db.get_value(...)
-conditions = 'tenant_id = {}'.format(tenant_id)
+conditions = f'tenant_id = {tenant_id}'
 
 # resulting select query
 select name from \`tabPerson\`

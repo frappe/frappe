@@ -293,7 +293,7 @@ def create_custom_field(doctype, df, ignore_validate=False, is_system_generated=
 		return custom_field
 
 
-def create_custom_fields(custom_fields, ignore_validate=False, update=True):
+def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True):
 	"""Add / update multiple custom fields
 
 	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`"""

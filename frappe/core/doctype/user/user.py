@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from collections.abc import Sequence
+
+from collections.abc import Iterable
 from datetime import timedelta
-from typing import Optional
 
 import frappe
 import frappe.defaults
@@ -54,7 +54,7 @@ class User(Document):
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
 		banner_image: DF.AttachImage | None
-		bio: DF.Text | None
+		bio: DF.SmallText | None
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
@@ -569,10 +569,7 @@ class User(Document):
 		tables = frappe.db.get_tables()
 		for tab in tables:
 			desc = frappe.db.get_table_columns_description(tab)
-			has_fields = []
-			for d in desc:
-				if d.get("name") in ["owner", "modified_by"]:
-					has_fields.append(d.get("name"))
+			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 			for field in has_fields:
 				frappe.db.sql(
 					"""UPDATE `%s`
@@ -1010,7 +1007,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60, methods=["POST"])
+@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60)
 def reset_password(user: str) -> str:
 	if user == "Administrator":
 		return "not allowed"
@@ -1042,7 +1039,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	conditions = []
 
 	user_type_condition = "and user_type != 'Website User'"
-	if filters and filters.get("ignore_user_type"):
+	if filters and filters.get("ignore_user_type") and frappe.session.data.user_type == "System User":
 		user_type_condition = ""
 		filters.pop("ignore_user_type")
 
@@ -1090,28 +1087,23 @@ def get_total_users():
 	)
 
 
-def get_system_users(exclude_users=None, limit=None):
-	if not exclude_users:
-		exclude_users = []
-	elif not isinstance(exclude_users, (list, tuple)):
-		exclude_users = [exclude_users]
+def get_system_users(exclude_users: Iterable[str] | str | None = None, limit: int | None = None):
+	_excluded_users = list(STANDARD_USERS)
+	if isinstance(exclude_users, str):
+		_excluded_users.append(exclude_users)
+	elif isinstance(exclude_users, Iterable):
+		_excluded_users.extend(exclude_users)
 
-	limit_cond = ""
-	if limit:
-		limit_cond = f"limit {limit}"
-
-	exclude_users += list(STANDARD_USERS)
-
-	system_users = frappe.db.sql_list(
-		"""select name from `tabUser`
-		where enabled=1 and user_type != 'Website User'
-		and name not in ({}) {}""".format(
-			", ".join(["%s"] * len(exclude_users)), limit_cond
-		),
-		exclude_users,
+	return frappe.get_all(
+		"User",
+		filters={
+			"enabled": 1,
+			"user_type": ("!=", "Website User"),
+			"name": ("not in", _excluded_users),
+		},
+		pluck="name",
+		limit=limit,
 	)
-
-	return system_users
 
 
 def get_active_users():

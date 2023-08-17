@@ -33,6 +33,7 @@ class SystemConsole(Document):
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
 		except Exception:
+			self.commit = False
 			self.output = frappe.get_traceback()
 
 		if self.commit:

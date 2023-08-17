@@ -33,7 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, flt, random_string
+from frappe.utils import cint, flt, get_table_name, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -198,6 +198,7 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+		self.check_indexing_for_dashboard_links()
 
 		if not self.istable:
 			validate_permissions(self)
@@ -240,9 +241,7 @@ class DocType(Document):
 			controller = Document
 
 		available_objects = {x for x in dir(controller) if isinstance(x, str)}
-		property_set = {
-			x for x in available_objects if isinstance(getattr(controller, x, None), property)
-		}
+		property_set = {x for x in available_objects if is_a_property(getattr(controller, x, None))}
 		method_set = {
 			x for x in available_objects if x not in property_set and callable(getattr(controller, x, None))
 		}
@@ -299,6 +298,23 @@ class DocType(Document):
 		for d in self.fields:
 			if d.translatable and not supports_translation(d.fieldtype):
 				d.translatable = 0
+
+	def check_indexing_for_dashboard_links(self):
+		"""Enable indexing for outgoing links used in dashboard"""
+		for d in self.fields:
+			if d.fieldtype == "Link" and not (d.unique or d.search_index):
+				referred_as_link = frappe.db.exists(
+					"DocType Link",
+					{"parent": d.options, "link_doctype": self.name, "link_fieldname": d.fieldname},
+				)
+				if not referred_as_link:
+					continue
+
+				frappe.msgprint(
+					_("{0} should be indexed because it's referred in dashboard connections").format(_(d.label)),
+					alert=True,
+					indicator="orange",
+				)
 
 	def check_developer_mode(self):
 		"""Throw exception if not developer mode or via patch"""
@@ -1526,11 +1542,20 @@ def validate_fields(meta):
 			return
 
 		doctype = docfield.options
-		meta = frappe.get_meta(doctype)
+		child_doctype_meta = frappe.get_meta(doctype)
 
-		if not meta.istable:
+		if not child_doctype_meta.istable:
 			frappe.throw(
 				_("Option {0} for field {1} is not a child table").format(
+					frappe.bold(doctype), frappe.bold(docfield.fieldname)
+				),
+				title=_("Invalid Option"),
+			)
+
+		if not (meta.is_virtual == child_doctype_meta.is_virtual):
+			error_msg = " should be virtual." if meta.is_virtual else " cannot be virtual."
+			frappe.throw(
+				_("Child Table {0} for field {1}" + error_msg).format(
 					frappe.bold(doctype), frappe.bold(docfield.fieldname)
 				),
 				title=_("Invalid Option"),
@@ -1795,13 +1820,18 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			raise
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	from functools import cached_property
+
+	return isinstance(x, (property, cached_property))
+
+
 def check_fieldname_conflicts(docfield):
 	"""Checks if fieldname conflicts with methods or properties"""
 	doc = frappe.get_doc({"doctype": docfield.dt})
 	available_objects = [x for x in dir(doc) if isinstance(x, str)]
-	property_list = [
-		x for x in available_objects if isinstance(getattr(type(doc), x, None), property)
-	]
+	property_list = [x for x in available_objects if is_a_property(getattr(type(doc), x, None))]
 	method_list = [
 		x for x in available_objects if x not in property_list and callable(getattr(doc, x))
 	]

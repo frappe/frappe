@@ -157,3 +157,13 @@ jobs:
             echo "Printing log: $f";
             cat $f
           done
+
+  faux-test:
+    name: Patch
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"

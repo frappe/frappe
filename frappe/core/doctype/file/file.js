@@ -20,12 +20,14 @@ frappe.ui.form.on("File", {
 		if (frm.doc.file_name && frm.doc.file_name.split(".").splice(-1)[0] === "zip") {
 			frm.add_custom_button(__("Unzip"), () => frm.trigger("unzip"));
 		}
+		if (frm.doc.file_url) {
+			frm.add_web_link(frm.doc.file_url, __("View file"));
+		}
 	},
 
 	preview_file: function (frm) {
 		let $preview = "";
-		let file_name = frm.doc.file_name.split("?")[0];
-		let file_extension = file_name.split(".").pop()?.toLowerCase();
+		let file_extension = frm.doc.file_type.toLowerCase();
 
 		if (frappe.utils.is_image_file(frm.doc.file_url)) {
 			$preview = $(`<div class="img_preview">

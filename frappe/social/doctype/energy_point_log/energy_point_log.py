@@ -95,7 +95,7 @@ class EnergyPointLog(Document):
 		self.reverted = 1
 		self.save(ignore_permissions=True)
 
-		revert_log = frappe.get_doc(
+		return frappe.get_doc(
 			{
 				"doctype": "Energy Point Log",
 				"points": -(self.points),
@@ -107,8 +107,6 @@ class EnergyPointLog(Document):
 				"revert_of": self.name,
 			}
 		).insert(ignore_permissions=True)
-
-		return revert_log
 
 
 def get_notification_message(doc):

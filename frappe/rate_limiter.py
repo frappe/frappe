@@ -107,17 +107,14 @@ def rate_limit(
 	:returns: a decorator function that limit the number of requests per endpoint
 	"""
 
-	def ratelimit_decorator(fun):
-		@wraps(fun)
+	def ratelimit_decorator(fn):
+		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
-			if (
-				methods != "ALL"
-				and frappe.request
-				and frappe.request.method
-				and frappe.request.method.upper() not in methods
+			if not frappe.request or (
+				methods != "ALL" and frappe.request.method and frappe.request.method.upper() not in methods
 			):
-				return frappe.call(fun, **frappe.form_dict or kwargs)
+				return fn(*args, **kwargs)
 
 			_limit = limit() if callable(limit) else limit
 
@@ -147,7 +144,7 @@ def rate_limit(
 					_("You hit the rate limit because of too many requests. Please try after sometime.")
 				)
 
-			return frappe.call(fun, **frappe.form_dict or kwargs)
+			return fn(*args, **kwargs)
 
 		return wrapper
 

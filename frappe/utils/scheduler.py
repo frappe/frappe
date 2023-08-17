@@ -10,13 +10,14 @@ Events:
 
 # imports - standard imports
 import os
+import random
 import time
 from typing import NoReturn
 
 # imports - module imports
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
-from frappe.utils.background_jobs import get_jobs
+from frappe.utils.background_jobs import set_niceness
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -35,6 +36,7 @@ def start_scheduler() -> NoReturn:
 	Specify scheduler_interval in seconds in common_site_config.json"""
 
 	tick = cint(frappe.get_conf().scheduler_tick_interval) or 60
+	set_niceness()
 
 	while True:
 		time.sleep(tick)
@@ -50,6 +52,9 @@ def enqueue_events_for_all_sites() -> None:
 
 	with frappe.init_site():
 		sites = get_sites()
+
+	# Sites are sorted in alphabetical order, shuffle to randomize priorities
+	random.shuffle(sites)
 
 	for site in sites:
 		try:

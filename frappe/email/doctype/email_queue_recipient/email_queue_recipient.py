@@ -33,3 +33,8 @@ class EmailQueueRecipient(Document):
 		frappe.db.set_value(self.DOCTYPE, self.name, kwargs)
 		if commit:
 			frappe.db.commit()
+
+
+def on_doctype_update():
+	"""Index required for log clearing, modified is not indexed on child table by default"""
+	frappe.db.add_index("Email Queue Recipient", ["modified"])

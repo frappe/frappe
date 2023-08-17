@@ -48,8 +48,7 @@ class TestCachingUtils(FrappeTestCase):
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
-		for _ in range(5):
-			retval.append(request_specific_api(120, 23))
+		retval.extend(request_specific_api(120, 23) for _ in range(5))
 		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
