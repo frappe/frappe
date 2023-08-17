@@ -21,8 +21,8 @@ def get_page_info_from_web_page_with_dynamic_routes(path):
 	rules, page_info = [], {}
 
 	for d in get_dynamic_web_pages():
-		rules.append(Rule("/" + d.route, endpoint=d.name))
-		d.doctype = "Web Page"
+		rules.append(Rule(f"/{d.route}", endpoint=d.name))
+		d.doctype = d.doctype or "Web Page"
 		page_info[d.name] = d
 
 	end_point = evaluate_dynamic_routes(rules, path)

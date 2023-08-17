@@ -286,6 +286,13 @@ def extract_script_and_style_tags(html):
 
 @redis_cache(ttl=60 * 60)
 def get_dynamic_web_pages() -> dict[str, str]:
-	return frappe.get_all(
-		"Web Page", fields=["name", "route", "modified"], filters=dict(published=1, dynamic_route=1)
+	pages = frappe.get_all(
+		"Web Page",
+		fields=["name", "route", "modified"],
+		filters=dict(published=1, dynamic_route=1),
+		update={"doctype": "Web Page"},
 	)
+	get_web_pages_with_dynamic_routes = frappe.get_hooks("get_web_pages_with_dynamic_routes") or []
+	for method in get_web_pages_with_dynamic_routes:
+		pages.extend(frappe.get_attr(method)())
+	return pages
