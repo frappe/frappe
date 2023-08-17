@@ -12,9 +12,7 @@ $.extend(frappe.contacts, {
 			$(frm.fields_dict["address_html"].wrapper)
 				.html(frappe.render_template("address_list", frm.doc.__onload))
 				.find(".btn-address")
-				.on("click", function () {
-					frappe.new_doc("Address");
-				});
+				.on("click", () => new_record("Address", frm.doctype, frm.doc.name));
 		}
 
 		// render contact
@@ -22,9 +20,7 @@ $.extend(frappe.contacts, {
 			$(frm.fields_dict["contact_html"].wrapper)
 				.html(frappe.render_template("contact_list", frm.doc.__onload))
 				.find(".btn-contact")
-				.on("click", function () {
-					frappe.new_doc("Contact");
-				});
+				.on("click", () => new_record("Contact", frm.doctype, frm.doc.name));
 		}
 	},
 	get_last_doc: function (frm) {
@@ -42,4 +38,35 @@ $.extend(frappe.contacts, {
 			docname,
 		};
 	},
+	get_address_display: function (frm, address_field, display_field) {
+		if (frm.updating_party_details) {
+			return;
+		}
+
+		let _address_field = address_field || "address";
+		let _display_field = display_field || "address_display";
+
+		if (!frm.doc[_address_field]) {
+			frm.set_value(_display_field, "");
+			return;
+		}
+
+		frappe
+			.xcall("frappe.contacts.doctype.address.address.get_address_display", {
+				address_dict: frm.doc[_address_field],
+			})
+			.then((address_display) => frm.set_value(_display_field, address_display));
+	},
 });
+
+function new_record(doctype, link_doctype, link_name) {
+	return frappe.new_doc(doctype).then(() => {
+		if (cur_frm.doc.links) {
+			// avoid adding the same link twice
+			return;
+		}
+
+		cur_frm.add_child("links", { link_doctype: link_doctype, link_name: link_name });
+		cur_frm.refresh_field("links");
+	});
+}

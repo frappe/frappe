@@ -30,6 +30,7 @@ frappe.ui.Filter = class {
 
 		this.nested_set_conditions = [
 			["descendants of", __("Descendants Of")],
+			["descendants of (inclusive)", __("Descendants Of (inclusive)")],
 			["not descendants of", __("Not Descendants Of")],
 			["ancestors of", __("Ancestors Of")],
 			["not ancestors of", __("Not Ancestors Of")],
@@ -51,6 +52,7 @@ frappe.ui.Filter = class {
 			"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+			Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
 		};
 	}
 
@@ -418,7 +420,7 @@ frappe.ui.filter_utils = {
 	get_selected_value(field, condition) {
 		if (!field) return;
 
-		let val = field.get_value();
+		let val = field.get_value() || field.value;
 
 		if (typeof val === "string") {
 			val = strip(val);
@@ -524,6 +526,7 @@ frappe.ui.filter_utils = {
 				"=",
 				"!=",
 				"descendants of",
+				"descendants of (inclusive)",
 				"ancestors of",
 				"not descendants of",
 				"not ancestors of",

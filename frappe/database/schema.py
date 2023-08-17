@@ -40,7 +40,7 @@ class DBTable:
 		if self.is_new():
 			self.create()
 		else:
-			frappe.cache().hdel("table_columns", self.table_name)
+			frappe.cache.hdel("table_columns", self.table_name)
 			self.alter()
 
 	def create(self):
@@ -58,16 +58,16 @@ class DBTable:
 		return ret
 
 	def get_index_definitions(self):
-		ret = []
-		for key, col in self.columns.items():
+		return [
+			"index `" + key + "`(`" + key + "`)"
+			for key, col in self.columns.items()
 			if (
 				col.set_index
 				and not col.unique
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
-			):
-				ret.append("index `" + key + "`(`" + key + "`)")
-		return ret
+			)
+		]
 
 	def get_columns_from_docfields(self):
 		"""
@@ -205,7 +205,6 @@ class DbColumn:
 			self.default
 			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
 			and not cstr(self.default).startswith(":")
-			and column_def not in ("text", "longtext")
 		):
 			column_def += f" default {frappe.db.escape(self.default)}"
 
@@ -248,7 +247,6 @@ class DbColumn:
 			self.default_changed(current_def)
 			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
 			and not cstr(self.default).startswith(":")
-			and not (column_type in ["text", "longtext"])
 		):
 			self.table.set_default.append(self)
 

@@ -1,9 +1,9 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Callable
 
 from werkzeug.wrappers import Response
 
@@ -38,8 +38,8 @@ class RateLimiter:
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
-		self.key = frappe.cache().make_key(f"rate-limit-counter-{self.window_number}")
-		self.counter = cint(frappe.cache().get(self.key))
+		self.key = frappe.cache.make_key(f"rate-limit-counter-{self.window_number}")
+		self.counter = cint(frappe.cache.get(self.key))
 		self.remaining = max(self.limit - self.counter, 0)
 		self.reset = self.window - self.spent
 
@@ -59,7 +59,7 @@ class RateLimiter:
 		self.end = datetime.utcnow()
 		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
-		pipeline = frappe.cache().pipeline()
+		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
@@ -107,17 +107,14 @@ def rate_limit(
 	:returns: a decorator function that limit the number of requests per endpoint
 	"""
 
-	def ratelimit_decorator(fun):
-		@wraps(fun)
+	def ratelimit_decorator(fn):
+		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
-			if (
-				methods != "ALL"
-				and frappe.request
-				and frappe.request.method
-				and frappe.request.method.upper() not in methods
+			if not frappe.request or (
+				methods != "ALL" and frappe.request.method and frappe.request.method.upper() not in methods
 			):
-				return frappe.call(fun, **frappe.form_dict or kwargs)
+				return fn(*args, **kwargs)
 
 			_limit = limit() if callable(limit) else limit
 
@@ -137,17 +134,17 @@ def rate_limit(
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
-			value = frappe.cache().get(cache_key) or 0
+			value = frappe.cache.get(cache_key) or 0
 			if not value:
-				frappe.cache().setex(cache_key, seconds, 0)
+				frappe.cache.setex(cache_key, seconds, 0)
 
-			value = frappe.cache().incrby(cache_key, 1)
+			value = frappe.cache.incrby(cache_key, 1)
 			if value > _limit:
 				frappe.throw(
 					_("You hit the rate limit because of too many requests. Please try after sometime.")
 				)
 
-			return frappe.call(fun, **frappe.form_dict or kwargs)
+			return fn(*args, **kwargs)
 
 		return wrapper
 

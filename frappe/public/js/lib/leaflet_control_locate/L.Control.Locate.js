@@ -17,7 +17,7 @@ You can find the project at: https://github.com/domoritz/leaflet-locatecontrol
         if (typeof window !== 'undefined' && window.L) {
             module.exports = factory(L);
         } else {
-            module.exports = factory(require('leaflet'));
+            module.exports = factory(require('../leaflet/leaflet.js'));
         }
     }
 

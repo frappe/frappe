@@ -136,8 +136,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_filters() {
-		const filters = frappe.dashboard_utils.get_all_filters(this.card_doc);
-		return filters;
+		return frappe.dashboard_utils.get_all_filters(this.card_doc);
 	}
 
 	render_card() {
@@ -238,7 +237,7 @@ export default class NumberCardWidget extends Widget {
 				color_class = "green-stat";
 			} else {
 				caret_html = `<span class="indicator-pill-round red">
-						${frappe.utils.icon("arrow-down-left", "xs")}
+						${frappe.utils.icon("arrow-down-right", "xs")}
 					</span>`;
 				color_class = "red-stat";
 			}
@@ -314,7 +313,6 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_card_actions(actions) {
-		/* eslint-disable indent */
 		this.card_actions = $(`<div class="card-actions dropdown pull-right">
 				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				...
@@ -330,7 +328,6 @@ export default class NumberCardWidget extends Widget {
 						.join("")}
 				</ul>
 			</div>`);
-		/* eslint-disable indent */
 
 		this.card_actions.find("a[data-action]").each((i, o) => {
 			const action = o.dataset.action;

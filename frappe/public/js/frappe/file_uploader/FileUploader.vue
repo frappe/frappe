@@ -70,7 +70,7 @@
 						<div class="mt-1">{{ __('Google Drive') }}</div>
 					</button>
 				</div>
-				<div class="text-muted text-medium">
+				<div class="text-muted text-medium text-center">
 					{{ upload_notes }}
 				</div>
 			</div>
@@ -473,7 +473,20 @@ function upload_file(file, i) {
 				} else if (xhr.status === 403) {
 					file.failed = true;
 					let response = JSON.parse(xhr.responseText);
-					file.error_message = `Not permitted. ${response._error_message || ''}`;
+					file.error_message = `Not permitted. ${response._error_message || ''}.`;
+
+					try {
+						// Append server messages which are useful hint for perm issues
+						let server_messages = JSON.parse(response._server_messages);
+
+						server_messages.forEach((m) => {
+							m = JSON.parse(m);
+							file.error_message += `\n ${m.message} `
+						})
+					} catch (e) {
+						console.warning("Failed to parse server message", e)
+					}
+
 
 				} else if (xhr.status === 413) {
 					file.failed = true;
@@ -595,7 +608,8 @@ defineExpose({
 	add_files,
 	upload_files,
 	toggle_all_private,
-	wrapper_ready
+	wrapper_ready,
+	close_dialog,
 });
 </script>
 

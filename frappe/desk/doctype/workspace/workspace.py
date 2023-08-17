@@ -1,6 +1,7 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from collections import defaultdict
 from json import loads
 
 import frappe
@@ -13,16 +14,62 @@ from frappe.modules.export_file import delete_folder, export_to_files
 
 
 class Workspace(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.desk.doctype.workspace_chart.workspace_chart import WorkspaceChart
+		from frappe.desk.doctype.workspace_custom_block.workspace_custom_block import (
+			WorkspaceCustomBlock,
+		)
+		from frappe.desk.doctype.workspace_link.workspace_link import WorkspaceLink
+		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
+		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
+		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
+		from frappe.types import DF
+
+		charts: DF.Table[WorkspaceChart]
+		content: DF.LongText | None
+		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		for_user: DF.Data | None
+		hide_custom: DF.Check
+		is_hidden: DF.Check
+		label: DF.Data
+		links: DF.Table[WorkspaceLink]
+		module: DF.Link | None
+		number_cards: DF.Table[WorkspaceNumberCard]
+		parent_page: DF.Data | None
+		public: DF.Check
+		quick_lists: DF.Table[WorkspaceQuickList]
+		restrict_to_domain: DF.Link | None
+		roles: DF.Table[HasRole]
+		sequence_id: DF.Float
+		shortcuts: DF.Table[WorkspaceShortcut]
+		title: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
-		validate_route_conflict(self.doctype, self.name)
+		if self.has_value_changed("title"):
+			validate_route_conflict(self.doctype, self.title)
+		else:
+			validate_route_conflict(self.doctype, self.name)
 
 		try:
 			if not isinstance(loads(self.content), list):
 				raise
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
+
+	def clear_cache(self):
+		super().clear_cache()
+		if self.for_user:
+			frappe.cache.hdel("bootinfo", self.for_user)
+		else:
+			frappe.cache.delete_key("bootinfo")
 
 	def on_update(self):
 		if disable_saving_as_public():
@@ -49,12 +96,22 @@ class Workspace(Document):
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
-	def get_module_page_map():
-		pages = frappe.get_all(
-			"Workspace", fields=["name", "module"], filters={"for_user": ""}, as_list=1
+	def get_module_wise_workspaces():
+		workspaces = frappe.get_all(
+			"Workspace",
+			fields=["name", "module"],
+			filters={"for_user": "", "public": 1},
+			order_by="creation",
 		)
 
-		return {page[1]: page[0] for page in pages if page[1]}
+		module_workspaces = defaultdict(list)
+
+		for workspace in workspaces:
+			if not workspace.module:
+				continue
+			module_workspaces[workspace.module].append(workspace.name)
+
+		return module_workspaces
 
 	def get_link_groups(self):
 		cards = []

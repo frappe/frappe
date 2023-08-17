@@ -9,14 +9,9 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.exceptions import DoesNotExistError, ValidationError
+from frappe.exceptions import DoesNotExistError
 from frappe.model.base_document import get_controller
-from frappe.model.rename_doc import (
-	bulk_rename,
-	get_fetch_fields,
-	update_document_title,
-	update_linked_doctypes,
-)
+from frappe.model.rename_doc import bulk_rename, update_document_title
 from frappe.modules.utils import get_doc_path
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, now
@@ -253,16 +248,6 @@ class TestRenameDoc(FrappeTestCase):
 				"frappe.utils.global_search.rebuild_for_doctype",
 				doctype=self.test_doctype,
 			)
-
-	def test_deprecated_utils(self):
-		stdout = StringIO()
-
-		with redirect_stdout(stdout), patch_db(["set_value"]):
-			get_fetch_fields("User", "ToDo", ["Activity Log"])
-			self.assertTrue("Function frappe.model.rename_doc.get_fetch_fields" in stdout.getvalue())
-
-			update_linked_doctypes("User", "ToDo", "str", "str")
-			self.assertTrue("Function frappe.model.rename_doc.update_linked_doctypes" in stdout.getvalue())
 
 	def test_doc_rename_method(self):
 		name = choice(self.available_documents)

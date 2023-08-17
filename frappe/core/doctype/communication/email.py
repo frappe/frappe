@@ -165,7 +165,7 @@ def _make(
 		if not comm.get_outgoing_email_account():
 			frappe.throw(
 				_(
-					"Unable to send mail because of a missing email account. Please setup default Email Account from Setup > Email > Email Account"
+					"Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 				),
 				exc=frappe.OutgoingEmailError,
 			)

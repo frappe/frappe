@@ -6,7 +6,9 @@ import json
 import re
 
 import frappe
-from frappe import _, is_whitelisted
+
+# Backward compatbility
+from frappe import _, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, unique
@@ -27,7 +29,7 @@ def search_link(
 	txt,
 	query=None,
 	filters=None,
-	page_length=20,
+	page_length=10,
 	searchfield=None,
 	reference_doctype=None,
 	ignore_user_permissions=False,
@@ -55,7 +57,7 @@ def search_widget(
 	query=None,
 	searchfield=None,
 	start=0,
-	page_length=20,
+	page_length=10,
 	filters=None,
 	filter_fields=None,
 	as_dict=False,
@@ -81,7 +83,15 @@ def search_widget(
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			frappe.response["values"] = frappe.call(
-				query, doctype, txt, searchfield, start, page_length, filters, as_dict=as_dict
+				query,
+				doctype,
+				txt,
+				searchfield,
+				start,
+				page_length,
+				filters,
+				as_dict=as_dict,
+				reference_doctype=reference_doctype,
 			)
 		except frappe.exceptions.PermissionError as e:
 			if frappe.local.conf.developer_mode:
@@ -235,16 +245,17 @@ def search_widget(
 def get_std_fields_list(meta, key):
 	# get additional search fields
 	sflist = ["name"]
-	if meta.search_fields:
-		for d in meta.search_fields.split(","):
-			if d.strip() not in sflist:
-				sflist.append(d.strip())
 
 	if meta.title_field and meta.title_field not in sflist:
 		sflist.append(meta.title_field)
 
 	if key not in sflist:
 		sflist.append(key)
+
+	if meta.search_fields:
+		for d in meta.search_fields.split(","):
+			if d.strip() not in sflist:
+				sflist.append(d.strip())
 
 	return sflist
 
@@ -285,26 +296,10 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
-def validate_and_sanitize_search_inputs(fn):
-	@functools.wraps(fn)
-	def wrapper(*args, **kwargs):
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
-		sanitize_searchfield(kwargs["searchfield"])
-		kwargs["start"] = cint(kwargs["start"])
-		kwargs["page_len"] = cint(kwargs["page_len"])
-
-		if kwargs["doctype"] and not frappe.db.exists("DocType", kwargs["doctype"]):
-			return []
-
-		return fn(**kwargs)
-
-	return wrapper
-
-
 @frappe.whitelist()
 def get_names_for_mentions(search_term):
-	users_for_mentions = frappe.cache().get_value("users_for_mentions", get_users_for_mentions)
-	user_groups = frappe.cache().get_value("user_groups", get_user_groups)
+	users_for_mentions = frappe.cache.get_value("users_for_mentions", get_users_for_mentions)
+	user_groups = frappe.cache.get_value("user_groups", get_user_groups)
 
 	filtered_mentions = []
 	for mention_data in users_for_mentions + user_groups:

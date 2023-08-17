@@ -10,26 +10,38 @@ from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
-	pass
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
 
+	from typing import TYPE_CHECKING
 
-@frappe.whitelist()
-def update(doctype, field, value, condition="", limit=500):
-	if not limit or cint(limit) > 500:
-		limit = 500
+	if TYPE_CHECKING:
+		from frappe.types import DF
 
-	if condition:
-		condition = " where " + condition
+		condition: DF.SmallText | None
+		document_type: DF.Link
+		field: DF.Literal
+		limit: DF.Int
+		update_value: DF.SmallText
+	# end: auto-generated types
+	@frappe.whitelist()
+	def bulk_update(self):
+		self.check_permission("write")
+		limit = self.limit if self.limit and cint(self.limit) < 500 else 500
 
-	if ";" in condition:
-		frappe.throw(_("; not allowed in condition"))
+		condition = ""
+		if self.condition:
+			if ";" in self.condition:
+				frappe.throw(_("; not allowed in condition"))
 
-	docnames = frappe.db.sql_list(
-		f"""select name from `tab{doctype}`{condition} limit {limit} offset 0"""
-	)
-	data = {}
-	data[field] = value
-	return submit_cancel_or_update_docs(doctype, docnames, "update", data)
+			condition = f" where {self.condition}"
+
+		docnames = frappe.db.sql_list(
+			f"""select name from `tab{self.document_type}`{condition} limit {limit} offset 0"""
+		)
+		return submit_cancel_or_update_docs(
+			self.document_type, docnames, "update", {self.field: self.update_value}
+		)
 
 
 @frappe.whitelist()

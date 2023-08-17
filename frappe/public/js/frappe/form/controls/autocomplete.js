@@ -174,6 +174,15 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 		if (typeof options[0] === "string") {
 			options = options.map((o) => ({ label: o, value: o }));
 		}
+
+		options = options.map((o) => {
+			if (typeof o !== "string") {
+				o.label = __(cstr(o.label));
+				o.value = cstr(o.value);
+			}
+			return o;
+		});
+
 		return options;
 	}
 

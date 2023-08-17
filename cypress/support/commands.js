@@ -34,7 +34,7 @@ Cypress.Commands.add("login", (email, password) => {
 	if (!password) {
 		password = Cypress.env("adminPassword");
 	}
-	cy.request({
+	return cy.request({
 		url: "/api/method/login",
 		method: "POST",
 		body: {
@@ -373,7 +373,9 @@ Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 
 Cypress.Commands.add("switch_to_user", (user) => {
 	cy.call("logout");
+	cy.wait(200);
 	cy.login(user);
+	cy.reload();
 });
 
 Cypress.Commands.add("add_role", (user, role) => {
@@ -479,7 +481,7 @@ Cypress.Commands.add("click_listview_row_item_with_text", (text) => {
 });
 
 Cypress.Commands.add("click_filter_button", () => {
-	cy.get(".filter-selector > .btn").click();
+	cy.get(".filter-button").click();
 });
 
 Cypress.Commands.add("click_listview_primary_button", (btn_name) => {

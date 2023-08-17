@@ -33,13 +33,28 @@ class TestDocShare(FrappeTestCase):
 
 	def test_doc_permission(self):
 		frappe.set_user(self.user)
+
 		self.assertFalse(self.event.has_permission())
 
 		frappe.set_user("Administrator")
 		frappe.share.add("Event", self.event.name, self.user)
 
 		frappe.set_user(self.user)
-		self.assertTrue(self.event.has_permission())
+		# PERF: All share permission check should happen with maximum 1 query.
+		with self.assertRowsRead(1):
+			self.assertTrue(self.event.has_permission())
+
+		second_event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "test share event 2",
+				"starts_on": "2015-01-01 10:00:00",
+				"event_type": "Private",
+			}
+		).insert()
+		frappe.share.add("Event", second_event.name, self.user)
+		with self.assertRowsRead(1):
+			self.assertTrue(self.event.has_permission())
 
 	def test_share_permission(self):
 		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
@@ -187,18 +202,13 @@ class TestDocShare(FrappeTestCase):
 		Assigning a document to a user without access must not share the document,
 		if sharing disabled.
 		"""
-		from frappe.desk.form.assign_to import add, get
+		from frappe.desk.form.assign_to import add
 
 		frappe.share.add("Event", self.event.name, self.user, share=1)
 		frappe.set_user(self.user)
 
-		# Assign to 'test1@example.com'
-		add({"doctype": "Event", "name": self.event.name, "assign_to": ["test1@example.com"]})
-
-		# Check if assigned to 'test1@example.com'
-		assignments = get(dict(doctype="Event", name=self.event.name))
-		self.assertEqual(len(assignments), 1)
-
-		# Check if not shared with 'test1@example.com'
-		shared_users = [x.user for x in frappe.share.get_users("Event", self.event.name)]
-		self.assertNotIn("test1@example.com", shared_users)
+		self.assertRaises(
+			frappe.ValidationError,
+			add,
+			{"doctype": "Event", "name": self.event.name, "assign_to": ["test1@example.com"]},
+		)

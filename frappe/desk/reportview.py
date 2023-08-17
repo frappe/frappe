@@ -9,7 +9,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.model import child_table_fields, default_fields, optional_fields
+from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
@@ -203,7 +203,7 @@ def update_wildcard_field_param(data):
 	if (isinstance(data.fields, str) and data.fields == "*") or (
 		isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
-		data.fields = frappe.db.get_table_columns(data.doctype)
+		data.fields = get_permitted_fields(data.doctype, parenttype=data.parenttype)
 		return True
 
 	return False
@@ -261,10 +261,7 @@ def compress(data, args=None):
 	values = []
 	keys = list(data[0])
 	for row in data:
-		new_row = []
-		for key in keys:
-			new_row.append(row.get(key))
-		values.append(new_row)
+		values.append([row.get(key) for key in keys])
 
 		# add user info for assignments (avatar)
 		if row.get("_assign", ""):
@@ -479,6 +476,7 @@ def delete_items():
 
 
 def delete_bulk(doctype, items):
+	undeleted_items = []
 	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -493,7 +491,11 @@ def delete_bulk(doctype, items):
 		except Exception:
 			# rollback if any record failed to delete
 			# if not rollbacked, queries get committed on after_request method in app.py
+			undeleted_items.append(d)
 			frappe.db.rollback()
+	if undeleted_items and len(items) != len(undeleted_items):
+		frappe.clear_messages()
+		delete_bulk(doctype, undeleted_items)
 
 
 @frappe.whitelist()
@@ -520,47 +522,47 @@ def get_stats(stats, doctype, filters=None):
 
 	if filters is None:
 		filters = []
-	tags = json.loads(stats)
+	columns = json.loads(stats)
 	if filters:
 		filters = json.loads(filters)
-	stats = {}
+	results = {}
 
 	try:
-		columns = frappe.db.get_table_columns(doctype)
+		db_columns = frappe.db.get_table_columns(doctype)
 	except (frappe.db.InternalError, frappe.db.ProgrammingError):
 		# raised when _user_tags column is added on the fly
 		# raised if its a virtual doctype
-		columns = []
+		db_columns = []
 
-	for tag in tags:
-		if tag not in columns:
+	for column in columns:
+		if column not in db_columns:
 			continue
 		try:
 			tag_count = frappe.get_list(
 				doctype,
-				fields=[tag, "count(*)"],
-				filters=filters + [[tag, "!=", ""]],
-				group_by=tag,
+				fields=[column, "count(*)"],
+				filters=filters + [[column, "!=", ""]],
+				group_by=column,
 				as_list=True,
 				distinct=1,
 			)
 
-			if tag == "_user_tags":
-				stats[tag] = scrub_user_tags(tag_count)
+			if column == "_user_tags":
+				results[column] = scrub_user_tags(tag_count)
 				no_tag_count = frappe.get_list(
 					doctype,
-					fields=[tag, "count(*)"],
-					filters=filters + [[tag, "in", ("", ",")]],
+					fields=[column, "count(*)"],
+					filters=filters + [[column, "in", ("", ",")]],
 					as_list=True,
-					group_by=tag,
-					order_by=tag,
+					group_by=column,
+					order_by=column,
 				)
 
 				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
 
-				stats[tag].append([_("No Tags"), no_tag_count])
+				results[column].append([_("No Tags"), no_tag_count])
 			else:
-				stats[tag] = tag_count
+				results[column] = tag_count
 
 		except frappe.db.SQLError:
 			pass
@@ -568,7 +570,7 @@ def get_stats(stats, doctype, filters=None):
 			# raised when _user_tags column is added on the fly
 			pass
 
-	return stats
+	return results
 
 
 @frappe.whitelist()
@@ -639,11 +641,7 @@ def scrub_user_tags(tagcount):
 
 				rdict[tag] += tagdict[t]
 
-	rlist = []
-	for tag in rdict:
-		rlist.append([tag, rdict[tag]])
-
-	return rlist
+	return [[tag, rdict[tag]] for tag in rdict]
 
 
 # used in building query in queries.py
@@ -678,7 +676,8 @@ def get_filters_cond(
 			for f in filters:
 				if isinstance(f[1], str) and f[1][0] == "!":
 					flt.append([doctype, f[0], "!=", f[1][1:]])
-				elif isinstance(f[1], (list, tuple)) and f[1][0] in (
+				elif isinstance(f[1], (list, tuple)) and f[1][0].lower() in (
+					"=",
 					">",
 					"<",
 					">=",
@@ -689,6 +688,7 @@ def get_filters_cond(
 					"in",
 					"not in",
 					"between",
+					"is",
 				):
 
 					flt.append([doctype, f[0], f[1][0], f[1][1]])

@@ -10,11 +10,29 @@ from frappe.model.document import Document
 
 
 class Language(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		based_on: DF.Link | None
+		enabled: DF.Check
+		flag: DF.Data | None
+		language_code: DF.Data
+		language_name: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		validate_with_regex(self.language_code, "Language Code")
 
 	def before_rename(self, old, new, merge=False):
 		validate_with_regex(new, "Name")
+
+	def on_update(self):
+		frappe.cache.delete_value("languages_with_name")
+		frappe.cache.delete_value("languages")
 
 
 def validate_with_regex(name, label):

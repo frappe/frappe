@@ -96,7 +96,7 @@ frappe.provide("frappe.views");
 							});
 						},
 						function (err) {
-							console.error(err); // eslint-disable-line
+							console.error(err);
 						}
 					);
 			},
@@ -317,6 +317,7 @@ frappe.provide("frappe.views");
 				return state.columns;
 			}, make_columns);
 			prepare();
+			make_columns();
 			store.watch((state, getters) => {
 				return state.cur_list;
 			}, setup_restore_columns);

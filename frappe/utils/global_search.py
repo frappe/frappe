@@ -61,7 +61,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 
 		return doctypes
 
-	return frappe.cache().get_value("doctypes_with_global_search", _get)
+	return frappe.cache.get_value("doctypes_with_global_search", _get)
 
 
 def rebuild_for_doctype(doctype):
@@ -208,10 +208,10 @@ def get_children_data(doctype, meta):
 
 
 def insert_values_for_multiple_docs(all_contents):
-	values = []
-	for content in all_contents:
-		values.append("({doctype}, {name}, {content}, {published}, {title}, {route})".format(**content))
-
+	values = [
+		"({doctype}, {name}, {content}, {published}, {title}, {route})".format(**content)
+		for content in all_contents
+	]
 	batch_size = 50000
 	for i in range(0, len(values), batch_size):
 		batch_values = values[i : i + batch_size]
@@ -249,19 +249,21 @@ def update_global_search(doc):
 	):
 		return
 
-	content = []
-	for field in doc.meta.get_global_search_fields():
-		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields:
-			content.append(get_formatted_value(doc.get(field.fieldname), field))
+	content = [
+		get_formatted_value(doc.get(field.fieldname), field)
+		for field in doc.meta.get_global_search_fields()
+		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields
+	]
 
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
 			if d.parent == doc.name:
-				for field in d.meta.get_global_search_fields():
-					if d.get(field.fieldname):
-						content.append(get_formatted_value(d.get(field.fieldname), field))
-
+				content.extend(
+					get_formatted_value(d.get(field.fieldname), field)
+					for field in d.meta.get_global_search_fields()
+					if d.get(field.fieldname)
+				)
 	if content:
 		published = 0
 		if hasattr(doc, "is_website_published") and doc.meta.allow_guest_to_view:
@@ -371,17 +373,17 @@ def sync_global_search():
 	:param flags:
 	:return:
 	"""
-	while frappe.cache().llen("global_search_queue") > 0:
+	while frappe.cache.llen("global_search_queue") > 0:
 		# rpop to follow FIFO
 		# Last one should override all previous contents of same document
-		value = json.loads(frappe.cache().rpop("global_search_queue").decode("utf-8"))
+		value = json.loads(frappe.cache.rpop("global_search_queue").decode("utf-8"))
 		sync_value(value)
 
 
 def sync_value_in_queue(value):
 	try:
 		# append to search queue if connected
-		frappe.cache().lpush("global_search_queue", json.dumps(value))
+		frappe.cache.lpush("global_search_queue", json.dumps(value))
 	except redis.exceptions.ConnectionError:
 		# not connected, sync directly
 		sync_value(value)

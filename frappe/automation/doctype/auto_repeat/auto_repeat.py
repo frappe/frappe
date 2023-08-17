@@ -42,6 +42,34 @@ week_map = {
 
 
 class AutoRepeat(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.automation.doctype.auto_repeat_day.auto_repeat_day import AutoRepeatDay
+		from frappe.types import DF
+
+		disabled: DF.Check
+		end_date: DF.Date | None
+		frequency: DF.Literal["", "Daily", "Weekly", "Monthly", "Quarterly", "Half-yearly", "Yearly"]
+		message: DF.Text | None
+		next_schedule_date: DF.Date | None
+		notify_by_email: DF.Check
+		print_format: DF.Link | None
+		recipients: DF.SmallText | None
+		reference_doctype: DF.Link
+		reference_document: DF.DynamicLink
+		repeat_on_day: DF.Int
+		repeat_on_days: DF.Table[AutoRepeatDay]
+		repeat_on_last_day: DF.Check
+		start_date: DF.Date
+		status: DF.Literal["", "Active", "Disabled", "Completed"]
+		subject: DF.Data | None
+		submit_on_creation: DF.Check
+		template: DF.Link | None
+	# end: auto-generated types
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
@@ -365,7 +393,7 @@ class AutoRepeat(Document):
 			error_string += _(
 				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
-			attachments = "[]"
+			attachments = None
 
 		if error_string:
 			message = error_string
@@ -374,12 +402,10 @@ class AutoRepeat(Document):
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {"doc": new_doc})
 
-		recipients = self.recipients.split("\n")
-
 		make(
 			doctype=new_doc.doctype,
 			name=new_doc.name,
-			recipients=recipients,
+			recipients=self.recipients,
 			subject=subject,
 			content=message,
 			attachments=attachments,
@@ -543,6 +569,7 @@ def update_reference(docname, reference):
 def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
 	doc = frappe.get_doc(reference_dt, reference_doc)
+	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
 	msg_preview = frappe.render_template(message, {"doc": doc})
 	if subject:

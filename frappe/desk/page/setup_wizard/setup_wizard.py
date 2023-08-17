@@ -64,6 +64,9 @@ def setup_complete(args):
 
 @frappe.task()
 def process_setup_stages(stages, user_input, is_background_task=False):
+	from frappe.utils.telemetry import capture
+
+	capture("initated_server_side", "setup")
 	try:
 		frappe.flags.in_setup_wizard = True
 		current_task = None
@@ -88,6 +91,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		)
 	else:
 		run_setup_success(user_input)
+		capture("completed_server_side", "setup")
 		if not is_background_task:
 			return {"status": "ok"}
 		frappe.publish_realtime("setup_task", {"status": "ok"}, user=frappe.session.user)
@@ -125,18 +129,20 @@ def get_stages_hooks(args):
 
 
 def get_setup_complete_hooks(args):
-	stages = []
-	for method in frappe.get_hooks("setup_wizard_complete"):
-		stages.append(
-			{
-				"status": "Executing method",
-				"fail_msg": "Failed to execute method",
-				"tasks": [
-					{"fn": frappe.get_attr(method), "args": args, "fail_msg": "Failed to execute method"}
-				],
-			}
-		)
-	return stages
+	return [
+		{
+			"status": "Executing method",
+			"fail_msg": "Failed to execute method",
+			"tasks": [
+				{
+					"fn": frappe.get_attr(method),
+					"args": args,
+					"fail_msg": "Failed to execute method",
+				}
+			],
+		}
+		for method in frappe.get_hooks("setup_wizard_complete")
+	]
 
 
 def handle_setup_exception(args):
@@ -171,6 +177,7 @@ def update_system_settings(args):
 			"number_format": number_format,
 			"enable_scheduler": 1 if not frappe.flags.in_test else 0,
 			"backup_limit": 3,  # Default for downloadable backups
+			"enable_telemetry": cint(args.get("enable_telemetry")),
 		}
 	)
 	system_settings.save()
@@ -320,8 +327,8 @@ def load_country():
 @frappe.whitelist()
 def load_user_details():
 	return {
-		"full_name": frappe.cache().hget("full_name", "signup"),
-		"email": frappe.cache().hget("email", "signup"),
+		"full_name": frappe.cache.hget("full_name", "signup"),
+		"email": frappe.cache.hget("email", "signup"),
 	}
 
 
@@ -334,8 +341,7 @@ def prettify_args(args):
 			args[key] = f"Image Attached: '{filename}' of size {size} MB"
 
 	pretty_args = []
-	for key in sorted(args):
-		pretty_args.append(f"{key} = {args[key]}")
+	pretty_args.extend(f"{key} = {args[key]}" for key in sorted(args))
 	return pretty_args
 
 
@@ -372,7 +378,7 @@ def email_setup_wizard_exception(traceback, args):
 		traceback=traceback,
 		args="\n".join(pretty_args),
 		user=frappe.session.user,
-		headers=frappe.request.headers,
+		headers=frappe.request.headers if frappe.request else "[no request]",
 	)
 
 	frappe.sendmail(

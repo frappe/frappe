@@ -1,6 +1,8 @@
 # imports - standard imports
 import logging
 import os
+import sys
+from contextlib import contextmanager
 from copy import deepcopy
 from logging.handlers import RotatingFileHandler
 from typing import Literal
@@ -10,6 +12,7 @@ import frappe
 from frappe.utils import get_sites
 
 default_log_level = logging.WARNING if frappe._dev_server else logging.ERROR
+stream_logging = os.environ.get("FRAPPE_STREAM_LOGGING")
 
 
 def get_logger(
@@ -19,7 +22,7 @@ def get_logger(
 	filter=None,
 	max_size=100_000,
 	file_count=20,
-	stream_only=False,
+	stream_only=stream_logging,
 ) -> "logging.Logger":
 	"""Application Logger for your given module
 
@@ -123,3 +126,29 @@ def sanitized_dict(form_dict):
 			if secret_kw in k:
 				sanitized_dict[k] = "********"
 	return sanitized_dict
+
+
+@contextmanager
+def pipe_to_log(logger_fn, stream=None):
+	"Pass an existing logger function e.g. logger.info. Stream defaults to stdout"
+	# late bind source
+	if stream is None:
+		stream = sys.stdout
+
+	stream_int = stream.fileno()
+	r_int, w_int = os.pipe()
+
+	# copy stream_fd before it is overwritten
+	with os.fdopen(os.dup(stream_int), "wb") as copied:
+		stream.flush()
+		os.dup2(w_int, stream_int)  # $ exec >&pipe
+		try:
+			with os.fdopen(w_int, "wb"):
+				yield stream
+		finally:
+			# restore stream to its previous value
+			stream.flush()
+			os.dup2(copied.fileno(), stream_int)  # $ exec >&copied
+			with os.fdopen(r_int, newline="") as r:
+				text = r.read()
+			logger_fn(text)

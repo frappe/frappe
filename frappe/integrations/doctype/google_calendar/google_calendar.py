@@ -65,6 +65,24 @@ framework_days = {
 
 
 class GoogleCalendar(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		authorization_code: DF.Password | None
+		calendar_name: DF.Data
+		enable: DF.Check
+		google_calendar_id: DF.Data | None
+		next_sync_token: DF.Password | None
+		pull_from_google_calendar: DF.Check
+		push_to_google_calendar: DF.Check
+		refresh_token: DF.Password | None
+		user: DF.Link
+	# end: auto-generated types
 	def validate(self):
 		google_settings = frappe.get_single("Google Settings")
 		if not google_settings.enable:
@@ -111,6 +129,7 @@ def authorize_access(g_calendar, reauthorize=None):
 	"""
 	google_settings = frappe.get_doc("Google Settings")
 	google_calendar = frappe.get_doc("Google Calendar", g_calendar)
+	google_calendar.check_permission("write")
 
 	redirect_uri = (
 		get_request_site_address(True)
@@ -118,7 +137,7 @@ def authorize_access(g_calendar, reauthorize=None):
 	)
 
 	if not google_calendar.authorization_code or reauthorize:
-		frappe.cache().hset("google_calendar", "google_calendar", google_calendar.name)
+		frappe.cache.hset("google_calendar", "google_calendar", google_calendar.name)
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 	else:
 		try:
@@ -162,7 +181,7 @@ def google_callback(code=None):
 	"""
 	Authorization code is sent to callback as per the API configuration
 	"""
-	google_calendar = frappe.cache().hget("google_calendar", "google_calendar")
+	google_calendar = frappe.cache.hget("google_calendar", "google_calendar")
 	frappe.db.set_value("Google Calendar", google_calendar, "authorization_code", code)
 	frappe.db.commit()
 
@@ -280,9 +299,7 @@ def sync_events_from_google_calendar(g_calendar, method=None):
 			else:
 				frappe.throw(msg)
 
-		for event in events.get("items", []):
-			results.append(event)
-
+		results.extend(event for event in events.get("items", []))
 		if not events.get("nextPageToken"):
 			if events.get("nextSyncToken"):
 				account.next_sync_token = events.get("nextSyncToken")
@@ -480,7 +497,7 @@ def update_event_in_google_calendar(doc, method=None):
 		event["description"] = doc.description
 		event["recurrence"] = repeat_on_to_google_calendar_recurrence_rule(doc)
 		event["status"] = (
-			"cancelled" if doc.event_type == "Cancelled" or doc.status == "Closed" else event.get("status")
+			"cancelled" if doc.status == "Cancelled" or doc.status == "Closed" else event.get("status")
 		)
 		event.update(
 			format_date_according_to_google_calendar(

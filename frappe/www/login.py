@@ -5,7 +5,6 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, get_url
 from frappe.utils.data import escape_html
@@ -85,7 +84,10 @@ def get_context(context):
 			)
 			context["social_login"] = True
 
-	context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
+	if cint(frappe.db.get_value("LDAP Settings", "LDAP Settings", "enabled")):
+		from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+
+		context["ldap_settings"] = LDAPSettings.get_ldap_client_settings()
 
 	login_label = [_("Email")]
 
@@ -104,7 +106,7 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_token(login_token: str):
-	sid = frappe.cache().get_value(f"login_token:{login_token}", expires=True)
+	sid = frappe.cache.get_value(f"login_token:{login_token}", expires=True)
 	if not sid:
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Login Token"), http_status_code=417)
 		return
@@ -150,7 +152,7 @@ def _generate_temporary_login_link(email: str, expiry: int):
 			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
 		)
 	key = frappe.generate_hash()
-	frappe.cache().set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
 
@@ -159,10 +161,10 @@ def _generate_temporary_login_link(email: str, expiry: int):
 @rate_limit(limit=5, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
-	email = frappe.cache().get_value(cache_key)
+	email = frappe.cache.get_value(cache_key)
 
 	if email:
-		frappe.cache().delete_value(cache_key)
+		frappe.cache.delete_value(cache_key)
 
 		frappe.local.login_manager.login_as(email)
 

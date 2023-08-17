@@ -20,7 +20,8 @@ function activate_tab(tab) {
 	nextTick(() => {
 		$(".tabs .tab.active")[0].scrollIntoView({
 			behavior: "smooth",
-			inline: "center"
+			inline: "center",
+			block: "nearest",
 		});
 	});
 }
@@ -114,8 +115,6 @@ function delete_tab(with_children) {
 			class="tabs"
 			v-model="store.form.layout.tabs"
 			group="tabs"
-			filter="[data-has-std-field='true']"
-			:prevent-on-filter="false"
 			:animation="200"
 			:easing="store.get_animation"
 			item-key="id"
@@ -125,8 +124,7 @@ function delete_tab(with_children) {
 				<div
 					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
 					:title="element.df.fieldname"
-					:data-is-custom="element.df.is_custom_field"
-					:data-has-std-field="store.has_standard_field(element)"
+					:data-is-user-generated="store.is_user_generated_field(element)"
 					@click.stop="activate_tab(element)"
 					@dragstart="dragged = true"
 					@dragend="dragged = false"
@@ -174,8 +172,6 @@ function delete_tab(with_children) {
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
-				filter="[data-has-std-field='true']"
-				:prevent-on-filter="false"
 				:animation="200"
 				:easing="store.get_animation"
 				item-key="id"
@@ -185,8 +181,7 @@ function delete_tab(with_children) {
 					<Section
 						:tab="tab"
 						:section="element"
-						:data-is-custom="element.df.is_custom_field"
-						:data-has-std-field="store.has_standard_field(element)"
+						:data-is-user-generated="store.is_user_generated_field(element)"
 					/>
 				</template>
 			</draggable>
@@ -284,8 +279,9 @@ function delete_tab(with_children) {
 }
 
 .tab-contents {
-	max-height: calc(100vh - 210px);
+	max-height: 100vh;
 	overflow-y: auto;
+	overflow-x: hidden;
 	border-radius: var(--border-radius);
 	min-height: 70px;
 

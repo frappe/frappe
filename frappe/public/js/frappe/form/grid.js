@@ -441,12 +441,13 @@ export default class Grid {
 			if (d.name === undefined) {
 				d.name = "row " + d.idx;
 			}
+			let grid_row;
 			if (this.grid_rows[ri] && !append_row) {
-				var grid_row = this.grid_rows[ri];
+				grid_row = this.grid_rows[ri];
 				grid_row.doc = d;
 				grid_row.refresh();
 			} else {
-				var grid_row = new GridRow({
+				grid_row = new GridRow({
 					parent: $rows,
 					parent_df: this.df,
 					docfields: this.docfields,
@@ -1187,6 +1188,13 @@ export default class Grid {
 
 		// update the parent too (for new rows)
 		this.docfields.find((d) => d.fieldname === fieldname)[property] = value;
+
+		if (this.user_defined_columns && this.user_defined_columns.length > 0) {
+			let field = this.user_defined_columns.find((d) => d.fieldname === fieldname);
+			if (field && Object.keys(field).includes(property)) {
+				field[property] = value;
+			}
+		}
 
 		this.debounced_refresh();
 	}

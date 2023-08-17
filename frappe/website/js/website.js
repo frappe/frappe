@@ -1,7 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-/* eslint-disable no-console */
-
 import hljs from "./syntax_highlight";
 
 frappe.provide("website");
@@ -84,7 +82,7 @@ $.extend(frappe, {
 		}
 		return $.ajax({
 			type: opts.type || "POST",
-			url: "/",
+			url: opts.url || "/",
 			data: opts.args,
 			dataType: "json",
 			headers: {
@@ -212,15 +210,6 @@ $.extend(frappe, {
 					"</div>"
 			)
 			.appendTo(document.body);
-	},
-	send_message: function (opts, btn) {
-		return frappe.call({
-			type: "POST",
-			method: "frappe.www.contact.send_message",
-			btn: btn,
-			args: opts,
-			callback: opts.callback,
-		});
 	},
 	has_permission: function (doctype, docname, perm_type, callback) {
 		return frappe.call({
@@ -405,14 +394,9 @@ $.extend(frappe, {
 					language_switcher.val(language);
 					document.documentElement.lang = language;
 					language_switcher.change(() => {
-						let lang = language_switcher.val();
-						frappe
-							.call("frappe.translate.set_preferred_language_cookie", {
-								preferred_language: lang,
-							})
-							.then(() => {
-								window.location.reload();
-							});
+						const lang = language_switcher.val();
+						document.cookie = `preferred_language=${lang}`;
+						window.location.reload();
 					});
 				});
 		}
@@ -572,14 +556,14 @@ frappe.setup_search = function (target, search_scope) {
 
 // Utility functions
 window.valid_email = function (id) {
-	// eslint-disable-next-line
 	// copied regex from frappe/utils.js validate_type
+	// eslint-disable-next-line
 	return /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/.test(
 		id.toLowerCase()
 	);
 };
 
-window.validate_email = valid_email;
+window.validate_email = window.valid_email;
 
 window.cstr = function (s) {
 	return s == null ? "" : s + "";
@@ -662,5 +646,5 @@ $(document).on("page-change", function () {
 frappe.ready(function () {
 	frappe.show_language_picker();
 	frappe.setup_videos();
-	frappe.socketio.init(window.socketio_port);
+	frappe.realtime.init(window.socketio_port, true); // lazy connection
 });

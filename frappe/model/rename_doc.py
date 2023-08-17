@@ -53,6 +53,7 @@ def update_document_title(
 	# handle bad API usages
 	merge = sbool(merge)
 	enqueue = sbool(enqueue)
+	action_enqueued = enqueue and not is_scheduler_inactive()
 
 	doc = frappe.get_doc(doctype, docname)
 	doc.check_permission(permtype="write")
@@ -64,8 +65,10 @@ def update_document_title(
 	)
 	name_updated = updated_name and (updated_name != doc.name)
 
+	queue = kwargs.get("queue") or "default"
+
 	if name_updated:
-		if enqueue and not is_scheduler_inactive():
+		if action_enqueued:
 			current_name = doc.name
 
 			# before_name hook may have DocType specific validations or transformations
@@ -85,23 +88,32 @@ def update_document_title(
 				save_point=True,
 			)
 
-			doc.queue_action("rename", name=transformed_name, merge=merge)
+			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue)
 		else:
 			doc.rename(updated_name, merge=merge)
 
 	if title_updated:
-		try:
-			setattr(doc, title_field, updated_title)
-			doc.save()
-			frappe.msgprint(_("Saved"), alert=True, indicator="green")
-		except Exception as e:
-			if frappe.db.is_duplicate_entry(e):
-				frappe.throw(
-					_("{0} {1} already exists").format(doctype, frappe.bold(docname)),
-					title=_("Duplicate Name"),
-					exc=frappe.DuplicateEntryError,
-				)
-			raise
+		if action_enqueued and name_updated:
+			frappe.enqueue(
+				"frappe.client.set_value",
+				doctype=doc.doctype,
+				name=updated_name,
+				fieldname=title_field,
+				value=updated_title,
+			)
+		else:
+			try:
+				setattr(doc, title_field, updated_title)
+				doc.save()
+				frappe.msgprint(_("Saved"), alert=True, indicator="green")
+			except Exception as e:
+				if frappe.db.is_duplicate_entry(e):
+					frappe.throw(
+						_("{0} {1} already exists").format(doctype, frappe.bold(docname)),
+						title=_("Duplicate Name"),
+						exc=frappe.DuplicateEntryError,
+					)
+				raise
 
 	return doc.name
 
@@ -488,6 +500,9 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 
 	if frappe.conf.developer_mode:
 		for name in frappe.get_all("DocField", filters={"options": old}, pluck="parent"):
+			if name in (old, new):
+				continue
+
 			doctype = frappe.get_doc("DocType", name)
 			save = False
 			for f in doctype.fields:
@@ -496,11 +511,11 @@ def update_options_for_fieldtype(fieldtype: str, old: str, new: str) -> None:
 					save = True
 			if save:
 				doctype.save()
-	else:
-		DocField = frappe.qb.DocType("DocField")
-		frappe.qb.update(DocField).set(DocField.options, new).where(
-			(DocField.fieldtype == fieldtype) & (DocField.options == old)
-		).run()
+
+	DocField = frappe.qb.DocType("DocField")
+	frappe.qb.update(DocField).set(DocField.options, new).where(
+		(DocField.fieldtype == fieldtype) & (DocField.options == old)
+	).run()
 
 	frappe.qb.update(CustomField).set(CustomField.options, new).where(
 		(CustomField.fieldtype == fieldtype) & (CustomField.options == old)
@@ -682,39 +697,3 @@ def bulk_rename(
 
 	if not via_console:
 		return rename_log
-
-
-def update_linked_doctypes(
-	doctype: str, docname: str, linked_to: str, value: str, ignore_doctypes: list | None = None
-) -> None:
-	from frappe.model.utils.rename_doc import update_linked_doctypes
-
-	show_deprecation_warning("update_linked_doctypes")
-
-	return update_linked_doctypes(
-		doctype=doctype,
-		docname=docname,
-		linked_to=linked_to,
-		value=value,
-		ignore_doctypes=ignore_doctypes,
-	)
-
-
-def get_fetch_fields(
-	doctype: str, linked_to: str, ignore_doctypes: list | None = None
-) -> list[dict]:
-	from frappe.model.utils.rename_doc import get_fetch_fields
-
-	show_deprecation_warning("get_fetch_fields")
-
-	return get_fetch_fields(doctype=doctype, linked_to=linked_to, ignore_doctypes=ignore_doctypes)
-
-
-def show_deprecation_warning(funct: str) -> None:
-	from click import secho
-
-	message = (
-		f"Function frappe.model.rename_doc.{funct} has been deprecated and "
-		"moved to the frappe.model.utils.rename_doc"
-	)
-	secho(message, fg="yellow")

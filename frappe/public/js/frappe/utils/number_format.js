@@ -252,10 +252,11 @@ function in_list(list, item) {
 function remainder(numerator, denominator, precision) {
 	precision = cint(precision);
 	var multiplier = Math.pow(10, precision);
+	let _remainder;
 	if (precision) {
-		var _remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier;
+		_remainder = ((numerator * multiplier) % (denominator * multiplier)) / multiplier;
 	} else {
-		var _remainder = numerator % denominator;
+		_remainder = numerator % denominator;
 	}
 
 	return flt(_remainder, precision);

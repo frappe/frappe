@@ -14,6 +14,38 @@ from frappe.utils import get_path
 
 
 class WebsiteTheme(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.website_theme_ignore_app.website_theme_ignore_app import (
+			WebsiteThemeIgnoreApp,
+		)
+
+		background_color: DF.Link | None
+		button_gradients: DF.Check
+		button_rounded_corners: DF.Check
+		button_shadows: DF.Check
+		custom: DF.Check
+		custom_overrides: DF.Code | None
+		custom_scss: DF.Code | None
+		dark_color: DF.Link | None
+		font_properties: DF.Data | None
+		font_size: DF.Data | None
+		google_font: DF.Data | None
+		ignored_apps: DF.Table[WebsiteThemeIgnoreApp]
+		js: DF.Code | None
+		light_color: DF.Link | None
+		module: DF.Link
+		primary_color: DF.Link | None
+		text_color: DF.Link | None
+		theme: DF.Data
+		theme_scss: DF.Code | None
+		theme_url: DF.Data | None
+	# end: auto-generated types
 	def validate(self):
 		self.validate_if_customizable()
 		self.generate_bootstrap_theme()
@@ -112,10 +144,7 @@ class WebsiteTheme(Document):
 		from frappe.utils.change_log import get_versions
 
 		apps = get_versions()
-		out = []
-		for app, values in apps.items():
-			out.append({"name": app, "title": values["title"]})
-		return out
+		return [{"name": app, "title": values["title"]} for app, values in apps.items()]
 
 
 def get_active_theme() -> Optional["WebsiteTheme"]:

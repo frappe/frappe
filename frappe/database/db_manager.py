@@ -68,18 +68,16 @@ class DbManager:
 		if pipe:
 			print("Restoring Database file...")
 
-		command = (
-			"{pipe} mysql -u {user} -p{password} -h{host} "
-			+ ("-P{port}" if frappe.db.port else "")
-			+ " {target} {source}"
-		)
+		command = "{pipe} mysql -u {user} -p{password} -h{host} -P{port} {target} {source}"
 		command = command.format(
 			pipe=pipe,
 			user=esc(user),
 			password=esc(password),
-			host=esc(frappe.db.host),
+			host=esc(frappe.conf.db_host),
 			target=esc(target),
 			source=source,
-			port=frappe.db.port,
+			port=frappe.conf.db_port,
 		)
+
 		os.system(command)
+		frappe.cache.delete_keys("")  # Delete all keys associated with this site.

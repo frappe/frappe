@@ -111,11 +111,6 @@ def throw_permission_error():
 
 
 @frappe.whitelist(allow_guest=True)
-def version():
-	return frappe.__version__
-
-
-@frappe.whitelist(allow_guest=True)
 def logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
@@ -198,7 +193,7 @@ def upload_file():
 		filename = file.filename
 
 		content_type = guess_type(filename)[0]
-		if optimize and content_type.startswith("image/"):
+		if optimize and content_type and content_type.startswith("image/"):
 			args = {"content": content, "content_type": content_type}
 			if frappe.form_dict.max_width:
 				args["max_width"] = int(frappe.form_dict.max_width)

@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "script",
-  "output"
+  "type"
  ],
  "fields": [
   {
@@ -18,18 +18,20 @@
    "read_only": 1
   },
   {
-   "fieldname": "output",
-   "fieldtype": "Code",
-   "label": "Output",
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Type",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-08-18 20:07:57.587344",
+ "modified": "2023-07-27 22:52:37.239039",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
@@ -48,5 +50,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

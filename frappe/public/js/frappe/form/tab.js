@@ -42,8 +42,8 @@ export default class Tab {
 			hide = true;
 		}
 
-		if (!hide && !this.df.show_dashboard) {
-			// show only if there is at least one visibe section or control
+		if (!hide) {
+			// show only if there is at least one visible section or control
 			hide = true;
 			if (
 				this.wrapper.find(
@@ -52,11 +52,6 @@ export default class Tab {
 			) {
 				hide = false;
 			}
-		}
-
-		// hide if dashboard and not saved
-		if (!hide && this.df.show_dashboard && this.frm.is_new()) {
-			hide = true;
 		}
 
 		this.toggle(!hide);
@@ -79,6 +74,9 @@ export default class Tab {
 	}
 
 	add_field(fieldobj) {
+		fieldobj.tab = this;
+	}
+	replace_field(fieldobj) {
 		fieldobj.tab = this;
 	}
 

@@ -10,7 +10,15 @@ frappe.ui.form.on("System Console", {
 			description: __("Execute Console script"),
 			ignore_inputs: true,
 		});
-		frm.set_value("type", "Python");
+		if (
+			localStorage.getItem("system_console_code") &&
+			localStorage.getItem("system_console_type")
+		) {
+			frm.set_value("type", localStorage.getItem("system_console_type"));
+			frm.set_value("console", localStorage.getItem("system_console_code"));
+			localStorage.removeItem("system_console_code");
+			localStorage.removeItem("system_console_type");
+		}
 	},
 
 	refresh: function (frm) {

@@ -12,7 +12,7 @@ from frappe.utils.response import build_response
 class TestMonitor(FrappeTestCase):
 	def setUp(self):
 		frappe.conf.monitor = 1
-		frappe.cache().delete_value(MONITOR_REDIS_KEY)
+		frappe.cache.delete_value(MONITOR_REDIS_KEY)
 
 	def test_enable_monitor(self):
 		set_request(method="GET", path="/api/method/frappe.ping")
@@ -21,7 +21,7 @@ class TestMonitor(FrappeTestCase):
 		frappe.monitor.start()
 		frappe.monitor.stop(response)
 
-		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
+		logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
 		self.assertEqual(len(logs), 1)
 
 		log = frappe.parse_json(logs[0].decode())
@@ -33,12 +33,26 @@ class TestMonitor(FrappeTestCase):
 		self.assertEqual(log.transaction_type, "request")
 		self.assertEqual(log.request["method"], "GET")
 
+	def test_no_response(self):
+		set_request(method="GET", path="/api/method/frappe.ping")
+
+		frappe.monitor.start()
+		frappe.monitor.stop(response=None)
+
+		logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
+		self.assertEqual(len(logs), 1)
+
+		log = frappe.parse_json(logs[0].decode())
+		self.assertEqual(log.request["status_code"], 500)
+		self.assertEqual(log.transaction_type, "request")
+		self.assertEqual(log.request["method"], "GET")
+
 	def test_job(self):
 		frappe.utils.background_jobs.execute_job(
 			frappe.local.site, "frappe.ping", None, None, {}, is_async=False
 		)
 
-		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
+		logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
 		self.assertEqual(len(logs), 1)
 		log = frappe.parse_json(logs[0].decode())
 		self.assertEqual(log.transaction_type, "job")
@@ -65,4 +79,4 @@ class TestMonitor(FrappeTestCase):
 
 	def tearDown(self):
 		frappe.conf.monitor = 0
-		frappe.cache().delete_value(MONITOR_REDIS_KEY)
+		frappe.cache.delete_value(MONITOR_REDIS_KEY)

@@ -407,10 +407,7 @@ def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
 
 def get_exempted_doctypes():
 	"""Get list of doctypes exempted from being auto-cancelled"""
-	auto_cancel_exempt_doctypes = []
-	for doctypes in frappe.get_hooks("auto_cancel_exempted_doctypes"):
-		auto_cancel_exempt_doctypes.append(doctypes)
-	return auto_cancel_exempt_doctypes
+	return list(frappe.get_hooks("auto_cancel_exempted_doctypes"))
 
 
 def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
@@ -531,13 +528,13 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 	        {"Address": {"fieldname": "customer"}..}
 	"""
 	if without_ignore_user_permissions_enabled:
-		return frappe.cache().hget(
+		return frappe.cache.hget(
 			"linked_doctypes_without_ignore_user_permissions_enabled",
 			doctype,
 			lambda: _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled),
 		)
 	else:
-		return frappe.cache().hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
+		return frappe.cache.hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
 
 
 def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):

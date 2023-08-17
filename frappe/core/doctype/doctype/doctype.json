@@ -25,8 +25,6 @@
   "beta",
   "is_virtual",
   "queue_in_background",
-  "fields_section_break",
-  "fields",
   "sb1",
   "naming_rule",
   "autoname",
@@ -34,6 +32,32 @@
   "column_break_15",
   "description",
   "documentation",
+  "sb2",
+  "permissions",
+  "restrict_to_domain",
+  "read_only",
+  "in_create",
+  "actions_section",
+  "actions",
+  "links_section",
+  "links",
+  "document_states_section",
+  "states",
+  "web_view",
+  "has_web_view",
+  "allow_guest_to_view",
+  "index_web_pages_for_search",
+  "route",
+  "is_published_field",
+  "website_search_field",
+  "advanced",
+  "engine",
+  "migration_hash",
+  "form_builder_tab",
+  "form_builder",
+  "fields_section",
+  "fields",
+  "settings_tab",
   "form_settings_section",
   "image_field",
   "timeline_field",
@@ -67,28 +91,7 @@
   "column_break_51",
   "email_append_to",
   "sender_field",
-  "subject_field",
-  "sb2",
-  "permissions",
-  "restrict_to_domain",
-  "read_only",
-  "in_create",
-  "actions_section",
-  "actions",
-  "links_section",
-  "links",
-  "document_states_section",
-  "states",
-  "web_view",
-  "has_web_view",
-  "allow_guest_to_view",
-  "index_web_pages_for_search",
-  "route",
-  "is_published_field",
-  "website_search_field",
-  "advanced",
-  "engine",
-  "migration_hash"
+  "subject_field"
  ],
  "fields": [
   {
@@ -195,12 +198,6 @@
    "label": "Beta"
   },
   {
-   "fieldname": "fields_section_break",
-   "fieldtype": "Section Break",
-   "label": "Fields",
-   "oldfieldtype": "Section Break"
-  },
-  {
    "fieldname": "fields",
    "fieldtype": "Table",
    "label": "Fields",
@@ -234,6 +231,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
    "label": "Form Settings"
@@ -307,6 +305,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "view_settings",
    "fieldtype": "Section Break",
    "label": "View Settings"
@@ -417,7 +416,7 @@
    "oldfieldtype": "Check"
   },
   {
-   "depends_on": "eval:doc.custom===0",
+   "depends_on": "eval:doc.custom===0 && !doc.istable",
    "fieldname": "web_view",
    "fieldtype": "Section Break",
    "label": "Web View"
@@ -485,6 +484,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "actions",
+   "depends_on": "eval:!doc.istable",
    "fieldname": "actions_section",
    "fieldtype": "Section Break",
    "label": "Actions"
@@ -498,6 +498,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "links",
+   "depends_on": "eval:!doc.istable",
    "fieldname": "links_section",
    "fieldtype": "Section Break",
    "label": "Linked Documents"
@@ -529,6 +530,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
@@ -541,7 +543,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Is Virtual"
@@ -582,6 +583,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
@@ -630,6 +632,27 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "form_builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
   }
  ],
  "icon": "fa fa-bolt",
@@ -712,7 +735,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-03-23 16:15:51.067267",
+ "modified": "2023-08-14 17:32:23.824794",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

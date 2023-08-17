@@ -8,10 +8,11 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
+import git
 import yaml
 
 import frappe
-from frappe.modules.patch_handler import get_all_patches
+from frappe.modules.patch_handler import get_all_patches, parse_as_configfile
 from frappe.utils.boilerplate import (
 	PatchCreator,
 	_create_app_boilerplate,
@@ -55,9 +56,8 @@ class TestBoilerPlate(unittest.TestCase):
 		cls.git_folder = ".git"
 
 		cls.root_paths = [
-			"requirements.txt",
 			"README.md",
-			"setup.py",
+			"pyproject.toml",
 			"license.txt",
 			cls.git_folder,
 			cls.gitignore_file,
@@ -111,6 +111,9 @@ class TestBoilerPlate(unittest.TestCase):
 	def test_valid_ci_yaml(self):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_create_app(self):
 		app_name = "test_app"
 
@@ -134,6 +137,17 @@ class TestBoilerPlate(unittest.TestCase):
 
 		self.check_parsable_python_files(new_app_dir)
 
+		app_repo = git.Repo(new_app_dir)
+		self.assertEqual(app_repo.active_branch.name, "develop")
+
+		patches_file = os.path.join(new_app_dir, app_name, "patches.txt")
+		self.assertTrue(os.path.exists(patches_file), msg=f"{patches_file} not found")
+
+		self.assertEqual(parse_as_configfile(patches_file), [])
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
 
@@ -161,15 +175,9 @@ class TestBoilerPlate(unittest.TestCase):
 		self.check_parsable_python_files(new_app_dir)
 
 	def get_paths(self, app_dir, app_name):
-		all_paths = list()
-
-		for path in self.root_paths:
-			all_paths.append(os.path.join(app_dir, path))
-
+		all_paths = [os.path.join(app_dir, path) for path in self.root_paths]
 		all_paths.append(os.path.join(app_dir, app_name))
-
-		for path in self.paths_inside_app:
-			all_paths.append(os.path.join(app_dir, app_name, path))
+		all_paths.extend(os.path.join(app_dir, app_name, path) for path in self.paths_inside_app)
 
 		return all_paths
 
@@ -184,6 +192,9 @@ class TestBoilerPlate(unittest.TestCase):
 				except Exception as e:
 					self.fail(f"Can't parse python file in new app: {python_file}\n" + str(e))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_new_patch_util(self):
 		user_inputs = {
 			"app_name": "frappe",

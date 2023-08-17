@@ -11,6 +11,10 @@ class SiteNotSpecifiedError(Exception):
 		super(Exception, self).__init__(self.message)
 
 
+class UrlSchemeNotSupported(Exception):
+	pass
+
+
 class ValidationError(Exception):
 	http_status_code = 417
 
@@ -246,6 +250,10 @@ class InReadOnlyMode(ValidationError):
 
 class SessionBootFailed(ValidationError):
 	http_status_code = 500
+
+
+class PrintFormatError(ValidationError):
+	pass
 
 
 class TooManyWritesError(Exception):

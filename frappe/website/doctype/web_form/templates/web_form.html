@@ -14,6 +14,7 @@
 {% endblock %}
 
 {% macro header_buttons() %}
+	{% block header_buttons %}
 	{% if allow_edit and in_view_mode %}
 		<!-- edit button -->
 		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
@@ -26,9 +27,11 @@
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
 		</a>
 	{% endif %}
+	{% endblock %}
 {% endmacro %}
 
 {% macro action_buttons() %}
+	{% block actions_buttons %}
 	<div class="left-area"></div>
 	<div class="center-area paging"></div>
 	<div class="right-area">
@@ -41,6 +44,7 @@
 			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
 		{% endif %}
 	</div>
+	{% endblock %}
 {% endmacro %}
 
 {% block page_content %}
@@ -68,7 +72,7 @@
 							<h1 class="ellipsis">{{ _(title) }}</h1>
 						{% endif %}
 					</div>
-					<span class="indicator-pill orange hide">Not Saved</span>
+					<span class="indicator-pill orange hide">{{ _("Not Saved") }}</span>
 					<div class="web-form-actions">
 						{{ header_buttons() }}
 					</div>
@@ -137,11 +141,8 @@
 			{% if success_url %}
 				<div class="success_url_message">
 					<p>
-						<span>Click on this </span>
-						<a href="{{ success_url }}">{{_("URL")}}</a>
-						<span> if you are not redirected within </span>
-						<span class="time">5</span>
-						<span> seconds.</span>
+						{% set success_link = '<a href="{0}">{1}</a>'.format(success_url, _("Click here")) %}
+						{{ _("{0} if you are not redirected within {1} seconds").format(success_link, '<span class="time">5</span>') }}
 					</p>
 				</div>
 			{% else %}

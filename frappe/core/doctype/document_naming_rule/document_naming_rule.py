@@ -9,6 +9,25 @@ from frappe.utils.data import evaluate_filters
 
 
 class DocumentNamingRule(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.document_naming_rule_condition.document_naming_rule_condition import (
+			DocumentNamingRuleCondition,
+		)
+		from frappe.types import DF
+
+		conditions: DF.Table[DocumentNamingRuleCondition]
+		counter: DF.Int
+		disabled: DF.Check
+		document_type: DF.Link
+		prefix: DF.Data
+		prefix_digits: DF.Int
+		priority: DF.Int
+	# end: auto-generated types
 	def validate(self):
 		self.validate_fields_in_conditions()
 
@@ -47,9 +66,3 @@ class DocumentNamingRule(Document):
 
 		doc.name = naming_series + ("%0" + str(self.prefix_digits) + "d") % (counter + 1)
 		frappe.db.set_value(self.doctype, self.name, "counter", counter + 1)
-
-
-@frappe.whitelist()
-def update_current(name, new_counter):
-	frappe.only_for("System Manager")
-	frappe.db.set_value("Document Naming Rule", name, "counter", new_counter)

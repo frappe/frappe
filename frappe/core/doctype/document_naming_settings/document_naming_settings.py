@@ -15,6 +15,27 @@ class NamingSeriesNotSetError(frappe.ValidationError):
 
 
 class DocumentNamingSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.amended_document_naming_settings.amended_document_naming_settings import (
+			AmendedDocumentNamingSettings,
+		)
+		from frappe.types import DF
+
+		amend_naming_override: DF.Table[AmendedDocumentNamingSettings]
+		current_value: DF.Int
+		default_amend_naming: DF.Literal["Amend Counter", "Default Naming"]
+		naming_series_options: DF.Text | None
+		prefix: DF.Autocomplete | None
+		series_preview: DF.Text | None
+		transaction_type: DF.Autocomplete | None
+		try_naming_series: DF.Data | None
+		user_must_always_select: DF.Check
+	# end: auto-generated types
 	@frappe.whitelist()
 	def get_transactions_and_prefixes(self):
 
@@ -168,6 +189,23 @@ class DocumentNamingSettings(Document):
 		if self.prefix is not None:
 			self.current_value = NamingSeries(self.prefix).get_current_value()
 		return self.current_value
+
+	@frappe.whitelist()
+	def update_amendment_rule(self):
+		self.db_set("default_amend_naming", self.default_amend_naming)
+
+		existing_overrides = frappe.db.get_all(
+			"Amended Document Naming Settings",
+			filters={"name": ["not in", [d.name for d in self.amend_naming_override]]},
+			pluck="name",
+		)
+		for override in existing_overrides:
+			frappe.delete_doc("Amended Document Naming Settings", override)
+
+		for row in self.amend_naming_override:
+			row.save()
+
+		frappe.msgprint(_("Amendment naming rules updated."), indicator="green", alert=True)
 
 	@frappe.whitelist()
 	def update_series_start(self):

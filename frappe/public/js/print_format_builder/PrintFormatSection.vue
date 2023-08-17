@@ -83,7 +83,7 @@ import Field from "./Field.vue";
 import { computed } from "vue";
 
 // props
-let props = defineProps(["section"]);
+const props = defineProps(["section"]);
 
 // emits
 let emit = defineEmits(["add_section_above"]);

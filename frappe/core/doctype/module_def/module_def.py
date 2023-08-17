@@ -6,9 +6,24 @@ import os
 
 import frappe
 from frappe.model.document import Document
+from frappe.modules.export_file import delete_folder
 
 
 class ModuleDef(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		app_name: DF.Literal
+		custom: DF.Check
+		module_name: DF.Data
+		package: DF.Link | None
+		restrict_to_domain: DF.Link | None
+	# end: auto-generated types
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
 		add in `modules.txt` of app if missing."""
@@ -50,6 +65,7 @@ class ModuleDef(Document):
 
 		modules = None
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
+			delete_folder(self.module_name, "Module Def", self.name)
 			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
 				content = f.read()
 				if self.name in content.splitlines():

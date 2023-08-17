@@ -24,7 +24,7 @@ function hide() {
 	data.value = null;
 }
 function open_in_editor(location) {
-	frappe.socketio.socket.emit("open_in_editor", location);
+	frappe.realtime.emit("open_in_editor", location);
 }
 function error_component(error, i) {
 	let location = data.value.error.errors[i].location;
@@ -40,7 +40,7 @@ function error_component(error, i) {
 		template: `<div>${template}</div>`,
 		methods: {
 			open() {
-				frappe.socketio.socket.emit("open_in_editor", location);
+				frappe.realtime.emit("open_in_editor", location);
 			}
 		}
 	};

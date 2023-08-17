@@ -6,6 +6,18 @@ from frappe.model.document import Document
 
 
 class DiscussionTopic(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		reference_docname: DF.DynamicLink | None
+		reference_doctype: DF.Link | None
+		title: DF.Data | None
+	# end: auto-generated types
 	pass
 
 
@@ -39,10 +51,3 @@ def save_message(reply, topic):
 	frappe.get_doc({"doctype": "Discussion Reply", "reply": reply, "topic": topic}).save(
 		ignore_permissions=True
 	)
-
-
-@frappe.whitelist(allow_guest=True)
-def get_docname(route):
-	if not route:
-		route = frappe.db.get_single_value("Website Settings", "home_page")
-	return frappe.db.get_value("Web Page", {"route": route}, ["name"])

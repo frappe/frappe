@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-05-17 14:49:19.454932",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "custom_block_name",
+  "label"
+ ],
+ "fields": [
+  {
+   "fieldname": "custom_block_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Custom Block Name",
+   "options": "Custom HTML Block"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-05-17 14:50:45.575609",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Custom Block",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

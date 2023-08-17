@@ -18,10 +18,17 @@ EMAIL_PATTERN = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key="reference_name", limit=get_comment_limit, seconds=60 * 60)
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
-	doc = frappe.get_doc(reference_doctype, reference_name)
+	if frappe.session.user == "Guest":
+		if reference_doctype not in ("Blog Post", "Web Page"):
+			return
 
-	if frappe.session.user == "Guest" and doc.doctype not in ["Blog Post", "Web Page"]:
-		return
+		if reference_doctype == "Blog Post" and not frappe.db.get_single_value(
+			"Blog Settings", "allow_guest_to_comment"
+		):
+			return
+
+		if frappe.db.exists("User", comment_email):
+			frappe.throw(_("Please login to post a comment."))
 
 	if not comment.strip():
 		frappe.msgprint(_("The comment cannot be empty"))
@@ -31,6 +38,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		frappe.msgprint(_("Comments cannot have links or email addresses"))
 		return False
 
+	doc = frappe.get_doc(reference_doctype, reference_name)
 	comment = doc.add_comment(
 		text=clean_html(comment), comment_email=comment_email, comment_by=comment_by
 	)
@@ -50,9 +58,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		url, _("View Comment")
 	)
 
-	if doc.doctype == "Blog Post" and not doc.enable_email_notification:
-		pass
-	else:
+	if doc.doctype != "Blog Post" or doc.enable_email_notification:
 		# notify creator
 		creator_email = frappe.db.get_value("User", doc.owner, "email") or doc.owner
 		subject = _("New Comment on {0}: {1}").format(doc.doctype, doc.get_title())

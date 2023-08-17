@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 const path = require("path");
 const fs = require("fs");
 const glob = require("fast-glob");
@@ -60,6 +59,11 @@ const argv = yargs
 		type: "boolean",
 		description: "Run build command for apps",
 	})
+	.option("save-metafiles", {
+		type: "boolean",
+		description:
+			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
+	})
 	.example("node esbuild --apps frappe,erpnext", "Run build only for frappe and erpnext")
 	.example(
 		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
@@ -85,9 +89,10 @@ const NODE_PATHS = [].concat(
 	app_list.map((app) => path.resolve(get_app_path(app), "..")).filter(fs.existsSync)
 );
 
-execute()
-	.then(() => RUN_BUILD_COMMAND && run_build_command_for_apps(APPS))
-	.catch((e) => console.error(e));
+execute().catch((e) => {
+	console.error(e);
+	process.exit(1);
+});
 
 if (WATCH_MODE) {
 	// listen for open files in editor event
@@ -119,6 +124,10 @@ async function execute() {
 	}
 	for (const result of results) {
 		await write_assets_json(result.metafile);
+	}
+	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (!WATCH_MODE) {
+		process.exit(0);
 	}
 }
 
@@ -183,7 +192,7 @@ function get_all_files_to_build(apps) {
 	for (let app of apps) {
 		let public_path = get_public_path(app);
 		include_patterns.push(
-			path.resolve(public_path, "**", "*.bundle.{js,ts,css,sass,scss,less,styl}")
+			path.resolve(public_path, "**", "*.bundle.{js,ts,css,sass,scss,less,styl,jsx}")
 		);
 		ignore_patterns.push(
 			path.resolve(public_path, "node_modules"),
@@ -398,24 +407,30 @@ async function write_assets_json(metafile) {
 
 	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();
+	if (argv["save-metafiles"]) {
+		// use current timestamp in readable formate as a suffix for filename
+		let current_timestamp = new Date().getTime();
+		const metafile_name = `meta-${current_timestamp}.json`;
+		await fs.promises.writeFile(`${metafile_name}`, JSON.stringify(metafile));
+		log(`Saved metafile as ${metafile_name}`);
+	}
 	return {
 		new_assets_json,
 		prev_assets_json,
 	};
 }
 
-function update_assets_json_in_cache() {
+async function update_assets_json_in_cache() {
 	// update assets_json cache in redis, so that it can be read directly by python
-	return new Promise((resolve) => {
-		let client = get_redis_subscriber("redis_cache");
-		// handle error event to avoid printing stack traces
-		client.on("error", (_) => {
-			log_warn("Cannot connect to redis_cache to update assets_json");
-		});
-		client.del("assets_json", (err) => {
-			client.unref();
-			resolve();
-		});
+	let client = get_redis_subscriber("redis_cache");
+	// handle error event to avoid printing stack traces
+	try {
+		await client.connect();
+	} catch (e) {
+		log_warn("Cannot connect to redis_cache to update assets_json");
+	}
+	client.del("assets_json", (err) => {
+		client.unref();
 	});
 }
 
@@ -443,10 +458,12 @@ function run_build_command_for_apps(apps) {
 
 async function notify_redis({ error, success, changed_files }) {
 	// notify redis which in turns tells socketio to publish this to browser
-	let subscriber = get_redis_subscriber("redis_socketio");
-	subscriber.on("error", (_) => {
-		log_warn("Cannot connect to redis_socketio for browser events");
-	});
+	let subscriber = get_redis_subscriber("redis_queue");
+	try {
+		await subscriber.connect();
+	} catch (e) {
+		log_warn("Cannot connect to redis_queue for browser events");
+	}
 
 	let payload = null;
 	if (error) {
@@ -469,7 +486,7 @@ async function notify_redis({ error, success, changed_files }) {
 		};
 	}
 
-	subscriber.publish(
+	await subscriber.publish(
 		"events",
 		JSON.stringify({
 			event: "build_event",
@@ -478,21 +495,20 @@ async function notify_redis({ error, success, changed_files }) {
 	);
 }
 
-function open_in_editor() {
-	let subscriber = get_redis_subscriber("redis_socketio");
-	subscriber.on("error", (_) => {
-		log_warn("Cannot connect to redis_socketio for open_in_editor events");
+async function open_in_editor() {
+	let subscriber = get_redis_subscriber("redis_queue");
+	try {
+		await subscriber.connect();
+	} catch (e) {
+		log_warn("Cannot connect to redis_queue for open_in_editor events");
+	}
+	subscriber.subscribe("open_in_editor", (file) => {
+		file = JSON.parse(file);
+		let file_path = path.resolve(file.file);
+		log("Opening file in editor:", file_path);
+		let launch = require("launch-editor");
+		launch(`${file_path}:${file.line}:${file.column}`);
 	});
-	subscriber.on("message", (event, file) => {
-		if (event === "open_in_editor") {
-			file = JSON.parse(file);
-			let file_path = path.resolve(file.file);
-			log("Opening file in editor:", file_path);
-			let launch = require("launch-editor");
-			launch(`${file_path}:${file.line}:${file.column}`);
-		}
-	});
-	subscriber.subscribe("open_in_editor");
 }
 
 function get_rebuilt_assets(prev_assets, new_assets) {

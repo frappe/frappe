@@ -42,7 +42,7 @@ class TestScheduler(TestCase):
 
 		enqueued_jobs = enqueue_events(site=frappe.local.site)
 
-		self.assertIn("frappe.email.queue.set_expiry_for_email_queue", enqueued_jobs)
+		self.assertIn("frappe.desk.notifications.clear_notifications", enqueued_jobs)
 		self.assertIn("frappe.utils.change_log.check_for_update", enqueued_jobs)
 		self.assertIn(
 			"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",

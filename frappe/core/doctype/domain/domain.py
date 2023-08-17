@@ -7,6 +7,16 @@ from frappe.model.document import Document
 
 
 class Domain(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		domain: DF.Data
+	# end: auto-generated types
 	"""Domain documents are created automatically when DocTypes
 	with "Restricted" domains are imported during
 	installation or migration"""

@@ -11,7 +11,7 @@ import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
-from frappe.utils.background_jobs import is_job_queued
+from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
 
 class TestRQJob(FrappeTestCase):
@@ -87,17 +87,6 @@ class TestRQJob(FrappeTestCase):
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()
 
-	def test_is_enqueued(self):
-
-		dummy_job = frappe.enqueue(self.BG_JOB, sleep=10, queue="short")
-		job_name = "uniq_test_job"
-		actual_job = frappe.enqueue(self.BG_JOB, job_name=job_name, queue="short")
-
-		self.assertTrue(is_job_queued(job_name))
-		stop_job(dummy_job.id)
-		self.check_status(actual_job, "finished")
-		self.assertFalse(is_job_queued(job_name))
-
 	@timeout(20)
 	def test_multi_queue_burst_consumption(self):
 		for _ in range(3):
@@ -106,6 +95,73 @@ class TestRQJob(FrappeTestCase):
 
 		_, stderr = execute_in_shell("bench worker --queue short,default --burst", check_exit_code=True)
 		self.assertIn("quitting", cstr(stderr))
+
+	@timeout(20)
+	def test_multi_queue_burst_consumption_worker_pool(self):
+		for _ in range(3):
+			for q in ["default", "short"]:
+				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
+
+		_, stderr = execute_in_shell(
+			"bench worker-pool --queue short,default --burst --num-workers=4", check_exit_code=True
+		)
+		self.assertIn("quitting", cstr(stderr))
+
+	@timeout(20)
+	def test_job_id_manual_dedup(self):
+		job_id = "test_dedup"
+		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
+		self.assertTrue(is_job_enqueued(job_id))
+		self.check_status(job, "finished")
+		self.assertFalse(is_job_enqueued(job_id))
+
+	@timeout(20)
+	def test_auto_job_dedup(self):
+		job_id = "test_dedup"
+		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
+		job2 = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id, deduplicate=True)
+		self.assertIsNone(job2)
+		self.check_status(job1, "finished")  # wait
+
+		# Failed jobs last longer, subsequent job should still pass with same ID.
+		job3 = frappe.enqueue(self.BG_JOB, fail=True, job_id=job_id, deduplicate=True)
+		self.check_status(job3, "failed")
+		job4 = frappe.enqueue(self.BG_JOB, sleep=1, job_id=job_id, deduplicate=True)
+		self.check_status(job4, "finished")
+
+	@timeout(20)
+	def test_enqueue_after_commit(self):
+		job_id = frappe.generate_hash()
+
+		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.commit()
+		self.assertIsNotNone(get_job_status(job_id))
+
+		job_id = frappe.generate_hash()
+		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.rollback()
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.commit()
+		self.assertIsNone(get_job_status(job_id))
+
+	@timeout(20)
+	def test_memory_usage(self):
+		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
+		self.check_status(job, "finished")
+
+		rss = job.latest_result().return_value
+		msg = """Memory usage of simple background job increased. Potential root cause can be a newly added python module import. Check and move them to approriate file/function to avoid loading the module by default."""
+
+		# If this starts failing analyze memory usage using memray or some equivalent tool to find
+		# offending imports/function calls.
+		# Refer this PR: https://github.com/frappe/frappe/pull/21467
+		LAST_MEASURED_USAGE = 40
+		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 
 def test_func(fail=False, sleep=0):

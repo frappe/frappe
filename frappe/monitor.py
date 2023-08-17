@@ -89,8 +89,11 @@ class Monitor:
 			self.data.duration = int(timediff.total_seconds() * 1000000)
 
 			if self.data.transaction_type == "request":
-				self.data.request.status_code = response.status_code
-				self.data.request.response_length = int(response.headers.get("Content-Length", 0))
+				if response:
+					self.data.request.status_code = response.status_code
+					self.data.request.response_length = int(response.headers.get("Content-Length", 0))
+				else:
+					self.data.request.status_code = 500
 
 				if hasattr(frappe.local, "rate_limiter"):
 					limiter = frappe.local.rate_limiter
@@ -103,22 +106,22 @@ class Monitor:
 			traceback.print_exc()
 
 	def store(self):
-		if frappe.cache().llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
-			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
+		if frappe.cache.llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
+			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
 		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
-		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
+		frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
 
 
 def flush():
 	try:
 		# Fetch all the logs without removing from cache
-		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
+		logs = frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)
 		if logs:
 			logs = list(map(frappe.safe_decode, logs))
 			with open(log_file(), "a", os.O_NONBLOCK) as f:
 				f.write("\n".join(logs))
 				f.write("\n")
 			# Remove fetched entries from cache
-			frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
+			frappe.cache.ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
 	except Exception:
 		traceback.print_exc()

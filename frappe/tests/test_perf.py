@@ -17,7 +17,6 @@ query. This test can be written like this.
 
 """
 import time
-import unittest
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -27,7 +26,10 @@ from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
+
+TEST_USER = "test@example.com"
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -45,7 +47,9 @@ class TestPerformance(FrappeTestCase):
 		self.reset_request_specific_caches()
 
 	def test_meta_caching(self):
+		frappe.clear_cache()
 		frappe.get_meta("User")
+		frappe.clear_cache(doctype="ToDo")
 
 		with self.assertQueryCount(0):
 			frappe.get_meta("User")
@@ -69,6 +73,28 @@ class TestPerformance(FrappeTestCase):
 		get_controller("User")
 		with self.assertQueryCount(0):
 			get_controller("User")
+
+	def test_get_value_limits(self):
+		# check both dict and list style filters
+		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
+
+		# Warm up code
+		frappe.db.get_values("User", filters=filters[0], limit=1)
+		for filter in filters:
+			with self.assertRowsRead(1):
+				self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))
+			with self.assertRowsRead(2):
+				self.assertEqual(2, len(frappe.db.get_values("User", filters=filter, limit=2)))
+
+			self.assertEqual(
+				len(frappe.db.get_values("User", filters=filter)), frappe.db.count("User", filter)
+			)
+
+			with self.assertRowsRead(1):
+				frappe.db.get_value("User", filters=filter)
+
+			with self.assertRowsRead(1):
+				frappe.db.exists("User", filter)
 
 	def test_db_value_cache(self):
 		"""Link validation if repeated should just use db.value_cache, hence no extra queries"""
@@ -108,10 +134,32 @@ class TestPerformance(FrappeTestCase):
 			f"Possible performance regression in basic /api/Resource list  requests",
 		)
 
-	@unittest.skip("Not implemented")
 	def test_homepage_resolver(self):
 		paths = ["/", "/app"]
 		for path in paths:
 			PathResolver(path).resolve()
 			with self.assertQueryCount(1):
 				PathResolver(path).resolve()
+
+	def test_consistent_build_version(self):
+		from frappe.utils import get_build_version
+
+		self.assertEqual(get_build_version(), get_build_version())
+
+	def test_get_list_single_query(self):
+		"""get_list should only perform single query."""
+
+		user = frappe.get_doc("User", TEST_USER)
+
+		frappe.set_user(TEST_USER)
+		# Give full read access, no share/user perm check should be done.
+		user.add_roles("System Manager")
+
+		frappe.get_list("User")
+		with self.assertQueryCount(1):
+			frappe.get_list("User")
+
+	def test_no_ifnull_checks(self):
+		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()
+		self.assertNotIn("coalesce", query)
+		self.assertNotIn("ifnull", query)
