@@ -505,3 +505,18 @@ button.data-pill {
 	right: 0;
 	cursor: pointer;
 }
+
+.control-dirty {
+	position: relative;
+	&::before {
+		display: block;
+		position: absolute;
+		left: -8px;
+		top: 0px;
+		bottom: 0px;
+		width: 2px;
+		background-color: var(--yellow);
+		content: "";
+		border-radius: 99px;
+	}
+}

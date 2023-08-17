@@ -296,6 +296,12 @@ frappe.ui.form.Form = class FrappeForm {
 					}
 
 					let field = me.fields_dict[fieldname];
+
+					if (!skip_dirty_trigger) {
+						if (!doc.__dirtyfields) doc.__dirtyfields = new Set();
+						doc.__dirtyfields.add(fieldname);
+					}
+
 					field && field.refresh(fieldname);
 
 					// Validate value for link field explicitly

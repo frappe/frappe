@@ -35,6 +35,17 @@ frappe.ui.form.Control = class BaseControl {
 		this.refresh();
 	}
 
+	dirty(is_dirty = true) {
+		if (is_dirty === "refresh") {
+			is_dirty = false;
+			if (!this.doc?.__islocal && this.doc?.__dirtyfields?.has(this.df.fieldname)) {
+				is_dirty = true;
+			}
+		}
+		const wrapper = this.$wrapper?.get(0);
+		wrapper?.classList.toggle("control-dirty", is_dirty);
+	}
+
 	get perm() {
 		return this.frm?.perm;
 	}
@@ -145,6 +156,8 @@ frappe.ui.form.Control = class BaseControl {
 		var value = this.get_value();
 
 		this.show_translatable_button(value);
+
+		this.dirty("refresh");
 	}
 	show_translatable_button(value) {
 		// Disable translation non-string fields or special string fields
