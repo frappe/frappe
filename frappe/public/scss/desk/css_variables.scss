@@ -10,14 +10,12 @@
 	--sm-width: map-get($grid-breakpoints, 'sm');
 	--xs-width: map-get($grid-breakpoints, 'xs');
 
-	--text-bold: 500;
-
-	--navbar-height: 60px;
+	--navbar-height: 48px;
 
 
 
-	--appreciation-color: var(--dark-green-600);
-	--appreciation-bg: var(--dark-green-100);
+	--appreciation-color: var(--green-600);
+	--appreciation-bg: var(--green-100);
 	--criticism-color: var(--red-600);
 	--criticism-bg: var(--red-100);
 
@@ -26,7 +24,7 @@
 	--error-border: var(--red-400);
 
 	// page
-	--page-head-height: 75px;
+	--page-head-height: 60px;
 	--page-bottom-margin: 60px;
 
 	// checkbox
