@@ -98,19 +98,21 @@ def import_controller(doctype):
 
 
 class BaseDocument:
-	_reserved_keywords = {
-		"doctype",
-		"meta",
-		"_meta",
-		"flags",
-		"parent_doc",
-		"_table_fields",
-		"_valid_columns",
-		"_doc_before_save",
-		"_table_fieldnames",
-		"_reserved_keywords",
-		"dont_update_if_missing",
-	}
+	_reserved_keywords = frozenset(
+		(
+			"doctype",
+			"meta",
+			"_meta",
+			"flags",
+			"parent_doc",
+			"_table_fields",
+			"_valid_columns",
+			"_doc_before_save",
+			"_table_fieldnames",
+			"_reserved_keywords",
+			"dont_update_if_missing",
+		)
+	)
 
 	def __init__(self, d):
 		if d.get("doctype"):
