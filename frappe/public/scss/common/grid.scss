@@ -150,6 +150,7 @@
 .grid-row > .row {
 	.col:last-child {
 		border-right: none;
+		min-width: 0;
 	}
 
 	.col {
