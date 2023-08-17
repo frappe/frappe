@@ -214,17 +214,13 @@ def run(
 	if sbool(are_default_filters) and report.custom_filters:
 		filters = report.custom_filters
 
-<<<<<<< HEAD
 	if (
 		report.prepared_report
 		and not report.disable_prepared_report
-		and not ignore_prepared_report
+		and not sbool(ignore_prepared_report)
 		and not custom_columns
 	):
 		dn = None
-=======
-	if report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns:
->>>>>>> 112836dcd7 (chore: Provision to ignore prepared report via route options (#22077))
 		if filters:
 			if isinstance(filters, str):
 				filters = json.loads(filters)
