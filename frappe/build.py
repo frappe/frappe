@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 from subprocess import getoutput
-from tempfile import mkdtemp, mktemp
+from tempfile import mkdtemp
 from urllib.parse import urlparse
 
 import click
@@ -183,7 +183,7 @@ def symlink(target, link_name, overwrite=False):
 
 	# Create link to target with temporary filename
 	while True:
-		temp_link_name = mktemp(dir=link_dir)
+		temp_link_name = f"tmp{frappe.generate_hash()}"
 
 		# os.* functions mimic as closely as possible system functions
 		# The POSIX symlink() returns EEXIST if link_name already exists
