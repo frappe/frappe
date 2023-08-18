@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "creation": "2023-08-14 13:06:24.520160",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "doctype_name",
+  "column_break_peck",
+  "document",
+  "section_break_gppi",
+  "version_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Link",
+   "label": "Doctype",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "document",
+   "fieldtype": "Dynamic Link",
+   "label": "Document",
+   "options": "doctype_name"
+  },
+  {
+   "fieldname": "column_break_peck",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_gppi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "version_table",
+   "fieldtype": "HTML",
+   "label": "version_table"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2023-08-14 14:08:19.031748",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Document Comparator",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
