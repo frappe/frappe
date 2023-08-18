@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.core.doctype.version.version import get_diff
 from frappe.model.document import Document
 
@@ -22,8 +23,21 @@ class DocumentComparator(Document):
 	# end: auto-generated types
 	pass
 
+	def validate(self):
+		self.validate_doctype_name()
+		self.validate_document()
+
+	def validate_doctype_name(self):
+		if not self.doctype_name:
+			frappe.throw(_("{} field cannot be empty.".format(frappe.bold("Doctype"))))
+
+	def validate_document(self):
+		if not self.document:
+			frappe.throw(_("{} field cannot be empty.".format(frappe.bold("Document"))))
+
 	@frappe.whitelist()
 	def compare_document(self):
+		self.validate()
 		amended_document_names = frappe.db.get_list(
 			self.doctype_name,
 			filters={"name": ("like", "%" + self.document + "%")},
