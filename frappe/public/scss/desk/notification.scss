@@ -47,12 +47,12 @@
 }
 
 .notifications-list {
-	width: 480px;
+	width: 360px;
 	padding: 0px 10px;
-	min-height: 560px;
+	min-height: 480px;
 	border: none;
 	position: absolute;
-	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+	box-shadow: var(--shadow-2xl);
 
 	.notification-list-header {
 		margin: 0px 10px;
@@ -82,7 +82,7 @@
 
 			.subtitle {
 				margin-top: var(--margin-sm);
-				font-size: var(--text-md);
+				font-size: var(--text-base);
 				color: var(--text-muted);
 			}
 		}
@@ -96,7 +96,7 @@
 			margin-bottom: -1px;
 			margin-right: var(--margin-lg);
 			color: var(--text-light);
-			font-weight: var(--text-bold);
+			font-weight: var(--weight-medium);
 			cursor: pointer;
 
 			&.active {
@@ -119,7 +119,7 @@
 	white-space: normal;
 	font-weight: normal;
 	display: flex;
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 	line-height: 20px;
 	color: var(--text-light);
 	max-width: 455px;
@@ -205,7 +205,7 @@
 		padding-left: 10px;
 
 		.event-subject {
-			font-size: var(--text-md);
+			font-size: var(--text-base);
 			color: var(--text-light);
 			font-weight: 500;
 		}
@@ -250,7 +250,7 @@
 
 		.target-title {
 			margin: auto;
-			font-size: var(--text-md);
+			font-size: var(--text-base);
 			color: var(--text-light);
 		}
 

@@ -12,11 +12,8 @@
 	--blue-avatar-bg: var(--blue-50);
 	--blue-avatar-color: var(--blue-500);
 
-	--green-avatar-bg: var(--green-50);
+	--green-avatar-bg: var(--green-100);
 	--green-avatar-color: var(--green-500);
-
-	--dark-green-avatar-bg: var(--dark-green-50);
-	--dark-green-avatar-color: var(--dark-green-500);
 
 	--red-avatar-bg: var(--red-50);
 	--red-avatar-color: var(--red-500);
@@ -46,10 +43,10 @@
 	--blue-avatar-color: var(--blue-50);
 
 	--green-avatar-bg: var(--green-500);
-	--green-avatar-color: var(--green-50);
+	--green-avatar-color: var(--green-100);
 
-	--dark-green-avatar-bg: var(--dark-green-500);
-	--dark-green-avatar-color: var(--dark-green-50);
+	--dark-green-avatar-bg: var(--green-500);
+	--dark-green-avatar-color: var(--green-100);
 
 	--red-avatar-bg: var(--red-500);
 	--red-avatar-color: var(--red-50);
@@ -103,8 +100,8 @@
 }
 
 .avatar-medium {
-	width: 36px;
-	height: 36px;
+	width: 28px;
+	height: 28px;
 
 	.standard-image {
 		font-size: var(--text-base);
