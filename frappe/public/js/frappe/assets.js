@@ -124,19 +124,20 @@ frappe.assets = {
 		// this is virtual page load, only get the the source
 		// *without* the template
 
-		frappe.call({
-			type: "GET",
-			method: "frappe.client.get_js",
-			args: {
-				items: items,
-			},
-			callback: function (r) {
-				$.each(items, function (i, src) {
-					frappe.assets.add(src, r.message[i]);
+		let itemsProcessed = 0;
+		if (items.length) frappe.dom.freeze();
+
+		items.forEach((item, idx) => {
+			fetch(item)
+				.then((r) => r.text())
+				.then((body) => {
+					frappe.assets.add(item, body);
+					itemsProcessed++;
+					if (itemsProcessed === items.length) {
+						frappe.dom.unfreeze();
+						callback();
+					}
 				});
-				callback();
-			},
-			freeze: true,
 		});
 	},
 
