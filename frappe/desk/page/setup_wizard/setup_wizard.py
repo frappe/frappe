@@ -204,6 +204,8 @@ def update_user_name(args):
 				"last_name": last_name,
 			}
 		)
+
+		doc.append_roles(*_get_default_roles())
 		doc.flags.no_welcome_mail = True
 		doc.insert()
 		frappe.flags.mute_emails = _mute_emails
@@ -258,19 +260,21 @@ def parse_args(args):
 
 def add_all_roles_to(name):
 	user = frappe.get_doc("User", name)
-	for role in frappe.db.sql("""select name from tabRole"""):
-		if role[0] not in [
-			"Administrator",
-			"Guest",
-			"All",
-			"Customer",
-			"Supplier",
-			"Partner",
-			"Employee",
-		]:
-			d = user.append("roles")
-			d.role = role[0]
+	user.append_roles(*_get_default_roles())
 	user.save()
+
+
+def _get_default_roles() -> set[str]:
+	skip_roles = {
+		"Administrator",
+		"Guest",
+		"All",
+		"Customer",
+		"Supplier",
+		"Partner",
+		"Employee",
+	}
+	return set(frappe.get_all("Role", pluck="name")) - skip_roles
 
 
 def disable_future_access():
