@@ -18,7 +18,21 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
+<<<<<<< HEAD
 from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
+=======
+from frappe.utils import (
+	cast_fieldtype,
+	cint,
+	compare,
+	cstr,
+	flt,
+	is_a_property,
+	now,
+	sanitize_html,
+	strip_html,
+)
+>>>>>>> 7dc67f2feb (chore: add back `getattr` for virtual docfields which get value from a property)
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
@@ -347,14 +361,18 @@ class BaseDocument:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
 
-					if value is None and (options := getattr(df, "options", None)):
-						from frappe.utils.safe_exec import get_safe_globals
+					if value is None:
+						if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+							value = getattr(self, fieldname)
 
-						value = frappe.safe_eval(
-							code=options,
-							eval_globals=get_safe_globals(),
-							eval_locals={"doc": self},
-						)
+						elif options := getattr(df, "options", None):
+							from frappe.utils.safe_exec import get_safe_globals
+
+							value = frappe.safe_eval(
+								code=options,
+								eval_globals=get_safe_globals(),
+								eval_locals={"doc": self},
+							)
 
 				if isinstance(value, list) and df.fieldtype not in table_fields:
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
