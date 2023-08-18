@@ -30,7 +30,6 @@ frappe.ui.form.on("System Console", {
 			frm.set_value("output", "");
 			window.localStorage.removeItem("system_console_code");
 			window.localStorage.removeItem("system_console_type");
-			$(".primary-action[data-label='Execute']").click();
 		}
 	},
 
