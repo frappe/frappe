@@ -50,14 +50,14 @@
                     {% for table in tables %}
                     <tr>
                         <tr><td><b>{{ table }}</b></td></tr>
-                        {% var row_index = row_changed[table]["index"] %}
-                        <tr><td><b>idx : {{ row_index }}</b></td></tr>
-                        {% var fields = Object.keys(row_changed[table]).sort(); %}
-                        {% for field in fields %}
-                            {% if field != "index" %}
+                        {% var rows = Object.keys(row_changed[table]).sort(); %}
+                        {% for idx in rows %}
+                            <tr><td><b>idx : {{ idx }}</b></td></tr>
+                            {% var fields = Object.keys(row_changed[table][idx]).sort(); %}
+                            {% for field in fields %}
                                 <tr>
                                     <td>{{ field }}</td>
-                                    {% var values = row_changed[table][field] %}
+                                    {% var values = row_changed[table][idx][field] %}
                                     {% for value in values %}
                                         <td> {{ value }} </td>
                                     {% endfor %}

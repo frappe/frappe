@@ -62,19 +62,26 @@ def get_diff_grid(amended_docs, i, diff, key, changed_fields):
 
 
 def get_rows_updated_grid(amended_docs, i, diff, key, changed_fields):
+	# set an empty dictionary for each table
+	# so it does not get overwritten for every change in same table
+	for table in diff[key]:
+		table_name = get_field_label(table[0], doctype=amended_docs[0].doctype)
+		changed_fields[table_name] = {}
+
 	for change in diff[key]:
 		table_name = get_field_label(change[0], doctype=amended_docs[0].doctype)
-		changed_fields[table_name] = {"index": change[1]}
+		index = change[1]
+		changed_fields[table_name][index] = {}
 		for field in change[-1]:
 			fieldname = get_field_label(field[0], is_child=True)
 			value = field[-1]
-			if fieldname not in changed_fields[table_name]:
-				changed_fields[table_name][fieldname] = [""] * len(amended_docs)
-			changed_fields[table_name][fieldname][i] = value if value else ""
+			if fieldname not in changed_fields[table_name][index]:
+				changed_fields[table_name][index][fieldname] = [""] * len(amended_docs)
+			changed_fields[table_name][index][fieldname][i] = value if value else ""
 
 			if i == 1:
 				value = field[1]
-				changed_fields[table_name][fieldname][i - 1] = value if value else ""
+				changed_fields[table_name][index][fieldname][i - 1] = value if value else ""
 
 	return changed_fields
 

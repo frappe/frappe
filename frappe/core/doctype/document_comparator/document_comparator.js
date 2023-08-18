@@ -11,6 +11,7 @@ frappe.ui.form.on("Document Comparator", {
 			return {
 				filters: {
 					track_changes: 1,
+					is_submittable: 1,
 				},
 			};
 		});
@@ -30,6 +31,7 @@ frappe.ui.form.on("Document Comparator", {
 					$(frappe.render_template("document_comparator", render_dict)).appendTo(
 						frm.fields_dict.version_table.$wrapper.empty()
 					);
+					frm.set_df_property("version_table", "hidden", 0);
 				},
 			});
 		});
