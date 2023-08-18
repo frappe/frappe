@@ -3,6 +3,8 @@
 
 frappe.ui.form.on("Document Comparator", {
 	refresh(frm) {
+		frm.page.clear_indicator();
+
 		frm.disable_save();
 
 		frm.set_query("doctype_name", () => {
