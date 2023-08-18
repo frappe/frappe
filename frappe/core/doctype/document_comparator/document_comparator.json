@@ -16,14 +16,18 @@
   {
    "fieldname": "doctype_name",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Doctype",
-   "options": "DocType"
+   "options": "DocType",
+   "reqd": 1
   },
   {
    "fieldname": "document",
    "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
    "label": "Document",
-   "options": "doctype_name"
+   "options": "doctype_name",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_peck",
@@ -44,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-18 14:07:50.848659",
+ "modified": "2023-08-18 17:57:02.576653",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Comparator",

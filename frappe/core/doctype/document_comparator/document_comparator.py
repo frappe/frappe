@@ -17,8 +17,8 @@ class DocumentComparator(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		doctype_name: DF.Link | None
-		document: DF.DynamicLink | None
+		doctype_name: DF.Link
+		document: DF.DynamicLink
 	# end: auto-generated types
 	pass
 
@@ -32,58 +32,51 @@ class DocumentComparator(Document):
 			limit=5,
 		)
 		amended_docs = [frappe.get_doc(self.doctype_name, name) for name in amended_document_names]
+		self.docs_to_compare = len(amended_docs)
 
-		changed = {}
-		row_changed = {}
-		for i in range(1, len(amended_docs)):
+		self.changed = {}
+		self.row_changed = {}
+
+		for i in range(1, self.docs_to_compare):
 			diff = get_diff(amended_docs[i - 1], amended_docs[i], compare_cancelled=True)
-			changed = get_diff_grid(amended_docs, i, diff, "changed", changed)
-			row_changed = get_rows_updated_grid(amended_docs, i, diff, "row_changed", row_changed)
+			self.get_diff_grid(i, diff)
+			self.get_rows_updated_grid(i, diff)
 
-		return amended_document_names, {
-			"changed": changed,
-			"row_changed": row_changed,
-		}
+		return amended_document_names, {"changed": self.changed, "row_changed": self.row_changed}
 
-
-def get_diff_grid(amended_docs, i, diff, key, changed_fields):
-	for change in diff[key]:
-		fieldname = get_field_label(change[0], doctype=amended_docs[0].doctype)
-		value = change[-1]
-		if fieldname not in changed_fields:
-			changed_fields[fieldname] = [""] * len(amended_docs)
-		changed_fields[fieldname][i] = value if value else ""
-
-		if i == 1:
-			value = change[1]
-			changed_fields[fieldname][i - 1] = value if value else ""
-
-	return changed_fields
-
-
-def get_rows_updated_grid(amended_docs, i, diff, key, changed_fields):
-	# set an empty dictionary for each table
-	# so it does not get overwritten for every change in same table
-	for table in diff[key]:
-		table_name = get_field_label(table[0], doctype=amended_docs[0].doctype)
-		changed_fields[table_name] = {}
-
-	for change in diff[key]:
-		table_name = get_field_label(change[0], doctype=amended_docs[0].doctype)
-		index = change[1]
-		changed_fields[table_name][index] = {}
-		for field in change[-1]:
-			fieldname = get_field_label(field[0], is_child=True)
-			value = field[-1]
-			if fieldname not in changed_fields[table_name][index]:
-				changed_fields[table_name][index][fieldname] = [""] * len(amended_docs)
-			changed_fields[table_name][index][fieldname][i] = value if value else ""
+	def get_diff_grid(self, i, diff):
+		for change in diff.changed:
+			fieldname = get_field_label(change[0], doctype=self.doctype_name)
+			value = change[-1]
+			if fieldname not in self.changed:
+				self.changed[fieldname] = [""] * self.docs_to_compare
+			self.changed[fieldname][i] = value or ""
 
 			if i == 1:
-				value = field[1]
-				changed_fields[table_name][index][fieldname][i - 1] = value if value else ""
+				value = change[1]
+				self.changed[fieldname][i - 1] = value or ""
 
-	return changed_fields
+	def get_rows_updated_grid(self, i, diff):
+		# set an empty dictionary for each table
+		# so it does not get overwritten for every change in same table
+		for table in diff.row_changed:
+			table_name = get_field_label(table[0], doctype=self.doctype_name)
+			self.row_changed[table_name] = {}
+
+		for change in diff.row_changed:
+			table_name = get_field_label(change[0], doctype=self.doctype_name)
+			index = change[1]
+			self.row_changed[table_name][index] = {}
+			for field in change[-1]:
+				fieldname = get_field_label(field[0], is_child=True)
+				value = field[-1]
+				if fieldname not in self.row_changed[table_name][index]:
+					self.row_changed[table_name][index][fieldname] = [""] * self.docs_to_compare
+				self.row_changed[table_name][index][fieldname][i] = value or ""
+
+				if i == 1:
+					value = field[1]
+					self.row_changed[table_name][index][fieldname][i - 1] = value or ""
 
 
 def get_field_label(fieldname, doctype=None, is_child=False):
