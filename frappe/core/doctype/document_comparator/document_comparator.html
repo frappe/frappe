@@ -1,0 +1,74 @@
+<div>
+
+    <div class="p-2">
+        {% if documents.length > 1 %}
+            <p>Documents to Compare : <b>{{ documents.length }}</b></p>
+        {% else %}
+            <p>Documents to Compare : <b>{{ documents.length - 1 }}</b></p>
+        {% endif %}
+    </div>
+
+    {% var field_keys = Object.keys(changed).sort(); %}
+    {% if field_keys.length > 0 %}
+    <div class="p-2">
+        <h5> Changes </h5>
+        <table class="table table-bordered">
+            <thead>
+                <th> Fields </th>
+                {% for doc in documents %}
+                    <th>{{ doc }}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+                {% for fieldname in field_keys %}
+                    <tr>
+                        <td> {{ fieldname }} </td>
+                        {% var values = changed[fieldname] %}
+
+                        {% for value in values %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% var tables  = Object.keys(row_changed).sort(); %}
+    {% if tables.length > 0 %}
+        <div class="p-2">
+            <h5> Rows Updated </h5>
+            <table class="table table-bordered">
+                <thead>
+                    <th> Fields </th>
+                    {% for doc in documents %}
+                        <th>{{ doc }}</th>
+                    {% endfor %}
+                </thead>
+                <tbody>
+                    {% for table in tables %}
+                    <tr>
+                        <tr><td><b>{{ table }}</b></td></tr>
+                        {% var row_index = row_changed[table]["index"] %}
+                        <tr><td><b>idx : {{ row_index }}</b></td></tr>
+                        {% var fields = Object.keys(row_changed[table]).sort(); %}
+                        {% for field in fields %}
+                            {% if field != "index" %}
+                                <tr>
+                                    <td>{{ field }}</td>
+                                    {% var values = row_changed[table][field] %}
+                                    {% for value in values %}
+                                        <td> {{ value }} </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+</div>
