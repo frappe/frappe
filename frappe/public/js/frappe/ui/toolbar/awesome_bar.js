@@ -136,7 +136,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			default: "Help",
 			onclick: function () {
 				var txt =
-					'<table class="table table-bordered">\
+					__(
+						"Awesome Bar shows you the most recently and frequently opened documents, lists, etc., by default. You can also:"
+					) +
+					'<br><table class="table table-bordered">\
 					<tr><td style="width: 50%">' +
 					__("Create a new record") +
 					"</td><td>" +
