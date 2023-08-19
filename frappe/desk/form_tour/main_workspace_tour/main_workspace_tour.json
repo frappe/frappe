@@ -21,7 +21,7 @@
  "save_on_complete": 0,
  "steps": [
   {
-   "description": "This is Awesomebar, it helps you to navigate anywhere in the system, find documents, reports, settings, create new records and many more things.",
+   "description": "This is Awesome Bar; it helps you navigate anywhere in the system, find documents, reports, etc., go to recently and frequently opened documents, lists, etc., create new records and many more things.",
    "element_selector": "#navbar-search",
    "fieldtype": "0",
    "has_next_condition": 0,

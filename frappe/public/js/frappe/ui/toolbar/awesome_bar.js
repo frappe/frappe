@@ -131,7 +131,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 	add_help() {
 		this.options.push({
-			value: __("Help on Search"),
+			value: __("Help on Awesome Bar"),
 			index: -10,
 			default: "Help",
 			onclick: function () {
@@ -140,35 +140,35 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					<tr><td style="width: 50%">' +
 					__("Create a new record") +
 					"</td><td>" +
-					__("new type of document") +
+					__("new &lt;doctype&gt;<br>E.g. new item") +
 					"</td></tr>\
 					<tr><td>" +
-					__("List a document type") +
+					__("List all records") +
 					"</td><td>" +
-					__("document type..., e.g. customer") +
+					__("&lt;doctype&gt;<br>E.g. item") +
 					"</td></tr>\
 					<tr><td>" +
-					__("Search in a document type") +
+					__("Search for a record") +
 					"</td><td>" +
-					__("text in document type") +
+					__("&lt;name&gt; in &lt;doctype&gt;<br>E.g. macbook in item") +
 					"</td></tr>\
 					<tr><td>" +
-					__("Tags") +
+					__("List all records with tag") +
 					"</td><td>" +
-					__("tag name..., e.g. #tag") +
+					__("#&lt;tag&gt;<br>E.g. #conf2023") +
 					"</td></tr>\
 					<tr><td>" +
 					__("Open a module or tool") +
 					"</td><td>" +
-					__("module name...") +
+					__("&lt;module/tool name&gt;<br>E.g. Bank Reconciliation Tool") +
 					"</td></tr>\
 					<tr><td>" +
 					__("Calculate") +
 					"</td><td>" +
-					__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...") +
+					__("&lt;expression&gt;<br>E.g. (55 + 434) / 4<br>E.g. =Math.sin(Math.PI/2)") +
 					"</td></tr>\
 				</table>";
-				frappe.msgprint(txt, __("Search Help"));
+				frappe.msgprint(txt, __("Awesome Bar Help"));
 			},
 		});
 	}
