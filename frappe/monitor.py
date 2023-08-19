@@ -32,6 +32,12 @@ def add_data_to_monitor(**kwargs) -> None:
 		frappe.local.monitor.add_custom_data(**kwargs)
 
 
+def get_trace_id() -> str | None:
+	"""Get unique ID for current transaction."""
+	if monitor := getattr(frappe.local, "monitor", None):
+		return monitor.data.uuid
+
+
 def log_file():
 	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
 
