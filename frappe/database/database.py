@@ -27,6 +27,7 @@ from frappe.database.utils import (
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
@@ -233,7 +234,9 @@ class Database:
 			values = None
 		elif not isinstance(values, tuple | dict | list):
 			values = (values,)
+
 		query, values = self._transform_query(query, values)
+		query += self._trace_comment
 
 		try:
 			self._cursor.execute(query, values)
