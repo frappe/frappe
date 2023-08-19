@@ -403,7 +403,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 	def test_system_generated_fields(self):
 		doctype = "Event"
-		custom_field_name = "test_custom_field"
+		custom_field_name = "custom_test_field"
 
 		custom_field = frappe.get_doc("Custom Field", {"dt": doctype, "fieldname": custom_field_name})
 		custom_field.is_system_generated = 1
