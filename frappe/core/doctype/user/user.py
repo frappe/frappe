@@ -909,13 +909,8 @@ def sign_up(email, full_name, redirect_to):
 
 
 @frappe.whitelist(allow_guest=True)
-<<<<<<< HEAD
-@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60, methods=["POST"])
-def reset_password(user):
-=======
 @rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60)
-def reset_password(user: str) -> str:
->>>>>>> 2b96324c31 (fix: rate limit for all HTTP methods (#21929))
+def reset_password(user):
 	if user == "Administrator":
 		return "not allowed"
 
