@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import smtplib
-
+import socket
 import frappe
 from frappe import _
 from frappe.email.oauth import Oauth
@@ -54,10 +54,14 @@ class SMTPServer:
 
 	def secure_session(self, conn):
 		"""Secure the connection incase of TLS."""
+		fqdn_name = ""
+		fqdn_name = socket.getfqdn()
+		if fqdn_name.endswith("."):
+			fqdn_name = fqdn_name + "local"
 		if self.use_tls:
-			conn.ehlo()
+			conn.ehlo(fqdn_name)
 			conn.starttls()
-			conn.ehlo()
+			conn.ehlo(fqdn_name)
 
 	@property
 	def session(self):
