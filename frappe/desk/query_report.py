@@ -201,7 +201,7 @@ def run(
 	if sbool(are_default_filters) and report.custom_filters:
 		filters = report.custom_filters
 
-	if report.prepared_report and not ignore_prepared_report and not custom_columns:
+	if report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns:
 		if filters:
 			if isinstance(filters, str):
 				filters = json.loads(filters)
@@ -464,9 +464,7 @@ def get_data_for_custom_field(doctype, field):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
 
-	value_map = frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
-
-	return value_map
+	return frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
 
 
 def get_data_for_custom_report(columns):

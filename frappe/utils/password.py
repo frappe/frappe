@@ -183,8 +183,7 @@ def encrypt(txt, encryption_key=None):
 		# encryption_key is not in 32 url-safe base64-encoded format
 		frappe.throw(_("Encryption key is in invalid format!"))
 
-	cipher_text = cstr(cipher_suite.encrypt(encode(txt)))
-	return cipher_text
+	return cstr(cipher_suite.encrypt(encode(txt)))
 
 
 def decrypt(txt, encryption_key=None):

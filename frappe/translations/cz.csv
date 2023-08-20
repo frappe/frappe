@@ -816,7 +816,7 @@ Style,Styl,
 {0} comments,{0} komentáře,
 Label and Type,Popisek a typ,
 forward,předat dál,
-{0} edited this {1},{0} upravovat tento {1}
+{0} last edited this,{0} upravovat tento,
 Custom Javascript,Přizpůsobený Javascript,
 Submit,Odeslat,
 Sub-domain provided by erpnext.com,Sub doména poskytnutá (kým) erpnext.com,
@@ -849,7 +849,7 @@ Dec,Pro,
 Leave blank to repeat always,Nechte prázdné pro opakování vždy,
 Ends on,Končo,
 Item cannot be added to its own descendants,Položka nemůže být přidána jako svůj vlastní podřízený potomek,
-{0} created this {1},{0} vytvoření této {1}
+{0} created this,{0} vytvořil(a) tento,
 "The task {0}, that you assigned to {1}, has been closed by {2}.","Úkol {0}, které jste přiřadili k {1}, bylo uzavřeno {2}."
 Short Name,Zkrácené jméno,
 magnet,magnet,

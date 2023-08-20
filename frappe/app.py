@@ -401,11 +401,7 @@ def serve(
 		application = ProfilerMiddleware(application, sort_by=("cumtime", "calls"))
 
 	if not os.environ.get("NO_STATICS"):
-		application = SharedDataMiddleware(
-			application, {"/assets": str(os.path.join(sites_path, "assets"))}
-		)
-
-		application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(sites_path))})
+		application = application_with_statics()
 
 	application.debug = True
 	application.config = {"SERVER_NAME": "localhost:8000"}
@@ -427,6 +423,18 @@ def serve(
 		use_evalex=not in_test_env,
 		threaded=not no_threading,
 	)
+
+
+def application_with_statics():
+	global application, _sites_path
+
+	application = SharedDataMiddleware(
+		application, {"/assets": str(os.path.join(_sites_path, "assets"))}
+	)
+
+	application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(_sites_path))})
+
+	return application
 
 
 # Remove references to pattern that are pre-compiled and loaded to global scopes.

@@ -30,7 +30,7 @@ def get_custom_blocks_for_user(doctype, txt, searchfield, start, page_len, filte
 	# return logged in users private blocks and all public blocks
 	customHTMLBlock = DocType("Custom HTML Block")
 
-	condition_query = frappe.qb.get_query(customHTMLBlock)
+	condition_query = frappe.qb.from_(customHTMLBlock)
 
 	return (
 		condition_query.select(customHTMLBlock.name).where(

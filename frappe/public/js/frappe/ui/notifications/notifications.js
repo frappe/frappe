@@ -62,12 +62,10 @@ frappe.ui.Notifications = class Notifications {
 		let get_headers_html = (item) => {
 			let active = item.id == "notifications" ? "active" : "";
 
-			let html = `<li class="notifications-category ${active}"
-					id="${item.id}"
-					data-toggle="collapse"
-				>${item.label}</li>`;
-
-			return html;
+			return `<li class="notifications-category ${active}"
+   					id="${item.id}"
+   					data-toggle="collapse"
+   				>${item.label}</li>`;
 		};
 
 		let navitem = $(`<ul class="notification-item-tabs nav nav-tabs" role="tablist"></ul>`);

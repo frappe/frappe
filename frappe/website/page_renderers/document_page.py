@@ -30,7 +30,7 @@ class DocumentPage(BaseTemplatePage):
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
 		if d:
-			self.doctype = "Web Page"
+			self.doctype = d.doctype
 			self.docname = d.name
 			return True
 		else:
@@ -48,8 +48,7 @@ class DocumentPage(BaseTemplatePage):
 		self.init_context()
 		self.update_context()
 		self.post_process_context()
-		html = frappe.get_template(self.template_path).render(self.context)
-		return html
+		return frappe.get_template(self.template_path).render(self.context)
 
 	def update_context(self):
 		self.context.doc = self.doc

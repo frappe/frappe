@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+from typing import TYPE_CHECKING, TypeVar
 
 import frappe
 from frappe import _, _dict
@@ -20,6 +21,12 @@ from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.utils import cast_fieldtype, cint, compare, cstr, flt, now, sanitize_html, strip_html
 from frappe.utils.html_utils import unescape_html
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
+
+D = TypeVar("D", bound="Document")
+
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
 
@@ -91,19 +98,21 @@ def import_controller(doctype):
 
 
 class BaseDocument:
-	_reserved_keywords = {
-		"doctype",
-		"meta",
-		"_meta",
-		"flags",
-		"parent_doc",
-		"_table_fields",
-		"_valid_columns",
-		"_doc_before_save",
-		"_table_fieldnames",
-		"_reserved_keywords",
-		"dont_update_if_missing",
-	}
+	_reserved_keywords = frozenset(
+		(
+			"doctype",
+			"meta",
+			"_meta",
+			"flags",
+			"parent_doc",
+			"_table_fields",
+			"_valid_columns",
+			"_doc_before_save",
+			"_table_fieldnames",
+			"_reserved_keywords",
+			"dont_update_if_missing",
+		)
+	)
 
 	def __init__(self, d):
 		if d.get("doctype"):
@@ -220,7 +229,7 @@ class BaseDocument:
 		if key in self.__dict__:
 			del self.__dict__[key]
 
-	def append(self, key, value=None):
+	def append(self, key: str, value: D | dict | None = None) -> D:
 		"""Append an item to a child table.
 
 		Example:
@@ -236,13 +245,13 @@ class BaseDocument:
 		if (table := self.__dict__.get(key)) is None:
 			self.__dict__[key] = table = []
 
-		value = self._init_child(value, key)
-		table.append(value)
+		ret_value = self._init_child(value, key)
+		table.append(ret_value)
 
 		# reference parent document
-		value.parent_doc = self
+		ret_value.parent_doc = self
 
-		return value
+		return ret_value
 
 	def extend(self, key, value):
 		try:
@@ -302,7 +311,7 @@ class BaseDocument:
 
 	def get_valid_dict(
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
-	) -> dict:
+	) -> _dict:
 		d = _dict()
 		permitted_fields = get_permitted_fields(
 			doctype=self.doctype, parenttype=getattr(self, "parenttype", None)
@@ -1182,15 +1191,15 @@ class BaseDocument:
 
 	def reset_values_if_no_permlevel_access(self, has_access_to, high_permlevel_fields):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
-		to_reset = []
-
-		for df in high_permlevel_fields:
+		to_reset = [
+			df
+			for df in high_permlevel_fields
 			if (
 				df.permlevel not in has_access_to
 				and df.fieldtype not in display_fieldtypes
 				and df.fieldname not in self.flags.get("ignore_permlevel_for_fields", [])
-			):
-				to_reset.append(df)
+			)
+		]
 
 		if to_reset:
 			if self.is_new():

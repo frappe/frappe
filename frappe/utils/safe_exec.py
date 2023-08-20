@@ -247,7 +247,7 @@ def safe_enqueue(function, **kwargs):
 	Accepts frappe.enqueue params like job_name, queue, timeout, etc.
 	in addition to params to be passed to function
 
-	:param function: whitelised function or API Method set in Server Script
+	:param function: whitelisted function or API Method set in Server Script
 	"""
 
 	return enqueue("frappe.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)
@@ -368,27 +368,40 @@ def _getitem(obj, key):
 	return obj[key]
 
 
+UNSAFE_ATTRIBUTES = {
+	# Generator Attributes
+	"gi_frame",
+	"gi_code",
+	"gi_yieldfrom",
+	# Coroutine Attributes
+	"cr_frame",
+	"cr_code",
+	"cr_origin",
+	"cr_await",
+	# Async Generator Attributes
+	"ag_code",
+	"ag_frame",
+	# Traceback Attributes
+	"tb_frame",
+	"tb_next",
+	# Format Attributes
+	"format",
+	"format_map",
+	# Frame attributes
+	"f_back",
+	"f_builtins",
+	"f_code",
+	"f_globals",
+	"f_locals",
+	"f_trace",
+}
+
+
 def _getattr(object, name, default=None):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
 	# 1. it does not start with an underscore (safer_getattr)
 	# 2. it is not an UNSAFE_ATTRIBUTES
-
-	UNSAFE_ATTRIBUTES = {
-		# Generator Attributes
-		"gi_frame",
-		"gi_code",
-		# Coroutine Attributes
-		"cr_frame",
-		"cr_code",
-		"cr_origin",
-		# Async Generator Attributes
-		"ag_code",
-		"ag_frame",
-		# Traceback Attributes
-		"tb_frame",
-		"tb_next",
-	}
 
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")

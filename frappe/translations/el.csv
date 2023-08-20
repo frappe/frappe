@@ -4137,7 +4137,7 @@ No changes in document,Δεν υπάρχουν αλλαγές στο έγγρα�
 by Role,από τον ρόλο,
 Document is only editable by users with role,Το έγγραφο είναι επεξεργάσιμο μόνο από χρήστες με ρόλο,
 {0}: Other permission rules may also apply,{0}: Ενδέχεται να ισχύουν και άλλοι κανόνες άδειας,
-{0} Page Views,{0} Προβολές σελίδας,
+{0} Web page views,{0} Προβολές σελίδας,
 Expand,Επεκτείνουν,
 Collapse,Κατάρρευση,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.","Μη έγκυρο διακριτικό Bearer, δώστε ένα έγκυρο διακριτικό πρόσβασης με το πρόθεμα &quot;Bearer&quot;.",

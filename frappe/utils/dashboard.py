@@ -80,8 +80,7 @@ def get_dashboards_with_link(docname, doctype):
 	elif doctype == "Number Card":
 		links = frappe.get_all("Number Card Link", fields=["parent"], filters={"card": docname})
 
-	dashboards = [link.parent for link in links]
-	return dashboards
+	return [link.parent for link in links]
 
 
 def sync_dashboards(app=None):

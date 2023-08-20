@@ -39,8 +39,7 @@ def get_doctype_name(table_name: str) -> str:
 	if table_name.startswith(("tab", "`tab", '"tab')):
 		table_name = table_name.replace("tab", "", 1)
 	table_name = table_name.replace("`", "")
-	table_name = table_name.replace('"', "")
-	return table_name
+	return table_name.replace('"', "")
 
 
 class LazyString:

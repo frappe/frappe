@@ -94,15 +94,17 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = {
-		"DocField",
-		"DocPerm",
-		"DocType",
-		"Module Def",
-		"DocType Action",
-		"DocType Link",
-		"DocType State",
-	}
+	special_doctypes = frozenset(
+		(
+			"DocField",
+			"DocPerm",
+			"DocType",
+			"Module Def",
+			"DocType Action",
+			"DocType Link",
+			"DocType State",
+		)
+	)
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
@@ -421,11 +423,7 @@ class Meta(Document):
 			order = json.loads(self.get(f"{fieldname}_order") or "[]")
 			if order:
 				name_map = {d.name: d for d in self.get(fieldname)}
-				new_list = []
-				for name in order:
-					if name in name_map:
-						new_list.append(name_map[name])
-
+				new_list = [name_map[name] for name in order if name in name_map]
 				# add the missing items that have not be added
 				# maybe these items were added to the standard product
 				# after the customization was done
@@ -564,11 +562,7 @@ class Meta(Document):
 	def get_high_permlevel_fields(self):
 		"""Build list of fields with high perm level and all the higher perm levels defined."""
 		if not hasattr(self, "high_permlevel_fields"):
-			self.high_permlevel_fields = []
-			for df in self.fields:
-				if df.permlevel > 0:
-					self.high_permlevel_fields.append(df)
-
+			self.high_permlevel_fields = [df for df in self.fields if df.permlevel > 0]
 		return self.high_permlevel_fields
 
 	def get_permitted_fieldnames(self, parenttype=None, *, user=None, permission_type="read"):
@@ -594,10 +588,11 @@ class Meta(Document):
 			self.get_permlevel_access(permission_type=permission_type, parenttype=parenttype, user=user)
 		)
 
-		for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
-			if df.permlevel in permlevel_access:
-				permitted_fieldnames.append(df.fieldname)
-
+		permitted_fieldnames.extend(
+			df.fieldname
+			for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True)
+			if df.permlevel in permlevel_access
+		)
 		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):

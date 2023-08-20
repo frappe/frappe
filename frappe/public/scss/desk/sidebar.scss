@@ -389,7 +389,22 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 }
 
-.add-attachment-btn,
+.attachments-actions {
+	display: flex;
+	gap: 5px;
+	max-width: 100%;
+}
+
+.explore-full-btn,
+.attachments-actions {
+	margin-bottom: var(--margin-md);
+}
+
+.show-all-btn {
+	margin-top: var(--margin-md);
+	text-align: center;
+}
+
 .shares,
 .followed-by {
 	max-width: 100%;

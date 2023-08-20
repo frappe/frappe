@@ -523,11 +523,7 @@ def clear_messages():
 
 
 def get_message_log():
-	log = []
-	for msg_out in local.message_log:
-		log.append(json.loads(msg_out))
-
-	return log
+	return [json.loads(msg_out) for msg_out in local.message_log]
 
 
 def clear_last_message():
@@ -2247,27 +2243,11 @@ def bold(text):
 
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
+
+	from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES
+
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
 	code = unicodedata.normalize("NFKC", code)
-
-	UNSAFE_ATTRIBUTES = {
-		# Generator Attributes
-		"gi_frame",
-		"gi_code",
-		# Coroutine Attributes
-		"cr_frame",
-		"cr_code",
-		"cr_origin",
-		# Async Generator Attributes
-		"ag_code",
-		"ag_frame",
-		# Traceback Attributes
-		"tb_frame",
-		"tb_next",
-		# Format Attributes
-		"format",
-		"format_map",
-	}
 
 	for attribute in UNSAFE_ATTRIBUTES:
 		if attribute in code:

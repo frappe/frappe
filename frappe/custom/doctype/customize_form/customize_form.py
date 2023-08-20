@@ -600,11 +600,8 @@ class CustomizeForm(Document):
 				),
 				as_dict=True,
 			)
-			links = []
 			label = df.label
-			for doc in docs:
-				links.append(frappe.utils.get_link_to_form(self.doc_type, doc.name))
-			links_str = ", ".join(links)
+			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
 			if docs:
 				frappe.throw(
@@ -710,7 +707,6 @@ doctype_properties = {
 	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
-	"translate_link_fields": "Check",
 	"is_calendar_and_gantt": "Check",
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",

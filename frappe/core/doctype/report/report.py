@@ -290,10 +290,11 @@ class Report(Document):
 			columns = params.get("fields")
 		else:
 			columns = [["name", self.ref_doctype]]
-			for df in frappe.get_meta(self.ref_doctype).fields:
-				if df.in_list_view:
-					columns.append([df.fieldname, self.ref_doctype])
-
+			columns.extend(
+				[df.fieldname, self.ref_doctype]
+				for df in frappe.get_meta(self.ref_doctype).fields
+				if df.in_list_view
+			)
 		return columns
 
 	def get_standard_report_filters(self, params, filters):
