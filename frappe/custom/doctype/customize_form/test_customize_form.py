@@ -400,3 +400,37 @@ class TestCustomizeForm(FrappeTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			d.run_method("save_customization")
+
+	def test_system_generated_fields(self):
+		doctype = "Event"
+		custom_field_name = "custom_test_field"
+
+		custom_field = frappe.get_doc("Custom Field", {"dt": doctype, "fieldname": custom_field_name})
+		custom_field.is_system_generated = 1
+		custom_field.save()
+
+		d = self.get_customize_form(doctype)
+		custom_field = d.getone("fields", {"fieldname": custom_field_name})
+		custom_field.description = "Test Description"
+		d.run_method("save_customization")
+
+		property_setter_filters = {
+			"doc_type": doctype,
+			"field_name": custom_field_name,
+			"property": "description",
+		}
+		self.assertEqual(
+			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
+		)
+
+	def test_custom_field_order(self):
+		# shuffle fields
+		customize_form = self.get_customize_form(doctype="ToDo")
+		customize_form.fields.insert(0, customize_form.fields.pop())
+		customize_form.save_customization()
+
+		field_order_property = json.loads(
+			frappe.db.get_value("Property Setter", {"doc_type": "ToDo", "property": "field_order"}, "value")
+		)
+
+		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])

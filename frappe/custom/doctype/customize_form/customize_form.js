@@ -49,14 +49,6 @@ frappe.ui.form.on("Customize Form", {
 				grid_row.row.addClass("highlight");
 			}
 		});
-
-		$(frm.wrapper).on("grid-make-sortable", function (e, frm) {
-			frm.trigger("setup_sortable");
-		});
-
-		$(frm.wrapper).on("grid-move-row", function (e, frm) {
-			frm.trigger("setup_sortable");
-		});
 	},
 
 	doc_type: function (frm) {
@@ -71,7 +63,7 @@ frappe.ui.form.on("Customize Form", {
 							frm.set_value("doc_type", "");
 						} else {
 							frm.refresh();
-							frm.trigger("setup_sortable");
+							frm.trigger("add_customize_child_table_button");
 							frm.trigger("setup_default_views");
 						}
 					}
@@ -87,23 +79,16 @@ frappe.ui.form.on("Customize Form", {
 		frm.trigger("setup_default_views");
 	},
 
-	setup_sortable: function (frm) {
+	add_customize_child_table_button: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (!f.is_custom_field) {
-				f._sortable = false;
-			}
+			if (!in_list(["Table", "Table MultiSelect"], f.fieldtype)) return;
 
-			if (f.fieldtype == "Table") {
-				frm.add_custom_button(
-					f.options,
-					function () {
-						frm.set_value("doc_type", f.options);
-					},
-					__("Customize Child Table")
-				);
-			}
+			frm.add_custom_button(
+				f.options,
+				() => frm.set_value("doc_type", f.options),
+				__("Customize Child Table")
+			);
 		});
-		frm.fields_dict.fields.grid.refresh();
 	},
 
 	refresh: function (frm) {
@@ -236,10 +221,23 @@ frappe.ui.form.on("Customize Form", {
 // can't delete standard fields
 frappe.ui.form.on("Customize Form Field", {
 	before_fields_remove: function (frm, doctype, name) {
-		var row = frappe.get_doc(doctype, name);
+		const row = frappe.get_doc(doctype, name);
+
+		if (row.is_system_generated) {
+			frappe.throw(
+				__(
+					"Cannot delete system generated field <strong>{0}</strong>. You can hide it instead.",
+					[__(row.label) || row.fieldname]
+				)
+			);
+		}
+
 		if (!(row.is_custom_field || row.__islocal)) {
-			frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
-			throw "cannot delete standard field";
+			frappe.throw(
+				__("Cannot delete standard field <strong>{0}</strong>. You can hide it instead.", [
+					__(row.label) || row.fieldname,
+				])
+			);
 		}
 	},
 	fields_add: function (frm, cdt, cdn) {
