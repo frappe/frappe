@@ -148,30 +148,17 @@ doc_events = {
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.core.doctype.file.utils.attach_files_to_document",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
-=======
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
->>>>>>> 68d984dbb2 (fix(Assignment Rule): run on additional events)
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
-=======
->>>>>>> 88cbba5f21 (fix: run assignment rule on change)
-=======
-			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
->>>>>>> 63aded91f9 (Revert "fix: run assignment rule on change")
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
-<<<<<<< HEAD
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
-=======
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
->>>>>>> 68d984dbb2 (fix(Assignment Rule): run on additional events)
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",

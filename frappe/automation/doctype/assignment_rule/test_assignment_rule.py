@@ -383,9 +383,8 @@ def make_note(values=None):
 
 	note.insert()
 
-<<<<<<< HEAD
 	return note
-=======
+
 
 def create_test_doctype(doctype: str):
 	"""Create custom doctype."""
@@ -435,4 +434,3 @@ def create_test_doctype(doctype: str):
 			],
 		}
 	).insert()
->>>>>>> c1901dbf72 (test: assignment rule on_submit / cancel)
