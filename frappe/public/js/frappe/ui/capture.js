@@ -98,7 +98,9 @@ frappe.ui.Capture = class {
 					fieldname: "total_count",
 				},
 			],
-			on_hide: this.stop_media_stream(),
+			on_hide: () => {
+				this.stop_media_stream();
+			},
 		});
 
 		me.$template = $(frappe.ui.Capture.TEMPLATE);
