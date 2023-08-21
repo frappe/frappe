@@ -97,8 +97,9 @@ class TestServerScript(FrappeTestCase):
 			script_doc = frappe.get_doc(doctype="Server Script")
 			script_doc.update(script)
 			script_doc.insert()
-
+		cls.enable_safe_exec()
 		frappe.db.commit()
+		return super().setUpClass()
 
 	@classmethod
 	def tearDownClass(cls):
@@ -269,13 +270,13 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		site = frappe.utils.get_site_url(frappe.local.site)
 		client = FrappeClient(site)
 
-		# Exhaust rate limti
+		# Exhaust rate limit
 		for _ in range(5):
 			client.get_api(script1.api_method)
 
 		self.assertRaises(FrappeException, client.get_api, script1.api_method)
 
-		# Exhaust rate limti
+		# Exhaust rate limit
 		for _ in range(5):
 			client.get_api(script2.api_method)
 

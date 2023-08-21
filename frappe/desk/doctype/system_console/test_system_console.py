@@ -5,6 +5,11 @@ from frappe.tests.utils import FrappeTestCase
 
 
 class TestSystemConsole(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		cls.enable_safe_exec()
+		return super().setUpClass()
+
 	def test_system_console(self):
 		system_console = frappe.get_doc("System Console")
 		system_console.console = 'log("hello")'

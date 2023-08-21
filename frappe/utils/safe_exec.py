@@ -35,6 +35,8 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 
 ARGUMENT_NOT_SET = object()
 
+SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
+
 
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
@@ -59,15 +61,11 @@ class FrappeTransformer(RestrictingNodeTransformer):
 
 
 def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
-	# server scripts can be disabled via site_config.json
-	# they are enabled by default
-	if "server_script_enabled" in frappe.conf:
-		enabled = frappe.conf.server_script_enabled
-	else:
-		enabled = True
+	# server scripts can only be enabled via common_site_config.json
+	enabled = frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY)
 
 	if not enabled:
-		frappe.throw(_("Please Enable Server Scripts"), ServerScriptNotEnabled)
+		frappe.throw(_("Please Enable Server Scripts From Bench Config."), ServerScriptNotEnabled)
 
 	# build globals
 	exec_globals = get_safe_globals()

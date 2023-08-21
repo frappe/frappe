@@ -1,5 +1,6 @@
 import copy
 import datetime
+import os
 import signal
 import unittest
 from collections.abc import Sequence
@@ -112,6 +113,21 @@ class FrappeTestCase(unittest.TestCase):
 			self.assertLessEqual(rows_read, count, msg="Queries read more rows than expected")
 		finally:
 			frappe.db.sql = orig_sql
+
+	@classmethod
+	def enable_safe_exec(cls) -> None:
+		"""Enable safe exec and disable them after test case is completed."""
+		from frappe.installer import update_site_config
+		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
+
+		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
+
+		cls.addClassCleanup(
+			lambda: update_site_config(
+				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
+			)
+		)
 
 
 class MockedRequestTestCase(FrappeTestCase):
