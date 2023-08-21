@@ -1438,7 +1438,7 @@ def get_pymodule_path(modulename, *joins):
 
 def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
-	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
+	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
 def get_all_apps(with_internal_apps=True, sites_path=None):
