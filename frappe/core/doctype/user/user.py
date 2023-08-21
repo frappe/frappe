@@ -1021,7 +1021,7 @@ def reset_password(user: str) -> str:
 		user.reset_password(send_email=True)
 
 		return frappe.msgprint(
-			msg=_("Password reset instructions have been sent to user's email"),
+			msg=_("Password reset instructions have been sent to your email"),
 			title=_("Password Email Sent"),
 		)
 	except frappe.DoesNotExistError:
