@@ -44,6 +44,9 @@ class TestSafeExec(FrappeTestCase):
 		)
 		self.assertEqual(1, frappe.safe_eval("int(enabled)", eval_locals=user.as_dict()))
 
+	def test_safe_eval_wal(self):
+		self.assertRaises(SyntaxError, frappe.safe_eval, "(x := (40+2))")
+
 	def test_sql(self):
 		_locals = dict(out=None)
 		safe_exec(
