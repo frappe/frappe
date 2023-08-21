@@ -459,12 +459,16 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 
 
 @frappe.whitelist()
-def get_data_for_custom_field(doctype, field):
+def get_data_for_custom_field(doctype, field, names=None):
 
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
 
-	return frappe._dict(frappe.get_all(doctype, fields=["name", field], as_list=1))
+	filters = {}
+	if names:
+		filters.update({"name": ["in", json.loads(names)]})
+
+	return frappe._dict(frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1))
 
 
 def get_data_for_custom_report(columns):
