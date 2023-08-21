@@ -261,9 +261,8 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 			try:
 				ret = frappe.get_attr(method)(*args, **kwargs)
 			except Exception:
-				ret = frappe.safe_eval(
-					method + "(*args, **kwargs)", eval_globals=globals(), eval_locals=locals()
-				)
+				# eval is safe here because input is from console
+				ret = eval(method + "(*args, **kwargs)", globals(), locals())  # nosemgrep
 
 			if profile:
 				import pstats
