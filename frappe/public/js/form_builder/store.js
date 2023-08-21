@@ -71,7 +71,7 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	async function fetch() {
 		doc.value = frm.value.doc;
-		if (doctype.value.startsWith("new-doctype-")) {
+		if (doctype.value.startsWith("new-doctype-") && !doc.value.fields) {
 			doc.value.fields = [get_df("Data", "", __("Title"))];
 		}
 
@@ -91,9 +91,11 @@ export const useStore = defineStore("form-builder-store", () => {
 		form.value.selected_field = null;
 
 		nextTick(() => {
-			dirty.value = false;
-			frm.value.doc.__unsaved = 0;
-			frm.value.page.clear_indicator();
+			if (!doctype.value.startsWith("new-doctype-")) {
+				dirty.value = false;
+				frm.value.doc.__unsaved = 0;
+				frm.value.page.clear_indicator();
+			}
 			read_only.value =
 				!is_customize_form.value && !frappe.boot.developer_mode && !doc.value.custom;
 			preview.value = false;
