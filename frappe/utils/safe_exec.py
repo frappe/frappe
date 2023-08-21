@@ -1,3 +1,4 @@
+import ast
 import copy
 import inspect
 import json
@@ -95,12 +96,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 	code = unicodedata.normalize("NFKC", code)
 
-	for attribute in UNSAFE_ATTRIBUTES:
-		if attribute in code:
-			frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "{attribute}"')
-
-	if "__" in code:
-		frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "__"')
+	_validate_safe_eval_syntax(code)
 
 	if not eval_globals:
 		eval_globals = {}
@@ -113,6 +109,21 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 		eval_globals,
 		eval_locals,
 	)
+
+
+def _validate_safe_eval_syntax(code):
+	BLOCKED_NODES = (ast.NamedExpr,)
+	for attribute in UNSAFE_ATTRIBUTES:
+		if attribute in code:
+			frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "{attribute}"', exc=AttributeError)
+
+	if "__" in code:
+		frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "__"', exc=AttributeError)
+
+	tree = ast.parse(code, mode="eval")
+	for node in ast.walk(tree):
+		if isinstance(node, BLOCKED_NODES):
+			raise SyntaxError(f"Operation not allowed: line {node.lineno} column {node.col_offset}")
 
 
 @contextmanager
