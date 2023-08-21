@@ -253,7 +253,7 @@ def bundle(
 		command += " --save-metafiles"
 
 	check_node_executable()
-	frappe_app_path = frappe.get_app_path("frappe", "..")
+	frappe_app_path = frappe.get_app_source_path("frappe")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
@@ -271,7 +271,7 @@ def watch(apps=None):
 		command += " --live-reload"
 
 	check_node_executable()
-	frappe_app_path = frappe.get_app_path("frappe", "..")
+	frappe_app_path = frappe.get_app_source_path("frappe")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 

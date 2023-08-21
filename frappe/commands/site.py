@@ -931,7 +931,7 @@ def _drop_site(
 	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
 
 	archived_sites_path = archived_sites_path or os.path.join(
-		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
+		frappe.utils.get_bench_path(), "archived", "sites"
 	)
 	archived_sites_path = os.path.realpath(archived_sites_path)
 
