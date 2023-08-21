@@ -60,12 +60,18 @@ class FrappeTransformer(RestrictingNodeTransformer):
 		return super().check_name(node, name, *args, **kwargs)
 
 
-def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
+def is_safe_exec_enabled() -> bool:
 	# server scripts can only be enabled via common_site_config.json
-	enabled = frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY)
+	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
-	if not enabled:
-		frappe.throw(_("Please Enable Server Scripts From Bench Config."), ServerScriptNotEnabled)
+
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
+	if not is_safe_exec_enabled():
+
+		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
+		docs_cta = _("Read the documentation to know")
+		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals
 	exec_globals = get_safe_globals()
