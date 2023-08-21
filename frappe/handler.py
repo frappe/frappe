@@ -125,7 +125,7 @@ def web_logout():
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST", "PUT"])
 def uploadfile():
 	ret = None
 
@@ -163,7 +163,7 @@ def uploadfile():
 	return ret
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST", "PUT"])
 def upload_file():
 	user = None
 	if frappe.session.user == "Guest":
