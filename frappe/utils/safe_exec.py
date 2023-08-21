@@ -1,3 +1,4 @@
+import ast
 import copy
 import inspect
 import json
@@ -30,6 +31,9 @@ from frappe.www.printview import get_visible_columns
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
+
+
+ARGUMENT_NOT_SET = object()
 
 
 class NamespaceDict(frappe._dict):
@@ -85,6 +89,41 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		)
 
 	return exec_globals, _locals
+
+
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	import unicodedata
+
+	code = unicodedata.normalize("NFKC", code)
+
+	_validate_safe_eval_syntax(code)
+
+	if not eval_globals:
+		eval_globals = {}
+
+	eval_globals["__builtins__"] = {}
+	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
+
+	return eval(
+		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
+		eval_globals,
+		eval_locals,
+	)
+
+
+def _validate_safe_eval_syntax(code):
+	BLOCKED_NODES = (ast.NamedExpr,)
+	for attribute in UNSAFE_ATTRIBUTES:
+		if attribute in code:
+			frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "{attribute}"', exc=AttributeError)
+
+	if "__" in code:
+		frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "__"', exc=AttributeError)
+
+	tree = ast.parse(code, mode="eval")
+	for node in ast.walk(tree):
+		if isinstance(node, BLOCKED_NODES):
+			raise SyntaxError(f"Operation not allowed: line {node.lineno} column {node.col_offset}")
 
 
 @contextmanager
@@ -218,7 +257,7 @@ def get_safe_globals():
 	# default writer allows write access
 	out._write_ = _write
 	out._getitem_ = _getitem
-	out._getattr_ = _getattr
+	out._getattr_ = _getattr_for_safe_exec
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter
@@ -397,24 +436,51 @@ UNSAFE_ATTRIBUTES = {
 }
 
 
-def _getattr(object, name, default=None):
+def _getattr_for_safe_exec(object, name, default=None):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
 	# 1. it does not start with an underscore (safer_getattr)
 	# 2. it is not an UNSAFE_ATTRIBUTES
+	_validate_attribute_read(object, name)
 
+	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+
+
+def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):
+	_validate_attribute_read(object, name)
+
+	# Use vanilla getattr to raise correct attribute error. Safe exec has been supressing attribute
+	# error which is bad for DX/UX in general.
+	return getattr(object, name) if default is ARGUMENT_NOT_SET else getattr(object, name, default)
+
+
+def _validate_attribute_read(object, name):
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
 	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
-	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+	if name.startswith("_"):
+		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
 
 
 def _write(obj):
 	# guard function for RestrictedPython
-	# allow writing to any object
+	if isinstance(
+		obj,
+		(
+			types.ModuleType,
+			types.CodeType,
+			types.TracebackType,
+			types.FrameType,
+			type,
+			types.FunctionType,  # covers lambda
+			types.MethodType,
+			types.BuiltinFunctionType,  # covers methods
+		),
+	):
+		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj
 
 
@@ -545,3 +611,16 @@ VALID_UTILS = (
 	"get_user_info_for_avatar",
 	"get_abbr",
 )
+
+
+WHITELISTED_SAFE_EVAL_GLOBALS = {
+	"int": int,
+	"float": float,
+	"long": int,
+	"round": round,
+	# RestrictedPython specific overrides
+	"_getattr_": _get_attr_for_eval,
+	"_getitem_": _getitem,
+	"_getiter_": iter,
+	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+}

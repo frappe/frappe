@@ -22,6 +22,8 @@ def execute():
 
 
 def get_file_extension(file_name):
+	if not file_name:
+		return None
 	file_type = mimetypes.guess_type(file_name)[0]
 	if not file_type:
 		return None
