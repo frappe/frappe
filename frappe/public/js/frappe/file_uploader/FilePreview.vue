@@ -25,7 +25,7 @@
 
 			<div class="flex config-area">
 				<label v-if="is_optimizable" class="frappe-checkbox"><input type="checkbox" :checked="optimize" @change="emit('toggle_optimize')">{{ __('Optimize') }}</label>
-				<label class="frappe-checkbox"><input type="checkbox" :checked="file.private" @change="emit('toggle_private')">{{ __('Private') }}</label>
+				<label v-if="not_a_guest" class="frappe-checkbox"><input type="checkbox" :checked="file.private" @change="emit('toggle_private')">{{ __('Private') }}</label>
 			</div>
 			<div>
 				<span v-if="file.error_message" class="file-error text-danger">
@@ -84,6 +84,9 @@ let is_image = computed(() => {
 let is_optimizable = computed(() => {
 	let is_svg = props.file.file_obj.type == 'image/svg+xml';
 	return is_image.value && !is_svg && !uploaded.value && !props.file.failed;
+});
+let not_a_guest = computed(() => {
+	return frappe.session.user !== 'Guest';
 });
 let is_cropable = computed(() => {
 	let croppable_types = ['image/jpeg', 'image/png'];

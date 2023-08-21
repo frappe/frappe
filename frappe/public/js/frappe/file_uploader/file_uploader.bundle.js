@@ -57,7 +57,7 @@ class FileUploader {
 			() => this.uploader.files,
 			(files) => {
 				let all_private = files.every((file) => file.private);
-				if (this.dialog) {
+				if (this.dialog && frappe.session.user !== "Guest") {
 					this.dialog.set_secondary_action_label(
 						all_private ? __("Set all public") : __("Set all private")
 					);
@@ -113,10 +113,13 @@ class FileUploader {
 			title: title || __("Upload"),
 			primary_action_label: __("Upload"),
 			primary_action: () => this.upload_files(),
-			secondary_action_label: __("Set all private"),
-			secondary_action: () => {
-				this.uploader.toggle_all_private();
-			},
+			secondary_action_label: frappe.session.user == "Guest" ? null : __("Set all private"),
+			secondary_action:
+				frappe.session.user == "Guest"
+					? null
+					: () => {
+							this.uploader.toggle_all_private();
+					  },
 			on_page_show: () => {
 				this.uploader.wrapper_ready = true;
 			},

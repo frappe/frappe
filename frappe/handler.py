@@ -168,6 +168,7 @@ def uploadfile():
 def upload_file():
 	user = None
 	if frappe.session.user == "Guest":
+		is_private = 1
 		if frappe.get_system_settings("allow_guests_to_upload_files"):
 			ignore_permissions = True
 		else:
@@ -175,9 +176,9 @@ def upload_file():
 	else:
 		user: "User" = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
+		is_private = frappe.form_dict.is_private
 
 	files = frappe.request.files
-	is_private = frappe.form_dict.is_private
 	doctype = frappe.form_dict.doctype
 	docname = frappe.form_dict.docname
 	fieldname = frappe.form_dict.fieldname
