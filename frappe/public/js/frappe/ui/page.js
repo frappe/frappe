@@ -213,7 +213,12 @@ frappe.ui.Page = class Page {
 		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
 		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
 		sidebar_toggle_icon.html(
-			frappe.utils.icon(is_sidebar_visible ? "sidebar-collapse" : "sidebar-expand", "md")
+			frappe.utils.icon(
+				is_sidebar_visible
+					? "es-line-sidebar-collapse"
+					: "es-line-sidebar-expand",
+				"md"
+			)
 		);
 	}
 
@@ -238,7 +243,9 @@ frappe.ui.Page = class Page {
 	}
 
 	clear_indicator() {
-		return this.indicator.removeClass().addClass("indicator-pill whitespace-nowrap hide");
+		return this.indicator
+			.removeClass()
+			.addClass("indicator-pill no-indicator-dot whitespace-nowrap hide");
 	}
 
 	get_icon_label(icon, label) {
