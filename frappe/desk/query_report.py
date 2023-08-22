@@ -217,7 +217,7 @@ def run(
 	if (
 		report.prepared_report
 		and not report.disable_prepared_report
-		and not ignore_prepared_report
+		and not sbool(ignore_prepared_report)
 		and not custom_columns
 	):
 		dn = None

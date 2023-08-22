@@ -242,6 +242,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
    "label": "Form Settings"
@@ -315,6 +316,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "view_settings",
    "fieldtype": "Section Break",
    "label": "View Settings"
@@ -425,7 +427,7 @@
    "oldfieldtype": "Check"
   },
   {
-   "depends_on": "eval:doc.custom===0",
+   "depends_on": "eval:doc.custom===0 && !doc.istable",
    "fieldname": "web_view",
    "fieldtype": "Section Break",
    "label": "Web View"
@@ -492,6 +494,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "actions",
+   "depends_on": "eval:!doc.istable",
    "fieldname": "actions_section",
    "fieldtype": "Section Break",
    "label": "Actions"
@@ -505,6 +508,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "links",
+   "depends_on": "eval:!doc.istable",
    "fieldname": "links_section",
    "fieldtype": "Section Break",
    "label": "Linked Documents"
@@ -536,6 +540,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
@@ -588,6 +593,7 @@
   },
   {
    "collapsible": 1,
+   "depends_on": "eval:!doc.istable",
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
@@ -709,7 +715,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2022-10-12 14:13:27.315351",
+ "modified": "2023-08-14 17:32:23.824794",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

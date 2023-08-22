@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -707,40 +708,39 @@ def on_doctype_update():
 
 
 def has_permission(doc, ptype=None, user=None):
-	has_access = False
 	user = user or frappe.session.user
 
 	if ptype == "create":
-		has_access = frappe.has_permission("File", "create", user=user)
+		return frappe.has_permission("File", "create", user=user)
 
-	if not doc.is_private or doc.owner in [user, "Guest"] or user == "Administrator":
-		has_access = True
+	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
 		attached_to_name = doc.attached_to_name
 
-		try:
-			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
-			if ptype in ["write", "create", "delete"]:
-				has_access = ref_doc.has_permission("write")
+		if ptype in ["write", "create", "delete"]:
+			return ref_doc.has_permission("write")
+		else:
+			return ref_doc.has_permission("read")
 
-				if ptype == "delete" and not has_access:
-					frappe.throw(
-						_(
-							"Cannot delete file as it belongs to {0} {1} for which you do not have permissions"
-						).format(doc.attached_to_doctype, doc.attached_to_name),
-						frappe.PermissionError,
-					)
-			else:
-				has_access = ref_doc.has_permission("read")
-		except frappe.DoesNotExistError:
-			# if parent doc is not created before file is created
-			# we cannot check its permission so we will use file's permission
-			pass
+	return False
 
-	return has_access
+
+def get_permission_query_conditions(user: str = None) -> str:
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
+	return f"""
+		(`tabFile`.`is_private` = 0)
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {user !r})
+		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
+	"""
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility
