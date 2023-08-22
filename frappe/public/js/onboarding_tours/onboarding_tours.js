@@ -12,7 +12,7 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			padding: 10,
 			overlayClickNext: false,
 			keyboardControl: true,
-            nextBtnText: __("Next"),
+			nextBtnText: __("Next"),
 			prevBtnText: __("Previous"),
 			doneBtnText: __("Done"),
 			closeBtnText: __("Close"),
