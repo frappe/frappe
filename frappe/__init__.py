@@ -914,11 +914,8 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	elif user:
 		frappe.cache_manager.clear_user_cache(user)
 	else:  # everything
-		from frappe import translate
-
-		frappe.cache_manager.clear_user_cache()
-		frappe.cache_manager.clear_domain_cache()
-		translate.clear_cache()
+		# Delete ALL keys associated with this site.
+		frappe.cache.delete_keys("")
 		reset_metadata_version()
 		local.cache = {}
 		local.new_doc_templates = {}
