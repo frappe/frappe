@@ -113,6 +113,9 @@ def run_post_setup_complete(args):
 	disable_future_access()
 	frappe.db.commit()
 	frappe.clear_cache()
+	# HACK: due to race condition sometimes old doc stays in cache.
+	# Remove this when we have reliable cache reset for docs
+	frappe.get_cached_doc("System Settings") and frappe.get_doc("System Settings")
 
 
 def run_setup_success(args):
@@ -204,6 +207,8 @@ def update_user_name(args):
 				"last_name": last_name,
 			}
 		)
+
+		doc.append_roles(*_get_default_roles())
 		doc.flags.no_welcome_mail = True
 		doc.insert()
 		frappe.flags.mute_emails = _mute_emails
@@ -258,36 +263,29 @@ def parse_args(args):
 
 def add_all_roles_to(name):
 	user = frappe.get_doc("User", name)
-	for role in frappe.db.sql("""select name from tabRole"""):
-		if role[0] not in [
-			"Administrator",
-			"Guest",
-			"All",
-			"Customer",
-			"Supplier",
-			"Partner",
-			"Employee",
-		]:
-			d = user.append("roles")
-			d.role = role[0]
+	user.append_roles(*_get_default_roles())
 	user.save()
+
+
+def _get_default_roles() -> set[str]:
+	skip_roles = {
+		"Administrator",
+		"Guest",
+		"All",
+		"Customer",
+		"Supplier",
+		"Partner",
+		"Employee",
+	}
+	return set(frappe.get_all("Role", pluck="name")) - skip_roles
 
 
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
-	frappe.db.set_single_value("System Settings", "setup_complete", 1)
-
 	# Enable onboarding after install
 	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
 
-	if not frappe.flags.in_test:
-		# remove all roles and add 'Administrator' to prevent future access
-		page = frappe.get_doc("Page", "setup-wizard")
-		page.roles = []
-		page.append("roles", {"role": "Administrator"})
-		page.flags.do_not_update_json = True
-		page.flags.ignore_permissions = True
-		page.save()
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 
 @frappe.whitelist()

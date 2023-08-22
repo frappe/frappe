@@ -94,15 +94,17 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = {
-		"DocField",
-		"DocPerm",
-		"DocType",
-		"Module Def",
-		"DocType Action",
-		"DocType Link",
-		"DocType State",
-	}
+	special_doctypes = frozenset(
+		(
+			"DocField",
+			"DocPerm",
+			"DocType",
+			"Module Def",
+			"DocType Action",
+			"DocType Link",
+			"DocType State",
+		)
+	)
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),

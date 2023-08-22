@@ -12,9 +12,10 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 			padding: 10,
 			overlayClickNext: false,
 			keyboardControl: true,
-			closeBtnText: __("Close"),
-			nextBtnText: __("Next"),
+      nextBtnText: __("Next"),
 			prevBtnText: __("Previous"),
+			doneBtnText: __("Done"),
+			closeBtnText: __("Close"),
 			opacity: 0.5,
 			onHighlighted: (step) => {
 				frappe.ui.next_form_tour = step.options.step_info?.next_form_tour;

@@ -30,7 +30,7 @@ class DocumentPage(BaseTemplatePage):
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
 		if d:
-			self.doctype = "Web Page"
+			self.doctype = d.doctype
 			self.docname = d.name
 			return True
 		else:

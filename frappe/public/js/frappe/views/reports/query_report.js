@@ -57,6 +57,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
 
+		this.ignore_prepared_report = false;
 		this.menu_items = [];
 	}
 
@@ -592,6 +593,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				frappe.route_options = null;
 			});
 
+			this.ignore_prepared_report = route_options["ignore_prepared_report"] || false;
+
 			return frappe.run_serially(promises);
 		}
 	}
@@ -639,6 +642,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
+					ignore_prepared_report: this.ignore_prepared_report,
 					is_tree: this.report_settings.tree,
 					parent_field: this.report_settings.parent_field,
 					are_default_filters: are_default_filters,
@@ -1693,10 +1697,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								args: {
 									field: values.field,
 									doctype: values.doctype,
+									names: Array.from(
+										this.doctype_field_map[values.doctype].names
+									),
 								},
 								callback: (r) => {
 									const custom_data = r.message;
-									const link_field = this.doctype_field_map[values.doctype];
+									const link_field =
+										this.doctype_field_map[values.doctype].fieldname;
 
 									this.add_custom_column(
 										custom_columns,
@@ -1834,7 +1842,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		);
 
 		doctypes.forEach((doc) => {
-			this.doctype_field_map[doc.doctype] = doc.fieldname;
+			this.doctype_field_map[doc.doctype] = { fieldname: doc.fieldname, names: new Set() };
+		});
+
+		this.data.forEach((row) => {
+			doctypes.forEach((doc) => {
+				this.doctype_field_map[doc.doctype].names.add(row[doc.fieldname]);
+			});
 		});
 
 		return doctypes;

@@ -4,8 +4,8 @@
 frappe.ui.form.on("Console Log", {
 	refresh: function (frm) {
 		frm.add_custom_button(__("Re-Run in Console"), () => {
-			localStorage.setItem("system_console_code", frm.doc.script);
-			localStorage.setItem("system_console_type", frm.doc.type);
+			window.localStorage.setItem("system_console_code", frm.doc.script);
+			window.localStorage.setItem("system_console_type", frm.doc.type);
 			frappe.set_route("Form", "System Console");
 		});
 	},
