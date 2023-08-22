@@ -341,11 +341,11 @@ body {
 	&.onboarding-widget-box {
 		margin-bottom: var(--margin-2xl);
 		padding: var(--padding-lg) !important;
-		background-color: var(--bg-light-gray);
-		box-shadow: var(--card-shadow) ;
+		background-color: var(--neutral-white);
+		border: 1px solid var(--gray-200);
 
 		&.edit-mode:hover {
-			background-color: var(--fg-color);
+			background-color: var(--bg-color);
 
 			.onboarding-step {
 				&.active,
@@ -404,6 +404,13 @@ body {
 					margin-bottom: var(--margin-sm);
 				}
 
+				.onboarding-step-body {
+					color: var(--gray-700);
+
+					p {
+						font-size: var(--text-base);
+					}
+				}
 				.onboarding-step-footer {
 					margin-top: var(--margin-md);
 				}
@@ -412,10 +419,11 @@ body {
 			.onboarding-step {
 				@include flex(flex, space-between, center, null);
 				border-radius: var(--border-radius);
-				padding: 8px;
-				font-size: var(--text-md);
+				padding: 5px 8px;
+				font-size: var(--text-base);
 				max-width: 350px;
 				text-decoration: none;
+				margin-bottom: var(--margin-xs);
 
 				&.pending {
 					.step-index.step-pending {
@@ -437,21 +445,21 @@ body {
 					}
 
 					span {
-						color: $text-color;
+						color: var(--gray-700);
 					}
 				}
 
 				&.active,
 				&:hover {
-					background-color: var(--fg-color);
+					background-color: var(--gray-100);
 
 					.step-index {
-						background-color: var(--bg-color);
+						background-color: var(--gray-100);
 					}
 
-					.step-skip {
-						visibility: visible;
-					}
+				}
+				&.active .step-skip {
+					visibility: visible;
 				}
 
 				.step-title {
@@ -460,13 +468,18 @@ body {
 
 				.step-index {
 					@include flex(flex, center, center, null);
-					height: 20px;
-					width: 20px;
+					height: 16px;
+					width: 16px;
 					color: var(--text-on-light-gray);
-					background-color: var(--bg-light-gray);
+					border: 1px solid var(--gray-900);
 
 					margin-right: var(--margin-sm);
 					border-radius: var(--border-radius-full);
+
+					.step-icon {
+						padding: 1px;
+						stroke-width: 1.5px;
+					}
 
 					&.step-pending {
 						display: none;
@@ -490,7 +503,7 @@ body {
 				}
 
 				.step-skip {
-					font-size: var(--text-md);
+					font-size: var(--text-base);
 					visibility: hidden;
 					cursor: pointer;
 				}
