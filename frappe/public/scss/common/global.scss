@@ -3,6 +3,7 @@
 
 html, body {
 	height: 100%;
+	font-variation-settings: "opsz" 24;
 }
 
 /* checkbox */
@@ -16,6 +17,8 @@ html, body {
 
 	.label-area {
 		font-size: var(--text-sm);
+		font-weight: var(--weight-medium);
+		color: var(--gray-800);
 	}
 
 	.input-area, .disp-area {
@@ -52,6 +55,8 @@ html, body {
 		-moz-appearance: none;
 		/* for Chrome */
 		-webkit-appearance: none;
+
+		padding-top: 3px;
 	}
 
 	.select-icon {
@@ -59,7 +64,7 @@ html, body {
 		padding-right: inherit;
 		position: absolute;
 		pointer-events: none;
-		top: 7px;
+		top: 3px;
 		right: 12px;
 
 		&.xs {
@@ -79,7 +84,7 @@ html, body {
 		padding-right: inherit;
 		position: absolute;
 		pointer-events: none;
-		top: 7px;
+		top: 3px;
 		left: 12px;
 		max-width: 80%;
 

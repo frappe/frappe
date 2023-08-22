@@ -111,7 +111,7 @@ body {
 	@include flex(flex, null, null, column);
 	min-height: 1px;
 	padding: 7px;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-lg);
 	height: 100%;
 	background-color: var(--card-bg);
 
@@ -139,7 +139,7 @@ body {
 				@include flex(flex, null, center, null);
 				font-size: var(--text-lg);
 				font-family: inherit;
-				font-weight: 500;
+				font-weight: var(--weight-semibold);
 				line-height: 1.3em;
 				color: var(--heading-color);
 				cursor: default;
@@ -544,17 +544,18 @@ body {
 
 		&:hover {
 			.widget-title {
-				color: var(--blue-500) !important;
+				color: var(--gray-600) !important;
 			}
 
 			svg.icon-xs {
-				stroke: var(--blue-500) !important;
+				stroke: var(--gray-600) !important;
 			}
 		}
 
 		.widget-title {
 			cursor: pointer !important;
 			font-size: var(--text-base) !important;
+			font-weight: 500 !important;
 		}
 
 		.indicator-pill {
@@ -564,12 +565,13 @@ body {
 	}
 
 	&.links-widget-box {
+
 		padding: 12px 7px;
 
 		.link-item {
 			display: flex;
 			text-decoration: none;
-			font-size: var(--text-md);
+			font-size: var(--text-base);
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;
@@ -617,18 +619,23 @@ body {
 				padding: 3px 8px;
 			}
 		}
+
+		.widget-title {
+			color: var(--gray-800) !important;
+		}
 	}
 
 	&.number-widget-box {
 		cursor: pointer;
-		height: 115px;
-		padding: var(--padding-sm) var(--padding-md);
+		min-height: 84px;
+		padding: var(--number-card-padding);
 
 		.widget-head {
 			.widget-title {
-				font-weight: 500;
-				color: var(--heading-color);
-				font-size: var(--text-base);
+				font-weight: var(--weight-medium);
+				color: var(--text-muted);
+				text-transform: uppercase;
+				font-size: var(--text-tiny);
 				margin-top: var(--margin-xs);
 			}
 
@@ -653,12 +660,12 @@ body {
 
 			.widget-content {
 				@include flex(flex, space-between, null, null);
-				padding-top: var(--padding-xl);
+				padding-top: var(--padding-md);
 
 				.number {
-					font-weight: 600;
-					font-size: 22px;
-					line-height: 2.4em;
+					font-weight: var(--weight-semibold);
+					font-size: var(--text-2xl);
+					line-height: var(--text-line-height-3xl);
 					color: var(--text-color);
 				}
 
@@ -669,11 +676,12 @@ body {
 				}
 
 				.card-stats {
-					@include flex(flex, null, flex-end, column);
+					@include flex(flex, null, flex-end, row);
 				}
 
 				.percentage-stat-area {
 					font-size: $font-size-sm;
+					margin-left: var(--margin-xs);
 
 					.indicator-pill-round {
 						height: 18px;
@@ -684,24 +692,17 @@ body {
 							height: 10px;
 						}
 					}
-
-					.percentage-stat {
-						margin-left: var(--margin-xs);
-						vertical-align: bottom;
-						font-weight: 500;
-					}
 				}
 
 				.stat-period {
-					margin-top: var(--margin-xs);
-					font-size: 11px;
+					margin-left: var(--margin-xs);
 				}
 
 				.green-stat {
-					color: var(--dark-green-500);
+					color: var(--green-500);
 
 					use {
-						stroke: var(--dark-green-500);
+						stroke: var(--green-500);
 					}
 				}
 
@@ -959,6 +960,13 @@ body {
 			.layout-main-section {
 				padding: var(--padding-md);
 				margin-bottom: var(--margin-sm);
+				
+				&.edit-mode {	
+					background-color: var(--gray-50) !important;
+					.links-widget-box {
+						background-color: var(--gray-50);
+					}
+				}
 			}
 
 			.desk-sidebar {
@@ -974,7 +982,7 @@ body {
 
 	.layout-main-section {
 		background-color: var(--fg-color);
-		box-shadow: var(--card-shadow);
+		box-shadow: none;
 		border-radius: var(--border-radius-lg);
 		padding: var(--padding-sm);
 	}
@@ -1026,7 +1034,7 @@ body {
 		.item-anchor {
 			display: flex;
 			overflow: hidden;
-			padding: 8px 0px 8px 12px;
+			padding: 4px 0px 4px 8px;
 			flex: 1;
 		}
 	}
@@ -1089,6 +1097,7 @@ body {
 				&:hover, &.selected {
 					.drag-handle {
 						display: inline-block;
+						background-color: var(--bg-color);
 					}
 
 					.setting-btn, .duplicate-page, .unhide-workspace-btn {
@@ -1112,7 +1121,7 @@ body {
 
 	// widgets
 	.widget.number-widget-box {
-		box-shadow: var(--shadow-sm);
+		border: 1px solid var(--gray-200);
 	}
 
 
@@ -1279,7 +1288,7 @@ body {
 
 							&:hover {
 								box-shadow: var(--shadow-base);
-								background-color: var(--fg-color);
+								background-color: var(--bg-color);
 							}
 
 							&.spacer {
@@ -1336,7 +1345,7 @@ body {
 							padding-left: 0px !important;
 							min-height: 40px;
 							box-shadow: none;
-							background-color: var(--control-bg);
+							background-color: var(--bg-color);
 							color: var(--text-muted);
 							cursor: text;
 
@@ -1346,7 +1355,7 @@ body {
 						}
 
 						&.shortcut {
-							background-color: var(--control-bg);
+							background-color: var(--bg-color);
 						}
 
 						&:focus {
