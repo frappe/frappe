@@ -32,12 +32,17 @@ class EventConsumer(Document):
 		else:
 			frappe.db.set_value(self.doctype, self.name, "incoming_change", 0)
 
-		frappe.cache().delete_value("event_consumer_document_type_map")
+	def clear_cache(self):
+		from frappe.event_streaming.doctype.event_update_log.event_update_log import (
+			ENABLED_DOCTYPES_CACHE_KEY,
+		)
+
+		frappe.cache().delete_value(ENABLED_DOCTYPES_CACHE_KEY)
+		return super().clear_cache()
 
 	def on_trash(self):
 		for i in frappe.get_all("Event Update Log Consumer", {"consumer": self.name}):
 			frappe.delete_doc("Event Update Log Consumer", i.name)
-		frappe.cache().delete_value("event_consumer_document_type_map")
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
