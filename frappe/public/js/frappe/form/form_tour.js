@@ -11,9 +11,10 @@ frappe.ui.form.FormTour = class FormTour {
 			padding: 10,
 			overlayClickNext: true,
 			keyboardControl: true,
-			closeBtnText: __("Close"),
 			nextBtnText: __("Next"),
 			prevBtnText: __("Previous"),
+			doneBtnText: __("Done"),
+			closeBtnText: __("Close"),
 			opacity: 0.25,
 			onHighlighted: (step) => {
 				// if last step is to save, then attach a listener to save button
