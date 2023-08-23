@@ -81,8 +81,7 @@ class Monitor:
 			self.data.job.method = kwargs["job_type"]
 			self.data.job.scheduled = True
 
-		job = rq.get_current_job()
-		if job:
+		if job := rq.get_current_job():
 			self.data.uuid = job.id
 			waitdiff = self.data.timestamp - job.enqueued_at
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
