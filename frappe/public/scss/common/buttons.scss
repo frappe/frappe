@@ -6,9 +6,11 @@
 
 .btn {
 	border: none;
+	padding: 4px 8px;
+	background-color: var(--white);
 	border-radius: var(--border-radius);
-	box-shadow: var(--btn-shadow);
-	font-size: var(--text-md);
+	box-shadow: none;
+	font-size: var(--text-base);
 	&.icon-btn {
 		height: var(--btn-height);
 		padding: 0px;
@@ -40,12 +42,13 @@
 
 .btn-primary-light {
 	@include button-variant(
-		$background: $primary-light,
-		$border: $primary-light,
-		$hover-background: lighten($primary-light, 1%),
-		$hover-border: $primary-light,
-		$active-background: lighten($primary-light, 1%),
-		$active-border: darken($primary-light, 12.5%)
+		// not happy with this
+		$background: $gray-300,
+		$border: $gray-800,
+		$hover-background: $gray-200,
+		$hover-border: $gray-300,
+		$active-background: $gray-300,
+		$active-border: $gray-200
 	);
 
 	color: var(--primary);
@@ -54,7 +57,7 @@
 	}
 
 	&:focus {
-		box-shadow: 0 0 0 0.2rem var(--primary-light);
+		box-shadow: var(--focus-default);
 	}
 }
 
@@ -62,16 +65,16 @@
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	&:hover, &:active {
-		background-color: var(--gray-400);
+		background-color: var(--gray-300);
 		color: var(--text-color);
 	}
 }
 
 .btn.btn-default {
-	background-color: var(--fg-color);
+	background-color: var(--control-bg);
 	color: var(--text-color);
 	&:hover, &:active {
-		background: var(--fg-hover-color);
+		background: var(--gray-300);
 		color: var(--text-color);
 	}
 }
@@ -85,7 +88,7 @@
 }
 
 .btn.btn-danger {
-	background-color: var(--red-400);
+	background-color: var(--danger);
 	color: $white;
 }
 
