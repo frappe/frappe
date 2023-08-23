@@ -21,6 +21,7 @@ class ErrorLog(Document):
 		reference_doctype: DF.Link | None
 		reference_name: DF.Data | None
 		seen: DF.Check
+		trace_id: DF.Data | None
 	# end: auto-generated types
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
