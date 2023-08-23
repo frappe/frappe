@@ -101,15 +101,6 @@ class TestSafeExec(FrappeTestCase):
 	def test_unsafe_objects(self):
 		unsafe_global = {"frappe": frappe}
 		self.assertRaises(SyntaxError, safe_exec, """frappe.msgprint("Hello")""", unsafe_global)
-<<<<<<< HEAD
-=======
-
-	def test_attrdict(self):
-		# jinja
-		frappe.render_template("{% set my_dict = _dict() %} {{- my_dict.works -}}")
-
-		# RestrictedPython
-		safe_exec("my_dict = _dict()")
 
 	def test_write_wrapper(self):
 		# Allow modifying _dict instance
@@ -117,4 +108,3 @@ class TestSafeExec(FrappeTestCase):
 
 		# dont Allow modifying _dict class
 		self.assertRaises(Exception, safe_exec, "_dict.x = 1")
->>>>>>> eede56d5df (fix: dont allow writes to live objects)
