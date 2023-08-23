@@ -331,6 +331,7 @@ select.input-xs {
 	a {
 		transition: none;
 		cursor: pointer;
+		text-decoration: none;
 	}
 	a:active {
 		--icon-stroke: #{$component-active-color};
