@@ -52,6 +52,7 @@ class TestBackgroundJobs(FrappeTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
+<<<<<<< HEAD
 	def test_enqueue_call(self):
 		with patch.object(Queue, "enqueue_call") as mock_enqueue_call:
 			frappe.enqueue(
@@ -79,6 +80,8 @@ class TestBackgroundJobs(FrappeTestCase):
 				job_id=None,
 			)
 
+=======
+>>>>>>> 56b409d069 (fix: limit job count in RQ failed registry (#22162))
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
 		with freeze_local() as locals, frappe.init_site(locals.site), patch(
