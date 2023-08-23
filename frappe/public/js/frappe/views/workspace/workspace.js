@@ -142,16 +142,16 @@ frappe.views.Workspace = class Workspace {
 		);
 
 		let $title = $(`<div class="standard-sidebar-label">
-			<span>${frappe.utils.icon("small-down", "xs")}</span>
+			<span>${frappe.utils.icon("es-line-down", "xs")}</span>
 			<span class="section-title">${__(title)}<span>
 		</div>`).appendTo(sidebar_section);
 		this.prepare_sidebar(root_pages, sidebar_section, this.sidebar);
 
 		$title.on("click", (e) => {
 			let icon =
-				$(e.target).find("span use").attr("href") === "#icon-small-down"
-					? "#icon-right"
-					: "#icon-small-down";
+				$(e.target).find("span use").attr("href") === "#es-line-down"
+					? "#es-line-right-chevron"
+					: "#es-line-down";
 			$(e.target).find("span use").attr("href", icon);
 			$(e.target).parent().find(".sidebar-item-container").toggleClass("hidden");
 		});
@@ -210,7 +210,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	add_drop_icon(item, sidebar_control, item_container) {
-		let drop_icon = "small-down";
+		let drop_icon = "es-line-down";
 		if (item_container.find(`[item-name="${this.current_page.name}"]`).length) {
 			drop_icon = "small-up";
 		}
@@ -229,9 +229,9 @@ frappe.views.Workspace = class Workspace {
 		}
 		$drop_icon.on("click", () => {
 			let icon =
-				$drop_icon.find("use").attr("href") === "#icon-small-down"
-					? "#icon-small-up"
-					: "#icon-small-down";
+				$drop_icon.find("use").attr("href") === "#es-line-down"
+					? "#es-line-up"
+					: "#es-line-down";
 			$drop_icon.find("use").attr("href", icon);
 			$child_item_section.toggleClass("hidden");
 		});
@@ -527,7 +527,7 @@ frappe.views.Workspace = class Workspace {
 			);
 		} else {
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+				frappe.utils.icon("es-line-drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -783,8 +783,8 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		let $button = $(`
-			<div class="btn btn-secondary btn-xs setting-btn dropdown-btn" title="${__("Setting")}">
-				${frappe.utils.icon("dot-horizontal", "xs")}
+			<div class="btn btn-xs setting-btn dropdown-btn" title="${__("Setting")}">
+				${frappe.utils.icon("es-line-dot-horizontal", "xs")}
 			</div>
 			<div class="dropdown-list hidden"></div>
 		`);
@@ -1289,7 +1289,7 @@ frappe.views.Workspace = class Workspace {
 			$sidebar_item.appendTo($child_section);
 			$child_section.removeClass("hidden");
 			$item_container.find(".drop-icon.hidden").removeClass("hidden");
-			$item_container.find(".drop-icon use").attr("href", "#icon-small-up");
+			$item_container.find(".drop-icon use").attr("href", "#es-line-up");
 		}
 
 		let section = item.is_public ? "public" : "private";
