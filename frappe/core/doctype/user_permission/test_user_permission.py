@@ -185,6 +185,63 @@ class TestUserPermission(FrappeTestCase):
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
 		self.assertFalse(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
 
+	def test_user_perm_for_nested_doctype_case_2(self):
+		"""Test if user is shown doctype values if a User permission if applied to it."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		user = create_user("nested_doc_user@example.com", "Blogger")
+		if not frappe.db.exists("DocType", "Person"):
+			doc = new_doctype(
+				"Person",
+				fields=[{"label": "Person Name", "fieldname": "person_name", "fieldtype": "Data"}],
+				unique=0,
+			)
+			doc.is_tree = 1
+			doc.insert()
+
+		parent_record = frappe.get_doc(
+			{"doctype": "Person", "person_name": "Parent", "is_group": 1}
+		).insert()
+
+		child_record = frappe.get_doc(
+			{
+				"doctype": "Person",
+				"person_name": "Child",
+				"is_group": 0,
+				"parent_person": parent_record.name,
+			}
+		).insert()
+
+		add_user_permissions(get_params(user, "Person", parent_record.name))
+
+		# user based get_list how in frappe framework?
+		# Based on the permission of the user get the data in Person Doctype
+
+		visible_names = frappe.get_list(
+			"Person",
+			fields=["person_name"],
+			filters={"person_name": ("in", ["Parent", "Child"])},
+		)
+
+		# do it
+		#
+
+		print("visible_names", visible_names)
+
+		frappe.db.set_value(
+			"User Permission", {"allow": "Person", "for_value": parent_record.name}, "hide_descendants", 1
+		)
+
+		visible_names_after_hide_descendants = frappe.get_list(
+			"Person",
+			fields=["person_name"],
+			filters={"person_name": "Child"},
+		)
+
+		# self.assertEqual(visible_names[0], {'person_name': 'Child'}, {'person_name': 'Parent'})
+		# self.assertEqual(visible_names_after_hide_descendants[0], {'person_name': 'Child'})
+		frappe.cache.delete_value("user_permissions")
+
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
 		frappe.set_user("Administrator")
