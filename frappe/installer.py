@@ -264,7 +264,7 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
 			required_app = parse_app_name(app)
-			install_app(required_app, verbose=verbose, force=force)
+			install_app(required_app, verbose=verbose)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
