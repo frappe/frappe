@@ -263,13 +263,7 @@ export default class NumberCardWidget extends Widget {
 
 			$(this.body).find(".widget-content").append(`<div class="card-stats ${color_class}">
 				<span class="percentage-stat-area">
-					${caret_html}
-					<span class="percentage-stat">
-						${stat} %
-					</span>
-				</span>
-				<span class="stat-period text-muted">
-					${stats_qualifier}
+					${caret_html} ${stat} % ${stats_qualifier}
 				</span>
 			</div>`);
 		});
