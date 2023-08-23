@@ -72,6 +72,9 @@ class Monitor:
 			}
 		)
 
+		if request_id := frappe.request.headers.get("X-Frappe-Request-Id"):
+			self.data.uuid = request_id
+
 	def collect_job_meta(self, method, kwargs):
 		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
 		if "run_scheduled_job" in method:
