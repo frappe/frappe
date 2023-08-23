@@ -420,6 +420,9 @@ frappe.ui.form.PrintView = class {
 			params.append("letterhead", letterhead);
 		}
 		iframe.prop("src", `/printpreview?${params.toString()}`);
+		iframe.on("load", ()=>{
+			iframe.height(iframe.get(0).contentWindow.document.body.scrollHeight);
+		})
 	}
 
 	setup_print_format_dom(out, $print_format) {
