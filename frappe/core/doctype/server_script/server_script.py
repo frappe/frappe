@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
-from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, safe_exec
+from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, is_safe_exec_enabled, safe_exec
 
 
 class ServerScript(Document):
@@ -277,3 +277,9 @@ def execute_api_server_script(script=None, *args, **kwargs):
 	_globals, _locals = safe_exec(script.script)
 
 	return _globals.frappe.flags
+
+
+@frappe.whitelist()
+def enabled() -> bool | None:
+	if frappe.has_permission("Server Script"):
+		return is_safe_exec_enabled()
