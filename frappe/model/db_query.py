@@ -998,6 +998,9 @@ class DatabaseQuery:
 		for df in doctype_link_fields:
 			if df.get("ignore_user_permissions"):
 				continue
+			if df.get("fieldname") != "name" and df.get("options") == self.doctype:
+				# if doctype is same as current doctype then ignore
+				continue
 
 			user_permission_values = user_permissions.get(df.get("options"), {})
 
