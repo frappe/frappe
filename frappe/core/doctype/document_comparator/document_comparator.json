@@ -10,7 +10,11 @@
   "column_break_peck",
   "document",
   "section_break_gppi",
-  "version_table"
+  "version_table",
+  "rows_added_section",
+  "rows_added",
+  "rows_removed_section",
+  "rows_removed"
  ],
  "fields": [
   {
@@ -42,13 +46,35 @@
    "fieldtype": "HTML",
    "hidden": 1,
    "label": "version_table"
+  },
+  {
+   "fieldname": "rows_added",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "rows_removed",
+   "fieldtype": "HTML"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "rows_added_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Rows Added"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "rows_removed_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Rows Removed"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-18 17:57:02.576653",
+ "modified": "2023-08-22 12:12:59.780845",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Comparator",
