@@ -7,6 +7,10 @@
 		margin-right: 0;
 	}
 	.navbar-nav {
+		.dropdown-item {
+			padding: 6px 8px !important;
+		}
+		
 		.nav-link {
 			padding: 0;
 		}
