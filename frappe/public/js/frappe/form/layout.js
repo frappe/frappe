@@ -102,6 +102,7 @@ frappe.ui.form.Layout = class Layout {
 			// remove previous color
 			this.message.removeClass(this.message_color);
 		}
+		let close_message = $(`<div class="close-message">${frappe.utils.icon("close")}</div>`);
 		this.message_color =
 			color && ["yellow", "blue", "red", "green", "orange"].includes(color) ? color : "blue";
 		if (html) {
@@ -111,6 +112,8 @@ frappe.ui.form.Layout = class Layout {
 			}
 			this.message.removeClass("hidden").addClass(this.message_color);
 			$(html).appendTo(this.message);
+			close_message.appendTo(this.message);
+			close_message.on("click", () => this.message.empty().addClass("hidden"));
 		} else {
 			this.message.empty().addClass("hidden");
 		}
