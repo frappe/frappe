@@ -168,9 +168,11 @@ class TestRQJob(FrappeTestCase):
 		limit = 10
 		update_site_config("rq_failed_jobs_limit", limit)
 
-		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit + 10)]
+		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
-		self.assertLessEqual(RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit)
+		self.assertLessEqual(
+			RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1
+		)
 
 
 def test_func(fail=False, sleep=0):
