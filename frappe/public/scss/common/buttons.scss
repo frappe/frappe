@@ -6,8 +6,9 @@
 
 .btn {
 	border: none;
+	font-weight: var(--weight-regular);
 	padding: 4px 8px;
-	background-color: var(--white);
+	background-color: var(--neutral-white);
 	border-radius: var(--border-radius);
 	box-shadow: none;
 	font-size: var(--text-base);
