@@ -1425,7 +1425,9 @@ def get_site_path(*joins):
 	"""Return path of current site.
 
 	:param *joins: Join additional path elements using `os.path.join`."""
-	return os.path.join(local.site_path, *joins)
+	from os.path import abspath, join
+
+	return abspath(join(local.site_path, *joins))
 
 
 def get_pymodule_path(modulename, *joins):
@@ -1433,14 +1435,17 @@ def get_pymodule_path(modulename, *joins):
 
 	:param modulename: Python module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	if not "public" in joins:
+	from os.path import abspath, dirname, join
+
+	if "public" not in joins:
 		joins = [scrub(part) for part in joins]
-	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__ or ""), *joins)
+
+	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
 
 
 def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
-	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
+	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
 def get_all_apps(with_internal_apps=True, sites_path=None):
