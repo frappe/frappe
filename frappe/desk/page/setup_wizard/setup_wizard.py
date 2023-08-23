@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe.geo.country_info import get_country_info
 from frappe.translate import get_messages_for_boot, send_translations, set_default_language
-from frappe.utils import cint, strip
+from frappe.utils import cint, now, strip
 from frappe.utils.password import update_password
 
 from . import install_fixtures
@@ -184,6 +184,8 @@ def update_system_settings(args):
 		}
 	)
 	system_settings.save()
+	if args.get("allow_recording_first_session"):
+		frappe.db.set_default("session_recording_start", now())
 
 
 def update_user_name(args):
