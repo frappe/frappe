@@ -80,6 +80,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	sidebar_item_container(item) {
+		// Make Indicators Configrable @shariquerik
 		return $(`
 			<div
 				class="sidebar-item-container ${item.is_editable ? "is-draggable" : ""}"
@@ -97,10 +98,10 @@ frappe.views.Workspace = class Workspace {
 						}"
 						class="item-anchor ${item.is_editable ? "" : "block-click"}" title="${__(item.title)}"
 					>
-						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>${frappe.utils.icon(
-			item.icon || "folder-normal",
+						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>${item.icon ? frappe.utils.icon(
+			item.icon,
 			"md"
-		)}</span>
+		) : `<span class="indicator ${[ "green", "cyan", "blue", "orange", "yellow", "gray", "grey", "red", "pink", "darkgrey", "purple", "light-blue"][(Math.floor(Math.random() * 12))]}"></span>`}</span>
 						<span class="sidebar-item-label">${__(item.title)}<span>
 					</a>
 					<div class="sidebar-item-control"></div>
@@ -425,13 +426,14 @@ frappe.views.Workspace = class Workspace {
 			this.toggle_hidden_workspaces(true);
 			await this.editor.readOnly.toggle();
 			this.editor.isReady.then(() => {
+				this.body.addClass("edit-mode");
 				this.initialize_editorjs_undo();
 				this.setup_customization_buttons(current_page);
 				this.show_sidebar_actions();
 				this.make_blocks_sortable();
 			});
-		});
-
+	}, 'es-line-edit');
+		// need to add option for icons in inner buttons as well
 		this.page.add_inner_button(__("Create Workspace"), () => {
 			this.initialize_new_page();
 		});
@@ -457,6 +459,7 @@ frappe.views.Workspace = class Workspace {
 				__("Save"),
 				() => {
 					this.clear_page_actions();
+					this.body.removeClass("edit-mode");
 					this.save_page(page).then((saved) => {
 						if (!saved) return;
 						this.undo.readOnly = true;
@@ -469,6 +472,7 @@ frappe.views.Workspace = class Workspace {
 			);
 
 		this.page.set_secondary_action(__("Discard"), async () => {
+			this.body.removeClass("edit-mode");
 			this.discard = true;
 			this.clear_page_actions();
 			this.toggle_hidden_workspaces(false);
