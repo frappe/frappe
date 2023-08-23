@@ -2085,8 +2085,9 @@ def bold(text):
 def safe_eval(code, eval_globals=None, eval_locals=None):
 	"""A safer `eval`"""
 
-	from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES
+	from frappe.utils.safe_exec import safe_eval
 
+<<<<<<< HEAD
 	whitelisted_globals = {"int": int, "float": float, "long": int, "round": round}
 	code = unicodedata.normalize("NFKC", code)
 
@@ -2103,6 +2104,9 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(whitelisted_globals)
 	return eval(code, eval_globals, eval_locals)
+=======
+	return safe_eval(code, eval_globals, eval_locals)
+>>>>>>> 28978aae9c (refactor: safe_eval to use same restictedpython library  (backport #22135) (#22168))
 
 
 def get_system_settings(key, ignore_if_not_exists=False):
