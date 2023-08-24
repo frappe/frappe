@@ -77,15 +77,15 @@ frappe.ui.form.trigger = function (doctype, fieldname) {
 };
 
 // set unique id for the form field event due to manual input
-frappe.ui.form.__reset_event_unique_id = function(e) {
+frappe.ui.form.__reset_event_unique_id = function(reason) {
 	frappe.ui.form.__triggered = {};
 	frappe.ui.form.__unique_event_id = Date.now();
-	//console.log("Resetting Event Id", frappe.ui.form.__unique_event_id)
+	//console.log("Resetting Event Id due to", reason, frappe.ui.form.__unique_event_id)
 }
 
 document.addEventListener('focus', (e) => {
 	if (e.target.tagName == 'INPUT') {
-		frappe.ui.form.__reset_event_unique_id(e);
+		frappe.ui.form.__reset_event_unique_id("Focus");
 	}
 }, true);
 
@@ -129,7 +129,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			// dedupe only form field events
 			if (!FORM_LIFE_CYCLE_EVENTS.includes(event_name)) {
 				if (!frappe.ui.form.__unique_event_id) {
-					frappe.ui.form.__reset_event_unique_id();
+					frappe.ui.form.__reset_event_unique_id("Null");
 				}
 
 				let key = `${doctype}_${event_name}_${frappe.ui.form.__unique_event_id}`;
@@ -143,7 +143,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			// form non field events, reset unique id only once for the doctype
 			} else if (frappe.ui.form.form_doctype != doctype) {
 				frappe.ui.form.form_doctype = doctype;
-				frappe.ui.form.__reset_event_unique_id();
+				frappe.ui.form.__reset_event_unique_id(`Life cycle event ${event_name}`);
 			}
 
 			let _promise = null;
