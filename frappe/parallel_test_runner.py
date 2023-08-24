@@ -97,7 +97,7 @@ class ParallelTestRunner:
 					make_test_records(doctype, commit=True)
 
 	def get_module(self, path, filename):
-		app_path = frappe.get_pymodule_path(self.app)
+		app_path = frappe.get_app_path(self.app)
 		relative_path = os.path.relpath(path, app_path)
 		if relative_path == ".":
 			module_name = self.app
@@ -217,7 +217,7 @@ class ParallelTestResult(unittest.TextTestResult):
 
 def get_all_tests(app):
 	test_file_list = []
-	for path, folders, files in os.walk(frappe.get_pymodule_path(app)):
+	for path, folders, files in os.walk(frappe.get_app_path(app)):
 		for dontwalk in ("locals", ".git", "public", "__pycache__"):
 			if dontwalk in folders:
 				folders.remove(dontwalk)
@@ -230,10 +230,11 @@ def get_all_tests(app):
 			# in /doctype/doctype/boilerplate/
 			continue
 
-		for filename in files:
-			if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py":
-				test_file_list.append([path, filename])
-
+		test_file_list.extend(
+			[path, filename]
+			for filename in files
+			if filename.startswith("test_") and filename.endswith(".py") and filename != "test_runner.py"
+		)
 	return test_file_list
 
 

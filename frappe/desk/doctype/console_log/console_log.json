@@ -6,7 +6,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "script"
+  "script",
+  "type"
  ],
  "fields": [
   {
@@ -15,11 +16,18 @@
    "in_list_view": 1,
    "label": "Script",
    "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Type",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-07-05 22:16:02.823955",
+ "modified": "2023-07-27 22:52:37.239039",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",

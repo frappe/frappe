@@ -175,15 +175,9 @@ class TestBoilerPlate(unittest.TestCase):
 		self.check_parsable_python_files(new_app_dir)
 
 	def get_paths(self, app_dir, app_name):
-		all_paths = list()
-
-		for path in self.root_paths:
-			all_paths.append(os.path.join(app_dir, path))
-
+		all_paths = [os.path.join(app_dir, path) for path in self.root_paths]
 		all_paths.append(os.path.join(app_dir, app_name))
-
-		for path in self.paths_inside_app:
-			all_paths.append(os.path.join(app_dir, app_name, path))
+		all_paths.extend(os.path.join(app_dir, app_name, path) for path in self.paths_inside_app)
 
 		return all_paths
 

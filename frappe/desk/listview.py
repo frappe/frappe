@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.model import is_default_field
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import SubQuery
@@ -58,6 +59,9 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 			.limit(50)
 			.run(as_dict=True)
 		)
+
+	if not frappe.get_meta(doctype).has_field(field) and not is_default_field(field):
+		raise ValueError("Field does not belong to doctype")
 
 	return frappe.get_list(
 		doctype,

@@ -44,7 +44,7 @@ non_nullable_types = {
 	"Rating",
 	"Select",
 	"Table",
-	"TableMultiSelect",
+	"Table MultiSelect",
 }
 
 
@@ -114,11 +114,14 @@ class TypeExporter:
 		)
 
 	def _create_fields_code_block(self):
-		fields = []
-
-		for field, typehint in self.field_types.items():
-			fields.append(field_template.format(field=field, type=typehint))
-		return "\n".join(sorted(fields))
+		return "\n".join(
+			sorted(
+				[
+					field_template.format(field=field, type=typehint)
+					for field, typehint in self.field_types.items()
+				]
+			)
+		)
 
 	def _create_imports_block(self) -> str:
 		return "\n".join(sorted(self.imports))

@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 from subprocess import getoutput
-from tempfile import mkdtemp, mktemp
+from tempfile import mkdtemp
 from urllib.parse import urlparse
 
 import click
@@ -183,7 +183,7 @@ def symlink(target, link_name, overwrite=False):
 
 	# Create link to target with temporary filename
 	while True:
-		temp_link_name = mktemp(dir=link_dir)
+		temp_link_name = f"tmp{frappe.generate_hash()}"
 
 		# os.* functions mimic as closely as possible system functions
 		# The POSIX symlink() returns EEXIST if link_name already exists
@@ -253,7 +253,7 @@ def bundle(
 		command += " --save-metafiles"
 
 	check_node_executable()
-	frappe_app_path = frappe.get_app_path("frappe", "..")
+	frappe_app_path = frappe.get_app_source_path("frappe")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 
@@ -271,7 +271,7 @@ def watch(apps=None):
 		command += " --live-reload"
 
 	check_node_executable()
-	frappe_app_path = frappe.get_app_path("frappe", "..")
+	frappe_app_path = frappe.get_app_source_path("frappe")
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 
 
@@ -286,8 +286,7 @@ def check_node_executable():
 
 
 def get_node_env():
-	node_env = {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
-	return node_env
+	return {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
 
 
 def get_safe_max_old_space_size():

@@ -4137,7 +4137,7 @@ No changes in document,စာရွက်စာတမ်းတွင်အပြ
 by Role,အခန်းက္ပ,
 Document is only editable by users with role,Document ကိုအခန်းကဏ္ with ရှိတဲ့အသုံးပြုသူများမှသာတည်းဖြတ်နိုင်သည်,
 {0}: Other permission rules may also apply,{0} - အခြားခွင့်ပြုချက်စည်းမျဉ်းများကိုလည်းကျင့်သုံးနိုင်သည်,
-{0} Page Views,{0} စာမျက်နှာကြည့်ရှုခြင်း,
+{0} Web page views,{0} စာမျက်နှာကြည့်ရှုခြင်း,
 Expand,ချဲ့,
 Collapse,ပြိုကျသည်,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.",မမှန်ကန်သော Bearer အမှတ်အသား၊ မှန်ကန်သောဝင်ရောက်ခွင့်သင်္ကေတကိုရှေ့ဆက် &#39;Bearer&#39; ဖြင့်ပေးပါ။,

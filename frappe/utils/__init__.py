@@ -350,6 +350,7 @@ def _get_traceback_sanitizer():
 			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
+			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
 		],
 	)
 
@@ -362,10 +363,7 @@ def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""
 	Converts a dictionary to URL
 	"""
-	t = []
-	for k in list(args):
-		t.append(str(k) + "=" + quote(str(args[k] or "")))
-	return sep.join(t)
+	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
 
 
 def list_to_str(seq, sep=", "):
@@ -657,6 +655,11 @@ def is_markdown(text):
 		return not NON_MD_HTML_PATTERN.search(text)
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	return isinstance(x, (property, functools.cached_property))
+
+
 def get_sites(sites_path=None):
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."
@@ -758,15 +761,14 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in get_versions().items():
-		out.append(
-			{
-				"app_name": app,
-				"version": version_details.get("branch_version") or version_details.get("version"),
-				"branch": version_details.get("branch"),
-			}
-		)
-
+	out.extend(
+		{
+			"app_name": app,
+			"version": version_details.get("branch_version") or version_details.get("version"),
+			"branch": version_details.get("branch"),
+		}
+		for app, version_details in get_versions().items()
+	)
 	return out
 
 
@@ -935,8 +937,7 @@ def get_html_for_route(route):
 
 	set_request(method="GET", path=route)
 	response = get_response()
-	html = frappe.safe_decode(response.get_data())
-	return html
+	return frappe.safe_decode(response.get_data())
 
 
 def get_file_size(path, format=False):

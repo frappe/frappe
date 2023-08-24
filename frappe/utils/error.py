@@ -37,6 +37,8 @@ def log_error(
 	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
 ):
 	"""Log error to Error Log"""
+	from frappe.monitor import get_trace_id
+
 	# Parameter ALERT:
 	# the title and message may be swapped
 	# the better API for this is log_error(title, message), and used in many cases this way
@@ -62,6 +64,7 @@ def log_error(
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
+		trace_id=get_trace_id(),
 	)
 
 	if frappe.flags.read_only or defer_insert:
@@ -157,5 +160,5 @@ def guess_exception_source(exception: str) -> str | None:
 				app_name = matches.group("app_name")
 				apps[app_name] += app_priority.get(app_name, 0)
 
-		if probably_source := apps.most_common(1):
+		if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
 			return f"{probably_source[0][0]} (app)"

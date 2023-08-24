@@ -115,10 +115,7 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 	fields = ["`tabDynamic Link`.link_name"] + field_map.get(doctype, [])
 
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
-	temp_records = list()
-
-	for d in records:
-		temp_records.append(d[1:])
+	temp_records = [d[1:] for d in records]
 
 	if not reference_list:
 		frappe.throw(_("No records present in {0}").format(reference_doctype))

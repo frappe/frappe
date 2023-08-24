@@ -60,8 +60,7 @@ def get_permission_query_conditions(for_user):
 def get_title(doctype, docname, title_field=None):
 	if not title_field:
 		title_field = frappe.get_meta(doctype).get_title_field()
-	title = docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
-	return title
+	return docname if title_field == "name" else frappe.db.get_value(doctype, docname, title_field)
 
 
 def get_title_html(title):
@@ -187,9 +186,12 @@ def mark_all_as_read():
 
 
 @frappe.whitelist()
-def mark_as_read(docname):
+def mark_as_read(docname: str):
+	if frappe.flags.read_only:
+		return
+
 	if docname:
-		frappe.db.set_value("Notification Log", docname, "read", 1, update_modified=False)
+		frappe.db.set_value("Notification Log", str(docname), "read", 1, update_modified=False)
 
 
 @frappe.whitelist()

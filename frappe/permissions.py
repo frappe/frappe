@@ -630,8 +630,7 @@ def allow_everything():
 	returns a dict with access to everything
 	eg. {"read": 1, "write": 1, ...}
 	"""
-	perm = {ptype: 1 for ptype in rights}
-	return perm
+	return {ptype: 1 for ptype in rights}
 
 
 def get_allowed_docs_for_doctype(user_permissions, doctype):

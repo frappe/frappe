@@ -4,9 +4,5 @@
 frappe.ui.form.on("Patch Log", {
 	refresh: function (frm) {
 		frm.disable_save();
-
-		frm.add_custom_button(__("Re-Run Patch"), () => {
-			frm.call("rerun_patch");
-		});
 	},
 });

@@ -389,19 +389,16 @@ def is_system_user(username: str | None = None) -> str | None:
 def get_users() -> list[dict]:
 	from frappe.core.doctype.user.user import get_system_users
 
-	users = []
 	system_managers = get_system_managers(only_name=True)
 
-	for user in get_system_users():
-		users.append(
-			{
-				"full_name": get_user_fullname(user),
-				"email": user,
-				"is_system_manager": user in system_managers,
-			}
-		)
-
-	return users
+	return [
+		{
+			"full_name": get_user_fullname(user),
+			"email": user,
+			"is_system_manager": user in system_managers,
+		}
+		for user in get_system_users()
+	]
 
 
 def get_users_with_role(role: str) -> list[str]:

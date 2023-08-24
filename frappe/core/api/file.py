@@ -1,7 +1,8 @@
 import json
 
 import frappe
-from frappe.core.doctype.file.file import File, setup_folder_path
+from frappe.core.doctype.file.file import File
+from frappe.core.doctype.file.utils import setup_folder_path
 from frappe.utils import cint, cstr
 
 

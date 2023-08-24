@@ -3,7 +3,6 @@
 no_cache = 1
 
 import json
-import os
 import re
 
 import frappe

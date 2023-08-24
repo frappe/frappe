@@ -62,20 +62,18 @@ frappe.ui.Page = class Page {
 	}
 
 	get_empty_state(title, message, primary_action) {
-		let $empty_state = $(`<div class="page-card-container">
-			<div class="page-card">
-				<div class="page-card-head">
-					<span class="indicator blue">
-						${title}</span>
-				</div>
-				<p>${message}</p>
-				<div>
-					<button class="btn btn-primary btn-sm">${primary_action}</button>
-				</div>
-			</div>
-		</div>`);
-
-		return $empty_state;
+		return $(`<div class="page-card-container">
+  			<div class="page-card">
+  				<div class="page-card-head">
+  					<span class="indicator blue">
+  						${title}</span>
+  				</div>
+  				<p>${message}</p>
+  				<div>
+  					<button class="btn btn-primary btn-sm">${primary_action}</button>
+  				</div>
+  			</div>
+  		</div>`);
 	}
 
 	load_lib(callback) {

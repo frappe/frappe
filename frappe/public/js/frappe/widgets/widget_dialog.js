@@ -395,7 +395,7 @@ class ShortcutDialog extends WidgetDialog {
 							}
 
 							const views = ["List", "Report Builder", "Dashboard", "New"];
-							if (meta.is_tree === "Tree") views.push("Tree");
+							if (meta.is_tree === 1) views.push("Tree");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
 							const response = await frappe.db.get_value(
@@ -575,7 +575,7 @@ class NumberCardDialog extends WidgetDialog {
 				{
 					fieldtype: "Link",
 					fieldname: "number_card_name",
-					label: __("Number Cards"),
+					label: __("Number Card"),
 					options: "Number Card",
 					reqd: 1,
 					get_query: () => {

@@ -48,8 +48,7 @@ class TestCachingUtils(FrappeTestCase):
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
-		for _ in range(5):
-			retval.append(request_specific_api(120, 23))
+		retval.extend(request_specific_api(120, 23) for _ in range(5))
 		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
@@ -163,6 +162,25 @@ class TestRedisCache(FrappeAPITestCase):
 		calculate_area(radius=10)
 		# kwargs should hit cache too
 		self.assertEqual(function_call_count, 4)
+
+	def test_global_clear_cache(self):
+		function_call_count = 0
+
+		@redis_cache()
+		def calculate_area(radius: float) -> float:
+			nonlocal function_call_count
+			function_call_count += 1
+			return 3.14 * radius**2
+
+		calculate_area(10)
+		calculate_area(10)
+		calculate_area(10)
+		self.assertEqual(function_call_count, 1)
+
+		# This is supposed to clear cache for the active site
+		frappe.clear_cache()
+		calculate_area(10)
+		self.assertEqual(function_call_count, 2)
 
 
 class TestDocumentCache(FrappeAPITestCase):

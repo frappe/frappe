@@ -111,7 +111,7 @@ class WebsiteTheme(Document):
 		content = content.replace("\n", "\\n")
 		command = ["node", "generate_bootstrap_theme.js", output_path, content]
 
-		process = Popen(command, cwd=frappe.get_app_path("frappe", ".."), stdout=PIPE, stderr=PIPE)
+		process = Popen(command, cwd=frappe.get_app_source_path("frappe"), stdout=PIPE, stderr=PIPE)
 
 		stderr = process.communicate()[1]
 
@@ -144,10 +144,7 @@ class WebsiteTheme(Document):
 		from frappe.utils.change_log import get_versions
 
 		apps = get_versions()
-		out = []
-		for app, values in apps.items():
-			out.append({"name": app, "title": values["title"]})
-		return out
+		return [{"name": app, "title": values["title"]} for app, values in apps.items()]
 
 
 def get_active_theme() -> Optional["WebsiteTheme"]:

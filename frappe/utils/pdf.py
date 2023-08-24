@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import contextlib
 import io
 import os
 import re
@@ -43,7 +44,30 @@ def pdf_header_html(soup, head, content, styles, html_id, css):
 
 
 def pdf_body_html(template, args, **kwargs):
-	return template.render(args, filters={"len": len})
+	try:
+		return template.render(args, filters={"len": len})
+	except Exception as e:
+		# Guess line number ?
+		frappe.throw(
+			_("Error in print format on line {0}: {1}").format(
+				_guess_template_error_line_number(template), e
+			),
+			exc=frappe.PrintFormatError,
+			title=_("Print Format Error"),
+		)
+
+
+def _guess_template_error_line_number(template) -> int | None:
+	"""Guess line on which exception occured from current traceback."""
+	with contextlib.suppress(Exception):
+		import sys
+		import traceback
+
+		_, _, tb = sys.exc_info()
+
+		for frame in reversed(traceback.extract_tb(tb)):
+			if template.filename in frame.filename:
+				return frame.lineno
 
 
 def pdf_footer_html(soup, head, content, styles, html_id, css):

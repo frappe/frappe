@@ -100,8 +100,7 @@ def get_patches_from_app(app: str, patch_type: PatchType | None = None) -> list[
 	        1. ini like file with section for different patch_type
 	        2. plain text file with each line representing a patch.
 	"""
-
-	patches_file = frappe.get_pymodule_path(app, "patches.txt")
+	patches_file = frappe.get_app_path(app, "patches.txt")
 
 	try:
 		return parse_as_configfile(patches_file, patch_type)

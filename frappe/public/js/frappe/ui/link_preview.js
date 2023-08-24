@@ -169,23 +169,21 @@ frappe.ui.LinkPreview = class {
 			this.href = this.href.replace(new RegExp(" ", "g"), "%20");
 		}
 
-		let popover_content = `
-			<div class="preview-popover-header">
-				<div class="preview-header">
-					${this.get_image_html(preview_data)}
-					<div class="preview-name">
-						<a href=${this.href}>${__(preview_data.preview_title)}</a>
-					</div>
-					<div class="text-muted preview-title">${this.get_id_html(preview_data)}</div>
-				</div>
-			</div>
-			<hr>
-			<div class="popover-body">
-				${this.get_content_html(preview_data)}
-			</div>
-		`;
-
-		return popover_content;
+		return `
+  			<div class="preview-popover-header">
+  				<div class="preview-header">
+  					${this.get_image_html(preview_data)}
+  					<div class="preview-name">
+  						<a href=${this.href}>${__(preview_data.preview_title)}</a>
+  					</div>
+  					<div class="text-muted preview-title">${this.get_id_html(preview_data)}</div>
+  				</div>
+  			</div>
+  			<hr>
+  			<div class="popover-body">
+  				${this.get_content_html(preview_data)}
+  			</div>
+  		`;
 	}
 
 	get_id_html(preview_data) {

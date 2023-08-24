@@ -254,9 +254,8 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 			try:
 				ret = frappe.get_attr(method)(*args, **kwargs)
 			except Exception:
-				ret = frappe.safe_eval(
-					method + "(*args, **kwargs)", eval_globals=globals(), eval_locals=locals()
-				)
+				# eval is safe here because input is from console
+				ret = eval(method + "(*args, **kwargs)", globals(), locals())  # nosemgrep
 
 			if profile:
 				import pstats
@@ -864,7 +863,7 @@ def run_ui_tests(
 ):
 	"Run UI tests"
 	site = get_site(context)
-	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), ".."))
+	app_base_path = frappe.get_app_source_path(app)
 	site_url = frappe.utils.get_site_url(site)
 	admin_password = frappe.get_conf(site).admin_password
 
@@ -1076,7 +1075,7 @@ def get_version(output):
 		app_info = frappe._dict()
 
 		try:
-			app_info.commit = Repo(frappe.get_app_path(app, "..")).head.object.hexsha[:7]
+			app_info.commit = Repo(frappe.get_app_source_path(app)).head.object.hexsha[:7]
 		except InvalidGitRepositoryError:
 			app_info.commit = ""
 

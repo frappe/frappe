@@ -290,6 +290,7 @@
 }
 
 .form-message {
+	position: relative;
 	border-radius: var(--border-radius);
 	padding: 8px 10px;
 	font-size: var(--text-md, 13px);
@@ -313,6 +314,15 @@
 
 	&.red {
 		@include form-message-background("red");
+	}
+
+	.close-message {
+		position: absolute;
+		top: 0;
+		right: 0;
+		padding-top: var(--padding-sm);
+		padding-right: var(--padding-sm);
+		cursor: pointer;
 	}
 }
 
