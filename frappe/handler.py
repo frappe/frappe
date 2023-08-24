@@ -10,7 +10,7 @@ from werkzeug.wrappers import Response
 import frappe
 import frappe.sessions
 import frappe.utils
-from frappe import _, is_whitelisted
+from frappe import _, is_whitelisted, ping
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
@@ -258,11 +258,6 @@ def get_attr(cmd):
 		method = globals()[cmd]
 	frappe.log("method:" + cmd)
 	return method
-
-
-@frappe.whitelist(allow_guest=True)
-def ping():
-	return "pong"
 
 
 def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
