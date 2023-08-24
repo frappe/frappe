@@ -1,6 +1,6 @@
 .form-grid {
 	border: 1px solid var(--table-border-color);
-	border-radius: var(--border-radius);
+	border-radius: var(--border-radius-md);
 	color: var(--text-color);
 }
 
@@ -10,13 +10,26 @@
 
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
-	color: var(--text-muted);
-	font-size: var(--text-md);
-
+	color: var(--gray-600);
+	background-color: var(--gray-100);
+	font-size: var(--text-base);
+	height: 32px;
+	padding: 0 !important;
+	border-top-left-radius: var(--border-radius-md);
+	border-top-right-radius: var(--border-radius-md);
+	
+	.grid-static-col, .row-check, .row-index {
+		height: 32px;
+		padding: 6px 8px !important;
+	}
 	.grid-static-col {
-		.static-area.reqd:after {
-			content: ' *';
-			color: var(--red-400);
+		padding: 6px 8px !important;
+		.static-area{
+			line-height: normal;
+			&.reqd:after {
+				content: ' *';
+				color: var(--red-400);
+			}
 		}
 	}
 }
@@ -28,7 +41,7 @@
 }
 
 .data-row textarea {
-	height: 40px;
+	height: 46px;
 }
 
 .form-grid .data-row {
@@ -72,7 +85,9 @@
 }
 
 .grid-body .data-row {
-	font-size: $font-size-sm;
+	font-size: var(--text-base);
+	font-weight: var(--weight-regular);
+	color: var(--gray-700)
 }
 
 .grid-empty,
@@ -88,8 +103,7 @@
 
 .grid-static-col,
 .row-index {
-	height: 34px;
-	padding: 8px;
+	height: 46px;
 	max-height: 200px;
 
 	&.search {
@@ -103,8 +117,7 @@
 }
 
 .row-check {
-	height: 34px;
-	padding: 8px 3px !important;
+	height: 46px;
 	text-align: center;
 
 	input {
@@ -153,8 +166,7 @@
 	}
 
 	.col {
-		padding-left: var(--padding-sm);
-		padding-right: var(--padding-sm);
+		padding: var(--grid-padding);
 		border-right: 1px solid var(--table-border-color);
 		// overflow: hidden;
 	}
@@ -171,15 +183,16 @@
 
 	.btn-open-row {
 		display: flex;
-		padding-top: var(--padding-sm);
 		justify-content: center;
+		line-height: unset;
 		div {
 			margin-left: var(--margin-xs);
-			line-height: 1.7em;
 		}
 	}
 
 	.editable-row {
+		--control-bg: var(--neutral-white);
+		--input-disabled-bg: var(--gray-50);
 		.grid-static-col {
 			padding: 0px !important;
 		}
@@ -191,7 +204,7 @@
 		}
 
 		textarea {
-			height: 37px !important;
+			height: 46px !important;
 		}
 
 		.form-control {
@@ -199,11 +212,11 @@
 			border: 0px;
 			padding-top: 8px;
 			padding-bottom: 9px;
-			height: 34px;
+			height: 46px;
 		}
 
 		.link-btn {
-			top: 2px;
+			top: 0px;
 		}
 
 		.form-control:focus {
@@ -411,7 +424,9 @@
 .grid-custom-buttons:empty {
 	padding: 0;
 }
-
+.grid-footer {
+	margin-top: var(--margin-sm);
+}
 .grid-footer, .grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
