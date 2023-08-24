@@ -236,7 +236,9 @@ class Database:
 			values = (values,)
 
 		query, values = self._transform_query(query, values)
-		query += self._trace_comment
+
+		if trace_id := get_trace_id():
+			query += f" /* FRAPPE_TRACE_ID: {trace_id} */"
 
 		try:
 			self._cursor.execute(query, values)
