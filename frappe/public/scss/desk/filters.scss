@@ -1,11 +1,11 @@
 .filter-icon.active {
-	--icon-stroke: var(--text-on-blue);
+	--icon-stroke: var(--primary);
 }
 
 .filter-popover {
 	min-width: 500px;
 	min-height: 50px;
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 	z-index: 1019;
 }
 
