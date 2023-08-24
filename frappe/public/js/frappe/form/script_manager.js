@@ -76,6 +76,28 @@ frappe.ui.form.trigger = function (doctype, fieldname) {
 	cur_frm.script_manager.trigger(fieldname, doctype);
 };
 
+// set unique id for the form field event due to manual input
+frappe.ui.form.__reset_event_unique_id = function(e) {
+	frappe.ui.form.__triggered = {};
+	frappe.ui.form.__unique_event_id = Date.now();
+	//console.log("Resetting Event Id", frappe.ui.form.__unique_event_id)
+}
+
+document.addEventListener('focus', (e) => {
+	if (e.target.tagName == 'INPUT') {
+		frappe.ui.form.__reset_event_unique_id(e);
+	}
+}, true);
+
+frappe.ui.form.form_doctype = null;
+
+const FORM_LIFE_CYCLE_EVENTS = ["setup", "before_load", "onload", "refresh", "onload_post_render",
+	"validate", "before_save", "after_save", "before_submit", "on_submit", "before_cancel",
+	"after_cancel", "timeline_refresh", "on_hide", "form_render", "before_workflow_action",
+	"after_workflow_action"
+]
+
+
 frappe.ui.form.ScriptManager = class ScriptManager {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -100,6 +122,30 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 		this.frm.selected_doc = frappe.get_doc(doctype, name);
 
 		let runner = (_function, is_old_style) => {
+			if (!_function) {
+				return;
+			}
+
+			// dedupe only form field events
+			if (!FORM_LIFE_CYCLE_EVENTS.includes(event_name)) {
+				if (!frappe.ui.form.__unique_event_id) {
+					frappe.ui.form.__reset_event_unique_id();
+				}
+
+				let key = `${doctype}_${event_name}_${frappe.ui.form.__unique_event_id}`;
+				if (frappe.ui.form.__triggered[key]) {
+					// duplicate event ignore
+					//console.log("Duplicate Event", key)
+					return;
+				}
+				//console.log("Firing Event", key)
+				frappe.ui.form.__triggered[key]= true;
+			// form non field events, reset unique id only once for the doctype
+			} else if (frappe.ui.form.form_doctype != doctype) {
+				frappe.ui.form.form_doctype = doctype;
+				frappe.ui.form.__reset_event_unique_id();
+			}
+
 			let _promise = null;
 			if (is_old_style) {
 				// old style arguments (doc, cdt, cdn)
