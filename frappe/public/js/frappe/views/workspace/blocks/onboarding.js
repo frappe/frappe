@@ -106,6 +106,8 @@ export default class Onboarding extends Block {
 	}
 
 	render() {
+		if (frappe.is_mobile()) return;
+
 		this.wrapper = document.createElement("div");
 		this.new("onboarding");
 
