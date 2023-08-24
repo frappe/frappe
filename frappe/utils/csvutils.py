@@ -39,7 +39,7 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent):
 	if not isinstance(fcontent, str):
 		decoded = False
-		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
+		for encoding in ["utf-8-sig", "utf-8", "windows-1250", "windows-1252"]:
 			try:
 				fcontent = str(fcontent, encoding)
 				decoded = True
