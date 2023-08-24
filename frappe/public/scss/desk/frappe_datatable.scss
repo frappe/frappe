@@ -19,7 +19,7 @@
 	background-color: var(--fg-color);
 	margin-left: -5px;
 	margin-top: 0px;
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 
 	.frappe-control, .form-control {
 		margin: 0;
@@ -47,9 +47,13 @@
 		.dt-row[data-is-filter] {
 			display: flex !important;
 		}
-
+		.dt-row-header {
+			background-color: var(--gray-100);
+		}
+		
 		.dt-cell--header .dt-cell__content {
 			font-weight: normal;
+			background-color: var(--gray-100);
 		}
 	}
 

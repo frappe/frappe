@@ -115,18 +115,18 @@
 
 .comparison-message {
 	margin-left: var(--margin-sm);
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 }
 
 .list-count {
 	margin-right: var(--margin-sm);
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 }
 
 .group-by-popover {
 	min-width: 500px;
 	min-height: 50px;
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 
 	.group-by-box {
 		padding: var(--margin-xs) var(--margin-md) var(--margin-xs) 0;
