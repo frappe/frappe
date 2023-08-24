@@ -113,7 +113,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				}
 				if (item.route[0].startsWith("https://")) {
 					window.open(item.route[0], "_blank");
-					return
+					return;
 				}
 				frappe.set_route(item.route);
 			}
