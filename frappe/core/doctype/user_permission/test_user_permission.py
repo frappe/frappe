@@ -189,7 +189,7 @@ class TestUserPermission(FrappeTestCase):
 		"""Test if user is shown doctype values if a User permission if applied to it."""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		user = create_user("nested_doc_user@example.com", "Blogger")
+		user = create_user("nested_doc_user2@example.com")
 		if not frappe.db.exists("DocType", "Person"):
 			doc = new_doctype(
 				"Person",
@@ -213,34 +213,25 @@ class TestUserPermission(FrappeTestCase):
 		).insert()
 
 		add_user_permissions(get_params(user, "Person", parent_record.name))
-
-		# user based get_list how in frappe framework?
-		# Based on the permission of the user get the data in Person Doctype
+		frappe.set_user(user.name)
 
 		visible_names = frappe.get_list(
-			"Person",
+			doctype="Person",
 			fields=["person_name"],
-			filters={"person_name": ("in", ["Parent", "Child"])},
 		)
-
-		# do it
-		#
-
-		print("visible_names", visible_names)
 
 		frappe.db.set_value(
 			"User Permission", {"allow": "Person", "for_value": parent_record.name}, "hide_descendants", 1
 		)
+		frappe.cache.delete_value("user_permissions")
 
 		visible_names_after_hide_descendants = frappe.get_list(
 			"Person",
 			fields=["person_name"],
-			filters={"person_name": "Child"},
 		)
 
-		# self.assertEqual(visible_names[0], {'person_name': 'Child'}, {'person_name': 'Parent'})
-		# self.assertEqual(visible_names_after_hide_descendants[0], {'person_name': 'Child'})
-		frappe.cache.delete_value("user_permissions")
+		self.assertEqual(visible_names[0], {"person_name": "Child"}, {"person_name": "Parent"})
+		self.assertEqual(visible_names_after_hide_descendants[0], {"person_name": "Parent"})
 
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
