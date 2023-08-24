@@ -75,7 +75,7 @@ frappe.ui.form.PrintView = class {
 		});
 
 		this.page.add_action_icon(
-			"file",
+			"es-line-filetype",
 			() => {
 				this.go_to_form_view();
 			},
