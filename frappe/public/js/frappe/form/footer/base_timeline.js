@@ -12,9 +12,8 @@ class BaseTimeline {
 		this.wrapper = this.timeline_wrapper;
 		this.timeline_items_wrapper = $(`<div class="timeline-items">`);
 		this.timeline_actions_wrapper = $(`
-			<div class="timeline-items timeline-actions">
+			<div class="timeline-items timeline-actions timeline-header">
 				<div class="timeline-item">
-					<div class="timeline-dot"></div>
 					<div class="timeline-content action-buttons"></div>
 				</div>
 			</div>

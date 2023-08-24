@@ -10,16 +10,14 @@ $threshold: 34;
 	// clamp requires value unit to be valid
 	--zero-px: 0px;
 	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
-	left: calc(-1 * (#{$badge-size} / 2));
-	background-color: var(--fg-color);
-	border: 1px solid var(--dark-border-color);
+	left: calc(-1.2 * (#{$badge-size}));
+	background-color: var(--gray-100);
 	@extend .center-content;
-	--icon-stroke: var(--gray-600);
+	--icon-stroke: var(--gray-900);
 }
 
 .new-timeline {
 	position: relative;
-	padding-left: var(--timeline-left-padding);
 	padding-top: var(--padding-lg);
 
 	@include media-breakpoint-down(xs) {
@@ -35,35 +33,42 @@ $threshold: 34;
 	}
 	.timeline-dot {
 		@include timeline-badge(16px);
+		left: -32px;
 		&:before {
 			content: ' ';
-			background: var(--gray-600);
+			background: var(--gray-900);
 			border-radius: 50%;
 			height: 4px;
 			width: 4px;
 		}
 	}
-	.activity-toggle {
+	.timeline-header {
+		@include flex(flex, space-between, center, null);
+		min-height: 40px;
+	}
+	.activity-title, .timeline-actions {
+		margin-bottom: 0 !important;
+		flex: 1;
+		min-height: 40px;
+		margin-left: -4px !important;
+		background-color: var(--bg-color);
+		padding-left: 0px;
+		.timeline-content {
+			padding-left: var(--timeline-item-left-margin);
+		}
 		h4 {
 			margin-bottom: 0;
 			font-weight: 700;
 		}
-		nav {
-			margin-left: var(--margin-md);
-			.nav-link {
-				padding: var(--padding-xs) var(--padding-sm);
-				margin-right: var(--margin-xs);
-				border-radius: 50px;
-			}
-		}
 	}
 	.timeline-item {
-		font-size: var(--text-md);
+		font-size: var(--text-base);
 		position: relative;
+		margin-left: 24px;
 		margin-bottom: var(--timeline-item-bottom-margin);
 		b {
 			color: var(--text-color);
-			font-weight: var(--text-bold);
+			font-weight: var(--weight-medium);
 		}
 		.action-buttons {
 			display: inline-flex;
@@ -85,11 +90,22 @@ $threshold: 34;
 		.timeline-content {
 			max-width: var(--timeline-content-max-width);
 			padding: var(--padding-sm);
-			margin-left: var(--timeline-item-left-margin);
+			margin-left: var(--margin-xs);
 			&.frappe-card {
-				@include card($padding: var(--padding-md));
+				color: var(--gray-900);
+				background-color: var(--gray-100);
+				box-shadow: none;
 				margin: calc(var(--timeline-item-bottom-margin) + var(--padding-md)) 0;
-				margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
+				margin-left: var(--margin-xs);
+
+				.ql-editor.read-mode{
+					padding-left: 42px;
+					.mention{
+						background-color: transparent;
+						border: none;
+						font-weight: var(--weight-semibold);
+					}
+				}
 			}
 		}
 		.timeline-badge {
@@ -103,7 +119,6 @@ $threshold: 34;
 
 		.timeline-message-box {
 			.content {
-				margin-top: var(--margin-md);
 				overflow: auto;
 				max-height: 500px;
 			}
@@ -119,6 +134,7 @@ $threshold: 34;
 				padding: 0;
 				padding-bottom: 0;
 				margin-left: var(--margin-sm);
+				background-color: transparent;
 				--icon-stroke: var(--text-muted);
 			}
 

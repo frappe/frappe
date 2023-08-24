@@ -25,8 +25,8 @@ class FormTimeline extends BaseTimeline {
 		this.add_action_button(
 			__("New Email"),
 			() => this.compose_mail(),
-			"mail",
-			"btn-secondary-dark"
+			"es-line-add",
+			"btn-secondary"
 		);
 		this.setup_new_event_button();
 	}
@@ -55,27 +55,27 @@ class FormTimeline extends BaseTimeline {
 		};
 		let me = this;
 		if (has_communications()) {
-			this.timeline_wrapper
+			this.timeline_actions_wrapper
 				.prepend(
 					`
-				<div class="timeline-item activity-toggle">
-					<div class="timeline-dot"></div>
-					<div class="timeline-content flex align-center">
-						<h4>${__("Activity")}</h4>
-						<nav class="nav nav-pills flex-row">
-							<a class="flex-sm-fill text-sm-center nav-link" data-only-communication="true">${__(
-								"Communication"
-							)}</a>
-							<a class="flex-sm-fill text-sm-center nav-link active">${__("All")}</a>
-						</nav>
-					</div>
+				<div class="timeline-item activity-title">
+				<h4>${__("Activity")}</h4>
+				</div>
+				<div class="timeline-item">
+				<div class="d-flex align-items-center">
+				<span class="mx-1">Show all activity</span>
+				<label class="switch">
+				<input type="checkbox">
+				<span class="slider round"></span>
+				</label>
+				</div>
 				</div>
 			`
 				)
-				.find("a")
+				.find("input[type=checkbox]")
+				.prop("checked", !me.only_communication)
 				.on("click", function (e) {
-					e.preventDefault();
-					me.only_communication = $(this).data().onlyCommunication;
+					me.only_communication = !this.checked;
 					me.render_timeline_items();
 					$(this).tab("show");
 				});
@@ -339,7 +339,8 @@ class FormTimeline extends BaseTimeline {
 
 	get_comment_timeline_item(comment) {
 		return {
-			icon: "small-message",
+			icon: "es-line-chat-alt",
+			icon_size: "sm",
 			creation: comment.creation,
 			is_card: true,
 			doctype: "Comment",

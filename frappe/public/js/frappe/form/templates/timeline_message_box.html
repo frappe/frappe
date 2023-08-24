@@ -1,5 +1,5 @@
 <div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
-	<span class="flex justify-between">
+	<span class="flex justify-between m-1">
 		<span class="text-color flex">
 			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
 				<span>
@@ -28,8 +28,10 @@
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
-					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }} {{ __("commented") }}
-					<span class="text-muted margin-left">
+					{{ frappe.avatar(doc.owner, "avatar-medium") }}
+					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
+					<span style="color: var(--text-muted);">{{ __("commented") }}</span>
+					<span class="margin-left" style="color: var(--text-muted);">
 						{{ comment_when(doc.creation) }}
 					</span>
 				</span>
@@ -65,7 +67,7 @@
 			{% } %}
 			<div class="custom-actions"></div>
 			<div class="more-actions">
-				<a type="button" class="action-btn"
+				<a type="button" class="	"
 					data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					<svg class="icon icon-sm">
 						<use href="#icon-dot-horizontal"></use>
