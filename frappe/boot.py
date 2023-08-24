@@ -106,6 +106,7 @@ def get_bootinfo():
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.subscription_conf = add_subscription_conf()
+	bootinfo.marketplace_apps = get_marketplace_apps()
 
 	return bootinfo
 
@@ -441,6 +442,20 @@ def load_currency_docs(bootinfo):
 
 	bootinfo.docs += currency_docs
 
+
+def get_marketplace_apps():
+	apps = []
+	try:
+		import requests
+
+		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
+		request_url = f"https://{remote_site}/api/method/marketplace-apps"
+		request = requests.get(request_url, data={"installed_apps": frappe.get_installed_apps()})
+		apps = request.json()['message']
+	except Exception:
+		pass
+
+	return apps
 
 def add_subscription_conf():
 	try:
