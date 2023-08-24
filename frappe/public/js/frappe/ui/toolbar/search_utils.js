@@ -45,7 +45,10 @@ frappe.search.utils = {
 
 		frappe.route_history.forEach(function (route, i) {
 			if (route[0] === "Form") {
-				values.push([route[2], route]);
+				let route_title_key = route.slice(1);
+				route_title_key[0] = route_title_key[0].toLowerCase();
+				route_title_key = route_title_key.join("/");
+				values.push([frappe.route_titles[route_title_key] || route[2], route]);
 			} else if (
 				["List", "Tree", "Workspaces", "query-report"].includes(route[0]) ||
 				route[2] === "Report"
@@ -65,7 +68,7 @@ frappe.search.utils = {
 			if (match[1][0] === "Form") {
 				if (match[1].length > 2 && match[1][1] !== match[1][2]) {
 					out.label = __(match[1][1]) + " " + match[1][2].bold();
-					out.value = __(match[1][1]) + " " + match[1][2];
+					out.value = __(match[1][1]) + " " + match[0].split(" - ")[0];
 				} else {
 					out.label = __(match[1][1]).bold();
 					out.value = __(match[1][1]);
@@ -104,9 +107,6 @@ frappe.search.utils = {
 				index: link.count,
 			});
 		});
-		if (!options.length) {
-			return this.get_recent_pages("");
-		}
 		return options;
 	},
 
@@ -614,6 +614,7 @@ frappe.search.utils = {
 		});
 		return results;
 	},
+
 	make_function_searchable(_function, label = null, args = null) {
 		if (typeof _function !== "function") {
 			throw new Error("First argument should be a function");
@@ -625,5 +626,38 @@ frappe.search.utils = {
 			args: args,
 		});
 	},
+
 	searchable_functions: [],
+
+	deduplicate_routes(options) {
+		var out = [],
+			routes = [];
+		options.forEach(function (option) {
+			if (option.route) {
+				if (
+					option.route[0] === "List" &&
+					option.route[2] !== "Report" &&
+					option.route[2] !== "Inbox"
+				) {
+					option.route.splice(2);
+				}
+
+				var str_route =
+					typeof option.route === "string" ? option.route : option.route.join("/");
+				if (routes.indexOf(str_route) === -1) {
+					out.push(option);
+					routes.push(str_route);
+				} else {
+					var old = routes.indexOf(str_route);
+					if (out[old].index < option.index && !option.recent) {
+						out[old] = option;
+					}
+				}
+			} else {
+				out.push(option);
+				routes.push("");
+			}
+		});
+		return out;
+	},
 };

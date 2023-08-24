@@ -61,22 +61,17 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 				me.options = [];
 
-				if (txt && txt.length > 1) {
+				if (txt && txt.length > 0) {
 					if (last_space !== -1) {
 						me.set_specifics(txt.slice(0, last_space), txt.slice(last_space + 1));
 					}
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
-				} else {
-					me.options = me.options.concat(
-						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
-					);
-					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 				me.add_help();
 
-				awesomplete.list = me.deduplicate(me.options);
+				awesomplete.list = frappe.search.utils.deduplicate_routes(me.options);
 			}, 100)
 		);
 
@@ -136,10 +131,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			default: "Help",
 			onclick: function () {
 				var txt =
-					__(
-						"Awesome Bar shows you the most recently and frequently opened documents, lists, etc., by default. You can also:"
-					) +
-					'<br><table class="table table-bordered">\
+					'<table class="table table-bordered">\
 					<tr><td style="width: 50%">' +
 					__("Create a new record") +
 					"</td><td>" +
@@ -203,48 +195,15 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_pages(txt),
 				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
-				frappe.search.utils.get_recent_pages(txt || ""),
 				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);
 		}
-		var out = this.deduplicate(options);
+		var out = frappe.search.utils.deduplicate_routes(options);
 		return out.sort(function (a, b) {
 			return b.index - a.index;
 		});
-	}
-
-	deduplicate(options) {
-		var out = [],
-			routes = [];
-		options.forEach(function (option) {
-			if (option.route) {
-				if (
-					option.route[0] === "List" &&
-					option.route[2] !== "Report" &&
-					option.route[2] !== "Inbox"
-				) {
-					option.route.splice(2);
-				}
-
-				var str_route =
-					typeof option.route === "string" ? option.route : option.route.join("/");
-				if (routes.indexOf(str_route) === -1) {
-					out.push(option);
-					routes.push(str_route);
-				} else {
-					var old = routes.indexOf(str_route);
-					if (out[old].index < option.index && !option.recent) {
-						out[old] = option;
-					}
-				}
-			} else {
-				out.push(option);
-				routes.push("");
-			}
-		});
-		return out;
 	}
 
 	set_global_results(global_results, txt) {

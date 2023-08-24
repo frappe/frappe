@@ -944,6 +944,9 @@ Object.assign(frappe.utils, {
 		if (route[0] === "dashboard") {
 			return __("{0} Dashboard", [route[1]]);
 		}
+		if (route[0] === "Workspaces") {
+			return __("{0} Workspace", [route[1]]);
+		}
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function (values, column, type) {

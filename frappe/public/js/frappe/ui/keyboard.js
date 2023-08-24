@@ -229,6 +229,15 @@ frappe.ui.keys.add_shortcut({
 });
 
 frappe.ui.keys.add_shortcut({
+	shortcut: "alt+r",
+	action: function (e) {
+		e.preventDefault();
+		$(".dropdown-frequent-and-recents a").eq(0).click();
+	},
+	description: __("Open Recent and Frequent Docs and Views"),
+});
+
+frappe.ui.keys.add_shortcut({
 	shortcut: "alt+h",
 	action: function (e) {
 		e.preventDefault();
