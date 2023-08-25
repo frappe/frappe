@@ -18,7 +18,6 @@
 		font-size: var(--text-sm);
 	}
 	min-height: var(--input-height);
-	height: var(--input-height);
 	font-weight: var(--weight-regular);
 	border-radius: var(--border-radius-sm);
 	padding: var(--disabled-input-padding);
@@ -28,7 +27,7 @@
 }
 
 .head-title {
-	font-size: var(--text-lg);
+	font-size: var(--text-xl);
 	font-weight: 700;
 	color: var(--heading-color);
 }
