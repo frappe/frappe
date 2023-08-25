@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 
 # TTL to keep RQ job logs in redis for.
 RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
+RQ_FAILED_JOBS_LIMIT = 1000  # Only keep these many recent failed jobs around
 RQ_RESULTS_TTL = 10 * 60
 
 
@@ -119,6 +120,7 @@ def enqueue(
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
+
 	if enqueue_after_commit:
 		if not frappe.flags.enqueue_after_commit:
 			frappe.flags.enqueue_after_commit = []
@@ -142,6 +144,7 @@ def enqueue(
 		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 		job_id=job_id,
+		on_failure=truncate_failed_registry,
 	)
 
 
@@ -402,9 +405,9 @@ def get_redis_conn(username=None, password=None):
 		raise
 
 
-def get_queues() -> list[Queue]:
+def get_queues(connection=None) -> list[Queue]:
 	"""Get all the queues linked to the current bench."""
-	queues = Queue.all(connection=get_redis_conn())
+	queues = Queue.all(connection=connection or get_redis_conn())
 	return [q for q in queues if is_queue_accessible(q)]
 
 
@@ -470,3 +473,18 @@ def set_niceness():
 		nice_increment = cint(configured_niceness)
 
 	os.nice(nice_increment)
+
+
+def truncate_failed_registry(job, connection, type, value, traceback):
+	"""Ensures that number of failed jobs don't exceed specified limits."""
+	from frappe.utils import create_batch
+
+	conf = frappe.get_conf(site=job.kwargs.get("site"))
+	limit = (conf.get("rq_failed_jobs_limit") or RQ_FAILED_JOBS_LIMIT) - 1
+
+	for queue in get_queues(connection=connection):
+		fail_registry = queue.failed_job_registry
+		failed_jobs = fail_registry.get_job_ids()[limit:]
+		for job_ids in create_batch(failed_jobs, 100):
+			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
+				job_obj and fail_registry.remove(job_obj, delete_job=True)
