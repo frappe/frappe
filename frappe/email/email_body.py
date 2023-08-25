@@ -520,11 +520,7 @@ def replace_filename_with_cid(message):
 
 		filecontent = get_filecontent_from_path(img_path)
 		if not filecontent:
-<<<<<<< HEAD
-			message = re.sub("""embed=['"]{0}['"]""".format(img_path), "", message)
-=======
 			message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", "", message)
->>>>>>> da75b00c8c (fix(Email Inline Embed): escape regex expression)
 			continue
 
 		content_id = random_string(10)
@@ -533,13 +529,7 @@ def replace_filename_with_cid(message):
 			{"filename": filename, "filecontent": filecontent, "content_id": content_id}
 		)
 
-<<<<<<< HEAD
-		message = re.sub(
-			"""embed=['"]{0}['"]""".format(img_path), 'src="cid:{0}"'.format(content_id), message
-		)
-=======
 		message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", f'src="cid:{content_id}"', message)
->>>>>>> da75b00c8c (fix(Email Inline Embed): escape regex expression)
 
 	return (message, inline_images)
 
