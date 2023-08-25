@@ -1643,12 +1643,32 @@ def bulk_insert(
 	        - Documents can be any iterable / generator containing Document objects
 	"""
 
-	columns = frappe.get_meta(doctype).get_valid_columns()
-	values = _document_values_generator(documents, columns)
+	doctype_meta = frappe.get_meta(doctype)
+	documents = list(documents)
 
-	frappe.db.bulk_insert(
-		doctype, columns, values, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
-	)
+	valid_column_map = {
+		doctype: doctype_meta.get_valid_columns(),
+	}
+	values_map = {
+		doctype: _document_values_generator(documents, valid_column_map[doctype]),
+	}
+
+	for child_table in doctype_meta.get_table_fields():
+		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
+		values_map[child_table.options] = _document_values_generator(
+			(
+				ch_doc
+				for ch_doc in (
+					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
+				)
+			),
+			valid_column_map[child_table.options],
+		)
+
+	for dt, docs in values_map.items():
+		frappe.db.bulk_insert(
+			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
+		)
 
 
 def _document_values_generator(
