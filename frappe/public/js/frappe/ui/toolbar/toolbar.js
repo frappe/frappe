@@ -177,14 +177,6 @@ frappe.ui.toolbar.Toolbar = class {
 					.concat(me.frequently_visited_links)
 					.find((o) => o.value === value);
 
-				if (!item) {
-					item = recently_visited_links.find(
-						(o) =>
-							o.route[1] === value.split(" ")[0] &&
-							o.route[2] === value.split(" ")[1]
-					);
-				}
-
 				frappe.set_route(item.route);
 			});
 		});
