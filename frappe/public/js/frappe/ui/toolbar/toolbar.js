@@ -129,15 +129,16 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_frequent_and_recents() {
+		this.frequently_visited_links = frappe.search.utils.get_frequent_links();
+
 		var me = this;
 
-		$(document).on("page-change", function () {
+		$(".frequent-and-recents-icon").click(function (e) {
 			let $toolbar_recent = $("#toolbar-frequent-and-recents");
 
 			let recently_visited_links = frappe.search.utils.deduplicate_routes(
 				frappe.search.utils.get_recent_pages("")
 			);
-			let frequently_visited_links = frappe.search.utils.get_frequent_links();
 
 			let res_html = "";
 
@@ -150,7 +151,7 @@ frappe.ui.toolbar.Toolbar = class {
 				res_html += '<a class="dropdown-item">' + r.value + "</a>";
 			});
 
-			if (frequently_visited_links.length) {
+			if (me.frequently_visited_links.length) {
 				res_html += '<div class="dropdown-divider" style="margin-top: 4px;"></div>';
 
 				res_html +=
@@ -158,7 +159,7 @@ frappe.ui.toolbar.Toolbar = class {
 					__("Frequently viewed") +
 					"</div>";
 
-				frequently_visited_links.forEach(function (r) {
+				me.frequently_visited_links.forEach(function (r) {
 					res_html += '<a class="dropdown-item">' + r.value + "</a>";
 				});
 			}
@@ -173,7 +174,7 @@ frappe.ui.toolbar.Toolbar = class {
 				let value = o.target.text;
 
 				let item = recently_visited_links
-					.concat(frequently_visited_links)
+					.concat(me.frequently_visited_links)
 					.find((o) => o.value === value);
 
 				if (!item) {
