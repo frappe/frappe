@@ -120,25 +120,7 @@ def enqueue(
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
-<<<<<<< HEAD
-=======
 
-	on_failure = on_failure or truncate_failed_registry
-
-	def enqueue_call():
-		return q.enqueue_call(
-			execute_job,
-			on_success=on_success,
-			on_failure=on_failure,
-			timeout=timeout,
-			kwargs=queue_args,
-			at_front=at_front,
-			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
-			job_id=job_id,
-		)
-
->>>>>>> 56b409d069 (fix: limit job count in RQ failed registry (#22162))
 	if enqueue_after_commit:
 		if not frappe.flags.enqueue_after_commit:
 			frappe.flags.enqueue_after_commit = []
@@ -162,6 +144,7 @@ def enqueue(
 		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 		job_id=job_id,
+		on_failure=truncate_failed_registry,
 	)
 
 
@@ -422,19 +405,7 @@ def get_redis_conn(username=None, password=None):
 		raise
 
 
-<<<<<<< HEAD
-def get_queues() -> list[Queue]:
-=======
-def get_redis_connection_without_auth():
-	global _redis_queue_conn
-
-	if not _redis_queue_conn:
-		_redis_queue_conn = RedisQueue.get_connection()
-	return _redis_queue_conn
-
-
 def get_queues(connection=None) -> list[Queue]:
->>>>>>> 56b409d069 (fix: limit job count in RQ failed registry (#22162))
 	"""Get all the queues linked to the current bench."""
 	queues = Queue.all(connection=connection or get_redis_conn())
 	return [q for q in queues if is_queue_accessible(q)]

@@ -1355,6 +1355,7 @@ def enqueue_jobs_after_commit():
 		RQ_RESULTS_TTL,
 		execute_job,
 		get_queue,
+		truncate_failed_registry,
 	)
 
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
@@ -1367,6 +1368,7 @@ def enqueue_jobs_after_commit():
 				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 				job_id=job.get("job_id"),
+				on_failure=truncate_failed_registry,
 			)
 		frappe.flags.enqueue_after_commit = []
 
