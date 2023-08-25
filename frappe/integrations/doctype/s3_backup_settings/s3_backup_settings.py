@@ -38,6 +38,7 @@ class S3BackupSettings(Document):
 		notify_email: DF.Data
 		secret_access_key: DF.Password
 		send_email_for_successful_backup: DF.Check
+		path_prefix: DF.Data | None
 	# end: auto-generated types
 	def validate(self):
 		if not self.enabled:
@@ -133,6 +134,11 @@ def backup_to_s3():
 	bucket = doc.bucket
 	backup_files = cint(doc.backup_files)
 
+    # Setting the folder_prefix if present or else default to empty.
+	path_prefix = frappe.get_single("S3 Backup Settings").path_prefix or ""
+	if path_prefix:
+		path_prefix += "/"
+
 	conn = boto3.client(
 		"s3",
 		aws_access_key_id=doc.access_key_id,
@@ -170,8 +176,8 @@ def backup_to_s3():
 		else:
 			db_filename, site_config = get_latest_backup_file()
 
-	folder = os.path.basename(db_filename)[:15] + "/"
-	# for adding datetime to folder name
+	folder = path_prefix + os.path.basename(db_filename)[:15] + "/"	
+	# for adding datetime to folder name and prefixed the folder_prefix is present. 
 
 	upload_file_to_s3(db_filename, folder, conn, bucket)
 	upload_file_to_s3(site_config, folder, conn, bucket)

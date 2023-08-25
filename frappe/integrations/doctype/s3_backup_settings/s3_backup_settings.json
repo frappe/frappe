@@ -16,6 +16,7 @@
   "send_email_for_successful_backup",
   "s3_bucket_details_section",
   "bucket",
+  "path_prefix",
   "endpoint_url",
   "column_break_13",
   "backup_details_section",
@@ -82,6 +83,13 @@
    "label": "Bucket Name",
    "mandatory_depends_on": "enabled",
    "reqd": 1
+  },
+  {
+    "fieldname": "path_prefix",
+    "fieldtype": "Data",
+    "label": "Path Prefix",
+    "description": "Optional path prefix (e.g. sitename) for storing backups in the S3 bucket. Useful if you want to use the same bucket for multiple sites.",
+    "reqd": 0
   },
   {
    "depends_on": "enabled",
