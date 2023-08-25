@@ -146,14 +146,18 @@
 		margin-bottom: var(--margin-sm);
 	}
 	.comment-input-container {
+		display: flex;
+		.avatar {
+			height: 32px;
+			width: 32px;
+		}
 		.frappe-control {
-			margin-bottom: var(--margin-xs);
 			padding-right: 0;
 			.ql-editor {
 				background-color: var(--bg-color) !important;
 				border: 1px solid var(--gray-200);
 				min-height: 24px;
-				padding: 4px;
+				padding: 6px;
 			}
 		}
 	}

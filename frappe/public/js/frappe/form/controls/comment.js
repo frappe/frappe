@@ -11,7 +11,7 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 				<div class="comment-input-header">
 				<span>${__("Comments")}</span>
 				</div>
-				<div class="comment-input-container d-flex">
+				<div class="comment-input-container">
 				${frappe.avatar(frappe.session.user, "avatar-medium")}
 					<div class="frappe-control col"></div>
 				</div>

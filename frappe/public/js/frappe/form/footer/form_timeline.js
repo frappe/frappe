@@ -54,24 +54,24 @@ class FormTimeline extends BaseTimeline {
 			return (communications || []).length || (comments || []).length;
 		};
 		let me = this;
-		if (has_communications()) {
-			this.timeline_actions_wrapper
-				.prepend(
-					`
+		this.timeline_wrapper.remove(this.timeline_actions_wrapper);
+		this.timeline_wrapper
+				.prepend(`
 				<div class="timeline-item activity-title">
 				<h4>${__("Activity")}</h4>
 				</div>
-				<div class="timeline-item">
-				<div class="d-flex align-items-center">
-				<span class="mx-1">Show all activity</span>
-				<label class="switch">
-				<input type="checkbox">
-				<span class="slider round"></span>
-				</label>
-				</div>
-				</div>
-			`
-				)
+			`)
+		if (has_communications()) {
+			this.timeline_wrapper.find(".timeline-item.activity-title")
+				.append(`
+					<div class="d-flex align-items-center show-all-activity">
+						<span style="color: var(--text-light); margin:0px 6px;">Show all activity</span>
+						<label class="switch">
+							<input type="checkbox">
+							<span class="slider round"></span>
+						</label>
+					</div>
+				`)
 				.find("input[type=checkbox]")
 				.prop("checked", !me.only_communication)
 				.on("click", function (e) {
@@ -80,6 +80,7 @@ class FormTimeline extends BaseTimeline {
 					$(this).tab("show");
 				});
 		}
+		this.timeline_wrapper.find(".timeline-item.activity-title").append(this.timeline_actions_wrapper);
 	}
 
 	setup_document_email_link() {
@@ -415,7 +416,7 @@ class FormTimeline extends BaseTimeline {
 				  );
 
 			attachment_timeline_contents.push({
-				icon: is_file_upload ? "upload" : "delete",
+				icon: is_file_upload ? "es-line-attachment" : "es-line-delete",
 				icon_size: "sm",
 				creation: attachment_log.creation,
 				content: timeline_content,
@@ -459,7 +460,7 @@ class FormTimeline extends BaseTimeline {
 			);
 
 			like_timeline_contents.push({
-				icon: "heart",
+				icon: "es-line-like",
 				icon_size: "sm",
 				creation: like_log.creation,
 				content: timeline_content,
