@@ -43,14 +43,6 @@ $threshold: 34;
 			width: 4px;
 		}
 	}
-	.timeline-header {
-		@include flex(flex, space-between, center, null);
-		min-height: 40px;
-
-		.timeline-item {
-			margin-bottom: 0px;
-		}
-	}
 	.activity-title, .timeline-actions {
 		margin-bottom: 0 !important;
 		display: flex;
