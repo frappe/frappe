@@ -1253,6 +1253,9 @@ def get_doc(*args, **kwargs):
 
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
+	if "for_update" in kwargs and kwargs["for_update"]:
+		return doc
+
 	# Replace cache if stale one exists
 	if (key := can_cache_doc(args)) and cache.exists(key):
 		_set_document_in_cache(key, doc)
