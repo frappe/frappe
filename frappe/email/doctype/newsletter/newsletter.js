@@ -122,6 +122,15 @@ frappe.ui.form.on("Newsletter", {
 			],
 			primary_action_label: __("Schedule"),
 			primary_action({ date, time }) {
+				if (typeof date === "undefined") {
+					frappe.throw(__("Please provide date for Scheduling."));
+				}
+
+				const today = new Date().toJSON().slice(0, 10);
+
+				if (date < today) {
+					frappe.throw(__("Past dates are not allowed for Scheduling."));
+				}
 				frm.set_value("schedule_sending", 1);
 				frm.set_value("schedule_send", `${date} ${time}:00`);
 				d.hide();
