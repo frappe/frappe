@@ -125,4 +125,6 @@ if __name__ == "__main__":
 	if not frappe._dev_server:
 		warnings.simplefilter("ignore")
 
+	frappe.DISABLE_DATABASE_CONNECTION_POOLING = not int(os.environ.get("DATABASE_POOLING", "0"))
+
 	main()
