@@ -24,6 +24,7 @@ _SITE_POOLS = defaultdict(frappe._dict)
 _MAX_POOL_SIZE = 64
 _POOL_SIZE = 1
 
+
 # _POOL_SIZE is selected "arbitrarily" to avoid overloading the server and being mindful of multitenancy
 # init size of connection pool will be _POOL_SIZE for each site. Replica setups will have separate pool.
 # This means each site with a replica setup can have 2 active pools of size _POOL_SIZE each. Each pool may
@@ -164,7 +165,7 @@ class MariaDBConnectionUtil:
 			conn = self.create_connection()
 			try:
 				site_pool.add_connection(conn)
-				# log this via frappe.logger & continue - site needs bigger pool...over _POOL_SIZE
+			# log this via frappe.logger & continue - site needs bigger pool...over _POOL_SIZE
 			except mariadb.PoolError:
 				# PoolError is raised when size limit is reached
 				# log this via frappe.logger & continue - site needs a much bigger pool...over _MAX_POOL_SIZE
@@ -362,12 +363,6 @@ class MariaDBDatabase(
 		)
 
 		return db_size[0].get("database_size")
-
-	def log_query(self, query, values, debug, explain):
-		# TODO: check correctness
-		self.last_query = self._cursor._executed
-		self._log_query(self.last_query, debug, explain, query)
-		return self.last_query
 
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
