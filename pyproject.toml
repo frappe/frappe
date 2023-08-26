@@ -1,7 +1,7 @@
 [project]
 name = "frappe"
 authors = [
-    { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
+    { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io" }
 ]
 description = "Metadata driven, full-stack low code web framework"
 requires-python = ">=3.10,<3.13"
@@ -22,6 +22,7 @@ dependencies = [
     "PyMySQL==1.1.0",
     "pypdf~=3.17.0",
     "PyPika==0.48.9",
+    "mariadb~=1.1.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
     "RestrictedPython~=7.0",
@@ -76,7 +77,6 @@ dependencies = [
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.11.6",
-
     # integration dependencies
     "boto3~=1.28.10",
     "dropbox~=11.36.2",
