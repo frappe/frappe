@@ -209,7 +209,7 @@ class MariaDBDatabase(
 	# using the system after a restore.
 	# issue link: https://jira.mariadb.org/browse/MDEV-21786
 	SEQUENCE_CACHE = 50
-	CONVERSION_MAP = conversions | {
+	CONVERSION_MAP = {
 		FIELD_TYPE.NEWDECIMAL: float,
 		FIELD_TYPE.DATETIME: get_datetime,
 		UnicodeWithAttrs: escape_string,
