@@ -655,10 +655,10 @@ frappe.ui.form.Form = class FrappeForm {
 			return;
 		}
 
-		const first_input = layout_wrapper.find(":input:visible:first");
-		if (!in_list(["Date", "Datetime"], first_input.attr("data-fieldtype"))) {
-			first_input.trigger("focus");
-		}
+		layout_wrapper
+			.find(":input:visible:first")
+			.not("[data-fieldtype^='Date']")
+			.trigger("focus");
 	}
 
 	run_after_load_hook() {
