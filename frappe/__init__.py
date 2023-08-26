@@ -52,7 +52,6 @@ controllers = {}
 local = Local()
 cache = None
 STANDARD_USERS = ("Guest", "Administrator")
-DISABLE_DATABASE_CONNECTION_POOLING = None
 
 _qb_patched = {}
 _dev_server = int(sbool(os.environ.get("DEV_SERVER", False)))
