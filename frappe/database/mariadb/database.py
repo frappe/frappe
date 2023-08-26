@@ -1,99 +1,131 @@
 import re
+from collections import defaultdict
+from decimal import Decimal
+from typing import TYPE_CHECKING
 
+import mariadb
 import pymysql
-from pymysql.constants import ER, FIELD_TYPE
-from pymysql.converters import conversions, escape_string
+from mariadb.constants import ERR, FIELD_TYPE
+from pymysql.constants import ER
+from pymysql.converters import conversions, escape_sequence, escape_string
 
 import frappe
-from frappe.database.database import Database
+from frappe.database.database import Database, QueryValues
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
+from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 
+if TYPE_CHECKING:
+	from mariadb import ConnectionPool
+
+_FIND_ITER_PATTERN = re.compile("%s")
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
+_SITE_POOLS = defaultdict(frappe._dict)
+_MAX_POOL_SIZE = 64
+_POOL_SIZE = 1
+
+# _POOL_SIZE is selected "arbitrarily" to avoid overloading the server and being mindful of multitenancy
+# init size of connection pool will be _POOL_SIZE for each site. Replica setups will have separate pool.
+# This means each site with a replica setup can have 2 active pools of size _POOL_SIZE each. Each pool may
+# expand up to _MAX_POOL_SIZE as per requirement. This cannot be a function of @@global.max_connections,
+# no. of sites since there may be multiple processes holding connections; and this defines the size for each
+# of those processes/workers. Check MariaDBConnectionUtil for connection & pool management.
+
+
+def is_connection_pooling_enabled() -> bool:
+	"""Set `frappe.DISABLE_CONNECTION_POOLING` to enable/disable connection pooling for all on current
+	process. This will override config key `disable_database_connection_pooling`. Set key
+	`disable_database_connection_pooling` in site config for persistent settings across workers."""
+
+	if frappe.DISABLE_DATABASE_CONNECTION_POOLING is not None:
+		return not frappe.DISABLE_DATABASE_CONNECTION_POOLING
+	return not frappe.local.conf.disable_database_connection_pooling
 
 
 class MariaDBExceptionUtil:
-	ProgrammingError = pymysql.ProgrammingError
-	TableMissingError = pymysql.ProgrammingError
-	OperationalError = pymysql.OperationalError
-	InternalError = pymysql.InternalError
-	SQLError = pymysql.ProgrammingError
-	DataError = pymysql.DataError
+	ProgrammingError = mariadb.ProgrammingError
+	TableMissingError = mariadb.ProgrammingError
+	OperationalError = mariadb.OperationalError
+	InternalError = mariadb.InternalError
+	SQLError = mariadb.ProgrammingError
+	DataError = mariadb.DataError
 
 	# match ER_SEQUENCE_RUN_OUT - https://mariadb.com/kb/en/mariadb-error-codes/
-	SequenceGeneratorLimitExceeded = pymysql.OperationalError
+	SequenceGeneratorLimitExceeded = mariadb.OperationalError
 	SequenceGeneratorLimitExceeded.errno = 4084
 
 	@staticmethod
-	def is_deadlocked(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_DEADLOCK
+	def is_deadlocked(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_LOCK_DEADLOCK
 
 	@staticmethod
-	def is_timedout(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
+	def is_timedout(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_LOCK_WAIT_TIMEOUT
 
 	@staticmethod
 	def is_read_only_mode_error(e: pymysql.Error) -> bool:
+		# TODO: replace this error
 		return e.args[0] == 1792
 
 	@staticmethod
-	def is_table_missing(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.NO_SUCH_TABLE
+	def is_table_missing(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_NO_SUCH_TABLE
 
 	@staticmethod
-	def is_missing_table(e: pymysql.Error) -> bool:
+	def is_missing_table(e: mariadb.Error) -> bool:
 		return MariaDBDatabase.is_table_missing(e)
 
 	@staticmethod
-	def is_missing_column(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.BAD_FIELD_ERROR
+	def is_missing_column(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_BAD_FIELD_ERROR
 
 	@staticmethod
-	def is_duplicate_fieldname(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_FIELDNAME
+	def is_duplicate_fieldname(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_DUP_FIELDNAME
 
 	@staticmethod
-	def is_duplicate_entry(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DUP_ENTRY
+	def is_duplicate_entry(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_DUP_ENTRY
 
 	@staticmethod
-	def is_access_denied(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
+	def is_access_denied(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_ACCESS_DENIED_ERROR
 
 	@staticmethod
-	def cant_drop_field_or_key(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+	def cant_drop_field_or_key(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_CANT_DROP_FIELD_OR_KEY
 
 	@staticmethod
-	def is_syntax_error(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.PARSE_ERROR
+	def is_syntax_error(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_PARSE_ERROR
 
 	@staticmethod
 	def is_statement_timeout(e: pymysql.Error) -> bool:
+		# TODO: replace
 		return e.args[0] == 1969
 
 	@staticmethod
-	def is_data_too_long(e: pymysql.Error) -> bool:
-		return e.args[0] == ER.DATA_TOO_LONG
-
-	@staticmethod
 	def is_db_table_size_limit(e: pymysql.Error) -> bool:
+		# TODO: replace
 		return e.args[0] == ER.TOO_BIG_ROWSIZE
 
 	@staticmethod
-	def is_primary_key_violation(e: pymysql.Error) -> bool:
+	def is_data_too_long(e: mariadb.Error) -> bool:
+		return getattr(e, "errno", None) == ERR.ER_DATA_TOO_LONG
+
+	@staticmethod
+	def is_primary_key_violation(e: mariadb.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
-			and "PRIMARY" in cstr(e.args[1])
-			and isinstance(e, pymysql.IntegrityError)
+			and "PRIMARY" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
 		)
 
 	@staticmethod
-	def is_unique_key_violation(e: pymysql.Error) -> bool:
+	def is_unique_key_violation(e: mariadb.Error) -> bool:
 		return (
 			MariaDBDatabase.is_duplicate_entry(e)
-			and "Duplicate" in cstr(e.args[1])
-			and isinstance(e, pymysql.IntegrityError)
+			and "Duplicate" in e.errmsg
+			and isinstance(e, mariadb.IntegrityError)
 		)
 
 
@@ -103,12 +135,83 @@ class MariaDBConnectionUtil:
 		conn.auto_reconnect = True
 		return conn
 
-	def _get_connection(self):
-		"""Return MariaDB connection object."""
-		return self.create_connection()
+	def _get_connection(self) -> "mariadb.Connection":
+		"""Return MariaDB connection object.
+
+		If frappe.conf.disable_database_connection_pooling is set, return a new connection
+		object and close existing pool if exists. Else, return a connection from the pool.
+		"""
+		global _SITE_POOLS
+
+		# don't pool root connections
+		if self.user == "root":
+			return self.create_connection()
+
+		if not is_connection_pooling_enabled():
+			self.close_connection_pools()
+			return self.create_connection()
+
+		if frappe.local.site not in _SITE_POOLS:
+			site_pool = self.create_connection_pool()
+		else:
+			site_pool = self.get_connection_pool()
+
+		try:
+			conn = site_pool.get_connection()
+		except mariadb.PoolError:
+			# PoolError is raised when the pool is exhausted
+			conn = self.create_connection()
+			try:
+				site_pool.add_connection(conn)
+				# log this via frappe.logger & continue - site needs bigger pool...over _POOL_SIZE
+			except mariadb.PoolError:
+				# PoolError is raised when size limit is reached
+				# log this via frappe.logger & continue - site needs a much bigger pool...over _MAX_POOL_SIZE
+				pass
+
+		return conn
+
+	def close_connection_pools(self):
+		if frappe.local.site in _SITE_POOLS:
+			pools = _SITE_POOLS[frappe.local.site]
+			for pool in pools.values():
+				try:
+					pool.close()
+				except Exception:
+					pass
+			_SITE_POOLS.pop(frappe.local.site, None)
+
+	def get_pool_name(self) -> str:
+		pool_type = "read-only" if self.read_only else "default"
+		return f"{frappe.local.site}-{pool_type}"
+
+	def get_connection_pool(self) -> "ConnectionPool":
+		"""Return MariaDB connection pool object.
+
+		If `read_only` is True, return a read only pool.
+		"""
+		return _SITE_POOLS[frappe.local.site]["read_only" if self.read_only else "default"]
+
+	def create_connection_pool(self):
+		pool = mariadb.ConnectionPool(
+			pool_name=self.get_pool_name(),
+			pool_size=_MAX_POOL_SIZE,
+			pool_reset_connection=False,
+		)
+		pool.set_config(**self.get_connection_settings())
+
+		if self.read_only:
+			_SITE_POOLS[frappe.local.site].read_only = pool
+		else:
+			_SITE_POOLS[frappe.local.site].default = pool
+
+		for _ in range(_POOL_SIZE):
+			pool.add_connection()
+
+		return pool
 
 	def create_connection(self):
-		return pymysql.connect(**self.get_connection_settings())
+		return mariadb.connect(**self.get_connection_settings())
 
 	def set_execution_timeout(self, seconds: int):
 		self.sql("set session max_statement_time = %s", int(seconds))
@@ -118,9 +221,7 @@ class MariaDBConnectionUtil:
 			"host": self.host,
 			"user": self.user,
 			"password": self.password,
-			"conv": self.CONVERSION_MAP,
-			"charset": "utf8mb4",
-			"use_unicode": True,
+			"converter": self.CONVERSION_MAP,
 		}
 
 		if self.user not in (frappe.flags.root_login, "root"):
@@ -133,16 +234,73 @@ class MariaDBConnectionUtil:
 			conn_settings["local_infile"] = frappe.conf.local_infile
 
 		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+			# TODO: check correctness
 			conn_settings["ssl"] = {
 				"ca": frappe.conf.db_ssl_ca,
 				"cert": frappe.conf.db_ssl_cert,
 				"key": frappe.conf.db_ssl_key,
+				"ssl": True,
 			}
 		return conn_settings
 
 
-class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
+class MariaDBCursorPatchUtil:
+	"""Patch mariadb.cursor.Cursor to handle things not supported by pinned version of MariaDB client."""
+
+	def _transform_query(self, query: str, values: QueryValues) -> tuple:
+		"""Transform the query to handle things not supported by pinned version of MariaDB client.
+
+		Transformations:
+		        - Escape sequences in values
+		"""
+		_values = []
+
+		if isinstance(values, (tuple, list)):
+			for val in values:
+				if isinstance(val, (tuple, list)):
+					_values.append(escape_sequence(val, charset=self._conn.character_set))
+				else:
+					_values.append(val)
+			values = _values
+		else:
+			for token in _PARAM_COMP.findall(query):
+				key = token[2:-2]
+				try:
+					val = values[key]
+				except KeyError:
+					raise self.ProgrammingError(f"Missing value for key '{key}'")
+				if isinstance(val, (tuple, list)):
+					values[key] = escape_sequence(val, charset=self._conn.character_set)
+
+		return query, values or []
+
+	def _transform_result(self, result: list[tuple]) -> list[tuple]:
+		# ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-213
+		_result = []
+		for row in result:
+			_row = []
+			for el in row:
+				if isinstance(el, Decimal):
+					el = float(el)
+				elif isinstance(el, UnicodeWithAttrs):
+					el = escape_string(el)
+				_row.append(el)
+			_result.append(tuple(_row))
+		return _result
+
+
+class MariaDBDatabase(
+	MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database
+):
 	REGEX_CHARACTER = "regexp"
+	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
+	# it drops the cache and uses the next non cached value in setval query and
+	# puts that in the backup file, which will start the counter
+	# from that value when inserting any new record in the doctype.
+	# By default the cache is 1000 which will mess up the sequence when
+	# using the system after a restore.
+	# issue link: https://jira.mariadb.org/browse/MDEV-21786
+	SEQUENCE_CACHE = 50
 	CONVERSION_MAP = conversions | {
 		FIELD_TYPE.NEWDECIMAL: float,
 		FIELD_TYPE.DATETIME: get_datetime,
@@ -205,6 +363,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return db_size[0].get("database_size")
 
 	def log_query(self, query, values, debug, explain):
+		# TODO: check correctness
 		self.last_query = self._cursor._executed
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
@@ -232,11 +391,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	# column type
 	@staticmethod
 	def is_type_number(code):
-		return code == pymysql.NUMBER
+		return code == mariadb.NUMBER
 
 	@staticmethod
 	def is_type_datetime(code):
-		return code == pymysql.DATETIME
+		return code == mariadb.DATETIME
 
 	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
