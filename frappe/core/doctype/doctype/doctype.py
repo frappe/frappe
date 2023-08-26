@@ -539,7 +539,7 @@ class DocType(Document):
 
 		if self.autoname == "autoincrement":
 			name_type = "bigint"
-			frappe.db.create_sequence(self.name, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
+			frappe.db.create_sequence(self.name, check_not_exists=True)
 
 		change_name_column_type(self.name, name_type)
 
