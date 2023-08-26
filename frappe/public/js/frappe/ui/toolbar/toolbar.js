@@ -18,7 +18,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 
 		this.setup_awesomebar();
-		this.setup_frequent_and_recents();
 		this.setup_notifications();
 		this.setup_help();
 		this.make();
@@ -126,60 +125,6 @@ frappe.ui.toolbar.Toolbar = class {
 				e.preventDefault();
 			}
 		}
-	}
-
-	setup_frequent_and_recents() {
-		this.frequently_visited_links = frappe.search.utils.get_frequent_links();
-
-		var me = this;
-
-		$(".frequent-and-recents-icon").click(function (e) {
-			let $toolbar_recent = $("#toolbar-frequent-and-recents");
-
-			let recently_visited_links = frappe.search.utils.deduplicate_routes(
-				frappe.search.utils.get_recent_pages("")
-			);
-
-			let res_html = "";
-
-			res_html +=
-				'<div class="text-muted" style="padding-top: 4px; padding-left: 9.8px; padding-bottom: 4px;">' +
-				__("Recently viewed") +
-				"</div>";
-
-			recently_visited_links.forEach(function (r) {
-				res_html += '<a class="dropdown-item">' + r.value + "</a>";
-			});
-
-			if (me.frequently_visited_links.length) {
-				res_html += '<div class="dropdown-divider" style="margin-top: 4px;"></div>';
-
-				res_html +=
-					'<div class="text-muted" style="padding-top: 15px; padding-left: 9.8px; padding-bottom: 4px;">' +
-					__("Frequently viewed") +
-					"</div>";
-
-				me.frequently_visited_links.forEach(function (r) {
-					res_html += '<a class="dropdown-item">' + r.value + "</a>";
-				});
-			}
-
-			$toolbar_recent.html(res_html);
-
-			$(".dropdown-frequent-and-recents .dropdown-menu").on("click", "a", function (e) {
-				let recently_visited_links = frappe.search.utils.deduplicate_routes(
-					frappe.search.utils.get_recent_pages("")
-				);
-				let o = e.originalEvent;
-				let value = o.target.text;
-
-				let item = recently_visited_links
-					.concat(me.frequently_visited_links)
-					.find((o) => o.value === value);
-
-				frappe.set_route(item.route);
-			});
-		});
 	}
 
 	setup_awesomebar() {
