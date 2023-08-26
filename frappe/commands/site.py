@@ -89,7 +89,8 @@ def new_site(
 	"Create a new site"
 	from frappe.installer import _new_site
 
-	frappe.init(site, new_site=True)
+	frappe.DISABLE_DATABASE_CONNECTION_POOLING = True
+	frappe.init(site=site, new_site=True)
 
 	if site in frappe.get_all_apps():
 		click.secho(
