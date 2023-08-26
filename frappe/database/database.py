@@ -37,10 +37,10 @@ from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, ge
 from frappe.utils import cast as cast_fieldtype
 
 if TYPE_CHECKING:
+	from mariadb.connections import Connection as MariadbConnection
+	from mariadb.cursors import Cursor as MariadbCursor
 	from psycopg2 import connection as PostgresConnection
 	from psycopg2 import cursor as PostgresCursor
-	from pymysql.connections import Connection as MariadbConnection
-	from pymysql.cursors import Cursor as MariadbCursor
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -373,7 +373,7 @@ class Database:
 		# TODO: Use mogrify until MariaDB Connector/C 1.1 is released and we can fetch something
 		# like cursor._transformed_statement from the cursor object. We can also avoid setting
 		# mogrified_query if we don't need to log it.
-		mogrified_query = self.lazy_mogrify(query, values)
+		mogrified_query = self._cursor._transformed_statement
 		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
 		return mogrified_query
 

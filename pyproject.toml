@@ -22,6 +22,7 @@ dependencies = [
     "PyMySQL==1.1.1",
     "pypdf~=3.17.0",
     "PyPika==0.48.9",
+    "mariadb~=1.1.12",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
     "RestrictedPython~=8.0",

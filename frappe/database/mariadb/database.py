@@ -1,45 +1,21 @@
 import re
-from collections import defaultdict
+import typing
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import TYPE_CHECKING
 
 import mariadb
 import pymysql
 from mariadb.constants import ERR, FIELD_TYPE
 from pymysql.constants import ER
-from pymysql.converters import conversions, escape_sequence, escape_string
+from pymysql.converters import escape_sequence, escape_string
 
 import frappe
 from frappe.database.database import Database, QueryValues
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, get_datetime, get_table_name
 
-if TYPE_CHECKING:
-	from mariadb import ConnectionPool
-
 _FIND_ITER_PATTERN = re.compile("%s")
 _PARAM_COMP = re.compile(r"%\([\w]*\)s")
-_SITE_POOLS = defaultdict(frappe._dict)
-_MAX_POOL_SIZE = 64
-_POOL_SIZE = 1
-
-# _POOL_SIZE is selected "arbitrarily" to avoid overloading the server and being mindful of multitenancy
-# init size of connection pool will be _POOL_SIZE for each site. Replica setups will have separate pool.
-# This means each site with a replica setup can have 2 active pools of size _POOL_SIZE each. Each pool may
-# expand up to _MAX_POOL_SIZE as per requirement. This cannot be a function of @@global.max_connections,
-# no. of sites since there may be multiple processes holding connections; and this defines the size for each
-# of those processes/workers. Check MariaDBConnectionUtil for connection & pool management.
-
-
-def is_connection_pooling_enabled() -> bool:
-	"""Set `frappe.DISABLE_CONNECTION_POOLING` to enable/disable connection pooling for all on current
-	process. This will override config key `disable_database_connection_pooling`. Set key
-	`disable_database_connection_pooling` in site config for persistent settings across workers."""
-
-	if frappe.DISABLE_DATABASE_CONNECTION_POOLING is not None:
-		return not frappe.DISABLE_DATABASE_CONNECTION_POOLING
-	return not frappe.local.conf.disable_database_connection_pooling
 
 
 class MariaDBExceptionUtil:
@@ -141,79 +117,7 @@ class MariaDBConnectionUtil:
 		return conn
 
 	def _get_connection(self) -> "mariadb.Connection":
-		"""Return MariaDB connection object.
-
-		If frappe.conf.disable_database_connection_pooling is set, return a new connection
-		object and close existing pool if exists. Else, return a connection from the pool.
-		"""
-		global _SITE_POOLS
-
-		# don't pool root connections
-		if self.user == "root":
-			return self.create_connection()
-
-		if not is_connection_pooling_enabled():
-			self.close_connection_pools()
-			return self.create_connection()
-
-		if frappe.local.site not in _SITE_POOLS:
-			site_pool = self.create_connection_pool()
-		else:
-			site_pool = self.get_connection_pool()
-
-		try:
-			conn = site_pool.get_connection()
-		except mariadb.PoolError:
-			# PoolError is raised when the pool is exhausted
-			conn = self.create_connection()
-			try:
-				site_pool.add_connection(conn)
-				# log this via frappe.logger & continue - site needs bigger pool...over _POOL_SIZE
-			except mariadb.PoolError:
-				# PoolError is raised when size limit is reached
-				# log this via frappe.logger & continue - site needs a much bigger pool...over _MAX_POOL_SIZE
-				pass
-
-		return conn
-
-	def close_connection_pools(self):
-		if frappe.local.site in _SITE_POOLS:
-			pools = _SITE_POOLS[frappe.local.site]
-			for pool in pools.values():
-				try:
-					pool.close()
-				except Exception:
-					pass
-			_SITE_POOLS.pop(frappe.local.site, None)
-
-	def get_pool_name(self) -> str:
-		pool_type = "read-only" if self.read_only else "default"
-		return f"{frappe.local.site}-{pool_type}"
-
-	def get_connection_pool(self) -> "ConnectionPool":
-		"""Return MariaDB connection pool object.
-
-		If `read_only` is True, return a read only pool.
-		"""
-		return _SITE_POOLS[frappe.local.site]["read_only" if self.read_only else "default"]
-
-	def create_connection_pool(self):
-		pool = mariadb.ConnectionPool(
-			pool_name=self.get_pool_name(),
-			pool_size=_MAX_POOL_SIZE,
-			pool_reset_connection=False,
-		)
-		pool.set_config(**self.get_connection_settings())
-
-		if self.read_only:
-			_SITE_POOLS[frappe.local.site].read_only = pool
-		else:
-			_SITE_POOLS[frappe.local.site].default = pool
-
-		for _ in range(_POOL_SIZE):
-			pool.add_connection()
-
-		return pool
+		return self.create_connection()
 
 	def create_connection(self):
 		return mariadb.connect(**self.get_connection_settings())
@@ -224,9 +128,9 @@ class MariaDBConnectionUtil:
 	def get_connection_settings(self) -> dict:
 		conn_settings = {
 			"user": self.user,
-			"conv": self.CONVERSION_MAP,
-			"charset": "utf8mb4",
-			"use_unicode": True,
+			"converter": self.CONVERSION_MAP,
+			# "charset": "utf8mb4",
+			# "use_unicode": True,
 		}
 
 		if self.cur_db_name:
@@ -286,24 +190,14 @@ class MariaDBCursorPatchUtil:
 
 		return query, values or []
 
-	def _transform_result(self, result: list[tuple]) -> list[tuple]:
-		# ref: https://jira.mariadb.org/projects/CONPY/issues/CONPY-213
-		_result = []
-		for row in result:
-			_row = []
-			for el in row:
-				if isinstance(el, Decimal):
-					el = float(el)
-				elif isinstance(el, UnicodeWithAttrs):
-					el = escape_string(el)
-				_row.append(el)
-			_result.append(tuple(_row))
-		return _result
+
+def float_convertor(decimal):
+	if decimal is None:
+		return 0.0
+	return float(decimal)
 
 
-class MariaDBDatabase(
-	MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database
-):
+class MariaDBDatabase(MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
 	# it drops the cache and uses the next non cached value in setval query and
@@ -313,9 +207,8 @@ class MariaDBDatabase(
 	# using the system after a restore.
 	# issue link: https://jira.mariadb.org/browse/MDEV-21786
 	SEQUENCE_CACHE = 50
-	CONVERSION_MAP = conversions | {
-		FIELD_TYPE.NEWDECIMAL: float,
-		FIELD_TYPE.DATETIME: get_datetime,
+	CONVERSION_MAP: typing.ClassVar = {
+		FIELD_TYPE.NEWDECIMAL: float_convertor,
 		UnicodeWithAttrs: escape_string,
 	}
 	default_port = "3306"
@@ -376,16 +269,17 @@ class MariaDBDatabase(
 
 	def log_query(self, query, values, debug, explain):
 		# TODO: check correctness
-		self.last_query = self._cursor._executed
+		self.last_query = self._cursor.statement
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
 
 	def _clean_up(self):
 		# PERF: Erase internal references of pymysql to trigger GC as soon as
 		# results are consumed.
-		self._cursor._result = None
-		self._cursor._rows = None
-		self._cursor.connection._result = None
+		# self._cursor._result = None
+		# self._cursor._rows = None
+		# self._cursor.connection._result = None
+		return
 
 	@staticmethod
 	def escape(s, percent=True):
