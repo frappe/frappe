@@ -112,25 +112,18 @@ frappe.ui.form.on("Newsletter", {
 					options: {
 						minDate: new Date(),
 					},
+					reqd: true,
 				},
 				{
 					label: __("Time"),
 					fieldname: "time",
 					fieldtype: "Select",
 					options: time_slots,
+					reqd: true,
 				},
 			],
 			primary_action_label: __("Schedule"),
 			primary_action({ date, time }) {
-				if (typeof date === "undefined") {
-					frappe.throw(__("Please provide date for Scheduling."));
-				}
-
-				const today = new Date().toJSON().slice(0, 10);
-
-				if (date < today) {
-					frappe.throw(__("Past dates are not allowed for Scheduling."));
-				}
 				frm.set_value("schedule_sending", 1);
 				frm.set_value("schedule_send", `${date} ${time}:00`);
 				d.hide();
