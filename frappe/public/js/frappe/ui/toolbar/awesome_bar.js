@@ -51,6 +51,102 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 		this.awesomplete = awesomplete;
 
+		var $toolbar_frequent_and_recent = $("#toolbar-frequent-and-recent");
+
+		var frequently_visited_links = frappe.search.utils.get_frequent_links();
+
+		var event_handled_by_awesomplete = null;
+
+		var open_frequent_and_recent = function () {
+			var res_html = "";
+
+			var recently_visited_links = me.deduplicate(frappe.search.utils.get_recent_pages(""));
+
+			res_html += "<ul>";
+
+			res_html +=
+				'<div class="text-muted" style="padding-top: 4px; padding-left: 9.8px; padding-bottom: 4px;">' +
+				__("Recently viewed") +
+				"</div>";
+
+			recently_visited_links.forEach(function (r) {
+				res_html += "<li>" + r.value + "</li>";
+			});
+
+			if (frequently_visited_links.length) {
+				res_html += '<div class="dropdown-divider" style="margin-top: 4px;"></div>';
+
+				res_html +=
+					'<div class="text-muted" style="padding-top: 15px; padding-left: 9.8px; padding-bottom: 4px;">' +
+					__("Frequently viewed") +
+					"</div>";
+
+				frequently_visited_links.forEach(function (r) {
+					res_html += "<li>" + r.value + "</li>";
+				});
+			}
+
+			res_html += "</ul>";
+
+			$toolbar_frequent_and_recent.html(res_html);
+
+			var $first_element = $toolbar_frequent_and_recent.find("li:first");
+			$first_element.attr("aria-selected", "true");
+
+			$toolbar_frequent_and_recent.show();
+		};
+
+		var handle_keydown_for_frequent_and_recent = function (e) {
+			var $recent_and_frequent_elements = $toolbar_frequent_and_recent.find("li");
+
+			var $selected_element = $recent_and_frequent_elements.filter(function () {
+				return this["ariaSelected"] === "true";
+			});
+			var idx = $recent_and_frequent_elements.index($selected_element);
+
+			var $next_element = $();
+
+			if (e.which === 38) {
+				// Arrow Up is pressed
+				if (idx === 0) {
+					$selected_element.attr("aria-selected", "false");
+					$next_element = $recent_and_frequent_elements.eq(
+						$recent_and_frequent_elements.length - 1
+					);
+					$next_element.attr("aria-selected", "true");
+				} else {
+					$selected_element.attr("aria-selected", "false");
+					$next_element = $recent_and_frequent_elements.eq(idx - 1);
+					$next_element.attr("aria-selected", "true");
+				}
+			} else if (e.which === 40) {
+				// Arrow Down is pressed
+				if (idx === $recent_and_frequent_elements.length - 1) {
+					$selected_element.attr("aria-selected", "false");
+					$next_element = $recent_and_frequent_elements.eq(0);
+					$next_element.attr("aria-selected", "true");
+				} else {
+					$selected_element.attr("aria-selected", "false");
+					$next_element = $recent_and_frequent_elements.eq(idx + 1);
+					$next_element.attr("aria-selected", "true");
+				}
+			} else if (e.which === 13) {
+				// Enter is pressed
+				var recently_visited_links = me.deduplicate(
+					frappe.search.utils.get_recent_pages("")
+				);
+				var link_to_go_to = recently_visited_links
+					.concat(frequently_visited_links)
+					.find((o) => o.value === $selected_element[0].innerText);
+
+				$input.trigger("blur");
+
+				$toolbar_frequent_and_recent.hide();
+
+				frappe.set_route(link_to_go_to.route);
+			}
+		};
+
 		$input.on(
 			"input",
 			frappe.utils.debounce(function (e) {
@@ -61,31 +157,83 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 				me.options = [];
 
-				if (txt && txt.length > 1) {
+				if (txt && txt.length > 0) {
+					$toolbar_frequent_and_recent.hide();
+
 					if (last_space !== -1) {
 						me.set_specifics(txt.slice(0, last_space), txt.slice(last_space + 1));
 					}
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
+					me.add_help();
 				} else {
-					me.options = me.options.concat(
-						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
-					);
-					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
+					$toolbar_frequent_and_recent.show();
 				}
-				me.add_help();
 
 				awesomplete.list = me.deduplicate(me.options);
 			}, 100)
 		);
 
-		var open_recent = function () {
-			if (!this.autocomplete_open) {
+		$input.on("focus", function (e) {
+			event_handled_by_awesomplete = null;
+
+			if (this.value) {
+				// Awesomplete will handle
 				$(this).trigger("input");
+			} else {
+				// Recent/frequent dropdown will handle
+				open_frequent_and_recent();
 			}
-		};
-		$input.on("focus", open_recent);
+		});
+
+		$input.on("keydown", function (e) {
+			if (e.key == "Escape") {
+				$input.trigger("blur");
+				return;
+			}
+
+			if (this.value || event_handled_by_awesomplete) {
+				// Awesomplete will handle
+				return;
+			}
+
+			// Recent/frequent dropdown will handle
+			handle_keydown_for_frequent_and_recent(e);
+		});
+
+		$toolbar_frequent_and_recent.on("click", "li", function (e) {
+			var recently_visited_links = me.deduplicate(frappe.search.utils.get_recent_pages(""));
+			var o = e.originalEvent;
+			var value = o.target.innerText;
+
+			var link_to_go_to = recently_visited_links
+				.concat(frequently_visited_links)
+				.find((o) => o.value === value);
+
+			$toolbar_frequent_and_recent.hide();
+
+			frappe.set_route(link_to_go_to.route);
+		});
+
+		$input.on("blur", function (e) {
+			// To close the Recent/frequent dropdown when awesomebar is focused out
+			if (!$toolbar_frequent_and_recent.is(":hover")) {
+				$toolbar_frequent_and_recent.hide();
+			}
+		});
+
+		$toolbar_frequent_and_recent.on("mousedown", "li", function (e) {
+			// To prevent the awesomebar from focusing out when Recent/frequent viewed links are right-clicked
+			if (e.which === 3) {
+				e.preventDefault();
+			}
+		});
+
+		$toolbar_frequent_and_recent.on("mousedown", "div", function (e) {
+			// To prevent the awesomebar from focusing out when Recent/frequent viewed labels are clicked
+			e.preventDefault();
+		});
 
 		$input.on("awesomplete-open", function (e) {
 			me.autocomplete_open = e.target;
@@ -115,60 +263,62 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			}
 			$input.val("");
 			$input.trigger("blur");
+
+			event_handled_by_awesomplete = true;
 		});
 
 		$input.on("awesomplete-selectcomplete", function (e) {
 			$input.val("");
 		});
 
-		$input.on("keydown", (e) => {
-			if (e.key == "Escape") {
-				$input.trigger("blur");
-			}
-		});
 		frappe.search.utils.setup_recent();
 	}
 
+	show_awesomebar_help() {
+		var txt =
+			'<table class="table table-bordered">\
+			<tr><td style="width: 50%">' +
+			__("Create a new record") +
+			"</td><td>" +
+			__("new &lt;doctype&gt;<br>E.g. new item") +
+			"</td></tr>\
+			<tr><td>" +
+			__("List all records") +
+			"</td><td>" +
+			__("&lt;doctype&gt;<br>E.g. item") +
+			"</td></tr>\
+			<tr><td>" +
+			__("Search for a record") +
+			"</td><td>" +
+			__("&lt;name&gt; in &lt;doctype&gt;<br>E.g. macbook in item") +
+			"</td></tr>\
+			<tr><td>" +
+			__("List all records with tag") +
+			"</td><td>" +
+			__("#&lt;tag&gt;<br>E.g. #conf2023") +
+			"</td></tr>\
+			<tr><td>" +
+			__("Open a module or tool") +
+			"</td><td>" +
+			__("&lt;module/tool name&gt;<br>E.g. Bank Reconciliation Tool") +
+			"</td></tr>\
+			<tr><td>" +
+			__("Calculate") +
+			"</td><td>" +
+			__("&lt;expression&gt;<br>E.g. (55 + 434) / 4<br>E.g. =Math.sin(Math.PI/2)") +
+			"</td></tr>\
+		</table>";
+		frappe.msgprint(txt, __("Awesome Bar Help"));
+	}
+
 	add_help() {
+		var me = this;
 		this.options.push({
 			value: __("Help on Awesome Bar"),
 			index: -10,
 			default: "Help",
 			onclick: function () {
-				var txt =
-					'<table class="table table-bordered">\
-					<tr><td style="width: 50%">' +
-					__("Create a new record") +
-					"</td><td>" +
-					__("new &lt;doctype&gt;<br>E.g. new item") +
-					"</td></tr>\
-					<tr><td>" +
-					__("List all records") +
-					"</td><td>" +
-					__("&lt;doctype&gt;<br>E.g. item") +
-					"</td></tr>\
-					<tr><td>" +
-					__("Search for a record") +
-					"</td><td>" +
-					__("&lt;name&gt; in &lt;doctype&gt;<br>E.g. macbook in item") +
-					"</td></tr>\
-					<tr><td>" +
-					__("List all records with tag") +
-					"</td><td>" +
-					__("#&lt;tag&gt;<br>E.g. #conf2023") +
-					"</td></tr>\
-					<tr><td>" +
-					__("Open a module or tool") +
-					"</td><td>" +
-					__("&lt;module/tool name&gt;<br>E.g. Bank Reconciliation Tool") +
-					"</td></tr>\
-					<tr><td>" +
-					__("Calculate") +
-					"</td><td>" +
-					__("&lt;expression&gt;<br>E.g. (55 + 434) / 4<br>E.g. =Math.sin(Math.PI/2)") +
-					"</td></tr>\
-				</table>";
-				frappe.msgprint(txt, __("Awesome Bar Help"));
+				me.show_awesomebar_help();
 			},
 		});
 	}
@@ -200,7 +350,6 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_pages(txt),
 				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
-				frappe.search.utils.get_recent_pages(txt || ""),
 				frappe.search.utils.get_executables(txt)
 			);
 		if (txt.charAt(0) === "#") {
