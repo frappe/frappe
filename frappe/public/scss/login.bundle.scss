@@ -103,6 +103,7 @@ body {
 						-webkit-background-clip: text;
     					-webkit-text-fill-color: var(--text-color);
 						-webkit-box-shadow: 0 0 0 30px var(--gray-200) inset !important;
+						outline: 1px solid var(--gray-400);
 						transition: background-color 5000s ease-in-out 0s;
 					  }
 				}

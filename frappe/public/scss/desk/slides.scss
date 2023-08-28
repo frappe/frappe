@@ -76,7 +76,7 @@
 	max-width: 520px;
 	background: var(--card-bg);
 	padding: var(--padding-xl);
-	box-shadow: var(--card-shadow);
+	border: 1px solid var(--gray-400);
 	border-radius: var(--border-radius-md);
 
 	.slide-wrapper:focus {
