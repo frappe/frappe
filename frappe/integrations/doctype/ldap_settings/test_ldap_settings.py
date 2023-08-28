@@ -371,6 +371,7 @@ class LDAP_TestCase:
 					"default_role",
 					"frappe_default_all",
 					"frappe_default_guest",
+					"frappe_default_desk_user",
 				],
 				"posix.user2": [
 					"Users",
@@ -378,6 +379,7 @@ class LDAP_TestCase:
 					"default_role",
 					"frappe_default_all",
 					"frappe_default_guest",
+					"frappe_default_desk_user",
 				],
 			}
 
@@ -389,6 +391,7 @@ class LDAP_TestCase:
 					"default_role",
 					"frappe_default_all",
 					"frappe_default_guest",
+					"frappe_default_desk_user",
 				],
 				"posix.user2": [
 					"Domain Users",
@@ -396,6 +399,7 @@ class LDAP_TestCase:
 					"default_role",
 					"frappe_default_all",
 					"frappe_default_guest",
+					"frappe_default_desk_user",
 				],
 			}
 
@@ -406,6 +410,7 @@ class LDAP_TestCase:
 			"Newsletter Manager": "default_role",
 			"All": "frappe_default_all",
 			"Guest": "frappe_default_guest",
+			"Desk User": "frappe_default_desk_user",
 		}
 
 		# re-create user1 to ensure clean
