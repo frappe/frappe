@@ -46,38 +46,21 @@
 		<span class="assignments"></span>
 		<button class="add-assignment-btn data-pill btn">
 			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-customer"></use></svg>
-			{%= __("Add Assignee") %}
+			<span class="ellipsis">{%= __("Add Assignee") %}</span>
 		</button>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-attachments">
 	<li class="sidebar-label attachments-label">
-		{%= __("Attachments") %}
+	<span class="ellipsis">{%= __("Attachments") %}</span>
 
 		<li class="explore-full-btn hidden">
 			<button class="data-pill btn">
 				<span class="pill-label ellipsis">
 					{%= __("Explore Files") %}
 				</span>
-				<svg class="icon icon-sm">
-					<use href="#icon-projects"></use>
-				</svg>
-			</button>
-		</li>
-
-		<li class="attachments-actions">
-			<button class="data-pill btn add-attachment-btn">
-				<span class="pill-label ellipsis">
-					{%= __("Attach File") %}
-				</span>
-				<svg class="icon icon-sm">
-					<use href="#icon-add"></use>
-				</svg>
-			</button>
-
-			<button class="text-muted btn btn-default icon-btn explore-btn">
-				<svg class="icon icon-sm">
-					<use href="#icon-projects"></use>
+				<svg class="es-icon icon-sm">
+					<use href="#es-line-folder-alt"></use>
 				</svg>
 			</button>
 		</li>
@@ -89,14 +72,19 @@
 			</a>
 		</li>
 	</li>
-	<li class="add-attachment-btn">
-		<button class="data-pill btn">
+	<li class="attachments-actions">
+		<button class="data-pill btn add-attachment-btn">
 			<svg class="es-icon mr-2 icon-sm">
 				<use href="#es-line-attachment"></use>
 			</svg>
 			<span class="pill-label ellipsis">
 				{%= __("Add File") %}
 			</span>
+		</button>
+		<button class="text-muted btn btn-default icon-btn explore-btn">
+			<svg class="es-icon icon-sm">
+				<use href="#es-line-folder-alt"></use>
+			</svg>
 		</button>
 	</li>
 </ul>
@@ -161,7 +149,7 @@
 			<span class="form-stats-likes">
 				<span class="liked-by like-action">
 					<svg class="es-icon icon-sm">
-						<use href="#es-line-like" class="like-icon"></use>
+						<use href="#es-solid-heart" class="like-icon"></use>
 					</svg>
 					<span class="like-count"></span>
 				</span>
