@@ -440,10 +440,6 @@ body {
 						display: none;
 					}
 
-					.icon {
-						stroke: var(--white);
-					}
-
 					span {
 						color: var(--gray-700);
 					}
@@ -464,22 +460,16 @@ body {
 
 				.step-title {
 					@include flex(flex, null, center, null);
+
+					.step-text {
+						margin-left: 8px;
+					}
 				}
 
 				.step-index {
 					@include flex(flex, center, center, null);
-					height: 16px;
-					width: 16px;
-					color: var(--text-on-light-gray);
-					border: 1px solid var(--gray-900);
-
-					margin-right: var(--margin-sm);
-					border-radius: var(--border-radius-full);
-
-					.step-icon {
-						padding: 1px;
-						stroke-width: 1.5px;
-					}
+					height: 18px;
+					width: 18px;
 
 					&.step-pending {
 						display: none;
@@ -487,18 +477,10 @@ body {
 
 					&.step-complete {
 						display: none;
-						background-color: var(--primary);
-						.icon use {
-							stroke: var(--var(--fg-color));
-						}
 					}
 
 					&.step-skipped {
 						display: none;
-						background-color: var(--blue-100);
-						svg {
-							stroke: var(--blue-600);
-						}
 					}
 				}
 
@@ -509,8 +491,13 @@ body {
 				}
 
 				&.skipped {
+					color: var(--text-light);
+					background-color: var(--gray-50);
 					.step-index.step-skipped {
 						display: flex;
+					}
+					.step-text {
+						text-decoration: line-through;
 					}
 
 					.step-skip {
@@ -518,11 +505,11 @@ body {
 					}
 
 					i {
-						color: var(--text-muted);
+						color: var(--text-light);
 					}
 
 					span {
-						color: var(--text-muted);
+						color: var(--text-light);
 					}
 
 					&:hover {
@@ -973,8 +960,8 @@ body {
 			.layout-main-section {
 				padding: var(--padding-md);
 				margin-bottom: var(--margin-sm);
-				
-				&.edit-mode {	
+
+				&.edit-mode {
 					background-color: var(--gray-50) !important;
 					.links-widget-box {
 						background-color: var(--gray-50);

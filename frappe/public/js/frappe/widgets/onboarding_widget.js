@@ -50,10 +50,28 @@ export default class OnboardingWidget extends Widget {
 
 		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
-					<div class="step-index step-pending">${frappe.utils.icon("tick", "xs", "", "", "step-icon")}</div>
-					<div class="step-index step-skipped">${frappe.utils.icon("tick", "xs")}</div>
-					<div class="step-index step-complete">${frappe.utils.icon("tick", "xs")}</div>
-					<div>${__(step.title)}</div>
+					<div class="step-index step-pending">${frappe.utils.icon(
+						"es-line-success",
+						"md",
+						"",
+						"",
+						"step-icon"
+					)}</div>
+					<div class="step-index step-skipped">${frappe.utils.icon(
+						"es-line-close-circle",
+						"md",
+						"",
+						"--icon-stroke: var(--gray-600);",
+						"step-icon"
+					)}</div>
+					<div class="step-index step-complete">${frappe.utils.icon(
+						"es-solid-success",
+						"md",
+						"",
+						"",
+						"step-icon"
+					)}</div>
+					<div class="step-text">${__(step.title)}</div>
 				</div>
 			</a>`);
 

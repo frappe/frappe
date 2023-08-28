@@ -1215,7 +1215,7 @@ Object.assign(frappe.utils, {
 			size_class = `icon-${size}`;
 		}
 		return `<svg class="${
-			is_espresso ? "es-icon" : "icon"
+			is_espresso ? icon_name.startsWith("es-solid") ? "es-icon es-solid" : "es-icon es-line" : "icon"
 		} ${svg_class} ${size_class}" style="${icon_style}">
 			<use class="${icon_class}" href="${icon_name}"></use>
 		</svg>`;
