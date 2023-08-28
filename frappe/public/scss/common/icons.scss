@@ -13,14 +13,16 @@
 
 .es-icon {
 	@extend .icon;
+	// reverse fill and stroke because of the way es icon is drawn
 	fill: var(--icon-stroke);
 	stroke: var(--icon-fill);
 }
 
 /* like icon */
 use.like-icon {
+	--icon-stroke: transparent;
 	cursor: pointer;
-	stroke: var(--gray-500);
+	stroke: var(--gray-600);
 }
 
 #icon-file-large {
@@ -42,7 +44,7 @@ use.like-icon {
 .liked {
 	use.like-icon {
 		--icon-stroke: var(--red-500);
-		stroke: none;
+		stroke: var(--icon-stroke);
 		fill: var(--icon-stroke);
 	}
 }

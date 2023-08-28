@@ -632,7 +632,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<input class="level-item list-check-all" type="checkbox"
 				title="${__("Select All")}">
 			<span class="level-item list-liked-by-me hidden-xs">
-				<span title="${__("Likes")}">${frappe.utils.icon("heart", "sm", "like-icon")}</span>
+				<span title="${__("Likes")}">${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}</span>
 			</span>
 			<span class="level-item">${__(subject_field.label)}</span>
 		`;
@@ -969,7 +969,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			data-name="${doc.name}" data-doctype="${this.doctype}"
 			data-liked-by="${encodeURI(doc._liked_by) || "[]"}"
 			title="${liked_by.map((u) => frappe.user_info(u).fullname).join(", ")}">
-			${frappe.utils.icon("heart", "sm", "like-icon")}
+			${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
 		</span>
 		<span class="likes-count">
 			${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}

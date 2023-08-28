@@ -60,19 +60,24 @@
 	display: flex;
 	flex-direction: column;
 	outline: none;
+	padding: 4px 5px;
 
 	&:focus {
-		background-color: var(--yellow-highlight-color);
+		.list-row {
+			background-color: var(--highlight-color);
+		}
 	}
+
 }
 
 .list-row {
 	padding: 15px 15px 15px 0px;
-	height: 45px;
+	height: 38px;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
 	font-size: var(--text-base);
+	border-radius: var(--border-radius-md);
 
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
@@ -141,7 +146,7 @@
 	}
 
 	.select-like, .file-select {
-		padding: 15px 0px 15px 15px;
+		padding-left: 11px;
 	}
 }
 
@@ -228,6 +233,7 @@ $level-margin-right: 8px;
 
 input.list-check-all, input.list-row-checkbox {
 	margin-top: 0px;
+	margin-bottom: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
 
