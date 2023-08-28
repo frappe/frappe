@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.geo.country_info import get_country_info
+from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import get_messages_for_boot, send_translations, set_default_language
 from frappe.utils import cint, strip
 from frappe.utils.password import update_password
@@ -267,6 +268,20 @@ def add_all_roles_to(name):
 	user.save()
 
 
+<<<<<<< HEAD
+=======
+def _get_default_roles() -> set[str]:
+	skip_roles = {
+		"Administrator",
+		"Customer",
+		"Supplier",
+		"Partner",
+		"Employee",
+	}.union(AUTOMATIC_ROLES)
+	return set(frappe.get_all("Role", pluck="name")) - skip_roles
+
+
+>>>>>>> 1b406edd54 (feat: `Desk User` role)
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)

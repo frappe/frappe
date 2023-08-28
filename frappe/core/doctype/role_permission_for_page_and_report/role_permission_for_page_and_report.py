@@ -4,6 +4,11 @@
 import frappe
 from frappe.core.doctype.report.report import is_prepared_report_disabled
 from frappe.model.document import Document
+<<<<<<< HEAD
+=======
+from frappe.permissions import ALL_USER_ROLE
+from frappe.utils import cint
+>>>>>>> 1b406edd54 (feat: `Desk User` role)
 
 
 class RolePermissionforPageandReport(Document):
@@ -79,11 +84,19 @@ class RolePermissionforPageandReport(Document):
 		return {check_for_field: name}
 
 	def get_roles(self):
+<<<<<<< HEAD
 		roles = []
 		for data in self.roles:
 			if data.role != "All":
 				roles.append({"role": data.role, "parenttype": "Custom Role"})
 		return roles
+=======
+		return [
+			{"role": data.role, "parenttype": "Custom Role"}
+			for data in self.roles
+			if data.role != ALL_USER_ROLE
+		]
+>>>>>>> 1b406edd54 (feat: `Desk User` role)
 
 	def update_status(self):
 		return frappe.render_template
