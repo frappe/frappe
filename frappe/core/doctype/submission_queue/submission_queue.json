@@ -88,7 +88,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-01-23 12:45:53.997708",
+ "modified": "2023-08-28 18:48:56.242178",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Submission Queue",
@@ -96,16 +96,6 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1
-  },
-  {
-   "if_owner": 1,
    "read": 1,
    "role": "All"
   }

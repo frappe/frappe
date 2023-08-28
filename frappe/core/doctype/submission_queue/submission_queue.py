@@ -205,3 +205,7 @@ def format_tb(traceback: str | None = None):
 		return
 
 	return traceback.strip().split("\n")[-1]
+
+
+def has_permission(doc, ptype=None, user=None):
+	return frappe.get_cached_doc(doc.ref_doctype, doc.ref_docname).has_permission()
