@@ -35,7 +35,7 @@
 
 		.toggle-password {
 			position: absolute;
-			top: 4px;
+			top: 0;
 			right: 8px;
 			padding: 3px;
 			z-index: 3;
@@ -49,6 +49,7 @@ select.form-control {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+	padding-block: 0;
 }
 
 /* table multiselect */
@@ -196,6 +197,7 @@ select.form-control {
 }
 
 .ace_editor {
+	min-height: 48px;
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	.ace_gutter {

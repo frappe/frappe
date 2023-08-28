@@ -12,12 +12,12 @@
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--gray-600);
 	background-color: var(--gray-100);
-	font-size: var(--text-base);
+	font-size: var(--text-sm);
 	height: 32px;
 	padding: 0 !important;
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
-	
+
 	.grid-static-col, .row-check, .row-index {
 		height: 32px;
 		padding: 6px 8px !important;
@@ -41,7 +41,7 @@
 }
 
 .data-row textarea {
-	height: 46px;
+	height: 38px;
 }
 
 .form-grid .data-row {
@@ -85,7 +85,7 @@
 }
 
 .grid-body .data-row {
-	font-size: var(--text-base);
+	font-size: var(--text-sm);
 	font-weight: var(--weight-regular);
 	color: var(--gray-700)
 }
@@ -103,7 +103,7 @@
 
 .grid-static-col,
 .row-index {
-	height: 46px;
+	height: 38px;
 	max-height: 200px;
 
 	&.search {
@@ -117,7 +117,7 @@
 }
 
 .row-check {
-	height: 46px;
+	height: 38px;
 	text-align: center;
 
 	input {
@@ -198,6 +198,10 @@
 			padding: 0px !important;
 		}
 
+		.frappe-control[data-fieldtype=Select].form-group .select-icon {
+			top: 9px;
+		}
+
 		.checkbox {
 			margin: 0px;
 			text-align: center;
@@ -211,13 +215,14 @@
 		.form-control {
 			border-radius: 0px;
 			border: 0px;
-			padding-top: 8px;
-			padding-bottom: 9px;
-			height: 46px;
+			padding-top: 10px;
+			padding-bottom: 10px;
+			height: 38px;
 		}
 
 		.link-btn {
-			top: 0px;
+			top: 5px;
+			background-color: var(--neutral-white);
 		}
 
 		.form-control:focus {
