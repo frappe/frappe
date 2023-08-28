@@ -32,7 +32,6 @@ frappe.ui.form.on("Server Script", {
 				let msg = __("Server Scripts feature is not available on this site.") + " ";
 				msg += __("Please contact your system administrator to enable this feature.");
 				frm.dashboard.add_comment(msg, "yellow", true);
-				frm.disable_form();
 			}
 		});
 	},
