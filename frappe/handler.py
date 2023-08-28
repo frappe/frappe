@@ -217,7 +217,6 @@ def upload_file():
 			}
 		)
 		ret.save(ignore_permissions=ignore_permissions)
-		frappe.db.transaction_writes +=1
 		return ret
 
 
