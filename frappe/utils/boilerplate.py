@@ -518,7 +518,8 @@ gitignore_template = """.DS_Store
 *.egg-info
 *.swp
 tags
-node_modules"""
+node_modules
+__pycache__"""
 
 github_workflow_template = """
 name: CI
