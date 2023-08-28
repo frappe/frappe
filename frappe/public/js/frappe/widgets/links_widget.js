@@ -86,7 +86,7 @@ export default class LinksWidget extends Widget {
 			} ${disabled_dependent(item)}" type="${item.type}" title="${
 				item.label ? item.label : item.name
 			}">
-					<span class="indicator-pill no-margin grey" style="background:unset;"></span>
+					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</a>`);
 		});

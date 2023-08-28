@@ -1,6 +1,10 @@
 html,
 body {
 	background-color: var(--bg-color);
+	::selection {
+		color: var(--neutral-black);
+		background: var(--gray-300);
+	}
 }
 
 .desk-sidebar {
@@ -208,6 +212,11 @@ body {
 	// Overrides for each widgets
 	&.dashboard-widget-box {
 		min-height: 240px;
+		border: 1px solid var(--gray-300);
+
+		.widget-head {
+			padding: 4px 8px;
+		}
 
 		.filter-chart {
 			background-color: var(--control-bg);
@@ -543,12 +552,9 @@ body {
 		cursor: pointer;
 
 		&:hover {
+			--icon-stroke: var(--gray-600);
 			.widget-title {
 				color: var(--gray-600) !important;
-			}
-
-			svg.icon-xs {
-				stroke: var(--gray-600) !important;
 			}
 		}
 
@@ -566,7 +572,13 @@ body {
 
 	&.links-widget-box {
 
-		padding: 12px 7px;
+		.widget-head .widget-label .widget-title svg {
+			margin: 2px;
+			margin-right: 12px !important;
+		}
+
+		padding: 10px;
+    	border: 1px solid var(--gray-200);
 
 		.link-item {
 			display: flex;
@@ -575,9 +587,15 @@ body {
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;
-			margin-bottom: 4px;
+			margin-bottom: 0px;
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
+
+			.indicator-pill::before {
+				height: 4px;
+				width: 4px;
+				border-radius: var(--border-radius-lg);
+			}
 
 			&:hover {
 				background-color: var(--fg-hover-color);
@@ -588,7 +606,7 @@ body {
 			}
 
 			&:first-child {
-				margin-top: 18px;
+				margin-top: 12px;
 			}
 
 			&:last-child {
@@ -629,6 +647,7 @@ body {
 		cursor: pointer;
 		min-height: 84px;
 		padding: var(--number-card-padding);
+		border: 1px solid var(--gray-200);
 
 		.widget-head {
 			.widget-title {
@@ -1184,6 +1203,9 @@ body {
 						width: auto;
 						visibility: visible;
 						opacity: 1;
+					}
+					.widget-control > svg {
+						width: 12px;
 					}
 				}
 

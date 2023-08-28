@@ -60,15 +60,6 @@ export default class Shortcut extends Block {
 			this.add_settings_button();
 			this.add_new_block_button();
 		} else {
-			let $shortcut_icon = frappe.utils.icon(
-				"arrow-up-right",
-				"xs",
-				"",
-				"stroke: grey",
-				"ml-2"
-			);
-			$(this.wrapper).find(".widget .widget-title").append($shortcut_icon);
-
 			$(this.wrapper).append($(`<div class="divider"></div>`));
 		}
 		return this.wrapper;
