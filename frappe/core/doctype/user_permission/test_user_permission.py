@@ -230,8 +230,8 @@ class TestUserPermission(FrappeTestCase):
 			fields=["person_name"],
 		)
 
-		self.assertEqual(visible_names[0], {"person_name": "Child"}, {"person_name": "Parent"})
-		self.assertEqual(visible_names_after_hide_descendants[0], {"person_name": "Parent"})
+		self.assertEqual(visible_names, [{"person_name": "Child"}, {"person_name": "Parent"}])
+		self.assertEqual(visible_names_after_hide_descendants, [{"person_name": "Parent"}])
 
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
