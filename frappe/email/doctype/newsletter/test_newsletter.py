@@ -96,6 +96,8 @@ class TestNewsletterMixin:
 			newsletter.send_emails()
 			return newsletter.name
 
+		return newsletter
+
 	@staticmethod
 	def get_newsletter(**kwargs) -> "Newsletter":
 		"""Generate and return Newsletter object"""
@@ -162,7 +164,9 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 				self.assertTrue(email in recipients)
 
 	def test_schedule_send(self):
-		self.send_newsletter(schedule_send=add_days(getdate(), -1))
+		newsletter = self.send_newsletter(schedule_send=add_days(getdate(), 1))
+		newsletter.db_set("schedule_send", add_days(getdate(), -1))  # Set date in past
+		send_scheduled_email()
 
 		email_queue_list = [frappe.get_doc("Email Queue", e.name) for e in frappe.get_all("Email Queue")]
 		self.assertEqual(len(email_queue_list), 4)
