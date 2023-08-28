@@ -97,10 +97,6 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-		self._trace_comment = ""
-		if trace_id := get_trace_id():
-			self._trace_comment = f" /* FRAPPE_TRACE_ID: {trace_id} */"
-
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -213,7 +209,9 @@ class Database:
 			values = (values,)
 
 		query, values = self._transform_query(query, values)
-		query += self._trace_comment
+
+		if trace_id := get_trace_id():
+			query += f" /* FRAPPE_TRACE_ID: {trace_id} */"
 
 		try:
 			self._cursor.execute(query, values)

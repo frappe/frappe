@@ -26,7 +26,11 @@ def execute():
 	This patch converts them back to varchar.
 	"""
 	for doctype in possible_log_types:
-		if _is_implicit_int_pk(doctype) and not is_autoincremented(doctype):
+		if (
+			frappe.db.exists("DocType", doctype)
+			and _is_implicit_int_pk(doctype)
+			and not is_autoincremented(doctype)
+		):
 			frappe.db.change_column_type(
 				doctype,
 				"name",
