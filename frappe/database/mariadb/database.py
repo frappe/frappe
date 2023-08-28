@@ -277,6 +277,7 @@ class MariaDBDatabase(Database):
 				where table_name="{table_name}"
 					and column_name=columns.column_name
 					and NON_UNIQUE=1
+					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique'
@@ -294,6 +295,35 @@ class MariaDBDatabase(Database):
 				table_name=table_name, index_name=index_name
 			)
 		)
+
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False):
+		"""Check if column exists for a specific fields in specified order.
+
+		This differs from db.has_index because it doesn't rely on index name but columns inside an
+		index.
+		"""
+
+		indexes = self.sql(
+			f"""SHOW INDEX FROM `{table_name}`
+				WHERE Column_name = "{fieldname}"
+					AND Seq_in_index = 1
+					AND Non_unique={int(not unique)}
+				""",
+			as_dict=True,
+		)
+
+		# Same index can be part of clustered index which contains more fields
+		# We don't want those.
+		for index in indexes:
+			clustered_index = self.sql(
+				f"""SHOW INDEX FROM `{table_name}`
+					WHERE Key_name = "{index.Key_name}"
+						AND Seq_in_index = 2
+					""",
+				as_dict=True,
+			)
+			if not clustered_index:
+				return index
 
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.

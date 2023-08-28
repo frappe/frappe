@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+from typing import TYPE_CHECKING
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import (
@@ -102,7 +104,23 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 @frappe.whitelist()
 def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.get_all(
+	if not isinstance(doctype, str):
+		raise TypeError("doctype must be of type str")
+
+	if not isinstance(name, str):
+		raise TypeError("name must be of type str")
+
+	doc = frappe.get_doc(doctype, name)
+	return _get_users(doc)
+
+
+def _get_users(doc):
+	from frappe.permissions import has_permission
+
+	if not has_permission(doc.doctype, "read", doc, raise_exception=False):
+		return []
+
+	return frappe.get_all(
 		"DocShare",
 		fields=[
 			"`name`",
@@ -115,7 +133,7 @@ def get_users(doctype, name):
 			"owner",
 			"creation",
 		],
-		filters=dict(share_doctype=doctype, share_name=name),
+		filters=dict(share_doctype=doc.doctype, share_name=doc.name),
 	)
 
 

@@ -161,7 +161,13 @@ def set_default_language(lang):
 def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
 	return dict(
-		frappe.get_all("Language", fields=["language_name", "name"], order_by=None, as_list=True)
+		frappe.get_all(
+			"Language",
+			fields=["language_name", "name"],
+			filters={"enabled": True},
+			order_by=None,
+			as_list=True,
+		)
 	)
 
 
@@ -1078,11 +1084,6 @@ def get_all_languages(with_language_name=False):
 		return frappe.cache().get_value("languages_with_name", get_all_language_with_name)
 	else:
 		return frappe.cache().get_value("languages", get_language_codes)
-
-
-@frappe.whitelist(allow_guest=True)
-def set_preferred_language_cookie(preferred_language):
-	frappe.local.cookie_manager.set_cookie("preferred_language", preferred_language)
 
 
 def get_preferred_language_cookie():

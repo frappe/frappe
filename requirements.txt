@@ -3,7 +3,7 @@ beautifulsoup4~=4.9.3
 bleach-allowlist~=1.0.3
 bleach~=3.3.0
 boto3~=1.17.53
-braintree~=4.8.0
+braintree~=4.20.0
 chardet~=4.0.0
 Click~=7.1.2
 filelock~=3.8.0
@@ -57,7 +57,7 @@ pypng~=0.0.20
 PyQRCode~=1.2.1
 python-dateutil~=2.8.1
 pytz==2021.1
-PyYAML~=5.4.1
+PyYAML~=6.0.1
 rauth~=0.7.3
 razorpay~=1.2.0
 redis~=3.5.3

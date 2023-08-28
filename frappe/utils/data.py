@@ -1530,14 +1530,14 @@ operator_map = {
 	"in": lambda a, b: operator.contains(b, a),
 	"not in": lambda a, b: not operator.contains(b, a),
 	# comparison operators
-	"=": lambda a, b: operator.eq(a, b),
-	"!=": lambda a, b: operator.ne(a, b),
-	">": lambda a, b: operator.gt(a, b),
-	"<": lambda a, b: operator.lt(a, b),
-	">=": lambda a, b: operator.ge(a, b),
-	"<=": lambda a, b: operator.le(a, b),
-	"not None": lambda a, b: a and True or False,
-	"None": lambda a, b: (not a) and True or False,
+	"=": operator.eq,
+	"!=": operator.ne,
+	">": operator.gt,
+	"<": operator.lt,
+	">=": operator.ge,
+	"<=": operator.le,
+	"not None": lambda a, b: a is not None,
+	"None": lambda a, b: a is None,
 }
 
 
@@ -1561,6 +1561,7 @@ def evaluate_filters(doc, filters: Union[Dict, List, Tuple]):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: Optional[str] = None):
 	ret = False
 	if fieldtype:
+		val1 = cast(fieldtype, val1)
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)

@@ -12,32 +12,28 @@ from __future__ import print_function, unicode_literals
 
 # imports - standard imports
 import os
+import random
 import time
-
-# imports - third party imports
-import schedule
 
 # imports - module imports
 import frappe
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
-from frappe.utils import get_datetime, get_sites, now_datetime
+from frappe.utils import cint, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import get_jobs
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def start_scheduler():
-	"""Run enqueue_events_for_all_sites every 2 minutes (default).
+	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_interval in seconds in common_site_config.json"""
 
-	schedule.every(frappe.get_conf().scheduler_tick_interval or 60).seconds.do(
-		enqueue_events_for_all_sites
-	)
+	tick = cint(frappe.get_conf().scheduler_tick_interval) or 60
 
 	while True:
-		schedule.run_pending()
-		time.sleep(1)
+		time.sleep(tick)
+		enqueue_events_for_all_sites()
 
 
 def enqueue_events_for_all_sites():
@@ -49,6 +45,9 @@ def enqueue_events_for_all_sites():
 
 	with frappe.init_site():
 		sites = get_sites()
+
+	# Sites are sorted in alphabetical order, shuffle to randomize priorities
+	random.shuffle(sites)
 
 	for site in sites:
 		try:

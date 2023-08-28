@@ -106,6 +106,33 @@ class TestFilters(unittest.TestCase):
 			)
 		)
 
+	def test_date_time(self):
+		# date fields
+		self.assertTrue(
+			evaluate_filters(
+				{"doctype": "User", "birth_date": "2023-02-28"}, [("User", "birth_date", ">", "01-04-2022")]
+			)
+		)
+		self.assertFalse(
+			evaluate_filters(
+				{"doctype": "User", "birth_date": "2023-02-28"}, [("User", "birth_date", "<", "28-02-2023")]
+			)
+		)
+
+		# datetime fields
+		self.assertTrue(
+			evaluate_filters(
+				{"doctype": "User", "last_active": "2023-02-28 15:14:56"},
+				[("User", "last_active", ">", "01-04-2022 00:00:00")],
+			)
+		)
+		self.assertFalse(
+			evaluate_filters(
+				{"doctype": "User", "last_active": "2023-02-28 15:14:56"},
+				[("User", "last_active", "<", "28-02-2023 00:00:00")],
+			)
+		)
+
 
 class TestMoney(unittest.TestCase):
 	def test_money_in_words(self):

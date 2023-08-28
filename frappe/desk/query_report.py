@@ -363,7 +363,7 @@ def export_query():
 		visible_idx = json.loads(visible_idx)
 
 	if file_format_type == "Excel":
-		data = run(report_name, filters, custom_columns=custom_columns)
+		data = run(report_name, filters, custom_columns=custom_columns, are_default_filters=False)
 		data = frappe._dict(data)
 		if not data.columns:
 			frappe.respond_as_web_page(
