@@ -86,6 +86,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				});
 			}
 
+			res_html += '<div class="dropdown-divider" style="margin-top: 4px;"></div>';
+			res_html += "<li>" + __("Help on Awesome Bar") + "</li>";
+
 			res_html += "</ul>";
 
 			$toolbar_frequent_and_recent.html(res_html);
@@ -132,6 +135,13 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				}
 			} else if (e.which === 13) {
 				// Enter is pressed
+				if ($selected_element[0].innerText === __("Help on Awesome Bar")) {
+					me.show_awesomebar_help();
+					$input.trigger("blur");
+					$toolbar_frequent_and_recent.hide();
+					return;
+				}
+
 				var recently_visited_links = me.deduplicate(
 					frappe.search.utils.get_recent_pages("")
 				);
@@ -203,9 +213,16 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		});
 
 		$toolbar_frequent_and_recent.on("click", "li", function (e) {
-			var recently_visited_links = me.deduplicate(frappe.search.utils.get_recent_pages(""));
 			var o = e.originalEvent;
 			var value = o.target.innerText;
+
+			if (value === __("Help on Awesome Bar")) {
+				me.show_awesomebar_help();
+				$toolbar_frequent_and_recent.hide();
+				return;
+			}
+
+			var recently_visited_links = me.deduplicate(frappe.search.utils.get_recent_pages(""));
 
 			var link_to_go_to = recently_visited_links
 				.concat(frequently_visited_links)
