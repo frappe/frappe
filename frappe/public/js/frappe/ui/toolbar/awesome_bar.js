@@ -117,10 +117,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 						$recent_and_frequent_elements.length - 1
 					);
 					$next_element.attr("aria-selected", "true");
+					$next_element[0].scrollIntoView(false);
 				} else {
 					$selected_element.attr("aria-selected", "false");
 					$next_element = $recent_and_frequent_elements.eq(idx - 1);
 					$next_element.attr("aria-selected", "true");
+					$next_element[0].scrollIntoView(false);
 				}
 			} else if (e.which === 40) {
 				// Arrow Down is pressed
@@ -128,10 +130,12 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					$selected_element.attr("aria-selected", "false");
 					$next_element = $recent_and_frequent_elements.eq(0);
 					$next_element.attr("aria-selected", "true");
+					$next_element[0].scrollIntoView(false);
 				} else {
 					$selected_element.attr("aria-selected", "false");
 					$next_element = $recent_and_frequent_elements.eq(idx + 1);
 					$next_element.attr("aria-selected", "true");
+					$next_element[0].scrollIntoView(false);
 				}
 			} else if (e.which === 13) {
 				// Enter is pressed
