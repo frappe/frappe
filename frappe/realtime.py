@@ -60,11 +60,11 @@ def publish_realtime(
 			if "task_id" not in message:
 				message["task_id"] = task_id
 			room = get_task_progress_room(task_id)
+		elif doctype and docname:
+			room = get_doc_room(doctype, docname)
 		elif user:
 			# transmit to specific user: System, Website or Guest
 			room = get_user_room(user)
-		elif doctype and docname:
-			room = get_doc_room(doctype, docname)
 		else:
 			# This will be broadcasted to all Desk users
 			room = get_site_room()
