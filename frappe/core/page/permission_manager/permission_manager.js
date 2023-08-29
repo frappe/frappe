@@ -148,7 +148,6 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	get_doctype() {
 		let doctype = this.doctype_select.get_value();
-		//return this.doctype_select.get(0).selectedIndex == 0 ? null : doctype;
 		return doctype;
 	}
 
