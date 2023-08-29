@@ -31,7 +31,7 @@ from frappe.query_builder import (
 	patch_query_execute,
 )
 from frappe.utils.caching import request_cache
-from frappe.utils.data import cstr, sbool
+from frappe.utils.data import cint, cstr, sbool
 
 # Local application imports
 from .exceptions import *
@@ -1972,8 +1972,6 @@ def as_json(obj: dict | list, indent=1, separators=None) -> str:
 
 
 def are_emails_muted():
-	from frappe.utils import cint
-
 	return flags.mute_emails or cint(conf.get("mute_emails") or 0) or False
 
 
@@ -2068,49 +2066,47 @@ def attach_print(
 	lang=None,
 	print_letterhead=True,
 	password=None,
+	letterhead=None,
 ):
+	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
-
-	if not file_name:
-		file_name = name
-	file_name = cstr(file_name).replace(" ", "").replace("/", "-")
+	from frappe.utils.pdf import get_pdf
 
 	print_settings = db.get_singles_dict("Print Settings")
-
-	_lang = local.lang
-
-	# set lang as specified in print format attachment
-	if lang:
-		local.lang = lang
-	local.flags.ignore_print_permissions = True
-
-	no_letterhead = not print_letterhead
 
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
 		html=html,
 		doc=doc,
-		no_letterhead=no_letterhead,
+		no_letterhead=not print_letterhead,
+		letterhead=letterhead,
 		password=password,
 	)
 
-	content = ""
-	if int(print_settings.send_print_as_pdf or 0):
-		ext = ".pdf"
-		kwargs["as_pdf"] = True
-		content = get_print(doctype, name, **kwargs)
-	else:
-		ext = ".html"
-		content = scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+	local.flags.ignore_print_permissions = True
 
-	out = {"fname": file_name + ext, "fcontent": content}
+	with print_language(lang or local.lang):
+		content = ""
+		if cint(print_settings.send_print_as_pdf):
+			ext = ".pdf"
+			kwargs["as_pdf"] = True
+			content = (
+				get_pdf(html, options={"password": password} if password else None)
+				if html
+				else get_print(doctype, name, **kwargs)
+			)
+		else:
+			ext = ".html"
+			content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
 
 	local.flags.ignore_print_permissions = False
-	# reset lang to original local lang
-	local.lang = _lang
 
-	return out
+	if not file_name:
+		file_name = name
+	file_name = cstr(file_name).replace(" ", "").replace("/", "-") + ext
+
+	return {"fname": file_name, "fcontent": content}
 
 
 def publish_progress(*args, **kwargs):
@@ -2409,7 +2405,6 @@ def validate_and_sanitize_search_inputs(fn):
 	@functools.wraps(fn)
 	def wrapper(*args, **kwargs):
 		from frappe.desk.search import sanitize_searchfield
-		from frappe.utils import cint
 
 		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
 		sanitize_searchfield(kwargs["searchfield"])
