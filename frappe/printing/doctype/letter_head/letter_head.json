@@ -168,7 +168,7 @@
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2022-06-16 23:10:46.852116",
+ "modified": "2023-08-28 22:19:23.720332",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
@@ -188,7 +188,7 @@
   },
   {
    "read": 1,
-   "role": "All"
+   "role": "Desk User"
   }
  ],
  "sort_field": "modified",
