@@ -44,21 +44,28 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	setup_page() {
-		this.doctype_select = this.wrapper.page
-			.add_select(
-				__("Document Type"),
-				[{ value: "", label: __("Select Document Type") + "..." }].concat(
-					this.options.doctypes
-				)
-			)
-			.change(function () {
-				frappe.set_route("permission-manager", $(this).val());
-			});
 
+		this.doctype_select = this.wrapper.page
+			.add_field({
+				fieldname: 'doctype_select',
+				label: __("Document Type"),
+				fieldtype:'Link',
+				options:'DocType',
+				change: function() {
+					frappe.set_route("permission-manager", this.get_value());
+				}
+			})
+
+		let me = this;
 		this.role_select = this.wrapper.page
-			.add_select(__("Roles"), [__("Select Role") + "..."].concat(this.options.roles))
-			.change(() => {
-				this.refresh();
+			.add_field({
+				fieldname: 'role_select',
+				label: __("Roles"),
+				fieldtype:'Link',
+				options:'Role',
+				change: function() {
+					me.refresh();
+				}
 			});
 
 		this.page.add_inner_button(__("Set User Permissions"), () => {
@@ -76,13 +83,13 @@ frappe.PermissionEngine = class PermissionEngine {
 			return;
 		}
 		if (frappe.get_route()[1]) {
-			this.doctype_select.val(frappe.get_route()[1]);
+			this.doctype_select.set_value(frappe.get_route()[1]);
 		} else if (frappe.route_options) {
 			if (frappe.route_options.doctype) {
-				this.doctype_select.val(frappe.route_options.doctype);
+				this.doctype_select.set_value(frappe.route_options.doctype);
 			}
 			if (frappe.route_options.role) {
-				this.role_select.val(frappe.route_options.role);
+				this.role_select.set_value(frappe.route_options.role);
 			}
 			frappe.route_options = null;
 		}
@@ -140,13 +147,14 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	get_doctype() {
-		let doctype = this.doctype_select.val();
-		return this.doctype_select.get(0).selectedIndex == 0 ? null : doctype;
+		let doctype = this.doctype_select.get_value();
+		//return this.doctype_select.get(0).selectedIndex == 0 ? null : doctype;
+		return doctype;
 	}
 
 	get_role() {
-		let role = this.role_select.val();
-		return this.role_select.get(0).selectedIndex == 0 ? null : role;
+		let role = this.role_select.get_value();
+		return role;
 	}
 
 	set_empty_message(message) {
