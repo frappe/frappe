@@ -233,7 +233,7 @@ def add_custom_column_data(custom_columns, result):
 
 				# backwards compatibile `link_field`
 				# old custom reports which use `str` should not break.
-				if type(link_field) == str:
+				if isinstance(link_field, str):
 					link_field = frappe._dict({"fieldname": link_field, "names": []})
 
 				row_reference = row.get(link_field.get("fieldname"))
@@ -473,7 +473,7 @@ def get_data_for_custom_field(doctype, field, names=None):
 
 	filters = {}
 	if names:
-		if type(names) in [str, bytearray]:
+		if isinstance(names, (str, bytearray)):
 			names = frappe.json.loads(names)
 		filters.update({"name": ["in", names]})
 
@@ -487,7 +487,7 @@ def get_data_for_custom_report(columns, result):
 		# backwards compatibile `link_field`
 		# old custom reports which use `str` should not break
 		link_field = column.get("link_field")
-		if type(link_field) == str:
+		if isinstance(link_field, str):
 			link_field = frappe._dict({"fieldname": link_field, "names": []})
 
 		fieldname = column.get("fieldname")
