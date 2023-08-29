@@ -118,3 +118,11 @@ def zip_files(files: str):
 	frappe.response["filename"] = "files.zip"
 	frappe.response["filecontent"] = File.zip_files(files)
 	frappe.response["type"] = "download"
+
+
+@frappe.whitelist()
+def toggle_is_private(file_name: str):
+	"""Toggle is_private flag of file"""
+	file = frappe.get_doc("File", file_name)
+	file.is_private = not file.is_private
+	file.save()

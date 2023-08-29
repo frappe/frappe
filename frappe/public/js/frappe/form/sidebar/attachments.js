@@ -161,13 +161,35 @@ frappe.ui.form.Attachments = class Attachments {
 			};
 		}
 
-		const icon = `<a href="/app/file/${fileid}">
+		const icon = `<div class="file-privacy-icon" title="${__("Toggle file privacy")}">
 				${frappe.utils.icon(attachment.is_private ? "lock" : "unlock", "sm ml-0")}
-			</a>`;
+			</div>`;
 
-		$(`<li class="attachment-row">`)
+		const row = $(`<li class="attachment-row">`)
 			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
 			.insertAfter(this.add_attachment_wrapper);
+
+		row.find(".file-privacy-icon").on("click", () => {
+			if (this.frm.is_dirty()) {
+				frappe.show_alert({
+					message: __("Please save the document before changing privacy settings."),
+					indicator: "orange",
+				});
+				return;
+			}
+
+			frappe.call({
+				method: "frappe.core.api.file.toggle_is_private",
+				args: {
+					file_name: attachment.name,
+				},
+				callback: (r) => {
+					if (!r.exc) {
+						this.frm.reload_doc();
+					}
+				},
+			});
+		});
 
 		this.parent.find(".explore-btn").toggle(true); // show explore icon button if hidden
 	}
