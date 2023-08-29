@@ -247,7 +247,7 @@ def add_custom_column_data(custom_columns, result):
 		key = (column.get("doctype"), column.get("fieldname"))
 		if key in custom_column_data:
 			for row in result:
-				row_reference = row.get(column.get("link_field"))
+				row_reference = row.get(column.get("link_field").get("fieldname"))
 				# possible if the row is empty
 				if not row_reference:
 					continue
