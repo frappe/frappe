@@ -444,24 +444,21 @@ def load_currency_docs(bootinfo):
 
 
 def get_marketplace_apps():
+	import requests
+
 	apps = []
-	cached_key = "marketplace_apps"
+	cache_key = "marketplace_apps"
+
+	def get_apps_from_fc():
+		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
+		request_url = f"https://{remote_site}/api/method/marketplace-apps"
+		request = requests.get(request_url, timeout=5.0)
+		return request.json()["message"]
 
 	try:
-		apps = frappe.cache().get_value(cached_key, shared=True)
-		if not apps:
-			import requests
-
-			remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-			request_url = f"https://{remote_site}/api/method/marketplace-apps"
-			request = requests.get(request_url)
-			apps = request.json()["message"]
-			frappe.cache().set_value(
-				key=cached_key, value=apps, shared=True, expires_in_sec=60 * 60 * 24 * 7
-			)
-
-		# ignore installed apps for site
-		apps = [app for app in apps if app["name"] not in frappe.get_installed_apps()]
+		apps = frappe.cache().get_value(cache_key, get_apps_from_fc, shared=True)
+		installed_apps = set(frappe.get_installed_apps())
+		apps = [app for app in apps if app["name"] not in installed_apps]
 	except Exception:
 		pass
 

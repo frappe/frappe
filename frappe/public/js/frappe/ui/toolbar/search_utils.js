@@ -629,7 +629,7 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		frappe.boot.marketplace_apps.forEach(function (item) {
-			var level = me.fuzzy_search(keywords, item.title);
+			var level = me.fuzzy_search(keywords, item.title) * 0.8;
 			if (level > 0) {
 				var ret = {
 					label: __("Install {0} from Marketplace", [
