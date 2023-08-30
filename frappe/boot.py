@@ -451,7 +451,7 @@ def get_marketplace_apps():
 
 	def get_apps_from_fc():
 		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-		request_url = f"https://{remote_site}/api/method/marketplace-apps"
+		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
 		request = requests.get(request_url, timeout=5.0)
 		return request.json()["message"]
 
