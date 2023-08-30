@@ -44,6 +44,7 @@ def get_context(context):
 
 	include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
 	include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])
+	include_icons = hooks.get("app_include_icons", []) + frappe.conf.get("app_include_icons", [])
 
 	context.update(
 		{
@@ -51,6 +52,7 @@ def get_context(context):
 			"build_version": frappe.utils.get_build_version(),
 			"include_js": include_js,
 			"include_css": include_css,
+			"include_icons": include_icons,
 			"layout_direction": "rtl" if is_rtl() else "ltr",
 			"lang": frappe.local.lang,
 			"sounds": hooks["sounds"],
