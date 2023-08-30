@@ -223,3 +223,4 @@ frappe.patches.v14_0.remove_background_jobs_from_dropdown
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
 frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
+frappe.patches.v15_0.set_file_type
