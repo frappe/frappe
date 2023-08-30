@@ -326,6 +326,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				txt = txt.substr(1);
 			}
 			try {
+				txt=txt.replace(/([^\d,]?\d{1,3}(,\d{3})*(\.\d+)?[^\d,])/gm, match => match.replace(',', ''));
 				var val = eval(txt);
 				var formatted_value = __("{0} = {1}", [txt, (val + "").bold()]);
 				this.options.push({
