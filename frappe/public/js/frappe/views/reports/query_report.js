@@ -1703,10 +1703,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								args: {
 									field: values.field,
 									doctype: values.doctype,
+									names: Array.from(
+										this.doctype_field_map[values.doctype].names
+									),
 								},
 								callback: (r) => {
 									const custom_data = r.message;
-									const link_field = this.doctype_field_map[values.doctype];
+									const link_field =
+										this.doctype_field_map[values.doctype].fieldname;
 
 									this.add_custom_column(
 										custom_columns,
@@ -1844,7 +1848,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		);
 
 		doctypes.forEach((doc) => {
-			this.doctype_field_map[doc.doctype] = doc.fieldname;
+			this.doctype_field_map[doc.doctype] = { fieldname: doc.fieldname, names: new Set() };
+		});
+
+		this.data.forEach((row) => {
+			doctypes.forEach((doc) => {
+				this.doctype_field_map[doc.doctype].names.add(row[doc.fieldname]);
+			});
 		});
 
 		return doctypes;

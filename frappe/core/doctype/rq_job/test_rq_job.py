@@ -9,13 +9,13 @@ from rq.job import Job
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
+from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import is_job_enqueued
 
 
 class TestRQJob(FrappeTestCase):
-
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
 	@timeout(seconds=20)
@@ -103,6 +103,17 @@ class TestRQJob(FrappeTestCase):
 		job = frappe.enqueue(self.BG_JOB, sleep=10, job_id=job_id)
 		self.assertTrue(is_job_enqueued(job_id))
 		stop_job(job.id)
+
+	@timeout(20)
+	def test_clear_failed_jobs(self):
+		limit = 10
+		update_site_config("rq_failed_jobs_limit", limit)
+
+		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
+		self.check_status(jobs[-1], "failed")
+		self.assertLessEqual(
+			RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1
+		)
 
 
 def test_func(fail=False, sleep=0):

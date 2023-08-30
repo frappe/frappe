@@ -511,7 +511,7 @@ def replace_filename_with_cid(message):
 
 		filecontent = get_filecontent_from_path(img_path)
 		if not filecontent:
-			message = re.sub(f"""embed=['"]{img_path}['"]""", "", message)
+			message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", "", message)
 			continue
 
 		content_id = random_string(10)
@@ -520,7 +520,7 @@ def replace_filename_with_cid(message):
 			{"filename": filename, "filecontent": filecontent, "content_id": content_id}
 		)
 
-		message = re.sub(f"""embed=['"]{img_path}['"]""", f'src="cid:{content_id}"', message)
+		message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", f'src="cid:{content_id}"', message)
 
 	return (message, inline_images)
 

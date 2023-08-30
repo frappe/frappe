@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails
+from frappe.core.doctype.communication.email import add_attachments
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
 
@@ -373,6 +374,39 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		self.assertCountEqual(to_list + cc_list, mail_receivers)
 		doc.delete()
 		comm.delete()
+
+	def test_add_attachments_by_filename(self):
+		to_list = ["to <to@test.com>"]
+		comm = self.new_communication(recipients=to_list)
+
+		file = frappe.new_doc("File")
+		file.file_name = "test_add_attachments_by_filename.txt"
+		file.content = "test_add_attachments_by_filename"
+		file.insert(ignore_permissions=True)
+
+		add_attachments(comm.name, [file.name])
+
+		attached_file_name, attached_content_hash = frappe.db.get_value(
+			"File",
+			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
+			["file_name", "content_hash"],
+		)
+		self.assertEqual(attached_content_hash, file.content_hash)
+		self.assertEqual(attached_file_name, file.file_name)
+
+	def test_add_attachments_by_file_content(self):
+		to_list = ["to <to@test.com>"]
+		comm = self.new_communication(recipients=to_list)
+		file_name = "test_add_attachments_by_file_content.txt"
+		file_content = "test_add_attachments_by_file_content"
+		add_attachments(comm.name, [{"fcontent": file_content, "fname": file_name}])
+		attached_file_name = frappe.db.get_value(
+			"File",
+			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
+		)
+		attached_file = frappe.get_doc("File", attached_file_name)
+		self.assertEqual(attached_file.file_name, file_name)
+		self.assertEqual(attached_file.get_content(), file_content)
 
 
 def create_email_account() -> "EmailAccount":

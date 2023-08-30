@@ -526,15 +526,11 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 
 
 @frappe.whitelist()
-def update_reference(docname, reference):
-	result = ""
-	try:
-		frappe.db.set_value("Auto Repeat", docname, "reference_document", reference)
-		result = "success"
-	except Exception as e:
-		result = "error"
-		raise e
-	return result
+def update_reference(docname: str, reference: str):
+	doc = frappe.get_doc("Auto Repeat", str(docname))
+	doc.check_permission("write")
+	doc.db_set("reference_document", str(reference))
+	return "success"  # backward compatbility
 
 
 @frappe.whitelist()

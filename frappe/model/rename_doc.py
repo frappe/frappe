@@ -358,12 +358,12 @@ def validate_rename(
 	if old == new:
 		frappe.throw(_("No changes made because old and new name are the same.").format(old, new))
 
-	if merge and not exists:
-		frappe.throw(_("{0} {1} does not exist, select a new target to merge").format(doctype, new))
-
 	if exists and exists != new:
 		# for fixing case, accents
 		exists = None
+
+	if merge and not exists:
+		frappe.throw(_("{0} {1} does not exist, select a new target to merge").format(doctype, new))
 
 	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))

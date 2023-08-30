@@ -211,7 +211,9 @@ class Document(BaseDocument):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(self.doctype)
+		frappe.flags.error_message = (
+			_("Insufficient Permission for {0}").format(self.doctype) + f" ({frappe.bold(_(perm_type))})"
+		)
 		raise frappe.PermissionError
 
 	def insert(

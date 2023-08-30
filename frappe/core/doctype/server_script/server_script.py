@@ -17,8 +17,11 @@ class ServerScript(Document):
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
-		frappe.cache().delete_value("server_script_map")
 		self.sync_scheduler_events()
+
+	def clear_cache(self):
+		frappe.cache().delete_value("server_script_map")
+		return super().clear_cache()
 
 	def on_trash(self):
 		if self.script_type == "Scheduler Event":

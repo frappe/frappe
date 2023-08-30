@@ -9,7 +9,6 @@ doctypes_for_mapping = {
 	"Energy Point Rule",
 	"Assignment Rule",
 	"Milestone Tracker",
-	"Event Consumer Document",
 	"Document Naming Rule",
 }
 
