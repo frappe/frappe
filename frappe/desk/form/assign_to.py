@@ -233,11 +233,11 @@ def notify_assignment(
 
 	if action == "CLOSE":
 		subject = _("Your assignment on {0} {1} has been removed by {2}").format(
-			frappe.bold(doc_type), get_title_html(title), frappe.bold(user_name)
+			frappe.bold(_(doc_type)), get_title_html(title), frappe.bold(user_name)
 		)
 	else:
 		user_name = frappe.bold(user_name)
-		document_type = frappe.bold(doc_type)
+		document_type = frappe.bold(_(doc_type))
 		title = get_title_html(title)
 		subject = _("{0} assigned a new task {1} {2} to you").format(user_name, document_type, title)
 

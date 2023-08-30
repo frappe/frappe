@@ -4749,4 +4749,5 @@ Update Series Counter,Mettre à jour le compteur d'un masque de numérotation
 Change the starting / current sequence number of an existing series. <br>\n\nWarning: Incorrectly updating counters can prevent documents from getting created.,Mettre à jour le compteur d'un masque de numérotation<br>\n\nAttention: Mettre à jour de maniére inconsistance le compteur peux empêcher la création d'un document
 No Results found,Aucun résultat trouvé
 Shelf Life in Days,Durée de conservation (en jours)
-Batch Expiry Date,Date d'expiration du Lot
+Batch Expiry Date,Date d'expiration du Lot,
+Edit Full Form,Ouvrir le formulaire complet
