@@ -241,13 +241,20 @@ def run(
 
 
 def add_custom_column_data(custom_columns, result):
-	custom_column_data = get_data_for_custom_report(custom_columns)
+	custom_column_data = get_data_for_custom_report(custom_columns, result)
 
 	for column in custom_columns:
 		key = (column.get("doctype"), column.get("fieldname"))
 		if key in custom_column_data:
 			for row in result:
-				row_reference = row.get(column.get("link_field"))
+				link_field = column.get("link_field")
+
+				# backwards compatibile `link_field`
+				# old custom reports which use `str` should not break.
+				if isinstance(link_field, str):
+					link_field = frappe._dict({"fieldname": link_field, "names": []})
+
+				row_reference = row.get(link_field.get("fieldname"))
 				# possible if the row is empty
 				if not row_reference:
 					continue
@@ -480,7 +487,9 @@ def get_data_for_custom_field(doctype, field, names=None):
 
 	filters = {}
 	if names:
-		filters.update({"name": ["in", json.loads(names)]})
+		if isinstance(names, (str, bytearray)):
+			names = frappe.json.loads(names)
+		filters.update({"name": ["in", names]})
 
 	value_map = frappe._dict(
 		frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1)
@@ -488,14 +497,23 @@ def get_data_for_custom_field(doctype, field, names=None):
 	return value_map
 
 
-def get_data_for_custom_report(columns):
+def get_data_for_custom_report(columns, result):
 	doc_field_value_map = {}
 
 	for column in columns:
-		if column.get("link_field"):
-			fieldname = column.get("fieldname")
-			doctype = column.get("doctype")
-			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname)
+		# backwards compatibile `link_field`
+		# old custom reports which use `str` should not break
+		link_field = column.get("link_field")
+		if isinstance(link_field, str):
+			link_field = frappe._dict({"fieldname": link_field, "names": []})
+
+		fieldname = column.get("fieldname")
+		doctype = column.get("doctype")
+
+		row_key = link_field.get("fieldname")
+		names = list({row[row_key] for row in result}) or None
+
+		doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname, names)
 
 	return doc_field_value_map
 
