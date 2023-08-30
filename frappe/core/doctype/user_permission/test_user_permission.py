@@ -175,6 +175,11 @@ class TestUserPermission(FrappeTestCase):
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
 
+		frappe.set_user(user.name)
+		visible_names = frappe.get_list(
+			doctype="Person",
+			pluck="person_name",
+		)
 		frappe.db.set_value(
 			"User Permission", {"allow": "Person", "for_value": parent_record.name}, "hide_descendants", 1
 		)
@@ -184,6 +189,14 @@ class TestUserPermission(FrappeTestCase):
 		# hides child records
 		self.assertTrue(has_user_permission(frappe.get_doc("Person", parent_record.name), user.name))
 		self.assertFalse(has_user_permission(frappe.get_doc("Person", child_record.name), user.name))
+
+		visible_names_after_hide_descendants = frappe.get_list(
+			"Person",
+			pluck="person_name",
+		)
+		self.assertEqual(visible_names, ["Child", "Parent"])
+		self.assertEqual(visible_names_after_hide_descendants, ["Parent"])
+		frappe.set_user("Administrator")
 
 	def test_user_perm_on_new_doc_with_field_default(self):
 		"""Test User Perm impact on frappe.new_doc. with *field* default value"""
