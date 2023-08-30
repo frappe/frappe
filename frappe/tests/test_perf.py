@@ -17,11 +17,8 @@ query. This test can be written like this.
 
 """
 import time
-<<<<<<< HEAD
 import unittest
-=======
 from unittest.mock import patch
->>>>>>> 151874c035 (test: ensure `get_permitted_fieldnames` is called only once per doc)
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 

@@ -18,9 +18,6 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-<<<<<<< HEAD
-from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
-=======
 from frappe.utils import (
 	cast_fieldtype,
 	cint,
@@ -32,7 +29,6 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
->>>>>>> 7dc67f2feb (chore: add back `getattr` for virtual docfields which get value from a property)
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
@@ -99,7 +95,6 @@ def get_controller(doctype):
 
 
 class BaseDocument:
-<<<<<<< HEAD
 	_reserved_keywords = {
 		"doctype",
 		"meta",
@@ -111,26 +106,9 @@ class BaseDocument:
 		"_doc_before_save",
 		"_table_fieldnames",
 		"_reserved_keywords",
+		"_permitted_fieldnames",
 		"dont_update_if_missing",
 	}
-=======
-	_reserved_keywords = frozenset(
-		(
-			"doctype",
-			"meta",
-			"_meta",
-			"flags",
-			"parent_doc",
-			"_table_fields",
-			"_valid_columns",
-			"_doc_before_save",
-			"_table_fieldnames",
-			"_reserved_keywords",
-			"_permitted_fieldnames",
-			"dont_update_if_missing",
-		)
-	)
->>>>>>> 928bc46be3 (perf: undo regression in `as_dict` performance)
 
 	def __init__(self, d):
 		if d.get("doctype"):

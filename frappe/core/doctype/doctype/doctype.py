@@ -33,11 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-<<<<<<< HEAD
-from frappe.utils import cint, random_string
-=======
-from frappe.utils import cint, flt, is_a_property, random_string
->>>>>>> 7dc67f2feb (chore: add back `getattr` for virtual docfields which get value from a property)
+from frappe.utils import cint, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
