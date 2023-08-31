@@ -146,7 +146,7 @@ class TestUserPermission(FrappeTestCase):
 		"""Test if descendants' visibility is controlled for a nested DocType."""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		user = create_user("nested_doc_user@example.com", "Blogger")
+		user = create_user("nested_doc_user@example.com")
 		if not frappe.db.exists("DocType", "Person"):
 			doc = new_doctype(
 				"Person",
