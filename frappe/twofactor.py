@@ -9,6 +9,7 @@ import pyotp
 import frappe
 import frappe.defaults
 from frappe import _
+from frappe.permissions import ALL_USER_ROLE
 from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
@@ -116,8 +117,7 @@ def two_factor_is_enabled_for_(user):
 
 	if isinstance(user, str):
 		user = frappe.get_doc("User", user)
-
-	roles = [d.role for d in user.roles or []] + ["All"]
+	roles = [d.role for d in user.roles or []] + [ALL_USER_ROLE]
 
 	role_doctype = frappe.qb.DocType("Role")
 	no_of_users = frappe.db.count(

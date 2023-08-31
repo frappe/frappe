@@ -99,7 +99,7 @@
   }
  ],
  "links": [],
- "modified": "2023-03-30 11:25:48.832384",
+ "modified": "2023-08-28 20:22:58.267442",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",
@@ -121,7 +121,7 @@
    "delete": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "All",
+   "role": "Desk User",
    "write": 1
   }
  ],

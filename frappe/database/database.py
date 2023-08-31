@@ -29,6 +29,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
+from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
@@ -57,23 +58,6 @@ class Database:
 	DEFAULT_COLUMNS = ["name", "creation", "modified", "modified_by", "owner", "docstatus", "idx"]
 	CHILD_TABLE_COLUMNS = ("parent", "parenttype", "parentfield")
 	MAX_WRITES_PER_TRANSACTION = 200_000
-
-	# NOTE:
-	# FOR MARIADB - using no cache - as during backup, if the sequence was used in anyform,
-	# it drops the cache and uses the next non cached value in setval query and
-	# puts that in the backup file, which will start the counter
-	# from that value when inserting any new record in the doctype.
-	# By default the cache is 1000 which will mess up the sequence when
-	# using the system after a restore.
-	#
-	# Another case could be if the cached values expire then also there is a chance of
-	# the cache being skipped.
-	#
-	# FOR POSTGRES - The sequence cache for postgres is per connection.
-	# Since we're opening and closing connections for every request this results in skipping the cache
-	# to the next non-cached value hence not using cache in postgres.
-	# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
-	SEQUENCE_CACHE = 0
 
 	class InvalidColumnName(frappe.ValidationError):
 		pass
@@ -223,7 +207,11 @@ class Database:
 			values = None
 		elif not isinstance(values, (tuple, dict, list)):
 			values = (values,)
+
 		query, values = self._transform_query(query, values)
+
+		if trace_id := get_trace_id():
+			query += f" /* FRAPPE_TRACE_ID: {trace_id} */"
 
 		try:
 			self._cursor.execute(query, values)

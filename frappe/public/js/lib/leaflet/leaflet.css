@@ -1,5 +1,6 @@
 /* required styles */
 
+/*rtl:begin:ignore*/
 .leaflet-pane,
 .leaflet-tile,
 .leaflet-marker-icon,
@@ -14,6 +15,7 @@
 	left: 0;
 	top: 0;
 	}
+/*rtl:end:ignore*/
 .leaflet-container {
 	overflow: hidden;
 	}

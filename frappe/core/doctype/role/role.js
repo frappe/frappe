@@ -5,7 +5,12 @@ frappe.ui.form.on("Role", {
 	refresh: function (frm) {
 		if (frm.doc.name === "All") {
 			frm.dashboard.add_comment(
-				__("Role 'All' will be given to all System Users."),
+				__("Role 'All' will be given to all system + website users."),
+				"yellow"
+			);
+		} else if (frm.doc.name === "Desk User") {
+			frm.dashboard.add_comment(
+				__("Role 'Desk User' will be given to all system users."),
 				"yellow"
 			);
 		}
