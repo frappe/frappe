@@ -117,12 +117,6 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 def _validate_safe_eval_syntax(code):
 	BLOCKED_NODES = (ast.NamedExpr,)
-	for attribute in UNSAFE_ATTRIBUTES:
-		if attribute in code:
-			frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "{attribute}"', exc=AttributeError)
-
-	if "__" in code:
-		frappe.throw(f'Illegal rule {frappe.bold(code)}. Cannot use "__"', exc=AttributeError)
 
 	tree = ast.parse(code, mode="eval")
 	for node in ast.walk(tree):
