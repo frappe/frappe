@@ -18,6 +18,7 @@ query. This test can be written like this.
 """
 import time
 import unittest
+from unittest.mock import patch
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -50,6 +51,18 @@ class TestPerformance(FrappeTestCase):
 
 		with self.assertQueryCount(0):
 			frappe.get_meta("User")
+
+	def test_permitted_fieldnames(self):
+		frappe.clear_cache()
+
+		doc = frappe.new_doc("Prepared Report")
+		# load permitted fieldnames once
+		doc.permitted_fieldnames
+
+		with patch("frappe.model.base_document.get_permitted_fields") as mocked:
+			doc.as_dict()
+			# get_permitted_fields should not be called again
+			mocked.assert_not_called()
 
 	def test_set_value_query_count(self):
 		frappe.db.set_value("User", "Administrator", "interest", "Nothing")

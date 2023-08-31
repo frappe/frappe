@@ -657,6 +657,11 @@ def is_markdown(text):
 		return not NON_MD_HTML_PATTERN.search(text)
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	return isinstance(x, (property, functools.cached_property))
+
+
 def get_sites(sites_path=None):
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."

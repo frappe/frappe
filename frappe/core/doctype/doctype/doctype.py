@@ -33,7 +33,7 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, random_string
+from frappe.utils import cint, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -1689,13 +1689,6 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			pass
 		else:
 			raise
-
-
-def is_a_property(x) -> bool:
-	"""Get properties (@property, @cached_property) in a controller class"""
-	from functools import cached_property
-
-	return isinstance(x, (property, cached_property))
 
 
 def check_fieldname_conflicts(docfield):
