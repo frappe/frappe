@@ -47,7 +47,7 @@ def _get_user_inputs(app_name):
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
 		"app_email": {"prompt": "App Email"},
-		"app_license": {"prompt": "App License", "default": "MIT"},
+		"app_license": {"prompt": "App License", "default": "MIT", "validator": is_valid_license},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
 			"default": False,
@@ -80,6 +80,19 @@ def is_valid_title(title) -> bool:
 		)
 		return False
 	return True
+
+
+def is_valid_license(name) -> bool:
+	url = "https://api.github.com/licenses"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		ids = [r.get("spdx_id") for r in res]
+
+		if name.lower() in [id.lower() for id in ids]:
+			return True
+		print(f"Available Options are {', '.join(ids)}")
+		return False
 
 
 def get_license(license_name=str):
