@@ -2,7 +2,7 @@
 {% for(var i=0, l=addr_list.length; i<l; i++) { %}
 <div class="address-box">
 	<a
-		href="/app/Form/Address/{%= encodeURIComponent(addr_list[i].name) %}"
+		href="{%= frappe.utils.get_form_link('Address', addr_list[i].name) %}"
 		class="btn btn-xs btn-default edit-btn"
 		title="{%= __('Edit') %}"
 	>

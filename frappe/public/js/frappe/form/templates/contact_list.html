@@ -2,7 +2,7 @@
 {% for(const contact of contact_list) { %}
 	<div class="address-box">
 		<a
-			href="/app/Form/Contact/{%= encodeURIComponent(contact.name) %}"
+			href="{%= frappe.utils.get_form_link('Contact', contact.name) %}"
 			class="btn btn-xs btn-default edit-btn"
 			title="{%= __('Edit') %}"
 		>
