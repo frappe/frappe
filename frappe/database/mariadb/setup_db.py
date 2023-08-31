@@ -170,6 +170,7 @@ def get_root_connection(root_login, root_password):
 			port=frappe.conf.db_port,
 			user=root_login,
 			password=root_password,
+			dbname=None,
 		)
 
 	return frappe.local.flags.root_connection
