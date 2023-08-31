@@ -16,6 +16,7 @@ import frappe
 from frappe.utils import touch_file
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
+EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", flags=re.UNICODE)
 
 
 def make_boilerplate(dest, app_name, no_git=False):
@@ -45,7 +46,7 @@ def _get_user_inputs(app_name):
 		},
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
-		"app_email": {"prompt": "App Email"},
+		"app_email": {"prompt": "App Email", "validator": is_valid_email},
 		"app_license": {"prompt": "App License", "default": "MIT"},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
@@ -70,6 +71,13 @@ def _get_user_inputs(app_name):
 		hooks[property] = value
 
 	return hooks
+
+
+def is_valid_email(email) -> bool:
+	if not EMAIL_PATTERN.match(email):
+		print("App Email should be a valid email address.")
+		return False
+	return True
 
 
 def is_valid_title(title) -> bool:
