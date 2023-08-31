@@ -76,7 +76,7 @@ const show_new_topic_modal = (e) => {
 };
 
 const setup_socket_io = () => {
-	frappe.realtime.init(window.socketio_port || "9000");
+	frappe.realtime.init(window.socketio_port || "3000");
 
 	frappe.realtime.on("publish_message", (data) => {
 		publish_message(data);
