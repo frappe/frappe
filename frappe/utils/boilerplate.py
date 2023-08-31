@@ -11,6 +11,7 @@ import textwrap
 
 import click
 import git
+import requests
 
 import frappe
 from frappe.utils import touch_file
@@ -81,6 +82,15 @@ def is_valid_title(title) -> bool:
 	return True
 
 
+def get_license(license_name=str):
+	url = f"https://api.github.com/licenses/{license_name.lower()}"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		return res.get("body")
+	return license_name
+
+
 def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
@@ -117,9 +127,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 				)
 			)
 		)
-
+	license_body = get_license(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(frappe.as_unicode("License: " + hooks.app_license))
+		f.write(frappe.as_unicode(license_body))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
