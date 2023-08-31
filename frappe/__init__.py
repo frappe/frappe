@@ -2087,7 +2087,6 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 	from frappe.utils.safe_exec import safe_eval
 
-
 	return safe_eval(code, eval_globals, eval_locals)
 
 
