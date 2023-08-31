@@ -46,7 +46,12 @@ def _get_user_inputs(app_name):
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
 		"app_email": {"prompt": "App Email"},
-		"app_license": {"prompt": "App License", "default": "MIT"},
+		"app_license": {
+			"prompt": "App License", 
+			"default": "MIT",
+			"type": click.Choice(['GPL2', 'GPL3', 'AGPL3', 'MIT', 'Custom'], case_sensitive=False),
+            "choice": is_choice_custom
+			},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
 			"default": False,
@@ -57,6 +62,10 @@ def _get_user_inputs(app_name):
 	for property, config in new_app_config.items():
 		value = None
 		input_type = config.get("type", str)
+		path_config = {
+            "prompt": "Enter the path of the license file (absolute path)",
+            "type": click.Path(exists=True, file_okay=True, resolve_path=True)
+        }
 
 		while value is None:
 			if input_type == bool:
@@ -67,6 +76,14 @@ def _get_user_inputs(app_name):
 			if validator_function := config.get("validator"):
 				if not validator_function(value):
 					value = None
+
+			if choice := config.get("choice"):
+				if choice(value):
+					path = click.prompt(path_config["prompt"], type=path_config["type"])
+					hooks["path"] = path
+				else:
+					value = value.upper()
+		
 		hooks[property] = value
 
 	return hooks
@@ -79,6 +96,12 @@ def is_valid_title(title) -> bool:
 		)
 		return False
 	return True
+
+
+def is_choice_custom(value) -> bool:
+	if value.lower() == "custom":
+		return True
+	return False
 
 
 def _create_app_boilerplate(dest, hooks, no_git=False):
@@ -118,8 +141,10 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 			)
 		)
 
-	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(frappe.as_unicode("License: " + hooks.app_license))
+	create_license_file(dest,hooks)
+
+	#with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
+	#	f.write(frappe.as_unicode("License: " + hooks.app_license))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
@@ -159,6 +184,32 @@ def _create_github_workflow_files(dest, hooks):
 	ci_workflow = workflows_path / "ci.yml"
 	with open(ci_workflow, "w") as f:
 		f.write(github_workflow_template.format(**hooks))
+
+
+def create_license_file(dest, hooks):
+	license_file_path = get_license_file_path(hooks)
+
+	with open(license_file_path, 'r') as f:
+		license_text = f.read()
+
+	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
+		f.write(frappe.as_unicode(license_text))
+
+
+def get_license_file_path(hooks):
+	if hooks.app_license.lower() == "custom":
+		return hooks.path
+	
+	license_type = {
+		"GPL2": "GNU General Public License Version 2",
+        "GPL3": "GNU General Public License",
+        "AGPL3": "GNU Affero General Public License",
+        "MIT": "MIT License"
+	}
+
+	cur_file_pardir = os.path.dirname(os.path.dirname(__file__))
+	licenses_dirpath = 'core/doctype/package/licenses'
+	return os.path.join(cur_file_pardir, licenses_dirpath, license_type[hooks.app_license] + ".md")
 
 
 PATCH_TEMPLATE = textwrap.dedent(
