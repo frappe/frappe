@@ -1,8 +1,15 @@
 <div class="clearfix"></div>
 {% for(var i=0, l=addr_list.length; i<l; i++) { %}
 <div class="address-box">
-	<a href="/app/Form/Address/{%= encodeURIComponent(addr_list[i].name) %}" class="btn btn-default btn-xs edit-btn">
-		{%= __("Edit") %}</a>
+	<a
+		href="/app/Form/Address/{%= encodeURIComponent(addr_list[i].name) %}"
+		class="btn btn-xs btn-default edit-btn"
+		title="{%= __('Edit') %}"
+	>
+		<svg class="icon icon-xs">
+			<use href="#icon-edit"></use>
+		</svg>
+	</a>
 	<p class="h6 flex flex-wrap">
 		{%= i+1 %}. {%= addr_list[i].address_title %}
 		{% if(addr_list[i].address_type!="Other") { %}

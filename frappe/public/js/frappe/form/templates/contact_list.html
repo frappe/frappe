@@ -1,9 +1,14 @@
 <div class="clearfix"></div>
 {% for(const contact of contact_list) { %}
 	<div class="address-box">
-		<a href="/app/Form/Contact/{%= encodeURIComponent(contact.name) %}"
-			class="btn btn-xs btn-default edit-btn">
-			{%= __("Edit") %}
+		<a
+			href="/app/Form/Contact/{%= encodeURIComponent(contact.name) %}"
+			class="btn btn-xs btn-default edit-btn"
+			title="{%= __('Edit') %}"
+		>
+			<svg class="icon icon-xs">
+				<use href="#icon-edit"></use>
+			</svg>
 		</a>
 		<p class="h6 flex flex-wrap">
 			{%= contact.first_name %} {%= contact.last_name %}

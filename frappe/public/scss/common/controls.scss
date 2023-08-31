@@ -157,6 +157,10 @@ select.form-control {
 			position: absolute;
 			top: 5px;
 			right: 5px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: var(--padding-sm);
 		}
 	}
 	.action-btn {
