@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
-from rq import Queue, Worker
+from rq import Callback, Queue, Worker
 from rq.exceptions import NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
@@ -145,8 +145,8 @@ def enqueue(
 	def enqueue_call():
 		return q.enqueue_call(
 			execute_job,
-			on_success=on_success,
-			on_failure=on_failure,
+			on_success=Callback(func=on_success) if on_success else None,
+			on_failure=Callback(func=on_failure) if on_failure else None,
 			timeout=timeout,
 			kwargs=queue_args,
 			at_front=at_front,
