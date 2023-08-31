@@ -1,19 +1,22 @@
 <div class="clearfix"></div>
 {% for(var i=0, l=addr_list.length; i<l; i++) { %}
 <div class="address-box">
-	<p class="h6">
-		{%= i+1 %}. {%= addr_list[i].address_title %}{% if(addr_list[i].address_type!="Other") { %}
-		<span class="text-muted">({%= __(addr_list[i].address_type) %})</span>{% } %}
+	<a href="/app/Form/Address/{%= encodeURIComponent(addr_list[i].name) %}" class="btn btn-default btn-xs edit-btn">
+		{%= __("Edit") %}</a>
+	<p class="h6 flex flex-wrap">
+		{%= i+1 %}. {%= addr_list[i].address_title %}
+		{% if(addr_list[i].address_type!="Other") { %}
+			&#183;&nbsp;<span class="text-muted">{%= __(addr_list[i].address_type) %}</span>
+		{% } %}
 		{% if(addr_list[i].is_primary_address) { %}
-		<span class="text-muted">({%= __("Primary") %})</span>{% } %}
+			&#183;&nbsp;<span class="text-muted">{%= __("Primary") %}</span>
+		{% } %}
 		{% if(addr_list[i].is_shipping_address) { %}
-		<span class="text-muted">({%= __("Shipping") %})</span>{% } %}
+			&#183;&nbsp;<span class="text-muted">{%= __("Shipping") %}</span>
+		{% } %}
 		{% if(addr_list[i].disabled) { %}
-		<span class="text-muted">({%= __("Disabled") %})</span>{% } %}
-
-		<a href="/app/Form/Address/{%= encodeURIComponent(addr_list[i].name) %}" class="btn btn-default btn-xs pull-right"
-			style="margin-top:-3px; margin-right: -5px;">
-			{%= __("Edit") %}</a>
+			&#183;&nbsp;<span class="text-muted">{%= __("Disabled") %}</span>
+		{% } %}
 	</p>
 	<p>{%= addr_list[i].display %}</p>
 </div>

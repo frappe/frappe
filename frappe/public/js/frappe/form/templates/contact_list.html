@@ -1,18 +1,18 @@
 <div class="clearfix"></div>
 {% for(const contact of contact_list) { %}
 	<div class="address-box">
-		<p class="h6 flex align-center">
+		<a href="/app/Form/Contact/{%= encodeURIComponent(contact.name) %}"
+			class="btn btn-xs btn-default edit-btn">
+			{%= __("Edit") %}
+		</a>
+		<p class="h6 flex flex-wrap">
 			{%= contact.first_name %} {%= contact.last_name %}
 			{% if(contact.is_primary_contact) { %}
-				<span class="text-muted">&nbsp;({%= __("Primary") %})</span>
+				&#183;&nbsp;<span class="text-muted">{%= __("Primary Contact") %}</span>
 			{% } %}
 			{% if(contact.designation){ %}
-			 <span class="text-muted">&ndash; {%= contact.designation %}</span>
+				&#183;&nbsp;<span class="text-muted"> {%= contact.designation %}</span>
 			{% } %}
-			<a href="/app/Form/Contact/{%= encodeURIComponent(contact.name) %}"
-				class="btn btn-xs btn-default ml-auto">
-				{%= __("Edit") %}
-			</a>
 		</p>
 		{% if (contact.phone || contact.mobile_no || contact.phone_nos.length > 0) { %}
 		<p>
