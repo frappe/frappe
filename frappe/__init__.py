@@ -302,19 +302,13 @@ def connect_replica() -> bool:
 def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
 	"""Returns `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
-	config = {}
+	config = _dict()
 
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
 
 	if sites_path:
-		common_site_config = os.path.join(sites_path, "common_site_config.json")
-		if os.path.exists(common_site_config):
-			try:
-				config.update(get_file_json(common_site_config))
-			except Exception as error:
-				click.secho("common_site_config.json is invalid", fg="red")
-				print(error)
+		config.update(get_common_site_config(sites_path))
 
 	if site_path:
 		site_config = os.path.join(site_path, "site_config.json")
@@ -348,7 +342,26 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
 
-	return _dict(config)
+	return config
+
+
+def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
+	"""Returns common site config as dictionary.
+
+	This is useful for:
+	- checking configuration which should only be allowed in common site config
+	- When no site context is present and fallback is required.
+	"""
+	sites_path = sites_path or getattr(local, "sites_path", None)
+
+	common_site_config = os.path.join(sites_path, "common_site_config.json")
+	if os.path.exists(common_site_config):
+		try:
+			return _dict(get_file_json(common_site_config))
+		except Exception as error:
+			click.secho("common_site_config.json is invalid", fg="red")
+			print(error)
+	return _dict()
 
 
 def get_conf(site: str | None = None) -> dict[str, Any]:
@@ -914,11 +927,8 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 	elif user:
 		frappe.cache_manager.clear_user_cache(user)
 	else:  # everything
-		from frappe import translate
-
-		frappe.cache_manager.clear_user_cache()
-		frappe.cache_manager.clear_domain_cache()
-		translate.clear_cache()
+		# Delete ALL keys associated with this site.
+		frappe.cache.delete_keys("")
 		reset_metadata_version()
 		local.cache = {}
 		local.new_doc_templates = {}
@@ -985,7 +995,9 @@ def has_permission(
 
 	if throw and not out:
 		# mimics frappe.throw
-		document_label = f"{_(doc.doctype)} {doc.name}" if doc else _(doctype)
+		document_label = (
+			f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
+		)
 		msgprint(
 			_("No permission for {0}").format(document_label),
 			raise_exception=ValidationError,
@@ -1242,7 +1254,7 @@ def get_doc(*args, **kwargs):
 	doc = frappe.model.document.get_doc(*args, **kwargs)
 
 	# Replace cache if stale one exists
-	if (key := can_cache_doc(args)) and cache.exists(key):
+	if not kwargs.get("for_update") and (key := can_cache_doc(args)) and cache.exists(key):
 		_set_document_in_cache(key, doc)
 
 	return doc
@@ -1426,7 +1438,9 @@ def get_site_path(*joins):
 	"""Return path of current site.
 
 	:param *joins: Join additional path elements using `os.path.join`."""
-	return os.path.join(local.site_path, *joins)
+	from os.path import abspath, join
+
+	return abspath(join(local.site_path, *joins))
 
 
 def get_pymodule_path(modulename, *joins):
@@ -1434,14 +1448,17 @@ def get_pymodule_path(modulename, *joins):
 
 	:param modulename: Python module name.
 	:param *joins: Join additional path elements using `os.path.join`."""
-	if not "public" in joins:
+	from os.path import abspath, dirname, join
+
+	if "public" not in joins:
 		joins = [scrub(part) for part in joins]
-	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__ or ""), *joins)
+
+	return abspath(join(dirname(get_module(scrub(modulename)).__file__ or ""), *joins))
 
 
 def get_module_list(app_name):
 	"""Get list of modules for given all via `app/modules.txt`."""
-	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
+	return get_file_items(get_app_path(app_name, "modules.txt"))
 
 
 def get_all_apps(with_internal_apps=True, sites_path=None):

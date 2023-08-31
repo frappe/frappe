@@ -7,7 +7,7 @@ import os
 import frappe
 from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
-from frappe.core.doctype.file import remove_file_by_url
+from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit

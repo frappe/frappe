@@ -27,6 +27,13 @@ class TestBootData(FrappeTestCase):
 		unseen_notes = [d.title for d in get_unseen_notes()]
 		self.assertListEqual(unseen_notes, [])
 
+
+class TestPermissionQueries(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		cls.enable_safe_exec()
+		return super().setUpClass()
+
 	def test_get_user_pages_or_reports_with_permission_query(self):
 		# Create a ToDo custom report with admin user
 		frappe.set_user("Administrator")

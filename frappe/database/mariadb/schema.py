@@ -3,7 +3,6 @@ from pymysql.constants.ER import DUP_ENTRY
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
-from frappe.model import log_types
 
 
 class MariaDBTable(DBTable):
@@ -36,11 +35,8 @@ class MariaDBTable(DBTable):
 			additional_definitions.append("index modified(modified)")
 
 		# creating sequence(s)
-		if (
-			not self.meta.issingle and self.meta.autoname == "autoincrement"
-		) or self.doctype in log_types:
-
-			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
+		if not self.meta.issingle and self.meta.autoname == "autoincrement":
+			frappe.db.create_sequence(self.doctype, check_not_exists=True)
 
 			# NOTE: not used nextval func as default as the ability to restore
 			# database with sequences has bugs in mariadb and gives a scary error.
