@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "creation": "2023-08-24 14:34:28.239843",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "vcs_doctypes",
+  "column_break_4bx5"
+ ],
+ "fields": [
+  {
+   "fieldname": "vcs_doctypes",
+   "fieldtype": "Table",
+   "label": "Doctypes",
+   "options": "VCS Doctype Item"
+  },
+  {
+   "fieldname": "column_break_4bx5",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2023-08-25 16:09:06.186071",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "VCS Doctype",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "propose": 1,
+   "read": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
