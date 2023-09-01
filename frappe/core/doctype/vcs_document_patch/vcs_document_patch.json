@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "creation": "2023-08-25 12:06:14.087492",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "column_break_2zhl",
+  "document_name",
+  "section_break_5l6y",
+  "document_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2zhl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_5l6y",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "document_json",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Document JSON",
+   "read_only": 1
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-08-29 21:13:11.432060",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "VCS Document Patch",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "propose": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Doc Proposer",
+   "share": 1
+  },
+  {
+   "propose": 1,
+   "read": 1,
+   "role": "Doc Checker"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
