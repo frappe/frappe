@@ -67,6 +67,7 @@ frappe.ui.form.Form = class FrappeForm {
 			Cancel: "cancel",
 			Amend: "amend",
 			Delete: "delete",
+			Propose: "propose",
 		};
 	}
 
@@ -755,6 +756,27 @@ frappe.ui.form.Form = class FrappeForm {
 			.catch((e) => {
 				console.error(e);
 			});
+	}
+
+	propose_save(save_action, callback, on_error) {
+		let me = this;
+		if (save_action == "Propose Save") {
+			frappe.call({
+				method: "frappe.client.propose_save",
+				args: {
+					doc: me.doc,
+				},
+				callback: (resp) => {
+					if (!resp.exc) {
+						frappe.msgprint({
+							message: __("Changes Proposed"),
+							alert: true,
+							indicator: "green",
+						});
+					}
+				},
+			});
+		}
 	}
 
 	validate_and_save(save_action, callback, btn, on_error, resolve, reject) {
