@@ -146,7 +146,7 @@ class TestUserPermission(FrappeTestCase):
 		"""Test if descendants' visibility is controlled for a nested DocType."""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		user = create_user("nested_doc_user@example.com")
+		user = create_user("nested_doc_user@example.com", "Blogger")
 		if not frappe.db.exists("DocType", "Person"):
 			doc = new_doctype(
 				"Person",
@@ -180,10 +180,12 @@ class TestUserPermission(FrappeTestCase):
 			doctype="Person",
 			pluck="person_name",
 		)
-		frappe.db.set_value(
-			"User Permission", {"allow": "Person", "for_value": parent_record.name}, "hide_descendants", 1
+
+		user_permission = frappe.get_doc(
+			"User Permission", {"allow": "Person", "for_value": parent_record.name}
 		)
-		frappe.cache.delete_value("user_permissions")
+		user_permission.hide_descendants = 1
+		user_permission.save(ignore_permissions=True)
 
 		# check if adding perm on a group record with hide_descendants enabled,
 		# hides child records
