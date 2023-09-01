@@ -937,6 +937,7 @@ class DocType(Document):
 				"fieldtype": "Link",
 				"options": self.name,
 				"fieldname": parent_field_name,
+				"ignore_user_permissions": 1,
 			},
 		)
 		self.nsm_parent_field = parent_field_name
