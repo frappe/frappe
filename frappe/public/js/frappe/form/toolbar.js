@@ -517,7 +517,33 @@ frappe.ui.form.Toolbar = class Toolbar {
 		return this.frm.meta.allow_auto_repeat && !this.frm.is_new() && !this.frm.doc.auto_repeat;
 	}
 	can_save() {
-		return this.get_docstatus() === 0;
+		return this.get_docstatus() === 0 && this.frm.perm[0].write;
+	}
+	can_propose() {
+		return this.get_docstatus() === 0 && this.frm.perm[0].propose;
+	}
+	can_approve() {
+		return (
+			this.frm.doc.__unsaved &&
+			this.frm.doc.owner != frappe.session.user &&
+			frappe.session.user == "Administrator"
+		);
+	}
+	is_vcs_doctype() {
+		return new Promise((resolve) => {
+			frappe
+				.call({
+					method: "frappe.client.get_list",
+					args: {
+						doctype: "VCS Doctype Item",
+						parent: "VCS Doctype",
+					},
+					filters: {
+						document_type: this.doctype,
+					},
+				})
+				.then((r) => resolve(r ? r.message.length : null));
+		});
 	}
 	can_submit() {
 		return (
@@ -613,19 +639,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 			status = "Cancel";
 		} else if (this.can_amend()) {
 			status = "Amend";
+		} else if (this.can_propose()) {
+			status = "Propose Save";
 		}
 		return status;
 	}
 	set_page_actions(status) {
 		var me = this;
 		this.page.clear_actions();
-
-		if (status !== "Edit") {
-			var perm_to_check = this.frm.action_perm_type_map[status];
-			if (!this.frm.perm[0][perm_to_check]) {
-				return;
-			}
-		}
 
 		if (status === "Edit") {
 			this.page.set_primary_action(
@@ -668,13 +689,20 @@ frappe.ui.form.Toolbar = class Toolbar {
 				Amend: function () {
 					return me.frm.amend_doc();
 				},
+				"Propose Save": function () {
+					if (me.frm.is_new()) return me.frm.propose_save("Propose Save", null, this);
+					else return me.frm.propose_save("Propose Update", null, this);
+				},
 			}[status];
 
 			var icon = {
 				Update: "edit",
 			}[status];
 
-			this.page.set_primary_action(__(status), click, icon);
+			let button_label = status;
+			if (status == "Save" && this.can_approve()) button_label = "Approve";
+
+			this.page.set_primary_action(__(button_label), click, icon);
 		}
 
 		this.current_status = status;
