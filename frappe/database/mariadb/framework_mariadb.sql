@@ -108,6 +108,7 @@ CREATE TABLE `tabDocPerm` (
   `share` int(1) NOT NULL DEFAULT 1,
   `print` int(1) NOT NULL DEFAULT 1,
   `email` int(1) NOT NULL DEFAULT 1,
+  `propose` int(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -108,6 +108,7 @@ CREATE TABLE "tabDocPerm" (
   "share" smallint NOT NULL DEFAULT 1,
   "print" smallint NOT NULL DEFAULT 1,
   "email" smallint NOT NULL DEFAULT 1,
+  "propose" smallint NOT NULL DEFAULT 1,
   PRIMARY KEY ("name")
 ) ;
 

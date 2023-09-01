@@ -25,6 +25,7 @@ class DocPerm(Document):
 		parenttype: DF.Data
 		permlevel: DF.Int
 		print: DF.Check
+		propose: DF.Check
 		read: DF.Check
 		report: DF.Check
 		role: DF.Link
