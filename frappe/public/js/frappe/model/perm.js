@@ -30,6 +30,7 @@ $.extend(frappe.perm, {
 		"print",
 		"email",
 		"share",
+		"propose",
 	],
 
 	doctype_perm: {},
@@ -203,7 +204,7 @@ $.extend(frappe.perm, {
 
 		// permission
 		if (p) {
-			if (p.write && !df.disabled) {
+			if ((p.write || p.propose) && !df.disabled) {
 				status = "Write";
 			} else if (p.read) {
 				status = "Read";
