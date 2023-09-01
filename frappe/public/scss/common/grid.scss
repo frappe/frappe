@@ -25,7 +25,6 @@
 	.grid-static-col {
 		padding: 6px 8px !important;
 		.static-area{
-			line-height: normal;
 			&.reqd:after {
 				content: ' *';
 				color: var(--red-400);
