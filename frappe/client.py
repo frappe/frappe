@@ -226,6 +226,21 @@ def save(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
+def propose_save(doc):
+	"""Create a VCS Document Patch for a document
+
+	:param doc: JSON or dict object with the properties of the document to be updated"""
+	if isinstance(doc, str):
+		doc = frappe._dict(json.loads(doc))
+	patch_doc = frappe.new_doc("VCS Document Patch")
+	patch_doc.document_type = doc.doctype
+	patch_doc.document_name = doc.name
+	patch_doc.document_json = frappe.as_json(doc, indent=2)
+	patch_doc.insert()
+	return patch_doc.as_dict()
+
+
+@frappe.whitelist(methods=["POST", "PUT"])
 def rename_doc(doctype, old_name, new_name, merge=False):
 	"""Rename document
 
