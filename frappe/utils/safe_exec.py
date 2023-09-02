@@ -3,6 +3,7 @@ import copy
 import inspect
 import json
 import mimetypes
+import sys
 import types
 from contextlib import contextmanager
 from functools import lru_cache
@@ -107,7 +108,12 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 
 def _validate_safe_eval_syntax(code):
-	BLOCKED_NODES = (ast.NamedExpr,)
+	BLOCKED_NODES = ()
+	if sys.version_info >= (3, 8):
+		BLOCKED_NODES += (ast.NamedExpr,)
+
+	if not BLOCKED_NODES:
+		return
 
 	tree = ast.parse(code, mode="eval")
 	for node in ast.walk(tree):
