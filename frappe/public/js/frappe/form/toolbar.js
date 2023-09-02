@@ -379,7 +379,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 					me.frm.copy_doc();
 				},
 				true,
-				"Ctrl+D"
+				"Shift+D"
 			);
 		}
 
