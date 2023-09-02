@@ -447,12 +447,12 @@ def get_marketplace_apps():
 	import requests
 
 	apps = []
-	cache_key = "marketplace_apps"
+	cache_key = "frappe_marketplace_apps"
 
 	def get_apps_from_fc():
 		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
 		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
-		request = requests.get(request_url, timeout=5.0)
+		request = requests.get(request_url, timeout=2.0)
 		return request.json()["message"]
 
 	try:
@@ -460,7 +460,8 @@ def get_marketplace_apps():
 		installed_apps = set(frappe.get_installed_apps())
 		apps = [app for app in apps if app["name"] not in installed_apps]
 	except Exception:
-		pass
+		# Don't retry for a day
+		frappe.cache().set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
 
 	return apps
 
