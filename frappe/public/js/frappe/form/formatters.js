@@ -135,6 +135,7 @@ frappe.form.formatters = {
 		if(value[0] == "'" && value[value.length -1] == "'") {
 			return value.substring(1, value.length - 1);
 		}
+<<<<<<< HEAD
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
@@ -145,6 +146,24 @@ frappe.form.formatters = {
 					data-doctype="${doctype}"
 					data-name="${original_value}">
 					${__(options && options.label || value)}</a>`;
+=======
+		if (docfield && docfield.link_onclick) {
+			return repl('<a onclick="%(onclick)s" href="#">%(value)s</a>', {
+				onclick: docfield.link_onclick.replace(/"/g, "&quot;") + "; return false;",
+				value: value,
+			});
+		} else if (docfield && doctype) {
+			if (frappe.model.can_read(doctype)) {
+				const a = document.createElement("a");
+				a.href = `/app/${encodeURIComponent(
+					frappe.router.slug(doctype)
+				)}/${encodeURIComponent(original_value)}`;
+				a.dataset.doctype = doctype;
+				a.dataset.name = original_value;
+				a.dataset.value = original_value;
+				a.innerText = __((options && options.label) || link_title || value);
+				return a.outerHTML;
+>>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 			} else {
 				return value;
 			}

@@ -32,6 +32,7 @@ frappe.ui.toggle_like = function($btn, doctype, name, callback) {
 			// renable click
 			$btn.css('pointer-events', 'auto');
 
+<<<<<<< HEAD
 			if(!r.exc) {
 				// update in all local-buttons
 				var action_buttons = $('.like-action[data-name="'+ name.replace(/"/g, '\"')
@@ -41,6 +42,14 @@ frappe.ui.toggle_like = function($btn, doctype, name, callback) {
 					action_buttons.removeClass("not-liked").addClass("liked");
 				} else {
 					action_buttons.addClass("not-liked").removeClass("liked");
+=======
+			if (!r.exc) {
+				for (const like of document.querySelectorAll(".like-action")) {
+					if (like.dataset.name === name && like.dataset.doctype === doctype) {
+						like.classList.toggle("not-liked", add === "No");
+						like.classList.toggle("liked", add === "Yes");
+					}
+>>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 				}
 
 				// update in locals (form)
