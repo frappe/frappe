@@ -429,7 +429,7 @@
    "default": "1",
    "fieldname": "attach_view_link",
    "fieldtype": "Check",
-   "label": "Send document Web View link in email"
+   "label": "Include Web View Link in Email"
   },
   {
     "collapsible": 1,
@@ -577,7 +577,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-07-30 17:34:08.292152",
+ "modified": "2023-08-31 20:19:07.181041",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
