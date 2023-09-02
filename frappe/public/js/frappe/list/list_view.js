@@ -899,7 +899,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		return `/app/${frappe.router.slug(frappe.router.doctype_layout || this.doctype)}/${encodeURIComponent(doc.name)}`;
+		return `/app/${encodeURIComponent(
+			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
+		)}/${encodeURIComponent(cstr(doc.name))}`;
 	}
 
 	get_seen_class(doc) {
@@ -910,20 +912,28 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_like_html(doc) {
 		const liked_by = JSON.parse(doc._liked_by || "[]");
-		let heart_class = liked_by.includes(frappe.session.user)
+		const heart_class = liked_by.includes(frappe.session.user)
 			? "liked-by liked"
 			: "not-liked";
+		const title = liked_by.map((u) => frappe.user_info(u).fullname).join(", ");
 
-		return `<span
-			class="like-action ${heart_class}"
-			data-name="${doc.name}" data-doctype="${this.doctype}"
-			data-liked-by="${encodeURI(doc._liked_by) || "[]"}"
-			title="${liked_by.map(u => frappe.user_info(u).fullname).join(', ')}">
-			${frappe.utils.icon('heart', 'sm', 'like-icon')}
-		</span>
-		<span class="likes-count">
-			${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
-		</span>`;
+		const div = document.createElement("div");
+		div.innerHTML = `
+			<span class="like-action ${heart_class}">
+				${frappe.utils.icon("heart", "sm", "like-icon")}
+			</span>
+			<span class="likes-count">
+				${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
+			</span>
+		`;
+
+		const like = div.querySelector(".like-action");
+		like.setAttribute("data-liked-by", doc._liked_by || "[]");
+		like.setAttribute("data-doctype", this.doctype);
+		like.setAttribute("data-name", doc.name);
+		like.setAttribute("title", title);
+
+		return div.innerHTML;
 	}
 
 	get_subject_html(doc) {
@@ -936,31 +946,34 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (!value) {
 			value = doc.name;
 		}
-		let subject = strip_html(value.toString());
-		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const seen = this.get_seen_class(doc);
 
-		let subject_html = `
+		const div = document.createElement("div");
+		div.innerHTML = `
 			<span class="level-item select-like">
-				<input class="list-row-checkbox" type="checkbox"
-					data-name="${escape(doc.name)}">
+				<input class="list-row-checkbox" type="checkbox">
 				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
 					${this.get_like_html(doc)}
 				</span>
 			</span>
-			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
-				<a class="ellipsis"
-					href="${this.get_form_link(doc)}"
-					title="${escaped_subject}"
-					data-doctype="${this.doctype}"
-					data-name="${doc.name}">
-					${subject}
-				</a>
+			<span class="level-item ${seen} ellipsis">
+				<a class="ellipsis"></a>
 			</span>
 		`;
 
-		return subject_html;
+		const checkbox = div.querySelector(".list-row-checkbox");
+		checkbox.dataset.doctype = this.doctype;
+		checkbox.dataset.name = doc.name;
+
+		const link = div.querySelector(".level-item a");
+		link.dataset.doctype = this.doctype;
+		link.dataset.name = doc.name;
+		link.href = this.get_form_link(doc);
+		link.title = value.toString();
+		link.textContent = value.toString();
+
+		return div.innerHTML;
 	}
 
 	get_indicator_html(doc) {
