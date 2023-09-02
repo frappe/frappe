@@ -47,15 +47,12 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 	if (!css_class) {
 		css_class = "avatar-small";
 	}
+	let el = document.createElement("div");
 
 	if (image_url) {
-		const image =
-			window.cordova && image_url.indexOf("http") === -1
-				? frappe.base_url + image_url
-				: image_url;
-		return `<span class="avatar ${css_class}" title="${title}" ${data_attributes}>
-				<span class="avatar-frame" style='background-image: url("${image}")'
-					title="${title}"></span>
+		el.innerHTML = `
+			<span class="avatar ${css_class}" ${data_attributes}>
+				<span class="avatar-frame" style='background-image: url("${image_url}")'</span>
 			</span>`;
 	} else {
 		let abbr = frappe.get_abbr(title);
@@ -69,13 +66,18 @@ frappe.get_avatar = function (css_class, title, image_url = null, remove_color, 
 			abbr = abbr.substr(0, 1);
 		}
 
-		return `<span class="avatar ${css_class}" title="${title}" ${data_attributes}>
+		el.innerHTML = `<span class="avatar ${css_class}" ${data_attributes}>
 			<div class="avatar-frame standard-image"
 				style="${style}">
 					${abbr}
 			</div>
 		</span>`;
 	}
+
+	el.querySelector(".avatar").setAttribute("title", title);
+	el.querySelector(".avatar-frame").setAttribute("title", title);
+
+	return el.innerHTML;
 };
 
 frappe.avatar_group = function (users, limit = 4, options = {}) {
