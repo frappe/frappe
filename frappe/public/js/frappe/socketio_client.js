@@ -33,7 +33,7 @@ class RealTimeClient {
 		this.socket.emit(event, ...args);
 	}
 
-	init(port = 3000, lazy_connect = false) {
+	init(port = 9000, lazy_connect = false) {
 		if (frappe.boot.disable_async) {
 			return;
 		}
