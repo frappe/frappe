@@ -449,6 +449,9 @@ def get_marketplace_apps():
 	apps = []
 	cache_key = "frappe_marketplace_apps"
 
+	if frappe.conf.developer_mode:
+		return apps
+
 	def get_apps_from_fc():
 		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
 		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
