@@ -169,12 +169,13 @@ frappe.ui.LinkPreview = class {
 			this.href = this.href.replace(new RegExp(" ", "g"), "%20");
 		}
 
-		let popover_content = `
+		const div = document.createElement("div");
+		div.innerHTML = `
 			<div class="preview-popover-header">
 				<div class="preview-header">
 					${this.get_image_html(preview_data)}
 					<div class="preview-name">
-						<a href=${this.href}>${__(preview_data.preview_title)}</a>
+						<a></a>
 					</div>
 					<div class="text-muted preview-title">${this.get_id_html(preview_data)}</div>
 				</div>
@@ -185,16 +186,23 @@ frappe.ui.LinkPreview = class {
 			</div>
 		`;
 
-		return popover_content;
+		const a = div.querySelector(".preview-name > a");
+		a.href = this.href;
+		a.innerText = __(preview_data.preview_title);
+
+		return div.innerHTML;
+
 	}
 
 	get_id_html(preview_data) {
-		let id_html = "";
 		if (preview_data.preview_title !== preview_data.name) {
-			id_html = `<a class="text-muted" href=${this.href}>${preview_data.name}</a>`;
+			const a = document.createElement("a");
+			a.href = this.href;
+			a.className = "text-muted";
+			a.innerText = preview_data.name;
+			return a.outerHTML;
 		}
-
-		return id_html;
+		return "";
 	}
 
 	get_image_html(preview_data) {
