@@ -274,7 +274,7 @@ class Communication(Document, CommunicationEmailMixin):
 		update_comment_in_doc(self)
 
 		parent = get_parent_doc(self)
-		if hasattr(parent, "on_communication_update"):
+		if (method := getattr(parent, "on_communication_update", None)) and callable(method):
 			parent.on_communication_update(self)
 			return
 
