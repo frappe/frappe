@@ -102,11 +102,13 @@ class TestBoilerPlate(unittest.TestCase):
 		invalid_inputs = copy.copy(self.default_user_input).update(
 			{
 				"title": ["1nvalid Title", "valid title"],
+				"email": ["notavalidemail", "what@is@this.email", "example@example.org"],
 			}
 		)
 		with patch("sys.stdin", self.get_user_input_stream(invalid_inputs)):
 			hooks = _get_user_inputs(self.default_hooks.app_name)
 		self.assertEqual(hooks.app_title, "valid title")
+		self.assertEqual(hooks.app_email, "example@example.org")
 
 	def test_valid_ci_yaml(self):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))

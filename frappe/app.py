@@ -211,6 +211,9 @@ def process_response(response):
 	if hasattr(frappe.local, "rate_limiter"):
 		response.headers.extend(frappe.local.rate_limiter.headers())
 
+	if trace_id := frappe.monitor.get_trace_id():
+		response.headers.extend({"X-Frappe-Request-Id": trace_id})
+
 	# CORS headers
 	if hasattr(frappe.local, "conf"):
 		set_cors_headers(response)

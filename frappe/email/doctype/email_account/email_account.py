@@ -652,55 +652,6 @@ class EmailAccount(Document):
 		else:
 			return self.email_sync_option or "UNSEEN"
 
-	def mark_emails_as_read_unread(self, email_server=None, folder_name="INBOX"):
-		"""mark Email Flag Queue of self.email_account mails as read"""
-		if not self.use_imap:
-			return
-
-		EmailFlagQ = frappe.qb.DocType("Email Flag Queue")
-		flags = (
-			frappe.qb.from_(EmailFlagQ)
-			.select(EmailFlagQ.name, EmailFlagQ.communication, EmailFlagQ.uid, EmailFlagQ.action)
-			.where(EmailFlagQ.is_completed == 0)
-			.where(EmailFlagQ.email_account == frappe.db.escape(self.name))
-		).run(as_dict=True)
-
-		uid_list = {flag.get("uid", None): flag.get("action", "Read") for flag in flags}
-		if flags and uid_list:
-			if not email_server:
-				email_server = self.get_incoming_server()
-			if not email_server:
-				return
-			email_server.update_flag(folder_name, uid_list=uid_list)
-
-			# mark communication as read
-			docnames = ",".join(
-				"'%s'" % flag.get("communication") for flag in flags if flag.get("action") == "Read"
-			)
-			self.set_communication_seen_status(docnames, seen=1)
-
-			# mark communication as unread
-			docnames = ",".join(
-				["'%s'" % flag.get("communication") for flag in flags if flag.get("action") == "Unread"]
-			)
-			self.set_communication_seen_status(docnames, seen=0)
-
-			docnames = ",".join(["'%s'" % flag.get("name") for flag in flags])
-
-			EmailFlagQueue = frappe.qb.DocType("Email Flag Queue")
-			frappe.qb.update(EmailFlagQueue).set(EmailFlagQueue.is_completed, 1).where(
-				EmailFlagQueue.name.isin(docnames)
-			).run()
-
-	def set_communication_seen_status(self, docnames, seen=0):
-		"""mark Email Flag Queue of self.email_account mails as read"""
-		if not docnames:
-			return
-		Communication = frappe.qb.from_("Communication")
-		frappe.qb.update(Communication).set(Communication.seen == seen).where(
-			Communication.name.isin(docnames)
-		).run()
-
 	def check_automatic_linking_email_account(self):
 		if self.enable_automatic_linking:
 			if not self.enable_incoming:

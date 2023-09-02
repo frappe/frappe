@@ -4,6 +4,8 @@ from inspect import _empty, isclass, signature
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
 
+from pydantic import ConfigDict
+
 from frappe.exceptions import FrappeTypeError
 
 SLACK_DICT = {
@@ -12,8 +14,7 @@ SLACK_DICT = {
 T = TypeVar("T")
 
 
-class FrappePydanticConfig:
-	arbitrary_types_allowed = True
+FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
 
 
 def validate_argument_types(func: Callable, apply_condition: Callable = lambda: True):

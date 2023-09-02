@@ -71,7 +71,9 @@ def post_process():
 
 	for request in result:
 		for call in request["calls"]:
-			formatted_query = sqlparse.format(call["query"].strip(), keyword_case="upper", reindent=True)
+			formatted_query = sqlparse.format(
+				call["query"].strip(), keyword_case="upper", reindent=True, strip_comments=True
+			)
 			call["query"] = formatted_query
 
 			# Collect EXPLAIN for executed query

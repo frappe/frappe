@@ -598,10 +598,11 @@ class TestDB(FrappeTestCase):
 		frappe.db.before_rollback.add(lambda: f(5))
 		frappe.db.after_rollback.add(lambda: f(6))
 		frappe.db.after_rollback.add(lambda: f(7))
+		frappe.db.after_rollback(lambda: f(8))
 
 		frappe.db.rollback()
 
-		self.assertEqual(order_of_execution, list(range(0, 8)))
+		self.assertEqual(order_of_execution, list(range(0, 9)))
 
 
 @run_only_if(db_type_is.MARIADB)
