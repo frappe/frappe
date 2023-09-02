@@ -16,7 +16,6 @@ import frappe
 from frappe.utils import touch_file
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
-EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", flags=re.UNICODE)
 
 
 def make_boilerplate(dest, app_name, no_git=False):
@@ -74,7 +73,11 @@ def _get_user_inputs(app_name):
 
 
 def is_valid_email(email) -> bool:
-	if not EMAIL_PATTERN.match(email):
+	from email.headerregistry import Address
+
+	try:
+		Address(addr_spec=email)
+	except Exception:
 		print("App Email should be a valid email address.")
 		return False
 	return True
