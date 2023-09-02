@@ -170,12 +170,8 @@ frappe.ui.LinkPreview = class {
 			this.href = this.href.replace(new RegExp(' ', 'g'), '%20');
 		}
 
-<<<<<<< HEAD
-		let popover_content =`
-=======
 		const div = document.createElement("div");
 		div.innerHTML = `
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 			<div class="preview-popover-header">
 				<div class="preview-header">
 					${this.get_image_html(preview_data)}
@@ -200,10 +196,6 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_id_html(preview_data) {
-<<<<<<< HEAD
-		let id_html = '';
-=======
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 		if (preview_data.preview_title !== preview_data.name) {
 			const a = document.createElement("a");
 			a.href = this.href;

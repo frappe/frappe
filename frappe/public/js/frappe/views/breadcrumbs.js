@@ -99,15 +99,6 @@ frappe.breadcrumbs = {
 			this.set_workspace(breadcrumbs);
 		}
 
-<<<<<<< HEAD
-		if (breadcrumbs.workspace) {
-			if (!breadcrumbs.module_info.blocked && frappe.visible_modules.includes(breadcrumbs.module_info.module)) {
-				$(`<li><a href="/app/${frappe.router.slug(breadcrumbs.workspace)}">${__(breadcrumbs.workspace)}</a></li>`)
-					.appendTo(this.$breadcrumbs);
-			}
-		}
-
-=======
 		if (!breadcrumbs.workspace) {
 			return;
 		}
@@ -124,7 +115,6 @@ frappe.breadcrumbs = {
 			`/app/${frappe.router.slug(breadcrumbs.workspace)}`,
 			__(breadcrumbs.workspace)
 		);
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 	},
 
 	set_workspace(breadcrumbs) {
@@ -170,12 +160,7 @@ frappe.breadcrumbs = {
 			} else {
 				route = doctype_route;
 			}
-<<<<<<< HEAD
-			$(`<li><a href="/app/${route}">${__(doctype)}</a></li>`)
-				.appendTo(this.$breadcrumbs);
-=======
 			this.append_breadcrumb_element(`/app/${route}`, __(doctype));
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 		}
 	},
 
@@ -183,12 +168,7 @@ frappe.breadcrumbs = {
 		const doctype = breadcrumbs.doctype;
 		const docname = frappe.get_route().slice(2).join("/");
 		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
-<<<<<<< HEAD
-		$(`<li><a href="${form_route}">${__(docname)}</a></li>`)
-			.appendTo(this.$breadcrumbs);
-=======
 		this.append_breadcrumb_element(form_route, __(docname));
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 
 		if (view === "form") {
 			let last_crumb = this.$breadcrumbs.find('li').last();

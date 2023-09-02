@@ -899,13 +899,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-<<<<<<< HEAD
-		return `/app/${frappe.router.slug(frappe.router.doctype_layout || this.doctype)}/${encodeURIComponent(doc.name)}`;
-=======
 		return `/app/${encodeURIComponent(
 			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
 		)}/${encodeURIComponent(cstr(doc.name))}`;
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 	}
 
 	get_seen_class(doc) {
@@ -916,22 +912,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_like_html(doc) {
 		const liked_by = JSON.parse(doc._liked_by || "[]");
-<<<<<<< HEAD
-		let heart_class = liked_by.includes(frappe.session.user)
-			? "liked-by liked"
-			: "not-liked";
-
-		return `<span
-			class="like-action ${heart_class}"
-			data-name="${doc.name}" data-doctype="${this.doctype}"
-			data-liked-by="${encodeURI(doc._liked_by) || "[]"}"
-			title="${liked_by.map(u => frappe.user_info(u).fullname).join(', ')}">
-			${frappe.utils.icon('heart', 'sm', 'like-icon')}
-		</span>
-		<span class="likes-count">
-			${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
-		</span>`;
-=======
 		const heart_class = liked_by.includes(frappe.session.user)
 			? "liked-by liked"
 			: "not-liked";
@@ -954,7 +934,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		like.setAttribute("title", title);
 
 		return div.innerHTML;
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 	}
 
 	get_subject_html(doc) {
@@ -978,19 +957,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${this.get_like_html(doc)}
 				</span>
 			</span>
-<<<<<<< HEAD
-			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
-				<a class="ellipsis"
-					href="${this.get_form_link(doc)}"
-					title="${escaped_subject}"
-					data-doctype="${this.doctype}"
-					data-name="${doc.name}">
-					${subject}
-				</a>
-=======
 			<span class="level-item ${seen} ellipsis">
 				<a class="ellipsis"></a>
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 			</span>
 		`;
 
@@ -1211,41 +1179,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-<<<<<<< HEAD
-=======
-	setup_drag_click() {
-		/*
-			Click on the check box in the list view and
-			drag through the rows to select.
-
-			Do it again to unselect.
-
-			If the first click is on checked checkbox, then it will unselect rows on drag,
-			else if it is unchecked checkbox, it will select rows on drag.
-		*/
-		this.dragClick = false;
-		this.$result.on("mousedown", ".list-row-checkbox", (e) => {
-			this.dragClick = true;
-			this.check = !e.target.checked;
-		});
-		$(document).on("mouseup", () => {
-			this.dragClick = false;
-		});
-		this.$result.on("mousemove", ".level.list-row", (e) => {
-			if (this.dragClick) {
-				this.check_row_on_drag(e, this.check);
-			}
-		});
-	}
-
-	check_row_on_drag(event, check = true) {
-		$(event.target)
-			.find(".list-row-checkbox")
-			.prop("checked", check);
-		this.on_row_checked();
-	}
-
->>>>>>> 6e2b581ad7 (fix: sanitize user inputs (#22292))
 	setup_action_handler() {
 		this.$result.on("click", ".btn-action", (e) => {
 			const $button = $(e.currentTarget);
