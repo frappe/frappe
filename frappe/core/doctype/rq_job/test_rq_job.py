@@ -10,6 +10,8 @@ from rq.job import Job
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
 from frappe.installer import update_site_config
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
@@ -150,6 +152,7 @@ class TestRQJob(FrappeTestCase):
 		self.assertIsNone(get_job_status(job_id))
 
 	@timeout(20)
+	@run_only_if(db_type_is.MARIADB)
 	def test_memory_usage(self):
 		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
 		self.check_status(job, "finished")
