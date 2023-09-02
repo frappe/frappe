@@ -634,7 +634,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Likes")}">${frappe.utils.icon("heart", "sm", "like-icon")}</span>
 			</span>
-			<span class="level-item" data-sort-by="${subject_field.fieldname}">
+			<span class="level-item" data-sort-by="${subject_field.fieldname}"
+				title="${__("Click to sort by {0}", [subject_field.label])}">
 				${__(subject_field.label)}
 			</span>
 		`;
@@ -652,8 +653,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					html = subject_html;
 				} else {
 					const fieldname = col.df?.fieldname;
-					const attrs = fieldname ? ` data-sort-by="${fieldname}"` : "";
-					html = `<span${attrs}>
+					const attrs = fieldname
+						? ` data-sort-by="${fieldname}"
+							title="${__("Click to sort by {0}", [col.df?.label])}"`
+						: "";
+					html = `<span ${attrs}>
 						${__(col.df?.label || col.type)}
 					</span>`;
 				}
