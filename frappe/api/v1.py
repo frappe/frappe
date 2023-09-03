@@ -54,11 +54,11 @@ def get_request_form_data():
 
 
 url_rules = [
-	Rule("/method/<string:method>", endpoint=handle_rpc_call),
-	Rule("/resource/<string:doctype>", methods=["GET"], endpoint=document_list),
-	Rule("/resource/<string:doctype>", methods=["POST"], endpoint=create_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["GET"], endpoint=read_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["PUT"], endpoint=update_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["DELETE"], endpoint=delete_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["POST"], endpoint=execute_doc_method),
+	Rule("/method/<method>", endpoint=handle_rpc_call),
+	Rule("/resource/<doctype>", methods=["GET"], endpoint=document_list),
+	Rule("/resource/<doctype>", methods=["POST"], endpoint=create_doc),
+	Rule("/resource/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
+	Rule("/resource/<doctype>/<path:name>/", methods=["PUT"], endpoint=update_doc),
+	Rule("/resource/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
+	Rule("/resource/<doctype>/<path:name>/", methods=["POST"], endpoint=execute_doc_method),
 ]

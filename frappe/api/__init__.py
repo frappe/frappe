@@ -60,4 +60,5 @@ API_URL_MAP = Map(
 		Submount("/api/v2", v2_rules),
 	],
 	strict_slashes=False,  # Allows skipping trailing slashes
+	merge_slashes=False,
 )

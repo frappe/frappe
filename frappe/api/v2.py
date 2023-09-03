@@ -42,15 +42,17 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 
 
 url_rules = [
-	Rule("/method/<string:method>", endpoint=handle_rpc_call),
-	Rule("/method/<string:doctype>/<string:method>", endpoint=handle_rpc_call),
-	Rule("/resource/<string:doctype>", methods=["GET"], endpoint=document_list),
-	Rule("/resource/<string:doctype>", methods=["POST"], endpoint=create_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["GET"], endpoint=read_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["PUT"], endpoint=update_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["DELETE"], endpoint=delete_doc),
+	Rule("/method/<method>", endpoint=handle_rpc_call),
+	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
+	Rule("/resource/<doctype>", methods=["GET"], endpoint=document_list),
+	# TODO: bulk insert with array
+	Rule("/resource/<doctype>", methods=["POST"], endpoint=create_doc),
+	# TODO: get_value
+	Rule("/resource/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
+	Rule("/resource/<doctype>/<path:name>/", methods=["PUT"], endpoint=update_doc),
+	Rule("/resource/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
-		"/resource/<string:doctype>/<string:name>/<string:method>",
+		"/resource/<doctype>/<path:name>/method/<method>/",
 		methods=["GET", "POST"],
 		endpoint=execute_doc_method,
 	),
