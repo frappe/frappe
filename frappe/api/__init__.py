@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Submount
-from werkzeug.wrappers import Request
+from werkzeug.wrappers import Request, Response
 
 import frappe
 import frappe.client
@@ -40,7 +40,10 @@ def handle(request: Request):
 	except NotFound:  # Wrap 404 - backward compatiblity
 		raise frappe.DoesNotExistError
 
-	endpoint(**arguments)
+	resp = endpoint(**arguments)
+	if isinstance(resp, Response):
+		return resp
+
 	return build_response("json")
 
 
