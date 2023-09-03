@@ -41,7 +41,7 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
+		window.socketio_port = {{ (frappe.socketio_port or 9000) }};
 		window.show_language_picker = {{ show_language_picker or 'false' }};
 	</script>
 </head>
