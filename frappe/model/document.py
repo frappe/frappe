@@ -1041,9 +1041,7 @@ class Document(BaseDocument):
 		return self._cancel()
 
 	@frappe.whitelist()
-	def rename(
-		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
-	):
+	def rename(self, name: str, merge=False, force=False, validate_rename=True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
