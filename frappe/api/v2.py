@@ -1,6 +1,7 @@
 import json
 
 from werkzeug.routing import Rule
+from werkzeug.wrappers import Response
 
 import frappe
 from frappe import _
@@ -8,17 +9,23 @@ from frappe.utils.data import sbool
 
 
 def handle_rpc_call(method: str, doctype: str | None = None):
-	# TODO: inline this weird circular calls
-	import frappe.handler
+	from frappe.handler import execute_cmd
 	from frappe.modules.utils import load_doctype_module
 
 	if doctype:
-		# TODO: HACKY implementation, simplify all this before merge
+		# Expand to cover actual method
 		module = load_doctype_module(doctype)
 		method = module.__name__ + "." + method
 
-	frappe.local.form_dict.cmd = method
-	return frappe.handler.handle()
+	if method == "login":
+		return
+
+	data = execute_cmd(method)
+	if isinstance(data, Response):
+		# method returns a response object, pass it on
+		return data
+
+	frappe.response["data"] = data
 
 
 def get_doc_list(doctype: str):
