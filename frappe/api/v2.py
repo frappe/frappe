@@ -7,8 +7,16 @@ from frappe import _
 from frappe.utils.data import sbool
 
 
-def handle_rpc_call(method: str):
+def handle_rpc_call(method: str, doctype: str | None = None):
 	# TODO: inline this weird circular calls
+	import frappe.handler
+	from frappe.modules.utils import load_doctype_module
+
+	if doctype:
+		# TODO: HACKY implementation, simplify all this before merge
+		module = load_doctype_module(doctype)
+		method = module.__name__ + "." + method
+
 	frappe.local.form_dict.cmd = method
 	return frappe.handler.handle()
 
@@ -117,6 +125,7 @@ def get_request_form_data():
 
 url_rules = [
 	Rule("/method/<string:method>", endpoint=handle_rpc_call),
+	Rule("/method/<string:doctype>/<string:method>", endpoint=handle_rpc_call),
 	Rule("/resource/<string:doctype>", methods=["GET"], endpoint=get_doc_list),
 	Rule("/resource/<string:doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["GET"], endpoint=read_doc),

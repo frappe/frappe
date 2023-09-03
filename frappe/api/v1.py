@@ -8,6 +8,8 @@ from frappe.utils.data import sbool
 
 
 def handle_rpc_call(method: str):
+	import frappe.handler
+
 	# TODO: inline this weird circular calls
 	frappe.local.form_dict.cmd = method
 	return frappe.handler.handle()
