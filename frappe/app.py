@@ -106,7 +106,7 @@ def application(request: Request):
 			response = frappe.handler.handle()
 
 		elif request.path.startswith("/api/"):
-			response = frappe.api.handle()
+			response = frappe.api.handle(request)
 
 		elif request.path.startswith("/backups"):
 			response = frappe.utils.response.download_backup(request.path)
