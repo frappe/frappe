@@ -57,8 +57,6 @@ def handle():
 		# add the response to `message` label
 		frappe.response["message"] = data
 
-	return build_response("json")
-
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""

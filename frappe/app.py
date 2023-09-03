@@ -103,7 +103,8 @@ def application(request: Request):
 			deprecation_warning(
 				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
 			)
-			response = frappe.handler.handle()
+			frappe.handler.handle()
+			response = frappe.utils.response.build_response("json")
 
 		elif request.path.startswith("/api/"):
 			response = frappe.api.handle(request)
