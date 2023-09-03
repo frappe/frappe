@@ -12,7 +12,7 @@ dns.setDefaultResultOrder("ipv4first");
 function get_conf() {
 	// defaults
 	var conf = {
-		socketio_port: 3000,
+		socketio_port: 9000,
 	};
 
 	var read_config = function (file_path) {
