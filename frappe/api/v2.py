@@ -13,7 +13,7 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	from frappe.modules.utils import load_doctype_module
 
 	if doctype:
-		# Expand to cover actual method
+		# Expand to run actual method
 		module = load_doctype_module(doctype)
 		method = module.__name__ + "." + method
 
@@ -61,9 +61,6 @@ def create_doc(doctype: str):
 	# set response data
 	frappe.local.response.update({"data": doc.as_dict()})
 
-	# commit for POST requests
-	frappe.db.commit()
-
 
 def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
@@ -89,15 +86,11 @@ def update_doc(doctype: str, name: str):
 	# check for child table doctype
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
-	frappe.db.commit()
 
 
 def delete_doc(doctype: str, name: str):
-	# Not checking permissions here because it's checked in delete_doc
 	frappe.delete_doc(doctype, name, ignore_missing=False)
 	frappe.local.response.http_status_code = 202
-	frappe.local.response.message = "ok"
-	frappe.db.commit()
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
@@ -115,7 +108,6 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 		frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
-		frappe.db.commit()
 
 
 def get_request_form_data():

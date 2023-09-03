@@ -48,9 +48,6 @@ def create_doc(doctype: str):
 	# set response data
 	frappe.local.response.update({"data": doc.as_dict()})
 
-	# commit for POST requests
-	frappe.db.commit()
-
 
 def read_doc(doctype: str, name: str):
 	# Backward compatiblity
@@ -81,7 +78,6 @@ def update_doc(doctype: str, name: str):
 	# check for child table doctype
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
-	frappe.db.commit()
 
 
 def delete_doc(doctype: str, name: str):
@@ -89,7 +85,6 @@ def delete_doc(doctype: str, name: str):
 	frappe.delete_doc(doctype, name, ignore_missing=False)
 	frappe.local.response.http_status_code = 202
 	frappe.local.response.message = "ok"
-	frappe.db.commit()
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
@@ -107,7 +102,6 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 		frappe.local.response.update({"data": doc.run_method(method, **frappe.local.form_dict)})
-		frappe.db.commit()
 
 
 def get_request_form_data():
