@@ -51,11 +51,6 @@ def create_doc(doctype: str):
 
 
 def read_doc(doctype: str, name: str):
-	# Backward compatiblity
-	if "run_method" in frappe.local.form_dict:
-		execute_doc_method(doctype, name)
-		return
-
 	doc = frappe.get_doc(doctype, name)
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
@@ -127,5 +122,4 @@ url_rules = [
 	Rule("/resource/<string:doctype>/<string:name>", methods=["GET"], endpoint=read_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["PUT"], endpoint=update_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["DELETE"], endpoint=delete_doc),
-	Rule("/resource/<string:doctype>/<string:name>", methods=["POST"], endpoint=execute_doc_method),
 ]

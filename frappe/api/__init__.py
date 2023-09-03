@@ -5,7 +5,7 @@ import binascii
 from urllib.parse import urlencode, urlparse
 
 from werkzeug.exceptions import NotFound
-from werkzeug.routing import Map
+from werkzeug.routing import Map, Submount
 from werkzeug.wrappers import Request
 
 import frappe
@@ -149,9 +149,14 @@ def validate_auth_via_hooks():
 
 # Merge all API version routing rules
 from frappe.api.v1 import url_rules as v1_rules
+from frappe.api.v2 import url_rules as v2_rules
 
-url_rules = [
-	*v1_rules,
-]
-
-API_URL_MAP = Map(url_rules)
+API_URL_MAP = Map(
+	[
+		# V1 routes
+		Submount("/api", v1_rules),
+		Submount("/api/v1", v1_rules),
+		Submount("/api/v2", v2_rules),
+	],
+	strict_slashes=False,  # Allows skipping trailing slashes
+)
