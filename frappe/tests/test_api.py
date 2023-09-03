@@ -199,7 +199,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		doc_to_delete = choice(self.GENERATED_DOCUMENTS)
 		response = self.delete(f"/api/resource/{self.DOCTYPE}/{doc_to_delete}")
 		self.assertEqual(response.status_code, 202)
-		self.assertDictEqual(response.json, {"message": "ok"})
+		self.assertDictEqual(response.json, {"data": "ok"})
 
 		response = self.get(f"/api/resource/{self.DOCTYPE}/{doc_to_delete}")
 		self.assertEqual(response.status_code, 404)

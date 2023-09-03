@@ -1,11 +1,8 @@
-import json
-
 from werkzeug.routing import Rule
 
 import frappe
 from frappe import _
-from frappe.api.utils import document_list
-from frappe.utils.data import sbool
+from frappe.api.utils import create_doc, delete_doc, document_list, update_doc
 
 
 def handle_rpc_call(method: str):
@@ -15,57 +12,16 @@ def handle_rpc_call(method: str):
 	return frappe.handler.handle()
 
 
-def get_doc_list(doctype: str):
-	frappe.response.update({"data": document_list(doctype)})
-
-
-def create_doc(doctype: str):
-	data = get_request_form_data()
-	data.update({"doctype": doctype})
-
-	# insert document from request data
-	doc = frappe.get_doc(data).insert()
-
-	# set response data
-	frappe.response.update({"data": doc.as_dict()})
-
-
 def read_doc(doctype: str, name: str):
 	# Backward compatiblity
 	if "run_method" in frappe.form_dict:
-		execute_doc_method(doctype, name)
-		return
+		return execute_doc_method(doctype, name)
 
 	doc = frappe.get_doc(doctype, name)
 	if not doc.has_permission("read"):
 		raise frappe.PermissionError
 	doc.apply_fieldlevel_read_permissions()
-	frappe.response.update({"data": doc})
-
-
-def update_doc(doctype: str, name: str):
-	data = get_request_form_data()
-
-	doc = frappe.get_doc(doctype, name, for_update=True)
-
-	if "flags" in data:
-		del data["flags"]
-
-	# Not checking permissions here because it's checked in doc.save
-	doc.update(data)
-
-	frappe.response.update({"data": doc.save().as_dict()})
-
-	# check for child table doctype
-	if doc.get("parenttype"):
-		frappe.get_doc(doc.parenttype, doc.parent).save()
-
-
-def delete_doc(doctype: str, name: str):
-	# Not checking permissions here because it's checked in delete_doc
-	frappe.delete_doc(doctype, name, ignore_missing=False)
-	frappe.response.http_status_code = 202
-	frappe.response.message = "ok"
+	return doc
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
@@ -76,13 +32,13 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	if frappe.request.method == "GET":
 		if not doc.has_permission("read"):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
-		frappe.response.update({"data": doc.run_method(method, **frappe.form_dict)})
+		return doc.run_method(method, **frappe.form_dict)
 
 	elif frappe.request.method == "POST":
 		if not doc.has_permission("write"):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-		frappe.response.update({"data": doc.run_method(method, **frappe.form_dict)})
+		return doc.run_method(method, **frappe.form_dict)
 
 
 def get_request_form_data():
@@ -99,7 +55,7 @@ def get_request_form_data():
 
 url_rules = [
 	Rule("/method/<string:method>", endpoint=handle_rpc_call),
-	Rule("/resource/<string:doctype>", methods=["GET"], endpoint=get_doc_list),
+	Rule("/resource/<string:doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/resource/<string:doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["GET"], endpoint=read_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["PUT"], endpoint=update_doc),

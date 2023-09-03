@@ -6,33 +6,32 @@ from werkzeug.wrappers import Request, Response
 
 import frappe
 import frappe.client
-import frappe.handler
 from frappe import _
 from frappe.utils.response import build_response
 
 
 def handle(request: Request):
 	"""
-	Handler for `/api` methods
+	Entry point for `/api` methods.
 
-	### Examples:
+	APIs are versioned using second part of path.
+	v1 -> `/api/v1/*`
+	v2 -> `/api/v2/*`
 
-	`/api/method/{methodname}` will call a whitelisted method
+	Different versions have different specification but broadly following things are supported:
 
-	`/api/resource/{doctype}` will query a table
+	- `/api/method/{methodname}` will call a whitelisted method
+	- `/api/resource/{doctype}` will query a table
 	        examples:
 	        - `?fields=["name", "owner"]`
 	        - `?filters=[["Task", "name", "like", "%005"]]`
 	        - `?limit_start=0`
 	        - `?limit_page_length=20`
-
-	`/api/resource/{doctype}/{name}` will point to a resource
-	        `GET` will return doclist
+	- `/api/resource/{doctype}/{name}` will point to a resource
+	        `GET` will return document
 	        `POST` will insert
 	        `PUT` will update
 	        `DELETE` will delete
-
-	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
 
 	try:
@@ -40,10 +39,12 @@ def handle(request: Request):
 	except NotFound:  # Wrap 404 - backward compatiblity
 		raise frappe.DoesNotExistError
 
-	resp = endpoint(**arguments)
-	if isinstance(resp, Response):
-		return resp
+	data = endpoint(**arguments)
+	if isinstance(data, Response):
+		return data
 
+	if data is not None:
+		frappe.response["data"] = data
 	return build_response("json")
 
 
