@@ -5,6 +5,7 @@ from werkzeug.wrappers import Response
 
 import frappe
 from frappe import _
+from frappe.api.utils import document_list
 from frappe.utils.data import sbool
 
 
@@ -29,26 +30,7 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 
 
 def get_doc_list(doctype: str):
-	if frappe.form_dict.get("fields"):
-		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
-
-	# set limit of records for frappe.get_list
-	frappe.form_dict.setdefault(
-		"limit_page_length",
-		frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,
-	)
-
-	# convert strings to native types - only as_dict and debug accept bool
-	for param in ["as_dict", "debug"]:
-		param_val = frappe.form_dict.get(param)
-		if param_val is not None:
-			frappe.form_dict[param] = sbool(param_val)
-
-	# evaluate frappe.get_list
-	data = frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
-
-	# set frappe.get_list result to response
-	frappe.response.update({"data": data})
+	frappe.response.update({"data": document_list(doctype)})
 
 
 def create_doc(doctype: str):
