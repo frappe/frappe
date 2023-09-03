@@ -122,4 +122,9 @@ url_rules = [
 	Rule("/resource/<string:doctype>/<string:name>", methods=["GET"], endpoint=read_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["PUT"], endpoint=update_doc),
 	Rule("/resource/<string:doctype>/<string:name>", methods=["DELETE"], endpoint=delete_doc),
+	Rule(
+		"/resource/<string:doctype>/<string:name>/<string:method>",
+		methods=["GET", "POST"],
+		endpoint=execute_doc_method,
+	),
 ]
