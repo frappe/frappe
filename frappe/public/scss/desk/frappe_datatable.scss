@@ -19,7 +19,7 @@
 	background-color: var(--fg-color);
 	margin-left: -5px;
 	margin-top: 0px;
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 
 	.frappe-control, .form-control {
 		margin: 0;

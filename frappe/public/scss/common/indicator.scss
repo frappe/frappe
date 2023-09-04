@@ -15,16 +15,14 @@
 }
 .indicator-pill,
 .indicator-pill-right {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-regular);
+	@include get_textstyle("sm", "regular");
 	padding: 4.5px 8px;
 	border-radius: var( --border-radius-full);
 	height: 20px;
 }
 
 .indicator-pill-round {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-regular);
+	@include get_textstyle("sm", "regular");
 	justify-content: center;
 	border-radius: 50%;
 	width: 24px;
@@ -35,8 +33,8 @@
 .indicator-pill-right::after {
 	content:'';
 	display: inline-table;
-	height: 8px;
-	width: 8px;
+	height: 6px;
+	width: 6px;
 	border-radius: 50%;
 	margin-right: 6px;
 }

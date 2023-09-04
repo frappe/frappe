@@ -5,7 +5,7 @@
 .filter-popover {
 	min-width: 500px;
 	min-height: 50px;
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	z-index: 1019;
 }
 
@@ -92,7 +92,7 @@
 			}
 
 			.remove-filter {
-				font-size: var(--text-sm);
+				@include get_textstyle("sm", "regular");
 				color: var(--primary);
 			}
 

@@ -59,7 +59,7 @@ body {
 			input[type="password"] {
 				border: none;
 				color: var(--text-color);
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 				background-color: var(--control-bg);
 				margin-bottom: 1rem;
 			}
@@ -73,7 +73,7 @@ body {
 			}
 
 			.form-label {
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 			}
 
 			.forgot-password-message {
@@ -82,7 +82,7 @@ body {
 
 				> * {
 					color: var(--text-light);
-					font-size: var(--text-sm);
+					@include get_textstyle("sm", "regular");
 				}
 			}
 
@@ -119,8 +119,7 @@ body {
 			}
 
 			.btn-login-option {
-				font-size: var(--text-base);
-				font-weight: 500;
+				@include get_textstyle("base", "medium");
 				color: var(--text-gray-700);
 				background: var(--gray-100);
 				box-shadow: none;
@@ -146,7 +145,7 @@ body {
 
 			.social-logins {
 				margin-top: var(--margin-md);
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 
 				.social-login-buttons {
 					margin-top: var(--margin-md);
@@ -193,10 +192,8 @@ body {
 	.sign-up-message {
 		margin-top: 2rem;
 		color: var(--text-light);
-		font-size: var(--text-base);
-
+		@include get_textstyle("base", "regular");
 		a {
-			font-size: var(--text-base);
 			color: var(--primary);
 		}
 	}

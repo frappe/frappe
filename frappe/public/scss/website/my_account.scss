@@ -59,11 +59,11 @@
 
 	.my-account-item-desc {
 		color: var(--gray-700);
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 	}
 
 	.my-account-item-link {
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 
 		a {
 			text-decoration: none;

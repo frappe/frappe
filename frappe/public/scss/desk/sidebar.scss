@@ -162,7 +162,7 @@ body[data-route^="Module"] .main-menu {
 }
 
 .layout-side-section {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	padding-right: 30px;
 
 	> .divider {
@@ -196,7 +196,7 @@ body[data-route^="Module"] .main-menu {
 		.modified-by,
 		.created-by,
 		.pageview-count {
-			font-size: var(--text-sm);
+			@include get_textstyle("sm", "regular");
 		}
 
 		.modified-by,
@@ -348,7 +348,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-action {
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 		color: var(--primary);
 		margin-top: 10px;
 	}
@@ -511,7 +511,7 @@ body[data-route^="Module"] .main-menu {
 .tags-placeholder {
 	margin-bottom: var(--margin-sm);
 	display: inline-block;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 .shared-user {

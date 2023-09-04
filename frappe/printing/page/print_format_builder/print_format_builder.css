@@ -71,9 +71,8 @@
 }
 
 .print-format-builder-section-head .section-label {
-	font-size: var(--text-lg);
+	@include get_textstyle("lg", "medium");
 	color: var(--text-color);
-	font-weight: 500;
 	vertical-align: middle;
 	margin-left: var(--margin-sm);
 }

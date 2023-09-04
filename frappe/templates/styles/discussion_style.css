@@ -115,7 +115,8 @@
 
 .discussions-section-title {
 	font-size: var(--text-2xl);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
+	letter-spacing: 0.01em;
 	color: var(--text-color);
 	flex-grow: 1;
 }

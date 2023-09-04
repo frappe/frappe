@@ -30,7 +30,7 @@ body {
 }
 
 .widget-group {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	margin-bottom: var(--margin-2xl);
 
 	&.widget-charts {
@@ -42,8 +42,7 @@ body {
 
 		.widget-group-title {
 			color: var(--heading-color);
-			font-weight: 600;
-			font-size: var(--text-lg);
+			@include get_textstyle("lg", "semibold");
 			margin-bottom: var(--margin-md);
 		}
 	}
@@ -141,9 +140,8 @@ body {
 
 			.widget-title {
 				@include flex(flex, null, center, null);
-				font-size: var(--text-lg);
+				@include get_textstyle("lg", "semibold");
 				font-family: inherit;
-				font-weight: var(--weight-semibold);
 				line-height: 1.3em;
 				color: var(--heading-color);
 				cursor: default;
@@ -378,7 +376,7 @@ body {
 			.widget-subtitle {
 				margin-top: 5px;
 				color: var(--text-muted);
-				font-size: var(--text-sm);
+				@include get_textstyle("sm", "regular");
 			}
 
 			.widget-control {
@@ -408,8 +406,7 @@ body {
 				}
 
 				h3 {
-					font-size: var(--text-lg);
-					font-weight: 600;
+					@include get_textstyle("lg", "semibold");
 					margin-bottom: var(--margin-sm);
 				}
 
@@ -417,7 +414,7 @@ body {
 					color: var(--gray-700);
 
 					p {
-						font-size: var(--text-base);
+						@include get_textstyle("base", "regular");
 					}
 				}
 				.onboarding-step-footer {
@@ -429,7 +426,7 @@ body {
 				@include flex(flex, space-between, center, null);
 				border-radius: var(--border-radius);
 				padding: 5px 8px;
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 				max-width: 350px;
 				text-decoration: none;
 				margin-bottom: var(--margin-xs);
@@ -494,7 +491,7 @@ body {
 				}
 
 				.step-skip {
-					font-size: var(--text-base);
+					@include get_textstyle("base", "regular");
 					visibility: hidden;
 					cursor: pointer;
 				}
@@ -560,8 +557,7 @@ body {
 
 		.widget-title {
 			cursor: pointer !important;
-			font-size: var(--text-base) !important;
-			font-weight: 500 !important;
+			@include get_textstyle("base", "medium");
 		}
 
 		.indicator-pill {
@@ -583,7 +579,7 @@ body {
 		.link-item {
 			display: flex;
 			text-decoration: none;
-			font-size: var(--text-base);
+			@include get_textstyle("base", "regular");
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;
@@ -682,8 +678,7 @@ body {
 				padding-top: var(--padding-md);
 
 				.number {
-					font-weight: var(--weight-semibold);
-					font-size: var(--text-2xl);
+					@include get_textstyle("2xl", "semibold");
 					line-height: var(--text-line-height-3xl);
 					color: var(--text-color);
 				}

@@ -158,7 +158,7 @@ body {
 	body[data-route^="Form"]{
 		.page-title {
 			.title-text {
-				font-size: var(--text-lg);
+				@include get_textstyle("lg", "regular");
 				max-width: 300px;
 			}
 

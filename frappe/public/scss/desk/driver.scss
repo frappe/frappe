@@ -10,7 +10,7 @@ div#driver-popover-item {
 	box-shadow: var(--shadow-md);
 
 	.driver-popover-title {
-		font-size: var(--text-lg);
+		@include get_textstyle("lg", "regular");
 		color: var(--text-color);
 		margin-bottom: var(--margin-sm);
 	}

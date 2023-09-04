@@ -27,7 +27,7 @@
 	.nav-item {
 		margin: auto;
 		margin-left: var(--margin-md);
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 		line-height: 1rem;
 	}
 }
@@ -62,7 +62,7 @@
 			width: 100% !important;
 			padding-left: 36px;
 			height: 28px;
-			font-size: var(--text-sm);
+			@include get_textstyle("sm", "regular");
 		}
 		input:focus {
 			border-bottom-left-radius: 0;

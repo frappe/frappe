@@ -87,7 +87,7 @@ a.badge-hover {
 
 .bold,
 .strong {
-	font-weight: bold;
+	font-weight: var(--weight-bold);
 }
 
 pre {
@@ -199,7 +199,7 @@ p {
 }
 
 .small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 h1 {
@@ -232,7 +232,7 @@ h2 {
 
 .btn-group-sm > .btn, .btn-sm {
 	padding: var(--padding-xs) var(--padding-sm);
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 }
 
 .btn-group {
@@ -285,7 +285,7 @@ h2 {
 
 .input-xs {
 	height: 26px;
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 }
 
 select.input-xs {
@@ -315,7 +315,7 @@ select.input-xs {
 
 .dropdown-menu {
 	padding: 4px;
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	max-height: 500px;
 	overflow: auto;
 
@@ -354,7 +354,7 @@ select.input-xs {
 }
 
 .custom-control.custom-switch {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	line-height: 1.6;
 
 	.custom-control-input ~ .custom-control-label {
@@ -377,8 +377,7 @@ select.input-xs {
 // }
 
 .head-title {
-	font-size: var(--text-lg);
-	font-weight: 700;
+	@include get_textstyle("lg", "bold");
 	color: var(--heading-color);
 }
 
@@ -410,7 +409,7 @@ kbd {
 }
 
 .standard-sidebar {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 
 	.standard-sidebar-section .standard-sidebar-label {
 		margin-bottom: var(--margin-md);
@@ -419,7 +418,7 @@ kbd {
 
 	.standard-sidebar-item {
 		@include flex(flex, null, center, null);
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 		padding: 8px 12px;
 		margin-bottom: 2px;
 		border-radius: var(--border-radius-md);
@@ -574,25 +573,25 @@ details > summary:focus {
 .uppercase {
 	padding-bottom: var(--padding-xs);
 	text-transform: uppercase;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	letter-spacing: 0.4px;
 	color: var(--text-muted);
 }
 
 .text-regular {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 }
 
 .text-medium {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 }
 
 .text-small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 .text-large {
-	font-size: var(--text-lg);
+	@include get_textstyle("lg", "regular");
 }
 
 .disable-click {
@@ -623,7 +622,7 @@ details > summary:focus {
 }
 
 .dropdown-menu.small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	min-width: 140px;
 	.dropdown-item {
 		padding: var(--padding-xs);

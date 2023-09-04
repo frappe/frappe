@@ -35,7 +35,7 @@
 
 		&> li {
 			cursor: pointer;
-			font-size: var(--text-md);
+			@include get_textstyle("sm", "regular");
 			padding: var(--padding-sm);
 			color: var(--text-color);
 			border-radius: var(--border-radius);
@@ -48,6 +48,9 @@
 				margin-bottom: 0;
 				overflow-y: clip;
 				text-overflow: ellipsis;
+			}
+			strong {
+				@include get_textstyle("sm", "bold");
 			}
 		}
 

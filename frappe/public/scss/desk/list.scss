@@ -76,7 +76,7 @@
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	border-radius: var(--border-radius-md);
 
 	&:hover:not(.list-row-head) {
@@ -287,7 +287,7 @@ input.list-check-all {
 	height: 40px;
 	padding-left: 15px;
 
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 
 	&:hover {
 		background-color: var(--highlight-color);

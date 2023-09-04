@@ -131,7 +131,7 @@ select.form-control {
 }
 
 .frappe-control {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	.control-label.reqd:after {
 		content: ' *';
 		color: var(--red-400);
@@ -148,7 +148,7 @@ select.form-control {
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 		word-wrap: break-word;
 		p:last-child {
 			margin-bottom: 0;
@@ -226,7 +226,7 @@ select.form-control {
 		padding: 6px 10px;
 		background: var(--control-bg);
 		border-radius: var(--border-radius);
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 	}
 }
 

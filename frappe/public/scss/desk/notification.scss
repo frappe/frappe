@@ -76,13 +76,12 @@
 
 			.title {
 				margin-top: var(--margin-lg);
-				font-size: var(--text-base);
-				font-weight: 600;
+				@include get_textstyle("base", "semibold");
 			}
 
 			.subtitle {
 				margin-top: var(--margin-sm);
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 				color: var(--text-muted);
 			}
 		}
@@ -117,9 +116,8 @@
 	margin: 4px 0px;
 	border-radius: var(--border-radius-md, 8px);
 	white-space: normal;
-	font-weight: normal;
 	display: flex;
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	line-height: 20px;
 	color: var(--text-light);
 	max-width: 455px;
@@ -205,13 +203,12 @@
 		padding-left: 10px;
 
 		.event-subject {
-			font-size: var(--text-base);
+			@include get_textstyle("base", "medium");
 			color: var(--text-light);
-			font-weight: 500;
 		}
 
 		.event-time {
-			font-size: var(--text-sm);
+			@include get_textstyle("sm", "regular");
 			margin-right: 10px;
 		}
 
@@ -250,7 +247,7 @@
 
 		.target-title {
 			margin: auto;
-			font-size: var(--text-base);
+			@include get_textstyle("base", "regular");
 			color: var(--text-light);
 		}
 

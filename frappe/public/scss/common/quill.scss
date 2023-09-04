@@ -163,7 +163,7 @@
 }
 
 .ql-snow .ql-picker {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	color: var(--text-light);
 }
 
@@ -240,7 +240,7 @@
 	border-radius: var(--border-radius-lg);
 	border: 1px solid var(--border-color);
 	padding: 2px 5px;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	background-color: var(--user-mention-bg-color);
 	a[href] {
 		text-decoration: none;
@@ -291,7 +291,7 @@
 .ql-editor blockquote {
 	border-left: 4px solid var(--gray-300);
 	padding-left: var(--padding-sm);
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	margin-top: 0px !important;
 	margin-bottom: 0px !important;
 }

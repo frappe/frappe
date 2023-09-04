@@ -1,8 +1,7 @@
 .form-control {
 	border: none;
 	height: var(--input-height);
-	font-size: var(--text-base);
-	font-weight: var(--weight-regular);
+	@include get_textstyle("base", "regular");
 	border-radius: var(--border-radius-sm);
 	padding: var(--input-padding);
 	position: relative;
@@ -14,11 +13,9 @@
 
 .like-disabled-input {
 	.for-description {
-		font-weight: normal;
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 	}
 	min-height: var(--input-height);
-	font-weight: var(--weight-regular);
 	border-radius: var(--border-radius-sm);
 	padding: var(--disabled-input-padding);
 	cursor: default;

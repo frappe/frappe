@@ -489,9 +489,8 @@
 }
 
 .collapsible-item-title {
-	font-weight: 600;
+	@include get_textstyle("2xl", "bold");
 	color: var(--text-color);
-	font-size: var(--text-2xl);
 }
 
 .collapsible-item a {

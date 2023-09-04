@@ -64,13 +64,13 @@ $threshold: 34;
 		}
 	}
 	.timeline-item {
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 		position: relative;
 		margin-left: var(--timeline-item-left-margin);
 		margin-bottom: var(--timeline-item-bottom-margin);
 		b {
 			color: var(--text-color);
-			font-weight: var(--weight-medium);
+			@include get_textstyle("base", "medium");
 		}
 		.action-buttons {
 			display: inline-flex;

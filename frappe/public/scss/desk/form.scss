@@ -36,14 +36,13 @@
 
 	.form-section-description {
 		margin-bottom: 10px;
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 		color: var(--gray-900);
 	}
 
 	.section-head {
 		@extend .head-title;
-		font-size: var(--text-lg);
-		font-weight: var(--weight-semibold);
+		@include get_textstyle("lg", "semibold");
 		color: var(--gray-800);
 		width: 100%;
 		padding: var(--padding-sm) var(--padding-md);
@@ -121,12 +120,11 @@
 .control-label,
 .grid-heading-row {
 	color: var(--text-muted);
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 .control-label {
 	margin-bottom: var(--margin-xs);
-	font-weight: normal;
 }
 
 .form-inner-toolbar {
@@ -188,7 +186,7 @@
 		display: flex;
 		.document-link-badge,
 		.report-link-badge {
-			font-size: var(--text-sm);
+			@include get_textstyle("sm", "regular");
 			padding: var(--padding-xs) var(--padding-sm);
 			border-radius: var(--border-radius);
 			background-color: var(--control-bg);
@@ -389,8 +387,7 @@
 
 	.form-tabs {
 		.nav-item {
-			font-size: var(--text-base);
-			font-weight: var(--weight-regular);
+			@include get_textstyle("base", "regular");
 			.nav-link {
 				color: var(--text-muted);
 				padding: 10px 0;

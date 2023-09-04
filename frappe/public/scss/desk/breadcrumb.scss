@@ -2,13 +2,12 @@
 	padding-left: 0;
 	padding-right: 0;
 	background-color: white;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
 	margin-left: var(--margin-md);
-	font-size: var(--text-base);
-	font-weight: var(--weight-regular);
+	@include get_textstyle("base", "regular");
 	a {
 		margin-right: 10px;
 		&:before {
