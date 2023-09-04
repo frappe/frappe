@@ -2,6 +2,11 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+<<<<<<< HEAD
+=======
+from functools import cached_property
+from typing import TYPE_CHECKING, TypeVar
+>>>>>>> bcc7cc9a3d (style: use `functools.cached_property` (#22304))
 
 import frappe
 from frappe import _, _dict
@@ -95,6 +100,7 @@ def get_controller(doctype):
 
 
 class BaseDocument:
+<<<<<<< HEAD
 	_reserved_keywords = {
 		"doctype",
 		"meta",
@@ -109,6 +115,23 @@ class BaseDocument:
 		"_permitted_fieldnames",
 		"dont_update_if_missing",
 	}
+=======
+	_reserved_keywords = frozenset(
+		(
+			"doctype",
+			"meta",
+			"flags",
+			"parent_doc",
+			"_table_fields",
+			"_valid_columns",
+			"_doc_before_save",
+			"_table_fieldnames",
+			"_reserved_keywords",
+			"permitted_fieldnames",
+			"dont_update_if_missing",
+		)
+	)
+>>>>>>> bcc7cc9a3d (style: use `functools.cached_property` (#22304))
 
 	def __init__(self, d):
 		if d.get("doctype"):
@@ -121,29 +144,18 @@ class BaseDocument:
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	@property
+	@cached_property
 	def meta(self):
-		meta = getattr(self, "_meta", None)
-		if meta is None:
-			self._meta = meta = frappe.get_meta(self.doctype)
+		return frappe.get_meta(self.doctype)
 
-		return meta
-
-	@property
+	@cached_property
 	def permitted_fieldnames(self):
-		permitted_fieldnames = getattr(self, "_permitted_fieldnames", None)
-		if permitted_fieldnames is None:
-			self._permitted_fieldnames = permitted_fieldnames = get_permitted_fields(
-				doctype=self.doctype, parenttype=getattr(self, "parenttype", None)
-			)
-
-		return permitted_fieldnames
+		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 	def __getstate__(self):
 		"""
 		Called when pickling.
-		Returns a copy of `__dict__` excluding unpicklable values like `_meta`.
-
+		Returns a copy of `__dict__` excluding unpicklable values like `meta`.
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
@@ -156,8 +168,8 @@ class BaseDocument:
 	def remove_unpicklable_values(self, state):
 		"""Remove unpicklable values before pickling"""
 
-		state.pop("_meta", None)
-		state.pop("_permitted_fieldnames", None)
+		state.pop("meta", None)
+		state.pop("permitted_fieldnames", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
