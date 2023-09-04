@@ -14,7 +14,7 @@ frappe.ui.form.on("Module Onboarding", {
 			frm.trigger("disable_form");
 		}
 
-		frm.add_custom_button(__("Reset"), () => {
+		frm.add_custom_button(__("Resetsanad"), () => {
 			frm.call("reset_progress");
 		});
 	},
