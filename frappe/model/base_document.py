@@ -784,7 +784,9 @@ class BaseDocument:
 					_df
 					for _df in self.meta.get_fields_to_fetch(df.fieldname)
 					if not _df.get("fetch_if_empty")
-					or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
+					or (
+						_df.get("fetch_if_empty") and not self.get(_df.fieldname) and _df.get("fieldtype") != "Check"
+					)
 				]
 				if not frappe.get_meta(doctype).get("is_virtual"):
 					if not fields_to_fetch:
