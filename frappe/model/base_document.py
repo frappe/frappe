@@ -2,11 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-<<<<<<< HEAD
-=======
 from functools import cached_property
-from typing import TYPE_CHECKING, TypeVar
->>>>>>> bcc7cc9a3d (style: use `functools.cached_property` (#22304))
 
 import frappe
 from frappe import _, _dict
@@ -100,11 +96,9 @@ def get_controller(doctype):
 
 
 class BaseDocument:
-<<<<<<< HEAD
 	_reserved_keywords = {
 		"doctype",
 		"meta",
-		"_meta",
 		"flags",
 		"parent_doc",
 		"_table_fields",
@@ -112,26 +106,9 @@ class BaseDocument:
 		"_doc_before_save",
 		"_table_fieldnames",
 		"_reserved_keywords",
-		"_permitted_fieldnames",
+		"permitted_fieldnames",
 		"dont_update_if_missing",
 	}
-=======
-	_reserved_keywords = frozenset(
-		(
-			"doctype",
-			"meta",
-			"flags",
-			"parent_doc",
-			"_table_fields",
-			"_valid_columns",
-			"_doc_before_save",
-			"_table_fieldnames",
-			"_reserved_keywords",
-			"permitted_fieldnames",
-			"dont_update_if_missing",
-		)
-	)
->>>>>>> bcc7cc9a3d (style: use `functools.cached_property` (#22304))
 
 	def __init__(self, d):
 		if d.get("doctype"):
