@@ -1101,7 +1101,7 @@ def browse(context, site, user=None):
 		else:
 			click.echo("Please enable developer mode to login as a user")
 
-	url = f"{frappe.utils.get_site_url(site)}{sid}"
+	url = f"{frappe.utils.get_url()}{sid}"
 
 	if user == "Administrator":
 		click.echo(f"Login URL: {url}")
