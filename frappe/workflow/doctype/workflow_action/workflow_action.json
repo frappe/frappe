@@ -79,7 +79,7 @@
   }
  ],
  "links": [],
- "modified": "2022-02-23 21:06:45.122258",
+ "modified": "2023-08-28 22:32:58.947849",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Action",
@@ -88,7 +88,7 @@
   {
    "delete": 1,
    "read": 1,
-   "role": "All"
+   "role": "Desk User"
   }
  ],
  "sort_field": "modified",

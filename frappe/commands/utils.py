@@ -609,7 +609,7 @@ def console(context, autoreload=False):
 
 	register(_console_cleanup)
 
-	terminal = InteractiveShellEmbed()
+	terminal = InteractiveShellEmbed.instance()
 	if autoreload:
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")

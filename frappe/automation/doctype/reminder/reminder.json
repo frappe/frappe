@@ -66,7 +66,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-02-24 13:47:50.419648",
+ "modified": "2023-08-28 22:17:18.351025",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Reminder",
@@ -78,7 +78,7 @@
    "delete": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "All",
+   "role": "Desk User",
    "write": 1
   }
  ],

@@ -9,6 +9,10 @@ from frappe.core.doctype.user_permission.user_permission import clear_user_permi
 from frappe.core.page.permission_manager.permission_manager import reset, update
 from frappe.desk.form.load import getdoc
 from frappe.permissions import (
+	ALL_USER_ROLE,
+	AUTOMATIC_ROLES,
+	GUEST_ROLE,
+	SYSTEM_USER_ROLE,
 	add_permission,
 	add_user_permission,
 	clear_user_permissions_for_doctype,
@@ -716,3 +720,28 @@ class TestPermissions(FrappeTestCase):
 		self.assertNotIn("test1@example.com", users)
 		self.assertIn("test2@example.com", users)
 		self.assertIn("test3@example.com", users)
+
+	def test_automatic_permissions(self):
+		def assertHasRole(*roles: str | tuple[str, ...]):
+			for role in roles:
+				self.assertIn(role, frappe.get_roles())
+
+		frappe.set_user("Administrator")
+		assertHasRole(*AUTOMATIC_ROLES)
+
+		frappe.set_user("Guest")
+		assertHasRole(GUEST_ROLE)
+
+		website_user = frappe.db.get_value(
+			"User",
+			{"user_type": "Website User", "enabled": 1, "name": ("not in", AUTOMATIC_ROLES)},
+		)
+		frappe.set_user(website_user)
+		assertHasRole(GUEST_ROLE, ALL_USER_ROLE)
+
+		system_user = frappe.db.get_value(
+			"User",
+			{"user_type": "System User", "enabled": 1, "name": ("not in", AUTOMATIC_ROLES)},
+		)
+		frappe.set_user(system_user)
+		assertHasRole(GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE)

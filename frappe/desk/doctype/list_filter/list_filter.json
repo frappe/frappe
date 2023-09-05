@@ -36,7 +36,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-08-03 12:20:50.889979",
+ "modified": "2023-08-28 22:32:51.465521",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List Filter",
@@ -50,7 +50,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "All",
+   "role": "Desk User",
    "share": 1,
    "write": 1
   }

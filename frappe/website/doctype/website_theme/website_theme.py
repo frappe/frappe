@@ -10,7 +10,6 @@ from typing import Optional
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_path
 
 
 class WebsiteTheme(Document):
@@ -181,15 +180,13 @@ def get_scss_paths():
 	returned set will contain 'frappe/public/scss/website[.bundle]'.
 	"""
 	import_path_list = []
-	bench_path = frappe.utils.get_bench_path()
 
 	scss_files = ["public/scss/website.scss", "public/scss/website.bundle.scss"]
 	for app in frappe.get_installed_apps():
 		for scss_file in scss_files:
-			relative_path = join_path(app, scss_file)
-			full_path = get_path("apps", app, relative_path, base=bench_path)
+			full_path = frappe.get_app_path(app, scss_file)
 			if path_exists(full_path):
-				import_path = splitext(relative_path)[0]
+				import_path = splitext(join_path(app, scss_file))[0]
 				import_path_list.append(import_path)
 
 	return import_path_list

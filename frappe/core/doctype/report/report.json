@@ -231,7 +231,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "All"
+   "role": "Desk User"
   }
  ],
  "show_name_in_global_search": 1,

@@ -273,6 +273,11 @@ class Communication(Document, CommunicationEmailMixin):
 		# comments count for the list view
 		update_comment_in_doc(self)
 
+		parent = get_parent_doc(self)
+		if (method := getattr(parent, "on_communication_update", None)) and callable(method):
+			parent.on_communication_update(self)
+			return
+
 		if self.comment_type != "Updated":
 			update_parent_document_on_communication(self)
 

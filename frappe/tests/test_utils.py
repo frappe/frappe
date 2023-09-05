@@ -422,9 +422,11 @@ class TestValidationUtils(FrappeTestCase):
 
 class TestImage(FrappeTestCase):
 	def test_strip_exif_data(self):
-		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
+		original_image = Image.open(
+			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
+		)
 		original_image_content = open(
-			"../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode="rb"
+			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), mode="rb"
 		).read()
 
 		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
@@ -434,7 +436,9 @@ class TestImage(FrappeTestCase):
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
 	def test_optimize_image(self):
-		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
+		image_file_path = frappe.get_app_path(
+			"frappe", "tests", "data", "sample_image_for_optimization.jpg"
+		)
 		content_type = guess_type(image_file_path)[0]
 		original_content = open(image_file_path, mode="rb").read()
 
