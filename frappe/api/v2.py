@@ -50,13 +50,13 @@ def document_list(doctype: str):
 
 
 def create_doc(doctype: str):
-	data = get_request_form_data()
+	data = frappe.form_dict
 	data.pop("doctype", None)
 	return frappe.new_doc(doctype, **data).insert()
 
 
 def update_doc(doctype: str, name: str):
-	data = get_request_form_data()
+	data = frappe.form_dict
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
 	if "flags" in data:
@@ -77,18 +77,6 @@ def delete_doc(doctype: str, name: str):
 	frappe.delete_doc(doctype, name, ignore_missing=False)
 	frappe.response.http_status_code = 202
 	return "ok"
-
-
-def get_request_form_data():
-	if frappe.form_dict.data is None:
-		data = frappe.safe_decode(frappe.request.get_data())
-	else:
-		data = frappe.form_dict.data
-
-	try:
-		return frappe.parse_json(data)
-	except ValueError:
-		return frappe.form_dict
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
