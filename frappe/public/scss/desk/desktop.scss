@@ -140,10 +140,10 @@ body {
 
 			.widget-title {
 				@include flex(flex, null, center, null);
-				@include get_textstyle("lg", "semibold");
+				@include get_textstyle("base", "medium");
 				font-family: inherit;
 				line-height: 1.3em;
-				color: var(--heading-color);
+				color: var(--text-color);
 				cursor: default;
 
 				svg {
@@ -373,10 +373,15 @@ body {
 		.widget-head {
 			display: flex;
 
+			.widget-label .widget-title {
+				@include get_textstyle("lg", "semibold");
+				color: var(--heading-color);
+			}
+
 			.widget-subtitle {
 				margin-top: 5px;
 				color: var(--text-muted);
-				@include get_textstyle("sm", "regular");
+				@include get_textstyle("base", "regular");
 			}
 
 			.widget-control {
@@ -400,9 +405,9 @@ body {
 
 				h1,
 				h2 {
-					font-size: var(--text-xl);
-					font-weight: 600;
+					@include get_textstyle("lg", "medium");
 					margin-bottom: var(--margin-sm);
+					color: var(--heading-color);
 				}
 
 				h3 {
@@ -634,7 +639,8 @@ body {
 			}
 		}
 
-		.widget-title {
+		.widget-head .widget-label .widget-title {
+			@include get_textstyle("lg", "semibold");
 			color: var(--gray-800) !important;
 		}
 	}
@@ -1277,6 +1283,10 @@ body {
 						padding-left: 7px !important;
 						margin-bottom: 0 !important;
 						flex: 1;
+
+						.h4 {
+							@include get_textstyle("xl", "semibold");
+						}
 
 						&:focus {
 							outline: none;
