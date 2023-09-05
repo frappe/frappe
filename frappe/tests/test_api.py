@@ -215,7 +215,6 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@parameterize("", "v1", "v2")
 	def test_create_document(self):
-		# test 7: POST method on {self.resource_path} to create doc
 		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
 		response = self.post(self.resource_path(self.DOCTYPE), data)
 		self.assertEqual(response.status_code, 200)
@@ -225,7 +224,6 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@parameterize("", "v1", "v2")
 	def test_update_document(self):
-		# test 8: PUT method on {self.resource_path} to update doc
 		generated_desc = frappe.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
 		random_doc = choice(self.GENERATED_DOCUMENTS)
@@ -239,7 +237,6 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	@parameterize("", "v1", "v2")
 	def test_delete_document(self):
-		# test 9: DELETE method on {self.resource_path}
 		doc_to_delete = choice(self.GENERATED_DOCUMENTS)
 		response = self.delete(self.resource_path(self.DOCTYPE, doc_to_delete))
 		self.assertEqual(response.status_code, 202)
@@ -331,22 +328,23 @@ class TestResourceAPIV2(FrappeAPITestCase):
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
 
+	def setUp(self) -> None:
+		self.post(self.method_path("login"), {"sid": self.sid})
+		return super().setUp()
+
 	def test_ping(self):
-		# test 2: test for /api/method/ping
-		response = self.get(self.method_path("ping"))
+		response = self.get(self.method_path("frappe.ping"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertEqual(response.json["data"], "pong")
 
 	def test_get_user_info(self):
-		# test 3: test for /api/method/frappe.realtime.get_user_info
 		response = self.get(self.method_path("frappe.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn(response.json.get("data").get("user"), ("Administrator", "Guest"))
 
 	def test_auth_cycle(self):
-		# test 4: Pass authorization token in request
 		global authorization_token
 
 		generate_admin_keys()
@@ -374,6 +372,33 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			self.method_path("frappe.core.doctype.user.user.get_all_roles"), {"sid": self.sid}
 		)
 		self.assertEqual(expanded_response.data, shorthand_response.data)
+
+	def test_run_doc_method_in_memory(self):
+		dns = frappe.get_doc("Document Naming Settings")
+
+		# Check that simple API can be called.
+		response = self.get(
+			self.method_path("run_doc_method"),
+			{
+				"sid": self.sid,
+				"document": dns.as_dict(),
+				"method": "get_transactions_and_prefixes",
+			},
+		)
+		self.assertTrue(response.json["data"])
+		self.assertGreaterEqual(len(response.json["docs"]), 1)
+
+		# Call with known and unknown arguments, only known should get passed
+		response = self.get(
+			self.method_path("run_doc_method"),
+			{
+				"sid": self.sid,
+				"document": dns.as_dict(),
+				"method": "get_options",
+				"kwargs": {"doctype": "Webhook", "unknown": "what"},
+			},
+		)
+		self.assertEqual(response.status_code, 200)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):

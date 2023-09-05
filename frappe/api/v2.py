@@ -8,11 +8,12 @@ Note:
 	  internal implementation can change without treating it as "breaking change".
 """
 import json
+from typing import Any
 
 from werkzeug.routing import Rule
 
 import frappe
-from frappe import _, is_whitelisted
+from frappe import _, get_newargs, is_whitelisted
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.handler import is_valid_http_method, run_server_script
 from frappe.utils.data import sbool
@@ -122,8 +123,47 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 		return doc.run_method(method, **frappe.form_dict)
 
 
+def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
+	"""run a whitelisted controller method on in-memory document.
+
+
+	This is useful for building clients that don't necessarily encode all the business logic but
+	call server side function on object to validate and modify the doc.
+
+	The doc CAN exists in DB too and can write to DB as well if method is POST.
+	"""
+
+	if isinstance(document, str):
+		document = frappe.parse_json(document)
+
+	if kwargs is None:
+		kwargs = {}
+
+	doc = frappe.get_doc(document)
+	doc._original_modified = doc.modified
+	doc.check_if_latest()
+
+	if not doc.has_permission("read"):
+		raise frappe.PermissionError
+
+	method_obj = getattr(doc, method)
+	fn = getattr(method_obj, "__func__", method_obj)
+	is_whitelisted(fn)
+	is_valid_http_method(fn)
+
+	new_kwargs = get_newargs(fn, kwargs)
+	response = doc.run_method(method, **new_kwargs)
+	frappe.response.docs.append(doc)  # send modified document and result both.
+	return response
+
+
 url_rules = [
 	Rule("/method/<method>", endpoint=handle_rpc_call),
+	Rule(
+		"/method/run_doc_method",
+		methods=["GET", "POST"],
+		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
+	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
 	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
