@@ -274,7 +274,9 @@ def get_open_count(doctype, name, items=None):
 	}
 
 	for d in items:
-		internal_link_for_doctype = links.get("internal_links", {}).get(d)
+		internal_link_for_doctype = links.get("internal_links", {}).get(d) or links.get(
+			"internal_and_external_links", {}
+		).get(d)
 		if internal_link_for_doctype:
 			internal_links_data_for_d = get_internal_links(doc, internal_link_for_doctype, d)
 			if internal_links_data_for_d["count"]:
