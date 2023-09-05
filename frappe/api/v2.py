@@ -12,12 +12,13 @@ import json
 from werkzeug.routing import Rule
 
 import frappe
-from frappe import _
+from frappe import _, is_whitelisted
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.handler import is_valid_http_method, run_server_script
 from frappe.utils.data import sbool
 
 
 def handle_rpc_call(method: str, doctype: str | None = None):
-	from frappe.handler import execute_cmd
 	from frappe.modules.utils import load_doctype_module
 
 	if doctype:
@@ -29,7 +30,25 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 		# Login works implicitly right now.
 		return
 
-	return execute_cmd(method)
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(method, []):
+		# override using the first hook
+		method = hook
+		break
+
+	# via server script
+	server_script = get_server_script_map().get("_api", {}).get(method)
+	if server_script:
+		return run_server_script(server_script)
+
+	try:
+		method = frappe.get_attr(method)
+	except Exception as e:
+		frappe.throw(_("Failed to get method {0} with {1}").format(method, e))
+
+	is_whitelisted(method)
+	is_valid_http_method(method)
+
+	return frappe.call(method, **frappe.form_dict)
 
 
 def read_doc(doctype: str, name: str):
