@@ -11,9 +11,9 @@ import textwrap
 
 import click
 import git
+import requests
 
 import frappe
-from frappe.utils import touch_file
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
@@ -46,7 +46,11 @@ def _get_user_inputs(app_name):
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
 		"app_email": {"prompt": "App Email", "validator": is_valid_email},
-		"app_license": {"prompt": "App License", "default": "MIT"},
+		"app_license": {
+			"prompt": "App License",
+			"default": "mit",
+			"type": click.Choice(get_license_options()),
+		},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
 			"default": False,
@@ -92,6 +96,26 @@ def is_valid_title(title) -> bool:
 	return True
 
 
+def get_license_options() -> list[str]:
+	url = "https://api.github.com/licenses"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		ids = [r.get("spdx_id") for r in res]
+		return [licencse.lower() for licencse in ids]
+
+	return ["agpl-3.0", "gpl-3.0", "mit", "custom"]
+
+
+def get_license_text(license_name: str) -> str:
+	url = f"https://api.github.com/licenses/{license_name.lower()}"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		return res.get("body")
+	return license_name
+
+
 def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
@@ -128,9 +152,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 				)
 			)
 		)
-
+	license_body = get_license_text(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(frappe.as_unicode("License: " + hooks.app_license))
+		f.write(frappe.as_unicode(license_body))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
