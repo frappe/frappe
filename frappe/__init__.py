@@ -170,6 +170,8 @@ lang = local("lang")
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
 if TYPE_CHECKING:
+	from werkzeug.wrappers import Request
+
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.model.document import Document
@@ -179,6 +181,15 @@ if TYPE_CHECKING:
 	db: MariaDBDatabase | PostgresDatabase
 	qb: MariaDB | Postgres
 	cache: RedisWrapper
+	response: _dict
+	conf: _dict
+	form_dict: _dict
+	flags: _dict
+	request: Request
+	session: _dict
+	user: str
+	flags: _dict
+	lang: str
 
 
 # end: static analysis hack
