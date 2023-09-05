@@ -501,21 +501,19 @@ def get_data_for_custom_report(columns, result):
 	doc_field_value_map = {}
 
 	for column in columns:
-		# backwards compatibile `link_field`
-		# old custom reports which use `str` should not break
-		link_field = column.get("link_field")
-		if isinstance(link_field, str):
-			link_field = frappe._dict({"fieldname": link_field, "names": []})
+		if link_field := column.get("link_field"):
+			# backwards compatibile `link_field`
+			# old custom reports which use `str` should not break
+			if isinstance(link_field, str):
+				link_field = frappe._dict({"fieldname": link_field, "names": []})
 
-		fieldname = column.get("fieldname")
-		doctype = column.get("doctype")
+			fieldname = column.get("fieldname")
+			doctype = column.get("doctype")
 
-		names = None
-		if link_field:
 			row_key = link_field.get("fieldname")
 			names = list({row[row_key] for row in result}) or None
 
-		doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname, names)
+			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname, names)
 
 	return doc_field_value_map
 

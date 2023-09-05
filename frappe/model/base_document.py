@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+from functools import cached_property
 
 import frappe
 from frappe import _, _dict
@@ -18,7 +19,17 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.utils import cast_fieldtype, cint, cstr, flt, now, sanitize_html, strip_html
+from frappe.utils import (
+	cast_fieldtype,
+	cint,
+	compare,
+	cstr,
+	flt,
+	is_a_property,
+	now,
+	sanitize_html,
+	strip_html,
+)
 from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {"smallint": 2**15 - 1, "int": 2**31 - 1, "bigint": 2**63 - 1}
@@ -88,7 +99,6 @@ class BaseDocument:
 	_reserved_keywords = {
 		"doctype",
 		"meta",
-		"_meta",
 		"flags",
 		"parent_doc",
 		"_table_fields",
@@ -96,6 +106,7 @@ class BaseDocument:
 		"_doc_before_save",
 		"_table_fieldnames",
 		"_reserved_keywords",
+		"permitted_fieldnames",
 		"dont_update_if_missing",
 	}
 
@@ -110,18 +121,18 @@ class BaseDocument:
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	@property
+	@cached_property
 	def meta(self):
-		if not (meta := getattr(self, "_meta", None)):
-			self._meta = meta = frappe.get_meta(self.doctype)
+		return frappe.get_meta(self.doctype)
 
-		return meta
+	@cached_property
+	def permitted_fieldnames(self):
+		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 	def __getstate__(self):
 		"""
 		Called when pickling.
-		Returns a copy of `__dict__` excluding unpicklable values like `_meta`.
-
+		Returns a copy of `__dict__` excluding unpicklable values like `meta`.
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
@@ -134,7 +145,8 @@ class BaseDocument:
 	def remove_unpicklable_values(self, state):
 		"""Remove unpicklable values before pickling"""
 
-		state.pop("_meta", None)
+		state.pop("meta", None)
+		state.pop("permitted_fieldnames", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -298,18 +310,14 @@ class BaseDocument:
 		self, sanitize=True, convert_dates_to_str=False, ignore_nulls=False, ignore_virtual=False
 	) -> dict:
 		d = _dict()
-		permitted_fields = get_permitted_fields(
-			doctype=self.doctype, parenttype=getattr(self, "parenttype", None)
-		)
+		field_values = self.__dict__
 
 		for fieldname in self.meta.get_valid_columns():
-			field_value = getattr(self, fieldname, None)
-
-			# column is valid, we can use getattr
-			d[fieldname] = field_value
+			value = field_values.get(fieldname)
 
 			# if no need for sanitization and value is None, continue
-			if not sanitize and d[fieldname] is None:
+			if not sanitize and value is None:
+				d[fieldname] = None
 				continue
 
 			df = self.meta.get_field(fieldname)
@@ -317,46 +325,51 @@ class BaseDocument:
 
 			if df:
 				if is_virtual_field:
-					if ignore_virtual or fieldname not in permitted_fields:
-						del d[fieldname]
+					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
 
-					if d[fieldname] is None and (options := getattr(df, "options", None)):
-						from frappe.utils.safe_exec import get_safe_globals
+					if value is None:
+						if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+							value = getattr(self, fieldname)
 
-						d[fieldname] = frappe.safe_eval(
-							code=options,
-							eval_globals=get_safe_globals(),
-							eval_locals={"doc": self},
-						)
+						elif options := getattr(df, "options", None):
+							from frappe.utils.safe_exec import get_safe_globals
 
-				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
+							value = frappe.safe_eval(
+								code=options,
+								eval_globals=get_safe_globals(),
+								eval_locals={"doc": self},
+							)
+
+				if isinstance(value, list) and df.fieldtype not in table_fields:
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
 
 				if df.fieldtype == "Check":
-					d[fieldname] = 1 if cint(d[fieldname]) else 0
+					value = 1 if cint(value) else 0
 
-				elif df.fieldtype == "Int" and not isinstance(d[fieldname], int):
-					d[fieldname] = cint(d[fieldname])
+				elif df.fieldtype == "Int" and not isinstance(value, int):
+					value = cint(value)
 
-				elif df.fieldtype == "JSON" and isinstance(d[fieldname], dict):
-					d[fieldname] = json.dumps(d[fieldname], sort_keys=True, indent=4, separators=(",", ": "))
+				elif df.fieldtype == "JSON" and isinstance(value, dict):
+					value = json.dumps(value, sort_keys=True, indent=4, separators=(",", ": "))
 
-				elif df.fieldtype in float_like_fields and not isinstance(d[fieldname], float):
-					d[fieldname] = flt(d[fieldname])
+				elif df.fieldtype in float_like_fields and not isinstance(value, float):
+					value = flt(value)
 
-				elif (df.fieldtype in datetime_fields and d[fieldname] == "") or (
-					getattr(df, "unique", False) and cstr(d[fieldname]).strip() == ""
+				elif (df.fieldtype in datetime_fields and value == "") or (
+					getattr(df, "unique", False) and cstr(value).strip() == ""
 				):
-					d[fieldname] = None
+					value = None
 
 			if convert_dates_to_str and isinstance(
-				d[fieldname], (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
+				value, (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 			):
-				d[fieldname] = str(d[fieldname])
+				value = str(value)
 
-			if ignore_nulls and not is_virtual_field and d[fieldname] is None:
-				del d[fieldname]
+			if ignore_nulls and not is_virtual_field and value is None:
+				continue
+
+			d[fieldname] = value
 
 		return d
 
