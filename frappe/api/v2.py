@@ -30,8 +30,8 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 		# Login works implicitly right now.
 		return
 
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(method, []):
-		# override using the first hook
+	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(method, [])):
+		# override using the last hook
 		method = hook
 		break
 
