@@ -103,8 +103,9 @@ def update_doc(doctype: str, name: str):
 
 
 def delete_doc(doctype: str, name: str):
-	# TODO: child doc handling
-	frappe.delete_doc(doctype, name, ignore_missing=False)
+	import frappe.client
+
+	frappe.client.delete_doc(doctype, name)
 	frappe.response.http_status_code = 202
 	return "ok"
 
