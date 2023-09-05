@@ -136,8 +136,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
+	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 
 	method_obj = getattr(doc, method)
 	fn = getattr(method_obj, "__func__", method_obj)
