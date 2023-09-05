@@ -112,6 +112,9 @@ class FrappeAPITestCase(FrappeTestCase):
 	def method_path(self, *method):
 		return self.get_path("method", *method)
 
+	def doctype_path(self, *method):
+		return self.get_path("doctype", *method)
+
 	def get_path(self, *parts):
 		return urljoin(self.site_url, "/".join(("api", self.version, *parts)))
 
@@ -316,7 +319,7 @@ class TestMethodAPIV1(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 404)
 
 
-class TestResourceAPIV2(TestResourceAPI):
+class TestDocumentAPIV2(TestResourceAPI):
 	version = "v2"
 
 	def setUp(self) -> None:
@@ -419,6 +422,23 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			},
 		)
 		self.assertEqual(response.status_code, 200)
+
+
+class TestDocTypeAPIV2(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self) -> None:
+		self.post(self.method_path("login"), {"sid": self.sid})
+		return super().setUp()
+
+	def test_meta(self):
+		response = self.get(self.doctype_path("ToDo", "meta"))
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["data"]["name"], "ToDo")
+
+	def test_count(self):
+		response = self.get(self.doctype_path("ToDo", "count"))
+		self.assertIsInstance(response.json["data"], int)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):

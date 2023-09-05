@@ -155,6 +155,14 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	return response
 
 
+def count(doctype: str) -> int:
+	from frappe.desk.reportview import get_count
+
+	# TODO: Rewrite
+	frappe.form_dict.doctype = doctype
+	return get_count()
+
+
 url_rules = [
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout),
@@ -176,4 +184,6 @@ url_rules = [
 		methods=["GET", "POST"],
 		endpoint=execute_doc_method,
 	),
+	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=frappe.get_meta),
+	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
 ]
