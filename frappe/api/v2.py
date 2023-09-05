@@ -18,6 +18,11 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.handler import is_valid_http_method, run_server_script
 from frappe.utils.data import sbool
 
+PERMISSION_MAP = {
+	"GET": "read",
+	"POST": "write",
+}
+
 
 def handle_rpc_call(method: str, doctype: str | None = None):
 	from frappe.modules.utils import load_doctype_module
@@ -89,9 +94,7 @@ def update_doc(doctype: str, name: str):
 	data = frappe.form_dict
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
-	if "flags" in data:
-		del data["flags"]
-
+	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
 
@@ -111,17 +114,18 @@ def delete_doc(doctype: str, name: str):
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
+	"""Get a document from DB and execute method on it.
+
+	Use cases:
+	- Submitting/cancelling document
+	- Triggering some kind of update on a document
+	"""
 	method = method or frappe.form_dict.pop("run_method")
 	doc = frappe.get_doc(doctype, name)
 	doc.is_whitelisted(method)
 
-	if frappe.request.method == "GET":
-		doc.check_permission("read")
-		return doc.run_method(method, **frappe.form_dict)
-
-	elif frappe.request.method == "POST":
-		doc.check_permission("write")
-		return doc.run_method(method, **frappe.form_dict)
+	doc.check_permission(PERMISSION_MAP[frappe.request.method])
+	return doc.run_method(method, **frappe.form_dict)
 
 
 def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
