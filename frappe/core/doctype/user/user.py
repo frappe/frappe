@@ -779,7 +779,7 @@ def get_timezones():
 
 
 @frappe.whitelist()
-def get_all_roles(arg=None):
+def get_all_roles():
 	"""return all roles"""
 	active_domains = frappe.get_active_domains()
 
@@ -793,7 +793,7 @@ def get_all_roles(arg=None):
 		order_by="name",
 	)
 
-	return [role.get("name") for role in roles]
+	return sorted([role.get("name") for role in roles])
 
 
 @frappe.whitelist()

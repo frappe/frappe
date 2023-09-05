@@ -169,7 +169,7 @@ lang = local("lang")
 
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
 	from frappe.database.mariadb.database import MariaDBDatabase
