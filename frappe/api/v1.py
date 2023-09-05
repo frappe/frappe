@@ -30,6 +30,8 @@ def document_list(doctype: str):
 def handle_rpc_call(method: str):
 	import frappe.handler
 
+	method = method.split("/")[0]  # for backward compatiblity
+
 	frappe.form_dict.cmd = method
 	return frappe.handler.handle()
 
@@ -106,7 +108,7 @@ def get_request_form_data():
 
 
 url_rules = [
-	Rule("/method/<method>", endpoint=handle_rpc_call),
+	Rule("/method/<path:method>", endpoint=handle_rpc_call),
 	Rule("/resource/<doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/resource/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/resource/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
