@@ -412,6 +412,9 @@ class Email:
 			# assume that the encoding is utf-8
 			self.subject = safe_decode(self.subject)[:140]
 
+		if isinstance(self.subject, bytes):
+			self.subject = self.subject.decode("utf8", "replace")  # last resort
+
 		if not self.subject:
 			self.subject = "No Subject"
 
