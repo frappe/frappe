@@ -135,6 +135,9 @@ class FrappeAPITestCase(FrappeTestCase):
 	def put(self, path, data, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.put, args=(path,), kwargs={"json": data, **kwargs})
 
+	def patch(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.patch, args=(path,), kwargs={"json": data, **kwargs})
+
 	def delete(self, path, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
 
@@ -222,7 +225,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIsInstance(docname, str)
 		self.GENERATED_DOCUMENTS.append(docname)
 
-	@parameterize("", "v1", "v2")
+	@parameterize("", "v1")
 	def test_update_document(self):
 		generated_desc = frappe.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
@@ -313,7 +316,7 @@ class TestMethodAPIV1(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 404)
 
 
-class TestResourceAPIV2(FrappeAPITestCase):
+class TestResourceAPIV2(TestResourceAPI):
 	version = "v2"
 
 	def setUp(self) -> None:
@@ -323,6 +326,18 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_execute_doc_method(self):
 		response = self.get(self.resource_path("Website Theme", "Standard", "method", "get_apps"))
 		self.assertEqual(response.json["data"][0]["name"], "frappe")
+
+	def test_update_document(self):
+		generated_desc = frappe.mock("paragraph")
+		data = {"description": generated_desc, "sid": self.sid}
+		random_doc = choice(self.GENERATED_DOCUMENTS)
+
+		response = self.patch(self.resource_path(self.DOCTYPE, random_doc), data=data)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["data"]["description"], generated_desc)
+
+		response = self.get(self.resource_path(self.DOCTYPE, random_doc))
+		self.assertEqual(response.json["data"]["description"], generated_desc)
 
 
 class TestMethodAPIV2(FrappeAPITestCase):

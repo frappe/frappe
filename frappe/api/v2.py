@@ -169,7 +169,7 @@ url_rules = [
 	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
-	Rule("/document/<doctype>/<path:name>/", methods=["PUT"], endpoint=update_doc),
+	Rule("/document/<doctype>/<path:name>/", methods=["PATCH", "PUT"], endpoint=update_doc),
 	Rule("/document/<doctype>/<path:name>/", methods=["DELETE"], endpoint=delete_doc),
 	Rule(
 		"/document/<doctype>/<path:name>/method/<method>/",
