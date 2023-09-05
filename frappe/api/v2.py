@@ -13,10 +13,10 @@ from typing import Any
 from werkzeug.routing import Rule
 
 import frappe
+import frappe.client
 from frappe import _, get_newargs, is_whitelisted
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.handler import is_valid_http_method, run_server_script
-from frappe.utils.data import sbool
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -69,17 +69,7 @@ def document_list(doctype: str):
 		frappe.form_dict["fields"] = json.loads(frappe.form_dict["fields"])
 
 	# set limit of records for frappe.get_list
-	frappe.form_dict.setdefault(
-		"limit_page_length",
-		frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,
-	)
-
-	# convert strings to native types - only as_dict and debug accept bool
-	for param in ["as_dict", "debug"]:
-		param_val = frappe.form_dict.get(param)
-		if param_val is not None:
-			frappe.form_dict[param] = sbool(param_val)
-
+	frappe.form_dict.limit_page_length = frappe.form_dict.limit or 20
 	# evaluate frappe.get_list
 	return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
 
@@ -106,8 +96,6 @@ def update_doc(doctype: str, name: str):
 
 
 def delete_doc(doctype: str, name: str):
-	import frappe.client
-
 	frappe.client.delete_doc(doctype, name)
 	frappe.response.http_status_code = 202
 	return "ok"
