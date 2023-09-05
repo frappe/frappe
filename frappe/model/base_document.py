@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
 import frappe
@@ -112,7 +113,6 @@ class BaseDocument:
 		(
 			"doctype",
 			"meta",
-			"_meta",
 			"flags",
 			"parent_doc",
 			"_table_fields",
@@ -120,7 +120,7 @@ class BaseDocument:
 			"_doc_before_save",
 			"_table_fieldnames",
 			"_reserved_keywords",
-			"_permitted_fieldnames",
+			"permitted_fieldnames",
 			"dont_update_if_missing",
 		)
 	)
@@ -136,29 +136,18 @@ class BaseDocument:
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	@property
+	@cached_property
 	def meta(self):
-		meta = getattr(self, "_meta", None)
-		if meta is None:
-			self._meta = meta = frappe.get_meta(self.doctype)
+		return frappe.get_meta(self.doctype)
 
-		return meta
-
-	@property
+	@cached_property
 	def permitted_fieldnames(self):
-		permitted_fieldnames = getattr(self, "_permitted_fieldnames", None)
-		if permitted_fieldnames is None:
-			self._permitted_fieldnames = permitted_fieldnames = get_permitted_fields(
-				doctype=self.doctype, parenttype=getattr(self, "parenttype", None)
-			)
-
-		return permitted_fieldnames
+		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 	def __getstate__(self):
 		"""
 		Called when pickling.
-		Returns a copy of `__dict__` excluding unpicklable values like `_meta`.
-
+		Returns a copy of `__dict__` excluding unpicklable values like `meta`.
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
@@ -171,8 +160,8 @@ class BaseDocument:
 	def remove_unpicklable_values(self, state):
 		"""Remove unpicklable values before pickling"""
 
-		state.pop("_meta", None)
-		state.pop("_permitted_fieldnames", None)
+		state.pop("meta", None)
+		state.pop("permitted_fieldnames", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.

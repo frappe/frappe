@@ -1,6 +1,29 @@
 // Copyright (c) 2023, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+frappe.ui.form.on("Recorder", {
+	refresh: function (frm) {
+		frm.disable_save();
+		frm._sort_order = {};
+		frm.trigger("setup_sort");
+	},
+
+	setup_sort: function (frm) {
+		const sortable_fields = ["index", "duration", "exact_copies", "normalized_copies"];
+		sortable_fields.forEach((field) => {
+			const field_header = $(`.col[data-fieldname='${field}']`)[0];
+			$(field_header).click(() => {
+				let sort_order = frm._sort_order[field] || -1;
+				let grid = frm.fields_dict.sql_queries.grid;
+				grid.data.sort((a, b) => sort_order * (a[field] - b[field]));
+				frm._sort_order[field] = -1 * sort_order; // reverse for next click
+				grid.refresh();
+				frm.trigger("setup_sort"); // grid creates new elements again, resetup listeners.
+			});
+		});
+	},
+});
+
 frappe.ui.form.on("Recorder Query", "form_render", function (frm, cdt, cdn) {
 	let row = frappe.get_doc(cdt, cdn);
 	let stack = JSON.parse(row.stack);

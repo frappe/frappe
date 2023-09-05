@@ -523,6 +523,9 @@ frappe.request.report_error = function (xhr, request_opts) {
 
 	const copy_markdown_to_clipboard = () => {
 		const code_block = (snippet) => "```\n" + snippet + "\n```";
+
+		let request_data = Object.assign({}, request_opts);
+		request_data.request_id = xhr.getResponseHeader("X-Frappe-Request-Id");
 		const traceback_info = [
 			"### App Versions",
 			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
@@ -531,7 +534,7 @@ frappe.request.report_error = function (xhr, request_opts) {
 			"### Traceback",
 			code_block(exc),
 			"### Request Data",
-			code_block(JSON.stringify(request_opts, null, "\t")),
+			code_block(JSON.stringify(request_data, null, "\t")),
 			"### Response Data",
 			code_block(JSON.stringify(data, null, "\t")),
 		].join("\n");

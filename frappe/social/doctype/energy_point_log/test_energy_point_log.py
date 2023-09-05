@@ -322,8 +322,9 @@ class TestEnergyPointLog(FrappeTestCase):
 		# do not update energy points for disabled user
 		self.assertEqual(points_after_closing_todo, energy_point_of_user)
 
-		user.enabled = 1
-		user.save()
+		with self.set_user("Administrator"):
+			user.enabled = 1
+			user.save()
 
 		created_todo.save()
 		points_after_re_saving_todo = get_points("test@example.com")

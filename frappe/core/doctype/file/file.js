@@ -5,6 +5,13 @@ frappe.ui.form.on("File", {
 			frm.add_custom_button(__("Download"), () => frm.trigger("download"), "fa fa-download");
 		}
 
+		if (!frm.doc.is_private) {
+			frm.dashboard.set_headline(
+				__("This file is public. It can be accessed without authentication."),
+				"orange"
+			);
+		}
+
 		frm.toggle_display("preview", false);
 
 		// preview different file types

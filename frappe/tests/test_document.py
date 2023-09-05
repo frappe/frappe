@@ -521,17 +521,34 @@ class TestDocumentWebView(FrappeTestCase):
 	def test_bulk_inserts(self):
 		from frappe.model.document import bulk_insert
 
-		doctype = "ToDo"
-		sent_todo = set()
+		doctype = "Role Profile"
+		child_field = "roles"
+		child_doctype = frappe.get_meta(doctype).get_field(child_field).options
+
+		sent_docs = set()
+		sent_child_docs = set()
 
 		def doc_generator():
-			for i in range(690):
+			for _ in range(21):
 				doc = frappe.new_doc(doctype)
-				doc.name = doc.description = frappe.generate_hash()
-				sent_todo.add(doc.name)
+				doc.role_profile = frappe.generate_hash()
+				doc.append("roles", {"role": "System Manager"})
+
+				doc.set_new_name()
+				doc.set_parent_in_children()
+
+				sent_docs.add(doc.name)
+				sent_child_docs.add(doc.roles[0].name)
+
 				yield doc
 
-		bulk_insert(doctype, doc_generator(), chunk_size=100)
+		bulk_insert(doctype, doc_generator(), chunk_size=5)
 
-		all_todos = set(frappe.get_all("ToDo", pluck="name"))
-		self.assertEqual(sent_todo - all_todos, set(), "All docs should be inserted")
+		all_docs = set(frappe.get_all(doctype, pluck="name"))
+		all_child_docs = set(
+			frappe.get_all(
+				child_doctype, filters={"parenttype": doctype, "parentfield": child_field}, pluck="name"
+			)
+		)
+		self.assertEqual(sent_docs - all_docs, set(), "All docs should be inserted")
+		self.assertEqual(sent_child_docs - all_child_docs, set(), "All child docs should be inserted")
