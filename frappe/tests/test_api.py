@@ -333,7 +333,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		return super().setUp()
 
 	def test_ping(self):
-		response = self.get(self.method_path("frappe.ping"))
+		response = self.get(self.method_path("ping"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertEqual(response.json["data"], "pong")
@@ -372,6 +372,11 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			self.method_path("frappe.core.doctype.user.user.get_all_roles"), {"sid": self.sid}
 		)
 		self.assertEqual(expanded_response.data, shorthand_response.data)
+
+	def test_logout(self):
+		self.post(self.method_path("logout"), {"sid": self.sid})
+		response = self.get(self.method_path("ping"))
+		self.assertFalse(response.request.cookies["sid"])
 
 	def test_run_doc_method_in_memory(self):
 		dns = frappe.get_doc("Document Naming Settings")

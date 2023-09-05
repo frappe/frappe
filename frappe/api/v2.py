@@ -32,10 +32,6 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 		module = load_doctype_module(doctype)
 		method = module.__name__ + "." + method
 
-	if method == "login":
-		# Login works implicitly right now.
-		return
-
 	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(method, [])):
 		# override using the last hook
 		method = hook
@@ -55,6 +51,16 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	is_valid_http_method(method)
 
 	return frappe.call(method, **frappe.form_dict)
+
+
+def login():
+	"""Login happens implicitly, this function doesn't do anything."""
+	pass
+
+
+def logout():
+	frappe.local.login_manager.logout()
+	frappe.db.commit()
 
 
 def read_doc(doctype: str, name: str):
@@ -150,6 +156,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 
 url_rules = [
+	Rule("/method/login", endpoint=login),
+	Rule("/method/logout", endpoint=logout),
+	Rule("/method/ping", endpoint=frappe.ping),
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
