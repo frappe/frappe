@@ -406,14 +406,19 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
+
 		if _subject[0][1]:
+			# Encoding is known by decode_header (might also be unknown-8bit)
 			self.subject = safe_decode(self.subject, _subject[0][1])
-		else:
-			# assume that the encoding is utf-8
-			self.subject = safe_decode(self.subject)[:140]
 
 		if isinstance(self.subject, bytes):
-			self.subject = self.subject.decode("utf8", "replace")  # last resort
+			# Fall back to utf-8 if the charset is unknown or decoding fails
+			# Replace invalid characters with '<?>'
+			self.subject = self.subject.decode("utf-8", "replace")
+
+		# Convert non-string (e.g. None)
+		# Truncate to 140 chars (can be used as a document name)
+		self.subject = str(self.subject).strip()[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
