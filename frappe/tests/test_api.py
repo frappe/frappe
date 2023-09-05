@@ -91,6 +91,13 @@ def parameterize(*api_versions):
 	return decorator
 
 
+resource_key = {
+	"": "resource",
+	"v1": "resource",
+	"v2": "document",
+}
+
+
 class FrappeAPITestCase(FrappeTestCase):
 	version = ""  # Empty implies v1
 	TEST_CLIENT = get_test_client()
@@ -100,7 +107,7 @@ class FrappeAPITestCase(FrappeTestCase):
 		return get_url()
 
 	def resource_path(self, *parts):
-		return self.get_path("resource", *parts)
+		return self.get_path(resource_key[self.version], *parts)
 
 	def method_path(self, *method):
 		return self.get_path("method", *method)
