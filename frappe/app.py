@@ -9,6 +9,7 @@ import re
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.local import LocalManager
 from werkzeug.middleware.profiler import ProfilerMiddleware
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
 
@@ -392,7 +393,13 @@ def sync_database(rollback: bool) -> bool:
 
 
 def serve(
-	port=8000, profile=False, no_reload=False, no_threading=False, site=None, sites_path="."
+	port=8000,
+	profile=False,
+	no_reload=False,
+	no_threading=False,
+	site=None,
+	sites_path=".",
+	proxy=False,
 ):
 	global application, _site, _sites_path
 	_site = site
@@ -405,6 +412,9 @@ def serve(
 
 	if not os.environ.get("NO_STATICS"):
 		application = application_with_statics()
+
+	if proxy or os.environ.get("USE_PROXY"):
+		application = ProxyFix(application, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
 
 	application.debug = True
 	application.config = {"SERVER_NAME": "localhost:8000"}
