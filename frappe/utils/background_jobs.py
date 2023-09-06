@@ -92,7 +92,7 @@ def enqueue(
 		frappe.flags.enqueue_after_commit.append(
 			{"queue": queue, "is_async": is_async, "timeout": timeout, "queue_args": queue_args}
 		)
-		return frappe.flags.enqueue_after_commit
+		return
 
 	return q.enqueue_call(
 		execute_job,
