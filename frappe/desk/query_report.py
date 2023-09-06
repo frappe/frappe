@@ -511,7 +511,11 @@ def get_data_for_custom_report(columns, result):
 			doctype = column.get("doctype")
 
 			row_key = link_field.get("fieldname")
-			names = list({row[row_key] for row in result}) or None
+			names = []
+			for row in result:
+				if row.get(row_key):
+					names.append(row.get(row_key))
+			names = list(set(names))
 
 			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname, names)
 
