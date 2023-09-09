@@ -214,14 +214,17 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	get_dropdown_html(field, fieldtype, applied = false) {
-		let label = field.name == null ? __("Not Set") : field.name;
-		if (label === frappe.session.user) {
+		let label;
+		if (field.name == null) {
+			label = __("Not Set");
+		} else if (field.name === frappe.session.user) {
 			label = __("Me");
 		} else if (fieldtype && fieldtype == "Check") {
-			label = label == "0" ? __("No") : __("Yes");
+			label = field.name == "0" ? __("No") : __("Yes");
+		} else {
+			label = __(field.name);
 		}
 		let value = field.name == null ? "" : encodeURIComponent(field.name);
-
 		let applied_html = applied
 			? `<span class="applied"> ${frappe.utils.icon("tick", "xs")} </span>`
 			: "";
