@@ -4664,3 +4664,135 @@ Value cannot be negative for {0}: {1},لا يمكن أن تكون القيمة �
 Negative Value,قيمة سالبة,
 Authentication failed while receiving emails from Email Account: {0}.,فشلت المصادقة أثناء تلقي رسائل البريد الإلكتروني من حساب البريد الإلكتروني: {0}.,
 Message from server: {0},رسالة من الخادم: {0},
+Add Row,اضف سطر,
+Analytics,التحليلات,
+Anonymous,مجهول,
+Author,مؤلف,
+Basic,الأساسي,
+Billing,الفواتير,
+Contact Details,تفاصيل الاتصال,
+Datetime,التاريخ والوقت,
+Enable,تمكين,
+Event,حدث,
+Full,ممتلئ,
+Insert,إدراج,
+Interests,الإهتمامات او الفوائد,
+Language Name,اسم اللغة,
+License,رخصة,
+Limit,حد,
+Log,سجل,
+Meeting,لقاء,
+My Account,حسابي,
+Newsletters,النشرات الإخبارية,
+Password,كلمة السر,
+Pincode,رمز Pin,
+Please select prefix first,الرجاء اختيار البادئة اولا,
+Please set Email Address,يرجى وضع عنوان البريد الإلكتروني,
+Please set the series to be used.,يرجى ضبط المسلسل ليتم استخدامه.,
+Portal Settings,إعدادات البوابة,
+Reference Owner,إشارة المالك,
+Region,منطقة,
+Report Builder,تقرير منشئ,
+Sample,عينة,
+Saved,حفظ,
+Series {0} already used in {1},الترقيم المتسلسل {0} مستخدم بالفعل في {1},
+Set as Default,تعيين كافتراضي,
+Shipping,الشحن,
+Standard,اساسي,
+Test,اختبار,
+Traceback,Traceback,
+Unable to find DocType {0},تعذر العثور على نوع الملف {0},
+Weekdays,أيام الأسبوع,
+Workflow,سير العمل,
+You need to be logged in to access this page,تحتاج إلى تسجيل الدخول للوصول إلى هذه الصفحة,
+County,مقاطعة,
+Images,صور,
+Office,مكتب,
+Passive,غير فعال,
+Permanent,دائم,
+Plant,مصنع,
+Postal,بريدي,
+Previous,سابق,
+Shop,تسوق,
+Subsidiary,شركة فرعية,
+There is some problem with the file url: {0},هناك بعض المشاكل مع رابط الملف: {0},
+"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}",{0} الأحرف الخاصة باستثناء &quot;-&quot; ، &quot;#&quot; ، &quot;.&quot; ، &quot;/&quot; ، &quot;{{&quot; و &quot;}}&quot; غير مسموح في سلسلة التسمية,
+Export Type,نوع التصدير,
+Last Sync On,آخر مزامنة تشغيل,
+Webhook Secret,Webhook Secret,
+Back to Home,العودة إلى المنزل,
+Customize,تخصيص,
+Edit Profile,تعديل الملف الشخصي,
+File Manager,مدير الملفات,
+Invite as User,دعوة كمستخدم,
+Newsletter,النشرة الإخبارية,
+Printing,طبع,
+Publish,نشر,
+Refreshing,جاري التحديث,
+Select All,تحديد الكل,
+Set,مجموعة,
+Setup Wizard,معالج الإعدادات,
+Update Details,تحديث التفاصيل,
+You,أنت,
+{0} Name,{0} الاسم,
+Bold,بالخط العريض,
+Center,مركز,
+Comment,تعليق,
+Not Found,لم يتم العثور على,
+User Id,تعريف المستخدم,
+Position,موضع,
+Crop,محصول,
+Topic,موضوع,
+Public Transport,النقل العام,
+Request Data,طلب البيانات,
+Steps,خطوات,
+Reference DocType,مرجع DOCTYPE,
+Select Transaction,حدد المعاملات,
+Help HTML,مساعدة HTML,
+Series List for this Transaction,قائمة متسلسلة لهذه العملية,
+User must always select,يجب دائما مستخدم تحديد,
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,التحقق من ذلك إذا كنت تريد لإجبار المستخدم لتحديد سلسلة قبل الحفظ. لن يكون هناك الافتراضي إذا قمت بتحديد هذا.,
+Prefix,بادئة,
+This is the number of the last created transaction with this prefix,هذا هو عدد المعاملات التي تم إنشاؤها باستخدام مشاركة هذه البادئة,
+Update Series Number,تحديث الرقم المتسلسل,
+Validation Error,خطئ في التحقق,
+Andaman and Nicobar Islands,جزر أندامان ونيكوبار,
+Andhra Pradesh,ولاية اندرا براديش,
+Arunachal Pradesh,اروناتشال براديش,
+Assam,آسام,
+Bihar,بيهار,
+Chandigarh,شانديغار,
+Chhattisgarh,تشهاتيسجاره,
+Dadra and Nagar Haveli,دادرا وناغار هافيلي,
+Daman and Diu,دامان وديو,
+Delhi,دلهي,
+Goa,غوا,
+Gujarat,ولاية غوجارات,
+Haryana,هاريانا,
+Himachal Pradesh,هيماشال براديش,
+Jammu and Kashmir,جامو وكشمير,
+Jharkhand,جهارخاند,
+Karnataka,كارناتاكا,
+Kerala,ولاية كيرالا,
+Lakshadweep Islands,جزر لاكشادويب,
+Madhya Pradesh,ماديا براديش,
+Maharashtra,ماهاراشترا,
+Manipur,مانيبور,
+Meghalaya,ميغالايا,
+Mizoram,ميزورام,
+Nagaland,ناجالاند,
+Odisha,أوديشا,
+Other Territory,إقليم آخر,
+Pondicherry,بونديشيري,
+Punjab,البنجاب,
+Rajasthan,راجستان,
+Sikkim,سيكيم,
+Tamil Nadu,تاميل نادو,
+Telangana,تيلانجانا,
+Tripura,تريبورا,
+Uttar Pradesh,ولاية أوتار براديش,
+Uttarakhand,أوتارانتشال,
+West Bengal,ولاية البنغال الغربية,
+Published on,نشرت في,
+Bottom,الأسفل,
+Top,أعلى,

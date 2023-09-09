@@ -3029,3 +3029,28 @@ Ignore User Permissions,忽略用戶權限
 Please ask your administrator to verify your sign-up,請向管理員詢問，以確認您的註冊
 Active Domains,活動域
 Show Log,顯示日誌
+Timespan,時間跨度
+Set as Default,設為預設
+Series List for this Transaction,本交易系列表
+Request Data,請求數據
+Please select prefix first,請先選擇前綴稱號
+This is the number of the last created transaction with this prefix,這就是以這個前綴的最後一個創建的事務數
+No address added yet.,尚未新增地址。
+Please set the series to be used.,請設置要使用的系列。
+New Contact,新建聯絡人
+Contact Details,聯絡方式
+Unable to find DocType {0},無法找到DocType {0}
+User must always select,用戶必須始終選擇
+Topic,話題
+No contacts added yet.,尚未新增聯絡人。
+Basic,基本的
+Interests,興趣
+Export Type,導出類型
+License,執照
+Region,區域
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,如果要強制用戶在儲存之前選擇了一系列，則勾選此項。如果您勾選此項，則將沒有預設值。
+Newsletters,簡訊
+Select Transaction,選擇交易
+Help HTML,HTML幫助
+Update Series Number,更新序列號
+Last Sync On,上次同步開啟
