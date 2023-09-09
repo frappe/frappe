@@ -205,4 +205,10 @@
 			margin-left: calc(-1 * var(--margin-sm));
 		}
 	}
+
+	&:hover.overlap {
+		.avatar:not(:first-child) {
+			margin-left: var(--margin-xs);
+		}
+	}
 }
