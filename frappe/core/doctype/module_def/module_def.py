@@ -65,20 +65,23 @@ class ModuleDef(Document):
 
 		modules = None
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
-			delete_folder(self.module_name, "Module Def", self.name)
-			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
-				content = f.read()
-				if self.name in content.splitlines():
-					modules = list(filter(None, content.splitlines()))
-					modules.remove(self.name)
+			# Plan the deletion for after the commit
+			frappe.db.after_commit.add(self.delete_module_from_file)
 
-			if modules:
-				with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
-					f.write("\n".join(modules))
+	def delete_module_from_file(self):
+		delete_folder(self.module_name, "Module Def", self.name)
+		with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
+			content = f.read()
+			if self.name in content.splitlines():
+				modules = list(filter(None, content.splitlines()))
+				modules.remove(self.name)
 
-				frappe.clear_cache()
-				frappe.setup_module_map()
+		if modules:
+			with open(frappe.get_app_path(self.app_name, "modules.txt"), "w") as f:
+				f.write("\n".join(modules))
 
+			frappe.clear_cache()
+			frappe.setup_module_map()
 
 @frappe.whitelist()
 def get_installed_apps():
