@@ -23,6 +23,7 @@ from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
+from frappe.utils.data import escape_html
 from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
@@ -342,7 +343,7 @@ def handle_exception(e):
 		response = frappe.rate_limiter.respond()
 
 	else:
-		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
+		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
 		# disable traceback in production if flag is set
 		if frappe.local.flags.disable_traceback or not allow_traceback and not frappe.local.dev_server:
 			traceback = ""
