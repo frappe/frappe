@@ -17,10 +17,10 @@ from frappe.translate import (
 	get_parent_language,
 	get_translation_dict_from_file,
 )
-from frappe.utils import set_request
+from frappe.utils import get_bench_path, set_request
 
 dirname = os.path.dirname(__file__)
-translation_string_file = os.path.join(dirname, "translation_test_file.txt")
+translation_string_file = os.path.abspath(os.path.join(dirname, "translation_test_file.txt"))
 first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 	# skip "en*" since it is a default language
 	frappe.get_all("Language", pluck="name", filters=[["name", "not like", "en%"]]),
@@ -45,7 +45,9 @@ class TestTranslate(FrappeTestCase):
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
-		exp_filename = "apps/frappe/frappe/tests/translation_test_file.txt"
+		bench_path = get_bench_path()
+		file_path = frappe.get_app_path("frappe", "tests", "translation_test_file.txt")
+		exp_filename = os.path.relpath(file_path, bench_path)
 
 		self.assertEqual(
 			len(data),

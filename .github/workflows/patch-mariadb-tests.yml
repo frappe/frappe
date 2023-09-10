@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check if build should be run
         id: check-build
@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check for Merge Conflicts
         run: |
@@ -157,3 +157,13 @@ jobs:
             echo "Printing log: $f";
             cat $f
           done
+
+  faux-test:
+    name: Patch
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build != 'strawberry' }}
+
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"

@@ -9,6 +9,24 @@ from frappe.model.document import Document
 
 
 class KanbanBoard(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.kanban_board_column.kanban_board_column import KanbanBoardColumn
+		from frappe.types import DF
+
+		columns: DF.Table[KanbanBoardColumn]
+		field_name: DF.Literal
+		fields: DF.Code | None
+		filters: DF.Code | None
+		kanban_board_name: DF.Data
+		private: DF.Check
+		reference_doctype: DF.Link
+		show_labels: DF.Check
+	# end: auto-generated types
 	def validate(self):
 		self.validate_column_name()
 

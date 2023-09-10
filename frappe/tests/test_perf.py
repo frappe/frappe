@@ -17,7 +17,7 @@ query. This test can be written like this.
 
 """
 import time
-import unittest
+from unittest.mock import patch
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -29,6 +29,8 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
+
+TEST_USER = "test@example.com"
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -52,6 +54,18 @@ class TestPerformance(FrappeTestCase):
 
 		with self.assertQueryCount(0):
 			frappe.get_meta("User")
+
+	def test_permitted_fieldnames(self):
+		frappe.clear_cache()
+
+		doc = frappe.new_doc("Prepared Report")
+		# load permitted fieldnames once
+		doc.permitted_fieldnames
+
+		with patch("frappe.model.base_document.get_permitted_fields") as mocked:
+			doc.as_dict()
+			# get_permitted_fields should not be called again
+			mocked.assert_not_called()
 
 	def test_set_value_query_count(self):
 		frappe.db.set_value("User", "Administrator", "interest", "Nothing")
@@ -144,3 +158,21 @@ class TestPerformance(FrappeTestCase):
 		from frappe.utils import get_build_version
 
 		self.assertEqual(get_build_version(), get_build_version())
+
+	def test_get_list_single_query(self):
+		"""get_list should only perform single query."""
+
+		user = frappe.get_doc("User", TEST_USER)
+
+		frappe.set_user(TEST_USER)
+		# Give full read access, no share/user perm check should be done.
+		user.add_roles("System Manager")
+
+		frappe.get_list("User")
+		with self.assertQueryCount(1):
+			frappe.get_list("User")
+
+	def test_no_ifnull_checks(self):
+		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()
+		self.assertNotIn("coalesce", query)
+		self.assertNotIn("ifnull", query)

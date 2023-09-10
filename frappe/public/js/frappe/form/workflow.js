@@ -36,8 +36,9 @@ frappe.ui.form.States = class FormStates {
 						).join(", ") || __("None: End of Workflow").bold();
 
 					const document_editable_by = frappe.workflow
-						.get_document_state(me.frm.doctype, state)
-						.allow_edit.bold();
+						.get_document_state_roles(me.frm.doctype, state)
+						.map((role) => role.bold())
+						.join(", ");
 
 					$(d.body)
 						.html(

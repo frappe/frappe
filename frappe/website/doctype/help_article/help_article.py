@@ -3,12 +3,32 @@
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, is_markdown, markdown
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
 
 
 class HelpArticle(WebsiteGenerator):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		author: DF.Data | None
+		category: DF.Link
+		content: DF.TextEditor
+		helpful: DF.Int
+		level: DF.Literal["Beginner", "Intermediate", "Expert"]
+		likes: DF.Int
+		not_helpful: DF.Int
+		published: DF.Check
+		route: DF.Data | None
+		title: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		self.set_route()
 
@@ -110,10 +130,9 @@ def clear_website_cache(path=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def add_feedback(article, helpful):
-	field = "helpful"
-	if helpful == "No":
-		field = "not_helpful"
+@rate_limit(key="article", limit=5, seconds=60 * 60)
+def add_feedback(article: str, helpful: str):
+	field = "not_helpful" if helpful == "No" else "helpful"
 
 	value = cint(frappe.db.get_value("Help Article", article, field))
 	frappe.db.set_value("Help Article", article, field, value + 1, update_modified=False)

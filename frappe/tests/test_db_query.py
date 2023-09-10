@@ -704,6 +704,11 @@ class TestDBQuery(FrappeTestCase):
 		self.assertTrue({"name": "Prepared Report"} in res)
 		self.assertFalse({"name": "Property Setter"} in res)
 
+		frappe.db.set_value("DocType", "Property Setter", "autoname", None, update_modified=False)
+
+		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
+		self.assertFalse({"name": "Property Setter"} in res)
+
 	def test_set_field_tables(self):
 		# Tests _in_standard_sql_methods method in test_set_field_tables
 		# The following query will break if the above method is broken
@@ -986,6 +991,75 @@ class TestDBQuery(FrappeTestCase):
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", ["a"])}, run=0))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, run=0))
 		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, run=0))
+
+	def test_ambiguous_linked_tables(self):
+		from frappe.desk.reportview import get
+
+		if not frappe.db.exists("DocType", "Related Todos"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"custom": 1,
+					"module": "Custom",
+					"name": "Related Todos",
+					"naming_rule": "Random",
+					"autoname": "hash",
+					"fields": [
+						{
+							"label": "Todo One",
+							"fieldname": "todo_one",
+							"fieldtype": "Link",
+							"options": "ToDo",
+							"reqd": 1,
+						},
+						{
+							"label": "Todo Two",
+							"fieldname": "todo_two",
+							"fieldtype": "Link",
+							"options": "ToDo",
+							"reqd": 1,
+						},
+					],
+				}
+			).insert()
+		else:
+			frappe.db.delete("Related Todos")
+
+		todo_one = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Todo One",
+			}
+		).insert()
+
+		todo_two = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Todo Two",
+			}
+		).insert()
+
+		frappe.get_doc(
+			{
+				"doctype": "Related Todos",
+				"todo_one": todo_one.name,
+				"todo_two": todo_two.name,
+			}
+		).insert()
+
+		frappe.form_dict.doctype = "Related Todos"
+		frappe.form_dict.fields = [
+			"`tabRelated Todos`.`name`",
+			"`tabRelated Todos`.`todo_one`",
+			"`tabRelated Todos`.`todo_two`",
+			# because ToDo.show_title_as_field_link = 1
+			"todo_one.description as todo_one_description",
+			"todo_two.description as todo_two_description",
+		]
+
+		# Shouldn't raise pymysql.err.OperationalError: (1066, "Not unique table/alias: 'tabToDo'")
+		data = get()
+		self.assertEqual(len(data["values"]), 1)
 
 
 class TestReportView(FrappeTestCase):

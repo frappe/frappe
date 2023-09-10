@@ -45,7 +45,7 @@ def get_current_stack_frames():
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
 		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
-			if "/apps/" in filename:
+			if "/apps/" in filename or "<serverscript>" in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),
 					"lineno": lineno,
@@ -71,7 +71,9 @@ def post_process():
 
 	for request in result:
 		for call in request["calls"]:
-			formatted_query = sqlparse.format(call["query"].strip(), keyword_case="upper", reindent=True)
+			formatted_query = sqlparse.format(
+				call["query"].strip(), keyword_case="upper", reindent=True, strip_comments=True
+			)
 			call["query"] = formatted_query
 
 			# Collect EXPLAIN for executed query
@@ -86,10 +88,42 @@ def post_process():
 
 
 def mark_duplicates(request):
-	counts = Counter([call["query"] for call in request["calls"]])
+	exact_duplicates = Counter([call["query"] for call in request["calls"]])
+
+	for sql_call in request["calls"]:
+		sql_call["normalized_query"] = normalize_query(sql_call["query"])
+
+	normalized_duplicates = Counter([call["normalized_query"] for call in request["calls"]])
+
 	for index, call in enumerate(request["calls"]):
 		call["index"] = index
-		call["exact_copies"] = counts[call["query"]]
+		call["exact_copies"] = exact_duplicates[call["query"]]
+		call["normalized_copies"] = normalized_duplicates[call["normalized_query"]]
+
+
+def normalize_query(query: str) -> str:
+	"""Attempt to normalize query by removing variables.
+	This gives a different view of similar duplicate queries.
+
+	Example:
+	        These two are distinct queries:
+	                `select * from user where name = 'x'`
+	                `select * from user where name = 'z'`
+
+	        But their "normalized" form would be same:
+	                `select * from user where name = ?`
+	"""
+
+	try:
+		q = sqlparse.parse(query)[0]
+		for token in q.flatten():
+			if "Token.Literal" in str(token.ttype):
+				token.value = "?"
+		return str(q)
+	except Exception as e:
+		print("Failed to normalize query ", e)
+
+	return query
 
 
 def record(force=False):
@@ -161,6 +195,7 @@ def _unpatch():
 
 
 def do_not_record(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if hasattr(frappe.local, "_recorder"):
 			del frappe.local._recorder
@@ -171,6 +206,7 @@ def do_not_record(function):
 
 
 def administrator_only(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator is allowed to use Recorder"))
@@ -242,3 +278,15 @@ def record_queries(func: Callable):
 		return ret
 
 	return wrapped
+
+
+@frappe.whitelist()
+@do_not_record
+@administrator_only
+def import_data(file: str) -> None:
+	file_doc = frappe.get_doc("File", {"file_url": file})
+	file_content = json.loads(file_doc.get_content())
+	for request in file_content:
+		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
+		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+	file_doc.delete(delete_permanently=True)

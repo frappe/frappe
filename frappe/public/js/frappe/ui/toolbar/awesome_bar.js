@@ -111,6 +111,10 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
 				}
+				if (item.route[0].startsWith("https://")) {
+					window.open(item.route[0], "_blank");
+					return;
+				}
 				frappe.set_route(item.route);
 			}
 			$input.val("");
@@ -201,7 +205,8 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				frappe.search.utils.get_workspaces(txt),
 				frappe.search.utils.get_dashboards(txt),
 				frappe.search.utils.get_recent_pages(txt || ""),
-				frappe.search.utils.get_executables(txt)
+				frappe.search.utils.get_executables(txt),
+				frappe.search.utils.get_marketplace_apps(txt)
 			);
 		if (txt.charAt(0) === "#") {
 			options = frappe.tags.utils.get_tags(txt);

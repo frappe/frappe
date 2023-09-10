@@ -4,7 +4,7 @@ import hashlib
 import json
 import time
 from collections.abc import Generator, Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from werkzeug.exceptions import NotFound
 
@@ -19,9 +19,13 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
+from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
 from frappe.utils.global_search import update_global_search
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.docfield.docfield import DocField
 
 
 def get_doc(*args, **kwargs):
@@ -80,6 +84,15 @@ def get_doc(*args, **kwargs):
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+
+	doctype: DF.Data
+	name: DF.Data | None
+	flags: frappe._dict[str, Any]
+	owner: DF.Link
+	creation: DF.Datetime
+	modified: DF.Datetime
+	modified_by: DF.Link
+	idx: DF.Int
 
 	def __init__(self, *args, **kwargs):
 		"""Constructor.
@@ -221,7 +234,9 @@ class Document(BaseDocument):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(self.doctype)
+		frappe.flags.error_message = (
+			_("Insufficient Permission for {0}").format(self.doctype) + f" ({frappe.bold(_(perm_type))})"
+		)
 		raise frappe.PermissionError
 
 	def insert(
@@ -389,6 +404,7 @@ class Document(BaseDocument):
 					"attached_to_name": self.name,
 					"attached_to_doctype": self.doctype,
 					"folder": "Home/Attachments",
+					"is_private": attach_item.is_private,
 				}
 			)
 			_file.save()
@@ -398,13 +414,13 @@ class Document(BaseDocument):
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 
-	def update_child_table(self, fieldname, df=None):
+	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
 		rows = []
-		if not df:
-			df = self.meta.get_field(fieldname)
+		df: "DocField" = df or self.meta.get_field(fieldname)
 
 		for d in self.get(df.fieldname):
+			d: Document
 			d.db_update()
 			rows.append(d.name)
 
@@ -416,25 +432,20 @@ class Document(BaseDocument):
 			# hack for docperm :(
 			return
 
-		if rows:
-			# select rows that do not match the ones in the document
-			deleted_rows = frappe.db.sql(
-				"""select name from `tab{}` where parent=%s
-				and parenttype=%s and parentfield=%s
-				and name not in ({})""".format(
-					df.options, ",".join(["%s"] * len(rows))
-				),
-				[self.name, self.doctype, fieldname] + rows,
-			)
-			if len(deleted_rows) > 0:
-				# delete rows that do not match the ones in the document
-				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
+		# delete rows that do not match the ones in the document
+		tbl = frappe.qb.DocType(df.options)
+		qry = (
+			frappe.qb.from_(tbl)
+			.where(tbl.parent == self.name)
+			.where(tbl.parenttype == self.doctype)
+			.where(tbl.parentfield == fieldname)
+			.delete()
+		)
 
-		else:
-			# no rows found, delete all rows
-			frappe.db.delete(
-				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
-			)
+		if rows:
+			qry = qry.where(tbl.name.notin(rows))
+
+		qry.run()
 
 	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
@@ -1028,7 +1039,7 @@ class Document(BaseDocument):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False, force=False):
+	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
 		"""Delete document."""
 		return frappe.delete_doc(
 			self.doctype,
@@ -1036,6 +1047,7 @@ class Document(BaseDocument):
 			ignore_permissions=ignore_permissions,
 			flags=self.flags,
 			force=force,
+			delete_permanently=delete_permanently,
 		)
 
 	def run_before_save_methods(self):
@@ -1124,7 +1136,11 @@ class Document(BaseDocument):
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
-		if getattr(self.meta, "track_seen", False) and not getattr(self.meta, "issingle", False):
+		if (
+			getattr(self.meta, "track_seen", False)
+			and not getattr(self.meta, "issingle", False)
+			and not self.is_new()
+		):
 			frappe.db.set_value(
 				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
 			)
@@ -1236,9 +1252,12 @@ class Document(BaseDocument):
 		):
 			return
 
-		version = frappe.new_doc("Version")
+		doc_to_compare = self._doc_before_save
+		if not doc_to_compare and (amended_from := self.get("amended_from")):
+			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
-		if is_useful_diff := version.update_version_info(self._doc_before_save, self):
+		version = frappe.new_doc("Version")
+		if is_useful_diff := version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
 
 			if not frappe.flags.in_migrate:
@@ -1358,15 +1377,13 @@ class Document(BaseDocument):
 		comment_type="Comment",
 		text=None,
 		comment_email=None,
-		link_doctype=None,
-		link_name=None,
 		comment_by=None,
 	):
 		"""Add a comment to this document.
 
 		:param comment_type: e.g. `Comment`. See Communication for more info."""
 
-		out = frappe.get_doc(
+		return frappe.get_doc(
 			{
 				"doctype": "Comment",
 				"comment_type": comment_type,
@@ -1375,11 +1392,8 @@ class Document(BaseDocument):
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
 				"content": text or comment_type,
-				"link_doctype": link_doctype,
-				"link_name": link_name,
 			}
 		).insert(ignore_permissions=True)
-		return out
 
 	def add_seen(self, user=None):
 		"""add the given/current user to list of users who have seen this document (_seen)"""
@@ -1554,8 +1568,7 @@ class Document(BaseDocument):
 			pluck="allocated_to",
 		)
 
-		users = set(assigned_users)
-		return users
+		return set(assigned_users)
 
 	def add_tag(self, tag):
 		"""Add a Tag to this document"""
@@ -1632,12 +1645,32 @@ def bulk_insert(
 	        - Documents can be any iterable / generator containing Document objects
 	"""
 
-	columns = frappe.get_meta(doctype).get_valid_columns()
-	values = _document_values_generator(documents, columns)
+	doctype_meta = frappe.get_meta(doctype)
+	documents = list(documents)
 
-	frappe.db.bulk_insert(
-		doctype, columns, values, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
-	)
+	valid_column_map = {
+		doctype: doctype_meta.get_valid_columns(),
+	}
+	values_map = {
+		doctype: _document_values_generator(documents, valid_column_map[doctype]),
+	}
+
+	for child_table in doctype_meta.get_table_fields():
+		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
+		values_map[child_table.options] = _document_values_generator(
+			(
+				ch_doc
+				for ch_doc in (
+					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
+				)
+			),
+			valid_column_map[child_table.options],
+		)
+
+	for dt, docs in values_map.items():
+		frappe.db.bulk_insert(
+			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
+		)
 
 
 def _document_values_generator(

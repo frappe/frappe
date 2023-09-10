@@ -1,9 +1,7 @@
 <script setup>
-import { useStore } from "../../store";
 import { useSlots, onMounted, ref, computed, watch } from "vue";
 
-let store = useStore();
-const props = defineProps(["df", "modelValue", "no_label"]);
+const props = defineProps(["df", "read_only", "modelValue", "no_label"]);
 let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
@@ -28,10 +26,14 @@ function get_options() {
 
 	if (props.df.fieldname == "fieldtype") {
 		if (!in_list(frappe.model.layout_fields, props.modelValue)) {
-			options = options && options.filter(opt => !in_list(frappe.model.layout_fields, opt.label));
+			options = options && options.filter(opt => !in_list(frappe.model.layout_fields, opt.value));
 		} else {
 			options = [{ label: __(props.modelValue), value: props.modelValue }];
 		}
+	}
+
+	if (props.df.sort_options) {
+		options.sort((a, b) => a.label.localeCompare(b.label));
 	}
 
 	return options;
@@ -48,7 +50,7 @@ let select_control = computed(() => {
 			fieldtype: "Select",
 			hidden: 0,
 			options: get_options(),
-			read_only: Boolean(slots.label) || store.read_only,
+			read_only: Boolean(slots.label) || props.read_only,
 			change: () => {
 				if (update_control.value) {
 					content.value = select_control.value.get_value();
@@ -85,7 +87,7 @@ watch(() => props.df.options, () => {
 </script>
 
 <template>
-	<div v-if="slots.label" class="control" :class="{ editable: slots.label }">
+	<div v-if="slots.label" class="control frappe-control" :class="{ editable: slots.label }">
 		<!-- label -->
 		<div class="field-controls">
 			<slot name="label" />

@@ -54,17 +54,43 @@
 	<li class="sidebar-label attachments-label">
 		<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
 		{%= __("Attachments") %}
+
+		<li class="explore-full-btn hidden">
+			<button class="data-pill btn">
+				<span class="pill-label ellipsis">
+					{%= __("Explore Files") %}
+				</span>
+				<svg class="icon icon-sm">
+					<use href="#icon-projects"></use>
+				</svg>
+			</button>
+		</li>
+
+		<li class="attachments-actions">
+			<button class="data-pill btn add-attachment-btn">
+				<span class="pill-label ellipsis">
+					{%= __("Attach File") %}
+				</span>
+				<svg class="icon icon-sm">
+					<use href="#icon-add"></use>
+				</svg>
+			</button>
+
+			<button class="text-muted btn btn-default icon-btn explore-btn">
+				<svg class="icon icon-sm">
+					<use href="#icon-projects"></use>
+				</svg>
+			</button>
+		</li>
+
+
+		<li class="show-all-btn hidden">
+			<a href="" class="pill-label ellipsis">
+				{%= __("Show All") %}
+			</a>
+		</li>
 	</li>
-	<li class="add-attachment-btn">
-		<button class="data-pill btn">
-			<span class="pill-label ellipsis">
-				{%= __("Attach File") %}
-			</span>
-			<svg class="icon icon-sm">
-				<use href="#icon-add"></use>
-			</svg>
-		</button>
-	</li>
+
 </ul>
 <ul class="list-unstyled sidebar-menu form-reviews">
 	<li class="sidebar-label reviews-label">

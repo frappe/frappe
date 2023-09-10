@@ -7,11 +7,9 @@ from urllib.parse import quote
 import frappe
 import frappe.defaults
 import frappe.desk.form.meta
-import frappe.share
 import frappe.utils
 from frappe import _, _dict
 from frappe.desk.form.document_follow import is_document_followed
-from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
@@ -28,10 +26,11 @@ def getdoc(doctype, name, user=None):
 	if not (doctype and name):
 		raise Exception("doctype and name required!")
 
-	if not is_virtual_doctype(doctype) and not frappe.db.exists(doctype, name):
+	try:
+		doc = frappe.get_doc(doctype, name)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
 		return []
-
-	doc = frappe.get_doc(doctype, name)
 
 	if not doc.has_permission("read"):
 		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
@@ -78,14 +77,18 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 
 def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
-	for df in bundle[0].fields:
-		if df.fieldtype in frappe.model.table_fields:
-			bundle.append(frappe.desk.form.meta.get_meta(df.options))
+	bundle.extend(
+		frappe.desk.form.meta.get_meta(df.options)
+		for df in bundle[0].fields
+		if df.fieldtype in frappe.model.table_fields
+	)
 	return bundle
 
 
 @frappe.whitelist()
 def get_docinfo(doc=None, doctype=None, name=None):
+	from frappe.share import _get_users as get_docshares
+
 	if not doc:
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
@@ -110,11 +113,10 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"attachments": get_attachments(doc.doctype, doc.name),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
-			"total_comments": len(json.loads(doc.get("_comments") or "[]")),
 			"versions": get_versions(doc),
 			"assignments": get_assignments(doc.doctype, doc.name),
 			"permissions": get_doc_permissions(doc),
-			"shared": frappe.share.get_users(doc.doctype, doc.name),
+			"shared": get_docshares(doc),
 			"views": get_view_logs(doc.doctype, doc.name),
 			"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
@@ -321,7 +323,7 @@ def get_communication_data(
 		fields=fields, conditions=conditions
 	)
 
-	communications = frappe.db.sql(
+	return frappe.db.sql(
 		"""
 		SELECT *
 		FROM (({part1}) UNION ({part2})) AS combined
@@ -332,11 +334,14 @@ def get_communication_data(
 	""".format(
 			part1=part1, part2=part2, group_by=(group_by or "")
 		),
-		dict(doctype=doctype, name=name, start=frappe.utils.cint(start), limit=limit),
+		dict(
+			doctype=doctype,
+			name=name,
+			start=frappe.utils.cint(start),
+			limit=limit,
+		),
 		as_dict=as_dict,
 	)
-
-	return communications
 
 
 def get_assignments(dt, dn):
@@ -346,22 +351,10 @@ def get_assignments(dt, dn):
 		filters={
 			"reference_type": dt,
 			"reference_name": dn,
-			"status": ("!=", "Cancelled"),
+			"status": ("not in", ("Cancelled", "Closed")),
 			"allocated_to": ("is", "set"),
 		},
 	)
-
-
-@frappe.whitelist()
-def get_badge_info(doctypes, filters):
-	filters = json.loads(filters)
-	doctypes = json.loads(doctypes)
-	filters["docstatus"] = ["!=", 2]
-	out = {}
-	for doctype in doctypes:
-		out[doctype] = frappe.db.get_value(doctype, filters, "count(*)")
-
-	return out
 
 
 def run_onload(doc):

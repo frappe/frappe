@@ -39,6 +39,27 @@ def check_permissions(method):
 
 
 class RQJob(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		arguments: DF.Code | None
+		ended_at: DF.Datetime | None
+		exc_info: DF.Code | None
+		job_id: DF.Data | None
+		job_name: DF.Data | None
+		queue: DF.Literal["default", "short", "long"]
+		started_at: DF.Datetime | None
+		status: DF.Literal[
+			"queued", "started", "finished", "failed", "deferred", "scheduled", "canceled"
+		]
+		time_taken: DF.Duration | None
+		timeout: DF.Duration | None
+	# end: auto-generated types
 	def load_from_db(self):
 		try:
 			job = Job.fetch(self.name, connection=get_redis_conn())
@@ -115,7 +136,13 @@ class RQJob(Document):
 
 def serialize_job(job: Job) -> frappe._dict:
 	modified = job.last_heartbeat or job.ended_at or job.started_at or job.created_at
-	job_name = job.kwargs.get("kwargs", {}).get("job_type") or str(job.kwargs.get("job_name"))
+	job_kwargs = job.kwargs.get("kwargs", {})
+	job_name = job_kwargs.get("job_type") or str(job.kwargs.get("job_name"))
+	if job_name == "frappe.utils.background_jobs.run_doc_method":
+		doctype = job_kwargs.get("doctype")
+		doc_method = job_kwargs.get("doc_method")
+		if doctype and doc_method:
+			job_name = f"{doctype}.{doc_method}"
 
 	# function objects have this repr: '<function functionname at 0xmemory_address >'
 	# This regex just removes unnecessary things around it.

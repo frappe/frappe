@@ -5,8 +5,9 @@ import json
 
 import frappe
 from frappe.geo.country_info import get_country_info
+from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import get_messages_for_boot, send_translations, set_default_language
-from frappe.utils import cint, strip
+from frappe.utils import cint, now, strip
 from frappe.utils.password import update_password
 
 from . import install_fixtures
@@ -113,6 +114,9 @@ def run_post_setup_complete(args):
 	disable_future_access()
 	frappe.db.commit()
 	frappe.clear_cache()
+	# HACK: due to race condition sometimes old doc stays in cache.
+	# Remove this when we have reliable cache reset for docs
+	frappe.get_cached_doc("System Settings") and frappe.get_doc("System Settings")
 
 
 def run_setup_success(args):
@@ -129,18 +133,20 @@ def get_stages_hooks(args):
 
 
 def get_setup_complete_hooks(args):
-	stages = []
-	for method in frappe.get_hooks("setup_wizard_complete"):
-		stages.append(
-			{
-				"status": "Executing method",
-				"fail_msg": "Failed to execute method",
-				"tasks": [
-					{"fn": frappe.get_attr(method), "args": args, "fail_msg": "Failed to execute method"}
-				],
-			}
-		)
-	return stages
+	return [
+		{
+			"status": "Executing method",
+			"fail_msg": "Failed to execute method",
+			"tasks": [
+				{
+					"fn": frappe.get_attr(method),
+					"args": args,
+					"fail_msg": "Failed to execute method",
+				}
+			],
+		}
+		for method in frappe.get_hooks("setup_wizard_complete")
+	]
 
 
 def handle_setup_exception(args):
@@ -179,6 +185,8 @@ def update_system_settings(args):
 		}
 	)
 	system_settings.save()
+	if args.get("allow_recording_first_session"):
+		frappe.db.set_default("session_recording_start", now())
 
 
 def update_user_name(args):
@@ -202,6 +210,8 @@ def update_user_name(args):
 				"last_name": last_name,
 			}
 		)
+
+		doc.append_roles(*_get_default_roles())
 		doc.flags.no_welcome_mail = True
 		doc.insert()
 		frappe.flags.mute_emails = _mute_emails
@@ -256,36 +266,27 @@ def parse_args(args):
 
 def add_all_roles_to(name):
 	user = frappe.get_doc("User", name)
-	for role in frappe.db.sql("""select name from tabRole"""):
-		if role[0] not in [
-			"Administrator",
-			"Guest",
-			"All",
-			"Customer",
-			"Supplier",
-			"Partner",
-			"Employee",
-		]:
-			d = user.append("roles")
-			d.role = role[0]
+	user.append_roles(*_get_default_roles())
 	user.save()
+
+
+def _get_default_roles() -> set[str]:
+	skip_roles = {
+		"Administrator",
+		"Customer",
+		"Supplier",
+		"Partner",
+		"Employee",
+	}.union(AUTOMATIC_ROLES)
+	return set(frappe.get_all("Role", pluck="name")) - skip_roles
 
 
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
-	frappe.db.set_single_value("System Settings", "setup_complete", 1)
-
 	# Enable onboarding after install
 	frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
 
-	if not frappe.flags.in_test:
-		# remove all roles and add 'Administrator' to prevent future access
-		page = frappe.get_doc("Page", "setup-wizard")
-		page.roles = []
-		page.append("roles", {"role": "Administrator"})
-		page.flags.do_not_update_json = True
-		page.flags.ignore_permissions = True
-		page.save()
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 
 @frappe.whitelist()
@@ -339,8 +340,7 @@ def prettify_args(args):
 			args[key] = f"Image Attached: '{filename}' of size {size} MB"
 
 	pretty_args = []
-	for key in sorted(args):
-		pretty_args.append(f"{key} = {args[key]}")
+	pretty_args.extend(f"{key} = {args[key]}" for key in sorted(args))
 	return pretty_args
 
 

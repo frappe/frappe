@@ -82,6 +82,10 @@ $.extend(frappe.datetime, {
 		return moment(d1).diff(d2, "hours");
 	},
 
+	get_minute_diff: function (d1, d2) {
+		return moment(d1).diff(d2, "minutes");
+	},
+
 	get_day_diff: function (d1, d2) {
 		return moment(d1).diff(d2, "days");
 	},

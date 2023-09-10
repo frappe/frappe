@@ -17,6 +17,35 @@ from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 
 
 class Report(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.core.doctype.report_column.report_column import ReportColumn
+		from frappe.core.doctype.report_filter.report_filter import ReportFilter
+		from frappe.types import DF
+
+		add_total_row: DF.Check
+		columns: DF.Table[ReportColumn]
+		disabled: DF.Check
+		filters: DF.Table[ReportFilter]
+		is_standard: DF.Literal["No", "Yes"]
+		javascript: DF.Code | None
+		json: DF.Code | None
+		letter_head: DF.Link | None
+		module: DF.Link | None
+		prepared_report: DF.Check
+		query: DF.Code | None
+		ref_doctype: DF.Link
+		reference_report: DF.Data | None
+		report_name: DF.Data
+		report_script: DF.Code | None
+		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
+		roles: DF.Table[HasRole]
+	# end: auto-generated types
 	def validate(self):
 		"""only administrator can save standard report"""
 		if not self.module:
@@ -261,10 +290,11 @@ class Report(Document):
 			columns = params.get("fields")
 		else:
 			columns = [["name", self.ref_doctype]]
-			for df in frappe.get_meta(self.ref_doctype).fields:
-				if df.in_list_view:
-					columns.append([df.fieldname, self.ref_doctype])
-
+			columns.extend(
+				[df.fieldname, self.ref_doctype]
+				for df in frappe.get_meta(self.ref_doctype).fields
+				if df.in_list_view
+			)
 		return columns
 
 	def get_standard_report_filters(self, params, filters):
@@ -382,9 +412,7 @@ def get_group_by_column_label(args, meta):
 	else:
 		sql_fn_map = {"avg": "Average", "sum": "Sum"}
 		aggregate_on_label = meta.get_label(args.aggregate_on)
-		label = _("{function} of {fieldlabel}").format(
-			function=sql_fn_map[args.aggregate_function], fieldlabel=aggregate_on_label
-		)
+		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
 	return label
 
 

@@ -32,6 +32,12 @@ def add_data_to_monitor(**kwargs) -> None:
 		frappe.local.monitor.add_custom_data(**kwargs)
 
 
+def get_trace_id() -> str | None:
+	"""Get unique ID for current transaction."""
+	if monitor := getattr(frappe.local, "monitor", None):
+		return monitor.data.uuid
+
+
 def log_file():
 	return os.path.join(frappe.utils.get_bench_path(), "logs", "monitor.json.log")
 
@@ -66,14 +72,16 @@ class Monitor:
 			}
 		)
 
+		if request_id := frappe.request.headers.get("X-Frappe-Request-Id"):
+			self.data.uuid = request_id
+
 	def collect_job_meta(self, method, kwargs):
 		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
 		if "run_scheduled_job" in method:
 			self.data.job.method = kwargs["job_type"]
 			self.data.job.scheduled = True
 
-		job = rq.get_current_job()
-		if job:
+		if job := rq.get_current_job():
 			self.data.uuid = job.id
 			waitdiff = self.data.timestamp - job.enqueued_at
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)

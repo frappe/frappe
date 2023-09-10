@@ -107,10 +107,9 @@ frappe.defaults = {
 		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)];
 
 		if (user_permission && user_permission.length) {
-			let doc_found = user_permission.some((perm) => {
+			return user_permission.some((perm) => {
 				return perm.doc === value;
 			});
-			return doc_found;
 		} else {
 			// there is no user permission for this doctype
 			// so we can allow this doc i.e., value

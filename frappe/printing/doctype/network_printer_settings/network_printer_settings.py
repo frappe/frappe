@@ -7,6 +7,18 @@ from frappe.model.document import Document
 
 
 class NetworkPrinterSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		port: DF.Int
+		printer_name: DF.Literal
+		server_ip: DF.Data
+	# end: auto-generated types
 	@frappe.whitelist()
 	def get_printers_list(self, ip="localhost", port=631):
 		printer_list = []
@@ -25,9 +37,10 @@ class NetworkPrinterSettings(Document):
 			cups.setPort(self.port)
 			conn = cups.Connection()
 			printers = conn.getPrinters()
-			for printer_id, printer in printers.items():
-				printer_list.append({"value": printer_id, "label": printer["printer-make-and-model"]})
-
+			printer_list.extend(
+				{"value": printer_id, "label": printer["printer-make-and-model"]}
+				for printer_id, printer in printers.items()
+			)
 		except RuntimeError:
 			frappe.throw(_("Failed to connect to server"))
 		except frappe.ValidationError:

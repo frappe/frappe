@@ -15,6 +15,27 @@ class NamingSeriesNotSetError(frappe.ValidationError):
 
 
 class DocumentNamingSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.amended_document_naming_settings.amended_document_naming_settings import (
+			AmendedDocumentNamingSettings,
+		)
+		from frappe.types import DF
+
+		amend_naming_override: DF.Table[AmendedDocumentNamingSettings]
+		current_value: DF.Int
+		default_amend_naming: DF.Literal["Amend Counter", "Default Naming"]
+		naming_series_options: DF.Text | None
+		prefix: DF.Autocomplete | None
+		series_preview: DF.Text | None
+		transaction_type: DF.Autocomplete | None
+		try_naming_series: DF.Data | None
+		user_must_always_select: DF.Check
+	# end: auto-generated types
 	@frappe.whitelist()
 	def get_transactions_and_prefixes(self):
 

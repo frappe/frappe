@@ -19,6 +19,30 @@ STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "G
 
 
 class Role(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		bulk_actions: DF.Check
+		dashboard: DF.Check
+		desk_access: DF.Check
+		disabled: DF.Check
+		form_sidebar: DF.Check
+		home_page: DF.Data | None
+		is_custom: DF.Check
+		list_sidebar: DF.Check
+		notifications: DF.Check
+		restrict_to_domain: DF.Link | None
+		role_name: DF.Data
+		search_bar: DF.Check
+		timeline: DF.Check
+		two_factor_auth: DF.Check
+		view_switcher: DF.Check
+	# end: auto-generated types
 	def before_rename(self, old, new, merge=False):
 		if old in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
