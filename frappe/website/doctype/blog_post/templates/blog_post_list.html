@@ -61,7 +61,7 @@
 			let $btn = $(this);
 			let args = $.extend(frappe.utils.get_query_params(), {
 				doctype: "Blog Post",
-				category: "{{ frappe.form_dict.category or '' }}",
+				category: {{ frappe.form_dict.category|tojson or "''"}},
 				limit_start: next_start,
 				pathname: location.pathname,
 			});
