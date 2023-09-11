@@ -191,7 +191,6 @@ frappe.ui.LinkPreview = class {
 		a.innerText = __(preview_data.preview_title);
 
 		return div.innerHTML;
-
 	}
 
 	get_id_html(preview_data) {

@@ -1071,14 +1071,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$result.find(".list-row-container:first").focus();
 		};
 		let focus_next = () => {
-			$(document.activeElement)
-				.next()
-				.focus();
+			$(document.activeElement).next().focus();
 		};
 		let focus_prev = () => {
-			$(document.activeElement)
-				.prev()
-				.focus();
+			$(document.activeElement).prev().focus();
 		};
 		let list_row_focused = () => {
 			return $(document.activeElement).is(".list-row-container");
@@ -1263,9 +1259,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	check_row_on_drag(event, check = true) {
-		$(event.target)
-			.find(".list-row-checkbox")
-			.prop("checked", check);
+		$(event.target).find(".list-row-checkbox").prop("checked", check);
 		this.on_row_checked();
 	}
 
