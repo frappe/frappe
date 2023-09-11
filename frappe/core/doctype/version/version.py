@@ -111,18 +111,11 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 			# check rows for additions, changes
 			for i, d in enumerate(new_value):
-				old_row_name = None
-
+				old_row_name = getattr(d, old_row_name_field, None)
 				if compare_cancelled:
-					amended_from = frappe.db.get_value(d.parenttype, d.parent, "amended_from")
-					if amended_from:
-						parent_doc = frappe.get_doc(d.parenttype, amended_from)
-						old_table = parent_doc.get(d.parentfield)
-						if old_table and len(old_table) > i:
-							old_row_name = old_table[i].name
-
-				if not old_row_name:
-					old_row_name = getattr(d, old_row_name_field, None)
+					if amended_from := frappe.db.get_value(d.parenttype, d.parent, "amended_from"):
+						if len(old_value) > i:
+							old_row_name = old_value[i].name
 
 				if old_row_name and old_row_name in old_rows_by_name:
 					found_rows.add(old_row_name)
