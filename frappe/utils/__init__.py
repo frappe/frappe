@@ -31,6 +31,7 @@ import frappe
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
+from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
@@ -526,6 +527,11 @@ def get_backups_path():
 
 def get_request_site_address(full_address=False):
 	return get_url(full_address=full_address)
+
+
+@deprecated
+def get_site_url(site):
+	return frappe.utils.get_url()
 
 
 def encode_dict(d, encoding="utf-8"):

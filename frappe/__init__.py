@@ -17,7 +17,6 @@ import inspect
 import json
 import os
 import re
-import unicodedata
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
@@ -33,7 +32,6 @@ from frappe.query_builder import (
 )
 from frappe.utils.caching import request_cache
 from frappe.utils.data import cint, cstr, sbool
-from frappe.utils.deprecations import deprecated
 
 # Local application imports
 from .exceptions import *
@@ -530,11 +528,6 @@ def msgprint(
 		local.response["exc_type"] = raise_exception.__name__
 
 	_raise_exception()
-
-
-@deprecated
-def get_site_url(site):
-	return frappe.utils.get_url()
 
 
 def clear_messages():
