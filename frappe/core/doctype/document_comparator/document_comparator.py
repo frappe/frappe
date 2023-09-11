@@ -38,20 +38,10 @@ class DocumentComparator(Document):
 	@frappe.whitelist()
 	def compare_document(self):
 		self.validate()
-		amended_document_names = frappe.db.get_list(
-			self.doctype_name,
-			filters={"name": ("like", "%" + self.document + "%")},
-			order_by="modified",
-			pluck="name",
-			limit=5,
-		)
+		amended_document_names = self.get_amended_documents()
 		self.amended_docs = [frappe.get_doc(self.doctype_name, name) for name in amended_document_names]
 		self.docs_to_compare = len(self.amended_docs)
-
-		self.changed = {}
-		self.row_changed = {}
-		self.added = {}
-		self.removed = {}
+		self.changed, self.row_changed, self.added, self.removed = {}, {}, {}, {}
 
 		for i in range(1, self.docs_to_compare):
 			diff = get_diff(self.amended_docs[i - 1], self.amended_docs[i], compare_cancelled=True)
@@ -66,6 +56,16 @@ class DocumentComparator(Document):
 			"added": self.added,
 			"removed": self.removed,
 		}
+
+	def get_amended_documents(self):
+		amended_document_names = []
+		curr_doc = self.document
+		while curr_doc and len(amended_document_names) < 5:
+			amended_document_names.append(curr_doc)
+			curr_doc = frappe.db.get_value(self.doctype_name, curr_doc, "amended_from")
+		amended_document_names = amended_document_names[::-1]
+
+		return amended_document_names
 
 	def get_diff_grid(self, i, diff):
 		for change in diff.changed:
