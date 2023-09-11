@@ -266,15 +266,9 @@ def get_dashboard_for_doctype_a_with_child_table_with_link_to_doctype_b():
 	dashboard = frappe._dict()
 
 	data = {
-<<<<<<< HEAD
 		"fieldname": "doctype_a_with_child_table_with_link_to_doctype_b",
-		"internal_links": {
-			"Doctype B With Child Table With Link To Doctype A": [
-=======
-		"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
 		"internal_and_external_links": {
-			"Test Doctype B With Child Table With Link To Doctype A": [
->>>>>>> 1dc7a3705b (fix: separate internal_and_external_links from internal_links)
+			"Doctype B With Child Table With Link To Doctype A": [
 				"child_table",
 				"doctype_b_with_child_table_with_link_to_doctype_a",
 			],
