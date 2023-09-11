@@ -6,7 +6,7 @@ import decimal
 import json
 import mimetypes
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
 import werkzeug.utils
@@ -21,7 +21,7 @@ import frappe.sessions
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.utils import cint, format_timedelta
+from frappe.utils import format_timedelta
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
@@ -99,6 +99,7 @@ def as_raw():
 
 def as_json():
 	make_logs()
+
 	response = Response()
 	if frappe.local.response.http_status_code:
 		response.status_code = frappe.local.response["http_status_code"]
@@ -125,13 +126,22 @@ def as_binary():
 	return response
 
 
-def make_logs(response=None):
-	# TODO: v2 API
+def make_logs():
 	"""make strings for msgprint and errprint"""
+
+	from frappe.api import ApiVersion, get_api_version
+
+	match get_api_version():
+		case ApiVersion.V1:
+			_make_logs_v1()
+		case ApiVersion.V2:
+			_make_logs_v2()
+
+
+def _make_logs_v1():
 	from frappe.utils.error import guess_exception_source
 
-	if not response:
-		response = frappe.local.response
+	response = frappe.local.response
 
 	if frappe.error_log:
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
@@ -143,11 +153,18 @@ def make_logs(response=None):
 			[frappe.utils.cstr(d) for d in frappe.local.message_log]
 		)
 
-	if frappe.debug_log and frappe.conf.get("logging") or False:
+	if frappe.debug_log and frappe.conf.get("logging"):
 		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
 
 	if frappe.flags.error_message:
 		response["_error_message"] = frappe.flags.error_message
+
+
+def _make_logs_v2():
+	response = frappe.local.response
+
+	if frappe.local.message_log:
+		response["messages"] = [frappe.parse_json(l) for l in frappe.local.message_log]
 
 
 def json_handler(obj):

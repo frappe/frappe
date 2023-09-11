@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from enum import Enum
+
 from werkzeug.exceptions import NotFound
 from werkzeug.routing import Map, Submount
 from werkzeug.wrappers import Request, Response
@@ -8,6 +10,11 @@ import frappe
 import frappe.client
 from frappe import _
 from frappe.utils.response import build_response
+
+
+class ApiVersion(str, Enum):
+	V1 = "v1"
+	V2 = "v2"
 
 
 def handle(request: Request):
@@ -56,9 +63,18 @@ API_URL_MAP = Map(
 	[
 		# V1 routes
 		Submount("/api", v1_rules),
-		Submount("/api/v1", v1_rules),
-		Submount("/api/v2", v2_rules),
+		Submount(f"/api/{ApiVersion.V1.value}", v1_rules),
+		Submount(f"/api/{ApiVersion.V2.value}", v2_rules),
 	],
 	strict_slashes=False,  # Allows skipping trailing slashes
 	merge_slashes=False,
 )
+
+
+def get_api_version() -> ApiVersion | None:
+	if not frappe.request or not frappe.request.path.startswith("/api"):
+		return
+
+	if frappe.request.path.startswith(f"/api/{ApiVersion.V2.value}"):
+		return ApiVersion.V2
+	return ApiVersion.V1

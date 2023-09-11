@@ -455,21 +455,23 @@ class TestMethodAPIV2(FrappeAPITestCase):
 	def test_logs(self):
 		method = "frappe.tests.test_api.test"
 
-		def get_message(resp, msg_type):
-			return frappe.parse_json(frappe.parse_json(frappe.parse_json(resp.json)[msg_type])[0])
+		expected_message = "Failed v2"
+		response = self.get(
+			self.method_path(method), {"sid": self.sid, "message": expected_message}
+		).json
 
-		expected_message = "Failed"
-		response = self.get(self.method_path(method), {"sid": self.sid, "message": expected_message})
-		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+		self.assertIsInstance(response["messages"], list)
+		self.assertEqual(response["messages"][0]["message"], expected_message)
 
 		# Cause handled failured
 		with suppress_stdout():
 			response = self.get(
 				self.method_path(method), {"sid": self.sid, "message": expected_message, "fail": True}
-			)
-		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
-		self.assertEqual(response.json["exc_type"], "ValidationError")
-		self.assertIn("Traceback", response.json["exc"])
+			).json
+		self.assertIsInstance(response["errors"], list)
+		self.assertEqual(response["errors"][0]["message"], expected_message)
+		self.assertEqual(response["errors"][0]["type"], "ValidationError")
+		self.assertIn("Traceback", response["errors"][0]["exception"])
 
 		# Cause handled failured
 		with suppress_stdout():
@@ -477,9 +479,10 @@ class TestMethodAPIV2(FrappeAPITestCase):
 				self.method_path(method),
 				{"sid": self.sid, "message": expected_message, "fail": True, "handled": False},
 			)
-		self.assertNotIn("_server_messages", response.json)
-		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
-		self.assertIn("Traceback", response.json["exc"])
+
+		self.assertIsInstance(response["errors"], list)
+		self.assertEqual(response["errors"][0]["type"], "ZeroDivisionError")
+		self.assertIn("Traceback", response["errors"][0]["exception"])
 
 
 class TestDocTypeAPIV2(FrappeAPITestCase):
