@@ -534,7 +534,7 @@ def msgprint(
 	if wide:
 		out.wide = wide
 
-	message_log.append(json.dumps(out))
+	message_log.append(out)
 
 	if raise_exception and hasattr(raise_exception, "__name__"):
 		local.response["exc_type"] = raise_exception.__name__

@@ -149,9 +149,7 @@ def _make_logs_v1():
 		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
-		response["_server_messages"] = json.dumps(
-			[frappe.utils.cstr(d) for d in frappe.local.message_log]
-		)
+		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
 
 	if frappe.debug_log and frappe.conf.get("logging"):
 		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
@@ -164,7 +162,7 @@ def _make_logs_v2():
 	response = frappe.local.response
 
 	if frappe.local.message_log:
-		response["messages"] = [frappe.parse_json(l) for l in frappe.local.message_log]
+		response["messages"] = frappe.local.message_log
 
 
 def json_handler(obj):

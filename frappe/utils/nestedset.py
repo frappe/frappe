@@ -292,7 +292,7 @@ class NestedSet(Document):
 			update_nsm(self)
 		except frappe.DoesNotExistError:
 			if self.flags.on_rollback:
-				frappe.message_log.pop()
+				frappe.clear_last_message()
 			else:
 				raise
 
