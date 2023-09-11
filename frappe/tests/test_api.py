@@ -318,6 +318,35 @@ class TestMethodAPIV1(FrappeAPITestCase):
 		response = self.get(self.resource_path("User", "NonExistent@s.com"), {"sid": self.sid})
 		self.assertEqual(response.status_code, 404)
 
+	def test_logs(self):
+		method = "frappe.tests.test_api.test"
+
+		def get_message(resp, msg_type):
+			return frappe.parse_json(frappe.parse_json(frappe.parse_json(resp.json)[msg_type])[0])
+
+		expected_message = "Failed"
+		response = self.get(self.method_path(method), {"sid": self.sid, "message": expected_message})
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method), {"sid": self.sid, "message": expected_message, "fail": True}
+			)
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+		self.assertEqual(response.json["exc_type"], "ValidationError")
+		self.assertIn("Traceback", response.json["exc"])
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method),
+				{"sid": self.sid, "message": expected_message, "fail": True, "handled": False},
+			)
+		self.assertNotIn("_server_messages", response.json)
+		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
+		self.assertIn("Traceback", response.json["exc"])
+
 
 class TestDocumentAPIV2(TestResourceAPI):
 	version = "v2"
@@ -422,6 +451,35 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			},
 		)
 		self.assertEqual(response.status_code, 200)
+
+	def test_logs(self):
+		method = "frappe.tests.test_api.test"
+
+		def get_message(resp, msg_type):
+			return frappe.parse_json(frappe.parse_json(frappe.parse_json(resp.json)[msg_type])[0])
+
+		expected_message = "Failed"
+		response = self.get(self.method_path(method), {"sid": self.sid, "message": expected_message})
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method), {"sid": self.sid, "message": expected_message, "fail": True}
+			)
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+		self.assertEqual(response.json["exc_type"], "ValidationError")
+		self.assertIn("Traceback", response.json["exc"])
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method),
+				{"sid": self.sid, "message": expected_message, "fail": True, "handled": False},
+			)
+		self.assertNotIn("_server_messages", response.json)
+		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
+		self.assertIn("Traceback", response.json["exc"])
 
 
 class TestDocTypeAPIV2(FrappeAPITestCase):
@@ -544,3 +602,14 @@ def generate_admin_keys():
 
 	generate_keys("Administrator")
 	frappe.db.commit()
+
+
+@frappe.whitelist()
+def test(*, fail=False, handled=True, message="Failed"):
+	if fail:
+		if handled:
+			frappe.throw(message)
+		else:
+			1 / 0
+	else:
+		frappe.msgprint(message)

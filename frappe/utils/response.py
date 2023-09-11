@@ -126,6 +126,7 @@ def as_binary():
 
 
 def make_logs(response=None):
+	# TODO: v2 API
 	"""make strings for msgprint and errprint"""
 	from frappe.utils.error import guess_exception_source
 
