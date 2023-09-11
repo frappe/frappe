@@ -80,6 +80,14 @@ def document_list(doctype: str):
 	return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)
 
 
+def count(doctype: str) -> int:
+	from frappe.desk.reportview import get_count
+
+	frappe.form_dict.doctype = doctype
+
+	return get_count()
+
+
 def create_doc(doctype: str):
 	data = frappe.form_dict
 	data.pop("doctype", None)
@@ -155,15 +163,8 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	return response
 
 
-def count(doctype: str) -> int:
-	from frappe.desk.reportview import get_count
-
-	# TODO: Rewrite
-	frappe.form_dict.doctype = doctype
-	return get_count()
-
-
 url_rules = [
+	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout),
 	Rule("/method/ping", endpoint=frappe.ping),
@@ -174,6 +175,7 @@ url_rules = [
 		endpoint=lambda: frappe.call(run_doc_method, **frappe.form_dict),
 	),
 	Rule("/method/<doctype>/<method>", endpoint=handle_rpc_call),
+	# Document level APIs
 	Rule("/document/<doctype>", methods=["GET"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
@@ -184,6 +186,7 @@ url_rules = [
 		methods=["GET", "POST"],
 		endpoint=execute_doc_method,
 	),
+	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=frappe.get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
 ]
