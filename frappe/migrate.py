@@ -118,6 +118,9 @@ class SiteMigration:
 			skip_failing=self.skip_failing, patch_type=PatchType.pre_model_sync
 		)
 		frappe.model.sync.sync_all()
+		frappe.model.sync.remove_stale_doctypes()
+		frappe.model.sync.remove_stale_reports()
+		frappe.model.sync.remove_stale_pages()
 		frappe.modules.patch_handler.run_all(
 			skip_failing=self.skip_failing, patch_type=PatchType.post_model_sync
 		)
