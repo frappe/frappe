@@ -23,7 +23,7 @@ class TestDocumentComparator(FrappeTestCase):
 		changed_fields = frappe._dict(test_field="third value")
 		re_amended_doc = amend_document(amended_doc, changed_fields, {}, 1)
 
-		comparator = create_comparator_doc("Test Custom Doctype for Doc Comparator", doc.name)
+		comparator = create_comparator_doc("Test Custom Doctype for Doc Comparator", re_amended_doc.name)
 		documents, results = comparator.compare_document()
 
 		test_field_values = results["changed"]["Field"]
@@ -39,7 +39,7 @@ class TestDocumentComparator(FrappeTestCase):
 		rows_updated = frappe._dict(child_table_field=child_table_new)
 		amended_doc = amend_document(doc, {}, rows_updated, 1)
 
-		comparator = create_comparator_doc("Test Custom Doctype for Doc Comparator", doc.name)
+		comparator = create_comparator_doc("Test Custom Doctype for Doc Comparator", amended_doc.name)
 		documents, results = comparator.compare_document()
 
 		results = frappe._dict(results)
