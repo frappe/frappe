@@ -113,7 +113,7 @@ def get_field_label(fieldname, doctype, child_field=None):
 
 	meta = frappe.get_meta(doctype)
 	label = meta.get_label(fieldname)
-	if label not in ["No Label", "None", ""]:
+	if label not in ["No Label", None, ""]:
 		return label
 	return fieldname
 
