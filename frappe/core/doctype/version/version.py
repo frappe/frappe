@@ -113,7 +113,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 			for i, d in enumerate(new_value):
 				old_row_name = getattr(d, old_row_name_field, None)
 				if compare_cancelled:
-					if amended_from := frappe.db.get_value(d.parenttype, d.parent, "amended_from"):
+					if amended_from:
 						if len(old_value) > i:
 							old_row_name = old_value[i].name
 
