@@ -1,0 +1,40 @@
+<div class="user-profile-sidebar">
+    <div class="user-image-container hidden-xs hidden-sm">
+        {% if user_image %}
+        {{user_image}}
+        {% endif %}
+    </div>
+    <!-- <div class = "office-in-button">
+        <p><button class="office-in btn-ed btn-employee-desk btn-employee-desk-block"><b>{%=__("OFFICE IN") %}</b></button></p>
+    </div>
+    <div class = "lunch-out-button">
+            <p><button class="lunch-out btn-ed btn-employee-desk btn-employee-desk-block"><b>{%=__("LUNCH OUT") %}</b></button></p>
+    </div>
+    <div class = "lunch-in-button">
+        <p><button class="lunch-in btn-ed btn-employee-desk btn-employee-desk-block"><b>{%=__("LUNCH IN") %}</b></button></p>
+    </div>
+    <div class = "office-out-button">
+        <p><button class="office-out btn-ed btn-employee-desk btn-employee-desk-block"><b>{%=__("OFFICE OUT") %}</b></button></p>
+    </div>  -->
+    <div class="display-time"></div>
+    <div class="checkin_details"></div>
+
+    <div class="profile-details">
+        {% if user_bio %}
+        <p class="user-bio">{{user_bio}}</p>
+        {% endif %}
+        {% if user_location %}
+        <p class="user-location text-muted"><span class="interest-icon"><i
+                    class="fa fa-map-marker"></i></span>{{user_location}}</p>
+        {% endif %}
+        {% if user_interest %}
+        <p class="user-interests text-muted"><span class="interest-icon"><i
+                    class="fa fa-puzzle-piece"></i></span>{{user_interest}}</p>
+        {% endif %}
+    </div>
+    <div class="profile-links">
+        <p><a class="edit-profile-link">{%=__("Edit Profile") %}</a></p>
+        <p><a class="transaction-link">{%=__("Transaction Link") %}</a></p>
+        <!-- <p><a class="leaderboard-link" href="#leaderboard/User">{%=__("Leaderboard") %}</a></p> -->
+    </div>
+</div>

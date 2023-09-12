@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
+ "allow_rename": 1,
  "autoname": "field:workflow_state_name",
  "creation": "2012-12-28 10:49:56",
  "description": "Workflow state represents the current state of a document.",
@@ -40,7 +41,7 @@
  "icon": "fa fa-flag",
  "idx": 1,
  "links": [],
- "modified": "2023-03-20 18:12:42.137863",
+ "modified": "2023-07-27 10:34:04.984721",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow State",
