@@ -252,7 +252,7 @@ def get_dashboard_for_test_doctype_a_with_test_child_table_with_link_to_doctype_
 
 	data = {
 		"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
-		"internal_links": {
+		"internal_and_external_links": {
 			"Test Doctype B With Child Table With Link To Doctype A": [
 				"child_table",
 				"test_doctype_b_with_test_child_table_with_link_to_doctype_a",
@@ -264,7 +264,7 @@ def get_dashboard_for_test_doctype_a_with_test_child_table_with_link_to_doctype_
 	}
 
 	dashboard.fieldname = data["fieldname"]
-	dashboard.internal_links = data["internal_links"]
+	dashboard.internal_and_external_links = data["internal_and_external_links"]
 	dashboard.transactions = data["transactions"]
 
 	return dashboard
