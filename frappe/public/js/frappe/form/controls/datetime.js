@@ -1,24 +1,7 @@
 frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.ControlDate {
-	set_formatted_input(value) {
-		if (this.timepicker_only) return;
-		if (!this.datepicker) return;
-		if (!value) {
-			this.datepicker.clear();
-			return;
-		} else if (value.toLowerCase() === "today") {
-			value = this.get_now_date();
-		} else if (value.toLowerCase() === "now") {
-			value = frappe.datetime.now_datetime();
-		}
-		value = this.format_for_input(value);
-		this.$input && this.$input.val(value);
-		this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
-	}
-
-	get_start_date() {
-		this.value = this.value == null ? undefined : this.value;
-		let value = frappe.datetime.convert_to_user_tz(this.value);
-		return frappe.datetime.str_to_obj(value);
+	value_to_date(value) {
+		const str = frappe.datetime.convert_to_user_tz(value, true);
+		return frappe.datetime.str_to_obj(str);
 	}
 	set_date_options() {
 		super.set_date_options();

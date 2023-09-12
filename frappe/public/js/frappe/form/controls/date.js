@@ -9,6 +9,13 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.set_datepicker();
 		this.set_t_for_today();
 	}
+	/**
+	 * @param {string} value
+	 * @returns {Date}
+	 */
+	value_to_date(value) {
+		return frappe.datetime.str_to_obj(value);
+	}
 	set_formatted_input(value) {
 		if (!value) {
 			super.set_formatted_input("");
@@ -23,24 +30,20 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			return;
 		}
 
-		let should_refresh = this.last_value && this.last_value !== value;
+		let should_refresh = false;
 
-		if (!should_refresh) {
-			if (this.datepicker.selectedDates.length > 0) {
-				// if date is selected but different from value, refresh
-				const selected_date = moment(this.datepicker.selectedDates[0]).format(
-					this.date_format
-				);
-
-				should_refresh = selected_date !== value;
-			} else {
-				// if datepicker has no selected date, refresh
-				should_refresh = true;
+		if (this.datepicker.selectedDates.length > 0) {
+			const selected_date = this.datepicker.selectedDates[0];
+			const deltaTime = selected_date - this.value_to_date(value);
+			if (Math.abs(deltaTime) > 0) {
+				should_refresh = true; // date is different from value, refresh
 			}
+		} else {
+			should_refresh = true; // no selected date, refresh
 		}
 
 		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			this.datepicker.selectDate(this.value_to_date(value));
 		}
 	}
 	set_date_options() {
