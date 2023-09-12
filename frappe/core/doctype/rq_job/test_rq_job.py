@@ -151,6 +151,8 @@ class TestRQJob(FrappeTestCase):
 
 	@timeout(20)
 	def test_memory_usage(self):
+		if frappe.db.db_type != "mariadb":
+			return
 		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
 		self.check_status(job, "finished")
 

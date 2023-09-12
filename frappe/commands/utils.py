@@ -609,7 +609,7 @@ def console(context, autoreload=False):
 
 	register(_console_cleanup)
 
-	terminal = InteractiveShellEmbed()
+	terminal = InteractiveShellEmbed.instance()
 	if autoreload:
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")
@@ -864,7 +864,7 @@ def run_ui_tests(
 	"Run UI tests"
 	site = get_site(context)
 	app_base_path = frappe.get_app_source_path(app)
-	site_url = frappe.utils.get_site_url(site)
+	site_url = frappe.utils.get_url(site)
 	admin_password = frappe.get_conf(site).admin_password
 
 	# override baseUrl using env variable

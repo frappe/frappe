@@ -32,7 +32,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 				"create_github_workflow": False,
 			}
 		)
@@ -45,7 +45,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"email": "example@example.org",
 				"icon": "",  # empty -> default
 				"color": "",
-				"app_license": "MIT",
+				"app_license": "mit",
 				"github_workflow": "n",
 			}
 		)
@@ -102,11 +102,13 @@ class TestBoilerPlate(unittest.TestCase):
 		invalid_inputs = copy.copy(self.default_user_input).update(
 			{
 				"title": ["1nvalid Title", "valid title"],
+				"email": ["notavalidemail", "what@is@this.email", "example@example.org"],
 			}
 		)
 		with patch("sys.stdin", self.get_user_input_stream(invalid_inputs)):
 			hooks = _get_user_inputs(self.default_hooks.app_name)
 		self.assertEqual(hooks.app_title, "valid title")
+		self.assertEqual(hooks.app_email, "example@example.org")
 
 	def test_valid_ci_yaml(self):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
@@ -124,7 +126,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 			}
 		)
 
@@ -158,7 +160,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 			}
 		)
 		self.create_app(hooks, no_git=True)

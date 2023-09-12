@@ -11,7 +11,7 @@ from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_site_url, now
+from frappe.utils import get_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
 
@@ -30,7 +30,7 @@ class TestAuth(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.HOST_NAME = frappe.get_site_config().host_name or get_site_url(frappe.local.site)
+		cls.HOST_NAME = get_url()
 		cls.test_user_email = "test_auth@test.com"
 		cls.test_user_name = "test_auth_user"
 		cls.test_user_mobile = "+911234567890"

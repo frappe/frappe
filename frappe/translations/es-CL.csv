@@ -29,7 +29,7 @@ Column Name cannot be empty,El Nombre de la Columna no puede estar vacía,
 Feedback Ratings,Ratings de Feedback,
 Cannot send this email. You have crossed the sending limit of {0} emails for this month.,No se puede enviar este correo electrónico. Usted ha cruzado el límite de envío de {0} mensajes de correo electrónico para este mes.
 Cannot use sub-query in order by,No se puede utilizar una sub-consulta en order by,
-"Permissions can be managed via Setup &gt; Role Permissions Manager","Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos",
+Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos,
 LDAP First Name Field,Campo de Primer Nombre LDAP,
 Feedback Rating,Rating de Feedback,
 Link Title,Título del Enlace,
