@@ -123,7 +123,6 @@ def install_db(
 	verbose=True,
 	force=0,
 	site_config=None,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
