@@ -139,6 +139,8 @@ def get_doc_files(files, start_path):
 
 
 def remove_stale_doctypes():
+	"""Find and remove any stale doctypes."""
+
 	doctype_names = frappe.get_all("DocType", {"istable": 0}, pluck="name")
 	stale_doctype = []
 
@@ -148,20 +150,27 @@ def remove_stale_doctypes():
 		except ImportError:
 			stale_doctype.append(doctype)
 
-	l = len(stale_doctype)
-	if l == 0:
+	length = len(stale_doctype)
+	if length == 0:
 		return
 
-	print(f"{l} stale DocType/s found.")
+	print(f"{length} stale DocType/s found.")
 	for i, name in enumerate(stale_doctype):
 		frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
 		frappe.db.commit()
 
-		update_progress_bar("Deleting non-existant DocTypes", i, l)
+		update_progress_bar("Deleting non-existant DocTypes", i, length)
 	print()
 
 
 def remove_stale_reports():
+	"""Find and remove any stale reports."""
+
+	if not frappe.get_site_config().get("developer_mode"):
+		# Skip if developer mode is not enabled.
+		print("Enable developer mode to check for stale reports.")
+		return
+
 	reports_names = frappe.get_all(
 		"Report", filters={"is_standard": "Yes"}, fields=["name", "module"]
 	)
@@ -173,21 +182,26 @@ def remove_stale_reports():
 		if not os.path.isdir(path):
 			stale_reports.append(report.name)
 
-	l = len(stale_reports)
+	length = len(stale_reports)
 
-	if l == 0:
+	if length == 0:
 		return
-	print(f"{l} stale report/s found.")
+
+	print(f"{length} stale report/s found.")
 	for i, name in enumerate(stale_reports):
 		frappe.delete_doc("Report", name, force=True, ignore_missing=True)
 		frappe.db.commit()
 
-		update_progress_bar("Deleting non-existant Reports", i, l)
+		update_progress_bar("Deleting non-existant Reports", i, length)
 	print()
 
 
 def remove_stale_pages():
-	pages_names = frappe.get_all("Page", filters={"standard": "Yes"}, fields=["name", "module"])
+	"""Find and remove any stale pagess."""
+
+	pages_names = frappe.get_all(
+		"Page", filters={"standard": "Yes", "system_page": 0}, fields=["name", "module"]
+	)
 	stale_pages = []
 	for page in pages_names:
 		path = os.path.join(
@@ -196,14 +210,15 @@ def remove_stale_pages():
 		if not os.path.isdir(path):
 			stale_pages.append(page.name)
 
-	l = len(stale_pages)
+	length = len(stale_pages)
 
-	if l == 0:
+	if length == 0:
 		return
-	print(f"{l} stale page/s found.")
+
+	print(f"{length} stale page/s found.")
 	for i, name in enumerate(stale_pages):
 		frappe.delete_doc("Page", name, force=True, ignore_missing=True)
 		frappe.db.commit()
 
-		update_progress_bar("Deleting non-existant Pages", i, l)
+		update_progress_bar("Deleting non-existant Pages", i, length)
 	print()
