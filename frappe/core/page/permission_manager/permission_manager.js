@@ -44,29 +44,26 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	setup_page() {
-
-		this.doctype_select = this.wrapper.page
-			.add_field({
-				fieldname: 'doctype_select',
-				label: __("Document Type"),
-				fieldtype:'Link',
-				options:'DocType',
-				change: function() {
-					frappe.set_route("permission-manager", this.get_value());
-				}
-			})
+		this.doctype_select = this.wrapper.page.add_field({
+			fieldname: "doctype_select",
+			label: __("Document Type"),
+			fieldtype: "Link",
+			options: "DocType",
+			change: function () {
+				frappe.set_route("permission-manager", this.get_value());
+			},
+		});
 
 		let me = this;
-		this.role_select = this.wrapper.page
-			.add_field({
-				fieldname: 'role_select',
-				label: __("Roles"),
-				fieldtype:'Link',
-				options:'Role',
-				change: function() {
-					me.refresh();
-				}
-			});
+		this.role_select = this.wrapper.page.add_field({
+			fieldname: "role_select",
+			label: __("Roles"),
+			fieldtype: "Link",
+			options: "Role",
+			change: function () {
+				me.refresh();
+			},
+		});
 
 		this.page.add_inner_button(__("Set User Permissions"), () => {
 			return frappe.set_route("List", "User Permission");
