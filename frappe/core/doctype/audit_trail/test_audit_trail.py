@@ -5,7 +5,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestDocumentComparator(FrappeTestCase):
+class TestAuditTrail(FrappeTestCase):
 	def setUp(self):
 		self.child_doctype = create_custom_child_doctype()
 		self.custom_doctype = create_custom_doctype()
