@@ -23,6 +23,7 @@ rights = (
 	"import",
 	"export",
 	"share",
+	"propose",
 )
 
 

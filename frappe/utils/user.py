@@ -29,6 +29,7 @@ class UserPermissions:
 
 		self.all_read = []
 		self.can_create = []
+		self.can_propose = []
 		self.can_select = []
 		self.can_read = []
 		self.can_write = []
@@ -115,10 +116,16 @@ class UserPermissions:
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
 		active_modules = get_active_modules() or []
+		vcs_doctypes = frappe.db.get_list(
+			"VCS Doctype Item", {"parent": "VCS Doctype"}, pluck="document_type", ignore_permissions=True
+		)
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 
 			p = self.perm_map.get(dt, {})
+
+			if p.get("propose") and dt in vcs_doctypes:
+				self.can_propose.append(dt)
 
 			if not p.get("read") and (dt in user_shared):
 				p["read"] = 1
@@ -236,6 +243,7 @@ class UserPermissions:
 		for key in (
 			"can_select",
 			"can_create",
+			"can_propose",
 			"can_write",
 			"can_read",
 			"can_cancel",

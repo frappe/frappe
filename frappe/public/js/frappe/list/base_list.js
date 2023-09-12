@@ -50,6 +50,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
+		this.can_propose = frappe.model.can_propose(this.doctype);
 
 		this.fields = [];
 		this.filters = [];
