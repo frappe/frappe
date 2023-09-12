@@ -128,7 +128,7 @@ def amend_document(amend_from, changed_fields, rows_updated, submit=False):
 
 
 def create_comparator_doc(doctype_name, document):
-	comparator = frappe.new_doc("Document Comparator")
+	comparator = frappe.new_doc("Audit Trail")
 	comparator.doctype_name = doctype_name
 	comparator.document = document
 	return comparator
