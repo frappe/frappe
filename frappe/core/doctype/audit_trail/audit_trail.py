@@ -9,7 +9,7 @@ from frappe.core.doctype.version.version import get_diff
 from frappe.model.document import Document
 
 
-class DocumentComparator(Document):
+class AuditTrail(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
