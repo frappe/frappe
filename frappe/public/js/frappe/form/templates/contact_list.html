@@ -16,6 +16,10 @@
 				&nbsp;&#183;&nbsp;
 				<span class="text-muted">{%= __("Primary Contact") %}</span>
 			{% } %}
+			{% if (contact.is_billing_contact) { %}
+				&nbsp;&#183;&nbsp;
+				<span class="text-muted">{%= __("Billing Contact") %}</span>
+			{% } %}
 			{% if (contact.designation){ %}
 				&nbsp;&#183;&nbsp;
 				<span class="text-muted"> {%= contact.designation %}</span>
