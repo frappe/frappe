@@ -324,29 +324,91 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		}
 	}
 
-	make_calculator(txt) {
-		var first = txt.substr(0, 1);
-		if (first == parseInt(first) || first === "(" || first === "=") {
-			if (first === "=") {
-				txt = txt.substr(1);
-			}
-			try {
-				var val = eval(txt);
-				var formatted_value = __("{0} = {1}", [txt, (val + "").bold()]);
-				this.options.push({
-					label: formatted_value,
-					value: __("{0} = {1}", [txt, val]),
-					match: val,
-					index: 80,
-					default: "Calculator",
-					onclick: function () {
-						frappe.msgprint(formatted_value, __("Result"));
-					},
-				});
-			} catch (e) {
-				// pass
-			}
+	make_calculator(raw) {
+		const firstChar = raw.charAt(0);
+
+		// Remove everything but digits, word characters, or opening parentheses
+		// from the beginning as well as trailing whitespace and "=".
+		let expr = raw.replace(/^[^\d\w(-]+/i, '').replace(/[\s=]+$/g, '');
+
+		// Store the original text for later
+		const original = expr;
+
+		// Detect currency symbols and ISO 4217 currency codes
+		const currencyCodes = ['EUR', 'USD', 'GBP', 'JPY', 'INR'].join("|");
+		const currencyRegex = new RegExp(`(${currencyCodes}|\\p{Sc})`, 'gu');
+		const detectedCurrencies = expr.match(currencyRegex) || [];
+		let currency = "";
+		switch (detectedCurrencies.length) {
+			case 0:
+				break;
+			case 1:
+				expr = expr.replace(currencyRegex, "");
+				currency = detectedCurrencies[0];
+				break;
+			default:
+				// Multiple currencies are not supported.
+				return;
 		}
+
+		// Replace single quotes as a separator
+		expr = expr.replace(/'/g, '');
+
+		// Remove Indian lakh and crore separators
+		expr = expr.replace(/(\d{1,2})?,?(\d{1,2}),(\d{2},\d{3})\.(\d+)/g, '$1$2$3.$4');
+
+		// Remove commas, straight and curly apostrophes used as thousands separators
+		expr = expr.replace(/(\d)[\s'’_,\.](?=\d{3}([^\d]|$))/g, '$1');
+
+		// Replace European decimal commas by American decimal points
+		expr = expr.replace(/(\d+),(\d{1,2})($|[^\d])/g, '$1.$2$3');
+
+		// Replace '^' with Javascript's '**' for exponentiation
+		expr = expr.replace(/\^/g, '**');
+
+		// Remove superfluous spaces
+		expr = expr.replace(/ /g, '');
+
+		let formatted = "";
+		let out = "";
+
+		try {
+		// Check for a valid equation.
+			const equationParts = expr.split("=");
+			if (equationParts.length === 2) {
+				const [lhs, rhs] = equationParts;
+				const lhsValue = eval(lhs);
+				const rhsValue = eval(rhs);
+				const isEqual = (lhsValue == rhsValue) ? __("True") : __("False");
+
+				const [originalLhs, originalRhs] = original.split("=");
+				out = __("{0} = {1} <=> {2} = {3} <=> {4}", [originalLhs, originalRhs, lhsValue, rhsValue, isEqual]);
+				formatted = __("{0} = {1} <=> {2} = {3} <=> {4}", [originalLhs, originalRhs, lhsValue, rhsValue, isEqual.bold()]);
+			} else {
+				const value = eval(expr);
+				// Format the result for display
+				out = __("{0} = {1}", [expr, value]);
+				if (currency) {
+					formatted = __("{0} = {1}", [original, format_currency(value, currency).bold()]);
+				} else {
+					formatted = __("{0} = {1}", [original, format_number(value).bold()]);
+				}
+			}
+		} catch (e) {
+			// pass
+		}
+
+		this.options.push({
+			value: formatted,
+			match: out,
+			index: 1000,
+			default: "Calculator",
+			onclick: function () {
+				frappe.msgprint(formatted, __("Result"));
+			},
+		});
+
+
 	}
 
 	make_random(txt) {
