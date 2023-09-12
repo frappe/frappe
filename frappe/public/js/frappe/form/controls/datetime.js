@@ -35,19 +35,23 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	get_now_date() {
 		return frappe.datetime.now_datetime(true);
 	}
+	/** @param {string | null} value */
 	parse(value) {
-		if (value) {
-			value = frappe.datetime.user_to_str(value, false);
+		let parsed = typeof value === "string" ? value.trim() : "";
 
-			if (!frappe.datetime.is_system_time_zone()) {
-				value = frappe.datetime.convert_to_system_tz(value, true);
-			}
-
-			if (value == "Invalid date") {
-				value = "";
-			}
+		if (["today", "now"].includes(parsed.toLowerCase())) {
+			parsed = frappe.datetime.now_datetime(false);
+		} else if (parsed) {
+			parsed = frappe.datetime.user_to_str(parsed, false);
+			parsed = frappe.datetime.convert_to_system_tz(parsed, true);
 		}
-		return value;
+
+		if (parsed === "Invalid date") {
+			console.warn("Invalid datetime", value); // eslint-disable-line
+			parsed = "";
+		}
+
+		return parsed;
 	}
 	format_for_input(value) {
 		if (!value) return "";

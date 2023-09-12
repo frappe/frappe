@@ -10,15 +10,16 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.set_t_for_today();
 	}
 	set_formatted_input(value) {
-		if (value === "Today") {
-			value = this.get_now_date();
+		if (!value) {
+			super.set_formatted_input("");
+			this.datepicker?.clear();
+			return;
 		}
 
 		super.set_formatted_input(value);
 		if (this.timepicker_only) return;
-		if (!this.datepicker) return;
-		if (!value) {
-			this.datepicker.clear();
+		if (!this.datepicker) {
+			// There is no datepicker, so we cannot set the selected date
 			return;
 		}
 
@@ -141,13 +142,21 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			}
 		});
 	}
+	/** @param {string | null} value */
 	parse(value) {
-		if (value) {
-			if (value == "Invalid date") {
-				return "";
-			}
-			return frappe.datetime.user_to_str(value, false, true);
+		value = typeof value === "string" ? value : "";
+
+		if (["today", "now"].includes(value.toLowerCase())) {
+			value = frappe.datetime.now_date(false);
+		} else {
+			value = frappe.datetime.user_to_str(value, false, true);
 		}
+
+		if (value === "Invalid date") {
+			value = "";
+		}
+
+		return value.substring(0, 10);
 	}
 	format_for_input(value) {
 		if (value) {
