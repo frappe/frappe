@@ -148,8 +148,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	get_role() {
-		let role = this.role_select.get_value();
-		return role;
+		return this.role_select.get_value();
 	}
 
 	set_empty_message(message) {
