@@ -535,8 +535,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 				.call({
 					method: "frappe.client.get_list",
 					args: {
-						doctype: "VCS Doctype Item",
-						parent: "VCS Doctype",
+						doctype: "Proposable Doctype Item",
+						parent: "Proposable Doctype",
 					},
 					filters: {
 						document_type: this.doctype,

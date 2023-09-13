@@ -23,7 +23,7 @@
  "modified": "2023-08-25 16:13:53.724304",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "VCS Doctype Item",
+ "name": "Proposable Doctype Item",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
