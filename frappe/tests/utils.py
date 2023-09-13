@@ -77,6 +77,12 @@ class FrappeTestCase(unittest.TestCase):
 		else:
 			self.assertEqual(expected, actual, msg=msg)
 
+	def normalize_html(self, code: str) -> str:
+		"""Formats HTML consistently so simple string comparisons can work on them."""
+		from bs4 import BeautifulSoup
+
+		return BeautifulSoup(code, "html.parser").prettify(formatter=None)
+
 	@contextmanager
 	def assertQueryCount(self, count):
 		queries = []
