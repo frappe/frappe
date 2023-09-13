@@ -765,6 +765,7 @@ frappe.ui.form.Form = class FrappeForm {
 				method: "frappe.client.propose_save",
 				args: {
 					doc: me.doc,
+					is_new: me.is_new(),
 				},
 				callback: (resp) => {
 					if (!resp.exc) {
@@ -773,6 +774,7 @@ frappe.ui.form.Form = class FrappeForm {
 							alert: true,
 							indicator: "green",
 						});
+						this.page.set_indicator(__("Proposed"), "green");
 					}
 				},
 			});

@@ -9,6 +9,7 @@
   "document_type",
   "column_break_2zhl",
   "document_name",
+  "is_new_doc",
   "section_break_5l6y",
   "document_json"
  ],
@@ -42,34 +43,26 @@
    "in_list_view": 1,
    "label": "Document JSON",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.is_new_doc",
+   "fieldname": "is_new_doc",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is New",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-29 21:13:11.432060",
+ "modified": "2023-09-12 16:24:44.500597",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "VCS Document Patch",
  "owner": "Administrator",
  "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "propose": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Doc Proposer",
-   "share": 1
-  },
-  {
-   "propose": 1,
-   "read": 1,
-   "role": "Doc Checker"
-  }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
