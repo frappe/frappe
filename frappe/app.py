@@ -137,8 +137,7 @@ def application(request: Request):
 
 		log_request(request, response)
 		process_response(response)
-		if frappe.db:
-			frappe.db.close()
+		frappe.request.after_response(lambda: frappe.db and frappe.db.close())
 
 	return response
 
