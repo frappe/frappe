@@ -393,7 +393,13 @@ def sync_database(rollback: bool) -> bool:
 
 
 def serve(
-	port=8000, profile=False, no_reload=False, no_threading=False, site=None, sites_path="."
+	host=None,
+	port=8000,
+	profile=False,
+	no_reload=False,
+	no_threading=False,
+	site=None,
+	sites_path=".",
 ):
 	global application, _site, _sites_path
 	_site = site
@@ -418,7 +424,7 @@ def serve(
 		log.setLevel(logging.ERROR)
 
 	run_simple(
-		"0.0.0.0",
+		host,
 		int(port),
 		application,
 		exclude_patterns=["test_*"],
