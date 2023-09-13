@@ -61,7 +61,7 @@ class TestOAuth20(FrappeRequestTestCase):
 
 		cls.form_header = {"content-type": "application/x-www-form-urlencoded"}
 		cls.scope = "all openid"
-		cls.redirect_uri = "http://127.0.0.1"
+		cls.redirect_uri = "http://localhost"
 
 		# Set Frappe server URL reqired for id_token generation
 		frappe_login_key: "SocialLoginKey" = frappe.new_doc("Social Login Key")
@@ -78,12 +78,12 @@ class TestOAuth20(FrappeRequestTestCase):
 			{
 				"app_name": "_Test OAuth Client",
 				"client_secret": "test_client_secret",
-				"default_redirect_uri": "http://127.0.0.1",
+				"default_redirect_uri": "http://localhost",
 				"docstatus": 0,
 				"doctype": "OAuth Client",
 				"grant_type": "Authorization Code",
 				"name": "test_client_id",
-				"redirect_uris": "http://127.0.0.1",
+				"redirect_uris": "http://localhost",
 				"response_type": "Code",
 				"scopes": "all openid",
 				"skip_authorization": 1,
