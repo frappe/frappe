@@ -256,7 +256,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_primary_action() {
-		if (this.can_create && !frappe.boot.read_only) {
+		if ((this.can_create || this.can_propose) && !frappe.boot.read_only) {
 			const doctype_name = __(frappe.router.doctype_layout) || __(this.doctype);
 
 			// Better style would be __("Add {0}", [doctype_name], "Primary action in list view")

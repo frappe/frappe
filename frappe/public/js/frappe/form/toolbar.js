@@ -640,7 +640,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else if (this.can_amend()) {
 			status = "Amend";
 		} else if (this.can_propose()) {
-			status = "Propose Save";
+			status = "Propose";
 		}
 		return status;
 	}
@@ -689,7 +689,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				Amend: function () {
 					return me.frm.amend_doc();
 				},
-				"Propose Save": function () {
+				Propose: function () {
 					if (me.frm.is_new()) return me.frm.propose_save("Propose Save", null, this);
 					else return me.frm.propose_save("Propose Update", null, this);
 				},
