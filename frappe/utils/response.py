@@ -68,9 +68,8 @@ def build_response(response_type=None):
 def as_csv():
 	response = Response()
 	response.mimetype = "text/csv"
-	response.headers["Content-Disposition"] = (
-		'attachment; filename="%s.csv"' % frappe.response["doctype"].replace(" ", "_")
-	).encode("utf-8")
+	filename = f"{frappe.response['doctype']}.csv"
+	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["result"]
 	return response
 
@@ -78,9 +77,8 @@ def as_csv():
 def as_txt():
 	response = Response()
 	response.mimetype = "text"
-	response.headers["Content-Disposition"] = (
-		'attachment; filename="%s.txt"' % frappe.response["doctype"].replace(" ", "_")
-	).encode("utf-8")
+	filename = f"{frappe.response['doctype']}.txt"
+	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["result"]
 	return response
 
@@ -92,9 +90,11 @@ def as_raw():
 		or mimetypes.guess_type(frappe.response["filename"])[0]
 		or "application/unknown"
 	)
-	response.headers["Content-Disposition"] = (
-		f'{frappe.response.get("display_content_as","attachment")}; filename="{frappe.response["filename"].replace(" ", "_")}"'
-	).encode()
+	response.headers.add(
+		"Content-Disposition",
+		frappe.response.get("display_content_as", "attachment"),
+		filename=frappe.response["filename"],
+	)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -114,11 +114,7 @@ def as_json():
 def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
-	encoded_filename = quote(frappe.response["filename"].replace(" ", "_"))
-	response.headers["Content-Disposition"] = (
-		'filename="%s"' % frappe.response["filename"].replace(" ", "_")
-		+ ";filename*=utf-8''%s" % encoded_filename
-	).encode("utf-8")
+	response.headers.add("Content-Disposition", filename=frappe.response["filename"])
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -126,8 +122,7 @@ def as_pdf():
 def as_binary():
 	response = Response()
 	response.mimetype = "application/octet-stream"
-	filename = "_".join(frappe.response["filename"].split())
-	response.headers["Content-Disposition"] = ('filename="%s"' % filename).encode("utf-8")
+	response.headers.add("Content-Disposition", filename=frappe.response["filename"])
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -260,7 +255,7 @@ def send_private_file(path: str) -> Response:
 	blacklist = [".svg", ".html", ".htm", ".xml"]
 
 	if extension.lower() in blacklist:
-		response.headers.add("Content-Disposition", "attachment", filename=filename.encode("utf-8"))
+		response.headers.add("Content-Disposition", "attachment", filename=filename)
 
 	response.mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
