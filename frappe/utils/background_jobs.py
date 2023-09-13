@@ -134,7 +134,7 @@ def enqueue(
 				"job_id": job_id,
 			}
 		)
-		return frappe.flags.enqueue_after_commit
+		return
 
 	return q.enqueue_call(
 		execute_job,

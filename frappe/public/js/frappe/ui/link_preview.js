@@ -26,7 +26,7 @@ frappe.ui.LinkPreview = class {
 	identify_doc() {
 		if (this.is_link) {
 			this.doctype = this.element.attr("data-doctype");
-			this.name = this.element.attr("data-name");
+			this.name = frappe.utils.unescape_html(this.element.attr("data-name"));
 			this.href = this.element.attr("href");
 		} else {
 			this.href = this.element
@@ -191,7 +191,6 @@ frappe.ui.LinkPreview = class {
 		a.innerText = __(preview_data.preview_title);
 
 		return div.innerHTML;
-
 	}
 
 	get_id_html(preview_data) {
