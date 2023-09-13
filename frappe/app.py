@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import functools
 import gc
 import logging
 import os
@@ -11,6 +12,7 @@ from werkzeug.local import LocalManager
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
+from werkzeug.wsgi import ClosingIterator
 
 import frappe
 import frappe.api
@@ -22,7 +24,7 @@ import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
 from frappe.middlewares import StaticDataMiddleware
-from frappe.utils import cint, get_site_name, sanitize_html
+from frappe.utils import CallbackManager, cint, get_site_name, sanitize_html
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
@@ -62,7 +64,22 @@ if frappe._tune_gc:
 # end: module pre-loading
 
 
-@local_manager.middleware
+def after_response_wrapper(app):
+	"""Wrap a WSGI application to call after_response hooks after we have responded.
+
+	This is done to reduce response time by deferring expensive tasks."""
+
+	@functools.wraps(app)
+	def application(environ, start_response):
+		return ClosingIterator(
+			app(environ, start_response),
+			[frappe.request.after_response.run, local_manager.cleanup],
+		)
+
+	return application
+
+
+@after_response_wrapper
 @Request.application
 def application(request: Request):
 	response = None
@@ -136,6 +153,8 @@ def run_after_request_hooks(request, response):
 
 def init_request(request):
 	frappe.local.request = request
+	frappe.local.request.after_response = CallbackManager()
+
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)

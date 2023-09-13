@@ -21,7 +21,7 @@ def apply():
 
 def update():
 	if hasattr(frappe.local, "rate_limiter"):
-		frappe.local.rate_limiter.update()
+		frappe.request.after_response(frappe.local.rate_limiter.update)
 
 
 def respond():
