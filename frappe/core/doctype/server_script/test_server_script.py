@@ -6,7 +6,7 @@ import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_url
+from frappe.utils import get_site_url
 
 scripts = [
 	dict(
@@ -122,7 +122,7 @@ class TestServerScript(FrappeTestCase):
 		)
 
 	def test_api(self):
-		response = requests.post(get_url() + "/api/method/test_server_script")
+		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual("hello", response.json()["message"])
 
@@ -267,7 +267,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		frappe.db.commit()
 
-		site = frappe.utils.get_url()
+		site = frappe.utils.get_site_url(frappe.local.site)
 		client = FrappeClient(site)
 
 		# Exhaust rate limit

@@ -43,7 +43,7 @@ class TestPerformance(FrappeTestCase):
 		frappe.clear_cache()
 
 	def setUp(self) -> None:
-		self.HOST = frappe.utils.get_url()
+		self.HOST = frappe.utils.get_site_url(frappe.local.site)
 
 		self.reset_request_specific_caches()
 

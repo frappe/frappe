@@ -17,6 +17,7 @@ import inspect
 import json
 import os
 import re
+import unicodedata
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload

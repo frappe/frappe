@@ -15,7 +15,7 @@ from frappe.core.doctype.user.user import generate_keys
 
 # imports - standard imports
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import cstr, get_url
+from frappe.utils import cstr, get_site_url
 
 
 class TestAccessLog(FrappeTestCase):
@@ -154,7 +154,7 @@ class TestAccessLog(FrappeTestCase):
 		new_private_file.insert()
 
 		# access the created file
-		private_file_link = get_url() + new_private_file.file_url
+		private_file_link = get_site_url(frappe.local.site) + new_private_file.file_url
 
 		try:
 			request = requests.post(private_file_link, headers=self.header)

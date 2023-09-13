@@ -12,7 +12,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import get_test_client, get_url
+from frappe.utils import get_site_url, get_test_client
 
 try:
 	_site = frappe.local.site
@@ -73,7 +73,7 @@ class ThreadWithReturnValue(Thread):
 
 class FrappeAPITestCase(FrappeTestCase):
 	SITE = frappe.local.site
-	SITE_URL = get_url()
+	SITE_URL = get_site_url(SITE)
 	RESOURCE_URL = f"{SITE_URL}/api/resource"
 	TEST_CLIENT = get_test_client()
 
