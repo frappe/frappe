@@ -145,7 +145,7 @@ def get_global_default(key):
 # Common
 
 
-def set_default(key, value, parent):
+def set_default(key, value, parent, parenttype="__default"):
 	"""Override or add a default value.
 	Adds default value in table `tabDefaultValue`.
 

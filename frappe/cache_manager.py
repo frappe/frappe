@@ -207,7 +207,7 @@ def build_table_count_cache():
 	return counts
 
 
-def build_domain_restriced_doctype_cache():
+def build_domain_restriced_doctype_cache(*args, **kwargs):
 	if (
 		frappe.flags.in_patch
 		or frappe.flags.in_install
@@ -224,7 +224,7 @@ def build_domain_restriced_doctype_cache():
 	return doctypes
 
 
-def build_domain_restriced_page_cache():
+def build_domain_restriced_page_cache(*args, **kwargs):
 	if (
 		frappe.flags.in_patch
 		or frappe.flags.in_install
