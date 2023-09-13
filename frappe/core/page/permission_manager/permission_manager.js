@@ -54,15 +54,12 @@ frappe.PermissionEngine = class PermissionEngine {
 			},
 		});
 
-		let me = this;
 		this.role_select = this.wrapper.page.add_field({
 			fieldname: "role_select",
 			label: __("Roles"),
 			fieldtype: "Link",
 			options: "Role",
-			change: function () {
-				me.refresh();
-			},
+			change: () => this.refresh(),
 		});
 
 		this.page.add_inner_button(__("Set User Permissions"), () => {
