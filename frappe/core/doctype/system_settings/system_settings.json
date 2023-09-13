@@ -81,7 +81,10 @@
   "disable_system_update_notification",
   "disable_change_log_notification",
   "telemetry_section",
-  "enable_telemetry"
+  "enable_telemetry",
+  "files_section",
+  "max_file_size",
+  "column_break_uqma"
  ],
  "fields": [
   {
@@ -572,12 +575,28 @@
    "fieldname": "force_web_capture_mode_for_uploads",
    "fieldtype": "Check",
    "label": "Force Web Capture Mode for Uploads"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "files_section",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "max_file_size",
+   "fieldtype": "Int",
+   "label": "Max File Size (MB)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_uqma",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-08-31 20:19:07.181041",
+ "modified": "2023-09-13 12:49:32.309521",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

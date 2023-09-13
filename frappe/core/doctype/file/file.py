@@ -620,10 +620,10 @@ class File(Document):
 		file_size = len(self._content or b"")
 
 		if file_size > max_file_size:
-			frappe.throw(
-				_("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
-				exc=MaxFileSizeReachedError,
-			)
+			msg = _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576)
+			if frappe.has_permission("System Settings", "write"):
+				msg += ".<br>" + _("You can increase the limit from System Settings.")
+			frappe.throw(msg, exc=MaxFileSizeReachedError)
 
 		return file_size
 
