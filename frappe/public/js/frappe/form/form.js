@@ -1810,7 +1810,7 @@ frappe.ui.form.Form = class FrappeForm {
 						<a class="indicator ${get_color(doc || {})}"
 							href="/app/${frappe.router.slug(df.options)}/${escaped_name}"
 							data-doctype="${df.options}"
-							data-name="${value}">
+							data-name="${frappe.utils.escape_html(value)}">
 							${label}
 						</a>
 					`;
