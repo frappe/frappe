@@ -152,7 +152,7 @@ class EmailAccount(Document):
 			self.password = None
 
 		if not frappe.local.flags.in_install and not self.awaiting_password:
-			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
+			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "127.0.0.1"):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
