@@ -528,6 +528,13 @@ def get_request_site_address(full_address=False):
 	return get_url(full_address=full_address)
 
 
+def get_site_url(site):
+	conf = frappe.get_conf(site)
+	if conf.host_name:
+		return conf.host_name
+	return f"http://{site}:{conf.webserver_port}"
+
+
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
 		if isinstance(d[key], str) and isinstance(d[key], str):
