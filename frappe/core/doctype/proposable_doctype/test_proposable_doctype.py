@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestVCSDoctype(FrappeTestCase):
+class TestProposableDoctype(FrappeTestCase):
 	pass

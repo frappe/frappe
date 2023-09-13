@@ -14,7 +14,7 @@
    "fieldname": "vcs_doctypes",
    "fieldtype": "Table",
    "label": "Doctypes",
-   "options": "VCS Doctype Item"
+   "options": "Proposable Doctype Item"
   },
   {
    "fieldname": "column_break_4bx5",
@@ -24,10 +24,10 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-25 16:09:06.186071",
+ "modified": "2023-09-13 16:50:01.281258",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "VCS Doctype",
+ "name": "Proposable Doctype",
  "owner": "Administrator",
  "permissions": [
   {
@@ -35,7 +35,6 @@
    "delete": 1,
    "email": 1,
    "print": 1,
-   "propose": 1,
    "read": 1,
    "role": "Administrator",
    "share": 1,

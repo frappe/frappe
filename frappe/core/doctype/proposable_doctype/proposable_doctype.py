@@ -5,16 +5,18 @@
 from frappe.model.document import Document
 
 
-class VCSDoctype(Document):
+class ProposableDoctype(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.vcs_doctype_item.vcs_doctype_item import VCSDoctypeItem
+		from frappe.core.doctype.proposable_doctype_item.proposable_doctype_item import (
+			ProposableDoctypeItem,
+		)
 		from frappe.types import DF
 
-		vcs_doctypes: DF.Table[VCSDoctypeItem]
+		proposable_doctypes: DF.Table[ProposableDoctypeItem]
 	# end: auto-generated types
 	pass
