@@ -141,7 +141,7 @@ def get_doc_files(files, start_path):
 def remove_stale_doctypes():
 	"""Find and remove any stale doctypes."""
 
-	doctype_names = frappe.get_all("DocType", {"istable": 0}, pluck="name")
+	doctype_names = frappe.get_all("DocType", {"istable": 0, "custom": 0}, pluck="name")
 	stale_doctype = []
 
 	for doctype in doctype_names:
