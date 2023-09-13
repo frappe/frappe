@@ -144,8 +144,7 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	get_doctype() {
-		let doctype = this.doctype_select.get_value();
-		return doctype;
+		return this.doctype_select.get_value();
 	}
 
 	get_role() {
