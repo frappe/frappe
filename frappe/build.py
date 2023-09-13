@@ -133,7 +133,7 @@ def setup_assets(assets_archive):
 	return directories_created
 
 
-def download_frappe_assets(verbose=True):
+def download_frappe_assets():
 	"""Downloads and sets up Frappe assets if they exist based on the current
 	commit HEAD.
 	Returns True if correctly setup else returns False.
@@ -226,7 +226,6 @@ def bundle(
 	mode,
 	apps=None,
 	hard_link=False,
-	verbose=False,
 	skip_frappe=False,
 	files=None,
 	save_metafiles=False,

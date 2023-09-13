@@ -122,7 +122,6 @@ def install_db(
 	verbose=True,
 	force=0,
 	site_config=None,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
@@ -551,7 +550,7 @@ def make_site_config(
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 
 
-def update_site_config(key, value, validate=True, site_config_path=None):
+def update_site_config(key, value, site_config_path=None):
 	"""Update a value in site_config"""
 	from frappe.utils.synchronization import filelock
 

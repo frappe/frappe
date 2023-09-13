@@ -1266,7 +1266,7 @@ def get_source_additional_info(source, language=""):
 
 
 @frappe.whitelist()
-def get_contributions(language):
+def get_contributions():
 	return frappe.get_all(
 		"Translation",
 		fields=["*"],

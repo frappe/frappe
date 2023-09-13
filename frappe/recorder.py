@@ -218,21 +218,21 @@ def administrator_only(function):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def status(*args, **kwargs):
+def status():
 	return bool(frappe.cache.get_value(RECORDER_INTERCEPT_FLAG))
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def start(*args, **kwargs):
+def start():
 	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=60 * 60)
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def stop(*args, **kwargs):
+def stop():
 	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
 	frappe.enqueue(post_process)
 
@@ -240,7 +240,7 @@ def stop(*args, **kwargs):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def get(uuid=None, *args, **kwargs):
+def get(uuid=None):
 	if uuid:
 		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
 	else:
@@ -251,14 +251,14 @@ def get(uuid=None, *args, **kwargs):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def export_data(*args, **kwargs):
+def export_data():
 	return list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def delete(*args, **kwargs):
+def delete():
 	frappe.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
 	frappe.cache.delete_value(RECORDER_REQUEST_HASH)
 

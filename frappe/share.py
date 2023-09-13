@@ -34,7 +34,7 @@ def add(doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0
 
 
 def add_docshare(
-	doctype, name, user=None, read=1, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
+	doctype, name, user=None, write=0, submit=0, share=0, everyone=0, flags=None, notify=0
 ):
 	"""Share the given document with a user."""
 	if not user:

@@ -430,7 +430,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False, commit=False)
 	add_to_test_record_log(doctype)
 
 
-def make_test_objects(doctype, test_records=None, verbose=None, reset=False, commit=False):
+def make_test_objects(doctype, test_records=None, reset=False, commit=False):
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
 	records = []
 

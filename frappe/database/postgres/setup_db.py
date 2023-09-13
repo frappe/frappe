@@ -3,7 +3,7 @@ import os
 import frappe
 
 
-def setup_database(force, source_sql=None, verbose=False):
+def setup_database(source_sql=None, verbose=False):
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	root_conn.commit()
 	root_conn.sql("end")
