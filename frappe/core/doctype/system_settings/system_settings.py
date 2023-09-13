@@ -64,6 +64,7 @@ class SystemSettings(Document):
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
 		max_auto_email_report_per_user: DF.Int
+		max_file_size: DF.Int
 		minimum_password_score: DF.Literal["2", "3", "4"]
 		number_format: DF.Literal[
 			"#,###.##",
