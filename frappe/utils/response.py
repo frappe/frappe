@@ -114,7 +114,7 @@ def as_json():
 def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
-	response.headers.add("Content-Disposition", filename=frappe.response["filename"])
+	response.headers.add("Content-Disposition", None, filename=frappe.response["filename"])
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -122,7 +122,7 @@ def as_pdf():
 def as_binary():
 	response = Response()
 	response.mimetype = "application/octet-stream"
-	response.headers.add("Content-Disposition", filename=frappe.response["filename"])
+	response.headers.add("Content-Disposition", None, filename=frappe.response["filename"])
 	response.data = frappe.response["filecontent"]
 	return response
 
