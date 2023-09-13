@@ -922,6 +922,7 @@ def run_ui_tests(
 
 
 @click.command("serve")
+@click.option("--host", default="127.0.0.1")
 @click.option("--port", default=8000)
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--noreload", "no_reload", is_flag=True, default=False)
@@ -930,6 +931,7 @@ def run_ui_tests(
 @pass_context
 def serve(
 	context,
+	host="127.0.0.1",
 	port=None,
 	profile=False,
 	no_reload=False,
@@ -951,6 +953,7 @@ def serve(
 			no_threading = True
 			no_reload = True
 		frappe.app.serve(
+			host=host,
 			port=port,
 			profile=profile,
 			no_reload=no_reload,
