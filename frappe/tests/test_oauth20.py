@@ -20,7 +20,7 @@ class TestOAuth20(unittest.TestCase):
 		self.client_secret = client.get("client_secret")
 		self.form_header = {"content-type": "application/x-www-form-urlencoded"}
 		self.scope = "all openid"
-		self.redirect_uri = "http://localhost"
+		self.redirect_uri = "http://127.0.0.1"
 
 		# Set Frappe server URL reqired for id_token generation
 		try:

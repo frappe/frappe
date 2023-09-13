@@ -538,7 +538,7 @@ def _mariadb():
 		f"-p{frappe.conf.db_password}",
 		frappe.conf.db_name,
 		"-h",
-		frappe.conf.db_host or "localhost",
+		frappe.conf.db_host or "127.0.0.1",
 		"--pager=less -SFX",
 		"--safe-updates",
 		"-A",

@@ -31,7 +31,7 @@ class BackupGenerator:
 	"""
 	This class contains methods to perform On Demand Backup
 
-	To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
+	To initialize, specify (db_name, user, password, db_file_name=None, db_host="127.0.0.1")
 	If specifying db_file_name, also append ".sql.gz"
 	"""
 
@@ -44,7 +44,7 @@ class BackupGenerator:
 		backup_path_db=None,
 		backup_path_files=None,
 		backup_path_private_files=None,
-		db_host="localhost",
+		db_host="127.0.0.1",
 		db_port=None,
 		db_type="mariadb",
 		backup_path_conf=None,
@@ -742,7 +742,7 @@ if __name__ == "__main__":
 			sys.argv[2],
 			sys.argv[3],
 			sys.argv[4],
-			sys.argv[5] or "localhost",
+			sys.argv[5] or "127.0.0.1",
 			db_type=db_type,
 			db_port=db_port,
 		)
@@ -753,7 +753,7 @@ if __name__ == "__main__":
 			sys.argv[2],
 			sys.argv[3],
 			sys.argv[4],
-			sys.argv[5] or "localhost",
+			sys.argv[5] or "127.0.0.1",
 			db_type=db_type,
 			db_port=db_port,
 		)
@@ -764,7 +764,7 @@ if __name__ == "__main__":
 			sys.argv[2],
 			sys.argv[3],
 			sys.argv[4],
-			sys.argv[5] or "localhost",
+			sys.argv[5] or "127.0.0.1",
 			db_type=db_type,
 			db_port=db_port,
 		)
@@ -775,7 +775,7 @@ if __name__ == "__main__":
 			sys.argv[2],
 			sys.argv[3],
 			sys.argv[4],
-			sys.argv[5] or "localhost",
+			sys.argv[5] or "127.0.0.1",
 			db_type=db_type,
 			db_port=db_port,
 		)

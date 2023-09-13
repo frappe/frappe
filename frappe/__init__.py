@@ -371,7 +371,7 @@ def cache() -> "RedisWrapper":
 	if not redis_server:
 		from frappe.utils.redis_wrapper import RedisWrapper
 
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
+		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://127.0.0.1:11311")
 	return redis_server
 
 

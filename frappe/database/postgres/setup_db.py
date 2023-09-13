@@ -54,7 +54,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	_command = (
 		f"psql {frappe.conf.db_name} "
-		f"-h {frappe.conf.db_host or 'localhost'} -p {str(frappe.conf.db_port or '5432')} "
+		f"-h {frappe.conf.db_host or '127.0.0.1'} -p {str(frappe.conf.db_port or '5432')} "
 		f"-U {frappe.conf.db_name}"
 	)
 
