@@ -1,4 +1,4 @@
-frappe.listview_settings["VCS Document Patch"] = {
+frappe.listview_settings["Proposed Document"] = {
 	add_fields: ["is_standard"],
 	refresh: function (listview) {},
 	button: {

@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestVCSDocumentPatch(FrappeTestCase):
+class TestProposedDocument(FrappeTestCase):
 	pass

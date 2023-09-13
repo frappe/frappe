@@ -1,7 +1,7 @@
 // Copyright (c) 2023, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("VCS Document Patch", {
+// frappe.ui.form.on("Proposed Document", {
 // 	refresh(frm) {
 
 // 	},

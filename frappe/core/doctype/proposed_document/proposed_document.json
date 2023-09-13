@@ -60,10 +60,9 @@
  "modified": "2023-09-12 16:24:44.500597",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "VCS Document Patch",
+ "name": "Proposed Document",
  "owner": "Administrator",
- "permissions": [
- ],
+ "permissions": [],
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
