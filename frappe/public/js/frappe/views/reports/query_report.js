@@ -933,10 +933,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_datatable() {
 		let data = this.data;
-		console.log(this.data);
 		let columns = this.columns.filter((col) => !col.hidden);
-		// columns = this.
-		// debugger
 
 		if (this.raw_data.add_total_row && !this.report_settings.tree) {
 			data = data.slice();
@@ -1683,8 +1680,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							const insert_after_index = this.columns.findIndex(
 								(column) => column.label === values.insert_after
 							);
+
 							custom_columns.push({
-								fieldname: df.fieldname + "-" + frappe.scrub(values.doctype),
+								fieldname: this.columns
+									.map((column) => column.fieldname)
+									.includes(df.fieldname)
+									? df.fieldname + "-" + frappe.scrub(values.doctype)
+									: df.fieldname,
 								fieldtype: df.fieldtype,
 								label: df.label,
 								insert_after_index: insert_after_index,
@@ -1706,10 +1708,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								},
 								callback: (r) => {
 									const custom_data = r.message;
-									console.log(r.message);
 									const link_field =
 										this.doctype_field_map[values.doctype].fieldname;
-									console.log(link_field, values.field);
 									this.add_custom_column(
 										custom_columns,
 										custom_data,
@@ -1802,15 +1802,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		new_column_data,
 		insert_after_index
 	) {
-		console.log(custom_column);
 		const column = this.prepare_columns(custom_column);
 		const column_field = new_column_data.field;
 
 		this.columns.splice(insert_after_index + 1, 0, column[0]);
+
 		this.data.forEach((row) => {
-			console.log(row);
-			row[column_field + "-" + frappe.scrub(new_column_data.doctype)] =
-				custom_data[row[link_field]];
+			if (column[0].fieldname.includes("-")) {
+				row[column_field + "-" + frappe.scrub(new_column_data.doctype)] =
+					custom_data[row[link_field]];
+			} else {
+				row[column_field] = custom_data[row[link_field]];
+			}
 		});
 
 		this.render_datatable();
