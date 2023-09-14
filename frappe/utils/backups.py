@@ -626,7 +626,8 @@ def get_backup_path():
 @frappe.whitelist()
 def get_backup_encryption_key():
 	frappe.only_for("System Manager")
-	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	backup_key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY) or get_or_generate_backup_encryption_key()
+	return backup_key
 
 
 def get_or_generate_backup_encryption_key():
