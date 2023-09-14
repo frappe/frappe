@@ -13,14 +13,11 @@ from frappe.utils.telemetry import capture_doc
 
 
 @frappe.whitelist()
-def savedocs(doc, action, from_client=False):
+def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
 	capture_doc(doc, action)
 	set_local_name(doc)
-
-	if from_client:
-		doc.__from_client = True
 
 	# action
 	doc.docstatus = {
