@@ -91,8 +91,8 @@ def generate_report_result(
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
 	columns = [get_column_as_dict(col) for col in (columns or [])]
 	report_column_names = [col["fieldname"] for col in columns]
-
 	# convert to list of dicts
+
 	result = normalize_result(result, columns)
 
 	if report.custom_columns:
@@ -108,6 +108,13 @@ def generate_report_result(
 	report_custom_columns = [
 		column for column in columns if column["fieldname"] not in report_column_names
 	]
+	# for column in report_custom_columns:
+	# 	column["fieldname"] = column["fieldname"].split("-")[0]
+
+	# for column in columns:
+	# 	if (len(column.get("fieldname").split("-")) > 1):
+	# 		print(column.get("fieldname"))
+	# 		column["fieldname"] = column["fieldname"].split("-")[0]
 
 	if report_custom_columns:
 		result = add_custom_column_data(report_custom_columns, result)
@@ -118,6 +125,7 @@ def generate_report_result(
 	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
+	# breakpoint()
 	return {
 		"result": result,
 		"columns": columns,
@@ -248,6 +256,9 @@ def run(
 
 
 def add_custom_column_data(custom_columns, result):
+	for column in custom_columns:
+		column["fieldname"] = column["fieldname"].split("-")[0]
+
 	custom_column_data = get_data_for_custom_report(custom_columns, result)
 
 	for column in custom_columns:
@@ -265,6 +276,9 @@ def add_custom_column_data(custom_columns, result):
 				# possible if the row is empty
 				if not row_reference:
 					continue
+
+				if custom_column_data.get(key).get(row_reference) is None:
+					column["fieldname"] = column.get("fieldname") + "-" + frappe.unscrub(key[0])
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
 
 	return result
@@ -525,7 +539,6 @@ def get_data_for_custom_report(columns, result):
 			names = list(set(names))
 
 			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname, names)
-
 	return doc_field_value_map
 
 
