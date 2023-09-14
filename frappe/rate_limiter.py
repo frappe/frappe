@@ -21,7 +21,7 @@ def apply():
 
 def update():
 	if hasattr(frappe.local, "rate_limiter"):
-		frappe.request.after_response(frappe.local.rate_limiter.update)
+		frappe.local.rate_limiter.update()
 
 
 def respond():
@@ -56,15 +56,15 @@ class RateLimiter:
 		raise frappe.TooManyRequestsError
 
 	def update(self):
-		self.end = datetime.utcnow()
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
-
 		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
 
 	def headers(self):
+		self.end = datetime.utcnow()
+		self.duration = int((self.end - self.start).total_seconds() * 1000000)
+
 		headers = {
 			"X-RateLimit-Reset": self.reset,
 			"X-RateLimit-Limit": self.limit,

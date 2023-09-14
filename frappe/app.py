@@ -8,7 +8,6 @@ import os
 import re
 
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.local import LocalManager
 from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 from werkzeug.wrappers import Request, Response
@@ -28,8 +27,6 @@ from frappe.utils import CallbackManager, cint, get_site_name, sanitize_html
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
-
-local_manager = LocalManager(frappe.local)
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
@@ -73,7 +70,13 @@ def after_response_wrapper(app):
 	def application(environ, start_response):
 		return ClosingIterator(
 			app(environ, start_response),
-			[frappe.request.after_response.run, local_manager.cleanup],
+			(
+				frappe.rate_limiter.update,
+				frappe.monitor.stop,
+				frappe.recorder.dump,
+				frappe.request.after_response.run,
+				frappe.destroy,
+			),
 		)
 
 	return application
@@ -126,7 +129,7 @@ def application(request: Request):
 		# this function *must* always return a response, hence any exception thrown outside of
 		# try..catch block like this finally block needs to be handled appropriately.
 
-		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
+		if rollback and request.method in UNSAFE_HTTP_METHODS and frappe.db:
 			frappe.db.rollback()
 
 		try:
@@ -137,7 +140,6 @@ def application(request: Request):
 
 		log_request(request, response)
 		process_response(response)
-		frappe.request.after_response(lambda: frappe.db and frappe.db.close())
 
 	return response
 
