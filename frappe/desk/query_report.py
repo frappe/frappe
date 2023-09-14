@@ -108,13 +108,6 @@ def generate_report_result(
 	report_custom_columns = [
 		column for column in columns if column["fieldname"] not in report_column_names
 	]
-	# for column in report_custom_columns:
-	# 	column["fieldname"] = column["fieldname"].split("-")[0]
-
-	# for column in columns:
-	# 	if (len(column.get("fieldname").split("-")) > 1):
-	# 		print(column.get("fieldname"))
-	# 		column["fieldname"] = column["fieldname"].split("-")[0]
 
 	if report_custom_columns:
 		result = add_custom_column_data(report_custom_columns, result)
@@ -125,7 +118,6 @@ def generate_report_result(
 	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns, is_tree=is_tree, parent_field=parent_field)
 
-	# breakpoint()
 	return {
 		"result": result,
 		"columns": columns,
@@ -256,7 +248,11 @@ def run(
 
 
 def add_custom_column_data(custom_columns, result):
+	doctype_name_from_custom_field = []
 	for column in custom_columns:
+		doctype_name_from_custom_field.append(frappe.unscrub(column["fieldname"].split("-")[1])) if len(
+			column["fieldname"].split("-")
+		) > 1 else None
 		column["fieldname"] = column["fieldname"].split("-")[0]
 
 	custom_column_data = get_data_for_custom_report(custom_columns, result)
@@ -276,8 +272,10 @@ def add_custom_column_data(custom_columns, result):
 				# possible if the row is empty
 				if not row_reference:
 					continue
-
-				if custom_column_data.get(key).get(row_reference) is None:
+				if (
+					custom_column_data.get(key).get(row_reference) is None
+					and key[0] in doctype_name_from_custom_field
+				):
 					column["fieldname"] = column.get("fieldname") + "-" + frappe.unscrub(key[0])
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
 
