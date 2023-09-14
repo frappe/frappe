@@ -177,4 +177,4 @@ class WebsiteGenerator(Document):
 			frappe.enqueue(update_index_for_path, path=self.route)
 		elif self.route:
 			# If the website is not published
-			remove_document_from_index(self.route)
+			frappe.enqueue(remove_document_from_index, path=self.route)
