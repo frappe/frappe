@@ -56,15 +56,14 @@ class RateLimiter:
 		raise frappe.TooManyRequestsError
 
 	def update(self):
-		self.end = datetime.utcnow()
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
-
+		self.record_request_end()
 		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
 
 	def headers(self):
+		self.record_request_end()
 		headers = {
 			"X-RateLimit-Reset": self.reset,
 			"X-RateLimit-Limit": self.limit,
@@ -76,6 +75,12 @@ class RateLimiter:
 			headers["X-RateLimit-Used"] = self.duration
 
 		return headers
+
+	def record_request_end(self):
+		if self.end is not None:
+			return
+		self.end = datetime.utcnow()
+		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
 	def respond(self):
 		if self.rejected:
