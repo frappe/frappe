@@ -22,7 +22,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		if ((action !== "Save" || frm.is_dirty()) && check_mandatory()) {
 			_call({
 				method: "frappe.desk.form.save.savedocs",
-				args: { doc: frm.doc, action: action },
+				args: { doc: frm.doc, action: action, from_client: 1 },
 				callback: function (r) {
 					$(document).trigger("save", [frm.doc]);
 					callback(r);
