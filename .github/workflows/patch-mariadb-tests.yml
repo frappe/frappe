@@ -142,6 +142,7 @@ jobs:
           bench -v setup env
           bench start &>> ~/frappe-bench/bench_start.log &
           bench --site test_site migrate
+          bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
 
       - name: Show bench output
         if: ${{ always() }}

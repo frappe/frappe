@@ -191,7 +191,7 @@ def remove_orphan_reports():
 	print(f"Orphaned Report(s) found: {', '.join(orphan_reports)}")
 	for i, name in enumerate(orphan_reports):
 		frappe.delete_doc("Report", name, force=True, ignore_missing=True)
-		update_progress_bar("Deleting non-existant Reports", i, len(orphan_reports))
+		update_progress_bar("Deleting orpahned Reports", i, len(orphan_reports))
 	frappe.db.commit()
 	print()
 
@@ -217,6 +217,6 @@ def remove_orphan_pages():
 	print(f"Orphaned Page(s) found: {', '.join(orphan_pages)}")
 	for i, name in enumerate(orphan_pages):
 		frappe.delete_doc("Page", name, force=True, ignore_missing=True)
-		update_progress_bar("Deleting non-existant Pages", i, len(orphan_pages))
+		update_progress_bar("Deleting orphaned Pages", i, len(orphan_pages))
 	frappe.db.commit()
 	print()
