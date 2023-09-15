@@ -143,7 +143,7 @@ def remove_orphan_doctypes():
 	"""Find and remove any orphaned doctypes.
 
 	These are doctypes for which code and schema file is
-	delted but entry is present in DocType table.
+	deleted but entry is present in DocType table.
 
 	Note: Deleting the entry doesn't delete any data.
 	So this is supposed to be non-destrictive operation.
@@ -167,56 +167,5 @@ def remove_orphan_doctypes():
 	for i, name in enumerate(orphan_doctypes):
 		frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
 		update_progress_bar("Deleting orphaned DocTypes", i, len(orphan_doctypes))
-	frappe.db.commit()
-	print()
-
-
-def remove_orphan_reports():
-	"""Find and remove any stale reports."""
-
-	reports_names = frappe.get_all(
-		"Report", filters={"is_standard": "Yes"}, fields=["name", "module"]
-	)
-	orphan_reports = []
-	for report in reports_names:
-		path = os.path.join(
-			frappe.get_module_path(report.module), frappe.scrub("report"), frappe.scrub(report.name)
-		)
-		if not os.path.isdir(path):
-			orphan_reports.append(report.name)
-
-	if not orphan_reports:
-		return
-
-	print(f"Orphaned Report(s) found: {', '.join(orphan_reports)}")
-	for i, name in enumerate(orphan_reports):
-		frappe.delete_doc("Report", name, force=True, ignore_missing=True)
-		update_progress_bar("Deleting orpahned Reports", i, len(orphan_reports))
-	frappe.db.commit()
-	print()
-
-
-def remove_orphan_pages():
-	"""Find and remove any stale pagess."""
-
-	pages_names = frappe.get_all(
-		"Page", filters={"standard": "Yes", "system_page": 0}, fields=["name", "module"]
-	)
-
-	orphan_pages = []
-	for page in pages_names:
-		path = os.path.join(
-			frappe.get_module_path(page.module), frappe.scrub("page"), frappe.scrub(page.name)
-		)
-		if not os.path.isdir(path):
-			orphan_pages.append(page.name)
-
-	if not orphan_pages:
-		return
-
-	print(f"Orphaned Page(s) found: {', '.join(orphan_pages)}")
-	for i, name in enumerate(orphan_pages):
-		frappe.delete_doc("Page", name, force=True, ignore_missing=True)
-		update_progress_bar("Deleting orphaned Pages", i, len(orphan_pages))
 	frappe.db.commit()
 	print()
