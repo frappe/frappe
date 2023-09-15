@@ -144,7 +144,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		let docfield = "Workflow Transition";
 		let df = frappe.model.get_new_doc(docfield);
 		df.name = frappe.utils.get_random(8);
-		Object.assign(df, data)
+		Object.assign(df, data);
 		return df;
 	}
 
