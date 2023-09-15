@@ -272,11 +272,8 @@ def add_custom_column_data(custom_columns, result):
 				# possible if the row is empty
 				if not row_reference:
 					continue
-				if (
-					custom_column_data.get(key).get(row_reference) is None
-					and key[0] in doctype_name_from_custom_field
-				):
-					column["fieldname"] = column.get("fieldname") + "-" + frappe.unscrub(key[0])
+				if key[0] in doctype_name_from_custom_field:
+					column["fieldname"] = column.get("id")
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
 
 	return result
