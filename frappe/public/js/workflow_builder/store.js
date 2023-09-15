@@ -53,15 +53,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				}));
 		}
 
-		if (
-			workflow_doc.value.workflow_data &&
-			typeof workflow_doc.value.workflow_data == "string" &&
-			JSON.parse(workflow_doc.value.workflow_data).length
-		) {
-			workflow.value.elements = JSON.parse(workflow_doc.value.workflow_data);
-		} else {
-			workflow.value.elements = get_workflow_elements(workflow_doc.value);
-		}
+		const workflow_data = workflow_doc.value.workflow_data &&
+				typeof workflow_doc.value.workflow_data == "string" &&
+				JSON.parse(workflow_doc.value.workflow_data)
+
+		workflow.value.elements = get_workflow_elements(workflow_doc.value, workflow_data || []);
 
 		setup_undo_redo();
 		setup_breadcrumbs();
@@ -122,12 +118,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			Submitted: 1,
 			Cancelled: 2,
 		};
-		let docfield = "Workflow Document State";
-		let df = frappe.model.get_new_doc(docfield);
-		df.name = frappe.utils.get_random(8);
-		Object.assign(df, data);
-		df.doc_status = doc_status_map[data.doc_status];
-		return df;
+		data.doc_status = doc_status_map[data.doc_status];
+		return data;
 	}
 
 	function get_updated_states() {
@@ -141,11 +133,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	function get_transition_df(data) {
-		let docfield = "Workflow Transition";
-		let df = frappe.model.get_new_doc(docfield);
-		df.name = frappe.utils.get_random(8);
-		Object.assign(df, data);
-		return df;
+		return data
 	}
 
 	function get_updated_transitions() {

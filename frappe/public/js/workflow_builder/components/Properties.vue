@@ -17,12 +17,7 @@ let properties = computed(() => {
 	});
 	if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = "Transition Properties";
-		return store.transitionfields.filter(df => {
-			if (in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname)) {
-				return true;
-			}
-			return false;
-		});
+		return store.transitionfields.filter(df => in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname));
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
 		let allow_edit = store.statefields.find(df => df.fieldname == "allow_edit");
@@ -41,12 +36,7 @@ let properties = computed(() => {
 		});
 	}
 	title.value = "Workflow Details";
-	return store.workflowfields.filter(df => {
-		if (in_list(["states", "transitions", "workflow_data", "workflow_name"], df.fieldname)) {
-			return false;
-		}
-		return true;
-	});
+	return store.workflowfields.filter(df => !in_list(["states", "transitions", "workflow_data", "workflow_name"], df.fieldname));
 });
 </script>
 
