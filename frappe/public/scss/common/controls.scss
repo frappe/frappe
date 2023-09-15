@@ -149,8 +149,18 @@ select.form-control {
 		border-radius: var(--border-radius);
 		font-size: var(--text-sm);
 		word-wrap: break-word;
+		position: relative;
 		p:last-child {
 			margin-bottom: 0;
+		}
+		.edit-btn {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: var(--padding-sm);
 		}
 	}
 	.action-btn {
