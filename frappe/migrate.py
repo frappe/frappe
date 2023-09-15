@@ -143,8 +143,6 @@ class SiteMigration:
 		sync_languages()
 		flush_deferred_inserts()
 		frappe.model.sync.remove_orphan_doctypes()
-		frappe.model.sync.remove_orphan_reports()
-		frappe.model.sync.remove_orphan_pages()
 
 		frappe.get_single("Portal Settings").sync_menu()
 		frappe.get_single("Installed Applications").update_versions()

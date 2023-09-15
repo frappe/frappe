@@ -227,8 +227,13 @@ execute:frappe.delete_doc("Page", "translation-tool", force=1)
 frappe.patches.v15_0.drop_modified_index
 frappe.patches.v14_0.update_attachment_comment
 frappe.patches.v15_0.set_contact_full_name
+execute:frappe.delete_doc("Page", "activity", force=1)
 frappe.patches.v14_0.disable_email_accounts_with_oauth
+<<<<<<< HEAD
 >>>>>>> 662b07170c (test: orpahned doctype check after patch test)
+=======
+execute:frappe.delete_doc("Page", "translation-tool", force=1)
+>>>>>>> c189b7e622 (revert: syncing of report and pages)
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
 frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
