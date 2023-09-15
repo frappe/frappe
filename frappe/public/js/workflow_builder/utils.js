@@ -30,7 +30,8 @@ export function get_workflow_elements(workflow, workflow_data) {
 	}
 
 	function action_obj(id, data, position) {
-		let action = workflow_data.filter(el => el.type == 'action' && el.data.action == data.action && el.data.from == data.from && el.data.to == data.to)
+		let action = workflow_data.filter(el => el.type == 'action' &&
+			el.data.action == data.action && el.data.from == data.from && el.data.to == data.to)
 
 		if (action.length) {
 			action[0].data = data
@@ -105,8 +106,10 @@ export function get_workflow_elements(workflow, workflow_data) {
 			([action, position] = actions[transition.action]);
 		}
 
-		elements.push(transition_obj(source[0] + "-" + action, source[0], action, {state: transition.state, source: "state", target: "action", action: transition.action}));
-		elements.push(transition_obj(action + "-" + target[0], action, target[0], {action: transition.action, source: "action", target:"state", state: transition.next_state}));
+		elements.push(transition_obj(source[0] + "-" + action, source[0], action,
+			{state: transition.state, source: "state", target: "action", action: transition.action}));
+		elements.push(transition_obj(action + "-" + target[0], action, target[0],
+			{action: transition.action, source: "action", target:"state", state: transition.next_state}));
 	});
 
 	return elements;
