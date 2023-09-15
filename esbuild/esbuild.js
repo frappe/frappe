@@ -268,7 +268,6 @@ function get_build_options(files, outdir, plugins) {
 			__VUE_PROD_DEVTOOLS__: JSON.stringify(false),
 		},
 		plugins: plugins,
-		watch: get_watch_config(),
 	};
 }
 
