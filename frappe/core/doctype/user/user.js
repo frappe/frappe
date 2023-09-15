@@ -301,7 +301,7 @@ frappe.ui.form.on("User", {
 				email: frm.doc.email,
 			},
 			callback: function (r) {
-				if (!Array.isArray(r.message)) {
+				if (!Array.isArray(r.message) || !r.message.length) {
 					frappe.route_options = {
 						email_id: frm.doc.email,
 						awaiting_password: 1,
