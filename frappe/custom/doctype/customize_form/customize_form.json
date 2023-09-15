@@ -347,9 +347,10 @@
   },
   {
    "default": "0",
+   "description": "Enabling this will submit documents in background",
    "fieldname": "queue_in_background",
    "fieldtype": "Check",
-   "label": "Queue in Background"
+   "label": "Queue in Background (BETA)"
   },
   {
    "fieldname": "default_view",
@@ -392,7 +393,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-07-16 13:25:46.201184",
+ "modified": "2023-08-29 12:31:55.808848",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

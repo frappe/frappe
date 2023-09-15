@@ -49,10 +49,6 @@ class EmailSizeExceededError(frappe.ValidationError):
 	pass
 
 
-class EmailTimeoutError(frappe.ValidationError):
-	pass
-
-
 class LoginLimitExceeded(frappe.ValidationError):
 	pass
 
@@ -75,11 +71,11 @@ class EmailServer:
 		"""Connect to IMAP"""
 		try:
 			if cint(self.settings.use_ssl):
-				self.imap = Timed_IMAP4_SSL(
+				self.imap = imaplib.IMAP4_SSL(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 			else:
-				self.imap = Timed_IMAP4(
+				self.imap = imaplib.IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
@@ -109,11 +105,11 @@ class EmailServer:
 		# this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
-				self.pop = Timed_POP3_SSL(
+				self.pop = poplib.POP3_SSL(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 			else:
-				self.pop = Timed_POP3(
+				self.pop = poplib.POP3(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
@@ -170,7 +166,7 @@ class EmailServer:
 		for i, uid in enumerate(email_list[:100]):
 			try:
 				self.retrieve_message(uid, i + 1)
-			except (EmailTimeoutError, LoginLimitExceeded):
+			except (_socket.timeout, LoginLimitExceeded):
 				# get whatever messages were retrieved
 				break
 
@@ -263,7 +259,7 @@ class EmailServer:
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b"\n".join(msg[1]))
-		except EmailTimeoutError:
+		except _socket.timeout:
 			# propagate this error to break the loop
 			raise
 
@@ -900,43 +896,3 @@ class InboundMail(Email):
 			"has_attachment": 1 if self.attachments else 0,
 			"seen": self.seen_status or 0,
 		}
-
-
-class TimerMixin:
-	def __init__(self, *args, **kwargs):
-		self.timeout = kwargs.pop("timeout", 0.0)
-		self.elapsed_time = 0.0
-		self._super.__init__(self, *args, **kwargs)
-		if self.timeout:
-			# set per operation timeout to one-fifth of total pop timeout
-			self.sock.settimeout(self.timeout / 5.0)
-
-	def _getline(self, *args, **kwargs):
-		start_time = time.monotonic()
-		ret = self._super._getline(self, *args, **kwargs)
-
-		self.elapsed_time += time.monotonic() - start_time
-		if self.timeout and self.elapsed_time > self.timeout:
-			raise EmailTimeoutError
-
-		return ret
-
-	def quit(self, *args, **kwargs):
-		self.elapsed_time = 0.0
-		return self._super.quit(self, *args, **kwargs)
-
-
-class Timed_POP3(TimerMixin, poplib.POP3):
-	_super = poplib.POP3
-
-
-class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
-	_super = poplib.POP3_SSL
-
-
-class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
-	_super = imaplib.IMAP4
-
-
-class Timed_IMAP4_SSL(TimerMixin, imaplib.IMAP4_SSL):
-	_super = imaplib.IMAP4_SSL

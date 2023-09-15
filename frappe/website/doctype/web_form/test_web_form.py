@@ -64,8 +64,14 @@ class TestWebForm(FrappeTestCase):
 
 	def test_webform_html_meta_is_added(self):
 		set_request(method="GET", path="manage-events/new")
-		content = get_response_content("manage-events/new")
+		content = self.normalize_html(get_response_content("manage-events/new"))
 
-		self.assertIn('<meta name="name" content="Test Meta Form Title">', content)
-		self.assertIn('<meta property="og:description" content="Test Meta Form Description">', content)
-		self.assertIn('<meta property="og:image" content="https://frappe.io/files/frappe.png">', content)
+		self.assertIn(self.normalize_html('<meta name="name" content="Test Meta Form Title">'), content)
+		self.assertIn(
+			self.normalize_html('<meta property="og:description" content="Test Meta Form Description">'),
+			content,
+		)
+		self.assertIn(
+			self.normalize_html('<meta property="og:image" content="https://frappe.io/files/frappe.png">'),
+			content,
+		)
