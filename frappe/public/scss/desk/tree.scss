@@ -58,6 +58,19 @@
 	}
 }
 
+.tree-link .file-doc-link {
+	opacity: 0;
+}
+
+.tree-link:hover .file-doc-link {
+	opacity: 0.4;
+}
+
+.tree-link .file-doc-link:hover {
+	transform: scale(1.1);
+	opacity: 0.5;
+}
+
 .tree-hover {
 	background-color: var(--highlight-color);
 	min-height: 25px;
