@@ -171,14 +171,14 @@ def get_script(report_name):
 		"html_format": html_format,
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
 		"filters": report.filters,
-		"custom_report_name": report.name if report.is_custom_report else None,
+		"custom_report_name": report.name if report.get("is_custom_report") else None,
 	}
 
 
 def get_reference_report(report):
-	reference_report = frappe.get_doc("Report", report.reference_report)
 	if report.report_type != "Custom Report":
 		return report
+	reference_report = frappe.get_doc("Report", report.reference_report)
 	return get_reference_report(reference_report)
 
 
