@@ -15,16 +15,20 @@ from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import is_job_enqueued
 
 
+@timeout(seconds=20)
+def wait_for_completion(job: Job):
+	while True:
+		if not (job.is_queued or job.is_started):
+			break
+		time.sleep(0.2)
+
+
 class TestRQJob(FrappeTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
-	@timeout(seconds=20)
 	def check_status(self, job: Job, status, wait=True):
-		while wait:
-			if not (job.is_queued or job.is_started):
-				break
-			time.sleep(0.2)
-
+		if wait:
+			wait_for_completion(job)
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
 
 	def test_serialization(self):

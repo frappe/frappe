@@ -16,6 +16,7 @@ from frappe.core.doctype.doctype.doctype import (
 	WrongOptionsDoctypeLinkError,
 	validate_links_table_fieldnames,
 )
+from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
@@ -689,6 +690,21 @@ class TestDocType(FrappeTestCase):
 		# ensure meta - property setter
 		self.assertEqual(frappe.get_meta(doctype).get_field(field).default, "DELETETHIS")
 		frappe.delete_doc("DocType", doctype)
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_delete_orphaned_doctypes(self):
+		doctype = new_doctype(custom=0).insert()
+		frappe.db.commit()
+
+		delete_controllers(doctype.name, doctype.module)
+		job = frappe.enqueue(remove_orphan_doctypes)
+		wait_for_completion(job)
+
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("DocType", doctype.name))
 
 	def test_not_in_list_view_for_not_allowed_mandatory_field(self):
 		doctype = new_doctype(
