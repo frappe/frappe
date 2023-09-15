@@ -68,7 +68,7 @@ class PortalSettings(Document):
 		frappe.clear_cache()
 
 	def remove_deleted_doctype_items(self):
-		existing_doctypes = frappe.get_list("DocType", pluck="name")
-		for menu_item in self.get("menu"):
+		existing_doctypes = set(frappe.get_list("DocType", pluck="name"))
+		for menu_item in list(self.get("menu")):
 			if menu_item.reference_doctype not in existing_doctypes:
 				self.remove(menu_item)
