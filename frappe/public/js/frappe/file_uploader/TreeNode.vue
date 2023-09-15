@@ -19,6 +19,7 @@
 				target="_blank"
 				class="file-doc-link ml-2"
 				v-html="frappe.utils.icon('external-link', 'sm')"
+				@click.stop
 			/>
 		</span>
 		<div v-if="node.file_url && frappe.utils.is_image_file(node.file_url)">
