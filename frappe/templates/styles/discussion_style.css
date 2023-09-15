@@ -49,7 +49,7 @@
 
 .reply-card {
 	padding: 1.25rem 0;
-	border-bottom: 1px solid var(--gray-200);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .reply-card:last-of-type {

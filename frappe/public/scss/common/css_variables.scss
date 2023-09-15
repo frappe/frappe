@@ -78,6 +78,8 @@ $disabled-input-height: 22px;
 	// Layout Colors
 	--bg-color: white;
 	--fg-color: white;
+	--subtle-accent: var(--gray-50);
+	--subtle-fg: var(--gray-100);
 	--navbar-bg: white;
 	--fg-hover-color: var(--gray-100);
 	--card-bg: var(--fg-color);
@@ -93,6 +95,7 @@ $disabled-input-height: 22px;
 	--awesomplete-hover-bg: var(--control-bg);
 
 	// Button Colors
+	--btn-primary: var(--gray-900);
 	--btn-default-bg: var(--gray-100);
 	--btn-default-hover-bg: var(--gray-300);
 
@@ -111,7 +114,7 @@ $disabled-input-height: 22px;
 
 	--btn-group-border-color: var(--gray-300);
 
-	--field-placeholder-color: var(--gray-50);
+	--placeholder-color: var(--gray-50);
 
 	--highlight-shadow: 1px 1px 10px var(--blue-50), 0px 0px 4px var(--blue-600);
 
@@ -130,8 +133,14 @@ $disabled-input-height: 22px;
 	// Checkbox
 	--checkbox-right-margin: var(--margin-xs);
 	--checkbox-size: 14px;
+	--checkbox-color: var(--neutral-black);
+
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
 	--checkbox-gradient: linear-gradient(180deg, var(--primary) -124.51%, var(--primary) 100%);
+
+
+	// switch
+	--switch-bg: var(--gray-300);
 
 	// "diff" colors
 	--diff-added: var(--green-100);

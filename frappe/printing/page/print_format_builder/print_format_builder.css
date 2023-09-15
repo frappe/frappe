@@ -71,7 +71,9 @@
 }
 
 .print-format-builder-section-head .section-label {
-	@include get_textstyle("lg", "medium");
+	font-size: var(--text-lg);
+	font-weight: var(--weight-medium);
+	letter-spacing: 0.015em;
 	color: var(--text-color);
 	vertical-align: middle;
 	margin-left: var(--margin-sm);

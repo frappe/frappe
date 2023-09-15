@@ -7,6 +7,7 @@
 	min-height: 50px;
 	@include get_textstyle("base", "regular");
 	z-index: 1019;
+	border: 1px solid var(--border-color);
 }
 
 .filter-area {

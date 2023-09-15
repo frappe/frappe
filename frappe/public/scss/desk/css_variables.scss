@@ -38,6 +38,8 @@
 	--timeline-item-bottom-margin: var(--margin-sm);
 	--timeline-content-max-width: 700px;
 	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size) / 2);
+	--timeline-badge-color: var(--gray-900);
+	--timeline-badge-bg: var(--gray-100);
 
 	// mentions
 	--user-mention-bg-color: var(--fg-color);

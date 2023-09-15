@@ -153,7 +153,9 @@ class FormTimeline extends BaseTimeline {
 		this.timeline_items.push(this.get_modified_message());
 		this.timeline_items.push(...this.get_communication_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
+		this.timeline_wrapper.addClass("only_communication_timeline");
 		if (!this.only_communication) {
+			this.timeline_wrapper.removeClass("only_communication_timeline");
 			this.timeline_items.push(...this.get_view_timeline_contents());
 			this.timeline_items.push(...this.get_energy_point_timeline_contents());
 			this.timeline_items.push(...this.get_version_timeline_contents());
@@ -166,6 +168,8 @@ class FormTimeline extends BaseTimeline {
 			this.timeline_items.push(...this.get_info_timeline_contents());
 			this.timeline_items.push(...this.get_milestone_timeline_contents());
 		}
+		
+		
 	}
 
 	get_view_timeline_contents() {

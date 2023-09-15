@@ -210,7 +210,7 @@ body {
 	// Overrides for each widgets
 	&.dashboard-widget-box {
 		min-height: 240px;
-		border: 1px solid var(--gray-300);
+		border: 1px solid var(--border-color);
 
 		.widget-head {
 			padding: 4px 8px;
@@ -348,16 +348,17 @@ body {
 	&.onboarding-widget-box {
 		margin-bottom: var(--margin-2xl);
 		padding: var(--padding-lg) !important;
-		background-color: var(--neutral-white);
-		border: 1px solid var(--gray-200);
+		background-color: var(--bg-color);
+		border: 1px solid var(--border-color);
 
 		&.edit-mode:hover {
 			background-color: var(--bg-color);
 
 			.onboarding-step {
 				&.active,
-				&:hover {
-					background-color: var(--bg-color);
+				&:hover,
+				&.complete {
+					background-color: var(--fg-hover-color);
 
 					.step-index.step-pending {
 						background-color: var(--fg-color);
@@ -416,7 +417,7 @@ body {
 				}
 
 				.onboarding-step-body {
-					color: var(--gray-700);
+					color: var(--text-muted);
 
 					p {
 						@include get_textstyle("base", "regular");
@@ -458,12 +459,7 @@ body {
 
 				&.active,
 				&:hover {
-					background-color: var(--gray-100);
-
-					.step-index {
-						background-color: var(--gray-100);
-					}
-
+					background-color: var(--subtle-fg);
 				}
 				&.active .step-skip {
 					visibility: visible;
@@ -503,7 +499,7 @@ body {
 
 				&.skipped {
 					color: var(--text-light);
-					background-color: var(--gray-50);
+					background-color: var(--bg-color);
 					.step-index.step-skipped {
 						display: flex;
 					}
@@ -579,7 +575,7 @@ body {
 		}
 
 		padding: 10px;
-    	border: 1px solid var(--gray-200);
+    	border: 1px solid var(--border-color);
 
 		.link-item {
 			display: flex;
@@ -641,7 +637,7 @@ body {
 
 		.widget-head .widget-label .widget-title {
 			@include get_textstyle("lg", "semibold");
-			color: var(--gray-800) !important;
+			color: var(--text-color) !important;
 		}
 	}
 
@@ -649,7 +645,7 @@ body {
 		cursor: pointer;
 		min-height: 84px;
 		padding: var(--number-card-padding);
-		border: 1px solid var(--gray-200);
+		border: 1px solid var(--border-color);
 
 		.widget-head {
 			.widget-title {
@@ -1141,7 +1137,7 @@ body {
 
 	// widgets
 	.widget.number-widget-box {
-		border: 1px solid var(--gray-200);
+		border: 1px solid var(--border-color);
 	}
 
 

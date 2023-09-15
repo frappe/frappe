@@ -11,7 +11,7 @@
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
 	color: var(--gray-600);
-	background-color: var(--gray-100);
+	background-color: var(--subtle-fg);
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
@@ -85,7 +85,7 @@
 
 .grid-body .data-row {
 	@include get_textstyle("sm", "regular");
-	color: var(--gray-700)
+	color: var(--text-muted)
 }
 
 .grid-empty,
@@ -199,7 +199,8 @@
 	}
 
 	.editable-row {
-		--control-bg: var(--neutral-white);
+		// TODO: Dark and Light Mode
+		--control-bg: var(--neutral);
 		--input-disabled-bg: var(--gray-50);
 		.grid-static-col {
 			padding: 0px !important;
@@ -229,7 +230,7 @@
 
 		.link-btn {
 			top: 5px;
-			background-color: var(--neutral-white);
+			background-color: var(--neutral);
 		}
 
 		.form-control:focus {

@@ -17,7 +17,7 @@ html, body {
 
 	.label-area {
 		@include get_textstyle("sm", "medium");
-		color: var(--gray-800);
+		color: var(--text-color);
 	}
 
 	.input-area, .disp-area {

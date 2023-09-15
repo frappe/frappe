@@ -11,9 +11,9 @@ $threshold: 34;
 	--zero-px: 0px;
 	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
 	left: calc(-1 * (#{$badge-size} / 2));
-	background-color: var(--gray-100);
+	background-color: var(--timeline-badge-bg);
 	@extend .center-content;
-	--icon-stroke: var(--gray-900);
+	--icon-stroke: var(--timeline-badge-color);
 }
 
 .new-timeline {
@@ -23,14 +23,16 @@ $threshold: 34;
 	@include media-breakpoint-down(xs) {
 		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
 	}
-
 	&:before {
 		content: ' ';
-		top: 40px; // TODO: get top and bottom programmatically
+		top: 90px; // TODO: get top and bottom programmatically
 		left: calc(var(--timeline-item-icon-size) / 2);
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);
+	}
+	&.only_communication_timeline::before {
+		top: 130px;
 	}
 	.timeline-dot {
 		@include timeline-badge(16px);
@@ -95,9 +97,9 @@ $threshold: 34;
 			margin-left: var(--margin-md);
 			&.frappe-card {
 				color: var(--gray-900);
-				background-color: var(--neutral-white);
+				background-color: var(--bg-color);
 				box-shadow: none;
-				border: 1px solid var(--gray-300);
+				border: 1px solid var(--border-color);
 				margin: calc(var(--timeline-item-bottom-margin) + var(--padding-md)) 0;
 				margin-left: var(--margin-lg);
 

@@ -2,6 +2,7 @@
 	height: $navbar-height;
 	background: var(--navbar-bg);
 	box-shadow: var(--shadow-sm);
+	border-bottom: 1px solid var(--border-color);
 	padding: 0;
 	.navbar-brand {
 		margin-right: 0;
@@ -10,7 +11,7 @@
 		.dropdown-item {
 			padding: 6px 8px !important;
 		}
-		
+
 		.nav-link {
 			padding: 0;
 		}
@@ -34,7 +35,7 @@
 
 .navbar-home {
 	img {
-		max-height: 32px;
+		max-height: 28px;
 		width: auto;
 	}
 }

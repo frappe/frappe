@@ -392,6 +392,9 @@ kbd {
 
 .table {
 	color: var(--text-color);
+	th, td {
+		padding: 0.5rem;
+	}
 }
 
 .appreciation {

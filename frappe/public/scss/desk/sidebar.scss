@@ -108,7 +108,7 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-image-section {
 		width: min(100%, 170px);
 		cursor: pointer;
-		border: 1px solid var(--gray-200);
+		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius-lg);
 
 		.sidebar-image {
@@ -383,7 +383,7 @@ body[data-route^="Module"] .main-menu {
 	max-width: 100%;
 	.data-pill {
 		justify-content: space-between;
-		background-color: var(--gray-100);
+		background-color: var(--subtle-fg);
 		box-shadow: none;
 	}
 }

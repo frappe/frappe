@@ -21,6 +21,8 @@ $light-yellow: #FEF4E2;
 :root {
     --neutral-white: #ffffff;
     --neutral-black: #000000;
+    --neutral: var(--neutral-white);
+    --invert-neutral: var(--neutral-black);
 
     --gray-50: #f8f8f8;
     --gray-100: #f3f3f3;
