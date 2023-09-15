@@ -118,9 +118,6 @@ class SiteMigration:
 			skip_failing=self.skip_failing, patch_type=PatchType.pre_model_sync
 		)
 		frappe.model.sync.sync_all()
-		frappe.model.sync.remove_stale_doctypes()
-		frappe.model.sync.remove_stale_reports()
-		frappe.model.sync.remove_stale_pages()
 		frappe.modules.patch_handler.run_all(
 			skip_failing=self.skip_failing, patch_type=PatchType.post_model_sync
 		)
@@ -145,6 +142,9 @@ class SiteMigration:
 		sync_customizations()
 		sync_languages()
 		flush_deferred_inserts()
+		frappe.model.sync.remove_orphan_doctypes()
+		frappe.model.sync.remove_orphan_reports()
+		frappe.model.sync.remove_orphan_pages()
 
 		frappe.get_single("Portal Settings").sync_menu()
 		frappe.get_single("Installed Applications").update_versions()
