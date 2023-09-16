@@ -7,6 +7,8 @@
 import os
 
 import frappe
+from frappe.cache_manager import clear_controller_cache
+from frappe.model.base_document import get_controller
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.utils import update_progress_bar
@@ -135,3 +137,37 @@ def get_doc_files(files, start_path):
 							files.append(doc_path)
 
 	return files
+
+
+def remove_orphan_doctypes():
+	"""Find and remove any orphaned doctypes.
+
+	These are doctypes for which code and schema file is
+	deleted but entry is present in DocType table.
+
+	Note: Deleting the entry doesn't delete any data.
+	So this is supposed to be non-destrictive operation.
+	"""
+
+	doctype_names = frappe.get_all("DocType", {"custom": 0}, pluck="name")
+	orphan_doctypes = []
+
+	clear_controller_cache()
+
+	for doctype in doctype_names:
+		try:
+			get_controller(doctype=doctype)
+		except ImportError:
+			orphan_doctypes.append(doctype)
+		except Exception:
+			continue
+
+	if not orphan_doctypes:
+		return
+
+	print(f"Orphaned DocType(s) found: {', '.join(orphan_doctypes)}")
+	for i, name in enumerate(orphan_doctypes):
+		frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
+		update_progress_bar("Deleting orphaned DocTypes", i, len(orphan_doctypes))
+	frappe.db.commit()
+	print()

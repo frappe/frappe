@@ -9,7 +9,6 @@ Action,ایکشن,
 Actions,عوامل,
 Active,ایکٹو,
 Add,شامل,
-Add Comment,تبصرہ شامل کریں,
 Add Row,قطار شامل کریں,
 Address,پتہ,
 Address Line 2,پتہ لائن 2,
@@ -144,7 +143,6 @@ Monday,پیر,
 Monthly,ماہانہ,
 More,مزید,
 More Information,مزید معلومات,
-More...,مزید ...,
 Move,اقدام,
 My Account,میرا کھاتہ,
 New Address,نیا ایڈریس,
@@ -157,7 +155,6 @@ No items found.,کوئی چیز نہیں ملی.,
 None,کوئی بھی نہیں,
 Not Permitted,اجازت نہیں,
 Not active,فعال نہیں,
-Notes,نوٹس,
 Number,نمبر,
 Online,آن لائن,
 Operation,آپریشن,
@@ -167,17 +164,12 @@ Owner,مالک,
 Page Missing or Moved,لاپتہ یا منتقل کر دیا صفحہ,
 Parameter,پیرامیٹر,
 Password,پاس ورڈ,
-Payment Gateway,ادائیگی کے گیٹ وے,
-Payment Gateway Name,ادائیگی گیٹ وے کا نام,
-Payments,ادائیگی,
 Period,مدت,
 Pincode,خفیہ نمبر,
-Plan Name,منصوبہ کا نام,
 Please enable pop-ups,پاپ اپ کو چالو براہ کرم,
 Please select Company,کمپنی کا انتخاب کریں,
 Please select {0},براہ مہربانی منتخب کریں {0},
 Please set Email Address,ای میل ایڈریس مقرر مہربانی,
-Portal,پورٹل,
 Portal Settings,پورٹل ترتیبات,
 Preview,کا مشاہدہ کریں,
 Primary,بنیادی,
@@ -222,7 +214,6 @@ Salutation,آداب,
 Sample,نمونہ,
 Saturday,ہفتہ,
 Saved,محفوظ,
-Scan Barcode,بارکوڈ اسکین کریں۔,
 Scheduled,تخسوچت,
 Search,تلاش کریں,
 Secret Key,خفیہ کلید,
@@ -237,7 +228,6 @@ Settings,ترتیبات,
 Shipping,شپنگ,
 Short Name,مختصر نام,
 Slideshow,سلائیڈ شو,
-Some information is missing,کچھ معلومات لاپتہ ہے,
 Source,ماخذ,
 Source Name,ماخذ نام,
 Standard,سٹینڈرڈ,
@@ -247,7 +237,6 @@ State,حالت,
 Stopped,روک,
 Subject,موضوع,
 Submit,جمع کرائیں,
-Successful,کامیاب,
 Summary,خلاصہ,
 Sunday,اتوار,
 System Manager,سسٹم مینیجر,
@@ -260,11 +249,9 @@ The page you are looking for is missing. This could be because it is moved or th
 Timespan,وقت کی مدت,
 To,کرنے کے لئے,
 To Date,تاریخ کرنے کے لئے,
-Tools,، فورم کے اوزار,
 Traceback,واپس تلاش کرنا، پھر جانچنا,
 URL,URL,
 Unsubscribed,سبسکرائب,
-Use Sandbox,سینڈباکس استعمال,
 User,صارف,
 User ID,صارف کی شناخت,
 Users,صارفین,
@@ -569,7 +556,6 @@ Bulk Delete,بلک ڈیلیٹ۔,
 Bulk Edit {0},بلک میں ترمیم {0},
 Bulk Rename,بلک کا نام تبدیل,
 Bulk Update,بلک اپ ڈیٹ,
-Busy,مصروف,
 Button,بٹن,
 Button Help,کے بٹن کی مدد,
 Button Label,بٹن لیبل,
@@ -706,7 +692,6 @@ Compiled Successfully,کامیابی کے ساتھ مرتب کیا۔,
 Complete By,مکمل,
 Complete Registration,مکمل رجسٹریشن,
 Complete Setup,مکمل سیٹ,
-Completed By,نے مکمل کیا,
 Compose Email,ای میل تحریر کریں,
 Condition Detail,حالت کی تفصیل,
 Conditions,شرائط,
@@ -1690,8 +1675,8 @@ Not a valid Workflow Action,ایک درست ورک فلو عمل نہیں ہے,
 Not a valid user,ایک درست صارف,
 Not a zip file,ایک زپ فائل نہیں,
 Not allowed for {0}: {1},{0}: {1} کے لئے اجازت نہیں ہے,
-"You are not allowed to access {0} because it is linked to {1} '{2}' in row {3}, field {4}","{0} کی اجازت نہیں ہے کیونکہ اس کو {1} &#39;{2} {3}، {4} میں لنک ہے",
-You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3},"اس {0} ریکارڈ کی اجازت نہیں ہے کیونکہ اس کو {1} &#39;{2} {3} میں لنک ہے",
+"You are not allowed to access {0} because it is linked to {1} '{2}' in row {3}, field {4}",{0} کی اجازت نہیں ہے کیونکہ اس کو {1} &#39;{2} {3}، {4} میں لنک ہے,
+You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3},اس {0} ریکارڈ کی اجازت نہیں ہے کیونکہ اس کو {1} &#39;{2} {3} میں لنک ہے,
 Not allowed to Import,درآمد کرنے کی اجازت نہیں,
 Not allowed to change {0} after submission,جمع کرانے کے بعد {0} تبدیل کرنے کی اجازت نہیں,
 Not allowed to print cancelled documents,منسوخ کر دیا دستاویزات کو پرنٹ کرنے کے لئے کی اجازت نہیں,
@@ -1819,7 +1804,6 @@ Path to private Key File,نجی کلید فائل کا راستہ۔,
 PayPal Settings,پے پال کی ترتیبات,
 PayPal payment gateway settings,تعمیل پے پال کی ادائیگی کے گیٹ وے ترتیبات,
 Payment Cancelled,ادائیگی منسوخ,
-Payment Failed,ادائیگی ناکام ہو گیا,
 Payment Success,ادائیگی کی کامیابی,
 Pending Approval,زیر التواء منظوری,
 Pending Verification,زیر التواء تصدیق۔,
@@ -3216,7 +3200,6 @@ Click on the link below to approve the request,درخواست کو منظور ک
 Click on the lock icon to toggle public/private,پبلک / پرائیویٹ ٹوگل کرنے کے لئے لاک آئیکون پر کلک کریں۔,
 Click on {0} to generate Refresh Token.,ریفریش ٹوکن تیار کرنے کے لئے {0 on پر کلک کریں۔,
 Close Condition,قریب کی حالت۔,
-Column {0},کالم {0},
 Columns / Fields,کالم / فیلڈز,
 "Configure notifications for mentions, assignments, energy points and more.",تذکروں ، اسائنمنٹس ، انرجی پوائنٹس اور بہت کچھ کے لئے اطلاعات کو تشکیل دیں۔,
 Contact Email,رابطہ ای میل,
@@ -3298,7 +3281,6 @@ Failed to create an Event Consumer or an Event Consumer for the current site is 
 Failure,ناکامی۔,
 Fetching default Global Search documents.,پہلے سے طے شدہ عالمی تلاش کے دستاویزات کی بازیافت۔,
 Fetching posts...,پوسٹس کی بازیافت ہو رہی ہے…,
-Field Mapping,فیلڈ میپنگ,
 Field To Check,چیک کرنے کے لئے فیلڈ,
 File Information,فائل کی معلومات۔,
 Filter By,کی طرف سے فلٹر,
@@ -3453,7 +3435,6 @@ No posts yet,ابھی تک کوئی پوسٹس نہیں ہے۔,
 No records will be exported,کوئی ریکارڈ برآمد نہیں کیا جائے گا۔,
 No results found for {0} in Global Search,عالمی تلاش میں results 0 for کے لئے کوئی نتائج نہیں ملے,
 No user found,کوئی صارف نہیں ملا۔,
-Not Specified,مخصوص نہیں,
 Notification Log,اطلاع لاگ,
 Notification Settings,اطلاع کی ترتیبات,
 Notification Subscribed Document,اطلاع سبسکرائب شدہ دستاویز,
@@ -3609,7 +3590,6 @@ Untitled Column,بلا عنوان کالم۔,
 Untranslated,غیر ترجمہ,
 Upcoming Events,انے والی تقریبات,
 Update Existing Records,موجودہ ریکارڈز کو اپ ڈیٹ کریں۔,
-Update Type,اپ ڈیٹ کی قسم,
 Updated To A New Version 🎉,ایک نیا ورژن Updated میں تازہ کاری,
 "Updating {0} of {1}, {2}",{1} ، {2} میں سے {0 Upd کی تازہ کاری,
 Upload file,اپ لوڈ فائل,
@@ -3716,19 +3696,16 @@ Designation,عہدہ,
 Disabled,معذور,
 Doctype,DOCTYPE,
 Download Template,لوڈ سانچہ,
-Dr,ڈاکٹر,
 Due Date,اخری تاریخ,
 Duplicate,نقل,
 Edit Profile,پروفائل میں ترمیم کریں,
 Email,ای میل,
-End Time,آخر وقت,
 Enter Value,قیمت درج,
 Entity Type,ایوٹیٹی کی قسم,
 Error,خرابی,
 Expired,میعاد ختم ہوگئی,
 Export,برآمد,
 Export not allowed. You need {0} role to export.,برآمد کی اجازت نہیں. آپ برآمد کرنے {0} کردار کی ضرورت ہے.,
-Fetching...,بازیافت کر رہا ہے…,
 Field,فیلڈ,
 File Manager,فائل مینیجر,
 Filters,فلٹرز,
@@ -3743,11 +3720,8 @@ Import Data from CSV / Excel files.,CSV / ایکسل فائلوں سے درآم�
 In Progress,کام جاری ہے,
 Intermediate,انٹرمیڈیٹ,
 Invite as User,صارف کے طور پر مدعو کریں,
-"It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account.",ایسا لگتا ہے کہ سرور کی پٹی ترتیب کے ساتھ ایک مسئلہ ہے. ناکامی کی صورت میں، رقم آپ کے اکاؤنٹ میں واپس کی جائے گی.,
 Loading...,لوڈ کر رہا ہے ...,
 Location,مقام,
-Looks like someone sent you to an incomplete URL. Please ask them to look into it.,ایسا لگتا ہے کہ کسی کے لئے ایک نامکمل URL کے لئے بھیجا طرح. اس پر غور کرنے کا مطالبہ کریں.,
-Master,ماسٹر,
 Message,پیغام,
 Missing Values Required,لاپتہ اقدار مطلوب,
 Mobile No,موبائل نہیں,
@@ -3759,7 +3733,6 @@ Note,نوٹ,
 Offline,آف لائن,
 Open,کھولیں,
 Page {0} of {1},صفحہ {0} کی {1},
-Pay,ادائیگی,
 Pending,زیر غور,
 Phone,فون,
 Please click on the following link to set your new password,اپنا نیا پاس ورڈ مقرر کرنے کے لئے مندرجہ ذیل لنک پر کلک کریں براہ مہربانی,
@@ -3809,7 +3782,6 @@ Welcome to {0},{0} میں خوش آمدید,
 Year,سال,
 Yearly,سالانہ,
 You,آپ,
-You can also copy-paste this link in your browser,تم نے بھی آپ کے براؤزر میں اس لنک کو کاپی پیسٹ کر سکتے ہیں,
 and,اور,
 {0} Name,{0} نام,
 {0} is required,{0} کی ضرورت ہے,
@@ -4113,7 +4085,6 @@ Custom SCSS,کسٹم ایس سی ایس,
 Navbar,نوبار,
 Source Message,ماخذ کا پیغام,
 Translated Message,ترجمہ شدہ پیغام,
-Verified By,کی طرف سے تصدیق,
 Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.,اس کنسول کا استعمال حملہ آوروں کو آپ کی نقالی شکل دینے اور آپ کی معلومات چوری کرنے کی اجازت دے سکتا ہے۔ ایسا کوڈ داخل کریں یا چسپاں نہ کریں جس کو آپ سمجھ نہیں سکتے ہیں۔,
 {0} m,{0} m,
 {0} h,{0} h,
@@ -4146,7 +4117,6 @@ Collapse,گرنے,
 {0} is not a valid Name,{0 a ایک درست نام نہیں ہے,
 Your system is being updated. Please refresh again after a few moments.,آپ کا سسٹم اپ ڈیٹ ہو رہا ہے۔ براہ کرم چند لمحوں کے بعد دوبارہ تازہ دم کریں۔,
 {0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.,{0} {1}: جمع کرائی گئی ریکارڈ کو حذف نہیں کیا جاسکتا۔ آپ کو پہلے اسے {2} منسوخ کرنا {3 must ہونا چاہئے۔,
-Invalid naming series (. missing) for {0},{0 for کے لئے نامزد کرنے کی غلط سیریز (. غائب),
 Error has occurred in {0},غلطی {0 in میں واقع ہوئی ہے,
 Status Updated,حیثیت کی تازہ کاری,
 You can also copy-paste this {0} to your browser,آپ اپنے browser 0} کو اپنے براؤزر میں کاپی پیسٹ بھی کرسکتے ہیں,
@@ -4168,14 +4138,11 @@ Is Billing Contact,بلنگ سے رابطہ ہے,
 Address And Contacts,پتہ اور رابطے,
 Lead Conversion Time,لیڈر تبادلوں کے وقت,
 Due Date Based On,کی وجہ سے تاریخ کی بنیاد پر,
-Phone Number,فون نمبر,
 Linked Documents,لنکڈ دستاویزات,
-Account SID,اکاؤنٹ SID۔,
 Steps,اقدامات,
 email,ای میل,
 Component,اجزاء,
 Subtitle,سب ٹائٹل,
-Global Defaults,گلوبل ڈیفالٹس,
 Prefix,اپسرگ,
 Is Public,عوامی ہے,
 This chart will be available to all Users if this is set,اگر یہ سیٹ کیا گیا ہے تو یہ چارٹ تمام صارفین کے لئے دستیاب ہوگا,
@@ -4362,7 +4329,6 @@ Dynamic Filters Section,متحرک فلٹرز سیکشن,
 Please create Card first,براہ کرم پہلے کارڈ بنائیں,
 Onboarding Permission,جہاز پر جانے کی اجازت,
 Onboarding Step,جہاز کا مرحلہ,
-Is Mandatory,لازمی ہے,
 Is Skipped,چھوڑ دیا جاتا ہے,
 Create Entry,اندراج بنائیں,
 Update Settings,ترتیبات کو اپ ڈیٹ کریں,
@@ -4400,7 +4366,6 @@ Message (HTML),پیغام (HTML),
 Send Attachments,منسلکات ارسال کریں,
 Testing,ٹیسٹنگ,
 System Notification,سسٹم کی اطلاع,
-WhatsApp,واٹس ایپ,
 Twilio Number,ٹوئیلیو نمبر,
 "To use WhatsApp for Business, initialize <a href=""#Form/Twilio Settings"">Twilio Settings</a>.","واٹس ایپ برائے بزنس استعمال کرنے کے لئے ، <a href=""#Form/Twilio Settings"">ٹوئلیو سیٹنگ کو شروع کریں</a> ۔",
 "To use Slack Channel, add a <a href=""#List/Slack%20Webhook%20URL/List"">Slack Webhook URL</a>.","سلیک چینل استعمال کرنے کیلئے ، ایک <a href=""#List/Slack%20Webhook%20URL/List"">سلیک ویب ہک یو آر ایل</a> شامل کریں۔",
@@ -4535,7 +4500,6 @@ Add to ToDo,ٹوڈو میں شامل کریں,
 {0} are currently {1},{0 currently فی الحال {1} ہیں,
 Currently Replying,فی الحال جواب,
 created {0},پیدا کیا {0},
-Make a call,بنائیں ایک کال,
 Change,بدلیں,Coins
 Too Many Requests,بہت زیادہ درخواستیں,
 "Invalid Authorization headers, add a token with a prefix from one of the following: {0}.",غلط تصنیف سرخی ، مندرجہ ذیل میں سے کسی ایک سے ماقبل کے ساتھ ایک ٹوکن شامل کریں: {0}.,
@@ -4700,3 +4664,135 @@ Value cannot be negative for {0}: {1},قدر {0} کیلئے منفی نہیں ہ
 Negative Value,منفی قدر,
 Authentication failed while receiving emails from Email Account: {0}.,ای میل اکاؤنٹ سے ای میلز وصول کرتے وقت توثیق ناکام ہوگئی: {0}.,
 Message from server: {0},سرور کا پیغام: {0},
+Add Row,قطار شامل کریں,
+Analytics,تجزیات,
+Anonymous,گمنام,
+Author,مصنف,
+Basic,بنیادی,
+Billing,بلنگ,
+Contact Details,رابطہ کی تفصیلات,
+Datetime,تاریخ وقت,
+Enable,فعال,
+Event,تقریب,
+Full,مکمل,
+Insert,داخل کریں,
+Interests,دلچسپیاں,
+Language Name,زبان کا نام,
+License,لائسنس,
+Limit,حد,
+Log,لاگ,
+Meeting,اجلاس,
+My Account,میرا کھاتہ,
+Newsletters,خبرنامے,
+Password,پاس ورڈ,
+Pincode,خفیہ نمبر,
+Please select prefix first,پہلے سابقہ براہ مہربانی منتخب کریں,
+Please set Email Address,ای میل ایڈریس مقرر مہربانی,
+Please set the series to be used.,براہ کرم استعمال کرنے کیلئے سلسلہ مقرر کریں.,
+Portal Settings,پورٹل ترتیبات,
+Reference Owner,حوالہ مالک,
+Region,ریجن,
+Report Builder,رپورٹ بلڈر,
+Sample,نمونہ,
+Saved,محفوظ,
+Series {0} already used in {1},پہلے ہی میں استعمال کیا جاتا سیریز {0} {1},
+Set as Default,ڈیفالٹ کے طور پر مقرر,
+Shipping,شپنگ,
+Standard,سٹینڈرڈ,
+Test,ٹیسٹ,
+Traceback,واپس تلاش کرنا، پھر جانچنا,
+Unable to find DocType {0},ڈس ٹائپ تلاش کرنے میں ناکام {0},
+Weekdays,ہفتے کے دن,
+Workflow,کام کے فلو کو,
+You need to be logged in to access this page,آپ کو اس صفحہ تک رسائی کے لئے لاگ ان کرنے کی ضرورت ہے,
+County,کاؤنٹی,
+Images,امیجز,
+Office,آفس,
+Passive,غیر فعال,
+Permanent,مستقل,
+Plant,پلانٹ,
+Postal,ڈاک,
+Previous,پچھلا,
+Shop,دکان,
+Subsidiary,ماتحت,
+There is some problem with the file url: {0},فائل URL کے ساتھ کچھ مسئلہ ہے: {0},
+"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}",{0} &quot;-&quot; ، &quot;#&quot; ، &quot;.&quot; ، &quot;/&quot; ، &quot;{{&quot; اور &quot;}}&quot; سوائے خصوصی حروف کی نام بندی سیریز میں اجازت نہیں ہے,
+Export Type,برآمد کی قسم,
+Last Sync On,آخری مطابقت پذیری,
+Webhook Secret,ویب ہک سیکرٹ,
+Back to Home,واپس گھر,
+Customize,مرضی کے مطابق بنائیں,
+Edit Profile,پروفائل میں ترمیم کریں,
+File Manager,فائل مینیجر,
+Invite as User,صارف کے طور پر مدعو کریں,
+Newsletter,نیوز لیٹر,
+Printing,پرنٹنگ,
+Publish,شائع کریں,
+Refreshing,تازہ کاری,
+Select All,تمام منتخب کریں,
+Set,مقرر,
+Setup Wizard,سیٹ اپ مددگار,
+Update Details,تازہ کاری کی تفصیلات,
+You,آپ,
+{0} Name,{0} نام,
+Bold,بولڈ,
+Center,سینٹر,
+Comment,تبصرہ,
+Not Found,نہیں ملا,
+User Id,صارف کی شناخت,
+Position,مقام,
+Crop,فصل,
+Topic,موضوع,
+Public Transport,پبلک ٹرانسپورٹ,
+Request Data,درخواست ڈیٹا,
+Steps,اقدامات,
+Reference DocType,حوالہ ڈاکٹائپ,
+Select Transaction,منتخب ٹرانزیکشن,
+Help HTML,مدد ایچ ٹی ایم ایل,
+Series List for this Transaction,اس ٹرانزیکشن کے لئے سیریز,
+User must always select,صارف نے ہمیشہ منتخب کرنا ضروری ہے,
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,آپ کی بچت سے پہلے ایک سلسلہ منتخب کرنے کے لئے صارف کو مجبور کرنا چاہتے ہیں تو اس کی جانچ پڑتال. آپ کو اس کی جانچ پڑتال اگر کوئی پہلے سے طے شدہ ہو گا.,
+Prefix,اپسرگ,
+This is the number of the last created transaction with this prefix,یہ اپسرگ کے ساتھ گزشتہ پیدا لین دین کی تعداد ہے,
+Update Series Number,اپ ڈیٹ سلسلہ نمبر,
+Validation Error,توثیق کی خرابی,
+Andaman and Nicobar Islands,انڈمن اور نِکوبار جزیرے,
+Andhra Pradesh,آندھرا پردیش,
+Arunachal Pradesh,اروناچل پردیش,
+Assam,آسام,
+Bihar,بہار,
+Chandigarh,چندی گڑھ,
+Chhattisgarh,چھتیس گڑھ,
+Dadra and Nagar Haveli,دادرا اور نگر حویلی,
+Daman and Diu,دامان اور دیئو,
+Delhi,دہلی,
+Goa,گوا,
+Gujarat,گجرات,
+Haryana,ہریانہ,
+Himachal Pradesh,ہماچل پردیش,
+Jammu and Kashmir,جموں وکشمیر,
+Jharkhand,جھارکھنڈ,
+Karnataka,کرناٹک,
+Kerala,کیرل,
+Lakshadweep Islands,لکشدیپ جزیرے,
+Madhya Pradesh,مدھیہ پردیش,
+Maharashtra,مہاراشٹر,
+Manipur,منی پور,
+Meghalaya,میگھالیہ,
+Mizoram,میزورم,
+Nagaland,ناگالینڈ,
+Odisha,اوڈیشہ,
+Other Territory,دیگر علاقہ,
+Pondicherry,پانڈیچیری,
+Punjab,پنجاب,
+Rajasthan,راجستھان,
+Sikkim,سکم,
+Tamil Nadu,تمل ناڈو,
+Telangana,تلنگانہ,
+Tripura,تریپورہ,
+Uttar Pradesh,اتر پردیش,
+Uttarakhand,اتراکھنڈ,
+West Bengal,مغربی بنگال,
+Published on,پر شائع ہوا,
+Bottom,نیچے,
+Top,اوپر,

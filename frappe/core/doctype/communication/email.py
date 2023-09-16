@@ -258,15 +258,17 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
 def mark_email_as_seen(name: str = None):
+	frappe.request.after_response.add(lambda: _mark_email_as_seen(name))
+	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+
+
+def _mark_email_as_seen(name):
 	try:
 		update_communication_as_read(name)
-		frappe.db.commit()  # nosemgrep: this will be called in a GET request
-
 	except Exception:
 		frappe.log_error("Unable to mark as seen", None, "Communication", name)
 
-	finally:
-		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+	frappe.db.commit()  # nosemgrep: after_response requires explicit commit
 
 
 def update_communication_as_read(name):

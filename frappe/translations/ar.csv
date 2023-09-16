@@ -9,7 +9,6 @@ Action,حدث,
 Actions,الإجراءات,
 Active,نشط,
 Add,إضافة,
-Add Comment,أضف تعليق,
 Add Row,اضف سطر,
 Address,عنوان,
 Address Line 2,العنوان سطر 2,
@@ -144,7 +143,6 @@ Monday,يوم الاثنين,
 Monthly,شهريا,
 More,أكثر,
 More Information,المزيد من المعلومات,
-More...,المزيد...,
 Move,حرك,
 My Account,حسابي,
 New Address,عنوان جديد,
@@ -157,7 +155,6 @@ No items found.,لم يتم العثور على العناصر.,
 None,لا شيء,
 Not Permitted,لا يسمح,
 Not active,غير نشطة,
-Notes,ملاحظات,
 Number,رقم,
 Online,متصل بالإنترنت,
 Operation,عملية,
@@ -167,17 +164,12 @@ Owner,مالك,
 Page Missing or Moved,الصفحة مفقودة أو تم نقلها,
 Parameter,المعلمة,
 Password,كلمة السر,
-Payment Gateway,بوابة الدفع,
-Payment Gateway Name,اسم بوابة الدفع,
-Payments,المدفوعات,
 Period,فترة,
 Pincode,رمز Pin,
-Plan Name,اسم الخطة,
 Please enable pop-ups,يرجى تمكين النوافذ المنبثقة,
 Please select Company,الرجاء اختيار شركة \n<br>\nPlease select Company,
 Please select {0},الرجاء اختيار {0},
 Please set Email Address,يرجى وضع عنوان البريد الإلكتروني,
-Portal,بوابة,
 Portal Settings,إعدادات البوابة,
 Preview,معاينة,
 Primary,أساسي,
@@ -222,7 +214,6 @@ Salutation,اللقب,
 Sample,عينة,
 Saturday,السبت,
 Saved,حفظ,
-Scan Barcode,مسح الباركود,
 Scheduled,من المقرر,
 Search,البحث,
 Secret Key,المفتاح السري,
@@ -237,7 +228,6 @@ Settings,إعدادات,
 Shipping,الشحن,
 Short Name,الاسم المختصر,
 Slideshow,عرض الشرائح,
-Some information is missing,بعض المعلومات مفقود,
 Source,المصدر,
 Source Name,اسم المصدر,
 Standard,اساسي,
@@ -247,7 +237,6 @@ State,حالة,
 Stopped,توقف,
 Subject,موضوع,
 Submit,تسجيل,
-Successful,ناجح,
 Summary,ملخص,
 Sunday,الأحد,
 System Manager,مدير النظام,
@@ -260,11 +249,9 @@ The page you are looking for is missing. This could be because it is moved or th
 Timespan,الفترة الزمنية,
 To,إلى,
 To Date,إلى تاريخ,
-Tools,أدوات,
 Traceback,Traceback,
 URL,رابط الانترنت,
 Unsubscribed,إلغاء اشتراكك,
-Use Sandbox,استخدام ساندبوكس,
 User,المستعمل,
 User ID,تعريف المستخدم,
 Users,المستخدمين,
@@ -569,7 +556,6 @@ Bulk Delete,حذف بالجملة,
 Bulk Edit {0},تعديل بالجمله {0},
 Bulk Rename,إعادة تسمية بالجمله,
 Bulk Update,تحديث بالجمله,
-Busy,مشغول,
 Button,زر,
 Button Help,زر المساعدة,
 Button Label,زر ملصق,
@@ -706,7 +692,6 @@ Compiled Successfully,جمعت بنجاح,
 Complete By,الكامل من جانب,
 Complete Registration,أكمال التسجيل,
 Complete Setup,أكمال الإعداد,
-Completed By,اكتمل بواسطة,
 Compose Email,كتابة رسالة الكترونية,
 Condition Detail,حالة التفاصيل,
 Conditions,الظروف,
@@ -1690,8 +1675,8 @@ Not a valid Workflow Action,ليس إجراء سير عمل صالح,
 Not a valid user,غير مستخدم صالح,
 Not a zip file,ليس ملف مضغوط,
 Not allowed for {0}: {1},غير مسموح لـ {0}: {1},
-"You are not allowed to access {0} because it is linked to {1} '{2}' in row {3}, field {4}","لا يسمح لك بالوصول إلى {0} لأنه مرتبط بـ {1} '{2}' في الصف {3}، حقل {4}",
-You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3},"لا يسمح لك بالوصول إلى هذا السجل {0} لأنه مرتبط بـ {1} '{2}' في الحقل {3}",
+"You are not allowed to access {0} because it is linked to {1} '{2}' in row {3}, field {4}",لا يسمح لك بالوصول إلى {0} لأنه مرتبط بـ {1} '{2}' في الصف {3}، حقل {4},
+You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3},لا يسمح لك بالوصول إلى هذا السجل {0} لأنه مرتبط بـ {1} '{2}' في الحقل {3},
 Not allowed to Import,لا يسمح ل استيراد,
 Not allowed to change {0} after submission,لا يسمح لتغيير {0} بعد تقديم,
 Not allowed to print cancelled documents,لا يسمح لطباعة الوثائق الملغاة,
@@ -1819,7 +1804,6 @@ Path to private Key File,الطريق إلى ملف مفتاح خاص,
 PayPal Settings,اعدادات PayPal,
 PayPal payment gateway settings,إعدادات بوابة الدفع باي بال,
 Payment Cancelled,تم إلغاء الدفعة,
-Payment Failed,عملية الدفع فشلت,
 Payment Success,دفع النجاح,
 Pending Approval,ما زال يحتاج بتصدير,
 Pending Verification,في انتظار التحقق,
@@ -3216,7 +3200,6 @@ Click on the link below to approve the request,انقر على الرابط أد
 Click on the lock icon to toggle public/private,انقر على أيقونة القفل للتبديل بين القطاعين العام والخاص,
 Click on {0} to generate Refresh Token.,انقر فوق {0} لإنشاء تحديث الرمز المميز.,
 Close Condition,أغلق الشرط,
-Column {0},العمود {0},
 Columns / Fields,الأعمدة / الحقول,
 "Configure notifications for mentions, assignments, energy points and more.",قم بتكوين الإشعارات الخاصة بالإشارات والتعيينات ونقاط الطاقة والمزيد.,
 Contact Email,عنوان البريد الإلكتروني,
@@ -3298,7 +3281,6 @@ Failed to create an Event Consumer or an Event Consumer for the current site is 
 Failure,بالفشل,
 Fetching default Global Search documents.,جلب مستندات البحث العالمي الافتراضية.,
 Fetching posts...,جارٍ جلب المشاركات ...,
-Field Mapping,رسم الخرائط الميدانية,
 Field To Check,حقل للتحقق,
 File Information,معلومات الملف,
 Filter By,مصنف بواسطة,
@@ -3453,7 +3435,6 @@ No posts yet,لا توجد مشاركات حتى الآن,
 No records will be exported,لن يتم تصدير سجلات,
 No results found for {0} in Global Search,لم يتم العثور على نتائج لـ {0} في Global Search,
 No user found,لم يتم العثور على المستخدم,
-Not Specified,غير محدد,
 Notification Log,سجل الإخطار,
 Notification Settings,إعدادات الإشعار,
 Notification Subscribed Document,وثيقة الاشتراك المكتوبة,
@@ -3609,7 +3590,6 @@ Untitled Column,عمود بلا عنوان,
 Untranslated,غير مترجم,
 Upcoming Events,الأحداث القادمة,
 Update Existing Records,تحديث السجلات الموجودة,
-Update Type,نوع التحديث,
 Updated To A New Version 🎉,تم التحديث إلى إصدار جديد 🎉,
 "Updating {0} of {1}, {2}",تحديث {0} من {1} ، {2},
 Upload file,رفع ملف,
@@ -3716,19 +3696,16 @@ Designation,تعيين,
 Disabled,معطل,
 Doctype,DOCTYPE,
 Download Template,تحميل الوثيقة,
-Dr,Dr,
 Due Date,بسبب تاريخ,
 Duplicate,مكررة,
 Edit Profile,تعديل الملف الشخصي,
 Email,البريد الإلكتروني,
-End Time,وقت الانتهاء,
 Enter Value,أدخل القيمة,
 Entity Type,نوع الكيان,
 Error,خطأ,
 Expired,انتهى,
 Export,تصدير,
 Export not allowed. You need {0} role to export.,الصادرات غير مسموح به. تحتاج {0} صلاحية التصدير.,
-Fetching...,جلب ...,
 Field,حقل,
 File Manager,مدير الملفات,
 Filters,فلاتر,
@@ -3743,11 +3720,8 @@ Import Data from CSV / Excel files.,استيراد البيانات من ملف�
 In Progress,في تَقَدم,
 Intermediate,متوسط,
 Invite as User,دعوة كمستخدم,
-"It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account.",يبدو أن هناك مشكلة في تكوين شريطية للخادم. في حالة الفشل ، سيتم رد المبلغ إلى حسابك.,
 Loading...,تحميل ...,
 Location,الموقع,
-Looks like someone sent you to an incomplete URL. Please ask them to look into it.,يبدو مثل شخص أرسل لك إلى عنوان URL غير مكتمل. من فضلك اطلب منهم للنظر في ذلك.,
-Master,سيد,
 Message,رسالة,
 Missing Values Required,قيم مفقودة مطلوبة,
 Mobile No,رقم الجوال,
@@ -3759,7 +3733,6 @@ Note,ملاحظات,
 Offline,غير متصل بالإنترنت,
 Open,فتح,
 Page {0} of {1},الصفحة {0} من {1},
-Pay,دفع,
 Pending,معلق,
 Phone,هاتف,
 Please click on the following link to set your new password,الرجاء الضغط على الرابط التالي لتعيين كلمة المرور الجديدة,
@@ -3809,7 +3782,6 @@ Welcome to {0},أهلا وسهلا بك إلى {0},
 Year,عام,
 Yearly,سنويا,
 You,أنت,
-You can also copy-paste this link in your browser,يمكنك أيضا نسخ - لصق هذا الرابط في متصفحك,
 and,و,
 {0} Name,{0} الاسم,
 {0} is required,{0} مطلوب,
@@ -4113,7 +4085,6 @@ Custom SCSS,SCSS مخصص,
 Navbar,نافبار,
 Source Message,رسالة المصدر,
 Translated Message,رسالة مترجمة,
-Verified By,التحقق من,
 Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.,قد يسمح استخدام وحدة التحكم هذه للمهاجمين بانتحال هويتك وسرقة معلوماتك. لا تدخل أو تلصق رمزًا لا تفهمه.,
 {0} m,{0} م,
 {0} h,{0} ح,
@@ -4146,7 +4117,6 @@ Collapse,انهيار,
 {0} is not a valid Name,{0} ليس اسمًا صالحًا,
 Your system is being updated. Please refresh again after a few moments.,يتم تحديث نظامك. يرجى التحديث مرة أخرى بعد لحظات قليلة.,
 {0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first.,{0} {1}: لا يمكن حذف السجل المقدم. يجب عليك {2} إلغاء {3} أولاً.,
-Invalid naming series (. missing) for {0},سلسلة تسمية غير صالحة (. مفقود) لـ {0},
 Error has occurred in {0},حدث خطأ في {0},
 Status Updated,تم تحديث الحالة,
 You can also copy-paste this {0} to your browser,يمكنك أيضًا نسخ {0} هذا ولصقه في متصفحك,
@@ -4168,14 +4138,11 @@ Is Billing Contact,هو جهة اتصال الفوترة,
 Address And Contacts,العنوان وجهات الاتصال,
 Lead Conversion Time,وقت تحويل الزبون المحتمل,
 Due Date Based On,تاريخ الاستحقاق بناء على,
-Phone Number,رقم الهاتف,
 Linked Documents,المستندات المرتبطة,
-Account SID,حساب SID,
 Steps,خطوات,
 email,البريد الإلكتروني,
 Component,مكون,
 Subtitle,عنوان فرعي,
-Global Defaults,افتراضيات العالمية,
 Prefix,بادئة,
 Is Public,عام,
 This chart will be available to all Users if this is set,سيكون هذا المخطط متاحًا لجميع المستخدمين إذا تم تعيين هذا,
@@ -4362,7 +4329,6 @@ Dynamic Filters Section,قسم المرشحات الديناميكية,
 Please create Card first,الرجاء إنشاء البطاقة أولاً,
 Onboarding Permission,إذن على متن الطائرة,
 Onboarding Step,خطوة Onboarding,
-Is Mandatory,إلزامي,
 Is Skipped,تم تخطي,
 Create Entry,إنشاء الدخول,
 Update Settings,إعدادات التحديث,
@@ -4400,7 +4366,6 @@ Message (HTML),الرسالة (HTML),
 Send Attachments,إرسال المرفقات,
 Testing,اختبارات,
 System Notification,إعلام النظام,
-WhatsApp,ال WhatsApp,
 Twilio Number,رقم تويليو,
 "To use WhatsApp for Business, initialize <a href=""#Form/Twilio Settings"">Twilio Settings</a>.","لاستخدام WhatsApp for Business ، قم بتهيئة <a href=""#Form/Twilio Settings"">Twilio Settings</a> .",
 "To use Slack Channel, add a <a href=""#List/Slack%20Webhook%20URL/List"">Slack Webhook URL</a>.","لاستخدام قناة Slack ، أضف <a href=""#List/Slack%20Webhook%20URL/List"">عنوان URL لـ Slack Webhook</a> .",
@@ -4535,7 +4500,6 @@ Add to ToDo,أضف إلى ToDo,
 {0} are currently {1},{0} حاليًا {1},
 Currently Replying,الرد حاليا,
 created {0},تم إنشاء {0},
-Make a call,إجراء مكالمة,
 Change,يتغيرون,Coins
 Too Many Requests,طلبات كثيرة جدا,
 "Invalid Authorization headers, add a token with a prefix from one of the following: {0}.",رؤوس المصادقة غير صالحة ، أضف رمزًا مميزًا ببادئة من أحد الخيارات التالية: {0}.,
@@ -4700,3 +4664,135 @@ Value cannot be negative for {0}: {1},لا يمكن أن تكون القيمة �
 Negative Value,قيمة سالبة,
 Authentication failed while receiving emails from Email Account: {0}.,فشلت المصادقة أثناء تلقي رسائل البريد الإلكتروني من حساب البريد الإلكتروني: {0}.,
 Message from server: {0},رسالة من الخادم: {0},
+Add Row,اضف سطر,
+Analytics,التحليلات,
+Anonymous,مجهول,
+Author,مؤلف,
+Basic,الأساسي,
+Billing,الفواتير,
+Contact Details,تفاصيل الاتصال,
+Datetime,التاريخ والوقت,
+Enable,تمكين,
+Event,حدث,
+Full,ممتلئ,
+Insert,إدراج,
+Interests,الإهتمامات او الفوائد,
+Language Name,اسم اللغة,
+License,رخصة,
+Limit,حد,
+Log,سجل,
+Meeting,لقاء,
+My Account,حسابي,
+Newsletters,النشرات الإخبارية,
+Password,كلمة السر,
+Pincode,رمز Pin,
+Please select prefix first,الرجاء اختيار البادئة اولا,
+Please set Email Address,يرجى وضع عنوان البريد الإلكتروني,
+Please set the series to be used.,يرجى ضبط المسلسل ليتم استخدامه.,
+Portal Settings,إعدادات البوابة,
+Reference Owner,إشارة المالك,
+Region,منطقة,
+Report Builder,تقرير منشئ,
+Sample,عينة,
+Saved,حفظ,
+Series {0} already used in {1},الترقيم المتسلسل {0} مستخدم بالفعل في {1},
+Set as Default,تعيين كافتراضي,
+Shipping,الشحن,
+Standard,اساسي,
+Test,اختبار,
+Traceback,Traceback,
+Unable to find DocType {0},تعذر العثور على نوع الملف {0},
+Weekdays,أيام الأسبوع,
+Workflow,سير العمل,
+You need to be logged in to access this page,تحتاج إلى تسجيل الدخول للوصول إلى هذه الصفحة,
+County,مقاطعة,
+Images,صور,
+Office,مكتب,
+Passive,غير فعال,
+Permanent,دائم,
+Plant,مصنع,
+Postal,بريدي,
+Previous,سابق,
+Shop,تسوق,
+Subsidiary,شركة فرعية,
+There is some problem with the file url: {0},هناك بعض المشاكل مع رابط الملف: {0},
+"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}",{0} الأحرف الخاصة باستثناء &quot;-&quot; ، &quot;#&quot; ، &quot;.&quot; ، &quot;/&quot; ، &quot;{{&quot; و &quot;}}&quot; غير مسموح في سلسلة التسمية,
+Export Type,نوع التصدير,
+Last Sync On,آخر مزامنة تشغيل,
+Webhook Secret,Webhook Secret,
+Back to Home,العودة إلى المنزل,
+Customize,تخصيص,
+Edit Profile,تعديل الملف الشخصي,
+File Manager,مدير الملفات,
+Invite as User,دعوة كمستخدم,
+Newsletter,النشرة الإخبارية,
+Printing,طبع,
+Publish,نشر,
+Refreshing,جاري التحديث,
+Select All,تحديد الكل,
+Set,مجموعة,
+Setup Wizard,معالج الإعدادات,
+Update Details,تحديث التفاصيل,
+You,أنت,
+{0} Name,{0} الاسم,
+Bold,بالخط العريض,
+Center,مركز,
+Comment,تعليق,
+Not Found,لم يتم العثور على,
+User Id,تعريف المستخدم,
+Position,موضع,
+Crop,محصول,
+Topic,موضوع,
+Public Transport,النقل العام,
+Request Data,طلب البيانات,
+Steps,خطوات,
+Reference DocType,مرجع DOCTYPE,
+Select Transaction,حدد المعاملات,
+Help HTML,مساعدة HTML,
+Series List for this Transaction,قائمة متسلسلة لهذه العملية,
+User must always select,يجب دائما مستخدم تحديد,
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,التحقق من ذلك إذا كنت تريد لإجبار المستخدم لتحديد سلسلة قبل الحفظ. لن يكون هناك الافتراضي إذا قمت بتحديد هذا.,
+Prefix,بادئة,
+This is the number of the last created transaction with this prefix,هذا هو عدد المعاملات التي تم إنشاؤها باستخدام مشاركة هذه البادئة,
+Update Series Number,تحديث الرقم المتسلسل,
+Validation Error,خطئ في التحقق,
+Andaman and Nicobar Islands,جزر أندامان ونيكوبار,
+Andhra Pradesh,ولاية اندرا براديش,
+Arunachal Pradesh,اروناتشال براديش,
+Assam,آسام,
+Bihar,بيهار,
+Chandigarh,شانديغار,
+Chhattisgarh,تشهاتيسجاره,
+Dadra and Nagar Haveli,دادرا وناغار هافيلي,
+Daman and Diu,دامان وديو,
+Delhi,دلهي,
+Goa,غوا,
+Gujarat,ولاية غوجارات,
+Haryana,هاريانا,
+Himachal Pradesh,هيماشال براديش,
+Jammu and Kashmir,جامو وكشمير,
+Jharkhand,جهارخاند,
+Karnataka,كارناتاكا,
+Kerala,ولاية كيرالا,
+Lakshadweep Islands,جزر لاكشادويب,
+Madhya Pradesh,ماديا براديش,
+Maharashtra,ماهاراشترا,
+Manipur,مانيبور,
+Meghalaya,ميغالايا,
+Mizoram,ميزورام,
+Nagaland,ناجالاند,
+Odisha,أوديشا,
+Other Territory,إقليم آخر,
+Pondicherry,بونديشيري,
+Punjab,البنجاب,
+Rajasthan,راجستان,
+Sikkim,سيكيم,
+Tamil Nadu,تاميل نادو,
+Telangana,تيلانجانا,
+Tripura,تريبورا,
+Uttar Pradesh,ولاية أوتار براديش,
+Uttarakhand,أوتارانتشال,
+West Bengal,ولاية البنغال الغربية,
+Published on,نشرت في,
+Bottom,الأسفل,
+Top,أعلى,
