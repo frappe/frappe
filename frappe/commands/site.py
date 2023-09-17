@@ -481,43 +481,35 @@ def install_app(context, apps, force=False):
 @click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
 def list_apps(context, format):
-	"List apps in site"
+	"""
+	List apps in site.
+	"""
 
 	summary_dict = {}
 
-	def fix_whitespaces(text):
-		if site == context.sites[-1]:
-			text = text.rstrip()
-		if len(context.sites) == 1:
-			text = text.lstrip()
-		return text
+	def format_app(app):
+		name_len = max(len(app.app_name) for app in apps)
+		ver_len = max(len(app.app_version) for app in apps)
+		template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
+		return template.format(app.app_name, app.app_version, app.git_branch)
 
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		site_title = click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		installed_apps_info = []
+
 		apps = frappe.get_single("Installed Applications").installed_applications
-
 		if apps:
-			name_len, ver_len = (max(len(x.get(y)) for x in apps) for y in ["app_name", "app_version"])
-			template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
-
-			installed_applications = [
-				template.format(app.app_name, app.app_version, app.git_branch) for app in apps
-			]
-			applications_summary = "\n".join(installed_applications)
-			summary = f"{site_title}\n{applications_summary}\n"
-			summary_dict[site] = [app.app_name for app in apps]
-
+			installed_apps_info.extend(format_app(app) for app in apps)
 		else:
-			installed_applications = frappe.get_installed_apps()
-			applications_summary = "\n".join(installed_applications)
-			summary = f"{site_title}\n{applications_summary}\n"
-			summary_dict[site] = installed_applications
+			installed_apps_info.extend(frappe.get_installed_apps())
 
-		summary = fix_whitespaces(summary)
+		installed_apps_info_str = "\n".join(installed_apps_info)
+		summary = f"{site_title}\n{installed_apps_info_str}\n"
+		summary_dict[site] = [app.app_name for app in apps]
 
-		if format == "text" and applications_summary and summary:
+		if format == "text" and installed_apps_info and summary:
 			print(summary)
 
 		frappe.destroy()
