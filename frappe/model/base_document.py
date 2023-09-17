@@ -195,6 +195,7 @@ class BaseDocument:
 				# dont_update_if_missing is a list of fieldnames
 				# for which you don't want to set default value
 				and key not in self.dont_update_if_missing
+				and (not self.meta.get_field(key) or not self.meta.get_field(key).fetch_if_empty)
 			):
 				self.set(key, value)
 
@@ -773,7 +774,7 @@ class BaseDocument:
 					_df
 					for _df in self.meta.get_fields_to_fetch(df.fieldname)
 					if not _df.get("fetch_if_empty")
-					or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
+					or (self.get(_df.fieldname) is None and not self.get("__from_client"))
 				]
 				if not frappe.get_meta(doctype).get("is_virtual"):
 					if not fields_to_fetch:
