@@ -125,14 +125,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		let docfield = "Workflow Document State";
 		let df = frappe.model.get_new_doc(docfield);
 		df.name = frappe.utils.get_random(8);
-		df.state = data.state;
+		Object.assign(df, data);
 		df.doc_status = doc_status_map[data.doc_status];
-		df.allow_edit = data.allow_edit;
-		df.update_field = data.update_field;
-		df.update_value = data.update_value;
-		df.is_optional_state = data.is_optional_state;
-		df.next_action_email_template = data.next_action_email_template;
-		df.message = data.message;
 		return df;
 	}
 
@@ -146,14 +140,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		return states;
 	}
 
-	function get_transition_df({ state, action, next_state, allowed }) {
+	function get_transition_df(data) {
 		let docfield = "Workflow Transition";
 		let df = frappe.model.get_new_doc(docfield);
 		df.name = frappe.utils.get_random(8);
-		df.state = state;
-		df.action = action;
-		df.next_state = next_state;
-		df.allowed = allowed;
+		Object.assign(df, data);
 		return df;
 	}
 
@@ -180,10 +171,9 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			}
 			transitions.push(
 				get_transition_df({
+					...action.data,
 					state: action.data.from,
-					action: action.data.action,
 					next_state: action.data.to,
-					allowed: action.data.allowed,
 				})
 			);
 		});

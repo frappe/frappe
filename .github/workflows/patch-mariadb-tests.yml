@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check if build should be run
         id: check-build
@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Check for Merge Conflicts
         run: |
@@ -64,9 +64,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: |
-              3.7
-              3.10
+          python-version: "3.10"
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -112,8 +110,8 @@ jobs:
       - name: Run Patch Tests
         run: |
           cd ~/frappe-bench/
-          wget https://frappeframework.com/files/v10-frappe.sql.gz
-          bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
+          wget https://frappeframework.com/files/v13-frappe.sql.gz
+          bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
 
           source env/bin/activate
           cd apps/frappe/
@@ -121,7 +119,6 @@ jobs:
 
           function update_to_version() {
             version=$1
-            py=$2
 
             branch_name="version-$version-hotfix"
             echo "Updating to v$version"
@@ -130,22 +127,22 @@ jobs:
 
             pgrep honcho | xargs kill
             rm -rf ~/frappe-bench/env
-            bench -v setup env --python $py
-            bench start &> ~/frappe-bench/bench_start.log &
+            bench -v setup env
+            bench start &>> ~/frappe-bench/bench_start.log &
 
             bench --site test_site migrate
           }
 
-          update_to_version 12 python3.7
-          update_to_version 13 python3.7
-
-          update_to_version 14 python3.10
+          update_to_version 14
 
           echo "Updating to last commit"
+          pgrep honcho | xargs kill
           rm -rf ~/frappe-bench/env
           git checkout -q -f "$GITHUB_SHA"
           bench -v setup env
+          bench start &>> ~/frappe-bench/bench_start.log &
           bench --site test_site migrate
+          bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
 
       - name: Show bench output
         if: ${{ always() }}

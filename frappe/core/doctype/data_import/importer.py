@@ -45,6 +45,7 @@ class Importer:
 			file_path or data_import.google_sheets_url or data_import.import_file,
 			self.template_options,
 			self.import_type,
+			console=self.console,
 		)
 
 	def get_data_for_import_preview(self):
@@ -393,12 +394,13 @@ class Importer:
 
 
 class ImportFile:
-	def __init__(self, doctype, file, template_options=None, import_type=None):
+	def __init__(self, doctype, file, template_options=None, import_type=None, *, console=False):
 		self.doctype = doctype
 		self.template_options = template_options or frappe._dict(column_to_field_map=frappe._dict())
 		self.column_to_field_map = self.template_options.column_to_field_map
 		self.import_type = import_type
 		self.warnings = []
+		self.console = console
 
 		self.file_doc = self.file_path = self.google_sheets_url = None
 		if isinstance(file, str):

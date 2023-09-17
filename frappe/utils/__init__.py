@@ -529,7 +529,10 @@ def get_request_site_address(full_address=False):
 
 
 def get_site_url(site):
-	return f"http://{site}:{frappe.get_conf(site).webserver_port}"
+	conf = frappe.get_conf(site)
+	if conf.host_name:
+		return conf.host_name
+	return f"http://{site}:{conf.webserver_port}"
 
 
 def encode_dict(d, encoding="utf-8"):

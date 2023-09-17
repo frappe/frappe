@@ -25,8 +25,7 @@ def get_report_doc(report_name):
 
 	if doc.report_type == "Custom Report":
 		custom_report_doc = doc
-		reference_report = custom_report_doc.reference_report
-		doc = frappe.get_doc("Report", reference_report)
+		doc = get_reference_report(doc)
 		doc.custom_report = report_name
 		if custom_report_doc.json:
 			data = json.loads(custom_report_doc.json)
@@ -172,7 +171,15 @@ def get_script(report_name):
 		"html_format": html_format,
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
 		"filters": report.filters,
+		"custom_report_name": report.name if report.get("is_custom_report") else None,
 	}
+
+
+def get_reference_report(report):
+	if report.report_type != "Custom Report":
+		return report
+	reference_report = frappe.get_doc("Report", report.reference_report)
+	return get_reference_report(reference_report)
 
 
 @frappe.whitelist()
@@ -494,7 +501,11 @@ def get_data_for_custom_report(columns, result):
 			doctype = column.get("doctype")
 
 			row_key = link_field.get("fieldname")
-			names = list({row[row_key] for row in result}) or None
+			names = []
+			for row in result:
+				if row.get(row_key):
+					names.append(row.get(row_key))
+			names = list(set(names))
 
 			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname, names)
 

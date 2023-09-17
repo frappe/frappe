@@ -44,7 +44,6 @@ Set numbering series for transactions.,Establecer series de numeración para las
 Submit an Issue,Presentar un problema,
 Symbol,Símbolo,
 Update Field,Actualizar Campos,
-Make ,Hacer,
 "You can change Submitted documents by cancelling them and then, amending them.","Puede cambiar los documentos Enviados cancelándolos y luego, haciendo los cambios pertinentes."
 Team Members Heading,Miembros del Equipo Lider,
 Scheduled to send to {0} recipients,Programado para enviar a {0} destinatarios,
@@ -314,7 +313,6 @@ Stores the JSON of last known versions of various installed apps. It is used to 
 "Setup of top navigation bar, footer and logo.","Configuración de la barra de navegación superior , pie de página y el logotipo."
 Stopped,Detenido,
 Upload Attachment,Subir Archivos Adjuntos,
-You can also copy-paste this link in your browser,También puede copiar y pegar este enlace en su navegador,
 Total Subscribers,Los suscriptores totales,
 Settings for About Us Page.,Ajustes para Nosotros Pagina .
 File Size,Tamaño del archivo,
@@ -488,3 +486,9 @@ Repeat Till,Repita Hasta,
 remove-circle,Eliminar el efecto de círculo,
 Sample,Muestra,
 Current status,Situación Actual,
+User must always select,Usuario elegirá siempre,
+Help HTML,Ayuda HTML,
+No contacts added yet.,No se han añadido contactos todavía,
+No address added yet.,No se ha añadido ninguna dirección todavía.
+Series List for this Transaction,Lista de series para esta transacción,
+Contact Details,Datos del Contacto,

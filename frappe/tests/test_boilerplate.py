@@ -32,7 +32,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 				"create_github_workflow": False,
 			}
 		)
@@ -45,7 +45,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"email": "example@example.org",
 				"icon": "",  # empty -> default
 				"color": "",
-				"app_license": "MIT",
+				"app_license": "mit",
 				"github_workflow": "n",
 			}
 		)
@@ -126,7 +126,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 			}
 		)
 
@@ -160,7 +160,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 			}
 		)
 		self.create_app(hooks, no_git=True)

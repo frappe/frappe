@@ -1,0 +1,94 @@
+{
+ "actions": [],
+ "creation": "2023-08-14 13:06:24.520160",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "doctype_name",
+  "column_break_peck",
+  "document",
+  "section_break_gppi",
+  "version_table",
+  "rows_added_section",
+  "rows_added",
+  "rows_removed_section",
+  "rows_removed"
+ ],
+ "fields": [
+  {
+   "fieldname": "doctype_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Doctype",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "document",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Document",
+   "options": "doctype_name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_peck",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_gppi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "version_table",
+   "fieldtype": "HTML",
+   "hidden": 1,
+   "label": "version_table"
+  },
+  {
+   "fieldname": "rows_added",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "rows_removed",
+   "fieldtype": "HTML"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "rows_added_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Rows Added"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "rows_removed_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Rows Removed"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2023-08-22 12:12:59.780845",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Audit Trail",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
