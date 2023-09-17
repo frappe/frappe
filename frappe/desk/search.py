@@ -229,7 +229,123 @@ def search_widget(
 		else:
 			values = [r[:-1] for r in values]
 
+<<<<<<< HEAD
 	return values
+=======
+			if filters is None:
+				filters = []
+			or_filters = []
+
+			# build from doctype
+			if txt:
+				field_types = [
+					"Data",
+					"Text",
+					"Small Text",
+					"Long Text",
+					"Link",
+					"Select",
+					"Read Only",
+					"Text Editor",
+				]
+				search_fields = ["name"]
+				if meta.title_field:
+					search_fields.append(meta.title_field)
+
+				if meta.search_fields:
+					search_fields.extend(meta.get_search_fields())
+
+				for f in search_fields:
+					fmeta = meta.get_field(f.strip())
+					if not meta.translated_doctype and (
+						f == "name" or (fmeta and fmeta.fieldtype in field_types)
+					):
+						or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
+
+			if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+				filters.append([doctype, "enabled", "=", 1])
+			if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+				filters.append([doctype, "disabled", "!=", 1])
+
+			# format a list of fields combining search fields and filter fields
+			fields = get_std_fields_list(meta, searchfield or "name")
+			if filter_fields:
+				fields = list(set(fields + json.loads(filter_fields)))
+			formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
+
+			# Insert title field query after name
+			if meta.show_title_field_in_link:
+				formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
+
+			# In order_by, `idx` gets second priority, because it stores link count
+			from frappe.model.db_query import get_order_by
+
+			order_by_based_on_meta = get_order_by(doctype, meta)
+			# 2 is the index of _relevance column
+			order_by = f"{order_by_based_on_meta}, `tab{doctype}`.idx desc"
+
+			if not meta.translated_doctype:
+				formatted_fields.append(
+					"""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
+						_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")),
+						doctype=doctype,
+					)
+				)
+				order_by = f"_relevance, {order_by}"
+
+			ignore_permissions = (
+				True
+				if doctype == "DocType"
+				else (
+					cint(ignore_user_permissions)
+					and has_permission(
+						doctype,
+						ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+						parent_doctype=reference_doctype,
+					)
+				)
+			)
+
+			values = frappe.get_list(
+				doctype,
+				filters=filters,
+				fields=formatted_fields,
+				or_filters=or_filters,
+				limit_start=start,
+				limit_page_length=None if meta.translated_doctype else page_length,
+				order_by=order_by,
+				ignore_permissions=ignore_permissions,
+				reference_doctype=reference_doctype,
+				as_list=not as_dict,
+				strict=False,
+			)
+
+			if meta.translated_doctype:
+				# Filtering the values array so that query is included in very element
+				values = (
+					result
+					for result in values
+					if any(
+						re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
+						for value in (result.values() if as_dict else result)
+					)
+				)
+
+			# Sorting the values array so that relevant results always come first
+			# This will first bring elements on top in which query is a prefix of element
+			# Then it will bring the rest of the elements and sort them in lexicographical order
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+
+			# remove _relevance from results
+			if not meta.translated_doctype:
+				if as_dict:
+					for r in values:
+						r.pop("_relevance")
+				else:
+					values = [r[:-1] for r in values]
+
+			frappe.response["values"] = values
+>>>>>>> 4c415587a6 (fix: permission check for the child table in search link)
 
 
 def get_std_fields_list(meta, key):
