@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import typing
 from urllib.parse import quote
 
 import frappe
@@ -13,6 +14,9 @@ from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
+
+if typing.TYPE_CHECKING:
+	from frappe.model.document import Document
 
 
 @frappe.whitelist()
@@ -117,7 +121,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"assignments": get_assignments(doc.doctype, doc.name),
 			"permissions": get_doc_permissions(doc),
 			"shared": get_docshares(doc),
-			"views": get_view_logs(doc.doctype, doc.name),
+			"views": get_view_logs(doc),
 			"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 			"milestones": get_milestones(doc.doctype, doc.name),
@@ -192,7 +196,9 @@ def get_attachments(dt, dn):
 	)
 
 
-def get_versions(doc):
+def get_versions(doc: "Document") -> list[dict]:
+	if not doc.meta.track_changes:
+		return []
 	return frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=doc.name),
@@ -362,32 +368,29 @@ def run_onload(doc):
 	doc.run_method("onload")
 
 
-def get_view_logs(doctype, docname):
+def get_view_logs(doc: "Document") -> list[dict]:
 	"""get and return the latest view logs if available"""
-	logs = []
-	if getattr(frappe.get_meta(doctype), "track_views", None):
-		view_logs = frappe.get_all(
-			"View Log",
-			filters={
-				"reference_doctype": doctype,
-				"reference_name": docname,
-			},
-			fields=["name", "creation", "owner"],
-			order_by="creation desc",
-		)
+	if not doc.meta.track_views:
+		return []
 
-		if view_logs:
-			logs = view_logs
-	return logs
+	return frappe.get_all(
+		"View Log",
+		filters={
+			"reference_doctype": doc.doctype,
+			"reference_name": doc.name,
+		},
+		fields=["name", "creation", "owner"],
+		order_by="creation desc",
+	)
 
 
-def get_tags(doctype, name):
-	tags = [
-		tag.tag
-		for tag in frappe.get_all(
-			"Tag Link", filters={"document_type": doctype, "document_name": name}, fields=["tag"]
-		)
-	]
+def get_tags(doctype: str, name: str) -> str:
+	tags = frappe.get_all(
+		"Tag Link",
+		filters={"document_type": doctype, "document_name": name},
+		fields=["tag"],
+		pluck="tag",
+	)
 
 	return ",".join(tags)
 
