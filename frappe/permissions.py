@@ -579,6 +579,12 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	if frappe.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0)
 	):
+		frappe.msgprint(
+			_("Rule for this doctype, role, permlevel and if-owner combination already exists.").format(
+				doctype,
+			),
+			alert=True,
+		)
 		return
 
 	if not ptype:
