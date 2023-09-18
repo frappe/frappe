@@ -31,16 +31,6 @@ export default class LinksWidget extends Widget {
 			return is_link_disabled(item) ? "disabled-link" : "";
 		};
 
-		const get_indicator_color = (item) => {
-			if (item.open_count) {
-				return "red";
-			}
-			if (item.onboard) {
-				return item.count ? "blue" : "yellow";
-			}
-			return "gray";
-		};
-
 		const get_link_for_item = (item) => {
 			if (is_link_disabled(item)) {
 				return `<span class="link-content ellipsis disabled-link">${
@@ -86,7 +76,6 @@ export default class LinksWidget extends Widget {
 			} ${disabled_dependent(item)}" type="${item.type}" title="${
 				item.label ? item.label : item.name
 			}">
-					<span class="indicator-pill no-margin ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</a>`);
 		});
