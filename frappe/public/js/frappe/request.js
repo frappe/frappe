@@ -88,7 +88,11 @@ frappe.call = function (opts) {
 
 	let url = opts.url;
 	if (!url) {
-		url = "/api/method/" + args.cmd;
+		let prefix = "/api/method/";
+		if (opts.api_version) {
+			prefix = `/api/${opts.api_version}/method/`;
+		}
+		url = prefix + args.cmd;
 		if (window.cordova) {
 			let host = frappe.request.url;
 			host = host.slice(0, host.length - 1);
@@ -116,6 +120,7 @@ frappe.call = function (opts) {
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		silent: opts.silent,
+		api_version: opts.api_version,
 		url,
 	});
 };
@@ -444,12 +449,18 @@ frappe.request.cleanup = function (opts, r) {
 		}
 
 		// show messages
-		if (r._server_messages && !opts.silent) {
+		//
+		let messages;
+		if (opts.api_version == "v2") {
+			messages = r.messages;
+		} else if (r._server_messages) {
+			messages = JSON.parse(r._server_messages);
+		}
+		if (messages && !opts.silent) {
 			// show server messages if no handlers exist
 			if (handlers.length === 0) {
-				r._server_messages = JSON.parse(r._server_messages);
 				frappe.hide_msgprint();
-				frappe.msgprint(r._server_messages);
+				frappe.msgprint(messages);
 			}
 		}
 
