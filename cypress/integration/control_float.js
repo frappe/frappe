@@ -83,6 +83,23 @@ context("Control Float", () => {
 					},
 				],
 			},
+			{
+				// '.' is the parseFloat's decimal separator
+				number_format: "#.###,##",
+				values: [
+					{
+						input: "12.345",
+						blur_expected: "12.345,000",
+						focus_expected: "12345",
+					},
+					{
+						// parseFloat would reduce 12,340 to 12,34 if this string was ever to be parsed
+						input: "12.340",
+						blur_expected: "12.340,000",
+						focus_expected: "12340",
+					},
+				],
+			},
 		];
 	}
 });

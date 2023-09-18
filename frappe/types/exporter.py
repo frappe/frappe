@@ -206,3 +206,4 @@ class TypeExporter:
 						# Ideally this should be longest common substring but I don't l33tc0de.
 						# If someone really needs it, add support via hooks.
 						self.indent = " " * 4
+					break

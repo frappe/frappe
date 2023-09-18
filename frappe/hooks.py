@@ -418,7 +418,6 @@ before_request = [
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
 ]
-after_request = ["frappe.rate_limiter.update", "frappe.monitor.stop", "frappe.recorder.dump"]
 
 # Background Job Hooks
 before_job = [
