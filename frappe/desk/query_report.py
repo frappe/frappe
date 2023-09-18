@@ -248,11 +248,12 @@ def run(
 
 
 def add_custom_column_data(custom_columns, result):
-	doctype_name_from_custom_field = []
+	doctype_names_from_custom_field = []
 	for column in custom_columns:
-		doctype_name_from_custom_field.append(frappe.unscrub(column["fieldname"].split("-")[1])) if len(
-			column["fieldname"].split("-")
-		) > 1 else None
+		if len(column["fieldname"].split("-")) > 1:
+			# length greater than 1, means that the column is a custom field with confilicting fieldname
+			doctype_name = frappe.unscrub(column["fieldname"].split("-")[1])
+			doctype_names_from_custom_field.append(doctype_name)
 		column["fieldname"] = column["fieldname"].split("-")[0]
 
 	custom_column_data = get_data_for_custom_report(custom_columns, result)
@@ -272,7 +273,7 @@ def add_custom_column_data(custom_columns, result):
 				# possible if the row is empty
 				if not row_reference:
 					continue
-				if key[0] in doctype_name_from_custom_field:
+				if key[0] in doctype_names_from_custom_field:
 					column["fieldname"] = column.get("id")
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
 
