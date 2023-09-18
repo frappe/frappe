@@ -475,9 +475,9 @@ class TestPermissions(FrappeTestCase):
 		# check if user is not granted access if the user is not the owner of the doc
 		# Blogger has only read access on the blog post unless he is the owner of the blog
 		update("Blog Post", "Blogger", 0, "if_owner", 1)
-		update("Blog Post", "Blogger", 0, "read", 1)
-		update("Blog Post", "Blogger", 0, "write", 1)
-		update("Blog Post", "Blogger", 0, "delete", 1)
+		update("Blog Post", "Blogger", 0, "read", 1, 1)
+		update("Blog Post", "Blogger", 0, "write", 1, 1)
+		update("Blog Post", "Blogger", 0, "delete", 1, 1)
 
 		# currently test2 user has not created any document
 		# still he should be able to do get_list query which should
@@ -586,9 +586,9 @@ class TestPermissions(FrappeTestCase):
 
 	def test_if_owner_permission_on_delete(self):
 		update("Blog Post", "Blogger", 0, "if_owner", 1)
-		update("Blog Post", "Blogger", 0, "read", 1)
-		update("Blog Post", "Blogger", 0, "write", 1)
-		update("Blog Post", "Blogger", 0, "delete", 1)
+		update("Blog Post", "Blogger", 0, "read", 1, 1)
+		update("Blog Post", "Blogger", 0, "write", 1, 1)
+		update("Blog Post", "Blogger", 0, "delete", 1, 1)
 
 		# Remove delete perm
 		update("Blog Post", "Website Manager", 0, "delete", 0)
@@ -625,7 +625,7 @@ class TestPermissions(FrappeTestCase):
 
 		frappe.set_user("test2@example.com")
 		frappe.delete_doc("Blog Post", "-test-blog-post-title-new-1")
-		update("Blog Post", "Website Manager", 0, "delete", 1)
+		update("Blog Post", "Website Manager", 0, "delete", 1, 1)
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user
