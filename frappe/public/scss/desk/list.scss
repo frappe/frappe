@@ -178,6 +178,11 @@
 	a {
 		color: var(--text-muted);
 	}
+
+	& > [data-sort-by]:hover {
+		cursor: pointer;
+		text-decoration: underline;
+	}
 }
 
 $level-margin-right: 8px;

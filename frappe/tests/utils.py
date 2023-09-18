@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.model.base_document import BaseDocument
+from frappe.model.base_document import BaseDocument, get_controller
 from frappe.utils import cint
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
@@ -253,3 +253,21 @@ def patch_hooks(overridden_hoooks):
 
 	with patch.object(frappe, "get_hooks", patched_hooks):
 		yield
+
+
+def check_orpahned_doctypes():
+	"""Check that all doctypes in DB actually exist after patch test"""
+
+	doctypes = frappe.get_all("DocType", {"custom": 0}, pluck="name")
+	orpahned_doctypes = []
+
+	for doctype in doctypes:
+		try:
+			get_controller(doctype)
+		except ImportError:
+			orpahned_doctypes.append(doctype)
+
+	if orpahned_doctypes:
+		frappe.throw(
+			"Following doctypes exist in DB without controller.\n {}".format("\n".join(orpahned_doctypes))
+		)
