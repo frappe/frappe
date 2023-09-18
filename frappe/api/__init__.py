@@ -72,7 +72,7 @@ API_URL_MAP = Map(
 
 
 def get_api_version() -> ApiVersion | None:
-	if not frappe.request or not frappe.request.path.startswith("/api"):
+	if not frappe.request:
 		return
 
 	if frappe.request.path.startswith(f"/api/{ApiVersion.V2.value}"):
