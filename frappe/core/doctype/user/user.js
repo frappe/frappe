@@ -1,7 +1,7 @@
 frappe.ui.form.on("User", {
 	before_load: function (frm) {
-		var update_tz_select = function (user_language) {
-			frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
+		let update_tz_options = function () {
+			frm.fields_dict.time_zone.set_data(frappe.all_timezones);
 		};
 
 		if (!frappe.all_timezones) {
@@ -9,11 +9,11 @@ frappe.ui.form.on("User", {
 				method: "frappe.core.doctype.user.user.get_timezones",
 				callback: function (r) {
 					frappe.all_timezones = r.message.timezones;
-					update_tz_select();
+					update_tz_options();
 				},
 			});
 		} else {
-			update_tz_select();
+			update_tz_options();
 		}
 	},
 
