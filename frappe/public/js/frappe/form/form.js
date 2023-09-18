@@ -748,10 +748,14 @@ frappe.ui.form.Form = class FrappeForm {
 		return new Promise((resolve, reject) => {
 			btn && $(btn).prop("disabled", true);
 			frappe.ui.form.close_grid_form();
-			me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
+			if (save_action == "Approve") {
+				me.proposed_doc = me.doc.proposed_doc;
+				me.validate_and_save("Save", callback, btn, on_error, resolve, reject);
+			} else me.validate_and_save(save_action, callback, btn, on_error, resolve, reject);
 		})
 			.then(() => {
 				me.show_success_action();
+				if (save_action == "Approve") me.set_proposed_document_status("Approved");
 			})
 			.catch((e) => {
 				console.error(e);
@@ -2153,6 +2157,13 @@ frappe.ui.form.Form = class FrappeForm {
 					wrapper.remove();
 				}
 			});
+	}
+
+	set_proposed_document_status(status) {
+		frappe.db.set_value("Proposed Document", this.proposed_doc, {
+			status: status,
+			document_name: this.doc.name,
+		});
 	}
 };
 

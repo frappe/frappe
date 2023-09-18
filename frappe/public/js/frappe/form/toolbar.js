@@ -629,7 +629,9 @@ frappe.ui.form.Toolbar = class Toolbar {
 		} else if (this.can_save()) {
 			if (!this.frm.save_disabled) {
 				//Show the save button if there is no workflow or if there is a workflow and there are changes
-				if (this.has_workflow() ? this.frm.doc.__unsaved : true) {
+				if (this.can_approve()) {
+					status = "Approve";
+				} else if (this.has_workflow() ? this.frm.doc.__unsaved : true) {
 					status = "Save";
 				}
 			}
@@ -693,16 +695,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 					if (me.frm.is_new()) return me.frm.propose_save("Propose Save", null, this);
 					else return me.frm.propose_save("Propose Update", null, this);
 				},
+				Approve: function () {
+					return me.frm.save("Approve", null, this);
+				},
 			}[status];
 
 			var icon = {
 				Update: "edit",
 			}[status];
 
-			let button_label = status;
-			if (status == "Save" && this.can_approve()) button_label = "Approve";
-
-			this.page.set_primary_action(__(button_label), click, icon);
+			this.page.set_primary_action(__(status), click, icon);
 		}
 
 		this.current_status = status;
