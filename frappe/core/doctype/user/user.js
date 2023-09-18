@@ -277,7 +277,6 @@ frappe.ui.form.on("User", {
 			frm.dirty();
 		}
 		frm.trigger("time_zone");
-		frm.trigger("setup_time_zone_autocomplete");
 	},
 	validate: function (frm) {
 		if (frm.roles_editor) {
@@ -339,14 +338,6 @@ frappe.ui.form.on("User", {
 		if (frappe.boot.time_zone && frappe.boot.time_zone.user !== frm.doc.time_zone) {
 			// Clear cache after saving to refresh the values of boot.
 			frappe.ui.toolbar.clear_cache();
-		}
-	},
-	setup_time_zone_autocomplete: function (frm) {
-		let df = frm.fields_dict.time_zone.df;
-		if (df.fieldtype !== "Autocomplete") {
-			df = { ...df, fieldtype: "Autocomplete" };
-			frm.layout.replace_field("time_zone", df, true);
-			frm.layout.attach_doc_and_docfields();
 		}
 	},
 });
