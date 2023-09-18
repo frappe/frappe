@@ -634,7 +634,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="level-item list-liked-by-me hidden-xs">
 				<span title="${__("Likes")}">${frappe.utils.icon("heart", "sm", "like-icon")}</span>
 			</span>
-			<span class="level-item">${__(subject_field.label)}</span>
+			<span class="level-item" data-sort-by="${subject_field.fieldname}"
+				title="${__("Click to sort by {0}", [subject_field.label])}">
+				${__(subject_field.label)}
+			</span>
 		`;
 		const $columns = this.columns
 			.map((col) => {
@@ -645,15 +648,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
 				].join(" ");
 
-				return `
-				<div class="${classes}">
-					${
-						col.type === "Subject"
-							? subject_html
-							: `
-						<span>${__((col.df && col.df.label) || col.type)}</span>`
-					}
-				</div>
+				let html = "";
+				if (col.type === "Subject") {
+					html = subject_html;
+				} else {
+					const fieldname = col.df?.fieldname;
+					const attrs = fieldname
+						? ` data-sort-by="${fieldname}"
+							title="${__("Click to sort by {0}", [col.df?.label])}"`
+						: "";
+					html = `<span ${attrs}>
+						${__(col.df?.label || col.type)}
+					</span>`;
+				}
+
+				return `<div class="${classes}">${html}</div>
 			`;
 			})
 			.join("");
@@ -1061,6 +1070,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_events() {
 		this.setup_filterable();
+		this.setup_sort_by();
 		this.setup_list_click();
 		this.setup_drag_click();
 		this.setup_tag_event();
@@ -1199,6 +1209,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return [this.doctype, f[0], f[1], f.slice(2).join(",")];
 			});
 			this.filter_area.add(filters_to_apply);
+		});
+	}
+
+	setup_sort_by() {
+		this.$result.on("click", "[data-sort-by]", (e) => {
+			const sort_by = e.currentTarget.getAttribute("data-sort-by");
+			if (!sort_by) return;
+			let sort_order = "asc"; // always start with asc
+			if (this.sort_by === sort_by) {
+				// unless it's the same field, then toggle
+				sort_order = this.sort_order === "asc" ? "desc" : "asc";
+			}
+			this.sort_selector.set_value(sort_by, sort_order);
+			this.on_sort_change(sort_by, sort_order);
 		});
 	}
 
