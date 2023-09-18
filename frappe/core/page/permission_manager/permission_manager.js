@@ -371,6 +371,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						doctype: d.parent,
 						role: d.role,
 						permlevel: d.permlevel,
+						if_owner: d.if_owner,
 					},
 					callback: (r) => {
 						if (r.exc) {
