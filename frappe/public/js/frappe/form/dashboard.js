@@ -365,6 +365,11 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	open_document_list($link, show_open) {
+		// don't use set_route if href is set
+		if ($link.find("a").attr("href")) {
+			return;
+		}
+
 		// show document list with filters
 		let doctype = $link.attr("data-doctype"),
 			names = $link.attr("data-names") || [];
@@ -467,17 +472,26 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			me.frm.dashboard.set_badge_count_for_external_link(
 				d.doctype,
 				cint(d.open_count),
-				cint(d.count)
+				cint(d.count),
+				d.docname
 			);
 		});
 	}
 
-	set_badge_count_for_external_link(doctype, open_count, count) {
+	set_badge_count_for_external_link(doctype, open_count, count, docname) {
 		let $link = $(this.transactions_area).find(
 			'.document-link[data-doctype="' + doctype + '"]'
 		);
 
 		this.set_badge_count_common(open_count, count, $link);
+
+		if (docname) {
+			$link.find("a").attr({
+				href: frappe.utils.get_form_link(doctype, docname),
+				"data-name": docname,
+				"data-doctype": doctype,
+			});
+		}
 	}
 
 	set_badge_count_for_internal_link(doctype, open_count, count, names) {

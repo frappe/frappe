@@ -341,12 +341,14 @@ def get_external_links(doctype, name, links):
 	else:
 		data["open_count"] = 0
 
-	total = len(
-		frappe.get_all(
-			doctype, fields="name", filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True
-		)
+	all_docs = frappe.get_all(
+		doctype, fields="name", filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True
 	)
+	total = len(all_docs)
 	data["count"] = total
+
+	if total == 1:
+		data["docname"] = all_docs[0].name
 
 	return data
 
