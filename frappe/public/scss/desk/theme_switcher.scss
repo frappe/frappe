@@ -32,6 +32,10 @@
 		}
 	}
 
+	.theme-title {
+		color: var(--text-color);
+	}
+
 	.selected {
 		.background {
 			box-shadow: var(--focus-default);

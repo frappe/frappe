@@ -189,7 +189,10 @@ h1, h2, h3, h4 {
 	color: var(--text-color);
 	margin-bottom: var(--margin-md)
 }
-
+// override default gray-900 from bootstrap to support dark mode.
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+	color: var(--heading-color);
+}
 h1, h2, h3 {
 	font-weight: bold;
 }
@@ -318,6 +321,7 @@ select.input-xs {
 	@include get_textstyle("base", "regular");
 	max-height: 500px;
 	overflow: auto;
+	border: 1px solid var(--subtle-accent);
 
 	.dropdown-divider {
 		margin: 4px 0;

@@ -37,7 +37,7 @@
 	.form-section-description {
 		margin-bottom: 10px;
 		@include get_textstyle("base", "regular");
-		color: var(--text-black);
+		color: var(--heading-color);
 	}
 
 	.section-head {
@@ -124,7 +124,7 @@
 }
 
 .control-label {
-	margin-bottom: var(--margin-xs);
+	margin-bottom: 6px;
 }
 
 .form-inner-toolbar {

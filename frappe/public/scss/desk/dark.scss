@@ -30,7 +30,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--fg-hover-color: var(--gray-800);
 	--card-bg: var(--gray-900);
 	--disabled-text-color: var(--gray-400);
-	--disabled-control-bg: var(--gray-700);
+	--disabled-control-bg: var(--gray-800);
 	--control-bg: var(--gray-800);
 	--control-bg-on-gray: var(--gray-800);
 	--awesomebar-focus-bg: var(--control-bg);
@@ -94,8 +94,8 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--scrollbar-thumb-color: var(--gray-600);
 	--scrollbar-track-color: var(--gray-700);
 
-	--timeline-badge-color: var(--gray-900);
-	--timeline-badge-bg: var(--gray-500);
+	--timeline-badge-color: var(--gray-500);
+	--timeline-badge-bg: var(--gray-900);
 
 	--shadow-inset: var(--fg-color);
 	--border-color: var(--gray-800);
@@ -127,11 +127,16 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// checkbox
 	--checkbox-color: var(--neutral-white);
 	--checkbox-gradient: linear-gradient(180deg, var(--neutral-white) -124.51%, var(--neutral-white) 100%);
-	--checkbox-focus-shadow: 0 0 0 2px var(--gray-600);
+	--checkbox-disabled-gradient: linear-gradient(180deg, var(--gray-500) -124.51%, var(--gray-500) 100%);
+	--checkbox-focus-shadow: var(--focus-default);
 
 	input[type="checkbox"] {
-		&:checked, &.disabled-selected, &:disabled:checked {
+		&:checked {
 			background-image: $check-icon-dark, var(--checkbox-gradient);
+		}
+		&.disabled-selected, &:disabled:checked {
+			background-image: $check-icon-dark, var(--checkbox-disabled-gradient);
+			background-color: var(--gray-500);
 		}
 	}
 

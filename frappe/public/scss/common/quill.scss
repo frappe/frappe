@@ -113,10 +113,16 @@
 .ql-toolbar.ql-snow {
 	border-top-left-radius: var(--border-radius);
 	border-top-right-radius: var(--border-radius);
-	background-color: var(--subtle-accent);
+	background-color: var(--gray-200);
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
 	padding-top: 4px;
+
+}
+[data-theme="dark"] {
+	.ql-toolbar.ql-snow {
+		background-color: var(--gray-900);
+	}
 }
 
 .ql-container.ql-snow {

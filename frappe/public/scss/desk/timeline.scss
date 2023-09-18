@@ -37,9 +37,10 @@ $threshold: 34;
 	.timeline-dot {
 		@include timeline-badge(16px);
 		left: calc(-1.25 * var(--timeline-item-left-margin) / 2);
+		background: var(--bg-color);
 		&:before {
 			content: ' ';
-			background: var(--gray-900);
+			background: var(--timeline-badge-color);
 			border-radius: 50%;
 			height: 4px;
 			width: 4px;

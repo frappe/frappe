@@ -978,9 +978,9 @@ body {
 				margin-bottom: var(--margin-sm);
 
 				&.edit-mode {
-					background-color: var(--gray-50) !important;
+					background-color: var(--subtle-fg) !important;
 					.links-widget-box {
-						background-color: var(--gray-50);
+						background-color: var(--bg-color) !important;
 					}
 				}
 			}

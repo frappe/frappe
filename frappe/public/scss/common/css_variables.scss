@@ -137,6 +137,7 @@ $disabled-input-height: 22px;
 
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
 	--checkbox-gradient: linear-gradient(180deg, var(--primary) -124.51%, var(--primary) 100%);
+	--checkbox-disabled-gradient: linear-gradient(180deg, var(--disabled-control-bg) -124.51%, var(--disabled-control-bg) 100%);
 
 
 	// switch
