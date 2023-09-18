@@ -135,11 +135,14 @@ def update(doctype, role, permlevel, ptype, value=None):
 
 
 @frappe.whitelist()
-def remove(doctype, role, permlevel):
+def remove(doctype, role, permlevel, if_owner):
 	frappe.only_for("System Manager")
 	setup_custom_perms(doctype)
 
-	frappe.db.delete("Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel})
+	frappe.db.delete(
+		"Custom DocPerm",
+		{"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner},
+	)
 
 	if not frappe.get_all("Custom DocPerm", {"parent": doctype}):
 		frappe.throw(_("There must be atleast one permission rule."), title=_("Cannot Remove"))
