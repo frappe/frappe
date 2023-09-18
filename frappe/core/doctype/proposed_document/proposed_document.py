@@ -18,6 +18,7 @@ class ProposedDocument(Document):
 		document_name: DF.Data | None
 		document_type: DF.Link | None
 		is_new_doc: DF.Check
+		status: DF.Literal["Pending", "Approved", "Rejected"]
 	# end: auto-generated types
 	pass
 
