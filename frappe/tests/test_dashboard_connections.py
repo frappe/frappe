@@ -105,6 +105,7 @@ class TestDashboardConnections(FrappeTestCase):
 						"doctype": "Test Doctype B With Child Table With Link To Doctype A",
 						"open_count": 0,
 						"count": 1,
+						"docname": "Pluto",
 					}
 				],
 				"internal_links_found": [],
