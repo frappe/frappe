@@ -142,7 +142,8 @@ frappe.search.utils = {
 		var out = [];
 		var firstKeyword = keywords.split(" ")[0];
 		if (firstKeyword.toLowerCase() === __("new")) {
-			frappe.boot.user.can_create.forEach(function (item) {
+			let creatables = frappe.boot.user.can_create.concat(frappe.boot.user.can_propose);
+			creatables.forEach(function (item) {
 				var level = me.fuzzy_search(keywords.substr(4), item);
 				if (level) {
 					out.push({
@@ -194,7 +195,12 @@ frappe.search.utils = {
 					out.push(option("", ["Form", item, item], 0.05));
 				} else if (frappe.boot.user.can_search.includes(item)) {
 					// include 'making new' option
-					if (in_list(frappe.boot.user.can_create, item)) {
+					if (
+						in_list(
+							frappe.boot.user.can_create.concat(frappe.boot.user.can_propose),
+							item
+						)
+					) {
 						var match = item;
 						out.push({
 							type: "New",
