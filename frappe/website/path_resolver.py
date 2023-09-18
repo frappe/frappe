@@ -17,10 +17,11 @@ from frappe.website.utils import can_cache, get_home_page
 
 
 class PathResolver:
-	__slots__ = ("path",)
+	__slots__ = ("path", "http_status_code")
 
-	def __init__(self, path):
+	def __init__(self, path, http_status_code=None):
 		self.path = path.strip("/ ")
+		self.http_status_code = http_status_code
 
 	def resolve(self):
 		"""Returns endpoint and a renderer instance that can render the endpoint"""
@@ -41,7 +42,7 @@ class PathResolver:
 
 		# WARN: Hardcoded for better performance
 		if endpoint == "app":
-			return endpoint, TemplatePage(endpoint, 200)
+			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = custom_renderers + [
@@ -54,7 +55,7 @@ class PathResolver:
 		]
 
 		for renderer in renderers:
-			renderer_instance = renderer(endpoint, 200)
+			renderer_instance = renderer(endpoint, self.http_status_code)
 			if renderer_instance.can_render():
 				return endpoint, renderer_instance
 
