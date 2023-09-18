@@ -16,7 +16,7 @@ import frappe
 import frappe.client
 from frappe import _, get_newargs, is_whitelisted
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.handler import is_valid_http_method, run_server_script
+from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -168,6 +168,7 @@ url_rules = [
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout),
 	Rule("/method/ping", endpoint=frappe.ping),
+	Rule("/method/upload_file", endpoint=upload_file),
 	Rule("/method/<method>", endpoint=handle_rpc_call),
 	Rule(
 		"/method/run_doc_method",
