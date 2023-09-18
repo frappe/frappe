@@ -6,6 +6,7 @@ import decimal
 import json
 import mimetypes
 import os
+import sys
 from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
@@ -29,20 +30,43 @@ if TYPE_CHECKING:
 
 def report_error(status_code):
 	"""Build error. Show traceback in developer mode"""
-	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
-	if (
-		allow_traceback
-		and (status_code != 404 or frappe.conf.logging)
+	from frappe.api import ApiVersion, get_api_version
+
+	allow_traceback = (
+		(frappe.get_system_settings("allow_error_traceback") if frappe.db else False)
 		and not frappe.local.flags.disable_traceback
-	):
-		traceback = frappe.utils.get_traceback()
-		if traceback:
-			frappe.errprint(traceback)
-			frappe.local.response.exception = traceback.splitlines()[-1]
+		and (status_code != 404 or frappe.conf.logging)
+	)
+
+	traceback = frappe.utils.get_traceback()
+	exc_type, exc_value, _ = sys.exc_info()
+
+	match get_api_version():
+		case ApiVersion.V1:
+			if allow_traceback:
+				frappe.errprint(traceback)
+				frappe.response.exception = traceback.splitlines()[-1]
+			frappe.response["exc_type"] = exc_type.__name__
+		case ApiVersion.V2:
+			error_log = {"type": exc_type.__name__}
+			if allow_traceback:
+				error_log["exception"] = traceback
+			_link_error_with_message_log(error_log, exc_value, frappe.message_log)
+			frappe.local.response.errors = [error_log]
 
 	response = build_response("json")
 	response.status_code = status_code
 	return response
+
+
+def _link_error_with_message_log(error_log, exception, message_logs):
+	for message in message_logs:
+		if message.get("__frappe_exc_id") == exception.__frappe_exc_id:
+			error_log.update(message)
+			message_logs.remove(message)
+			error_log.pop("raise_exception", None)
+			error_log.pop("__frappe_exc_id", None)
+			return
 
 
 def build_response(response_type=None):
@@ -163,6 +187,9 @@ def _make_logs_v2():
 
 	if frappe.local.message_log:
 		response["messages"] = frappe.local.message_log
+
+	if frappe.debug_log and frappe.conf.get("logging"):
+		response["debug"] = [{"message": m} for m in frappe.local.debug_log]
 
 
 def json_handler(obj):

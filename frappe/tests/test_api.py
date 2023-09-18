@@ -200,7 +200,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], list)
 
-	@parameterize("", "v1", "v2")
+	@parameterize("", "v1")
 	def test_get_list_debug(self):
 		# test 5: fetch response with debug
 		with suppress_stdout():
@@ -252,12 +252,6 @@ class TestResourceAPI(FrappeAPITestCase):
 		response = self.get(self.resource_path(self.DOCTYPE, doc_to_delete))
 		self.assertEqual(response.status_code, 404)
 		self.GENERATED_DOCUMENTS.remove(doc_to_delete)
-
-		non_existent_doc = frappe.generate_hash(length=12)
-		with suppress_stdout():
-			response = self.delete(self.resource_path(self.DOCTYPE, non_existent_doc))
-		self.assertEqual(response.status_code, 404)
-		self.assertDictEqual(response.json, {})
 
 	@parameterize("", "v1")
 	def test_run_doc_method(self):
@@ -372,6 +366,15 @@ class TestDocumentAPIV2(TestResourceAPI):
 		response = self.get(self.resource_path(self.DOCTYPE, random_doc))
 		self.assertEqual(response.json["data"]["description"], generated_desc)
 
+	def test_delete_document_non_existing(self):
+		non_existent_doc = frappe.generate_hash(length=12)
+		with suppress_stdout():
+			response = self.delete(self.resource_path(self.DOCTYPE, non_existent_doc))
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json["errors"][0]["type"], "DoesNotExistError")
+		# 404s dont return exceptions
+		self.assertFalse(response.json["errors"][0].get("exception"))
+
 
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
@@ -479,7 +482,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			response = self.get(
 				self.method_path(method),
 				{"sid": self.sid, "message": expected_message, "fail": True, "handled": False},
-			)
+			).json
 
 		self.assertIsInstance(response["errors"], list)
 		self.assertEqual(response["errors"][0]["type"], "ZeroDivisionError")
@@ -522,7 +525,7 @@ class TestReadOnlyMode(FrappeAPITestCase):
 		self.assertIsInstance(response.json, dict)
 		self.assertIsInstance(response.json["data"], list)
 
-	@parameterize("", "v1", "v2")
+	@parameterize("", "v1")
 	def test_blocked_writes(self):
 		with suppress_stdout():
 			response = self.post(
@@ -530,6 +533,15 @@ class TestReadOnlyMode(FrappeAPITestCase):
 			)
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json["exc_type"], "InReadOnlyMode")
+
+	@parameterize("v2")
+	def test_blocked_writes_v2(self):
+		with suppress_stdout():
+			response = self.post(
+				self.resource_path("ToDo"), {"description": frappe.mock("paragraph"), "sid": self.sid}
+			)
+		self.assertEqual(response.status_code, 503)
+		self.assertEqual(response.json["errors"][0]["type"], "InReadOnlyMode")
 
 
 class TestWSGIApp(FrappeAPITestCase):

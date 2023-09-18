@@ -488,9 +488,12 @@ def msgprint(
 	def _raise_exception():
 		if raise_exception:
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception(msg)
+				exc = raise_exception(msg)
 			else:
-				raise ValidationError(msg)
+				exc = ValidationError(msg)
+			if out.__frappe_exc_id:
+				exc.__frappe_exc_id = out.__frappe_exc_id
+			raise exc
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -527,6 +530,7 @@ def msgprint(
 
 	if raise_exception:
 		out.raise_exception = 1
+		out.__frappe_exc_id = generate_hash()
 
 	if primary_action:
 		out.primary_action = primary_action
@@ -535,10 +539,6 @@ def msgprint(
 		out.wide = wide
 
 	message_log.append(out)
-
-	if raise_exception and hasattr(raise_exception, "__name__"):
-		local.response["exc_type"] = raise_exception.__name__
-
 	_raise_exception()
 
 
