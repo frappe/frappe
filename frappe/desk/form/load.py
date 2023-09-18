@@ -153,29 +153,22 @@ def add_comments(doc, docinfo):
 	)
 
 	for c in comments:
-		if c.comment_type == "Comment":
-			c.content = frappe.utils.markdown(c.content)
-			docinfo.comments.append(c)
-
-		elif c.comment_type in ("Shared", "Unshared"):
-			docinfo.shared.append(c)
-
-		elif c.comment_type in ("Assignment Completed", "Assigned"):
-			docinfo.assignment_logs.append(c)
-
-		elif c.comment_type in ("Attachment", "Attachment Removed"):
-			docinfo.attachment_logs.append(c)
-
-		elif c.comment_type in ("Info", "Edit", "Label"):
-			docinfo.info_logs.append(c)
-
-		elif c.comment_type == "Like":
-			docinfo.like_logs.append(c)
-
-		elif c.comment_type == "Workflow":
-			docinfo.workflow_logs.append(c)
-
-		frappe.utils.add_user_info(c.owner, docinfo.user_info)
+		match c.comment_type:
+			case "Comment":
+				c.content = frappe.utils.markdown(c.content)
+				docinfo.comments.append(c)
+			case "Shared" | "Unshared":
+				docinfo.shared.append(c)
+			case "Assignment Completed" | "Assigned":
+				docinfo.assignment_logs.append(c)
+			case "Attachment" | "Attachment Removed":
+				docinfo.attachment_logs.append(c)
+			case "Info" | "Edit" | "Label":
+				docinfo.info_logs.append(c)
+			case "Like":
+				docinfo.like_logs.append(c)
+			case "Workflow":
+				docinfo.workflow_logs.append(c)
 
 	return comments
 
@@ -481,17 +474,20 @@ def send_link_titles(link_titles):
 
 
 def update_user_info(docinfo):
-	for d in docinfo.communications:
-		frappe.utils.add_user_info(d.sender, docinfo.user_info)
+	users = set()
 
-	for d in docinfo.shared:
-		frappe.utils.add_user_info(d.user, docinfo.user_info)
+	users.update(d.sender for d in docinfo.communications)
+	users.update(d.user for d in docinfo.shared)
+	users.update(d.owner for d in docinfo.assignments)
+	users.update(d.owner for d in docinfo.views)
+	users.update(d.owner for d in docinfo.workflow_logs)
+	users.update(d.owner for d in docinfo.like_logs)
+	users.update(d.owner for d in docinfo.info_logs)
+	users.update(d.owner for d in docinfo.attachment_logs)
+	users.update(d.owner for d in docinfo.assignment_logs)
+	users.update(d.owner for d in docinfo.comments)
 
-	for d in docinfo.assignments:
-		frappe.utils.add_user_info(d.owner, docinfo.user_info)
-
-	for d in docinfo.views:
-		frappe.utils.add_user_info(d.owner, docinfo.user_info)
+	frappe.utils.add_user_info(users, docinfo.user_info)
 
 
 @frappe.whitelist()
