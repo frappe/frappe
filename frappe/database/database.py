@@ -879,7 +879,9 @@ class Database:
 		"""
 		from frappe.model.utils import is_single_doctype
 
-		if (dn is None or dt == dn) and is_single_doctype(dt):
+		if dn is None or dt == dn:
+			if not is_single_doctype(dt):
+				return
 			deprecation_warning(
 				"Calling db.set_value on single doctype is deprecated. This behaviour will be removed in future. Use db.set_single_value instead."
 			)

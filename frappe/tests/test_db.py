@@ -693,6 +693,12 @@ class TestDBSetValue(FrappeTestCase):
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
 
+	def test_none_no_set_value(self):
+		frappe.db.set_value("User", None, "middle_name", "test")
+		with self.assertQueryCount(0):
+			frappe.db.set_value("User", None, "middle_name", "test")
+			frappe.db.set_value("User", "User", "middle_name", "test")
+
 	def test_update_single_row_single_column(self):
 		frappe.db.set_value("ToDo", self.todo1.name, "description", "test_set_value change 1")
 		updated_value = frappe.db.get_value("ToDo", self.todo1.name, "description")
