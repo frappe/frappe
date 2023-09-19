@@ -31,21 +31,28 @@ context("Dashboard links", () => {
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
 		cy.select_form_tab("Connections");
-		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
+		cy.get('.document-link-badge[data-doctype="Contact"]').should("contain", "Contact");
+		cy.get('.document-link-badge[data-doctype="Contact"] > .count').should("contain", "1");
+
+		//To check if a dashboard link with count = 1 contains a link to the document directly
+		cy.get('.document-link-badge[data-doctype="Contact"] > .badge-link')
+			.should("have.attr", "href")
+			.and("include", "/app/contact/");
 
 		//Adding a new contact
-		cy.get('.document-link-badge[data-doctype="Contact"]').click();
+		cy.get('.document-link[data-doctype="Contact"] .btn-new').click();
 		cy.wait(300);
-		cy.findByRole("button", { name: "Add Contact" }).should("be.visible");
-		cy.findByRole("button", { name: "Add Contact" }).click();
 		cy.get('[data-doctype="Contact"][data-fieldname="first_name"]').type("Admin");
 		cy.findByRole("button", { name: "Save" }).click();
-		cy.visit(`/app/user/${cy.config("testUser")}`);
 
 		//To check if the counter for contact doc is "2" after adding additional contact
+		cy.visit(`/app/user/${cy.config("testUser")}`);
 		cy.select_form_tab("Connections");
-		cy.get('[data-doctype="Contact"] > .count').should("contain", "2");
-		cy.get('[data-doctype="Contact"]').contains("Contact").click();
+		cy.get('.document-link-badge[data-doctype="Contact"] > .count').should("contain", "2");
+
+		//To check that the dashboard link with count > 1 links to a list view
+		cy.get('.document-link-badge[data-doctype="Contact"]').contains("Contact").click();
+		cy.url().should("include", "/app/contact");
 
 		//Deleting the newly created contact
 		cy.visit("/app/contact");
@@ -53,12 +60,13 @@ context("Dashboard links", () => {
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
 		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
-
-		//To check if the counter from the "Contact" doc link is removed
 		cy.wait(700);
-		cy.visit("/app/user");
-		cy.get(".list-row-col > .level-item > .ellipsis").eq(0).click({ force: true });
-		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
+
+		//To check if the counter from the "Contact" doc link is decreased
+		cy.visit(`/app/user/${cy.config("testUser")}`);
+		cy.select_form_tab("Connections");
+		cy.get('.document-link-badge[data-doctype="Contact"]').should("contain", "Contact");
+		cy.get('.document-link-badge[data-doctype="Contact"] > .count').should("contain", "1");
 	});
 
 	it("Report link in dashboard", () => {
