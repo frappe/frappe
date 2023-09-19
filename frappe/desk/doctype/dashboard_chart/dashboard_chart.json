@@ -288,11 +288,7 @@
   }
  ],
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-08-14 16:33:30.172798",
-=======
  "modified": "2023-09-18 13:41:05.263676",
->>>>>>> df30e1c6f0 (fix: Only allow user with role set in Dashboard chart)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
