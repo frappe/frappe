@@ -411,7 +411,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					.then((settings) => {
 						frappe.dom.eval(settings.script || "");
 						frappe.after_ajax(() => {
-							this.report_settings = this.get_local_report_settings();
+							this.report_settings = this.get_local_report_settings(
+								settings.custom_report_name
+							);
 							this.report_settings.html_format = settings.html_format;
 							this.report_settings.execution_time = settings.execution_time || 0;
 							frappe.query_reports[this.report_name] = this.report_settings;
@@ -429,10 +431,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
-	get_local_report_settings() {
+	get_local_report_settings(custom_report_name) {
 		let report_script_name =
 			this.report_doc.report_type === "Custom Report"
-				? this.report_doc.reference_report
+				? custom_report_name
+					? custom_report_name
+					: this.report_doc.reference_report
 				: this.report_name;
 		return frappe.query_reports[report_script_name] || {};
 	}

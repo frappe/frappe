@@ -32,7 +32,7 @@ def get(args=None):
 		filters={
 			"reference_type": args.get("doctype"),
 			"reference_name": args.get("name"),
-			"status": ("!=", "Cancelled"),
+			"status": ("not in", ("Cancelled", "Closed")),
 		},
 		limit=5,
 	)
@@ -164,6 +164,14 @@ def remove(doctype, name, assign_to):
 	return set_status(doctype, name, "", assign_to, status="Cancelled")
 
 
+@frappe.whitelist()
+def close(doctype: str, name: str, assign_to: str):
+	if assign_to != frappe.session.user:
+		frappe.throw(_("Only the assignee can complete this to-do."))
+
+	return set_status(doctype, name, "", assign_to, status="Closed")
+
+
 def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 	"""remove from todo"""
 	try:
@@ -187,7 +195,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 		pass
 
 	# clear assigned_to if field exists
-	if frappe.get_meta(doctype).get_field("assigned_to") and status == "Cancelled":
+	if frappe.get_meta(doctype).get_field("assigned_to") and status in ("Cancelled", "Closed"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	return get({"doctype": doctype, "name": name})

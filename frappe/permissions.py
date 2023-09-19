@@ -562,13 +562,23 @@ def can_export(doctype, raise_exception=False):
 		return has_access
 
 
-def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
+def update_permission_property(
+	doctype,
+	role,
+	permlevel,
+	ptype,
+	value=None,
+	validate=True,
+	if_owner=0,
+):
 	"""Update a property in Custom Perm"""
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
 	out = setup_custom_perms(doctype)
 
-	name = frappe.get_value("Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel))
+	name = frappe.db.get_value(
+		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=if_owner)
+	)
 	table = DocType("Custom DocPerm")
 	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
@@ -595,6 +605,12 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	if frappe.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0)
 	):
+		frappe.msgprint(
+			_("Rule for this doctype, role, permlevel and if-owner combination already exists.").format(
+				doctype,
+			),
+			alert=True,
+		)
 		return
 
 	if not ptype:

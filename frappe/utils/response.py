@@ -129,9 +129,8 @@ def as_pdf():
 def as_binary():
 	response = Response()
 	response.mimetype = "application/octet-stream"
-	response.headers["Content-Disposition"] = (
-		'filename="%s"' % frappe.response["filename"].replace(" ", "_")
-	).encode("utf-8")
+	filename = "_".join(frappe.response["filename"].split())
+	response.headers["Content-Disposition"] = ('filename="%s"' % filename).encode("utf-8")
 	response.data = frappe.response["filecontent"]
 	return response
 
