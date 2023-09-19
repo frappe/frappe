@@ -376,7 +376,7 @@ frappe.views.BaseList = class BaseList {
 					</button>
 				</div>
 			</div>`
-		).hide();
+		);
 		this.$frappe_list.append(this.$paging_area);
 
 		// set default paging btn active

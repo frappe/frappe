@@ -343,6 +343,10 @@ body[data-route*="Kanban"] {
 			color: var(--text-color) !important;
 		}
 	}
+    .list-paging-area {
+        margin-left: 1rem;
+        padding: 1rem 0;
+    }
 }
 
 .edit-card-title {

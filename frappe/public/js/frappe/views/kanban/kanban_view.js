@@ -64,7 +64,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			this.board_name = frappe.get_route()[3] || get_board_name() || null;
 			this.page_title = __(this.board_name);
 			this.card_meta = this.get_card_meta();
-			this.page_length = 0;
+			this.page_length = 20;
 
 			return frappe.run_serially([
 				() => this.set_board_perms_and_push_menu_items(),
@@ -114,7 +114,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_paging_area() {
-		// pass
+		super.setup_paging_area();
 	}
 
 	toggle_result_area() {
