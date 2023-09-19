@@ -268,14 +268,15 @@ frappe.ui.Page = class Page {
 	set_action(btn, opts) {
 		let me = this;
 		if (opts.icon) {
-			opts.label = this.get_icon_label(opts.icon, opts.label);
+			opts.iconHTML = this.get_icon_label(opts.icon, opts.label);
 		}
 
 		this.clear_action_of(btn);
 
 		btn.removeClass("hide")
 			.prop("disabled", false)
-			.html(opts.label)
+			.html(opts.iconHTML || opts.label)
+			.attr("data-label", opts.label)
 			.on("click", function () {
 				let response = opts.click.apply(this, [btn]);
 				me.btn_disable_enable(btn, response);
