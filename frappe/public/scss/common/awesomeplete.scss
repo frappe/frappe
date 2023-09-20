@@ -20,7 +20,7 @@
 		position: absolute;
 		width: 100%;
 		list-style: none;
-		background-color: var(--fg-color);
+		background-color: var(--bg-color);
 		max-height: unquote("min(60vh, 300px)");
 		overflow-y: auto;
 		overflow-x: hidden;
@@ -56,6 +56,7 @@
 
 		&> li .link-option {
 			font-weight: normal;
+			color: var(--text-color);
 		}
 
 		&> li:hover, &> li[aria-selected=true] {

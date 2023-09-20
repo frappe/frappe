@@ -13,7 +13,9 @@
 
 	&:active {
 		// override #dadada that comes from bootstrap (probably) to support dark theme.
-		background-color: var(--bg-color) !important;
+		color: var(--text-color) !important;
+		background-color: var(--control-bg) !important;
+		box-shadow: var(--focus-default) !important;
 	}
 
 	&.icon-btn {
@@ -90,6 +92,11 @@
 	white-space: nowrap;
 	--icon-stroke: currentColor;
 	--icon-fill-bg: var(--btn-primary);
+
+	&:active {
+		color: var(--gray-100) !important;
+		background-color: var(--invert-neutral) !important;
+	}
 }
 
 .btn.btn-danger {
@@ -109,5 +116,9 @@
 	.btn-primary-light {
 		background-color: var(--bg-dark-gray);
 		box-shadow: none;
+	}
+	.btn-primary:active {
+			color: var(--gray-900) !important;
+			background-color: var(--invert-neutral) !important;
 	}
 }

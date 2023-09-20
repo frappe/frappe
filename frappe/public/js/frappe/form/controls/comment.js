@@ -15,7 +15,7 @@ frappe.ui.form.ControlComment = class ControlComment extends frappe.ui.form.Cont
 				${frappe.avatar(frappe.session.user, "avatar-medium")}
 					<div class="frappe-control col"></div>
 				</div>
-				<button class="btn hidden btn-comment btn-xs" style="margin-left:43px;">
+				<button class="btn hidden btn-comment btn-xs" style="margin-left:48px;">
 					${__("Comment")}
 				</button>
 			</div>

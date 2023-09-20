@@ -31,9 +31,6 @@ $threshold: 34;
 		border-left: 1px solid var(--dark-border-color);
 		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);
 	}
-	&.only_communication_timeline::before {
-		top: 130px;
-	}
 	.timeline-dot {
 		@include timeline-badge(16px);
 		left: calc(-1.25 * var(--timeline-item-left-margin) / 2);

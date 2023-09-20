@@ -55,15 +55,16 @@ class FormTimeline extends BaseTimeline {
 		};
 		let me = this;
 		this.timeline_wrapper.remove(this.timeline_actions_wrapper);
-		this.timeline_wrapper
-				.prepend(`
+		this.timeline_wrapper.prepend(`
 				<div class="timeline-item activity-title">
 				<h4>${__("Activity")}</h4>
 				</div>
-			`)
+			`);
 		if (has_communications()) {
-			this.timeline_wrapper.find(".timeline-item.activity-title")
-				.append(`
+			this.timeline_wrapper
+				.find(".timeline-item.activity-title")
+				.append(
+					`
 					<div class="d-flex align-items-center show-all-activity">
 						<span style="color: var(--text-light); margin:0px 6px;">Show all activity</span>
 						<label class="switch">
@@ -71,7 +72,8 @@ class FormTimeline extends BaseTimeline {
 							<span class="slider round"></span>
 						</label>
 					</div>
-				`)
+				`
+				)
 				.find("input[type=checkbox]")
 				.prop("checked", !me.only_communication)
 				.on("click", function (e) {
@@ -80,7 +82,9 @@ class FormTimeline extends BaseTimeline {
 					$(this).tab("show");
 				});
 		}
-		this.timeline_wrapper.find(".timeline-item.activity-title").append(this.timeline_actions_wrapper);
+		this.timeline_wrapper
+			.find(".timeline-item.activity-title")
+			.append(this.timeline_actions_wrapper);
 	}
 
 	setup_document_email_link() {
@@ -100,7 +104,7 @@ class FormTimeline extends BaseTimeline {
 					</div>
 				</div>
 			`);
-			this.timeline_actions_wrapper.append(this.document_email_link_wrapper);
+			this.timeline_items_wrapper.before(this.document_email_link_wrapper);
 
 			this.document_email_link_wrapper.find(".document-email-link").on("click", (e) => {
 				let text = $(e.target).text();
@@ -153,9 +157,7 @@ class FormTimeline extends BaseTimeline {
 		this.timeline_items.push(this.get_modified_message());
 		this.timeline_items.push(...this.get_communication_timeline_contents());
 		this.timeline_items.push(...this.get_comment_timeline_contents());
-		this.timeline_wrapper.addClass("only_communication_timeline");
 		if (!this.only_communication) {
-			this.timeline_wrapper.removeClass("only_communication_timeline");
 			this.timeline_items.push(...this.get_view_timeline_contents());
 			this.timeline_items.push(...this.get_energy_point_timeline_contents());
 			this.timeline_items.push(...this.get_version_timeline_contents());
@@ -168,8 +170,6 @@ class FormTimeline extends BaseTimeline {
 			this.timeline_items.push(...this.get_info_timeline_contents());
 			this.timeline_items.push(...this.get_milestone_timeline_contents());
 		}
-		
-		
 	}
 
 	get_view_timeline_contents() {

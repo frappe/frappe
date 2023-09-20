@@ -18,6 +18,18 @@
 	border-top-left-radius: var(--border-radius-md);
 	border-top-right-radius: var(--border-radius-md);
 
+	&.with-filter {
+		height: 64px;
+	}
+	.filter-row {
+		background-color: var(--bg-color);
+
+		.search {
+			// TODO: Align with table grid without overwriting padding if possible
+			padding: 4px 7px 4px 7px !important;
+		}
+	}
+
 	.grid-static-col, .row-check, .row-index {
 		height: 32px;
 		padding: 6px 8px !important;
@@ -123,7 +135,7 @@
 	}
 
 	&.search {
-		padding: 0 !important;
+		padding: var(--grid-padding) !important;
 	}
 }
 
