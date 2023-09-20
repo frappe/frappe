@@ -75,8 +75,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			doc.states = get_updated_states();
 			doc.transitions = get_updated_transitions();
 			validate_workflow(doc);
-			clean_workflow_data();
-			doc.workflow_data = JSON.stringify(workflow.value.elements);
+			const workflow_data = clean_workflow_data();
+			doc.workflow_data = JSON.stringify(workflow_data);
 			await frappe.call("frappe.client.save", { doc });
 			frappe.toast("Workflow updated successfully");
 			fetch();
@@ -99,7 +99,22 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	function clean_workflow_data() {
-		workflow.value.elements.forEach((el) => (el.selected = false));
+		return workflow.value.elements.map((el) => {
+			let data = el.data
+			let obj = {
+				...el
+			};
+			['selected','dragging','resizing', 'data', 'sourceNode', 'targetNode'].forEach(key => delete obj[key])
+
+			if (el.type == 'action') {
+				obj.data = {
+					from_id: data.from_id,
+					to_id: data.to_id,
+				}
+			}
+
+			return obj;
+		});
 	}
 
 	function setup_breadcrumbs() {

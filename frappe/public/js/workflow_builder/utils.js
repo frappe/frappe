@@ -98,12 +98,11 @@ export function get_workflow_elements(workflow, workflow_data) {
 		const action_id = 'action-' + (i + 1);
 		let action = actions[action_id];
 		let source, target;
+
 		if (action && action.data.from_id && action.data.to_id) {
 			source = states[action.data.from_id];
 			target = states[action.data.to_id];
-			action = action.data.action;
 		} else {
-			action = transition.action;
 			source = Object.values(states).filter(state => state.data.state == transition.state)[0];
 			target =  Object.values(states).filter(state => state.data.state == transition.next_state)[0];
 		}
