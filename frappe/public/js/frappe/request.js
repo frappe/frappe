@@ -19,7 +19,7 @@ frappe.xcall = function (method, params) {
 				resolve(r.message);
 			},
 			error: (r) => {
-				reject(r.message);
+				reject(r?.message);
 			},
 		});
 	});
