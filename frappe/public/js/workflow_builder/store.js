@@ -141,6 +141,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		let states = [];
 		workflow.value.elements.forEach((element) => {
 			if (element.type == "state") {
+				element.data.workflow_builder_id = element.id;
 				states.push(get_state_df(element.data));
 			}
 		});
@@ -157,6 +158,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		workflow.value.elements.forEach((element) => {
 			if (element.type == "action") {
+				element.data.workflow_builder_id = element.id;
 				actions.push(element);
 			}
 		});

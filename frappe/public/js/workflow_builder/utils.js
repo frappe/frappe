@@ -79,6 +79,8 @@ export function get_workflow_elements(workflow, workflow_data) {
 
 	}
 
+	let state_id = Math.max(...(workflow.states.map(state => state.workflow_builder_id))) || 0;
+
 	workflow.states.forEach((state, i) => {
 		x += 400;
 		let doc_status_map = {
@@ -86,17 +88,21 @@ export function get_workflow_elements(workflow, workflow_data) {
 			1: "Submitted",
 			2: "Cancelled",
 		};
+
+		const id = state.workflow_builder_id || ++state_id;
 		elements.push(
-			state_obj(i + 1, {
+			state_obj(id, {
 				...state,
 				doc_status: doc_status_map[state.doc_status],
 			})
 		);
 	});
 
+	let action_id = Math.max(...(workflow.transitions.map(transition => transition.workflow_builder_id.replace('action-', '')))) || 0;
+
 	workflow.transitions.forEach((transition, i) => {
-		const action_id = 'action-' + (i + 1);
-		let action = actions[action_id];
+		const id = transition.workflow_builder_id || ('action-' + (++action_id));
+		let action = actions[id];
 		let source, target;
 
 		if (action && action.data.from_id && action.data.to_id) {
@@ -116,9 +122,9 @@ export function get_workflow_elements(workflow, workflow_data) {
 			to: transition.next_state,
 		};
 
-		elements.push(action_obj(action_id, data, position));
-		elements.push(transition_obj('edge-' + source.id + "-" + action_id, source.id, action_id));
-		elements.push(transition_obj('edge-' + action_id + "-" + target.id, action_id, target.id));
+		elements.push(action_obj(id, data, position));
+		elements.push(transition_obj('edge-' + source.id + "-" + id, source.id, id));
+		elements.push(transition_obj('edge-' + id + "-" + target.id, id, target.id));
 	});
 
 	return elements;
