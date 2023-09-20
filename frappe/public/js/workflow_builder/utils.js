@@ -98,7 +98,7 @@ export function get_workflow_elements(workflow, workflow_data) {
 		);
 	});
 
-	let action_id = Math.max(...(workflow.transitions.map(transition => transition.workflow_builder_id.replace('action-', '')))) || 0;
+	let action_id = Math.max(...(workflow.transitions.map(transition => transition.workflow_builder_id?.replace('action-', '')))) || 0;
 
 	workflow.transitions.forEach((transition, i) => {
 		const id = transition.workflow_builder_id || ('action-' + (++action_id));

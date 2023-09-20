@@ -82,10 +82,10 @@
 						connected_nodes = nodes.value
 							.filter(
 								(node) =>
-									node.data.from ==
-										store.workflow.selected.data.state ||
-									node.data.to ==
-										store.workflow.selected.data.state
+									node.data.from_id ==
+										store.workflow.selected.id ||
+									node.data.to_id ==
+										store.workflow.selected.id
 							)
 							.map((node) => node.id);
 						removeNodes(connected_nodes);
