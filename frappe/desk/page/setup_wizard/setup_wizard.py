@@ -108,6 +108,7 @@ def update_global_settings(args):
 
 	update_system_settings(args)
 	update_user_name(args)
+	set_timezone(args)
 
 
 def run_post_setup_complete(args):
@@ -246,6 +247,12 @@ def update_user_name(args):
 
 	if args.get("name"):
 		add_all_roles_to(args.get("name"))
+
+
+def set_timezone(args):
+	if args.get("timezone"):
+		for name in frappe.STANDARD_USERS:
+			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
 
 
 def parse_args(args):

@@ -365,6 +365,11 @@ app_license = "{app_license}"
 # doctype_tree_js = {{"doctype" : "public/js/doctype_tree.js"}}
 # doctype_calendar_js = {{"doctype" : "public/js/doctype_calendar.js"}}
 
+# Svg Icons
+# ------------------
+# include app icons in desk
+# app_include_icons = "{app_name}/public/icons.svg"
+
 # Home Pages
 # ----------
 

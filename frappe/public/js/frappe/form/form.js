@@ -176,6 +176,11 @@ frappe.ui.form.Form = class FrappeForm {
 			page: this.page,
 			description: __("Redo last action"),
 		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+p",
+			action: () => this.print_doc(),
+			description: __("Print document"),
+		});
 
 		let grid_shortcut_keys = [
 			{
