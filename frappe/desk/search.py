@@ -6,7 +6,9 @@ import json
 import re
 
 import frappe
-from frappe import _, is_whitelisted
+
+# Backward compatbility
+from frappe import _, is_whitelisted, validate_and_sanitize_search_inputs
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, unique
@@ -81,7 +83,15 @@ def search_widget(
 		try:
 			is_whitelisted(frappe.get_attr(query))
 			frappe.response["values"] = frappe.call(
-				query, doctype, txt, searchfield, start, page_length, filters, as_dict=as_dict
+				query,
+				doctype,
+				txt,
+				searchfield,
+				start,
+				page_length,
+				filters,
+				as_dict=as_dict,
+				reference_doctype=reference_doctype,
 			)
 		except frappe.exceptions.PermissionError as e:
 			if frappe.local.conf.developer_mode:
@@ -99,7 +109,17 @@ def search_widget(
 	elif not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(
-			doctype, txt, standard_queries[doctype][0], searchfield, start, page_length, filters
+			doctype=doctype,
+			txt=txt,
+			query=standard_queries[doctype][0],
+			searchfield=searchfield,
+			start=start,
+			page_length=page_length,
+			filters=filters,
+			filter_fields=filter_fields,
+			as_dict=as_dict,
+			reference_doctype=reference_doctype,
+			ignore_user_permissions=ignore_user_permissions,
 		)
 	else:
 		meta = frappe.get_meta(doctype)
@@ -235,16 +255,17 @@ def search_widget(
 def get_std_fields_list(meta, key):
 	# get additional search fields
 	sflist = ["name"]
-	if meta.search_fields:
-		for d in meta.search_fields.split(","):
-			if d.strip() not in sflist:
-				sflist.append(d.strip())
 
 	if meta.title_field and meta.title_field not in sflist:
 		sflist.append(meta.title_field)
 
 	if key not in sflist:
 		sflist.append(key)
+
+	if meta.search_fields:
+		for d in meta.search_fields.split(","):
+			if d.strip() not in sflist:
+				sflist.append(d.strip())
 
 	return sflist
 
@@ -283,22 +304,6 @@ def scrub_custom_query(query, key, txt):
 def relevance_sorter(key, query, as_dict):
 	value = _(key.name if as_dict else key[0])
 	return (cstr(value).lower().startswith(query.lower()) is not True, value)
-
-
-def validate_and_sanitize_search_inputs(fn):
-	@functools.wraps(fn)
-	def wrapper(*args, **kwargs):
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
-		sanitize_searchfield(kwargs["searchfield"])
-		kwargs["start"] = cint(kwargs["start"])
-		kwargs["page_len"] = cint(kwargs["page_len"])
-
-		if kwargs["doctype"] and not frappe.db.exists("DocType", kwargs["doctype"]):
-			return []
-
-		return fn(**kwargs)
-
-	return wrapper
 
 
 @frappe.whitelist()

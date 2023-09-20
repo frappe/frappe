@@ -192,7 +192,7 @@ class Document(BaseDocument):
 	def check_permission(self, permtype="read", permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
-			self.raise_no_permission_to(permlevel or permtype)
+			self.raise_no_permission_to(permtype)
 
 	def has_permission(self, permtype="read", verbose=False) -> bool:
 		"""
@@ -211,7 +211,9 @@ class Document(BaseDocument):
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(self.doctype)
+		frappe.flags.error_message = (
+			_("Insufficient Permission for {0}").format(self.doctype) + f" ({frappe.bold(_(perm_type))})"
+		)
 		raise frappe.PermissionError
 
 	def insert(
@@ -377,6 +379,7 @@ class Document(BaseDocument):
 					"attached_to_name": self.name,
 					"attached_to_doctype": self.doctype,
 					"folder": "Home/Attachments",
+					"is_private": attach_item.is_private,
 				}
 			)
 			_file.save()
@@ -663,14 +666,19 @@ class Document(BaseDocument):
 		has_access_to = self.get_permlevel_access("read")
 
 		for df in self.meta.fields:
-			if df.permlevel and not df.permlevel in has_access_to:
-				self.set(df.fieldname, None)
+			if df.permlevel and hasattr(self, df.fieldname) and df.permlevel not in has_access_to:
+				try:
+					delattr(self, df.fieldname)
+				except AttributeError:
+					# hasattr might return True for class attribute which can't be delattr-ed.
+					continue
 
 		for table_field in self.meta.get_table_fields():
 			for df in frappe.get_meta(table_field.options).fields or []:
-				if df.permlevel and not df.permlevel in has_access_to:
+				if df.permlevel and df.permlevel not in has_access_to:
 					for child in self.get(table_field.fieldname) or []:
-						child.set(df.fieldname, None)
+						if hasattr(child, df.fieldname):
+							delattr(child, df.fieldname)
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
@@ -1011,10 +1019,15 @@ class Document(BaseDocument):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
-	def delete(self, ignore_permissions=False):
+	def delete(self, ignore_permissions=False, *, force=False, delete_permanently=False):
 		"""Delete document."""
 		return frappe.delete_doc(
-			self.doctype, self.name, ignore_permissions=ignore_permissions, flags=self.flags
+			self.doctype,
+			self.name,
+			ignore_permissions=ignore_permissions,
+			flags=self.flags,
+			force=force,
+			delete_permanently=delete_permanently,
 		)
 
 	def run_before_save_methods(self):
@@ -1103,7 +1116,11 @@ class Document(BaseDocument):
 
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
-		if getattr(self.meta, "track_seen", False):
+		if (
+			getattr(self.meta, "track_seen", False)
+			and not getattr(self.meta, "issingle", False)
+			and not self.is_new()
+		):
 			frappe.db.set_value(
 				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
 			)
@@ -1206,9 +1223,12 @@ class Document(BaseDocument):
 		):
 			return
 
-		version = frappe.new_doc("Version")
+		doc_to_compare = self._doc_before_save
+		if not doc_to_compare and (amended_from := self.get("amended_from")):
+			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
-		if is_useful_diff := version.update_version_info(self._doc_before_save, self):
+		version = frappe.new_doc("Version")
+		if is_useful_diff := version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
 
 			if not frappe.flags.in_migrate:

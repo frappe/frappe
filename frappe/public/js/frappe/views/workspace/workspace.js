@@ -65,7 +65,10 @@ frappe.views.Workspace = class Workspace {
 		if (this.all_pages) {
 			frappe.workspaces = {};
 			for (let page of this.all_pages) {
-				frappe.workspaces[frappe.router.slug(page.name)] = { title: page.title };
+				frappe.workspaces[frappe.router.slug(page.name)] = {
+					title: page.title,
+					public: page.public,
+				};
 			}
 			this.make_sidebar();
 			reload && this.show();
@@ -157,7 +160,10 @@ frappe.views.Workspace = class Workspace {
 			sidebar_section.addClass("hidden");
 		}
 
-		if (sidebar_section.find("> [item-is-hidden='0']").length == 0) {
+		if (
+			sidebar_section.find(".sidebar-item-container").length &&
+			sidebar_section.find("> [item-is-hidden='0']").length == 0
+		) {
 			sidebar_section.addClass("hidden show-in-edit-mode");
 		}
 	}
@@ -244,6 +250,12 @@ frappe.views.Workspace = class Workspace {
 		this.update_selected_sidebar(this.current_page, false); //remove selected from old page
 		this.update_selected_sidebar(page, true); //add selected on new page
 
+		if (!frappe.router.current_route[0]) {
+			frappe.router.current_route = !page.public
+				? ["Workspaces", "private", page.name]
+				: ["Workspaces", page.name];
+		}
+
 		this.show_page(page);
 	}
 
@@ -318,7 +330,7 @@ frappe.views.Workspace = class Workspace {
 				public: localStorage.is_current_page_public == "true",
 			};
 		} else if (Object.keys(this.all_pages).length !== 0) {
-			default_page = { name: this.all_pages[0].title, public: true };
+			default_page = { name: this.all_pages[0].title, public: this.all_pages[0].public };
 		} else {
 			default_page = { name: "Build", public: true };
 		}
@@ -339,14 +351,15 @@ frappe.views.Workspace = class Workspace {
 			`).appendTo(this.body);
 		}
 
-		if (this.all_pages) {
+		if (this.all_pages.length) {
 			this.create_page_skeleton();
 
-			let pages = page.public ? this.public_pages : this.private_pages;
+			let pages =
+				page.public && this.public_pages.length ? this.public_pages : this.private_pages;
 			let current_page = pages.filter((p) => p.title == page.name)[0];
 			this.content = current_page && JSON.parse(current_page.content);
 
-			this.add_custom_cards_in_content();
+			this.content && this.add_custom_cards_in_content();
 
 			$(".item-anchor").addClass("disable-click");
 
@@ -390,6 +403,8 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.card.config.page_data = this.page_data;
 				this.editor.configuration.tools.onboarding.config.page_data = this.page_data;
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
+				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
+				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
 				this.editor.render({ blocks: this.content || [] });
 			});
 		} else {
@@ -592,6 +607,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Update"),
 			primary_action: (values) => {
+				values.title = frappe.utils.escape_html(values.title);
 				let is_title_changed = values.title != old_item.title;
 				let is_section_changed = values.is_public != old_item.public;
 				if (
@@ -1138,6 +1154,7 @@ frappe.views.Workspace = class Workspace {
 			],
 			primary_action_label: __("Create"),
 			primary_action: (values) => {
+				values.title = frappe.utils.escape_html(values.title);
 				if (!this.validate_page(values)) return;
 				d.hide();
 				this.initialize_editorjs_undo();
@@ -1200,6 +1217,7 @@ frappe.views.Workspace = class Workspace {
 
 						this.make_sidebar();
 						this.show_sidebar_actions();
+						localStorage.setItem("new_workspace", JSON.stringify(new_page));
 					});
 			},
 		});
@@ -1334,9 +1352,22 @@ frappe.views.Workspace = class Workspace {
 					page_data: this.page_data || [],
 				},
 			},
+			number_card: {
+				class: this.blocks["number_card"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
+			custom_block: {
+				class: this.blocks["custom_block"],
+				config: {
+					page_data: this.page_data || [],
+				},
+			},
 			spacer: this.blocks["spacer"],
 			HeaderSize: frappe.workspace_block.tunes["header_size"],
 		};
+
 		this.editor = new EditorJS({
 			data: {
 				blocks: blocks || [],
@@ -1425,27 +1456,27 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	create_page_skeleton() {
-		if ($(".layout-main-section").find(".workspace-skeleton").length) return;
+		if (this.body.find(".workspace-skeleton").length) return;
 
-		$(".layout-main-section").prepend(frappe.render_template("workspace_loading_skeleton"));
-		$(".layout-main-section").find(".codex-editor").addClass("hidden");
+		this.body.prepend(frappe.render_template("workspace_loading_skeleton"));
+		this.body.find(".codex-editor").addClass("hidden");
 	}
 
 	remove_page_skeleton() {
-		$(".layout-main-section").find(".codex-editor").removeClass("hidden");
-		$(".layout-main-section").find(".workspace-skeleton").remove();
+		this.body.find(".codex-editor").removeClass("hidden");
+		this.body.find(".workspace-skeleton").remove();
 	}
 
 	create_sidebar_skeleton() {
-		if ($(".list-sidebar").find(".workspace-sidebar-skeleton").length) return;
+		if ($(".workspace-sidebar-skeleton").length) return;
 
-		$(".list-sidebar").prepend(frappe.render_template("workspace_sidebar_loading_skeleton"));
-		$(".desk-sidebar").addClass("hidden");
+		$(frappe.render_template("workspace_sidebar_loading_skeleton")).insertBefore(this.sidebar);
+		this.sidebar.addClass("hidden");
 	}
 
 	remove_sidebar_skeleton() {
-		$(".desk-sidebar").removeClass("hidden");
-		$(".list-sidebar").find(".workspace-sidebar-skeleton").remove();
+		this.sidebar.removeClass("hidden");
+		$(".workspace-sidebar-skeleton").remove();
 	}
 
 	register_awesomebar_shortcut() {

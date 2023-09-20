@@ -126,7 +126,7 @@ export default {
 	margin-top: auto;
 	margin-bottom: 1.2rem;
 }
-.preview-control >>> .form-control {
+.preview-control :deep(.form-control) {
 	background: var(--control-bg-on-gray);
 }
 </style>

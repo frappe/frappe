@@ -51,7 +51,7 @@
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
- "modified": "2022-08-14 18:54:03.490836",
+ "modified": "2023-04-13 13:48:38.127995",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",
@@ -66,13 +66,8 @@
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Guest",
-   "share": 1
+   "role": "All",
+   "read": 1
   }
  ],
  "search_fields": "language_name",

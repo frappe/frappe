@@ -19,7 +19,6 @@ from frappe.email.utils import get_port
 from frappe.model.document import Document
 from frappe.utils import cint, comma_or, cstr, parse_addr, validate_email_address
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.error import raise_error_on_no_output
 from frappe.utils.jinja import render_template
 from frappe.utils.user import get_system_managers
 
@@ -301,11 +300,6 @@ class EmailAccount(Document):
 		return cls.from_record({"sender": "notifications@example.com"})
 
 	@classmethod
-	@raise_error_on_no_output(
-		keep_quiet=lambda: not cint(frappe.get_system_settings("setup_complete")),
-		error_message=_("Please setup default Email Account from Setup > Email > Email Account"),
-		error_type=frappe.OutgoingEmailError,
-	)  # noqa
 	@cache_email_account("outgoing_email_account")
 	def find_outgoing(cls, match_by_email=None, match_by_doctype=None, _raise_error=False):
 		"""Find the outgoing Email account to use.
@@ -328,6 +322,12 @@ class EmailAccount(Document):
 		doc = cls.find_default_outgoing()
 		if doc:
 			return {"default": doc}
+
+		if _raise_error:
+			frappe.throw(
+				_("Please setup default Email Account from Setup > Email > Email Account"),
+				frappe.OutgoingEmailError,
+			)
 
 	@classmethod
 	def find_default_outgoing(cls):
@@ -384,6 +384,10 @@ class EmailAccount(Document):
 			"name": {"conf_names": ("email_sender_name",), "default": "Frappe"},
 			"auth_method": {"conf_names": ("auth_method"), "default": "Basic"},
 			"from_site_config": {"default": True},
+			"no_smtp_authentication": {
+				"conf_names": ("disable_mail_smtp_authentication",),
+				"default": 0,
+			},
 		}
 
 		account_details = {}

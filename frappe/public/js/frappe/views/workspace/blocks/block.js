@@ -95,6 +95,7 @@ export default class Block {
 		const dialog_class = get_dialog_constructor(widget_type);
 		let block_name = block + "_name";
 		this.dialog = new dialog_class({
+			for_workspace: true,
 			label: this.label,
 			type: widget_type,
 			primary_action: (widget) => {
@@ -322,7 +323,7 @@ export default class Block {
 			node.classList.add("col-xs-12");
 			node.classList.add("col-sm-6");
 			col = "col-md-" + width;
-		} else if (width == 3) {
+		} else if (width == 3 || width == 2) {
 			node.classList.add("col-xs-12");
 			node.classList.add("col-sm-6");
 			node.classList.add("col-md-4");

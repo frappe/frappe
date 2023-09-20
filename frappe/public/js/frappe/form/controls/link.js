@@ -221,7 +221,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return $("<li></li>")
 					.data("item.autocomplete", d)
 					.prop("aria-selected", "false")
-					.html(`<a><p title="${_label}">${html}</p></a>`)
+					.html(`<a><p title="${frappe.utils.escape_html(_label)}">${html}</p></a>`)
 					.get(0);
 			},
 			sort: function () {
@@ -475,7 +475,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			let value = filter[3] == null || filter[3] === "" ? __("empty") : String(filter[3]);
 
-			return [__(label).bold(), filter[2], value.bold()].join(" ");
+			return [__(label).bold(), __(filter[2]), value.bold()].join(" ");
 		}
 
 		let filter_string = filter_array.map(get_filter_description).join(", ");
@@ -589,13 +589,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			let field_value = "";
 			for (const [target_field, source_field] of Object.entries(fetch_map)) {
 				if (value) field_value = response[source_field];
-				frappe.model.set_value(
-					df.parent,
-					docname,
-					target_field,
-					field_value,
-					df.fieldtype
-				);
+				let target_df = frappe.meta.get_docfield(df.parent, target_field);
+				let target_value = frappe.model.get_value(df.parent, docname, target_field);
+				if (target_df?.fetch_if_empty && target_value) {
+					continue;
+				} else {
+					frappe.model.set_value(
+						df.parent,
+						docname,
+						target_field,
+						field_value,
+						df.fieldtype
+					);
+				}
 			}
 		}
 

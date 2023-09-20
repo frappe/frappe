@@ -32,7 +32,7 @@ def get(args=None):
 		filters={
 			"reference_type": args.get("doctype"),
 			"reference_name": args.get("name"),
-			"status": ("!=", "Cancelled"),
+			"status": ("not in", ("Cancelled", "Closed")),
 		},
 		limit=5,
 	)
@@ -93,10 +93,17 @@ def add(args=None):
 
 			doc = frappe.get_doc(args["doctype"], args["name"])
 
-			# if assignee does not have permissions, share
+			# if assignee does not have permissions, share or inform
 			if not frappe.has_permission(doc=doc, user=assign_to):
-				frappe.share.add(doc.doctype, doc.name, assign_to)
-				shared_with_users.append(assign_to)
+				if frappe.get_system_settings("disable_document_sharing"):
+					msg = _("User {0} is not permitted to access this document.").format(frappe.bold(assign_to))
+					msg += "<br>" + _(
+						"As document sharing is disabled, please give them the required permissions before assigning."
+					)
+					frappe.throw(msg, title=_("Missing Permission"))
+				else:
+					frappe.share.add(doc.doctype, doc.name, assign_to)
+					shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
@@ -140,35 +147,44 @@ def add_multiple(args=None):
 def close_all_assignments(doctype, name):
 	assignments = frappe.get_all(
 		"ToDo",
-		fields=["allocated_to"],
+		fields=["allocated_to", "name"],
 		filters=dict(reference_type=doctype, reference_name=name, status=("!=", "Cancelled")),
 	)
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
-		set_status(doctype, name, assign_to.allocated_to, status="Closed")
+		set_status(doctype, name, todo=assign_to.name, assign_to=assign_to.allocated_to, status="Closed")
 
 	return True
 
 
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
-	return set_status(doctype, name, assign_to, status="Cancelled")
+	return set_status(doctype, name, "", assign_to, status="Cancelled")
 
 
-def set_status(doctype, name, assign_to, status="Cancelled"):
+@frappe.whitelist()
+def close(doctype: str, name: str, assign_to: str):
+	if assign_to != frappe.session.user:
+		frappe.throw(_("Only the assignee can complete this to-do."))
+
+	return set_status(doctype, name, "", assign_to, status="Closed")
+
+
+def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 	"""remove from todo"""
 	try:
-		todo = frappe.db.get_value(
-			"ToDo",
-			{
-				"reference_type": doctype,
-				"reference_name": name,
-				"allocated_to": assign_to,
-				"status": ("!=", status),
-			},
-		)
+		if not todo:
+			todo = frappe.db.get_value(
+				"ToDo",
+				{
+					"reference_type": doctype,
+					"reference_name": name,
+					"allocated_to": assign_to,
+					"status": ("!=", status),
+				},
+			)
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
 			todo.status = status
@@ -179,7 +195,7 @@ def set_status(doctype, name, assign_to, status="Cancelled"):
 		pass
 
 	# clear assigned_to if field exists
-	if frappe.get_meta(doctype).get_field("assigned_to") and status == "Cancelled":
+	if frappe.get_meta(doctype).get_field("assigned_to") and status in ("Cancelled", "Closed"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	return get({"doctype": doctype, "name": name})
@@ -190,13 +206,17 @@ def clear(doctype, name):
 	Clears assignments, return False if not assigned.
 	"""
 	assignments = frappe.get_all(
-		"ToDo", fields=["allocated_to"], filters=dict(reference_type=doctype, reference_name=name)
+		"ToDo",
+		fields=["allocated_to", "name"],
+		filters=dict(reference_type=doctype, reference_name=name),
 	)
 	if not assignments:
 		return False
 
 	for assign_to in assignments:
-		set_status(doctype, name, assign_to.allocated_to, "Cancelled")
+		set_status(
+			doctype, name, todo=assign_to.name, assign_to=assign_to.allocated_to, status="Cancelled"
+		)
 
 	return True
 
@@ -221,11 +241,11 @@ def notify_assignment(
 
 	if action == "CLOSE":
 		subject = _("Your assignment on {0} {1} has been removed by {2}").format(
-			frappe.bold(doc_type), get_title_html(title), frappe.bold(user_name)
+			frappe.bold(_(doc_type)), get_title_html(title), frappe.bold(user_name)
 		)
 	else:
 		user_name = frappe.bold(user_name)
-		document_type = frappe.bold(doc_type)
+		document_type = frappe.bold(_(doc_type))
 		title = get_title_html(title)
 		subject = _("{0} assigned a new task {1} {2} to you").format(user_name, document_type, title)
 

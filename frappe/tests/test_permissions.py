@@ -17,6 +17,7 @@ from frappe.permissions import (
 	update_permission_property,
 )
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.tests.test_db_query import enable_permlevel_restrictions
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import now_datetime
 
@@ -87,6 +88,12 @@ class TestPermissions(FrappeTestCase):
 		# validate does not have read and write perm
 		self.assertFalse(post.has_permission("read"))
 		self.assertRaises(frappe.PermissionError, post.save)
+
+		with enable_permlevel_restrictions():
+			permitted_record = frappe.get_list("Blog Post", fields="*", limit=1)[0]
+			full_record = frappe.get_all("Blog Post", fields="*", limit=1)[0]
+			self.assertNotEqual(permitted_record, full_record)
+			self.assertSequenceSubset(post.meta.get_search_fields(), permitted_record)
 
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Blog Category", "-test-blog-category-1", "test2@example.com")
@@ -468,9 +475,9 @@ class TestPermissions(FrappeTestCase):
 		# check if user is not granted access if the user is not the owner of the doc
 		# Blogger has only read access on the blog post unless he is the owner of the blog
 		update("Blog Post", "Blogger", 0, "if_owner", 1)
-		update("Blog Post", "Blogger", 0, "read", 1)
-		update("Blog Post", "Blogger", 0, "write", 1)
-		update("Blog Post", "Blogger", 0, "delete", 1)
+		update("Blog Post", "Blogger", 0, "read", 1, 1)
+		update("Blog Post", "Blogger", 0, "write", 1, 1)
+		update("Blog Post", "Blogger", 0, "delete", 1, 1)
 
 		# currently test2 user has not created any document
 		# still he should be able to do get_list query which should
@@ -579,9 +586,9 @@ class TestPermissions(FrappeTestCase):
 
 	def test_if_owner_permission_on_delete(self):
 		update("Blog Post", "Blogger", 0, "if_owner", 1)
-		update("Blog Post", "Blogger", 0, "read", 1)
-		update("Blog Post", "Blogger", 0, "write", 1)
-		update("Blog Post", "Blogger", 0, "delete", 1)
+		update("Blog Post", "Blogger", 0, "read", 1, 1)
+		update("Blog Post", "Blogger", 0, "write", 1, 1)
+		update("Blog Post", "Blogger", 0, "delete", 1, 1)
 
 		# Remove delete perm
 		update("Blog Post", "Website Manager", 0, "delete", 0)
@@ -618,7 +625,7 @@ class TestPermissions(FrappeTestCase):
 
 		frappe.set_user("test2@example.com")
 		frappe.delete_doc("Blog Post", "-test-blog-post-title-new-1")
-		update("Blog Post", "Website Manager", 0, "delete", 1)
+		update("Blog Post", "Website Manager", 0, "delete", 1, 1)
 
 	def test_clear_user_permissions(self):
 		current_user = frappe.session.user

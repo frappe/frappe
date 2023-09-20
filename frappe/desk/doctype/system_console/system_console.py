@@ -19,6 +19,7 @@ class SystemConsole(Document):
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
 		except Exception:
+			self.commit = False
 			self.output = frappe.get_traceback()
 
 		if self.commit:
@@ -26,7 +27,7 @@ class SystemConsole(Document):
 		else:
 			frappe.db.rollback()
 
-		frappe.get_doc(dict(doctype="Console Log", script=self.console, output=self.output)).insert()
+		frappe.get_doc(dict(doctype="Console Log", script=self.console)).insert()
 		frappe.db.commit()
 
 

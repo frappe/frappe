@@ -82,4 +82,6 @@ class DbManager:
 			source=source,
 			port=frappe.db.port,
 		)
+
 		os.system(command)
+		frappe.cache().delete_keys("")  # Delete all keys associated with this site.

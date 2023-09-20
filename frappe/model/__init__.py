@@ -95,6 +95,7 @@ optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 table_fields = ("Table", "Table MultiSelect")
 
 core_doctypes_list = (
+	"DefaultValue",
 	"DocType",
 	"DocField",
 	"DocPerm",
@@ -186,3 +187,43 @@ def delete_fields(args_dict, delete=0):
 		if frappe.db.db_type == "postgres":
 			# commit the results to db
 			frappe.db.commit()
+
+
+def get_permitted_fields(
+	doctype: str,
+	parenttype: str | None = None,
+	user: str | None = None,
+	permission_type: str | None = None,
+) -> list[str]:
+	meta = frappe.get_meta(doctype)
+	valid_columns = meta.get_valid_columns()
+
+	if doctype in core_doctypes_list:
+		return valid_columns
+
+	# DocType has only fields of type Table (Table, Table MultiSelect)
+	if set(valid_columns).issubset(default_fields):
+		return valid_columns
+
+	if permission_type is None:
+		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
+
+	if permitted_fields := meta.get_permitted_fieldnames(
+		parenttype=parenttype, user=user, permission_type=permission_type
+	):
+		if permission_type == "select":
+			return permitted_fields
+
+		meta_fields = meta.default_fields.copy()
+		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
+
+		if meta.istable:
+			meta_fields.extend(child_table_fields)
+
+		return meta_fields + permitted_fields + optional_meta_fields
+
+	return []
+
+
+def is_default_field(fieldname: str) -> bool:
+	return fieldname in default_fields

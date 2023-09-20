@@ -150,6 +150,7 @@
 .grid-row > .row {
 	.col:last-child {
 		border-right: none;
+		min-width: 0;
 	}
 
 	.col {
@@ -360,6 +361,10 @@
 	.grid-append-row {
 		margin-top: calc(-1 * var(--margin-xs));
 	}
+}
+
+#freeze.grid-form {
+	z-index: 1020;
 }
 
 .recorder-form-in-grid {

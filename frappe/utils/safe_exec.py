@@ -1,3 +1,4 @@
+import ast
 import copy
 import inspect
 import json
@@ -8,6 +9,7 @@ from functools import lru_cache
 
 import RestrictedPython.Guards
 from RestrictedPython import compile_restricted, safe_globals
+from RestrictedPython.transformer import RestrictingNodeTransformer
 
 import frappe
 import frappe.exceptions
@@ -31,6 +33,9 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
 
 
+ARGUMENT_NOT_SET = object()
+
+
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
 
@@ -43,6 +48,14 @@ class NamespaceDict(frappe._dict):
 
 			return default_function
 		return ret
+
+
+class FrappeTransformer(RestrictingNodeTransformer):
+	def check_name(self, node, name, *args, **kwargs):
+		if name == "_dict":
+			return
+
+		return super().check_name(node, name, *args, **kwargs)
 
 
 def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
@@ -69,9 +82,42 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
-		exec(compile_restricted(script), exec_globals, _locals)  # pylint: disable=exec-used
+		exec(
+			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
+			exec_globals,
+			_locals,
+		)
 
 	return exec_globals, _locals
+
+
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	import unicodedata
+
+	code = unicodedata.normalize("NFKC", code)
+
+	_validate_safe_eval_syntax(code)
+
+	if not eval_globals:
+		eval_globals = {}
+
+	eval_globals["__builtins__"] = {}
+	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
+
+	return eval(
+		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
+		eval_globals,
+		eval_locals,
+	)
+
+
+def _validate_safe_eval_syntax(code):
+	BLOCKED_NODES = (ast.NamedExpr,)
+
+	tree = ast.parse(code, mode="eval")
+	for node in ast.walk(tree):
+		if isinstance(node, BLOCKED_NODES):
+			raise SyntaxError(f"Operation not allowed: line {node.lineno} column {node.col_offset}")
 
 
 @contextmanager
@@ -206,7 +252,7 @@ def get_safe_globals():
 	# default writer allows write access
 	out._write_ = _write
 	out._getitem_ = _getitem
-	out._getattr_ = _getattr
+	out._getattr_ = _getattr_for_safe_exec
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter
@@ -235,7 +281,7 @@ def safe_enqueue(function, **kwargs):
 	Accepts frappe.enqueue params like job_name, queue, timeout, etc.
 	in addition to params to be passed to function
 
-	:param function: whitelised function or API Method set in Server Script
+	:param function: whitelisted function or API Method set in Server Script
 	"""
 
 	return enqueue("frappe.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)
@@ -318,8 +364,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 def read_sql(query, *args, **kwargs):
 	"""a wrapper for frappe.db.sql to allow reads"""
 	query = str(query)
-	if frappe.flags.in_safe_exec:
-		check_safe_sql_query(query)
+	check_safe_sql_query(query)
 	return frappe.db.sql(query, *args, **kwargs)
 
 
@@ -357,40 +402,80 @@ def _getitem(obj, key):
 	return obj[key]
 
 
-def _getattr(object, name, default=None):
+UNSAFE_ATTRIBUTES = {
+	# Generator Attributes
+	"gi_frame",
+	"gi_code",
+	"gi_yieldfrom",
+	# Coroutine Attributes
+	"cr_frame",
+	"cr_code",
+	"cr_origin",
+	"cr_await",
+	# Async Generator Attributes
+	"ag_code",
+	"ag_frame",
+	# Traceback Attributes
+	"tb_frame",
+	"tb_next",
+	# Format Attributes
+	"format",
+	"format_map",
+	# Frame attributes
+	"f_back",
+	"f_builtins",
+	"f_code",
+	"f_globals",
+	"f_locals",
+	"f_trace",
+}
+
+
+def _getattr_for_safe_exec(object, name, default=None):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
 	# 1. it does not start with an underscore (safer_getattr)
 	# 2. it is not an UNSAFE_ATTRIBUTES
+	_validate_attribute_read(object, name)
 
-	UNSAFE_ATTRIBUTES = {
-		# Generator Attributes
-		"gi_frame",
-		"gi_code",
-		# Coroutine Attributes
-		"cr_frame",
-		"cr_code",
-		"cr_origin",
-		# Async Generator Attributes
-		"ag_code",
-		"ag_frame",
-		# Traceback Attributes
-		"tb_frame",
-		"tb_next",
-	}
+	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
+
+def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):
+	_validate_attribute_read(object, name)
+
+	# Use vanilla getattr to raise correct attribute error. Safe exec has been supressing attribute
+	# error which is bad for DX/UX in general.
+	return getattr(object, name) if default is ARGUMENT_NOT_SET else getattr(object, name, default)
+
+
+def _validate_attribute_read(object, name):
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
 	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
-	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+	if name.startswith("_"):
+		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
 
 
 def _write(obj):
 	# guard function for RestrictedPython
-	# allow writing to any object
+	if isinstance(
+		obj,
+		(
+			types.ModuleType,
+			types.CodeType,
+			types.TracebackType,
+			types.FrameType,
+			type,
+			types.FunctionType,  # covers lambda
+			types.MethodType,
+			types.BuiltinFunctionType,  # covers methods
+		),
+	):
+		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj
 
 
@@ -433,7 +518,9 @@ VALID_UTILS = (
 	"get_timestamp",
 	"get_eta",
 	"get_time_zone",
+	"get_system_timezone",
 	"convert_utc_to_user_timezone",
+	"convert_utc_to_system_timezone",
 	"now",
 	"nowdate",
 	"today",
@@ -520,3 +607,16 @@ VALID_UTILS = (
 	"get_user_info_for_avatar",
 	"get_abbr",
 )
+
+
+WHITELISTED_SAFE_EVAL_GLOBALS = {
+	"int": int,
+	"float": float,
+	"long": int,
+	"round": round,
+	# RestrictedPython specific overrides
+	"_getattr_": _get_attr_for_eval,
+	"_getitem_": _getitem,
+	"_getiter_": iter,
+	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+}

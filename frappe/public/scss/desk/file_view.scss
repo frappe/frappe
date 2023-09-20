@@ -97,11 +97,6 @@
 						color: transparent;
 						position: relative;
 					}
-
-					@include broken-img(
-						$height: 70px,
-						$top: -15px,
-					);
 				}
 			}
 

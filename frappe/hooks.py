@@ -29,6 +29,7 @@ app_include_js = [
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
+	"telemetry.bundle.js",
 ]
 app_include_css = [
 	"desk.bundle.css",
@@ -102,6 +103,7 @@ permission_query_conditions = {
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
+	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -145,9 +147,9 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
-			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.core.doctype.file.utils.attach_files_to_document",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 			"frappe.core.doctype.user_type.user_type.apply_permissions_for_non_standard_user_type",
 		],
@@ -156,6 +158,7 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
@@ -163,7 +166,9 @@ doc_events = {
 			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers",
 		],
 		"on_update_after_submit": [
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
@@ -193,11 +198,21 @@ scheduler_events = {
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
 			"frappe.twofactor.delete_all_barcodes_for_users",
-		]
+		],
+		"0/10 * * * *": [
+			"frappe.email.doctype.email_account.email_account.pull",
+		],
+		# Hourly but offset by 30 minutes
+		# "30 * * * *": [
+		#
+		# ],
+		# Daily but offset by 45 minutes
+		"45 0 * * *": [
+			"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		],
 	},
 	"all": [
 		"frappe.email.queue.flush",
-		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
@@ -226,8 +241,6 @@ scheduler_events = {
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
 		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
-		"frappe.core.doctype.prepared_report.prepared_report.delete_expired_prepared_reports",
-		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -418,4 +431,9 @@ before_job = [
 after_job = [
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
+]
+
+extend_bootinfo = [
+	"frappe.utils.telemetry.add_bootinfo",
+	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 ]

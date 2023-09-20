@@ -330,7 +330,7 @@ export default {
 	margin-bottom: 0;
 }
 
-.control-font >>> .frappe-control[data-fieldname="font"] label {
+.control-font :deep(.frappe-control[data-fieldname="font"] label) {
 	display: none;
 }
 </style>

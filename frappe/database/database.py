@@ -14,7 +14,6 @@ from pypika.terms import Criterion, NullValue
 
 import frappe
 import frappe.defaults
-import frappe.model.meta
 from frappe import _
 from frappe.database.utils import (
 	DefaultOrderBy,
@@ -102,6 +101,8 @@ class Database:
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+		self.logger = frappe.logger("database")
+		self.logger.setLevel("WARNING")
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -119,7 +120,7 @@ class Database:
 			if execution_timeout := get_query_execution_timeout():
 				self.set_execution_timeout(execution_timeout)
 		except Exception as e:
-			frappe.logger("database").warning(f"Couldn't set execution timeout {e}")
+			self.logger.warning(f"Couldn't set execution timeout {e}")
 
 	def set_execution_timeout(self, seconds: int):
 		"""Set session speicifc timeout on exeuction of statements.
@@ -219,7 +220,7 @@ class Database:
 			self._cursor.execute(query, values)
 		except Exception as e:
 			if self.is_syntax_error(e):
-				frappe.errprint(f"Syntax error in query:\n{query} {values}")
+				frappe.errprint(f"Syntax error in query:\n{query} {values or ''}")
 
 			elif self.is_deadlocked(e):
 				raise frappe.QueryDeadlockError(e) from e
@@ -287,7 +288,13 @@ class Database:
 			return self.convert_to_lists(self.last_result, formatted, as_utf8)
 		return self.last_result
 
-	def _log_query(self, mogrified_query: str, debug: bool = False, explain: bool = False) -> None:
+	def _log_query(
+		self,
+		mogrified_query: str,
+		debug: bool = False,
+		explain: bool = False,
+		unmogrified_query: str = "",
+	) -> None:
 		"""Takes the query and logs it to various interfaces according to the settings."""
 		_query = None
 
@@ -303,7 +310,13 @@ class Database:
 
 		if frappe.conf.logging == 2:
 			_query = _query or str(mogrified_query)
-			frappe.log(f"<<<< query\n{_query}\n>>>>")
+			frappe.log(f"#### query\n{_query}\n####")
+
+		if unmogrified_query and is_query_type(
+			unmogrified_query, ("alter", "drop", "create", "truncate", "rename")
+		):
+			_query = _query or str(mogrified_query)
+			self.logger.warning("DDL Query made to DB:\n" + _query)
 
 		if frappe.flags.in_migrate:
 			_query = _query or str(mogrified_query)
@@ -316,7 +329,7 @@ class Database:
 		# like cursor._transformed_statement from the cursor object. We can also avoid setting
 		# mogrified_query if we don't need to log it.
 		mogrified_query = self.lazy_mogrify(query, values)
-		self._log_query(mogrified_query, debug, explain)
+		self._log_query(mogrified_query, debug, explain, unmogrified_query=query)
 		return mogrified_query
 
 	def mogrify(self, query: Query, values: QueryValues):
@@ -654,13 +667,13 @@ class Database:
 						return []
 
 			if as_dict:
-				return values and [values] or []
+				return [values] if values else []
 
 			if isinstance(fields, list):
-				return [map(values.get, fields)]
+				return [list(map(values.get, fields))]
 
 		else:
-			r = frappe.qb.engine.get_query(
+			r = frappe.qb.get_query(
 				"Singles",
 				filters={"field": ("in", tuple(fields)), "doctype": doctype},
 				fields=["field", "value"],
@@ -693,7 +706,7 @@ class Database:
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		queried_result = frappe.qb.engine.get_query(
+		queried_result = frappe.qb.get_query(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
@@ -766,7 +779,7 @@ class Database:
 		if cache and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = frappe.qb.engine.get_query(
+		val = frappe.qb.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
@@ -806,16 +819,15 @@ class Database:
 		distinct=False,
 		limit=None,
 	):
-		field_objects = []
-		query = frappe.qb.engine.get_query(
+		query = frappe.qb.get_query(
 			table=doctype,
 			filters=filters,
-			orderby=order_by,
+			order_by=order_by,
 			for_update=for_update,
-			field_objects=field_objects,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
+			validate_filters=True,
 		)
 		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
 			as_dict = True
@@ -837,18 +849,15 @@ class Database:
 		as_dict=False,
 	):
 		if names := list(filter(None, names)):
-			return self.get_all(
+			return frappe.qb.get_query(
 				doctype,
 				fields=field,
 				filters=names,
 				order_by=order_by,
-				pluck=pluck,
-				debug=debug,
-				as_list=not as_dict,
-				run=run,
 				distinct=distinct,
-				limit_page_length=limit,
-			)
+				limit=limit,
+				validate_filters=True,
+			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
 	@deprecated
@@ -908,7 +917,12 @@ class Database:
 			frappe.clear_document_cache(dt, dt)
 
 		else:
-			query = frappe.qb.engine.build_conditions(table=dt, filters=dn, update=True)
+			query = frappe.qb.get_query(
+				table=dt,
+				filters=dn,
+				update=True,
+				validate_filters=True,
+			)
 
 			if isinstance(dn, str):
 				frappe.clear_document_cache(dt, dn)
@@ -1040,6 +1054,9 @@ class Database:
 					obj.on_rollback()
 			frappe.local.rollback_observers = []
 
+			frappe.local.realtime_log = []
+			frappe.flags.enqueue_after_commit = []
+
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
 		return self.exists("DocField", {"fieldname": fn, "parent": dt})
@@ -1099,10 +1116,13 @@ class Database:
 			cache_count = frappe.cache().get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
 				return cache_count
-		query = frappe.qb.engine.get_query(
-			table=dt, filters=filters, fields=Count("*"), distinct=distinct
-		)
-		count = query.run(debug=debug)[0][0]
+		count = frappe.qb.get_query(
+			table=dt,
+			filters=filters,
+			fields=Count("*"),
+			distinct=distinct,
+			validate_filters=True,
+		).run(debug=debug)[0][0]
 		if not filters and cache:
 			frappe.cache().set_value(f"doctype:count:{dt}", count, expires_in_sec=86400)
 		return count
@@ -1116,13 +1136,7 @@ class Database:
 		if not datetime:
 			return FallBackDateTimeStr
 
-		if isinstance(datetime, str):
-			if ":" not in datetime:
-				datetime = datetime + " 00:00:00.000000"
-		else:
-			datetime = datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
-
-		return datetime
+		return get_datetime(datetime).strftime("%Y-%m-%d %H:%M:%S.%f")
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
@@ -1243,7 +1257,12 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = frappe.qb.engine.build_conditions(table=doctype, filters=filters).delete()
+		query = frappe.qb.get_query(
+			table=doctype,
+			filters=filters,
+			delete=True,
+			validate_filters=True,
+		)
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 		return query.run(**kwargs)
@@ -1336,6 +1355,7 @@ def enqueue_jobs_after_commit():
 		RQ_RESULTS_TTL,
 		execute_job,
 		get_queue,
+		truncate_failed_registry,
 	)
 
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
@@ -1345,8 +1365,10 @@ def enqueue_jobs_after_commit():
 				execute_job,
 				timeout=job.get("timeout"),
 				kwargs=job.get("queue_args"),
-				failure_ttl=RQ_JOB_FAILURE_TTL,
-				result_ttl=RQ_RESULTS_TTL,
+				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+				job_id=job.get("job_id"),
+				on_failure=truncate_failed_registry,
 			)
 		frappe.flags.enqueue_after_commit = []
 

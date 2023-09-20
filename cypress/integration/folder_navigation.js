@@ -7,8 +7,8 @@ context("Folder Navigation", () => {
 
 	it("Adding Folders", () => {
 		//Adding filter to go into the home folder
-		cy.get(".filter-selector > .btn").findByText("1 filter").click();
-		cy.findByRole("button", { name: "Clear Filters" }).click();
+		cy.get(".filter-x-button").click();
+		cy.click_filter_button();
 		cy.get(".filter-action-buttons > .text-muted").findByText("+ Add a Filter").click();
 		cy.get(".fieldname-select-area > .awesomplete > .form-control:last").type("Fol{enter}");
 		cy.get(
@@ -47,9 +47,13 @@ context("Folder Navigation", () => {
 		//Adding a file inside the Test Folder
 		cy.findByRole("button", { name: "Add File" }).eq(0).click({ force: true });
 		cy.get(".file-uploader").findByText("Link").click();
-		cy.get(".input-group > .form-control").type(
-			"https://wallpaperplay.com/walls/full/8/2/b/72402.jpg"
-		);
+		cy.get(".input-group > input.form-control:visible").as("upload_input");
+		cy.get("@upload_input").type("https://wallpaperplay.com/walls/full/8/2/b/72402.jpg", {
+			waitForAnimations: false,
+			parseSpecialCharSequences: false,
+			force: true,
+			delay: 100,
+		});
 		cy.click_modal_primary_button("Upload");
 
 		//To check if the added file is present in the Test Folder

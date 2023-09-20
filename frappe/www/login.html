@@ -80,7 +80,7 @@
 		<div class="login-content page-card">
 			{{ logo_section() }}
 			<form class="form-signin form-login" role="form">
-				{%- if social_login -%}
+				{%- if social_login or login_with_email_link -%}
 				<div class="page-card-body">
 					<form class="form-signin form-login" role="form">
 						{{ email_login_body() }}
@@ -101,6 +101,15 @@
 							</div>
 							{% endfor %}
 						</div>
+						{% if login_with_email_link %}
+						<div class="login-with-email-link">
+							<div class="login-button-wrapper">
+								<a href="#login-with-email-link"
+									class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-email-link">
+									{{ _("Login with Email Link") }}</a>
+							</div>
+						</div>
+						{% endif %}
 					</div>
 				</div>
 				{% else %}
@@ -178,6 +187,38 @@
 					</p>
 				</div>
 
+			</form>
+		</div>
+	</section>
+
+	<section class='for-login-with-email-link'>
+		<div class="login-content page-card">
+			<form class="form-signin form-login-with-email-link hide" role="form">
+				<div class="page-card-head">
+					<h4>{{ _('Login With Email Link') }}</h4>
+				</div>
+				<div class="page-card-body">
+					<div class="email-field">
+						<input type="email" id="login_with_email_link_email" class="form-control"
+							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
+						<svg class="field-icon email-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
+							xmlns="http://www.w3.org/2000/svg">
+							<path
+								d="M2.5 7.65149V15.0757C2.5 15.4374 2.64367 15.7842 2.8994 16.04C3.15513 16.2957 3.50198 16.4394 3.86364 16.4394H16.1364C16.498 16.4394 16.8449 16.2957 17.1006 16.04C17.3563 15.7842 17.5 15.4374 17.5 15.0757V7.65149"
+								stroke="#74808B" stroke-miterlimit="10" stroke-linecap="square" />
+							<path
+								d="M17.5 7.57572V5.53026C17.5 5.1686 17.3563 4.82176 17.1006 4.56603C16.8449 4.31029 16.498 4.16663 16.1364 4.16663H3.86364C3.50198 4.16663 3.15513 4.31029 2.8994 4.56603C2.64367 4.82176 2.5 5.1686 2.5 5.53026V7.57572L10 10.8333L17.5 7.57572Z"
+								stroke="#74808B" stroke-miterlimit="10" stroke-linecap="square" />
+						</svg>
+					</div>
+				</div>
+				<div class="page-card-actions">
+					<button class="btn btn-sm btn-primary btn-block btn-login-with-email-link"
+						type="submit">{{ _("Send login link") }}</button>
+					<p class="text-center sign-up-message">
+						<a href="#login">{{ _("Back to Login") }}</a>
+					</p>
+				</div>
 			</form>
 		</div>
 	</section>

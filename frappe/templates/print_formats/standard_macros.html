@@ -56,9 +56,9 @@
 							<td class="{{ get_align_class(tdf) }}" {{ fieldmeta(df) }}>
 							{% if doc.child_print_templates %}
 								{%- set child_templates = doc.child_print_templates.get(df.fieldname) -%}
-								<div class="value">{{ print_value(tdf, d, doc, visible_columns, child_templates) }}</div></td>
+								<div class="value">{{ _(print_value(tdf, d, doc, visible_columns, child_templates)) }}</div></td>
 							{% else %}
-								<div class="value">{{ print_value(tdf, d, doc, visible_columns) }}</div></td>
+								<div class="value">{{ _(print_value(tdf, d, doc, visible_columns)) }}</div></td>
 							{% endif %}
 						{% endfor %}
 					</tr>

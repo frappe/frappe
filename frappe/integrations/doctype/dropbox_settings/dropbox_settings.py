@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
 import os
 from urllib.parse import parse_qs, urlparse
 
@@ -16,16 +15,8 @@ from frappe.integrations.offsite_backup_utils import (
 	send_email,
 	validate_file_size,
 )
-from frappe.integrations.utils import make_post_request
 from frappe.model.document import Document
-from frappe.utils import (
-	cint,
-	encode,
-	get_backups_path,
-	get_files_path,
-	get_request_site_address,
-	get_url,
-)
+from frappe.utils import cint, encode, get_backups_path, get_files_path, get_request_site_address
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.backups import new_backup
 
@@ -101,27 +92,9 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 
 
 def backup_to_dropbox(upload_db_backup=True):
-	if not frappe.db:
-		frappe.connect()
-
 	# upload database
 	dropbox_settings = get_dropbox_settings()
-
-	if not dropbox_settings["access_token"]:
-		access_token = generate_oauth2_access_token_from_oauth1_token(dropbox_settings)
-
-		if not access_token.get("oauth2_token"):
-			return (
-				"Failed backup upload",
-				"No Access Token exists! Please generate the access token for Dropbox.",
-			)
-
-		dropbox_settings["access_token"] = access_token["oauth2_token"]
-		set_dropbox_access_token(access_token["oauth2_token"])
-
-	dropbox_client = dropbox.Dropbox(
-		oauth2_access_token=dropbox_settings["access_token"], timeout=None
-	)
+	dropbox_client = get_dropbox_client(dropbox_settings)
 
 	if upload_db_backup:
 		if frappe.flags.create_new_backup:
@@ -267,24 +240,36 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 		# folder not found
 		if isinstance(e.error, dropbox.files.ListFolderError):
 			return frappe._dict({"entries": []})
-		else:
-			raise
+		raise
+
+
+def get_dropbox_client(dropbox_settings):
+	dropbox_client = dropbox.Dropbox(
+		oauth2_access_token=dropbox_settings["access_token"],
+		oauth2_refresh_token=dropbox_settings["refresh_token"],
+		app_key=dropbox_settings["app_key"],
+		app_secret=dropbox_settings["app_secret"],
+		timeout=None,
+	)
+
+	# checking if the access token has expired
+	dropbox_client.files_list_folder("")
+	if dropbox_settings["access_token"] != dropbox_client._oauth2_access_token:
+		set_dropbox_token(dropbox_client._oauth2_access_token)
+
+	return dropbox_client
 
 
 def get_dropbox_settings(redirect_uri=False):
-	if not frappe.conf.dropbox_broker_site:
-		frappe.conf.dropbox_broker_site = "https://dropbox.erpnext.com"
+	# NOTE: access token is kept for legacy dropbox apps
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {
 		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
 		"app_secret": settings.get_password(fieldname="app_secret_key", raise_exception=False)
 		if settings.app_secret_key
 		else frappe.conf.dropbox_secret_key,
-		"access_token": settings.get_password("dropbox_access_token", raise_exception=False)
-		if settings.dropbox_access_token
-		else "",
-		"access_key": settings.get_password("dropbox_access_key", raise_exception=False),
-		"access_secret": settings.get_password("dropbox_access_secret", raise_exception=False),
+		"refresh_token": settings.get_password("dropbox_refresh_token", raise_exception=False),
+		"access_token": settings.get_password("dropbox_access_token", raise_exception=False),
 		"file_backup": settings.file_backup,
 		"no_of_backups": settings.no_of_backups if settings.limit_no_of_backups else None,
 	}
@@ -294,14 +279,11 @@ def get_dropbox_settings(redirect_uri=False):
 			{
 				"redirect_uri": get_request_site_address(True)
 				+ "/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish"
-				if settings.app_secret_key
-				else frappe.conf.dropbox_broker_site
-				+ "/api/method/dropbox_erpnext_broker.www.setup_dropbox.generate_dropbox_access_token",
 			}
 		)
 
-	if not app_details["app_key"] or not app_details["app_secret"]:
-		raise Exception(_("Please set Dropbox access keys in your site config"))
+	if not (app_details["app_key"] and app_details["app_secret"]):
+		raise Exception(_("Please set Dropbox access keys in site config or doctype"))
 
 	return app_details
 
@@ -322,28 +304,6 @@ def delete_older_backups(dropbox_client, folder_path, to_keep):
 
 
 @frappe.whitelist()
-def get_redirect_url():
-	if not frappe.conf.dropbox_broker_site:
-		frappe.conf.dropbox_broker_site = "https://dropbox.erpnext.com"
-	url = "{}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(
-		frappe.conf.dropbox_broker_site
-	)
-
-	try:
-		response = make_post_request(url, data={"site": get_url()})
-		if response.get("message"):
-			return response["message"]
-
-	except Exception:
-		frappe.log_error()
-		frappe.throw(
-			_(
-				"Something went wrong while generating dropbox access token. Please check error log for more details."
-			)
-		)
-
-
-@frappe.whitelist()
 def get_dropbox_authorize_url():
 	app_details = get_dropbox_settings(redirect_uri=True)
 	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
@@ -352,6 +312,7 @@ def get_dropbox_authorize_url():
 		session={},
 		csrf_token_session_key="dropbox-auth-csrf-token",
 		consumer_secret=app_details["app_secret"],
+		token_access_type="offline",
 	)
 
 	auth_url = dropbox_oauth_flow.start()
@@ -360,10 +321,19 @@ def get_dropbox_authorize_url():
 
 
 @frappe.whitelist()
-def dropbox_auth_finish(return_access_token=False):
+def dropbox_auth_finish():
 	app_details = get_dropbox_settings(redirect_uri=True)
 	callback = frappe.form_dict
 	close = '<p class="text-muted">' + _("Please close this window") + "</p>"
+
+	if not callback.state or not callback.code:
+		frappe.respond_as_web_page(
+			_("Dropbox Setup"),
+			_("Illegal Access Token. Please try again") + close,
+			indicator_color="red",
+			http_status_code=frappe.AuthenticationError.http_status_code,
+		)
+		return
 
 	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
 		consumer_key=app_details["app_key"],
@@ -373,40 +343,20 @@ def dropbox_auth_finish(return_access_token=False):
 		consumer_secret=app_details["app_secret"],
 	)
 
-	if callback.state or callback.code:
-		token = dropbox_oauth_flow.finish({"state": callback.state, "code": callback.code})
-		if return_access_token and token.access_token:
-			return token.access_token, callback.state
+	token = dropbox_oauth_flow.finish({"state": callback.state, "code": callback.code})
+	set_dropbox_token(token.access_token, token.refresh_token)
 
-		set_dropbox_access_token(token.access_token)
-	else:
-		frappe.respond_as_web_page(
-			_("Dropbox Setup"),
-			_("Illegal Access Token. Please try again") + close,
-			indicator_color="red",
-			http_status_code=frappe.AuthenticationError.http_status_code,
-		)
-
-	frappe.respond_as_web_page(
-		_("Dropbox Setup"), _("Dropbox access is approved!") + close, indicator_color="green"
-	)
+	frappe.local.response["type"] = "redirect"
+	frappe.local.response["location"] = "/app/dropbox-settings"
 
 
-def set_dropbox_access_token(access_token):
-	frappe.db.set_single_value("Dropbox Settings", "dropbox_access_token", access_token)
+def set_dropbox_token(access_token, refresh_token=None):
+	# NOTE: used doc object instead of db.set_value so that password field is set properly
+	dropbox_settings = frappe.get_single("Dropbox Settings")
+	dropbox_settings.dropbox_access_token = access_token
+	if refresh_token:
+		dropbox_settings.dropbox_refresh_token = refresh_token
+
+	dropbox_settings.save()
+
 	frappe.db.commit()
-
-
-def generate_oauth2_access_token_from_oauth1_token(dropbox_settings=None):
-	if not dropbox_settings.get("access_key") or not dropbox_settings.get("access_secret"):
-		return {}
-
-	url = "https://api.dropboxapi.com/2/auth/token/from_oauth1"
-	headers = {"Content-Type": "application/json"}
-	auth = (dropbox_settings["app_key"], dropbox_settings["app_secret"])
-	data = {
-		"oauth1_token": dropbox_settings["access_key"],
-		"oauth1_token_secret": dropbox_settings["access_secret"],
-	}
-
-	return make_post_request(url, auth=auth, headers=headers, data=json.dumps(data))

@@ -1,3 +1,4 @@
+import gc
 import os
 import socket
 import time
@@ -9,6 +10,7 @@ from uuid import uuid4
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
+from rq.exceptions import NoSuchJobError
 from rq.logutils import setup_loghandlers
 from rq.worker import RandomWorker, RoundRobinWorker
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -16,7 +18,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import cstr, get_bench_id
+from frappe.utils import cint, cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.redis_queue import RedisQueue
 
@@ -26,7 +28,11 @@ if TYPE_CHECKING:
 
 # TTL to keep RQ job logs in redis for.
 RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)
+RQ_FAILED_JOBS_LIMIT = 1000  # Only keep these many recent failed jobs around
 RQ_RESULTS_TTL = 10 * 60
+
+
+_redis_queue_conn = None
 
 
 @lru_cache
@@ -48,9 +54,6 @@ def get_queues_timeout():
 	}
 
 
-redis_connection = None
-
-
 def enqueue(
 	method,
 	queue="default",
@@ -62,6 +65,7 @@ def enqueue(
 	enqueue_after_commit=False,
 	*,
 	at_front=False,
+	job_id=None,
 	**kwargs,
 ) -> Union["Job", Any]:
 	"""
@@ -75,9 +79,14 @@ def enqueue(
 	:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param now: if now=True, the method is executed via frappe.call
 	:param kwargs: keyword arguments to be passed to the method
+	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
+
+	if job_id:
+		# namespace job ids to sites
+		job_id = create_job_id(job_id)
 
 	if not is_async and not frappe.flags.in_test:
 		print(
@@ -86,11 +95,20 @@ def enqueue(
 			)
 		)
 
-	call_directly = now or frappe.flags.in_migrate or (not is_async and not frappe.flags.in_test)
+	call_directly = now or (not is_async and not frappe.flags.in_test)
 	if call_directly:
 		return frappe.call(method, **kwargs)
 
-	q = get_queue(queue, is_async=is_async)
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except ConnectionError:
+		if frappe.local.flags.in_migrate:
+			# If redis is not available during migration, execute the job directly
+			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			return frappe.call(method, **kwargs)
+
+		raise
+
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 	queue_args = {
@@ -102,22 +120,31 @@ def enqueue(
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
+
 	if enqueue_after_commit:
 		if not frappe.flags.enqueue_after_commit:
 			frappe.flags.enqueue_after_commit = []
 
 		frappe.flags.enqueue_after_commit.append(
-			{"queue": queue, "is_async": is_async, "timeout": timeout, "queue_args": queue_args}
+			{
+				"queue": queue,
+				"is_async": is_async,
+				"timeout": timeout,
+				"queue_args": queue_args,
+				"job_id": job_id,
+			}
 		)
-		return frappe.flags.enqueue_after_commit
+		return
 
 	return q.enqueue_call(
 		execute_job,
 		timeout=timeout,
 		kwargs=queue_args,
 		at_front=at_front,
-		failure_ttl=RQ_JOB_FAILURE_TTL,
-		result_ttl=RQ_RESULTS_TTL,
+		failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+		result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+		job_id=job_id,
+		on_failure=truncate_failed_registry,
 	)
 
 
@@ -214,6 +241,10 @@ def start_worker(
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 	DEQUEUE_STRATEGIES = {"round_robin": RoundRobinWorker, "random": RandomWorker}
 
+	if frappe._tune_gc:
+		gc.collect()
+		gc.freeze()
+
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn(username=rq_username, password=rq_password)
@@ -226,6 +257,7 @@ def start_worker(
 	if os.environ.get("CI"):
 		setup_loghandlers("ERROR")
 
+	set_niceness()
 	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
 
 	with Connection(redis_connection):
@@ -233,7 +265,12 @@ def start_worker(
 		if quiet:
 			logging_level = "WARNING"
 		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(logging_level=logging_level, burst=burst)
+		worker.work(
+			logging_level=logging_level,
+			burst=burst,
+			date_format="%Y-%m-%d %H:%M:%S",
+			log_format="%(asctime)s,%(msecs)03d %(message)s",
+		)
 
 
 def get_worker_name(queue):
@@ -334,7 +371,7 @@ def get_redis_conn(username=None, password=None):
 	elif not frappe.local.conf.redis_queue:
 		raise Exception("redis_queue missing in common_site_config.json")
 
-	global redis_connection
+	global _redis_queue_conn
 
 	cred = frappe._dict()
 	if frappe.conf.get("use_rq_auth"):
@@ -348,8 +385,14 @@ def get_redis_conn(username=None, password=None):
 	elif os.environ.get("RQ_ADMIN_PASWORD"):
 		cred["username"] = "default"
 		cred["password"] = os.environ.get("RQ_ADMIN_PASWORD")
+
 	try:
-		redis_connection = RedisQueue.get_connection(**cred)
+		if not cred:
+			if not _redis_queue_conn:
+				_redis_queue_conn = RedisQueue.get_connection()
+			return _redis_queue_conn
+		else:
+			return RedisQueue.get_connection(**cred)
 	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
 		log(
 			f'Wrong credentials used for {cred.username or "default user"}. '
@@ -361,12 +404,10 @@ def get_redis_conn(username=None, password=None):
 		log(f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}", colour="red")
 		raise
 
-	return redis_connection
 
-
-def get_queues() -> list[Queue]:
+def get_queues(connection=None) -> list[Queue]:
 	"""Get all the queues linked to the current bench."""
-	queues = Queue.all(connection=get_redis_conn())
+	queues = Queue.all(connection=connection or get_redis_conn())
 	return [q for q in queues if is_queue_accessible(q)]
 
 
@@ -395,3 +436,55 @@ def test_job(s):
 
 	print("sleeping...")
 	time.sleep(s)
+
+
+def create_job_id(job_id: str) -> str:
+	"""Generate unique job id for deduplication"""
+	return f"{frappe.local.site}::{job_id}"
+
+
+def is_job_enqueued(job_id: str) -> str:
+	from rq.job import Job
+
+	try:
+		job = Job.fetch(create_job_id(job_id), connection=get_redis_conn())
+	except NoSuchJobError:
+		return False
+
+	return job.get_status() in ("queued", "started")
+
+
+BACKGROUND_PROCESS_NICENESS = 10
+
+
+def set_niceness():
+	"""Background processes should have slightly lower priority than web processes.
+
+	Calling this function increments the niceness of process by configured value or default.
+	Note: This function should be called only once in process' lifetime.
+	"""
+
+	conf = frappe.get_conf()
+	nice_increment = BACKGROUND_PROCESS_NICENESS
+
+	configured_niceness = conf.get("background_process_niceness")
+
+	if configured_niceness is not None:
+		nice_increment = cint(configured_niceness)
+
+	os.nice(nice_increment)
+
+
+def truncate_failed_registry(job, connection, type, value, traceback):
+	"""Ensures that number of failed jobs don't exceed specified limits."""
+	from frappe.utils import create_batch
+
+	conf = frappe.get_conf(site=job.kwargs.get("site"))
+	limit = (conf.get("rq_failed_jobs_limit") or RQ_FAILED_JOBS_LIMIT) - 1
+
+	for queue in get_queues(connection=connection):
+		fail_registry = queue.failed_job_registry
+		failed_jobs = fail_registry.get_job_ids()[limit:]
+		for job_ids in create_batch(failed_jobs, 100):
+			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
+				job_obj and fail_registry.remove(job_obj, delete_job=True)

@@ -418,7 +418,7 @@ frappe.ui.filter_utils = {
 	get_selected_value(field, condition) {
 		if (!field) return;
 
-		let val = field.get_value();
+		let val = field.get_value() || field.value;
 
 		if (typeof val === "string") {
 			val = strip(val);
@@ -508,6 +508,7 @@ frappe.ui.filter_utils = {
 				"HTML Editor",
 				"Tag",
 				"Phone",
+				"JSON",
 				"Comments",
 				"Barcode",
 				"Dynamic Link",

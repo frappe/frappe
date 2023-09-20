@@ -241,9 +241,7 @@ export default class QuickListWidget extends Widget {
 		this.footer.empty();
 
 		let filters = frappe.utils.get_filter_from_json(this.quick_list_filter);
-		if (filters) {
-			frappe.route_options = filters;
-		}
+
 		let route = frappe.utils.generate_route({ type: "doctype", name: this.document_type });
 		this.see_all_button = $(`
 			<div class="see-all btn btn-xs">${__("View List")}</div>
@@ -252,6 +250,9 @@ export default class QuickListWidget extends Widget {
 		this.see_all_button.click((e) => {
 			if (e.ctrlKey || e.metaKey) {
 				frappe.open_in_new_tab = true;
+			}
+			if (filters) {
+				frappe.route_options = filters;
 			}
 			frappe.set_route(route);
 		});

@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe import get_hooks
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
@@ -66,17 +67,6 @@ class TestWebsite(FrappeTestCase):
 		frappe.set_user("Guest")
 		self.assertEqual(get_home_page(), "login")
 		frappe.set_user("Administrator")
-
-		from frappe import get_hooks
-
-		def patched_get_hooks(hook, value):
-			def wrapper(*args, **kwargs):
-				return_value = get_hooks(*args, **kwargs)
-				if args[0] == hook:
-					return_value = value
-				return return_value
-
-			return wrapper
 
 		# test homepage via hooks
 		clear_website_cache()
@@ -236,6 +226,7 @@ class TestWebsite(FrappeTestCase):
 
 	def test_printview_page(self):
 		frappe.db.value_cache[("DocType", "Language", "name")] = (("Language",),)
+		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
 		self.assertIn('<div class="print-format">', content)
 		self.assertIn("<div>Language</div>", content)
@@ -331,6 +322,17 @@ class TestWebsite(FrappeTestCase):
 		self.assertIn("test.__test", content)
 		self.assertNotIn("frappe.exceptions.ValidationError: Illegal template", content)
 
+	def test_never_render(self):
+		from pathlib import Path
+		from random import choices
+
+		WWW = Path(frappe.get_app_path("frappe")) / "www"
+		FILES_TO_SKIP = choices(list(WWW.glob("**/*.py*")), k=10)
+
+		for suffix in FILES_TO_SKIP:
+			content = get_response_content(suffix.relative_to(WWW))
+			self.assertIn("404", content)
+
 	def test_metatags(self):
 		content = get_response_content("/_test/_test_metatags")
 		self.assertIn('<meta name="title" content="Test Title Metatag">', content)
@@ -381,6 +383,16 @@ class TestWebsite(FrappeTestCase):
 			)
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")
+
+
+def patched_get_hooks(hook, value):
+	def wrapper(*args, **kwargs):
+		return_value = get_hooks(*args, **kwargs)
+		if args[0] == hook:
+			return_value = value
+		return return_value
+
+	return wrapper
 
 
 class CustomPageRenderer:

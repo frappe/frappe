@@ -365,7 +365,7 @@ class AutoRepeat(Document):
 			error_string += _(
 				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
-			attachments = "[]"
+			attachments = None
 
 		if error_string:
 			message = error_string
@@ -374,12 +374,10 @@ class AutoRepeat(Document):
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {"doc": new_doc})
 
-		recipients = self.recipients.split("\n")
-
 		make(
 			doctype=new_doc.doctype,
 			name=new_doc.name,
-			recipients=recipients,
+			recipients=self.recipients,
 			subject=subject,
 			content=message,
 			attachments=attachments,
@@ -528,21 +526,18 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 
 
 @frappe.whitelist()
-def update_reference(docname, reference):
-	result = ""
-	try:
-		frappe.db.set_value("Auto Repeat", docname, "reference_document", reference)
-		result = "success"
-	except Exception as e:
-		result = "error"
-		raise e
-	return result
+def update_reference(docname: str, reference: str):
+	doc = frappe.get_doc("Auto Repeat", str(docname))
+	doc.check_permission("write")
+	doc.db_set("reference_document", str(reference))
+	return "success"  # backward compatbility
 
 
 @frappe.whitelist()
 def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
 	doc = frappe.get_doc(reference_dt, reference_doc)
+	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
 	msg_preview = frappe.render_template(message, {"doc": doc})
 	if subject:

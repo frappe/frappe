@@ -33,7 +33,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.filters = this.report_doc.json.filters;
 				this.order_by = this.report_doc.json.order_by;
 				this.add_totals_row = this.report_doc.json.add_totals_row;
-				this.page_title = this.report_name;
+				this.page_title = __(this.report_name);
 				this.page_length = this.report_doc.json.page_length || 20;
 				this.order_by = this.report_doc.json.order_by || "modified desc";
 				this.chart_args = this.report_doc.json.chart_args;
@@ -1345,15 +1345,81 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_filters_html_for_print() {
 		const filters = this.filter_area.get();
 
-		return filters
-			.map((f) => {
-				const [doctype, fieldname, condition, value] = f;
-				if (condition !== "=") return "";
-
-				const label = frappe.meta.get_label(doctype, fieldname);
-				return `<h6>${__(label)}: ${value}</h6>`;
-			})
-			.join("");
+		return (
+			`<h5>${__("Filters:")}</h5>` +
+			filters
+				.map((f) => {
+					const [doctype, fieldname, condition, value] = f;
+					const docfield = frappe.meta.get_docfield(doctype, fieldname);
+					const label = `<b>${__(frappe.meta.get_label(doctype, fieldname))}</b>`;
+					switch (condition) {
+						case "=":
+							return __("{0} is equal to {1}", [
+								label,
+								frappe.format(value, docfield),
+							]);
+						case "!=":
+							return __("{0} is not equal to {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case ">":
+							return __("{0} is greater than {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case "<":
+							return __("{0} is less than {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case ">=":
+							return __("{0} is greater than or equal to {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case "<=":
+							return __("{0} is less than or equal to {1}", [
+								__(label),
+								frappe.format(value, docfield),
+							]);
+						case "Between":
+							return __("{0} is between {1} and {2}", [
+								__(label),
+								frappe.format(value[0], docfield),
+								frappe.format(value[1], docfield),
+							]);
+						case "Timespan":
+							return __("{0} is within {1}", [__(label), __(value)]);
+						case "in":
+							return __("{0} is one of {1}", [
+								__(label),
+								frappe.utils.comma_or(
+									value.map((v) => frappe.format(v, docfield))
+								),
+							]);
+						case "not in":
+							return __("{0} is not one of {1}", [
+								__(label),
+								frappe.utils.comma_or(
+									value.map((v) => frappe.format(v, docfield))
+								),
+							]);
+						case "like":
+							return __("{0} is like {1}", [__(label), value]);
+						case "not like":
+							return __("{0} is not like {1}", [__(label), value]);
+						case "is":
+							return value === "set"
+								? __("{0} is set", [__(label)])
+								: __("{0} is not set", [__(label)]);
+						default:
+							return null;
+					}
+				})
+				.filter(Boolean)
+				.join("<br>")
+		);
 	}
 
 	get_columns_totals(data) {
@@ -1416,6 +1482,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							print_settings: print_settings,
 							columns: this.columns,
 							data: rows_in_order,
+							can_use_smaller_font: 1,
 						});
 					});
 				},

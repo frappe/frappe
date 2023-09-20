@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import contextlib
 import copy
 import json
 import os
@@ -10,7 +11,7 @@ import frappe
 from frappe import _, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
-from frappe.utils import cint, sanitize_html, strip_html
+from frappe.utils import cint, escape_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
 no_cache = 1
@@ -22,18 +23,19 @@ def get_context(context):
 	"""Build context for print"""
 	if not ((frappe.form_dict.doctype and frappe.form_dict.name) or frappe.form_dict.doc):
 		return {
-			"body": sanitize_html(
-				"""<h1>Error</h1>
+			"body": f"""
+				<h1>Error</h1>
 				<p>Parameters doctype and name required</p>
-				<pre>%s</pre>"""
-				% repr(frappe.form_dict)
-			)
+				<pre>{escape_html(frappe.as_json(frappe.form_dict, indent=2))}</pre>
+				"""
 		}
 
 	if frappe.form_dict.doc:
 		doc = frappe.form_dict.doc
 	else:
 		doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+
+	set_link_titles(doc)
 
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
@@ -204,12 +206,34 @@ def get_rendered_template(
 		}
 	)
 
-	html = template.render(args, filters={"len": len})
+	try:
+		html = template.render(args, filters={"len": len})
+	except Exception as e:
+		frappe.throw(
+			_("Error in print format on line {0}: {1}").format(
+				_guess_template_error_line_number(template), e
+			),
+			exc=frappe.PrintFormatError,
+			title=_("Print Format Error"),
+		)
 
 	if cint(trigger_print):
 		html += trigger_print_script
 
 	return html
+
+
+def _guess_template_error_line_number(template) -> int | None:
+	"""Guess line on which exception occured from current traceback."""
+	with contextlib.suppress(Exception):
+		import sys
+		import traceback
+
+		_, _, tb = sys.exc_info()
+
+		for frame in reversed(traceback.extract_tb(tb)):
+			if template.filename in frame.filename:
+				return frame.lineno
 
 
 def set_link_titles(doc):

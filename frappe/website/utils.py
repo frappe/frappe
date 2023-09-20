@@ -12,7 +12,7 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, get_time_zone, md_to_html
+from frappe.utils import cint, get_system_timezone, md_to_html
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -166,8 +166,8 @@ def get_boot_data():
 			"time_format": frappe.get_system_settings("time_format") or "HH:mm:ss",
 		},
 		"time_zone": {
-			"system": get_time_zone(),
-			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_time_zone(),
+			"system": get_system_timezone(),
+			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_system_timezone(),
 		},
 	}
 
@@ -358,7 +358,14 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 def clear_cache(path=None):
 	"""Clear website caches
 	:param path: (optional) for the given path"""
-	for key in ("website_generator_routes", "website_pages", "website_full_index", "sitemap_routes"):
+	for key in (
+		"website_generator_routes",
+		"website_pages",
+		"website_full_index",
+		"sitemap_routes",
+		"languages_with_name",
+		"languages",
+	):
 		frappe.cache().delete_value(key)
 
 	frappe.cache().delete_value("website_404")

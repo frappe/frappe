@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe.core.doctype.communication.communication import Communication, get_emails
+from frappe.core.doctype.communication.email import add_attachments
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
 
@@ -308,6 +309,7 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 				"recipients": recipients,
 				"cc": cc,
 				"bcc": bcc,
+				"sender": "sender@test.com",
 			}
 		).insert(ignore_permissions=True)
 
@@ -327,14 +329,26 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		comm.delete()
 
 	def test_cc(self):
-		to_list = ["to@test.com"]
-		cc_list = ["cc+1@test.com", "cc <cc+2@test.com>", "to@test.com"]
-		user = self.new_user(email="cc+1@test.com", thread_notify=0)
-		comm = self.new_communication(recipients=to_list, cc=cc_list)
-		res = comm.get_mail_cc_with_displayname()
-		self.assertCountEqual(res, ["cc <cc+2@test.com>"])
-		user.delete()
-		comm.delete()
+		def test(assertion, cc_list=None, set_user_as=None, include_sender=False, thread_notify=False):
+			if set_user_as:
+				frappe.set_user(set_user_as)
+
+			user = self.new_user(email="cc+1@test.com", thread_notify=thread_notify)
+			comm = self.new_communication(recipients=["to@test.com"], cc=cc_list)
+			res = comm.get_mail_cc_with_displayname(include_sender=include_sender)
+
+			frappe.set_user("Administrator")
+			user.delete()
+			comm.delete()
+
+			self.assertEqual(res, assertion)
+
+		# test filter_thread_notification_disbled_users and filter_mail_recipients
+		test(["cc <cc+2@test.com>"], cc_list=["cc+1@test.com", "cc <cc+2@test.com>", "to@test.com"])
+
+		# test include_sender
+		test(["sender@test.com"], include_sender=True, thread_notify=True)
+		test(["cc+1@test.com"], include_sender=True, thread_notify=True, set_user_as="cc+1@test.com")
 
 	def test_bcc(self):
 		bcc_list = [
@@ -360,6 +374,39 @@ class TestCommunicationEmailMixin(FrappeTestCase):
 		self.assertCountEqual(to_list + cc_list, mail_receivers)
 		doc.delete()
 		comm.delete()
+
+	def test_add_attachments_by_filename(self):
+		to_list = ["to <to@test.com>"]
+		comm = self.new_communication(recipients=to_list)
+
+		file = frappe.new_doc("File")
+		file.file_name = "test_add_attachments_by_filename.txt"
+		file.content = "test_add_attachments_by_filename"
+		file.insert(ignore_permissions=True)
+
+		add_attachments(comm.name, [file.name])
+
+		attached_file_name, attached_content_hash = frappe.db.get_value(
+			"File",
+			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
+			["file_name", "content_hash"],
+		)
+		self.assertEqual(attached_content_hash, file.content_hash)
+		self.assertEqual(attached_file_name, file.file_name)
+
+	def test_add_attachments_by_file_content(self):
+		to_list = ["to <to@test.com>"]
+		comm = self.new_communication(recipients=to_list)
+		file_name = "test_add_attachments_by_file_content.txt"
+		file_content = "test_add_attachments_by_file_content"
+		add_attachments(comm.name, [{"fcontent": file_content, "fname": file_name}])
+		attached_file_name = frappe.db.get_value(
+			"File",
+			{"attached_to_name": comm.name, "attached_to_doctype": comm.doctype},
+		)
+		attached_file = frappe.get_doc("File", attached_file_name)
+		self.assertEqual(attached_file.file_name, file_name)
+		self.assertEqual(attached_file.get_content(), file_content)
 
 
 def create_email_account() -> "EmailAccount":

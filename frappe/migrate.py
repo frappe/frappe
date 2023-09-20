@@ -90,8 +90,8 @@ class SiteMigration:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
 
 		if not self.skip_search_index:
-			print(f"Building search index for {frappe.local.site}")
-			build_index_for_all_routes()
+			print(f"Queued rebuilding of search index for {frappe.local.site}")
+			frappe.enqueue(build_index_for_all_routes, queue="long")
 
 		frappe.publish_realtime("version-update")
 		frappe.flags.touched_tables.clear()

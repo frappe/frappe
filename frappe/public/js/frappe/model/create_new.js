@@ -161,7 +161,9 @@ $.extend(frappe.model, {
 
 				if (!user_default) {
 					user_default = frappe.defaults.get_user_default(df.fieldname);
-				} else if (
+				}
+
+				if (
 					!user_default &&
 					df.remember_last_selected_value &&
 					frappe.boot.user.last_selected_values
@@ -305,6 +307,10 @@ $.extend(frappe.model, {
 		newdoc.modified = "";
 		newdoc.lft = null;
 		newdoc.rgt = null;
+
+		if (from_amend && parent_doc) {
+			newdoc._amended_from = doc.name;
+		}
 
 		return newdoc;
 	},

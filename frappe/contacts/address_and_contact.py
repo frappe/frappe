@@ -149,18 +149,26 @@ def get_permitted_and_not_permitted_links(doctype):
 	return {"permitted_links": permitted_links, "not_permitted_links": not_permitted_links}
 
 
-def delete_contact_and_address(doctype, docname):
+def delete_contact_and_address(doctype: str, docname: str) -> None:
 	for parenttype in ("Contact", "Address"):
-		items = frappe.db.sql_list(
-			"""select parent from `tabDynamic Link`
-			where parenttype=%s and link_doctype=%s and link_name=%s""",
-			(parenttype, doctype, docname),
-		)
-
-		for name in items:
+		for name in frappe.get_all(
+			"Dynamic Link",
+			filters={
+				"parenttype": parenttype,
+				"link_doctype": doctype,
+				"link_name": docname,
+			},
+			pluck="parent",
+		):
 			doc = frappe.get_doc(parenttype, name)
 			if len(doc.links) == 1:
 				doc.delete()
+			else:
+				for link in doc.links:
+					if link.link_doctype == doctype and link.link_name == docname:
+						doc.remove(link)
+						doc.save()
+						break
 
 
 @frappe.whitelist()

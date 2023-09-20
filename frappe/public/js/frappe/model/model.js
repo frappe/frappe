@@ -107,10 +107,10 @@ $.extend(frappe.model, {
 					cur_frm.doc.doctype === doc.doctype &&
 					cur_frm.doc.name === doc.name
 				) {
-					if (data.modified !== cur_frm.doc.modified) {
+					if (data.modified !== cur_frm.doc.modified && !frappe.ui.form.is_saving) {
 						if (!cur_frm.is_dirty()) {
-							cur_frm.reload_doc();
-						} else if (!frappe.ui.form.is_saving) {
+							cur_frm.debounced_reload_doc();
+						} else {
 							doc.__needs_refresh = true;
 							cur_frm.show_conflict_message();
 						}
@@ -408,6 +408,12 @@ $.extend(frappe.model, {
 	},
 
 	can_share: function (doctype, frm) {
+		let disable_sharing = cint(frappe.sys_defaults.disable_document_sharing);
+
+		if (disable_sharing && frappe.session.user !== "Administrator") {
+			return false;
+		}
+
 		if (frm) {
 			return frm.perm[0].share === 1;
 		}
@@ -756,7 +762,7 @@ $.extend(frappe.model, {
 	get_all_docs: function (doc) {
 		var all = [doc];
 		for (var key in doc) {
-			if ($.isArray(doc[key])) {
+			if ($.isArray(doc[key]) && !key.startsWith("_")) {
 				var children = doc[key];
 				for (var i = 0, l = children.length; i < l; i++) {
 					all.push(children[i]);

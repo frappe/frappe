@@ -13,14 +13,16 @@
   "time_zone",
   "enable_onboarding",
   "setup_complete",
+  "disable_document_sharing",
   "date_and_number_format",
   "date_format",
   "time_format",
   "number_format",
+  "first_day_of_the_week",
   "column_break_7",
   "float_precision",
   "currency_precision",
-  "first_day_of_the_week",
+  "rounding_method",
   "sec_backup_limit",
   "backup_limit",
   "encrypt_backup",
@@ -31,6 +33,7 @@
   "apply_strict_user_permissions",
   "column_break_21",
   "allow_guests_to_upload_files",
+  "force_web_capture_mode_for_uploads",
   "security",
   "session_expiry",
   "session_expiry_mobile",
@@ -40,9 +43,12 @@
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
   "disable_user_pass_login",
+  "login_with_email_link",
+  "login_with_email_link_expiry",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
+  "apply_perm_level_on_api_calls",
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
@@ -70,13 +76,15 @@
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
   "prepared_report_section",
-  "enable_prepared_report_auto_deletion",
-  "prepared_report_expiry_period",
-  "column_break_64",
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
-  "disable_change_log_notification"
+  "disable_change_log_notification",
+  "telemetry_section",
+  "enable_telemetry",
+  "files_section",
+  "max_file_size",
+  "column_break_uqma"
  ],
  "fields": [
   {
@@ -208,7 +216,7 @@
    "label": "Security"
   },
   {
-   "default": "24:00",
+   "default": "60:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -424,28 +432,14 @@
    "default": "1",
    "fieldname": "attach_view_link",
    "fieldtype": "Check",
-   "label": "Send document Web View link in email"
+   "label": "Include Web View Link in Email"
   },
   {
-   "default": "30",
-   "depends_on": "enable_prepared_report_auto_deletion",
-   "description": "System will auto-delete Prepared Reports permanently after these many days since creation",
-   "fieldname": "prepared_report_expiry_period",
-   "fieldtype": "Int",
-   "label": "Prepared Report Expiry Period (Days)"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_prepared_report_auto_deletion",
-   "fieldtype": "Check",
-   "label": "Enable Auto-deletion of Prepared Reports"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "prepared_report_section",
-   "fieldtype": "Section Break",
-   "label": "Reports"
-  },
+    "collapsible": 1,
+    "fieldname": "prepared_report_section",
+    "fieldtype": "Section Break",
+    "label": "Reports"
+   },
   {
    "default": "Frappe",
    "description": "The application name will be used in the Login page.",
@@ -499,10 +493,6 @@
    "label": "Allow Older Web View Links (Insecure)"
   },
   {
-   "fieldname": "column_break_64",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "20",
    "fieldname": "max_auto_email_report_per_user",
    "fieldtype": "Int",
@@ -533,12 +523,80 @@
    "fieldname": "disable_user_pass_login",
    "fieldtype": "Check",
    "label": "Disable Username/Password Login"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_perm_level_on_api_calls",
+   "fieldtype": "Check",
+   "label": "Apply Perm Level on API calls (Recommended)"
+  },
+  {
+   "default": "Banker's Rounding (legacy)",
+   "fieldname": "rounding_method",
+   "fieldtype": "Select",
+   "label": "Rounding Method",
+   "options": "Banker's Rounding (legacy)\nBanker's Rounding\nCommercial Rounding"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_document_sharing",
+   "fieldtype": "Check",
+   "label": "Disable Document Sharing"
+  },
+  {
+   "default": "0",
+   "description": "Allow users to log in without a password, using a login link sent to their email",
+   "fieldname": "login_with_email_link",
+   "fieldtype": "Check",
+   "label": "Login with email link"
+  },
+  {
+   "default": "10",
+   "depends_on": "login_with_email_link",
+   "fieldname": "login_with_email_link_expiry",
+   "fieldtype": "Int",
+   "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "telemetry_section",
+   "fieldtype": "Section Break",
+   "label": "Telemetry"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_telemetry",
+   "fieldtype": "Check",
+   "label": "Allow Sending Usage Data for Improving Applications"
+  },
+  {
+   "default": "0",
+   "description": "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected.",
+   "fieldname": "force_web_capture_mode_for_uploads",
+   "fieldtype": "Check",
+   "label": "Force Web Capture Mode for Uploads"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "files_section",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "max_file_size",
+   "fieldtype": "Int",
+   "label": "Max File Size (MB)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_uqma",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2022-10-30 12:02:46.639170",
+ "modified": "2023-09-13 12:49:32.309521",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

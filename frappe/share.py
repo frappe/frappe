@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import TYPE_CHECKING
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import (
@@ -10,6 +12,9 @@ from frappe.desk.doctype.notification_log.notification_log import (
 )
 from frappe.desk.form.document_follow import follow_document
 from frappe.utils import cint
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 
 @frappe.whitelist()
@@ -122,8 +127,24 @@ def set_docshare_permission(doctype, name, user, permission_to, value=1, everyon
 
 
 @frappe.whitelist()
-def get_users(doctype, name):
+def get_users(doctype: str, name: str) -> list:
 	"""Get list of users with which this document is shared"""
+	if not isinstance(doctype, str):
+		raise TypeError("doctype must be of type str")
+
+	if not isinstance(name, str):
+		raise TypeError("name must be of type str")
+
+	doc = frappe.get_doc(doctype, name)
+	return _get_users(doc)
+
+
+def _get_users(doc: "Document") -> list:
+	from frappe.permissions import has_permission
+
+	if not has_permission(doc.doctype, "read", doc, raise_exception=False):
+		return []
+
 	return frappe.get_all(
 		"DocShare",
 		fields=[
@@ -137,11 +158,11 @@ def get_users(doctype, name):
 			"owner",
 			"creation",
 		],
-		filters=dict(share_doctype=doctype, share_name=name),
+		filters=dict(share_doctype=doc.doctype, share_name=doc.name),
 	)
 
 
-def get_shared(doctype, user=None, rights=None):
+def get_shared(doctype, user=None, rights=None, *, filters=None, limit=None):
 	"""Get list of shared document names for given user and DocType.
 
 	:param doctype: DocType of which shared names are queried.
@@ -154,14 +175,22 @@ def get_shared(doctype, user=None, rights=None):
 	if not rights:
 		rights = ["read"]
 
-	filters = [[right, "=", 1] for right in rights]
-	filters += [["share_doctype", "=", doctype]]
+	share_filters = [[right, "=", 1] for right in rights]
+	share_filters += [["share_doctype", "=", doctype]]
+	if filters:
+		share_filters += filters
+
 	or_filters = [["user", "=", user]]
 	if user != "Guest":
 		or_filters += [["everyone", "=", 1]]
 
 	shared_docs = frappe.get_all(
-		"DocShare", fields=["share_name"], filters=filters, or_filters=or_filters
+		"DocShare",
+		fields=["share_name"],
+		filters=share_filters,
+		or_filters=or_filters,
+		order_by=None,
+		limit_page_length=limit,
 	)
 
 	return [doc.share_name for doc in shared_docs]

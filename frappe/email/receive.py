@@ -22,7 +22,7 @@ from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
 	cint,
-	convert_utc_to_user_timezone,
+	convert_utc_to_system_timezone,
 	cstr,
 	extract_email_id,
 	get_datetime,
@@ -37,7 +37,7 @@ from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
 
 # fix due to a python bug in poplib that limits it to 2048
-poplib._MAXLINE = 20480
+poplib._MAXLINE = 1_00_000
 
 THREAD_ID_PATTERN = re.compile(r"(?<=\[)[\w/-]+")
 WORDS_PATTERN = re.compile(r"\w+")
@@ -151,7 +151,7 @@ class EmailServer:
 
 		except _socket.error:
 			# log performs rollback and logs error in Error Log
-			self.log_error("POP: Unable to connect")
+			frappe.log_error("POP: Unable to connect")
 
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_("Invalid Mail Server. Please rectify and try again."))
@@ -334,7 +334,7 @@ class EmailServer:
 
 			else:
 				# log performs rollback and logs error in Error Log
-				self.log_error("Unable to fetch email", self.make_error_msg(msg_num, incoming_mail))
+				frappe.log_error("Unable to fetch email", self.make_error_msg(msg_num, incoming_mail))
 				self.errors = True
 				frappe.db.rollback()
 
@@ -460,7 +460,7 @@ class Email:
 			try:
 				utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 				utc_dt = datetime.datetime.utcfromtimestamp(utc)
-				self.date = convert_utc_to_user_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
+				self.date = convert_utc_to_system_timezone(utc_dt).strftime("%Y-%m-%d %H:%M:%S")
 			except Exception:
 				self.date = now()
 		else:
@@ -535,6 +535,10 @@ class Email:
 		content_type = part.get_content_type()
 		if content_type == "text/plain":
 			self.text_content += self.get_payload(part)
+
+			# attach txt file from received email as well aside from saving to text_content if it has filename
+			if part.get_filename():
+				self.get_attachment(part)
 
 		elif content_type == "text/html":
 			self.html_content += self.get_payload(part)
@@ -723,6 +727,9 @@ class InboundMail(Email):
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions=True)
 
+		# Communication might have been modified by some hooks, reload before saving
+		communication.reload()
+
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)
 		communication.content = sanitize_html(self.replace_inline_images(communication._attachments))
@@ -781,7 +788,7 @@ class InboundMail(Email):
 
 		Here are the cases to handle:
 		1. If mail is a reply to already sent mail, then we can get parent communicaion from
-		        Email Queue record.
+		        Email Queue record or message_id on communication.
 		2. Sometimes we send communication name in message-ID directly, use that to get parent communication.
 		3. Sender sent a reply but reply is on top of what (s)he sent before,
 		        then parent record exists directly in communication.
@@ -794,17 +801,15 @@ class InboundMail(Email):
 		if not self.is_reply():
 			return ""
 
-		if not self.is_reply_to_system_sent_mail():
-			communication = Communication.find_one_by_filters(
-				message_id=self.in_reply_to, creation=[">=", self.get_relative_dt(-30)]
-			)
-		elif self.parent_email_queue() and self.parent_email_queue().communication:
-			communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
-		else:
-			reference = self.in_reply_to
-			if "@" in self.in_reply_to:
-				reference, _ = self.in_reply_to.split("@", 1)
-			communication = Communication.find(reference, ignore_error=True)
+		communication = Communication.find_one_by_filters(message_id=self.in_reply_to)
+		if not communication:
+			if self.parent_email_queue() and self.parent_email_queue().communication:
+				communication = Communication.find(self.parent_email_queue().communication, ignore_error=True)
+			else:
+				reference = self.in_reply_to
+				if "@" in self.in_reply_to:
+					reference, _ = self.in_reply_to.split("@", 1)
+				communication = Communication.find(reference, ignore_error=True)
 
 		self._parent_communication = communication or ""
 		return self._parent_communication

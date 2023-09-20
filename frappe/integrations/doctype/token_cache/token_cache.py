@@ -8,7 +8,7 @@ import pytz
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, cstr
+from frappe.utils import cint, cstr, get_system_timezone
 
 
 class TokenCache(Document):
@@ -52,7 +52,9 @@ class TokenCache(Document):
 		return self
 
 	def get_expires_in(self):
+		system_timezone = pytz.timezone(get_system_timezone())
 		modified = frappe.utils.get_datetime(self.modified)
+		modified = system_timezone.localize(modified)
 		expiry_utc = modified.astimezone(pytz.utc) + timedelta(seconds=self.expires_in)
 		now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
 		return cint((expiry_utc - now_utc).total_seconds())

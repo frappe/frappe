@@ -7,7 +7,9 @@
  "field_order": [
   "type",
   "link_to",
+  "url",
   "doc_view",
+  "kanban_board",
   "column_break_4",
   "label",
   "icon",
@@ -24,16 +26,16 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "DocType\nReport\nPage\nDashboard",
+   "options": "DocType\nReport\nPage\nDashboard\nURL",
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.type != \"URL\"",
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "label": "Link To",
-   "options": "type",
-   "reqd": 1
+   "options": "type"
   },
   {
    "depends_on": "eval:doc.type == \"DocType\"",
@@ -42,7 +44,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "DocType View",
-   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar"
+   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban"
   },
   {
    "fieldname": "column_break_4",
@@ -94,12 +96,27 @@
    "fieldname": "format",
    "fieldtype": "Data",
    "label": "Format"
+  },
+  {
+   "depends_on": "eval:doc.type == \"URL\"",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "URL",
+   "options": "URL"
+  },
+  {
+   "depends_on": "eval:doc.doc_view == \"Kanban\"",
+   "fieldname": "kanban_board",
+   "fieldtype": "Link",
+   "label": "Kanban Board",
+   "options": "Kanban Board"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2021-01-12 13:13:17.571324",
+ "modified": "2023-07-18 16:12:53.546430",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Shortcut",
@@ -108,5 +125,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

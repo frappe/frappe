@@ -140,27 +140,6 @@ class TestDB(FrappeTestCase):
 			frappe.db.get_value("DocType", "DocField", order_by="creation desc, modified asc, name", run=0),
 		)
 
-	def test_get_value_limits(self):
-		# check both dict and list style filters
-		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
-		for filter in filters:
-			self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))
-			# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
-			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
-			self.assertEqual(2, len(frappe.db.get_values("User", filters=filter, limit=2)))
-			self.assertGreaterEqual(2, cint(frappe.db._cursor.rowcount))
-
-			# without limits length == count
-			self.assertEqual(
-				len(frappe.db.get_values("User", filters=filter)), frappe.db.count("User", filter)
-			)
-
-			frappe.db.get_value("User", filters=filter)
-			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
-
-			frappe.db.exists("User", filter)
-			self.assertGreaterEqual(1, cint(frappe.db._cursor.rowcount))
-
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode())
 
@@ -545,7 +524,7 @@ class TestDB(FrappeTestCase):
 		self.assertEqual((frappe.db.count("Note")), 2)
 
 		# simple filters
-		self.assertEqual((frappe.db.count("Note", ["title", "=", "note1"])), 1)
+		self.assertEqual((frappe.db.count("Note", [["title", "=", "note1"]])), 1)
 
 		frappe.get_doc(doctype="Note", title="note3", content="something other").insert()
 
@@ -765,21 +744,20 @@ class TestDBSetValue(FrappeTestCase):
 	def test_set_value(self):
 		self.todo1.reload()
 
-		with patch.object(Database, "sql") as sql_called:
-			frappe.db.set_value(
-				self.todo1.doctype,
-				self.todo1.name,
-				"description",
-				f"{self.todo1.description}-edit by `test_for_update`",
-			)
-			first_query = sql_called.call_args_list[0].args[0]
+		frappe.db.set_value(
+			self.todo1.doctype,
+			self.todo1.name,
+			"description",
+			f"{self.todo1.description}-edit by `test_for_update`",
+		)
+		query = frappe.db.last_query
 
-			if frappe.conf.db_type == "postgres":
-				from frappe.database.postgres.database import modify_query
+		if frappe.conf.db_type == "postgres":
+			from frappe.database.postgres.database import modify_query
 
-				self.assertTrue(modify_query("UPDATE `tabToDo` SET") in first_query)
-			if frappe.conf.db_type == "mariadb":
-				self.assertTrue("UPDATE `tabToDo` SET" in first_query)
+			self.assertTrue(modify_query("UPDATE `tabToDo` SET") in str(query))
+		if frappe.conf.db_type == "mariadb":
+			self.assertTrue("UPDATE `tabToDo` SET" in query)
 
 	def test_cleared_cache(self):
 		self.todo2.reload()
@@ -935,3 +913,34 @@ class TestTransactionManagement(FrappeTestCase):
 
 		frappe.db.commit()
 		self.assertEqual(_get_transaction_id(), _get_transaction_id())
+
+
+# Treat same DB as replica for tests, a separate connection will be opened
+class TestReplicaConnections(FrappeTestCase):
+	def test_switching_to_replica(self):
+		with patch.dict(frappe.local.conf, {"read_from_replica": 1, "replica_host": "127.0.0.1"}):
+
+			def db_id():
+				return id(frappe.local.db)
+
+			write_connection = db_id()
+			read_only_connection = None
+
+			@frappe.read_only()
+			def outer():
+				nonlocal read_only_connection
+				read_only_connection = db_id()
+
+				# A new connection should be opened
+				self.assertNotEqual(read_only_connection, write_connection)
+				inner()
+				# calling nested read only function shouldn't change connection
+				self.assertEqual(read_only_connection, db_id())
+
+			@frappe.read_only()
+			def inner():
+				# calling nested read only function shouldn't change connection
+				self.assertEqual(read_only_connection, db_id())
+
+			outer()
+			self.assertEqual(write_connection, db_id())

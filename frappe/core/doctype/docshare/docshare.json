@@ -67,7 +67,8 @@
    "default": "0",
    "fieldname": "everyone",
    "fieldtype": "Check",
-   "label": "Everyone"
+   "label": "Everyone",
+   "search_index": 1
   },
   {
    "default": "1",
@@ -85,10 +86,11 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2021-04-04 11:38:50.813312",
+ "modified": "2023-06-15 18:02:51.877533",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocShare",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -106,5 +108,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

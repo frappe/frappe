@@ -32,6 +32,8 @@ ALLOWED_MIMETYPES = (
 	"application/vnd.oasis.opendocument.text",
 	"application/vnd.oasis.opendocument.spreadsheet",
 	"text/plain",
+	"video/quicktime",
+	"video/mp4",
 )
 
 
@@ -195,7 +197,7 @@ def upload_file():
 		filename = file.filename
 
 		content_type = guess_type(filename)[0]
-		if optimize and content_type.startswith("image/"):
+		if optimize and content_type and content_type.startswith("image/"):
 			args = {"content": content, "content_type": content_type}
 			if frappe.form_dict.max_width:
 				args["max_width"] = int(frappe.form_dict.max_width)

@@ -94,6 +94,9 @@ def has_permission(
 	if user == "Administrator":
 		return True
 
+	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
+		return False
+
 	if not doc and hasattr(doctype, "doctype"):
 		# first argument can be doc or doctype
 		doc = doctype
@@ -133,17 +136,24 @@ def has_permission(
 
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "submit", "email", "print"):
-			shared = frappe.share.get_shared(
-				doctype, user, ["read" if ptype in ("email", "print") else ptype]
-			)
+
+			rights = ["read" if ptype in ("email", "print") else ptype]
 
 			if doc:
 				doc_name = get_doc_name(doc)
-				if doc_name in shared:
+				shared = frappe.share.get_shared(
+					doctype,
+					user,
+					rights=rights,
+					filters=[["share_name", "=", doc_name]],
+					limit=1,
+				)
+
+				if shared:
 					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
-			elif shared:
+			elif frappe.share.get_shared(doctype, user, rights=rights, limit=1):
 				# if atleast one shared doc of that type, then return True
 				# this is used in db_query to check if permission on DocType
 				return True
@@ -220,7 +230,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 	if not user:
 		user = frappe.session.user
 
-	cache_key = (doctype_meta.name, user)
+	cache_key = (doctype_meta.name, user, bool(is_owner))
 
 	if user == "Administrator":
 		return allow_everything()
@@ -552,13 +562,23 @@ def can_export(doctype, raise_exception=False):
 		return has_access
 
 
-def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
+def update_permission_property(
+	doctype,
+	role,
+	permlevel,
+	ptype,
+	value=None,
+	validate=True,
+	if_owner=0,
+):
 	"""Update a property in Custom Perm"""
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
 	out = setup_custom_perms(doctype)
 
-	name = frappe.get_value("Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel))
+	name = frappe.db.get_value(
+		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=if_owner)
+	)
 	table = DocType("Custom DocPerm")
 	frappe.qb.update(table).set(ptype, value).where(table.name == name).run()
 
@@ -585,6 +605,12 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	if frappe.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0)
 	):
+		frappe.msgprint(
+			_("Rule for this doctype, role, permlevel and if-owner combination already exists.").format(
+				doctype,
+			),
+			alert=True,
+		)
 		return
 
 	if not ptype:

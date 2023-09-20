@@ -208,7 +208,6 @@ body {
 	// Overrides for each widgets
 	&.dashboard-widget-box {
 		min-height: 240px;
-		padding: var(--padding-md) var(--padding-lg);
 
 		.filter-chart {
 			background-color: var(--control-bg);
@@ -238,11 +237,14 @@ body {
 		}
 
 		.widget-head {
-			padding: var(--padding-sm);
 			display: flex;
 			justify-content: space-between;
 			flex-wrap: wrap;
 			gap: 6px;
+		}
+
+		.widget-body {
+			padding-top: 7px;
 		}
 
 		.widget-control {
@@ -340,6 +342,7 @@ body {
 		margin-bottom: var(--margin-2xl);
 		padding: var(--padding-lg) !important;
 		background-color: var(--bg-color);
+		box-shadow: var(--card-shadow) ;
 
 		&.edit-mode:hover {
 			background-color: var(--fg-color);
@@ -560,7 +563,7 @@ body {
 	}
 
 	&.links-widget-box {
-		padding: 18px 12px;
+		padding: 12px 7px;
 
 		.link-item {
 			display: flex;
@@ -804,6 +807,18 @@ body {
 					background-color: var(--btn-default-hover-bg);
 				}
 			}
+		}
+	}
+
+	&.custom-block-widget-box {
+		position: relative;
+
+		.widget-head {
+			position: absolute;
+			top: 0;
+			right: 0;
+			padding: 6px;
+			z-index: 1;
 		}
 	}
 }
@@ -1091,6 +1106,12 @@ body {
 				}
 			}
 		}
+	}
+
+
+	// widgets
+	.widget.number-widget-box {
+		box-shadow: var(--shadow-sm);
 	}
 
 

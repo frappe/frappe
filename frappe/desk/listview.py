@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.model import is_default_field
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Count
 from frappe.query_builder.terms import SubQuery
@@ -36,7 +37,12 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 		ToDo = DocType("ToDo")
 		User = DocType("User")
 		count = Count("*").as_("count")
-		filtered_records = frappe.qb.engine.build_conditions(doctype, current_filters).select("name")
+		filtered_records = frappe.qb.get_query(
+			doctype,
+			filters=current_filters,
+			fields=["name"],
+			validate_filters=True,
+		)
 
 		return (
 			frappe.qb.from_(ToDo)
@@ -53,6 +59,9 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 			.limit(50)
 			.run(as_dict=True)
 		)
+
+	if not frappe.get_meta(doctype).has_field(field) and not is_default_field(field):
+		raise ValueError("Field does not belong to doctype")
 
 	return frappe.get_list(
 		doctype,

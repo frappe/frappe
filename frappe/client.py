@@ -86,6 +86,10 @@ def get(doctype, name=None, filters=None, parent=None):
 		doc = frappe.get_doc(doctype)  # single
 
 	doc.check_permission()
+
+	if frappe.get_system_settings("apply_perm_level_on_api_calls"):
+		doc.apply_fieldlevel_read_permissions()
+
 	return doc.as_dict()
 
 
@@ -301,6 +305,17 @@ def has_permission(doctype, docname, perm_type="read"):
 	:param perm_type: one of `read`, `write`, `create`, `submit`, `cancel`, `report`. Default is `read`"""
 	# perm_type can be one of read, write, create, submit, cancel, report
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
+
+
+@frappe.whitelist()
+def get_doc_permissions(doctype, docname):
+	"""Returns an evaluated document permissions dict like `{"read":1, "write":1}`
+
+	:param doctype: DocType of the document to be evaluated
+	:param docname: `name` of the document to be evaluated
+	"""
+	doc = frappe.get_doc(doctype, docname)
+	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
 
 
 @frappe.whitelist()

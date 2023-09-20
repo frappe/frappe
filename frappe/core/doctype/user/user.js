@@ -215,7 +215,10 @@ frappe.ui.form.on("User", {
 				});
 			}
 
-			if (frappe.session.user == doc.name || frappe.user.has_role("System Manager")) {
+			if (
+				cint(frappe.boot.sysdefaults.enable_two_factor_auth) &&
+				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
+			) {
 				frm.add_custom_button(
 					__("Reset OTP Secret"),
 					function () {

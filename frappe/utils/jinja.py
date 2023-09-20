@@ -2,14 +2,24 @@
 # License: MIT. See LICENSE
 def get_jenv():
 	import frappe
-	from frappe.utils.safe_exec import get_safe_globals
 
 	if not getattr(frappe.local, "jenv", None):
 		from jinja2 import DebugUndefined
 		from jinja2.sandbox import SandboxedEnvironment
 
+		from frappe.utils.safe_exec import UNSAFE_ATTRIBUTES, get_safe_globals
+
+		UNSAFE_ATTRIBUTES = UNSAFE_ATTRIBUTES - {"format", "format_map"}
+
+		class FrappeSandboxedEnvironment(SandboxedEnvironment):
+			def is_safe_attribute(self, obj, attr, *args, **kwargs):
+				if attr in UNSAFE_ATTRIBUTES:
+					return False
+
+				return super().is_safe_attribute(obj, attr, *args, **kwargs)
+
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = SandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined)
+		jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined)
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())

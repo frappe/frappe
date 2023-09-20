@@ -50,7 +50,8 @@ class TestFormLoad(FrappeTestCase):
 		frappe.set_user(user.name)
 		blog_doc = get_blog(blog.name)
 
-		self.assertEqual(blog_doc.published, None)
+		with self.assertRaises(AttributeError):
+			blog_doc.published
 
 		# this will be ignored because user does not
 		# have write access on `published` field (or on permlevel 1 fields)
@@ -70,7 +71,8 @@ class TestFormLoad(FrappeTestCase):
 
 		self.assertEqual(blog_doc.name, blog.name)
 		# since published field has higher permlevel
-		self.assertEqual(blog_doc.published, None)
+		with self.assertRaises(AttributeError):
+			blog_doc.published
 
 		# this will be ignored because user does not
 		# have write access on `published` field (or on permlevel 1 fields)

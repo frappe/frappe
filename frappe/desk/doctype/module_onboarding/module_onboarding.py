@@ -32,7 +32,7 @@ class ModuleOnboarding(Document):
 		is_complete = [bool(step.is_complete or step.is_skipped) for step in steps]
 		if all(is_complete):
 			self.is_complete = True
-			self.save()
+			self.save(ignore_permissions=True)
 			return True
 
 		return False

@@ -8,6 +8,8 @@
 		<span class="text-muted">({%= __("Primary") %})</span>{% } %}
 		{% if(addr_list[i].is_shipping_address) { %}
 		<span class="text-muted">({%= __("Shipping") %})</span>{% } %}
+		{% if(addr_list[i].disabled) { %}
+		<span class="text-muted">({%= __("Disabled") %})</span>{% } %}
 
 		<a href="/app/Form/Address/{%= encodeURIComponent(addr_list[i].name) %}" class="btn btn-default btn-xs pull-right"
 			style="margin-top:-3px; margin-right: -5px;">

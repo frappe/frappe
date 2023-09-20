@@ -15,9 +15,13 @@ from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import quote, urljoin
 
 from click import secho
+from dateutil import parser
+from dateutil.parser import ParserError
+from dateutil.relativedelta import relativedelta
 
 import frappe
 from frappe.desk.utils import slug
+from frappe.utils.deprecations import deprecation_warning
 
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]
@@ -80,9 +84,6 @@ def getdate(
 	Converts string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
 	"""
-	from dateutil import parser
-	from dateutil.parser._parser import ParserError
-
 	if not string_date:
 		return get_datetime().date()
 	if isinstance(string_date, datetime.datetime):
@@ -105,7 +106,6 @@ def getdate(
 def get_datetime(
 	datetime_str: Optional["DateTimeLikeObject"] = None,
 ) -> datetime.datetime | None:
-	from dateutil import parser
 
 	if datetime_str is None:
 		return now_datetime()
@@ -141,9 +141,6 @@ def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
 	Returns:
 	        datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
-	from dateutil import parser
-	from dateutil.parser import ParserError
-
 	time = time or "0:0:0"
 
 	try:
@@ -161,8 +158,6 @@ def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
 
 
 def to_timedelta(time_str: str | datetime.time) -> datetime.timedelta:
-	from dateutil import parser
-
 	if isinstance(time_str, datetime.time):
 		time_str = str(time_str)
 
@@ -237,9 +232,6 @@ def add_to_date(
 	as_datetime=False,
 ) -> DateTimeLikeObject:
 	"""Adds `days` to the given date"""
-	from dateutil import parser
-	from dateutil.parser._parser import ParserError
-	from dateutil.relativedelta import relativedelta
 
 	if date is None:
 		date = now_datetime()
@@ -304,7 +296,7 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 
 
 def now_datetime():
-	dt = convert_utc_to_user_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_system_timezone(datetime.datetime.utcnow())
 	return dt.replace(tzinfo=None)
 
 
@@ -317,15 +309,22 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 
-def _get_time_zone():
+def _get_system_timezone():
 	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
-def get_time_zone():
+def get_system_timezone():
 	if frappe.local.flags.in_test:
-		return _get_time_zone()
+		return _get_system_timezone()
 
-	return frappe.cache().get_value("time_zone", _get_time_zone)
+	return frappe.cache().get_value("time_zone", _get_system_timezone)
+
+
+def get_time_zone():
+	deprecation_warning(
+		"`get_time_zone` is deprecated and will be removed in version 15. Use `get_system_timezone` instead."
+	)
+	return get_system_timezone()
 
 
 def convert_utc_to_timezone(utc_timestamp, time_zone):
@@ -343,9 +342,16 @@ def get_datetime_in_timezone(time_zone):
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
-def convert_utc_to_user_timezone(utc_timestamp):
-	time_zone = get_time_zone()
+def convert_utc_to_system_timezone(utc_timestamp):
+	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
+
+
+def convert_utc_to_user_timezone(utc_timestamp):
+	deprecation_warning(
+		"`convert_utc_to_user_timezone` is deprecated and will be removed in version 15. Use `convert_utc_to_system_timezone` instead."
+	)
+	return convert_utc_to_system_timezone(utc_timestamp)
 
 
 def now() -> str:
@@ -496,9 +502,6 @@ def get_year_ending(date):
 
 
 def get_time(time_str: str) -> datetime.time:
-	from dateutil import parser
-	from dateutil.parser import ParserError
-
 	if isinstance(time_str, datetime.datetime):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
@@ -898,7 +901,9 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(s: NumericType | str, precision: int | None = None) -> float:
+def flt(
+	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
+) -> float:
 	"""Convert to float (ignoring commas in string)
 
 	:param s: Number in string or other numeric format.
@@ -924,8 +929,10 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	try:
 		num = float(s)
 		if precision is not None:
-			num = rounded(num, precision)
-	except Exception:
+			num = rounded(num, precision, rounding_method)
+	except Exception as e:
+		if isinstance(e, frappe.InvalidRoundingMethod):
+			raise
 		num = 0.0
 
 	return num
@@ -1024,12 +1031,30 @@ def sbool(x: str) -> bool | Any:
 		return x
 
 
-def rounded(num, precision=0):
-	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
+def rounded(num, precision=0, rounding_method=None):
+	"""Round according to method set in system setting, defaults to banker's rounding"""
 	precision = cint(precision)
-	multiplier = 10**precision
 
+	rounding_method = (
+		rounding_method or frappe.get_system_settings("rounding_method") or "Banker's Rounding (legacy)"
+	)
+
+	if rounding_method == "Banker's Rounding (legacy)":
+		return _bankers_rounding_legacy(num, precision)
+	elif rounding_method == "Banker's Rounding":
+		return _bankers_rounding(num, precision)
+	elif rounding_method == "Commercial Rounding":
+		return _round_away_from_zero(num, precision)
+	else:
+		frappe.throw(
+			frappe._("Unknown Rounding Method: {}").format(rounding_method),
+			exc=frappe.InvalidRoundingMethod,
+		)
+
+
+def _bankers_rounding_legacy(num, precision):
 	# avoid rounding errors
+	multiplier = 10**precision
 	num = round(num * multiplier if precision else num, 8)
 
 	floor_num = math.floor(num)
@@ -1044,6 +1069,51 @@ def rounded(num, precision=0):
 			num = round(num)
 
 	return (num / multiplier) if precision else num
+
+
+def _round_away_from_zero(num, precision):
+	if num == 0:
+		return 0.0
+
+	# Epsilon is small correctional value added to correctly round numbers which can't be
+	# represented in IEEE 754 representation.
+
+	# In simplified terms, the representation optimizes for absolute errors in representation
+	# so if a number is not representable it might be represented by a value ever so slighly
+	# smaller than the value itself. This becomes a problem when breaking ties for numbers
+	# ending with 5 when it's represented by a smaller number. By adding a very small value
+	# close to what's "least count" or smallest representable difference in the scale we force
+	# the number to be bigger than actual value, this increases representation error but
+	# removes rounding error.
+
+	# References:
+	# - https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
+	# - https://docs.python.org/3/tutorial/floatingpoint.html#representation-error
+	# - https://docs.python.org/3/library/functions.html#round
+	# - easier to understand: https://www.youtube.com/watch?v=pQs_wx8eoQ8
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+
+	return round(num + math.copysign(epsilon, num), precision)
+
+
+def _bankers_rounding(num, precision):
+	multiplier = 10**precision
+	num = round(num * multiplier, 12)
+
+	if num == 0:
+		return 0.0
+
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
+
+	epsilon = 2.0 ** (math.log(abs(num), 2) - 52.0)
+	if abs(decimal_part - 0.5) < epsilon:
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
+	else:
+		num = round(num)
+
+	return num / multiplier
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
@@ -1277,12 +1347,12 @@ def money_in_words(
 
 	# 0.00
 	if main == "0" and fraction in ["00", "000"]:
-		out = "{} {}".format(main_currency, _("Zero"))
+		out = _(main_currency, context="Currency") + " " + _("Zero")
 	# 0.XX
 	elif main == "0":
 		out = _(in_words(fraction, in_million).title()) + " " + fraction_currency
 	else:
-		out = main_currency + " " + _(in_words(main, in_million).title())
+		out = _(main_currency, context="Currency") + " " + _(in_words(main, in_million).title())
 		if cint(fraction):
 			out = (
 				out
@@ -1462,15 +1532,15 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 		return _("Yesterday")
 	elif dt_diff_days < 7.0:
 		return _("{0} days ago").format(cint(dt_diff_days))
-	elif dt_diff_days < 12:
+	elif dt_diff_days < 14:
 		return _("1 week ago")
 	elif dt_diff_days < 31.0:
-		return _("{0} weeks ago").format(cint(math.ceil(dt_diff_days / 7.0)))
-	elif dt_diff_days < 46:
+		return _("{0} weeks ago").format(dt_diff_days // 7)
+	elif dt_diff_days < 61.0:
 		return _("1 month ago")
 	elif dt_diff_days < 365.0:
-		return _("{0} months ago").format(cint(math.ceil(dt_diff_days / 30.0)))
-	elif dt_diff_days < 550.0:
+		return _("{0} months ago").format(dt_diff_days // 30)
+	elif dt_diff_days < 730.0:
 		return _("1 year ago")
 	else:
 		return f"{cint(math.floor(dt_diff_days / 365.0))} years ago"
@@ -1553,7 +1623,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 			host_name = frappe.db.get_single_value("Website Settings", "subdomain")
 
 			if not host_name:
-				host_name = "http://localhost"
+				host_name = "http://127.0.0.1"
 
 	if host_name and not (host_name.startswith("http://") or host_name.startswith("https://")):
 		host_name = "http://" + host_name
@@ -1694,6 +1764,7 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 	ret = False
 	if fieldtype:
+		val1 = cast(fieldtype, val1)
 		val2 = cast(fieldtype, val2)
 	if condition in operator_map:
 		ret = operator_map[condition](val1, val2)
@@ -2146,3 +2217,11 @@ def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
 	if doc_name:
 		job_name += f"_{doc_name}"
 	return job_name
+
+
+# This is used in test to count memory overhead of default imports.
+def _get_rss_memory_usage():
+	import psutil
+
+	rss = psutil.Process().memory_info().rss // (1024 * 1024)
+	return rss

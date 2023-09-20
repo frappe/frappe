@@ -5,7 +5,7 @@ import functools
 import re
 
 from rq.command import send_stop_job_command
-from rq.exceptions import InvalidJobOperation
+from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.job import Job
 from rq.queue import Queue
 
@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.utils import (
 	cint,
 	compare,
-	convert_utc_to_user_timezone,
+	convert_utc_to_system_timezone,
 	create_batch,
 	make_filter_dict,
 )
@@ -40,9 +40,14 @@ def check_permissions(method):
 
 class RQJob(Document):
 	def load_from_db(self):
-		job = Job.fetch(self.name, connection=get_redis_conn())
+		try:
+			job = Job.fetch(self.name, connection=get_redis_conn())
+		except NoSuchJobError:
+			raise frappe.DoesNotExistError
+
 		if not for_current_site(job):
 			raise frappe.PermissionError
+
 		super(Document, self).__init__(serialize_job(job))
 		self._job_obj = job
 
@@ -132,15 +137,17 @@ def serialize_job(job: Job) -> frappe._dict:
 		queue=job.origin.rsplit(":", 1)[1],
 		job_name=job_name,
 		status=job.get_status(),
-		started_at=convert_utc_to_user_timezone(job.started_at) if job.started_at else "",
-		ended_at=convert_utc_to_user_timezone(job.ended_at) if job.ended_at else "",
+		started_at=convert_utc_to_system_timezone(job.started_at) if job.started_at else "",
+		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
 		exc_info=job.exc_info,
 		arguments=frappe.as_json(job.kwargs),
 		timeout=job.timeout,
-		creation=convert_utc_to_user_timezone(job.created_at),
-		modified=convert_utc_to_user_timezone(modified),
+		creation=convert_utc_to_system_timezone(job.created_at),
+		modified=convert_utc_to_system_timezone(modified),
 		_comment_count=0,
+		owner=job.kwargs.get("user"),
+		modified_by=job.kwargs.get("user"),
 	)
 
 

@@ -34,35 +34,28 @@ frappe.dom = {
 	},
 	remove_script_and_style: function (txt) {
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
-		const regex = new RegExp(evil_tags.map((tag) => `<${tag}>.*<\\/${tag}>`).join("|"), "s");
-		if (!regex.test(txt)) {
-			// no evil tags found, skip the DOM method entirely!
-			return txt;
-		}
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(txt, "text/html");
+		const body = doc.body;
+		let found = !!doc.head.innerHTML;
 
-		var div = document.createElement("div");
-		div.innerHTML = txt;
-		var found = false;
-		evil_tags.forEach(function (e) {
-			var elements = div.getElementsByTagName(e);
-			i = elements.length;
-			while (i--) {
+		for (const tag of evil_tags) {
+			for (const element of body.getElementsByTagName(tag)) {
 				found = true;
-				elements[i].parentNode.removeChild(elements[i]);
-			}
-		});
-
-		// remove links with rel="stylesheet"
-		var elements = div.getElementsByTagName("link");
-		var i = elements.length;
-		while (i--) {
-			if (elements[i].getAttribute("rel") == "stylesheet") {
-				found = true;
-				elements[i].parentNode.removeChild(elements[i]);
+				element.parentNode.removeChild(element);
 			}
 		}
+
+		for (const element of body.getElementsByTagName("link")) {
+			const relation = element.getAttribute("rel");
+			if (relation && relation.toLowerCase().trim() === "stylesheet") {
+				found = true;
+				element.parentNode.removeChild(element);
+			}
+		}
+
 		if (found) {
-			return div.innerHTML;
+			return body.innerHTML;
 		} else {
 			// don't disturb
 			return txt;
@@ -366,8 +359,53 @@ frappe.is_online = function () {
 	return true;
 };
 
+frappe.create_shadow_element = function (wrapper, html, css, js) {
+	let random_id = "custom-block-" + frappe.utils.get_random(5).toLowerCase();
+
+	class CustomBlock extends HTMLElement {
+		constructor() {
+			super();
+
+			// html
+			let div = document.createElement("div");
+			div.innerHTML = frappe.dom.remove_script_and_style(html);
+
+			// link global desk css
+			let link = document.createElement("link");
+			link.rel = "stylesheet";
+			link.href = frappe.assets.bundled_asset("desk.bundle.css");
+
+			// css
+			let style = document.createElement("style");
+			style.textContent = css;
+
+			// javascript
+			let script = document.createElement("script");
+			script.textContent = `
+				(function() {
+					let cname = ${JSON.stringify(random_id)};
+					let root_element = document.querySelector(cname).shadowRoot;
+					${js}
+				})();
+			`;
+
+			this.attachShadow({ mode: "open" });
+			this.shadowRoot?.appendChild(link);
+			this.shadowRoot?.appendChild(div);
+			this.shadowRoot?.appendChild(style);
+			this.shadowRoot?.appendChild(script);
+		}
+	}
+
+	if (!customElements.get(random_id)) {
+		customElements.define(random_id, CustomBlock);
+	}
+	wrapper.innerHTML = `<${random_id}></${random_id}>`;
+};
+
 // bind online/offline events
 $(window).on("online", function () {
+	if (document.hidden) return;
 	frappe.show_alert({
 		indicator: "green",
 		message: __("You are connected to internet."),
@@ -375,6 +413,7 @@ $(window).on("online", function () {
 });
 
 $(window).on("offline", function () {
+	if (document.hidden) return;
 	frappe.show_alert({
 		indicator: "orange",
 		message: __("Connection lost. Some features might not work."),

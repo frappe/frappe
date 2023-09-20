@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import gc
 import logging
 import os
 
@@ -22,6 +23,7 @@ from frappe import _
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
+from frappe.utils.data import escape_html
 from frappe.utils.error import make_error_snapshot
 from frappe.website.serve import get_response
 
@@ -42,6 +44,33 @@ class RequestContext:
 
 	def __exit__(self, type, value, traceback):
 		frappe.destroy()
+
+
+# If gc.freeze is done then importing modules before forking allows us to share the memory
+if frappe._tune_gc:
+	import bleach
+
+	import frappe.boot
+	import frappe.client
+	import frappe.core.doctype.file.file
+	import frappe.core.doctype.user.user
+	import frappe.database.mariadb.database  # Load database related utils
+	import frappe.database.query
+	import frappe.desk.desktop  # workspace
+	import frappe.desk.form.save
+	import frappe.model.db_query
+	import frappe.query_builder
+	import frappe.utils.background_jobs  # Enqueue is very common
+	import frappe.utils.data  # common utils
+	import frappe.utils.jinja  # web page rendering
+	import frappe.utils.jinja_globals
+	import frappe.utils.redis_wrapper  # Exact redis_wrapper
+	import frappe.utils.safe_exec
+	import frappe.website.path_resolver  # all the page types and resolver
+	import frappe.website.router  # Website router
+	import frappe.website.website_generator  # web page doctypes
+
+# end: module pre-loading
 
 
 @local_manager.middleware
@@ -87,11 +116,18 @@ def application(request: Request):
 		rollback = sync_database(rollback)
 
 	finally:
+		# Important note:
+		# this function *must* always return a response, hence any exception thrown outside of
+		# try..catch block like this finally block needs to be handled appropriately.
+
 		if request.method in UNSAFE_HTTP_METHODS and frappe.db and rollback:
 			frappe.db.rollback()
 
-		for after_request_task in frappe.get_hooks("after_request"):
-			frappe.call(after_request_task, response=response, request=request)
+		try:
+			run_after_request_hooks(request, response)
+		except Exception as e:
+			# We can not handle exceptions safely here.
+			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
 		log_request(request, response)
 		process_response(response)
@@ -100,12 +136,20 @@ def application(request: Request):
 	return response
 
 
+def run_after_request_hooks(request, response):
+	if not getattr(frappe.local, "initialised", False):
+		return
+
+	for after_request_task in frappe.get_hooks("after_request"):
+		frappe.call(after_request_task, response=response, request=request)
+
+
 def init_request(request):
 	frappe.local.request = request
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
 	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
-	frappe.init(site=site, sites_path=_sites_path)
+	frappe.init(site=site, sites_path=_sites_path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
@@ -302,7 +346,7 @@ def handle_exception(e):
 		response = frappe.rate_limiter.respond()
 
 	else:
-		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
+		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
 		# disable traceback in production if flag is set
 		if frappe.local.flags.disable_traceback and not frappe.local.dev_server:
 			traceback = ""
@@ -373,7 +417,7 @@ def serve(
 		application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(sites_path))})
 
 	application.debug = True
-	application.config = {"SERVER_NAME": "localhost:8000"}
+	application.config = {"SERVER_NAME": "127.0.0.1:8000"}
 
 	log = logging.getLogger("werkzeug")
 	log.propagate = False
@@ -392,3 +436,17 @@ def serve(
 		use_evalex=not in_test_env,
 		threaded=not no_threading,
 	)
+
+
+# Both Gunicorn and RQ use forking to spawn workers. In an ideal world, the fork should be sharing
+# most of the memory if there are no writes made to data because of Copy on Write, however,
+# python's GC is not CoW friendly and writes to data even if user-code doesn't. Specifically, the
+# generational GC which stores and mutates every python object: `PyGC_Head`
+#
+# Calling gc.freeze() moves all the objects imported so far into permanant generation and hence
+# doesn't mutate `PyGC_Head`
+#
+# Refer to issue for more info: https://github.com/frappe/frappe/issues/18927
+if frappe._tune_gc:
+	gc.collect()  # clean up any garbage created so far before freeze
+	gc.freeze()

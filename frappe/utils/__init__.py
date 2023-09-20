@@ -12,7 +12,6 @@ import traceback
 from collections.abc import Generator, Iterable, MutableMapping, MutableSequence, Sequence
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from gzip import GzipFile
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -346,6 +345,7 @@ def _get_traceback_sanitizer():
 			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
+			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
 		],
 	)
 
@@ -657,6 +657,11 @@ def is_markdown(text):
 		return not NON_MD_HTML_PATTERN.search(text)
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	return isinstance(x, (property, functools.cached_property))
+
+
 def get_sites(sites_path=None):
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."
@@ -877,6 +882,8 @@ def gzip_compress(data, compresslevel=9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
+	from gzip import GzipFile
+
 	buf = io.BytesIO()
 	with GzipFile(fileobj=buf, mode="wb", compresslevel=compresslevel) as f:
 		f.write(data)
@@ -887,6 +894,8 @@ def gzip_decompress(data):
 	"""Decompress a gzip compressed string in one shot.
 	Return the decompressed string.
 	"""
+	from gzip import GzipFile
+
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
 
@@ -955,7 +964,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, ".build")))
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
@@ -1036,8 +1045,13 @@ def groupby_metric(iterable: dict[str, list], key: str):
 	return records
 
 
-def get_table_name(table_name: str) -> str:
-	return f"tab{table_name}" if not table_name.startswith("__") else table_name
+def get_table_name(table_name: str, wrap_in_backticks: bool = False) -> str:
+	name = f"tab{table_name}" if not table_name.startswith("__") else table_name
+
+	if wrap_in_backticks:
+		return f"`{name}`"
+
+	return name
 
 
 def squashify(what):

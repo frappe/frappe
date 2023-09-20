@@ -57,17 +57,6 @@ class Report(Document):
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
-		self.delete_prepared_reports()
-
-	def delete_prepared_reports(self):
-		prepared_reports = frappe.get_all(
-			"Prepared Report", filters={"ref_report_doctype": self.name}, pluck="name"
-		)
-
-		for report in prepared_reports:
-			frappe.delete_doc(
-				"Prepared Report", report, ignore_missing=True, force=True, delete_permanently=True
-			)
 
 	def get_columns(self):
 		return [d.as_dict(no_default_fields=True, no_child_table_fields=True) for d in self.columns]
@@ -146,7 +135,7 @@ class Report(Document):
 		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 		if execution_time > threshold and not self.prepared_report:
-			self.db_set("prepared_report", 1)
+			frappe.enqueue(enable_prepared_report, report=self.name)
 
 		frappe.cache().hset("report_execution_time", self.name, execution_time)
 
@@ -168,10 +157,18 @@ class Report(Document):
 			return self.get_columns(), loc["result"]
 
 	def get_data(
-		self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False
+		self,
+		filters=None,
+		limit=None,
+		user=None,
+		as_dict=False,
+		ignore_prepared_report=False,
+		are_default_filters=True,
 	):
 		if self.report_type in ("Query Report", "Script Report", "Custom Report"):
-			columns, result = self.run_query_report(filters, user, ignore_prepared_report)
+			columns, result = self.run_query_report(
+				filters, user, ignore_prepared_report, are_default_filters
+			)
 		else:
 			columns, result = self.run_standard_report(filters, limit, user)
 
@@ -180,10 +177,16 @@ class Report(Document):
 
 		return columns, result
 
-	def run_query_report(self, filters, user, ignore_prepared_report=False):
+	def run_query_report(
+		self, filters=None, user=None, ignore_prepared_report=False, are_default_filters=True
+	):
 		columns, result = [], []
 		data = frappe.desk.query_report.run(
-			self.name, filters=filters, user=user, ignore_prepared_report=ignore_prepared_report
+			self.name,
+			filters=filters,
+			user=user,
+			ignore_prepared_report=ignore_prepared_report,
+			are_default_filters=are_default_filters,
 		)
 
 		for d in data.get("columns"):
@@ -344,7 +347,6 @@ class Report(Document):
 		self.db_set("disabled", cint(disable))
 
 
-@frappe.whitelist()
 def is_prepared_report_disabled(report):
 	return frappe.db.get_value("Report", report, "disable_prepared_report") or 0
 
@@ -376,7 +378,9 @@ def get_group_by_column_label(args, meta):
 	else:
 		sql_fn_map = {"avg": "Average", "sum": "Sum"}
 		aggregate_on_label = meta.get_label(args.aggregate_on)
-		label = _("{function} of {fieldlabel}").format(
-			function=sql_fn_map[args.aggregate_function], fieldlabel=aggregate_on_label
-		)
+		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
 	return label
+
+
+def enable_prepared_report(report: str):
+	frappe.db.set_value("Report", report, "prepared_report", 1)

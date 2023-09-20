@@ -6,6 +6,12 @@ import os
 import frappe
 from frappe.model.document import Document
 
+LICENSES = (
+	"GNU Affero General Public License",
+	"GNU General Public License",
+	"MIT License",
+)
+
 
 class Package(Document):
 	def validate(self):
@@ -14,6 +20,7 @@ class Package(Document):
 
 
 @frappe.whitelist()
-def get_license_text(license_type):
-	with open(os.path.join(os.path.dirname(__file__), "licenses", license_type + ".md")) as textfile:
-		return textfile.read()
+def get_license_text(license_type: str) -> str | None:
+	if license_type in LICENSES:
+		with open(os.path.join(os.path.dirname(__file__), "licenses", license_type + ".md")) as textfile:
+			return textfile.read()

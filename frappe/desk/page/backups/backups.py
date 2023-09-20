@@ -4,13 +4,13 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cint, get_site_path, get_url
-from frappe.utils.data import convert_utc_to_user_timezone
+from frappe.utils.data import convert_utc_to_system_timezone
 
 
 def get_context(context):
 	def get_time(path):
 		dt = os.path.getmtime(path)
-		return convert_utc_to_user_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime(
+		return convert_utc_to_system_timezone(datetime.datetime.utcfromtimestamp(dt)).strftime(
 			"%a %b %d %H:%M %Y"
 		)
 
@@ -81,6 +81,8 @@ def delete_downloadable_backups():
 @frappe.whitelist()
 def schedule_files_backup(user_email):
 	from frappe.utils.background_jobs import enqueue, get_jobs
+
+	frappe.only_for("System Manager")
 
 	queued_jobs = get_jobs(site=frappe.local.site, queue="long")
 	method = "frappe.desk.page.backups.backups.backup_files_and_notify_user"

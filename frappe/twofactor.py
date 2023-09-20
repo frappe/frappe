@@ -5,7 +5,6 @@ from base64 import b32encode, b64encode
 from io import BytesIO
 
 import pyotp
-from pyqrcode import create as qrcreate
 
 import frappe
 import frappe.defaults
@@ -387,6 +386,8 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 
 def get_qr_svg_code(totp_uri):
 	"""Get SVG code to display Qrcode for OTP."""
+	from pyqrcode import create as qrcreate
+
 	url = qrcreate(totp_uri)
 	svg = ""
 	stream = BytesIO()
@@ -401,6 +402,8 @@ def get_qr_svg_code(totp_uri):
 
 def qrcode_as_png(user, totp_uri):
 	"""Save temporary Qrcode to server."""
+	from pyqrcode import create as qrcreate
+
 	folder = create_barcode_folder()
 	png_file_name = f"{frappe.generate_hash(length=20)}.png"
 	_file = frappe.get_doc(
@@ -474,12 +477,20 @@ def disable():
 
 
 @frappe.whitelist()
-def reset_otp_secret(user):
+def reset_otp_secret(user: str):
 	if frappe.session.user != user:
 		frappe.only_for("System Manager", message=True)
 
-	otp_issuer = frappe.db.get_single_value("System Settings", "otp_issuer_name")
-	user_email = frappe.db.get_value("User", user, "email")
+	settings = frappe.get_cached_doc("System Settings")
+
+	if not settings.enable_two_factor_auth:
+		frappe.throw(
+			_("You have to enable Two Factor Auth from System Settings."),
+			title=_("Enable Two Factor Auth"),
+		)
+
+	otp_issuer = settings.otp_issuer_name or "Frappe Framework"
+	user_email = frappe.get_cached_value("User", user, "email")
 
 	clear_default(user + "_otplogin")
 	clear_default(user + "_otpsecret")
@@ -487,10 +498,10 @@ def reset_otp_secret(user):
 	email_args = {
 		"recipients": user_email,
 		"sender": None,
-		"subject": _("OTP Secret Reset - {0}").format(otp_issuer or "Frappe Framework"),
+		"subject": _("OTP Secret Reset - {0}").format(otp_issuer),
 		"message": _(
 			"<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-		).format(otp_issuer or "Frappe Framework"),
+		).format(otp_issuer),
 		"delayed": False,
 		"retry": 3,
 	}

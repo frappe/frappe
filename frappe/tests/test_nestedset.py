@@ -6,6 +6,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Max
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import random_string
 from frappe.utils.nestedset import (
 	NestedSetChildExistsError,
 	NestedSetInvalidMergeError,
@@ -210,6 +211,12 @@ class TestNestedSet(FrappeTestCase):
 	def test_remove_subtree(self):
 		remove_subtree("Test Tree DocType", "Parent 2")
 		self.test_basic_tree()
+
+	def test_rename_nestedset(self):
+		doctype = new_doctype(is_tree=True).insert()
+
+		# Rename doctype
+		frappe.rename_doc("DocType", doctype.name, "Test " + random_string(10), force=True)
 
 	def test_merge_groups(self):
 		global records

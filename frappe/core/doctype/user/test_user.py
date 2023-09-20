@@ -367,6 +367,9 @@ class TestUser(FrappeTestCase):
 		set_request(path="/random")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
+		# used by rate limiter when calling reset_password
+		frappe.local.request_ip = "127.0.0.69"
+		frappe.db.set_single_value("System Settings", "password_reset_limit", 6)
 
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
@@ -438,8 +441,8 @@ class TestUser(FrappeTestCase):
 		getdoc("User", "Administrator")
 		doc = frappe.response.docs[0]
 		self.assertListEqual(
-			doc.get("__onload").get("all_modules", []),
-			[m.get("module_name") for m in get_modules_from_all_apps()],
+			sorted(doc.get("__onload").get("all_modules", [])),
+			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
 	def test_reset_password_link_expiry(self):

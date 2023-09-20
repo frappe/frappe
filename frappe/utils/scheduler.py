@@ -10,13 +10,13 @@ Events:
 
 # imports - standard imports
 import os
+import random
 import time
 
 # imports - module imports
 import frappe
-from frappe.installer import update_site_config
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
-from frappe.utils.background_jobs import get_jobs
+from frappe.utils.background_jobs import get_jobs, set_niceness
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -35,6 +35,7 @@ def start_scheduler():
 	Specify scheduler_interval in seconds in common_site_config.json"""
 
 	tick = cint(frappe.get_conf().scheduler_tick_interval) or 60
+	set_niceness()
 
 	while True:
 		time.sleep(tick)
@@ -50,6 +51,9 @@ def enqueue_events_for_all_sites():
 
 	with frappe.init_site():
 		sites = get_sites()
+
+	# Sites are sorted in alphabetical order, shuffle to randomize priorities
+	random.shuffle(sites)
 
 	for site in sites:
 		try:
@@ -180,6 +184,13 @@ def _get_last_modified_timestamp(doctype):
 
 @frappe.whitelist()
 def activate_scheduler():
+	from frappe.installer import update_site_config
+
+	frappe.only_for("Administrator")
+
+	if frappe.local.conf.maintenance_mode:
+		frappe.throw(frappe._("Scheduler can not be re-enabled when maintenance mode is active."))
+
 	if is_scheduler_disabled():
 		enable_scheduler()
 	if frappe.conf.pause_scheduler:

@@ -269,7 +269,7 @@ DROP TABLE IF EXISTS `tabSingles`;
 CREATE TABLE `tabSingles` (
   `doctype` varchar(255) DEFAULT NULL,
   `field` varchar(255) DEFAULT NULL,
-  `value` text,
+  `value` longtext,
   KEY `singles_doctype_field_index` (`doctype`, `field`)
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -17,6 +17,7 @@ class ActivityLog(Document):
 	def validate(self):
 		self.set_status()
 		set_timeline_doc(self)
+		self.set_ip_address()
 
 	def set_status(self):
 		if not self.is_new():
@@ -24,6 +25,10 @@ class ActivityLog(Document):
 
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
+
+	def set_ip_address(self):
+		if self.operation in ("Login", "Logout"):
+			self.ip_address = getattr(frappe.local, "request_ip")
 
 	@staticmethod
 	def clear_old_logs(days=None):

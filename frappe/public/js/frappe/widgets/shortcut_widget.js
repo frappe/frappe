@@ -20,6 +20,8 @@ export default class ShortcutWidget extends Widget {
 			restrict_to_domain: this.restrict_to_domain,
 			stats_filter: this.stats_filter,
 			type: this.type,
+			url: this.url,
+			kanban_board: this.kanban_board,
 		};
 	}
 
@@ -34,6 +36,7 @@ export default class ShortcutWidget extends Widget {
 				is_query_report: this.is_query_report,
 				doctype: this.ref_doctype,
 				doc_view: this.doc_view,
+				kanban_board: this.kanban_board,
 			});
 
 			let filters = frappe.utils.get_filter_from_json(this.stats_filter);
@@ -43,6 +46,16 @@ export default class ShortcutWidget extends Widget {
 
 			if (e.ctrlKey || e.metaKey) {
 				frappe.open_in_new_tab = true;
+			}
+
+			if (this.type == "URL") {
+				if (frappe.open_in_new_tab) {
+					window.open(this.url, "_blank");
+					frappe.open_in_new_tab = false;
+				} else {
+					window.location.href = this.url;
+				}
+				return;
 			}
 
 			frappe.set_route(route);
