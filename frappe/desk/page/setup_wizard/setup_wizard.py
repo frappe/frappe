@@ -251,7 +251,7 @@ def update_user_name(args):
 
 def set_timezone(args):
 	if args.get("timezone"):
-		for name in ["Administrator", "Guest"]:
+		for name in frappe.STANDARD_USERS:
 			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
 
 
