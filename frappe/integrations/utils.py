@@ -17,7 +17,9 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None):
 
 	try:
 		s = get_request_session()
-		frappe.flags.integration_request = s.request(method, url, data=data, auth=auth, headers=headers, json=json)
+		frappe.flags.integration_request = s.request(
+			method, url, data=data, auth=auth, headers=headers, json=json
+		)
 		frappe.flags.integration_request.raise_for_status()
 
 		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
