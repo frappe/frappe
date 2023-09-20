@@ -416,6 +416,34 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_list(self):
 		return self.sql("SELECT datname FROM pg_database", pluck=True)
 
+	def get_column_index(
+		self, table_name: str, fieldname: str, unique: bool = False, order: int = 1
+	) -> frappe._dict | None:
+		"""
+		Check if column exists for a specific fields.
+		TODO: in a specific order
+		"""
+		unique_condition = "AND indexdef LIKE 'UNIQUE'" if unique else ""
+		indexes = self.sql(
+			f"""
+			SELECT
+				indexname as name,
+				indexdef as definition
+			FROM pg_indexes
+			WHERE tablename = '{table_name}'
+				AND indexname = '{fieldname}'
+				{unique_condition}
+			"""
+		)
+
+		# TODO: check specific order, now it just checks if its single column index
+		for index in indexes:
+			# in case of single column index, indexname is same as fieldname
+			is_single_column_index = index.name == fieldname
+			if is_single_column_index:
+				return frappe._dict(name=index.name, definition=index.definition)
+		return None
+
 
 def modify_query(query):
 	""" "Modifies query according to the requirements of postgres"""
