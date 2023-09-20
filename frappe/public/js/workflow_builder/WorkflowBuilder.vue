@@ -131,7 +131,7 @@
 		let center_y = source_center.y;
 
 		const action_node = {
-			id: "action-" + frappe.utils.get_random(5),
+			id: "action-" + action_id,
 			type: "action",
 			position: { x: center_x, y: center_y },
 			selected: true,
@@ -140,6 +140,8 @@
 				allowed: "All",
 				from: source_node.data.state,
 				to: target_node.data.state,
+				from_id: source_node.id,
+				to_id: target_node.id,
 			},
 		};
 		addNodes([action_node]);
