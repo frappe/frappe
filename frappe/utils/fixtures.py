@@ -69,7 +69,7 @@ def export_fixtures(app=None):
 	for app in apps:
 		fixture_auto_order = bool(frappe.get_hooks("fixture_auto_order", app_name=app))
 		fixtures = frappe.get_hooks("fixtures", app_name=app)
-		for index, fixture in enumerate(fixtures):
+		for index, fixture in enumerate(fixtures, start=1):
 			filters = None
 			or_filters = None
 			if isinstance(fixture, dict):
@@ -83,15 +83,13 @@ def export_fixtures(app=None):
 
 			filename = frappe.scrub(fixture)
 			if prefix:
-				filename = prefix + "_" + filename
+				filename = f"{prefix}_{filename}"
 			if fixture_auto_order:
-				num_fixtures_as_str = str(len(fixtures))  # e.g. "14"
-				# lets index start at 1 instead of 0
-				file_index = str(index + 1)  # e.g. one of 1,...,14
-				# This introduces leading zeros, to make sure all index-prefixes have the same numer of characters
-				# because we want 05 to appear before 14
-				filled_file_index = file_index.zfill(len(num_fixtures_as_str))  # e.g. in one of 01,...,14
-				filename = filled_file_index + "_" + filename
+				number_of_digits = len(str(len(fixtures)))
+				# add zero padding so files can be sorted lexicographically with filename.
+				file_number = str(index).zfill(number_of_digits)
+				filename = f"{file_number}_{filename}"
+
 			export_json(
 				fixture,
 				frappe.get_app_path(app, "fixtures", filename + ".json"),
