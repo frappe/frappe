@@ -21,7 +21,7 @@ let properties = computed(() => {
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
 		let allow_edit = store.statefields.find(df => df.fieldname == "allow_edit");
-		store.statefields = store.statefields.filter(df => df.fieldname != "allow_edit");
+		store.statefields = store.statefields.filter(df => !in_list(['allow_edit', 'workflow_builder_id'], df.fieldname));
 		store.statefields.splice(2, 0, allow_edit);
 
 		return store.statefields.filter(df => {

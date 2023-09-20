@@ -94,7 +94,7 @@
     "fieldname": "workflow_builder_id",
     "fieldtype": "Data",
     "hidden": 1,
-    "label": "Workflow Data"
+    "label": "Workflow Builder ID"
   }
  ],
  "idx": 1,
