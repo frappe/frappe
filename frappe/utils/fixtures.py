@@ -38,7 +38,7 @@ def import_fixtures(app):
 
 		file_path = frappe.get_app_path(app, "fixtures", fname)
 		try:
-			import_doc(file_path)
+			import_doc(file_path, sort=True)
 		except (ImportError, frappe.DoesNotExistError) as e:
 			# fixture syncing for missing doctypes
 			print(f"Skipping fixture syncing from the file {fname}. Reason: {e}")
