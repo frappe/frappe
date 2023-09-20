@@ -315,7 +315,7 @@ def get_internal_links(doc, link, link_doctype):
 	elif isinstance(link, list):
 		# get internal links in child documents
 		table_fieldname, link_fieldname = link
-		for row in doc.get(table_fieldname):
+		for row in doc.get(table_fieldname) or []:
 			value = row.get(link_fieldname)
 			if value and value not in names:
 				names.append(value)
