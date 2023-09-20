@@ -130,6 +130,13 @@
 		let center_x = (source_center.x + target_center.x) / 2;
 		let center_y = source_center.y;
 
+		let action_ids = nodes.value
+			.filter((node) => node.type == "action")
+			.map((node) => parseInt(node.id.replace('action-', '')));
+		let action_id = action_ids.length
+			? (Math.max(...action_ids) + 1).toString()
+			: "1";
+
 		const action_node = {
 			id: "action-" + action_id,
 			type: "action",

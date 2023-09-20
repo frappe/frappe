@@ -1,7 +1,10 @@
+
 export function get_workflow_elements(workflow, workflow_data) {
 	let elements = [];
 	let states = {};
 	let actions = {};
+	let transitions = {};
+
 	let x = 150;
 	let y = 100;
 
@@ -9,26 +12,27 @@ export function get_workflow_elements(workflow, workflow_data) {
 		if (data.type == 'state') {
 			states[data.id] = data
 		}
-
-		if (data.type == 'action') {
+		else if (data.type == 'action') {
 			actions[data.id] = data
 		}
-
-		if (data.type == 'transition') {
+		else if (data.type == 'transition') {
 			transitions[`edge-${data.source}-${data.target}`] = data
 		}
 	})
 
 	function state_obj(id, data) {
 
-		let state = workflow_data.filter(el => el.type == 'state' && el.data.state == data.state)
+		let state = states[id];
 
-		if (state.length) {
-			state[0].data = data
-			if (!states[data.state]) {
-				states[data.state] = [state[0].id, state[0].position];
-			}
-			return state[0]
+		if (state) {
+			state.data = data;
+		} else {
+			state = {
+				id: id.toString(),
+				type: "state",
+				position: { x, y },
+				data,
+			};
 		}
 
 		return states[id] = state;
@@ -54,14 +58,21 @@ export function get_workflow_elements(workflow, workflow_data) {
 		return actions[id] = action;
 	}
 
-	function transition_obj(id, source, target, transition) {
+	function transition_obj(id, source, target) {
 
-		transition = workflow_data.filter(el => el.type == 'transition'
-			&& el.sourceNode.data[transition.source] == transition[transition.source]
-			&& el.targetNode.data[transition.target] == transition[transition.target])
+		let transition = transitions[id];
 
-		if (transition.length) {
-			return transition[0]
+		if (!transition) {
+			transition = {
+				id,
+				type: "transition",
+				source: source.toString(),
+				target: target.toString(),
+				sourceHandle: "right",
+				targetHandle: "left",
+				updatable: true,
+				animated: true,
+			};
 		}
 
 		return transitions[id] = transition;
@@ -106,7 +117,7 @@ export function get_workflow_elements(workflow, workflow_data) {
 			to: transition.next_state,
 		};
 
-		elements.push(action_obj(action_id, data, position, source.id, target.id));
+		elements.push(action_obj(action_id, data, position));
 		elements.push(transition_obj('edge-' + source.id + "-" + action_id, source.id, action_id));
 		elements.push(transition_obj('edge-' + action_id + "-" + target.id, action_id, target.id));
 	});
