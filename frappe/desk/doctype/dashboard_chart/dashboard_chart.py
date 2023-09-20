@@ -79,17 +79,16 @@ def has_permission(doc, ptype, user):
 	if "System Manager" in roles:
 		return True
 
-	if doc.chart_type == "Report":
+	if doc.roles:
+		allowed = [d.role for d in doc.roles]
+		if has_common(roles, allowed):
+			return True
+	elif doc.chart_type == "Report":
 		if doc.report_name in get_allowed_report_names():
 			return True
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 		if doc.document_type in allowed_doctypes:
-			return True
-
-	if doc.roles:
-		allowed = [d.role for d in doc.roles]
-		if has_common(roles, allowed):
 			return True
 
 	return False

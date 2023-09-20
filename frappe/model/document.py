@@ -216,7 +216,7 @@ class Document(BaseDocument):
 	def check_permission(self, permtype="read", permlevel=None):
 		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
-			self.raise_no_permission_to(permlevel or permtype)
+			self.raise_no_permission_to(permtype)
 
 	def has_permission(self, permtype="read") -> bool:
 		"""

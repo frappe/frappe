@@ -291,6 +291,7 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-ptype", fieldname)
 			.attr("data-role", d.role)
 			.attr("data-permlevel", d.permlevel)
+			.attr("data-if_owner", d.if_owner)
 			.attr("data-doctype", d.parent);
 
 		checkbox.find("label").css("text-transform", "capitalize");
@@ -370,6 +371,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						doctype: d.parent,
 						role: d.role,
 						permlevel: d.permlevel,
+						if_owner: d.if_owner,
 					},
 					callback: (r) => {
 						if (r.exc) {
@@ -398,6 +400,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				doctype: chk.attr("data-doctype"),
 				ptype: chk.attr("data-ptype"),
 				value: chk.prop("checked") ? 1 : 0,
+				if_owner: chk.attr("data-if_owner"),
 			};
 			return frappe.call({
 				module: "frappe.core",

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import typing
 from urllib.parse import quote
 
 import frappe
@@ -13,6 +14,9 @@ from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
 from frappe.utils.data import cstr
+
+if typing.TYPE_CHECKING:
+	from frappe.model.document import Document
 
 
 @frappe.whitelist()
@@ -117,7 +121,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 			"assignments": get_assignments(doc.doctype, doc.name),
 			"permissions": get_doc_permissions(doc),
 			"shared": get_docshares(doc),
-			"views": get_view_logs(doc.doctype, doc.name),
+			"views": get_view_logs(doc),
 			"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 			"milestones": get_milestones(doc.doctype, doc.name),
@@ -149,29 +153,22 @@ def add_comments(doc, docinfo):
 	)
 
 	for c in comments:
-		if c.comment_type == "Comment":
-			c.content = frappe.utils.markdown(c.content)
-			docinfo.comments.append(c)
-
-		elif c.comment_type in ("Shared", "Unshared"):
-			docinfo.shared.append(c)
-
-		elif c.comment_type in ("Assignment Completed", "Assigned"):
-			docinfo.assignment_logs.append(c)
-
-		elif c.comment_type in ("Attachment", "Attachment Removed"):
-			docinfo.attachment_logs.append(c)
-
-		elif c.comment_type in ("Info", "Edit", "Label"):
-			docinfo.info_logs.append(c)
-
-		elif c.comment_type == "Like":
-			docinfo.like_logs.append(c)
-
-		elif c.comment_type == "Workflow":
-			docinfo.workflow_logs.append(c)
-
-		frappe.utils.add_user_info(c.owner, docinfo.user_info)
+		match c.comment_type:
+			case "Comment":
+				c.content = frappe.utils.markdown(c.content)
+				docinfo.comments.append(c)
+			case "Shared" | "Unshared":
+				docinfo.shared.append(c)
+			case "Assignment Completed" | "Assigned":
+				docinfo.assignment_logs.append(c)
+			case "Attachment" | "Attachment Removed":
+				docinfo.attachment_logs.append(c)
+			case "Info" | "Edit" | "Label":
+				docinfo.info_logs.append(c)
+			case "Like":
+				docinfo.like_logs.append(c)
+			case "Workflow":
+				docinfo.workflow_logs.append(c)
 
 	return comments
 
@@ -192,7 +189,9 @@ def get_attachments(dt, dn):
 	)
 
 
-def get_versions(doc):
+def get_versions(doc: "Document") -> list[dict]:
+	if not doc.meta.track_changes:
+		return []
 	return frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=doc.name),
@@ -362,32 +361,29 @@ def run_onload(doc):
 	doc.run_method("onload")
 
 
-def get_view_logs(doctype, docname):
+def get_view_logs(doc: "Document") -> list[dict]:
 	"""get and return the latest view logs if available"""
-	logs = []
-	if getattr(frappe.get_meta(doctype), "track_views", None):
-		view_logs = frappe.get_all(
-			"View Log",
-			filters={
-				"reference_doctype": doctype,
-				"reference_name": docname,
-			},
-			fields=["name", "creation", "owner"],
-			order_by="creation desc",
-		)
+	if not doc.meta.track_views:
+		return []
 
-		if view_logs:
-			logs = view_logs
-	return logs
+	return frappe.get_all(
+		"View Log",
+		filters={
+			"reference_doctype": doc.doctype,
+			"reference_name": doc.name,
+		},
+		fields=["name", "creation", "owner"],
+		order_by="creation desc",
+	)
 
 
-def get_tags(doctype, name):
-	tags = [
-		tag.tag
-		for tag in frappe.get_all(
-			"Tag Link", filters={"document_type": doctype, "document_name": name}, fields=["tag"]
-		)
-	]
+def get_tags(doctype: str, name: str) -> str:
+	tags = frappe.get_all(
+		"Tag Link",
+		filters={"document_type": doctype, "document_name": name},
+		fields=["tag"],
+		pluck="tag",
+	)
 
 	return ",".join(tags)
 
@@ -478,17 +474,20 @@ def send_link_titles(link_titles):
 
 
 def update_user_info(docinfo):
-	for d in docinfo.communications:
-		frappe.utils.add_user_info(d.sender, docinfo.user_info)
+	users = set()
 
-	for d in docinfo.shared:
-		frappe.utils.add_user_info(d.user, docinfo.user_info)
+	users.update(d.sender for d in docinfo.communications)
+	users.update(d.user for d in docinfo.shared)
+	users.update(d.owner for d in docinfo.assignments)
+	users.update(d.owner for d in docinfo.views)
+	users.update(d.owner for d in docinfo.workflow_logs)
+	users.update(d.owner for d in docinfo.like_logs)
+	users.update(d.owner for d in docinfo.info_logs)
+	users.update(d.owner for d in docinfo.attachment_logs)
+	users.update(d.owner for d in docinfo.assignment_logs)
+	users.update(d.owner for d in docinfo.comments)
 
-	for d in docinfo.assignments:
-		frappe.utils.add_user_info(d.owner, docinfo.user_info)
-
-	for d in docinfo.views:
-		frappe.utils.add_user_info(d.owner, docinfo.user_info)
+	frappe.utils.add_user_info(users, docinfo.user_info)
 
 
 @frappe.whitelist()
