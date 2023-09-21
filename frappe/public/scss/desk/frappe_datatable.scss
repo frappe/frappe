@@ -20,8 +20,8 @@
 	margin-left: -5px;
 	margin-top: 0px;
 	@include get_textstyle("base", "regular");
-	
-	.dt-cell {	
+
+	.dt-cell {
 		color: var(--text-color) !important;
 		background-color: var(--bg-color) !important;
 	}

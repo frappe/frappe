@@ -986,7 +986,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			</span>
 		`;
 
-
 		const like = div.querySelector(".like-action");
 		like.setAttribute("data-liked-by", doc._liked_by || "[]");
 		like.setAttribute("data-doctype", this.doctype);
@@ -1046,7 +1045,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		];
 		const title = docstatus_description[doc.docstatus || 0];
 		if (indicator) {
-			return `<span class="indicator-pill ${indicator[1]} filterable no-indicator-dot ellipsis"
+			return `<span class="indicator-pill ${
+				indicator[1]
+			} filterable no-indicator-dot ellipsis"
 				data-filter='${indicator[2]}' title='${title}'>
 				<span class="ellipsis"> ${__(indicator[0])}</span>
 			</span>`;
