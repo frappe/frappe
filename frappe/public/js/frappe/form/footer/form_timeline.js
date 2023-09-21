@@ -118,7 +118,7 @@ class FormTimeline extends BaseTimeline {
 		if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
 			frappe.utils.get_page_view_count(this.frm.doc.route).then((res) => {
 				this.add_timeline_item({
-					content: __("{0} Web page views", [res.message], "Form timeline"),
+					content: __("{0} Web page views", [res.message]),
 					hide_timestamp: true,
 				});
 			});
@@ -126,27 +126,23 @@ class FormTimeline extends BaseTimeline {
 	}
 
 	get_creation_message() {
-		const user_link = get_user_link(this.frm.doc.owner);
-
 		return {
 			creation: this.frm.doc.creation,
 			content: get_user_message(
 				this.frm.doc.owner,
-				__("You created this", null, "Form timeline"),
-				__("{0} created this", [user_link], "Form timeline")
+				__("You created this"),
+				__("{0} created this", [get_user_link(this.frm.doc.owner)])
 			),
 		};
 	}
 
 	get_modified_message() {
-		const user_link = get_user_link(this.frm.doc.modified_by);
-
 		return {
 			creation: this.frm.doc.modified,
 			content: get_user_message(
 				this.frm.doc.modified_by,
-				__("You last edited this", null, "Form timeline"),
-				__("{0} last edited this", [user_link], "Form timeline")
+				__("You last edited this"),
+				__("{0} last edited this", [get_user_link(this.frm.doc.modified_by)])
 			),
 		};
 	}
@@ -174,18 +170,13 @@ class FormTimeline extends BaseTimeline {
 	get_view_timeline_contents() {
 		let view_timeline_contents = [];
 		(this.doc_info.views || []).forEach((view) => {
-			const view_time = comment_when(view.creation);
-			const user_link = get_user_link(view.owner);
-			const timeline_content = get_user_message(
-				view.owner,
-				__("You viewed this {0}", [view_time], "Form timeline"),
-				__("{0} viewed this {1}", [user_link, view_time], "Form timeline")
-			);
-
 			view_timeline_contents.push({
 				creation: view.creation,
-				content: timeline_content,
-				hide_timestamp: true,
+				content: get_user_message(
+					view.owner,
+					__("You viewed this"),
+					__("{0} viewed this", [get_user_link(view.owner)])
+				),
 			});
 		});
 
@@ -462,8 +453,8 @@ class FormTimeline extends BaseTimeline {
 		(this.doc_info.like_logs || []).forEach((like_log) => {
 			const timeline_content = get_user_message(
 				like_log.owner,
-				__("You Liked", null, "Form timeline"),
-				__("{0} Liked", [get_user_link(like_log.owner)], "Form timeline")
+				__("You Liked"),
+				__("{0} Liked", [get_user_link(like_log.owner)])
 			);
 
 			like_timeline_contents.push({

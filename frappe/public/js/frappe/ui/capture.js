@@ -22,9 +22,7 @@ frappe._.get_data_uri = (element) => {
 	const context = $canvas[0].getContext("2d");
 	context.drawImage(element, 0, 0, width, height);
 
-	const data_uri = $canvas[0].toDataURL("image/png");
-
-	return data_uri;
+	return $canvas[0].toDataURL("image/png");
 };
 
 function get_file_input() {
@@ -76,7 +74,9 @@ frappe.ui.Capture = class {
 	show() {
 		this.build_dialog();
 
-		if (frappe.is_mobile()) {
+		if (cint(frappe.boot.sysdefaults.force_web_capture_mode_for_uploads)) {
+			this.show_for_desktop();
+		} else if (frappe.is_mobile()) {
 			this.show_for_mobile();
 		} else {
 			this.show_for_desktop();

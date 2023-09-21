@@ -79,17 +79,16 @@ def has_permission(doc, ptype, user):
 	if "System Manager" in roles:
 		return True
 
-	if doc.chart_type == "Report":
+	if doc.roles:
+		allowed = [d.role for d in doc.roles]
+		if has_common(roles, allowed):
+			return True
+	elif doc.chart_type == "Report":
 		if doc.report_name in get_allowed_report_names():
 			return True
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 		if doc.document_type in allowed_doctypes:
-			return True
-
-	if doc.roles:
-		allowed = [d.role for d in doc.roles]
-		if has_common(roles, allowed):
 			return True
 
 	return False
@@ -264,11 +263,10 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 		)
 	)
 
-	chart_config = {
+	return {
 		"labels": [],
 		"dataPoints": data,
 	}
-	return chart_config
 
 
 def get_group_by_chart_config(chart, filters):
@@ -292,12 +290,10 @@ def get_group_by_chart_config(chart, filters):
 	)
 
 	if data:
-		chart_config = {
+		return {
 			"labels": [item["name"] if item["name"] else "Not Specified" for item in data],
 			"datasets": [{"name": chart.name, "values": [item["count"] for item in data]}],
 		}
-
-		return chart_config
 	else:
 		return None
 

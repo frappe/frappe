@@ -23,25 +23,34 @@ frappe.ui.SortSelector = class SortSelector {
 
 		// order
 		this.wrapper.find(".btn-order").on("click", function () {
-			let btn = $(this);
 			const order = $(this).attr("data-value") === "desc" ? "asc" : "desc";
-			const title =
-				$(this).attr("data-value") === "desc" ? __("ascending") : __("descending");
-
-			btn.attr("data-value", order);
-			btn.attr("title", title);
-			me.sort_order = order;
-			const icon_name = order === "asc" ? "sort-ascending" : "sort-descending";
-			btn.find(".sort-order").html(frappe.utils.icon(icon_name, "sm"));
+			me.set_value(me.sort_by, order);
 			(me.onchange || me.change)(me.sort_by, me.sort_order);
 		});
 
 		// select field
 		this.wrapper.find(".dropdown-menu a.option").on("click", function () {
-			me.sort_by = $(this).attr("data-value");
-			me.wrapper.find(".dropdown-text").html($(this).html());
+			me.set_value($(this).attr("data-value"), me.sort_order);
 			(me.onchange || me.change)(me.sort_by, me.sort_order);
 		});
+	}
+	set_value(sort_by, sort_order) {
+		const $btn = this.wrapper.find(".btn-order");
+		const $icon = $btn.find(".sort-order");
+		const $text = this.wrapper.find(".dropdown-text");
+
+		if (this.sort_by !== sort_by) {
+			this.sort_by = sort_by;
+			$text.html(__(this.get_label(sort_by)));
+		}
+		if (this.sort_order !== sort_order) {
+			this.sort_order = sort_order;
+			const title = sort_order === "desc" ? __("ascending") : __("descending");
+			const icon_name = sort_order === "asc" ? "sort-ascending" : "sort-descending";
+			$btn.attr("data-value", sort_order);
+			$btn.attr("title", title);
+			$icon.html(frappe.utils.icon(icon_name, "sm"));
+		}
 	}
 	prepare_args() {
 		var me = this;

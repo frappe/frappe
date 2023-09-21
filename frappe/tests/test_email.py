@@ -156,7 +156,7 @@ class TestEmail(FrappeTestCase):
 		frappe.conf.use_ssl = False
 
 	def test_expose(self):
-
+		from frappe.utils import set_request
 		from frappe.utils.verified_command import verify_request
 
 		frappe.sendmail(
@@ -199,9 +199,11 @@ class TestEmail(FrappeTestCase):
 			if content:
 				eol = "\r\n"
 
-				frappe.local.flags.signed_query_string = re.search(
+				query_string = re.search(
 					r"(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=" + eol + ")", content.decode()
 				).group(0)
+
+				set_request(method="GET", query_string=query_string)
 				self.assertTrue(verify_request())
 				break
 
@@ -320,6 +322,6 @@ class TestVerifiedRequests(FrappeTestCase):
 
 		for params in test_cases:
 			signed_url = get_signed_params(params)
-			set_request(method="GET", path="?" + signed_url)
+			set_request(method="GET", query_string=signed_url)
 			self.assertTrue(verify_request())
 		frappe.local.request = None

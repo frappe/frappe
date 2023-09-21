@@ -263,19 +263,17 @@ def get_row_changed(row_changed, time, doctype, doc_name, v):
 
 
 def get_added_row(added, time, doctype, doc_name, v):
-	items = []
-	for d in added:
-		items.append(
-			{
-				"time": v.modified,
-				"data": {"to": d[0], "time": time},
-				"doctype": doctype,
-				"doc_name": doc_name,
-				"type": "row added",
-				"by": v.modified_by,
-			}
-		)
-	return items
+	return [
+		{
+			"time": v.modified,
+			"data": {"to": d[0], "time": time},
+			"doctype": doctype,
+			"doc_name": doc_name,
+			"type": "row added",
+			"by": v.modified_by,
+		}
+		for d in added
+	]
 
 
 def get_field_changed(changed, time, doctype, doc_name, v):

@@ -89,15 +89,19 @@ frappe.ui.form.on("Web Form", {
 
 			get_fields_for_doctype(frm.doc.doc_type).then((fields) => {
 				for (let df of fields) {
+					let fieldtype = df.fieldtype;
+					if (fieldtype == "Tab Break") {
+						fieldtype = "Page Break";
+					}
 					if (
-						webform_fieldtypes.includes(df.fieldtype) &&
+						webform_fieldtypes.includes(fieldtype) &&
 						!added_fields.includes(df.fieldname) &&
 						!df.hidden
 					) {
 						frm.add_child("web_form_fields", {
 							fieldname: df.fieldname,
 							label: df.label,
-							fieldtype: df.fieldtype,
+							fieldtype: fieldtype,
 							options: df.options,
 							reqd: df.reqd,
 							default: df.default,
@@ -227,7 +231,8 @@ function get_fields_for_doctype(doctype) {
 			return (
 				(frappe.model.is_value_type(df.fieldtype) &&
 					!["lft", "rgt"].includes(df.fieldname)) ||
-				["Table", "Table Multiselect"].includes(df.fieldtype)
+				["Table", "Table Multiselect"].includes(df.fieldtype) ||
+				frappe.model.layout_fields.includes(df.fieldtype)
 			);
 		});
 	});

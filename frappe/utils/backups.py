@@ -31,7 +31,7 @@ class BackupGenerator:
 	"""
 	This class contains methods to perform On Demand Backup
 
-	To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
+	To initialize, specify (db_name, user, password, db_file_name=None, db_host="127.0.0.1")
 	If specifying db_file_name, also append ".sql.gz"
 	"""
 
@@ -524,7 +524,7 @@ def scheduled_backup(
 	"""this function is called from scheduler
 	deletes backups older than 7 days
 	takes backup"""
-	odb = new_backup(
+	return new_backup(
 		older_than=older_than,
 		ignore_files=ignore_files,
 		backup_path=backup_path,
@@ -539,7 +539,6 @@ def scheduled_backup(
 		force=force,
 		verbose=verbose,
 	)
-	return odb
 
 
 def new_backup(
@@ -621,14 +620,13 @@ def is_file_old(file_path, older_than=24):
 
 
 def get_backup_path():
-	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
-	return backup_path
+	return frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 
 
 @frappe.whitelist()
 def get_backup_encryption_key():
 	frappe.only_for("System Manager")
-	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	return get_or_generate_backup_encryption_key()
 
 
 def get_or_generate_backup_encryption_key():

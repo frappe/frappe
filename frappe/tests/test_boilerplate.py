@@ -32,7 +32,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 				"create_github_workflow": False,
 			}
 		)
@@ -45,7 +45,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"email": "example@example.org",
 				"icon": "",  # empty -> default
 				"color": "",
-				"app_license": "MIT",
+				"app_license": "mit",
 				"github_workflow": "n",
 			}
 		)
@@ -102,15 +102,20 @@ class TestBoilerPlate(unittest.TestCase):
 		invalid_inputs = copy.copy(self.default_user_input).update(
 			{
 				"title": ["1nvalid Title", "valid title"],
+				"email": ["notavalidemail", "what@is@this.email", "example@example.org"],
 			}
 		)
 		with patch("sys.stdin", self.get_user_input_stream(invalid_inputs)):
 			hooks = _get_user_inputs(self.default_hooks.app_name)
 		self.assertEqual(hooks.app_title, "valid title")
+		self.assertEqual(hooks.app_email, "example@example.org")
 
 	def test_valid_ci_yaml(self):
 		yaml.safe_load(github_workflow_template.format(**self.default_hooks))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_create_app(self):
 		app_name = "test_app"
 
@@ -121,7 +126,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 			}
 		)
 
@@ -142,6 +147,9 @@ class TestBoilerPlate(unittest.TestCase):
 
 		self.assertEqual(parse_as_configfile(patches_file), [])
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_create_app_without_git_init(self):
 		app_name = "test_app_no_git"
 
@@ -152,7 +160,7 @@ class TestBoilerPlate(unittest.TestCase):
 				"app_description": "This app's description contains 'single quotes' and \"double quotes\".",
 				"app_publisher": "Test Publisher",
 				"app_email": "example@example.org",
-				"app_license": "MIT",
+				"app_license": "mit",
 			}
 		)
 		self.create_app(hooks, no_git=True)
@@ -169,15 +177,9 @@ class TestBoilerPlate(unittest.TestCase):
 		self.check_parsable_python_files(new_app_dir)
 
 	def get_paths(self, app_dir, app_name):
-		all_paths = list()
-
-		for path in self.root_paths:
-			all_paths.append(os.path.join(app_dir, path))
-
+		all_paths = [os.path.join(app_dir, path) for path in self.root_paths]
 		all_paths.append(os.path.join(app_dir, app_name))
-
-		for path in self.paths_inside_app:
-			all_paths.append(os.path.join(app_dir, app_name, path))
+		all_paths.extend(os.path.join(app_dir, app_name, path) for path in self.paths_inside_app)
 
 		return all_paths
 
@@ -192,6 +194,9 @@ class TestBoilerPlate(unittest.TestCase):
 				except Exception as e:
 					self.fail(f"Can't parse python file in new app: {python_file}\n" + str(e))
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
 	def test_new_patch_util(self):
 		user_inputs = {
 			"app_name": "frappe",

@@ -254,7 +254,6 @@ body.modal-open[style^="padding-right"] {
 .dialog-assignment-row {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	padding: 5px 15px;
 	border-radius: var(--border-radius-md);
 	color: var(--text-color);
@@ -262,13 +261,22 @@ body.modal-open[style^="padding-right"] {
 		margin-bottom: 5px;
 	}
 	@extend .row;
-	.remove-btn {
-		display: none;
+	.btn-group {
+		opacity: 0;
+		transition: opacity .3s ease-in-out;
+
+		button {
+			display: inline-flex;
+			align-items: center;
+		}
+	}
+	.assignee {
+		flex: 1;
 	}
 	&:hover {
-		background: var(--fg-hover-color);
-		.remove-btn {
-			display: block;
+		.btn-group {
+			opacity: 1;
+			transition: opacity 0.1s ease-in-out;
 		}
 	}
 	.avatar {

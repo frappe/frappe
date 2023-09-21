@@ -5,13 +5,16 @@
 <div class="discussions-parent {% if single_thread %} is-single-thread {% endif %}"
 	data-doctype="{{ doctype | urlencode }}" data-docname="{{ docname | urlencode }}">
 
+	{% if not single_thread %}
 	{% include "frappe/templates/discussions/topic_modal.html" %}
+	{% endif %}
 
 	<div class="discussions-header">
-		<span class="discussion-heading">{{ _(title) }}</span>
+		<span class="discussions-section-title">{{ _(title) }}</span>
 		{% if topics | length and not single_thread %}
 		{% include "frappe/templates/discussions/search.html" %}
 		{% endif %}
+
 		{% if topics and not single_thread %}
 		{% include "frappe/templates/discussions/button.html" %}
 		{% endif %}
@@ -20,7 +23,7 @@
 	<div class="">
 		{% if topics and not single_thread %}
 
-		<div class="discussions-sidebar card-style">
+		<div class="discussions-sidebar">
 
 			{% for topic in topics %}
 			{% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name})%}

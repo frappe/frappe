@@ -1,5 +1,22 @@
 from frappe import db, scrub
 
+# NOTE:
+# FOR MARIADB - using no cache - as during backup, if the sequence was used in anyform,
+# it drops the cache and uses the next non cached value in setval query and
+# puts that in the backup file, which will start the counter
+# from that value when inserting any new record in the doctype.
+# By default the cache is 1000 which will mess up the sequence when
+# using the system after a restore.
+#
+# Another case could be if the cached values expire then also there is a chance of
+# the cache being skipped.
+#
+# FOR POSTGRES - The sequence cache for postgres is per connection.
+# Since we're opening and closing connections for every request this results in skipping the cache
+# to the next non-cached value hence not using cache in postgres.
+# ref: https://stackoverflow.com/questions/21356375/postgres-9-0-4-sequence-skipping-numbers
+SEQUENCE_CACHE = 0
+
 
 def create_sequence(
 	doctype_name: str,
@@ -8,7 +25,7 @@ def create_sequence(
 	temporary: bool = False,
 	check_not_exists: bool = False,
 	cycle: bool = False,
-	cache: int = 0,
+	cache: int = SEQUENCE_CACHE,
 	start_value: int = 0,
 	increment_by: int = 0,
 	min_value: int = 0,

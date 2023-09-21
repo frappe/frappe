@@ -29,10 +29,10 @@ class TestWebsiteRouteMeta(FrappeTestCase):
 
 		self.assertTrue(response.status_code, 200)
 
-		html = response.get_data().decode()
+		html = self.normalize_html(response.get_data().decode())
 
-		self.assertTrue("""<meta name="type" content="blog_post">""" in html)
-		self.assertTrue("""<meta property="og:title" content="My Blog">""" in html)
+		self.assertIn(self.normalize_html("""<meta name="type" content="blog_post">"""), html)
+		self.assertIn(self.normalize_html("""<meta property="og:title" content="My Blog">"""), html)
 
 	def tearDown(self):
 		frappe.db.rollback()

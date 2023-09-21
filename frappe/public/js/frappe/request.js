@@ -523,6 +523,9 @@ frappe.request.report_error = function (xhr, request_opts) {
 
 	const copy_markdown_to_clipboard = () => {
 		const code_block = (snippet) => "```\n" + snippet + "\n```";
+
+		let request_data = Object.assign({}, request_opts);
+		request_data.request_id = xhr.getResponseHeader("X-Frappe-Request-Id");
 		const traceback_info = [
 			"### App Versions",
 			code_block(JSON.stringify(frappe.boot.versions, null, "\t")),
@@ -531,7 +534,7 @@ frappe.request.report_error = function (xhr, request_opts) {
 			"### Traceback",
 			code_block(exc),
 			"### Request Data",
-			code_block(JSON.stringify(request_opts, null, "\t")),
+			code_block(JSON.stringify(request_data, null, "\t")),
 			"### Response Data",
 			code_block(JSON.stringify(data, null, "\t")),
 		].join("\n");
@@ -584,27 +587,32 @@ frappe.request.report_error = function (xhr, request_opts) {
 		if (!frappe.error_dialog) {
 			frappe.error_dialog = new frappe.ui.Dialog({
 				title: __("Server Error"),
-				primary_action_label: __("Report"),
-				primary_action: () => {
-					if (error_report_email) {
-						show_communication();
-					} else {
-						frappe.msgprint(__("Support Email Address Not Specified"));
-					}
+			});
+
+			if (error_report_email) {
+				frappe.error_dialog.set_primary_action(__("Report"), () => {
+					show_communication();
 					frappe.error_dialog.hide();
-				},
-				secondary_action_label: __("Copy error to clipboard"),
-				secondary_action: () => {
+				});
+			} else {
+				frappe.error_dialog.set_primary_action(__("Copy error to clipboard"), () => {
 					copy_markdown_to_clipboard();
 					frappe.error_dialog.hide();
-				},
-			});
+				});
+			}
 			frappe.error_dialog.wrapper.classList.add("msgprint-dialog");
 		}
 
 		let parts = strip(exc).split("\n");
 
-		frappe.error_dialog.$body.html(parts[parts.length - 1]);
+		let dialog_html = parts[parts.length - 1];
+
+		if (data._exc_source) {
+			dialog_html += "<br>";
+			dialog_html += `Possible source of error: ${data._exc_source.bold()} `;
+		}
+
+		frappe.error_dialog.$body.html(dialog_html);
 		frappe.error_dialog.show();
 	}
 };

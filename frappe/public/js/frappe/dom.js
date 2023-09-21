@@ -405,6 +405,7 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 
 // bind online/offline events
 $(window).on("online", function () {
+	if (document.hidden) return;
 	frappe.show_alert({
 		indicator: "green",
 		message: __("You are connected to internet."),
@@ -412,6 +413,7 @@ $(window).on("online", function () {
 });
 
 $(window).on("offline", function () {
+	if (document.hidden) return;
 	frappe.show_alert({
 		indicator: "orange",
 		message: __("Connection lost. Some features might not work."),

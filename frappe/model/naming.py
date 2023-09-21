@@ -17,10 +17,6 @@ if TYPE_CHECKING:
 	from frappe.model.meta import Meta
 
 
-# NOTE: This is used to keep track of status of sites
-# whether `log_types` have autoincremented naming set for the site or not.
-autoincremented_site_status_map = {}
-
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
 BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
 
@@ -179,29 +175,11 @@ def set_new_name(doc):
 def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	"""Checks if the doctype has autoincrement autoname set"""
 
-	if doctype in log_types:
-		if autoincremented_site_status_map.get(frappe.local.site) is None:
-			if (
-				frappe.db.sql(
-					f"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tab{doctype}'"""
-				)[0][0]
-				== "bigint"
-			):
-				autoincremented_site_status_map[frappe.local.site] = 1
-				return True
-			else:
-				autoincremented_site_status_map[frappe.local.site] = 0
+	if not meta:
+		meta = frappe.get_meta(doctype)
 
-		elif autoincremented_site_status_map[frappe.local.site]:
-			return True
-
-	else:
-		if not meta:
-			meta = frappe.get_meta(doctype)
-
-		if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
-			return True
+	if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
+		return True
 
 	return False
 
@@ -542,8 +520,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (cstr(doc.get(fieldname)) or "").strip()
-	return name
+	return (cstr(doc.get(fieldname)) or "").strip()
 
 
 def _prompt_autoname(autoname, doc):
@@ -556,7 +533,7 @@ def _prompt_autoname(autoname, doc):
 		frappe.throw(_("Please set the document name"))
 
 
-def _format_autoname(autoname, doc):
+def _format_autoname(autoname: str, doc):
 	"""
 	Generate autoname by replacing all instances of braced params (fields, date params ('DD', 'MM', 'YY'), series)
 	Independent of remaining string or separators.

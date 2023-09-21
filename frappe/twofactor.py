@@ -9,6 +9,7 @@ import pyotp
 import frappe
 import frappe.defaults
 from frappe import _
+from frappe.permissions import ALL_USER_ROLE
 from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
@@ -116,8 +117,7 @@ def two_factor_is_enabled_for_(user):
 
 	if isinstance(user, str):
 		user = frappe.get_doc("User", user)
-
-	roles = [d.role for d in user.roles or []] + ["All"]
+	roles = [d.role for d in user.roles or []] + [ALL_USER_ROLE]
 
 	role_doctype = frappe.qb.DocType("Role")
 	no_of_users = frappe.db.count(
@@ -211,14 +211,13 @@ def process_2fa_for_sms(user, token, otp_secret):
 	phone = frappe.db.get_value("User", user, ["phone", "mobile_no"], as_dict=1)
 	phone = phone.mobile_no or phone.phone
 	status = send_token_via_sms(otp_secret, token=token, phone_no=phone)
-	verification_obj = {
+	return {
 		"token_delivery": status,
 		"prompt": status
 		and "Enter verification code sent to {}".format(phone[:4] + "******" + phone[-3:]),
 		"method": "SMS",
 		"setup": status,
 	}
-	return verification_obj
 
 
 def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
@@ -229,8 +228,7 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	else:
 		otp_setup_completed = False
 
-	verification_obj = {"method": "OTP App", "setup": otp_setup_completed}
-	return verification_obj
+	return {"method": "OTP App", "setup": otp_setup_completed}
 
 
 def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
@@ -254,13 +252,12 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
 	status = send_token_via_email(
 		user, token, otp_secret, otp_issuer, subject=subject, message=message
 	)
-	verification_obj = {
+	return {
 		"token_delivery": status,
 		"prompt": status and prompt,
 		"method": "Email",
 		"setup": status,
 	}
-	return verification_obj
 
 
 def get_email_subject_for_2fa(kwargs_dict):
@@ -268,8 +265,7 @@ def get_email_subject_for_2fa(kwargs_dict):
 	subject_template = _("Login Verification Code from {}").format(
 		frappe.db.get_single_value("System Settings", "otp_issuer_name")
 	)
-	subject = frappe.render_template(subject_template, kwargs_dict)
-	return subject
+	return frappe.render_template(subject_template, kwargs_dict)
 
 
 def get_email_body_for_2fa(kwargs_dict):
@@ -279,8 +275,7 @@ def get_email_body_for_2fa(kwargs_dict):
 		<br><br>
 		<b style="font-size: 18px;">{{ otp }}</b>
 	"""
-	body = frappe.render_template(body_template, kwargs_dict)
-	return body
+	return frappe.render_template(body_template, kwargs_dict)
 
 
 def get_email_subject_for_qr_code(kwargs_dict):
@@ -288,8 +283,7 @@ def get_email_subject_for_qr_code(kwargs_dict):
 	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
 		frappe.db.get_single_value("System Settings", "otp_issuer_name")
 	)
-	subject = frappe.render_template(subject_template, kwargs_dict)
-	return subject
+	return frappe.render_template(subject_template, kwargs_dict)
 
 
 def get_email_body_for_qr_code(kwargs_dict):
@@ -297,8 +291,7 @@ def get_email_body_for_qr_code(kwargs_dict):
 	body_template = _(
 		"Please click on the following link and follow the instructions on the page. {0}"
 	).format("<br><br> <a href='{{qrcode_link}}'>{{qrcode_link}}</a>")
-	body = frappe.render_template(body_template, kwargs_dict)
-	return body
+	return frappe.render_template(body_template, kwargs_dict)
 
 
 def get_link_for_qrcode(user, totp_uri):

@@ -21,6 +21,19 @@ frappe.ui.form.on("Server Script", {
 			.then((items) => {
 				frm.set_df_property("script", "autocompletions", items);
 			});
+
+		frm.trigger("check_safe_exec");
+	},
+
+	check_safe_exec(frm) {
+		frappe.xcall("frappe.core.doctype.server_script.server_script.enabled").then((enabled) => {
+			if (enabled === false) {
+				frm.dashboard.clear_comment();
+				let msg = __("Server Scripts feature is not available on this site.") + " ";
+				msg += __("Please contact your system administrator to enable this feature.");
+				frm.dashboard.add_comment(msg, "yellow", true);
+			}
+		});
 	},
 
 	setup_help(frm) {
@@ -68,7 +81,7 @@ else:
 <pre><code>
 # generate dynamic conditions and set it in the conditions variable
 tenant_id = frappe.db.get_value(...)
-conditions = 'tenant_id = {}'.format(tenant_id)
+conditions = f'tenant_id = {tenant_id}'
 
 # resulting select query
 select name from \`tabPerson\`

@@ -6,7 +6,7 @@ let slots = useSlots();
 </script>
 
 <template>
-	<div class="control checkbox" :class="{ editable: slots.label }">
+	<div class="control frappe-control checkbox" :class="{ editable: slots.label }">
 		<!-- checkbox -->
 		<label v-if="slots.label" class="field-controls">
 			<div class="checkbox">

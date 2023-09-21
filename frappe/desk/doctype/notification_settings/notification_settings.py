@@ -26,7 +26,7 @@ class NotificationSettings(Document):
 		enabled: DF.Check
 		energy_points_system_notifications: DF.Check
 		seen: DF.Check
-		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument] | None
+		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
 		user: DF.Link | None
 	# end: auto-generated types
 	def on_update(self):
@@ -111,6 +111,21 @@ def get_permission_query_conditions(user):
 		return """(`tabNotification Settings`.name != 'Administrator')"""
 
 	return f"""(`tabNotification Settings`.name = {frappe.db.escape(user)})"""
+
+
+def has_permission(doc, ptype="read", user=None):
+	# - Administrator can access everything.
+	# - System managers can access everything except admin.
+	# - Everyone else can only access their document.
+	user = user or frappe.session.user
+
+	if user == "Administrator":
+		return True
+
+	if "System Manager" in frappe.get_roles(user):
+		return doc.name != "Administrator"
+
+	return doc.name == user
 
 
 @frappe.whitelist()

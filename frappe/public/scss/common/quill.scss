@@ -20,7 +20,7 @@
 		margin-top: 0.5em;
 		margin-bottom: 0.25em;
 	}
-	a[href] {
+	a[href]:not(.btn) {
 		text-decoration: underline;
 	}
 	.ql-direction-rtl {

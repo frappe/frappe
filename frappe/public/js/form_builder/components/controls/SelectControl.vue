@@ -26,10 +26,14 @@ function get_options() {
 
 	if (props.df.fieldname == "fieldtype") {
 		if (!in_list(frappe.model.layout_fields, props.modelValue)) {
-			options = options && options.filter(opt => !in_list(frappe.model.layout_fields, opt.label));
+			options = options && options.filter(opt => !in_list(frappe.model.layout_fields, opt.value));
 		} else {
 			options = [{ label: __(props.modelValue), value: props.modelValue }];
 		}
+	}
+
+	if (props.df.sort_options) {
+		options.sort((a, b) => a.label.localeCompare(b.label));
 	}
 
 	return options;
@@ -83,7 +87,7 @@ watch(() => props.df.options, () => {
 </script>
 
 <template>
-	<div v-if="slots.label" class="control" :class="{ editable: slots.label }">
+	<div v-if="slots.label" class="control frappe-control" :class="{ editable: slots.label }">
 		<!-- label -->
 		<div class="field-controls">
 			<slot name="label" />

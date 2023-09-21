@@ -138,7 +138,7 @@ class CommunicationEmailMixin:
 		return get_formatted_email(self.mail_sender_fullname(), mail=self.mail_sender())
 
 	def get_content(self, print_format=None):
-		if print_format:
+		if print_format and frappe.db.get_single_value("System Settings", "attach_view_link"):
 			return self.content + self.get_attach_link(print_format)
 		return self.content
 
@@ -189,9 +189,7 @@ class CommunicationEmailMixin:
 			}
 			final_attachments.append(d)
 
-		for a in self.get_attachments() or []:
-			final_attachments.append({"fid": a["name"]})
-
+		final_attachments.extend({"fid": a["name"]} for a in self.get_attachments() or [])
 		return final_attachments
 
 	def get_unsubscribe_message(self):

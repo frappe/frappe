@@ -173,6 +173,23 @@ class TestFilters(FrappeTestCase):
 			)
 		)
 
+	def test_like_not_like(self):
+		doc = {"doctype": "User", "username": "test_abc", "prefix": "startswith", "suffix": "endswith"}
+
+		test_cases = [
+			([["username", "like", "test"]], True),
+			([["username", "like", "user1"]], False),
+			([["username", "not like", "test"]], False),
+			([["username", "not like", "user1"]], True),
+			([["prefix", "like", "start%"]], True),
+			([["prefix", "not like", "end%"]], True),
+			([["suffix", "like", "%with"]], True),
+			([["suffix", "not like", "%end"]], True),
+		]
+
+		for filter, expected_result in test_cases:
+			self.assertEqual(evaluate_filters(doc, filter), expected_result)
+
 
 class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
@@ -405,9 +422,11 @@ class TestValidationUtils(FrappeTestCase):
 
 class TestImage(FrappeTestCase):
 	def test_strip_exif_data(self):
-		original_image = Image.open("../apps/frappe/frappe/tests/data/exif_sample_image.jpg")
+		original_image = Image.open(
+			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
+		)
 		original_image_content = open(
-			"../apps/frappe/frappe/tests/data/exif_sample_image.jpg", mode="rb"
+			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), mode="rb"
 		).read()
 
 		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
@@ -417,7 +436,9 @@ class TestImage(FrappeTestCase):
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
 	def test_optimize_image(self):
-		image_file_path = "../apps/frappe/frappe/tests/data/sample_image_for_optimization.jpg"
+		image_file_path = frappe.get_app_path(
+			"frappe", "tests", "data", "sample_image_for_optimization.jpg"
+		)
 		content_type = guess_type(image_file_path)[0]
 		original_content = open(image_file_path, mode="rb").read()
 
@@ -1004,6 +1025,7 @@ class TestTBSanitization(FrappeTestCase):
 		try:
 			password = "42"
 			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
+			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
