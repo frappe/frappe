@@ -121,6 +121,10 @@ class TestSafeExec(FrappeTestCase):
 		# dont Allow modifying _dict class
 		self.assertRaises(Exception, safe_exec, "_dict.x = 1")
 
+	def test_long_expression_evaluation(self):
+		long_expression = "0 if False else " + " 0 if False else " * 2000 + "1"
+		self.assertEqual(frappe.safe_eval(long_expression), 1)
+
 
 class TestNoSafeExec(FrappeTestCase):
 	def test_safe_exec_disabled_by_default(self):

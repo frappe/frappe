@@ -3,6 +3,7 @@ import copy
 import inspect
 import json
 import mimetypes
+import sys
 import types
 from contextlib import contextmanager
 from functools import lru_cache
@@ -108,11 +109,13 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
 
-	return eval(
-		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
-		eval_globals,
-		eval_locals,
-	)
+	# TODO/HACK: Number is hardcoded but ideally should be computed and revised based on AST
+	with increase_recrusion_depth(frappe.conf.recursion_depth or 30_000):
+		return eval(
+			compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
+			eval_globals,
+			eval_locals,
+		)
 
 
 def _validate_safe_eval_syntax(code):
@@ -129,6 +132,16 @@ def safe_exec_flags():
 	frappe.flags.in_safe_exec = True
 	yield
 	frappe.flags.in_safe_exec = False
+
+
+@contextmanager
+def increase_recrusion_depth(depth: int):
+	current = sys.getrecursionlimit()
+	try:
+		sys.setrecursionlimit(depth)
+		yield
+	finally:
+		sys.setrecursionlimit(current)
 
 
 def get_safe_globals():
