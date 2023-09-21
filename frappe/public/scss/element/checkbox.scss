@@ -45,7 +45,7 @@ input[type="checkbox"] {
 	}
 
 	&.disabled-selected, &:disabled:checked {
-		background-color: var(--checkbox-color);
+		background-color: var(--gray-600);
 		background-image: $check-icon;
 		background-size: 57%;
 		box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);

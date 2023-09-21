@@ -127,7 +127,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// checkbox
 	--checkbox-color: var(--neutral-white);
 	--checkbox-gradient: linear-gradient(180deg, var(--neutral-white) -124.51%, var(--neutral-white) 100%);
-	--checkbox-disabled-gradient: linear-gradient(180deg, var(--gray-500) -124.51%, var(--gray-500) 100%);
+	--checkbox-disabled-gradient: linear-gradient(180deg, var(--gray-600) -124.51%, var(--gray-600) 100%);
 	--checkbox-focus-shadow: var(--focus-default);
 
 	input[type="checkbox"] {
@@ -136,7 +136,10 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		}
 		&.disabled-selected, &:disabled:checked {
 			background-image: $check-icon-dark, var(--checkbox-disabled-gradient);
-			background-color: var(--gray-500);
+		}
+		&.disabled-deselected {
+			border: none;
+			background-color: var(--gray-700);
 		}
 	}
 
