@@ -68,6 +68,10 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.form-tags {
+		.form-tag-row {
+			margin-top: var(--margin-sm);
+			margin-bottom: 0;
+		}
 		.tag-area {
 			margin-top: -3px;
 			margin-left: -4px;
