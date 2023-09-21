@@ -146,6 +146,11 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	// switch
 	--switch-bg: var(--gray-500);
 
+	// date-picker
+	--date-active-text: var(--gray-100);
+	--date-active-bg: var(--gray-700);
+	--date-range-bg: var(--subtle-fg);
+
 
 	// grid
 	.grid-body .editable-row {
