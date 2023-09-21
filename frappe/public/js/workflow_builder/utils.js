@@ -10,13 +10,25 @@ export function get_workflow_elements(workflow, workflow_data) {
 
 	workflow_data.forEach(data => {
 		if (data.type == 'state') {
-			states[data.id] = data
+			states[data.id] = data;
 		}
 		else if (data.type == 'action') {
-			actions[data.id] = data
+			actions[data.id] = data;
 		}
 		else if (data.type == 'transition') {
-			transitions[`edge-${data.source}-${data.target}`] = data
+			transitions[`edge-${data.source}-${data.target}`] = data;
+
+			if (data.source.startsWith('action-')) {
+				const action = actions[data.source];
+				if (!action.data.to_id) {
+					action.data.to_id = data.target;
+				}
+			} else if (data.target.startsWith('action-')) {
+				const action = actions[data.target];
+				if (!action.data.from_id) {
+					action.data.from_id = data.source;
+				}
+			}
 		}
 	})
 
