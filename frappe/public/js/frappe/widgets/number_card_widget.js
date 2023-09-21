@@ -235,7 +235,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_stats() {
-		if (this.card_doc.type !== "Document Type") {
+		if (this.card_doc.type !== "Document Type" || !this.card_doc.show_percentage_stats) {
 			return;
 		}
 
