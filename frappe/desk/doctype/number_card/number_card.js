@@ -96,7 +96,7 @@ frappe.ui.form.on("Number Card", {
 	set_method_description: function (frm) {
 		if (frm.doc.type == "Custom") {
 			frm.fields_dict.method.set_description(`
-		Set the path to a whitelisted function that will return the number on the card in the format:
+		Set the path to a whitelisted function that will return the data for the number card in the format:
 <pre class="small text-muted">
 <code>
 {
