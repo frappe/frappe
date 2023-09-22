@@ -8,23 +8,36 @@ export function get_workflow_elements(workflow, workflow_data) {
 	let x = 150;
 	let y = 100;
 
+	const action_id_map = {
+		count: 1,
+		map: {}
+	};
+
 	workflow_data.forEach(data => {
 		if (data.type == 'state') {
 			states[data.id] = data;
 		}
 		else if (data.type == 'action') {
-			actions[data.id] = data;
+			const id = `action-${action_id_map.count++}`;
+			if (/-\d+$/.test(data.id)) {
+				actions[data.id] = data;
+				action_id_map.map[data.id] = data.id;
+			} else {
+				actions[id] = data;
+				action_id_map.map[data.id] = id;
+				data.id = id;
+			}
 		}
 		else if (data.type == 'transition') {
 			transitions[`edge-${data.source}-${data.target}`] = data;
 
 			if (data.source.startsWith('action-')) {
-				const action = actions[data.source];
+				const action = actions[action_id_map[data.source]];
 				if (!action.data.to_id) {
 					action.data.to_id = data.target;
 				}
 			} else if (data.target.startsWith('action-')) {
-				const action = actions[data.target];
+				const action = actions[action_id_map[data.target]];
 				if (!action.data.from_id) {
 					action.data.from_id = data.source;
 				}
