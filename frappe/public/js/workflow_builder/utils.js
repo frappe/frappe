@@ -29,19 +29,25 @@ export function get_workflow_elements(workflow, workflow_data) {
 			}
 		}
 		else if (data.type == 'transition') {
-			transitions[`edge-${data.source}-${data.target}`] = data;
-
-			if (data.source.startsWith('action-')) {
-				const action = actions[action_id_map[data.source]];
+			let source = data.source, target = data.target;
+			if (source.startsWith('action-')) {
+				const action = actions[action_id_map[source]];
 				if (!action.data.to_id) {
-					action.data.to_id = data.target;
+					action.data.to_id = target;
 				}
-			} else if (data.target.startsWith('action-')) {
-				const action = actions[action_id_map[data.target]];
+				data.source = source = action.id;
+			} else if (target.startsWith('action-')) {
+				const action = actions[action_id_map[target]];
 				if (!action.data.from_id) {
-					action.data.from_id = data.source;
+					action.data.from_id = source;
 				}
+				data.target = target = action.id;
 			}
+
+			transitions[`edge-${source}-${target}`] = data;
+
+			delete data.sourceNode;
+			delete data.targetNode;
 		}
 	})
 
