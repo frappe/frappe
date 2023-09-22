@@ -1,5 +1,5 @@
 <script setup>
-import Sidebar from "./components/Sidebar.vue"
+import Sidebar from "./components/Sidebar.vue";
 import Tabs from "./components/Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "./store";
@@ -12,8 +12,7 @@ let should_render = computed(() => {
 });
 
 let container = ref(null);
-onClickOutside(container, () => store.form.selected_field = null);
-
+onClickOutside(container, () => (store.form.selected_field = null));
 
 watch(
 	() => store.form.layout,
@@ -69,7 +68,7 @@ onMounted(() => store.fetch());
 
 	.form-main {
 		border-radius: var(--border-radius);
-		box-shadow: var(--card-shadow);
+		border: 1px solid var(--border-color);
 		background-color: var(--card-bg);
 		margin: 10px;
 	}
@@ -77,8 +76,17 @@ onMounted(() => store.fetch());
 	.form-sidebar,
 	.form-main {
 		:deep(.section-columns.has-one-column .field) {
-			input.form-control, .signature-field {
+			input.form-control,
+			.signature-field {
 				width: calc(50% - 19px);
+			}
+
+			.select-input {
+				width: calc(50% - 19px);
+
+				input.form-control {
+					width: 100%;
+				}
 			}
 		}
 
@@ -165,11 +173,14 @@ onMounted(() => store.fetch());
 	:deep(.preview) {
 		--field-placeholder-color: var(--fg-bg-color);
 
-		.tab, .column, .field {
+		.tab,
+		.column,
+		.field {
 			background-color: var(--fg-color);
 		}
 
-		.column, .field {
+		.column,
+		.field {
 			border: none;
 			padding: 0;
 		}
@@ -196,8 +207,17 @@ onMounted(() => store.fetch());
 				margin-top: 8px;
 
 				&.has-one-column .field {
-					input.form-control, .signature-field {
+					input.form-control,
+					.signature-field {
 						width: calc(50% - 15px);
+					}
+
+					.select-input {
+						width: calc(50% - 15px);
+
+						input.form-control {
+							width: 100%;
+						}
 					}
 				}
 
@@ -227,7 +247,8 @@ onMounted(() => store.fetch());
 			}
 		}
 
-		.selected, .hovered {
+		.selected,
+		.hovered {
 			border-color: transparent;
 		}
 

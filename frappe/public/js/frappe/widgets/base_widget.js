@@ -27,7 +27,7 @@ export default class Widget {
 
 		options.allow_sorting &&
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("drag", "xs"),
+				frappe.utils.icon("es-line-drag", "xs"),
 				null,
 				"drag-handle",
 				__("Drag"),
@@ -58,7 +58,7 @@ export default class Widget {
 
 		options.allow_edit &&
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("edit", "xs"),
+				frappe.utils.icon("es-line-edit-alt", "xs"),
 				() => this.edit(),
 				"edit-button",
 				__("Edit"),
@@ -99,7 +99,7 @@ export default class Widget {
 		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
 
 		if (this.icon) {
-			let icon = frappe.utils.icon(this.icon, "lg");
+			let icon = frappe.utils.icon(this.icon, "sm");
 			this.title_field[0].innerHTML = `${icon} <span class="ellipsis" title="${title}">${title}</span>`;
 		} else {
 			this.title_field[0].innerHTML = `<span class="ellipsis" title="${title}">${title}</span>`;

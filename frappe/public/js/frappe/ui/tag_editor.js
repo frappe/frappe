@@ -31,7 +31,7 @@ frappe.ui.TagEditor = class TagEditor {
 
 		this.tags = new frappe.ui.Tags({
 			parent: this.wrapper,
-			placeholder: __("Add a tag ..."),
+			placeholder: __("Add Tags"),
 			onTagAdd: (tag) => {
 				if (me.initialized && !me.refreshing) {
 					return frappe.call({

@@ -150,6 +150,10 @@ body.modal-open[style^="padding-right"] {
 
 }
 
+.modal-backdrop.show {
+	opacity: 0.8;
+}
+
 .modal-minimize {
 	position: initial;
 	height: 0;

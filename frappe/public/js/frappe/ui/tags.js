@@ -18,10 +18,13 @@ frappe.ui.Tags = class {
 
 		this.$inputWrapper = this.get_list_element(this.$input);
 		this.$placeholder = this.get_list_element(
-			$(`<span class="tags-placeholder text-muted">${placeholder}</span>`)
+			$(`<button class="tags-btn text-muted data-pill btn" id="add_tags">
+			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-tag"></use></svg>
+			${__(placeholder)}
+		</button>`)
 		);
-		this.$inputWrapper.appendTo(this.$ul);
 		this.$placeholder.appendTo(this.$ul);
+		this.$inputWrapper.appendTo(this.$ul);
 
 		this.deactivate();
 		this.bind();
@@ -69,7 +72,7 @@ frappe.ui.Tags = class {
 		if (label && label !== "" && !this.tagsList.includes(label)) {
 			let $tag = this.get_tag(label);
 			let row = this.get_list_element($tag, "form-tag-row");
-			row.insertBefore(this.$inputWrapper);
+			row.insertAfter(this.$inputWrapper);
 			this.tagsList.push(label);
 			this.onTagAdd && this.onTagAdd(label);
 		}

@@ -247,7 +247,7 @@ export default class NumberCardWidget extends Widget {
 				color_class = "grey-stat";
 			} else if (this.percentage_stat > 0) {
 				caret_html = `<span class="indicator-pill-round green">
-						${frappe.utils.icon("arrow-up-right", "xs")}
+						${frappe.utils.icon("es-line-arrow-up-right", "xs")}
 					</span>`;
 				color_class = "green-stat";
 			} else {
@@ -277,13 +277,7 @@ export default class NumberCardWidget extends Widget {
 
 			$(this.body).find(".widget-content").append(`<div class="card-stats ${color_class}">
 				<span class="percentage-stat-area">
-					${caret_html}
-					<span class="percentage-stat">
-						${stat} %
-					</span>
-				</span>
-				<span class="stat-period text-muted">
-					${stats_qualifier}
+					${caret_html} ${stat} % ${stats_qualifier}
 				</span>
 			</div>`);
 		});

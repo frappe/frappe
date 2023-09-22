@@ -48,7 +48,7 @@ export default class QuickListWidget extends Widget {
 	setup_refresh_list_button() {
 		this.refresh_list = $(
 			`<div class="refresh-list btn btn-xs pull-right" title="${__("Refresh List")}">
-				${frappe.utils.icon("refresh", "sm")}
+				${frappe.utils.icon("es-line-reload", "sm")}
 			</div>`
 		);
 

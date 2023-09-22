@@ -79,9 +79,8 @@
 			@include flex(flex, null, null, null);
 
 			.stat-value {
-				font-size: var(--text-lg);
+				@include get_textstyle("lg", "medium");
 				color: var(--text-color);
-				font-weight: var(--text-bold);
 				line-height: 20px;
 			}
 

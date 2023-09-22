@@ -362,6 +362,12 @@ export default class Grid {
 			grid: this,
 			show_search: true,
 		});
+		this.header_search.row.addClass("filter-row");
+		if (this.header_search.show_search || this.header_search.show_search_row()) {
+			$(this.parent).find(".grid-heading-row").addClass("with-filter");
+		} else {
+			$(this.parent).find(".grid-heading-row").removeClass("with-filter");
+		}
 
 		this.filter_applied && this.update_search_columns();
 	}
