@@ -29,7 +29,7 @@ frappe.ui.Notifications = class Notifications {
 		</span>`)
 			.on("click", (e) => {
 				e.stopImmediatePropagation();
-				this.dropdown.dropdown("hide");
+				this.dropdown.trigger('click')
 				frappe.set_route("Form", "Notification Settings", frappe.session.user);
 			})
 			.appendTo(this.header_actions)
