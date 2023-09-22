@@ -18,6 +18,7 @@ module.exports = defineConfig({
 		setupNodeEvents(on, config) {
 			return require("./cypress/plugins/index.js")(on, config);
 		},
+		testIsolation: false,
 		baseUrl: "http://test_site_ui:8000",
 		specPattern: ["./cypress/integration/*.js", "**/ui_test_*.js"],
 	},
