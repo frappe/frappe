@@ -282,7 +282,6 @@ class NotificationsView extends BaseNotificationsView {
 		item_html.on("click", () => {
 			!notification_log.read && this.mark_as_read(notification_log.name, item_html);
 			this.notifications_icon.trigger("click");
-			this.dropdown.dropdown('hide')
 		});
 
 		return item_html;
