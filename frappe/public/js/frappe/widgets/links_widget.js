@@ -4,7 +4,7 @@ frappe.provide("frappe.utils");
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {
-		opts.icon = opts.icon || "file";
+		opts.icon = opts.icon || "es-line-filetype";
 		super(opts);
 	}
 

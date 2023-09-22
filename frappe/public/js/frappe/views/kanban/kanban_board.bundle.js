@@ -757,7 +757,7 @@ frappe.provide("frappe.views");
 
 			if (card.comment_count > 0)
 				html += `<span class="list-comment-count small text-muted ">
-					${frappe.utils.icon("small-message")}
+					${frappe.utils.icon("es-line-chat-alt")}
 					${card.comment_count}
 				</span>`;
 

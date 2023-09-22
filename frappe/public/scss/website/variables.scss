@@ -1,18 +1,9 @@
-$gray-50: #F9FAFA !default;
-$gray-100: #F4F5F6 !default;
-$gray-200: #EEF0F2 !default;
-$gray-300: #E2E6E9 !default;
-$gray-400: #C8CFD5 !default;
-$gray-500: #A6B1B9 !default;
-$gray-600: #74808B !default;
-$gray-700: #4C5A67 !default;
-$gray-800: #313B44 !default;
-$gray-900: #192734 !default;
+@import "../espresso/colors";
+@import "../espresso/typography";
+@import "../espresso/shadows";
+@import "../espresso/spacing";
+@import "../espresso/borders";
 
-$black: #000 !default;
-$primary: #2490ef !default;
-$primary-light: lighten($primary, 42%) !default;
-$light: $gray-50 !default;
 
 $body-color: $gray-700 !default;
 $text-muted: $gray-600 !default;

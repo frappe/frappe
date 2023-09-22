@@ -32,9 +32,13 @@
 		}
 	}
 
+	.theme-title {
+		color: var(--text-color);
+	}
+
 	.selected {
 		.background {
-			box-shadow: 0 0 0pt 3pt var(--primary-color);
+			box-shadow: var(--focus-default);
 		}
 
 		.preview-check {
@@ -85,6 +89,19 @@
 }
 
 // TODO: Replace with better alternative
+[data-theme="dark"] {
+	.background {
+		border: 1px solid var(--gray-500);
+	}
+	.selected {
+		.preview-check {
+			background-color: var(--white) !important;
+			.icon use {
+				stroke: var(--primary-color) !important;
+			}
+		}
+	}
+}
 [data-is-auto-theme="true"] {
 	.background::after {
 		content: "";

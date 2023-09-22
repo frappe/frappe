@@ -926,8 +926,8 @@
 		<path d="M7 12H17" stroke="white" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<defs>
 			<linearGradient id="paint0_linear_76:14" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
-				<stop stop-color="#2C9AF1"/>
-				<stop offset="1" stop-color="#2490EF"/>
+				<stop stop-color="var(--primary)"/>
+				<stop offset="1" stop-color="var(--primary)"/>
 			</linearGradient>
 		</defs>
 	</symbol>

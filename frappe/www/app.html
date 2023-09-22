@@ -26,6 +26,12 @@
 	</head>
 	<body>
 		{% include "public/icons/timeless/icons.svg" %}
+		{% include "public/icons/espresso/icons.svg" %}
+		<div id="all-symbols" style="display:none!important;">
+			{%- for path in include_icons -%}
+				<!-- {{ path }} -->{%- include path ignore missing -%}
+			{%- endfor -%}
+		</div>
 		{% include "templates/includes/splash_screen.html" %}
 		<div class="main-section">
 			<header></header>

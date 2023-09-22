@@ -2,7 +2,7 @@ const verify_attachment_visibility = (document, is_private) => {
 	cy.visit(`/app/${document}`);
 
 	const assertion = is_private ? "be.checked" : "not.be.checked";
-	cy.findByRole("button", { name: "Attach File" }).click();
+	cy.findByRole("button", { name: "Add File" }).click();
 
 	cy.get_open_dialog()
 		.find(".file-upload-area")
@@ -27,7 +27,7 @@ const attach_file = (file, no_of_files = 1) => {
 		);
 	}
 
-	cy.findByRole("button", { name: "Attach File" }).click();
+	cy.findByRole("button", { name: "Add File" }).click();
 	cy.get_open_dialog().find(".file-upload-area").selectFile(files, {
 		action: "drag-drop",
 	});
@@ -99,8 +99,9 @@ context("Sidebar", () => {
 
 			//Assigning a doctype to a user
 			cy.visit(`/app/todo/${todo_name}`);
-			cy.get(".form-assignments > .flex > .text-muted").click();
+			cy.get(".add-assignment-btn").click();
 			cy.get_field("assign_to_me", "Check").click();
+			cy.wait(1000);
 			cy.get(".modal-footer > .standard-actions > .btn-primary").click();
 			cy.visit("/app/todo");
 			cy.click_sidebar_button("Assigned To");

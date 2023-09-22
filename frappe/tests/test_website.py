@@ -391,6 +391,27 @@ class TestWebsite(FrappeTestCase):
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")
 
+	def test_include_icons(self):
+		from frappe import get_hooks
+
+		TEST_ICONS_PATH = "frappe/public/icons/timeless/test.svg"
+
+		def patched_get_hooks(*args, **kwargs):
+			return_value = get_hooks(*args, **kwargs)
+			if isinstance(return_value, dict) and "app_include_icons" in return_value:
+				return_value.app_include_icons.append(TEST_ICONS_PATH)
+			return return_value
+
+		with patch.object(frappe, "get_hooks", patched_get_hooks):
+			frappe.set_user("Administrator")
+
+			set_request(method="GET", path="/app")
+			content = get_response_content("/app")
+			# icon is available in a symbol tag
+			self.assertIn('id="icon-TEST-ONLY"', content)
+			delattr(frappe.local, "request")
+			frappe.set_user("Guest")
+
 
 def patched_get_hooks(hook, value):
 	def wrapper(*args, **kwargs):

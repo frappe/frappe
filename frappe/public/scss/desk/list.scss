@@ -60,19 +60,24 @@
 	display: flex;
 	flex-direction: column;
 	outline: none;
+	padding: 4px 5px;
 
 	&:focus {
-		background-color: var(--yellow-highlight-color);
+		.list-row {
+			background-color: var(--highlight-color);
+		}
 	}
+
 }
 
 .list-row {
 	padding: 15px 15px 15px 0px;
-	height: 45px;
+	height: 38px;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
+	border-radius: var(--border-radius-md);
 
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
@@ -141,14 +146,22 @@
 	}
 
 	.select-like, .file-select {
-		padding: 15px 0px 15px 15px;
+		padding-left: 11px;
 	}
 }
 
 .list-row-head {
 	@extend .list-row;
 	cursor: default;
+	background-color: var(--subtle-fg);
+    height: 30px;
+	padding: 8px, 10px, 8px, 0px;
+	margin: 8px 5px;
+    border-radius: var(--border-radius-md);
 
+	.list-check-all {
+		margin-left: 11px;
+	}
 	.list-subject {
 		font-weight: normal;
 	}
@@ -163,7 +176,7 @@
 	margin-right: 15px;
 
 	a {
-		color: var(--text-light);
+		color: var(--text-muted);
 	}
 
 	& > [data-sort-by]:hover {
@@ -195,10 +208,13 @@ $level-margin-right: 8px;
 	border-top: 1px solid var(--border-color);
 
 	.btn-group .btn-paging.btn-info {
-		background-color: var(--gray-600);
+		background-color: var(--bg-color);
 		border-color: var(--gray-600);
-		color: var(--white);
-		font-weight: var(--text-bold);
+		color: var(--text-color);
+		font-weight: var(--weight-medium);
+	}
+	.btn-paging {
+		background-color: var(--gray-50);
 	}
 }
 
@@ -222,6 +238,7 @@ $level-margin-right: 8px;
 
 input.list-check-all, input.list-row-checkbox {
 	margin-top: 0px;
+	margin-bottom: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
 
@@ -275,7 +292,7 @@ input.list-check-all {
 	height: 40px;
 	padding-left: 15px;
 
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 
 	&:hover {
 		background-color: var(--highlight-color);
@@ -388,8 +405,7 @@ input.list-check-all {
 	}
 
 	.filter-button.btn-primary-light {
-		color: var(--text-on-blue);
-		outline: 1px solid var(--bg-dark-blue);
+		outline: 1px solid var(--gray-800);
 		z-index: 1;
 	}
 

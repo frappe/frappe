@@ -229,7 +229,7 @@ frappe.ui.GroupBy = class {
 			$(`<div class="group-by-selector">
 				<button class="btn btn-default btn-sm group-by-button ellipsis">
 					<span class="group-by-icon">
-						${frappe.utils.icon("group-by")}
+						${frappe.utils.icon("es-line-group")}
 					</span>
 					<span class="button-label hidden-xs">
 						${__("Add Group")}
@@ -364,12 +364,21 @@ frappe.ui.GroupBy = class {
 		this.all_fields = {};
 
 		const fields = this.report_view.meta.fields.filter((f) =>
-			["Select", "Link", "Data", "Int", "Check"].includes(f.fieldtype)
+			[
+				"Select",
+				"Link",
+				"Data",
+				"Int",
+				"Check",
+				"Dynamic Link",
+				"Autocomplete",
+				"Date",
+			].includes(f.fieldtype)
 		);
 		const tag_field = { fieldname: "_user_tags", fieldtype: "Data", label: __("Tags") };
 		this.group_by_fields[this.doctype] = fields
 			.concat(tag_field)
-			.sort((a, b) => __(a.label).localeCompare(__(b.label)));
+			.sort((a, b) => __(cstr(a.label)).localeCompare(cstr(__(b.label))));
 		this.all_fields[this.doctype] = this.report_view.meta.fields;
 
 		const standard_fields_filter = (df) =>
@@ -407,8 +416,9 @@ frappe.ui.GroupBy = class {
 	}
 
 	get_group_by_field_label() {
-		return this.group_by_fields[this.group_by_doctype].find(
+		let field = this.group_by_fields[this.group_by_doctype].find(
 			(field) => field.fieldname == this.group_by_field
-		).label;
+		);
+		return field.label || field.fieldname;
 	}
 };

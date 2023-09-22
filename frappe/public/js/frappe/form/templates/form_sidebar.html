@@ -40,45 +40,27 @@
 </ul>
 <ul class="list-unstyled sidebar-menu form-assignments">
 	<li class="sidebar-label">
-		<svg class="icon icon-sm"><use href="#icon-assign"></use></svg>
 		{%= __("Assigned To") %}
 	</li>
 	<li class="flex flex-wrap">
 		<span class="assignments"></span>
-		<button class="text-muted btn btn-default icon-btn add-assignment-btn">
-			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
+		<button class="add-assignment-btn data-pill btn">
+			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-customer"></use></svg>
+			<span class="ellipsis">{%= __("Add Assignee") %}</span>
 		</button>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-attachments">
 	<li class="sidebar-label attachments-label">
-		<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
-		{%= __("Attachments") %}
+	<span class="ellipsis">{%= __("Attachments") %}</span>
 
 		<li class="explore-full-btn hidden">
 			<button class="data-pill btn">
 				<span class="pill-label ellipsis">
 					{%= __("Explore Files") %}
 				</span>
-				<svg class="icon icon-sm">
-					<use href="#icon-projects"></use>
-				</svg>
-			</button>
-		</li>
-
-		<li class="attachments-actions">
-			<button class="data-pill btn add-attachment-btn">
-				<span class="pill-label ellipsis">
-					{%= __("Attach File") %}
-				</span>
-				<svg class="icon icon-sm">
-					<use href="#icon-add"></use>
-				</svg>
-			</button>
-
-			<button class="text-muted btn btn-default icon-btn explore-btn">
-				<svg class="icon icon-sm">
-					<use href="#icon-projects"></use>
+				<svg class="es-icon icon-sm">
+					<use href="#es-line-folder-alt"></use>
 				</svg>
 			</button>
 		</li>
@@ -90,7 +72,21 @@
 			</a>
 		</li>
 	</li>
-
+	<li class="attachments-actions">
+		<button class="data-pill btn add-attachment-btn">
+			<svg class="es-icon mr-2 icon-sm">
+				<use href="#es-line-attachment"></use>
+			</svg>
+			<span class="pill-label ellipsis">
+				{%= __("Add File") %}
+			</span>
+		</button>
+		<button class="text-muted btn btn-default icon-btn explore-btn">
+			<svg class="es-icon icon-sm">
+				<use href="#es-line-folder-alt"></use>
+			</svg>
+		</button>
+	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-reviews">
 	<li class="sidebar-label reviews-label">
@@ -103,15 +99,20 @@
 		</button>
 	</li>
 </ul>
+<ul class="list-unstyled sidebar-menu form-tags">
+	<li class="sidebar-label tags-label">
+		{%= __("Tags") %}
+	</li>
+</ul>
 <ul class="list-unstyled sidebar-menu form-shared">
 	<li class="sidebar-label">
-		<svg class="icon icon-sm"><use href="#icon-share"></use></svg>
 		{%= __("Shared With") %}
 	</li>
 	<li class="flex flex-wrap">
 		<span class="shares"></span>
-		<button class="share-doc-btn text-muted btn btn-default icon-btn">
-			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
+		<button class="share-doc-btn text-muted data-pill btn">
+			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-share"></use></svg>
+			{%= __("Invite") %}
 		</button>
 	</li>
 </ul>
@@ -132,12 +133,6 @@
 		</a>
 	</li>
 </ul>
-<ul class="list-unstyled sidebar-menu form-tags">
-	<li class="sidebar-label tags-label">
-		<svg class="icon icon-sm"><use href="#icon-tag"></use></svg>
-		{%= __("Tags") %}
-	</li>
-</ul>
 <ul class="list-unstyled sidebar-menu">
 	<a><li class="auto-repeat-status"><li></a>
 </ul>
@@ -146,16 +141,16 @@
 		<div class="form-stats">
 			<span class="form-stats-likes">
 				<span class="liked-by like-action">
-					<svg class="icon icon-sm">
-						<use href="#icon-heart" class="like-icon"></use>
+					<svg class="es-icon icon-sm">
+						<use href="#es-solid-heart" class="like-icon"></use>
 					</svg>
 					<span class="like-count"></span>
 				</span>
 			</span>
 			<span class="mx-1">·</span>
 			<a class="comments">
-				<svg class="icon icon-sm">
-					<use href="#icon-comment" class="comment-icon"></use>
+				<svg class="es-icon icon-sm">
+					<use href="#es-line-chat-alt" class="comment-icon"></use>
 				</svg>
 				<span class="comments-count"></span>
 			</a>
