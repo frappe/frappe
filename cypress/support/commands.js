@@ -32,16 +32,24 @@ Cypress.Commands.add("login", (email, password) => {
 		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
-		password = Cypress.env("adminPassword");
+		password = Cypress.env("adminPassword") || "admin";
 	}
-	return cy.request({
-		url: "/api/method/login",
-		method: "POST",
-		body: {
-			usr: email,
-			pwd: password,
+	cy.session(
+		[email, password] || "",
+		() => {
+			return cy.request({
+				url: "/api/method/login",
+				method: "POST",
+				body: {
+					usr: email,
+					pwd: password,
+				},
+			});
 		},
-	});
+		{
+			cacheAcrossSpecs: true,
+		}
+	);
 });
 
 Cypress.Commands.add("call", (method, args) => {
