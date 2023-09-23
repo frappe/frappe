@@ -238,7 +238,6 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
 
-	@unittest.skip
 	def test_restore(self):
 		# step 0: create a site to run the test on
 		global_config = {
