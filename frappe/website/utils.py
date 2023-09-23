@@ -581,7 +581,9 @@ def _preload_svg_headers():
 	include_icons = frappe.get_hooks().get("app_include_icons", [])
 
 	version = get_build_version()
-	return [f"</assets/{svg}?v={version}>; rel=preload; as=fetch" for svg in include_icons]
+	return [
+		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin" for svg in include_icons
+	]
 
 
 @lru_cache
