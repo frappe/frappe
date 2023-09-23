@@ -20,6 +20,7 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Prepared Report": 30,
 	"Webhook Request Log": 30,
 	"Integration Request": 90,
+	"Unhandled Email": 30,
 	"Reminder": 30,
 }
 
