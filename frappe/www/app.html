@@ -20,7 +20,6 @@
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
-		<div id="all-symbols" style="display:none"></div>
 		{% for include in include_css -%}
 		{{ include_style(include) }}
 		{%- endfor -%}
@@ -32,6 +31,7 @@
 			<div id="body"></div>
 			<footer></footer>
 		</div>
+		<div id="all-symbols" style="display:none"></div>
 		<div id="build-events-overlay"></div>
 
 		<script type="text/javascript">
