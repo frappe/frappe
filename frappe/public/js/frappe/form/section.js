@@ -128,7 +128,7 @@ export default class Section {
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? "down" : "up-line";
+		let indicator_icon = hide ? "es-line-down" : "es-line-up";
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 

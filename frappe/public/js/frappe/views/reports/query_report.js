@@ -89,10 +89,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
-		this.refresh_button = this.page.add_action_icon("refresh", () => {
-			this.setup_progress_bar();
-			this.refresh();
-		});
+		this.refresh_button = this.page.add_action_icon(
+			"es-line-reload",
+			() => {
+				this.setup_progress_bar();
+				this.refresh();
+			},
+			"",
+			__("Reload Report")
+		);
 	}
 
 	get_no_result_message() {

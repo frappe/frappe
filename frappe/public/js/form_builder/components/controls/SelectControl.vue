@@ -109,7 +109,7 @@ watch(() => props.df.options, () => {
 <style lang="scss" scoped>
 .editable {
 	.select-icon {
-		top: 7px !important;
+		top: 3px !important;
 	}
 }
 

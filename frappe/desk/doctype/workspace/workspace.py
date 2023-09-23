@@ -36,6 +36,20 @@ class Workspace(Document):
 		custom_blocks: DF.Table[WorkspaceCustomBlock]
 		for_user: DF.Data | None
 		hide_custom: DF.Check
+		indicator_color: DF.Literal[
+			"green",
+			"cyan",
+			"blue",
+			"orange",
+			"yellow",
+			"gray",
+			"grey",
+			"red",
+			"pink",
+			"darkgrey",
+			"purple",
+			"light-blue",
+		]
 		is_hidden: DF.Check
 		label: DF.Data
 		links: DF.Table[WorkspaceLink]
@@ -232,6 +246,7 @@ def new_page(new_page):
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
 	doc.icon = page.get("icon")
+	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
 	doc.label = page.get("label")
@@ -264,13 +279,14 @@ def save_page(title, public, new_widgets, blocks):
 
 
 @frappe.whitelist()
-def update_page(name, title, icon, parent, public):
+def update_page(name, title, icon, indicator_color, parent, public):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
 
 	if doc:
 		doc.title = title
 		doc.icon = icon
+		doc.indicator_color = indicator_color
 		doc.parent_page = parent
 		if doc.public != public:
 			doc.sequence_id = frappe.db.count("Workspace", {"public": public}, cache=True)
@@ -344,6 +360,7 @@ def duplicate_page(page_name, new_page):
 	doc = frappe.copy_doc(old_doc)
 	doc.title = new_page.get("title")
 	doc.icon = new_page.get("icon")
+	doc.indicator_color = new_page.get("indicator_color")
 	doc.parent_page = new_page.get("parent") or ""
 	doc.public = new_page.get("is_public")
 	doc.for_user = ""

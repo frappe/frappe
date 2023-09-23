@@ -115,18 +115,18 @@
 
 .comparison-message {
 	margin-left: var(--margin-sm);
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 .list-count {
 	margin-right: var(--margin-sm);
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 .group-by-popover {
 	min-width: 500px;
 	min-height: 50px;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 
 	.group-by-box {
 		padding: var(--margin-xs) var(--margin-md) var(--margin-xs) 0;
@@ -176,8 +176,7 @@
 	}
 
 	.summary-label {
-		font-size: var(--text-base);
-		font-weight: normal !important;
+		@include get_textstyle("base", "regular");
 		text-align: center;
 
 		overflow: hidden !important;
@@ -243,7 +242,7 @@
 
 .report-footer {
 	border-top: 1px solid var(--border-color);
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	padding: var(--padding-sm) 0;
 }
 
@@ -271,7 +270,7 @@
 		.group-by-box {
 			.remove-group-by {
 				color: var(--primary);
-				font-size: var(--text-sm);
+				@include get_textstyle("sm", "regular");
 			}
 		}
 	}

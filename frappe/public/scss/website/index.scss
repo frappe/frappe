@@ -1,5 +1,5 @@
-@import '../common/quill';
 @import 'variables';
+@import '../common/quill';
 @import '~bootstrap/scss/bootstrap';
 @import '~cropperjs/dist/cropper.min';
 @import "../common/mixins";
@@ -81,7 +81,7 @@
 
 .dropdown-menu {
 	padding: 0.25rem;
-	box-shadow: var(--shadow-lg);
+	box-shadow: var(--shadow-2xl);
 	border-color: var(--gray-200);
 }
 

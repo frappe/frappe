@@ -1,7 +1,7 @@
 <header class="navbar navbar-expand sticky-top" role="navigation">
 	<div class="container">
 		<a class="navbar-brand navbar-home" href="/app">
-			<img class="app-logo" style="width: {{ navbar_settings.logo_width || 24 }}px" src="{{ frappe.boot.app_logo_url }}">
+			<img class="app-logo" style="width: {{ navbar_settings.logo_width || 28 }}px" src="{{ frappe.boot.app_logo_url }}">
 		</a>
 		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 		<div class="collapse navbar-collapse justify-content-end">
@@ -34,10 +34,10 @@
 						href="#"
 						onclick="return false;">
 						<span class="notifications-seen">
-							<svg class="icon icon-md"><use href="#icon-notification"></use></svg>
+							<svg class="es-icon icon-sm" style="stroke:none;"><use href="#es-line-notifications"></use></svg>
 						</span>
 						<span class="notifications-unseen">
-							<svg class="icon icon-md"><use href="#icon-notification-with-indicator"></use></svg>
+							<svg class="es-icon icon-sm"><use href="#icon-notification-with-indicator"></use></svg>
 						</span>
 					</a>
 					<div class="dropdown-menu notifications-list dropdown-menu-right" role="menu">
@@ -60,7 +60,7 @@
 						href="#"
 						onclick="return false;">
 						<span>
-							<svg class="icon icon-md"><use href="#icon-small-message"></use></svg>
+							<svg class="es-icon icon-sm"><use href="#es-line-chat-alt"></use></svg>
 						</span>
 					</a>
 				</li>
@@ -69,7 +69,7 @@
 					<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ __("Help") }}
 						<span>
-							<svg class="icon icon-xs"><use href="#icon-small-down"></use></svg>
+							<svg class="es-icon icon-xs"><use href="#es-line-down"></use></svg>
 						</span>
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">

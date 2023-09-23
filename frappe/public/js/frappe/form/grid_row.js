@@ -428,7 +428,7 @@ export default class GridRow {
 
 		$(`
 			<div class='form-group'>
-				<div class='row' style='margin:0px; margin-bottom:10px'>
+				<div class='row' style='margin:0px; margin-bottom:10px;'>
 					<div class='col-md-8'>
 						${__("Fieldname").bold()}
 					</div>
@@ -516,22 +516,27 @@ export default class GridRow {
 
 				fields += `
 					<div class='control-input flex align-center form-control fields_order sortable-handle sortable'
-						style='display: block; margin-bottom: 5px; cursor: pointer;' data-fieldname='${docfield.fieldname}'
+						style='display: block; margin-bottom: 5px; padding: 0 8px; cursor: pointer; height: 32px;' data-fieldname='${
+							docfield.fieldname
+						}'
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1' style='padding-top: 2px'>
+							<div class='col-md-1' style='padding-top: 4px;'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
-							<div class='col-md-7' style='padding-left:0px; padding-top:3px'>
+							<div class='col-md-8' style='padding-right:0px; padding-top: 5px;'>
 								${__(docfield.label)}
 							</div>
-							<div class='col-md-3' style='padding-left:0px;margin-top:-2px;' title='${__("Columns")}'>
-								<input class='form-control column-width input-xs text-right'
+							<div class='col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
+								"Columns"
+							)}'>
+								<input class='form-control column-width my-1 input-xs text-right'
+								style='height: 24px; max-width: 80px; background: var(--bg-color);'
 									value='${docfield.columns || cint(d.columns)}'
 									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1' style='padding-top: 3px'>
+							<div class='col-md-1' style='padding-top: 3px;'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>

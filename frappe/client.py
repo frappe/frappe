@@ -11,6 +11,7 @@ from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.utils import get_safe_filters
+from frappe.utils.deprecations import deprecated
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -325,6 +326,7 @@ def get_password(doctype, name, fieldname):
 
 
 @frappe.whitelist()
+@deprecated
 def get_js(items):
 	"""Load JS code files.  Will also append translations
 	and extend `frappe._messages`

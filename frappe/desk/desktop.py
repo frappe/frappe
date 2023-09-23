@@ -438,6 +438,7 @@ def get_workspace_sidebar_items():
 		"public",
 		"module",
 		"icon",
+		"indicator_color",
 		"is_hidden",
 	]
 	all_pages = frappe.get_all(

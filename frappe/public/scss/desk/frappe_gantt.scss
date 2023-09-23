@@ -64,7 +64,7 @@
 .gantt-container .popup-wrapper {
 	min-width: 9rem;
 	border-radius: var(--border-radius);
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 
 	.title {
 		color: white;
