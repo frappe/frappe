@@ -67,7 +67,7 @@
   }
  ],
  "links": [],
- "modified": "2020-07-23 11:05:41.890459",
+ "modified": "2023-08-28 22:35:02.993039",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
@@ -103,13 +103,14 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "All",
+   "role": "Desk User",
    "share": 1
   }
  ],
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "dashboard_name",
  "track_changes": 1
 }

@@ -40,7 +40,9 @@ class SystemConsole(Document):
 			frappe.db.commit()
 		else:
 			frappe.db.rollback()
-		frappe.get_doc(dict(doctype="Console Log", script=self.console, type=self.type)).insert()
+		frappe.get_doc(
+			dict(doctype="Console Log", script=self.console, type=self.type, committed=self.commit)
+		).insert()
 		frappe.db.commit()
 
 

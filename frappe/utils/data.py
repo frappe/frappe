@@ -309,7 +309,7 @@ def get_eta(from_time, percent_complete):
 
 
 def _get_system_timezone():
-	return frappe.db.get_system_setting("time_zone") or "Asia/Kolkata"  # Default to India ?!
+	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
 def get_system_timezone():
@@ -1592,7 +1592,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 			host_name = frappe.db.get_single_value("Website Settings", "subdomain")
 
 			if not host_name:
-				host_name = "http://localhost"
+				host_name = "http://127.0.0.1"
 
 	if host_name and not (host_name.startswith("http://") or host_name.startswith("https://")):
 		host_name = "http://" + host_name

@@ -281,7 +281,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"left",
+				"es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -289,7 +289,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"right",
+				"es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -378,7 +378,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 				function () {
 					me.frm.copy_doc();
 				},
-				true
+				true,
+				"Shift+D"
 			);
 		}
 

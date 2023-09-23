@@ -7,7 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "script",
-  "type"
+  "type",
+  "committed"
  ],
  "fields": [
   {
@@ -23,11 +24,18 @@
    "hidden": 1,
    "label": "Type",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "committed",
+   "fieldtype": "Check",
+   "label": "Committed",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-07-27 22:52:37.239039",
+ "modified": "2023-09-19 13:02:56.332137",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",

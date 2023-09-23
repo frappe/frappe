@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
-from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, safe_exec
+from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, is_safe_exec_enabled, safe_exec
 
 
 class ServerScript(Document):
@@ -68,8 +68,11 @@ class ServerScript(Document):
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
-		frappe.cache.delete_value("server_script_map")
 		self.sync_scheduler_events()
+
+	def clear_cache(self):
+		frappe.cache.delete_value("server_script_map")
+		return super().clear_cache()
 
 	def on_trash(self):
 		if self.script_type == "Scheduler Event":
@@ -277,3 +280,9 @@ def execute_api_server_script(script=None, *args, **kwargs):
 	_globals, _locals = safe_exec(script.script)
 
 	return _globals.frappe.flags
+
+
+@frappe.whitelist()
+def enabled() -> bool | None:
+	if frappe.has_permission("Server Script"):
+		return is_safe_exec_enabled()

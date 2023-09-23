@@ -31,7 +31,7 @@ class BackupGenerator:
 	"""
 	This class contains methods to perform On Demand Backup
 
-	To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
+	To initialize, specify (db_name, user, password, db_file_name=None, db_host="127.0.0.1")
 	If specifying db_file_name, also append ".sql.gz"
 	"""
 
@@ -626,7 +626,7 @@ def get_backup_path():
 @frappe.whitelist()
 def get_backup_encryption_key():
 	frappe.only_for("System Manager")
-	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	return get_or_generate_backup_encryption_key()
 
 
 def get_or_generate_backup_encryption_key():

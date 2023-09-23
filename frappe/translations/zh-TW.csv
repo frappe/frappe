@@ -124,7 +124,6 @@ User Permission for Page and Report,用戶權限的頁面和報告
 Himachal Pradesh,喜馬偕爾邦
 "If not set, the currency precision will depend on number format",如果未設置，則貨幣精度將取決於數字格式
 "If not set, the currency precision will depend on number format",如果未設置，則貨幣精度將取決於數字格式
-"It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account.",看起來服務器的條帶配置存在問題。如果失敗，這筆款項將退還給您的賬戶。
 Import Log,導入日誌
 Embed image slideshows in website pages.,嵌入圖像的幻燈片中的網頁。
 Send,發送
@@ -185,7 +184,6 @@ Example,例
 Webhook Header,Webhook標題
 Print Server,打印服務器
 gift,禮物
-Completed By,完成
 Assign a permission level to the field.,指定該欄位的權限級別。
 Cannot Remove,無法刪除
 The resource you are looking for is not available,您正在查找的資源不可用
@@ -472,7 +470,6 @@ List View Settings,列表視圖設置
 Send Notification to,通知發送到
 Collapsible,可折疊
 Saved,已儲存
-What do you need help with?,你有什麼需要幫助的？
 Options for select. Each option on a new line.,對於選擇選項。在新的一行每個選項。
 music,音樂
 Text Styles,文字樣式
@@ -498,7 +495,6 @@ Illegal Document Status for {0},{0}的非法文檔狀態
 Enable Auto Reply,啟用自動回复
 Not Seen,沒見過
 Reference DocType and Reference Name are required,參考的DocType和參考名稱是必需的
-Interest,利益
 Syntax error in template,模板語法錯誤
 Width,寬度
 Notify if unreplied,如果沒有回复的通知
@@ -721,7 +717,6 @@ Set custom roles for page and report,對於頁面和報表設置自定義角色
 Rating: ,評分：
 Can not find UIDVALIDITY in imap status response,在IMAP狀態響應找不到UIDVALIDITY,
 Dadra and Nagar Haveli,Dadra和Nagar Haveli,
-Make ,使
 Link to the page you want to open. Leave blank if you want to make it a group parent.,鏈接到你想打開的頁面。如果你想使之成為集團母公司留空。
 Is Single,單人
 Sign Up is disabled,註冊被禁用
@@ -752,7 +747,6 @@ Modules HTML,HTML模塊
 <br>
 Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""",跟踪收件人是否已打開您的電子郵件。 <br>注意：如果您要向多個收件人發送郵件，即使有1個收件人閱讀該郵件，也會被視為“已打開”
 Missing Values Required,遺漏必須值
-Other Settings,其他設置
 Frappe,冰咖啡
 Mark as Unread,標記為未讀
 Operation,作業
@@ -766,7 +760,6 @@ Search Fields,搜索欄位
 OTP Issuer Name,OTP發行人名稱
 OAuth Bearer Token,OAuth的承載令牌
 No document selected,沒有選定的文檔
-Dr,博士
 You are connected to internet.,你連接到互聯網。
 Enable Social Login,啟用社交登錄
 "On {0}, {1} wrote:",在{0}，{1}中寫道：
@@ -775,7 +768,6 @@ For top bar,對於頂端選單
 Auth URL Data,身份驗證URL數據
 Queued for backup. You will receive an email with the download link,排隊備份。您將收到一封包含下載鏈接的電子郵件
 Could not identify {0},無法識別{0}
-Payment Failed,支付失敗
 In points. Default is 9.,以點為單位。預設值是9。
 heart,心臟
 Old Password Required.,需要舊密碼
@@ -827,7 +819,6 @@ Section Break,分節符
 Warehouse,倉庫
 Other Territory,其他領土
 Messages,訊息
-Portal,門戶
 Use Different Email Login ID,使用不同的電子郵件登錄ID,
 Use Different Email Login ID,使用不同的電子郵件登錄ID,
 Must specify a Query to run,必須指定一個欲執行查詢
@@ -859,7 +850,6 @@ Condition,條件
 1 month ago,1個月前
 User ID,使用者 ID,
 Sent,已送出
-Lft,LFT,
 Simultaneous Sessions,並發會話
 Client Credentials,客戶端憑證
 Open a module or tool,打開一個模塊或工具
@@ -884,7 +874,6 @@ Invalid User Name or Support Password. Please rectify and try again.,無效的�
 Yahoo Mail,雅虎郵箱
 Your subscription will expire tomorrow.,您的訂閱將於明天到期。
 Error in Notification,通知錯誤
-Master,主
 User Cannot Create,無法建立使用者
 Folder {0} does not exist,文件夾{0}不存在
 Dropbox access is approved!,Dropbox的訪問被批准！
@@ -1034,9 +1023,7 @@ Add Contact,增加聯繫人
 Optional: Always send to these ids. Each Email Address on a new row,可選：總是發送給這些ID。在新行的每個電子郵件地址
 Hide Details,隱藏詳情
 Page has expired!,頁已過期！
-Tasks,任務
 Blog Settings,部落格設定
-You can also copy-paste this link in your browser,您也可以複製粘貼此鏈接到瀏覽器
 bullhorn,擴音器
 Target,目標
 Number of Backups,備份數量
@@ -1079,7 +1066,6 @@ Patch Log,補丁日誌
 Local Primary Key,本地主鍵
 Welcome to {0},歡迎{0}
 Add,新增
-Profile,輪廓
 Sent or Received,發送或接收
 Reference Document,參考文獻
 Key,關鍵
@@ -1209,7 +1195,6 @@ System,系統
 Have an account? Login,有一個賬戶？登錄
 arrow-down,箭頭向下
 User not allowed to delete {0}: {1},用戶不得刪除{0}：{1}
-For,對於
 {0} of {1},{1}的{0}
 Last Updated On,最後更新日期：
 Message Parameter,訊息參數
@@ -1264,7 +1249,6 @@ Email Queue,電子郵件隊列
 Add Employees to Manage Them,加入的員工來管理它們
 Haryana,哈里亞納邦
 Roles can be set for users from their User page.,角色可以從他們的用戶頁面的用戶進行設置。
-Add Comment,添加評論
 Mandatory,強制性
 Module to Export,模塊導出
 {0}: No basic permissions set,{0} ：無基本權限設定
@@ -1405,7 +1389,6 @@ Next Sync Token,下一個同步令牌
 Reset Permissions for {0}?,對{0}重置權限？
 S3 Backup Settings,S3備份設置
 Rows Removed,刪除行
-Mobile Number,手機號碼
 Attachment Removed,附件已刪除
 Recent years are easy to guess.,近年來，很容易被猜到。
 Subject Field,主題字段
@@ -1470,7 +1453,6 @@ Use this fieldname to generate title,使用該字段名來生成標題
 Import Email From,輸入電子郵件從
 Invite as User,邀請成為用戶
 Started,入門
-End Time,結束時間
 Select Attachments,選擇附件
 There were errors. Please report this.,有錯誤。請報告此。
 You are not allowed to print this document,你不允許列印此文件
@@ -1587,7 +1569,6 @@ Doctype to Assign Tags,文檔類型來分配標籤
 Show Relapses,顯示復發
 Email has been moved to trash,電子郵件已被移至垃圾桶
 Report Builder,報表生成器
-Task Name,任務名稱
 "Your session has expired, please login again to continue.",您的會話已過期，請再次登錄以繼續。
 "Your session has expired, please login again to continue.",您的會話已過期，請再次登錄以繼續。
 Invalid Subscription,訂閱無效
@@ -1709,7 +1690,6 @@ Export Customizations,導出自定義
 End Date cannot be before Start Date!,結束日期不能在開始日期之前！
 User Cannot Search,無法搜尋使用者
 Invalid Output Format,無效的輸出格式
-Restart,重新開始
 Cannot {0} {1},無法{0} {1}
 Apply this rule if the User is the Owner,應用此規則如果用戶是業主
 Will be your login ID,將是您的登錄ID,
@@ -1748,7 +1728,6 @@ User permission already exists,用戶權限已經存在
 Register OAuth Client App,註冊OAuth客戶端應用程序
 Authentication Credentials,身份驗證憑據
 Two Factor Authentication,雙因素認證
-Pay,付
 SMS Gateway URL,短信閘道的URL,
 "{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} 不能為“{2}”。它應該是“{3}”的其中一個
 Password Update,密碼更新
@@ -1912,7 +1891,6 @@ The CSV format is case sensitive,CSV格式區分大小寫
 Desktop Icon already exists,桌面圖標已經存在
 Duplicate,複製
 Create and Send Newsletters,建立和發送簡訊
-From Date must be before To Date,起始日期必須早於終點日期
 Andaman and Nicobar Islands,安達曼和尼科巴群島
 Please specify which value field must be checked,請指定必須檢查哪些值欄位
 """Parent"" signifies the parent table in which this row must be added",“父項”表示在該行必須增加父表
@@ -2010,7 +1988,6 @@ Smallest Currency Fraction Value,最小的貨幣分數值
 Assign To,指派給
 th-list,日列表
 Enable Comments,啟用評論
-Notes,筆記
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),僅限此IP地址用戶。多個IP地址可以通過用逗號分隔的方式輸入。也接受部分的IP地址區段如（111.111.111）
 From,從
 Google Font (Heading),谷歌字體（標題）
@@ -2107,7 +2084,6 @@ Image View,圖像查看
 "Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.",似乎發生在交易過程中錯誤的。因為我們還沒有確認付款，支付寶會自動退還你這一數額。如果沒有，請給我們發郵件並註明相關ID：{0}。
 "Include symbols, numbers and capital letters in the password",在密碼中加入符號，數字和大寫字母
 "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",插入自定義字段“{0}”提到的後場“{1}”，標記為“{2}”不存在
-Docs Search,Google文檔搜索
 List Filter,列表過濾器
 Options {0} must be the same as doctype name {1} for the field {2},選項{0}必須與字段{2}的文檔類型名稱{1}相同
 signal,信號
@@ -2286,7 +2262,6 @@ Links,鏈接
 Please select the Document Type.,請選擇文件類型。
 Add Child,新增子項目
 {0} {1}: Submitted Record cannot be deleted.,{0} {1}：已呈交的記錄不能被刪除。
-Template Name,模板名稱
 new type of document,新類型的文件
 Read,閱讀
 Chhattisgarh,恰蒂斯加爾邦
@@ -2339,7 +2314,6 @@ Bootstrap Theme,引導主題
 將盡快給您回覆。謝謝！"
 Could not connect to outgoing email server,無法連接到外發郵件服務器
 Thank you for your interest in subscribing to our updates,感謝您的關注中訂閱我們的更新
-Payment Gateway Name,支付網關名稱
 Custom Column,自定義列
 resize-full,調整大小－滿版
 off,關閉
@@ -2432,7 +2406,6 @@ Browse,瀏覽
 Add custom field Auto Repeat in the doctype {0},在文檔類型{0}中添加自定義字段自動重複
 Currency,貨幣
 View it in your browser,在瀏覽器查看
-Running,運行
 Track Views,跟踪視圖
 Reset Password,重設密碼
 Please Upgrade to add more than {0} subscribers,請升級增加超過{0}用戶
@@ -2551,7 +2524,6 @@ Email Rule,電子郵件規則
 "To stop sending repetitive error notifications from the system, we have checked Disabled field in the Auto Repeat document",要停止從系統發送重複性錯誤通知，我們在自動重複文檔中選中了“禁用”字段
 {0} shared this document with everyone,{0}與每個人共享該文件
 Commented on {0}: {1},評論{0}：{1}
-Looks like someone sent you to an incomplete URL. Please ask them to look into it.,貌似有人送你一個不完整的URL。請讓他們尋找到它。
 Your payment has been successfully registered.,您的付款已成功註冊。
 Secret Key,密鑰
 Secret Key,密鑰
@@ -2663,12 +2635,10 @@ Switch To Desk,切換到台
 Script or Query reports,腳本或查詢報告
 Workflow Document State,工作流程文件狀態
 Email Account added multiple times,電子郵件帳戶多次添加
-Payment Gateway,支付網關
 Hide Standard Menu,隱藏標準菜單
 Add / Manage Email Domains.,添加/管理電子郵件域。
 Cannot cancel before submitting. See Transition {0},可以在提交之前不會取消。
 Print Format {0} is disabled,列印格式{0}被禁用
-Address and Contacts,地址和聯絡方式
 Send days before or after the reference date,之前或基準日後發送天
 Allow user to login only after this hour (0-24),允許用戶在幾小時後登入（0 - 24）
 Subscription Notification,訂閱通知
@@ -2853,7 +2823,6 @@ Illegal Access Token. Please try again,非法訪問令牌。請再試一次
 "The application has been updated to a new version, please refresh this page",該應用程序已被更新到新版本，請刷新本頁面
 Resend,重發
 Optional: The alert will be sent if this expression is true,可選：警報會在這個表達式為true發送
-Plan Name,計劃名稱
 Print with letterhead,打印信頭
 Raw Email,原始電子郵件
 Select records for assignment,用於分配選擇記錄
@@ -3060,3 +3029,28 @@ Ignore User Permissions,忽略用戶權限
 Please ask your administrator to verify your sign-up,請向管理員詢問，以確認您的註冊
 Active Domains,活動域
 Show Log,顯示日誌
+Timespan,時間跨度
+Set as Default,設為預設
+Series List for this Transaction,本交易系列表
+Request Data,請求數據
+Please select prefix first,請先選擇前綴稱號
+This is the number of the last created transaction with this prefix,這就是以這個前綴的最後一個創建的事務數
+No address added yet.,尚未新增地址。
+Please set the series to be used.,請設置要使用的系列。
+New Contact,新建聯絡人
+Contact Details,聯絡方式
+Unable to find DocType {0},無法找到DocType {0}
+User must always select,用戶必須始終選擇
+Topic,話題
+No contacts added yet.,尚未新增聯絡人。
+Basic,基本的
+Interests,興趣
+Export Type,導出類型
+License,執照
+Region,區域
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,如果要強制用戶在儲存之前選擇了一系列，則勾選此項。如果您勾選此項，則將沒有預設值。
+Newsletters,簡訊
+Select Transaction,選擇交易
+Help HTML,HTML幫助
+Update Series Number,更新序列號
+Last Sync On,上次同步開啟

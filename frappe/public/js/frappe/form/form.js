@@ -176,6 +176,11 @@ frappe.ui.form.Form = class FrappeForm {
 			page: this.page,
 			description: __("Redo last action"),
 		});
+		frappe.ui.keys.add_shortcut({
+			shortcut: "ctrl+p",
+			action: () => this.print_doc(),
+			description: __("Print document"),
+		});
 
 		let grid_shortcut_keys = [
 			{
@@ -647,10 +652,18 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	focus_on_first_input() {
-		let first = this.form_wrapper.find(".form-layout :input:visible:first");
-		if (!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
-			first.focus();
+		const layout_wrapper = this.layout.wrapper;
+
+		// dont do anything if the current active element is inside the form
+		// user must have clicked on some element before this function trigerred
+		if (!layout_wrapper || layout_wrapper.has(":focus").length) {
+			return;
 		}
+
+		layout_wrapper
+			.find(":input:visible:first")
+			.not("[data-fieldtype^='Date']")
+			.trigger("focus");
 	}
 
 	run_after_load_hook() {
@@ -1829,7 +1842,7 @@ frappe.ui.form.Form = class FrappeForm {
 						<a class="indicator ${get_color(doc || {})}"
 							href="/app/${frappe.router.slug(df.options)}/${escaped_name}"
 							data-doctype="${df.options}"
-							data-name="${value}">
+							data-name="${frappe.utils.escape_html(value)}">
 							${label}
 						</a>
 					`;

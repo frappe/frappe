@@ -221,7 +221,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				return $("<li></li>")
 					.data("item.autocomplete", d)
 					.prop("aria-selected", "false")
-					.html(`<a><p title="${_label}">${html}</p></a>`)
+					.html(`<a><p title="${frappe.utils.escape_html(_label)}">${html}</p></a>`)
 					.get(0);
 			},
 			sort: function () {
@@ -285,7 +285,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 								// new item
 								r.results.push({
 									html:
-										"<span class='text-primary link-option'>" +
+										"<span class='link-option'>" +
 										"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
 										__("Create a new {0}", [__(me.get_options())]) +
 										"</span>",
@@ -309,7 +309,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 								// not applicable in web forms
 								r.results.push({
 									html:
-										"<span class='text-primary link-option'>" +
+										"<span class='link-option'>" +
 										"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
 										__("Advanced Search") +
 										"</span>",

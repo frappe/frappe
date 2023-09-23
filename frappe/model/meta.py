@@ -94,15 +94,17 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = {
-		"DocField",
-		"DocPerm",
-		"DocType",
-		"Module Def",
-		"DocType Action",
-		"DocType Link",
-		"DocType State",
-	}
+	special_doctypes = frozenset(
+		(
+			"DocField",
+			"DocPerm",
+			"DocType",
+			"Module Def",
+			"DocType Action",
+			"DocType Link",
+			"DocType State",
+		)
+	)
 	standard_set_once_fields = [
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
@@ -243,7 +245,7 @@ class Meta(Document):
 	def get_label(self, fieldname):
 		"""Get label of the given fieldname"""
 		if df := self.get_field(fieldname):
-			return df.label
+			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
 			return DEFAULT_FIELD_LABELS[fieldname]()

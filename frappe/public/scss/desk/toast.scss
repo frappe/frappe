@@ -93,8 +93,7 @@
 			border-right: 1px solid var(--border-color);
 			padding: var(--padding-sm);
 			outline: none;
-			font-size: var(--text-sm);
-			font-weight: 500;
+			@include get_textstyle("sm", "medium");
 			color: var(--text-light);
 
 			&:hover {

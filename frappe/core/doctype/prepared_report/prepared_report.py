@@ -61,13 +61,13 @@ class PreparedReport(Document):
 		self.status = "Queued"
 
 	def on_trash(self):
-		# If job is running then send stop signal.
-		if self.status != "Started":
+		"""Remove pending job from queue, if already running then kill the job."""
+		if self.status not in ("Started", "Queued"):
 			return
 
 		with suppress(Exception):
 			job = frappe.get_doc("RQ Job", self.job_id)
-			job.stop_job()
+			job.stop_job() if self.status == "Started" else job.delete()
 
 	def after_insert(self):
 		enqueue(

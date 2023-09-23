@@ -9,22 +9,26 @@ from rq.job import Job
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import RQJob, remove_failed_jobs, stop_job
+from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
 
-class TestRQJob(FrappeTestCase):
+@timeout(seconds=20)
+def wait_for_completion(job: Job):
+	while True:
+		if not (job.is_queued or job.is_started):
+			break
+		time.sleep(0.2)
 
+
+class TestRQJob(FrappeTestCase):
 	BG_JOB = "frappe.core.doctype.rq_job.test_rq_job.test_func"
 
-	@timeout(seconds=20)
 	def check_status(self, job: Job, status, wait=True):
-		while wait:
-			if not (job.is_queued or job.is_started):
-				break
-			time.sleep(0.2)
-
+		if wait:
+			wait_for_completion(job)
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
 
 	def test_serialization(self):
@@ -151,6 +155,8 @@ class TestRQJob(FrappeTestCase):
 
 	@timeout(20)
 	def test_memory_usage(self):
+		if frappe.db.db_type != "mariadb":
+			return
 		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
 		self.check_status(job, "finished")
 
@@ -162,6 +168,17 @@ class TestRQJob(FrappeTestCase):
 		# Refer this PR: https://github.com/frappe/frappe/pull/21467
 		LAST_MEASURED_USAGE = 40
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
+
+	@timeout(20)
+	def test_clear_failed_jobs(self):
+		limit = 10
+		update_site_config("rq_failed_jobs_limit", limit)
+
+		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
+		self.check_status(jobs[-1], "failed")
+		self.assertLessEqual(
+			RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1
+		)
 
 
 def test_func(fail=False, sleep=0):

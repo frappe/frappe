@@ -1,6 +1,10 @@
 html,
 body {
 	background-color: var(--bg-color);
+	::selection {
+		color: var(--neutral-black);
+		background: var(--gray-300);
+	}
 }
 
 .desk-sidebar {
@@ -26,7 +30,7 @@ body {
 }
 
 .widget-group {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 	margin-bottom: var(--margin-2xl);
 
 	&.widget-charts {
@@ -38,8 +42,7 @@ body {
 
 		.widget-group-title {
 			color: var(--heading-color);
-			font-weight: 600;
-			font-size: var(--text-lg);
+			@include get_textstyle("lg", "semibold");
 			margin-bottom: var(--margin-md);
 		}
 	}
@@ -111,7 +114,7 @@ body {
 	@include flex(flex, null, null, column);
 	min-height: 1px;
 	padding: 7px;
-	border-radius: var(--border-radius-md);
+	border-radius: var(--border-radius-lg);
 	height: 100%;
 	background-color: var(--card-bg);
 
@@ -137,11 +140,10 @@ body {
 
 			.widget-title {
 				@include flex(flex, null, center, null);
-				font-size: var(--text-lg);
+				@include get_textstyle("base", "medium");
 				font-family: inherit;
-				font-weight: 500;
 				line-height: 1.3em;
-				color: var(--heading-color);
+				color: var(--text-color);
 				cursor: default;
 
 				svg {
@@ -208,6 +210,11 @@ body {
 	// Overrides for each widgets
 	&.dashboard-widget-box {
 		min-height: 240px;
+		border: 1px solid var(--border-color);
+
+		.widget-head {
+			padding: 4px 8px;
+		}
 
 		.filter-chart {
 			background-color: var(--control-bg);
@@ -341,16 +348,17 @@ body {
 	&.onboarding-widget-box {
 		margin-bottom: var(--margin-2xl);
 		padding: var(--padding-lg) !important;
-		background-color: var(--bg-light-gray);
-		box-shadow: var(--card-shadow) ;
+		background-color: var(--bg-color);
+		border: 1px solid var(--border-color);
 
 		&.edit-mode:hover {
-			background-color: var(--fg-color);
+			background-color: var(--bg-color);
 
 			.onboarding-step {
 				&.active,
-				&:hover {
-					background-color: var(--bg-color);
+				&:hover,
+				&.complete {
+					background-color: var(--fg-hover-color);
 
 					.step-index.step-pending {
 						background-color: var(--fg-color);
@@ -366,10 +374,15 @@ body {
 		.widget-head {
 			display: flex;
 
+			.widget-label .widget-title {
+				@include get_textstyle("lg", "semibold");
+				color: var(--heading-color);
+			}
+
 			.widget-subtitle {
 				margin-top: 5px;
 				color: var(--text-muted);
-				font-size: var(--text-sm);
+				@include get_textstyle("base", "regular");
 			}
 
 			.widget-control {
@@ -393,17 +406,23 @@ body {
 
 				h1,
 				h2 {
-					font-size: var(--text-xl);
-					font-weight: 600;
+					@include get_textstyle("lg", "medium");
 					margin-bottom: var(--margin-sm);
+					color: var(--heading-color);
 				}
 
 				h3 {
-					font-size: var(--text-lg);
-					font-weight: 600;
+					@include get_textstyle("lg", "semibold");
 					margin-bottom: var(--margin-sm);
 				}
 
+				.onboarding-step-body {
+					color: var(--text-muted);
+
+					p {
+						@include get_textstyle("base", "regular");
+					}
+				}
 				.onboarding-step-footer {
 					margin-top: var(--margin-md);
 				}
@@ -412,10 +431,11 @@ body {
 			.onboarding-step {
 				@include flex(flex, space-between, center, null);
 				border-radius: var(--border-radius);
-				padding: 8px;
-				font-size: var(--text-md);
+				padding: 5px 8px;
+				@include get_textstyle("base", "regular");
 				max-width: 350px;
 				text-decoration: none;
+				margin-bottom: var(--margin-xs);
 
 				&.pending {
 					.step-index.step-pending {
@@ -432,41 +452,31 @@ body {
 						display: none;
 					}
 
-					.icon {
-						stroke: var(--white);
-					}
-
 					span {
-						color: $text-color;
+						color: var(--gray-700);
 					}
 				}
 
 				&.active,
 				&:hover {
-					background-color: var(--fg-color);
-
-					.step-index {
-						background-color: var(--bg-color);
-					}
-
-					.step-skip {
-						visibility: visible;
-					}
+					background-color: var(--subtle-fg);
+				}
+				&.active .step-skip {
+					visibility: visible;
 				}
 
 				.step-title {
 					@include flex(flex, null, center, null);
+
+					.step-text {
+						margin-left: 8px;
+					}
 				}
 
 				.step-index {
 					@include flex(flex, center, center, null);
-					height: 20px;
-					width: 20px;
-					color: var(--text-on-light-gray);
-					background-color: var(--bg-light-gray);
-
-					margin-right: var(--margin-sm);
-					border-radius: var(--border-radius-full);
+					height: 18px;
+					width: 18px;
 
 					&.step-pending {
 						display: none;
@@ -474,30 +484,27 @@ body {
 
 					&.step-complete {
 						display: none;
-						background-color: var(--primary);
-						.icon use {
-							stroke: var(--var(--fg-color));
-						}
 					}
 
 					&.step-skipped {
 						display: none;
-						background-color: var(--blue-100);
-						svg {
-							stroke: var(--blue-600);
-						}
 					}
 				}
 
 				.step-skip {
-					font-size: var(--text-md);
+					@include get_textstyle("base", "regular");
 					visibility: hidden;
 					cursor: pointer;
 				}
 
 				&.skipped {
+					color: var(--text-light);
+					background-color: var(--bg-color);
 					.step-index.step-skipped {
 						display: flex;
+					}
+					.step-text {
+						text-decoration: line-through;
 					}
 
 					.step-skip {
@@ -505,11 +512,11 @@ body {
 					}
 
 					i {
-						color: var(--text-muted);
+						color: var(--text-light);
 					}
 
 					span {
-						color: var(--text-muted);
+						color: var(--text-light);
 					}
 
 					&:hover {
@@ -543,18 +550,15 @@ body {
 		cursor: pointer;
 
 		&:hover {
+			--icon-stroke: var(--gray-600);
 			.widget-title {
-				color: var(--blue-500) !important;
-			}
-
-			svg.icon-xs {
-				stroke: var(--blue-500) !important;
+				color: var(--gray-600) !important;
 			}
 		}
 
 		.widget-title {
 			cursor: pointer !important;
-			font-size: var(--text-base) !important;
+			@include get_textstyle("base", "medium");
 		}
 
 		.indicator-pill {
@@ -564,18 +568,31 @@ body {
 	}
 
 	&.links-widget-box {
-		padding: 12px 7px;
+
+		.widget-head .widget-label .widget-title svg {
+			margin: 2px;
+			margin-right: 12px !important;
+		}
+
+		padding: 10px;
+    	border: 1px solid var(--border-color);
 
 		.link-item {
 			display: flex;
 			text-decoration: none;
-			font-size: var(--text-md);
+			@include get_textstyle("base", "regular");
 			color: var(--text-color);
 			padding: 4px;
 			margin-left: -4px;
-			margin-bottom: 4px;
+			margin-bottom: 0px;
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
+
+			.indicator-pill::before {
+				height: 4px;
+				width: 4px;
+				border-radius: var(--border-radius-lg);
+			}
 
 			&:hover {
 				background-color: var(--fg-hover-color);
@@ -586,7 +603,7 @@ body {
 			}
 
 			&:first-child {
-				margin-top: 18px;
+				margin-top: 12px;
 			}
 
 			&:last-child {
@@ -617,18 +634,25 @@ body {
 				padding: 3px 8px;
 			}
 		}
+
+		.widget-head .widget-label .widget-title {
+			@include get_textstyle("lg", "semibold");
+			color: var(--text-color) !important;
+		}
 	}
 
 	&.number-widget-box {
 		cursor: pointer;
-		height: 115px;
-		padding: var(--padding-sm) var(--padding-md);
+		min-height: 84px;
+		padding: var(--number-card-padding);
+		border: 1px solid var(--border-color);
 
 		.widget-head {
 			.widget-title {
-				font-weight: 500;
-				color: var(--heading-color);
-				font-size: var(--text-base);
+				font-weight: var(--weight-medium);
+				color: var(--text-muted);
+				text-transform: uppercase;
+				font-size: var(--text-tiny);
 				margin-top: var(--margin-xs);
 			}
 
@@ -653,12 +677,11 @@ body {
 
 			.widget-content {
 				@include flex(flex, space-between, null, null);
-				padding-top: var(--padding-xl);
+				padding-top: var(--padding-md);
 
 				.number {
-					font-weight: 600;
-					font-size: 22px;
-					line-height: 2.4em;
+					@include get_textstyle("2xl", "semibold");
+					line-height: var(--text-line-height-3xl);
 					color: var(--text-color);
 				}
 
@@ -669,11 +692,12 @@ body {
 				}
 
 				.card-stats {
-					@include flex(flex, null, flex-end, column);
+					@include flex(flex, null, flex-end, row);
 				}
 
 				.percentage-stat-area {
 					font-size: $font-size-sm;
+					margin-left: var(--margin-xs);
 
 					.indicator-pill-round {
 						height: 18px;
@@ -684,24 +708,17 @@ body {
 							height: 10px;
 						}
 					}
-
-					.percentage-stat {
-						margin-left: var(--margin-xs);
-						vertical-align: bottom;
-						font-weight: 500;
-					}
 				}
 
 				.stat-period {
-					margin-top: var(--margin-xs);
-					font-size: 11px;
+					margin-left: var(--margin-xs);
 				}
 
 				.green-stat {
-					color: var(--dark-green-500);
+					color: var(--green-500);
 
 					use {
-						stroke: var(--dark-green-500);
+						stroke: var(--green-500);
 					}
 				}
 
@@ -959,6 +976,13 @@ body {
 			.layout-main-section {
 				padding: var(--padding-md);
 				margin-bottom: var(--margin-sm);
+
+				&.edit-mode {
+					background-color: var(--subtle-fg) !important;
+					.links-widget-box {
+						background-color: var(--bg-color) !important;
+					}
+				}
 			}
 
 			.desk-sidebar {
@@ -974,7 +998,7 @@ body {
 
 	.layout-main-section {
 		background-color: var(--fg-color);
-		box-shadow: var(--card-shadow);
+		box-shadow: none;
 		border-radius: var(--border-radius-lg);
 		padding: var(--padding-sm);
 	}
@@ -1026,7 +1050,7 @@ body {
 		.item-anchor {
 			display: flex;
 			overflow: hidden;
-			padding: 8px 0px 8px 12px;
+			padding: 4px 0px 4px 8px;
 			flex: 1;
 		}
 	}
@@ -1089,6 +1113,7 @@ body {
 				&:hover, &.selected {
 					.drag-handle {
 						display: inline-block;
+						background-color: var(--bg-color);
 					}
 
 					.setting-btn, .duplicate-page, .unhide-workspace-btn {
@@ -1112,7 +1137,7 @@ body {
 
 	// widgets
 	.widget.number-widget-box {
-		box-shadow: var(--shadow-sm);
+		border: 1px solid var(--border-color);
 	}
 
 
@@ -1175,6 +1200,9 @@ body {
 						width: auto;
 						visibility: visible;
 						opacity: 1;
+					}
+					.widget-control > svg {
+						width: 12px;
 					}
 				}
 
@@ -1252,6 +1280,10 @@ body {
 						margin-bottom: 0 !important;
 						flex: 1;
 
+						.h4 {
+							@include get_textstyle("xl", "semibold");
+						}
+
 						&:focus {
 							outline: none;
 						}
@@ -1279,7 +1311,7 @@ body {
 
 							&:hover {
 								box-shadow: var(--shadow-base);
-								background-color: var(--fg-color);
+								background-color: var(--bg-color);
 							}
 
 							&.spacer {
@@ -1336,7 +1368,7 @@ body {
 							padding-left: 0px !important;
 							min-height: 40px;
 							box-shadow: none;
-							background-color: var(--control-bg);
+							background-color: var(--bg-color);
 							color: var(--text-muted);
 							cursor: text;
 
@@ -1346,7 +1378,7 @@ body {
 						}
 
 						&.shortcut {
-							background-color: var(--control-bg);
+							background-color: var(--bg-color);
 						}
 
 						&:focus {

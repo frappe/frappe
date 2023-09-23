@@ -1,8 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-from collections.abc import Sequence
+
+from collections.abc import Iterable
 from datetime import timedelta
-from typing import Optional
 
 import frappe
 import frappe.defaults
@@ -104,7 +104,7 @@ class User(Document):
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
-		time_zone: DF.Literal
+		time_zone: DF.Autocomplete | None
 		unsubscribed: DF.Check
 		user_emails: DF.Table[UserEmail]
 		user_image: DF.AttachImage | None
@@ -781,7 +781,10 @@ def get_all_roles(arg=None):
 
 	roles = frappe.get_all(
 		"Role",
-		filters={"name": ("not in", "Administrator,Guest,All"), "disabled": 0},
+		filters={
+			"name": ("not in", frappe.permissions.AUTOMATIC_ROLES),
+			"disabled": 0,
+		},
 		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
 		order_by="name",
 	)
@@ -1087,25 +1090,22 @@ def get_total_users():
 	)
 
 
-def get_system_users(exclude_users=None, limit=None):
-	if not exclude_users:
-		exclude_users = []
-	elif not isinstance(exclude_users, (list, tuple)):
-		exclude_users = [exclude_users]
+def get_system_users(exclude_users: Iterable[str] | str | None = None, limit: int | None = None):
+	_excluded_users = list(STANDARD_USERS)
+	if isinstance(exclude_users, str):
+		_excluded_users.append(exclude_users)
+	elif isinstance(exclude_users, Iterable):
+		_excluded_users.extend(exclude_users)
 
-	limit_cond = ""
-	if limit:
-		limit_cond = f"limit {limit}"
-
-	exclude_users += list(STANDARD_USERS)
-
-	return frappe.db.sql_list(
-		"""select name from `tabUser`
-		where enabled=1 and user_type != 'Website User'
-		and name not in ({}) {}""".format(
-			", ".join(["%s"] * len(exclude_users)), limit_cond
-		),
-		exclude_users,
+	return frappe.get_all(
+		"User",
+		filters={
+			"enabled": 1,
+			"user_type": ("!=", "Website User"),
+			"name": ("not in", _excluded_users),
+		},
+		pluck="name",
+		limit=limit,
 	)
 
 

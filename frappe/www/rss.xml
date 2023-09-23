@@ -9,7 +9,7 @@
         <ttl>1800</ttl>
 		{% for i in items %}<item>
 			        <title>{{ i.title }}</title>
-			        <description>{{ i.content }}</description>
+			        <description>{{ i.blog_intro }}</description>
 			        <link>{{ i.link }}</link>
 			        <guid>{{ i.name }}</guid>
 			        <pubDate>{{ i.published_on }}</pubDate>

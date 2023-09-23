@@ -36,7 +36,7 @@ let marker_end_primary = {
 	width: 11,
 	height: 11,
 	strokeWidth: 1.7,
-	color: "#2490ef"
+	color: "#171717"
 };
 
 watch(

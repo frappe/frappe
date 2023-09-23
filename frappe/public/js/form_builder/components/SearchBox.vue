@@ -29,7 +29,7 @@
 	.search-icon {
 		position: absolute;
 		left: 16px;
-		top: 5px;
+		top: 2px;
 	}
 }
 </style>

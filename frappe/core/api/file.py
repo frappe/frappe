@@ -1,7 +1,8 @@
 import json
 
 import frappe
-from frappe.core.doctype.file.file import File, setup_folder_path
+from frappe.core.doctype.file.file import File
+from frappe.core.doctype.file.utils import setup_folder_path
 from frappe.utils import cint, cstr
 
 
@@ -83,7 +84,11 @@ def get_files_by_search_text(text: str) -> list[dict]:
 
 @frappe.whitelist(allow_guest=True)
 def get_max_file_size() -> int:
-	return cint(frappe.conf.get("max_file_size")) or 10485760
+	return (
+		cint(frappe.get_system_settings("max_file_size")) * 1024 * 1024
+		or cint(frappe.conf.get("max_file_size"))
+		or 25 * 1024 * 1024
+	)
 
 
 @frappe.whitelist()

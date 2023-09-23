@@ -6,9 +6,8 @@
 	max-width: 360px;
 	padding: 15px;
 	margin: 70px auto;
-	border-radius: 4px;
+	border-radius: var(--border-radius-md);
 	background-color: var(--fg-color);
-	box-shadow: var(--shadow-base);
 }
 
 .for-reset-password {

@@ -230,9 +230,14 @@ frappe.views.BaseList = class BaseList {
 				$secondary_action.addClass("visible-xs");
 			}
 		} else {
-			this.refresh_button = this.page.add_action_icon("refresh", () => {
-				this.refresh();
-			});
+			this.refresh_button = this.page.add_action_icon(
+				"es-line-reload",
+				() => {
+					this.refresh();
+				},
+				"",
+				__("Reload List")
+			);
 		}
 	}
 
@@ -840,7 +845,7 @@ class FilterArea {
 			<div class="btn-group">
 				<button class="btn btn-default btn-sm filter-button">
 					<span class="filter-icon">
-						${frappe.utils.icon("filter")}
+						${frappe.utils.icon("es-line-filter")}
 					</span>
 					<span class="button-label hidden-xs">
 					${__("Filter")}
@@ -848,7 +853,7 @@ class FilterArea {
 				</button>
 				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
 					<span class="filter-icon">
-						${frappe.utils.icon("filter-x")}
+						${frappe.utils.icon("es-small-close")}
 					</span>
 				</button>
 			</div>

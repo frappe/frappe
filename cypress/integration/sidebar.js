@@ -2,7 +2,7 @@ const verify_attachment_visibility = (document, is_private) => {
 	cy.visit(`/app/${document}`);
 
 	const assertion = is_private ? "be.checked" : "not.be.checked";
-	cy.findByRole("button", { name: "Attach File" }).click();
+	cy.findByRole("button", { name: "Add File" }).click();
 
 	cy.get_open_dialog()
 		.find(".file-upload-area")
@@ -11,6 +11,27 @@ const verify_attachment_visibility = (document, is_private) => {
 		});
 
 	cy.get_open_dialog().findByRole("checkbox", { name: "Private" }).should(assertion);
+};
+
+const attach_file = (file, no_of_files = 1) => {
+	let files = [];
+	if (file) {
+		files = [file];
+	} else if (no_of_files > 1) {
+		// attach n files
+		files = [...Array(no_of_files)].map(
+			(el, idx) =>
+				"cypress/fixtures/sample_attachments/attachment-" +
+				(idx + 1) +
+				(idx == 0 ? ".jpg" : ".txt")
+		);
+	}
+
+	cy.findByRole("button", { name: "Add File" }).click();
+	cy.get_open_dialog().find(".file-upload-area").selectFile(files, {
+		action: "drag-drop",
+	});
+	cy.get_open_dialog().findByRole("button", { name: "Upload" }).click();
 };
 
 context("Sidebar", () => {
@@ -35,6 +56,36 @@ context("Sidebar", () => {
 		verify_attachment_visibility("blog-post/test-blog-attachment-post", false);
 	});
 
+	it("Verify attachment accessibility UX", () => {
+		cy.call("frappe.tests.ui_test_helpers.create_todo_with_attachment_limit", {
+			description: "Sidebar Attachment Access Test ToDo",
+		}).then((todo) => {
+			cy.visit(`/app/todo/${todo.message.name}`);
+
+			// explore icon btn should be hidden as there are no attachments
+			cy.get(".explore-btn").should("be.hidden");
+
+			attach_file("cypress/fixtures/sample_image.jpg");
+			cy.get(".explore-btn").should("be.visible");
+			cy.get(".show-all-btn").should("be.hidden");
+
+			// attach 10 images
+			attach_file(null, 10);
+			cy.get(".show-all-btn").should("be.visible");
+
+			// attach 1 more image to reach attachment limit
+			attach_file("cypress/fixtures/sample_attachments/attachment-11.txt");
+			cy.get(".explore-full-btn").should("be.visible");
+			cy.get(".attachments-actions").should("be.hidden");
+			cy.get(".explore-btn").should("be.hidden");
+
+			// test "Show All" button
+			cy.get(".attachment-row").should("have.length", 10);
+			cy.get(".show-all-btn").click();
+			cy.get(".attachment-row").should("have.length", 12);
+		});
+	});
+
 	it('Test for checking "Assigned To" counter value, adding filter and adding & removing an assignment', () => {
 		cy.call("frappe.tests.ui_test_helpers.create_todo", {
 			description: "Sidebar Attachment ToDo",
@@ -48,8 +99,9 @@ context("Sidebar", () => {
 
 			//Assigning a doctype to a user
 			cy.visit(`/app/todo/${todo_name}`);
-			cy.get(".form-assignments > .flex > .text-muted").click();
+			cy.get(".add-assignment-btn").click();
 			cy.get_field("assign_to_me", "Check").click();
+			cy.wait(1000);
 			cy.get(".modal-footer > .standard-actions > .btn-primary").click();
 			cy.visit("/app/todo");
 			cy.click_sidebar_button("Assigned To");

@@ -3,6 +3,7 @@
 
 html, body {
 	height: 100%;
+	font-variation-settings: "opsz" 24;
 }
 
 /* checkbox */
@@ -15,7 +16,8 @@ html, body {
 	--checkbox-right-margin: 8px;
 
 	.label-area {
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "medium");
+		color: var(--text-color);
 	}
 
 	.input-area, .disp-area {
@@ -25,6 +27,8 @@ html, body {
 
 .frappe-card {
 	@include card();
+	box-shadow: none;
+	border: 1px solid var(--gray-300);
 }
 
 .frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {
@@ -52,6 +56,7 @@ html, body {
 		-moz-appearance: none;
 		/* for Chrome */
 		-webkit-appearance: none;
+
 	}
 
 	.select-icon {
@@ -59,7 +64,7 @@ html, body {
 		padding-right: inherit;
 		position: absolute;
 		pointer-events: none;
-		top: 7px;
+		top: 3px;
 		right: 12px;
 
 		&.xs {
@@ -79,7 +84,7 @@ html, body {
 		padding-right: inherit;
 		position: absolute;
 		pointer-events: none;
-		top: 7px;
+		top: 3px;
 		left: 12px;
 		max-width: 80%;
 

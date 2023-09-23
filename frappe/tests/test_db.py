@@ -598,10 +598,11 @@ class TestDB(FrappeTestCase):
 		frappe.db.before_rollback.add(lambda: f(5))
 		frappe.db.after_rollback.add(lambda: f(6))
 		frappe.db.after_rollback.add(lambda: f(7))
+		frappe.db.after_rollback(lambda: f(8))
 
 		frappe.db.rollback()
 
-		self.assertEqual(order_of_execution, list(range(0, 8)))
+		self.assertEqual(order_of_execution, list(range(0, 9)))
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -691,6 +692,12 @@ class TestDBSetValue(FrappeTestCase):
 		frappe.db.set_single_value("System Settings", "deny_multiple_sessions", changed_value)
 		current_value = frappe.db.get_single_value("System Settings", "deny_multiple_sessions")
 		self.assertEqual(current_value, changed_value)
+
+	def test_none_no_set_value(self):
+		frappe.db.set_value("User", None, "middle_name", "test")
+		with self.assertQueryCount(0):
+			frappe.db.set_value("User", None, "middle_name", "test")
+			frappe.db.set_value("User", "User", "middle_name", "test")
 
 	def test_update_single_row_single_column(self):
 		frappe.db.set_value("ToDo", self.todo1.name, "description", "test_set_value change 1")
@@ -935,7 +942,7 @@ class TestTransactionManagement(FrappeTestCase):
 # Treat same DB as replica for tests, a separate connection will be opened
 class TestReplicaConnections(FrappeTestCase):
 	def test_switching_to_replica(self):
-		with patch.dict(frappe.local.conf, {"read_from_replica": 1, "replica_host": "localhost"}):
+		with patch.dict(frappe.local.conf, {"read_from_replica": 1, "replica_host": "127.0.0.1"}):
 
 			def db_id():
 				return id(frappe.local.db)
