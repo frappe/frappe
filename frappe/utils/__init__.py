@@ -1101,9 +1101,6 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	if not missing_users:
 		return
 
-	for missing_user in missing_users:
-		user_info[missing_user] = frappe._dict()
-
 	missing_info = frappe.get_all(
 		"User",
 		{"name": ("in", missing_users)},
@@ -1111,7 +1108,7 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	)
 
 	for info in missing_info:
-		user_info[info.name].update(
+		user_info.setdefault(info.name, frappe._dict()).update(
 			fullname=info.full_name or user,
 			image=info.user_image,
 			name=user,
