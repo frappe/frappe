@@ -197,6 +197,12 @@ Reply-To: test2_@erpnext.com
 		mail = Email(content_bytes)
 		self.assertEqual(mail.text_content, text_content)
 
+	def test_poorly_encoded_messages(self):
+		mail = Email.decode_email(
+			"=?iso-2022-jp?B?VEFLQVlBTUEgS2FvcnUgWxskQnxiOzMbKEIgGyRCNzAbKEJd?=\n\t<user@example.com>"
+		)
+		self.assertIn("user@example.com", mail)
+
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0 + i : chunk_size + i] for i in range(0, len(string), chunk_size)]
