@@ -36,8 +36,8 @@ app_include_css = [
 	"report.bundle.css",
 ]
 app_include_icons = [
-	"frappe/public/icons/timeless/icons.svg",
-	"frappe/public/icons/espresso/icons.svg",
+	"frappe/icons/timeless/icons.svg",
+	"frappe/icons/espresso/icons.svg",
 ]
 
 doctype_js = {

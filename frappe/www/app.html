@@ -20,16 +20,12 @@
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
+		<div id="all-symbols" style="display:none"></div>
 		{% for include in include_css -%}
 		{{ include_style(include) }}
 		{%- endfor -%}
 	</head>
 	<body>
-		<div id="all-symbols" style="display:none!important;">
-			{%- for path in include_icons -%}
-				<!-- {{ path }} -->{%- include path ignore missing -%}
-			{%- endfor -%}
-		</div>
 		{% include "templates/includes/splash_screen.html" %}
 		<div class="main-section">
 			<header></header>
@@ -49,6 +45,16 @@
 			frappe.boot = JSON.parse({{ boot }});
 			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
+
+
+			{%- for path in include_icons -%}
+			fetch(`/assets/{{ path }}?v=${window._version_number}`, { credentials: "same-origin" })
+				.then((r) => r.text())
+				.then((svg) => {
+					let svg_container = document.getElementById("all-symbols");
+					svg_container.insertAdjacentHTML("beforeend", svg);
+				});
+			{%- endfor -%}
 		</script>
 
 	{% for include in include_js %}
