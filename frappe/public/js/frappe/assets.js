@@ -129,27 +129,24 @@ frappe.assets = {
 			return;
 		}
 
-		const versionString = frappe.boot.developer_mode
-			? Date.now()
-			: frappe.boot.metadata_version;
+		const version_string =
+			frappe.boot.developer_mode || window.dev_server ? Date.now() : window._version_number;
 
-		async function fetchItem(item) {
+		async function fetch_item(item) {
 			// Add the version to the URL to bust the cache for non-bundled assets
 			let url = new URL(item, window.location.origin);
 
-			if (item.indexOf(".bundle.") === -1 && !url.searchParams.get("v")) {
-				url.searchParams.append("v", versionString);
+			if (!item.includes(".bundle.") && !url.searchParams.get("v")) {
+				url.searchParams.append("v", version_string);
 			}
-			// Force use cache because we are already busting the cache with the version
-			const headers = { cache: "force-cache" };
-			const response = await fetch(url.toString(), headers);
+			const response = await fetch(url.toString());
 			const body = await response.text();
 			frappe.assets.add(item, body);
 		}
 
 		frappe.dom.freeze();
-		const fetchPromises = items.map(fetchItem);
-		Promise.all(fetchPromises).then(() => {
+		const fetch_promises = items.map(fetch_item);
+		Promise.all(fetch_promises).then(() => {
 			frappe.dom.unfreeze();
 			callback();
 		});
