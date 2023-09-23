@@ -435,7 +435,8 @@ class Email:
 
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
-	def decode_email(self, email):
+	@staticmethod
+	def decode_email(email):
 		if not email:
 			return
 		decoded = ""
@@ -443,7 +444,7 @@ class Email:
 			frappe.as_unicode(email).replace('"', " ").replace("'", " ")
 		):
 			if encoding:
-				decoded += part.decode(encoding)
+				decoded += part.decode(encoding, "replace")
 			else:
 				decoded += safe_decode(part)
 		return decoded
