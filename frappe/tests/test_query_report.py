@@ -1,14 +1,10 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
-import os
-
 import frappe
 import frappe.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.query_report import build_xlsx_data, export_query, run
-from frappe.tests.ui_test_helpers import create_doctype
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
