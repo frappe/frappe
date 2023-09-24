@@ -1,9 +1,6 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import json
-import os
-
 import frappe
 import frappe.utils
 <<<<<<< HEAD
@@ -11,8 +8,11 @@ from frappe.desk.query_report import build_xlsx_data
 =======
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.query_report import build_xlsx_data, export_query, run
+<<<<<<< HEAD
 from frappe.tests.ui_test_helpers import create_doctype
 >>>>>>> 34cd943556 (test: added test for conflicting column names)
+=======
+>>>>>>> 32e3198c83 (test: code cleanup)
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
