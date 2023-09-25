@@ -109,6 +109,7 @@ frappe.ui.Capture = class {
 
 		let field = me.dialog.get_field("capture");
 		$(field.wrapper).html(me.$template);
+		me.update_count();
 
 		me.dialog.get_close_btn().on("click", () => {
 			me.hide();
