@@ -28,7 +28,16 @@ export default class FileUploader {
 			this.wrapper = wrapper.get ? wrapper.get(0) : wrapper;
 		}
 
-<<<<<<< HEAD:frappe/public/js/frappe/file_uploader/index.js
+		if (restrictions && !restrictions.allowed_file_types) {
+			// apply global allow list if present
+			let allowed_extensions = frappe.sys_defaults?.allowed_file_extensions;
+			if (allowed_extensions) {
+				restrictions.allowed_file_types = allowed_extensions
+					.split("\n")
+					.map((ext) => `.${ext}`);
+			}
+		}
+
 		this.$fileuploader = new Vue({
 			el: this.wrapper,
 			render: (h) =>
@@ -50,33 +59,6 @@ export default class FileUploader {
 						make_attachments_public,
 					},
 				}),
-=======
-		if (restrictions && !restrictions.allowed_file_types) {
-			// apply global allow list if present
-			let allowed_extensions = frappe.sys_defaults?.allowed_file_extensions;
-			if (allowed_extensions) {
-				restrictions.allowed_file_types = allowed_extensions
-					.split("\n")
-					.map((ext) => `.${ext}`);
-			}
-		}
-
-		let app = createApp(FileUploaderComponent, {
-			show_upload_button: !Boolean(this.dialog),
-			doctype,
-			docname,
-			fieldname,
-			method,
-			folder,
-			on_success,
-			restrictions,
-			upload_notes,
-			allow_multiple,
-			as_dataurl,
-			disable_file_browser,
-			attach_doc_image,
-			make_attachments_public,
->>>>>>> 68bf9f50c4 (fix: Global allowlist for file extensions):frappe/public/js/frappe/file_uploader/file_uploader.bundle.js
 		});
 
 		this.uploader = this.$fileuploader.$children[0];
