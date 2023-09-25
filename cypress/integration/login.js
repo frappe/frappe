@@ -1,6 +1,7 @@
 context("Login", () => {
 	beforeEach(() => {
-		cy.request("/api/method/logout");
+		cy.visit("/");
+		cy.call("logout");
 		cy.visit("/login");
 		cy.location("pathname").should("eq", "/login");
 	});
@@ -35,7 +36,7 @@ context("Login", () => {
 		cy.get("#login_password").type(Cypress.env("adminPassword"));
 
 		cy.findByRole("button", { name: "Login" }).click();
-		cy.location("pathname").should("eq", "/app");
+		cy.location("pathname").should("match", /^\/app/);
 		cy.window().its("frappe.session.user").should("eq", "Administrator");
 	});
 
@@ -48,7 +49,7 @@ context("Login", () => {
 			base64_string: "aGVsbG8gYWxs",
 		});
 
-		cy.request("/api/method/logout");
+		cy.call("logout");
 
 		// redirect-to /me page with params to mock OAuth 2.0 like request
 		cy.visit(
