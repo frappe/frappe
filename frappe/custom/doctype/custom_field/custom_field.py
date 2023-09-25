@@ -242,11 +242,6 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def add_custom_field(doctype, df):
-	df = json.loads(df)
-	return create_custom_field(doctype, df)
-=======
 def rename_fieldname(custom_field: str, fieldname: str):
 	frappe.only_for("System Manager")
 
@@ -293,4 +288,3 @@ def _update_fieldname_references(
 		"insert_after",
 		new_fieldname,
 	)
->>>>>>> 0d5f28d569 (feat: rename custom field)
