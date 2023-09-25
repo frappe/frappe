@@ -7,6 +7,8 @@ import sqlparse
 from pypika.queries import QueryBuilder, Table
 
 import frappe
+import frappe.share
+import frappe.permissions
 from frappe import _
 from frappe.database.operator_map import OPERATOR_MAP
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
@@ -15,6 +17,7 @@ from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -37,6 +40,7 @@ class Engine:
 		doctype: str | Table,
 		fields: list | tuple | None = None,
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
+		parent_doctype: str | None = None,
 		order_by: str | None = None,
 		group_by: str | None = None,
 		limit: int | None = None,
@@ -46,6 +50,8 @@ class Engine:
 		update: bool = False,
 		into: bool = False,
 		delete: bool = False,
+		reference_doctype: str | None = None,
+		apply_permissions: bool = False,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
@@ -58,6 +64,12 @@ class Engine:
 			self.validate_doctype()
 			self.table = frappe.qb.DocType(doctype)
 
+		self.parent_doctype = parent_doctype
+
+		# for contextual user permission check
+		# to determine which user permission is applicable on link field of specific doctype
+		self.reference_doctype = reference_doctype or self.doctype
+
 		if update:
 			self.query = frappe.qb.update(self.table)
 		elif into:
@@ -67,6 +79,9 @@ class Engine:
 		else:
 			self.query = frappe.qb.from_(self.table)
 			self.apply_fields(fields)
+
+		# reference to engine
+		self.query._engine = self
 
 		self.apply_filters(filters)
 		self.apply_order_by(order_by)
@@ -85,6 +100,10 @@ class Engine:
 
 		if group_by:
 			self.query = self.query.groupby(group_by)
+
+		if apply_permissions:
+			query_permissions = QueryPermissions(self.query, frappe.session.user)
+			self.query = query_permissions.apply_all()
 
 		return self.query
 
@@ -344,36 +363,6 @@ class Engine:
 				self.query = self.query.orderby(order_field, order=order_direction)
 
 
-class Permission:
-	@classmethod
-	def check_permissions(cls, query, **kwargs):
-		if not isinstance(query, str):
-			query = query.get_sql()
-
-		doctype = cls.get_tables_from_query(query)
-		if isinstance(doctype, str):
-			doctype = [doctype]
-
-		for dt in doctype:
-			dt = TAB_PATTERN.sub("", dt)
-			if not frappe.has_permission(
-				dt,
-				"select",
-				user=kwargs.get("user"),
-				parent_doctype=kwargs.get("parent_doctype"),
-			) and not frappe.has_permission(
-				dt,
-				"read",
-				user=kwargs.get("user"),
-				parent_doctype=kwargs.get("parent_doctype"),
-			):
-				frappe.throw(_("Insufficient Permission for {0}").format(frappe.bold(dt)))
-
-	@staticmethod
-	def get_tables_from_query(query: str):
-		return [table for table in WORDS_PATTERN.findall(query) if table.startswith("tab")]
-
-
 class DynamicTableField:
 	def __init__(
 		self,
@@ -510,6 +499,194 @@ class ChildQuery:
 			order_by="idx asc",
 		)
 
+
+class QueryPermissions:
+	def __init__(self, query: QueryBuilder, user: str) -> None:
+		self.query = query
+		# TODO: make this work for queries not built with engine
+		self.engine = query._engine
+		self.user = user
+		self.permission_map = {}
+		self.meta = frappe.get_meta(self.engine.doctype)
+		self.role_permissions = frappe.permissions.get_role_permissions(self.engine.doctype, user=self.user)
+		self.has_if_owner_constraint = False
+		self.user_permission_conditions = []
+		self.shared_doc_names = []
+
+	def apply_all(self):
+		# Role Permissions: select, read
+		if not self.has_read_permission(self.engine.doctype, self.engine.parent_doctype):
+			self.throw_read_permission_error(self.engine.doctype)
+
+		# Owner based restraints: if_owner
+		self.has_if_owner_constraint = self.requires_owner_constraint()
+
+		# User Permissions
+		if not self.has_if_owner_constraint:
+			self.user_permission_conditions = self.get_user_permissions()
+
+		# Shared docs
+		only_shared_applicable = (
+			not self.meta.istable
+			and not (self.role_permissions.get("select") or self.role_permissions.get("read"))
+			and not self.user_permission_conditions
+		)
+
+		if only_shared_applicable or self.has_if_owner_constraint or self.user_permission_conditions:
+			self.shared_doc_names = self.get_shared_permissions()
+
+		# Permission Query (hook)
+		self.permission_query_conditions = self.get_permission_query_conditions()
+
+		# TODO
+		# Permitted Fields based on Permlevel
+		# Permitted Fields based on Only Select
+		# Check read permissions on magic fields like (customer.title)
+
+		where_clause = None
+		if only_shared_applicable:
+			if self.shared_doc_names:
+				where_clause = self.engine.table.name.isin(self.shared_doc_names)
+		else:
+			conditions = []
+			if self.has_if_owner_constraint:
+				conditions.append(self.engine.table.owner == self.user)
+			elif self.user_permission_conditions:
+				for fieldname, values in self.user_permission_conditions.items():
+					conditions.append(self.engine.table[fieldname].isin(values))
+
+			if self.permission_query_conditions:
+				# permission query is a string of where clause
+				# TODO: it should probably also support passing the query object directly
+				conditions.append(RawCriterion(self.permission_query_conditions))
+
+			if conditions and self.shared_doc_names:
+				# share is an OR condition, if there are other permissions
+				where_clause = Criterion.any([Criterion.all([*conditions]), self.engine.table.name.isin(self.shared_doc_names)])
+			elif self.shared_doc_names:
+				where_clause = self.engine.table.name.isin(self.shared_doc_names)
+			elif conditions:
+				where_clause = Criterion.all([*conditions])
+
+		if where_clause:
+			self.query = self.query.where(where_clause)
+
+		return self.query
+
+
+	def get_shared_permissions(self):
+		return frappe.share.get_shared(self.engine.doctype, user=self.user, rights=["read"])
+
+	def get_permission_query_conditions(self):
+		doctype = self.engine.doctype
+		conditions = []
+		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(doctype, [])
+		if condition_methods:
+			for method in condition_methods:
+				c = frappe.call(frappe.get_attr(method), self.user)
+				if c:
+					conditions.append(c)
+
+		permision_script_name = get_server_script_map().get("permission_query", {}).get(doctype)
+		if permision_script_name:
+			script = frappe.get_doc("Server Script", permision_script_name)
+			condition = script.get_permission_query_conditions(self.user)
+			if condition:
+				conditions.append(condition)
+
+		return " and ".join(conditions) if conditions else ""
+
+	def has_read_permission(self, doctype, parent_doctype=None):
+		if doctype not in self.permission_map:
+			ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
+			val = frappe.has_permission(
+				doctype,
+				ptype=ptype,
+				parent_doctype=parent_doctype,
+			)
+			self.permission_map[doctype] = False if not val else ptype
+		return self.permission_map[doctype]
+
+	def get_user_permissions(self):
+		if not (self.role_permissions.get("read") or self.role_permissions.get("select")):
+			return
+
+		user_permissions = frappe.permissions.get_user_permissions(self.user)
+		if not user_permissions:
+			return
+
+		apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
+		# append current doctype with fieldname as 'name' as a link field
+		doctype_link_fields = self.meta.get_link_fields() + [{'options': self.engine.doctype, 'fieldname': 'name'}]
+
+		conditions = {}
+		for df in doctype_link_fields:
+			if df.get("ignore_user_permissions"):
+				continue
+
+			user_permission_values = user_permissions.get(df.get("options"), {})
+			if not user_permission_values:
+				continue
+
+			docs = []
+			for permission in user_permission_values:
+				if not permission.get("applicable_for"):
+					docs.append(permission.get("doc"))
+
+				# append docs based on user permission applicable on reference doctype
+				# this is useful when getting list of docs from a link field
+				# in this case parent doctype of the link
+				# will be the reference doctype
+
+				# TODO: find a way to decouple reference_doctype from query permissions
+				elif df.get("fieldname") == "name" and self.engine.reference_doctype:
+					if permission.get("applicable_for") == self.engine.reference_doctype:
+						docs.append(permission.get("doc"))
+
+				elif permission.get("applicable_for") == self.engine.doctype:
+					docs.append(permission.get("doc"))
+
+			if docs:
+				if apply_strict_user_permissions:
+					values = docs
+				else:
+					# allow empty values if strict user permissions not enabled
+					values = docs + ["", None]
+				conditions[df.get('fieldname')] = values
+
+		return conditions
+
+	def requires_owner_constraint(self):
+		"""Returns True if "select" or "read" isn't available without being creator."""
+
+		role_permissions = self.role_permissions
+		if not role_permissions.get("has_if_owner_enabled"):
+			return
+
+		if_owner_perms = role_permissions.get("if_owner")
+		if not if_owner_perms:
+			return
+
+		# has select or read without if owner, no need for constraint
+		for perm_type in ("select", "read"):
+			if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
+				return
+
+		# not checking if either select or read if present in if_owner_perms
+		# because either of those is required to perform a query
+		return True
+
+	def throw_read_permission_error(self, doctype):
+		frappe.throw(_("No permission to read {0}").format(doctype), frappe.PermissionError)
+
+class RawCriterion(Criterion):
+	def __init__(self, raw: str, alias: str | None = None) -> None:
+		super().__init__(alias)
+		self.raw = raw
+
+	def get_sql(self, **kwargs) -> str:
+		return self.raw
 
 def literal_eval_(literal):
 	try:
