@@ -421,28 +421,30 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	) -> frappe._dict | None:
 		"""
 		Check if column exists for a specific fields.
-		TODO: in a specific order
 		"""
 		unique_condition = "AND indexdef LIKE 'UNIQUE'" if unique else ""
-		indexes = self.sql(
+		field_indexes = self.sql(
 			f"""
 			SELECT
 				indexname as name,
 				indexdef as definition
 			FROM pg_indexes
 			WHERE tablename = '{table_name}'
-				AND indexname = '{fieldname}'
+				AND indexdef ~* '{fieldname}'
 				{unique_condition}
-			"""
-		)
+			""", as_dict=True)
 
-		# TODO: check specific order, now it just checks if its single column index
-		for index in indexes:
-			# in case of single column index, indexname is same as fieldname
-			is_single_column_index = index.name == fieldname
-			if is_single_column_index:
-				return frappe._dict(name=index.name, definition=index.definition)
-		return None
+		for index_info in field_indexes:
+			index_name = index_info['name']
+			index_definition = index_info['definition']
+			# Split the index definition by '(' and ')' to isolate the columns
+			columns = index_definition.split('(')[1].split(')')[0].split(',')
+			is_field_in_position = columns.index(f'"{fieldname}"') == order - 1
+			if is_field_in_position:
+				return frappe._dict(
+					name=index_name,
+					definition=index_definition
+				)
 
 
 def modify_query(query):
