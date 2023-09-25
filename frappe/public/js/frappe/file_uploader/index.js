@@ -56,7 +56,7 @@ export default class FileUploader {
 			let allowed_extensions = frappe.sys_defaults?.allowed_file_extensions;
 			if (allowed_extensions) {
 				restrictions.allowed_file_types = allowed_extensions
-					.split(",")
+					.split("\n")
 					.map((ext) => `.${ext}`);
 			}
 		}

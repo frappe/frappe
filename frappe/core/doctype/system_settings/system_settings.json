@@ -594,7 +594,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Provide a comma-separated list of allowed file extensions for file uploads. If unset, all file extensions are allowed. Example: CSV, JSON, JPEG, JPG, PNG",
+   "description": "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG",
    "fieldname": "allowed_file_extensions",
    "fieldtype": "Small Text",
    "label": "Allowed File Extensions"
@@ -603,7 +603,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-09-25 15:17:58.964082",
+ "modified": "2023-09-25 16:49:16.652874",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
