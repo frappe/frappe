@@ -54,7 +54,9 @@ Cypress.Commands.add("login", (email, password) => {
 			}
 		)
 		.then(() => {
-			window.localStorage.setItem("session_last_route", session_last_route);
+			if (session_last_route) {
+				window.localStorage.setItem("session_last_route", session_last_route);
+			}
 		});
 });
 
@@ -176,7 +178,6 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	}
 
 	if (fieldtype === "Select") {
-		cy.log("Selecting value", value);
 		cy.get("@input").select(value);
 	} else {
 		cy.get("@input").type(value, {
