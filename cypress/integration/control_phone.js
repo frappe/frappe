@@ -55,12 +55,6 @@ context("Control Phone", () => {
 				}
 			);
 		});
-<<<<<<< HEAD
-
-		cy.get(".phone-picker").findByRole("searchbox").clear().blur();
-		cy.get(".phone-section .phone-wrapper").should("not.have.class", "hidden");
-=======
->>>>>>> 4845e3f093 (test: Remove unnecessart assertion)
 	});
 
 	it("existing document should render phone field with data", () => {

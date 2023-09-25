@@ -34,37 +34,6 @@ Cypress.Commands.add("login", (email, password) => {
 	if (!password) {
 		password = Cypress.env("adminPassword");
 	}
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-	cy.request({
-		url: "/api/method/login",
-		method: "POST",
-		body: {
-			usr: email,
-			pwd: password,
-=======
-	cy.session(
-=======
-	return cy.session(
->>>>>>> de3a93bb0c (test: Fix failing tests)
-		[email, password] || "",
-		() => {
-			return cy.request({
-				url: "/api/method/login",
-				method: "POST",
-				body: {
-					usr: email,
-					pwd: password,
-				},
-			});
->>>>>>> 66f8c0b37f (chore: Fix cypress configuration to support cy13)
-		},
-		{
-			cacheAcrossSpecs: true,
-		}
-	);
-=======
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
 	return cy
@@ -89,7 +58,6 @@ Cypress.Commands.add("login", (email, password) => {
 				window.localStorage.setItem("session_last_route", session_last_route);
 			}
 		});
->>>>>>> fdf1164f8f (test: Fix navigation tests)
 });
 
 Cypress.Commands.add("call", (method, args) => {
