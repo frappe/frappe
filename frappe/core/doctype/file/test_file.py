@@ -17,9 +17,14 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
+<<<<<<< HEAD
+=======
+from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
+from frappe.core.doctype.file.utils import delete_file, get_extension
+>>>>>>> 68bf9f50c4 (fix: Global allowlist for file extensions)
 from frappe.exceptions import ValidationError
-from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_files_path
+from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
@@ -76,6 +81,32 @@ class TestSimpleFile(FrappeTestCase):
 		self.assertEqual(content, self.test_content)
 
 
+<<<<<<< HEAD
+=======
+class TestFSRollbacks(FrappeTestCase):
+	def test_rollback_from_file_system(self):
+		file_name = content = frappe.generate_hash()
+		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
+		self.assertTrue(file.exists_on_disk())
+
+		frappe.db.rollback()
+		self.assertFalse(file.exists_on_disk())
+
+
+class TestExtensionValidations(FrappeTestCase):
+	@change_settings("System Settings", {"allowed_file_extensions": "JPG,CSV"})
+	def test_allowed_extension(self):
+		set_request(method="POST", path="/")
+		file_name = content = frappe.generate_hash()
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.png", content=content)
+		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
+
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.csv", content=content).insert()
+		frappe.db.rollback()
+		self.assertFalse(bad_file.exists_on_disk())
+
+
+>>>>>>> 68bf9f50c4 (fix: Global allowlist for file extensions)
 class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
