@@ -53,6 +53,9 @@ Cypress.Commands.add("login", (email, password) => {
 });
 
 Cypress.Commands.add("call", (method, args) => {
+	if (method === "logout") {
+		cy.visit("/");
+	}
 	return cy
 		.window()
 		.its("frappe.csrf_token")
