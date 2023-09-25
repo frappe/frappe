@@ -15,6 +15,7 @@
   "non_negative",
   "reqd",
   "unique",
+  "search_index",
   "is_virtual",
   "in_list_view",
   "in_standard_filter",
@@ -477,13 +478,19 @@
    "fieldname": "link_filters",
    "fieldtype": "JSON",
    "label": "Link Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "search_index",
+   "fieldtype": "Check",
+   "label": "Index"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-07 13:17:21.373626",
+ "modified": "2023-11-20 13:17:21.373626",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

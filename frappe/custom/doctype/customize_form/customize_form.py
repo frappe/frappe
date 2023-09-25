@@ -774,6 +774,7 @@ docfield_properties = {
 	"hide_seconds": "Check",
 	"is_virtual": "Check",
 	"link_filters": "JSON",
+	"search_index": "Check",
 }
 
 doctype_link_properties = {

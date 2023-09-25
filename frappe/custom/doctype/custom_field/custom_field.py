@@ -371,6 +371,7 @@ def rename_fieldname(custom_field: str, fieldname: str):
 
 	frappe.db.commit()
 	frappe.clear_cache()
+	frappe.msgprint(_("Fieldname renamed to {0}").format(new_fieldname), alert=True)
 
 
 def _update_fieldname_references(
