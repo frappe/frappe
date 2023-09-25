@@ -25,7 +25,7 @@ def get_monthly_results(
 
 	return dict(
 		frappe.qb.get_query(
-			table=goal_doctype,
+			goal_doctype,
 			fields=[
 				DateFormat(Table[date_col], date_format).as_("month_year"),
 				Function(aggregation, goal_field),

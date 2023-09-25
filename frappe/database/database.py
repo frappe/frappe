@@ -770,7 +770,7 @@ class Database:
 			return self.value_cache[doctype][fieldname]
 
 		val = frappe.qb.get_query(
-			table="Singles",
+			"Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
 		).run()
@@ -812,7 +812,7 @@ class Database:
 		limit=None,
 	):
 		query = frappe.qb.get_query(
-			table=doctype,
+			doctype=doctype,
 			filters=filters,
 			order_by=order_by,
 			for_update=for_update,
@@ -899,7 +899,7 @@ class Database:
 		)
 
 		query = frappe.qb.get_query(
-			table=dt,
+			doctype=dt,
 			filters=dn,
 			update=True
 		)
@@ -1058,7 +1058,7 @@ class Database:
 			if cache_count is not None:
 				return cache_count
 		count = frappe.qb.get_query(
-			table=dt,
+			doctype=dt,
 			filters=filters,
 			fields=Count("*"),
 			distinct=distinct,
@@ -1183,7 +1183,7 @@ class Database:
 		"""
 		filters = filters or kwargs.get("conditions")
 		query = frappe.qb.get_query(
-			table=doctype,
+			doctype=doctype,
 			filters=filters,
 			delete=True,
 		)

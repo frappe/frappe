@@ -294,5 +294,5 @@ class TestNestedSet(FrappeTestCase):
 		self.assertNotIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=exclusive_filter)))
 		self.assertIn(record, str(frappe.qb.get_query(TEST_DOCTYPE, filters=inclusive_filter)))
 
-		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
-		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))
+		self.assertNotIn(record, str(frappe.qb.get_query(linked_doctype, filters=exclusive_link)))
+		self.assertIn(record, str(frappe.qb.get_query(linked_doctype, filters=inclusive_link)))

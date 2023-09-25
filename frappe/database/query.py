@@ -34,7 +34,7 @@ TABLE_NAME_PATTERN = re.compile(r"^[\w -]*$", flags=re.ASCII)
 class Engine:
 	def get_query(
 		self,
-		table: str | Table,
+		doctype: str | Table,
 		fields: list | tuple | None = None,
 		filters: dict[str, str | int] | str | int | list[list | str | int] | None = None,
 		order_by: str | None = None,
@@ -50,13 +50,13 @@ class Engine:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
 
-		if isinstance(table, Table):
-			self.table = table
-			self.doctype = get_doctype_name(table.get_sql())
+		if isinstance(doctype, Table):
+			self.table = doctype
+			self.doctype = get_doctype_name(doctype.get_sql())
 		else:
-			self.doctype = table
+			self.doctype = doctype
 			self.validate_doctype()
-			self.table = frappe.qb.DocType(table)
+			self.table = frappe.qb.DocType(doctype)
 
 		if update:
 			self.query = frappe.qb.update(self.table)
