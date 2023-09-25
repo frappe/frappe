@@ -32,7 +32,7 @@ Cypress.Commands.add("login", (email, password) => {
 		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
-		password = Cypress.env("adminPassword") || "admin";
+		password = Cypress.env("adminPassword");
 	}
 	cy.session(
 		[email, password] || "",
@@ -70,6 +70,9 @@ Cypress.Commands.add("call", (method, args) => {
 				})
 				.then((res) => {
 					expect(res.status).eq(200);
+					if (method === "logout") {
+						Cypress.session.clearAllSavedSessions();
+					}
 					return res.body;
 				});
 		});
