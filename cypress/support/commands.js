@@ -34,7 +34,7 @@ Cypress.Commands.add("login", (email, password) => {
 	if (!password) {
 		password = Cypress.env("adminPassword");
 	}
-	cy.session(
+	return cy.session(
 		[email, password] || "",
 		() => {
 			return cy.request({
@@ -53,9 +53,6 @@ Cypress.Commands.add("login", (email, password) => {
 });
 
 Cypress.Commands.add("call", (method, args) => {
-	if (method === "logout") {
-		cy.visit("/");
-	}
 	return cy
 		.window()
 		.its("frappe.csrf_token")
@@ -173,6 +170,7 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	}
 
 	if (fieldtype === "Select") {
+		cy.log("Selecting value", value);
 		cy.get("@input").select(value);
 	} else {
 		cy.get("@input").type(value, {
