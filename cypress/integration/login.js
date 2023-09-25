@@ -1,6 +1,6 @@
 context("Login", () => {
 	beforeEach(() => {
-		cy.request("/api/method/logout");
+		cy.call("logout");
 		cy.visit("/login");
 		cy.location("pathname").should("eq", "/login");
 	});
@@ -48,7 +48,7 @@ context("Login", () => {
 			base64_string: "aGVsbG8gYWxs",
 		});
 
-		cy.request("/api/method/logout");
+		cy.call("logout");
 
 		// redirect-to /me page with params to mock OAuth 2.0 like request
 		cy.visit(
