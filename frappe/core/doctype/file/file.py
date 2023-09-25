@@ -88,6 +88,7 @@ class File(Document):
 		self.set_file_name()
 		self.validate_attachment_limit()
 		self.set_file_type()
+		self.validate_file_extension()
 
 		if self.is_folder:
 			return
@@ -342,6 +343,20 @@ class File(Document):
 
 		file_extension = mimetypes.guess_extension(file_type)
 		self.file_type = file_extension.lstrip(".").upper() if file_extension else None
+
+	def validate_file_extension(self):
+		if self.is_folder or not self.file_type:
+			return
+
+		if extension := frappe.db.sql_list(
+			"select UPPER(extension) as extension from `tabFile Extension`"
+		):
+			if self.file_type not in extension:
+				frappe.throw(
+					"Only following extensions are allowed : {}".format(
+						", ".join(frappe.bold(ext) for ext in extension)
+					)
+				)
 
 	def validate_file_on_disk(self):
 		"""Validates existence file"""
