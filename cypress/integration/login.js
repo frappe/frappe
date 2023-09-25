@@ -1,5 +1,6 @@
 context("Login", () => {
 	beforeEach(() => {
+		cy.visit("/");
 		cy.call("logout");
 		cy.visit("/login");
 		cy.location("pathname").should("eq", "/login");
