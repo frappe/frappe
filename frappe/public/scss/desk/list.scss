@@ -402,10 +402,18 @@ input.list-check-all {
 
 	.filter-selector .btn-group {
 		margin: var(--margin-xs);
+
+		.filter-label {
+			display: inline-block;
+			font-weight: 600;
+			color: var(--text-color);
+			background-color: var(--control-bg);
+			min-width: 21px;
+			border-radius: 22px;
+		}
 	}
 
 	.filter-button.btn-primary-light {
-		outline: 1px solid var(--gray-800);
 		z-index: 1;
 	}
 

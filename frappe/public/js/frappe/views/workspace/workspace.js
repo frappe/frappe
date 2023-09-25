@@ -116,8 +116,8 @@ frappe.views.Workspace = class Workspace {
 					>
 						<span class="sidebar-item-icon" item-icon=${item.icon || "folder-normal"}>
 							${
-								item.icon
-									? frappe.utils.icon(item.icon, "md")
+								item.public
+									? frappe.utils.icon(item.icon || "folder-normal", "md")
 									: `<span class="indicator ${item.indicator_color}"></span>`
 							}
 						</span>
@@ -536,7 +536,7 @@ frappe.views.Workspace = class Workspace {
 			});
 
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("duplicate", "sm"),
+				frappe.utils.icon("es-line-duplicate", "sm"),
 				() => this.duplicate_page(item),
 				"duplicate-page",
 				__("Duplicate Workspace"),
@@ -545,7 +545,7 @@ frappe.views.Workspace = class Workspace {
 			);
 		} else if (item.is_hidden) {
 			frappe.utils.add_custom_button(
-				frappe.utils.icon("unhide", "sm"),
+				frappe.utils.icon("es-line-preview", "sm"),
 				(e) => this.unhide_workspace(item, e),
 				"unhide-workspace-btn",
 				__("Unhide Workspace"),
@@ -795,19 +795,19 @@ frappe.views.Workspace = class Workspace {
 			{
 				label: __("Edit"),
 				title: __("Edit Workspace"),
-				icon: frappe.utils.icon("edit", "sm"),
+				icon: frappe.utils.icon("es-line-edit", "sm"),
 				action: () => this.edit_page(item),
 			},
 			{
 				label: __("Duplicate"),
 				title: __("Duplicate Workspace"),
-				icon: frappe.utils.icon("duplicate", "sm"),
+				icon: frappe.utils.icon("es-line-duplicate", "sm"),
 				action: () => this.duplicate_page(item),
 			},
 			{
 				label: __("Hide"),
 				title: __("Hide Workspace"),
-				icon: frappe.utils.icon("hide", "sm"),
+				icon: frappe.utils.icon("es-line-hide", "sm"),
 				action: (e) => this.hide_workspace(item, e),
 			},
 		];
