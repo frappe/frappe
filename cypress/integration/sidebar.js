@@ -36,9 +36,9 @@ const attach_file = (file, no_of_files = 1) => {
 
 context("Sidebar", () => {
 	before(() => {
-		cy.visit("/login");
+		cy.visit("/");
 		cy.login();
-
+		cy.visit("/app");
 		return cy
 			.window()
 			.its("frappe")
