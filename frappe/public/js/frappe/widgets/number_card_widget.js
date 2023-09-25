@@ -177,7 +177,9 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_data() {
-		return frappe.xcall(this.settings.method, this.settings.args);
+		return frappe
+			.xcall(this.settings.method, this.settings.args)
+			.then((res) => this.settings.get_number(res));
 	}
 
 	get_number_for_custom_card(res) {
@@ -227,10 +229,10 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_number() {
-		this.settings.get_number(this.data);
+		const style_attr = this.card_doc.color ? `style="color: ${this.card_doc.color};"` : "";
 
 		$(this.body).html(`<div class="widget-content">
-			<div class="number" style="color:${this.card_doc.color}">${this.formatted_number}</div>
+			<div class="number" ${style_attr}>${this.formatted_number}</div>
 			</div>`);
 	}
 
