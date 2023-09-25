@@ -30,6 +30,16 @@ class FileUploader {
 			this.wrapper = wrapper.get ? wrapper.get(0) : wrapper;
 		}
 
+		if (restrictions && !restrictions.allowed_file_types) {
+			// apply global allow list if present
+			let allowed_extensions = frappe.sys_defaults?.allowed_file_extensions;
+			if (allowed_extensions) {
+				restrictions.allowed_file_types = allowed_extensions
+					.split("\n")
+					.map((ext) => `.${ext}`);
+			}
+		}
+
 		let app = createApp(FileUploaderComponent, {
 			show_upload_button: !Boolean(this.dialog),
 			doctype,
