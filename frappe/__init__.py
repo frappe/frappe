@@ -1449,9 +1449,9 @@ def get_site_path(*joins):
 	"""Return path of current site.
 
 	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import abspath, join
+	from os.path import join, normpath
 
-	return abspath(join(local.site_path, *joins))
+	return normpath(join(local.site_path, *joins))
 
 
 def get_pymodule_path(modulename, *joins):
