@@ -1285,6 +1285,9 @@ class Database:
 		"""Get estimated max row size of any table in bytes."""
 		raise NotImplementedError
 
+	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		raise NotImplementedError
+
 
 @contextmanager
 def savepoint(catch: type | tuple[type, ...] = Exception):
