@@ -1372,6 +1372,9 @@ def enqueue_jobs_after_commit():
 			)
 		frappe.flags.enqueue_after_commit = []
 
+	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		raise NotImplementedError
+
 
 @contextmanager
 def savepoint(catch: type | tuple[type, ...] = Exception):
