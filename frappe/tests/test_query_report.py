@@ -190,7 +190,6 @@ columns = [{
 data = columns, result
 				"""
 			report.save()
-			data = report.get_data()
 
 			custom_columns = [
 				{
