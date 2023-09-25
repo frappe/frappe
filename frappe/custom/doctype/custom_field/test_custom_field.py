@@ -2,7 +2,11 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.custom.doctype.custom_field.custom_field import (
+	create_custom_field,
+	create_custom_fields,
+	rename_fieldname,
+)
 from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Custom Field")
@@ -81,3 +85,23 @@ class TestCustomField(FrappeTestCase):
 			# undo changes commited by DDL
 			# nosemgrep
 			frappe.db.commit()
+
+	def test_custom_field_renaming(self):
+		def gen_fieldname():
+			return "test_" + frappe.generate_hash()
+
+		field = create_custom_field("ToDo", {"label": gen_fieldname()}, is_system_generated=False)
+		old = field.fieldname
+		new = gen_fieldname()
+		data = frappe.generate_hash()
+		doc = frappe.get_doc({"doctype": "ToDo", old: data, "description": "Something"}).insert()
+
+		rename_fieldname(field.name, new)
+		field.reload()
+		self.assertEqual(field.fieldname, new)
+
+		doc = frappe.get_doc("ToDo", doc.name)  # doc.reload doesn't clear old fields.
+		self.assertEqual(doc.get(new), data)
+		self.assertFalse(doc.get(old))
+
+		field.delete()
