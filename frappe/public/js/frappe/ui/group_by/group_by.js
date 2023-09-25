@@ -408,7 +408,9 @@ frappe.ui.GroupBy = class {
 	update_group_by_button() {
 		const group_by_applied = Boolean(this.group_by_field);
 		const button_label = group_by_applied
-			? __("Grouped by <span style='font-weight:600;'>{0}</b>", [this.get_group_by_field_label()])
+			? __("Grouped by <span style='font-weight:600;'>{0}</b>", [
+					this.get_group_by_field_label(),
+			  ])
 			: __("Add Group");
 
 		this.group_by_button
@@ -418,7 +420,10 @@ frappe.ui.GroupBy = class {
 		this.group_by_button.find(".group-by-icon").toggleClass("active", group_by_applied);
 
 		this.group_by_button.find(".button-label").html(button_label);
-		this.group_by_button.attr("title", `Results are Grouped by ${this.get_group_by_field_label()}`);
+		this.group_by_button.attr(
+			"title",
+			`Results are Grouped by ${this.get_group_by_field_label()}`
+		);
 	}
 
 	get_group_by_field_label() {
