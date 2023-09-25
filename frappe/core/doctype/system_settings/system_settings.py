@@ -156,8 +156,8 @@ class SystemSettings(Document):
 		if not self.allowed_file_extensions:
 			return
 
-		self.allowed_file_extensions = ",".join(
-			ext.strip().upper() for ext in self.allowed_file_extensions.split(",")
+		self.allowed_file_extensions = "\n".join(
+			ext.strip().upper() for ext in self.allowed_file_extensions.strip().splitlines()
 		)
 
 	def on_update(self):

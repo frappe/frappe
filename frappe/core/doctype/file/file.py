@@ -368,7 +368,7 @@ class File(Document):
 		if not allowed_extensions:
 			return
 
-		if self.file_type not in allowed_extensions.split(","):
+		if self.file_type not in allowed_extensions.splitlines():
 			frappe.throw(
 				_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed
 			)

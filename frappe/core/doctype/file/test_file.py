@@ -89,7 +89,7 @@ class TestFSRollbacks(FrappeTestCase):
 
 
 class TestExtensionValidations(FrappeTestCase):
-	@change_settings("System Settings", {"allowed_file_extensions": "JPG,CSV"})
+	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
 	def test_allowed_extension(self):
 		set_request(method="POST", path="/")
 		file_name = content = frappe.generate_hash()
