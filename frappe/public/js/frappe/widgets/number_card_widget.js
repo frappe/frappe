@@ -165,7 +165,7 @@ export default class NumberCardWidget extends Widget {
 		}
 
 		this.settings = this.get_settings(this.card_doc.type);
-		this.data = await this.get_data();
+		await this.get_data();
 
 		this.render_number();
 		this.render_stats();
@@ -177,8 +177,14 @@ export default class NumberCardWidget extends Widget {
 		</div>`);
 	}
 
+<<<<<<< HEAD
 	get_data() {
 		return frappe.xcall(this.settings.method, this.settings.args);
+=======
+	async get_data() {
+		this.data = await frappe.xcall(this.settings.method, this.settings.args);
+		return this.settings.get_number(this.data);
+>>>>>>> 4b1da7fe28 (fix: ensure that `this.data` is set in NumberCardWidget (#22527))
 	}
 
 	get_number_for_custom_card(res) {
