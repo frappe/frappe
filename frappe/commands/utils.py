@@ -850,7 +850,7 @@ def run_parallel_tests(
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
-@click.option("--browser", default="electron", help="Browser to run tests in")
+@click.option("--browser", default="chrome", help="Browser to run tests in")
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
@@ -859,7 +859,7 @@ def run_ui_tests(
 	headless=False,
 	parallel=True,
 	with_coverage=False,
-	browser="electron",
+	browser="chrome",
 	ci_build_id=None,
 	cypressargs=None,
 ):
