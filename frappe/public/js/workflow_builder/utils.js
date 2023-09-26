@@ -8,46 +8,27 @@ export function get_workflow_elements(workflow, workflow_data) {
 	let x = 150;
 	let y = 100;
 
-	const action_id_map = {
-		count: 1,
-		map: {}
-	};
-
 	workflow_data.forEach(data => {
 		if (data.type == 'state') {
 			states[data.id] = data;
 		}
 		else if (data.type == 'action') {
-			const id = `action-${action_id_map.count++}`;
-			if (/-\d+$/.test(data.id)) {
-				actions[data.id] = data;
-				action_id_map.map[data.id] = data.id;
-			} else {
-				actions[id] = data;
-				action_id_map.map[data.id] = id;
-				data.id = id;
-			}
+			actions[data.id] = data;
 		}
 		else if (data.type == 'transition') {
-			let source = data.source, target = data.target;
-			if (source.startsWith('action-')) {
-				const action = actions[action_id_map[source]];
+			transitions[`edge-${data.source}-${data.target}`] = data;
+
+			if (data.source.startsWith('action-')) {
+				const action = actions[data.source];
 				if (!action.data.to_id) {
-					action.data.to_id = target;
+					action.data.to_id = data.target;
 				}
-				data.source = source = action.id;
-			} else if (target.startsWith('action-')) {
-				const action = actions[action_id_map[target]];
+			} else if (data.target.startsWith('action-')) {
+				const action = actions[data.target];
 				if (!action.data.from_id) {
-					action.data.from_id = source;
+					action.data.from_id = data.source;
 				}
-				data.target = target = action.id;
 			}
-
-			transitions[`edge-${source}-${target}`] = data;
-
-			delete data.sourceNode;
-			delete data.targetNode;
 		}
 	})
 
