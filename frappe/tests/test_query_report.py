@@ -10,6 +10,11 @@ from frappe.utils.xlsxutils import make_xlsx
 
 
 class TestQueryReport(FrappeTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		cls.enable_safe_exec()
+		return super().setUpClass()
+
 	def tearDown(self):
 		frappe.db.rollback()
 
