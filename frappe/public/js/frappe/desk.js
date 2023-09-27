@@ -80,10 +80,9 @@ frappe.Application = class Application {
 			frappe.boot.onboarding_tours &&
 			frappe.boot.user.onboarding_status != null
 		) {
-			let pending_tours =
-				frappe.boot.onboarding_tours.findIndex((tour) => {
-					frappe.boot.user.onboarding_status[tour[0]]?.is_complete == true;
-				}) == -1;
+			let pending_tours = !frappe.boot.onboarding_tours.every(
+				(tour) => frappe.boot.user.onboarding_status[tour[0]]?.is_complete
+			);
 			if (pending_tours && frappe.boot.onboarding_tours.length > 0) {
 				frappe.require("onboarding_tours.bundle.js", () => {
 					frappe.utils.sleep(1000).then(() => {

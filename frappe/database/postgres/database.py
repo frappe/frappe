@@ -260,6 +260,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
+	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		table_name = get_table_name(doctype)
+		frappe.db.sql_ddl(
+			f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`"
+		)
+
 	def create_auth_table(self):
 		self.sql_ddl(
 			"""create table if not exists "__Auth" (

@@ -242,6 +242,49 @@ def create_custom_fields(custom_fields, ignore_validate=False, update=True):
 
 
 @frappe.whitelist()
-def add_custom_field(doctype, df):
-	df = json.loads(df)
-	return create_custom_field(doctype, df)
+def rename_fieldname(custom_field: str, fieldname: str):
+	frappe.only_for("System Manager")
+
+	field: CustomField = frappe.get_doc("Custom Field", custom_field)
+	parent_doctype = field.dt
+	old_fieldname = field.fieldname
+	field.fieldname = fieldname
+	field.set_fieldname()
+	new_fieldname = field.fieldname
+
+	if field.is_system_generated:
+		frappe.throw(_("System Generated Fields can not be renamed"))
+	if frappe.db.has_column(parent_doctype, fieldname):
+		frappe.throw(_("Can not rename as fieldname {0} is already present on DocType."))
+	if old_fieldname == new_fieldname:
+		frappe.msgprint(_("Old and new fieldnames are same."), alert=True)
+		return
+
+	frappe.db.rename_column(parent_doctype, old_fieldname, new_fieldname)
+
+	# Update in DB after alter column is successful, alter column will implicitly commit, so it's
+	# best to commit change on field too to avoid any possible mismatch between two.
+	field.db_set("fieldname", field.fieldname, notify=True)
+	_update_fieldname_references(field, old_fieldname, new_fieldname)
+
+	frappe.db.commit()
+	frappe.clear_cache()
+
+
+def _update_fieldname_references(
+	field: CustomField, old_fieldname: str, new_fieldname: str
+) -> None:
+	# Passwords are stored in auth table, so column name needs to be updated there.
+	if field.fieldtype == "Password":
+		Auth = frappe.qb.Table("__Auth")
+		frappe.qb.update(Auth).set(Auth.fieldname, new_fieldname).where(
+			(Auth.doctype == field.dt) & (Auth.fieldname == old_fieldname)
+		).run()
+
+	# Update ordering reference.
+	frappe.db.set_value(
+		"Custom Field",
+		{"insert_after": old_fieldname, "dt": field.dt},
+		"insert_after",
+		new_fieldname,
+	)

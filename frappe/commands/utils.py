@@ -911,10 +911,10 @@ def run_ui_tests(
 		click.secho("Installing Cypress...", fg="yellow")
 		packages = " ".join(
 			[
-				"cypress@^10",
+				"cypress@^13",
 				"@4tw/cypress-drag-drop@^2",
 				"cypress-real-events",
-				"@testing-library/cypress@^8",
+				"@testing-library/cypress@^10",
 				"@testing-library/dom@8.17.1",
 				"@cypress/code-coverage@^3",
 			]
