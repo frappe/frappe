@@ -235,7 +235,11 @@ export default class BulkOperations {
 	}
 
 	edit(docnames, field_mappings, done) {
-		let field_options = Object.keys(field_mappings).sort();
+		let field_options = Object.keys(field_mappings).sort(function (a, b) {
+			return __(cstr(field_mappings[a].label)).localeCompare(
+				cstr(__(field_mappings[b].label))
+			);
+		});
 		const status_regex = /status/i;
 
 		const default_field = field_options.find((value) => status_regex.test(value));
