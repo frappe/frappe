@@ -18,6 +18,7 @@ from frappe.query_builder.functions import Function, SqlFunctions
 from frappe.query_builder.utils import PseudoColumnMapper
 from frappe.utils.data import MARIADB_SPECIFIC_COMMENT
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.model import get_permitted_fields, optional_fields
 
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
@@ -64,11 +65,14 @@ class Engine:
 			self.validate_doctype()
 			self.table = frappe.qb.DocType(doctype)
 
+		# parent_doctype is required for permission check if doctype is a child table
 		self.parent_doctype = parent_doctype
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
 		self.reference_doctype = reference_doctype or self.doctype
+
+		self.apply_permissions = apply_permissions
 
 		if update:
 			self.query = frappe.qb.update(self.table)
@@ -78,11 +82,14 @@ class Engine:
 			self.query = frappe.qb.from_(self.table).delete()
 		else:
 			self.query = frappe.qb.from_(self.table)
-			self.apply_fields(fields)
 
 		# reference to engine
 		self.query._engine = self
 
+		if self.apply_permissions:
+			self.query_permissions = QueryPermissions(self.query, frappe.session.user)
+
+		self.apply_fields(fields)
 		self.apply_filters(filters)
 		self.apply_order_by(order_by)
 
@@ -101,9 +108,10 @@ class Engine:
 		if group_by:
 			self.query = self.query.groupby(group_by)
 
-		if apply_permissions:
-			query_permissions = QueryPermissions(self.query, frappe.session.user)
-			self.query = query_permissions.apply_all()
+		if self.apply_permissions:
+			where_clause = self.query_permissions.get_where_clause()
+			if where_clause:
+				self.query = self.query.where(where_clause)
 
 		return self.query
 
@@ -112,10 +120,13 @@ class Engine:
 			frappe.throw(_("Invalid DocType: {0}").format(self.doctype))
 
 	def apply_fields(self, fields):
-		# add fields
 		self.fields = self.parse_fields(fields)
+
 		if not self.fields:
 			self.fields = [getattr(self.table, "name")]
+
+		if self.apply_permissions:
+			self.fields = self.query_permissions.filter_fields(self.fields)
 
 		self.query._child_queries = []
 		for field in self.fields:
@@ -411,7 +422,7 @@ class DynamicTableField:
 				if linked_field.fieldtype == "Link":
 					return LinkTableField(linked_doctype, fieldname, doctype, linked_fieldname, alias=alias)
 				elif linked_field.fieldtype in frappe.model.table_fields:
-					return ChildTableField(linked_doctype, fieldname, doctype, alias=alias)
+					return ChildTableField(linked_doctype, fieldname, doctype, linked_fieldname, alias=alias)
 
 	def apply_select(self, query: QueryBuilder) -> QueryBuilder:
 		raise NotImplementedError
@@ -423,9 +434,11 @@ class ChildTableField(DynamicTableField):
 		doctype: str,
 		fieldname: str,
 		parent_doctype: str,
+		child_fieldname: str | None = None,
 		alias: str | None = None,
 	) -> None:
 		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
+		self.child_fieldname = child_fieldname
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
@@ -438,9 +451,14 @@ class ChildTableField(DynamicTableField):
 		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(table):
-			query = query.left_join(table).on(
-				(table.parent == main_table.name) & (table.parenttype == self.parent_doctype)
-			)
+			if self.child_fieldname:
+				query = query.left_join(table).on(
+					(table.parent == main_table.name) & (table.parenttype == self.parent_doctype) & (table.parentfield == self.child_fieldname)
+				)
+			else:
+				query = query.left_join(table).on(
+					(table.parent == main_table.name) & (table.parenttype == self.parent_doctype)
+				)
 		return query
 
 
@@ -512,8 +530,9 @@ class QueryPermissions:
 		self.has_if_owner_constraint = False
 		self.user_permission_conditions = []
 		self.shared_doc_names = []
+		self.permitted_fields = {}
 
-	def apply_all(self):
+	def get_where_clause(self):
 		# Role Permissions: select, read
 		if not self.has_read_permission(self.engine.doctype, self.engine.parent_doctype):
 			self.throw_read_permission_error(self.engine.doctype)
@@ -537,11 +556,6 @@ class QueryPermissions:
 
 		# Permission Query (hook)
 		self.permission_query_conditions = self.get_permission_query_conditions()
-
-		# TODO
-		# Permitted Fields based on Permlevel
-		# Permitted Fields based on Only Select
-		# Check read permissions on magic fields like (customer.title)
 
 		where_clause = None
 		if only_shared_applicable:
@@ -568,11 +582,54 @@ class QueryPermissions:
 			elif conditions:
 				where_clause = Criterion.all([*conditions])
 
-		if where_clause:
-			self.query = self.query.where(where_clause)
+		return where_clause
 
-		return self.query
+	def filter_fields(self, fields):
+		'''Filter fields based on perm level'''
+		filtered_fields = []
+		for field in fields:
+			if isinstance(field, LinkTableField):
+				# check if the link field itself is permitted as well as the fieldname of the linked doctype
+				if self.is_field_permitted(field.link_fieldname, field.parent_doctype) and self.is_field_permitted(field.fieldname, field.doctype):
+					filtered_fields.append(field)
+			elif isinstance(field, ChildTableField):
+				# check if the child table field itself is permitted
+				# child field can come from child_field.fieldname or `tabChild Table`.`fieldname` syntax
+				# in the latter case, we don't know the child field so we can't check if it's permitted
+				child_field_is_valid = self.is_child_field_permitted(field.child_fieldname, field.parent_doctype) if field.child_fieldname else True
+				# check if child field itself is valid as well as the fieldname of the child table doctype
+				if child_field_is_valid and self.is_field_permitted(field.fieldname, field.doctype, field.parent_doctype):
+					filtered_fields.append(field)
+			elif isinstance(field, ChildQuery):
+				# check if the child table field is permitted
+				# not sure if we should filter the child table fields here because you can't configure perm levels for child table fields
+				if self.is_field_permitted(field.fieldname, field.parent_doctype):
+					filtered_fields.append(field)
+			elif isinstance(field, Field) and field.name == '*':
+				doctype = get_doctype_name(field.table.get_sql())
+				filtered_fields += self.get_permitted_fields(doctype)
+			elif isinstance(field, Field):
+				# check if the field is permitted
+				doctype = get_doctype_name(field.table.get_sql())
+				fieldname = field.name
+				if self.is_field_permitted(fieldname, doctype):
+					filtered_fields.append(field)
+		return filtered_fields
 
+	def is_field_permitted(self, fieldname, doctype, parent_doctype=None):
+		permitted_fields = self.get_permitted_fields(doctype, parent_doctype)
+		return fieldname in (permitted_fields + list(optional_fields))
+
+	def is_child_field_permitted(self, child_field, parent_doctype):
+		'''Child field is not considered in `get_permitted_fields`. this has to be done separately'''
+		# TODO
+		pass
+
+	def get_permitted_fields(self, doctype, parent_doctype=None):
+		if doctype not in self.permitted_fields:
+			ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
+			self.permitted_fields[doctype] = get_permitted_fields(doctype, parent_doctype, self.user, ptype)
+		return self.permitted_fields[doctype]
 
 	def get_shared_permissions(self):
 		return frappe.share.get_shared(self.engine.doctype, user=self.user, rights=["read"])
