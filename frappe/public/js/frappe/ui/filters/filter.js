@@ -90,6 +90,7 @@ frappe.ui.Filter = class {
 			parent_doctype: this._parent_doctype,
 			filter_fields: this.filter_fields,
 			input_class: "input-xs",
+			only_link_fields: this.only_link_fields,
 			select: (doctype, fieldname) => {
 				this.set_field(doctype, fieldname);
 			},

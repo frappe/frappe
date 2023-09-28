@@ -101,6 +101,8 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 			continue
 
 		old_value, new_value = old.get(df.fieldname), new.get(df.fieldname)
+		old_value = old_value or []
+		new_value = new_value or []
 
 		if not for_child and df.fieldtype in table_fields:
 			old_rows_by_name = {}

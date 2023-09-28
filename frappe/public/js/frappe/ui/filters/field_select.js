@@ -115,7 +115,11 @@ frappe.ui.FieldSelect = class FieldSelect {
 		}
 
 		// main table
-		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
+		var main_table_fields = this.only_link_fields
+			? std_filters
+					.concat(frappe.meta.docfield_list[me.doctype])
+					.filter((df) => df.fieldtype === "Link")
+			: std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function (i, df) {
 			let doctype =
 				frappe.get_meta(me.doctype).istable && me.parent_doctype

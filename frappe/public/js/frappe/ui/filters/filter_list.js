@@ -227,6 +227,7 @@ frappe.ui.FilterGroup = class {
 			condition: condition,
 			value: value,
 			hidden: hidden,
+			only_link_fields: this.only_link_fields,
 			index: this.filters.length + 1,
 			on_change: (update) => {
 				if (update) this.update_filters();
