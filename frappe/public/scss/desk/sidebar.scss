@@ -397,9 +397,8 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 }
 
-.attachments-actions {
+.attachments-actions, .explore-full-btn > .data-pill.btn {
 	display: flex;
-	gap: 5px;
 	max-width: 100%;
 }
 
@@ -409,8 +408,19 @@ body[data-route^="Module"] .main-menu {
 }
 
 .show-all-btn {
-	margin-top: var(--margin-md);
-	text-align: center;
+	width: 100%;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--bg-color);
+	text-align: start;
+	padding-left: 8px;
+	margin-bottom: var(--margin-sm);
+
+	a.pill-label.ellipsis {
+		&:hover {
+			text-decoration: none;
+		}
+	}
 }
 .form-assignments, .form-shared {
 	.assignments, .shares {

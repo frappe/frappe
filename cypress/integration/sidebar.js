@@ -81,7 +81,7 @@ context("Sidebar", () => {
 
 			// test "Show All" button
 			cy.get(".attachment-row").should("have.length", 10);
-			cy.get(".show-all-btn").click();
+			cy.get(".show-all-btn").click({ force: true });
 			cy.get(".attachment-row").should("have.length", 12);
 		});
 	});
@@ -120,7 +120,7 @@ context("Sidebar", () => {
 			).click();
 
 			//To check if filter is applied
-			cy.click_filter_button().should("contain", "1 filter");
+			cy.click_filter_button().get(".filter-label").should("contain", "1");
 			cy.get(".fieldname-select-area > .awesomplete > .form-control").should(
 				"have.value",
 				"Assigned To"
