@@ -17,7 +17,7 @@ def unzip_file(name: str):
 def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	"""get list of image urls attached in form
 	returns {name: ['image.jpg', 'image.png']}"""
-
+	file_type = ["PNG", "JPEG", "JPG", "GIF", "BMP", "WEBP"]
 	if isinstance(names, str):
 		names = json.loads(names)
 
@@ -27,6 +27,7 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 			"attached_to_doctype": doctype,
 			"attached_to_name": ("in", names),
 			"is_folder": 0,
+			"file_type": ("in", file_type),
 		},
 		fields=["file_url", "attached_to_name as docname"],
 	)
