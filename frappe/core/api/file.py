@@ -1,5 +1,7 @@
 import json
 
+from PIL import Image
+
 import frappe
 from frappe.core.doctype.file.file import File
 from frappe.core.doctype.file.utils import setup_folder_path
@@ -17,7 +19,8 @@ def unzip_file(name: str):
 def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	"""get list of image urls attached in form
 	returns {name: ['image.jpg', 'image.png']}"""
-	file_type = ["PNG", "JPEG", "JPG", "GIF", "BMP", "WEBP"]
+	exts = Image.registered_extensions()
+	file_type = [val for key, val in exts.items() if val in Image.OPEN]
 	if isinstance(names, str):
 		names = json.loads(names)
 
