@@ -63,6 +63,14 @@ select.form-control {
 	.link-field {
 		width: 100%;
 	}
+
+	.tb-selected-value {
+		display: inline-block;
+		height: auto;
+		box-shadow: none;
+		background-color: var(--bg-color);
+		border: 1px solid var(--border-color);
+	}
 }
 
 .table-multiselect.form-control input {
@@ -372,14 +380,6 @@ textarea.form-control {
 
 .markdown-toggle, .html-toggle {
 	margin-bottom: var(--margin-xs);
-}
-
-.tb-selected-value {
-	display: inline-block;
-	margin-right: var(--margin-xs);
-	margin-bottom: var(--margin-xs);
-	box-shadow: none;
-	border: 1px solid var(--dark-border-color);
 }
 
 .barcode-scanner {
