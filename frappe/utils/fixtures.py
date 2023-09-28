@@ -67,7 +67,7 @@ def export_fixtures(app=None):
 	else:
 		apps = frappe.get_installed_apps()
 	for app in apps:
-		fixture_auto_order = bool(frappe.get_hooks("fixture_auto_order", app_name=app))
+		fixture_auto_order = bool(next(iter(frappe.get_hooks("fixture_auto_order", app_name=app)), False))
 		fixtures = frappe.get_hooks("fixtures", app_name=app)
 		for index, fixture in enumerate(fixtures, start=1):
 			filters = None
