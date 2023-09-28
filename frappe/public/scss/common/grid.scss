@@ -27,6 +27,7 @@
 		.search {
 			// TODO: Align with table grid without overwriting padding if possible
 			padding: 4px 7px 4px 7px !important;
+			border-bottom: 1px solid var(--table-border-color);
 		}
 	}
 
