@@ -539,20 +539,8 @@ def calculate_at_hash(access_token, hash_alg):
 
 
 def delete_oauth2_data():
-	# Delete Invalid Authorization Code and Revoked Token
-	commit_code, commit_token = False, False
-	code_list = frappe.get_all("OAuth Authorization Code", filters={"validity": "Invalid"})
-	token_list = frappe.get_all("OAuth Bearer Token", filters={"status": "Revoked"})
-	if len(code_list) > 0:
-		commit_code = True
-	if len(token_list) > 0:
-		commit_token = True
-	for code in code_list:
-		frappe.delete_doc("OAuth Authorization Code", code["name"])
-	for token in token_list:
-		frappe.delete_doc("OAuth Bearer Token", token["name"])
-	if commit_code or commit_token:
-		frappe.db.commit()
+	frappe.db.delete("OAuth Authorization Code", {"validity": "Invalid"})
+	frappe.db.delete("OAuth Bearer Token", {"status": "Revoked"})
 
 
 def get_client_scopes(client_id):
