@@ -180,7 +180,7 @@ def get_doc_permissions(doc, user=None, ptype=None):
 		return (doc.get("owner") or "").lower() == user.lower()
 
 	if has_controller_permissions(doc, ptype, user=user) is False:
-		push_perm_check_log("Not allowed via controller permission check")
+		push_perm_check_log(_("Not allowed via controller permission check"))
 		return {ptype: 0}
 
 	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner()))
@@ -703,7 +703,7 @@ def push_perm_check_log(log):
 	if frappe.flags.get("has_permission_check_logs") is None:
 		return
 
-	frappe.flags.get("has_permission_check_logs").append(_(log))
+	frappe.flags.get("has_permission_check_logs").append(log)
 
 
 def has_child_permission(
