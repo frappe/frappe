@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{docfield_filter}",
+ "autoname": "format:{reference_doctype}",
  "beta": 1,
  "creation": "2023-09-27 14:17:09.170932",
  "default_view": "List",
@@ -35,7 +35,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-27 20:40:12.039449",
+ "modified": "2023-09-28 16:09:48.865698",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Fields Filter",
