@@ -732,7 +732,11 @@ def has_permission(doc, ptype=None, user=None):
 		attached_to_doctype = doc.attached_to_doctype
 		attached_to_name = doc.attached_to_name
 
-		ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		try:
+			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			return False
 
 		if ptype in ["write", "create", "delete"]:
 			return ref_doc.has_permission("write")
