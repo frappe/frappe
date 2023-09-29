@@ -9,7 +9,9 @@ context("Theme Switcher Shortcut", () => {
 	it("Check Toggle", () => {
 		cy.open_theme_dialog();
 		cy.get(".modal-backdrop").should("exist");
-		cy.intercept("POST", "/api/method/frappe.core.doctype.user.user.switch_theme").as("set_theme");
+		cy.intercept("POST", "/api/method/frappe.core.doctype.user.user.switch_theme").as(
+			"set_theme"
+		);
 		cy.findByText("Timeless Night").click();
 		cy.wait("@set_theme");
 		cy.close_theme("{ctrl+shift+g}");
@@ -17,7 +19,9 @@ context("Theme Switcher Shortcut", () => {
 	});
 	it("Check Enter", () => {
 		cy.open_theme_dialog();
-		cy.intercept("POST", "/api/method/frappe.core.doctype.user.user.switch_theme").as("set_theme");
+		cy.intercept("POST", "/api/method/frappe.core.doctype.user.user.switch_theme").as(
+			"set_theme"
+		);
 		cy.findByText("Frappe Light").click();
 		cy.wait("@set_theme");
 		cy.close_theme("{enter}");
