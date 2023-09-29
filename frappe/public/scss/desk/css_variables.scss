@@ -3,12 +3,12 @@
 :root,
 [data-theme="light"] {
 	// breakpoints
-	--xxl-width: map-get($grid-breakpoints, '2xl');
-	--xl-width: map-get($grid-breakpoints, 'xl');
-	--lg-width: map-get($grid-breakpoints, 'lg');
-	--md-width: map-get($grid-breakpoints, 'md');
-	--sm-width: map-get($grid-breakpoints, 'sm');
-	--xs-width: map-get($grid-breakpoints, 'xs');
+	--xxl-width: #{map-get($grid-breakpoints, '2xl')};
+	--xl-width: #{map-get($grid-breakpoints, 'xl')};
+	--lg-width: #{map-get($grid-breakpoints, 'lg')};
+	--md-width: #{map-get($grid-breakpoints, 'md')};
+	--sm-width: #{map-get($grid-breakpoints, 'sm')};
+	--xs-width: #{map-get($grid-breakpoints, 'xs')};
 
 	--text-bold: 500;
 
