@@ -43,6 +43,9 @@ export function get_workflow_elements(workflow, workflow_data) {
 				id: id.toString(),
 				type: "state",
 				position: { x, y },
+				selected: false,
+				dragging: false,
+				resizing: false,
 				data,
 			};
 		}
@@ -62,6 +65,9 @@ export function get_workflow_elements(workflow, workflow_data) {
 				id,
 				type: "action",
 				position,
+				selected: false,
+				dragging: false,
+				resizing: false,
 				data,
 			};
 		}
@@ -84,6 +90,9 @@ export function get_workflow_elements(workflow, workflow_data) {
 				targetHandle: "left",
 				updatable: true,
 				animated: true,
+				selected: false,
+				dragging: false,
+				resizing: false,
 			};
 		}
 
