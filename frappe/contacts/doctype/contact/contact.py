@@ -183,13 +183,9 @@ def invite_user(contact):
 @frappe.whitelist()
 def get_contact_details(contact):
 	contact = frappe.get_doc("Contact", contact)
-<<<<<<< HEAD
-	out = {
-=======
 	contact.check_permission()
 
 	return {
->>>>>>> 20178bd3eb (fix: improved validation for address and contact)
 		"contact_person": contact.get("name"),
 		"contact_display": " ".join(
 			filter(None, [contact.get("salutation"), contact.get("first_name"), contact.get("last_name")])
@@ -200,7 +196,6 @@ def get_contact_details(contact):
 		"contact_designation": contact.get("designation"),
 		"contact_department": contact.get("department"),
 	}
-	return out
 
 
 def update_contact(doc, method):
