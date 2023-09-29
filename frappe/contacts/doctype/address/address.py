@@ -131,7 +131,9 @@ def get_address_display(address_dict: dict | str | None = None) -> str | None:
 		return
 
 	if not isinstance(address_dict, dict):
-		address_dict = frappe.db.get_value("Address", address_dict, "*", as_dict=True, cache=True) or {}
+		address = frappe.get_cached_doc("Address", address_dict)
+		address.check_permission()
+		address_dict = address.as_dict()
 
 	name, template = get_address_templates(address_dict)
 
