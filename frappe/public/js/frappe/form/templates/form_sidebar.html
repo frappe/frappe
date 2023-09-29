@@ -45,7 +45,7 @@
 	<li class="flex flex-wrap">
 		<span class="assignments"></span>
 		<button class="add-assignment-btn data-pill btn">
-			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-customer"></use></svg>
+			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-add-people"></use></svg>
 			<span class="ellipsis">{%= __("Add Assignee") %}</span>
 		</button>
 	</li>
@@ -56,21 +56,22 @@
 
 		<li class="explore-full-btn hidden">
 			<button class="data-pill btn">
+				<svg class="es-icon mr-2 icon-sm">
+					<use href="#es-line-folder-alt"></use>
+				</svg>
 				<span class="pill-label ellipsis">
 					{%= __("Explore Files") %}
 				</span>
-				<svg class="es-icon icon-sm">
-					<use href="#es-line-folder-alt"></use>
-				</svg>
 			</button>
 		</li>
-
-
-		<li class="show-all-btn hidden">
+		<button class="show-all-btn hidden">
+			<svg class="es-icon icon-sm">
+				<use href="#es-line-preview"></use>
+			</svg>
 			<a href="" class="pill-label ellipsis">
 				{%= __("Show All") %}
 			</a>
-		</li>
+		</button>
 	</li>
 	<li class="attachments-actions">
 		<button class="data-pill btn add-attachment-btn">
@@ -106,7 +107,7 @@
 </ul>
 <ul class="list-unstyled sidebar-menu form-shared">
 	<li class="sidebar-label">
-		{%= __("Shared With") %}
+		{%= __("Share") %}
 	</li>
 	<li class="flex flex-wrap">
 		<span class="shares"></span>

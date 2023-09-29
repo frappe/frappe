@@ -241,14 +241,8 @@ h2 {
 .btn-group {
 	.btn {
 		box-shadow: none;
-		outline: 1px solid var(--btn-group-border-color);
-
-		&:not(:first-child) {
-			margin-left: 1px;
-		}
-
-		&:focus {
-			outline: 2px solid var(--dark-border-color);
+		&:nth-child(2) {
+			border-left: 1px solid var(--btn-group-border-color);
 		}
 	}
 }

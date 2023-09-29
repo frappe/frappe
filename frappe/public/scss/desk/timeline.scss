@@ -94,7 +94,7 @@ $threshold: 34;
 			padding: var(--padding-sm);
 			margin-left: var(--margin-md);
 			&.frappe-card {
-				color: var(--gray-900);
+				color: var(--text-neutral);
 				background-color: var(--bg-color);
 				box-shadow: none;
 				border: 1px solid var(--border-color);
@@ -105,7 +105,7 @@ $threshold: 34;
 					margin: 0 var(--margin-sm);
 				}
 
-				.ql-editor.read-mode{
+				.content{
 					padding-left: 42px;
 					.mention{
 						background-color: transparent;

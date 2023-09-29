@@ -229,7 +229,7 @@ frappe.ui.GroupBy = class {
 			$(`<div class="group-by-selector">
 				<button class="btn btn-default btn-sm group-by-button ellipsis">
 					<span class="group-by-icon">
-						${frappe.utils.icon("es-line-group")}
+						${frappe.utils.icon("es-line-folder-alt")}
 					</span>
 					<span class="button-label hidden-xs">
 						${__("Add Group")}
@@ -408,7 +408,9 @@ frappe.ui.GroupBy = class {
 	update_group_by_button() {
 		const group_by_applied = Boolean(this.group_by_field);
 		const button_label = group_by_applied
-			? __("Group By {0}", [this.get_group_by_field_label()])
+			? __("Grouped by <span style='font-weight:600;'>{0}</b>", [
+					this.get_group_by_field_label(),
+			  ])
 			: __("Add Group");
 
 		this.group_by_button
@@ -418,7 +420,10 @@ frappe.ui.GroupBy = class {
 		this.group_by_button.find(".group-by-icon").toggleClass("active", group_by_applied);
 
 		this.group_by_button.find(".button-label").html(button_label);
-		this.group_by_button.attr("title", button_label);
+		this.group_by_button.attr(
+			"title",
+			`Results are Grouped by ${this.get_group_by_field_label()}`
+		);
 	}
 
 	get_group_by_field_label() {

@@ -92,7 +92,7 @@
 		min-width: 80%;
 	}
 	.level-right {
-		flex: 1.5;
+		flex: 1;
 		overflow: visible;
 	}
 
@@ -207,11 +207,17 @@ $level-margin-right: 8px;
 .list-paging-area, .footnote-area {
 	border-top: 1px solid var(--border-color);
 
-	.btn-group .btn-paging.btn-info {
-		background-color: var(--bg-color);
-		border-color: var(--gray-600);
-		color: var(--text-color);
-		font-weight: var(--weight-medium);
+	.btn-group {
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius);
+		.btn-paging.btn-info {
+			&:not(:first-child) {
+				border-left: 1px solid var(--border-color);
+			}
+			background-color: var(--bg-color);
+			color: var(--text-color);
+			font-weight: var(--weight-medium);
+	   }
 	}
 	.btn-paging {
 		background-color: var(--gray-50);
@@ -402,10 +408,18 @@ input.list-check-all {
 
 	.filter-selector .btn-group {
 		margin: var(--margin-xs);
+
+		.filter-label {
+			display: inline-block;
+			font-weight: 600;
+			color: var(--text-color);
+			background-color: var(--control-bg);
+			min-width: 21px;
+			border-radius: 22px;
+		}
 	}
 
 	.filter-button.btn-primary-light {
-		outline: 1px solid var(--gray-800);
 		z-index: 1;
 	}
 
