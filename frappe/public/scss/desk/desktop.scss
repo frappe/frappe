@@ -663,7 +663,7 @@ body {
 			}
 
 			.card-actions {
-				margin-top: -15px;
+				margin-top: -6px;
 			}
 		}
 
@@ -676,7 +676,7 @@ body {
 			}
 
 			.widget-content {
-				@include flex(flex, space-between, null, null);
+				@include flex(flex, space-between, null, column);
 				padding-top: var(--padding-md);
 
 				.number {
@@ -697,7 +697,7 @@ body {
 
 				.percentage-stat-area {
 					font-size: $font-size-sm;
-					margin-left: var(--margin-xs);
+					margin-top: var(--margin-sm);
 
 					.indicator-pill-round {
 						height: 18px;

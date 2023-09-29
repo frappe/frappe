@@ -8,6 +8,7 @@
 	margin: 70px auto;
 	border-radius: var(--border-radius-md);
 	background-color: var(--fg-color);
+    border: 1px solid var(--border-color);
 }
 
 .for-reset-password {
