@@ -7,7 +7,7 @@ from frappe import _
 
 def get_context():
 	_apps = frappe.get_installed_apps()
-	apps = [
+	app_shortcuts = [
 		{
 			"name": "frappe",
 			"icon_url": "/assets/frappe/images/frappe-framework-logo.svg",
@@ -21,7 +21,7 @@ def get_context():
 		if app_icon_url and app_icon_route:
 			app_title = frappe.get_hooks("app_title", app_name=app)
 			icon_title = frappe.get_hooks("app_icon_title", app_name=app)
-			apps.append(
+			app_shortcuts.append(
 				{
 					"name": app,
 					"icon_url": app_icon_url[0],
@@ -29,11 +29,11 @@ def get_context():
 					"route": app_icon_route[0],
 				}
 			)
-	apps.append(
+	app_shortcuts.append(
 		{
 			"icon_url": "/assets/frappe/images/my-settings.svg",
-			"title": _("My Settings"),
-			"route": "/me",
+			"title": _("Users"),
+			"route": "/app/user",
 		}
 	)
-	return {"apps": apps}
+	return {"apps": app_shortcuts}

@@ -1,5 +1,5 @@
 .container {
-    max-width: 800px;
+    max-width: 1000px;
     padding: 0 1.25rem;
 }
 
@@ -7,8 +7,14 @@
     margin-top: 2rem;
     margin-bottom: 2rem;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
-    gap: 4rem;
+    grid-template-columns: repeat(6, 60px);
+    row-gap: 50px;
+    justify-content: space-between;
+}
+
+.apps-title {
+    margin: 0;
+    font-size: var(--font-size-xl);
 }
 
 .app-icon {
@@ -20,8 +26,8 @@
 }
 
 .app-logo {
-    width: 4.5rem;
-    height: 4.5rem;
+    width: 60px;
+    height: 60px;
     object-fit: cover;
     transition: transform 0.2s;
     border-radius: 13px;
@@ -38,20 +44,21 @@
 .app-title {
     margin-top: 0.5rem;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 400;
     white-space: nowrap;
+    letter-spacing: 0.05em;
     color: var(--gray-900);
+}
+
+@media (max-width: 900px) {
+    .apps-container {
+        grid-template-columns: repeat(6, 60px);
+    }
 }
 
 @media (max-width: 575px) {
     .apps-container {
-        grid-template-columns: repeat(auto-fill, minmax(3.5rem, 1fr));
-        gap: 2rem;
-    }
-
-    .app-logo {
-        width: 3.5rem;
-        height: 3.5rem;
+        grid-template-columns: repeat(4, 60px);
     }
 
     .app-title {

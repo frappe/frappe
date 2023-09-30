@@ -10,16 +10,21 @@ base_template: 'templates/base.html'
 
 {% block content %}
 <div class="container">
-    <h2 class="font-size-xl">{{ _("Apps") }}</h2>
-    <div class="apps-container">
-        {% for app in apps %}
-        <a href="{{ app.route }}" class="app-icon">
-            <img class="app-logo" src="{{ app.icon_url }}" />
-            <div class="app-title">
-                {{ app.title }}
-            </div>
-        </a>
-        {% endfor %}
+    <div class="mt-10 px-2">
+        <div class="d-flex justify-content-between">
+            <h2 class="apps-title">{{ _("Apps") }}</h2>
+            <a class="btn btn-default" href="/me">{{ _('My Account') }}</a>
+        </div>
+        <div class="apps-container">
+            {% for app in apps %}
+            <a href="{{ app.route }}" class="app-icon">
+                <img class="app-logo" src="{{ app.icon_url }}" />
+                <div class="app-title">
+                    {{ app.title }}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}
