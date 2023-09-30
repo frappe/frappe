@@ -12,7 +12,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, is_html, nowdate, validate_email_address
+from frappe.utils import add_to_date, cast, nowdate, validate_email_address
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -94,8 +94,16 @@ class Notification(Document):
 		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path:
-			# js
-			if not os.path.exists(path + ".md") and not os.path.exists(path + ".html"):
+			formats = [".md", ".html", ".txt"]
+
+			for ext in formats:
+				file_path = path + ext
+				if os.path.exists(file_path):
+					with open(file_path, "w") as f:
+						f.write(self.message)
+					break
+
+			else:
 				with open(path + ".md", "w") as f:
 					f.write(self.message)
 
@@ -399,7 +407,7 @@ def get_context(context):
 				}
 			]
 
-	def get_template(self):
+	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
 
 		def load_template(extn):
@@ -410,7 +418,15 @@ def get_context(context):
 					template = f.read()
 			return template
 
-		return load_template(".html") or load_template(".md")
+		formats = [".html", ".md", ".txt"]
+
+		for format in formats:
+			template = load_template(format)
+			if template:
+				if format == ".md" and md_as_html:
+					return frappe.utils.md_to_html(template)
+				else:
+					return template
 
 	def load_standard_properties(self, context):
 		"""load templates and run get_context"""
@@ -421,10 +437,7 @@ def get_context(context):
 				if out:
 					context.update(out)
 
-		self.message = self.get_template()
-
-		if not is_html(self.message):
-			self.message = frappe.utils.md_to_html(self.message)
+		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
 		frappe.cache.hdel("notifications", self.document_type)
