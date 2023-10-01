@@ -161,9 +161,12 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 			if (data) {
 				me.dialog.working = true;
-				me.dialog.set_message(__("Saving..."));
 				me.insert().then(() => {
-					me.dialog.clear_message();
+					let messagetxt = __("Created new {0} {1}", [
+						__(me.doctype),
+						this.doc.name.bold(),
+					]);
+					frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
 				});
 			}
 		});
