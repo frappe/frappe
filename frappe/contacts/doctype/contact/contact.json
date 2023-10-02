@@ -250,7 +250,11 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2020-08-27 14:12:09.906719",
+=======
+ "modified": "2023-10-02 12:00:27.299156",
+>>>>>>> ca726a82b4 (fix: Give All role permission to read/create own address and contact)
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
@@ -374,12 +378,21 @@
    "write": 1
   },
   {
-   "permlevel": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
    "read": 1,
    "report": 1,
-   "role": "All"
+   "role": "All",
+   "write": 1
   }
  ],
  "sort_field": "modified",
+<<<<<<< HEAD
  "sort_order": "ASC"
+=======
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "full_name"
+>>>>>>> ca726a82b4 (fix: Give All role permission to read/create own address and contact)
 }
