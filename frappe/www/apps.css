@@ -3,6 +3,18 @@
     padding: 0 1.25rem;
 }
 
+.apps-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.apps-wrapper {
+    margin-top: 2.5rem;
+}
+
 .apps-container {
     margin-top: 2rem;
     margin-bottom: 2rem;

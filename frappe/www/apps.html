@@ -3,6 +3,44 @@ base_template: 'templates/base.html'
 ---
 
 {%- block navbar -%}
+
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+
+<nav class="apps-navbar">
+	<div class="container">
+		<div class="d-flex align-items-center justify-content-between">
+			<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
+				{%- if brand_html -%}
+					{{ brand_html }}
+				{%- elif banner_image -%}
+					<img src='{{ banner_image }}'>
+				{%- else -%}
+					<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
+				{%- endif -%}
+			</a>
+			<div class="dropdown">
+				<button class="btn" data-toggle="dropdown">
+					<div class="d-flex align-items-center">
+						{% set user = frappe.utils.get_user_info_for_avatar(frappe.session.user) %}
+						{{ avatar(full_name=user.name, image=user.image) }}
+						<span class="ml-1">{{ user.name }}</span>
+						<span class="ml-2 d-flex">
+							<svg class="es-icon icon-xs"><use href="#es-line-down"></use></svg>
+						</span>
+					</div>
+				</button>
+				<div class="dropdown-menu dropdown-menu-right" role="menu">
+					<a class="dropdown-item" href="/app">
+						{{ _('Switch to Admin') }}
+					</a>
+					<a class="dropdown-item" href="/api/method/web_logout">
+						{{ _('Logout') }}
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</nav>
 {%- endblock -%}
 
 {%- block footer -%}
@@ -10,21 +48,21 @@ base_template: 'templates/base.html'
 
 {% block content %}
 <div class="container">
-    <div class="mt-10 px-2">
-        <div class="d-flex justify-content-between">
-            <h2 class="apps-title">{{ _("Apps") }}</h2>
-            <a class="btn btn-default" href="/me">{{ _('My Account') }}</a>
-        </div>
-        <div class="apps-container">
-            {% for app in apps %}
-            <a href="{{ app.route }}" class="app-icon">
-                <img class="app-logo" src="{{ app.icon_url }}" />
-                <div class="app-title">
-                    {{ app.title }}
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
+	<div class="apps-wrapper">
+		<div class="d-flex justify-content-between">
+			<h2 class="apps-title">{{ _("Apps") }}</h2>
+			<a class="btn btn-default" href="/me">{{ _('My Account') }}</a>
+		</div>
+		<div class="apps-container">
+			{% for app in apps %}
+			<a href="{{ app.route }}" class="app-icon">
+				<img class="app-logo" src="{{ app.icon_url }}" />
+				<div class="app-title">
+					{{ app.title }}
+				</div>
+			</a>
+			{% endfor %}
+		</div>
+	</div>
 </div>
 {% endblock %}
