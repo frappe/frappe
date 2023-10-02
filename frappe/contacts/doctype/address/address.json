@@ -74,7 +74,7 @@
   },
   {
    "fieldname": "state",
-   "fieldtype": "Autocomplete",
+   "fieldtype": "Data",
    "label": "State/Province"
   },
   {

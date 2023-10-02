@@ -35,7 +35,6 @@ class Contact(Document):
 		google_contacts: DF.Link | None
 		google_contacts_id: DF.Data | None
 		image: DF.AttachImage | None
-		is_billing_contact: DF.Check
 		is_primary_contact: DF.Check
 		last_name: DF.Data | None
 		links: DF.Table[DynamicLink]
