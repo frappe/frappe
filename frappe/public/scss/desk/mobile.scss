@@ -9,10 +9,9 @@ body {
 // 	overflow-x: hidden;  //Prevent scroll on narrow devices
 // }
 
-@media (max-width: 1080px) {
+@media (max-width: 1024px) {
 	body[data-route^="Form"] {
 		.page-title .title-text {
-			@include get_textstyle("lg", "regular");
 			max-width: 350px;
 		}
 	}
@@ -386,6 +385,14 @@ body {
 		}
 		.asset-details {
 			line-height: 24px; /*Height of avtar image -36px to align text center vertically*/
+		}
+	}
+}
+
+@media (max-width: 480px) {
+	body[data-route^="Form"] {
+		.page-title .title-text {
+			max-width: 150px;
 		}
 	}
 }
