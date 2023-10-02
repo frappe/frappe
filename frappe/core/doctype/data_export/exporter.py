@@ -59,6 +59,7 @@ def export_data(
 	if isinstance(export_without_column_meta, str):
 		export_without_column_meta_bool = export_without_column_meta.lower() == "true"
 
+
 	exporter = DataExporter(
 		doctype=doctype,
 		parent_doctype=parent_doctype,
@@ -212,8 +213,12 @@ class DataExporter:
 		# build list of valid docfields
 		tablecolumns = []
 		table_name = "tab" + dt
+		
 		for f in frappe.db.get_table_columns_description(table_name):
 			field = meta.get_field(f.name)
+			if f.name in ['owner', 'creation']:
+				field = frappe._dict({"fieldname": f.name, "label": frappe.unscrub(f.name), "idx": 0, "parent": dt})
+		
 			if field and (
 				(self.select_columns and f.name in self.select_columns[dt]) or not self.select_columns
 			):
@@ -404,7 +409,6 @@ class DataExporter:
 					)
 					for ci, child in enumerate(data_row.run(as_dict=True)):
 						self.add_data_row(rows, c["doctype"], c["parentfield"], child, ci)
-
 			for row in rows:
 				self.writer.writerow(row)
 
