@@ -74,8 +74,9 @@
   },
   {
    "fieldname": "state",
-   "fieldtype": "Data",
-   "label": "State/Province"
+   "fieldtype": "Autocomplete",
+   "label": "State/Province",
+   "mandatory_depends_on": "eval: doc.country == 'India'"
   },
   {
    "fieldname": "country",
@@ -91,6 +92,7 @@
    "fieldname": "pincode",
    "fieldtype": "Data",
    "label": "Postal Code",
+   "mandatory_depends_on": "eval: doc.country == 'India' &&(gst_settings.enable_e_invoice || gst_settings.enable_e_waybill)",
    "search_index": 1
   },
   {
@@ -148,7 +150,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2020-10-21 16:14:37.284830",
+ "modified": "2023-10-02 11:58:04.982763",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
@@ -206,9 +208,24 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
   }
  ],
+ "quick_entry": 1,
  "search_fields": "country, state",
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }
