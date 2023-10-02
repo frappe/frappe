@@ -75,8 +75,7 @@
   {
    "fieldname": "state",
    "fieldtype": "Autocomplete",
-   "label": "State/Province",
-   "mandatory_depends_on": "eval: doc.country == 'India'"
+   "label": "State/Province"
   },
   {
    "fieldname": "country",
@@ -92,7 +91,6 @@
    "fieldname": "pincode",
    "fieldtype": "Data",
    "label": "Postal Code",
-   "mandatory_depends_on": "eval: doc.country == 'India' &&(gst_settings.enable_e_invoice || gst_settings.enable_e_waybill)",
    "search_index": 1
   },
   {
