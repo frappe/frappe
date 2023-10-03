@@ -53,9 +53,11 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				}));
 		}
 
-		const workflow_data = workflow_doc.value.workflow_data &&
+		const workflow_data =
+			(workflow_doc.value.workflow_data &&
 				typeof workflow_doc.value.workflow_data == "string" &&
-				JSON.parse(workflow_doc.value.workflow_data) || [];
+				JSON.parse(workflow_doc.value.workflow_data)) ||
+			[];
 
 		workflow.value.elements = get_workflow_elements(workflow_doc.value, workflow_data);
 
@@ -101,13 +103,23 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 	function clean_workflow_data() {
 		return workflow.value.elements.map((el) => {
-			const {selected, dragging, resizing, data, events, initialized, sourceNode, targetNode, ...obj} = el;
+			const {
+				selected,
+				dragging,
+				resizing,
+				data,
+				events,
+				initialized,
+				sourceNode,
+				targetNode,
+				...obj
+			} = el;
 
-			if (el.type == 'action') {
+			if (el.type == "action") {
 				obj.data = {
 					from_id: data.from_id,
 					to_id: data.to_id,
-				}
+				};
 			}
 
 			return obj;
@@ -146,7 +158,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	function get_transition_df(data) {
-		return data
+		return data;
 	}
 
 	function get_updated_transitions() {
@@ -183,16 +195,17 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		return transitions;
 	}
 
-	let undo_redo_keyboard_event = () => onKeyDown(true, (e) => {
-		if (!ref_history.value) return;
-		if (e.ctrlKey || e.metaKey) {
-			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
-				ref_history.value.undo();
-			} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
-				ref_history.value.redo();
+	let undo_redo_keyboard_event = () =>
+		onKeyDown(true, (e) => {
+			if (!ref_history.value) return;
+			if (e.ctrlKey || e.metaKey) {
+				if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
+					ref_history.value.undo();
+				} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
+					ref_history.value.redo();
+				}
 			}
-		}
-	});
+		});
 
 	function setup_undo_redo() {
 		ref_history.value = useManualRefHistory(workflow, { clone: true });

@@ -197,7 +197,7 @@ frappe.ui.form.on("Workflow", {
 });
 
 frappe.ui.form.on("Workflow Document State", {
-	state: function(_, cdt, cdn) {
+	state: function (_, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		delete row.workflow_builder_id;
 	},
@@ -210,17 +210,17 @@ frappe.ui.form.on("Workflow Document State", {
 });
 
 frappe.ui.form.on("Workflow Transition", {
-	state: function(_, cdt, cdn) {
+	state: function (_, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		delete row.workflow_builder_id;
 	},
 
-	next_state: function(_, cdt, cdn) {
+	next_state: function (_, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		delete row.workflow_builder_id;
 	},
 
-	action: function(_, cdt, cdn) {
+	action: function (_, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		delete row.workflow_builder_id;
 	},
