@@ -166,8 +166,11 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 						__(me.doctype),
 						this.doc.name.bold(),
 					]);
-					frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
+					me.dialog.animation_speed = "slow";
 					me.dialog.hide();
+					setTimeout(function () {
+						frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
+					}, 500);
 				});
 			}
 		});
@@ -205,7 +208,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					me.dialog.working = false;
 					resolve(me.dialog.doc);
 				},
-				freeze: true,
 			});
 		});
 	}
