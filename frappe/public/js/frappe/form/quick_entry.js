@@ -167,6 +167,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 						this.doc.name.bold(),
 					]);
 					frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
+					me.dialog.hide();
 				});
 			}
 		});
@@ -192,19 +193,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 							},
 						]);
 					} else {
-						me.dialog.hide();
-						// delete the old doc
-						frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
-						me.dialog.doc = r.message;
-						if (frappe._from_link) {
-							frappe.ui.form.update_calling_link(me.dialog.doc);
-						} else {
-							if (me.after_insert) {
-								me.after_insert(me.dialog.doc);
-							} else {
-								me.open_form_if_not_list();
-							}
-						}
+						me.process_after_insert(r);
 					}
 				},
 				error: function () {
@@ -229,23 +218,23 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 				doc: doc,
 			},
 			callback: function (r) {
-				me.dialog.hide();
-				// delete the old doc
-				frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
-				me.dialog.doc = r.message;
-				if (frappe._from_link) {
-					frappe.ui.form.update_calling_link(me.dialog.doc);
-				} else {
-					if (me.after_insert) {
-						me.after_insert(me.dialog.doc);
-					} else {
-						me.open_form_if_not_list();
-					}
-				}
-
+				me.process_after_insert(r);
 				cur_frm && cur_frm.reload_doc();
 			},
 		});
+	}
+
+	process_after_insert(r) {
+		// delete the old doc
+		frappe.model.clear_doc(this.dialog.doc.doctype, this.dialog.doc.name);
+		this.dialog.doc = r.message;
+		if (frappe._from_link) {
+			frappe.ui.form.update_calling_link(this.dialog.doc);
+		} else if (this.after_insert) {
+			this.after_insert(this.dialog.doc);
+		} else {
+			this.open_form_if_not_list();
+		}
 	}
 
 	open_form_if_not_list() {
