@@ -38,7 +38,7 @@ watch(() => props.node.data, () => {
 </script>
 
 <template>
-	<div class="node" tabindex="0" @click.stop="store.workflow.selected = node">
+	<div class="node" tabindex="0" @click.stop="">
 		<div v-if="label" class="node-label">{{ label }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle

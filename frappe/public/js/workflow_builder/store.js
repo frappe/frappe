@@ -55,9 +55,9 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		const workflow_data = workflow_doc.value.workflow_data &&
 				typeof workflow_doc.value.workflow_data == "string" &&
-				JSON.parse(workflow_doc.value.workflow_data)
+				JSON.parse(workflow_doc.value.workflow_data) || [];
 
-		workflow.value.elements = get_workflow_elements(workflow_doc.value, workflow_data || []);
+		workflow.value.elements = get_workflow_elements(workflow_doc.value, workflow_data);
 
 		setup_undo_redo();
 		setup_breadcrumbs();
@@ -79,7 +79,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			doc.workflow_data = JSON.stringify(workflow_data);
 			await frappe.call("frappe.client.save", { doc });
 			frappe.toast("Workflow updated successfully");
-			fetch();
+			// this change to keep the state as it is when saving
+			//fetch();
 		} catch (e) {
 			console.error(e);
 		} finally {
@@ -100,11 +101,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 	function clean_workflow_data() {
 		return workflow.value.elements.map((el) => {
-			let data = el.data
-			let obj = {
-				...el
-			};
-			['selected','dragging','resizing', 'data', 'sourceNode', 'targetNode'].forEach(key => delete obj[key])
+			const {selected, dragging, resizing, data, events, initialized, sourceNode, targetNode, ...obj} = el;
 
 			if (el.type == 'action') {
 				obj.data = {
@@ -186,7 +183,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		return transitions;
 	}
 
-	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
+	let undo_redo_keyboard_event = () => onKeyDown(true, (e) => {
 		if (!ref_history.value) return;
 		if (e.ctrlKey || e.metaKey) {
 			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
@@ -199,8 +196,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 	function setup_undo_redo() {
 		ref_history.value = useManualRefHistory(workflow, { clone: true });
-
-		undo_redo_keyboard_event;
+		undo_redo_keyboard_event();
 	}
 
 	return {

@@ -8,26 +8,30 @@ export function get_workflow_elements(workflow, workflow_data) {
 	let x = 150;
 	let y = 100;
 
-	workflow_data.forEach(data => {
-		if (data.type == 'state') {
-			states[data.id] = data;
+	workflow_data.forEach(node => {
+		if (node.type == 'state') {
+			states[node.id] = node;
 		}
-		else if (data.type == 'action') {
-			actions[data.id] = data;
+		else if (node.type == 'action') {
+			actions[node.id] = node;
 		}
-		else if (data.type == 'transition') {
-			transitions[`edge-${data.source}-${data.target}`] = data;
+		else if (node.type == 'transition') {
+			transitions[`edge-${node.source}-${node.target}`] = node;
 
-			if (data.source.startsWith('action-')) {
-				const action = actions[data.source];
+			if (node.source.startsWith('action-')) {
+				const action = actions[node.source];
 				if (!action.data.to_id) {
-					action.data.to_id = data.target;
+					action.data.to_id = node.target;
 				}
-			} else if (data.target.startsWith('action-')) {
-				const action = actions[data.target];
+				node.sourceNode = action;
+				node.targetNode = states[node.target];
+			} else {
+				const action = actions[node.target];
 				if (!action.data.from_id) {
-					action.data.from_id = data.source;
+					action.data.from_id = node.source;
 				}
+				node.targetNode = action;
+				node.sourceNode = states[node.source];
 			}
 		}
 	})
@@ -43,13 +47,16 @@ export function get_workflow_elements(workflow, workflow_data) {
 				id: id.toString(),
 				type: "state",
 				position: { x, y },
-				selected: false,
-				dragging: false,
-				resizing: false,
 				data,
 			};
 		}
 
+		Object.assign(state, {
+			initialized: true,
+			selected: false,
+			dragging: false,
+			resizing: false
+		})
 		return states[id] = state;
 	}
 
@@ -65,14 +72,16 @@ export function get_workflow_elements(workflow, workflow_data) {
 				id,
 				type: "action",
 				position,
-				selected: false,
-				dragging: false,
-				resizing: false,
 				data,
 			};
 		}
 
-
+		Object.assign(action, {
+			initialized: true,
+			selected: false,
+			dragging: false,
+			resizing: false
+		})
 		return actions[id] = action;
 	}
 
@@ -89,15 +98,17 @@ export function get_workflow_elements(workflow, workflow_data) {
 				sourceHandle: "right",
 				targetHandle: "left",
 				updatable: true,
-				animated: true,
-				selected: false,
-				dragging: false,
-				resizing: false,
+				animated: true
 			};
 		}
 
+		Object.assign(transition, {
+			initialized: true,
+			selected: false,
+			dragging: false,
+			resizing: false
+		})
 		return transitions[id] = transition;
-
 	}
 
 	let state_id = Math.max(...(workflow.states.map(state => state.workflow_builder_id || 0)));

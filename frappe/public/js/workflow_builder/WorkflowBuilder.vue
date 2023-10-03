@@ -42,7 +42,8 @@
 	} = useVueFlow();
 
 	let main = ref(null);
-	onClickOutside(main, loose_focus);
+	// this change to keep the state as it is when saving
+	//onClickOutside(main, loose_focus);
 
 	// cmd/ctrl + s to save the form
 	const {
@@ -284,8 +285,11 @@
 	}
 
 	function loose_focus() {
-		getSelectedNodes.value?.forEach((node) => (node.selected = false));
-		store.workflow.selected = null;
+		if (store.workflow.selected) {
+			getSelectedNodes.value?.forEach((node) => (node.selected = false));
+			store.workflow.selected = null;
+			store.ref_history.commit();
+		}
 	}
 
 	onPaneReady(() => fitView());
