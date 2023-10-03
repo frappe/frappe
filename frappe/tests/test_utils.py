@@ -399,9 +399,11 @@ class TestValidationUtils(FrappeTestCase):
 			frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True
 		)
 
-
 		self.assertEqual(validate_email_address("Some%20One@frappe.com"), "Some%20One@frappe.com")
-		self.assertEqual(validate_email_address("erp+Job%20Applicant=JA00004@frappe.com"), "erp+Job%20Applicant=JA00004@frappe.com")
+		self.assertEqual(
+			validate_email_address("erp+Job%20Applicant=JA00004@frappe.com"),
+			"erp+Job%20Applicant=JA00004@frappe.com",
+		)
 
 	def test_valid_phone(self):
 		valid_phones = ["+91 1234567890", ""]

@@ -44,8 +44,9 @@ WHITESPACE_PATTERN = re.compile(r"[\t\n\r]")
 MULTI_EMAIL_STRING_PATTERN = re.compile(r'[,\n](?=(?:[^"]|"[^"]*")*$)')
 EMAIL_MATCH_PATTERN = re.compile(
 	r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
-	re.IGNORECASE
+	re.IGNORECASE,
 )
+
 
 def get_fullname(user=None):
 	"""get the full name (first name + last name) of the user from User"""
