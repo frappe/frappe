@@ -12,7 +12,7 @@ body {
 @media (max-width: 1024px) {
 	body[data-route^="Form"] {
 		.page-title .title-text {
-			max-width: 350px;
+			max-width: 35vw;
 		}
 	}
 }
@@ -167,7 +167,7 @@ body {
 		.page-title {
 			.title-text {
 				@include get_textstyle("lg", "regular");
-				max-width: 300px;
+				max-width: 35vw;
 			}
 
 			.indicator {
@@ -385,14 +385,6 @@ body {
 		}
 		.asset-details {
 			line-height: 24px; /*Height of avtar image -36px to align text center vertically*/
-		}
-	}
-}
-
-@media (max-width: 480px) {
-	body[data-route^="Form"] {
-		.page-title .title-text {
-			max-width: 150px;
 		}
 	}
 }
