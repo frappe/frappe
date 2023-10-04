@@ -66,7 +66,9 @@ frappe.ui.form.Sidebar = class {
 	refresh() {
 		if (this.frm.doc.__islocal) {
 			this.sidebar.toggle(false);
+			this.page.sidebar.addClass("hide-sidebar");
 		} else {
+			this.page.sidebar.removeClass("hide-sidebar");
 			this.sidebar.toggle(true);
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
