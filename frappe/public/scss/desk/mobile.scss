@@ -165,6 +165,10 @@ body {
 
 	body[data-route^="Form"]{
 		.page-title {
+			.title-text {
+				@include get_textstyle("lg", "regular");
+			}
+
 			.indicator {
 				margin: 0;
 			}
