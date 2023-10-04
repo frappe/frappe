@@ -186,6 +186,10 @@ body[data-route^="Module"] .main-menu {
 	@include get_textstyle("base", "regular");
 	padding-right: 30px;
 
+	&.hide-sidebar {
+		display: none;
+	}
+
 	> .divider {
 		display: none !important;
 	}
