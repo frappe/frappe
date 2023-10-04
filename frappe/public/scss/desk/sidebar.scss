@@ -41,6 +41,9 @@ body[data-route^="Module"] .main-menu {
 	.data-pill {
 		width: 100%;
 		justify-content: unset;
+		.es-icon {
+			margin: 0px 6px;
+		}
 
 	}
 	&.user-actions {
@@ -405,6 +408,7 @@ body[data-route^="Module"] .main-menu {
 .explore-full-btn,
 .attachments-actions {
 	margin-bottom: var(--margin-md);
+	gap: 6px;
 }
 
 .show-all-btn {

@@ -45,7 +45,7 @@
 	<li class="flex flex-wrap">
 		<span class="assignments"></span>
 		<button class="add-assignment-btn data-pill btn">
-			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-add-people"></use></svg>
+			<svg class="es-icon ml-0 icon-sm"><use href="#es-line-add-people"></use></svg>
 			<span class="ellipsis">{%= __("Add Assignee") %}</span>
 		</button>
 	</li>
@@ -56,12 +56,27 @@
 
 		<li class="explore-full-btn hidden">
 			<button class="data-pill btn">
-				<svg class="es-icon mr-2 icon-sm">
+				<svg class="es-icon ml-0 icon-sm">
 					<use href="#es-line-folder-alt"></use>
 				</svg>
 				<span class="pill-label ellipsis">
 					{%= __("Explore Files") %}
 				</span>
+			</button>
+		</li>
+		<li class="attachments-actions">
+			<button class="data-pill btn add-attachment-btn">
+				<svg class="es-icon ml-0 icon-sm">
+					<use href="#es-line-attachment"></use>
+				</svg>
+				<span class="pill-label ellipsis">
+					{%= __("Add File") %}
+				</span>
+			</button>
+			<button class="text-muted btn btn-default icon-btn explore-btn">
+				<svg class="es-icon icon-sm">
+					<use href="#es-line-folder-alt"></use>
+				</svg>
 			</button>
 		</li>
 		<button class="show-all-btn hidden">
@@ -71,21 +86,6 @@
 			<a href="" class="pill-label ellipsis">
 				{%= __("Show All") %}
 			</a>
-		</button>
-	</li>
-	<li class="attachments-actions">
-		<button class="data-pill btn add-attachment-btn">
-			<svg class="es-icon mr-2 icon-sm">
-				<use href="#es-line-attachment"></use>
-			</svg>
-			<span class="pill-label ellipsis">
-				{%= __("Add File") %}
-			</span>
-		</button>
-		<button class="text-muted btn btn-default icon-btn explore-btn">
-			<svg class="es-icon icon-sm">
-				<use href="#es-line-folder-alt"></use>
-			</svg>
 		</button>
 	</li>
 </ul>
@@ -112,7 +112,7 @@
 	<li class="flex flex-wrap">
 		<span class="shares"></span>
 		<button class="share-doc-btn text-muted data-pill btn">
-			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-share"></use></svg>
+			<svg class="es-icon ml-0 icon-sm"><use href="#es-line-share"></use></svg>
 			{%= __("Invite") %}
 		</button>
 	</li>

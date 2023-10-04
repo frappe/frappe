@@ -19,7 +19,7 @@ frappe.ui.Tags = class {
 		this.$inputWrapper = this.get_list_element(this.$input);
 		this.$placeholder = this.get_list_element(
 			$(`<button class="tags-btn text-muted data-pill btn" id="add_tags">
-			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-tag"></use></svg>
+			<svg class="es-icon ml-0 icon-sm"><use href="#es-line-tag"></use></svg>
 			${__(placeholder)}
 		</button>`)
 		);
