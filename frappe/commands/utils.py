@@ -504,9 +504,9 @@ def postgres(context, extra_args):
 
 
 def _mariadb(extra_args=None):
-	mysql = which("mysql")
+	mariadb = which("mariadb")
 	command = [
-		mysql,
+		mariadb,
 		"--port",
 		str(frappe.conf.db_port),
 		"-u",
@@ -521,7 +521,7 @@ def _mariadb(extra_args=None):
 	]
 	if extra_args:
 		command += list(extra_args)
-	os.execv(mysql, command)
+	os.execv(mariadb, command)
 
 
 def _psql(extra_args=None):
