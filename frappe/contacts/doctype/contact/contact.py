@@ -194,7 +194,7 @@ def get_default_contact(doctype, name):
 
 @frappe.whitelist()
 def invite_user(contact):
-	contact = frappe.get_doc("Contact", contact)
+	contact = frappe.db.get_value("Contact", contact, fieldname=["email_id", "first_name", "last_name"], as_dict=True)
 
 	if not contact.email_id:
 		frappe.throw(_("Please set Email Address"))
@@ -415,7 +415,9 @@ def get_contact_display_list(doctype: str, name: str) -> list[dict]:
 		)
 
 		if contact.address and frappe.has_permission("Address", "read"):
-			address = frappe.get_doc("Address", contact.address)
+			address = frappe.db.get_value("Address", contact.address,
+				fieldname=["address_title", "address_line1", "address_line2", "city", "county", "state", "country"],
+				as_dict=True)
 			contact["address"] = get_condensed_address(address)
 
 	return contact_list

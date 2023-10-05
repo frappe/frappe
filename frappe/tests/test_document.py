@@ -40,8 +40,49 @@ class TestDocument(FrappeTestCase):
 		self.assertTrue(isinstance(d.permissions, list))
 		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
 
+	def test_load_some_fields(self):
+		d = frappe.get_doc("DocType", "User", fields=["name", "allow_rename"])
+		self.assertEqual(d.doctype, "DocType")
+		self.assertEqual(d.name, "User")
+		self.assertEqual(d.allow_rename, 1)
+		self.assertTrue(isinstance(d.fields, list))
+		self.assertTrue(isinstance(d.permissions, list))
+		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
+
+	def test_load_without_children(self):
+		d = frappe.get_doc("DocType", "User", children=False)
+		self.assertEqual(d.doctype, "DocType")
+		self.assertEqual(d.name, "User")
+		self.assertEqual(d.allow_rename, 1)
+		self.assertFalse(getattr(d, "fields", False))
+		self.assertFalse(getattr(d, "permissions", False))
+
+	def test_load_some_children(self):
+		d = frappe.get_doc("DocType", "User", children={"fields": True, "permissions": True})
+		self.assertEqual(d.doctype, "DocType")
+		self.assertEqual(d.name, "User")
+		self.assertEqual(d.allow_rename, 1)
+		self.assertTrue(isinstance(d.fields, list))
+		self.assertTrue(isinstance(d.permissions, list))
+		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
+
+	def test_load_some_children_some_fields(self):
+		d = frappe.get_doc("DocType", "User", children={"fields": True, "permissions": True}, fields=["name", "allow_rename"])
+		self.assertEqual(d.doctype, "DocType")
+		self.assertEqual(d.name, "User")
+		self.assertEqual(d.allow_rename, 1)
+		self.assertTrue(isinstance(d.fields, list))
+		self.assertTrue(isinstance(d.permissions, list))
+		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
+
 	def test_load_single(self):
 		d = frappe.get_doc("Website Settings", "Website Settings")
+		self.assertEqual(d.name, "Website Settings")
+		self.assertEqual(d.doctype, "Website Settings")
+		self.assertTrue(d.disable_signup in (0, 1))
+
+	def test_load_single_without_children(self):
+		d = frappe.get_doc("Website Settings", "Website Settings", children=False)
 		self.assertEqual(d.name, "Website Settings")
 		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))

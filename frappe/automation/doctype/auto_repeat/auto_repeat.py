@@ -92,11 +92,11 @@ class AutoRepeat(Document):
 				self.start_date = today_date
 
 	def after_save(self):
-		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
+		frappe.get_doc(self.reference_doctype, self.reference_document, children=False).notify_update()
 
 	def on_trash(self):
 		frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
-		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
+		frappe.get_doc(self.reference_doctype, self.reference_document, children=False).notify_update()
 
 	def set_dates(self):
 		if self.disabled:

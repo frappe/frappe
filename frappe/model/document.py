@@ -118,7 +118,15 @@ class Document(BaseDocument):
 				# for_update is set in flags to avoid changing load_from_db signature
 				# since it is used in virtual doctypes and inherited in child classes
 				self.flags.for_update = kwargs.get("for_update")
-				self.load_from_db()
+				self.flags.load_from_db = kwargs.get("load_from_db", True)
+				self.flags.children = kwargs.get("children", {})
+				self.flags.fieldname = kwargs.get("fields", "*")
+
+				if self.flags.load_from_db:
+					self.load_from_db()
+				else:
+					super().__init__(frappe._dict())
+
 				return
 
 			if isinstance(args[0], dict):
@@ -166,7 +174,7 @@ class Document(BaseDocument):
 				get_value_kwargs["order_by"] = None
 
 			d = frappe.db.get_value(
-				doctype=self.doctype, filters=self.name, fieldname="*", **get_value_kwargs
+				doctype=self.doctype, filters=self.name, fieldname=self.flags.fieldname or "*", **get_value_kwargs
 			)
 
 			if not d:
@@ -177,27 +185,28 @@ class Document(BaseDocument):
 			super().__init__(d)
 		self.flags.pop("ignore_children", None)
 
-		for df in self._get_table_fields():
-			# Make sure not to query the DB for a child table, if it is a virtual one.
-			# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
-			# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
-			if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options):
-				self.set(df.fieldname, [])
-				continue
+		if self.flags.children is not False:
+			for df in self._get_table_fields():
+				# Make sure not to query the DB for a child table, if it is a virtual one.
+				# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
+				# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
+				if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options) and not self.flags.children.get(df.fieldname, True):
+					self.set(df.fieldname, [])
+					continue
 
-			children = (
-				frappe.db.get_values(
-					df.options,
-					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-					"*",
-					as_dict=True,
-					order_by="idx asc",
-					for_update=self.flags.for_update,
+				children = (
+					frappe.db.get_values(
+						df.options,
+						{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+						"*",
+						as_dict=True,
+						order_by="idx asc",
+						for_update=self.flags.for_update,
+					)
+					or []
 				)
-				or []
-			)
 
-			self.set(df.fieldname, children)
+				self.set(df.fieldname, children)
 
 		# sometimes __setup__ can depend on child values, hence calling again at the end
 		if hasattr(self, "__setup__"):

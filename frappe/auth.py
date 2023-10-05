@@ -132,7 +132,7 @@ class LoginManager:
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
 		if self.force_user_to_reset_password():
-			doc = frappe.get_doc("User", self.user)
+			doc = frappe.get_doc("User", self.user, load_from_db=False)
 			frappe.local.response["redirect_to"] = doc.reset_password(
 				send_email=False, password_expired=True
 			)
