@@ -19,260 +19,260 @@ APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
 
 def make_boilerplate(dest, app_name, no_git=False):
-    if not os.path.exists(dest):
-        print("Destination directory does not exist")
-        return
+	if not os.path.exists(dest):
+	    print("Destination directory does not exist")
+	    return
 
-    # app_name should be in snake_case
-    app_name = frappe.scrub(app_name)
-    hooks = _get_user_inputs(app_name)
-    _create_app_boilerplate(dest, hooks, no_git=no_git)
+	# app_name should be in snake_case
+	app_name = frappe.scrub(app_name)
+	hooks = _get_user_inputs(app_name)
+	_create_app_boilerplate(dest, hooks, no_git=no_git)
 
 
 def _get_user_inputs(app_name):
-    """Prompt user for various inputs related to new app and return config."""
-    app_name = frappe.scrub(app_name)
+	"""Prompt user for various inputs related to new app and return config."""
+	app_name = frappe.scrub(app_name)
 
-    hooks = frappe._dict()
-    hooks.app_name = app_name
-    app_title = hooks.app_name.replace("_", " ").title()
+	hooks = frappe._dict()
+	hooks.app_name = app_name
+	app_title = hooks.app_name.replace("_", " ").title()
 
-    new_app_config = {
-    	"app_title": {
-    		"prompt": "App Title",
-    		"default": app_title,
-    		"validator": is_valid_title,
-    	},
-    	"app_description": {"prompt": "App Description"},
-    	"app_publisher": {"prompt": "App Publisher"},
-    	"app_email": {"prompt": "App Email", "validator": is_valid_email},
-    	"app_license": {
-    		"prompt": "App License",
-    		"default": "mit",
-    		"type": click.Choice(get_license_options()),
-    	},
-    	"create_github_workflow": {
-    		"prompt": "Create GitHub Workflow action for unittests",
-    		"default": False,
-    		"type": bool,
-    	},
-    }
+	new_app_config = {
+		"app_title": {
+			"prompt": "App Title",
+			"default": app_title,
+			"validator": is_valid_title,
+		},
+		"app_description": {"prompt": "App Description"},
+		"app_publisher": {"prompt": "App Publisher"},
+		"app_email": {"prompt": "App Email", "validator": is_valid_email},
+		"app_license": {
+			"prompt": "App License",
+			"default": "mit",
+			"type": click.Choice(get_license_options()),
+		},
+		"create_github_workflow": {
+			"prompt": "Create GitHub Workflow action for unittests",
+			"default": False,
+			"type": bool,
+		},
+	}
 
-    for property, config in new_app_config.items():
-        value = None
-        input_type = config.get("type", str)
+	for property, config in new_app_config.items():
+	    value = None
+	    input_type = config.get("type", str)
 
-        while value is None:
-            if input_type == bool:
-                value = click.confirm(config["prompt"], default=config.get("default"))
-            else:
-                value = click.prompt(config["prompt"], default=config.get("default"), type=input_type)
+	    while value is None:
+	        if input_type == bool:
+	            value = click.confirm(config["prompt"], default=config.get("default"))
+	        else:
+	            value = click.prompt(config["prompt"], default=config.get("default"), type=input_type)
 
-            if validator_function := config.get("validator"):
-                if not validator_function(value):
-                    value = None
-        hooks[property] = value
+	        if validator_function := config.get("validator"):
+	            if not validator_function(value):
+	                value = None
+	    hooks[property] = value
 
-    return hooks
+	return hooks
 
 
 def is_valid_email(email) -> bool:
-    """
-    Check if the given email address is valid.
+	"""
+	Check if the given email address is valid.
 
-    This function uses the email.headerregistry.Address class from the email module
-    to validate the email address. If the address is valid, it returns True;
-    otherwise, it prints an error message and returns False.
+	This function uses the email.headerregistry.Address class from the email module
+	to validate the email address. If the address is valid, it returns True;
+	otherwise, it prints an error message and returns False.
 
-    Args:
-        email (str): The email address to be validated.
+	Args:
+	    email (str): The email address to be validated.
 
-    Returns:
-        bool: True if the email address is valid, False otherwise.
-    """
-    from email.headerregistry import Address
+	Returns:
+	    bool: True if the email address is valid, False otherwise.
+	"""
+	from email.headerregistry import Address
 
-    try:
-        Address(addr_spec=email)
-    except Exception:
-        print("App Email should be a valid email address.")
-        return False
-    return True
+	try:
+	    Address(addr_spec=email)
+	except Exception:
+	    print("App Email should be a valid email address.")
+	    return False
+	return True
 
 
 def is_valid_title(title) -> bool:
-    """
-    Check if the given title follows a specific pattern.
+	"""
+	Check if the given title follows a specific pattern.
 
-    This function checks if the title matches a pattern defined by the
-    APP_TITLE_PATTERN regular expression. If the title does not match the
-    pattern, it prints an error message and returns False; otherwise, it
-    returns True.
+	This function checks if the title matches a pattern defined by the
+	APP_TITLE_PATTERN regular expression. If the title does not match the
+	pattern, it prints an error message and returns False; otherwise, it
+	returns True.
 
-    Args:
-        title (str): The title to be validated.
+	Args:
+	    title (str): The title to be validated.
 
-    Returns:
-        bool: True if the title is valid, False otherwise.
-    """
-    if not APP_TITLE_PATTERN.match(title):
-        print(
-        	"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
-        )
-        return False
-    return True
+	Returns:
+	    bool: True if the title is valid, False otherwise.
+	"""
+	if not APP_TITLE_PATTERN.match(title):
+	    print(
+	    	"App Title should start with a letter and it can only consist of letters, numbers, spaces and underscores"
+	    )
+	    return False
+	return True
 
 
 def get_license_options() -> list[str]:
-    """
-    Get a list of available license options.
+	"""
+	Get a list of available license options.
 
-    This function sends a GET request to the 'https://api.github.com/licenses'
-    endpoint to retrieve a list of available licenses. It then extracts the
-    'spdx_id' field from each license and converts it to lowercase. Finally,
-    it returns the list of lowercase license IDs.
+	This function sends a GET request to the 'https://api.github.com/licenses'
+	endpoint to retrieve a list of available licenses. It then extracts the
+	'spdx_id' field from each license and converts it to lowercase. Finally,
+	it returns the list of lowercase license IDs.
 
-    Returns:
-        list[str]: A list of available license options.
-    """
-    url = "https://api.github.com/licenses"
-    res = requests.get(url=url)
-    if res.status_code == 200:
-        res = res.json()
-        ids = [r.get("spdx_id") for r in res]
-        return [licencse.lower() for licencse in ids]
+	Returns:
+	    list[str]: A list of available license options.
+	"""
+	url = "https://api.github.com/licenses"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+	    res = res.json()
+	    ids = [r.get("spdx_id") for r in res]
+	    return [licencse.lower() for licencse in ids]
 
-    return ["agpl-3.0", "gpl-3.0", "mit", "custom"]
+	return ["agpl-3.0", "gpl-3.0", "mit", "custom"]
 
 
 def get_license_text(license_name: str) -> str:
-    """
-    Get the text of a specific license.
+	"""
+	Get the text of a specific license.
 
-    This function sends a GET request to the
-    'https://api.github.com/licenses/{license_name}' endpoint to retrieve the
-    text of a specific license. If the request is successful, it extracts the
-    'body' field from the response JSON and returns it as a string. If the
-    request fails, it returns the original license name.
+	This function sends a GET request to the
+	'https://api.github.com/licenses/{license_name}' endpoint to retrieve the
+	text of a specific license. If the request is successful, it extracts the
+	'body' field from the response JSON and returns it as a string. If the
+	request fails, it returns the original license name.
 
-    Args:
-        license_name (str): The name of the license.
+	Args:
+	    license_name (str): The name of the license.
 
-    Returns:
-        str: The text of the license if available, or the original license name.
-    """
-    url = f"https://api.github.com/licenses/{license_name.lower()}"
-    res = requests.get(url=url)
-    if res.status_code == 200:
-        res = res.json()
-        return res.get("body")
-    return license_name
+	Returns:
+	    str: The text of the license if available, or the original license name.
+	"""
+	url = f"https://api.github.com/licenses/{license_name.lower()}"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+	    res = res.json()
+	    return res.get("body")
+	return license_name
 
 
 def _create_app_boilerplate(dest, hooks, no_git=False):
-    """
-    Function to create a directory structure for a new app.
+	"""
+	Function to create a directory structure for a new app.
 
-    This function creates the necessary folders and files for a new app, including
-    an __init__.py file, a pyproject.toml file, a README.md file, a
-    license.txt file, a hooks.py file, a patches.txt file, and a .gitignore
-    file.
-    It also initializes a Git repository if the no_git parameter is False.
+	This function creates the necessary folders and files for a new app, including
+	an __init__.py file, a pyproject.toml file, a README.md file, a
+	license.txt file, a hooks.py file, a patches.txt file, and a .gitignore
+	file.
+	It also initializes a Git repository if the no_git parameter is False.
 
-    Args:
-        dest (str): The destination directory where the app should be created.
-        hooks (dict): A dictionary containing various app hooks.
-        no_git (bool, optional): Flag indicating whether to skip initializing
-            a Git repository. Defaults to False.
-    """
-    frappe.create_folder(
-    	os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
-    	with_init=True,
-    )
-    frappe.create_folder(
-    	os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True
-    )
-    frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
-    frappe.create_folder(
-    	os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "pages"), with_init=True
-    )
-    frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "includes"))
-    frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
-    frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
-    frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
+	Args:
+	    dest (str): The destination directory where the app should be created.
+	    hooks (dict): A dictionary containing various app hooks.
+	    no_git (bool, optional): Flag indicating whether to skip initializing
+	        a Git repository. Defaults to False.
+	"""
+	frappe.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
+		with_init=True,
+	)
+	frappe.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True
+	)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
+	frappe.create_folder(
+		os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "pages"), with_init=True
+	)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "includes"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "css"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "public", "js"))
 
-    # add .gitkeep file so that public folder is committed to git
-    # this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
-    with open(os.path.join(dest, hooks.app_name, hooks.app_name, "public", ".gitkeep"), "w") as f:
-        f.write("")
+	# add .gitkeep file so that public folder is committed to git
+	# this is needed because if public doesn't exist, bench build doesn't symlink the apps assets
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "public", ".gitkeep"), "w") as f:
+	    f.write("")
 
-    with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
-        f.write(frappe.as_unicode(init_template))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
+	    f.write(frappe.as_unicode(init_template))
 
-    with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
-        f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
+	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
+	    f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
 
-    with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-        f.write(
-        	frappe.as_unicode(
-        		"## {}\n\n{}\n\n#### License\n\n{}".format(
-        			hooks.app_title, hooks.app_description, hooks.app_license
-        		)
-        	)
-        )
-    license_body = get_license_text(license_name=hooks.app_license)
-    with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-        f.write(frappe.as_unicode(license_body))
+	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
+	    f.write(
+	    	frappe.as_unicode(
+	    		"## {}\n\n{}\n\n#### License\n\n{}".format(
+	    			hooks.app_title, hooks.app_description, hooks.app_license
+	    		)
+	    	)
+	    )
+	license_body = get_license_text(license_name=hooks.app_license)
+	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
+	    f.write(frappe.as_unicode(license_body))
 
-    with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-        f.write(frappe.as_unicode(hooks.app_title))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
+	    f.write(frappe.as_unicode(hooks.app_title))
 
-    # These values could contain quotes and can break string declarations
-    # So escaping them before setting variables in setup.py and hooks.py
-    for key in ("app_publisher", "app_description", "app_license"):
-        hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
+	# These values could contain quotes and can break string declarations
+	# So escaping them before setting variables in setup.py and hooks.py
+	for key in ("app_publisher", "app_description", "app_license"):
+	    hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
 
-    with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
-        f.write(frappe.as_unicode(hooks_template.format(**hooks)))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
+	    f.write(frappe.as_unicode(hooks_template.format(**hooks)))
 
-    with open(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"), "w") as f:
-        f.write(frappe.as_unicode(patches_template.format(**hooks)))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"), "w") as f:
+	    f.write(frappe.as_unicode(patches_template.format(**hooks)))
 
-    app_directory = os.path.join(dest, hooks.app_name)
+	app_directory = os.path.join(dest, hooks.app_name)
 
-    if hooks.create_github_workflow:
-        _create_github_workflow_files(dest, hooks)
+	if hooks.create_github_workflow:
+	    _create_github_workflow_files(dest, hooks)
 
-    if not no_git:
-        with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-            f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
+	if not no_git:
+	    with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
+	        f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
 
-        # initialize git repository
-        app_repo = git.Repo.init(app_directory, initial_branch="develop")
-        app_repo.git.add(A=True)
-        app_repo.index.commit("feat: Initialize App")
+	    # initialize git repository
+	    app_repo = git.Repo.init(app_directory, initial_branch="develop")
+	    app_repo.git.add(A=True)
+	    app_repo.index.commit("feat: Initialize App")
 
-    print(f"'{hooks.app_name}' created at {app_directory}")
+	print(f"'{hooks.app_name}' created at {app_directory}")
 
 
 def _create_github_workflow_files(dest, hooks):
-    """
-    Create GitHub workflow files.
+	"""
+	Create GitHub workflow files.
 
-    This function creates the directory structure for the workflows, creates a
-    'ci.yml' file inside the workflows directory, and writes the content of
-    'github_workflow_template' to the 'ci.yml' file.
+	This function creates the directory structure for the workflows, creates a
+	'ci.yml' file inside the workflows directory, and writes the content of
+	'github_workflow_template' to the 'ci.yml' file.
 
-    Args:
-        dest (str): Destination path.
-        hooks (dict): A dictionary containing app name and other information.
-    """
-    workflows_path = pathlib.Path(dest) / hooks.app_name / ".github" / "workflows"
-    workflows_path.mkdir(parents=True, exist_ok=True)
+	Args:
+	    dest (str): Destination path.
+	    hooks (dict): A dictionary containing app name and other information.
+	"""
+	workflows_path = pathlib.Path(dest) / hooks.app_name / ".github" / "workflows"
+	workflows_path.mkdir(parents=True, exist_ok=True)
 
-    ci_workflow = workflows_path / "ci.yml"
-    with open(ci_workflow, "w") as f:
-        f.write(github_workflow_template.format(**hooks))
+	ci_workflow = workflows_path / "ci.yml"
+	with open(ci_workflow, "w") as f:
+	    f.write(github_workflow_template.format(**hooks))
 
 
 PATCH_TEMPLATE = textwrap.dedent(
@@ -289,114 +289,114 @@ PATCH_TEMPLATE = textwrap.dedent(
 
 
 class PatchCreator:
-    """
-    This class is responsible for creating patches for a specific app and doctype.
-    """
-    def __init__(self):
-        self.all_apps = frappe.get_all_apps(sites_path=".", with_internal_apps=False)
+	"""
+	This class is responsible for creating patches for a specific app and doctype.
+	"""
+	def __init__(self):
+	    self.all_apps = frappe.get_all_apps(sites_path=".", with_internal_apps=False)
 
-        self.app = None
-        self.app_dir = None
-        self.patch_dir = None
-        self.filename = None
-        self.docstring = None
-        self.patch_file = None
+	    self.app = None
+	    self.app_dir = None
+	    self.patch_dir = None
+	    self.filename = None
+	    self.docstring = None
+	    self.patch_file = None
 
-    def fetch_user_inputs(self):
-        self._ask_app_name()
-        self._ask_doctype_name()
-        self._ask_patch_meta_info()
+	def fetch_user_inputs(self):
+	    self._ask_app_name()
+	    self._ask_doctype_name()
+	    self._ask_patch_meta_info()
 
-    def _ask_app_name(self):
-        self.app = click.prompt("Select app for new patch", type=click.Choice(self.all_apps))
-        self.app_dir = pathlib.Path(frappe.get_app_path(self.app))
+	def _ask_app_name(self):
+	    self.app = click.prompt("Select app for new patch", type=click.Choice(self.all_apps))
+	    self.app_dir = pathlib.Path(frappe.get_app_path(self.app))
 
-    def _ask_doctype_name(self):
+	def _ask_doctype_name(self):
 
-        def _doctype_name(filename):
-            with contextlib.suppress(Exception):
-                with open(filename) as f:
-                    return json.load(f).get("name")
+	    def _doctype_name(filename):
+	        with contextlib.suppress(Exception):
+	            with open(filename) as f:
+	                return json.load(f).get("name")
 
-        doctype_files = list(glob.glob(f"{self.app_dir}/**/doctype/**/*.json"))
-        doctype_map = {_doctype_name(file): file for file in doctype_files}
-        doctype_map.pop(None, None)
+	    doctype_files = list(glob.glob(f"{self.app_dir}/**/doctype/**/*.json"))
+	    doctype_map = {_doctype_name(file): file for file in doctype_files}
+	    doctype_map.pop(None, None)
 
-        doctype = click.prompt(
-        	"Provide DocType name on which this patch will apply",
-        	type=click.Choice(doctype_map.keys()),
-        	show_choices=False,
-        )
-        self.patch_dir = pathlib.Path(doctype_map[doctype]).parents[0] / "patches"
+	    doctype = click.prompt(
+	    	"Provide DocType name on which this patch will apply",
+	    	type=click.Choice(doctype_map.keys()),
+	    	show_choices=False,
+	    )
+	    self.patch_dir = pathlib.Path(doctype_map[doctype]).parents[0] / "patches"
 
-    def _ask_patch_meta_info(self):
-        """
-        This method prompts the user to describe what this patch does and provides a
-        default filename for the patch based on the description.
+	def _ask_patch_meta_info(self):
+	    """
+	    This method prompts the user to describe what this patch does and provides a
+	    default filename for the patch based on the description.
 
-        Returns:
-            None
-        """
-        self.docstring = click.prompt("Describe what this patch does", type=str)
-        default_filename = frappe.scrub(self.docstring) + ".py"
+	    Returns:
+	        None
+	    """
+	    self.docstring = click.prompt("Describe what this patch does", type=str)
+	    default_filename = frappe.scrub(self.docstring) + ".py"
 
-        def _valid_filename(name):
-            if not name:
-                return
+	    def _valid_filename(name):
+	        if not name:
+	            return
 
-            match name.partition("."):
-                case [filename, ".", "py"] if filename.isidentifier():
-                    return True
-                case _:
-                    click.echo(f"{name} is not a valid python file name")
+	        match name.partition("."):
+	            case [filename, ".", "py"] if filename.isidentifier():
+	                return True
+	            case _:
+	                click.echo(f"{name} is not a valid python file name")
 
-        while not _valid_filename(self.filename):
-            self.filename = click.prompt(
-            	"Provide filename for this patch", type=str, default=default_filename
-            )
+	    while not _valid_filename(self.filename):
+	        self.filename = click.prompt(
+	        	"Provide filename for this patch", type=str, default=default_filename
+	        )
 
-    def create_patch_file(self):
-        """
-        Create a patch file and update patches.txt with the path of the created patch file.
-        """
-        self._create_parent_folder_if_not_exists()
+	def create_patch_file(self):
+	    """
+	    Create a patch file and update patches.txt with the path of the created patch file.
+	    """
+	    self._create_parent_folder_if_not_exists()
 
-        self.patch_file = self.patch_dir / self.filename
+	    self.patch_file = self.patch_dir / self.filename
 
-        if self.patch_file.exists():
-            raise Exception(f"Patch {self.patch_file} already exists")
+	    if self.patch_file.exists():
+	        raise Exception(f"Patch {self.patch_file} already exists")
 
-        *path, _filename = self.patch_file.relative_to(self.app_dir.parents[0]).parts
-        dotted_path = ".".join(path + [self.patch_file.stem])
+	    *path, _filename = self.patch_file.relative_to(self.app_dir.parents[0]).parts
+	    dotted_path = ".".join(path + [self.patch_file.stem])
 
-        patches_txt = self.app_dir / "patches.txt"
-        existing_patches = patches_txt.read_text()
+	    patches_txt = self.app_dir / "patches.txt"
+	    existing_patches = patches_txt.read_text()
 
-        if dotted_path in existing_patches:
-            raise Exception(f"Patch {dotted_path} is already present in patches.txt")
+	    if dotted_path in existing_patches:
+	        raise Exception(f"Patch {dotted_path} is already present in patches.txt")
 
-        self.patch_file.write_text(PATCH_TEMPLATE.format(docstring=self.docstring))
+	    self.patch_file.write_text(PATCH_TEMPLATE.format(docstring=self.docstring))
 
-        with open(patches_txt, "a+") as f:
-            if not existing_patches.endswith("\n"):
-                f.write("\n")  # ensure EOF
-            f.write(dotted_path + "\n")
-        click.echo(f"Created {self.patch_file} and updated patches.txt")
+	    with open(patches_txt, "a+") as f:
+	        if not existing_patches.endswith("\n"):
+	            f.write("\n")  # ensure EOF
+	        f.write(dotted_path + "\n")
+	    click.echo(f"Created {self.patch_file} and updated patches.txt")
 
-    def _create_parent_folder_if_not_exists(self):
-        """
-        Create the parent folder for the patch file if it doesn't already exist.
-        """
-        if not self.patch_dir.exists():
-            click.confirm(
-            	f"Patch folder '{self.patch_dir}' doesn't exist, create it?",
-            	abort=True,
-            	default=True,
-            )
-            self.patch_dir.mkdir()
+	def _create_parent_folder_if_not_exists(self):
+	    """
+	    Create the parent folder for the patch file if it doesn't already exist.
+	    """
+	    if not self.patch_dir.exists():
+	        click.confirm(
+	        	f"Patch folder '{self.patch_dir}' doesn't exist, create it?",
+	        	abort=True,
+	        	default=True,
+	        )
+	        self.patch_dir.mkdir()
 
-        init_py = self.patch_dir / "__init__.py"
-        init_py.touch()
+	    init_py = self.patch_dir / "__init__.py"
+	    init_py.touch()
 
 
 init_template = """
@@ -407,14 +407,14 @@ __version__ = '0.0.1'
 pyproject_template = """[project]
 name = "{app_name}"
 authors = [
-    {{ name = "{app_publisher}", email = "{app_email}"}}
+	{{ name = "{app_publisher}", email = "{app_email}"}}
 ]
 description = "{app_description}"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    # "frappe~=15.0.0" # Installed and managed by bench.
+	# "frappe~=15.0.0" # Installed and managed by bench.
 ]
 
 [build-system]
@@ -663,8 +663,8 @@ name: CI
 
 on:
   push:
-    branches:
-      - develop
+	branches:
+	  - develop
   pull_request:
 
 concurrency:
@@ -673,89 +673,89 @@ concurrency:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    name: Server
+	runs-on: ubuntu-latest
+	strategy:
+	  fail-fast: false
+	name: Server
 
-    services:
-      redis-cache:
-        image: redis:alpine
-        ports:
-          - 13000:6379
-      redis-queue:
-        image: redis:alpine
-        ports:
-          - 11000:6379
-      mariadb:
-        image: mariadb:10.6
-        env:
-          MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+	services:
+	  redis-cache:
+	    image: redis:alpine
+	    ports:
+	      - 13000:6379
+	  redis-queue:
+	    image: redis:alpine
+	    ports:
+	      - 11000:6379
+	  mariadb:
+	    image: mariadb:10.6
+	    env:
+	      MYSQL_ROOT_PASSWORD: root
+	    ports:
+	      - 3306:3306
+	    options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
-    steps:
-      - name: Clone
-        uses: actions/checkout@v3
+	steps:
+	  - name: Clone
+	    uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+	  - name: Setup Python
+	    uses: actions/setup-python@v4
+	    with:
+	      python-version: '3.10'
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          check-latest: true
+	  - name: Setup Node
+	    uses: actions/setup-node@v3
+	    with:
+	      node-version: 18
+	      check-latest: true
 
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
-          restore-keys: |
-            ${{{{ runner.os }}}}-pip-
-            ${{{{ runner.os }}}}-
+	  - name: Cache pip
+	    uses: actions/cache@v2
+	    with:
+	      path: ~/.cache/pip
+	      key: ${{{{ runner.os }}}}-pip-${{{{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}}}
+	      restore-keys: |
+	        ${{{{ runner.os }}}}-pip-
+	        ${{{{ runner.os }}}}-
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: 'echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT'
+	  - name: Get yarn cache directory path
+	    id: yarn-cache-dir-path
+	    run: 'echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT'
 
-      - uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
-          key: ${{{{ runner.os }}}}-yarn-${{{{ hashFiles('**/yarn.lock') }}}}
-          restore-keys: |
-            ${{{{ runner.os }}}}-yarn-
+	  - uses: actions/cache@v3
+	    id: yarn-cache
+	    with:
+	      path: ${{{{ steps.yarn-cache-dir-path.outputs.dir }}}}
+	      key: ${{{{ runner.os }}}}-yarn-${{{{ hashFiles('**/yarn.lock') }}}}
+	      restore-keys: |
+	        ${{{{ runner.os }}}}-yarn-
 
-      - name: Setup
-        run: |
-          pip install frappe-bench
-          bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
-          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
-          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+	  - name: Setup
+	    run: |
+	      pip install frappe-bench
+	      bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
+	      mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+	      mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
-      - name: Install
-        working-directory: /home/runner/frappe-bench
-        run: |
-          bench get-app {app_name} $GITHUB_WORKSPACE
-          bench setup requirements --dev
-          bench new-site --db-root-password root --admin-password admin test_site
-          bench --site test_site install-app {app_name}
-          bench build
-        env:
-          CI: 'Yes'
+	  - name: Install
+	    working-directory: /home/runner/frappe-bench
+	    run: |
+	      bench get-app {app_name} $GITHUB_WORKSPACE
+	      bench setup requirements --dev
+	      bench new-site --db-root-password root --admin-password admin test_site
+	      bench --site test_site install-app {app_name}
+	      bench build
+	    env:
+	      CI: 'Yes'
 
-      - name: Run Tests
-        working-directory: /home/runner/frappe-bench
-        run: |
-          bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app {app_name}
-        env:
-          TYPE: server
+	  - name: Run Tests
+	    working-directory: /home/runner/frappe-bench
+	    run: |
+	      bench --site test_site set-config allow_tests true
+	      bench --site test_site run-tests --app {app_name}
+	    env:
+	      TYPE: server
 """
 
 patches_template = """[pre_model_sync]

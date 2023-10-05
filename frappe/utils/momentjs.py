@@ -1,37 +1,37 @@
 # get data for moment.js
 def update(tz, out):
-    """Update the output dictionary with timezone data.
+	"""Update the output dictionary with timezone data.
 
-    This function takes a timezone and an output dictionary as input.
-    It retrieves the corresponding timezone data from the 'data' dictionary and
-    updates the output dictionary with the retrieved data.
+	This function takes a timezone and an output dictionary as input.
+	It retrieves the corresponding timezone data from the 'data' dictionary and
+	updates the output dictionary with the retrieved data.
 
-    Args:
-        tz (str): The timezone to retrieve data for.
-        out (dict): The output dictionary to update.
-    """
-    ltz = data["links"].get(tz, tz)
-    zone = data["zones"].get(ltz)
-    if not zone:
-        return
+	Args:
+	    tz (str): The timezone to retrieve data for.
+	    out (dict): The output dictionary to update.
+	"""
+	ltz = data["links"].get(tz, tz)
+	zone = data["zones"].get(ltz)
+	if not zone:
+	    return
 
-    out["zones"][ltz] = zone
-    out["links"][tz] = ltz
-    for z in zone:
-        parts = z.split(" ")
-        if parts[1] in data["rules"]:
-            out["rules"][parts[1]] = data["rules"][parts[1]]
+	out["zones"][ltz] = zone
+	out["links"][tz] = ltz
+	for z in zone:
+	    parts = z.split(" ")
+	    if parts[1] in data["rules"]:
+	        out["rules"][parts[1]] = data["rules"][parts[1]]
 
 
 def get_all_timezones():
-    """Return a sorted list of all timezones.
+	"""Return a sorted list of all timezones.
 
-    This function returns a sorted list of all timezones from the 'data' dictionary.
+	This function returns a sorted list of all timezones from the 'data' dictionary.
 
-    Returns:
-        list: A sorted list of all timezones.
-    """
-    return sorted(list(data["zones"]))
+	Returns:
+	    list: A sorted list of all timezones.
+	"""
+	return sorted(list(data["zones"]))
 
 
 data = {

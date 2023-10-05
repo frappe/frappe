@@ -8,337 +8,337 @@ from frappe.utils.password import update_password
 
 
 def before_install():
-    """
-    Reloads various doctypes from the 'core' and 'desk' modules.
+	"""
+	Reloads various doctypes from the 'core' and 'desk' modules.
 
-    This function is responsible for reloading the following doctypes:
-        - doctype_state
-        - docfield
-        - docperm
-        - doctype_action
-        - doctype_link
-        - form_tour_step
-        - form_tour
-        - doctype
+	This function is responsible for reloading the following doctypes:
+	    - doctype_state
+	    - docfield
+	    - docperm
+	    - doctype_action
+	    - doctype_link
+	    - form_tour_step
+	    - form_tour
+	    - doctype
 
-    This function likely performs some setup or initialization tasks before installation.
-    """
-    frappe.reload_doc("core", "doctype", "doctype_state")
-    frappe.reload_doc("core", "doctype", "docfield")
-    frappe.reload_doc("core", "doctype", "docperm")
-    frappe.reload_doc("core", "doctype", "doctype_action")
-    frappe.reload_doc("core", "doctype", "doctype_link")
-    frappe.reload_doc("desk", "doctype", "form_tour_step")
-    frappe.reload_doc("desk", "doctype", "form_tour")
-    frappe.reload_doc("core", "doctype", "doctype")
+	This function likely performs some setup or initialization tasks before installation.
+	"""
+	frappe.reload_doc("core", "doctype", "doctype_state")
+	frappe.reload_doc("core", "doctype", "docfield")
+	frappe.reload_doc("core", "doctype", "docperm")
+	frappe.reload_doc("core", "doctype", "doctype_action")
+	frappe.reload_doc("core", "doctype", "doctype_link")
+	frappe.reload_doc("desk", "doctype", "form_tour_step")
+	frappe.reload_doc("desk", "doctype", "form_tour")
+	frappe.reload_doc("core", "doctype", "doctype")
 
 
 def after_install():
-    """
-    Function to perform various tasks after installation.
-    """
-    create_user_type()
-    install_basic_docs()
+	"""
+	Function to perform various tasks after installation.
+	"""
+	create_user_type()
+	install_basic_docs()
 
-    from frappe.core.doctype.file.utils import make_home_folder
-    from frappe.core.doctype.language.language import sync_languages
+	from frappe.core.doctype.file.utils import make_home_folder
+	from frappe.core.doctype.language.language import sync_languages
 
-    make_home_folder()
-    import_country_and_currency()
-    sync_languages()
+	make_home_folder()
+	import_country_and_currency()
+	sync_languages()
 
-    # save default print setting
-    print_settings = frappe.get_doc("Print Settings")
-    print_settings.save()
+	# save default print setting
+	print_settings = frappe.get_doc("Print Settings")
+	print_settings.save()
 
-    # all roles to admin
-    frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
+	# all roles to admin
+	frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
 
-    # update admin password
-    update_password("Administrator", get_admin_password())
+	# update admin password
+	update_password("Administrator", get_admin_password())
 
-    if not frappe.conf.skip_setup_wizard:
-        # only set home_page if the value doesn't exist in the db
-        if not frappe.db.get_default("desktop:home_page"):
-            frappe.db.set_default("desktop:home_page", "setup-wizard")
-            frappe.db.set_single_value("System Settings", "setup_complete", 0)
+	if not frappe.conf.skip_setup_wizard:
+	    # only set home_page if the value doesn't exist in the db
+	    if not frappe.db.get_default("desktop:home_page"):
+	        frappe.db.set_default("desktop:home_page", "setup-wizard")
+	        frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
-    # clear test log
-    with open(frappe.get_site_path(".test_log"), "w") as f:
-        f.write("")
+	# clear test log
+	with open(frappe.get_site_path(".test_log"), "w") as f:
+	    f.write("")
 
-    add_standard_navbar_items()
+	add_standard_navbar_items()
 
-    frappe.db.commit()
+	frappe.db.commit()
 
 
 def create_user_type():
-    """
-    Function to create user types if they don't already exist.
-    """
-    for user_type in ["System User", "Website User"]:
-        if not frappe.db.exists("User Type", user_type):
-            frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
-            	ignore_permissions=True
-            )
+	"""
+	Function to create user types if they don't already exist.
+	"""
+	for user_type in ["System User", "Website User"]:
+	    if not frappe.db.exists("User Type", user_type):
+	        frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
+	        	ignore_permissions=True
+	        )
 
 
 def install_basic_docs():
-    """
-    Install basic documents in the system.
+	"""
+	Install basic documents in the system.
 
-    This function initializes a list of dictionaries containing various documents
-    such as users, roles, workflow states, workflow actions, and email
-    accounts. It then iterates over each dictionary and tries to insert the
-    document into the system using the 'frappe.get_doc' function. If a
-    'NameError' occurs during the insertion, it is ignored.
-    """
-    # core users / roles
-    install_docs = [
-    	{
-    		"doctype": "User",
-    		"name": "Administrator",
-    		"first_name": "Administrator",
-    		"email": "admin@example.com",
-    		"enabled": 1,
-    		"is_admin": 1,
-    		"roles": [{"role": "Administrator"}],
-    		"thread_notify": 0,
-    		"send_me_a_copy": 0,
-    	},
-    	{
-    		"doctype": "User",
-    		"name": "Guest",
-    		"first_name": "Guest",
-    		"email": "guest@example.com",
-    		"enabled": 1,
-    		"is_guest": 1,
-    		"roles": [{"role": "Guest"}],
-    		"thread_notify": 0,
-    		"send_me_a_copy": 0,
-    	},
-    	{"doctype": "Role", "role_name": "Report Manager"},
-    	{"doctype": "Role", "role_name": "Translator"},
-    	{
-    		"doctype": "Workflow State",
-    		"workflow_state_name": "Pending",
-    		"icon": "question-sign",
-    		"style": "",
-    	},
-    	{
-    		"doctype": "Workflow State",
-    		"workflow_state_name": "Approved",
-    		"icon": "ok-sign",
-    		"style": "Success",
-    	},
-    	{
-    		"doctype": "Workflow State",
-    		"workflow_state_name": "Rejected",
-    		"icon": "remove",
-    		"style": "Danger",
-    	},
-    	{"doctype": "Workflow Action Master", "workflow_action_name": "Approve"},
-    	{"doctype": "Workflow Action Master", "workflow_action_name": "Reject"},
-    	{"doctype": "Workflow Action Master", "workflow_action_name": "Review"},
-    	{
-    		"doctype": "Email Domain",
-    		"domain_name": "example.com",
-    		"email_id": "account@example.com",
-    		"password": "pass",
-    		"email_server": "imap.example.com",
-    		"use_imap": 1,
-    		"smtp_server": "smtp.example.com",
-    	},
-    	{
-    		"doctype": "Email Account",
-    		"domain": "example.com",
-    		"email_id": "notifications@example.com",
-    		"default_outgoing": 1,
-    	},
-    	{
-    		"doctype": "Email Account",
-    		"domain": "example.com",
-    		"email_id": "replies@example.com",
-    		"default_incoming": 1,
-    	},
-    ]
+	This function initializes a list of dictionaries containing various documents
+	such as users, roles, workflow states, workflow actions, and email
+	accounts. It then iterates over each dictionary and tries to insert the
+	document into the system using the 'frappe.get_doc' function. If a
+	'NameError' occurs during the insertion, it is ignored.
+	"""
+	# core users / roles
+	install_docs = [
+		{
+			"doctype": "User",
+			"name": "Administrator",
+			"first_name": "Administrator",
+			"email": "admin@example.com",
+			"enabled": 1,
+			"is_admin": 1,
+			"roles": [{"role": "Administrator"}],
+			"thread_notify": 0,
+			"send_me_a_copy": 0,
+		},
+		{
+			"doctype": "User",
+			"name": "Guest",
+			"first_name": "Guest",
+			"email": "guest@example.com",
+			"enabled": 1,
+			"is_guest": 1,
+			"roles": [{"role": "Guest"}],
+			"thread_notify": 0,
+			"send_me_a_copy": 0,
+		},
+		{"doctype": "Role", "role_name": "Report Manager"},
+		{"doctype": "Role", "role_name": "Translator"},
+		{
+			"doctype": "Workflow State",
+			"workflow_state_name": "Pending",
+			"icon": "question-sign",
+			"style": "",
+		},
+		{
+			"doctype": "Workflow State",
+			"workflow_state_name": "Approved",
+			"icon": "ok-sign",
+			"style": "Success",
+		},
+		{
+			"doctype": "Workflow State",
+			"workflow_state_name": "Rejected",
+			"icon": "remove",
+			"style": "Danger",
+		},
+		{"doctype": "Workflow Action Master", "workflow_action_name": "Approve"},
+		{"doctype": "Workflow Action Master", "workflow_action_name": "Reject"},
+		{"doctype": "Workflow Action Master", "workflow_action_name": "Review"},
+		{
+			"doctype": "Email Domain",
+			"domain_name": "example.com",
+			"email_id": "account@example.com",
+			"password": "pass",
+			"email_server": "imap.example.com",
+			"use_imap": 1,
+			"smtp_server": "smtp.example.com",
+		},
+		{
+			"doctype": "Email Account",
+			"domain": "example.com",
+			"email_id": "notifications@example.com",
+			"default_outgoing": 1,
+		},
+		{
+			"doctype": "Email Account",
+			"domain": "example.com",
+			"email_id": "replies@example.com",
+			"default_incoming": 1,
+		},
+	]
 
-    for d in install_docs:
-        try:
-            frappe.get_doc(d).insert(ignore_if_duplicate=True)
-        except frappe.NameError:
-            pass
+	for d in install_docs:
+	    try:
+	        frappe.get_doc(d).insert(ignore_if_duplicate=True)
+	    except frappe.NameError:
+	        pass
 
 
 def get_admin_password():
-    """
-    Prompt the user to set an administrator password and return it.
+	"""
+	Prompt the user to set an administrator password and return it.
 
-    If the password has already been set in the configuration, return the password.
-    If the password has not been set, recursively call the nested function
-    ask_admin_password() to prompt the user for a password.
+	If the password has already been set in the configuration, return the password.
+	If the password has not been set, recursively call the nested function
+	ask_admin_password() to prompt the user for a password.
 
-    Returns:
-        str: The administrator password.
-    """
-    def ask_admin_password():
-        admin_password = getpass.getpass("Set Administrator password: ")
-        admin_password2 = getpass.getpass("Re-enter Administrator password: ")
-        if not admin_password == admin_password2:
-            print("\nPasswords do not match")
-            return ask_admin_password()
-        return admin_password
+	Returns:
+	    str: The administrator password.
+	"""
+	def ask_admin_password():
+	    admin_password = getpass.getpass("Set Administrator password: ")
+	    admin_password2 = getpass.getpass("Re-enter Administrator password: ")
+	    if not admin_password == admin_password2:
+	        print("\nPasswords do not match")
+	        return ask_admin_password()
+	    return admin_password
 
-    admin_password = frappe.conf.get("admin_password")
-    if not admin_password:
-        return ask_admin_password()
-    return admin_password
+	admin_password = frappe.conf.get("admin_password")
+	if not admin_password:
+	    return ask_admin_password()
+	return admin_password
 
 
 def before_tests():
-    """
-    Execute actions before running tests.
+	"""
+	Execute actions before running tests.
 
-    If any other app is installed, return without executing any actions.
-    Truncate the "Custom Field" and "Event" tables in the database.
-    Clear the cache.
-    If the setup is not complete, call the complete_setup_wizard() function.
-    Enable user signups in the "Website Settings".
-    Commit the database changes.
-    Clear the cache.
-    """
-    if len(frappe.get_installed_apps()) > 1:
-        # don't run before tests if any other app is installed
-        return
+	If any other app is installed, return without executing any actions.
+	Truncate the "Custom Field" and "Event" tables in the database.
+	Clear the cache.
+	If the setup is not complete, call the complete_setup_wizard() function.
+	Enable user signups in the "Website Settings".
+	Commit the database changes.
+	Clear the cache.
+	"""
+	if len(frappe.get_installed_apps()) > 1:
+	    # don't run before tests if any other app is installed
+	    return
 
-    frappe.db.truncate("Custom Field")
-    frappe.db.truncate("Event")
+	frappe.db.truncate("Custom Field")
+	frappe.db.truncate("Event")
 
-    frappe.clear_cache()
+	frappe.clear_cache()
 
-    # complete setup if missing
-    if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
-        complete_setup_wizard()
+	# complete setup if missing
+	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
+	    complete_setup_wizard()
 
-    frappe.db.set_single_value("Website Settings", "disable_signup", 0)
-    frappe.db.commit()
-    frappe.clear_cache()
+	frappe.db.set_single_value("Website Settings", "disable_signup", 0)
+	frappe.db.commit()
+	frappe.clear_cache()
 
 
 def complete_setup_wizard():
-    from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
+	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
 
-    setup_complete(
-    	{
-    		"language": "English",
-    		"email": "test@erpnext.com",
-    		"full_name": "Test User",
-    		"password": "test",
-    		"country": "United States",
-    		"timezone": "America/New_York",
-    		"currency": "USD",
-    	}
-    )
+	setup_complete(
+		{
+			"language": "English",
+			"email": "test@erpnext.com",
+			"full_name": "Test User",
+			"password": "test",
+			"country": "United States",
+			"timezone": "America/New_York",
+			"currency": "USD",
+		}
+	)
 
 
 def add_standard_navbar_items():
-    """
-    Add standard items to the navbar settings.
+	"""
+	Add standard items to the navbar settings.
 
-    This function checks if the settings dropdown and help dropdown already exist.
-    If they don't, it adds them with a list of standard navbar items and help
-    items. Finally, it saves the navbar settings.
-    """
-    navbar_settings = frappe.get_single("Navbar Settings")
+	This function checks if the settings dropdown and help dropdown already exist.
+	If they don't, it adds them with a list of standard navbar items and help
+	items. Finally, it saves the navbar settings.
+	"""
+	navbar_settings = frappe.get_single("Navbar Settings")
 
-    # don't add settings/help options if they're already present
-    if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
-        return
+	# don't add settings/help options if they're already present
+	if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
+	    return
 
-    standard_navbar_items = [
-    	{
-    		"item_label": "My Profile",
-    		"item_type": "Route",
-    		"route": "/app/user-profile",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "My Settings",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.route_to_user()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "Session Defaults",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.setup_session_defaults()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "Reload",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.clear_cache()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "View Website",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.view_website()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "Toggle Full Width",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.toggle_full_width()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "Toggle Theme",
-    		"item_type": "Action",
-    		"action": "new frappe.ui.ThemeSwitcher().show()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_type": "Separator",
-    		"is_standard": 1,
-    		"item_label": "",
-    	},
-    	{
-    		"item_label": "Log out",
-    		"item_type": "Action",
-    		"action": "frappe.app.logout()",
-    		"is_standard": 1,
-    	},
-    ]
+	standard_navbar_items = [
+		{
+			"item_label": "My Profile",
+			"item_type": "Route",
+			"route": "/app/user-profile",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "My Settings",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.route_to_user()",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "Session Defaults",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.setup_session_defaults()",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "Reload",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.clear_cache()",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "View Website",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.view_website()",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "Toggle Full Width",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.toggle_full_width()",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "Toggle Theme",
+			"item_type": "Action",
+			"action": "new frappe.ui.ThemeSwitcher().show()",
+			"is_standard": 1,
+		},
+		{
+			"item_type": "Separator",
+			"is_standard": 1,
+			"item_label": "",
+		},
+		{
+			"item_label": "Log out",
+			"item_type": "Action",
+			"action": "frappe.app.logout()",
+			"is_standard": 1,
+		},
+	]
 
-    standard_help_items = [
-    	{
-    		"item_label": "About",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.show_about()",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "Keyboard Shortcuts",
-    		"item_type": "Action",
-    		"action": "frappe.ui.toolbar.show_shortcuts(event)",
-    		"is_standard": 1,
-    	},
-    	{
-    		"item_label": "Frappe Support",
-    		"item_type": "Route",
-    		"route": "https://frappe.io/support",
-    		"is_standard": 1,
-    	},
-    ]
+	standard_help_items = [
+		{
+			"item_label": "About",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.show_about()",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "Keyboard Shortcuts",
+			"item_type": "Action",
+			"action": "frappe.ui.toolbar.show_shortcuts(event)",
+			"is_standard": 1,
+		},
+		{
+			"item_label": "Frappe Support",
+			"item_type": "Route",
+			"route": "https://frappe.io/support",
+			"is_standard": 1,
+		},
+	]
 
-    navbar_settings.settings_dropdown = []
-    navbar_settings.help_dropdown = []
+	navbar_settings.settings_dropdown = []
+	navbar_settings.help_dropdown = []
 
-    for item in standard_navbar_items:
-        navbar_settings.append("settings_dropdown", item)
+	for item in standard_navbar_items:
+	    navbar_settings.append("settings_dropdown", item)
 
-    for item in standard_help_items:
-        navbar_settings.append("help_dropdown", item)
+	for item in standard_help_items:
+	    navbar_settings.append("help_dropdown", item)
 
-    navbar_settings.save()
+	navbar_settings.save()

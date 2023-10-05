@@ -20,150 +20,150 @@ LDAP_BASE_EXCEPTION = "LDAPException"
 
 
 def _is_ldap_exception(e):
-    """Check if exception is from LDAP library.
+	"""Check if exception is from LDAP library.
 
 	This is a hack but ensures that LDAP is not imported unless it's required. This is tested in
 	unittests in case the exception changes in future.
 	"""
 
-    for t in type(e).__mro__:
-        if t.__name__ == LDAP_BASE_EXCEPTION:
-            return True
+	for t in type(e).__mro__:
+	    if t.__name__ == LDAP_BASE_EXCEPTION:
+	        return True
 
-    return False
+	return False
 
 
 def log_error(
 	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
 ):
-    """Log error to Error Log"""
-    from frappe.monitor import get_trace_id
+	"""Log error to Error Log"""
+	from frappe.monitor import get_trace_id
 
-    # Parameter ALERT:
-    # the title and message may be swapped
-    # the better API for this is log_error(title, message), and used in many cases this way
-    # this hack tries to be smart about whats a title (single line ;-)) and fixes it
+	# Parameter ALERT:
+	# the title and message may be swapped
+	# the better API for this is log_error(title, message), and used in many cases this way
+	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
-    traceback = None
-    if message:
-        if "\n" in title:  # traceback sent as title
-            traceback, title = title, message
-        else:
-            traceback = message
+	traceback = None
+	if message:
+	    if "\n" in title:  # traceback sent as title
+	        traceback, title = title, message
+	    else:
+	        traceback = message
 
-    title = title or "Error"
-    traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
+	title = title or "Error"
+	traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
 
-    if not frappe.db:
-        print(f"Failed to log error in db: {title}")
-        return
+	if not frappe.db:
+	    print(f"Failed to log error in db: {title}")
+	    return
 
-    error_log = frappe.get_doc(
-    	doctype="Error Log",
-    	error=traceback,
-    	method=title,
-    	reference_doctype=reference_doctype,
-    	reference_name=reference_name,
-    	trace_id=get_trace_id(),
-    )
+	error_log = frappe.get_doc(
+		doctype="Error Log",
+		error=traceback,
+		method=title,
+		reference_doctype=reference_doctype,
+		reference_name=reference_name,
+		trace_id=get_trace_id(),
+	)
 
-    if frappe.flags.read_only or defer_insert:
-        error_log.deferred_insert()
-    else:
-        return error_log.insert(ignore_permissions=True)
+	if frappe.flags.read_only or defer_insert:
+	    error_log.deferred_insert()
+	else:
+	    return error_log.insert(ignore_permissions=True)
 
 
 def log_error_snapshot(exception: Exception):
-    """Logs an error message if the exception is not in the EXCLUDE_EXCEPTIONS list
+	"""Logs an error message if the exception is not in the EXCLUDE_EXCEPTIONS list
 or an LDAP exception."""
 
-    if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
-        return
+	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
+	    return
 
-    logger = frappe.logger(with_more_info=True)
+	logger = frappe.logger(with_more_info=True)
 
-    try:
-        log_error(title=str(exception), defer_insert=True)
-        logger.error("New Exception collected in error log")
-    except Exception as e:
-        logger.error(f"Could not take error snapshot: {e}", exc_info=True)
+	try:
+	    log_error(title=str(exception), defer_insert=True)
+	    logger.error("New Exception collected in error log")
+	except Exception as e:
+	    logger.error(f"Could not take error snapshot: {e}", exc_info=True)
 
 
 def get_default_args(func):
-    """Get default arguments of a function from its signature."""
-    signature = inspect.signature(func)
-    return {
-    	k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty
-    }
+	"""Get default arguments of a function from its signature."""
+	signature = inspect.signature(func)
+	return {
+		k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty
+	}
 
 
 def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
-    """
-    Decorate any function to throw error incase of missing output.
+	"""
+	Decorate any function to throw error incase of missing output.
 
-    TODO: Remove keep_quiet flag after testing and fixing sendmail flow.
+	TODO: Remove keep_quiet flag after testing and fixing sendmail flow.
 
-    :param error_message: error message to raise
-    :param error_type: type of error to raise
-    :param keep_quiet: control error raising with external factor.
-    :type error_message: str
-    :type error_type: Exception Class
-    :type keep_quiet: function
+	:param error_message: error message to raise
+	:param error_type: type of error to raise
+	:param keep_quiet: control error raising with external factor.
+	:type error_message: str
+	:type error_type: Exception Class
+	:type keep_quiet: function
 
-    >>> @raise_error_on_no_output("Ingradients missing")
-    ... def get_indradients(_raise_error=1): return
-    ...
-    >>> get_ingradients()
-    `Exception Name`: Ingradients missing
-    """
+	>>> @raise_error_on_no_output("Ingradients missing")
+	... def get_indradients(_raise_error=1): return
+	...
+	>>> get_ingradients()
+	`Exception Name`: Ingradients missing
+	"""
 
-    def decorator_raise_error_on_no_output(func):
+	def decorator_raise_error_on_no_output(func):
 
-        @functools.wraps(func)
-        def wrapper_raise_error_on_no_output(*args, **kwargs):
-            response = func(*args, **kwargs)
-            if callable(keep_quiet) and keep_quiet():
-                return response
+	    @functools.wraps(func)
+	    def wrapper_raise_error_on_no_output(*args, **kwargs):
+	        response = func(*args, **kwargs)
+	        if callable(keep_quiet) and keep_quiet():
+	            return response
 
-            default_kwargs = get_default_args(func)
-            default_raise_error = default_kwargs.get("_raise_error")
-            raise_error = kwargs.get("_raise_error") if "_raise_error" in kwargs else default_raise_error
+	        default_kwargs = get_default_args(func)
+	        default_raise_error = default_kwargs.get("_raise_error")
+	        raise_error = kwargs.get("_raise_error") if "_raise_error" in kwargs else default_raise_error
 
-            if (not response) and raise_error:
-                frappe.throw(error_message, error_type or Exception)
-            return response
+	        if (not response) and raise_error:
+	            frappe.throw(error_message, error_type or Exception)
+	        return response
 
-        return wrapper_raise_error_on_no_output
+	    return wrapper_raise_error_on_no_output
 
-    return decorator_raise_error_on_no_output
+	return decorator_raise_error_on_no_output
 
 
 def guess_exception_source(exception: str) -> str | None:
-    """Attempts to guess source of error based on traceback.
+	"""Attempts to guess source of error based on traceback.
 
-    E.g.
+	E.g.
 
-    - For unhandled exception last python file from apps folder is responsible.
-    - For frappe.throws the exception source is possibly present after skipping
-    frappe.throw frames
-    - For server script the file name is `<serverscript>`
+	- For unhandled exception last python file from apps folder is responsible.
+	- For frappe.throws the exception source is possibly present after skipping
+	frappe.throw frames
+	- For server script the file name is `<serverscript>`
 
-    """
-    with suppress(Exception):
-        installed_apps = frappe.get_installed_apps()
-        app_priority = {app: installed_apps.index(app) for app in installed_apps}
+	"""
+	with suppress(Exception):
+	    installed_apps = frappe.get_installed_apps()
+	    app_priority = {app: installed_apps.index(app) for app in installed_apps}
 
-        APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
-        SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
+	    APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
+	    SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
 
-        apps = Counter()
-        for line in reversed(exception.splitlines()):
-            if SERVER_SCRIPT_FRAME.match(line):
-                return "Server Script"
+	    apps = Counter()
+	    for line in reversed(exception.splitlines()):
+	        if SERVER_SCRIPT_FRAME.match(line):
+	            return "Server Script"
 
-            if matches := APP_NAME_REGEX.match(line):
-                app_name = matches.group("app_name")
-                apps[app_name] += app_priority.get(app_name, 0)
+	        if matches := APP_NAME_REGEX.match(line):
+	            app_name = matches.group("app_name")
+	            apps[app_name] += app_priority.get(app_name, 0)
 
-        if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
-            return f"{probably_source[0][0]} (app)"
+	    if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
+	        return f"{probably_source[0][0]} (app)"

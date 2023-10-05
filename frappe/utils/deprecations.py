@@ -8,20 +8,20 @@ import warnings
 
 
 def deprecated(func):
-    """Decorator to wrap a function/method as deprecated."""
+	"""Decorator to wrap a function/method as deprecated."""
 
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        deprecation_warning(
-        	f"{func.__name__} is deprecated and will be removed in next major version.",
-        	stacklevel=1,
-        )
-        return func(*args, **kwargs)
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+	    deprecation_warning(
+	    	f"{func.__name__} is deprecated and will be removed in next major version.",
+	    	stacklevel=1,
+	    )
+	    return func(*args, **kwargs)
 
-    return wrapper
+	return wrapper
 
 
 def deprecation_warning(message, category=DeprecationWarning, stacklevel=1):
-    """Raises a deprecation warning with the given message and stacklevel."""
+	"""Raises a deprecation warning with the given message and stacklevel."""
 
-    warnings.warn(message=message, category=category, stacklevel=stacklevel + 2)
+	warnings.warn(message=message, category=category, stacklevel=stacklevel + 2)
