@@ -62,7 +62,7 @@ class TypeExporter:
 		self.controller_path = Path(inspect.getfile(get_controller(self.doctype)))
 
 	def export_types(self):
-		self._guess_indetation()
+		self._guess_indentation()
 		new_code = self._generate_code()
 		self._replace_or_add_code(new_code)
 
@@ -192,7 +192,7 @@ class TypeExporter:
 			frappe.msgprint(frappe._("Failed to export python type hints"), alert=True)
 			return False
 
-	def _guess_indetation(
+	def _guess_indentation(
 		self,
 	) -> str:
 		from token import INDENT
